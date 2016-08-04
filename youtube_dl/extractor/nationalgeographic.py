@@ -1,16 +1,19 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from ..utils import (
     smuggle_url,
     url_basename,
     update_url_query,
+    get_element_by_class,
 )
 
 
-class NationalGeographicIE(InfoExtractor):
-    IE_NAME = 'natgeo'
+class NationalGeographicVideoIE(InfoExtractor):
+    IE_NAME = 'natgeo:video'
     _VALID_URL = r'https?://video\.nationalgeographic\.com/.*?'
 
     _TESTS = [
@@ -62,9 +65,9 @@ class NationalGeographicIE(InfoExtractor):
         }
 
 
-class NationalGeographicChannelIE(ThePlatformIE):
-    IE_NAME = 'natgeo:channel'
-    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/videos/(?P<id>[^/?]+)'
+class NationalGeographicIE(ThePlatformIE):
+    IE_NAME = 'natgeo'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/(?:videos|episodes)/(?P<id>[^/?]+)'
 
     _TESTS = [
         {
@@ -95,6 +98,10 @@ class NationalGeographicChannelIE(ThePlatformIE):
             },
             'add_ie': ['ThePlatform'],
         },
+        {
+            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episodes/the-power-of-miracles/',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
@@ -122,3 +129,40 @@ class NationalGeographicChannelIE(ThePlatformIE):
                 {'force_smil_url': True}),
             'display_id': display_id,
         }
+
+
+class NationalGeographicEpisodeGuideIE(ThePlatformIE):
+    IE_NAME = 'natgeo:episodeguide'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?(?P<id>[^/]+)/episode-guide'
+    _TESTS = [
+        {
+            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episode-guide/',
+            'info_dict': {
+                'id': 'the-story-of-god-with-morgan-freeman-season-1',
+                'title': 'The Story of God with Morgan Freeman - Season 1',
+            },
+            'playlist_mincount': 6,
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/underworld-inc/episode-guide/?s=2',
+            'info_dict': {
+                'id': 'underworld-inc-season-2',
+                'title': 'Underworld, Inc. - Season 2',
+            },
+            'playlist_mincount': 7,
+        },
+    ]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        show = get_element_by_class('show', webpage)
+        selected_season = self._search_regex(
+            r'<div[^>]+class="select-seasons[^"]*".*?<a[^>]*>(.*?)</a>',
+            webpage, 'selected season')
+        entries = [
+            self.url_result(self._proto_relative_url(url), 'NationalGeographic')
+            for url in re.findall('(?s)<div[^>]+class="col-inner"[^>]*?>.*?<a[^>]+href="([^"]+)"', webpage)]
+        return self.playlist_result(
+            entries, '%s-%s' % (display_id, selected_season.lower().replace(' ', '-')),
+            '%s - %s' % (show, selected_season))
