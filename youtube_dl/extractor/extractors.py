@@ -491,8 +491,9 @@ from .myvi import MyviIE
 from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
 from .nationalgeographic import (
+    NationalGeographicVideoIE,
     NationalGeographicIE,
-    NationalGeographicChannelIE,
+    NationalGeographicEpisodeGuideIE,
 )
 from .naver import NaverIE
 from .nba import NBAIE
