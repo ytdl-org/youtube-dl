@@ -161,8 +161,8 @@ class NationalGeographicEpisodeGuideIE(ThePlatformIE):
             r'<div[^>]+class="select-seasons[^"]*".*?<a[^>]*>(.*?)</a>',
             webpage, 'selected season')
         entries = [
-            self.url_result(self._proto_relative_url(url), 'NationalGeographic')
-            for url in re.findall('(?s)<div[^>]+class="col-inner"[^>]*?>.*?<a[^>]+href="([^"]+)"', webpage)]
+            self.url_result(self._proto_relative_url(entry_url), 'NationalGeographic')
+            for entry_url in re.findall('(?s)<div[^>]+class="col-inner"[^>]*?>.*?<a[^>]+href="([^"]+)"', webpage)]
         return self.playlist_result(
             entries, '%s-%s' % (display_id, selected_season.lower().replace(' ', '-')),
             '%s - %s' % (show, selected_season))
