@@ -916,7 +916,8 @@ class InfoExtractor(object):
                 if f.get('ext') in ['f4f', 'f4m']:  # Not yet supported
                     preference -= 0.5
 
-            proto_preference = 0 if determine_protocol(f) in ['http', 'https'] else -0.1
+            protocol = f.get('protocol') or determine_protocol(f)
+            proto_preference = 0 if protocol in ['http', 'https'] else (-0.5 if protocol == 'rtsp' else -0.1)
 
             if f.get('vcodec') == 'none':  # audio only
                 preference -= 50
