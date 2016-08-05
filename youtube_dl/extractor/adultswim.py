@@ -86,7 +86,6 @@ class AdultSwimIE(InfoExtractor):
     }, {
         # heroMetadata.trailer
         'url': 'http://www.adultswim.com/videos/decker/inside-decker-a-new-hero/',
-        'md5': '33e9a5d8f646523ce0868ecfb0eed77d',
         'info_dict': {
             'id': 'I0LQFQkaSUaFp8PnAWHhoQ',
             'ext': 'mp4',
