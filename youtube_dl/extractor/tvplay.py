@@ -5,15 +5,17 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_str,
     compat_urlparse,
 )
 from ..utils import (
+    determine_ext,
+    ExtractorError,
+    int_or_none,
     parse_iso8601,
     qualities,
-    determine_ext,
     update_url_query,
-    int_or_none,
 )
 
 
@@ -206,12 +208,15 @@ class TVPlayIE(InfoExtractor):
 
         title = video['title']
 
-        if video.get('is_geo_blocked'):
-            self.report_warning(
-                'This content might not be available in your country due to copyright reasons')
-
-        streams = self._download_json(
-            'http://playapi.mtgx.tv/v1/videos/stream/%s' % video_id, video_id, 'Downloading streams JSON')
+        try:
+            streams = self._download_json(
+                'http://playapi.mtgx.tv/v1/videos/stream/%s' % video_id,
+                video_id, 'Downloading streams JSON')
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                msg = self._parse_json(e.cause.read().decode('utf-8'), video_id)
+                raise ExtractorError(msg['msg'], expected=True)
+            raise
 
         quality = qualities(['hls', 'medium', 'high'])
         formats = []
@@ -251,6 +256,11 @@ class TVPlayIE(InfoExtractor):
                         'url': video_url,
                     })
                 formats.append(fmt)
+
+        if not formats and video.get('is_geo_blocked'):
+            self.raise_geo_restricted(
+                'This content might not be available in your country due to copyright reasons')
+
         self._sort_formats(formats)
 
         # TODO: webvtt in m3u8
