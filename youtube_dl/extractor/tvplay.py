@@ -37,6 +37,9 @@ class TVPlayIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Kādi ir īri? - Viņas melo labāk',
                 'description': 'Baiba apsmej īrus, kādi tie ir un ko viņi dara.',
+                'series': 'Viņas melo labāk',
+                'season': '2.sezona',
+                'season_number': 2,
                 'duration': 25,
                 'timestamp': 1406097056,
                 'upload_date': '20140723',
@@ -49,6 +52,10 @@ class TVPlayIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Moterys meluoja geriau',
                 'description': 'md5:9aec0fc68e2cbc992d2a140bd41fa89e',
+                'series': 'Moterys meluoja geriau',
+                'episode_number': 47,
+                'season': '1 sezonas',
+                'season_number': 1,
                 'duration': 1330,
                 'timestamp': 1403769181,
                 'upload_date': '20140626',
@@ -257,10 +264,19 @@ class TVPlayIE(InfoExtractor):
                 'url': sami_path,
             }]
 
+        series = video.get('format_title')
+        episode_number = int_or_none(video.get('format_position', {}).get('episode'))
+        season = video.get('_embedded', {}).get('season', {}).get('title')
+        season_number = int_or_none(video.get('format_position', {}).get('season'))
+
         return {
             'id': video_id,
             'title': title,
             'description': video.get('description'),
+            'series': series,
+            'episode_number': episode_number,
+            'season': season,
+            'season_number': season_number,
             'duration': int_or_none(video.get('duration')),
             'timestamp': parse_iso8601(video.get('created_at')),
             'view_count': int_or_none(video.get('views', {}).get('total')),
