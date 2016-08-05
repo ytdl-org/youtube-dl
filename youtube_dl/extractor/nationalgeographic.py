@@ -74,7 +74,7 @@ class NationalGeographicIE(ThePlatformIE):
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/videos/uncovering-a-universal-knowledge/',
             'md5': '518c9aa655686cf81493af5cc21e2a04',
             'info_dict': {
-                'id': 'nB5vIAfmyllm',
+                'id': 'vKInpacll2pC',
                 'ext': 'mp4',
                 'title': 'Uncovering a Universal Knowledge',
                 'description': 'md5:1a89148475bf931b3661fcd6ddb2ae3a',
@@ -88,7 +88,7 @@ class NationalGeographicIE(ThePlatformIE):
             'url': 'http://channel.nationalgeographic.com/wild/destination-wild/videos/the-stunning-red-bird-of-paradise/',
             'md5': 'c4912f656b4cbe58f3e000c489360989',
             'info_dict': {
-                'id': '3TmMv9OvGwIR',
+                'id': 'Pok5lWCkiEFA',
                 'ext': 'mp4',
                 'title': 'The Stunning Red Bird of Paradise',
                 'description': 'md5:7bc8cd1da29686be4d17ad1230f0140c',
