@@ -21,6 +21,7 @@ class NaverIE(InfoExtractor):
             'ext': 'mp4',
             'title': '[9월 모의고사 해설강의][수학_김상희] 수학 A형 16~20번',
             'description': '합격불변의 법칙 메가스터디 | 메가스터디 수학 김상희 선생님이 9월 모의고사 수학A형 16번에서 20번까지 해설강의를 공개합니다.',
+            'upload_date': '20130903',
         },
     }, {
         'url': 'http://tvcast.naver.com/v/395837',
@@ -30,6 +31,7 @@ class NaverIE(InfoExtractor):
             'ext': 'mp4',
             'title': '9년이 지나도 아픈 기억, 전효성의 아버지',
             'description': 'md5:5bf200dcbf4b66eb1b350d1eb9c753f7',
+            'upload_date': '20150519',
         },
         'skip': 'Georestricted',
     }]
@@ -47,9 +49,11 @@ class NaverIE(InfoExtractor):
             if error:
                 raise ExtractorError(error, expected=True)
             raise ExtractorError('couldn\'t extract vid and key')
-        video_data = self._download_json('http://play.rmcnmv.naver.com/vod/play/v2.0/' + m_id.group(1), video_id, query={
-            'key': m_id.group(2),
-        })
+        video_data = self._download_json(
+            'http://play.rmcnmv.naver.com/vod/play/v2.0/' + m_id.group(1),
+            video_id, query={
+                'key': m_id.group(2),
+            })
         meta = video_data['meta']
         title = meta['subject']
         formats = []
@@ -100,6 +104,12 @@ class NaverIE(InfoExtractor):
                 'url': caption_url,
             })
 
+        upload_date = self._search_regex(
+            r'<span[^>]+class="date".*?(\d{4}\.\d{2}\.\d{2})',
+            webpage, 'upload date', fatal=False)
+        if upload_date:
+            upload_date = upload_date.replace('.', '')
+
         return {
             'id': video_id,
             'title': title,
@@ -108,4 +118,5 @@ class NaverIE(InfoExtractor):
             'description': self._og_search_description(webpage),
             'thumbnail': meta.get('cover', {}).get('source') or self._og_search_thumbnail(webpage),
             'view_count': int_or_none(meta.get('count')),
+            'upload_date': upload_date,
         }
