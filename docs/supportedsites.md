@@ -142,6 +142,7 @@
  - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
+ - **ComedyCentralShortname**
  - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
  - **Coub**
@@ -247,7 +248,6 @@
  - **FunnyOrDie**
  - **Fusion**
  - **GameInformer**
- - **Gamekings**
  - **GameOne**
  - **gameone:playlist**
  - **Gamersyde**
@@ -415,7 +415,8 @@
  - **MyVidster**
  - **n-tv.de**
  - **natgeo**
- - **natgeo:channel**
+ - **natgeo:episodeguide**
+ - **natgeo:video**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -726,6 +727,7 @@
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
  - **tvp**: Telewizja Polska
+ - **tvp:embed**: Telewizja Polska
  - **tvp:series**
  - **TVPlay**: TV3Play and related services
  - **Tweakers**
@@ -805,6 +807,7 @@
  - **vk:wallpost**
  - **vlive**
  - **Vodlocker**
+ - **VODPlatform**
  - **VoiceRepublic**
  - **VoxMedia**
  - **Vporn**

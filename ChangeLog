@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.06
 
 Core
 * Add support for JSON-LD root list entries (#10203)
