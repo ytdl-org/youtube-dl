@@ -308,6 +308,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_timestamp('25-09-2014'), 1411603200)
         self.assertEqual(unified_timestamp('27.02.2016 17:30'), 1456594200)
         self.assertEqual(unified_timestamp('UNKNOWN DATE FORMAT'), None)
+        self.assertEqual(unified_timestamp('May 16, 2016 11:15 PM'), 1463440500)
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')

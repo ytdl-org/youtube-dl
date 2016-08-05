@@ -1101,7 +1101,7 @@ def unified_timestamp(date_str, day_first=True):
 
     date_str = date_str.replace(',', ' ')
 
-    pm_delta = datetime.timedelta(hours=12 if re.search(r'(?i)PM', date_str) else 0)
+    pm_delta = 12 if re.search(r'(?i)PM', date_str) else 0
     timezone, date_str = extract_timezone(date_str)
 
     # Remove AM/PM + timezone
@@ -1109,13 +1109,13 @@ def unified_timestamp(date_str, day_first=True):
 
     for expression in date_formats(day_first):
         try:
-            dt = datetime.datetime.strptime(date_str, expression) - timezone + pm_delta
+            dt = datetime.datetime.strptime(date_str, expression) - timezone + datetime.timedelta(hours=pm_delta)
             return calendar.timegm(dt.timetuple())
         except ValueError:
             pass
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
-        return calendar.timegm(timetuple.timetuple())
+        return calendar.timegm(timetuple) + pm_delta * 3600
 
 
 def determine_ext(url, default_ext='unknown_video'):
