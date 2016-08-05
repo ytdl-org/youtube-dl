@@ -24,6 +24,7 @@ class TVPIE(InfoExtractor):
             'id': '194536',
             'ext': 'mp4',
             'title': 'Czas honoru, I seria – odc. 13',
+            'description': 'md5:76649d2014f65c99477be17f23a4dead',
         },
     }, {
         'url': 'http://www.tvp.pl/there-can-be-anything-so-i-shortened-it/17916176',
@@ -32,6 +33,16 @@ class TVPIE(InfoExtractor):
             'id': '17916176',
             'ext': 'mp4',
             'title': 'TVP Gorzów pokaże filmy studentów z podroży dookoła świata',
+            'description': 'TVP Gorzów pokaże filmy studentów z podroży dookoła świata',
+        },
+    }, {
+        # page id is not the same as video id(#7799)
+        'url': 'http://vod.tvp.pl/22704887/08122015-1500',
+        'md5': 'cf6a4705dfd1489aef8deb168d6ba742',
+        'info_dict': {
+            'id': '22680786',
+            'ext': 'mp4',
+            'title': 'Wiadomości, 08.12.2015, 15:00',
         },
     }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
@@ -50,6 +61,39 @@ class TVPIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.tvp.info/25511919/trwa-rewolucja-wladza-zdecydowala-sie-na-pogwalcenie-konstytucji',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        page_id = self._match_id(url)
+        webpage = self._download_webpage(url, page_id)
+        video_id = self._search_regex([
+            r'<iframe[^>]+src="[^"]*?object_id=(\d+)',
+            "object_id\s*:\s*'(\d+)'"], webpage, 'video id')
+        return {
+            '_type': 'url_transparent',
+            'url': 'tvp:' + video_id,
+            'description': self._og_search_description(webpage, default=None),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'ie_key': 'TVPEmbed',
+        }
+
+
+class TVPEmbedIE(InfoExtractor):
+    IE_NAME = 'tvp:embed'
+    IE_DESC = 'Telewizja Polska'
+    _VALID_URL = r'(?:tvp:|https?://[^/]+\.tvp\.(?:pl|info)/sess/tvplayer\.php\?.*?object_id=)(?P<id>\d+)'
+
+    _TESTS = [{
+        'url': 'http://www.tvp.pl/sess/tvplayer.php?object_id=22670268',
+        'md5': '8c9cd59d16edabf39331f93bf8a766c7',
+        'info_dict': {
+            'id': '22670268',
+            'ext': 'mp4',
+            'title': 'Panorama, 07.12.2015, 15:40',
+        },
+    }, {
+        'url': 'tvp:22670268',
         'only_matching': True,
     }]
 
