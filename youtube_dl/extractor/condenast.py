@@ -113,11 +113,19 @@ class CondeNastIE(InfoExtractor):
                 'target': params['id'],
             })
         video_id = query['videoId']
+        video_info = None
         info_page = self._download_webpage(
             'http://player.cnevids.com/player/video.js',
-            video_id, 'Downloading video info', query=query)
-        video_info = self._parse_json(self._search_regex(
-            r'loadCallback\(({.+})\)', info_page, 'video info'), video_id)['video']
+            video_id, 'Downloading video info', query=query, fatal=False)
+        if info_page:
+            video_info = self._parse_json(self._search_regex(
+                r'loadCallback\(({.+})\)', info_page, 'video info'), video_id)['video']
+        else:
+            info_page = self._download_webpage(
+                'http://player.cnevids.com/player/loader.js',
+                video_id, 'Downloading loader info', query=query)
+            video_info = self._parse_json(self._search_regex(
+                r'var\s+video\s*=\s*({.+?});', info_page, 'video info'), video_id)
         title = video_info['title']
 
         formats = []
