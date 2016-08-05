@@ -828,41 +828,47 @@ class InfoExtractor(object):
         if not json_ld:
             return {}
         info = {}
-        if json_ld.get('@context') == 'http://schema.org':
-            item_type = json_ld.get('@type')
-            if expected_type is not None and expected_type != item_type:
-                return info
-            if item_type == 'TVEpisode':
-                info.update({
-                    'episode': unescapeHTML(json_ld.get('name')),
-                    'episode_number': int_or_none(json_ld.get('episodeNumber')),
-                    'description': unescapeHTML(json_ld.get('description')),
-                })
-                part_of_season = json_ld.get('partOfSeason')
-                if isinstance(part_of_season, dict) and part_of_season.get('@type') == 'TVSeason':
-                    info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
-                part_of_series = json_ld.get('partOfSeries')
-                if isinstance(part_of_series, dict) and part_of_series.get('@type') == 'TVSeries':
-                    info['series'] = unescapeHTML(part_of_series.get('name'))
-            elif item_type == 'Article':
-                info.update({
-                    'timestamp': parse_iso8601(json_ld.get('datePublished')),
-                    'title': unescapeHTML(json_ld.get('headline')),
-                    'description': unescapeHTML(json_ld.get('articleBody')),
-                })
-            elif item_type == 'VideoObject':
-                info.update({
-                    'url': json_ld.get('contentUrl'),
-                    'title': unescapeHTML(json_ld.get('name')),
-                    'description': unescapeHTML(json_ld.get('description')),
-                    'thumbnail': json_ld.get('thumbnailUrl'),
-                    'duration': parse_duration(json_ld.get('duration')),
-                    'timestamp': unified_timestamp(json_ld.get('uploadDate')),
-                    'filesize': float_or_none(json_ld.get('contentSize')),
-                    'tbr': int_or_none(json_ld.get('bitrate')),
-                    'width': int_or_none(json_ld.get('width')),
-                    'height': int_or_none(json_ld.get('height')),
-                })
+        if not isinstance(json_ld, (list, tuple, dict)):
+            return info
+        if isinstance(json_ld, dict):
+            json_ld = [json_ld]
+        for e in json_ld:
+            if e.get('@context') == 'http://schema.org':
+                item_type = e.get('@type')
+                if expected_type is not None and expected_type != item_type:
+                    return info
+                if item_type == 'TVEpisode':
+                    info.update({
+                        'episode': unescapeHTML(e.get('name')),
+                        'episode_number': int_or_none(e.get('episodeNumber')),
+                        'description': unescapeHTML(e.get('description')),
+                    })
+                    part_of_season = e.get('partOfSeason')
+                    if isinstance(part_of_season, dict) and part_of_season.get('@type') == 'TVSeason':
+                        info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
+                    part_of_series = e.get('partOfSeries')
+                    if isinstance(part_of_series, dict) and part_of_series.get('@type') == 'TVSeries':
+                        info['series'] = unescapeHTML(part_of_series.get('name'))
+                elif item_type == 'Article':
+                    info.update({
+                        'timestamp': parse_iso8601(e.get('datePublished')),
+                        'title': unescapeHTML(e.get('headline')),
+                        'description': unescapeHTML(e.get('articleBody')),
+                    })
+                elif item_type == 'VideoObject':
+                    info.update({
+                        'url': e.get('contentUrl'),
+                        'title': unescapeHTML(e.get('name')),
+                        'description': unescapeHTML(e.get('description')),
+                        'thumbnail': e.get('thumbnailUrl'),
+                        'duration': parse_duration(e.get('duration')),
+                        'timestamp': unified_timestamp(e.get('uploadDate')),
+                        'filesize': float_or_none(e.get('contentSize')),
+                        'tbr': int_or_none(e.get('bitrate')),
+                        'width': int_or_none(e.get('width')),
+                        'height': int_or_none(e.get('height')),
+                    })
+                break
         return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
