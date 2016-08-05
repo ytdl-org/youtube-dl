@@ -1,7 +1,36 @@
 version <unreleased>
 
-Fixed/improved extractors
-- [cbslocal] Fix timestamp parsing (#10213)
+Core
+* Add support for JSON-LD root list entries (#10203)
+* Improve unified_timestamp
+* Lower preference of RTSP formats in generic sorting
++ Add support for multiple properties in _og_search_property
+* Improve password hiding from verbose output
+
+Extractors
++ [adultswim] Add support for trailers (#10235)
+* [archiveorg] Improve extraction (#10219)
++ [jwplatform] Add support for playlists
++ [jwplatform] Add support for relative URLs
+* [jwplatform] Improve audio detection
++ [tvplay] Capture and output native error message
++ [tvplay] Extract series metadata
++ [tvplay] Add support for subtitles (#10194)
+* [tvp] Improve extraction (#7799)
+* [cbslocal] Fix timestamp parsing (#10213)
++ [naver] Add support for subtitles (#8096)
+* [naver] Improve extraction
+* [condenast] Improve extraction
+* [engadget] Relax URL regular expression
+* [5min] Fix extraction
++ [nationalgeographic] Add support for Episode Guide
++ [kaltura] Add support for subtitles
+* [kaltura] Optimize network requests
++ [vodplatform] Add extractor for vod-platform.net
+- [gamekings] Remove extractor
+* [limelight] Extract HTTP formats
+* [ntvru] Fix extraction
++ [comedycentral] Re-add :tds and :thedailyshow shortnames
 
 
 version 2016.08.01
