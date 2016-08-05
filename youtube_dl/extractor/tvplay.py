@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     parse_iso8601,
     qualities,
@@ -226,7 +229,8 @@ class TVPlayIE(InfoExtractor):
                     'ext': ext,
                 }
                 if video_url.startswith('rtmp'):
-                    m = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
+                    m = re.search(
+                        r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
                     if not m:
                         continue
                     fmt.update({
@@ -242,6 +246,17 @@ class TVPlayIE(InfoExtractor):
                 formats.append(fmt)
         self._sort_formats(formats)
 
+        # TODO: webvtt in m3u8
+        subtitles = {}
+        sami_path = video.get('sami_path')
+        if sami_path:
+            lang = self._search_regex(
+                r'_([a-z]{2})\.xml', sami_path, 'lang',
+                default=compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1])
+            subtitles[lang] = [{
+                'url': sami_path,
+            }]
+
         return {
             'id': video_id,
             'title': title,
@@ -251,4 +266,5 @@ class TVPlayIE(InfoExtractor):
             'view_count': int_or_none(video.get('views', {}).get('total')),
             'age_limit': int_or_none(video.get('age_limit', 0)),
             'formats': formats,
+            'subtitles': subtitles,
         }
