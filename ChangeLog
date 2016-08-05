@@ -1,3 +1,9 @@
+version <unreleased>
+
+Fixed/improved extractors
+- [cbslocal] Fix timestamp parsing (#10213)
+
+
 version 2016.08.01
 
 Fixed/improved extractors
@@ -6,6 +12,7 @@ Fixed/improved extractors
 - [limelight] Skip DRM protected videos
 - [safari] Relax regular expressions for URL matching (#10202)
 - [cwtv] Add support for cwtvpr.com (#10196)
+
 
 version 2016.07.30
 

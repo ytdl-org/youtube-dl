@@ -1,12 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import calendar
-import datetime
-
 from .anvato import AnvatoIE
 from .sendtonews import SendtoNewsIE
 from ..compat import compat_urlparse
+from ..utils import unified_timestamp
 
 
 class CBSLocalIE(AnvatoIE):
@@ -71,10 +69,7 @@ class CBSLocalIE(AnvatoIE):
 
         time_str = self._html_search_regex(
             r'class="entry-date">([^<]+)<', webpage, 'released date', fatal=False)
-        timestamp = None
-        if time_str:
-            timestamp = calendar.timegm(datetime.datetime.strptime(
-                time_str, '%b %d, %Y %I:%M %p').timetuple())
+        timestamp = unified_timestamp(time_str)
 
         info_dict.update({
             'display_id': display_id,
