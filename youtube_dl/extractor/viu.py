@@ -100,7 +100,7 @@ class ViuIE(InfoExtractor):
         current_product = info['current_product']
         series = info.get('series')
         
-        title = '%s %s [%s]' % (series.get('name'), current_product.get('number'), current_product['synopsis'])
+        title = '%s %s [%s]' % (series.get('name'), current_product.get('number'), current_product.get('synopsis'))
         
         #stream info
         ccs_product_id = current_product['ccs_product_id']
@@ -123,7 +123,7 @@ class ViuIE(InfoExtractor):
                 'format': 'hls with mpeg2-ts segments',
                 'format_id': key,
                 'height': int(height) if height is not None else None,
-                'filesize_approx': int(sizes.get(key)) if sizes.get(key) is not None else None
+                'filesize_approx': int(sizes.get(key)) if sizes and sizes.get(key) is not None else None
             })
         
         #populate subtitles
