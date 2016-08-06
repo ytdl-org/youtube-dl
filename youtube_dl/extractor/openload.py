@@ -1,15 +1,14 @@
 # coding: utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
 
-import re
+import math
 
 from .common import InfoExtractor
 from ..compat import compat_chr
 from ..utils import (
+    decode_png,
     determine_ext,
-    encode_base_n,
     ExtractorError,
-    mimetype2ext,
 )
 
 
@@ -41,60 +40,6 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    @staticmethod
-    def openload_level2_debase(m):
-        radix, num = int(m.group(1)) + 27, int(m.group(2))
-        return '"' + encode_base_n(num, radix) + '"'
-
-    @classmethod
-    def openload_level2(cls, txt):
-        # The function name is ǃ \u01c3
-        # Using escaped unicode literals does not work in Python 3.2
-        return re.sub(r'ǃ\((\d+),(\d+)\)', cls.openload_level2_debase, txt, re.UNICODE).replace('"+"', '')
-
-    # Openload uses a variant of aadecode
-    # openload_decode and related functions are originally written by
-    # vitas@matfyz.cz and released with public domain
-    # See https://github.com/rg3/youtube-dl/issues/8489
-    @classmethod
-    def openload_decode(cls, txt):
-        symbol_table = [
-            ('_', '(ﾟДﾟ) [ﾟΘﾟ]'),
-            ('a', '(ﾟДﾟ) [ﾟωﾟﾉ]'),
-            ('b', '(ﾟДﾟ) [ﾟΘﾟﾉ]'),
-            ('c', '(ﾟДﾟ) [\'c\']'),
-            ('d', '(ﾟДﾟ) [ﾟｰﾟﾉ]'),
-            ('e', '(ﾟДﾟ) [ﾟДﾟﾉ]'),
-            ('f', '(ﾟДﾟ) [1]'),
-
-            ('o', '(ﾟДﾟ) [\'o\']'),
-            ('u', '(oﾟｰﾟo)'),
-            ('c', '(ﾟДﾟ) [\'c\']'),
-
-            ('7', '((ﾟｰﾟ) + (o^_^o))'),
-            ('6', '((o^_^o) +(o^_^o) +(c^_^o))'),
-            ('5', '((ﾟｰﾟ) + (ﾟΘﾟ))'),
-            ('4', '(-~3)'),
-            ('3', '(-~-~1)'),
-            ('2', '(-~1)'),
-            ('1', '(-~0)'),
-            ('0', '((c^_^o)-(c^_^o))'),
-        ]
-        delim = '(ﾟДﾟ)[ﾟεﾟ]+'
-        ret = ''
-        for aachar in txt.split(delim):
-            for val, pat in symbol_table:
-                aachar = aachar.replace(pat, val)
-            aachar = aachar.replace('+ ', '')
-            m = re.match(r'^\d+', aachar)
-            if m:
-                ret += compat_chr(int(m.group(0), 8))
-            else:
-                m = re.match(r'^u([\da-f]+)', aachar)
-                if m:
-                    ret += compat_chr(int(m.group(1), 16))
-        return cls.openload_level2(ret)
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
@@ -102,29 +47,77 @@ class OpenloadIE(InfoExtractor):
         if 'File not found' in webpage:
             raise ExtractorError('File not found', expected=True)
 
-        code = self._search_regex(
-            r'</video>\s*</div>\s*<script[^>]+>[^>]+</script>\s*<script[^>]+>([^<]+)</script>',
-            webpage, 'JS code')
+        # The following extraction logic is proposed by @Belderak and @gdkchan
+        # and declared to be used freely in youtube-dl
+        # See https://github.com/rg3/youtube-dl/issues/9706
 
-        decoded = self.openload_decode(code)
+        numbers_js = self._download_webpage(
+            'https://openload.co/assets/js/obfuscator/n.js', video_id,
+            note='Downloading signature numbers')
+        signums = self._search_regex(
+            r'window\.signatureNumbers\s*=\s*[\'"](?P<data>[a-z]+)[\'"]',
+            numbers_js, 'signature numbers', group='data')
 
-        video_url = self._search_regex(
-            r'return\s+"(https?://[^"]+)"', decoded, 'video URL')
+        linkimg_uri = self._search_regex(
+            r'<img[^>]+id="linkimg"[^>]+src="([^"]+)"', webpage, 'link image')
+        linkimg = self._request_webpage(
+            linkimg_uri, video_id, note=False).read()
+
+        width, height, pixels = decode_png(linkimg)
+
+        output = ''
+        for y in range(height):
+            for x in range(width):
+                r, g, b = pixels[y][3 * x:3 * x + 3]
+                if r == 0 and g == 0 and b == 0:
+                    break
+                else:
+                    output += compat_chr(r)
+                    output += compat_chr(g)
+                    output += compat_chr(b)
+
+        img_str_length = len(output) // 200
+        img_str = [[0 for x in range(img_str_length)] for y in range(10)]
+
+        sig_str_length = len(signums) // 260
+        sig_str = [[0 for x in range(sig_str_length)] for y in range(10)]
+
+        for i in range(10):
+            for j in range(img_str_length):
+                begin = i * img_str_length * 20 + j * 20
+                img_str[i][j] = output[begin:begin + 20]
+            for j in range(sig_str_length):
+                begin = i * sig_str_length * 26 + j * 26
+                sig_str[i][j] = signums[begin:begin + 26]
+
+        parts = []
+        # TODO: find better names for str_, chr_ and sum_
+        str_ = ''
+        for i in [2, 3, 5, 7]:
+            str_ = ''
+            sum_ = float(99)
+            for j in range(len(sig_str[i])):
+                for chr_idx in range(len(img_str[i][j])):
+                    if sum_ > float(122):
+                        sum_ = float(98)
+                    chr_ = compat_chr(int(math.floor(sum_)))
+                    if sig_str[i][j][chr_idx] == chr_ and j >= len(str_):
+                        sum_ += float(2.5)
+                        str_ += img_str[i][j][chr_idx]
+            parts.append(str_.replace(',', ''))
+
+        video_url = 'https://openload.co/stream/%s~%s~%s~%s' % (parts[3], parts[1], parts[2], parts[0])
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
             'title', default=None) or self._html_search_meta(
             'description', webpage, 'title', fatal=True)
 
-        ext = mimetype2ext(self._search_regex(
-            r'window\.vt\s*=\s*(["\'])(?P<mimetype>.+?)\1', decoded,
-            'mimetype', default=None, group='mimetype')) or determine_ext(
-            video_url, 'mp4')
-
         return {
             'id': video_id,
             'title': title,
-            'ext': ext,
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
+            # Seems all videos have extensions in their titles
+            'ext': determine_ext(title),
         }
