@@ -39,7 +39,7 @@ from .update import update_self
 from .downloader import (
     FileDownloader,
 )
-from .extractor import gen_extractors, list_extractors
+from .extractor import gen_extractors, list_extractors, add_extractors
 from .YoutubeDL import YoutubeDL
 
 
@@ -54,6 +54,10 @@ def _real_main(argv=None):
     setproctitle('youtube-dl')
 
     parser, opts, args = parseOpts(argv)
+
+
+    from .autoload import load_dynamic_extractors
+    add_extractors( load_dynamic_extractors(opts.module_dir) )
 
     # Set user agent
     if opts.user_agent is not None:
