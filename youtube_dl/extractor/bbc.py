@@ -835,6 +835,14 @@ class BBCIE(BBCCoUkIE):
                                         continue
                                     raise
 
+        playlist_title = self._og_search_title(webpage, default=None)
+        playlist_title = playlist_title or self._html_search_regex(
+            r'<title>(.*?)</title>', webpage, 'playlist title')
+
+        playlist_title = self._search_regex(r'(.+)\s*-\s*BBC', playlist_title, 'title', default=playlist_title)
+
+        playlist_description = self._og_search_description(webpage, default=None)
+
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
