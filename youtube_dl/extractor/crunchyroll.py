@@ -1,7 +1,9 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import random
 import re
+import string
 import json
 import base64
 import zlib
@@ -36,10 +38,18 @@ from ..aes import (
 class CrunchyrollBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'crunchyroll'
 
+    def __init__(self, *args, **kwargs):
+        super(CrunchyrollBaseIE, self).__init__(*args, **kwargs)
+        self.api_session_id = None
+        self.api_session_auth = None
+        self.api_device_id = ''.join(random.sample(string.ascii_letters + string.digits, 32))
+
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
             return
+
+        # Log into main website
         self.report_login()
         login_url = 'https://www.crunchyroll.com/?a=formhandler'
         data = urlencode_postdata({
@@ -50,6 +60,41 @@ class CrunchyrollBaseIE(InfoExtractor):
         login_request = sanitized_Request(login_url, data)
         login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(login_request, None, False, 'Wrong login info')
+
+        # Start session with mobile API
+        res = self._api_call(
+            'start_session',
+            {
+                'device_id': self.api_device_id,
+                'device_type': 'com.crunchyroll.iphone',
+                'access_token': 'QWjz212GspMHH9h'
+            },
+            video_id=None,
+            note='Starting session with mobile API',
+            errnote='Could not start session with mobile API',
+            # If mobile API fails, we can always fall back on the regular website
+            fatal=False
+        )
+
+        if res is not None:
+            self.api_session_id = res.get('data', {'session_id': None}).get('session_id')
+
+            # Log into mobile API
+            res = self._api_call(
+                'login',
+                {
+                    'account': username,
+                    'password': password
+                },
+                video_id=None,
+                note='Logging in to mobile API',
+                errnote='Could not log into mobile API',
+                # If mobile API fails, we can always fall back on the regular website
+                fatal=False
+            )
+
+            if res is not None:
+                self.api_session_auth = res.get('data', {'auth': None}).get('auth')
 
     def _real_initialize(self):
         self._login()
@@ -66,6 +111,42 @@ class CrunchyrollBaseIE(InfoExtractor):
         # the locale lang first in header. However allowing any language seems to workaround the issue.
         request.add_header('Accept-Language', '*')
         return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
+
+    def _api_call(self, entrypoint, params, video_id, *args, **kwargs):
+        '''Makes a call against the api.
+
+        :param entrypoint: API method to call.
+        :param params: parameters to include in the request data.
+        :param schema: schema to use to validate the data
+
+        Source adapted from:
+        https://github.com/chrippa/livestreamer/blob/develop/src/livestreamer/plugins/crunchyroll.py
+        Copyright (c) 2011-2015, Christopher Rosell
+        License: https://github.com/chrippa/livestreamer/blob/develop/LICENSE
+        '''
+
+        url = 'https://api.crunchyroll.com/{0}.0.json'.format(entrypoint)
+
+        # Default params
+        params = dict(params)
+        params.update({
+            'version': '2313.8',
+            'locale': 'enUS',
+        })
+
+        if self.api_session_id:
+            params["session_id"] = self.api_session_id
+
+        # Headers
+        headers = {
+            'Host': 'api.crunchyroll.com',
+            'Accept-Encoding': 'gzip, deflzate',
+            'Accept': '*/*',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        headers['User-Agent'] = 'Mozilla/5.0 (iPhone; iPhone OS 8.3.0; en_US)'
+
+        return self._download_json(url, video_id, query=params, headers=headers, *args, **kwargs)
 
     @staticmethod
     def _add_skip_wall(url):
@@ -87,7 +168,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
             'id': '645513',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Wanna be the Strongest in the World Episode 1 – An Idol-Wrestler is Born!',
             'description': 'md5:2d17137920c64f2f49981a7797d275ef',
             'thumbnail': 'http://img1.ak.crunchyroll.com/i/spire1-tmb/20c6b5e10f1a47b10516877d3c039cae1380951166_full.jpg',
@@ -96,7 +177,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'url': 're:(?!.*&amp)',
         },
         'params': {
-            # rtmp
+            # m3u8 download
             'skip_download': True,
         },
     }, {
@@ -143,6 +224,22 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         '480': ('61', '106'),
         '720': ('62', '106'),
         '1080': ('80', '108'),
+    }
+
+    # Crunchyroll does not give us bitrate data for the RTMP sources,
+    # so by default self._sort_formats() will put the HLS streams first.
+    # However, the HLS streams are actually a lower bitrate than their
+    # RTMP counterparts.
+    _FORMAT_QUALITY = {
+        'ultralow': 2,
+        'low': 3,
+        '360p': 4,
+        'mid': 5,
+        '480p': 6,
+        'high': 7,
+        '720p': 8,
+        'ultra': 9,
+        '1080p': 10
     }
 
     def _decrypt_subtitles(self, data, iv, id):
@@ -281,6 +378,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
 
+        # Fetch mobile webpage
         if mobj.group('prefix') == 'm':
             mobile_webpage = self._download_webpage(url, video_id, 'Downloading mobile webpage')
             webpage_url = self._search_regex(r'<link rel="canonical" href="([^"]+)" />', mobile_webpage, 'webpage_url')
@@ -303,6 +401,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if 'To view this, please log in to verify you are 18 or older.' in webpage:
             self.raise_login_required()
 
+        # Extract title, description, and other metadata
+        # from the mobile pagedlist
         video_title = self._html_search_regex(
             r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
             webpage, 'video_title')
@@ -321,6 +421,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
             'video_uploader', fatal=False)
 
+        # Extract the available RTMP formats
         available_fmts = []
         for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
             attrs = extract_attributes(a)
@@ -335,6 +436,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     break
         video_encode_ids = []
         formats = []
+        # Process the RTMP formats
         for fmt in available_fmts:
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
@@ -347,6 +449,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 streamdata_req, video_id,
                 note='Downloading media info for %s' % video_format)
             stream_info = streamdata.find('./{default}preload/stream_info')
+
             video_encode_id = xpath_text(stream_info, './video_encode_id')
             if video_encode_id in video_encode_ids:
                 continue
@@ -367,9 +470,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             metadata = stream_info.find('./metadata')
             format_info = {
                 'format': video_format,
-                'format_id': video_format,
+                'format_id': 'rtmp-' + video_format,
                 'height': int_or_none(xpath_text(metadata, './height')),
                 'width': int_or_none(xpath_text(metadata, './width')),
+                'quality': self._FORMAT_QUALITY[video_format]
             }
 
             if '.fplive.net/' in video_url:
@@ -391,6 +495,49 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'ext': 'flv',
             })
             formats.append(format_info)
+
+        # Fetch HLS formats from the API
+        api_info = self._api_call('info', {
+            'media_id': video_id,
+            'fields': 'media.stream_data'
+        }, video_id)
+
+        available_fmts = (api_info
+                          .get('data', {'stream_data': {'streams': []}})
+                          .get('stream_data', {'streams': []})
+                          .get('streams', []))
+        for fmt in available_fmts:
+            # Crunchyroll has a mysterious format with quality None, that is
+            # lower resolution than even "low" quality
+            if fmt['quality'] is None:
+                fmt['quality'] = 'ultralow'
+            # Ignore the "adaptive" format, which is just a single HLS URL
+            # that duplicates all the others
+            elif fmt['quality'] == 'adaptive':
+                continue
+
+            m3u8_formats = self._extract_m3u8_formats(
+                fmt.get('url'),
+                video_id,
+            )
+
+            for m3u8_fmt in m3u8_formats:
+                m3u8_fmt['quality'] = self._FORMAT_QUALITY[fmt['quality']]
+
+                if m3u8_fmt['format_id']:
+                    m3u8_fmt['format_id'] = 'hls-%s-%s' % (fmt['quality'], m3u8_fmt['format_id'])
+                else:
+                    m3u8_fmt['format_id'] = 'hls-%s' % (fmt['quality'])
+
+                if fmt.get('height') is not None:
+                    m3u8_fmt['height'] = int_or_none(fmt['height'])
+                if fmt.get('width') is not None:
+                    m3u8_fmt['width'] = int_or_none(fmt['width'])
+                if fmt.get('bitrate') is not None:
+                    m3u8_fmt['tbr'] = int_or_none(fmt['bitrate'])
+
+            formats.extend(m3u8_formats)
+
         self._sort_formats(formats)
 
         metadata = self._download_xml(
