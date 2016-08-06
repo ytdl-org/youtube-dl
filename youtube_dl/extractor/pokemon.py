@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class PokemonIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pokemon\.com/[a-z]{2}(?:.*?play=(?P<id>[a-z0-9]{32})|/pokemon-episodes/(?P<display_id>[^/?#]+))'
+    _VALID_URL = r'https?://(?:www\.)?pokemon\.com/[a-z]{2}(?:.*?play=(?P<id>[a-z0-9]{32})|/[^/]+/\d+_\d+-(?P<display_id>[^/?#]+))'
     _TESTS = [{
         'url': 'http://www.pokemon.com/us/pokemon-episodes/19_01-from-a-to-z/?play=true',
         'md5': '9fb209ae3a569aac25de0f5afc4ee08f',
@@ -26,6 +26,12 @@ class PokemonIE(InfoExtractor):
         'add_id': ['LimelightMedia']
     }, {
         'url': 'http://www.pokemon.com/uk/pokemon-episodes/?play=2e8b5c761f1d4a9286165d7748c1ece2',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.pokemon.com/fr/episodes-pokemon/18_09-un-hiver-inattendu/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.pokemon.com/de/pokemon-folgen/01_20-bye-bye-smettbo/',
         'only_matching': True,
     }]
 
