@@ -2341,6 +2341,11 @@ class GenericIE(InfoExtractor):
                 return self.url_result(embed_url)
 
         if not found:
+            # Last resort: just look for anything that looks like a media URL
+            found = set(re.findall(
+                r'\b((?:https?:)?//[A-Za-z0-9.:[\]]+/[A-Za-z0-9\-\._~:/()*+,;=%]+\.(?:mp3|mp4|flv|m3u8|smil)(?:\?[A-Za-z0-9\-\._~:/[\]()*+,;=%]*)?)\b',
+                webpage))
+        if not found:
             raise UnsupportedError(url)
 
         entries = []
