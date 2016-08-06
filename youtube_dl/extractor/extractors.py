@@ -194,7 +194,10 @@ from .daum import (
     DaumPlaylistIE,
     DaumUserIE,
 )
-from .dbtv import DBTVIE
+from .dbtv import (
+    DBTVIE,
+    DagbladetArticleIE,
+)
 from .dcn import (
     DCNIE,
     DCNVideoIE,
