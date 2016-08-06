@@ -294,6 +294,7 @@ class BBCCoUkIE(InfoExtractor):
     def _process_media_selector(self, media_selection, programme_id):
         formats = []
         subtitles = None
+        urls = []
 
         for media in self._extract_medias(media_selection):
             kind = media.get('kind')
@@ -305,10 +306,14 @@ class BBCCoUkIE(InfoExtractor):
                 height = int_or_none(media.get('height'))
                 file_size = int_or_none(media.get('media_file_size'))
                 for connection in self._extract_connections(media):
+                    href = connection.get('href')
+                    if href in urls:
+                        continue
+                    if href:
+                        urls.append(href)
                     conn_kind = connection.get('kind')
                     protocol = connection.get('protocol')
                     supplier = connection.get('supplier')
-                    href = connection.get('href')
                     transfer_format = connection.get('transferFormat')
                     format_id = supplier or conn_kind or protocol
                     if service:
@@ -331,6 +336,8 @@ class BBCCoUkIE(InfoExtractor):
                         formats.extend(self._extract_f4m_formats(
                             href, programme_id, f4m_id=format_id, fatal=False))
                     else:
+                        if bitrate:
+                            format_id += '-%d' %  bitrate
                         fmt = {
                             'format_id': format_id,
                             'filesize': file_size,
