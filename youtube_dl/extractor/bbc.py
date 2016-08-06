@@ -578,7 +578,7 @@ class BBCIE(BBCCoUkIE):
         'info_dict': {
             'id': '150615_telabyad_kentin_cogu',
             'ext': 'mp4',
-            'title': "Tel Abyad'da IŞİD bayrağı indirildi YPG bayrağı çekildi",
+            'title': "YPG: Tel Abyad'ın tamamı kontrolümüzde",
             'description': 'md5:33a4805a855c9baf7115fcbde57e7025',
             'timestamp': 1434397334,
             'upload_date': '20150615',
