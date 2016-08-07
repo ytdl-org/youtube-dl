@@ -42,6 +42,7 @@ from youtube_dl.utils import (
     ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
+    parse_age_limit,
     parse_duration,
     parse_filesize,
     parse_count,
@@ -431,6 +432,20 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             url_basename('http://media.w3.org/2010/05/sintel/trailer.mp4'),
             'trailer.mp4')
+
+    def test_parse_age_limit(self):
+        self.assertEqual(parse_age_limit(None), None)
+        self.assertEqual(parse_age_limit(False), None)
+        self.assertEqual(parse_age_limit('invalid'), None)
+        self.assertEqual(parse_age_limit(0), 0)
+        self.assertEqual(parse_age_limit(18), 18)
+        self.assertEqual(parse_age_limit(21), 21)
+        self.assertEqual(parse_age_limit(22), None)
+        self.assertEqual(parse_age_limit('18'), 18)
+        self.assertEqual(parse_age_limit('18+'), 18)
+        self.assertEqual(parse_age_limit('PG-13'), 13)
+        self.assertEqual(parse_age_limit('TV-14'), 14)
+        self.assertEqual(parse_age_limit('TV-MA'), 17)
 
     def test_parse_duration(self):
         self.assertEqual(parse_duration(None), None)

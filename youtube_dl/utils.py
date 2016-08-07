@@ -1984,11 +1984,27 @@ US_RATINGS = {
 }
 
 
+TV_PARENTAL_GUIDELINES = {
+    'TV-Y': 0,
+    'TV-Y7': 7,
+    'TV-G': 0,
+    'TV-PG': 0,
+    'TV-14': 14,
+    'TV-MA': 17,
+}
+
+
 def parse_age_limit(s):
-    if s is None:
+    if type(s) == int:
+        return s if 0 <= s <= 21 else None
+    if not isinstance(s, compat_basestring):
         return None
     m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
-    return int(m.group('age')) if m else US_RATINGS.get(s)
+    if m:
+        return int(m.group('age'))
+    if s in US_RATINGS:
+        return US_RATINGS[s]
+    return TV_PARENTAL_GUIDELINES.get(s)
 
 
 def strip_jsonp(code):
