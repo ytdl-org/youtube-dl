@@ -339,7 +339,7 @@ class BBCCoUkIE(InfoExtractor):
                             href, programme_id, f4m_id=format_id, fatal=False))
                     else:
                         if not service and not supplier and bitrate:
-                            format_id += '-%d' %  bitrate
+                            format_id += '-%d' % bitrate
                         fmt = {
                             'format_id': format_id,
                             'filesize': file_size,
@@ -945,7 +945,7 @@ class BBCIE(BBCCoUkIE):
             r'setPlaylist\("(%s)"\)' % EMBED_URL, webpage))
         if entries:
             return self.playlist_result(
-                [self.url_result(entry, 'BBCCoUk') for entry in entries],
+                [self.url_result(entry_, 'BBCCoUk') for entry_ in entries],
                 playlist_id, playlist_title, playlist_description)
 
         # Multiple video article (e.g. http://www.bbc.com/news/world-europe-32668511)
