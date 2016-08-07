@@ -636,6 +636,7 @@ from .pluralsight import (
 )
 from .podomatic import PodomaticIE
 from .polskieradio import PolskieRadioIE
+from .porn import PornIE
 from .porn91 import Porn91IE
 from .pornhd import PornHdIE
 from .pornhub import (
@@ -644,7 +645,6 @@ from .pornhub import (
     PornHubUserVideosIE,
 )
 
-from .porn import PornIE
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
