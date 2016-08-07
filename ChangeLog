@@ -1,3 +1,29 @@
+version <unreleased>
+
+Core
++ Add support for TV Parental Guidelines ratings in parse_age_limit
++ Add decode_png (#9706)
++ Add support for partOfTVSeries in JSON-LD
+* Lower master M3U8 manifest preference for better format sorting
+
+Extractors
++ [discoverygo] Add extractor (#10245)
+* [flipagram] Make JSON-LD extraction non fatal
+* [generic] Make JSON-LD extraction non fatal
++ [bbc] Add support for morph embeds (#10239)
+* [tnaflixnetworkbase] Improve title extraction
+* [tnaflix] Fix metadata extraction (#10249)
+* [fox] Fix theplatform release URL query
+* [openload] Fix extraction (#9706)
+* [bbc] Skip duplicate manifest URLs
+* [bbc] Improve format code
++ [bbc] Add support for DASH and F4M
+* [bbc] Improve format sorting and listing
+* [bbc] Improve playlist extraction
++ [pokemon] Add extractor (#10093)
++ [condenast] Add fallback scenario for video info extraction
+
+
 version 2016.08.06
 
 Core
