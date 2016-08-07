@@ -660,7 +660,6 @@ class BBCIE(BBCCoUkIE):
         'params': {
             # m3u8 download
             'skip_download': True,
-            'proxy': '5.101.173.158:8080',
         },
         'skip': 'Georestricted to UK',
     }, {
