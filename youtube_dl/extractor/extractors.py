@@ -308,6 +308,7 @@ from .globo import (
     GloboIE,
     GloboArticleIE,
 )
+from .go90 import Go90IE
 from .godtube import GodTubeIE
 from .godtv import GodTVIE
 from .goldenmoustache import GoldenMoustacheIE
