@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.07
 
 Core
 + Add support for TV Parental Guidelines ratings in parse_age_limit

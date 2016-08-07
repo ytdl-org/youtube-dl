@@ -182,6 +182,7 @@
  - **DigitallySpeaking**
  - **Digiteka**
  - **Discovery**
+ - **DiscoveryGo**
  - **Dotsub**
  - **DouyuTV**: 斗鱼
  - **DPlay**
@@ -518,6 +519,7 @@
  - **plus.google**: Google Plus
  - **pluzz.francetv.fr**
  - **podomatic**
+ - **Pokemon**
  - **PolskieRadio**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
