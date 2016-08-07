@@ -3,7 +3,7 @@
     <link rel="self" href="http://rg3.github.io/youtube-dl/update/releases.atom" />
     <title>youtube-dl releases</title>
     <id>https://yt-dl.org/feed/youtube-dl-updates-feed</id>
-    <updated>2016-08-06T01:25:35.997976Z</updated>
+    <updated>2016-08-07T21:15:12.781125Z</updated>
     
 	<entry>
 	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2012.02.22</id>
@@ -10158,6 +10158,21 @@
 	        <name>The youtube-dl maintainers</name>
 	    </author>
 	    <updated>2016-08-06T00:00:00Z</updated>
+	</entry>
+
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2016.08.07</id>
+	    <title>New version 2016.08.07</title>
+	    <link href="http://rg3.github.io/youtube-dl" />
+	    <content type="xhtml">
+	        <div xmlns="http://www.w3.org/1999/xhtml">
+	            Downloads available at <a href="https://yt-dl.org/downloads/2016.08.07/">https://yt-dl.org/downloads/2016.08.07/</a>
+	        </div>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2016-08-07T00:00:00Z</updated>
 	</entry>
 
 </feed>
