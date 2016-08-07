@@ -336,7 +336,7 @@ class BBCCoUkIE(InfoExtractor):
                         formats.extend(self._extract_f4m_formats(
                             href, programme_id, f4m_id=format_id, fatal=False))
                     else:
-                        if bitrate:
+                        if not service and not supplier and bitrate:
                             format_id += '-%d' %  bitrate
                         fmt = {
                             'format_id': format_id,
