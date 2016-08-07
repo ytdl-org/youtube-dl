@@ -118,8 +118,12 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
             xpath_text(cfg_xml, './startThumb', 'thumbnail'), 'http:')
         thumbnails = self._extract_thumbnails(cfg_xml)
 
-        title = self._html_search_regex(
-            self._TITLE_REGEX, webpage, 'title') if self._TITLE_REGEX else self._og_search_title(webpage)
+        title = None
+        if self._TITLE_REGEX:
+            title = self._html_search_regex(
+                self._TITLE_REGEX, webpage, 'title', default=None)
+        if not title:
+            title = self._og_search_title(webpage)
 
         age_limit = self._rta_search(webpage) or 18
 
