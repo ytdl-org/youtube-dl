@@ -756,6 +756,7 @@ from .smotri import (
 )
 from .snotr import SnotrIE
 from .sohu import SohuIE
+from .sonyliv import SonyLIVIE
 from .soundcloud import (
     SoundcloudIE,
     SoundcloudSetIE,
