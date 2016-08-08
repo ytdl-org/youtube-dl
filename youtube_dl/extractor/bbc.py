@@ -759,7 +759,7 @@ class BBCIE(BBCCoUkIE):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        json_ld_info = self._search_json_ld(webpage, playlist_id, default=None)
+        json_ld_info = self._search_json_ld(webpage, playlist_id, default={})
         timestamp = json_ld_info.get('timestamp')
 
         playlist_title = json_ld_info.get('title')
