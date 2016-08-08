@@ -48,7 +48,7 @@ class FlipagramIE(InfoExtractor):
         flipagram = video_data['flipagram']
         video = flipagram['video']
 
-        json_ld = self._search_json_ld(webpage, video_id, fatal=False)
+        json_ld = self._search_json_ld(webpage, video_id, default=False)
         title = json_ld.get('title') or flipagram['captionText']
         description = json_ld.get('description') or flipagram.get('captionText')
 
