@@ -2241,8 +2241,8 @@ class GenericIE(InfoExtractor):
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
-            webpage, video_id, default=None, expected_type='VideoObject')
-        if json_ld and json_ld.get('url'):
+            webpage, video_id, default={}, expected_type='VideoObject')
+        if json_ld.get('url'):
             info_dict.update({
                 'title': video_title or info_dict['title'],
                 'description': video_description,
