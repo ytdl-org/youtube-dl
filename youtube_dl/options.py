@@ -501,15 +501,18 @@ def parseOpts(overrideArguments=None):
     workarounds.add_option(
         '--sleep-interval', '--min-sleep-interval', metavar='SECONDS',
         dest='sleep_interval', type=float,
-        help='Minimum number of seconds to sleep before each download. Sleep will be for a random interval if '
-             '--max-sleep-interval is also passed.'
-    )
+        help=(
+            'Number of seconds to sleep before each download when used alone '
+            'or a lower bound of a range for randomized sleep before each download '
+            '(minimum possible number of seconds to sleep) when used along with '
+            '--max-sleep-interval.'))
     workarounds.add_option(
         '--max-sleep-interval', metavar='SECONDS',
         dest='max_sleep_interval', type=float,
-        help='Max number of seconds to sleep before each download. Sleep will be for a random interval if passed'
-             ' along with --min-sleep-interval or --sleep-interval, otherwise ignored.'
-    )
+        help=(
+            'Upper bound of a range for randomized sleep before each download '
+            '(maximum possible number of seconds to sleep). Must only be used '
+            'along with --min-sleep-interval.'))
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
