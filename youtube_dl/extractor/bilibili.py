@@ -25,13 +25,13 @@ class BiliBiliIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
-        'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
+        'md5': '9fa226fe2b8a9a4d5a69b4c6a183417e',
         'info_dict': {
             'id': '1554319',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '【金坷垃】金泡沫',
             'description': 'md5:ce18c2a2d2193f0df2917d270f2e5923',
-            'duration': 308.067,
+            'duration': 308.315,
             'timestamp': 1398012660,
             'upload_date': '20140420',
             'thumbnail': 're:^https?://.+\.jpg',
@@ -41,73 +41,33 @@ class BiliBiliIE(InfoExtractor):
     }, {
         'url': 'http://www.bilibili.com/video/av1041170/',
         'info_dict': {
-            'id': '1041170',
+            'id': '1507019',
+            'ext': 'mp4',
             'title': '【BD1080P】刀语【诸神&异域】',
             'description': '这是个神奇的故事~每个人不留弹幕不给走哦~切利哦！~',
+            'timestamp': 1396530060,
+            'upload_date': '20140403',
+            'uploader': '枫叶逝去',
+            'uploader_id': '520116',
         },
-        'playlist_count': 9,
     }, {
         'url': 'http://www.bilibili.com/video/av4808130/',
         'info_dict': {
-            'id': '4808130',
+            'id': '7802182',
+            'ext': 'mp4',
             'title': '【长篇】哆啦A梦443【钉铛】',
             'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
+            'timestamp': 1464564180,
+            'upload_date': '20160529',
+            'uploader': '喜欢拉面',
+            'uploader_id': '151066',
         },
-        'playlist': [{
-            'md5': '55cdadedf3254caaa0d5d27cf20a8f9c',
-            'info_dict': {
-                'id': '4808130_part1',
-                'ext': 'flv',
-                'title': '【长篇】哆啦A梦443【钉铛】',
-                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
-                'timestamp': 1464564180,
-                'upload_date': '20160529',
-                'uploader': '喜欢拉面',
-                'uploader_id': '151066',
-            },
-        }, {
-            'md5': '926f9f67d0c482091872fbd8eca7ea3d',
-            'info_dict': {
-                'id': '4808130_part2',
-                'ext': 'flv',
-                'title': '【长篇】哆啦A梦443【钉铛】',
-                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
-                'timestamp': 1464564180,
-                'upload_date': '20160529',
-                'uploader': '喜欢拉面',
-                'uploader_id': '151066',
-            },
-        }, {
-            'md5': '4b7b225b968402d7c32348c646f1fd83',
-            'info_dict': {
-                'id': '4808130_part3',
-                'ext': 'flv',
-                'title': '【长篇】哆啦A梦443【钉铛】',
-                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
-                'timestamp': 1464564180,
-                'upload_date': '20160529',
-                'uploader': '喜欢拉面',
-                'uploader_id': '151066',
-            },
-        }, {
-            'md5': '7b795e214166501e9141139eea236e91',
-            'info_dict': {
-                'id': '4808130_part4',
-                'ext': 'flv',
-                'title': '【长篇】哆啦A梦443【钉铛】',
-                'description': '(2016.05.27)来组合客人的脸吧&amp;amp;寻母六千里锭 抱歉，又轮到周日上班现在才到家 封面www.pixiv.net/member_illust.php?mode=medium&amp;amp;illust_id=56912929',
-                'timestamp': 1464564180,
-                'upload_date': '20160529',
-                'uploader': '喜欢拉面',
-                'uploader_id': '151066',
-            },
-        }],
     }, {
         # Missing upload time
         'url': 'http://www.bilibili.com/video/av1867637/',
         'info_dict': {
             'id': '2880301',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '【HDTV】【喜剧】岳父岳母真难当 （2014）【法国票房冠军】',
             'description': '一个信奉天主教的法国旧式传统资产阶级家庭中有四个女儿。三个女儿却分别找了阿拉伯、犹太、中国丈夫，老夫老妻唯独期盼剩下未嫁的小女儿能找一个信奉天主教的法国白人，结果没想到小女儿找了一位非裔黑人……【这次应该不会跳帧了】',
             'uploader': '黑夜为猫',
