@@ -816,11 +816,14 @@ class InfoExtractor(object):
         json_ld = self._search_regex(
             r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>',
             html, 'JSON-LD', group='json_ld', **kwargs)
+        default = kwargs.get('default', NO_DEFAULT)
         if not json_ld:
-            return {}
-        return self._json_ld(
-            json_ld, video_id, fatal=kwargs.get('fatal', True),
-            expected_type=expected_type)
+            return default if default is not NO_DEFAULT else {}
+        # JSON-LD may be malformed and thus `fatal` should be respected.
+        # At the same time `default` may be passed that assumes `fatal=False`
+        # for _search_regex. Let's simulate the same behavior here as well.
+        fatal = kwargs.get('fatal', True) if default == NO_DEFAULT else False
+        return self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):
