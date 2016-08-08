@@ -3,11 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import PostProcessor
-from ..utils import PostProcessingError
-
-
-class MetadataFromTitlePPError(PostProcessingError):
-    pass
 
 
 class MetadataFromTitlePP(PostProcessor):
