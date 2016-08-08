@@ -2,6 +2,7 @@ version <unreleased>
 
 Extractors
 * [kuwo:singer] Fix extraction
+* [aparat] Fix extraction
 
 version 2016.08.07
 
