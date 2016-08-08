@@ -17,7 +17,8 @@ class ChaturbateIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'skip': 'Room is offline',
     }, {
         'url': 'https://en.chaturbate.com/siswet19/',
         'only_matching': True,
