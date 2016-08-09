@@ -1,8 +1,20 @@
 version <unreleased>
 
+Core
+* Make --metadata-from-title non fatal when title does not match the pattern
+* Introduce options for randomized sleep before each download
+  --min-sleep-interval and --max-sleep-interval (#9930)
+* Respect default in _search_json_ld
+
 Extractors
-* [kuwo:singer] Fix extraction
++ [uol] Add extractor for uol.com.br (#4263)
+* [rbmaradio] Fix extraction and extract all formats (#10242)
++ [sonyliv] Add extractor for sonyliv.com (#10258)
 * [aparat] Fix extraction
+* [cwtv] Extract HTTP formats
++ [rozhlas] Add extractor for prehravac.rozhlas.cz (#10253)
+* [kuwo:singer] Fix extraction
+
 
 version 2016.08.07
 
