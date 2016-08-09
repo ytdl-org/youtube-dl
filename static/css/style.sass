@@ -1,0 +1,313 @@
+
+$color-B: #252525
+$color-W: #fff
+
+
+html,
+body
+  margin: 0
+  padding: 0
+  height: 100%
+  width: 100%
+
+h1,
+h2,
+h3,
+p
+  margin: 0
+  padding: 0
+
+a:hover
+  text-decoration: underline
+
+a
+  color: #000 !important
+  font-family: "Inconsolata"
+  font-weight: bold
+  font-size: 16px
+
+pre
+  padding: 30px 0
+  margin: 0
+  width: 100%
+  border: none
+  border-radius: 2px
+  background-color: $color-W
+  overflow-x: auto
+
+  code::before
+    content: '~$ '
+    color: $color-B
+  code::after
+    content: ''
+
+  code
+    display: inline
+    margin: 0
+    padding: 5px 0 !important
+    color: #c7254e !important
+    background-color: $color-W
+    font-family: "Consolas", "Inconsolata" !important
+    font-size: 16px !important
+    overflow: visible
+    line-height: inherit
+    background-color: transparent
+    vertical-align: middle
+    border: 0
+
+  code:first-child
+    padding-top: 0 !important
+    margin-top: 0 !important
+
+  code:last-child
+    padding-bottom: 0 !important
+    margin-bottom: 0 !important
+
+
+////////////////////////////////////////////////////////////////////////////////
+// default container padding
+//
+.container
+  $padding-side: 80px
+
+  padding-left: $padding-side
+  padding-right: $padding-side
+
+
+////////////////////////////////////////////////////////////////////////////////
+// vertically center child based on parent's height
+//
+.vertical-center
+  transform: translateY(-50%)
+  position: relative
+  top: 50%
+
+
+////////////////////////////////////////////////////////////////////////////////
+// wrap page content
+//
+.wrapper
+  display: block
+  height: 100%
+  width: 100%
+  background-color: $color-W
+
+
+////////////////////////////////////////////////////////////////////////////////
+// section blocks
+//
+.section
+  display: block
+  height: 300px
+  font-family: "Roboto Mono"
+  font-weight: 300
+  font-size: 16px
+
+  h2
+    margin-bottom: 25px
+    font-size: 1.45em
+
+
+////////////////////////////////////////////////////////////////////////////////
+// tables using div
+//
+.table
+  display: table
+  width: 100%
+
+.t-body
+  display: table-row-group
+
+.t-row
+  display: table-row
+
+// max three cells per table row
+.t-cell
+  padding: 15px
+  display: table-cell
+  width: (100% / 3)
+
+
+////////////////////////////////////////////////////////////////////////////////
+// HEADER
+//
+header
+  height: 80%
+  font-family: "Source Code Pro"
+  font-weight: 400
+  background-color: #b31217
+
+  .container
+    padding-left: 80px
+    padding-right: 80px
+
+  h1
+    margin: 0 0 15px 0
+    color: $color-W
+    font-weight: 300
+    font-size: 6.1rem
+
+  p::before
+    content: ''
+  p::after
+    content: '.'
+
+  p
+    color: #eee
+    font-family: "Roboto Mono"
+    font-weight: 300
+    font-size: 14px
+
+
+////////////////////////////////////////////////////////////////////////////////
+// FOOTER
+//
+footer
+  padding: 15px 0
+  color: #fff
+  background-color: #000
+  font-family: "Roboto Mono"
+  font-weight: 400
+  font-size: 12px
+  text-align: center
+
+  a
+    color: #fff !important
+    font-size: 14px
+
+
+////////////////////////////////////////////////////////////////////////////////
+// about section
+//
+.about
+  height: 650px
+
+  .t-cell
+    font-family: "Roboto Mono"
+    text-align: center
+
+    i
+      margin-bottom: 15px
+      font-size: 55px
+
+    h1
+      margin-bottom: 15px
+      font-size: 25px
+
+    p
+      margin: 0 15px
+
+
+////////////////////////////////////////////////////////////////////////////////
+// bug section
+//
+.bug
+  color: $color-W
+  background-color: #009688
+
+
+////////////////////////////////////////////////////////////////////////////////
+// git clone section
+//
+.install
+  height: 700px
+  color: $color-W
+  background-color: $color-B
+
+  a
+    color: #fff !important
+
+  h3
+    margin: 20px 0
+    font-size: 1.1em
+
+  p
+    margin: 10px 0
+    font-size: 14px
+
+////////////////////////////////////////////////////////////////////////////////
+// Credits section
+//
+.credits
+  height: 500px
+
+  h3
+    margin: 20px 0
+    font-size: 1.1em
+
+  ul
+    padding: 0 0 0 15px
+
+  p,
+  li
+    font-size: 14px
+    list-style-type: none
+
+  li::before
+    content: "- "
+  li::after
+    content: ""
+
+  li
+    margin: 3px 0
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Supported Sites page
+//
+
+.supported
+
+  header
+    height: 400px
+
+    h1
+      font-size: 3.75rem
+      text-align: center
+
+#list
+  margin: 80px auto 40px auto
+  font-family: "Roboto Mono"
+  font-weight: 400
+  font-size: 1em
+
+  p
+    font-size: 16px
+    text-align: center
+
+  ul
+    margin: 30px 70px
+
+    li::before
+      content: "- "
+    li::after
+      content: ""
+
+    li
+      margin: 5px 0
+      list-style-type: none
+
+.note
+  margin: 0
+  padding: 10px 0
+  text-align: center
+  font-family: "Roboto Mono"
+  font-weight: 400
+  font-size: 12px
+
+  p
+    margin-top: 3px
+
+
+#manual
+  margin: 80px auto 40px auto
+  font-family: "Roboto Mono"
+  font-weight: 300
+  text-align: left
+
+  h2
+    margin: 15px 0
+    font-weight: 300
+
+  p
+    margin: 10px 0

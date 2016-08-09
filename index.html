@@ -1,37 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-<title>youtube-dl</title>
-<link rel="stylesheet" href="style.css" type="text/css" />
-<link rel="alternate" type="application/atom+xml" title="youtube-dl releases" href="update/releases.atom" />
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <link rel="alternate" type="application/atom+xml" title="youtube-dl releases" href="update/releases.atom">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro:300|Roboto+Mono:300,400|Inconsolata:400">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="./static/css/style.css" type="text/css">
+  <link rel="icon"  href="./static/img/favicon.ico" type="image/png">
+  <title>youtube-dl | Command-line program to download videos from YouTube and other video sites.</title>
+  <meta http-equiv="Cache-Control" content="public, max-age=3600">
 </head>
 <body>
 
-<table class="heading"><tr>
-	<td class="title"><a href="index.html">youtube-dl</a></td>
-	<td class="subtitle">Download videos from YouTube
-		(and <a href="supportedsites.html" style="color: blue; text-decoration: underline;">more sites</a>)</td>
-</tr></table>
+<div class="wrapper">
 
-<p><em>youtube-dl</em> is a command-line program to download videos from YouTube.com and a few <a href="supportedsites.html" style="color: blue; text-decoration: underline;">more sites</a>. It requires the <a href="http://www.python.org/">Python interpreter</a> (2.6, 2.7, or 3.2+), and it is not platform specific. We also provide a <a href="https://yt-dl.org/latest/youtube-dl.exe">Windows executable</a> that includes Python. youtube-dl should work in your Unix box, in Windows or in Mac OS X. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.</p>
+<header class="container-fluid">
+  <div class="container vertical-center">
+    <h1>youtube-dl</h1>
+    <p>A command-line program to download videos from YouTube and other video <a href="./supported.html">sites</a></p>
+  </div>
+</header>
 
-<table border="0" id="rgb">
-	<tr><td><a class="button" id="r" href="https://github.com/rg3/youtube-dl/blob/master/README.md#readme">Documentation</a></td></tr>
-	<tr><td><a class="button" id="g" href="download.html">Download</a></td></tr>
-	<tr><td><a class="button" id="main-support" href="https://github.com/rg3/youtube-dl/issues/new">Support</a></td></tr>
-	<tr><td><a class="button" id="y" href="https://github.com/rg3/youtube-dl/">Develop</a></td></tr>
-	<tr><td><a class="button" id="b" href="about.html">About</a></td></tr>
-</table>
+<div class="section about">
+<div class="container vertical-center">
+<div class="table">
+  <div class="t-body">
+    <div class="t-row">
+      <div class="t-cell">
+        <i class="fa fa-code" aria-hidden="true"></i>
+        <h1>Python 2/3+</h1>
+        <p>Purely written in Python from scratch.</p>
+      </div>
+      <div class="t-cell">
+        <i class="fa fa-terminal" aria-hidden="true"></i>
+        <h1>Run From Anywhere</h1>
+        <p>Windows, Linux/Unix, Mac OSX, etc.</p>
+      </div>
+      <div class="t-cell">
+        <i class="fa fa-book" aria-hidden="true"></i>
+        <h1>Comprehensive Documentation</h1>
+        <p><a href="https://github.com/rg3/youtube-dl/blob/master/README.md#readme">Complete documentation</a> from installation guides to flag details.</p>
+      </div>
+    </div>
+    <div class="t-row">
+      <div class="t-cell">
+        <i class="fa fa-braille" aria-hidden="true"></i>
+        <h1>10,000+ commits</h1>
+        <p>With over 400 contributors, there are 10,000+ commits and growing.</p>
+      </div>
+      <div class="t-cell">
+        <i class="fa fa-line-chart" aria-hidden="true"></i>
+        <h1>500+ sites</h1>
+        <p>Media files from <a href="./supported.html">500+ sites</a> can be downloaded.</p>
+      </div>
+      <div class="t-cell">
+        <i class="fa fa-cubes" aria-hidden="true"></i>
+        <h1>Open Source</h1>
+        <p>Released as <a href="https://github.com/rg3/youtube-dl/blob/master/LICENSE">public license</a>, you can modify it, redistribute it, or use it however you like.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
 
-<p>
-You can also contact us on the irc channel <a href="irc://chat.freenode.net/#youtube-dl">#youtube-dl</a>(<a href="http://webchat.freenode.net/?randomnick=1&amp;channels=youtube-dl">webchat</a>) on freenode.
-</p>
+<div id="installation" class="section install">
+<div class="container vertical-center">
+  <h2>Installation</h2>
+  <h3>Linux/Unix/Mac OSX:</h3>
+  <p>To clone from remote source and build locally*:</p>
+  <pre>
+    <code>git clone https://github.com/rg3/youtube-dl.git</code>
+    <code>cd youtube-dl/</code>
+    <code>make</code>
+    <code>python youtube-dl -h</code>
+  </pre>
+  <h3>Windows:</h3>
+  <p>We provide <a href="https://yt-dl.org/latest/youtube-dl.exe">Windows executable</a> that includes Python.</p>
+  <h3>Note</h3>
+  <p>*As youtube-dl requires <a href="https://www.python.org/">Python</a> version 2.6, 2.7, or 3.2+ to work (except Windows executable), make sure to check which Python version is running.</p>
+  <p>*For more detailed instructions, please click <a href="./installation.html">here</a>.</p>
+</div>
+</div>
 
-<div class="note">
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">
-<img alt="Creative Commons License" style="border-width:0"
-src="https://i.creativecommons.org/l/by-sa/3.0/80x15.png" /></a><br />
-Copyright © 2006-2016 Ricardo Garcia Gonzalez</div>
+<div class="section bug">
+<div class="container vertical-center">
+  <h2>Found a bug?</h2>
+  <p>Please head over to our <a href="https://github.com/rg3/youtube-dl/">GitHub repo</a> and submit a <a href="https://github.com/rg3/youtube-dl/issues/new">new issue</a> or, if exists, join the conversation with your findings!</p>
+</div>
+</div>
+
+<div class="section credits">
+<div class="container vertical-center">
+  <h2>Credits</h2>
+  <h3>Core team:</h3>
+  <ul>
+    <li><a href="https://github.com/rg3">Ricardo Garcia Gonzalez</a> <em>(inactive)</em>: original author, program core.</li>
+    <li><a href="https://github.com/phihag">Philipp Hagemeister</a>: core developer, maintainer since 2011.</li>
+    <li><a href="https://github.com/FiloSottile">Filippo Valsorda</a> <em>(inactive)</em>: core developer, Windows build, testing.</li>
+    <li><a href="https://github.com/jaimeMF">Jaime Marquínez Ferrándiz</a>: core developer.</li>
+    <li><a href="https://github.com/yan12125">Yen Chi Hsuan</a>: core developer.</li>
+    <li><a href="https://github.com/remitamine">Remita Amine</a>: core developer.</li>
+    <li><a href="https://github.com/dstftw">Sergey M.</a>: core developer, maintainer.</li>
+    <li><a href="https://github.com/naglis">Naglis Jonaitis</a> <em>(inactive)</em>: core developer.</li>
+    <li><a href="https://github.com/pulpe">pulpe</a> <em>(inactive)</em>: core developer.</li>
+  </ul>
+  <p>Many <a href="https://github.com/rg3/youtube-dl/blob/master/AUTHORS">other people</a> contributing patches, code, ideas and kind messages. Too many to be listed here. You know who you are. Thank you very much.</p>
+</div>
+</div>
+
+<footer class="container-fluid">
+  <p>Join us on the irc channel <a href="irc://chat.freenode.net/#youtube-dl">#youtube-dl</a> (<a href="https://webchat.freenode.net/?randomnick=1&channels=youtube-dl">webchat</a>) on freenode.</p>
+</footer>
+</div>
+
+<!-- Fork me on GitHub ribbon -->
+<a href="https://github.com/rg3/youtube-dl"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 </body>
 </html>
