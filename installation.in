@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-<title>youtube-dl: Download Page</title>
-<link rel="stylesheet" href="style.css" type="text/css">
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro:300|Roboto+Mono:300,400">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="./static/css/style.css" type="text/css">
+  <link rel="icon"  href="./static/img/favicon.ico" type="image/png">
+  <title>youtube-dl: Supported sites</title>
+  <meta http-equiv="Cache-Control" content="public, max-age=3600">
 </head>
 <body>
 
-<table class="heading"><tr>
-	<td class="title"><a href="index.html">youtube-dl</a></td>
-	<td class="subtitle">Download Page</td>
-</tr></table>
+<div class="wrapper supported">
+
+<header class="container-fluid">
+  <div class="container vertical-center">
+    <h1>Supported Sites</h1>
+  </div>
+</header>
 
 <p>Note that if you directly click on these hyperlinks, your web browser will most likely display the program contents. It's usually better to right-click on it and choose the appropriate option, normally called <em>Save Target As</em> or <em>Save Link As</em>, depending on the web browser you are using.</p>
 
@@ -68,10 +76,13 @@ See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more
 <li><strong>4096R/BCF05F6B</strong> Filippo Valsorda <code>Key fingerprint = 428D F5D6 3EF0 7494 BB45  5AC0 EBF0 1804 BCF0 5F6B</code> (until 2014)</li>
 </p>
 
-<div class="note">
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">
-<img alt="Creative Commons License" style="border-width:0"
-src="https://i.creativecommons.org/l/by-sa/3.0/80x15.png" /></a><br />
-Copyright © 2006-2016 Ricardo Garcia Gonzalez</div>
+<div class="container-fluid note">
+  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">
+    <img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/3.0/80x15.png" />
+  </a>
+  <p>Copyright © 2006-2016 Ricardo Garcia Gonzalez</p>
+</div>
+
+</div>
 </body>
 </html>

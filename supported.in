@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Code+Pro:300|Roboto+Mono:300,400">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" type="text/css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" type="text/css">
+  <link rel="stylesheet" href="./static/css/style.css" type="text/css">
+  <link rel="icon"  href="./static/img/favicon.ico" type="image/png">
+  <title>youtube-dl: Supported sites</title>
+  <meta http-equiv="Cache-Control" content="public, max-age=3600">
+</head>
+<body>
+
+<div class="wrapper supported">
+
+<header class="container-fluid">
+  <div class="container vertical-center">
+    <h1>Supported Sites</h1>
+  </div>
+</header>
+
+<div id="list" class="container">
+  <p>Here's the list of all the supported sites, sorted alphabetically:</p>
+<ul>
+@SITES@
+</ul>
+</div>
+
+<div class="container-fluid note">
+  <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">
+    <img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-sa/3.0/80x15.png" />
+  </a>
+  <p>Copyright © 2006-2016 Ricardo Garcia Gonzalez</p>
+</div>
+
+</div>
+</body>
+</html>
