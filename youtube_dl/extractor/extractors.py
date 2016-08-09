@@ -929,6 +929,7 @@ from .udemy import (
 from .udn import UDNEmbedIE
 from .digiteka import DigitekaIE
 from .unistra import UnistraIE
+from .uol import UOLIE
 from .urort import UrortIE
 from .urplay import URPlayIE
 from .usatoday import USATodayIE
