@@ -1603,7 +1603,7 @@ class YoutubeDL(object):
                         self.to_screen('[info] Video subtitle %s.%s is already_present' % (sub_lang, sub_format))
                     else:
                         self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
-                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
                             subfile.write(sub_data)
                 except (OSError, IOError):
                     self.report_error('Cannot write subtitles file ' + sub_filename)
