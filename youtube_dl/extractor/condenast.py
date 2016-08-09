@@ -5,13 +5,17 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
 from ..utils import (
     orderedSet,
     remove_end,
+    extract_attributes,
+    mimetype2ext,
+    determine_ext,
+    int_or_none,
+    parse_iso8601,
 )
 
 
@@ -58,6 +62,9 @@ class CondeNastIE(InfoExtractor):
             'ext': 'mp4',
             'title': '3D Printed Speakers Lit With LED',
             'description': 'Check out these beautiful 3D printed LED speakers.  You can\'t actually buy them, but LumiGeek is working on a board that will let you make you\'re own.',
+            'uploader': 'wired',
+            'upload_date': '20130314',
+            'timestamp': 1363219200,
         }
     }, {
         # JS embed
@@ -67,70 +74,93 @@ class CondeNastIE(InfoExtractor):
             'id': '55f9cf8b61646d1acf00000c',
             'ext': 'mp4',
             'title': '3D printed TSA Travel Sentry keys really do open TSA locks',
+            'uploader': 'arstechnica',
+            'upload_date': '20150916',
+            'timestamp': 1442434955,
         }
     }]
 
     def _extract_series(self, url, webpage):
-        title = self._html_search_regex(r'<div class="cne-series-info">.*?<h1>(.+?)</h1>',
-                                        webpage, 'series title', flags=re.DOTALL)
+        title = self._html_search_regex(
+            r'(?s)<div class="cne-series-info">.*?<h1>(.+?)</h1>',
+            webpage, 'series title')
         url_object = compat_urllib_parse_urlparse(url)
         base_url = '%s://%s' % (url_object.scheme, url_object.netloc)
-        m_paths = re.finditer(r'<p class="cne-thumb-title">.*?<a href="(/watch/.+?)["\?]',
-                              webpage, flags=re.DOTALL)
+        m_paths = re.finditer(
+            r'(?s)<p class="cne-thumb-title">.*?<a href="(/watch/.+?)["\?]', webpage)
         paths = orderedSet(m.group(1) for m in m_paths)
         build_url = lambda path: compat_urlparse.urljoin(base_url, path)
         entries = [self.url_result(build_url(path), 'CondeNast') for path in paths]
         return self.playlist_result(entries, playlist_title=title)
 
     def _extract_video(self, webpage, url_type):
-        if url_type != 'embed':
-            description = self._html_search_regex(
-                [
-                    r'<div class="cne-video-description">(.+?)</div>',
-                    r'<div class="video-post-content">(.+?)</div>',
-                ],
-                webpage, 'description', fatal=False, flags=re.DOTALL)
+        query = {}
+        params = self._search_regex(
+            r'(?s)var params = {(.+?)}[;,]', webpage, 'player params', default=None)
+        if params:
+            query.update({
+                'videoId': self._search_regex(r'videoId: [\'"](.+?)[\'"]', params, 'video id'),
+                'playerId': self._search_regex(r'playerId: [\'"](.+?)[\'"]', params, 'player id'),
+                'target': self._search_regex(r'target: [\'"](.+?)[\'"]', params, 'target'),
+            })
         else:
-            description = None
-        params = self._search_regex(r'var params = {(.+?)}[;,]', webpage,
-                                    'player params', flags=re.DOTALL)
-        video_id = self._search_regex(r'videoId: [\'"](.+?)[\'"]', params, 'video id')
-        player_id = self._search_regex(r'playerId: [\'"](.+?)[\'"]', params, 'player id')
-        target = self._search_regex(r'target: [\'"](.+?)[\'"]', params, 'target')
-        data = compat_urllib_parse_urlencode({'videoId': video_id,
-                                              'playerId': player_id,
-                                              'target': target,
-                                              })
-        base_info_url = self._search_regex(r'url = [\'"](.+?)[\'"][,;]',
-                                           webpage, 'base info url',
-                                           default='http://player.cnevids.com/player/loader.js?')
-        info_url = base_info_url + data
-        info_page = self._download_webpage(info_url, video_id,
-                                           'Downloading video info')
-        video_info = self._search_regex(r'var\s+video\s*=\s*({.+?});', info_page, 'video info')
-        video_info = self._parse_json(video_info, video_id)
+            params = extract_attributes(self._search_regex(
+                r'(<[^>]+data-js="video-player"[^>]+>)',
+                webpage, 'player params element'))
+            query.update({
+                'videoId': params['data-video'],
+                'playerId': params['data-player'],
+                'target': params['id'],
+            })
+        video_id = query['videoId']
+        video_info = None
+        info_page = self._download_webpage(
+            'http://player.cnevids.com/player/video.js',
+            video_id, 'Downloading video info', query=query, fatal=False)
+        if info_page:
+            video_info = self._parse_json(self._search_regex(
+                r'loadCallback\(({.+})\)', info_page, 'video info'), video_id)['video']
+        else:
+            info_page = self._download_webpage(
+                'http://player.cnevids.com/player/loader.js',
+                video_id, 'Downloading loader info', query=query)
+            video_info = self._parse_json(self._search_regex(
+                r'var\s+video\s*=\s*({.+?});', info_page, 'video info'), video_id)
+        title = video_info['title']
 
-        formats = [{
-            'format_id': '%s-%s' % (fdata['type'].split('/')[-1], fdata['quality']),
-            'url': fdata['src'],
-            'ext': fdata['type'].split('/')[-1],
-            'quality': 1 if fdata['quality'] == 'high' else 0,
-        } for fdata in video_info['sources'][0]]
+        formats = []
+        for fdata in video_info.get('sources', [{}])[0]:
+            src = fdata.get('src')
+            if not src:
+                continue
+            ext = mimetype2ext(fdata.get('type')) or determine_ext(src)
+            quality = fdata.get('quality')
+            formats.append({
+                'format_id': ext + ('-%s' % quality if quality else ''),
+                'url': src,
+                'ext': ext,
+                'quality': 1 if quality == 'high' else 0,
+            })
         self._sort_formats(formats)
 
-        return {
+        info = self._search_json_ld(
+            webpage, video_id, fatal=False) if url_type != 'embed' else {}
+        info.update({
             'id': video_id,
             'formats': formats,
-            'title': video_info['title'],
-            'thumbnail': video_info['poster_frame'],
-            'description': description,
-        }
+            'title': title,
+            'thumbnail': video_info.get('poster_frame'),
+            'uploader': video_info.get('brand'),
+            'duration': int_or_none(video_info.get('duration')),
+            'tags': video_info.get('tags'),
+            'series': video_info.get('series_title'),
+            'season': video_info.get('season_title'),
+            'timestamp': parse_iso8601(video_info.get('premiere_date')),
+        })
+        return info
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        site = mobj.group('site')
-        url_type = mobj.group('type')
-        item_id = mobj.group('id')
+        site, url_type, item_id = re.match(self._VALID_URL, url).groups()
 
         # Convert JS embed to regular embed
         if url_type == 'embedjs':

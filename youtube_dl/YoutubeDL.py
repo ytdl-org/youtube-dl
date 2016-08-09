@@ -249,7 +249,16 @@ class YoutubeDL(object):
     source_address:    (Experimental) Client-side IP address to bind to.
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
-    sleep_interval:    Number of seconds to sleep before each download.
+    sleep_interval:    Number of seconds to sleep before each download when
+                       used alone or a lower bound of a range for randomized
+                       sleep before each download (minimum possible number
+                       of seconds to sleep) when used along with
+                       max_sleep_interval.
+    max_sleep_interval:Upper bound of a range for randomized sleep before each
+                       download (maximum possible number of seconds to sleep).
+                       Must only be used along with sleep_interval.
+                       Actual sleep time will be a random float from range
+                       [sleep_interval; max_sleep_interval].
     listformats:       Print an overview of available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
     match_filter:      A function that gets called with the info_dict of

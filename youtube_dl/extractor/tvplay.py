@@ -4,13 +4,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
+    determine_ext,
+    ExtractorError,
+    int_or_none,
     parse_iso8601,
     qualities,
-    determine_ext,
     update_url_query,
-    int_or_none,
 )
 
 
@@ -34,6 +39,9 @@ class TVPlayIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Kādi ir īri? - Viņas melo labāk',
                 'description': 'Baiba apsmej īrus, kādi tie ir un ko viņi dara.',
+                'series': 'Viņas melo labāk',
+                'season': '2.sezona',
+                'season_number': 2,
                 'duration': 25,
                 'timestamp': 1406097056,
                 'upload_date': '20140723',
@@ -46,6 +54,10 @@ class TVPlayIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Moterys meluoja geriau',
                 'description': 'md5:9aec0fc68e2cbc992d2a140bd41fa89e',
+                'series': 'Moterys meluoja geriau',
+                'episode_number': 47,
+                'season': '1 sezonas',
+                'season_number': 1,
                 'duration': 1330,
                 'timestamp': 1403769181,
                 'upload_date': '20140626',
@@ -196,12 +208,15 @@ class TVPlayIE(InfoExtractor):
 
         title = video['title']
 
-        if video.get('is_geo_blocked'):
-            self.report_warning(
-                'This content might not be available in your country due to copyright reasons')
-
-        streams = self._download_json(
-            'http://playapi.mtgx.tv/v1/videos/stream/%s' % video_id, video_id, 'Downloading streams JSON')
+        try:
+            streams = self._download_json(
+                'http://playapi.mtgx.tv/v1/videos/stream/%s' % video_id,
+                video_id, 'Downloading streams JSON')
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                msg = self._parse_json(e.cause.read().decode('utf-8'), video_id)
+                raise ExtractorError(msg['msg'], expected=True)
+            raise
 
         quality = qualities(['hls', 'medium', 'high'])
         formats = []
@@ -226,7 +241,8 @@ class TVPlayIE(InfoExtractor):
                     'ext': ext,
                 }
                 if video_url.startswith('rtmp'):
-                    m = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
+                    m = re.search(
+                        r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
                     if not m:
                         continue
                     fmt.update({
@@ -240,15 +256,41 @@ class TVPlayIE(InfoExtractor):
                         'url': video_url,
                     })
                 formats.append(fmt)
+
+        if not formats and video.get('is_geo_blocked'):
+            self.raise_geo_restricted(
+                'This content might not be available in your country due to copyright reasons')
+
         self._sort_formats(formats)
+
+        # TODO: webvtt in m3u8
+        subtitles = {}
+        sami_path = video.get('sami_path')
+        if sami_path:
+            lang = self._search_regex(
+                r'_([a-z]{2})\.xml', sami_path, 'lang',
+                default=compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1])
+            subtitles[lang] = [{
+                'url': sami_path,
+            }]
+
+        series = video.get('format_title')
+        episode_number = int_or_none(video.get('format_position', {}).get('episode'))
+        season = video.get('_embedded', {}).get('season', {}).get('title')
+        season_number = int_or_none(video.get('format_position', {}).get('season'))
 
         return {
             'id': video_id,
             'title': title,
             'description': video.get('description'),
+            'series': series,
+            'episode_number': episode_number,
+            'season': season,
+            'season_number': season_number,
             'duration': int_or_none(video.get('duration')),
             'timestamp': parse_iso8601(video.get('created_at')),
             'view_count': int_or_none(video.get('views', {}).get('total')),
             'age_limit': int_or_none(video.get('age_limit', 0)),
             'formats': formats,
+            'subtitles': subtitles,
         }

@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    mimetype2ext,
 )
 
 
@@ -28,74 +30,84 @@ class JWPlatformBaseIE(InfoExtractor):
         return self._parse_jwplayer_data(
             jwplayer_data, video_id, *args, **kwargs)
 
-    def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True, m3u8_id=None, rtmp_params=None):
+    def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True, m3u8_id=None, rtmp_params=None, base_url=None):
         # JWPlayer backward compatibility: flattened playlists
         # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/api/config.js#L81-L96
         if 'playlist' not in jwplayer_data:
             jwplayer_data = {'playlist': [jwplayer_data]}
 
-        video_data = jwplayer_data['playlist'][0]
+        entries = []
+        for video_data in jwplayer_data['playlist']:
+            # JWPlayer backward compatibility: flattened sources
+            # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/playlist/item.js#L29-L35
+            if 'sources' not in video_data:
+                video_data['sources'] = [video_data]
 
-        # JWPlayer backward compatibility: flattened sources
-        # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/playlist/item.js#L29-L35
-        if 'sources' not in video_data:
-            video_data['sources'] = [video_data]
-
-        formats = []
-        for source in video_data['sources']:
-            source_url = self._proto_relative_url(source['file'])
-            source_type = source.get('type') or ''
-            if source_type in ('application/vnd.apple.mpegurl', 'hls') or determine_ext(source_url) == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    source_url, video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
-            elif source_type.startswith('audio'):
-                formats.append({
-                    'url': source_url,
-                    'vcodec': 'none',
-                })
-            else:
-                a_format = {
-                    'url': source_url,
-                    'width': int_or_none(source.get('width')),
-                    'height': int_or_none(source.get('height')),
-                }
-                if source_url.startswith('rtmp'):
-                    a_format['ext'] = 'flv',
-
-                    # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
-                    # of jwplayer.flash.swf
-                    rtmp_url_parts = re.split(
-                        r'((?:mp4|mp3|flv):)', source_url, 1)
-                    if len(rtmp_url_parts) == 3:
-                        rtmp_url, prefix, play_path = rtmp_url_parts
-                        a_format.update({
-                            'url': rtmp_url,
-                            'play_path': prefix + play_path,
-                        })
-                    if rtmp_params:
-                        a_format.update(rtmp_params)
-                formats.append(a_format)
-        self._sort_formats(formats)
-
-        subtitles = {}
-        tracks = video_data.get('tracks')
-        if tracks and isinstance(tracks, list):
-            for track in tracks:
-                if track.get('file') and track.get('kind') == 'captions':
-                    subtitles.setdefault(track.get('label') or 'en', []).append({
-                        'url': self._proto_relative_url(track['file'])
+            formats = []
+            for source in video_data['sources']:
+                source_url = self._proto_relative_url(source['file'])
+                if base_url:
+                    source_url = compat_urlparse.urljoin(base_url, source_url)
+                source_type = source.get('type') or ''
+                ext = mimetype2ext(source_type) or determine_ext(source_url)
+                if source_type == 'hls' or ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        source_url, video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
+                # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
+                elif source_type.startswith('audio') or ext in ('oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
+                    formats.append({
+                        'url': source_url,
+                        'vcodec': 'none',
+                        'ext': ext,
                     })
+                else:
+                    a_format = {
+                        'url': source_url,
+                        'width': int_or_none(source.get('width')),
+                        'height': int_or_none(source.get('height')),
+                        'ext': ext,
+                    }
+                    if source_url.startswith('rtmp'):
+                        a_format['ext'] = 'flv',
 
-        return {
-            'id': video_id,
-            'title': video_data['title'] if require_title else video_data.get('title'),
-            'description': video_data.get('description'),
-            'thumbnail': self._proto_relative_url(video_data.get('image')),
-            'timestamp': int_or_none(video_data.get('pubdate')),
-            'duration': float_or_none(jwplayer_data.get('duration')),
-            'subtitles': subtitles,
-            'formats': formats,
-        }
+                        # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
+                        # of jwplayer.flash.swf
+                        rtmp_url_parts = re.split(
+                            r'((?:mp4|mp3|flv):)', source_url, 1)
+                        if len(rtmp_url_parts) == 3:
+                            rtmp_url, prefix, play_path = rtmp_url_parts
+                            a_format.update({
+                                'url': rtmp_url,
+                                'play_path': prefix + play_path,
+                            })
+                        if rtmp_params:
+                            a_format.update(rtmp_params)
+                    formats.append(a_format)
+            self._sort_formats(formats)
+
+            subtitles = {}
+            tracks = video_data.get('tracks')
+            if tracks and isinstance(tracks, list):
+                for track in tracks:
+                    if track.get('file') and track.get('kind') == 'captions':
+                        subtitles.setdefault(track.get('label') or 'en', []).append({
+                            'url': self._proto_relative_url(track['file'])
+                        })
+
+            entries.append({
+                'id': video_id,
+                'title': video_data['title'] if require_title else video_data.get('title'),
+                'description': video_data.get('description'),
+                'thumbnail': self._proto_relative_url(video_data.get('image')),
+                'timestamp': int_or_none(video_data.get('pubdate')),
+                'duration': float_or_none(jwplayer_data.get('duration')),
+                'subtitles': subtitles,
+                'formats': formats,
+            })
+        if len(entries) == 1:
+            return entries[0]
+        else:
+            return self.playlist_result(entries)
 
 
 class JWPlatformIE(JWPlatformBaseIE):

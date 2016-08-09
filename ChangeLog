@@ -1,3 +1,70 @@
+version <unreleased>
+
+Extractors
+* [kuwo:singer] Fix extraction
+* [aparat] Fix extraction
+
+version 2016.08.07
+
+Core
++ Add support for TV Parental Guidelines ratings in parse_age_limit
++ Add decode_png (#9706)
++ Add support for partOfTVSeries in JSON-LD
+* Lower master M3U8 manifest preference for better format sorting
+
+Extractors
++ [discoverygo] Add extractor (#10245)
+* [flipagram] Make JSON-LD extraction non fatal
+* [generic] Make JSON-LD extraction non fatal
++ [bbc] Add support for morph embeds (#10239)
+* [tnaflixnetworkbase] Improve title extraction
+* [tnaflix] Fix metadata extraction (#10249)
+* [fox] Fix theplatform release URL query
+* [openload] Fix extraction (#9706)
+* [bbc] Skip duplicate manifest URLs
+* [bbc] Improve format code
++ [bbc] Add support for DASH and F4M
+* [bbc] Improve format sorting and listing
+* [bbc] Improve playlist extraction
++ [pokemon] Add extractor (#10093)
++ [condenast] Add fallback scenario for video info extraction
+
+
+version 2016.08.06
+
+Core
+* Add support for JSON-LD root list entries (#10203)
+* Improve unified_timestamp
+* Lower preference of RTSP formats in generic sorting
++ Add support for multiple properties in _og_search_property
+* Improve password hiding from verbose output
+
+Extractors
++ [adultswim] Add support for trailers (#10235)
+* [archiveorg] Improve extraction (#10219)
++ [jwplatform] Add support for playlists
++ [jwplatform] Add support for relative URLs
+* [jwplatform] Improve audio detection
++ [tvplay] Capture and output native error message
++ [tvplay] Extract series metadata
++ [tvplay] Add support for subtitles (#10194)
+* [tvp] Improve extraction (#7799)
+* [cbslocal] Fix timestamp parsing (#10213)
++ [naver] Add support for subtitles (#8096)
+* [naver] Improve extraction
+* [condenast] Improve extraction
+* [engadget] Relax URL regular expression
+* [5min] Fix extraction
++ [nationalgeographic] Add support for Episode Guide
++ [kaltura] Add support for subtitles
+* [kaltura] Optimize network requests
++ [vodplatform] Add extractor for vod-platform.net
+- [gamekings] Remove extractor
+* [limelight] Extract HTTP formats
+* [ntvru] Fix extraction
++ [comedycentral] Re-add :tds and :thedailyshow shortnames
+
+
 version 2016.08.01
 
 Fixed/improved extractors
@@ -6,6 +73,7 @@ Fixed/improved extractors
 - [limelight] Skip DRM protected videos
 - [safari] Relax regular expressions for URL matching (#10202)
 - [cwtv] Add support for cwtvpr.com (#10196)
+
 
 version 2016.07.30
 

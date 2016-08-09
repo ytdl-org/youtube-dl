@@ -47,6 +47,7 @@ from .compat import (
     compat_socket_create_connection,
     compat_str,
     compat_struct_pack,
+    compat_struct_unpack,
     compat_urllib_error,
     compat_urllib_parse,
     compat_urllib_parse_urlencode,
@@ -1101,7 +1102,7 @@ def unified_timestamp(date_str, day_first=True):
 
     date_str = date_str.replace(',', ' ')
 
-    pm_delta = datetime.timedelta(hours=12 if re.search(r'(?i)PM', date_str) else 0)
+    pm_delta = 12 if re.search(r'(?i)PM', date_str) else 0
     timezone, date_str = extract_timezone(date_str)
 
     # Remove AM/PM + timezone
@@ -1109,13 +1110,13 @@ def unified_timestamp(date_str, day_first=True):
 
     for expression in date_formats(day_first):
         try:
-            dt = datetime.datetime.strptime(date_str, expression) - timezone + pm_delta
+            dt = datetime.datetime.strptime(date_str, expression) - timezone + datetime.timedelta(hours=pm_delta)
             return calendar.timegm(dt.timetuple())
         except ValueError:
             pass
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
-        return calendar.timegm(timetuple.timetuple())
+        return calendar.timegm(timetuple) + pm_delta * 3600
 
 
 def determine_ext(url, default_ext='unknown_video'):
@@ -1983,11 +1984,27 @@ US_RATINGS = {
 }
 
 
+TV_PARENTAL_GUIDELINES = {
+    'TV-Y': 0,
+    'TV-Y7': 7,
+    'TV-G': 0,
+    'TV-PG': 0,
+    'TV-14': 14,
+    'TV-MA': 17,
+}
+
+
 def parse_age_limit(s):
-    if s is None:
+    if type(s) == int:
+        return s if 0 <= s <= 21 else None
+    if not isinstance(s, compat_basestring):
         return None
     m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
-    return int(m.group('age')) if m else US_RATINGS.get(s)
+    if m:
+        return int(m.group('age'))
+    if s in US_RATINGS:
+        return US_RATINGS[s]
+    return TV_PARENTAL_GUIDELINES.get(s)
 
 
 def strip_jsonp(code):
@@ -2971,3 +2988,110 @@ def parse_m3u8_attributes(attrib):
 
 def urshift(val, n):
     return val >> n if val >= 0 else (val + 0x100000000) >> n
+
+
+# Based on png2str() written by @gdkchan and improved by @yokrysty
+# Originally posted at https://github.com/rg3/youtube-dl/issues/9706
+def decode_png(png_data):
+    # Reference: https://www.w3.org/TR/PNG/
+    header = png_data[8:]
+
+    if png_data[:8] != b'\x89PNG\x0d\x0a\x1a\x0a' or header[4:8] != b'IHDR':
+        raise IOError('Not a valid PNG file.')
+
+    int_map = {1: '>B', 2: '>H', 4: '>I'}
+    unpack_integer = lambda x: compat_struct_unpack(int_map[len(x)], x)[0]
+
+    chunks = []
+
+    while header:
+        length = unpack_integer(header[:4])
+        header = header[4:]
+
+        chunk_type = header[:4]
+        header = header[4:]
+
+        chunk_data = header[:length]
+        header = header[length:]
+
+        header = header[4:]  # Skip CRC
+
+        chunks.append({
+            'type': chunk_type,
+            'length': length,
+            'data': chunk_data
+        })
+
+    ihdr = chunks[0]['data']
+
+    width = unpack_integer(ihdr[:4])
+    height = unpack_integer(ihdr[4:8])
+
+    idat = b''
+
+    for chunk in chunks:
+        if chunk['type'] == b'IDAT':
+            idat += chunk['data']
+
+    if not idat:
+        raise IOError('Unable to read PNG data.')
+
+    decompressed_data = bytearray(zlib.decompress(idat))
+
+    stride = width * 3
+    pixels = []
+
+    def _get_pixel(idx):
+        x = idx % stride
+        y = idx // stride
+        return pixels[y][x]
+
+    for y in range(height):
+        basePos = y * (1 + stride)
+        filter_type = decompressed_data[basePos]
+
+        current_row = []
+
+        pixels.append(current_row)
+
+        for x in range(stride):
+            color = decompressed_data[1 + basePos + x]
+            basex = y * stride + x
+            left = 0
+            up = 0
+
+            if x > 2:
+                left = _get_pixel(basex - 3)
+            if y > 0:
+                up = _get_pixel(basex - stride)
+
+            if filter_type == 1:  # Sub
+                color = (color + left) & 0xff
+            elif filter_type == 2:  # Up
+                color = (color + up) & 0xff
+            elif filter_type == 3:  # Average
+                color = (color + ((left + up) >> 1)) & 0xff
+            elif filter_type == 4:  # Paeth
+                a = left
+                b = up
+                c = 0
+
+                if x > 2 and y > 0:
+                    c = _get_pixel(basex - stride - 3)
+
+                p = a + b - c
+
+                pa = abs(p - a)
+                pb = abs(p - b)
+                pc = abs(p - c)
+
+                if pa <= pb and pa <= pc:
+                    color = (color + a) & 0xff
+                elif pb <= pc:
+                    color = (color + b) & 0xff
+                else:
+                    color = (color + c) & 0xff
+
+            current_row.append(color)
+
+    return width, height, pixels

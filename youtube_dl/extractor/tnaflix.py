@@ -118,8 +118,12 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
             xpath_text(cfg_xml, './startThumb', 'thumbnail'), 'http:')
         thumbnails = self._extract_thumbnails(cfg_xml)
 
-        title = self._html_search_regex(
-            self._TITLE_REGEX, webpage, 'title') if self._TITLE_REGEX else self._og_search_title(webpage)
+        title = None
+        if self._TITLE_REGEX:
+            title = self._html_search_regex(
+                self._TITLE_REGEX, webpage, 'title', default=None)
+        if not title:
+            title = self._og_search_title(webpage)
 
         age_limit = self._rta_search(webpage) or 18
 
@@ -189,9 +193,9 @@ class TNAFlixNetworkEmbedIE(TNAFlixNetworkBaseIE):
 class TNAFlixIE(TNAFlixNetworkBaseIE):
     _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/[^/]+/(?P<display_id>[^/]+)/video(?P<id>\d+)'
 
-    _TITLE_REGEX = r'<title>(.+?) - TNAFlix Porn Videos</title>'
-    _DESCRIPTION_REGEX = r'<meta[^>]+name="description"[^>]+content="([^"]+)"'
-    _UPLOADER_REGEX = r'<i>\s*Verified Member\s*</i>\s*<h1>(.+?)</h1>'
+    _TITLE_REGEX = r'<title>(.+?) - (?:TNAFlix Porn Videos|TNAFlix\.com)</title>'
+    _DESCRIPTION_REGEX = r'(?s)>Description:</[^>]+>(.+?)<'
+    _UPLOADER_REGEX = r'<i>\s*Verified Member\s*</i>\s*<h\d+>(.+?)<'
     _CATEGORIES_REGEX = r'(?s)<span[^>]*>Categories:</span>(.+?)</div>'
 
     _TESTS = [{

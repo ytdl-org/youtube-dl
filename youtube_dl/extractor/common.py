@@ -816,11 +816,14 @@ class InfoExtractor(object):
         json_ld = self._search_regex(
             r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>',
             html, 'JSON-LD', group='json_ld', **kwargs)
+        default = kwargs.get('default', NO_DEFAULT)
         if not json_ld:
-            return {}
-        return self._json_ld(
-            json_ld, video_id, fatal=kwargs.get('fatal', True),
-            expected_type=expected_type)
+            return default if default is not NO_DEFAULT else {}
+        # JSON-LD may be malformed and thus `fatal` should be respected.
+        # At the same time `default` may be passed that assumes `fatal=False`
+        # for _search_regex. Let's simulate the same behavior here as well.
+        fatal = kwargs.get('fatal', True) if default == NO_DEFAULT else False
+        return self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):
@@ -828,41 +831,47 @@ class InfoExtractor(object):
         if not json_ld:
             return {}
         info = {}
-        if json_ld.get('@context') == 'http://schema.org':
-            item_type = json_ld.get('@type')
-            if expected_type is not None and expected_type != item_type:
-                return info
-            if item_type == 'TVEpisode':
-                info.update({
-                    'episode': unescapeHTML(json_ld.get('name')),
-                    'episode_number': int_or_none(json_ld.get('episodeNumber')),
-                    'description': unescapeHTML(json_ld.get('description')),
-                })
-                part_of_season = json_ld.get('partOfSeason')
-                if isinstance(part_of_season, dict) and part_of_season.get('@type') == 'TVSeason':
-                    info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
-                part_of_series = json_ld.get('partOfSeries')
-                if isinstance(part_of_series, dict) and part_of_series.get('@type') == 'TVSeries':
-                    info['series'] = unescapeHTML(part_of_series.get('name'))
-            elif item_type == 'Article':
-                info.update({
-                    'timestamp': parse_iso8601(json_ld.get('datePublished')),
-                    'title': unescapeHTML(json_ld.get('headline')),
-                    'description': unescapeHTML(json_ld.get('articleBody')),
-                })
-            elif item_type == 'VideoObject':
-                info.update({
-                    'url': json_ld.get('contentUrl'),
-                    'title': unescapeHTML(json_ld.get('name')),
-                    'description': unescapeHTML(json_ld.get('description')),
-                    'thumbnail': json_ld.get('thumbnailUrl'),
-                    'duration': parse_duration(json_ld.get('duration')),
-                    'timestamp': unified_timestamp(json_ld.get('uploadDate')),
-                    'filesize': float_or_none(json_ld.get('contentSize')),
-                    'tbr': int_or_none(json_ld.get('bitrate')),
-                    'width': int_or_none(json_ld.get('width')),
-                    'height': int_or_none(json_ld.get('height')),
-                })
+        if not isinstance(json_ld, (list, tuple, dict)):
+            return info
+        if isinstance(json_ld, dict):
+            json_ld = [json_ld]
+        for e in json_ld:
+            if e.get('@context') == 'http://schema.org':
+                item_type = e.get('@type')
+                if expected_type is not None and expected_type != item_type:
+                    return info
+                if item_type == 'TVEpisode':
+                    info.update({
+                        'episode': unescapeHTML(e.get('name')),
+                        'episode_number': int_or_none(e.get('episodeNumber')),
+                        'description': unescapeHTML(e.get('description')),
+                    })
+                    part_of_season = e.get('partOfSeason')
+                    if isinstance(part_of_season, dict) and part_of_season.get('@type') == 'TVSeason':
+                        info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
+                    part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
+                    if isinstance(part_of_series, dict) and part_of_series.get('@type') == 'TVSeries':
+                        info['series'] = unescapeHTML(part_of_series.get('name'))
+                elif item_type == 'Article':
+                    info.update({
+                        'timestamp': parse_iso8601(e.get('datePublished')),
+                        'title': unescapeHTML(e.get('headline')),
+                        'description': unescapeHTML(e.get('articleBody')),
+                    })
+                elif item_type == 'VideoObject':
+                    info.update({
+                        'url': e.get('contentUrl'),
+                        'title': unescapeHTML(e.get('name')),
+                        'description': unescapeHTML(e.get('description')),
+                        'thumbnail': e.get('thumbnailUrl'),
+                        'duration': parse_duration(e.get('duration')),
+                        'timestamp': unified_timestamp(e.get('uploadDate')),
+                        'filesize': float_or_none(e.get('contentSize')),
+                        'tbr': int_or_none(e.get('bitrate')),
+                        'width': int_or_none(e.get('width')),
+                        'height': int_or_none(e.get('height')),
+                    })
+                break
         return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
@@ -916,7 +925,8 @@ class InfoExtractor(object):
                 if f.get('ext') in ['f4f', 'f4m']:  # Not yet supported
                     preference -= 0.5
 
-            proto_preference = 0 if determine_protocol(f) in ['http', 'https'] else -0.1
+            protocol = f.get('protocol') or determine_protocol(f)
+            proto_preference = 0 if protocol in ['http', 'https'] else (-0.5 if protocol == 'rtsp' else -0.1)
 
             if f.get('vcodec') == 'none':  # audio only
                 preference -= 50
@@ -1133,7 +1143,7 @@ class InfoExtractor(object):
             'url': m3u8_url,
             'ext': ext,
             'protocol': 'm3u8',
-            'preference': preference - 1 if preference else -1,
+            'preference': preference - 100 if preference else -100,
             'resolution': 'multiple',
             'format_note': 'Quality selection URL',
         }

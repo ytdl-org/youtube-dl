@@ -1,16 +1,19 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from ..utils import (
     smuggle_url,
     url_basename,
     update_url_query,
+    get_element_by_class,
 )
 
 
-class NationalGeographicIE(InfoExtractor):
-    IE_NAME = 'natgeo'
+class NationalGeographicVideoIE(InfoExtractor):
+    IE_NAME = 'natgeo:video'
     _VALID_URL = r'https?://video\.nationalgeographic\.com/.*?'
 
     _TESTS = [
@@ -62,16 +65,16 @@ class NationalGeographicIE(InfoExtractor):
         }
 
 
-class NationalGeographicChannelIE(ThePlatformIE):
-    IE_NAME = 'natgeo:channel'
-    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/videos/(?P<id>[^/?]+)'
+class NationalGeographicIE(ThePlatformIE):
+    IE_NAME = 'natgeo'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/(?:videos|episodes)/(?P<id>[^/?]+)'
 
     _TESTS = [
         {
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/videos/uncovering-a-universal-knowledge/',
             'md5': '518c9aa655686cf81493af5cc21e2a04',
             'info_dict': {
-                'id': 'nB5vIAfmyllm',
+                'id': 'vKInpacll2pC',
                 'ext': 'mp4',
                 'title': 'Uncovering a Universal Knowledge',
                 'description': 'md5:1a89148475bf931b3661fcd6ddb2ae3a',
@@ -85,7 +88,7 @@ class NationalGeographicChannelIE(ThePlatformIE):
             'url': 'http://channel.nationalgeographic.com/wild/destination-wild/videos/the-stunning-red-bird-of-paradise/',
             'md5': 'c4912f656b4cbe58f3e000c489360989',
             'info_dict': {
-                'id': '3TmMv9OvGwIR',
+                'id': 'Pok5lWCkiEFA',
                 'ext': 'mp4',
                 'title': 'The Stunning Red Bird of Paradise',
                 'description': 'md5:7bc8cd1da29686be4d17ad1230f0140c',
@@ -95,6 +98,10 @@ class NationalGeographicChannelIE(ThePlatformIE):
             },
             'add_ie': ['ThePlatform'],
         },
+        {
+            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episodes/the-power-of-miracles/',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
@@ -122,3 +129,40 @@ class NationalGeographicChannelIE(ThePlatformIE):
                 {'force_smil_url': True}),
             'display_id': display_id,
         }
+
+
+class NationalGeographicEpisodeGuideIE(ThePlatformIE):
+    IE_NAME = 'natgeo:episodeguide'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?(?P<id>[^/]+)/episode-guide'
+    _TESTS = [
+        {
+            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episode-guide/',
+            'info_dict': {
+                'id': 'the-story-of-god-with-morgan-freeman-season-1',
+                'title': 'The Story of God with Morgan Freeman - Season 1',
+            },
+            'playlist_mincount': 6,
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/underworld-inc/episode-guide/?s=2',
+            'info_dict': {
+                'id': 'underworld-inc-season-2',
+                'title': 'Underworld, Inc. - Season 2',
+            },
+            'playlist_mincount': 7,
+        },
+    ]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        show = get_element_by_class('show', webpage)
+        selected_season = self._search_regex(
+            r'<div[^>]+class="select-seasons[^"]*".*?<a[^>]*>(.*?)</a>',
+            webpage, 'selected season')
+        entries = [
+            self.url_result(self._proto_relative_url(entry_url), 'NationalGeographic')
+            for entry_url in re.findall('(?s)<div[^>]+class="col-inner"[^>]*?>.*?<a[^>]+href="([^"]+)"', webpage)]
+        return self.playlist_result(
+            entries, '%s-%s' % (display_id, selected_season.lower().replace(' ', '-')),
+            '%s - %s' % (show, selected_season))

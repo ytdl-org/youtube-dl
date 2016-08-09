@@ -2207,6 +2207,14 @@ class GenericIE(InfoExtractor):
             return self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
 
+        # Look for VODPlatform embeds
+        mobj = re.search(
+            r'<iframe[^>]+src=[\'"]((?:https?:)?//(?:www\.)?vod-platform\.net/embed/[^/?#]+)',
+            webpage)
+        if mobj is not None:
+            return self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'VODPlatform')
+
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
         if instagram_embed_url is not None:
@@ -2233,8 +2241,8 @@ class GenericIE(InfoExtractor):
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
-            webpage, video_id, default=None, expected_type='VideoObject')
-        if json_ld and json_ld.get('url'):
+            webpage, video_id, default={}, expected_type='VideoObject')
+        if json_ld.get('url'):
             info_dict.update({
                 'title': video_title or info_dict['title'],
                 'description': video_description,

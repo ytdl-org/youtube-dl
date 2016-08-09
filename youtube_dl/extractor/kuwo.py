@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     get_element_by_id,
     clean_html,
@@ -242,8 +243,9 @@ class KuwoSingerIE(InfoExtractor):
                 query={'artistId': artist_id, 'pn': page_num, 'rn': self.PAGE_SIZE})
 
             return [
-                self.url_result(song_url, 'Kuwo') for song_url in re.findall(
-                    r'<div[^>]+class="name"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)',
+                self.url_result(compat_urlparse.urljoin(url, song_url), 'Kuwo')
+                for song_url in re.findall(
+                    r'<div[^>]+class="name"><a[^>]+href="(/yinyue/\d+)',
                     webpage)
             ]
 

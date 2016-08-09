@@ -145,6 +145,16 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error('invalid max_filesize specified')
         opts.max_filesize = numeric_limit
+    if opts.sleep_interval is not None:
+        if opts.sleep_interval < 0:
+            parser.error('sleep interval must be positive or 0')
+    if opts.max_sleep_interval is not None:
+        if opts.max_sleep_interval < 0:
+            parser.error('max sleep interval must be positive or 0')
+        if opts.max_sleep_interval < opts.sleep_interval:
+            parser.error('max sleep interval must be greater than or equal to min sleep interval')
+    else:
+        opts.max_sleep_interval = opts.sleep_interval
 
     def parse_retries(retries):
         if retries in ('inf', 'infinite'):
@@ -370,6 +380,7 @@ def _real_main(argv=None):
         'source_address': opts.source_address,
         'call_home': opts.call_home,
         'sleep_interval': opts.sleep_interval,
+        'max_sleep_interval': opts.max_sleep_interval,
         'external_downloader': opts.external_downloader,
         'list_thumbnails': opts.list_thumbnails,
         'playlist_items': opts.playlist_items,

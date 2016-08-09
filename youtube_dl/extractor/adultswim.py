@@ -83,6 +83,20 @@ class AdultSwimIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        # heroMetadata.trailer
+        'url': 'http://www.adultswim.com/videos/decker/inside-decker-a-new-hero/',
+        'info_dict': {
+            'id': 'I0LQFQkaSUaFp8PnAWHhoQ',
+            'ext': 'mp4',
+            'title': 'Decker - Inside Decker: A New Hero',
+            'description': 'md5:c916df071d425d62d70c86d4399d3ee0',
+            'duration': 249.008,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
     }]
 
     @staticmethod
@@ -133,20 +147,26 @@ class AdultSwimIE(InfoExtractor):
             if video_info is None:
                 if bootstrapped_data.get('slugged_video', {}).get('slug') == episode_path:
                     video_info = bootstrapped_data['slugged_video']
-                else:
-                    raise ExtractorError('Unable to find video info')
+            if not video_info:
+                video_info = bootstrapped_data.get('heroMetadata', {}).get('trailer').get('video')
+            if not video_info:
+                raise ExtractorError('Unable to find video info')
 
             show = bootstrapped_data['show']
             show_title = show['title']
             stream = video_info.get('stream')
-            clips = [stream] if stream else video_info.get('clips')
-            if not clips:
+            if stream and stream.get('videoPlaybackID'):
+                segment_ids = [stream['videoPlaybackID']]
+            elif video_info.get('clips'):
+                segment_ids = [clip['videoPlaybackID'] for clip in video_info['clips']]
+            elif video_info.get('videoPlaybackID'):
+                segment_ids = [video_info['videoPlaybackID']]
+            else:
                 raise ExtractorError(
                     'This video is only available via cable service provider subscription that'
                     ' is not currently supported. You may want to use --cookies.'
                     if video_info.get('auth') is True else 'Unable to find stream or clips',
                     expected=True)
-            segment_ids = [clip['videoPlaybackID'] for clip in clips]
 
         episode_id = video_info['id']
         episode_title = video_info['title']

@@ -499,9 +499,20 @@ def parseOpts(overrideArguments=None):
         dest='bidi_workaround', action='store_true',
         help='Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
     workarounds.add_option(
-        '--sleep-interval', metavar='SECONDS',
+        '--sleep-interval', '--min-sleep-interval', metavar='SECONDS',
         dest='sleep_interval', type=float,
-        help='Number of seconds to sleep before each download.')
+        help=(
+            'Number of seconds to sleep before each download when used alone '
+            'or a lower bound of a range for randomized sleep before each download '
+            '(minimum possible number of seconds to sleep) when used along with '
+            '--max-sleep-interval.'))
+    workarounds.add_option(
+        '--max-sleep-interval', metavar='SECONDS',
+        dest='max_sleep_interval', type=float,
+        help=(
+            'Upper bound of a range for randomized sleep before each download '
+            '(maximum possible number of seconds to sleep). Must only be used '
+            'along with --min-sleep-interval.'))
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
