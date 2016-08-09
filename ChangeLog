@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.10
 
 Core
 * Make --metadata-from-title non fatal when title does not match the pattern

@@ -564,6 +564,7 @@
  - **RoosterTeeth**
  - **RottenTomatoes**
  - **Roxwel**
+ - **Rozhlas**
  - **RTBF**
  - **rte**: Raidió Teilifís Éireann TV
  - **rte:radio**: Raidió Teilifís Éireann radio
@@ -621,6 +622,7 @@
  - **smotri:user**: Smotri.com user videos
  - **Snotr**
  - **Sohu**
+ - **SonyLIV**
  - **soundcloud**
  - **soundcloud:playlist**
  - **soundcloud:search**: Soundcloud search
@@ -747,6 +749,7 @@
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
  - **Unistra**
+ - **uol.com.br**
  - **Urort**: NRK P3 Urørt
  - **URPlay**
  - **USAToday**
