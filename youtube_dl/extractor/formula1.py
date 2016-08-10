@@ -5,9 +5,9 @@ from .common import InfoExtractor
 
 
 class Formula1IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?formula1\.com/content/fom-website/en/video/\d{4}/\d{1,2}/(?P<id>.+?)\.html'
+    _VALID_URL = r'https?://(?:www\.)?formula1\.com/en/video/\d{4}/\d{1,2}/(?P<id>.+?)\.html'
     _TEST = {
-        'url': 'http://www.formula1.com/content/fom-website/en/video/2016/5/Race_highlights_-_Spain_2016.html',
+        'url': 'http://www.formula1.com/en/video/2016/5/Race_highlights_-_Spain_2016.html',
         'md5': '8c79e54be72078b26b89e0e111c0502b',
         'info_dict': {
             'id': 'JvYXJpMzE6pArfHWm5ARp5AiUmD-gibV',
