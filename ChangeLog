@@ -3,6 +3,9 @@ version <unreleased>
 Core
 + Recognize more formats in unified_timestamp
 
+Extractors
+* [ctsnews] Fix extraction
+
 
 version 2016.08.10
 
