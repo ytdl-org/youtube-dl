@@ -14,7 +14,7 @@ class RtlNlIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:www\.)?
         (?:
-            rtlxl\.nl/\#!/[^/]+/|
+            rtlxl\.nl/[^\#]*\#!/[^/]+/|
             rtl\.nl/system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html\b.+?\buuid=
         )
         (?P<id>[0-9a-f-]+)'''
@@ -66,6 +66,9 @@ class RtlNlIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.rtl.nl/system/videoplayer/derden/embed.html#!/uuid=bb0353b0-d6a4-1dad-90e9-18fe75b8d1f0',
+        'only_matching': True,
+    }, {
+        'url': 'http://rtlxl.nl/?_ga=1.204735956.572365465.1466978370#!/rtl-nieuws-132237/3c487912-023b-49ac-903e-2c5d79f8410f',
         'only_matching': True,
     }]
 
