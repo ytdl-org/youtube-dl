@@ -1,6 +1,7 @@
 version <unreleased>
 
 Core
+* Subtitles are now written as is. Newline conversions are disabled. (#10268)
 + Recognize more formats in unified_timestamp
 
 Extractors
