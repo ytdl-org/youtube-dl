@@ -517,6 +517,7 @@ from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
 from .kakao import KakaoIE
 from .kaltura import KalturaIE
+from .kanal2 import Kanal2IE
 from .kanalplay import KanalPlayIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
