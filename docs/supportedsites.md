@@ -265,7 +265,6 @@
  - **GloboArticle**
  - **GodTube**
  - **GodTV**
- - **GoldenMoustache**
  - **Golem**
  - **GoogleDrive**
  - **Goshgay**

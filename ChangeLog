@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.12
 
 Core
 * Subtitles are now written as is. Newline conversions are disabled. (#10268)
