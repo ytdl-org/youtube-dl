@@ -5,6 +5,14 @@ Core
 + Recognize more formats in unified_timestamp
 
 Extractors
+- [goldenmoustache] Remove extractor (#10298)
+* [drtuber] Improve title extraction
+* [drtuber] Make dislike count optional (#10297)
+* [chirbit] Fix extraction (#10296)
+* [francetvinfo] Relax URL regular expression
+* [rtlnl] Relax URL regular expression (#10282)
+* [formula1] Relax URL regular expression (#10283)
+* [wat] Improve extraction (#10281)
 * [ctsnews] Fix extraction
 
 
