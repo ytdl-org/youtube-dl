@@ -4,6 +4,7 @@ import io
 import os
 import subprocess
 import time
+import re
 
 
 from .common import AudioConversionError, PostProcessor
@@ -22,6 +23,7 @@ from ..utils import (
     subtitles_filename,
     dfxp2srt,
     ISO639Utils,
+    replace_extension,
 )
 
 
@@ -420,17 +422,36 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
+        metadata_filename = replace_extension(filename, 'meta')
+
+        options = ['-map_metadata', '1']
 
         if info['ext'] == 'm4a':
-            options = ['-vn', '-acodec', 'copy']
+            options.extend(['-vn', '-acodec', 'copy'])
         else:
-            options = ['-c', 'copy']
+            options.extend(['-c', 'copy'])
 
+        def ffmpeg_escape(text):
+            return re.sub(r'(=|;|#|\\|\n)', r'\\\1', text)
+
+        metadata_file_content = ';FFMETADATA1\n'
         for (name, value) in metadata.items():
-            options.extend(['-metadata', '%s=%s' % (name, value)])
+            metadata_file_content += '%s=%s\n' % (name, ffmpeg_escape(value))
+
+        for chapter in info.get('chapters', []):
+            metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
+            metadata_file_content += 'START=%d\n' % (chapter['start_time'] * 1000)
+            metadata_file_content += 'END=%d\n' % (chapter['end_time'] * 1000)
+            chapter_title = chapter.get('title')
+            if chapter_title:
+                metadata_file_content += 'title=%s\n' % ffmpeg_escape(chapter_title)
+
+        with io.open(metadata_filename, 'wt', encoding='utf-8') as f:
+            f.write(metadata_file_content)
 
         self._downloader.to_screen('[ffmpeg] Adding metadata to \'%s\'' % filename)
-        self.run_ffmpeg(filename, temp_filename, options)
+        self.run_ffmpeg_multiple_files([filename, metadata_filename], temp_filename, options)
+        os.remove(encodeFilename(metadata_filename))
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return [], info
