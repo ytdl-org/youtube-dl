@@ -376,6 +376,7 @@ from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
 from .kaltura import KalturaIE
 from .kamcord import KamcordIE
+from .kanal2 import Kanal2IE
 from .kanalplay import KanalPlayIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
