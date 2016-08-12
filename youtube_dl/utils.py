@@ -2410,6 +2410,8 @@ def dfxp2srt(dfxp_data):
 
 def cli_option(params, command_option, param):
     param = params.get(param)
+    if param:
+        param = compat_str(param)
     return [command_option, param] if param is not None else []
 
 

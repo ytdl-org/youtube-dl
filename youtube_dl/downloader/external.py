@@ -96,12 +96,27 @@ class CurlFD(ExternalFD):
         cmd = [self.exe, '--location', '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += self._bool_option('--continue-at', 'continuedl', '-', '0')
+        cmd += self._valueless_option('--silent', 'noprogress')
+        cmd += self._valueless_option('--verbose', 'verbose')
+        cmd += self._option('--limit-rate', 'ratelimit')
+        cmd += self._option('--retry', 'retries')
+        cmd += self._option('--max-filesize', 'max_filesize')
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--proxy', 'proxy')
         cmd += self._valueless_option('--insecure', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
+
+    def _call_downloader(self, tmpfilename, info_dict):
+        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
+
+        self._debug_cmd(cmd)
+
+        p = subprocess.Popen(cmd)
+        p.communicate()
+        return p.returncode
 
 
 class AxelFD(ExternalFD):
