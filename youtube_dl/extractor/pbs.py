@@ -448,17 +448,6 @@ class PBSIE(InfoExtractor):
                     redirects.append(redirect)
                     redirect_urls.add(redirect_url)
 
-        try:
-            video_info = self._download_json(
-                'http://player.pbs.org/videoInfo/%s?format=json&type=partner' % video_id,
-                display_id, 'Downloading video info JSON')
-            extract_redirect_urls(video_info)
-            info = video_info
-        except ExtractorError as e:
-            # videoInfo API may not work for some videos
-            if not isinstance(e.cause, compat_HTTPError) or e.cause.code != 404:
-                raise
-
         # Player pages may also serve different qualities
         for page in ('widget/partnerplayer', 'portalplayer'):
             player = self._download_webpage(
@@ -511,12 +500,12 @@ class PBSIE(InfoExtractor):
             formats))
         if http_url:
             for m3u8_format in m3u8_formats:
-                bitrate = self._search_regex(r'(\d+k)', m3u8_format['url'], 'bitrate', default=None)
+                bitrate = self._search_regex(r'(\d+)k', m3u8_format['url'], 'bitrate', default=None)
                 # extract only the formats that we know that they will be available as http format.
                 # https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
-                if not bitrate or bitrate not in ('400k', '800k', '1200k', '2500k'):
+                if not bitrate or int(bitrate) < 400:
                     continue
-                f_url = re.sub(r'\d+k|baseline', bitrate, http_url)
+                f_url = re.sub(r'\d+k|baseline', bitrate + 'k', http_url)
                 # This may produce invalid links sometimes (e.g.
                 # http://www.pbs.org/wgbh/frontline/film/suicide-plan)
                 if not self._is_valid_url(f_url, display_id, 'http-%s video' % bitrate):
