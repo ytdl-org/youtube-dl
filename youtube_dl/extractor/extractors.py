@@ -272,10 +272,7 @@ from .fox import FOXIE
 from .foxgay import FoxgayIE
 from .foxnews import FoxNewsIE
 from .foxsports import FoxSportsIE
-from .franceculture import (
-    FranceCultureIE,
-    FranceCultureEmissionIE,
-)
+from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
 from .francetv import (
     PluzzIE,
