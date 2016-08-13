@@ -15,10 +15,10 @@ class SunPornoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?sunporno\.com/videos/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.sunporno.com/videos/807778/',
-        'md5': '6457d3c165fd6de062b99ef6c2ff4c86',
+        'md5': '507887e29033502f29dba69affeebfc9',
         'info_dict': {
             'id': '807778',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'md5:0a400058e8105d39e35c35e7c5184164',
             'description': 'md5:a31241990e1bd3a64e72ae99afb325fb',
             'thumbnail': 're:^https?://.*\.jpg$',
@@ -40,7 +40,8 @@ class SunPornoIE(InfoExtractor):
             r'poster="([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         duration = parse_duration(self._search_regex(
-            r'itemprop="duration">\s*(\d+:\d+)\s*<',
+            (r'itemprop="duration"[^>]*>\s*(\d+:\d+)\s*<',
+             r'>Duration:\s*<span[^>]+>\s*(\d+:\d+)\s*<'),
             webpage, 'duration', fatal=False))
 
         view_count = int_or_none(self._html_search_regex(
@@ -48,7 +49,7 @@ class SunPornoIE(InfoExtractor):
             webpage, 'view count', fatal=False))
         comment_count = int_or_none(self._html_search_regex(
             r'(\d+)</b> Comments?',
-            webpage, 'comment count', fatal=False))
+            webpage, 'comment count', fatal=False, default=None))
 
         formats = []
         quality = qualities(['mp4', 'flv'])
