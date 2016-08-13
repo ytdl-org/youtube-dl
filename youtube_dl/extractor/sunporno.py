@@ -12,8 +12,8 @@ from ..utils import (
 
 
 class SunPornoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?sunporno\.com/videos/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:(?:www\.)?sunporno\.com/videos|embeds\.sunporno\.com/embed)/(?P<id>\d+)'
+    _TESTS = [{
         'url': 'http://www.sunporno.com/videos/807778/',
         'md5': '507887e29033502f29dba69affeebfc9',
         'info_dict': {
@@ -25,12 +25,16 @@ class SunPornoIE(InfoExtractor):
             'duration': 302,
             'age_limit': 18,
         }
-    }
+    }, {
+        'url': 'http://embeds.sunporno.com/embed/807778',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'http://www.sunporno.com/videos/%s' % video_id, video_id)
 
         title = self._html_search_regex(
             r'<title>([^<]+)</title>', webpage, 'title')
