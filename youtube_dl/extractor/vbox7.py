@@ -12,7 +12,15 @@ from ..utils import (
 
 class Vbox7IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vbox7\.com/play:(?P<id>[^/]+)'
-    _TEST = {
+    _TESTS = [{
+        'url': 'http://vbox7.com/play:0946fff23c',
+        'md5': 'a60f9ab3a3a2f013ef9a967d5f7be5bf',
+        'info_dict': {
+            'id': '0946fff23c',
+            'ext': 'mp4',
+            'title': 'Борисов: Притеснен съм за бъдещето на България',
+        },
+    }, {
         'url': 'http://vbox7.com/play:249bb972c2',
         'md5': '99f65c0c9ef9b682b97313e052734c3f',
         'info_dict': {
@@ -20,43 +28,38 @@ class Vbox7IE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Смях! Чудо - чист за секунди - Скрита камера',
         },
-    }
+        'skip': 'georestricted',
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # need to get the page 3 times for the correct jsSecretToken cookie
-        # which is necessary for the correct title
-        def get_session_id():
-            redirect_page = self._download_webpage(url, video_id)
-            session_id_url = self._search_regex(
-                r'var\s*url\s*=\s*\'([^\']+)\';', redirect_page,
-                'session id url')
-            self._download_webpage(
-                compat_urlparse.urljoin(url, session_id_url), video_id,
-                'Getting session id')
+        webpage = self._download_webpage(url, video_id)
 
-        get_session_id()
-        get_session_id()
+        title = self._html_search_regex(
+            r'<title>(.*)</title>', webpage, 'title').split('/')[0].strip()
 
-        webpage = self._download_webpage(url, video_id,
-                                         'Downloading redirect page')
+        video_url = self._search_regex(
+            r'src\s*:\s*(["\'])(?P<url>.+?.mp4.*?)\1',
+            webpage, 'video url', default=None, group='url')
 
-        title = self._html_search_regex(r'<title>(.*)</title>',
-                                        webpage, 'title').split('/')[0].strip()
+        thumbnail_url = self._og_search_thumbnail(webpage)
 
-        info_url = 'http://vbox7.com/play/magare.do'
-        data = urlencode_postdata({'as3': '1', 'vid': video_id})
-        info_request = sanitized_Request(info_url, data)
-        info_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        info_response = self._download_webpage(info_request, video_id, 'Downloading info webpage')
-        if info_response is None:
-            raise ExtractorError('Unable to extract the media url')
-        (final_url, thumbnail_url) = map(lambda x: x.split('=')[1], info_response.split('&'))
+        if not video_url:
+            info_response = self._download_webpage(
+                'http://vbox7.com/play/magare.do', video_id,
+                'Downloading info webpage',
+                data=urlencode_postdata({'as3': '1', 'vid': video_id}),
+                headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            final_url, thumbnail_url = map(
+                lambda x: x.split('=')[1], info_response.split('&'))
+
+        if '/na.mp4' in video_url:
+            self.raise_geo_restricted()
 
         return {
             'id': video_id,
-            'url': final_url,
+            'url': self._proto_relative_url(video_url, 'http:'),
             'title': title,
             'thumbnail': thumbnail_url,
         }
