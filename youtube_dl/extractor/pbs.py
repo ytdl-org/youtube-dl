@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
     determine_ext,
@@ -335,6 +334,16 @@ class PBSIE(InfoExtractor):
             },
         },
         {
+            # has undocumented http formats(4500k and 6500k)
+            'url': 'http://www.pbs.org/video/2365815229/',
+            'md5': '94635cd06b7133688e23f4b94e6637a5',
+            'info_dict': {
+                'id': '2365815229',
+                'ext': 'mp4',
+                'title': 'FRONTLINE - Mosquito Hunter',
+            },
+        },
+        {
             'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
             'only_matching': True,
         },
@@ -501,14 +510,18 @@ class PBSIE(InfoExtractor):
         if http_url:
             for m3u8_format in m3u8_formats:
                 bitrate = self._search_regex(r'(\d+)k', m3u8_format['url'], 'bitrate', default=None)
-                # extract only the formats that we know that they will be available as http format.
+                # lower qualities(150k and 192k) are not available as http formats
+                # https://github.com/rg3/youtube-dl/commit/cbc032c8b70a038a69259378c92b4ba97b42d491#commitcomment-17313656
+                # we will try to extract any http format higher than than the lowest quality documented in
                 # https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
+                # as there also undocumented http formats formats(4500k and 6500k)
+                # http://www.pbs.org/video/2365815229/
                 if not bitrate or int(bitrate) < 400:
                     continue
                 f_url = re.sub(r'\d+k|baseline', bitrate + 'k', http_url)
                 # This may produce invalid links sometimes (e.g.
                 # http://www.pbs.org/wgbh/frontline/film/suicide-plan)
-                if not self._is_valid_url(f_url, display_id, 'http-%s video' % bitrate):
+                if not self._is_valid_url(f_url, display_id, 'http-%sk video' % bitrate):
                     continue
                 f = m3u8_format.copy()
                 f.update({
