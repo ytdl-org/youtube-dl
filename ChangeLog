@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [xiami] Fix extraction (#10342)
+
+
 version 2016.08.13
 
 Core
@@ -22,6 +28,7 @@ Extractors
 - [pbs] Remove request to unavailable API
 + [pbs] Add support for high quality HTTP formats
 + [crunchyroll] Add support for HLS formats (#10301)
+
 
 version 2016.08.12
 
