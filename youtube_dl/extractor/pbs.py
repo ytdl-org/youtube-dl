@@ -506,12 +506,12 @@ class PBSIE(InfoExtractor):
         if http_url:
             for m3u8_format in m3u8_formats:
                 bitrate = self._search_regex(r'(\d+)k', m3u8_format['url'], 'bitrate', default=None)
-                # lower qualities(150k and 192k) are not available as http formats
-                # https://github.com/rg3/youtube-dl/commit/cbc032c8b70a038a69259378c92b4ba97b42d491#commitcomment-17313656
-                # we will try to extract any http format higher than than the lowest quality documented in
-                # https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
-                # as there also undocumented http formats formats(4500k and 6500k)
-                # http://www.pbs.org/video/2365815229/
+                # Lower qualities (150k and 192k) are not available as HTTP formats (see [1]),
+                # we won't try extracting them.
+                # Since summer 2016 higher quality formats (4500k and 6500k) are also available
+                # albeit they are not documented in [2].
+                # 1. https://github.com/rg3/youtube-dl/commit/cbc032c8b70a038a69259378c92b4ba97b42d491#commitcomment-17313656
+                # 2. https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
                 if not bitrate or int(bitrate) < 400:
                     continue
                 f_url = re.sub(r'\d+k|baseline', bitrate + 'k', http_url)
