@@ -238,7 +238,6 @@
  - **FoxSports**
  - **france2.fr:generation-quoi**
  - **FranceCulture**
- - **FranceCultureEmission**
  - **FranceInter**
  - **francetv**: France 2, 3, 4, 5 and Ô
  - **francetvinfo.fr**
@@ -277,6 +276,7 @@
  - **HellPorno**
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
+ - **HGTV**
  - **HistoricFilms**
  - **history:topic**: History.com Topic
  - **hitbox**
@@ -664,7 +664,6 @@
  - **SztvHu**
  - **Tagesschau**
  - **tagesschau:player**
- - **Tapely**
  - **Tass**
  - **TDSLifeway**
  - **teachertube**: teachertube.com videos

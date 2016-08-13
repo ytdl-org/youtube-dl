@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.13
 
 Core
 * Show progress for curl external downloader
