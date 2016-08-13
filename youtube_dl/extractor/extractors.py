@@ -812,7 +812,6 @@ from .tagesschau import (
     TagesschauPlayerIE,
     TagesschauIE,
 )
-from .tapely import TapelyIE
 from .tass import TassIE
 from .tdslifeway import TDSLifewayIE
 from .teachertube import (
