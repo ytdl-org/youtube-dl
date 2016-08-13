@@ -1,7 +1,27 @@
 version <unreleased>
 
+Core
+* Show progress for curl external downloader
+* Forward more options to curl external downloader
+
 Extractors
+* [pbs] Fix description extraction
+* [franceculture] Fix extraction (#10324)
+* [pornotube] Fix extraction (#10322)
+* [4tube] Fix metadata extraction (#10321)
+* [imgur] Fix width and height extraction (#10325)
+* [expotv] Improve extraction
++ [vbox7] Fix extraction (#10309)
 - [tapely] Remove extractor (#10323)
+* [muenchentv] Fix extraction (#10313)
++ [24video] Add support for .me and .xxx TLDs
+* [24video] Fix comment count extraction
+* [sunporno] Add support for embed URLs
+* [sunporno] Fix metadata extraction (#10316)
++ [hgtv] Add extractor for hgtv.ca (#3999)
+- [pbs] Remove request to unavailable API
++ [pbs] Add support for high quality HTTP formats
++ [crunchyroll] Add support for HLS formats (#10301)
 
 version 2016.08.12
 
