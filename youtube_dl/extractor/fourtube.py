@@ -43,14 +43,14 @@ class FourTubeIE(InfoExtractor):
             'uploadDate', webpage))
         thumbnail = self._html_search_meta('thumbnailUrl', webpage)
         uploader_id = self._html_search_regex(
-            r'<a class="img-avatar" href="[^"]+/channels/([^/"]+)" title="Go to [^"]+ page">',
+            r'<a class="item-to-subscribe" href="[^"]+/channels/([^/"]+)" title="Go to [^"]+ page">',
             webpage, 'uploader id', fatal=False)
         uploader = self._html_search_regex(
-            r'<a class="img-avatar" href="[^"]+/channels/[^/"]+" title="Go to ([^"]+) page">',
+            r'<a class="item-to-subscribe" href="[^"]+/channels/[^/"]+" title="Go to ([^"]+) page">',
             webpage, 'uploader', fatal=False)
 
         categories_html = self._search_regex(
-            r'(?s)><i class="icon icon-tag"></i>\s*Categories / Tags\s*.*?<ul class="list">(.*?)</ul>',
+            r'(?s)><i class="icon icon-tag"></i>\s*Categories / Tags\s*.*?<ul class="[^"]*?list[^"]*?">(.*?)</ul>',
             webpage, 'categories', fatal=False)
         categories = None
         if categories_html:
@@ -59,10 +59,10 @@ class FourTubeIE(InfoExtractor):
                     r'(?s)<li><a.*?>(.*?)</a>', categories_html)]
 
         view_count = str_to_int(self._search_regex(
-            r'<meta itemprop="interactionCount" content="UserPlays:([0-9,]+)">',
+            r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:([0-9,]+)">',
             webpage, 'view count', fatal=False))
         like_count = str_to_int(self._search_regex(
-            r'<meta itemprop="interactionCount" content="UserLikes:([0-9,]+)">',
+            r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserLikes:([0-9,]+)">',
             webpage, 'like count', fatal=False))
         duration = parse_duration(self._html_search_meta('duration', webpage))
 
