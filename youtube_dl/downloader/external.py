@@ -114,6 +114,7 @@ class CurlFD(ExternalFD):
 
         self._debug_cmd(cmd)
 
+        # curl writes the progress to stderr so don't capture it.
         p = subprocess.Popen(cmd)
         p.communicate()
         return p.returncode
