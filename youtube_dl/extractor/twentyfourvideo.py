@@ -64,7 +64,7 @@ class TwentyFourVideoIE(InfoExtractor):
             r'<span class="video-views">(\d+) просмотр',
             webpage, 'view count', fatal=False))
         comment_count = int_or_none(self._html_search_regex(
-            r'<div class="comments-title" id="comments-count">(\d+) комментари',
+            r'<a[^>]+href="#tab-comments"[^>]*>(\d+) комментари',
             webpage, 'comment count', fatal=False))
 
         # Sets some cookies
