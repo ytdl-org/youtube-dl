@@ -22,7 +22,6 @@ class DouyuTVIE(InfoExtractor):
             'description': 're:.*m7show@163\.com.*',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': '7师傅',
-            'uploader_id': '431925',
             'is_live': True,
         },
         'params': {
@@ -38,7 +37,6 @@ class DouyuTVIE(InfoExtractor):
             'description': 'md5:746a2f7a253966a06755a912f0acc0d2',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': 'douyu小漠',
-            'uploader_id': '3769985',
             'is_live': True,
         },
         'params': {
@@ -55,7 +53,6 @@ class DouyuTVIE(InfoExtractor):
             'description': 're:.*m7show@163\.com.*',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': '7师傅',
-            'uploader_id': '431925',
             'is_live': True,
         },
         'params': {
@@ -76,7 +73,19 @@ class DouyuTVIE(InfoExtractor):
             room_id = self._html_search_regex(
                 r'"room_id"\s*:\s*(\d+),', page, 'room id')
 
-        flv_info_json = None
+        room_url = 'http://m.douyu.com/html5/live?roomId=%s' % room_id
+        room_content = self._download_webpage(room_url, video_id)
+        room_json = self._parse_json(room_content, video_id, fatal=False)
+
+        room = room_json['data']
+
+        show_status = room.get('show_status')
+        # 1 = live, 2 = offline
+        if show_status == '2':
+            raise ExtractorError(
+                'Live stream is offline', expected=True)
+
+        flv_json = None
         # Douyu API sometimes returns error "Unable to load the requested class: eticket_redis_cache"
         # Retry with different parameters - same parameters cause same errors
         for i in range(5):
@@ -87,15 +96,15 @@ class DouyuTVIE(InfoExtractor):
             sign = hashlib.md5((sign_content).encode('utf-8')).hexdigest()
 
             payload = {'cdn': 'ws', 'rate': '0', 'tt': tt, 'did': did, 'sign': sign}
-            flv_info_data = compat_urllib_parse_urlencode(payload)
+            flv_data = compat_urllib_parse_urlencode(payload)
 
-            flv_info_request_url = 'http://www.douyu.com/lapi/live/getPlay/%s' % room_id
-            flv_info_request = sanitized_Request(flv_info_request_url, flv_info_data,
+            flv_request_url = 'http://www.douyu.com/lapi/live/getPlay/%s' % room_id
+            flv_request = sanitized_Request(flv_request_url, flv_data,
                 {'Content-Type': 'application/x-www-form-urlencoded'})
 
-            flv_info_content = self._download_webpage(flv_info_request, video_id)
+            flv_content = self._download_webpage(flv_request, video_id)
             try:
-                flv_info_json = self._parse_json(flv_info_content, video_id, fatal=False)
+                flv_json = self._parse_json(flv_content, video_id, fatal=False)
             except ExtractorError:
                 # Wait some time before retrying to get a different time() value
                 self._sleep(1, video_id, msg_template='%(video_id)s: Error occurs. '
@@ -103,31 +112,20 @@ class DouyuTVIE(InfoExtractor):
                 continue
             else:
                 break
-        if flv_info_json is None:
+        if flv_json is None:
             raise ExtractorError('Unable to fetch API result')
 
-        room_url = 'http://m.douyu.com/html5/live?roomId=%s' % room_id
-        room_content = self._download_webpage(room_url, video_id)
-        room_json = self._parse_json(room_content, video_id, fatal=False)
+        flv = flv_json['data']
 
-        room = room_json['data']
-        flv_info = flv_info_json['data']
-
-        show_status = room.get('show_status')
-        # 1 = live, 2 = offline
-        if show_status == '2':
-            raise ExtractorError(
-                'Live stream is offline', expected=True)
-
-        error_code = flv_info_json.get('error', 0)
+        error_code = flv_json.get('error', 0)
         if error_code is not 0:
             error_desc = 'Server reported error %i' % error_code
-            if isinstance(flv_info, (compat_str, compat_basestring)):
-                error_desc += ': ' + flv_info
+            if isinstance(flv, (compat_str, compat_basestring)):
+                error_desc += ': ' + flv
             raise ExtractorError(error_desc, expected=True)
 
-        base_url = flv_info['rtmp_url']
-        live_path = flv_info['rtmp_live']
+        base_url = flv['rtmp_url']
+        live_path = flv['rtmp_live']
 
         video_url = '%s/%s' % (base_url, live_path)
 
