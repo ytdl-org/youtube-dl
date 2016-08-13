@@ -2,12 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
-from ..utils import (
-    ExtractorError,
-    sanitized_Request,
-    urlencode_postdata,
-)
+from ..utils import urlencode_postdata
 
 
 class Vbox7IE(InfoExtractor):
