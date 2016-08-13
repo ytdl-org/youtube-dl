@@ -968,6 +968,7 @@ The first line
         self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])
         self.assertEqual(cli_option({'proxy': None}, '--proxy', 'proxy'), [])
         self.assertEqual(cli_option({}, '--proxy', 'proxy'), [])
+        self.assertEqual(cli_option({'retries': 10}, '--retries', 'retries'), ['--retries', '10'])
 
     def test_cli_valueless_option(self):
         self.assertEqual(cli_valueless_option(
