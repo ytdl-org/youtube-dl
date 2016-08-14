@@ -218,15 +218,16 @@ class ThePlatformIE(ThePlatformBaseIE):
         requestor_info = self._downloader.cache.load('mvpd', requestor_id) or {}
         authn_token = requestor_info.get('authn_token')
         if authn_token:
-            token_expires = unified_timestamp(xml_text(authn_token, 'simpleTokenExpires').replace('_GMT', ''))
-            if token_expires and token_expires >= time.time():
+            token_expires = unified_timestamp(re.sub(r'[_ ]GMT', '', xml_text(authn_token, 'simpleTokenExpires')))
+            if token_expires and token_expires <= int(time.time()):
                 authn_token = None
+                requestor_info = {}
         if not authn_token:
             # TODO add support for other TV Providers
             mso_id = 'DTV'
-            login_info = netrc.netrc().authenticators(mso_id)
-            if not login_info:
-                return None
+            username, password = self._get_netrc_login_info(mso_id)
+            if not username or not password:
+                return ''
 
             def post_form(form_page, note, data={}):
                 post_url = self._html_search_regex(r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_page, 'post url', group='url')
@@ -248,8 +249,8 @@ class ThePlatformIE(ThePlatformBaseIE):
             provider_login_page = post_form(
                 provider_redirect_page, 'Downloading Provider Login Page')
             mvpd_confirm_page = post_form(provider_login_page, 'Logging in', {
-                'username': login_info[0],
-                'password': login_info[2],
+                'username': username,
+                'password': password,
             })
             post_form(mvpd_confirm_page, 'Confirming Login')
 
