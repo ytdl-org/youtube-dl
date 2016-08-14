@@ -70,6 +70,7 @@ class VicelandIE(AdobePass):
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
                 error = json.loads(e.cause.read().decode())
                 raise ExtractorError('%s said: %s' % (self.IE_NAME, error['details']), expected=True)
+            raise
 
         video_data = preplay['video']
         base = video_data['base']
