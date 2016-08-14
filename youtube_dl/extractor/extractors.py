@@ -958,6 +958,7 @@ from .vice import (
     ViceIE,
     ViceShowIE,
 )
+from .viceland import VicelandIE
 from .vidbit import VidbitIE
 from .viddler import ViddlerIE
 from .videodetective import VideoDetectiveIE
