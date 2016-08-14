@@ -20,7 +20,6 @@ from ..utils import (
 class VicelandIE(AdobePass):
     _VALID_URL = r'https?://(?:www\.)?viceland\.com/[^/]+/video/[^/]+/(?P<id>[a-f0-9]+)'
     _TEST = {
-        # FIXME: fill the test after fixing delegation problem
         'url': 'https://www.viceland.com/en_us/video/cyberwar-trailer/57608447973ee7705f6fbd4e',
         'info_dict': {
             'id': '57608447973ee7705f6fbd4e',
