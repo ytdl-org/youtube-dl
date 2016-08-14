@@ -90,7 +90,7 @@ class AdobePass(InfoExtractor):
                     '_method': 'GET',
                     'requestor_id': requestor_id,
                 }), headers=mvpd_headers)
-            if '<pendingLogout' in short_authorize:
+            if '<pendingLogout' in session:
                 self._downloader.cache.store('mvpd', requestor_id, {})
                 return self._extract_mvpd_auth(url, video_id, requestor_id, resource)
             authn_token = unescapeHTML(xml_text(session, 'authnToken'))
