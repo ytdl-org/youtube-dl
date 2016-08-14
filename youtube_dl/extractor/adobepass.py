@@ -90,6 +90,9 @@ class AdobePass(InfoExtractor):
                     '_method': 'GET',
                     'requestor_id': requestor_id,
                 }), headers=mvpd_headers)
+            if '<pendingLogout' in short_authorize:
+                self._downloader.cache.store('mvpd', requestor_id, {})
+                return self._extract_mvpd_auth(url, video_id, requestor_id, resource)
             authn_token = unescapeHTML(xml_text(session, 'authnToken'))
             requestor_info['authn_token'] = authn_token
             self._downloader.cache.store('mvpd', requestor_id, requestor_info)
@@ -105,6 +108,9 @@ class AdobePass(InfoExtractor):
                     'mso_id': xml_text(authn_token, 'simpleTokenMsoID'),
                     'userMeta': '1',
                 }), headers=mvpd_headers)
+            if '<pendingLogout' in authorize:
+                self._downloader.cache.store('mvpd', requestor_id, {})
+                return self._extract_mvpd_auth(url, video_id, requestor_id, resource)
             authz_token = unescapeHTML(xml_text(authorize, 'authzToken'))
             requestor_info[guid] = authz_token
             self._downloader.cache.store('mvpd', requestor_id, requestor_info)
@@ -114,7 +120,7 @@ class AdobePass(InfoExtractor):
             'ap_23': xml_text(authn_token, 'simpleSamlSessionIndex'),
         })
 
-        return self._download_webpage(
+        short_authorize = self._download_webpage(
             self._SERVICE_PROVIDER_TEMPLATE % 'shortAuthorize',
             video_id, 'Retrieving Media Token', data=urlencode_postdata({
                 'authz_token': authz_token,
@@ -122,3 +128,7 @@ class AdobePass(InfoExtractor):
                 'session_guid': xml_text(authn_token, 'simpleTokenAuthenticationGuid'),
                 'hashed_guid': 'false',
             }), headers=mvpd_headers)
+        if '<pendingLogout' in short_authorize:
+            self._downloader.cache.store('mvpd', requestor_id, {})
+            return self._extract_mvpd_auth(url, video_id, requestor_id, resource)
+        return short_authorize
