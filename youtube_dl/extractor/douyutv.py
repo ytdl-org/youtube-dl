@@ -5,7 +5,7 @@ import hashlib
 import time
 import uuid
 from .common import InfoExtractor
-from ..utils import (ExtractorError, unescapeHTML, sanitized_Request)
+from ..utils import (ExtractorError, unescapeHTML)
 from ..compat import (compat_str, compat_basestring, compat_urllib_parse_urlencode)
 
 
@@ -92,6 +92,9 @@ class DouyuTVIE(InfoExtractor):
             tt = int(time.time() / 60)
             did = uuid.uuid4().hex.upper()
 
+            # Decompile core.swf in webpage by ffdec "Search SWFs in memory"
+            # core.swf is encrypted originally, but ffdec can dump memory to get the decrypted one
+            # If API changes in the future, just use this way to update
             sign_content = '{room_id}{did}A12Svb&%1UUmf@hC{tt}'.format(room_id = room_id, did = did, tt = tt)
             sign = hashlib.md5((sign_content).encode('utf-8')).hexdigest()
 
@@ -99,10 +102,8 @@ class DouyuTVIE(InfoExtractor):
             flv_data = compat_urllib_parse_urlencode(payload)
 
             flv_request_url = 'http://www.douyu.com/lapi/live/getPlay/%s' % room_id
-            flv_request = sanitized_Request(flv_request_url, flv_data,
-                {'Content-Type': 'application/x-www-form-urlencoded'})
-
-            flv_content = self._download_webpage(flv_request, video_id)
+            flv_content = self._download_webpage(flv_request_url, video_id, data=flv_data,
+                headers={'Content-Type': 'application/x-www-form-urlencoded'})
             try:
                 flv_json = self._parse_json(flv_content, video_id, fatal=False)
             except ExtractorError:
