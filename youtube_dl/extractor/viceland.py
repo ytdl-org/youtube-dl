@@ -36,7 +36,7 @@ class VicelandIE(AdobePass):
             # m3u8 download
             'skip_download': True,
         },
-        'add_ie': ['UplynkPreplay', 'Uplynk'],
+        'add_ie': ['UplynkPreplay'],
     }
 
     def _real_extract(self, url):

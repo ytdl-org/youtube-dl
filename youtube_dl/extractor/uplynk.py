@@ -11,6 +11,7 @@ from ..utils import (
 
 
 class UplynkIE(InfoExtractor):
+    IE_NAME = 'uplynk'
     _VALID_URL = r'https?://.*?\.uplynk\.com/(?P<path>ext/[0-9a-f]{32}/(?P<external_id>[^/?&]+)|(?P<id>[0-9a-f]{32}))\.(?:m3u8|json)(?:.*?\bpbs=(?P<session_id>[^&]+))?'
     _TEST = {
         'url': 'http://content.uplynk.com/e89eaf2ce9054aa89d92ddb2d817a52e.m3u8',
@@ -54,7 +55,9 @@ class UplynkIE(InfoExtractor):
 
 
 class UplynkPreplayIE(UplynkIE):
+    IE_NAME = 'uplynk:preplay'
     _VALID_URL = r'https?://.*?\.uplynk\.com/preplay2?/(?P<path>ext/[0-9a-f]{32}/(?P<external_id>[^/?&]+)|(?P<id>[0-9a-f]{32}))\.json'
+    _TEST = None
 
     def _real_extract(self, url):
         path, external_id, video_id = re.match(self._VALID_URL, url).groups()
