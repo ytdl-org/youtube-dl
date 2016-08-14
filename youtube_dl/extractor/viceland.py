@@ -25,6 +25,13 @@ class VicelandIE(AdobePass):
         'info_dict': {
             'id': '57608447973ee7705f6fbd4e',
             'ext': 'mp4',
+            'title': 'CYBERWAR (Trailer)',
+            'description': 'Tapping into the geopolitics of hacking and surveillance, Ben Makuch travels the world to meet with hackers, government officials, and dissidents to investigate the ecosystem of cyberwarfare.',
+            'age_limit': 14,
+            'timestamp': 1466008539,
+            'upload_date': '20160615',
+            'uploader_id': '11',
+            'uploader': 'Viceland',
         },
         'params': {
             # m3u8 download

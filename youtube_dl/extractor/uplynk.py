@@ -26,8 +26,8 @@ class UplynkIE(InfoExtractor):
         },
     }
 
-    def _real_extract(self, url):
-        path, external_id, video_id, session_id = re.match(self._VALID_URL, url).groups()
+    def _extract_uplynk_info(self, uplynk_content_url):
+        path, external_id, video_id, session_id = re.match(UplynkIE._VALID_URL, uplynk_content_url).groups()
         display_id = video_id or external_id
         formats = self._extract_m3u8_formats('http://content.uplynk.com/%s.m3u8' % path, display_id, 'mp4')
         if session_id:
@@ -49,8 +49,11 @@ class UplynkIE(InfoExtractor):
             'formats': formats,
         }
 
+    def _real_extract(self, url):
+        return self._extract_uplynk_info(url)
 
-class UplynkPreplayIE(InfoExtractor):
+
+class UplynkPreplayIE(UplynkIE):
     _VALID_URL = r'https?://.*?\.uplynk\.com/preplay2?/(?P<path>ext/[0-9a-f]{32}/(?P<external_id>[^/?&]+)|(?P<id>[0-9a-f]{32}))\.json'
 
     def _real_extract(self, url):
@@ -61,4 +64,4 @@ class UplynkPreplayIE(InfoExtractor):
         session_id = preplay.get('sid')
         if session_id:
             content_url += '?pbs=' + session_id
-        return self.url_result(content_url, 'Uplynk')
+        return self._extract_uplynk_info(content_url)
