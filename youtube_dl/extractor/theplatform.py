@@ -6,10 +6,10 @@ import time
 import hmac
 import binascii
 import hashlib
-import netrc
 
 
 from .once import OnceIE
+from .adobepass import AdobePass
 from ..compat import (
     compat_parse_qs,
     compat_urllib_parse_urlparse,
@@ -25,9 +25,6 @@ from ..utils import (
     xpath_with_ns,
     mimetype2ext,
     find_xpath_attr,
-    unescapeHTML,
-    urlencode_postdata,
-    unified_timestamp,
 )
 
 default_ns = 'http://www.w3.org/2005/SMIL21/Language'
@@ -96,7 +93,7 @@ class ThePlatformBaseIE(OnceIE):
         return self._parse_theplatform_metadata(info)
 
 
-class ThePlatformIE(ThePlatformBaseIE):
+class ThePlatformIE(ThePlatformBaseIE, AdobePass):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
            (?:(?:(?:[^/]+/)+select/)?(?P<media>media/(?:guid/\d+/)?)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
@@ -201,97 +198,6 @@ class ThePlatformIE(ThePlatformBaseIE):
         checksum = hmac.new(sig_key.encode('ascii'), clear_text, hashlib.sha1).hexdigest()
         sig = flags + expiration_date + checksum + str_to_hex(sig_secret)
         return '%s&sig=%s' % (url, sig)
-
-    def _extract_mvpd_auth(self, url, video_id, requestor_id, resource):
-        def xml_text(xml_str, tag):
-            return self._search_regex(
-                '<%s>(.+?)</%s>' % (tag, tag), xml_str, tag)
-
-        mvpd_headers = {
-            'ap_42': 'anonymous',
-            'ap_11': 'Linux i686',
-            'ap_z': 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0',
-        }
-
-        guid = xml_text(resource, 'guid')
-        requestor_info = self._downloader.cache.load('mvpd', requestor_id) or {}
-        authn_token = requestor_info.get('authn_token')
-        if authn_token:
-            token_expires = unified_timestamp(re.sub(r'[_ ]GMT', '', xml_text(authn_token, 'simpleTokenExpires')))
-            if token_expires and token_expires <= int(time.time()):
-                authn_token = None
-                requestor_info = {}
-        if not authn_token:
-            # TODO add support for other TV Providers
-            mso_id = 'DTV'
-            username, password = self._get_netrc_login_info(mso_id)
-            if not username or not password:
-                return ''
-
-            def post_form(form_page, note, data={}):
-                post_url = self._html_search_regex(r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_page, 'post url', group='url')
-                return self._download_webpage(
-                    post_url, video_id, note, data=urlencode_postdata(data or self._hidden_inputs(form_page)), headers={
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    })
-
-            provider_redirect_page = self._download_webpage(
-                self._SERVICE_PROVIDER_TEMPLATE % 'authenticate/saml', video_id,
-                'Downloading Provider Redirect Page', query={
-                    'noflash': 'true',
-                    'mso_id': mso_id,
-                    'requestor_id': requestor_id,
-                    'no_iframe': 'false',
-                    'domain_name': 'adobe.com',
-                    'redirect_url': url,
-                })
-            provider_login_page = post_form(
-                provider_redirect_page, 'Downloading Provider Login Page')
-            mvpd_confirm_page = post_form(provider_login_page, 'Logging in', {
-                'username': username,
-                'password': password,
-            })
-            post_form(mvpd_confirm_page, 'Confirming Login')
-
-            session = self._download_webpage(
-                self._SERVICE_PROVIDER_TEMPLATE % 'session', video_id,
-                'Retrieving Session', data=urlencode_postdata({
-                    '_method': 'GET',
-                    'requestor_id': requestor_id,
-                }), headers=mvpd_headers)
-            authn_token = unescapeHTML(xml_text(session, 'authnToken'))
-            requestor_info['authn_token'] = authn_token
-            self._downloader.cache.store('mvpd', requestor_id, requestor_info)
-
-        authz_token = requestor_info.get(guid)
-        if not authz_token:
-            authorize = self._download_webpage(
-                self._SERVICE_PROVIDER_TEMPLATE % 'authorize', video_id,
-                'Retrieving Authorization Token', data=urlencode_postdata({
-                    'resource_id': resource,
-                    'requestor_id': requestor_id,
-                    'authentication_token': authn_token,
-                    'mso_id': xml_text(authn_token, 'simpleTokenMsoID'),
-                    'userMeta': '1',
-                }), headers=mvpd_headers)
-            authz_token = unescapeHTML(xml_text(authorize, 'authzToken'))
-            requestor_info[guid] = authz_token
-            self._downloader.cache.store('mvpd', requestor_id, requestor_info)
-
-        mvpd_headers.update({
-            'ap_19': xml_text(authn_token, 'simpleSamlNameID'),
-            'ap_23': xml_text(authn_token, 'simpleSamlSessionIndex'),
-        })
-
-        return self._download_webpage(
-            self._SERVICE_PROVIDER_TEMPLATE % 'shortAuthorize',
-            video_id, 'Retrieving Media Token', data=urlencode_postdata({
-                'authz_token': authz_token,
-                'requestor_id': requestor_id,
-                'session_guid': xml_text(authn_token, 'simpleTokenAuthenticationGuid'),
-                'hashed_guid': 'false',
-            }), headers=mvpd_headers)
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})

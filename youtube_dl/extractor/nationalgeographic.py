@@ -119,7 +119,7 @@ class NationalGeographicIE(ThePlatformIE):
             auth_resource_id = self._search_regex(
                 r"video_auth_resourceId\s*=\s*'([^']+)'",
                 webpage, 'auth resource id')
-            query['auth'] = self._extract_mvpd_auth(url, display_id, 'natgeo', auth_resource_id) or ''
+            query['auth'] = self._extract_mvpd_auth(url, display_id, 'natgeo', auth_resource_id)
 
         return {
             '_type': 'url_transparent',

@@ -109,7 +109,10 @@ class AENetworksIE(AENetworksBaseIE):
         info = self._parse_theplatform_metadata(theplatform_metadata)
         if theplatform_metadata.get('AETN$isBehindWall'):
             requestor_id = self._DOMAIN_TO_REQUESTOR_ID[domain]
-            resource = '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title>%s</title><item><title>%s</title><guid>%s</guid><media:rating scheme="urn:v-chip">%s</media:rating></item></channel></rss>' % (requestor_id, theplatform_metadata['title'], theplatform_metadata['AETN$PPL_pplProgramId'], theplatform_metadata['ratings'][0]['rating'])
+            resource = self._get_mvpd_resource(
+                requestor_id, theplatform_metadata['title'],
+                theplatform_metadata.get('AETN$PPL_pplProgramId') or theplatform_metadata.get('AETN$PPL_pplProgramId_OLD'),
+                theplatform_metadata['ratings'][0]['rating'])
             query['auth'] = self._extract_mvpd_auth(
                 url, video_id, requestor_id, resource)
         info.update(self._search_json_ld(webpage, video_id, fatal=False))

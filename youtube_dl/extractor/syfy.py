@@ -40,7 +40,9 @@ class SyfyIE(ThePlatformIE):
             'manifest': 'm3u',
         }
         if syfy_mpx.get('entitlement') == 'auth':
-            resource = '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title>syfy</title><item><title><![CDATA[%s]]></title><guid>%s</guid><media:rating scheme="urn:v-chip">%s</media:rating></item></channel></rss>' % (title, video_id, syfy_mpx.get('mpxRating', 'TV-14'))
+            resource = self._get_mvpd_resource(
+                'syfy', title, video_id,
+                syfy_mpx.get('mpxRating', 'TV-14'))
             query['auth'] = self._extract_mvpd_auth(
                 url, video_id, 'syfy', resource)
 
