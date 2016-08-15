@@ -5,7 +5,7 @@ import time
 import hashlib
 import json
 
-from .adobepass import AdobePass
+from .adobepass import AdobePassIE
 from ..compat import compat_HTTPError
 from ..utils import (
     int_or_none,
@@ -17,7 +17,7 @@ from ..utils import (
 )
 
 
-class VicelandIE(AdobePass):
+class VicelandIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?viceland\.com/[^/]+/video/[^/]+/(?P<id>[a-f0-9]+)'
     _TEST = {
         'url': 'https://www.viceland.com/en_us/video/cyberwar-trailer/57608447973ee7705f6fbd4e',

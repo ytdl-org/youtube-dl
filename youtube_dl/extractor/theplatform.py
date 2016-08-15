@@ -9,7 +9,7 @@ import hashlib
 
 
 from .once import OnceIE
-from .adobepass import AdobePass
+from .adobepass import AdobePassIE
 from ..compat import (
     compat_parse_qs,
     compat_urllib_parse_urlparse,
@@ -93,7 +93,7 @@ class ThePlatformBaseIE(OnceIE):
         return self._parse_theplatform_metadata(info)
 
 
-class ThePlatformIE(ThePlatformBaseIE, AdobePass):
+class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
            (?:(?:(?:[^/]+/)+select/)?(?P<media>media/(?:guid/\d+/)?)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
@@ -164,7 +164,6 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePass):
         'url': 'http://player.theplatform.com/p/NnzsPC/onsite_universal/select/media/guid/2410887629/2928790?fwsitesection=nbc_the_blacklist_video_library&autoPlay=true&carouselID=137781',
         'only_matching': True,
     }]
-    _SERVICE_PROVIDER_TEMPLATE = 'https://sp.auth.adobe.com/adobe-services/%s'
 
     @classmethod
     def _extract_urls(cls, webpage):

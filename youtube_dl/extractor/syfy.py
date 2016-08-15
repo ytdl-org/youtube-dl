@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-from .theplatform import ThePlatformIE
+from .adobepass import AdobePassIE
 from ..utils import (
     update_url_query,
     smuggle_url,
 )
 
 
-class SyfyIE(ThePlatformIE):
+class SyfyIE(AdobePassIE):
     _VALID_URL = r'https?://www\.syfy\.com/(?:[^/]+/)?videos/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.syfy.com/theinternetruinedmylife/videos/the-internet-ruined-my-life-season-1-trailer',

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .theplatform import ThePlatformIE
+from .adobepass import AdobePassIE
 from ..utils import (
     smuggle_url,
     url_basename,
@@ -65,7 +65,7 @@ class NationalGeographicVideoIE(InfoExtractor):
         }
 
 
-class NationalGeographicIE(ThePlatformIE):
+class NationalGeographicIE(AdobePassIE):
     IE_NAME = 'natgeo'
     _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/(?:videos|episodes)/(?P<id>[^/?]+)'
 
@@ -131,7 +131,7 @@ class NationalGeographicIE(ThePlatformIE):
         }
 
 
-class NationalGeographicEpisodeGuideIE(ThePlatformIE):
+class NationalGeographicEpisodeGuideIE(InfoExtractor):
     IE_NAME = 'natgeo:episodeguide'
     _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?(?P<id>[^/]+)/episode-guide'
     _TESTS = [

@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .adobepass import AdobePass
+from .adobepass import AdobePassIE
 from ..utils import (
     update_url_query,
     extract_attributes,
@@ -10,7 +10,7 @@ from ..utils import (
 )
 
 
-class FXNetworksIE(AdobePass):
+class FXNetworksIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?fxnetworks\.com/video/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.fxnetworks.com/video/719841347694',

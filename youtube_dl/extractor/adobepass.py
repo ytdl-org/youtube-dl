@@ -13,7 +13,7 @@ from ..utils import (
 )
 
 
-class AdobePass(InfoExtractor):
+class AdobePassIE(InfoExtractor):
     _SERVICE_PROVIDER_TEMPLATE = 'https://sp.auth.adobe.com/adobe-services/%s'
     _USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0'
 
