@@ -70,7 +70,8 @@ class CBSNewsLiveVideoIE(InfoExtractor):
     IE_DESC = 'CBS News Live Videos'
     _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
 
-    _TESTS = [{
+    # Live videos get deleted soon. See http://www.cbsnews.com/live/ for the latest examples
+    _TEST = {
         'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',
         'info_dict': {
             'id': 'clinton-sanders-prepare-to-face-off-in-nh',
@@ -78,15 +79,8 @@ class CBSNewsLiveVideoIE(InfoExtractor):
             'title': 'Clinton, Sanders Prepare To Face Off In NH',
             'duration': 334,
         },
-        'skip': 'Video gone, redirected to http://www.cbsnews.com/live/',
-    }, {
-        'url': 'http://www.cbsnews.com/live/video/video-shows-intense-paragliding-accident/',
-        'info_dict': {
-            'id': 'video-shows-intense-paragliding-accident',
-            'ext': 'flv',
-            'title': 'Video Shows Intense Paragliding Accident',
-        },
-    }]
+        'skip': 'Video gone',
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
