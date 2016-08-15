@@ -1112,24 +1112,6 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
         },
         'playlist_mincount': 10,
-    }, {
-        # explicit page
-        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips?page=1',
-        'info_dict': {
-            'id': 'b00mfl7n',
-            'title': 'Bohemian Icons',
-            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
-        },
-        'playlist_mincount': 24,
-    }, {
-        # all pages
-        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips',
-        'info_dict': {
-            'id': 'b00mfl7n',
-            'title': 'Bohemian Icons',
-            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
-        },
-        'playlist_mincount': 142,
     }]
 
     def _extract_title_and_description(self, webpage):
@@ -1153,6 +1135,24 @@ class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'French thriller serial about a missing teenager.',
         },
         'playlist_mincount': 7,
+    }, {
+        # multipage playlist, explicit page
+        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips?page=1',
+        'info_dict': {
+            'id': 'b00mfl7n',
+            'title': 'Frozen Planet - Clips - BBC One',
+            'description': 'md5:65dcbf591ae628dafe32aa6c4a4a0d8c',
+        },
+        'playlist_mincount': 24,
+    }, {
+        # multipage playlist, all pages
+        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips',
+        'info_dict': {
+            'id': 'b00mfl7n',
+            'title': 'Frozen Planet - Clips - BBC One',
+            'description': 'md5:65dcbf591ae628dafe32aa6c4a4a0d8c',
+        },
+        'playlist_mincount': 142,
     }, {
         'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/broadcasts/2016/06',
         'only_matching': True,
