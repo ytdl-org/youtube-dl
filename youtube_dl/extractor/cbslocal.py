@@ -41,13 +41,8 @@ class CBSLocalIE(AnvatoIE):
         'url': 'http://cleveland.cbslocal.com/2016/05/16/indians-score-season-high-15-runs-in-blowout-win-over-reds-rapid-reaction/',
         'info_dict': {
             'id': 'GxfCe0Zo7D-175909-5588',
-            'ext': 'mp4',
-            'title': 'Recap: CLE 15, CIN 6',
-            'description': '5/16/16: Indians\' bats explode for 15 runs in a win',
-            'upload_date': '20160516',
-            'timestamp': 1463433840,
-            'duration': 49,
         },
+        'playlist_count': 9,
         'params': {
             # m3u8 download
             'skip_download': True,
@@ -60,12 +55,11 @@ class CBSLocalIE(AnvatoIE):
 
         sendtonews_url = SendtoNewsIE._extract_url(webpage)
         if sendtonews_url:
-            info_dict = {
-                '_type': 'url_transparent',
-                'url': compat_urlparse.urljoin(url, sendtonews_url),
-            }
-        else:
-            info_dict = self._extract_anvato_videos(webpage, display_id)
+            return self.url_result(
+                compat_urlparse.urljoin(url, sendtonews_url),
+                ie=SendtoNewsIE.ie_key())
+
+        info_dict = self._extract_anvato_videos(webpage, display_id)
 
         time_str = self._html_search_regex(
             r'class="entry-date">([^<]+)<', webpage, 'released date', fatal=False)
