@@ -287,6 +287,7 @@ from .freevideo import FreeVideoIE
 from .funimation import FunimationIE
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
+from .fxnetworks import FXNetworksIE
 from .gameinformer import GameInformerIE
 from .gameone import (
     GameOneIE,
