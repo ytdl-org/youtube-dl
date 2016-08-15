@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import itertools
 
 from .common import InfoExtractor
 from ..utils import (
@@ -17,6 +18,7 @@ from ..utils import (
 from ..compat import (
     compat_etree_fromstring,
     compat_HTTPError,
+    compat_urlparse,
 )
 
 
@@ -1056,19 +1058,35 @@ class BBCCoUkArticleIE(InfoExtractor):
 
 
 class BBCCoUkPlaylistBaseIE(InfoExtractor):
+    def _entries(self, webpage, url, playlist_id):
+        single_page = 'page' in compat_urlparse.parse_qs(
+            compat_urlparse.urlparse(url).query)
+        for page_num in itertools.count(2):
+            for video_id in re.findall(
+                    self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage):
+                yield self.url_result(
+                    self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
+            if single_page:
+                return
+            next_page = self._search_regex(
+                r'<li[^>]+class=(["\'])pagination_+next\1[^>]*><a[^>]+href=(["\'])(?P<url>(?:(?!\2).)+)\2',
+                webpage, 'next page url', default=None, group='url')
+            if not next_page:
+                break
+            webpage = self._download_webpage(
+                compat_urlparse.urljoin(url, next_page), playlist_id,
+                'Downloading page %d' % page_num, page_num)
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
 
-        entries = [
-            self.url_result(self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
-            for video_id in re.findall(
-                self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage)]
-
         title, description = self._extract_title_and_description(webpage)
 
-        return self.playlist_result(entries, playlist_id, title, description)
+        return self.playlist_result(
+            self._entries(webpage, url, playlist_id),
+            playlist_id, title, description)
 
 
 class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
@@ -1094,6 +1112,24 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
         },
         'playlist_mincount': 10,
+    }, {
+        # explicit page
+        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips?page=1',
+        'info_dict': {
+            'id': 'b00mfl7n',
+            'title': 'Bohemian Icons',
+            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
+        },
+        'playlist_mincount': 24,
+    }, {
+        # all pages
+        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips',
+        'info_dict': {
+            'id': 'b00mfl7n',
+            'title': 'Bohemian Icons',
+            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
+        },
+        'playlist_mincount': 142,
     }]
 
     def _extract_title_and_description(self, webpage):
