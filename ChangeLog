@@ -1,6 +1,9 @@
 version <unreleased>
 
 Extractors
+* [cbslocal] Fix extraction for SendtoNews-based videos
+* [sendtonews] Fix extraction
+* [jwplatform] Now can parse video_id from JWPlayer data
 * [xiami] Fix extraction (#10342)
 
 
