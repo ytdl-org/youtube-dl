@@ -15,6 +15,7 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     qualities,
+    try_get,
     update_url_query,
 )
 
@@ -204,6 +205,11 @@ class TVPlayIE(InfoExtractor):
             'only_matching': True,
         },
         {
+            # views is null
+            'url': 'http://tvplay.skaties.lv/parraides/tv3-zinas/760183',
+            'only_matching': True,
+        },
+        {
             'url': 'http://tv3play.tv3.ee/sisu/kodu-keset-linna/238551?autostart=true',
             'only_matching': True,
         },
@@ -306,7 +312,7 @@ class TVPlayIE(InfoExtractor):
             'season_number': season_number,
             'duration': int_or_none(video.get('duration')),
             'timestamp': parse_iso8601(video.get('created_at')),
-            'view_count': int_or_none(video.get('views', {}).get('total')),
+            'view_count': try_get(video, lambda x: x['views']['total'], int),
             'age_limit': int_or_none(video.get('age_limit', 0)),
             'formats': formats,
             'subtitles': subtitles,
