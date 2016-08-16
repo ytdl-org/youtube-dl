@@ -20,16 +20,25 @@ from ..utils import (
 
 
 class TVPlayIE(InfoExtractor):
-    IE_DESC = 'TV3Play and related services'
-    _VALID_URL = r'''(?x)https?://(?:www\.)?
-        (?:tvplay(?:\.skaties)?\.lv/parraides|
-           (?:tv3play|play\.tv3)\.lt/programos|
-           tv3play(?:\.tv3)?\.ee/sisu|
-           tv(?:3|6|8|10)play\.se/program|
-           (?:(?:tv3play|viasat4play|tv6play)\.no|tv3play\.dk)/programmer|
-           play\.novatv\.bg/programi
-        )/[^/]+/(?P<id>\d+)
-        '''
+    IE_NAME = 'mtg'
+    IE_DESC = 'MTG services'
+    _VALID_URL = r'''(?x)
+                    (?:
+                        mtg:|
+                        https?://
+                            (?:www\.)?
+                            (?:
+                                tvplay(?:\.skaties)?\.lv/parraides|
+                                (?:tv3play|play\.tv3)\.lt/programos|
+                                tv3play(?:\.tv3)?\.ee/sisu|
+                                (?:tv(?:3|6|8|10)play|viafree)\.se/program|
+                                (?:(?:tv3play|viasat4play|tv6play|viafree)\.no|(?:tv3play|viafree)\.dk)/programmer|
+                                play\.novatv\.bg/programi
+                            )
+                            /(?:[^/]+/)+
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [
         {
             'url': 'http://www.tvplay.lv/parraides/vinas-melo-labak/418113?autostart=true',
@@ -197,6 +206,14 @@ class TVPlayIE(InfoExtractor):
         {
             'url': 'http://tv3play.tv3.ee/sisu/kodu-keset-linna/238551?autostart=true',
             'only_matching': True,
+        },
+        {
+            'url': 'http://www.viafree.se/program/underhallning/i-like-radio-live/sasong-1/676869',
+            'only_matching': True,
+        },
+        {
+            'url': 'mtg:418113',
+            'only_matching': True,
         }
     ]
 
@@ -204,13 +221,13 @@ class TVPlayIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://playapi.mtgx.tv/v1/videos/%s' % video_id, video_id, 'Downloading video JSON')
+            'http://playapi.mtgx.tv/v3/videos/%s' % video_id, video_id, 'Downloading video JSON')
 
         title = video['title']
 
         try:
             streams = self._download_json(
-                'http://playapi.mtgx.tv/v1/videos/stream/%s' % video_id,
+                'http://playapi.mtgx.tv/v3/videos/stream/%s' % video_id,
                 video_id, 'Downloading streams JSON')
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
