@@ -5,6 +5,7 @@ from .theplatform import ThePlatformIE
 from ..utils import (
     update_url_query,
     parse_age_limit,
+    int_or_none,
 )
 
 
@@ -16,7 +17,7 @@ class AMCNetworksIE(ThePlatformIE):
         'info_dict': {
             'id': 's3MX01Nl4vPH',
             'ext': 'mp4',
-            'title': 'Step 1',
+            'title': 'Maron - Season 4 - Step 1',
             'description': 'In denial about his current situation, Marc is reluctantly convinced by his friends to enter rehab. Starring Marc Maron and Constance Zimmer.',
             'age_limit': 17,
             'upload_date': '20160505',
@@ -69,4 +70,22 @@ class AMCNetworksIE(ThePlatformIE):
             'formats': formats,
             'age_limit': parse_age_limit(parse_age_limit(rating)),
         })
+        ns_keys = theplatform_metadata.get('$xmlns', {}).keys()
+        if ns_keys:
+            ns = list(ns_keys)[0]
+            series = theplatform_metadata.get(ns + '$show')
+            season_number = int_or_none(theplatform_metadata.get(ns + '$season'))
+            episode = theplatform_metadata.get(ns + '$episodeTitle')
+            episode_number = int_or_none(theplatform_metadata.get(ns + '$episode'))
+            if season_number:
+                title = 'Season %d - %s' % (season_number, title)
+            if series:
+                title = '%s - %s' % (series, title)
+            info.update({
+                'title': title,
+                'series': series,
+                'season_number': season_number,
+                'episode': episode,
+                'episode_number': episode_number,
+            })
         return info
