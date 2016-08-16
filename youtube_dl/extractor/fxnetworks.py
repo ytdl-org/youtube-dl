@@ -11,8 +11,8 @@ from ..utils import (
 
 
 class FXNetworksIE(AdobePassIE):
-    _VALID_URL = r'https?://(?:www\.)?fxnetworks\.com/video/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:fxnetworks|simpsonsworld)\.com/video/(?P<id>\d+)'
+    _TESTS = [{
         'url': 'http://www.fxnetworks.com/video/719841347694',
         'md5': '1447d4722e42ebca19e5232ab93abb22',
         'info_dict': {
@@ -26,7 +26,10 @@ class FXNetworksIE(AdobePassIE):
             'timestamp': 1467844741,
         },
         'add_ie': ['ThePlatform'],
-    }
+    }, {
+        'url': 'http://www.simpsonsworld.com/video/716094019682',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -35,7 +38,7 @@ class FXNetworksIE(AdobePassIE):
             self.raise_geo_restricted()
         video_data = extract_attributes(self._search_regex(
             r'(<a.+?rel="http://link\.theplatform\.com/s/.+?</a>)', webpage, 'video data'))
-        player_type = self._search_regex(r'playerType\s*=\s*[\'"]([^\'"]+)', webpage, 'player type', fatal=False)
+        player_type = self._search_regex(r'playerType\s*=\s*[\'"]([^\'"]+)', webpage, 'player type', default=None)
         release_url = video_data['rel']
         title = video_data['data-title']
         rating = video_data.get('data-rating')
