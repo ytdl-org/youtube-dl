@@ -73,10 +73,10 @@ class ThePlatformBaseIE(OnceIE):
         if isinstance(captions, list):
             for caption in captions:
                 lang, src, mime = caption.get('lang', 'en'), caption.get('src'), caption.get('type')
-                subtitles[lang] = [{
+                subtitles.setdefault(lang, []).append({
                     'ext': mimetype2ext(mime),
                     'url': src,
-                }]
+                })
 
         return {
             'title': info['title'],
