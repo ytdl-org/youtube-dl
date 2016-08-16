@@ -6,7 +6,7 @@ from ..utils import urlencode_postdata
 
 
 class Vbox7IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vbox7\.com/play:(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?vbox7\.com/(?:play:|emb/external\.php\?.*?\bvid=)(?P<id>[\da-fA-F]+)'
     _TESTS = [{
         'url': 'http://vbox7.com/play:0946fff23c',
         'md5': 'a60f9ab3a3a2f013ef9a967d5f7be5bf',
@@ -24,15 +24,19 @@ class Vbox7IE(InfoExtractor):
             'title': 'Смях! Чудо - чист за секунди - Скрита камера',
         },
         'skip': 'georestricted',
+    }, {
+        'url': 'http://vbox7.com/emb/external.php?vid=a240d20f9c&autoplay=1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'http://vbox7.com/play:%s' % video_id, video_id)
 
         title = self._html_search_regex(
-            r'<title>(.*)</title>', webpage, 'title').split('/')[0].strip()
+            r'<title>(.+?)</title>', webpage, 'title').split('/')[0].strip()
 
         video_url = self._search_regex(
             r'src\s*:\s*(["\'])(?P<url>.+?.mp4.*?)\1',
