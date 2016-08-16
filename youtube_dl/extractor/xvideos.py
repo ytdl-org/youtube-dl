@@ -42,24 +42,24 @@ class XVideosIE(InfoExtractor):
         video_url = compat_urllib_parse_unquote(self._search_regex(
             r'flv_url=(.+?)&', webpage, 'video URL', default=''))
         if video_url:
-            formats.append({'url': video_url})
+            formats.append({
+                'url': video_url,
+                'format_id': 'flv',
+            })
 
-        player_args = self._search_regex(
-            r'(?s)new\s+HTML5Player\((.+?)\)', webpage, ' html5 player', default=None)
-        if player_args:
-            for arg in player_args.split(','):
-                format_url = self._search_regex(
-                    r'(["\'])(?P<url>https?://.+?)\1', arg, 'url',
-                    default=None, group='url')
-                if not format_url:
-                    continue
-                ext = determine_ext(format_url)
-                if ext == 'mp4':
-                    formats.append({'url': format_url})
-                elif ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        format_url, video_id, 'mp4',
-                        entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
+        for kind, _, format_url in re.findall(
+                r'setVideo([^(]+)\((["\'])(http.+?)\2\)', webpage):
+            format_id = kind.lower()
+            if format_id == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
+            elif format_id in ('urllow', 'urlhigh'):
+                formats.append({
+                    'url': format_url,
+                    'format_id': '%s-%s' % (determine_ext(format_url, 'mp4'), format_id[3:]),
+                    'quality': -2 if format_id.endswith('low') else None,
+                })
 
         self._sort_formats(formats)
 
