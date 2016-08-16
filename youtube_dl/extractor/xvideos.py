@@ -15,10 +15,10 @@ class XVideosIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?xvideos\.com/video(?P<id>[0-9]+)(?:.*)'
     _TEST = {
         'url': 'http://www.xvideos.com/video4588838/biker_takes_his_girl',
-        'md5': '4b46ae6ea5e6e9086e714d883313c0c9',
+        'md5': '14cea69fcb84db54293b1e971466c2e1',
         'info_dict': {
             'id': '4588838',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Biker Takes his Girl',
             'age_limit': 18,
         }
