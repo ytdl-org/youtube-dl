@@ -311,3 +311,56 @@ class TVPlayIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+
+class ViafreeIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        viafree\.
+                        (?:
+                            (?:dk|no)/programmer|
+                            se/program
+                        )
+                        /(?:[^/]+/)+(?P<id>[^/?#&]+)
+                    '''
+    _TESTS = [{
+        'url': 'http://www.viafree.se/program/livsstil/husraddarna/sasong-2/avsnitt-2',
+        'info_dict': {
+            'id': '395375',
+            'ext': 'mp4',
+            'title': 'Husräddarna S02E02',
+            'description': 'md5:4db5c933e37db629b5a2f75dfb34829e',
+            'series': 'Husräddarna',
+            'season': 'Säsong 2',
+            'season_number': 2,
+            'duration': 2576,
+            'timestamp': 1400596321,
+            'upload_date': '20140520',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [TVPlayIE.ie_key()],
+    }, {
+        'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.viafree.dk/programmer/reality/paradise-hotel/saeson-7/episode-5',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if TVPlayIE.suitable(url) else super(ViafreeIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        video_id = self._search_regex(
+            r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](?P<id>\d{6,})',
+            webpage, 'video id')
+
+        return self.url_result('mtg:%s' % video_id, TVPlayIE.ie_key())

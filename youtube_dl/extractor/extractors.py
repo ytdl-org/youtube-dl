@@ -898,7 +898,10 @@ from .tvp import (
     TVPIE,
     TVPSeriesIE,
 )
-from .tvplay import TVPlayIE
+from .tvplay import (
+    TVPlayIE,
+    ViafreeIE,
+)
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twentymin import TwentyMinutenIE
