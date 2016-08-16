@@ -1,9 +1,28 @@
 version <unreleased>
 
+Core
++ Add _get_netrc_login_info
+
 Extractors
+* [mofosex] Extract all formats (#10335)
++ [generic] Add support for vbox7 embeds
++ [vbox7] Add support for embed URLs
++ [viafree] Add extractor (#10358)
++ [mtg] Add support for viafree URLs (#10358)
+* [theplatform] Extract all subtitles per language
++ [xvideos] Fix HLS extraction (#10356)
++ [amcnetworks] Add extractor
++ [bbc:playlist] Add support for pagination (#10349)
++ [fxnetworks] Add extractor (#9462)
 * [cbslocal] Fix extraction for SendtoNews-based videos
 * [sendtonews] Fix extraction
-* [jwplatform] Now can parse video_id from JWPlayer data
+* [jwplatform] Extract video id from JWPlayer data
+- [zippcast] Remove extractor (#10332)
++ [viceland] Add extractor (#8799)
++ [adobepass] Add base extractor for Adobe Pass Authentication
+* [life:embed] Improve extraction
+* [vgtv] Detect geo restricted videos (#10348)
++ [uplynk] Add extractor
 * [xiami] Fix extraction (#10342)
 
 
