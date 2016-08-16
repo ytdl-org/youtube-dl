@@ -35,6 +35,7 @@
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
+ - **AMCNetworks**
  - **AnimeOnDemand**
  - **anitube.se**
  - **AnySex**
@@ -247,6 +248,7 @@
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
+ - **FXNetworks**
  - **GameInformer**
  - **GameOne**
  - **gameone:playlist**
@@ -398,6 +400,7 @@
  - **Moviezine**
  - **MPORA**
  - **MSN**
+ - **mtg**: MTG services
  - **MTV**
  - **mtv.de**
  - **mtvservices:embedded**
@@ -731,7 +734,6 @@
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
  - **tvp:series**
- - **TVPlay**: TV3Play and related services
  - **Tweakers**
  - **twitch:chapter**
  - **twitch:clips**
@@ -748,6 +750,8 @@
  - **UDNEmbed**: 聯合影音
  - **Unistra**
  - **uol.com.br**
+ - **uplynk**
+ - **uplynk:preplay**
  - **Urort**: NRK P3 Urørt
  - **URPlay**
  - **USAToday**
@@ -765,7 +769,9 @@
  - **VevoPlaylist**
  - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
+ - **Viafree**
  - **Vice**
+ - **Viceland**
  - **ViceShow**
  - **Vidbit**
  - **Viddler**
@@ -887,4 +893,3 @@
  - **ZDFChannel**
  - **zingmp3:album**: mp3.zing.vn albums
  - **zingmp3:song**: mp3.zing.vn songs
- - **ZippCast**

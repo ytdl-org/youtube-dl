@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.17
 
 Core
 + Add _get_netrc_login_info
