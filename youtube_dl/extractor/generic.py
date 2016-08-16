@@ -72,6 +72,7 @@ from .kaltura import KalturaIE
 from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
 from .soundcloud import SoundcloudIE
+from .vbox7 import Vbox7IE
 
 
 class GenericIE(InfoExtractor):
@@ -1373,6 +1374,18 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': [ArkenaIE.ie_key()],
         },
+        {
+            'url': 'http://nova.bg/news/view/2016/08/16/156543/%D0%BD%D0%B0-%D0%BA%D0%BE%D1%81%D1%8A%D0%BC-%D0%BE%D1%82-%D0%B2%D0%B7%D1%80%D0%B8%D0%B2-%D0%BE%D1%82%D1%86%D0%B5%D0%BF%D0%B8%D1%85%D0%B0-%D1%86%D1%8F%D0%BB-%D0%BA%D0%B2%D0%B0%D1%80%D1%82%D0%B0%D0%BB-%D0%B7%D0%B0%D1%80%D0%B0%D0%B4%D0%B8-%D0%B8%D0%B7%D1%82%D0%B8%D1%87%D0%B0%D0%BD%D0%B5-%D0%BD%D0%B0-%D0%B3%D0%B0%D0%B7-%D0%B2-%D0%BF%D0%BB%D0%BE%D0%B2%D0%B4%D0%B8%D0%B2/',
+            'info_dict': {
+                'id': '1c7141f46c',
+                'ext': 'mp4',
+                'title': 'НА КОСЪМ ОТ ВЗРИВ: Изтичане на газ на бензиностанция в Пловдив',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [Vbox7IE.ie_key()],
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2238,6 +2251,11 @@ class GenericIE(InfoExtractor):
                 'thumbnail': video_thumbnail,
                 'uploader': video_uploader,
             }
+
+        # Look for VBOX7 embeds
+        vbox7_url = Vbox7IE._extract_url(webpage)
+        if vbox7_url:
+            return self.url_result(vbox7_url, Vbox7IE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
