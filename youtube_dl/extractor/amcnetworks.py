@@ -66,7 +66,7 @@ class AMCNetworksIE(ThePlatformIE):
         self._sort_formats(formats)
         info.update({
             'id': video_id,
-            'subtiles': subtitles,
+            'subtitles': subtitles,
             'formats': formats,
             'age_limit': parse_age_limit(parse_age_limit(rating)),
         })
