@@ -11,7 +11,17 @@ from ..utils import (
 
 
 class DiscoveryGoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?discoverygo\.com/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
+            discovery|
+            investigationdiscovery|
+            discoverylife|
+            animalplanet|
+            ahctv|
+            destinationamerica|
+            sciencechannel|
+            tlc|
+            velocitychannel
+        )go\.com/(?:[^/]+/)*(?P<id>[^/?#&]+)'''
     _TEST = {
         'url': 'https://www.discoverygo.com/love-at-first-kiss/kiss-first-ask-questions-later/',
         'info_dict': {
