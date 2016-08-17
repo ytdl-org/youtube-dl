@@ -148,8 +148,9 @@ class MetacafeIE(InfoExtractor):
         # AnyClip videos require the flashversion cookie so that we get the link
         # to the mp4 file
         headers = {}
+        headers['Cookie'] = 'user=%7B%22ffilter%22%3Afalse%7D;';
         if video_id.startswith('an-'):
-            headers['Cookie'] = 'flashVersion=0;'
+            headers['Cookie'] += ' flashVersion=0;'
 
         # Retrieve video webpage to extract further information
         webpage = self._download_webpage(url, video_id, headers=headers)
