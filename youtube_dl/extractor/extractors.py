@@ -258,6 +258,7 @@ from .facebook import FacebookIE
 from .faz import FazIE
 from .fc2 import FC2IE
 from .fczenit import FczenitIE
+from .filmweb import FilmwebIE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
@@ -905,6 +906,7 @@ from .tvplay import (
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twentymin import TwentyMinutenIE
+from .twentythreevideo import TwentyThreeVideoIE
 from .twentytwotracks import (
     TwentyTwoTracksIE,
     TwentyTwoTracksGenreIE
