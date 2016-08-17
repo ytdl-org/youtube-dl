@@ -46,3 +46,34 @@ class HGTVIE(InfoExtractor):
             'episode_number': int_or_none(embed_vars.get('episode')),
             'ie_key': 'ThePlatform',
         }
+
+
+class HGTVComShowIE(InfoExtractor):
+    IE_NAME = 'hgtv.com:show'
+    _VALID_URL = r'https?://(?:www\.)?hgtv\.com/shows/[^/]+/(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'http://www.hgtv.com/shows/flip-or-flop/flip-or-flop-full-episodes-videos',
+        'info_dict': {
+            'id': 'flip-or-flop-full-episodes-videos',
+            'title': 'Flip or Flop Full Episodes',
+        },
+        'playlist_mincount': 15,
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        config = self._parse_json(
+            self._search_regex(
+                r'(?s)data-module=["\']video["\'][^>]*>.*?<script[^>]+type=["\']text/x-config["\'][^>]*>(.+?)</script',
+                webpage, 'video config'),
+            display_id)['channels'][0]
+
+        entries = [
+            self.url_result(video['releaseUrl'])
+            for video in config['videos'] if video.get('releaseUrl')]
+
+        return self.playlist_result(
+            entries, display_id, config.get('title'), config.get('description'))
