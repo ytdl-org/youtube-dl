@@ -5,13 +5,12 @@ from .keezmovies import KeezMoviesIE
 
 
 class ExtremeTubeIE(KeezMoviesIE):
-    _VALID_URL = r'https?://(?:www\.)?extremetube\.com/(?:[^/]+/)?video/(?:(?P<display_id>[^/]+)-)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?extremetube\.com/(?:[^/]+/)?video/(?P<id>[^/#?&]+)'
     _TESTS = [{
         'url': 'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
         'md5': '1fb9228f5e3332ec8c057d6ac36f33e0',
         'info_dict': {
-            'id': '652431',
-            'display_id': 'music-video-14-british-euro-brit-european-cumshots-swallow',
+            'id': 'music-video-14-british-euro-brit-european-cumshots-swallow-652431',
             'ext': 'mp4',
             'title': 'Music Video 14 british euro brit european cumshots swallow',
             'uploader': 'unknown',
