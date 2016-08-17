@@ -38,6 +38,12 @@ class DBTVIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return [url for _, url in re.findall(
+            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?dbtv\.no/lazyplayer/\d+.*?)\1',
+            webpage)]
+
     def _real_extract(self, url):
         video_id, display_id = re.match(self._VALID_URL, url).groups()
 
