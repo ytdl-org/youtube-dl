@@ -39,7 +39,8 @@ class KeezMoviesIE(InfoExtractor):
     def _extract_info(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id') or video_id
+        display_id = (mobj.group('display_id') if 'display_id'
+            in mobj.groupdict() else None) or mobj.group('id')
 
         webpage = self._download_webpage(
             url, display_id, headers={'Cookie': 'age_verified=1'})
