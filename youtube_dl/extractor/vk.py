@@ -1,6 +1,7 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
+import collections
 import re
 import json
 import sys
@@ -16,7 +17,6 @@ from ..utils import (
     get_element_by_class,
     int_or_none,
     orderedSet,
-    parse_duration,
     remove_start,
     str_to_int,
     unescapeHTML,
@@ -447,6 +447,9 @@ class VKWallPostIE(VKBaseIE):
                 'skip_download': True,
             },
         }],
+        'params': {
+            'usenetrc': True,
+        },
         'skip': 'Requires vk account credentials',
     }, {
         # single YouTube embed, no leading -
@@ -456,6 +459,9 @@ class VKWallPostIE(VKBaseIE):
             'title': 'Sergey Gorbunov - Wall post 85155021_6319',
         },
         'playlist_count': 1,
+        'params': {
+            'usenetrc': True,
+        },
         'skip': 'Requires vk account credentials',
     }, {
         # wall page URL
@@ -483,37 +489,41 @@ class VKWallPostIE(VKBaseIE):
             raise ExtractorError('VK said: %s' % error, expected=True)
 
         description = clean_html(get_element_by_class('wall_post_text', webpage))
-        uploader = clean_html(get_element_by_class(
-            'fw_post_author', webpage)) or self._og_search_description(webpage)
+        uploader = clean_html(get_element_by_class('author', webpage))
         thumbnail = self._og_search_thumbnail(webpage)
 
         entries = []
 
-        for audio in re.finditer(r'''(?sx)
-                            <input[^>]+
-                                id=(?P<q1>["\'])audio_info(?P<id>\d+_\d+).*?(?P=q1)[^>]+
-                                value=(?P<q2>["\'])(?P<url>http.+?)(?P=q2)
-                                .+?
-                            </table>''', webpage):
-            audio_html = audio.group(0)
-            audio_id = audio.group('id')
-            duration = parse_duration(get_element_by_class('duration', audio_html))
-            track = self._html_search_regex(
-                r'<span[^>]+id=["\']title%s[^>]*>([^<]+)' % audio_id,
-                audio_html, 'title', default=None)
-            artist = self._html_search_regex(
-                r'>([^<]+)</a></b>\s*&ndash', audio_html,
-                'artist', default=None)
-            entries.append({
-                'id': audio_id,
-                'url': audio.group('url'),
-                'title': '%s - %s' % (artist, track) if artist and track else audio_id,
-                'thumbnail': thumbnail,
-                'duration': duration,
-                'uploader': uploader,
-                'artist': artist,
-                'track': track,
-            })
+        audio_ids = re.findall(r'data-full-id=["\'](\d+_\d+)', webpage)
+        if audio_ids:
+            al_audio = self._download_webpage(
+                'https://vk.com/al_audio.php', post_id,
+                note='Downloading audio info', fatal=False,
+                data=urlencode_postdata({
+                    'act': 'reload_audio',
+                    'al': '1',
+                    'ids': ','.join(audio_ids)
+                }))
+            if al_audio:
+                Audio = collections.namedtuple(
+                    'Audio', ['id', 'user_id', 'url', 'track', 'artist', 'duration'])
+                audios = self._parse_json(
+                    self._search_regex(
+                        r'<!json>(.+?)<!>', al_audio, 'audios', default='[]'),
+                    post_id, fatal=False, transform_source=unescapeHTML)
+                if isinstance(audios, list):
+                    for audio in audios:
+                        a = Audio._make(audio[:6])
+                        entries.append({
+                            'id': '%s_%s' % (a.user_id, a.id),
+                            'url': a.url,
+                            'title': '%s - %s' % (a.artist, a.track) if a.artist and a.track else a.id,
+                            'thumbnail': thumbnail,
+                            'duration': a.duration,
+                            'uploader': uploader,
+                            'artist': a.artist,
+                            'track': a.track,
+                        })
 
         for video in re.finditer(
                 r'<a[^>]+href=(["\'])(?P<url>/video(?:-?[\d_]+).*?)\1', webpage):
