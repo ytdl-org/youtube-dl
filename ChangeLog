@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.19
 
 Core
 - Remove output template description from --help

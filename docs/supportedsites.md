@@ -279,6 +279,7 @@
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
  - **HGTV**
+ - **hgtv.com:show**
  - **HistoricFilms**
  - **history:topic**: History.com Topic
  - **hitbox**
@@ -523,6 +524,7 @@
  - **podomatic**
  - **Pokemon**
  - **PolskieRadio**
+ - **PornCom**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
  - **PornHubPlaylist**
