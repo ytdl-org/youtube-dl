@@ -41,7 +41,7 @@ class DBTVIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return [url for _, url in re.findall(
-            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?dbtv\.no/lazyplayer/\d+.*?)\1',
+            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?dbtv\.no/(?:lazy)?player/\d+.*?)\1',
             webpage)]
 
     def _real_extract(self, url):
