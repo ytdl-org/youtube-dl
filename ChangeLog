@@ -1,3 +1,18 @@
+version <unreleased>
+
+Core
+- Remove output template description from --help
+* Recognize lowercase units in parse_filesize
+
+Extractors
++ [porncom] Add extractor for porn.com (#2251, #10251)
++ [generic] Add support for DBTV embeds
+* [vk:wallpost] Fix audio extraction for new site layout
+* [vk] Fix authentication
++ [hgtvcom:show] Add extractor for hgtv.com shows (#10365)
++ [discoverygo] Add support for another GO network sites
+
+
 version 2016.08.17
 
 Core
