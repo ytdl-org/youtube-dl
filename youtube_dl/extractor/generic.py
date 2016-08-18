@@ -1390,6 +1390,10 @@ class GenericIE(InfoExtractor):
         {
             # DBTV embeds
             'url': 'http://www.dagbladet.no/2016/02/23/nyheter/nordlys/ski/troms/ver/43254897/',
+            'info_dict': {
+                'id': '43254897',
+                'title': 'Etter ett års planlegging, klaffet endelig alt: - Jeg måtte ta en liten dans',
+            },
             'playlist_mincount': 3,
         },
         # {
