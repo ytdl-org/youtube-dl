@@ -73,6 +73,7 @@ from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
 from .soundcloud import SoundcloudIE
 from .vbox7 import Vbox7IE
+from .dbtv import DBTVIE
 
 
 class GenericIE(InfoExtractor):
@@ -1386,6 +1387,11 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': [Vbox7IE.ie_key()],
         },
+        {
+            # DBTV embeds
+            'url': 'http://www.dagbladet.no/2016/02/23/nyheter/nordlys/ski/troms/ver/43254897/',
+            'playlist_mincount': 3,
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2256,6 +2262,11 @@ class GenericIE(InfoExtractor):
         vbox7_url = Vbox7IE._extract_url(webpage)
         if vbox7_url:
             return self.url_result(vbox7_url, Vbox7IE.ie_key())
+
+        # Look for DBTV embeds
+        dbtv_urls = DBTVIE._extract_urls(webpage)
+        if dbtv_urls:
+            return _playlist_from_matches(dbtv_urls, ie=DBTVIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
