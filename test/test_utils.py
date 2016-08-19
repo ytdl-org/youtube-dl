@@ -823,6 +823,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_filesize('1.2tb'), 1200000000000)
         self.assertEqual(parse_filesize('1,24 KB'), 1240)
         self.assertEqual(parse_filesize('1,24 kb'), 1240)
+        self.assertEqual(parse_filesize('8.5 megabytes'), 8500000)
 
     def test_parse_count(self):
         self.assertEqual(parse_count(None), None)

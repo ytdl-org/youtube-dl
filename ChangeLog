@@ -1,7 +1,9 @@
 version <unreleased>
 
 Core
-* Support m3u8 manifests in HTML5 multimedia tags
++ Recognize file size strings with full unit names (for example "8.5
+  megabytes")
++ Support m3u8 manifests in HTML5 multimedia tags
 * Fix js_to_json(): correct octal or hexadecimal number detection
 
 Extractors
