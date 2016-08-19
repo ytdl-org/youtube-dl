@@ -2038,14 +2038,14 @@ def js_to_json(code):
             }.get(m.group(0), m.group(0)), v[1:-1])
 
         INTEGER_TABLE = (
-            (r'^0[xX][0-9a-fA-F]+', 16),
-            (r'^0+[0-7]+', 8),
+            (r'^(0[xX][0-9a-fA-F]+)\s*:?$', 16),
+            (r'^(0+[0-7]+)\s*:?$', 8),
         )
 
         for regex, base in INTEGER_TABLE:
             im = re.match(regex, v)
             if im:
-                i = int(im.group(0), base)
+                i = int(im.group(1), base)
                 return '"%d":' % i if v.endswith(':') else '%d' % i
 
         return '"%s"' % v

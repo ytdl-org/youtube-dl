@@ -1,3 +1,9 @@
+version <unreleased>
+
+Core
+* Fix js_to_json(): correct octal or hexadecimal number detection
+
+
 version 2016.08.19
 
 Core
