@@ -1695,7 +1695,7 @@ class InfoExtractor(object):
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
-    def _parse_html5_media_entries(self, base_url, webpage):
+    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None):
         def absolute_url(video_url):
             return compat_urlparse.urljoin(base_url, video_url)
 
@@ -1710,6 +1710,21 @@ class InfoExtractor(object):
                 return f
             return {}
 
+        def _media_formats(src, cur_media_type):
+            full_url = absolute_url(src)
+            if determine_ext(full_url) == 'm3u8':
+                is_plain_url = False
+                formats = self._extract_m3u8_formats(
+                    full_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+                    m3u8_id=m3u8_id)
+            else:
+                is_plain_url = True
+                formats = [{
+                    'url': full_url,
+                    'vcodec': 'none' if cur_media_type == 'audio' else None,
+                }]
+            return is_plain_url, formats
+
         entries = []
         for media_tag, media_type, media_content in re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage):
             media_info = {
@@ -1719,10 +1734,8 @@ class InfoExtractor(object):
             media_attributes = extract_attributes(media_tag)
             src = media_attributes.get('src')
             if src:
-                media_info['formats'].append({
-                    'url': absolute_url(src),
-                    'vcodec': 'none' if media_type == 'audio' else None,
-                })
+                _, formats = _media_formats(src)
+                media_info['formats'].extend(formats)
             media_info['thumbnail'] = media_attributes.get('poster')
             if media_content:
                 for source_tag in re.findall(r'<source[^>]+>', media_content):
@@ -1730,12 +1743,13 @@ class InfoExtractor(object):
                     src = source_attributes.get('src')
                     if not src:
                         continue
-                    f = parse_content_type(source_attributes.get('type'))
-                    f.update({
-                        'url': absolute_url(src),
-                        'vcodec': 'none' if media_type == 'audio' else None,
-                    })
-                    media_info['formats'].append(f)
+                    is_plain_url, formats = _media_formats(src, media_type)
+                    if is_plain_url:
+                        f = parse_content_type(source_attributes.get('type'))
+                        f.update(formats[0])
+                        media_info['formats'].append(f)
+                    else:
+                        media_info['formats'].extend(formats)
                 for track_tag in re.findall(r'<track[^>]+>', media_content):
                     track_attributes = extract_attributes(track_tag)
                     kind = track_attributes.get('kind')
