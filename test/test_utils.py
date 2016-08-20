@@ -79,6 +79,7 @@ from youtube_dl.utils import (
     match_str,
     parse_dfxp_time_expr,
     dfxp2srt,
+    dc2srt,
     cli_option,
     cli_valueless_option,
     cli_bool_option,
@@ -969,6 +970,38 @@ The first line
 
 '''
         self.assertEqual(dfxp2srt(dfxp_data_no_default_namespace), srt_data)
+
+    def test_dc2srt(self):
+        dc_data = '''<?xml version="1.0" encoding="UTF-8"?>
+            <DCSubtitle Version="1.0">
+                <SubtitleID>id</SubtitleID>
+                <MovieTitle>title</MovieTitle>
+                <ReelNumber>1</ReelNumber>
+                <Language>English</Language>
+                <Font Italic="no">
+                    <Subtitle SpotNumber="1" TimeIn="00:00:05:000" TimeOut="00:00:08:357" FadeUpTime="20" FadeDownTime="20">
+                        <Text Direction="horizontal" HAlign="center" HPosition="0.0" VAlign="bottom" VPosition="14.0">^_^</Text>
+                        <Text Direction="horizontal" HAlign="center" HPosition="0.0" VAlign="bottom" VPosition="6.0">second line</Text>
+                    </Subtitle>
+                    <Subtitle SpotNumber="2" TimeIn="00:00:08:357" TimeOut="00:00:09:000" FadeUpTime="20" FadeDownTime="20">
+                        <Text Direction="horizontal" HAlign="center" HPosition="0.0" VAlign="bottom" VPosition="6.0">single line</Text>
+                    </Subtitle>
+                </Font>
+            </DCSubtitle>'''
+        srt_data = '''1
+00:00:05,000 --> 00:00:08,356
+^_^
+second line
+
+
+2
+00:00:08,356 --> 00:00:09,000
+single line
+
+
+'''
+
+        self.assertEqual(dc2srt(dc_data), srt_data)
 
     def test_cli_option(self):
         self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])

@@ -2432,6 +2432,32 @@ def dfxp2srt(dfxp_data):
 
     return ''.join(out)
 
+# See https://web.archive.org/web/20140924175755/http://www.dlp.com/downloads/pdf_dlp_cinema_CineCanvas_Rev_C.pdf
+def dc2srt(xml_data):
+    xml = compat_etree_fromstring(xml_data.encode('utf-8'))
+    out = []
+    subtitles = xml.find('Font').findall('Subtitle')
+
+    if not subtitles:
+        raise ValueError('Invalid DC/XML subtitle')
+
+    for subtitle, index in zip(subtitles, itertools.count(1)):
+        begin_time = parse_dfxp_time_expr(subtitle.attrib.get('TimeIn'))
+        end_time = parse_dfxp_time_expr(subtitle.attrib.get('TimeOut'))
+        if not begin_time or not end_time:
+            continue
+
+        text = ''
+        for line in subtitle.findall('Text'):
+            text += line.text + '\n'
+
+        out.append('%d\n%s --> %s\n%s\n\n' % (
+            index,
+            srt_subtitles_timecode(begin_time),
+            srt_subtitles_timecode(end_time),
+            text))
+
+    return ''.join(out)
 
 def cli_option(params, command_option, param):
     param = params.get(param)

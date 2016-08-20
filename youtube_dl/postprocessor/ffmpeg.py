@@ -21,6 +21,7 @@ from ..utils import (
     shell_quote,
     subtitles_filename,
     dfxp2srt,
+    dc2srt,
     ISO639Utils,
 )
 
@@ -568,6 +569,30 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     continue
                 else:
                     sub_filenames.append(srt_file)
+            # TODO: Distinguish between different xml-formats
+            elif ext == 'xml':
+                self._downloader.report_warning(
+                    'You have requested to convert DC (XML) subtitles into another format, '
+                    'which results in style information loss')
+
+                dc_file = old_file
+                srt_file = subtitles_filename(filename, lang, 'srt')
+
+                with io.open(dc_file, 'rt', encoding='utf-8') as f:
+                    srt_data = dc2srt(f.read())
+
+                with io.open(srt_file, 'wt', encoding='utf-8') as f:
+                    f.write(srt_data)
+                old_file = srt_file
+
+                subs[lang] = {
+                    'ext': 'srt',
+                    'data': srt_data,
+                }
+
+                if new_ext == 'srt':
+                    continue
+                sub_filenames.append(srt_file)
 
             self.run_ffmpeg(old_file, new_file, ['-f', new_format])
 
