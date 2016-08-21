@@ -7,6 +7,7 @@ import random
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_parse_qs,
     compat_str,
     compat_urllib_parse_urlencode,
@@ -14,6 +15,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    clean_html,
     ExtractorError,
     int_or_none,
     js_to_json,
@@ -62,8 +64,16 @@ class TwitchBaseIE(InfoExtractor):
         if username is None:
             return
 
+        def fail(message):
+            raise ExtractorError(
+                'Unable to login. Twitch said: %s' % message, expected=True)
+
         login_page, handle = self._download_webpage_handle(
             self._LOGIN_URL, None, 'Downloading login page')
+
+        # Some TOR nodes and public proxies are blocked completely
+        if 'blacklist_message' in login_page:
+            fail(clean_html(login_page))
 
         login_form = self._hidden_inputs(login_page)
 
@@ -81,20 +91,24 @@ class TwitchBaseIE(InfoExtractor):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
-        response = self._download_webpage(
-            post_url, None, 'Logging in as %s' % username,
-            data=urlencode_postdata(login_form),
-            headers={'Referer': redirect_url})
+        headers = {'Referer': redirect_url}
 
-        error_message = self._search_regex(
-            r'<div[^>]+class="subwindow_notice"[^>]*>([^<]+)</div>',
-            response, 'error message', default=None)
-        if error_message:
-            raise ExtractorError(
-                'Unable to login. Twitch said: %s' % error_message, expected=True)
+        try:
+            response = self._download_json(
+                post_url, None, 'Logging in as %s' % username,
+                data=urlencode_postdata(login_form),
+                headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
+                response = self._parse_json(
+                    e.cause.read().decode('utf-8'), None)
+                fail(response['message'])
+            raise
 
-        if '>Reset your password<' in response:
-            self.report_warning('Twitch asks you to reset your password, go to https://secure.twitch.tv/reset/submit')
+        if response.get('redirect'):
+            self._download_webpage(
+                response['redirect'], None, 'Downloading login redirect page',
+                headers=headers)
 
     def _prefer_source(self, formats):
         try:
