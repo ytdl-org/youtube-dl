@@ -149,3 +149,8 @@ code.commands {
     background: rgba(200, 200, 200, 0.4);
     white-space: pre;
 }
+
+code.fingerprint {
+	font-weight: bold;
+	font-size: 140%;
+}
