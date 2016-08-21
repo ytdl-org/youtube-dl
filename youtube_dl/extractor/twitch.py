@@ -20,7 +20,6 @@ from ..utils import (
     orderedSet,
     parse_duration,
     parse_iso8601,
-    sanitized_Request,
     urlencode_postdata,
 )
 
@@ -50,8 +49,8 @@ class TwitchBaseIE(InfoExtractor):
         for cookie in self._downloader.cookiejar:
             if cookie.name == 'api_token':
                 headers['Twitch-Api-Token'] = cookie.value
-        request = sanitized_Request(url, headers=headers)
-        response = super(TwitchBaseIE, self)._download_json(request, video_id, note)
+        response = super(TwitchBaseIE, self)._download_json(
+            url, video_id, note, headers=headers)
         self._handle_error(response)
         return response
 
@@ -82,11 +81,10 @@ class TwitchBaseIE(InfoExtractor):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
-        request = sanitized_Request(
-            post_url, urlencode_postdata(login_form))
-        request.add_header('Referer', redirect_url)
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            post_url, None, 'Logging in as %s' % username,
+            data=urlencode_postdata(login_form),
+            headers={'Referer': redirect_url})
 
         error_message = self._search_regex(
             r'<div[^>]+class="subwindow_notice"[^>]*>([^<]+)</div>',
