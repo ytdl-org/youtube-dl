@@ -196,6 +196,17 @@ class KalturaIE(InfoExtractor):
                     reference_id)['entryResult']
                 info, flavor_assets = entry_data['meta'], entry_data['contextData']['flavorAssets']
                 entry_id = info['id']
+                # Unfortunately, data returned in kalturaIframePackageData lacks
+                # captions so we will try requesting the complete data using
+                # regular approach since we now know the entry_id
+                try:
+                    _, info, flavor_assets, captions = self._get_video_info(
+                        entry_id, partner_id)
+                except ExtractorError:
+                    # Regular scenario failed but we already have everything
+                    # extracted apart from captions and can process at least
+                    # with this
+                    pass
             else:
                 raise ExtractorError('Invalid URL', expected=True)
             ks = params.get('flashvars[ks]', [None])[0]
