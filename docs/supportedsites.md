@@ -121,6 +121,7 @@
  - **CDA**
  - **CeskaTelevize**
  - **channel9**: Channel 9
+ - **CharlieRose**
  - **Chaturbate**
  - **Chilloutzone**
  - **chirbit**
@@ -893,5 +894,4 @@
  - **Zapiks**
  - **ZDF**
  - **ZDFChannel**
- - **zingmp3:album**: mp3.zing.vn albums
- - **zingmp3:song**: mp3.zing.vn songs
+ - **zingmp3**: mp3.zing.vn
