@@ -938,6 +938,7 @@ from .udemy import (
 from .udn import UDNEmbedIE
 from .digiteka import DigitekaIE
 from .unistra import UnistraIE
+from .universcience import UniverscienceIE
 from .uol import UOLIE
 from .uplynk import (
     UplynkIE,
