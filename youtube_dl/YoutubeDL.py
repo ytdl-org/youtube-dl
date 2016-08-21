@@ -1299,7 +1299,7 @@ class YoutubeDL(object):
                 for subtitle_format in subtitle:
                     if subtitle_format.get('url'):
                         subtitle_format['url'] = sanitize_url(subtitle_format['url'])
-                    if 'ext' not in subtitle_format:
+                    if subtitle_format.get('ext') is None:
                         subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
         if self.params.get('listsubtitles', False):
@@ -1354,7 +1354,7 @@ class YoutubeDL(object):
                     note=' ({0})'.format(format['format_note']) if format.get('format_note') is not None else '',
                 )
             # Automatically determine file extension if missing
-            if 'ext' not in format:
+            if format.get('ext') is None:
                 format['ext'] = determine_ext(format['url']).lower()
             # Automatically determine protocol if missing (useful for format
             # selection purposes)
