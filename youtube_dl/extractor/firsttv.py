@@ -16,6 +16,7 @@ class FirstTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?1tv\.ru/(?:[^/]+/)+(?P<id>[^/?#]+)'
 
     _TESTS = [{
+        # single format
         'url': 'http://www.1tv.ru/shows/naedine-so-vsemi/vypuski/gost-lyudmila-senchina-naedine-so-vsemi-vypusk-ot-12-02-2015',
         'md5': 'a1b6b60d530ebcf8daacf4565762bbaf',
         'info_dict': {
@@ -28,8 +29,21 @@ class FirstTVIE(InfoExtractor):
             'duration': 2694,
         },
     }, {
+        # multiple formats
         'url': 'http://www.1tv.ru/shows/dobroe-utro/pro-zdorove/vesennyaya-allergiya-dobroe-utro-fragment-vypuska-ot-07042016',
-        'only_matching': 'true',
+        'info_dict': {
+            'id': '364746',
+            'ext': 'mp4',
+            'title': 'Весенняя аллергия. Доброе утро. Фрагмент выпуска от 07.04.2016',
+            'description': 'md5:a242eea0031fd180a4497d52640a9572',
+            'thumbnail': 're:^https?://.*\.(?:jpg|JPG)$',
+            'upload_date': '20160407',
+            'duration': 179,
+            'formats': 'mincount:3',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
