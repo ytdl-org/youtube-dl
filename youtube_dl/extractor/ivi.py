@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -8,7 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
-    sanitized_Request,
+    qualities,
 )
 
 
@@ -49,11 +49,27 @@ class IviIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
             'skip': 'Only works from Russia',
+        },
+        {
+            # with MP4-HD720 format
+            'url': 'http://www.ivi.ru/watch/146500',
+            'md5': 'd63d35cdbfa1ea61a5eafec7cc523e1e',
+            'info_dict': {
+                'id': '146500',
+                'ext': 'mp4',
+                'title': 'Кукла',
+                'description': 'md5:ffca9372399976a2d260a407cc74cce6',
+                'duration': 5599,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'skip': 'Only works from Russia',
         }
     ]
 
     # Sorted by quality
-    _KNOWN_FORMATS = ['MP4-low-mobile', 'MP4-mobile', 'FLV-lo', 'MP4-lo', 'FLV-hi', 'MP4-hi', 'MP4-SHQ']
+    _KNOWN_FORMATS = (
+        'MP4-low-mobile', 'MP4-mobile', 'FLV-lo', 'MP4-lo', 'FLV-hi', 'MP4-hi',
+        'MP4-SHQ', 'MP4-HD720', 'MP4-HD1080')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -69,10 +85,9 @@ class IviIE(InfoExtractor):
             ]
         }
 
-        request = sanitized_Request(
-            'http://api.digitalaccess.ru/api/json/', json.dumps(data))
         video_json = self._download_json(
-            request, video_id, 'Downloading video JSON')
+            'http://api.digitalaccess.ru/api/json/', video_id,
+            'Downloading video JSON', data=json.dumps(data))
 
         if 'error' in video_json:
             error = video_json['error']
@@ -84,11 +99,13 @@ class IviIE(InfoExtractor):
 
         result = video_json['result']
 
+        quality = qualities(self._KNOWN_FORMATS)
+
         formats = [{
             'url': x['url'],
-            'format_id': x['content_format'],
-            'preference': self._KNOWN_FORMATS.index(x['content_format']),
-        } for x in result['files'] if x['content_format'] in self._KNOWN_FORMATS]
+            'format_id': x.get('content_format'),
+            'quality': quality(x.get('content_format')),
+        } for x in result['files'] if x.get('url')]
 
         self._sort_formats(formats)
 
