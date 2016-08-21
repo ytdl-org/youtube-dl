@@ -132,7 +132,7 @@ class IviIE(InfoExtractor):
             webpage, 'season number', default=None))
 
         episode_number = int_or_none(self._search_regex(
-            r'<meta[^>]+itemprop="episode"[^>]*>\s*<meta[^>]+itemprop="episodeNumber"[^>]+content="(\d+)',
+            r'[^>]+itemprop="episode"[^>]*>\s*<meta[^>]+itemprop="episodeNumber"[^>]+content="(\d+)',
             webpage, 'episode number', default=None))
 
         description = self._og_search_description(webpage, default=None) or self._html_search_meta(
