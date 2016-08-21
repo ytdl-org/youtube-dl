@@ -7,6 +7,8 @@ from ..utils import (
     ExtractorError,
     js_to_json,
     int_or_none,
+    update_url_query,
+    parse_iso8601,
 )
 
 
@@ -92,4 +94,65 @@ class ABCIE(InfoExtractor):
             'formats': formats,
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
+        }
+
+
+class ABCIViewIE(InfoExtractor):
+    IE_NAME = 'abc.net.au:iview'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/programs/[^/]+/(?P<id>[^/?#]+)'
+
+    _TESTS = [{
+        'url': 'http://iview.abc.net.au/programs/gardening-australia/FA1505V024S00',
+        'md5': '979d10b2939101f0d27a06b79edad536',
+        'info_dict': {
+            'id': 'FA1505V024S00',
+            'ext': 'mp4',
+            'title': 'Series 27 Ep 24',
+            'description': 'md5:b28baeae7504d1148e1d2f0e3ed3c15d',
+            'upload_date': '20160820',
+            'uploader_id': 'abc1',
+            'timestamp': 1471719600,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        video_params = self._parse_json(self._search_regex(
+            r'videoParams\s*=\s*({.+?});', webpage, 'video params'), video_id)
+        title = video_params['title']
+        stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
+
+        formats = []
+        f4m_url = stream.get('hds-unmetered') or stream['hds-metered']
+        formats.extend(self._extract_f4m_formats(
+            update_url_query(f4m_url, {'hdcore': '3.7.0'}),
+            video_id, f4m_id='hds', fatal=False))
+        formats.extend(self._extract_m3u8_formats(f4m_url.replace(
+            'akamaihd.net/z/', 'akamaihd.net/i/').replace('/manifest.f4m', '/master.m3u8'),
+            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+        self._sort_formats(formats)
+
+        subtitles = {}
+        src_vtt = stream.get('captions', {}).get('src-vtt')
+        if src_vtt:
+            subtitles['en'] = [{
+                'url': src_vtt,
+                'ext': 'vtt',
+            }]
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': self._html_search_meta(['og:description', 'twitter:description'], webpage),
+            'thumbnail': self._html_search_meta(['og:image', 'twitter:image:src'], webpage),
+            'duration': int_or_none(video_params.get('eventDuration')),
+            'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
+            'series': video_params.get('seriesTitle'),
+            'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
+            'episode_number': int_or_none(self._html_search_meta('episodeNumber', webpage)),
+            'episode': self._html_search_meta('episode_title', webpage),
+            'uploader_id': video_params.get('channel'),
+            'formats': formats,
+            'subtitles': subtitles,
         }
