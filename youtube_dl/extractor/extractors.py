@@ -1114,7 +1114,4 @@ from .youtube import (
 )
 from .zapiks import ZapiksIE
 from .zdf import ZDFIE, ZDFChannelIE
-from .zingmp3 import (
-    ZingMp3SongIE,
-    ZingMp3AlbumIE,
-)
+from .zingmp3 import ZingMp3IE
