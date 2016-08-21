@@ -36,6 +36,12 @@ class KalturaIE(InfoExtractor):
                 '''
     _SERVICE_URL = 'http://cdnapi.kaltura.com'
     _SERVICE_BASE = '/api_v3/index.php'
+    # See https://github.com/kaltura/server/blob/master/plugins/content/caption/base/lib/model/enums/CaptionType.php
+    _CAPTION_TYPES = {
+        1: 'srt',
+        2: 'ttml',
+        3: 'vtt',
+    }
     _TESTS = [
         {
             'url': 'kaltura:269692:1_1jc2y3e4',
@@ -285,9 +291,12 @@ class KalturaIE(InfoExtractor):
                 # Continue if caption is not ready
                 if f.get('status') != 2:
                     continue
+                if not caption.get('id'):
+                    continue
+                caption_format = int_or_none(caption.get('format'))
                 subtitles.setdefault(caption.get('languageCode') or caption.get('language'), []).append({
                     'url': '%s/api_v3/service/caption_captionasset/action/serve/captionAssetId/%s' % (self._SERVICE_URL, caption['id']),
-                    'ext': caption.get('fileExt', 'ttml'),
+                    'ext': caption.get('fileExt') or self._CAPTION_TYPES.get(caption_format) or 'ttml',
                 })
 
         return {
