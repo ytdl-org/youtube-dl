@@ -1,16 +1,28 @@
 version <unreleased>
 
 Core
-+ Recognize file size strings with full unit names (for example "8.5
-  megabytes")
-+ Support m3u8 manifests in HTML5 multimedia tags
-* Fix js_to_json(): correct octal or hexadecimal number detection
+* Improve formats and subtitles extension auto calculation
++ Recognize full unit names in parse_filesize
++ Add support for m3u8 manifests in HTML5 multimedia tags
+* Fix octal/hexadecimal number detection in js_to_json
 
 Extractors
++ [ivi] Add support for 720p and 1080p
 + [charlierose] Add new extractor (#10382)
+* [1tv] Fix extraction (#9249)
+* [twitch] Renew authentication
+* [kaltura] Improve subtitles extension calculation
++ [zingmp3] Add support for video clips
+* [zingmp3] Fix extraction (#10041)
+* [kaltura] Improve subtitles extraction (#10279)
+* [cultureunplugged] Fix extraction (#10330)
++ [cnn] Add support for money.cnn.com (#2797)
+* [cbsnews] Fix extraction (#10362)
+* [cbs] Fix extraction (#10393)
 + [litv] Support 'promo' URLs (#10385)
 * [snotr] Fix extraction (#10338)
 * [n-tv.de] Fix extraction (#10331)
+* [globo:article] Relax URL and video id regular expressions (#10379)
 
 
 version 2016.08.19
