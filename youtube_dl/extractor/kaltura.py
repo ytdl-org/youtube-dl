@@ -67,6 +67,27 @@ class KalturaIE(InfoExtractor):
             # video with subtitles
             'url': 'kaltura:111032:1_cw786r8q',
             'only_matching': True,
+        },
+        {
+            # video with ttml subtitles (no fileExt)
+            'url': 'kaltura:1926081:0_l5ye1133',
+            'info_dict': {
+                'id': '0_l5ye1133',
+                'ext': 'mp4',
+                'title': 'What Can You Do With Python?',
+                'upload_date': '20160221',
+                'uploader_id': 'stork',
+                'thumbnail': 're:^https?://.*/thumbnail/.*',
+                'timestamp': int,
+                'subtitles': {
+                    'en': [{
+                        'ext': 'ttml',
+                    }],
+                },
+            },
+            'params': {
+                'skip_download': True,
+            },
         }
     ]
 
