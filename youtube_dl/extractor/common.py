@@ -1695,7 +1695,7 @@ class InfoExtractor(object):
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
-    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None):
+    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None, m3u8_entry_protocol='m3u8'):
         def absolute_url(video_url):
             return compat_urlparse.urljoin(base_url, video_url)
 
@@ -1715,8 +1715,8 @@ class InfoExtractor(object):
             if determine_ext(full_url) == 'm3u8':
                 is_plain_url = False
                 formats = self._extract_m3u8_formats(
-                    full_url, video_id, ext='mp4', entry_protocol='m3u8_native',
-                    m3u8_id=m3u8_id)
+                    full_url, video_id, ext='mp4',
+                    entry_protocol=m3u8_entry_protocol, m3u8_id=m3u8_id)
             else:
                 is_plain_url = True
                 formats = [{

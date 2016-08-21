@@ -7,6 +7,7 @@ Core
 * Fix js_to_json(): correct octal or hexadecimal number detection
 
 Extractors
++ [charlierose] Add new extractor (#10382)
 + [litv] Support 'promo' URLs (#10385)
 * [snotr] Fix extraction (#10338)
 * [n-tv.de] Fix extraction (#10331)

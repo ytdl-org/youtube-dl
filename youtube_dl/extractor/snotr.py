@@ -46,7 +46,8 @@ class SnotrIE(InfoExtractor):
         title = self._og_search_title(webpage)
 
         description = self._og_search_description(webpage)
-        info_dict = self._parse_html5_media_entries(url, webpage, video_id)[0]
+        info_dict = self._parse_html5_media_entries(
+            url, webpage, video_id, m3u8_entry_protocol='m3u8_native')[0]
 
         view_count = str_to_int(self._html_search_regex(
             r'<p[^>]*>\s*<strong[^>]*>Views:</strong>\s*<span[^>]*>([\d,\.]+)',
