@@ -122,18 +122,6 @@ class KalturaIE(InfoExtractor):
 
         return data
 
-    def _get_kaltura_signature(self, video_id, partner_id, service_url=None):
-        actions = [{
-            'apiVersion': '3.1',
-            'expiry': 86400,
-            'format': 1,
-            'service': 'session',
-            'action': 'startWidgetSession',
-            'widgetId': '_%s' % partner_id,
-        }]
-        return self._kaltura_api_call(
-            video_id, actions, service_url, note='Downloading Kaltura signature')['ks']
-
     def _get_video_info(self, video_id, partner_id, service_url=None):
         actions = [
             {
