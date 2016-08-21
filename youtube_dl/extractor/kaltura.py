@@ -266,7 +266,7 @@ class KalturaIE(InfoExtractor):
                     continue
                 subtitles.setdefault(caption.get('languageCode') or caption.get('language'), []).append({
                     'url': '%s/api_v3/service/caption_captionasset/action/serve/captionAssetId/%s' % (self._SERVICE_URL, caption['id']),
-                    'ext': caption.get('fileExt'),
+                    'ext': caption.get('fileExt', 'ttml'),
                 })
 
         return {
