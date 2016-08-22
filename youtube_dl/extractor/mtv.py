@@ -257,8 +257,8 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
     def _get_feed_url(self, uri):
         video_id = self._id_from_uri(uri)
         site_id = uri.replace(video_id, '')
-        config_url = ('http://media.mtvnservices.com/pmt/e1/players/{0}/'
-                      'context4/context5/config.xml'.format(site_id))
+        config_url = ('http://media.mtvnservices.com/pmt-arc/e1/players/{0}/'
+                      'context52/config.xml'.format(site_id))
         config_doc = self._download_xml(config_url, video_id)
         feed_node = config_doc.find('.//feed')
         feed_url = feed_node.text.strip().split('?')[0]
