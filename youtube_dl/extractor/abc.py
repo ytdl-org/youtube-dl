@@ -7,7 +7,6 @@ from ..utils import (
     ExtractorError,
     js_to_json,
     int_or_none,
-    update_url_query,
     parse_iso8601,
 )
 
@@ -123,14 +122,7 @@ class ABCIViewIE(InfoExtractor):
         title = video_params['title']
         stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
 
-        formats = []
-        f4m_url = stream.get('hds-unmetered') or stream['hds-metered']
-        formats.extend(self._extract_f4m_formats(
-            update_url_query(f4m_url, {'hdcore': '3.7.0'}),
-            video_id, f4m_id='hds', fatal=False))
-        formats.extend(self._extract_m3u8_formats(f4m_url.replace(
-            'akamaihd.net/z/', 'akamaihd.net/i/').replace('/manifest.f4m', '/master.m3u8'),
-            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+        formats = self._extract_akamai_formats(stream['hds-unmetered'], video_id)
         self._sort_formats(formats)
 
         subtitles = {}
