@@ -71,6 +71,12 @@ from .atttechchannel import ATTTechChannelIE
 from .audimedia import AudiMediaIE
 from .audioboom import AudioBoomIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
+from .awaan import (
+    AWAANIE,
+    AWAANVideoIE,
+    AWAANLiveIE,
+    AWAANSeasonIE,
+)
 from .azubu import AzubuIE, AzubuLiveIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
@@ -200,12 +206,6 @@ from .daum import (
     DaumUserIE,
 )
 from .dbtv import DBTVIE
-from .dcn import (
-    DCNIE,
-    DCNVideoIE,
-    DCNLiveIE,
-    DCNSeasonIE,
-)
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .democracynow import DemocracynowIE
