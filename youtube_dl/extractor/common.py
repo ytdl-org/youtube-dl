@@ -1765,6 +1765,18 @@ class InfoExtractor(object):
                 entries.append(media_info)
         return entries
 
+    def _extract_akamai_formats(self, manifest_url, video_id):
+        formats = []
+        f4m_url = re.sub(r'(https?://.+?)/i/', r'\1/z/', manifest_url).replace('/master.m3u8', '/manifest.f4m')
+        formats.extend(self._extract_f4m_formats(
+            update_url_query(f4m_url, {'hdcore': '3.7.0'}),
+            video_id, f4m_id='hds', fatal=False))
+        m3u8_url = re.sub(r'(https?://.+?)/z/', r'\1/i/', manifest_url).replace('/manifest.f4m', '/master.m3u8')
+        formats.extend(self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', 'm3u8_native',
+            m3u8_id='hls', fatal=False))
+        return formats
+
     def _live_title(self, name):
         """ Generate the title for a live video """
         now = datetime.datetime.now()
