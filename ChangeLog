@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.24
 
 Extractors
 * [youtube] Fix authentication (#10392)

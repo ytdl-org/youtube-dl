@@ -16,6 +16,7 @@
  - **9gag**
  - **9now.com.au**
  - **abc.net.au**
+ - **abc.net.au:iview**
  - **Abc7News**
  - **abcnews**
  - **abcnews:video**
@@ -66,6 +67,10 @@
  - **audiomack**
  - **audiomack:album**
  - **auroravid**: AuroraVid
+ - **AWAAN**
+ - **awaan:live**
+ - **awaan:season**
+ - **awaan:video**
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -172,10 +177,6 @@
  - **daum.net:playlist**
  - **daum.net:user**
  - **DBTV**
- - **DCN**
- - **dcn:live**
- - **dcn:season**
- - **dcn:video**
  - **DctpTv**
  - **DeezerPlaylist**
  - **defense.gouv.fr**
