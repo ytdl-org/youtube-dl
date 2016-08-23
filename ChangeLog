@@ -1,7 +1,14 @@
 version <unreleased>
 
 Extractors
+* [youtube] Fix authentication (#10392)
 * [openload] Fix extraction (#10408)
++ [bravotv] Add support for Adobe Pass (#10407)
+* [bravotv] Fix clip info extraction (#10407)
+* [eagleplatform] Improve embedded videos detection (#10409)
+* [awaan] Fix extraction
+* [mtvservices:embedded] Update config URL
++ [abc:iview] Add extractor (#6148)
 
 
 version 2016.08.22
