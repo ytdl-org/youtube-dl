@@ -31,7 +31,7 @@ class SyfyIE(AdobePassIE):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         syfy_mpx = list(self._parse_json(self._search_regex(
-            r'jQuery\.extend\([^,]+,\s*({.+})\);', webpage, 'drupal settings'),
+            r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);', webpage, 'drupal settings'),
             display_id)['syfy']['syfy_mpx'].values())[0]
         video_id = syfy_mpx['mpxGUID']
         title = syfy_mpx['episodeTitle']

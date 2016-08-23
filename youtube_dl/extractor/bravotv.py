@@ -32,7 +32,7 @@ class BravoTVIE(AdobePassIE):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         settings = self._parse_json(self._search_regex(
-            r'jQuery\.extend\([^,]+,\s*({.+})\);', webpage, 'drupal settings'),
+            r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);', webpage, 'drupal settings'),
             display_id)
         info = {}
         query = {
