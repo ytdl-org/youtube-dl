@@ -94,6 +94,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         login_form = self._hidden_inputs(login_page)
 
         login_form.update({
+            'checkConnection': 'youtube',
             'Email': username,
             'Passwd': password,
         })
