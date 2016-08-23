@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class NetEaseMusicBaseIE(InfoExtractor):
-    _FORMATS = ['bMusic', 'mMusic', 'hMusic']
+    _FORMATS = ['bMusic', 'mMusic', 'hMusic', 'lMusic']
     _NETEASE_SALT = '3go8&$8*3*3h0k(2)2'
     _API_BASE = 'http://music.163.com/api/'
 
@@ -44,12 +44,9 @@ class NetEaseMusicBaseIE(InfoExtractor):
             song_file_path = '/%s/%s.%s' % (
                 self._encrypt(details['dfsId']), details['dfsId'], details['extension'])
 
-            # 203.130.59.9, 124.40.233.182, 115.231.74.139, etc is a reverse proxy-like feature
-            # from NetEase's CDN provider that can be used if m5.music.126.net does not
-            # work, especially for users outside of Mainland China
-            # via: https://github.com/JixunMoe/unblock-163/issues/3#issuecomment-163115880
-            for host in ('http://m5.music.126.net', 'http://115.231.74.139/m1.music.126.net',
-                         'http://124.40.233.182/m1.music.126.net', 'http://203.130.59.9/m1.music.126.net'):
+            # 2016-AUG-23: For users outside mainland China, use the following hostname which resolve to CDN CNAMEs
+            # e.g. oversea.video.speedcdns.com, n2.panthercdn.com.
+            for host in ('http://%c%i.music.126.net' % (c, i) for c in ('p', 'm') for i in range(1, 10)):
                 song_url = host + song_file_path
                 if self._is_valid_url(song_url, info['id'], 'song'):
                     formats.append({
@@ -61,6 +58,17 @@ class NetEaseMusicBaseIE(InfoExtractor):
                         'asr': details.get('sr')
                     })
                     break
+
+        # Another URL in broad daylight, but lower quality and without details such as bitrate etc.
+        # and also need to change its hostname, m2.music.126.net, which resolves to 1.1.1.1 outside mainland China
+        # Included just as a safety net.
+        if info.get('mp3Url'):
+            for host in ('http://%c%i.music.126.net' % (c, i) for c in ('p', 'm') for i in range(1, 10)):
+                song_url = re.sub('http://\w+\.music\.126\.net', host, info['mp3Url'])
+                if self._is_valid_url(song_url, info['id'], 'song'):
+                    formats.append({'url': song_url})
+                    break
+
         return formats
 
     @classmethod
@@ -89,7 +97,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'timestamp': 1431878400,
             'description': 'md5:a10a54589c2860300d02e1de821eb2ef',
         },
-        'skip': 'Blocked outside Mainland China',
+        'skip': 'Behind paywall',
     }, {
         'note': 'No lyrics translation.',
         'url': 'http://music.163.com/#/song?id=29822014',
@@ -102,7 +110,6 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'timestamp': 1419523200,
             'description': 'md5:a4d8d89f44656af206b7b2555c0bce6c',
         },
-        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'No lyrics.',
         'url': 'http://music.163.com/song?id=17241424',
@@ -114,7 +121,6 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'upload_date': '20080211',
             'timestamp': 1202745600,
         },
-        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'Has translated name.',
         'url': 'http://music.163.com/#/song?id=22735043',
@@ -189,7 +195,7 @@ class NetEaseMusicAlbumIE(NetEaseMusicBaseIE):
     IE_NAME = 'netease:album'
     IE_DESC = '网易云音乐 - 专辑'
     _VALID_URL = r'https?://music\.163\.com/(#/)?album\?id=(?P<id>[0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://music.163.com/#/album?id=220780',
         'info_dict': {
             'id': '220780',
@@ -197,7 +203,14 @@ class NetEaseMusicAlbumIE(NetEaseMusicBaseIE):
         },
         'playlist_count': 23,
         'skip': 'Blocked outside Mainland China',
-    }
+    }, {
+        'url': 'http://music.163.com/#/album?id=3317645',
+        'info_dict': {
+            'id': '3317645',
+            'title': 'Paradox Interactive Music Hits! - Platypus Edition',
+        },
+        'playlist_count': 12,
+    }]
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
@@ -238,6 +251,13 @@ class NetEaseMusicSingerIE(NetEaseMusicBaseIE):
         },
         'playlist_count': 50,
         'skip': 'Blocked outside Mainland China',
+    }, {
+        'url': 'http://music.163.com/#/artist?id=837067',
+        'info_dict': {
+            'id': '837067',
+            'title': 'Andreas Waldetoft',
+        },
+        'playlist_count': 50,
     }]
 
     def _real_extract(self, url):
@@ -323,7 +343,6 @@ class NetEaseMusicMvIE(NetEaseMusicBaseIE):
             'creator': '白雅言',
             'upload_date': '20150520',
         },
-        'skip': 'Blocked outside Mainland China',
     }
 
     def _real_extract(self, url):
@@ -367,7 +386,6 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
             'upload_date': '20150613',
             'duration': 900,
         },
-        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'This program has accompanying songs.',
         'url': 'http://music.163.com/#/program?id=10141022',
