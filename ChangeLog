@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [openload] Fix extraction (#10408)
+
+
 version 2016.08.22
 
 Core
