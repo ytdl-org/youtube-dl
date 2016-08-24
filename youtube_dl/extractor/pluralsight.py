@@ -17,7 +17,6 @@ from ..utils import (
     int_or_none,
     parse_duration,
     qualities,
-    sanitized_Request,
     srt_subtitles_timecode,
     urlencode_postdata,
 )
@@ -78,12 +77,10 @@ class PluralsightIE(PluralsightBaseIE):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
-        request = sanitized_Request(
-            post_url, urlencode_postdata(login_form))
-        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            post_url, None, 'Logging in as %s' % username,
+            data=urlencode_postdata(login_form),
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
         error = self._search_regex(
             r'<span[^>]+class="field-validation-error"[^>]*>([^<]+)</span>',
@@ -128,6 +125,8 @@ class PluralsightIE(PluralsightBaseIE):
                 continue
             end = duration if num == len(subs) - 1 else float_or_none(
                 subs[num + 1].get('DisplayTimeOffset'))
+            if end is None:
+                continue
             srt += os.linesep.join(
                 (
                     '%d' % num,
@@ -246,13 +245,12 @@ class PluralsightIE(PluralsightBaseIE):
                     'mt': ext,
                     'q': '%dx%d' % (f['width'], f['height']),
                 }
-                request = sanitized_Request(
-                    '%s/training/Player/ViewClip' % self._API_BASE,
-                    json.dumps(clip_post).encode('utf-8'))
-                request.add_header('Content-Type', 'application/json;charset=utf-8')
                 format_id = '%s-%s' % (ext, quality)
                 clip_url = self._download_webpage(
-                    request, display_id, 'Downloading %s URL' % format_id, fatal=False)
+                    '%s/training/Player/ViewClip' % self._API_BASE, display_id,
+                    'Downloading %s URL' % format_id, fatal=False,
+                    data=json.dumps(clip_post).encode('utf-8'),
+                    headers={'Content-Type': 'application/json;charset=utf-8'})
 
                 # Pluralsight tracks multiple sequential calls to ViewClip API and start
                 # to return 429 HTTP errors after some time (see
