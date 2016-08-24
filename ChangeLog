@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.24.1
 
 Extractors
 + [pluralsight] Add support for subtitles (#9681)
