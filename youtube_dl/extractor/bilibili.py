@@ -21,6 +21,8 @@ from ..utils import (
 
 
 class BiliBiliIE(InfoExtractor):
+    _WORKING = False
+
     _VALID_URL = r'https?://www\.bilibili\.(?:tv|com)/video/av(?P<id>\d+)'
 
     _TESTS = [{
