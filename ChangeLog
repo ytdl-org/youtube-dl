@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [mtvservices:embedded] Fix extraction for the new 'edge' player (#10363)
+
+
 version 2016.08.24.1
 
 Extractors

@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse_urlencode,
     compat_str,
     compat_xpath,
 )
@@ -14,12 +13,13 @@ from ..utils import (
     fix_xml_ampersands,
     float_or_none,
     HEADRequest,
+    RegexNotFoundError,
     sanitized_Request,
     strip_or_none,
     timeconvert,
     unescapeHTML,
+    update_url_query,
     url_basename,
-    RegexNotFoundError,
     xpath_text,
 )
 
@@ -35,6 +35,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
     @staticmethod
     def _id_from_uri(uri):
         return uri.split(':')[-1]
+
+    @staticmethod
+    def _remove_template_parameter(url):
+        # Remove the templates, like &device={device}
+        return re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', url)
 
     # This was originally implemented for ComedyCentral, but it also works here
     @classmethod
@@ -117,9 +122,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         video_id = self._id_from_uri(uri)
         self.report_extraction(video_id)
         content_el = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content')))
-        mediagen_url = content_el.attrib['url']
-        # Remove the templates, like &device={device}
-        mediagen_url = re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', mediagen_url)
+        mediagen_url = self._remove_template_parameter(content_el.attrib['url'])
         if 'acceptMethods' not in mediagen_url:
             mediagen_url += '&' if '?' in mediagen_url else '?'
             mediagen_url += 'acceptMethods=fms'
@@ -178,12 +181,12 @@ class MTVServicesInfoExtractor(InfoExtractor):
         data = {'uri': uri}
         if self._LANG:
             data['lang'] = self._LANG
-        return compat_urllib_parse_urlencode(data)
+        return data
 
     def _get_videos_info(self, uri):
         video_id = self._id_from_uri(uri)
         feed_url = self._get_feed_url(uri)
-        info_url = feed_url + '?' + self._get_feed_query(uri)
+        info_url = update_url_query(feed_url, self._get_feed_query(uri))
         return self._get_videos_info_from_url(info_url, video_id)
 
     def _get_videos_info_from_url(self, url, video_id):
@@ -256,13 +259,9 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
 
     def _get_feed_url(self, uri):
         video_id = self._id_from_uri(uri)
-        site_id = uri.replace(video_id, '')
-        config_url = ('http://media.mtvnservices.com/pmt-arc/e1/players/{0}/'
-                      'context52/config.xml'.format(site_id))
-        config_doc = self._download_xml(config_url, video_id)
-        feed_node = config_doc.find('.//feed')
-        feed_url = feed_node.text.strip().split('?')[0]
-        return feed_url
+        config = self._download_json(
+            'http://media.mtvnservices.com/pmt/e1/access/index.html?uri=%s&configtype=edge' % uri, video_id)
+        return self._remove_template_parameter(config['feedWithQueryParams'])
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
