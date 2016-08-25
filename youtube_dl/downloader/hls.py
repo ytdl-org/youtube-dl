@@ -120,7 +120,7 @@ class HlsFD(FragmentFD):
                     decrypt_info = parse_m3u8_attributes(line[11:])
                     if decrypt_info['METHOD'] == 'AES-128':
                         if 'IV' in decrypt_info:
-                            decrypt_info['IV'] = binascii.unhexlify(decrypt_info['IV'][2:])
+                            decrypt_info['IV'] = binascii.unhexlify(decrypt_info['IV'][2:].zfill(32))
                         if not re.match(r'^https?://', decrypt_info['URI']):
                             decrypt_info['URI'] = compat_urlparse.urljoin(
                                 man_url, decrypt_info['URI'])
