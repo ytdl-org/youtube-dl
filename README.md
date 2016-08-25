@@ -834,6 +834,18 @@ You will first need to tell youtube-dl to stream media to stdout with `-o -`, an
 
     youtube-dl -o - "http://www.youtube.com/watch?v=BaW_jenozKcj" | vlc -
 
+### How do I download only new videos from playlist?
+
+Use the download archive feature. With this feature you should initially download the complete playlist with `--download-archive /path/to/download/archive/file.txt` that will record identifiers of all the videos in a special *download archive file*. Each subsequent run with the same `--download-archive` will download only new videos that are not yet in download archive (if any) and also record them in download archive. Note that only successful downloads are recorded in download archive.
+
+For example, first run will download complete `PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re` playlist and create download archive `archive.txt`:
+
+    youtube-dl --download-archive archive.txt "https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re"
+
+Each subsequent run will only download new videos if any:
+
+    youtube-dl --download-archive archive.txt "https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re"
+
 ### Can you add support for this anime video site, or site which shows current movies for free?
 
 As a matter of policy (as well as legality), youtube-dl does not include support for services that specialize in infringing copyright. As a rule of thumb, if you cannot easily find a video that the service is quite obviously allowed to distribute (i.e. that has been uploaded by the creator, the creator's distributor, or is published under a free license), the service is probably unfit for inclusion to youtube-dl.
