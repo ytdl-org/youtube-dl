@@ -130,6 +130,8 @@ from .carambatv import (
 from .cbc import (
     CBCIE,
     CBCPlayerIE,
+    CBCWatchVideoIE,
+    CBCWatchIE,
 )
 from .cbs import CBSIE
 from .cbslocal import CBSLocalIE
