@@ -671,7 +671,7 @@ from .pluralsight import (
 )
 from .podomatic import PodomaticIE
 from .pokemon import PokemonIE
-from .polskieradio import PolskieRadioIE
+from .polskieradio import PolskieRadioIE, PolskieRadioProgrammeIE
 from .porn91 import Porn91IE
 from .porncom import PornComIE
 from .pornhd import PornHdIE
