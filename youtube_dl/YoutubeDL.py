@@ -1256,8 +1256,8 @@ class YoutubeDL(object):
                 info_dict['thumbnails'] = thumbnails = [{'url': thumbnail}]
         if thumbnails:
             thumbnails.sort(key=lambda t: (
-                t.get('preference'), t.get('width'), t.get('height'),
-                t.get('id'), t.get('url')))
+                t.get('preference') or -1, t.get('width') or -1, t.get('height') or -1,
+                t.get('id') or '', t.get('url')))
             for i, t in enumerate(thumbnails):
                 t['url'] = sanitize_url(t['url'])
                 if t.get('width') and t.get('height'):
