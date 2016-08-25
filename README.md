@@ -820,7 +820,7 @@ Passing cookies to youtube-dl is a good way to workaround login when a particula
 
 You will first need to tell youtube-dl to stream media to stdout with `-o -`, and also tell your media player to read from stdin (it must be capable of this for streaming) and then pipe former to latter. For example, streaming to [vlc](http://www.videolan.org/) can be achieved with:
 
-    youtube-dl -o - http://www.youtube.com/watch?v=BaW_jenozKcj | vlc -
+    youtube-dl -o - "http://www.youtube.com/watch?v=BaW_jenozKcj" | vlc -
 
 ### Can you add support for this anime video site, or site which shows current movies for free?
 
