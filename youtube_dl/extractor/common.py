@@ -1202,30 +1202,45 @@ class InfoExtractor(object):
                 'preference': preference,
             }]
         last_info = None
-        last_media = None
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
                 last_info = parse_m3u8_attributes(line)
             elif line.startswith('#EXT-X-MEDIA:'):
-                last_media = parse_m3u8_attributes(line)
+                media = parse_m3u8_attributes(line)
+                media_type = media.get('TYPE')
+                if media_type in ('VIDEO', 'AUDIO'):
+                    media_url = media.get('URI')
+                    if media_url:
+                        format_id = []
+                        for v in (media.get('GROUP-ID'), media.get('NAME')):
+                            if v:
+                                format_id.append(v)
+                        formats.append({
+                            'format_id': '-'.join(format_id),
+                            'url': format_url(media_url),
+                            'language': media.get('LANGUAGE'),
+                            'vcodec': 'none' if media_type == 'AUDIO' else None,
+                            'ext': ext,
+                            'protocol': entry_protocol,
+                            'preference': preference,
+                        })
             elif line.startswith('#') or not line.strip():
                 continue
             else:
                 if last_info is None:
                     formats.append({'url': format_url(line)})
                     continue
-                tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
+                tbr = int_or_none(last_info.get('AVERAGE-BANDWIDTH') or last_info.get('BANDWIDTH'), scale=1000)
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
-                last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') not in ('SUBTITLES', 'CLOSED-CAPTIONS') else None
-                # Despite specification does not mention NAME attribute for
-                # EXT-X-STREAM-INF it still sometimes may be present
-                stream_name = last_info.get('NAME') or last_media_name
                 # Bandwidth of live streams may differ over time thus making
                 # format_id unpredictable. So it's better to keep provided
                 # format_id intact.
                 if not live:
+                    # Despite specification does not mention NAME attribute for
+                    # EXT-X-STREAM-INF it still sometimes may be present
+                    stream_name = last_info.get('NAME')
                     format_id.append(stream_name if stream_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
                     'format_id': '-'.join(format_id),
@@ -1252,9 +1267,6 @@ class InfoExtractor(object):
                         'abr': abr,
                     })
                 f.update(parse_codecs(last_info.get('CODECS')))
-                if last_media is not None:
-                    f['m3u8_media'] = last_media
-                    last_media = None
                 formats.append(f)
                 last_info = {}
         return formats
