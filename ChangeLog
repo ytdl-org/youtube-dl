@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [crackle] Fix extraction (#10333)
 * [spankbang] Fix description and uploader (#10339)
 * [mtvservices:embedded] Fix extraction for the new 'edge' player (#10363)
 

@@ -1,5 +1,7 @@
 # coding: utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
+
+import re
 
 from .common import InfoExtractor
 from ..utils import int_or_none
@@ -8,23 +10,28 @@ from ..utils import int_or_none
 class CrackleIE(InfoExtractor):
     _VALID_URL = r'(?:crackle:|https?://(?:www\.)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
     _TEST = {
-        'url': 'http://www.crackle.com/the-art-of-more/2496419',
+        'url': 'http://www.crackle.com/comedians-in-cars-getting-coffee/2498934',
         'info_dict': {
-            'id': '2496419',
+            'id': '2498934',
             'ext': 'mp4',
-            'title': 'Heavy Lies the Head',
-            'description': 'md5:bb56aa0708fe7b9a4861535f15c3abca',
+            'title': 'Everybody Respects A Bloody Nose',
+            'description': 'Jerry is kaffeeklatsching in L.A. with funnyman J.B. Smoove (Saturday Night Live, Real Husbands of Hollywood). They’re headed for brew at 10 Speed Coffee in a 1964 Studebaker Avanti.',
+            'thumbnail': 're:^https?://.*\.jpg',
+            'duration': 906,
+            'series': 'Comedians In Cars Getting Coffee',
+            'season_number': 8,
+            'episode_number': 4,
+            'subtitles': {
+                'en-US': [{
+                    'ext': 'ttml',
+                }]
+            },
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         }
     }
-
-    # extracted from http://legacyweb-us.crackle.com/flash/QueryReferrer.ashx
-    _SUBTITLE_SERVER = 'http://web-us-az.crackle.com'
-    _UPLYNK_OWNER_ID = 'e8773f7770a44dbd886eee4fca16a66b'
-    _THUMBNAIL_TEMPLATE = 'http://images-us-am.crackle.com/%stnl_1920x1080.jpg?ts=20140107233116?c=635333335057637614'
 
     # extracted from http://legacyweb-us.crackle.com/flash/ReferrerRedirect.ashx
     _MEDIA_FILE_SLOTS = {
@@ -48,19 +55,22 @@ class CrackleIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
+        config_doc = self._download_xml(
+            'http://legacyweb-us.crackle.com/flash/QueryReferrer.ashx?site=16',
+            video_id, 'Downloading config')
+
         item = self._download_xml(
             'http://legacyweb-us.crackle.com/app/revamp/vidwallcache.aspx?flags=-1&fm=%s' % video_id,
             video_id).find('i')
         title = item.attrib['t']
 
-        thumbnail = None
         subtitles = {}
         formats = self._extract_m3u8_formats(
-            'http://content.uplynk.com/ext/%s/%s.m3u8' % (self._UPLYNK_OWNER_ID, video_id),
+            'http://content.uplynk.com/ext/%s/%s.m3u8' % (config_doc.attrib['strUplynkOwnerId'], video_id),
             video_id, 'mp4', m3u8_id='hls', fatal=None)
         path = item.attrib.get('p')
         if path:
-            thumbnail = self._THUMBNAIL_TEMPLATE % path
             http_base_url = 'http://ahttp.crackle.com/' + path
             for mfs_path, mfs_info in self._MEDIA_FILE_SLOTS.items():
                 formats.append({
@@ -76,20 +86,36 @@ class CrackleIE(InfoExtractor):
                     if locale not in subtitles:
                         subtitles[locale] = []
                     subtitles[locale] = [{
-                        'url': '%s/%s%s_%s.xml' % (self._SUBTITLE_SERVER, path, locale, v),
+                        'url': '%s/%s%s_%s.xml' % (config_doc.attrib['strSubtitleServer'], path, locale, v),
                         'ext': 'ttml',
                     }]
         self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))
+
+        media_details = self._download_json(
+            'https://web-api-us.crackle.com/Service.svc/details/media/%s/TW?format=json' % video_id,
+            video_id, fatal=False)
+        thumbnails = []
+        if media_details:
+            for key, value in media_details.items():
+                mobj = re.match('^Thumbnail_(\d+)x(\d+)$', key)
+                if mobj:
+                    width, height = list(map(int, mobj.groups()))
+                    thumbnails.append({
+                        'id': '%dp' % height,
+                        'url': value,
+                        'width': width,
+                        'height': height,
+                    })
 
         return {
             'id': video_id,
             'title': title,
             'description': item.attrib.get('d'),
-            'duration': int(item.attrib.get('r'), 16) if item.attrib.get('r') else None,
+            'duration': int(item.attrib.get('r'), 16) / 1000 if item.attrib.get('r') else None,
             'series': item.attrib.get('sn'),
             'season_number': int_or_none(item.attrib.get('se')),
             'episode_number': int_or_none(item.attrib.get('ep')),
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
             'subtitles': subtitles,
             'formats': formats,
         }
