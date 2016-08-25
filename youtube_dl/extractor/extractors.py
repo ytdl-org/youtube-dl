@@ -116,6 +116,7 @@ from .camdemy import (
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
+from .canalu import CanalUIE
 from .canvas import CanvasIE
 from .carambatv import (
     CarambaTVIE,

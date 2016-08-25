@@ -8,11 +8,12 @@ from ..utils import (
     xpath_element,
     xpath_attr,
     clean_html,
+    update_url_query,
 )
 
 
 class UniverscienceIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?universcience\.tv/video-(.*)-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?universcience\.tv/video-.*-(?P<id>[0-9]+)\.html'
     _TEST = {
         'url': 'http://www.universcience.tv/video-haro-sur-les-loups-o-5466.html',
         'info_dict': {
@@ -34,8 +35,10 @@ class UniverscienceIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        APIKey = self._html_search_regex(r'["\']APIKey["\'](.*)["\'](?P<APIKey>.*)["\']', webpage, 'APIKey', group='APIKey')
-        url_get_media = 'http://universcience-webtv2-services-pad.brainsonic.com/rest/getMedia?APIKey=' + APIKey + '&byMediaId=' + video_id
+        APIKey = self._html_search_regex(r'["\']APIKey["\'].*["\'](?P<APIKey>.*)["\']', webpage, 'APIKey', group='APIKey')
+        url_get_media = update_url_query(
+            'http://universcience-webtv2-services-pad.brainsonic.com/rest/getMedia',
+            {'APIKey': APIKey, 'byMediaId': video_id})
         xml = self._download_xml(url_get_media, video_id)
         path_media = xpath_element(xml, './medias/media', fatal=True)
 
@@ -58,20 +61,18 @@ class UniverscienceIE(InfoExtractor):
         for media_source in xml.findall(path_media_source):
             format_url = xpath_text(media_source, 'source', fatal=True)
             media_label = xpath_attr(media_source, './streaming_type', 'label')
-            media_width = self._search_regex(
-                r'.* (\d*) x \d*', media_label, 'width', default='None', fatal=False)
-            media_height = self._search_regex(
-                r'.* \d* x (\d*)', media_label, 'height', default='None', fatal=False)
+            media_width = int_or_none(self._search_regex(r'(\d*) x \d*', media_label, 'width', default=None))
+            media_height = int_or_none(self._search_regex(r'\d* x (\d*)', media_label, 'height', default=None))
             media_label = self._search_regex(
                 r'(.*) (\d* x \d*)', media_label, 'media_label', default=media_label, fatal=False)
 
-            if (media_label == 'HLS') or (media_label == 'm3u8'):
+            if media_label in ('HLS', 'm3u8'):
                 formats.extend(self._extract_m3u8_formats(
                     format_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hds', fatal=False))
             else:
                 format_info = {
-                    'width': int_or_none(media_width),
-                    'height': int_or_none(media_height),
+                    'width': media_width,
+                    'height': media_height,
                     'tbr': int_or_none(xpath_attr(media_source, './streaming_type', 'bitrate')),
                     # 'vcodec': xpath_attr -> bug sur regexp?
                     'vcodec': media_source.find('streaming_type').get('html5_codec'),
@@ -81,7 +82,8 @@ class UniverscienceIE(InfoExtractor):
                 formats.append(format_info)
 
         podcast_url = xpath_text(path_media, './podcast_url')
-        formats.append({'format_id': 'podcast', 'vcodec': 'none', 'url': podcast_url})
+        if podcast_url is not None:
+            formats.append({'format_id': 'podcast', 'vcodec': 'none', 'url': podcast_url})
 
         self._sort_formats(formats)
 
