@@ -947,6 +947,7 @@ from .uplynk import (
 )
 from .urort import UrortIE
 from .urplay import URPlayIE
+from .usanetwork import USANetworkIE
 from .usatoday import USATodayIE
 from .ustream import UstreamIE, UstreamChannelIE
 from .ustudio import (
