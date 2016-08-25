@@ -162,11 +162,12 @@ class AdultSwimIE(InfoExtractor):
             elif video_info.get('videoPlaybackID'):
                 segment_ids = [video_info['videoPlaybackID']]
             else:
-                raise ExtractorError(
-                    'This video is only available via cable service provider subscription that'
-                    ' is not currently supported. You may want to use --cookies.'
-                    if video_info.get('auth') is True else 'Unable to find stream or clips',
-                    expected=True)
+                if video_info.get('auth') is True:
+                    raise ExtractorError(
+                        'This video is only available via cable service provider subscription that'
+                        ' is not currently supported. You may want to use --cookies.', expected=True)
+                else:
+                    raise ExtractorError('Unable to find stream or clips')
 
         episode_id = video_info['id']
         episode_title = video_info['title']
