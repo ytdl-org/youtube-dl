@@ -834,15 +834,15 @@ You will first need to tell youtube-dl to stream media to stdout with `-o -`, an
 
     youtube-dl -o - "http://www.youtube.com/watch?v=BaW_jenozKcj" | vlc -
 
-### How do I download only new videos from playlist?
+### How do I download only new videos from a playlist?
 
-Use the download archive feature. With this feature you should initially download the complete playlist with `--download-archive /path/to/download/archive/file.txt` that will record identifiers of all the videos in a special *download archive file*. Each subsequent run with the same `--download-archive` will download only new videos that are not yet in download archive (if any) and also record them in download archive. Note that only successful downloads are recorded in download archive.
+Use download-archive feature. With this feature you should initially download the complete playlist with `--download-archive /path/to/download/archive/file.txt` that will record identifiers of all the videos in a special file. Each subsequent run with the same `--download-archive` will download only new videos that and skip all videos that have been downloaded before. Note that only successful downloads are recorded in the file.
 
-For example, first run will download complete `PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re` playlist and create download archive `archive.txt`:
+For example, at first,
 
     youtube-dl --download-archive archive.txt "https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re"
 
-Each subsequent run will only download new videos if any:
+will download the complete `PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re` playlist and create a file `archive.txt`. Each subsequent run will only download new videos if any:
 
     youtube-dl --download-archive archive.txt "https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re"
 
