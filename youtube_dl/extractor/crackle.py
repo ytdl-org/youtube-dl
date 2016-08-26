@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals, division
 
-import re
-
 from .common import InfoExtractor
 from ..utils import int_or_none
 
@@ -34,6 +32,7 @@ class CrackleIE(InfoExtractor):
     }
 
     # extracted from http://legacyweb-us.crackle.com/flash/ReferrerRedirect.ashx
+    _THUMBNAIL_TEMPLATE = 'http://images-us-am.crackle.com/%stnl_1920x1080.jpg?ts=20140107233116?c=635333335057637614'
     _MEDIA_FILE_SLOTS = {
         'c544.flv': {
             'width': 544,
@@ -69,8 +68,10 @@ class CrackleIE(InfoExtractor):
         formats = self._extract_m3u8_formats(
             'http://content.uplynk.com/ext/%s/%s.m3u8' % (config_doc.attrib['strUplynkOwnerId'], video_id),
             video_id, 'mp4', m3u8_id='hls', fatal=None)
+        thumbnail = None
         path = item.attrib.get('p')
         if path:
+            thumbnail = self._THUMBNAIL_TEMPLATE % path
             http_base_url = 'http://ahttp.crackle.com/' + path
             for mfs_path, mfs_info in self._MEDIA_FILE_SLOTS.items():
                 formats.append({
@@ -91,22 +92,6 @@ class CrackleIE(InfoExtractor):
                     }]
         self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))
 
-        media_details = self._download_json(
-            'https://web-api-us.crackle.com/Service.svc/details/media/%s/TW?format=json' % video_id,
-            video_id, fatal=False)
-        thumbnails = []
-        if media_details:
-            for key, value in media_details.items():
-                mobj = re.match('^Thumbnail_(\d+)x(\d+)$', key)
-                if mobj:
-                    width, height = list(map(int, mobj.groups()))
-                    thumbnails.append({
-                        'id': '%dp' % height,
-                        'url': value,
-                        'width': width,
-                        'height': height,
-                    })
-
         return {
             'id': video_id,
             'title': title,
@@ -115,7 +100,7 @@ class CrackleIE(InfoExtractor):
             'series': item.attrib.get('sn'),
             'season_number': int_or_none(item.attrib.get('se')),
             'episode_number': int_or_none(item.attrib.get('ep')),
-            'thumbnails': thumbnails,
+            'thumbnail': thumbnail,
             'subtitles': subtitles,
             'formats': formats,
         }
