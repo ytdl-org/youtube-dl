@@ -118,14 +118,14 @@ class HlsFD(FragmentFD):
                             frag_content = down.read()
                             down.close()
                             break
-                        except compat_urllib_error.HTTPError:
+                        except compat_urllib_error.HTTPError as err:
                             # Unavailable (possibly temporary) fragments may be served.
                             # First we try to retry then either skip or abort.
                             # See https://github.com/rg3/youtube-dl/issues/10165,
                             # https://github.com/rg3/youtube-dl/issues/10448).
                             count += 1
                             if count <= fragment_retries:
-                                self.report_retry_fragment(frag_name, count, fragment_retries)
+                                self.report_retry_fragment(err, frag_name, count, fragment_retries)
                     if count > fragment_retries:
                         if skip_unavailable_fragments:
                             i += 1
