@@ -13,6 +13,7 @@ from .fragment import FragmentFD
 from .external import FFmpegFD
 
 from ..compat import (
+    compat_urllib_error,
     compat_urlparse,
     compat_struct_pack,
 )
@@ -83,6 +84,10 @@ class HlsFD(FragmentFD):
 
         self._prepare_and_start_frag_download(ctx)
 
+        fragment_retries = self.params.get('fragment_retries', 0)
+        skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
+        test = self.params.get('test', False)
+
         extra_query = None
         extra_param_to_segment_url = info_dict.get('extra_param_to_segment_url')
         if extra_param_to_segment_url:
@@ -99,15 +104,37 @@ class HlsFD(FragmentFD):
                         line
                         if re.match(r'^https?://', line)
                         else compat_urlparse.urljoin(man_url, line))
-                    frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], i)
+                    frag_name = 'Frag%d' % i
+                    frag_filename = '%s-%s' % (ctx['tmpfilename'], frag_name)
                     if extra_query:
                         frag_url = update_url_query(frag_url, extra_query)
-                    success = ctx['dl'].download(frag_filename, {'url': frag_url})
-                    if not success:
+                    count = 0
+                    while count <= fragment_retries:
+                        try:
+                            success = ctx['dl'].download(frag_filename, {'url': frag_url})
+                            if not success:
+                                return False
+                            down, frag_sanitized = sanitize_open(frag_filename, 'rb')
+                            frag_content = down.read()
+                            down.close()
+                            break
+                        except compat_urllib_error.HTTPError:
+                            # Unavailable (possibly temporary) fragments may be served.
+                            # First we try to retry then either skip or abort.
+                            # See https://github.com/rg3/youtube-dl/issues/10165,
+                            # https://github.com/rg3/youtube-dl/issues/10448).
+                            count += 1
+                            if count <= fragment_retries:
+                                self.report_retry_fragment(frag_name, count, fragment_retries)
+                    if count > fragment_retries:
+                        if skip_unavailable_fragments:
+                            i += 1
+                            media_sequence += 1
+                            self.report_skip_fragment(frag_name)
+                            continue
+                        self.report_error(
+                            'giving up after %s fragment retries' % fragment_retries)
                         return False
-                    down, frag_sanitized = sanitize_open(frag_filename, 'rb')
-                    frag_content = down.read()
-                    down.close()
                     if decrypt_info['METHOD'] == 'AES-128':
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
                         frag_content = AES.new(
@@ -115,7 +142,7 @@ class HlsFD(FragmentFD):
                     ctx['dest_stream'].write(frag_content)
                     frags_filenames.append(frag_sanitized)
                     # We only download the first fragment during the test
-                    if self.params.get('test', False):
+                    if test:
                         break
                     i += 1
                     media_sequence += 1
