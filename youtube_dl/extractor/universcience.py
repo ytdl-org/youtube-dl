@@ -11,8 +11,6 @@ from ..utils import (
     update_url_query,
 )
 
-import re
-
 
 class UniverscienceIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?universcience\.tv/video-.*-(?P<id>[0-9]+)\.html'
