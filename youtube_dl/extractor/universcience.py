@@ -11,6 +11,8 @@ from ..utils import (
     update_url_query,
 )
 
+import re
+
 
 class UniverscienceIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?universcience\.tv/video-.*-(?P<id>[0-9]+)\.html'
@@ -64,7 +66,7 @@ class UniverscienceIE(InfoExtractor):
             media_width = int_or_none(self._search_regex(r'(\d*) x \d*', media_label, 'width', default=None))
             media_height = int_or_none(self._search_regex(r'\d* x (\d*)', media_label, 'height', default=None))
             media_label = self._search_regex(
-                r'(.*) (\d* x \d*)', media_label, 'media_label', default=media_label, fatal=False)
+                r'(.*) \d* x \d*', media_label, 'media_label', default=media_label, fatal=False)
 
             if media_label in ('HLS', 'm3u8'):
                 formats.extend(self._extract_m3u8_formats(
