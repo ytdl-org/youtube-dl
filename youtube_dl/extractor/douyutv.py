@@ -4,9 +4,16 @@ from __future__ import unicode_literals
 import hashlib
 import time
 import uuid
+
 from .common import InfoExtractor
-from ..utils import (ExtractorError, unescapeHTML)
-from ..compat import (compat_str, compat_basestring, compat_urllib_parse_urlencode)
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_urlencode,
+)
+from ..utils import (
+    ExtractorError,
+    unescapeHTML,
+)
 
 
 class DouyuTVIE(InfoExtractor):
@@ -63,6 +70,10 @@ class DouyuTVIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    # Decompile core.swf in webpage by ffdec "Search SWFs in memory". core.swf
+    # is encrypted originally, but ffdec can dump memory to get the decrypted one.
+    _API_KEY = 'A12Svb&%1UUmf@hC'
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -73,60 +84,41 @@ class DouyuTVIE(InfoExtractor):
             room_id = self._html_search_regex(
                 r'"room_id"\s*:\s*(\d+),', page, 'room id')
 
-        room_url = 'http://m.douyu.com/html5/live?roomId=%s' % room_id
-        room_content = self._download_webpage(room_url, video_id)
-        room_json = self._parse_json(room_content, video_id, fatal=False)
+        room = self._download_json(
+            'http://m.douyu.com/html5/live?roomId=%s' % room_id, video_id,
+            note='Downloading room info')['data']
 
-        room = room_json['data']
-
-        show_status = room.get('show_status')
         # 1 = live, 2 = offline
-        if show_status == '2':
-            raise ExtractorError(
-                'Live stream is offline', expected=True)
+        if room.get('show_status') == '2':
+            raise ExtractorError('Live stream is offline', expected=True)
 
-        flv_json = None
-        # Douyu API sometimes returns error "Unable to load the requested class: eticket_redis_cache"
-        # Retry with different parameters - same parameters cause same errors
-        for i in range(5):
-            tt = int(time.time() / 60)
-            did = uuid.uuid4().hex.upper()
+        tt = compat_str(int(time.time() / 60))
+        did = uuid.uuid4().hex.upper()
 
-            # Decompile core.swf in webpage by ffdec "Search SWFs in memory"
-            # core.swf is encrypted originally, but ffdec can dump memory to get the decrypted one
-            # If API changes in the future, just use this way to update
-            sign_content = '{room_id}{did}A12Svb&%1UUmf@hC{tt}'.format(room_id = room_id, did = did, tt = tt)
-            sign = hashlib.md5((sign_content).encode('utf-8')).hexdigest()
+        sign_content = ''.join((room_id, did, self._API_KEY, tt))
+        sign = hashlib.md5((sign_content).encode('utf-8')).hexdigest()
 
-            payload = {'cdn': 'ws', 'rate': '0', 'tt': tt, 'did': did, 'sign': sign}
-            flv_data = compat_urllib_parse_urlencode(payload)
+        flv_data = compat_urllib_parse_urlencode({
+            'cdn': 'ws',
+            'rate': '0',
+            'tt': tt,
+            'did': did,
+            'sign': sign,
+        })
 
-            flv_request_url = 'http://www.douyu.com/lapi/live/getPlay/%s' % room_id
-            flv_content = self._download_webpage(flv_request_url, video_id, data=flv_data,
-                headers={'Content-Type': 'application/x-www-form-urlencoded'})
-            try:
-                flv_json = self._parse_json(flv_content, video_id, fatal=False)
-            except ExtractorError:
-                # Wait some time before retrying to get a different time() value
-                self._sleep(1, video_id, msg_template='%(video_id)s: Error occurs. '
-                                                      'Waiting for %(timeout)s seconds before retrying')
-                continue
-            else:
-                break
-        if flv_json is None:
-            raise ExtractorError('Unable to fetch API result')
+        video_info = self._download_json(
+            'http://www.douyu.com/lapi/live/getPlay/%s' % room_id, video_id,
+            data=flv_data, note='Downloading video info',
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-        flv = flv_json['data']
-
-        error_code = flv_json.get('error', 0)
+        error_code = video_info.get('error', 0)
         if error_code is not 0:
-            error_desc = 'Server reported error %i' % error_code
-            if isinstance(flv, (compat_str, compat_basestring)):
-                error_desc += ': ' + flv
-            raise ExtractorError(error_desc, expected=True)
+            raise ExtractorError(
+                '%s reported error %i' % (self.IE_NAME, error_code),
+                expected=True)
 
-        base_url = flv['rtmp_url']
-        live_path = flv['rtmp_live']
+        base_url = video_info['data']['rtmp_url']
+        live_path = video_info['data']['rtmp_live']
 
         video_url = '%s/%s' % (base_url, live_path)
 
