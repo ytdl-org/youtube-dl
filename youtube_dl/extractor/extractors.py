@@ -1053,6 +1053,7 @@ from .webofstories import (
 from .weiqitv import WeiqiTVIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
+from .wenoo import WenooIE
 from .worldstarhiphop import WorldStarHipHopIE
 from .wrzuta import (
     WrzutaIE,
