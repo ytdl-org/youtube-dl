@@ -1,8 +1,23 @@
 version <unreleased>
 
+Core
++ Add warning message that ffmpeg doesn't support SOCKS
+* Improve thumbnail sorting
++ Extract formats from #EXT-X-MEDIA tags in _extract_m3u8_formats
+* Fill IV with leading zeros for IVs shorter than 16 octets in hlsnative
++ Add ac-3 to the list of audio codecs in parse_codecs
+
 Extractors
+* [periscope:user] Fix extraction (#10453)
+* [douyutv] Fix extraction (#10153, #10318, #10444)
++ [nhk:vod] Add extractor for www3.nhk.or.jp on demand (#4437, #10424)
+- [trutube] Remove extractor (#10438)
++ [usanetwork] Add extractor for usanetwork.com
 * [crackle] Fix extraction (#10333)
-* [spankbang] Fix description and uploader (#10339)
+* [spankbang] Fix description and uploader extraction (#10339)
+* [discoverygo] Detect cable provider restricted videos (#10425)
++ [cbc] Add support for watch.cbc.ca
+* [kickstarter] Silent the warning for og:description (#10415)
 * [mtvservices:embedded] Fix extraction for the new 'edge' player (#10363)
 
 
