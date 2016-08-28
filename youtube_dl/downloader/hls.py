@@ -83,7 +83,10 @@ class HlsFD(FragmentFD):
 
         self._prepare_and_start_frag_download(ctx)
 
+        extra_query = None
         extra_param_to_segment_url = info_dict.get('extra_param_to_segment_url')
+        if extra_param_to_segment_url:
+            extra_query = compat_urlparse.parse_qs(extra_param_to_segment_url)
         i = 0
         media_sequence = 0
         decrypt_info = {'METHOD': 'NONE'}
@@ -97,8 +100,8 @@ class HlsFD(FragmentFD):
                         if re.match(r'^https?://', line)
                         else compat_urlparse.urljoin(man_url, line))
                     frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], i)
-                    if extra_param_to_segment_url:
-                        frag_url = update_url_query(frag_url, extra_param_to_segment_url)
+                    if extra_query:
+                        frag_url = update_url_query(frag_url, extra_query)
                     success = ctx['dl'].download(frag_filename, {'url': frag_url})
                     if not success:
                         return False
@@ -124,8 +127,8 @@ class HlsFD(FragmentFD):
                         if not re.match(r'^https?://', decrypt_info['URI']):
                             decrypt_info['URI'] = compat_urlparse.urljoin(
                                 man_url, decrypt_info['URI'])
-                        if extra_param_to_segment_url:
-                            decrypt_info['URI'] = update_url_query(decrypt_info['URI'], extra_param_to_segment_url)
+                        if extra_query:
+                            decrypt_info['URI'] = update_url_query(decrypt_info['URI'], extra_query)
                         decrypt_info['KEY'] = self.ydl.urlopen(decrypt_info['URI']).read()
                 elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
                     media_sequence = int(line[22:])

@@ -11,6 +11,7 @@ from ..utils import (
     parse_duration,
     xpath_attr,
     update_url_query,
+    compat_urlparse,
 )
 
 
@@ -87,8 +88,18 @@ class TurnerBaseIE(InfoExtractor):
             if ext == 'smil':
                 formats.extend(self._extract_smil_formats(video_url, video_id, fatal=False))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
+                m3u8_formats = self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False)
+                if m3u8_formats:
+                    # Sometimes final URLs inside m3u8 are unsigned, let's fix this
+                    # ourselves
+                    qs = compat_urlparse.urlparse(video_url).query
+                    if qs:
+                        query = compat_urlparse.parse_qs(qs)
+                        for m3u8_format in m3u8_formats:
+                            m3u8_format['url'] = update_url_query(m3u8_format['url'], query)
+                            m3u8_format['extra_param_to_segment_url'] = qs
+                    formats.extend(m3u8_formats)
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     update_url_query(video_url, {'hdcore': '3.7.0'}),
