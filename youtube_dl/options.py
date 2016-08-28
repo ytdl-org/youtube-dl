@@ -699,6 +699,10 @@ def parseOpts(overrideArguments=None):
         '--rm-cache-dir',
         action='store_true', dest='rm_cachedir',
         help='Delete all filesystem cache files')
+    filesystem.add_option(
+        '--playlist-index-offset',
+        dest="playlist_index_offset", metavar='NUMBER', type=int, default=0,
+        help='Offsets %(playlist_index)s by the specified value.')
 
     thumbnail = optparse.OptionGroup(parser, 'Thumbnail images')
     thumbnail.add_option(
