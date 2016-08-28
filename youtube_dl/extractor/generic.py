@@ -104,7 +104,8 @@ class GenericIE(InfoExtractor):
             },
             'expected_warnings': [
                 'URL could be a direct video link, returning it as such.'
-            ]
+            ],
+            'skip': 'URL invalid',
         },
         # Direct download with broken HEAD
         {
@@ -268,7 +269,8 @@ class GenericIE(InfoExtractor):
             'params': {
                 # m3u8 downloads
                 'skip_download': True,
-            }
+            },
+            'skip': 'video gone',
         },
         # m3u8 served with Content-Type: text/plain
         {
@@ -283,7 +285,8 @@ class GenericIE(InfoExtractor):
             'params': {
                 # m3u8 downloads
                 'skip_download': True,
-            }
+            },
+            'skip': 'video gone',
         },
         # google redirect
         {
@@ -368,6 +371,7 @@ class GenericIE(InfoExtractor):
                 'description': 'Mississauga resident David Farmer is still out of power as a result of the ice storm a month ago. To keep the house warm, Farmer cuts wood from his property for a wood burning stove downstairs.',
             },
             'add_ie': ['BrightcoveLegacy'],
+            'skip': 'video gone',
         },
         {
             'url': 'http://www.championat.com/video/football/v/87/87499.html',
@@ -421,6 +425,7 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'movie expired',
         },
         # embed.ly video
         {
@@ -448,6 +453,8 @@ class GenericIE(InfoExtractor):
                 'title': 'Between Two Ferns with Zach Galifianakis: President Barack Obama',
                 'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
             },
+            # HEAD requests lead to endless 301, while GET is OK
+            'expected_warnings': ['301'],
         },
         # RUTV embed
         {
@@ -522,6 +529,9 @@ class GenericIE(InfoExtractor):
                 'title': '[NSFL] [FM15] which pumiscer was this ( vid ) ( alfa as fuck srx )',
             },
             'playlist_mincount': 7,
+            # This forum does not allow <iframe> syntaxes anymore
+            # Now HTML tags are displayed as-is
+            'skip': 'No videos on this page',
         },
         # Embedded TED video
         {
@@ -570,7 +580,8 @@ class GenericIE(InfoExtractor):
             },
             'params': {
                 'skip_download': 'Requires rtmpdump'
-            }
+            },
+            'skip': 'video gone',
         },
         # francetv embed
         {
