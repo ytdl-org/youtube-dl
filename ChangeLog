@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [bilibili] Fix extraction (#10375)
 * [openload] Fix extraction (#10408)
 
 
