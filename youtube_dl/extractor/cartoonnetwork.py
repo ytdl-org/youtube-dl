@@ -28,7 +28,7 @@ class CartoonNetworkIE(TurnerBaseIE):
         id_type, video_id = re.search(r"_cnglobal\.cvp(Video|Title)Id\s*=\s*'([^']+)';", webpage).groups()
         query = ('id' if id_type == 'Video' else 'titleId') + '=' + video_id
         return self._extract_cvp_info(
-            'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?' + query, video_id, {
+            'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&' + query, video_id, {
                 'secure': {
                     'media_src': 'http://apple-secure.cdn.turner.com/toon/big',
                     'tokenizer_src': 'http://www.cartoonnetwork.com/cntv/mvpd/processors/services/token_ipadAdobe.do',
