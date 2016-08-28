@@ -55,10 +55,12 @@ class OpenloadIE(InfoExtractor):
 
         video_url_chars = []
 
-        for c in enc_data:
+        for idx, c in enumerate(enc_data):
             j = compat_ord(c)
             if j >= 33 and j <= 126:
                 j = ((j + 14) % 94) + 33
+            if idx == len(enc_data) - 1:
+                j += 2
             video_url_chars += compat_chr(j)
 
         video_url = 'https://openload.co/stream/%s?mime=true' % ''.join(video_url_chars)
