@@ -824,6 +824,7 @@ from .tagesschau import (
     TagesschauIE,
 )
 from .tass import TassIE
+from .tbs import TBSIE
 from .tdslifeway import TDSLifewayIE
 from .teachertube import (
     TeacherTubeIE,
