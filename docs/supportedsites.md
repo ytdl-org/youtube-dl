@@ -89,7 +89,7 @@
  - **Bet**
  - **Bigflix**
  - **Bild**: Bild.de
- - **BiliBili**
+ - **BiliBili** (Currently broken)
  - **BioBioChileTV**
  - **BIQLE**
  - **BleacherReport**
@@ -115,8 +115,10 @@
  - **Canvas**
  - **CarambaTV**
  - **CarambaTVPage**
- - **CBC**
- - **CBCPlayer**
+ - **cbc.ca**
+ - **cbc.ca:player**
+ - **cbc.ca:watch**
+ - **cbc.ca:watch:video**
  - **CBS**
  - **CBSInteractive**
  - **CBSLocal**
@@ -448,6 +450,7 @@
  - **NextMediaActionNews**: 蘋果日報 - 動新聞
  - **nfb**: National Film Board of Canada
  - **nfl.com**
+ - **NhkVod**
  - **nhl.com**
  - **nhl.com:news**: NHL news
  - **nhl.com:videocenter**
@@ -713,7 +716,6 @@
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
  - **trollvids**
- - **TruTube**
  - **Tube8**
  - **TubiTv**
  - **tudou**
@@ -758,6 +760,7 @@
  - **uplynk:preplay**
  - **Urort**: NRK P3 Urørt
  - **URPlay**
+ - **USANetwork**
  - **USAToday**
  - **ustream**
  - **ustream:channel**

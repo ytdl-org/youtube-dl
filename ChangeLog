@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.28
 
 Core
 + Add warning message that ffmpeg doesn't support SOCKS
