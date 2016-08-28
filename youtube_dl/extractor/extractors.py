@@ -127,6 +127,7 @@ from .carambatv import (
     CarambaTVIE,
     CarambaTVPageIE,
 )
+from .cartoonnetwork import CartoonNetworkIE
 from .cbc import (
     CBCIE,
     CBCPlayerIE,
