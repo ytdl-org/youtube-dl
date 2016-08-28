@@ -3,16 +3,11 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    float_or_none,
-    xpath_text,
-)
+from .turner import TurnerBaseIE
+from ..utils import ExtractorError
 
 
-class AdultSwimIE(InfoExtractor):
+class AdultSwimIE(TurnerBaseIE):
     _VALID_URL = r'https?://(?:www\.)?adultswim\.com/videos/(?P<is_playlist>playlists/)?(?P<show_path>[^/]+)/(?P<episode_path>[^/?#]+)/?'
 
     _TESTS = [{
@@ -96,7 +91,8 @@ class AdultSwimIE(InfoExtractor):
         'params': {
             # m3u8 download
             'skip_download': True,
-        }
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }]
 
     @staticmethod
@@ -176,57 +172,23 @@ class AdultSwimIE(InfoExtractor):
 
         entries = []
         for part_num, segment_id in enumerate(segment_ids):
-            segment_url = 'http://www.adultswim.com/videos/api/v0/assets?id=%s&platform=desktop' % segment_id
-
+            segement_info = self._extract_cvp_info(
+                'http://www.adultswim.com/videos/api/v0/assets?id=%s&platform=desktop' % segment_id,
+                segment_id, {
+                    'secure': {
+                        'media_src': 'http://androidhls-secure.cdn.turner.com/adultswim/big',
+                        'tokenizer_src': 'http://www.adultswim.com/astv/mvpd/processors/services/token_ipadAdobe.do',
+                    },
+                })
             segment_title = '%s - %s' % (show_title, episode_title)
             if len(segment_ids) > 1:
                 segment_title += ' Part %d' % (part_num + 1)
-
-            idoc = self._download_xml(
-                segment_url, segment_title,
-                'Downloading segment information', 'Unable to download segment information')
-
-            segment_duration = float_or_none(
-                xpath_text(idoc, './/trt', 'segment duration').strip())
-
-            formats = []
-            file_els = idoc.findall('.//files/file') or idoc.findall('./files/file')
-
-            unique_urls = []
-            unique_file_els = []
-            for file_el in file_els:
-                media_url = file_el.text
-                if not media_url or determine_ext(media_url) == 'f4m':
-                    continue
-                if file_el.text not in unique_urls:
-                    unique_urls.append(file_el.text)
-                    unique_file_els.append(file_el)
-
-            for file_el in unique_file_els:
-                bitrate = file_el.attrib.get('bitrate')
-                ftype = file_el.attrib.get('type')
-                media_url = file_el.text
-                if determine_ext(media_url) == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        media_url, segment_title, 'mp4', preference=0,
-                        m3u8_id='hls', fatal=False))
-                else:
-                    formats.append({
-                        'format_id': '%s_%s' % (bitrate, ftype),
-                        'url': file_el.text.strip(),
-                        # The bitrate may not be a number (for example: 'iphone')
-                        'tbr': int(bitrate) if bitrate.isdigit() else None,
-                    })
-
-            self._sort_formats(formats)
-
-            entries.append({
+            segement_info.update({
                 'id': segment_id,
                 'title': segment_title,
-                'formats': formats,
-                'duration': segment_duration,
-                'description': episode_description
+                'description': episode_description,
             })
+            entries.append(segement_info)
 
         return {
             '_type': 'playlist',

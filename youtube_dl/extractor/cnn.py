@@ -3,14 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_duration,
-    url_basename,
-)
+from .turner import TurnerBaseIE
+from ..utils import url_basename
 
 
-class CNNIE(InfoExtractor):
+class CNNIE(TurnerBaseIE):
     _VALID_URL = r'''(?x)https?://(?:(?P<sub_domain>edition|www|money)\.)?cnn\.com/(?:video/(?:data/.+?|\?)/)?videos?/
         (?P<path>.+?/(?P<title>[^/]+?)(?:\.(?:[a-z\-]+)|(?=&)))'''
 
@@ -18,43 +15,50 @@ class CNNIE(InfoExtractor):
         'url': 'http://edition.cnn.com/video/?/video/sports/2013/06/09/nadal-1-on-1.cnn',
         'md5': '3e6121ea48df7e2259fe73a0628605c4',
         'info_dict': {
-            'id': 'sports/2013/06/09/nadal-1-on-1.cnn',
+            'id': 'nadal-1-on-1',
             'ext': 'mp4',
             'title': 'Nadal wins 8th French Open title',
             'description': 'World Sport\'s Amanda Davies chats with 2013 French Open champion Rafael Nadal.',
             'duration': 135,
             'upload_date': '20130609',
         },
+        'expected_warnings': ['Failed to download m3u8 information'],
     }, {
         'url': 'http://edition.cnn.com/video/?/video/us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology&utm_source=feedburner&utm_medium=feed&utm_campaign=Feed%3A+rss%2Fcnn_topstories+%28RSS%3A+Top+Stories%29',
         'md5': 'b5cc60c60a3477d185af8f19a2a26f4e',
         'info_dict': {
-            'id': 'us/2013/08/21/sot-student-gives-epic-speech.georgia-institute-of-technology',
+            'id': 'sot-student-gives-epic-speech',
             'ext': 'mp4',
             'title': "Student's epic speech stuns new freshmen",
             'description': "A Georgia Tech student welcomes the incoming freshmen with an epic speech backed by music from \"2001: A Space Odyssey.\"",
             'upload_date': '20130821',
-        }
+        },
+        'expected_warnings': ['Failed to download m3u8 information'],
     }, {
         'url': 'http://www.cnn.com/video/data/2.0/video/living/2014/12/22/growing-america-nashville-salemtown-board-episode-1.hln.html',
         'md5': 'f14d02ebd264df951feb2400e2c25a1b',
         'info_dict': {
-            'id': 'living/2014/12/22/growing-america-nashville-salemtown-board-episode-1.hln',
+            'id': 'growing-america-nashville-salemtown-board-episode-1',
             'ext': 'mp4',
             'title': 'Nashville Ep. 1: Hand crafted skateboards',
             'description': 'md5:e7223a503315c9f150acac52e76de086',
             'upload_date': '20141222',
-        }
+        },
+        'expected_warnings': ['Failed to download m3u8 information'],
     }, {
         'url': 'http://money.cnn.com/video/news/2016/08/19/netflix-stunning-stats.cnnmoney/index.html',
         'md5': '52a515dc1b0f001cd82e4ceda32be9d1',
         'info_dict': {
-            'id': '/video/news/2016/08/19/netflix-stunning-stats.cnnmoney',
+            'id': 'netflix-stunning-stats',
             'ext': 'mp4',
             'title': '5 stunning stats about Netflix',
             'description': 'Did you know that Netflix has more than 80 million members? Here are five facts about the online video distributor that you probably didn\'t know.',
             'upload_date': '20160819',
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://cnn.com/video/?/video/politics/2015/03/27/pkg-arizona-senator-church-attendance-mandatory.ktvk',
         'only_matching': True,
@@ -84,67 +88,12 @@ class CNNIE(InfoExtractor):
         if sub_domain not in ('money', 'edition'):
             sub_domain = 'edition'
         config = self._CONFIG[sub_domain]
-        info_url = config['data_src'] % path
-        info = self._download_xml(info_url, page_title)
-
-        formats = []
-        rex = re.compile(r'''(?x)
-            (?P<width>[0-9]+)x(?P<height>[0-9]+)
-            (?:_(?P<bitrate>[0-9]+)k)?
-        ''')
-        for f in info.findall('files/file'):
-            video_url = config['media_src'] + f.text.strip()
-            fdct = {
-                'format_id': f.attrib['bitrate'],
-                'url': video_url,
-            }
-
-            mf = rex.match(f.attrib['bitrate'])
-            if mf:
-                fdct['width'] = int(mf.group('width'))
-                fdct['height'] = int(mf.group('height'))
-                fdct['tbr'] = int_or_none(mf.group('bitrate'))
-            else:
-                mf = rex.search(f.text)
-                if mf:
-                    fdct['width'] = int(mf.group('width'))
-                    fdct['height'] = int(mf.group('height'))
-                    fdct['tbr'] = int_or_none(mf.group('bitrate'))
-                else:
-                    mi = re.match(r'ios_(audio|[0-9]+)$', f.attrib['bitrate'])
-                    if mi:
-                        if mi.group(1) == 'audio':
-                            fdct['vcodec'] = 'none'
-                            fdct['ext'] = 'm4a'
-                        else:
-                            fdct['tbr'] = int(mi.group(1))
-
-            formats.append(fdct)
-
-        self._sort_formats(formats)
-
-        thumbnails = [{
-            'height': int(t.attrib['height']),
-            'width': int(t.attrib['width']),
-            'url': t.text,
-        } for t in info.findall('images/image')]
-
-        metas_el = info.find('metas')
-        upload_date = (
-            metas_el.attrib.get('version') if metas_el is not None else None)
-
-        duration_el = info.find('length')
-        duration = parse_duration(duration_el.text)
-
-        return {
-            'id': info.attrib['id'],
-            'title': info.find('headline').text,
-            'formats': formats,
-            'thumbnails': thumbnails,
-            'description': info.find('description').text,
-            'duration': duration,
-            'upload_date': upload_date,
-        }
+        return self._extract_cvp_info(
+            config['data_src'] % path, page_title, {
+                'default': {
+                    'media_src': config['media_src'],
+                }
+            })
 
 
 class CNNBlogsIE(InfoExtractor):

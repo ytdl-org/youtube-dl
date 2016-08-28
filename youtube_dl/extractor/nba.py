@@ -1,25 +1,20 @@
 from __future__ import unicode_literals
 
 import functools
-import os.path
 import re
 
-from .common import InfoExtractor
+from .turner import TurnerBaseIE
 from ..compat import (
     compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
-    int_or_none,
     OnDemandPagedList,
-    parse_duration,
     remove_start,
-    xpath_text,
-    xpath_attr,
 )
 
 
-class NBAIE(InfoExtractor):
+class NBAIE(TurnerBaseIE):
     _VALID_URL = r'https?://(?:watch\.|www\.)?nba\.com/(?P<path>(?:[^/]+/)+(?P<id>[^?]*?))/?(?:/index\.html)?(?:\?.*)?$'
     _TESTS = [{
         'url': 'http://www.nba.com/video/games/nets/2012/12/04/0021200253-okc-bkn-recap.nba/index.html',
@@ -59,7 +54,7 @@ class NBAIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Practice: Doc Rivers - 2/16/16',
             'description': 'Head Coach Doc Rivers addresses the media following practice.',
-            'upload_date': '20160217',
+            'upload_date': '20160216',
             'timestamp': 1455672000,
         },
         'params': {
@@ -80,7 +75,7 @@ class NBAIE(InfoExtractor):
     }, {
         'url': 'http://www.nba.com/timberwolves/wiggins-shootaround#',
         'info_dict': {
-            'id': 'Wigginsmp4',
+            'id': 'Wigginsmp4-3462601',
             'ext': 'mp4',
             'title': 'Shootaround Access - Dec. 12 | Andrew Wiggins',
             'description': 'Wolves rookie Andrew Wiggins addresses the media after Friday\'s shootaround.',
@@ -145,53 +140,12 @@ class NBAIE(InfoExtractor):
             if path.startswith('video/teams'):
                 path = 'video/channels/proxy/' + path[6:]
 
-        video_info = self._download_xml('http://www.nba.com/%s.xml' % path, video_id)
-        video_id = os.path.splitext(xpath_text(video_info, 'slug'))[0]
-        title = xpath_text(video_info, 'headline')
-        description = xpath_text(video_info, 'description')
-        duration = parse_duration(xpath_text(video_info, 'length'))
-        timestamp = int_or_none(xpath_attr(video_info, 'dateCreated', 'uts'))
-
-        thumbnails = []
-        for image in video_info.find('images'):
-            thumbnails.append({
-                'id': image.attrib.get('cut'),
-                'url': image.text,
-                'width': int_or_none(image.attrib.get('width')),
-                'height': int_or_none(image.attrib.get('height')),
+        return self._extract_cvp_info(
+            'http://www.nba.com/%s.xml' % path, video_id, {
+                'default': {
+                    'media_src': 'http://nba.cdn.turner.com/nba/big',
+                },
+                'm3u8': {
+                    'media_src': 'http://nbavod-f.akamaihd.net',
+                },
             })
-
-        formats = []
-        for video_file in video_info.findall('.//file'):
-            video_url = video_file.text
-            if video_url.startswith('/'):
-                continue
-            if video_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(video_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
-            elif video_url.endswith('.f4m'):
-                formats.extend(self._extract_f4m_formats(video_url + '?hdcore=3.4.1.1', video_id, f4m_id='hds', fatal=False))
-            else:
-                key = video_file.attrib.get('bitrate')
-                format_info = {
-                    'format_id': key,
-                    'url': video_url,
-                }
-                mobj = re.search(r'(\d+)x(\d+)(?:_(\d+))?', key)
-                if mobj:
-                    format_info.update({
-                        'width': int(mobj.group(1)),
-                        'height': int(mobj.group(2)),
-                        'tbr': int_or_none(mobj.group(3)),
-                    })
-                formats.append(format_info)
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'duration': duration,
-            'timestamp': timestamp,
-            'thumbnails': thumbnails,
-            'formats': formats,
-        }
