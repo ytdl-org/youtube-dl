@@ -836,7 +836,7 @@ You will first need to tell youtube-dl to stream media to stdout with `-o -`, an
 
 ### How do I download only new videos from a playlist?
 
-Use download-archive feature. With this feature you should initially download the complete playlist with `--download-archive /path/to/download/archive/file.txt` that will record identifiers of all the videos in a special file. Each subsequent run with the same `--download-archive` will download only new videos that and skip all videos that have been downloaded before. Note that only successful downloads are recorded in the file.
+Use download-archive feature. With this feature you should initially download the complete playlist with `--download-archive /path/to/download/archive/file.txt` that will record identifiers of all the videos in a special file. Each subsequent run with the same `--download-archive` will download only new videos and skip all videos that have been downloaded before. Note that only successful downloads are recorded in the file.
 
 For example, at first,
 
