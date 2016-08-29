@@ -83,6 +83,10 @@ class CNNIE(TurnerBaseIE):
         },
     }
 
+    def _extract_timestamp(self, video_data):
+        # TODO: fix timestamp extraction
+        return None
+
     def _real_extract(self, url):
         sub_domain, path, page_title = re.match(self._VALID_URL, url).groups()
         if sub_domain not in ('money', 'edition'):

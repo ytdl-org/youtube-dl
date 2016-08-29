@@ -17,6 +17,9 @@ from ..utils import (
 
 
 class TurnerBaseIE(InfoExtractor):
+    def _extract_timestamp(self, video_data):
+        return int_or_none(xpath_attr(video_data, 'dateCreated', 'uts'))
+
     def _extract_cvp_info(self, data_src, video_id, path_data={}):
         video_data = self._download_xml(data_src, video_id)
         video_id = video_data.attrib['id'].split('/')[-1].split('.')[0]
@@ -159,10 +162,6 @@ class TurnerBaseIE(InfoExtractor):
             'height': int_or_none(image.get('height')),
         } for image in video_data.findall('images/image')]
 
-        timestamp = None
-        if 'cnn.com' not in data_src:
-            timestamp = int_or_none(xpath_attr(video_data, 'dateCreated', 'uts'))
-
         return {
             'id': video_id,
             'title': title,
@@ -171,7 +170,7 @@ class TurnerBaseIE(InfoExtractor):
             'thumbnails': thumbnails,
             'description': xpath_text(video_data, 'description'),
             'duration': parse_duration(xpath_text(video_data, 'length') or xpath_text(video_data, 'trt')),
-            'timestamp': timestamp,
+            'timestamp': self._extract_timestamp(video_data),
             'upload_date': xpath_attr(video_data, 'metas', 'version'),
             'series': xpath_text(video_data, 'showTitle'),
             'season_number': int_or_none(xpath_text(video_data, 'seasonNumber')),
