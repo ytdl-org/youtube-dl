@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     xpath_text,
     int_or_none,
@@ -30,11 +31,11 @@ class TurnerBaseIE(InfoExtractor):
         tokens = {}
         urls = []
         formats = []
-        rex = re.compile(r'''(?x)
-            (?P<width>[0-9]+)x(?P<height>[0-9]+)
-            (?:_(?P<bitrate>[0-9]+))?
-        ''')
-        for video_file in video_data.findall('files/file'):
+        rex = re.compile(
+            r'(?P<width>[0-9]+)x(?P<height>[0-9]+)(?:_(?P<bitrate>[0-9]+))?')
+        # Possible formats locations: files/file, files/groupFiles/files
+        # and maybe others
+        for video_file in video_data.findall('.//file'):
             video_url = video_file.text.strip()
             if not video_url:
                 continue
@@ -84,12 +85,14 @@ class TurnerBaseIE(InfoExtractor):
             if video_url in urls:
                 continue
             urls.append(video_url)
-            format_id = video_file.attrib['bitrate']
+            format_id = video_file.get('bitrate')
             if ext == 'smil':
-                formats.extend(self._extract_smil_formats(video_url, video_id, fatal=False))
+                formats.extend(self._extract_smil_formats(
+                    video_url, video_id, fatal=False))
             elif ext == 'm3u8':
                 m3u8_formats = self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False)
+                    video_url, video_id, 'mp4', m3u8_id=format_id or 'hls',
+                    fatal=False)
                 if m3u8_formats:
                     # Sometimes final URLs inside m3u8 are unsigned, let's fix this
                     # ourselves
@@ -103,7 +106,7 @@ class TurnerBaseIE(InfoExtractor):
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     update_url_query(video_url, {'hdcore': '3.7.0'}),
-                    video_id, f4m_id=format_id, fatal=False))
+                    video_id, f4m_id=format_id or 'hds', fatal=False))
             else:
                 f = {
                     'format_id': format_id,
@@ -117,18 +120,19 @@ class TurnerBaseIE(InfoExtractor):
                         'height': int(mobj.group('height')),
                         'tbr': int_or_none(mobj.group('bitrate')),
                     })
-                elif format_id.isdigit():
-                    f['tbr'] = int(format_id)
-                else:
-                    mobj = re.match(r'ios_(audio|[0-9]+)$', format_id)
-                    if mobj:
-                        if mobj.group(1) == 'audio':
-                            f.update({
-                                'vcodec': 'none',
-                                'ext': 'm4a',
-                            })
-                        else:
-                            f['tbr'] = int(mobj.group(1))
+                elif isinstance(format_id, compat_str):
+                    if format_id.isdigit():
+                        f['tbr'] = int(format_id)
+                    else:
+                        mobj = re.match(r'ios_(audio|[0-9]+)$', format_id)
+                        if mobj:
+                            if mobj.group(1) == 'audio':
+                                f.update({
+                                    'vcodec': 'none',
+                                    'ext': 'm4a',
+                                })
+                            else:
+                                f['tbr'] = int(mobj.group(1))
                 formats.append(f)
         self._sort_formats(formats)
 
