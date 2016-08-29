@@ -636,7 +636,6 @@ from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .pinkbike import PinkbikeIE
 from .pladform import PladformIE
-from .played import PlayedIE
 from .playfm import PlayFMIE
 from .plays import PlaysTVIE
 from .playtvak import PlaytvakIE
