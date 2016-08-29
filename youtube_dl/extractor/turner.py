@@ -135,11 +135,12 @@ class TurnerBaseIE(InfoExtractor):
         subtitles = {}
         for source in video_data.findall('closedCaptions/source'):
             for track in source.findall('track'):
-                source_url = source.get('url')
-                if not source_url:
+                track_url = track.get('url')
+                if not track_url:
                     continue
-                subtitles.set_default(source.get('lang') or source.get('label') or 'en', []).append({
-                    'url': source_url,
+                lang = track.get('lang') or track.get('label') or 'en'
+                subtitles.setdefault(lang, []).append({
+                    'url': track_url,
                     'ext': {
                         'scc': 'scc',
                         'webvtt': 'vtt',
