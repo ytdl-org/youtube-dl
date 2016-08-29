@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .turner import TurnerBaseIE
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+)
 
 
 class AdultSwimIE(TurnerBaseIE):
@@ -144,7 +147,10 @@ class AdultSwimIE(TurnerBaseIE):
                 if bootstrapped_data.get('slugged_video', {}).get('slug') == episode_path:
                     video_info = bootstrapped_data['slugged_video']
             if not video_info:
-                video_info = bootstrapped_data.get('heroMetadata', {}).get('trailer').get('video')
+                video_info = bootstrapped_data.get(
+                    'heroMetadata', {}).get('trailer', {}).get('video')
+            if not video_info:
+                video_info = bootstrapped_data.get('onlineOriginals', [None])[0]
             if not video_info:
                 raise ExtractorError('Unable to find video info')
 
@@ -167,8 +173,9 @@ class AdultSwimIE(TurnerBaseIE):
 
         episode_id = video_info['id']
         episode_title = video_info['title']
-        episode_description = video_info['description']
-        episode_duration = video_info.get('duration')
+        episode_description = video_info.get('description')
+        episode_duration = int_or_none(video_info.get('duration'))
+        view_count = int_or_none(video_info.get('views'))
 
         entries = []
         for part_num, segment_id in enumerate(segment_ids):
@@ -197,5 +204,6 @@ class AdultSwimIE(TurnerBaseIE):
             'entries': entries,
             'title': '%s - %s' % (show_title, episode_title),
             'description': episode_description,
-            'duration': episode_duration
+            'duration': episode_duration,
+            'view_count': view_count,
         }
