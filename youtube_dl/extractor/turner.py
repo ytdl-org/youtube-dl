@@ -140,7 +140,7 @@ class TurnerBaseIE(InfoExtractor):
         for source in video_data.findall('closedCaptions/source'):
             for track in source.findall('track'):
                 track_url = track.get('url')
-                if not track_url:
+                if not isinstance(track_url, compat_str) or track_url.endswith('/big'):
                     continue
                 lang = track.get('lang') or track.get('label') or 'en'
                 subtitles.setdefault(lang, []).append({
