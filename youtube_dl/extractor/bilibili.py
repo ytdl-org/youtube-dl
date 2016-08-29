@@ -1,11 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import urllib2 
+ 
 import calendar
 import datetime
 import re
-import json
+
 
 from .common import InfoExtractor
 from ..compat import (
@@ -87,8 +87,8 @@ class BiliBiliIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 	api = 'http://www.bilibili.com/m/html5?aid=%s&page=1' % video_id
-	info = json.loads(self._download_webpage(api,video_id))
-        url = info['src']
+	info = self._download_json(api,video_id)
+        urlh = info['src']
 
         params = compat_parse_qs(self._search_regex(
             [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
@@ -96,13 +96,12 @@ class BiliBiliIE(InfoExtractor):
             webpage, 'player parameters'))
         cid = params['cid'][0]
    
-	response = urllib2.Request(url) 
-	html = urllib2.urlopen(response)
-	size = html.headers['Content-Length']
-
+	request_headers =self. _request_webpage(urlh,video_id).headers
+	size = request_headers['Content-Length']	
+	
         entries = []
         formats = [{
-            'url': url,
+            'url': urlh,
             'filesize': int_or_none(size),
         }]
 
