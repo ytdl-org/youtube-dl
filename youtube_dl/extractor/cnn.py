@@ -102,12 +102,13 @@ class CNNBlogsIE(InfoExtractor):
         'url': 'http://reliablesources.blogs.cnn.com/2014/02/09/criminalizing-journalism/',
         'md5': '3e56f97b0b6ffb4b79f4ea0749551084',
         'info_dict': {
-            'id': 'bestoftv/2014/02/09/criminalizing-journalism.cnn',
+            'id': 'criminalizing-journalism',
             'ext': 'mp4',
             'title': 'Criminalizing journalism?',
             'description': 'Glenn Greenwald responds to comments made this week on Capitol Hill that journalists could be criminal accessories.',
             'upload_date': '20140209',
         },
+        'expected_warnings': ['Failed to download m3u8 information'],
         'add_ie': ['CNN'],
     }
 
@@ -127,12 +128,13 @@ class CNNArticleIE(InfoExtractor):
         'url': 'http://www.cnn.com/2014/12/21/politics/obama-north-koreas-hack-not-war-but-cyber-vandalism/',
         'md5': '689034c2a3d9c6dc4aa72d65a81efd01',
         'info_dict': {
-            'id': 'bestoftv/2014/12/21/ip-north-korea-obama.cnn',
+            'id': 'ip-north-korea-obama',
             'ext': 'mp4',
             'title': 'Obama: Cyberattack not an act of war',
-            'description': 'md5:51ce6750450603795cad0cdfbd7d05c5',
+            'description': 'md5:0a802a40d2376f60e6b04c8d5bcebc4b',
             'upload_date': '20141221',
         },
+        'expected_warnings': ['Failed to download m3u8 information'],
         'add_ie': ['CNN'],
     }
 
