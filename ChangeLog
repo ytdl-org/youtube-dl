@@ -1,6 +1,21 @@
 version <unreleased>
 
 Extractors
+* [soundcloud] Fix URL regular expression to avoid clashes with sets (#10505)
+* [bandcamp:album] Fix title extraction (#10455)
+* [pyvideo] Fix extraction (#10468)
++ [ctv] Add support for tsn.ca, bnn.ca and thecomedynetwork.ca (#10016)
+* [9c9media] Extract more metadata
+* [9c9media] Fix multiple stacks extraction (#10016)
+* [adultswim] Improve video info extraction (#10492)
+* [vodplatform] Improve embed regular expression
+- [played] Remove extractor (#10470)
++ [tbs] Add extractor for tbs.com and tntdrama.com (#10222)
++ [cartoonnetwork] Add extractor for cartoonnetwork.com (#10110)
+* [adultswim] Rework in terms of turner extractor
+* [cnn] Rework in terms of turner extractor
+* [nba] Rework in terms of turner extractor
++ [turner] Add base extractor for Turner Broadcasting System based sites
 * [bilibili] Fix extraction (#10375)
 * [openload] Fix extraction (#10408)
 
