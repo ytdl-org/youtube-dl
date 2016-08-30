@@ -1,59 +1,73 @@
 from __future__ import unicode_literals
 
 import re
-import os
 
 from .common import InfoExtractor
+from ..compat import compat_str
+from ..utils import int_or_none
 
 
 class PyvideoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pyvideo\.org/video/(?P<id>\d+)/(.*)'
+    _VALID_URL = r'https?://(?:www\.)?pyvideo\.org/(?P<category>[^/]+)/(?P<id>[^/?#&.]+)'
 
-    _TESTS = [
-        {
-            'url': 'http://pyvideo.org/video/1737/become-a-logging-expert-in-30-minutes',
-            'md5': '520915673e53a5c5d487c36e0c4d85b5',
-            'info_dict': {
-                'id': '24_4WWkSmNo',
-                'ext': 'webm',
-                'title': 'Become a logging expert in 30 minutes',
-                'description': 'md5:9665350d466c67fb5b1598de379021f7',
-                'upload_date': '20130320',
-                'uploader': 'Next Day Video',
-                'uploader_id': 'NextDayVideo',
-            },
-            'add_ie': ['Youtube'],
+    _TESTS = [{
+        'url': 'http://pyvideo.org/pycon-us-2013/become-a-logging-expert-in-30-minutes.html',
+        'info_dict': {
+            'id': 'become-a-logging-expert-in-30-minutes',
         },
-        {
-            'url': 'http://pyvideo.org/video/2542/gloriajw-spotifywitherikbernhardsson182m4v',
-            'md5': '5fe1c7e0a8aa5570330784c847ff6d12',
-            'info_dict': {
-                'id': '2542',
-                'ext': 'm4v',
-                'title': 'Gloriajw-SpotifyWithErikBernhardsson182',
-            },
+        'playlist_count': 2,
+    }, {
+        'url': 'http://pyvideo.org/pygotham-2012/gloriajw-spotifywitherikbernhardsson182m4v.html',
+        'md5': '5fe1c7e0a8aa5570330784c847ff6d12',
+        'info_dict': {
+            'id': '2542',
+            'ext': 'm4v',
+            'title': 'Gloriajw-SpotifyWithErikBernhardsson182.m4v',
         },
-    ]
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        category = mobj.group('category')
         video_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, video_id)
+        entries = []
 
-        m_youtube = re.search(r'(https?://www\.youtube\.com/watch\?v=.*)', webpage)
-        if m_youtube is not None:
-            return self.url_result(m_youtube.group(1), 'Youtube')
+        data = self._download_json(
+            'https://raw.githubusercontent.com/pyvideo/data/master/%s/videos/%s.json'
+            % (category, video_id), video_id, fatal=False)
 
-        title = self._html_search_regex(
-            r'<div class="section">\s*<h3(?:\s+class="[^"]*"[^>]*)?>([^>]+?)</h3>',
-            webpage, 'title', flags=re.DOTALL)
-        video_url = self._search_regex(
-            [r'<source src="(.*?)"', r'<dt>Download</dt>.*?<a href="(.+?)"'],
-            webpage, 'video url', flags=re.DOTALL)
+        if data:
+            print(data)
+            for video in data['videos']:
+                video_url = video.get('url')
+                if video_url:
+                    if video.get('type') == 'youtube':
+                        entries.append(self.url_result(video_url, 'Youtube'))
+                    else:
+                        entries.append({
+                            'id': compat_str(data.get('id') or video_id),
+                            'url': video_url,
+                            'title': data['title'],
+                            'description': data.get('description') or data.get('summary'),
+                            'thumbnail': data.get('thumbnail_url'),
+                            'duration': int_or_none(data.get('duration')),
+                        })
+        else:
+            webpage = self._download_webpage(url, video_id)
+            title = self._og_search_title(webpage)
+            media_urls = self._search_regex(
+                r'(?s)Media URL:(.+?)</li>', webpage, 'media urls')
+            for m in re.finditer(
+                    r'<a[^>]+href=(["\'])(?P<url>http.+?)\1', media_urls):
+                media_url = m.group('url')
+                if re.match(r'https?://www\.youtube\.com/watch\?v=.*', media_url):
+                    entries.append(self.url_result(media_url, 'Youtube'))
+                else:
+                    entries.append({
+                        'id': video_id,
+                        'url': media_url,
+                        'title': title,
+                    })
 
-        return {
-            'id': video_id,
-            'title': os.path.splitext(title)[0],
-            'url': video_url,
-        }
+        return self.playlist_result(entries, video_id)
