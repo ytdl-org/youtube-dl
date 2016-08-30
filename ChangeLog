@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.08.31
 
 Extractors
 * [soundcloud] Fix URL regular expression to avoid clashes with sets (#10505)

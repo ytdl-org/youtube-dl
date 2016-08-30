@@ -13,6 +13,8 @@
  - **5min**
  - **8tracks**
  - **91porn**
+ - **9c9media**
+ - **9c9media:stack**
  - **9gag**
  - **9now.com.au**
  - **abc.net.au**
@@ -89,7 +91,7 @@
  - **Bet**
  - **Bigflix**
  - **Bild**: Bild.de
- - **BiliBili** (Currently broken)
+ - **BiliBili**
  - **BioBioChileTV**
  - **BIQLE**
  - **BleacherReport**
@@ -115,6 +117,7 @@
  - **Canvas**
  - **CarambaTV**
  - **CarambaTVPage**
+ - **CartoonNetwork**
  - **cbc.ca**
  - **cbc.ca:player**
  - **cbc.ca:watch**
@@ -459,7 +462,6 @@
  - **nick.de**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
- - **NineCNineMedia**
  - **Nintendo**
  - **njoy**: N-JOY
  - **njoy:embed**
@@ -517,7 +519,6 @@
  - **Pinkbike**
  - **Pladform**
  - **play.fm**
- - **played.to**
  - **PlaysTV**
  - **Playtvak**: Playtvak.cz, iDNES.cz and Lidovky.cz
  - **Playvid**
@@ -675,6 +676,7 @@
  - **Tagesschau**
  - **tagesschau:player**
  - **Tass**
+ - **TBS**
  - **TDSLifeway**
  - **teachertube**: teachertube.com videos
  - **teachertube:user:collection**: teachertube.com user and collection videos
