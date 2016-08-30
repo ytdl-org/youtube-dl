@@ -39,18 +39,19 @@ class NBAIE(TurnerBaseIE):
         'url': 'http://watch.nba.com/video/channels/playoffs/2015/05/20/0041400301-cle-atl-recap.nba',
         'md5': 'b2b39b81cf28615ae0c3360a3f9668c4',
         'info_dict': {
-            'id': '0041400301-cle-atl-recap',
+            'id': 'channels/playoffs/2015/05/20/0041400301-cle-atl-recap.nba',
             'ext': 'mp4',
             'title': 'Hawks vs. Cavaliers Game 1',
             'description': 'md5:8094c3498d35a9bd6b1a8c396a071b4d',
             'duration': 228,
             'timestamp': 1432134543,
             'upload_date': '20150520',
-        }
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }, {
         'url': 'http://www.nba.com/clippers/news/doc-rivers-were-not-trading-blake',
         'info_dict': {
-            'id': '1455672027478-Doc_Feb16_720',
+            'id': 'teams/clippers/2016/02/17/1455672027478-Doc_Feb16_720.mov-297324',
             'ext': 'mp4',
             'title': 'Practice: Doc Rivers - 2/16/16',
             'description': 'Head Coach Doc Rivers addresses the media following practice.',
@@ -61,6 +62,7 @@ class NBAIE(TurnerBaseIE):
             # m3u8 download
             'skip_download': True,
         },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }, {
         'url': 'http://www.nba.com/timberwolves/wiggins-shootaround#',
         'info_dict': {
@@ -75,7 +77,7 @@ class NBAIE(TurnerBaseIE):
     }, {
         'url': 'http://www.nba.com/timberwolves/wiggins-shootaround#',
         'info_dict': {
-            'id': 'Wigginsmp4-3462601',
+            'id': 'teams/timberwolves/2014/12/12/Wigginsmp4-3462601',
             'ext': 'mp4',
             'title': 'Shootaround Access - Dec. 12 | Andrew Wiggins',
             'description': 'Wolves rookie Andrew Wiggins addresses the media after Friday\'s shootaround.',
@@ -87,6 +89,7 @@ class NBAIE(TurnerBaseIE):
             # m3u8 download
             'skip_download': True,
         },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }]
 
     _PAGE_SIZE = 30

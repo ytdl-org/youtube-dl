@@ -22,7 +22,7 @@ class TurnerBaseIE(InfoExtractor):
 
     def _extract_cvp_info(self, data_src, video_id, path_data={}):
         video_data = self._download_xml(data_src, video_id)
-        video_id = video_data.attrib['id'].split('/')[-1].split('.')[0]
+        video_id = video_data.attrib['id']
         title = xpath_text(video_data, 'headline', fatal=True)
         # rtmp_src = xpath_text(video_data, 'akamai/src')
         # if rtmp_src:
