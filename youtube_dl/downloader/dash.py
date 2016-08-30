@@ -66,14 +66,17 @@ class DashSegmentsFD(FragmentFD):
             if count > fragment_retries:
                 if skip_unavailable_fragments:
                     self.report_skip_fragment(segment_name)
-                    return
+                    return True
                 self.report_error('giving up after %s fragment retries' % fragment_retries)
                 return False
+            return True
 
         if initialization_url:
-            append_url_to_file(initialization_url, ctx['tmpfilename'], 'Init')
+            if not append_url_to_file(initialization_url, ctx['tmpfilename'], 'Init'):
+                return False
         for i, segment_url in enumerate(segment_urls):
-            append_url_to_file(segment_url, ctx['tmpfilename'], 'Seg%d' % i)
+            if not append_url_to_file(segment_url, ctx['tmpfilename'], 'Seg%d' % i):
+                return False
 
         self._finish_frag_download(ctx)
 
