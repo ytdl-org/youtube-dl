@@ -38,7 +38,6 @@ class PyvideoIE(InfoExtractor):
             % (category, video_id), video_id, fatal=False)
 
         if data:
-            print(data)
             for video in data['videos']:
                 video_url = video.get('url')
                 if video_url:
