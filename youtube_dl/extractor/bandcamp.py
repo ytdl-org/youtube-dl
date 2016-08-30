@@ -176,6 +176,7 @@ class BandcampAlbumIE(InfoExtractor):
         entries = [
             self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
             for t_path in tracks_paths]
+        webpage = webpage.replace('\\"', "")
         title = self._search_regex(
             r'album_title\s*:\s*"(.*?)"', webpage, 'title', fatal=False)
         return {
