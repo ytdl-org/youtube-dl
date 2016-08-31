@@ -15,6 +15,7 @@ from ..compat import (
 from ..utils import (
     error_to_compat_str,
     ExtractorError,
+    int_or_none,
     limit_length,
     sanitized_Request,
     urlencode_postdata,
@@ -62,6 +63,8 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
             'uploader': 'Tennis on Facebook',
+            'upload_date': '20140908',
+            'timestamp': 1410199200,
         }
     }, {
         'note': 'Video without discernible title',
@@ -71,6 +74,8 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Facebook video #274175099429670',
             'uploader': 'Asif Nawab Butt',
+            'upload_date': '20140506',
+            'timestamp': 1399398998,
         },
         'expected_warnings': [
             'title'
@@ -78,12 +83,14 @@ class FacebookIE(InfoExtractor):
     }, {
         'note': 'Video with DASH manifest',
         'url': 'https://www.facebook.com/video.php?v=957955867617029',
-        'md5': '54706e4db4f5ad58fbad82dde1f1213f',
+        'md5': 'b2c28d528273b323abe5c6ab59f0f030',
         'info_dict': {
             'id': '957955867617029',
             'ext': 'mp4',
             'title': 'When you post epic content on instagram.com/433 8 million followers, this is ...',
             'uploader': 'Demy de Zeeuw',
+            'upload_date': '20160110',
+            'timestamp': 1452431627,
         },
     }, {
         'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
@@ -306,12 +313,16 @@ class FacebookIE(InfoExtractor):
         if not video_title:
             video_title = 'Facebook video #%s' % video_id
         uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
+        timestamp = int_or_none(self._search_regex(
+            r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
+            'timestamp', default=None))
 
         info_dict = {
             'id': video_id,
             'title': video_title,
             'formats': formats,
             'uploader': uploader,
+            'timestamp': timestamp,
         }
 
         return webpage, info_dict
