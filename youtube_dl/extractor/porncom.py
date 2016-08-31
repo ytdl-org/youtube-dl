@@ -26,6 +26,8 @@ class PornComIE(InfoExtractor):
             'duration': 551,
             'view_count': int,
             'age_limit': 18,
+            'categories': list,
+            'tags': list,
         },
     }, {
         'url': 'http://se.porn.com/videos/marsha-may-rides-seth-on-top-of-his-thick-cock-2658067',
@@ -75,7 +77,14 @@ class PornComIE(InfoExtractor):
         self._sort_formats(formats)
 
         view_count = str_to_int(self._search_regex(
-            r'class=["\']views["\'][^>]*><p>([\d,.]+)', webpage, 'view count'))
+            r'class=["\']views["\'][^>]*><p>([\d,.]+)', webpage,
+            'view count', fatal=False))
+
+        def extract_list(kind):
+            s = self._search_regex(
+                r'(?s)<p[^>]*>%s:(.+?)</p>' % kind.capitalize(),
+                webpage, kind, fatal=False)
+            return re.findall(r'<a[^>]+>([^<]+)</a>', s or '')
 
         return {
             'id': video_id,
@@ -86,4 +95,6 @@ class PornComIE(InfoExtractor):
             'view_count': view_count,
             'formats': formats,
             'age_limit': 18,
+            'categories': extract_list('categories'),
+            'tags': extract_list('tags'),
         }
