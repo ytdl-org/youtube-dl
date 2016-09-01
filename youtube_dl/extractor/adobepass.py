@@ -37,6 +37,10 @@ class AdobePassIE(InfoExtractor):
             return self._search_regex(
                 '<%s>(.+?)</%s>' % (tag, tag), xml_str, tag)
 
+        def is_expired(token, date_ele):
+            token_expires = unified_timestamp(re.sub(r'[_ ]GMT', '', xml_text(token, date_ele)))
+            return token_expires and token_expires <= int(time.time())
+
         mvpd_headers = {
             'ap_42': 'anonymous',
             'ap_11': 'Linux i686',
@@ -47,11 +51,8 @@ class AdobePassIE(InfoExtractor):
         guid = xml_text(resource, 'guid')
         requestor_info = self._downloader.cache.load('mvpd', requestor_id) or {}
         authn_token = requestor_info.get('authn_token')
-        if authn_token:
-            token_expires = unified_timestamp(re.sub(r'[_ ]GMT', '', xml_text(authn_token, 'simpleTokenExpires')))
-            if token_expires and token_expires <= int(time.time()):
-                authn_token = None
-                requestor_info = {}
+        if authn_token and is_expired(authn_token, 'simpleTokenExpires'):
+            authn_token = None
         if not authn_token:
             # TODO add support for other TV Providers
             mso_id = 'DTV'
@@ -98,6 +99,8 @@ class AdobePassIE(InfoExtractor):
             self._downloader.cache.store('mvpd', requestor_id, requestor_info)
 
         authz_token = requestor_info.get(guid)
+        if authz_token and is_expired(authz_token, 'simpleTokenTTL'):
+            authz_token = None
         if not authz_token:
             authorize = self._download_webpage(
                 self._SERVICE_PROVIDER_TEMPLATE % 'authorize', video_id,
