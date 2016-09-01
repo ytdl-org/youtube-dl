@@ -50,7 +50,8 @@ class CBAIE(InfoExtractor):
         description = ''
         formats = []
 
-        posts_result = self._download_json(api_posts_url, video_id, 'query posts api-endpoint', 'unable to query posts api-endpoint')
+        posts_result = self._download_json(api_posts_url, video_id, 'query posts api-endpoint',
+                                           'unable to query posts api-endpoint', encoding='utf-8-sig')
         try:
             title = posts_result['title']['raw']
         except KeyError:
@@ -71,7 +72,7 @@ class CBAIE(InfoExtractor):
             api_media_url = update_url_query(api_media_url, {'c': self._API_KEY})
 
         media_result = self._download_json(api_media_url, video_id, 'query media api-endpoint%s' % api_key_str,
-                                           'unable to qeury media api-endpoint%s' % api_key_str)
+                                           'unable to qeury media api-endpoint%s' % api_key_str, encoding='utf-8-sig')
         for media in media_result:
             try:
                 url = media['source_url']

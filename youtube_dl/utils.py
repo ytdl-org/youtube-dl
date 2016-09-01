@@ -2235,8 +2235,8 @@ def age_restricted(content_limit, age_limit):
     return age_limit < content_limit
 
 
-def parse_strip_bom(data):
-    """ try to find Unicode BOM and strip it. """
+def is_html(first_bytes):
+    """ Detect whether a file contains HTML by examining its first bytes. """
 
     BOMS = [
         (b'\xef\xbb\xbf', 'utf-8'),
@@ -2246,20 +2246,12 @@ def parse_strip_bom(data):
         (b'\xfe\xff', 'utf-16-be'),
     ]
     for bom, enc in BOMS:
-        if data.startswith(bom):
-            return data[len(bom):], enc
+        if first_bytes.startswith(bom):
+            s = first_bytes[len(bom):].decode(enc, 'replace')
+            break
     else:
-        return data, None
+        s = first_bytes.decode('utf-8', 'replace')
 
-
-def is_html(first_bytes):
-    """ Detect whether a file contains HTML by examining its first bytes. """
-
-    first_bytes, enc = parse_strip_bom(first_bytes)
-    if enc == None:
-        enc = 'utf-8'
-
-    s = first_bytes.decode(enc, 'replace')
     return re.match(r'^\s*<', s)
 
 
