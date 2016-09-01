@@ -5,8 +5,8 @@ from .common import InfoExtractor
 
 
 class Formula1IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?formula1\.com/content/fom-website/en/video/\d{4}/\d{1,2}/(?P<id>.+?)\.html'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?formula1\.com/(?:content/fom-website/)?en/video/\d{4}/\d{1,2}/(?P<id>.+?)\.html'
+    _TESTS = [{
         'url': 'http://www.formula1.com/content/fom-website/en/video/2016/5/Race_highlights_-_Spain_2016.html',
         'md5': '8c79e54be72078b26b89e0e111c0502b',
         'info_dict': {
@@ -15,7 +15,10 @@ class Formula1IE(InfoExtractor):
             'title': 'Race highlights - Spain 2016',
         },
         'add_ie': ['Ooyala'],
-    }
+    }, {
+        'url': 'http://www.formula1.com/en/video/2016/5/Race_highlights_-_Spain_2016.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)

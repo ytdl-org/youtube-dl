@@ -1256,8 +1256,10 @@ class YoutubeDL(object):
                 info_dict['thumbnails'] = thumbnails = [{'url': thumbnail}]
         if thumbnails:
             thumbnails.sort(key=lambda t: (
-                t.get('preference'), t.get('width'), t.get('height'),
-                t.get('id'), t.get('url')))
+                t.get('preference') if t.get('preference') is not None else -1,
+                t.get('width') if t.get('width') is not None else -1,
+                t.get('height') if t.get('height') is not None else -1,
+                t.get('id') if t.get('id') is not None else '', t.get('url')))
             for i, t in enumerate(thumbnails):
                 t['url'] = sanitize_url(t['url'])
                 if t.get('width') and t.get('height'):
@@ -1299,7 +1301,7 @@ class YoutubeDL(object):
                 for subtitle_format in subtitle:
                     if subtitle_format.get('url'):
                         subtitle_format['url'] = sanitize_url(subtitle_format['url'])
-                    if 'ext' not in subtitle_format:
+                    if subtitle_format.get('ext') is None:
                         subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
         if self.params.get('listsubtitles', False):
@@ -1354,7 +1356,7 @@ class YoutubeDL(object):
                     note=' ({0})'.format(format['format_note']) if format.get('format_note') is not None else '',
                 )
             # Automatically determine file extension if missing
-            if 'ext' not in format:
+            if format.get('ext') is None:
                 format['ext'] = determine_ext(format['url']).lower()
             # Automatically determine protocol if missing (useful for format
             # selection purposes)
@@ -1603,7 +1605,9 @@ class YoutubeDL(object):
                         self.to_screen('[info] Video subtitle %s.%s is already_present' % (sub_lang, sub_format))
                     else:
                         self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
-                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                        # Use newline='' to prevent conversion of newline characters
+                        # See https://github.com/rg3/youtube-dl/issues/10268
+                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
                             subfile.write(sub_data)
                 except (OSError, IOError):
                     self.report_error('Cannot write subtitles file ' + sub_filename)

@@ -12,46 +12,41 @@ from ..compat import (
 from ..utils import (
     int_or_none,
     parse_iso8601,
-    sanitized_Request,
     smuggle_url,
     unsmuggle_url,
     urlencode_postdata,
 )
 
 
-class DCNIE(InfoExtractor):
+class AWAANIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?show/(?P<show_id>\d+)/[^/]+(?:/(?P<video_id>\d+)/(?P<season_id>\d+))?'
 
     def _real_extract(self, url):
         show_id, video_id, season_id = re.match(self._VALID_URL, url).groups()
         if video_id and int(video_id) > 0:
             return self.url_result(
-                'http://www.dcndigital.ae/media/%s' % video_id, 'DCNVideo')
+                'http://awaan.ae/media/%s' % video_id, 'AWAANVideo')
         elif season_id and int(season_id) > 0:
             return self.url_result(smuggle_url(
-                'http://www.dcndigital.ae/program/season/%s' % season_id,
-                {'show_id': show_id}), 'DCNSeason')
+                'http://awaan.ae/program/season/%s' % season_id,
+                {'show_id': show_id}), 'AWAANSeason')
         else:
             return self.url_result(
-                'http://www.dcndigital.ae/program/%s' % show_id, 'DCNSeason')
+                'http://awaan.ae/program/%s' % show_id, 'AWAANSeason')
 
 
-class DCNBaseIE(InfoExtractor):
-    def _extract_video_info(self, video_data, video_id, is_live):
+class AWAANBaseIE(InfoExtractor):
+    def _parse_video_data(self, video_data, video_id, is_live):
         title = video_data.get('title_en') or video_data['title_ar']
         img = video_data.get('img')
-        thumbnail = 'http://admin.mangomolo.com/analytics/%s' % img if img else None
-        duration = int_or_none(video_data.get('duration'))
-        description = video_data.get('description_en') or video_data.get('description_ar')
-        timestamp = parse_iso8601(video_data.get('create_time'), ' ')
 
         return {
             'id': video_id,
             'title': self._live_title(title) if is_live else title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'timestamp': timestamp,
+            'description': video_data.get('description_en') or video_data.get('description_ar'),
+            'thumbnail': 'http://admin.mangomolo.com/analytics/%s' % img if img else None,
+            'duration': int_or_none(video_data.get('duration')),
+            'timestamp': parse_iso8601(video_data.get('create_time'), ' '),
             'is_live': is_live,
         }
 
@@ -75,11 +70,12 @@ class DCNBaseIE(InfoExtractor):
         return formats
 
 
-class DCNVideoIE(DCNBaseIE):
-    IE_NAME = 'dcn:video'
+class AWAANVideoIE(AWAANBaseIE):
+    IE_NAME = 'awaan:video'
     _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?(?:video(?:/[^/]+)?|media|catchup/[^/]+/[^/]+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.dcndigital.ae/#/video/%D8%B1%D8%AD%D9%84%D8%A9-%D8%A7%D9%84%D8%B9%D9%85%D8%B1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1/17375',
+        'md5': '5f61c33bfc7794315c671a62d43116aa',
         'info_dict':
         {
             'id': '17375',
@@ -90,10 +86,6 @@ class DCNVideoIE(DCNBaseIE):
             'timestamp': 1227504126,
             'upload_date': '20081124',
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
     }, {
         'url': 'http://awaan.ae/video/26723981/%D8%AF%D8%A7%D8%B1-%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85:-%D8%AE%D9%8A%D8%B1-%D8%AF%D9%88%D8%B1-%D8%A7%D9%84%D8%A3%D9%86%D8%B5%D8%A7%D8%B1',
         'only_matching': True,
@@ -102,11 +94,10 @@ class DCNVideoIE(DCNBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        request = sanitized_Request(
+        video_data = self._download_json(
             'http://admin.mangomolo.com/analytics/index.php/plus/video?id=%s' % video_id,
-            headers={'Origin': 'http://www.dcndigital.ae'})
-        video_data = self._download_json(request, video_id)
-        info = self._extract_video_info(video_data, video_id, False)
+            video_id, headers={'Origin': 'http://awaan.ae'})
+        info = self._parse_video_data(video_data, video_id, False)
 
         webpage = self._download_webpage(
             'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?' +
@@ -121,19 +112,31 @@ class DCNVideoIE(DCNBaseIE):
         return info
 
 
-class DCNLiveIE(DCNBaseIE):
-    IE_NAME = 'dcn:live'
+class AWAANLiveIE(AWAANBaseIE):
+    IE_NAME = 'awaan:live'
     _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?live/(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://awaan.ae/live/6/dubai-tv',
+        'info_dict': {
+            'id': '6',
+            'ext': 'mp4',
+            'title': 're:Dubai Al Oula [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'upload_date': '20150107',
+            'timestamp': 1420588800,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
-        request = sanitized_Request(
+        channel_data = self._download_json(
             'http://admin.mangomolo.com/analytics/index.php/plus/getchanneldetails?channel_id=%s' % channel_id,
-            headers={'Origin': 'http://www.dcndigital.ae'})
-
-        channel_data = self._download_json(request, channel_id)
-        info = self._extract_video_info(channel_data, channel_id, True)
+            channel_id, headers={'Origin': 'http://awaan.ae'})
+        info = self._parse_video_data(channel_data, channel_id, True)
 
         webpage = self._download_webpage(
             'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?' +
@@ -148,8 +151,8 @@ class DCNLiveIE(DCNBaseIE):
         return info
 
 
-class DCNSeasonIE(InfoExtractor):
-    IE_NAME = 'dcn:season'
+class AWAANSeasonIE(InfoExtractor):
+    IE_NAME = 'awaan:season'
     _VALID_URL = r'https?://(?:www\.)?(?:awaan|dcndigital)\.ae/(?:#/)?program/(?:(?P<show_id>\d+)|season/(?P<season_id>\d+))'
     _TEST = {
         'url': 'http://dcndigital.ae/#/program/205024/%D9%85%D8%AD%D8%A7%D8%B6%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D8%B4%D9%8A%D8%AE-%D8%A7%D9%84%D8%B4%D8%B9%D8%B1%D8%A7%D9%88%D9%8A',
@@ -170,21 +173,17 @@ class DCNSeasonIE(InfoExtractor):
             data['season'] = season_id
             show_id = smuggled_data.get('show_id')
             if show_id is None:
-                request = sanitized_Request(
+                season = self._download_json(
                     'http://admin.mangomolo.com/analytics/index.php/plus/season_info?id=%s' % season_id,
-                    headers={'Origin': 'http://www.dcndigital.ae'})
-                season = self._download_json(request, season_id)
+                    season_id, headers={'Origin': 'http://awaan.ae'})
                 show_id = season['id']
         data['show_id'] = show_id
-        request = sanitized_Request(
+        show = self._download_json(
             'http://admin.mangomolo.com/analytics/index.php/plus/show',
-            urlencode_postdata(data),
-            {
-                'Origin': 'http://www.dcndigital.ae',
+            show_id, data=urlencode_postdata(data), headers={
+                'Origin': 'http://awaan.ae',
                 'Content-Type': 'application/x-www-form-urlencoded'
             })
-
-        show = self._download_json(request, show_id)
         if not season_id:
             season_id = show['default_season']
         for season in show['seasons']:
@@ -195,6 +194,6 @@ class DCNSeasonIE(InfoExtractor):
                 for video in show['videos']:
                     video_id = compat_str(video['id'])
                     entries.append(self.url_result(
-                        'http://www.dcndigital.ae/media/%s' % video_id, 'DCNVideo', video_id))
+                        'http://awaan.ae/media/%s' % video_id, 'AWAANVideo', video_id))
 
                 return self.playlist_result(entries, season_id, title)

@@ -36,7 +36,7 @@ class MuenchenTVIE(InfoExtractor):
         title = self._live_title(self._og_search_title(webpage))
 
         data_js = self._search_regex(
-            r'(?s)\nplaylist:\s*(\[.*?}\]),related:',
+            r'(?s)\nplaylist:\s*(\[.*?}\]),',
             webpage, 'playlist configuration')
         data_json = js_to_json(data_js)
         data = json.loads(data_json)[0]

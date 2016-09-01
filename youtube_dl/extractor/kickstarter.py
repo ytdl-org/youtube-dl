@@ -37,7 +37,6 @@ class KickStarterIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Power Drive 2000',
         },
-        'expected_warnings': ['OpenGraph description'],
     }]
 
     def _real_extract(self, url):
@@ -67,6 +66,6 @@ class KickStarterIE(InfoExtractor):
             'id': video_id,
             'url': video_url,
             'title': title,
-            'description': self._og_search_description(webpage),
+            'description': self._og_search_description(webpage, default=None),
             'thumbnail': thumbnail,
         }

@@ -17,12 +17,12 @@ class VuClipIE(InfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?vuclip\.com/w\?.*?cid=(?P<id>[0-9]+)'
 
     _TEST = {
-        'url': 'http://m.vuclip.com/w?cid=922692425&fid=70295&z=1010&nvar&frm=index.html',
+        'url': 'http://m.vuclip.com/w?cid=1129900602&bu=8589892792&frm=w&z=34801&op=0&oc=843169247&section=recommend',
         'info_dict': {
-            'id': '922692425',
+            'id': '1129900602',
             'ext': '3gp',
-            'title': 'The Toy Soldiers - Hollywood Movie Trailer',
-            'duration': 177,
+            'title': 'Top 10 TV Convicts',
+            'duration': 733,
         }
     }
 
@@ -54,7 +54,7 @@ class VuClipIE(InfoExtractor):
                 'url': video_url,
             }]
         else:
-            formats = self._parse_html5_media_entries(url, webpage)[0]['formats']
+            formats = self._parse_html5_media_entries(url, webpage, video_id)[0]['formats']
 
         title = remove_end(self._html_search_regex(
             r'<title>(.*?)-\s*Vuclip</title>', webpage, 'title').strip(), ' - Video')

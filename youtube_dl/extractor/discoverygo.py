@@ -7,11 +7,22 @@ from ..utils import (
     int_or_none,
     parse_age_limit,
     unescapeHTML,
+    ExtractorError,
 )
 
 
 class DiscoveryGoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?discoverygo\.com/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
+            discovery|
+            investigationdiscovery|
+            discoverylife|
+            animalplanet|
+            ahctv|
+            destinationamerica|
+            sciencechannel|
+            tlc|
+            velocitychannel
+        )go\.com/(?:[^/]+/)*(?P<id>[^/?#&]+)'''
     _TEST = {
         'url': 'https://www.discoverygo.com/love-at-first-kiss/kiss-first-ask-questions-later/',
         'info_dict': {
@@ -43,7 +54,14 @@ class DiscoveryGoIE(InfoExtractor):
 
         title = video['name']
 
-        stream = video['stream']
+        stream = video.get('stream')
+        if not stream:
+            if video.get('authenticated') is True:
+                raise ExtractorError(
+                    'This video is only available via cable service provider subscription that'
+                    ' is not currently supported. You may want to use --cookies.', expected=True)
+            else:
+                raise ExtractorError('Unable to find stream')
         STREAM_URL_SUFFIX = 'streamUrl'
         formats = []
         for stream_kind in ('', 'hds'):

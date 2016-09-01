@@ -712,6 +712,9 @@ class TestUtil(unittest.TestCase):
         inp = '''{"foo":101}'''
         self.assertEqual(js_to_json(inp), '''{"foo":101}''')
 
+        inp = '''{"duration": "00:01:07"}'''
+        self.assertEqual(js_to_json(inp), '''{"duration": "00:01:07"}''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
@@ -817,7 +820,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_filesize('2 MiB'), 2097152)
         self.assertEqual(parse_filesize('5 GB'), 5000000000)
         self.assertEqual(parse_filesize('1.2Tb'), 1200000000000)
+        self.assertEqual(parse_filesize('1.2tb'), 1200000000000)
         self.assertEqual(parse_filesize('1,24 KB'), 1240)
+        self.assertEqual(parse_filesize('1,24 kb'), 1240)
+        self.assertEqual(parse_filesize('8.5 megabytes'), 8500000)
 
     def test_parse_count(self):
         self.assertEqual(parse_count(None), None)
@@ -1004,6 +1010,7 @@ The first line
         self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])
         self.assertEqual(cli_option({'proxy': None}, '--proxy', 'proxy'), [])
         self.assertEqual(cli_option({}, '--proxy', 'proxy'), [])
+        self.assertEqual(cli_option({'retries': 10}, '--retries', 'retries'), ['--retries', '10'])
 
     def test_cli_valueless_option(self):
         self.assertEqual(cli_valueless_option(

@@ -7,6 +7,7 @@ import random
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_parse_qs,
     compat_str,
     compat_urllib_parse_urlencode,
@@ -14,13 +15,13 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    clean_html,
     ExtractorError,
     int_or_none,
     js_to_json,
     orderedSet,
     parse_duration,
     parse_iso8601,
-    sanitized_Request,
     urlencode_postdata,
 )
 
@@ -42,7 +43,7 @@ class TwitchBaseIE(InfoExtractor):
                 '%s returned error: %s - %s' % (self.IE_NAME, error, response.get('message')),
                 expected=True)
 
-    def _download_json(self, url, video_id, note='Downloading JSON metadata'):
+    def _call_api(self, path, item_id, note):
         headers = {
             'Referer': 'http://api.twitch.tv/crossdomain/receiver.html?v=2',
             'X-Requested-With': 'XMLHttpRequest',
@@ -50,8 +51,8 @@ class TwitchBaseIE(InfoExtractor):
         for cookie in self._downloader.cookiejar:
             if cookie.name == 'api_token':
                 headers['Twitch-Api-Token'] = cookie.value
-        request = sanitized_Request(url, headers=headers)
-        response = super(TwitchBaseIE, self)._download_json(request, video_id, note)
+        response = self._download_json(
+            '%s/%s' % (self._API_BASE, path), item_id, note)
         self._handle_error(response)
         return response
 
@@ -63,8 +64,16 @@ class TwitchBaseIE(InfoExtractor):
         if username is None:
             return
 
+        def fail(message):
+            raise ExtractorError(
+                'Unable to login. Twitch said: %s' % message, expected=True)
+
         login_page, handle = self._download_webpage_handle(
             self._LOGIN_URL, None, 'Downloading login page')
+
+        # Some TOR nodes and public proxies are blocked completely
+        if 'blacklist_message' in login_page:
+            fail(clean_html(login_page))
 
         login_form = self._hidden_inputs(login_page)
 
@@ -82,21 +91,24 @@ class TwitchBaseIE(InfoExtractor):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(redirect_url, post_url)
 
-        request = sanitized_Request(
-            post_url, urlencode_postdata(login_form))
-        request.add_header('Referer', redirect_url)
-        response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+        headers = {'Referer': redirect_url}
 
-        error_message = self._search_regex(
-            r'<div[^>]+class="subwindow_notice"[^>]*>([^<]+)</div>',
-            response, 'error message', default=None)
-        if error_message:
-            raise ExtractorError(
-                'Unable to login. Twitch said: %s' % error_message, expected=True)
+        try:
+            response = self._download_json(
+                post_url, None, 'Logging in as %s' % username,
+                data=urlencode_postdata(login_form),
+                headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
+                response = self._parse_json(
+                    e.cause.read().decode('utf-8'), None)
+                fail(response['message'])
+            raise
 
-        if '>Reset your password<' in response:
-            self.report_warning('Twitch asks you to reset your password, go to https://secure.twitch.tv/reset/submit')
+        if response.get('redirect'):
+            self._download_webpage(
+                response['redirect'], None, 'Downloading login redirect page',
+                headers=headers)
 
     def _prefer_source(self, formats):
         try:
@@ -109,14 +121,14 @@ class TwitchBaseIE(InfoExtractor):
 
 class TwitchItemBaseIE(TwitchBaseIE):
     def _download_info(self, item, item_id):
-        return self._extract_info(self._download_json(
-            '%s/kraken/videos/%s%s' % (self._API_BASE, item, item_id), item_id,
+        return self._extract_info(self._call_api(
+            'kraken/videos/%s%s' % (item, item_id), item_id,
             'Downloading %s info JSON' % self._ITEM_TYPE))
 
     def _extract_media(self, item_id):
         info = self._download_info(self._ITEM_SHORTCUT, item_id)
-        response = self._download_json(
-            '%s/api/videos/%s%s' % (self._API_BASE, self._ITEM_SHORTCUT, item_id), item_id,
+        response = self._call_api(
+            'api/videos/%s%s' % (self._ITEM_SHORTCUT, item_id), item_id,
             'Downloading %s playlist JSON' % self._ITEM_TYPE)
         entries = []
         chunks = response['chunks']
@@ -246,8 +258,8 @@ class TwitchVodIE(TwitchItemBaseIE):
         item_id = self._match_id(url)
 
         info = self._download_info(self._ITEM_SHORTCUT, item_id)
-        access_token = self._download_json(
-            '%s/api/vods/%s/access_token' % (self._API_BASE, item_id), item_id,
+        access_token = self._call_api(
+            'api/vods/%s/access_token' % item_id, item_id,
             'Downloading %s access token' % self._ITEM_TYPE)
 
         formats = self._extract_m3u8_formats(
@@ -275,12 +287,12 @@ class TwitchVodIE(TwitchItemBaseIE):
 
 
 class TwitchPlaylistBaseIE(TwitchBaseIE):
-    _PLAYLIST_URL = '%s/kraken/channels/%%s/videos/?offset=%%d&limit=%%d' % TwitchBaseIE._API_BASE
+    _PLAYLIST_PATH = 'kraken/channels/%s/videos/?offset=%d&limit=%d'
     _PAGE_LIMIT = 100
 
     def _extract_playlist(self, channel_id):
-        info = self._download_json(
-            '%s/kraken/channels/%s' % (self._API_BASE, channel_id),
+        info = self._call_api(
+            'kraken/channels/%s' % channel_id,
             channel_id, 'Downloading channel info JSON')
         channel_name = info.get('display_name') or info.get('name')
         entries = []
@@ -289,8 +301,8 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
         broken_paging_detected = False
         counter_override = None
         for counter in itertools.count(1):
-            response = self._download_json(
-                self._PLAYLIST_URL % (channel_id, offset, limit),
+            response = self._call_api(
+                self._PLAYLIST_PATH % (channel_id, offset, limit),
                 channel_id,
                 'Downloading %s videos JSON page %s'
                 % (self._PLAYLIST_TYPE, counter_override or counter))
@@ -345,7 +357,7 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
 class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
     IE_NAME = 'twitch:past_broadcasts'
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/past_broadcasts/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
-    _PLAYLIST_URL = TwitchPlaylistBaseIE._PLAYLIST_URL + '&broadcasts=true'
+    _PLAYLIST_PATH = TwitchPlaylistBaseIE._PLAYLIST_PATH + '&broadcasts=true'
     _PLAYLIST_TYPE = 'past broadcasts'
 
     _TEST = {
@@ -389,8 +401,8 @@ class TwitchStreamIE(TwitchBaseIE):
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
-        stream = self._download_json(
-            '%s/kraken/streams/%s' % (self._API_BASE, channel_id), channel_id,
+        stream = self._call_api(
+            'kraken/streams/%s' % channel_id, channel_id,
             'Downloading stream JSON').get('stream')
 
         # Fallback on profile extraction if stream is offline
@@ -405,8 +417,8 @@ class TwitchStreamIE(TwitchBaseIE):
         # JSON and fallback to lowercase if it's not available.
         channel_id = stream.get('channel', {}).get('name') or channel_id.lower()
 
-        access_token = self._download_json(
-            '%s/api/channels/%s/access_token' % (self._API_BASE, channel_id), channel_id,
+        access_token = self._call_api(
+            'api/channels/%s/access_token' % channel_id, channel_id,
             'Downloading channel access token')
 
         query = {

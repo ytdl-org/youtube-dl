@@ -131,7 +131,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
+    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/(?:[^/]+/)*(?P<title>[^/?#&.]+)'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
@@ -206,6 +206,9 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'uploader_id': 'x2q2ez',
         },
         'add_ie': ['Dailymotion'],
+    }, {
+        'url': 'http://france3-regions.francetvinfo.fr/limousin/emissions/jt-1213-limousin',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

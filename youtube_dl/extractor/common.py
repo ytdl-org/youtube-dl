@@ -662,6 +662,24 @@ class InfoExtractor(object):
         else:
             return res
 
+    def _get_netrc_login_info(self, netrc_machine=None):
+        username = None
+        password = None
+        netrc_machine = netrc_machine or self._NETRC_MACHINE
+
+        if self._downloader.params.get('usenetrc', False):
+            try:
+                info = netrc.netrc().authenticators(netrc_machine)
+                if info is not None:
+                    username = info[0]
+                    password = info[2]
+                else:
+                    raise netrc.NetrcParseError('No authenticators for %s' % netrc_machine)
+            except (IOError, netrc.NetrcParseError) as err:
+                self._downloader.report_warning('parsing .netrc: %s' % error_to_compat_str(err))
+
+        return (username, password)
+
     def _get_login_info(self):
         """
         Get the login info as (username, password)
@@ -679,16 +697,8 @@ class InfoExtractor(object):
         if downloader_params.get('username') is not None:
             username = downloader_params['username']
             password = downloader_params['password']
-        elif downloader_params.get('usenetrc', False):
-            try:
-                info = netrc.netrc().authenticators(self._NETRC_MACHINE)
-                if info is not None:
-                    username = info[0]
-                    password = info[2]
-                else:
-                    raise netrc.NetrcParseError('No authenticators for %s' % self._NETRC_MACHINE)
-            except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning('parsing .netrc: %s' % error_to_compat_str(err))
+        else:
+            username, password = self._get_netrc_login_info()
 
         return (username, password)
 
@@ -1192,30 +1202,45 @@ class InfoExtractor(object):
                 'preference': preference,
             }]
         last_info = None
-        last_media = None
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
                 last_info = parse_m3u8_attributes(line)
             elif line.startswith('#EXT-X-MEDIA:'):
-                last_media = parse_m3u8_attributes(line)
+                media = parse_m3u8_attributes(line)
+                media_type = media.get('TYPE')
+                if media_type in ('VIDEO', 'AUDIO'):
+                    media_url = media.get('URI')
+                    if media_url:
+                        format_id = []
+                        for v in (media.get('GROUP-ID'), media.get('NAME')):
+                            if v:
+                                format_id.append(v)
+                        formats.append({
+                            'format_id': '-'.join(format_id),
+                            'url': format_url(media_url),
+                            'language': media.get('LANGUAGE'),
+                            'vcodec': 'none' if media_type == 'AUDIO' else None,
+                            'ext': ext,
+                            'protocol': entry_protocol,
+                            'preference': preference,
+                        })
             elif line.startswith('#') or not line.strip():
                 continue
             else:
                 if last_info is None:
                     formats.append({'url': format_url(line)})
                     continue
-                tbr = int_or_none(last_info.get('BANDWIDTH'), scale=1000)
+                tbr = int_or_none(last_info.get('AVERAGE-BANDWIDTH') or last_info.get('BANDWIDTH'), scale=1000)
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
-                last_media_name = last_media.get('NAME') if last_media and last_media.get('TYPE') not in ('SUBTITLES', 'CLOSED-CAPTIONS') else None
-                # Despite specification does not mention NAME attribute for
-                # EXT-X-STREAM-INF it still sometimes may be present
-                stream_name = last_info.get('NAME') or last_media_name
                 # Bandwidth of live streams may differ over time thus making
                 # format_id unpredictable. So it's better to keep provided
                 # format_id intact.
                 if not live:
+                    # Despite specification does not mention NAME attribute for
+                    # EXT-X-STREAM-INF it still sometimes may be present
+                    stream_name = last_info.get('NAME')
                     format_id.append(stream_name if stream_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
                     'format_id': '-'.join(format_id),
@@ -1242,9 +1267,6 @@ class InfoExtractor(object):
                         'abr': abr,
                     })
                 f.update(parse_codecs(last_info.get('CODECS')))
-                if last_media is not None:
-                    f['m3u8_media'] = last_media
-                    last_media = None
                 formats.append(f)
                 last_info = {}
         return formats
@@ -1685,7 +1707,7 @@ class InfoExtractor(object):
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
-    def _parse_html5_media_entries(self, base_url, webpage):
+    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None, m3u8_entry_protocol='m3u8'):
         def absolute_url(video_url):
             return compat_urlparse.urljoin(base_url, video_url)
 
@@ -1700,6 +1722,21 @@ class InfoExtractor(object):
                 return f
             return {}
 
+        def _media_formats(src, cur_media_type):
+            full_url = absolute_url(src)
+            if determine_ext(full_url) == 'm3u8':
+                is_plain_url = False
+                formats = self._extract_m3u8_formats(
+                    full_url, video_id, ext='mp4',
+                    entry_protocol=m3u8_entry_protocol, m3u8_id=m3u8_id)
+            else:
+                is_plain_url = True
+                formats = [{
+                    'url': full_url,
+                    'vcodec': 'none' if cur_media_type == 'audio' else None,
+                }]
+            return is_plain_url, formats
+
         entries = []
         for media_tag, media_type, media_content in re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage):
             media_info = {
@@ -1709,10 +1746,8 @@ class InfoExtractor(object):
             media_attributes = extract_attributes(media_tag)
             src = media_attributes.get('src')
             if src:
-                media_info['formats'].append({
-                    'url': absolute_url(src),
-                    'vcodec': 'none' if media_type == 'audio' else None,
-                })
+                _, formats = _media_formats(src)
+                media_info['formats'].extend(formats)
             media_info['thumbnail'] = media_attributes.get('poster')
             if media_content:
                 for source_tag in re.findall(r'<source[^>]+>', media_content):
@@ -1720,12 +1755,13 @@ class InfoExtractor(object):
                     src = source_attributes.get('src')
                     if not src:
                         continue
-                    f = parse_content_type(source_attributes.get('type'))
-                    f.update({
-                        'url': absolute_url(src),
-                        'vcodec': 'none' if media_type == 'audio' else None,
-                    })
-                    media_info['formats'].append(f)
+                    is_plain_url, formats = _media_formats(src, media_type)
+                    if is_plain_url:
+                        f = parse_content_type(source_attributes.get('type'))
+                        f.update(formats[0])
+                        media_info['formats'].append(f)
+                    else:
+                        media_info['formats'].extend(formats)
                 for track_tag in re.findall(r'<track[^>]+>', media_content):
                     track_attributes = extract_attributes(track_tag)
                     kind = track_attributes.get('kind')
@@ -1740,6 +1776,18 @@ class InfoExtractor(object):
             if media_info['formats']:
                 entries.append(media_info)
         return entries
+
+    def _extract_akamai_formats(self, manifest_url, video_id):
+        formats = []
+        f4m_url = re.sub(r'(https?://.+?)/i/', r'\1/z/', manifest_url).replace('/master.m3u8', '/manifest.f4m')
+        formats.extend(self._extract_f4m_formats(
+            update_url_query(f4m_url, {'hdcore': '3.7.0'}),
+            video_id, f4m_id='hds', fatal=False))
+        m3u8_url = re.sub(r'(https?://.+?)/z/', r'\1/i/', manifest_url).replace('/manifest.f4m', '/master.m3u8')
+        formats.extend(self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', 'm3u8_native',
+            m3u8_id='hls', fatal=False))
+        return formats
 
     def _live_title(self, name):
         """ Generate the title for a live video """

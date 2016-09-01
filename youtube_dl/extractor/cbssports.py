@@ -23,6 +23,9 @@ class CBSSportsIE(CBSBaseIE):
         }
     }]
 
+    def _extract_video_info(self, filter_query, video_id):
+        return self._extract_feed_info('dJ5BDC', 'VxxJg8Ymh8sE', filter_query, video_id)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         return self._extract_video_info('byId=%s' % video_id, video_id)

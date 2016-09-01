@@ -32,7 +32,7 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'''(?x)^(?:https?://)?
                     (?:(?:(?:www\.|m\.)?soundcloud\.com/
                             (?P<uploader>[\w\d-]+)/
-                            (?!(?:tracks|sets(?:/[^/?#]+)?|reposts|likes|spotlight)/?(?:$|[?#]))
+                            (?!(?:tracks|sets(?:/.+?)?|reposts|likes|spotlight)/?(?:$|[?#]))
                             (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+)
@@ -265,6 +265,9 @@ class SoundcloudSetIE(SoundcloudIE):
             'title': 'The Royal Concept EP',
         },
         'playlist_mincount': 6,
+    }, {
+        'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep/token',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

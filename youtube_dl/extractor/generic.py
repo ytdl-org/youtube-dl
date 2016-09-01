@@ -72,6 +72,8 @@ from .kaltura import KalturaIE
 from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
 from .soundcloud import SoundcloudIE
+from .vbox7 import Vbox7IE
+from .dbtv import DBTVIE
 
 
 class GenericIE(InfoExtractor):
@@ -102,7 +104,8 @@ class GenericIE(InfoExtractor):
             },
             'expected_warnings': [
                 'URL could be a direct video link, returning it as such.'
-            ]
+            ],
+            'skip': 'URL invalid',
         },
         # Direct download with broken HEAD
         {
@@ -266,7 +269,8 @@ class GenericIE(InfoExtractor):
             'params': {
                 # m3u8 downloads
                 'skip_download': True,
-            }
+            },
+            'skip': 'video gone',
         },
         # m3u8 served with Content-Type: text/plain
         {
@@ -281,7 +285,8 @@ class GenericIE(InfoExtractor):
             'params': {
                 # m3u8 downloads
                 'skip_download': True,
-            }
+            },
+            'skip': 'video gone',
         },
         # google redirect
         {
@@ -366,6 +371,7 @@ class GenericIE(InfoExtractor):
                 'description': 'Mississauga resident David Farmer is still out of power as a result of the ice storm a month ago. To keep the house warm, Farmer cuts wood from his property for a wood burning stove downstairs.',
             },
             'add_ie': ['BrightcoveLegacy'],
+            'skip': 'video gone',
         },
         {
             'url': 'http://www.championat.com/video/football/v/87/87499.html',
@@ -419,6 +425,7 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'movie expired',
         },
         # embed.ly video
         {
@@ -446,6 +453,8 @@ class GenericIE(InfoExtractor):
                 'title': 'Between Two Ferns with Zach Galifianakis: President Barack Obama',
                 'description': 'Episode 18: President Barack Obama sits down with Zach Galifianakis for his most memorable interview yet.',
             },
+            # HEAD requests lead to endless 301, while GET is OK
+            'expected_warnings': ['301'],
         },
         # RUTV embed
         {
@@ -520,6 +529,9 @@ class GenericIE(InfoExtractor):
                 'title': '[NSFL] [FM15] which pumiscer was this ( vid ) ( alfa as fuck srx )',
             },
             'playlist_mincount': 7,
+            # This forum does not allow <iframe> syntaxes anymore
+            # Now HTML tags are displayed as-is
+            'skip': 'No videos on this page',
         },
         # Embedded TED video
         {
@@ -568,7 +580,8 @@ class GenericIE(InfoExtractor):
             },
             'params': {
                 'skip_download': 'Requires rtmpdump'
-            }
+            },
+            'skip': 'video gone',
         },
         # francetv embed
         {
@@ -1372,6 +1385,27 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'add_ie': [ArkenaIE.ie_key()],
+        },
+        {
+            'url': 'http://nova.bg/news/view/2016/08/16/156543/%D0%BD%D0%B0-%D0%BA%D0%BE%D1%81%D1%8A%D0%BC-%D0%BE%D1%82-%D0%B2%D0%B7%D1%80%D0%B8%D0%B2-%D0%BE%D1%82%D1%86%D0%B5%D0%BF%D0%B8%D1%85%D0%B0-%D1%86%D1%8F%D0%BB-%D0%BA%D0%B2%D0%B0%D1%80%D1%82%D0%B0%D0%BB-%D0%B7%D0%B0%D1%80%D0%B0%D0%B4%D0%B8-%D0%B8%D0%B7%D1%82%D0%B8%D1%87%D0%B0%D0%BD%D0%B5-%D0%BD%D0%B0-%D0%B3%D0%B0%D0%B7-%D0%B2-%D0%BF%D0%BB%D0%BE%D0%B2%D0%B4%D0%B8%D0%B2/',
+            'info_dict': {
+                'id': '1c7141f46c',
+                'ext': 'mp4',
+                'title': 'НА КОСЪМ ОТ ВЗРИВ: Изтичане на газ на бензиностанция в Пловдив',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [Vbox7IE.ie_key()],
+        },
+        {
+            # DBTV embeds
+            'url': 'http://www.dagbladet.no/2016/02/23/nyheter/nordlys/ski/troms/ver/43254897/',
+            'info_dict': {
+                'id': '43254897',
+                'title': 'Etter ett års planlegging, klaffet endelig alt: - Jeg måtte ta en liten dans',
+            },
+            'playlist_mincount': 3,
         },
         # {
         #     # TODO: find another test
@@ -2209,11 +2243,11 @@ class GenericIE(InfoExtractor):
 
         # Look for VODPlatform embeds
         mobj = re.search(
-            r'<iframe[^>]+src=[\'"]((?:https?:)?//(?:www\.)?vod-platform\.net/embed/[^/?#]+)',
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vod-platform\.net/[eE]mbed/.+?)\1',
             webpage)
         if mobj is not None:
             return self.url_result(
-                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'VODPlatform')
+                self._proto_relative_url(unescapeHTML(mobj.group('url'))), 'VODPlatform')
 
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
@@ -2238,6 +2272,16 @@ class GenericIE(InfoExtractor):
                 'thumbnail': video_thumbnail,
                 'uploader': video_uploader,
             }
+
+        # Look for VBOX7 embeds
+        vbox7_url = Vbox7IE._extract_url(webpage)
+        if vbox7_url:
+            return self.url_result(vbox7_url, Vbox7IE.ie_key())
+
+        # Look for DBTV embeds
+        dbtv_urls = DBTVIE._extract_urls(webpage)
+        if dbtv_urls:
+            return _playlist_from_matches(dbtv_urls, ie=DBTVIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(

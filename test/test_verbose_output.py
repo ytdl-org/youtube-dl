@@ -22,10 +22,10 @@ class TestVerboseOutput(unittest.TestCase):
                 '--password', 'secret',
             ], cwd=rootDir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout, serr = outp.communicate()
-        self.assertTrue('--username' in serr)
-        self.assertTrue('johnsmith' not in serr)
-        self.assertTrue('--password' in serr)
-        self.assertTrue('secret' not in serr)
+        self.assertTrue(b'--username' in serr)
+        self.assertTrue(b'johnsmith' not in serr)
+        self.assertTrue(b'--password' in serr)
+        self.assertTrue(b'secret' not in serr)
 
     def test_private_info_shortarg(self):
         outp = subprocess.Popen(
@@ -35,10 +35,10 @@ class TestVerboseOutput(unittest.TestCase):
                 '-p', 'secret',
             ], cwd=rootDir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout, serr = outp.communicate()
-        self.assertTrue('-u' in serr)
-        self.assertTrue('johnsmith' not in serr)
-        self.assertTrue('-p' in serr)
-        self.assertTrue('secret' not in serr)
+        self.assertTrue(b'-u' in serr)
+        self.assertTrue(b'johnsmith' not in serr)
+        self.assertTrue(b'-p' in serr)
+        self.assertTrue(b'secret' not in serr)
 
     def test_private_info_eq(self):
         outp = subprocess.Popen(
@@ -48,10 +48,10 @@ class TestVerboseOutput(unittest.TestCase):
                 '--password=secret',
             ], cwd=rootDir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout, serr = outp.communicate()
-        self.assertTrue('--username' in serr)
-        self.assertTrue('johnsmith' not in serr)
-        self.assertTrue('--password' in serr)
-        self.assertTrue('secret' not in serr)
+        self.assertTrue(b'--username' in serr)
+        self.assertTrue(b'johnsmith' not in serr)
+        self.assertTrue(b'--password' in serr)
+        self.assertTrue(b'secret' not in serr)
 
     def test_private_info_shortarg_eq(self):
         outp = subprocess.Popen(
@@ -61,10 +61,10 @@ class TestVerboseOutput(unittest.TestCase):
                 '-p=secret',
             ], cwd=rootDir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout, serr = outp.communicate()
-        self.assertTrue('-u' in serr)
-        self.assertTrue('johnsmith' not in serr)
-        self.assertTrue('-p' in serr)
-        self.assertTrue('secret' not in serr)
+        self.assertTrue(b'-u' in serr)
+        self.assertTrue(b'johnsmith' not in serr)
+        self.assertTrue(b'-p' in serr)
+        self.assertTrue(b'secret' not in serr)
 
 if __name__ == '__main__':
     unittest.main()

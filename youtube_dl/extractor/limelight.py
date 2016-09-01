@@ -34,11 +34,12 @@ class LimelightBaseIE(InfoExtractor):
     def _extract_info(self, streams, mobile_urls, properties):
         video_id = properties['media_id']
         formats = []
-
+        urls = []
         for stream in streams:
             stream_url = stream.get('url')
-            if not stream_url or stream.get('drmProtected'):
+            if not stream_url or stream.get('drmProtected') or stream_url in urls:
                 continue
+            urls.append(stream_url)
             ext = determine_ext(stream_url)
             if ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
@@ -58,9 +59,11 @@ class LimelightBaseIE(InfoExtractor):
                     format_id = 'rtmp'
                     if stream.get('videoBitRate'):
                         format_id += '-%d' % int_or_none(stream['videoBitRate'])
+                    http_url = 'http://%s/%s' % (rtmp.group('host').replace('csl.', 'cpl.'), rtmp.group('playpath')[4:])
+                    urls.append(http_url)
                     http_fmt = fmt.copy()
                     http_fmt.update({
-                        'url': 'http://%s/%s' % (rtmp.group('host').replace('csl.', 'cpl.'), rtmp.group('playpath')[4:]),
+                        'url': http_url,
                         'format_id': format_id.replace('rtmp', 'http'),
                     })
                     formats.append(http_fmt)
@@ -76,8 +79,9 @@ class LimelightBaseIE(InfoExtractor):
         for mobile_url in mobile_urls:
             media_url = mobile_url.get('mobileUrl')
             format_id = mobile_url.get('targetMediaPlatform')
-            if not media_url or format_id == 'Widevine':
+            if not media_url or format_id in ('Widevine', 'SmoothStreaming') or media_url in urls:
                 continue
+            urls.append(media_url)
             ext = determine_ext(media_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(

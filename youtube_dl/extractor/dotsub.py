@@ -10,18 +10,18 @@ from ..utils import (
 class DotsubIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dotsub\.com/view/(?P<id>[^/]+)'
     _TEST = {
-        'url': 'http://dotsub.com/view/aed3b8b2-1889-4df5-ae63-ad85f5572f27',
-        'md5': '0914d4d69605090f623b7ac329fea66e',
+        'url': 'https://dotsub.com/view/9c63db2a-fa95-4838-8e6e-13deafe47f09',
+        'md5': '21c7ff600f545358134fea762a6d42b6',
         'info_dict': {
-            'id': 'aed3b8b2-1889-4df5-ae63-ad85f5572f27',
+            'id': '9c63db2a-fa95-4838-8e6e-13deafe47f09',
             'ext': 'flv',
-            'title': 'Pyramids of Waste (2010), AKA The Lightbulb Conspiracy - Planned obsolescence documentary',
-            'description': 'md5:699a0f7f50aeec6042cb3b1db2d0d074',
-            'thumbnail': 're:^https?://dotsub.com/media/aed3b8b2-1889-4df5-ae63-ad85f5572f27/p',
-            'duration': 3169,
-            'uploader': '4v4l0n42',
-            'timestamp': 1292248482.625,
-            'upload_date': '20101213',
+            'title': 'MOTIVATION - "It\'s Possible" Best Inspirational Video Ever',
+            'description': 'md5:41af1e273edbbdfe4e216a78b9d34ac6',
+            'thumbnail': 're:^https?://dotsub.com/media/9c63db2a-fa95-4838-8e6e-13deafe47f09/p',
+            'duration': 198,
+            'uploader': 'liuxt',
+            'timestamp': 1385778501.104,
+            'upload_date': '20131130',
             'view_count': int,
         }
     }

@@ -8,7 +8,6 @@ import re
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
     compat_urllib_parse,
-    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,6 +16,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     mimetype2ext,
+    determine_ext,
 )
 
 from .brightcove import BrightcoveNewIE
@@ -39,7 +39,7 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'http://screen.yahoo.com/wired/codefellas-s1-ep12-cougar-lies-103000935.html',
-            'md5': 'c3466d2b6d5dd6b9f41ba9ed04c24b23',
+            'md5': '251af144a19ebc4a033e8ba91ac726bb',
             'info_dict': {
                 'id': 'd1dedf8c-d58c-38c3-8963-e899929ae0a9',
                 'ext': 'mp4',
@@ -50,7 +50,7 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'https://screen.yahoo.com/community/community-sizzle-reel-203225340.html?format=embed',
-            'md5': '75ffabdb87c16d4ffe8c036dc4d1c136',
+            'md5': '7993e572fac98e044588d0b5260f4352',
             'info_dict': {
                 'id': '4fe78544-8d48-39d8-97cd-13f205d9fcdb',
                 'ext': 'mp4',
@@ -61,7 +61,7 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'https://tw.news.yahoo.com/%E6%95%A2%E5%95%8F%E5%B8%82%E9%95%B7%20%E9%BB%83%E7%A7%80%E9%9C%9C%E6%89%B9%E8%B3%B4%E6%B8%85%E5%BE%B7%20%E9%9D%9E%E5%B8%B8%E9%AB%98%E5%82%B2-034024051.html',
-            'md5': '9035d38f88b1782682a3e89f985be5bb',
+            'md5': '45c024bad51e63e9b6f6fad7a43a8c23',
             'info_dict': {
                 'id': 'cac903b3-fcf4-3c14-b632-643ab541712f',
                 'ext': 'mp4',
@@ -72,10 +72,10 @@ class YahooIE(InfoExtractor):
         },
         {
             'url': 'https://uk.screen.yahoo.com/editor-picks/cute-raccoon-freed-drain-using-091756545.html',
-            'md5': '0b51660361f0e27c9789e7037ef76f4b',
+            'md5': '71298482f7c64cbb7fa064e4553ff1c1',
             'info_dict': {
                 'id': 'b3affa53-2e14-3590-852b-0e0db6cd1a58',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': 'Cute Raccoon Freed From Drain\u00a0Using Angle Grinder',
                 'description': 'md5:f66c890e1490f4910a9953c941dee944',
                 'duration': 97,
@@ -98,7 +98,7 @@ class YahooIE(InfoExtractor):
                 'id': '154609075',
             },
             'playlist': [{
-                'md5': 'f8e336c6b66f503282e5f719641d6565',
+                'md5': '000887d0dc609bc3a47c974151a40fb8',
                 'info_dict': {
                     'id': 'e624c4bc-3389-34de-9dfc-025f74943409',
                     'ext': 'mp4',
@@ -107,7 +107,7 @@ class YahooIE(InfoExtractor):
                     'duration': 30,
                 },
             }, {
-                'md5': '958bcb90b4d6df71c56312137ee1cd5a',
+                'md5': '81bc74faf10750fe36e4542f9a184c66',
                 'info_dict': {
                     'id': '1fc8ada0-718e-3abe-a450-bf31f246d1a9',
                     'ext': 'mp4',
@@ -139,7 +139,7 @@ class YahooIE(InfoExtractor):
             'skip': 'Domain name in.lifestyle.yahoo.com gone',
         }, {
             'url': 'https://www.yahoo.com/movies/v/true-story-trailer-173000497.html',
-            'md5': 'b17ac378b1134fa44370fb27db09a744',
+            'md5': '2a9752f74cb898af5d1083ea9f661b58',
             'info_dict': {
                 'id': '071c4013-ce30-3a93-a5b2-e0413cd4a9d1',
                 'ext': 'mp4',
@@ -168,7 +168,7 @@ class YahooIE(InfoExtractor):
         }, {
             # Query result is embedded in webpage, but explicit request to video API fails with geo restriction
             'url': 'https://screen.yahoo.com/community/communitary-community-episode-1-ladders-154501237.html',
-            'md5': '1ddbf7c850777548438e5c4f147c7b8c',
+            'md5': '4fbafb9c9b6f07aa8f870629f6671b35',
             'info_dict': {
                 'id': '1f32853c-a271-3eef-8cb6-f6d6872cb504',
                 'ext': 'mp4',
@@ -196,6 +196,7 @@ class YahooIE(InfoExtractor):
                 'description': 'Galactic',
                 'title': 'Dolla Diva (feat. Maggie Koerner)',
             },
+            'skip': 'redirect to https://www.yahoo.com/music',
         },
     ]
 
@@ -213,15 +214,7 @@ class YahooIE(InfoExtractor):
         entries = []
         iframe_urls = re.findall(r'<iframe[^>]+src="(/video/.+?-\d+\.html\?format=embed.*?)"', webpage)
         for idx, iframe_url in enumerate(iframe_urls):
-            iframepage = self._download_webpage(
-                host + iframe_url, display_id,
-                note='Downloading iframe webpage for video #%d' % idx)
-            items_json = self._search_regex(
-                r'mediaItems: (\[.+?\])$', iframepage, 'items', flags=re.MULTILINE, default=None)
-            if items_json:
-                items = json.loads(items_json)
-                video_id = items[0]['id']
-                entries.append(self._get_info(video_id, display_id, webpage))
+            entries.append(self.url_result(host + iframe_url, 'Yahoo'))
         if entries:
             return self.playlist_result(entries, page_id)
 
@@ -246,7 +239,9 @@ class YahooIE(InfoExtractor):
             if config:
                 sapi = config.get('models', {}).get('applet_model', {}).get('data', {}).get('sapi')
                 if sapi and 'query' in sapi:
-                    return self._extract_info(display_id, sapi, webpage)
+                    info = self._extract_info(display_id, sapi, webpage)
+                    self._sort_formats(info['formats'])
+                    return info
 
         items_json = self._search_regex(
             r'mediaItems: ({.*?})$', webpage, 'items', flags=re.MULTILINE,
@@ -292,15 +287,17 @@ class YahooIE(InfoExtractor):
 
         formats = []
         for s in info['streams']:
+            tbr = int_or_none(s.get('bitrate'))
             format_info = {
                 'width': int_or_none(s.get('width')),
                 'height': int_or_none(s.get('height')),
-                'tbr': int_or_none(s.get('bitrate')),
+                'tbr': tbr,
             }
 
             host = s['host']
             path = s['path']
             if host.startswith('rtmp'):
+                fmt = 'rtmp'
                 format_info.update({
                     'url': host,
                     'play_path': path,
@@ -308,13 +305,17 @@ class YahooIE(InfoExtractor):
                 })
             else:
                 if s.get('format') == 'm3u8_playlist':
-                    format_info['protocol'] = 'm3u8_native'
-                    format_info['ext'] = 'mp4'
+                    fmt = 'hls'
+                    format_info.update({
+                        'protocol': 'm3u8_native',
+                        'ext': 'mp4',
+                    })
+                else:
+                    fmt = format_info['ext'] = determine_ext(path)
                 format_url = compat_urlparse.urljoin(host, path)
                 format_info['url'] = format_url
+            format_info['format_id'] = fmt + ('-%d' % tbr if tbr else '')
             formats.append(format_info)
-
-        self._sort_formats(formats)
 
         closed_captions = self._html_search_regex(
             r'"closedcaptions":(\[[^\]]+\])', webpage, 'closed captions',
@@ -346,17 +347,25 @@ class YahooIE(InfoExtractor):
     def _get_info(self, video_id, display_id, webpage):
         region = self._search_regex(
             r'\\?"region\\?"\s*:\s*\\?"([^"]+?)\\?"',
-            webpage, 'region', fatal=False, default='US')
-        data = compat_urllib_parse_urlencode({
-            'protocol': 'http',
-            'region': region.upper(),
-        })
-        query_url = (
-            'https://video.media.yql.yahoo.com/v1/video/sapi/streams/'
-            '{id}?{data}'.format(id=video_id, data=data))
-        query_result = self._download_json(
-            query_url, display_id, 'Downloading video info')
-        return self._extract_info(display_id, query_result, webpage)
+            webpage, 'region', fatal=False, default='US').upper()
+        formats = []
+        info = {}
+        for fmt in ('webm', 'mp4'):
+            query_result = self._download_json(
+                'https://video.media.yql.yahoo.com/v1/video/sapi/streams/' + video_id,
+                display_id, 'Downloading %s video info' % fmt, query={
+                    'protocol': 'http',
+                    'region': region,
+                    'format': fmt,
+                })
+            info = self._extract_info(display_id, query_result, webpage)
+            formats.extend(info['formats'])
+        formats.extend(self._extract_m3u8_formats(
+            'http://video.media.yql.yahoo.com/v1/hls/%s?region=%s' % (video_id, region),
+            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+        self._sort_formats(formats)
+        info['formats'] = formats
+        return info
 
 
 class YahooSearchIE(SearchInfoExtractor):

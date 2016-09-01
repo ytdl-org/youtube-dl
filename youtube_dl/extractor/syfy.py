@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-from .theplatform import ThePlatformIE
+from .adobepass import AdobePassIE
 from ..utils import (
     update_url_query,
     smuggle_url,
 )
 
 
-class SyfyIE(ThePlatformIE):
+class SyfyIE(AdobePassIE):
     _VALID_URL = r'https?://www\.syfy\.com/(?:[^/]+/)?videos/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.syfy.com/theinternetruinedmylife/videos/the-internet-ruined-my-life-season-1-trailer',
@@ -31,7 +31,7 @@ class SyfyIE(ThePlatformIE):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         syfy_mpx = list(self._parse_json(self._search_regex(
-            r'jQuery\.extend\([^,]+,\s*({.+})\);', webpage, 'drupal settings'),
+            r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);', webpage, 'drupal settings'),
             display_id)['syfy']['syfy_mpx'].values())[0]
         video_id = syfy_mpx['mpxGUID']
         title = syfy_mpx['episodeTitle']
@@ -40,7 +40,9 @@ class SyfyIE(ThePlatformIE):
             'manifest': 'm3u',
         }
         if syfy_mpx.get('entitlement') == 'auth':
-            resource = '<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title>syfy</title><item><title><![CDATA[%s]]></title><guid>%s</guid><media:rating scheme="urn:v-chip">%s</media:rating></item></channel></rss>' % (title, video_id, syfy_mpx.get('mpxRating', 'TV-14'))
+            resource = self._get_mvpd_resource(
+                'syfy', title, video_id,
+                syfy_mpx.get('mpxRating', 'TV-14'))
             query['auth'] = self._extract_mvpd_auth(
                 url, video_id, 'syfy', resource)
 

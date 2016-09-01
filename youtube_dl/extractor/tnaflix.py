@@ -10,6 +10,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     str_to_int,
+    unescapeHTML,
     xpath_text,
 )
 
@@ -80,7 +81,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
 
         if not cfg_url:
             inputs = self._hidden_inputs(webpage)
-            cfg_url = 'https://cdn-fck.tnaflix.com/tnaflix/%s.fid?key=%s' % (inputs['vkey'], inputs['nkey'])
+            cfg_url = ('https://cdn-fck.tnaflix.com/tnaflix/%s.fid?key=%s&VID=%s&premium=1&vip=1&alpha'
+                       % (inputs['vkey'], inputs['nkey'], video_id))
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, 'Downloading metadata',
@@ -89,7 +91,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         formats = []
 
         def extract_video_url(vl):
-            return re.sub('speed=\d+', 'speed=', vl.text)
+            return re.sub('speed=\d+', 'speed=', unescapeHTML(vl.text))
 
         video_link = cfg_xml.find('./videoLink')
         if video_link is not None:
@@ -201,7 +203,7 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
     _TESTS = [{
         # anonymous uploader, no categories
         'url': 'http://www.tnaflix.com/porn-stars/Carmella-Decesare-striptease/video553878',
-        'md5': '7e569419fe6d69543d01e6be22f5f7c4',
+        'md5': 'ecf3498417d09216374fc5907f9c6ec0',
         'info_dict': {
             'id': '553878',
             'display_id': 'Carmella-Decesare-striptease',
@@ -215,11 +217,11 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
     }, {
         # non-anonymous uploader, categories
         'url': 'https://www.tnaflix.com/teen-porn/Educational-xxx-video/video6538',
-        'md5': 'fcba2636572895aba116171a899a5658',
+        'md5': '0f5d4d490dbfd117b8607054248a07c0',
         'info_dict': {
             'id': '6538',
             'display_id': 'Educational-xxx-video',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Educational xxx video',
             'description': 'md5:b4fab8f88a8621c8fabd361a173fe5b8',
             'thumbnail': 're:https?://.*\.jpg$',

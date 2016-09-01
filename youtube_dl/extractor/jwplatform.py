@@ -30,7 +30,7 @@ class JWPlatformBaseIE(InfoExtractor):
         return self._parse_jwplayer_data(
             jwplayer_data, video_id, *args, **kwargs)
 
-    def _parse_jwplayer_data(self, jwplayer_data, video_id, require_title=True, m3u8_id=None, rtmp_params=None, base_url=None):
+    def _parse_jwplayer_data(self, jwplayer_data, video_id=None, require_title=True, m3u8_id=None, rtmp_params=None, base_url=None):
         # JWPlayer backward compatibility: flattened playlists
         # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/api/config.js#L81-L96
         if 'playlist' not in jwplayer_data:
@@ -43,6 +43,8 @@ class JWPlatformBaseIE(InfoExtractor):
             if 'sources' not in video_data:
                 video_data['sources'] = [video_data]
 
+            this_video_id = video_id or video_data['mediaid']
+
             formats = []
             for source in video_data['sources']:
                 source_url = self._proto_relative_url(source['file'])
@@ -52,7 +54,7 @@ class JWPlatformBaseIE(InfoExtractor):
                 ext = mimetype2ext(source_type) or determine_ext(source_url)
                 if source_type == 'hls' or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        source_url, video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
+                        source_url, this_video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
                 # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
                 elif source_type.startswith('audio') or ext in ('oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
                     formats.append({
@@ -68,7 +70,7 @@ class JWPlatformBaseIE(InfoExtractor):
                         'ext': ext,
                     }
                     if source_url.startswith('rtmp'):
-                        a_format['ext'] = 'flv',
+                        a_format['ext'] = 'flv'
 
                         # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
                         # of jwplayer.flash.swf
@@ -95,7 +97,7 @@ class JWPlatformBaseIE(InfoExtractor):
                         })
 
             entries.append({
-                'id': video_id,
+                'id': this_video_id,
                 'title': video_data['title'] if require_title else video_data.get('title'),
                 'description': video_data.get('description'),
                 'thumbnail': self._proto_relative_url(video_data.get('image')),

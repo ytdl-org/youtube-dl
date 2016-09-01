@@ -2,13 +2,13 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .cbs import CBSBaseIE
+from .cbs import CBSIE
 from ..utils import (
     parse_duration,
 )
 
 
-class CBSNewsIE(CBSBaseIE):
+class CBSNewsIE(CBSIE):
     IE_DESC = 'CBS News'
     _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
 
@@ -35,7 +35,8 @@ class CBSNewsIE(CBSBaseIE):
                 'ext': 'mp4',
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
                 'description': 'md5:4a6983e480542d8b333a947bfc64ddc7',
-                'upload_date': '19700101',
+                'upload_date': '20140404',
+                'timestamp': 1396650660,
                 'uploader': 'CBSI-NEW',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
@@ -63,14 +64,15 @@ class CBSNewsIE(CBSBaseIE):
 
         item = video_info['item'] if 'item' in video_info else video_info
         guid = item['mpxRefId']
-        return self._extract_video_info('byGuid=%s' % guid, guid)
+        return self._extract_video_info(guid)
 
 
 class CBSNewsLiveVideoIE(InfoExtractor):
     IE_DESC = 'CBS News Live Videos'
     _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
 
-    _TESTS = [{
+    # Live videos get deleted soon. See http://www.cbsnews.com/live/ for the latest examples
+    _TEST = {
         'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',
         'info_dict': {
             'id': 'clinton-sanders-prepare-to-face-off-in-nh',
@@ -78,15 +80,8 @@ class CBSNewsLiveVideoIE(InfoExtractor):
             'title': 'Clinton, Sanders Prepare To Face Off In NH',
             'duration': 334,
         },
-        'skip': 'Video gone, redirected to http://www.cbsnews.com/live/',
-    }, {
-        'url': 'http://www.cbsnews.com/live/video/video-shows-intense-paragliding-accident/',
-        'info_dict': {
-            'id': 'video-shows-intense-paragliding-accident',
-            'ext': 'flv',
-            'title': 'Video Shows Intense Paragliding Accident',
-        },
-    }]
+        'skip': 'Video gone',
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
-import re
-import json
-import random
 import collections
+import json
+import os
+import random
+import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -12,10 +13,11 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    float_or_none,
     int_or_none,
     parse_duration,
     qualities,
-    sanitized_Request,
+    srt_subtitles_timecode,
     urlencode_postdata,
 )
 
@@ -75,12 +77,10 @@ class PluralsightIE(PluralsightBaseIE):
         if not post_url.startswith('http'):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
-        request = sanitized_Request(
-            post_url, urlencode_postdata(login_form))
-        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            post_url, None, 'Logging in as %s' % username,
+            data=urlencode_postdata(login_form),
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
         error = self._search_regex(
             r'<span[^>]+class="field-validation-error"[^>]*>([^<]+)</span>',
@@ -90,6 +90,53 @@ class PluralsightIE(PluralsightBaseIE):
 
         if all(p not in response for p in ('__INITIAL_STATE__', '"currentUser"')):
             raise ExtractorError('Unable to log in')
+
+    def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
+        captions_post = {
+            'a': author,
+            'cn': clip_id,
+            'lc': lang,
+            'm': name,
+        }
+        captions = self._download_json(
+            '%s/training/Player/Captions' % self._API_BASE, video_id,
+            'Downloading captions JSON', 'Unable to download captions JSON',
+            fatal=False, data=json.dumps(captions_post).encode('utf-8'),
+            headers={'Content-Type': 'application/json;charset=utf-8'})
+        if captions:
+            return {
+                lang: [{
+                    'ext': 'json',
+                    'data': json.dumps(captions),
+                }, {
+                    'ext': 'srt',
+                    'data': self._convert_subtitles(duration, captions),
+                }]
+            }
+
+    @staticmethod
+    def _convert_subtitles(duration, subs):
+        srt = ''
+        for num, current in enumerate(subs):
+            current = subs[num]
+            start, text = float_or_none(
+                current.get('DisplayTimeOffset')), current.get('Text')
+            if start is None or text is None:
+                continue
+            end = duration if num == len(subs) - 1 else float_or_none(
+                subs[num + 1].get('DisplayTimeOffset'))
+            if end is None:
+                continue
+            srt += os.linesep.join(
+                (
+                    '%d' % num,
+                    '%s --> %s' % (
+                        srt_subtitles_timecode(start),
+                        srt_subtitles_timecode(end)),
+                    text,
+                    os.linesep,
+                ))
+        return srt
 
     def _real_extract(self, url):
         qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
@@ -137,6 +184,8 @@ class PluralsightIE(PluralsightBaseIE):
 
         if not clip:
             raise ExtractorError('Unable to resolve clip')
+
+        title = '%s - %s' % (module['title'], clip['title'])
 
         QUALITIES = {
             'low': {'width': 640, 'height': 480},
@@ -196,13 +245,12 @@ class PluralsightIE(PluralsightBaseIE):
                     'mt': ext,
                     'q': '%dx%d' % (f['width'], f['height']),
                 }
-                request = sanitized_Request(
-                    '%s/training/Player/ViewClip' % self._API_BASE,
-                    json.dumps(clip_post).encode('utf-8'))
-                request.add_header('Content-Type', 'application/json;charset=utf-8')
                 format_id = '%s-%s' % (ext, quality)
                 clip_url = self._download_webpage(
-                    request, display_id, 'Downloading %s URL' % format_id, fatal=False)
+                    '%s/training/Player/ViewClip' % self._API_BASE, display_id,
+                    'Downloading %s URL' % format_id, fatal=False,
+                    data=json.dumps(clip_post).encode('utf-8'),
+                    headers={'Content-Type': 'application/json;charset=utf-8'})
 
                 # Pluralsight tracks multiple sequential calls to ViewClip API and start
                 # to return 429 HTTP errors after some time (see
@@ -225,18 +273,20 @@ class PluralsightIE(PluralsightBaseIE):
                 formats.append(f)
         self._sort_formats(formats)
 
-        # TODO: captions
-        # http://www.pluralsight.com/training/Player/ViewClip + cap = true
-        # or
-        # http://www.pluralsight.com/training/Player/Captions
-        # { a = author, cn = clip_id, lc = end, m = name }
+        duration = int_or_none(
+            clip.get('duration')) or parse_duration(clip.get('formattedDuration'))
+
+        # TODO: other languages?
+        subtitles = self.extract_subtitles(
+            author, clip_id, 'en', name, duration, display_id)
 
         return {
             'id': clip.get('clipName') or clip['name'],
-            'title': '%s - %s' % (module['title'], clip['title']),
-            'duration': int_or_none(clip.get('duration')) or parse_duration(clip.get('formattedDuration')),
+            'title': title,
+            'duration': duration,
             'creator': author,
-            'formats': formats
+            'formats': formats,
+            'subtitles': subtitles,
         }
 
 
