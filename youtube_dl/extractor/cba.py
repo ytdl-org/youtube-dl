@@ -11,6 +11,7 @@ from ..utils import (
     RegexNotFoundError,
     UnavailableVideoError,
     update_url_query,
+    int_or_none,
 )
 
 class CBAIE(InfoExtractor):
@@ -40,30 +41,29 @@ class CBAIE(InfoExtractor):
         except KeyError:
             pass
 
-    def _add_optional_parameter(self, formats, name, data, key, convert=None):
-        try:
-            param = data[key]
-            if convert:
-                param = convert(param)
-            formats[name] = param
-        except KeyError:
-            pass
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         api_posts_url = "https://cba.fro.at/wp-json/wp/v2/posts/%s" % video_id
         api_media_url = "https://cba.fro.at/wp-json/wp/v2/media?media_type=audio&parent=%s" % video_id
 
-        title = 'unknown'
+        title = ''
         description = ''
         formats = []
 
         posts_result = self._download_json(api_posts_url, video_id, 'query posts api-endpoint', 'unable to query posts api-endpoint')
         try:
-            title = clean_html(posts_result['title']['rendered'])
-            description = clean_html(posts_result['content']['rendered'])
+            title = posts_result['title']['raw']
         except KeyError:
-            pass
+            title = clean_html(posts_result['title']['rendered'])
+
+        try:
+            description = posts_result['content']['raw']
+        except KeyError:
+            try:
+                description = clean_html(posts_result['content']['rendered'])
+            except KeyError:
+                pass
+
 
         api_key_str = " (without API_KEY)"
         if self._API_KEY:
@@ -75,20 +75,22 @@ class CBAIE(InfoExtractor):
         for media in media_result:
             try:
                 url = media['source_url']
-                if url == "":
+                if not url:
                     continue
 
                 ft = media['mime_type']
                 f = { 'url': url, 'format': ft, 'format_id': self._FORMATS[ft]['id'], 'preference': self._FORMATS[ft]['preference'] }
-                self._add_optional_parameter(f, 'filesize', media['media_details'], 'filesize')
-                self._add_optional_parameter(f, 'abr', media['media_details'], 'bitrate', lambda x: x/1000)
-                self._add_optional_parameter(f, 'asr', media['media_details'], 'sample_rate')
+                media_details = media.get('media_details')
+                if media_details:
+                    f['filesize'] = int_or_none(media_details.get('filesize'))
+                    f['abr'] = int_or_none(media_details.get('bitrate'), 1000)
+                    f['asr'] = int_or_none(media_details.get('sample_rate'))
 
                 formats.append(f)
             except KeyError:
                 pass
 
-        if len(formats) == 0:
+        if not formats:
             if self._API_KEY:
                 raise ExtractorError('unable to fetch CBA entry')
             else:
