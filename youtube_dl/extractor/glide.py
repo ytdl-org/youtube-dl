@@ -14,10 +14,8 @@ class GlideIE(InfoExtractor):
         'info_dict': {
             'id': 'UZF8zlmuQbe4mr+7dCiQ0w==',
             'ext': 'mp4',
-            'title': 'Damon Timm\'s Glide message',
+            'title': "Damon's Glide message",
             'thumbnail': 're:^https?://.*?\.cloudfront\.net/.*\.jpg$',
-            'uploader': 'Damon Timm',
-            'upload_date': '20140919',
         }
     }
 
@@ -27,7 +25,8 @@ class GlideIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(
-            r'<title>(.+?)</title>', webpage, 'title')
+            r'<title>(.+?)</title>', webpage,
+            'title', default=None) or self._og_search_title(webpage)
         video_url = self._proto_relative_url(self._search_regex(
             r'<source[^>]+src=(["\'])(?P<url>.+?)\1',
             webpage, 'video URL', default=None,
@@ -36,18 +35,10 @@ class GlideIE(InfoExtractor):
             r'<img[^>]+id=["\']video-thumbnail["\'][^>]+src=(["\'])(?P<url>.+?)\1',
             webpage, 'thumbnail url', default=None,
             group='url')) or self._og_search_thumbnail(webpage)
-        uploader = self._search_regex(
-            r'<div[^>]+class=["\']info-name["\'][^>]*>([^<]+)',
-            webpage, 'uploader', fatal=False)
-        upload_date = unified_strdate(self._search_regex(
-            r'<div[^>]+class="info-date"[^>]*>([^<]+)',
-            webpage, 'upload date', fatal=False))
 
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
             'thumbnail': thumbnail,
-            'uploader': uploader,
-            'upload_date': upload_date,
         }
