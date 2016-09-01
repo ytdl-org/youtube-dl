@@ -869,10 +869,6 @@ from .tnaflix import (
     MovieFapIE,
 )
 from .toggle import ToggleIE
-from .thvideo import (
-    THVideoIE,
-    THVideoPlaylistIE
-)
 from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
