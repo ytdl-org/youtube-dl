@@ -35,7 +35,7 @@ class YouPornIE(InfoExtractor):
             'age_limit': 18,
         },
     }, {
-        # Anonymous User uploader
+        # Unknown uploader
         'url': 'http://www.youporn.com/watch/561726/big-tits-awesome-brunette-on-amazing-webcam-show/?from=related3&al=2&from_id=561726&pos=4',
         'info_dict': {
             'id': '561726',
@@ -44,7 +44,7 @@ class YouPornIE(InfoExtractor):
             'title': 'Big Tits Awesome Brunette On amazing webcam show',
             'description': 'http://sweetlivegirls.com Big Tits Awesome Brunette On amazing webcam show.mp4',
             'thumbnail': 're:^https?://.*\.jpg$',
-            'uploader': 'Anonymous User',
+            'uploader': 'Unknown',
             'upload_date': '20111125',
             'average_rating': int,
             'view_count': int,
@@ -140,17 +140,17 @@ class YouPornIE(InfoExtractor):
             r'>All [Cc]omments? \(([\d,.]+)\)',
             webpage, 'comment count', fatal=False))
 
-        def extract_tag_box(title):
-            tag_box = self._search_regex(
-                (r'<div[^>]+class=["\']tagBoxTitle["\'][^>]*>\s*%s\b.*?</div>\s*'
-                 '<div[^>]+class=["\']tagBoxContent["\']>(.+?)</div>') % re.escape(title),
-                webpage, '%s tag box' % title, default=None)
+        def extract_tag_box(regex, title):
+            tag_box = self._search_regex(regex, webpage, title, default=None)
             if not tag_box:
                 return []
             return re.findall(r'<a[^>]+href=[^>]+>([^<]+)', tag_box)
 
-        categories = extract_tag_box('Category')
-        tags = extract_tag_box('Tags')
+        categories = extract_tag_box(
+            r'(?s)Categories:.*?</[^>]+>(.+?)</div>', 'categories')
+        tags = extract_tag_box(
+            r'(?s)Tags:.*?</div>\s*<div[^>]+class=["\']tagBoxContent["\'][^>]*>(.+?)</div>',
+            'tags')
 
         return {
             'id': video_id,
