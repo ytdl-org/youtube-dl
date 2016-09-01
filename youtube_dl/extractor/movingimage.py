@@ -7,21 +7,18 @@ from ..utils import (
 )
 
 
-class SSAIE(InfoExtractor):
-    _VALID_URL = r'https?://ssa\.nls\.uk/film/(?P<id>\d+)'
+class MovingImageIE(InfoExtractor):
+    _VALID_URL = r'https?://movingimage\.nls\.uk/film/(?P<id>\d+)'
     _TEST = {
-        'url': 'http://ssa.nls.uk/film/3561',
+        'url': 'http://movingimage.nls.uk/film/3561',
+        'md5': '4caa05c2b38453e6f862197571a7be2f',
         'info_dict': {
             'id': '3561',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'SHETLAND WOOL',
             'description': 'md5:c5afca6871ad59b4271e7704fe50ab04',
             'duration': 900,
             'thumbnail': 're:^https?://.*\.jpg$',
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
         },
     }
 
@@ -30,10 +27,9 @@ class SSAIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        streamer = self._search_regex(
-            r"'streamer'\s*,\S*'(rtmp[^']+)'", webpage, 'streamer')
-        play_path = self._search_regex(
-            r"'file'\s*,\s*'([^']+)'", webpage, 'file').rpartition('.')[0]
+        formats = self._extract_m3u8_formats(
+            self._html_search_regex(r'file\s*:\s*"([^"]+)"', webpage, 'm3u8 manifest URL'),
+            video_id, ext='mp4', entry_protocol='m3u8_native')
 
         def search_field(field_name, fatal=False):
             return self._search_regex(
@@ -44,13 +40,11 @@ class SSAIE(InfoExtractor):
         description = unescapeHTML(search_field('Description'))
         duration = parse_duration(search_field('Running time'))
         thumbnail = self._search_regex(
-            r"'image'\s*,\s*'([^']+)'", webpage, 'thumbnails', fatal=False)
+            r"image\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,
-            'url': streamer,
-            'play_path': play_path,
-            'ext': 'flv',
+            'formats': formats,
             'title': title,
             'description': description,
             'duration': duration,
