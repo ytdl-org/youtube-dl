@@ -194,6 +194,10 @@ from .ctsnews import CtsNewsIE
 from .ctv import CTVIE
 from .ctvnews import CTVNewsIE
 from .cultureunplugged import CultureUnpluggedIE
+from .curiositystream import (
+    CuriosityStreamIE,
+    CuriosityStreamCollectionIE,
+)
 from .cwtv import CWTVIE
 from .dailymail import DailyMailIE
 from .dailymotion import (
