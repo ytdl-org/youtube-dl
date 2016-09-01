@@ -33,24 +33,16 @@ class CuriosityStreamBaseIE(InfoExtractor):
         return result['data']
 
     def _real_initialize(self):
-        if not self._auth_token:
-            user = self._downloader.cache.load('curiositystream', 'user') or {}
-            self._auth_token = user.get('auth_token')
-            if not self._auth_token:
-                (email, password) = self._get_login_info()
-                if email is None:
-                    return
-                result = self._download_json(
-                    self._API_BASE_URL + 'login', None, data=urlencode_postdata({
-                        'email': email,
-                        'password': password,
-                    }))
-                self._handle_errors(result)
-                self._auth_token = result['message']['auth_token']
-                self._downloader.cache.store(
-                    'curiositystream', 'user', {
-                        'auth_token': self._auth_token,
-                    })
+        (email, password) = self._get_login_info()
+        if email is None:
+            return
+        result = self._download_json(
+            self._API_BASE_URL + 'login', None, data=urlencode_postdata({
+                'email': email,
+                'password': password,
+            }))
+        self._handle_errors(result)
+        self._auth_token = result['message']['auth_token']
 
     def _extract_media_info(self, media):
         video_id = compat_str(media['id'])
