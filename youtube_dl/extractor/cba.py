@@ -8,7 +8,6 @@ from .common import InfoExtractor
 from ..utils import (
     clean_html,
     ExtractorError,
-    strip_bom_utf8,
     RegexNotFoundError,
     UnavailableVideoError,
     update_url_query,
@@ -59,8 +58,7 @@ class CBAIE(InfoExtractor):
         description = ''
         formats = []
 
-        posts_result = self._download_json(api_posts_url, video_id, 'query posts api-endpoint',
-                                           'unable to query posts api-endpoint', transform_source=strip_bom_utf8)
+        posts_result = self._download_json(api_posts_url, video_id, 'query posts api-endpoint', 'unable to query posts api-endpoint')
         try:
             title = clean_html(posts_result['title']['rendered'])
             description = clean_html(posts_result['content']['rendered'])
@@ -73,7 +71,7 @@ class CBAIE(InfoExtractor):
             api_media_url = update_url_query(api_media_url, {'c': self._API_KEY})
 
         media_result = self._download_json(api_media_url, video_id, 'query media api-endpoint%s' % api_key_str,
-                                         'unable to qeury media api-endpoint%s' % api_key_str, transform_source=strip_bom_utf8)
+                                           'unable to qeury media api-endpoint%s' % api_key_str)
         for media in media_result:
             try:
                 url = media['source_url']

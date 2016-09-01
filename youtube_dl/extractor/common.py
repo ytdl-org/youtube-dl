@@ -57,6 +57,7 @@ from ..utils import (
     parse_m3u8_attributes,
     extract_attributes,
     parse_codecs,
+    parse_strip_bom,
 )
 
 
@@ -438,6 +439,10 @@ class InfoExtractor(object):
     def _webpage_read_content(self, urlh, url_or_request, video_id, note=None, errnote=None, fatal=True, prefix=None, encoding=None):
         content_type = urlh.headers.get('Content-Type', '')
         webpage_bytes = urlh.read()
+        webpage_bytes, bom_enc = parse_strip_bom(webpage_bytes)
+        if not encoding:
+            encoding = bom_enc
+
         if prefix is not None:
             webpage_bytes = prefix + webpage_bytes
         if not encoding:
