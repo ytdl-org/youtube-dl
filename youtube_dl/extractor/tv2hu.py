@@ -9,7 +9,7 @@ class TV2HUIE(InfoExtractor):
     IE_NAME = 'tv2.hu'
     _VALID_URL = r'https?://(?:www\.)?tv2\.hu/(?:musoraink/)?(?P<uploader>[^/]+)/(?:teljes_adasok/)?(?P<id>[0-9]+)_(.+?)\.html'
     _JSON_URL = r'(?P<json_url>https?://.+?\.tv2\.hu/vod/(?P<upload_date>\d+)/id_(?P<upload_id>\d+).+?&type=json)'
-    
+
     _TESTS = [{
         'url': 'http://tv2.hu/ezek_megorultek/217679_ezek-megorultek---1.-adas-1.-resz.html',
         'info_dict': {
@@ -71,6 +71,21 @@ class TV2HUIE(InfoExtractor):
 
         formats = self._extract_m3u8_formats(
             manifest_url, video_id, 'mp4', entry_protocol='m3u8_native')
+
+        # skip first, 'auto' format, same as 3rd (360p)
+        for i in range(len(json_data['bitrates']['mp4'])-1):
+            quality = str_to_int(json_data['mp4Labels'][i+1][:-1])
+
+            formats.append({
+                'protocol': 'http',
+                'url': json_data['bitrates']['mp4'][i+1],
+                'height': quality,
+                'width': quality/9*16,
+                'ext': 'mp4',
+                'format_id': json_data['mp4Labels'][i+1],
+                'format_note': 'HTTP',
+                'preference': str_to_int(json_data['mp4Labels'][i+1][:-1])
+            })
 
         self._sort_formats(formats)
 
