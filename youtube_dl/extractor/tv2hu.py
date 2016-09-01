@@ -73,18 +73,18 @@ class TV2HUIE(InfoExtractor):
             manifest_url, video_id, 'mp4', entry_protocol='m3u8_native')
 
         # skip first, 'auto' format, same as 3rd (360p)
-        for i in range(len(json_data['bitrates']['mp4'])-1):
-            quality = str_to_int(json_data['mp4Labels'][i+1][:-1])
+        for i in range(1, len(json_data['bitrates']['mp4'])):
+            quality = str_to_int(json_data['mp4Labels'][i][:-1])
 
             formats.append({
                 'protocol': 'http',
-                'url': json_data['bitrates']['mp4'][i+1],
+                'url': json_data['bitrates']['mp4'][i],
                 'height': quality,
                 'width': quality/9*16,
                 'ext': 'mp4',
-                'format_id': json_data['mp4Labels'][i+1],
+                'format_id': json_data['mp4Labels'][i],
                 'format_note': 'HTTP',
-                'preference': str_to_int(json_data['mp4Labels'][i+1][:-1])
+                'preference': str_to_int(json_data['mp4Labels'][i][:-1])
             })
 
         self._sort_formats(formats)
