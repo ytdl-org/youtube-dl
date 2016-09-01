@@ -1202,6 +1202,7 @@ class InfoExtractor(object):
                 'preference': preference,
             }]
         last_info = None
+        last_media = None
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
                 last_info = parse_m3u8_attributes(line)
@@ -1224,6 +1225,10 @@ class InfoExtractor(object):
                             'protocol': entry_protocol,
                             'preference': preference,
                         })
+                    else:
+                        # When there is no URI in EXT-X-MEDIA let this tag's
+                        # data be used by regular URI lines below
+                        last_media = media
             elif line.startswith('#') or not line.strip():
                 continue
             else:
@@ -1234,13 +1239,14 @@ class InfoExtractor(object):
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
+                last_media_name = last_media.get('NAME') if last_media else None
+                # Despite specification does not mention NAME attribute for
+                # EXT-X-STREAM-INF it still sometimes may be present
+                stream_name = last_info.get('NAME') or last_media_name
                 # Bandwidth of live streams may differ over time thus making
                 # format_id unpredictable. So it's better to keep provided
                 # format_id intact.
                 if not live:
-                    # Despite specification does not mention NAME attribute for
-                    # EXT-X-STREAM-INF it still sometimes may be present
-                    stream_name = last_info.get('NAME')
                     format_id.append(stream_name if stream_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
                     'format_id': '-'.join(format_id),
