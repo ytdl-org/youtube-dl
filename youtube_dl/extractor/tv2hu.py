@@ -72,7 +72,7 @@ class TV2HUIE(InfoExtractor):
         formats = self._extract_m3u8_formats(
             manifest_url, video_id, 'mp4', entry_protocol='m3u8_native')
 
-        for i in range(1, len(json_data['bitrates']['mp4'])):
+        for i in range(len(json_data['bitrates']['mp4'])):
             if json_data['mp4Labels'][i].lower() == 'auto':
                 continue
 
