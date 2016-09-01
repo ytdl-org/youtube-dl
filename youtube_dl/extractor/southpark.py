@@ -35,6 +35,7 @@ class SouthParkEsIE(SouthParkIE):
             'description': 'Cartman Consigue Una Sonda Anal',
         },
         'playlist_count': 4,
+        'skip': 'Geo-restricted',
     }]
 
 
