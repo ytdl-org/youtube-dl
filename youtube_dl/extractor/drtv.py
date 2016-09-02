@@ -4,6 +4,9 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    int_or_none,
+    float_or_none,
+    mimetype2ext,
     parse_iso8601,
     remove_end,
 )
@@ -58,10 +61,12 @@ class DRTVIE(InfoExtractor):
             video_id, 'Downloading video JSON')
         data = programcard['Data'][0]
 
-        title = remove_end(self._og_search_title(webpage), ' | TV | DR') or data['Title']
-        description = self._og_search_description(webpage) or data['Description']
+        title = remove_end(self._og_search_title(
+            webpage, default=None), ' | TV | DR') or data['Title']
+        description = self._og_search_description(
+            webpage, default=None) or data.get('Description')
 
-        timestamp = parse_iso8601(data['CreatedTime'])
+        timestamp = parse_iso8601(data.get('CreatedTime'))
 
         thumbnail = None
         duration = None
@@ -72,16 +77,18 @@ class DRTVIE(InfoExtractor):
         subtitles = {}
 
         for asset in data['Assets']:
-            if asset['Kind'] == 'Image':
-                thumbnail = asset['Uri']
-            elif asset['Kind'] == 'VideoResource':
-                duration = asset['DurationInMilliseconds'] / 1000.0
-                restricted_to_denmark = asset['RestrictedToDenmark']
-                spoken_subtitles = asset['Target'] == 'SpokenSubtitles'
-                for link in asset['Links']:
-                    uri = link['Uri']
-                    target = link['Target']
-                    format_id = target
+            if asset.get('Kind') == 'Image':
+                thumbnail = asset.get('Uri')
+            elif asset.get('Kind') == 'VideoResource':
+                duration = float_or_none(asset.get('DurationInMilliseconds'), 1000)
+                restricted_to_denmark = asset.get('RestrictedToDenmark')
+                spoken_subtitles = asset.get('Target') == 'SpokenSubtitles'
+                for link in asset.get('Links', []):
+                    uri = link.get('Uri')
+                    if not uri:
+                        continue
+                    target = link.get('Target')
+                    format_id = target or ''
                     preference = None
                     if spoken_subtitles:
                         preference = -1
@@ -92,8 +99,8 @@ class DRTVIE(InfoExtractor):
                             video_id, preference, f4m_id=format_id))
                     elif target == 'HLS':
                         formats.extend(self._extract_m3u8_formats(
-                            uri, video_id, 'mp4', preference=preference,
-                            m3u8_id=format_id))
+                            uri, video_id, 'mp4', entry_protocol='m3u8_native',
+                            preference=preference, m3u8_id=format_id))
                     else:
                         bitrate = link.get('Bitrate')
                         if bitrate:
@@ -101,7 +108,7 @@ class DRTVIE(InfoExtractor):
                         formats.append({
                             'url': uri,
                             'format_id': format_id,
-                            'tbr': bitrate,
+                            'tbr': int_or_none(bitrate),
                             'ext': link.get('FileFormat'),
                         })
                 subtitles_list = asset.get('SubtitlesList')
@@ -110,12 +117,18 @@ class DRTVIE(InfoExtractor):
                         'Danish': 'da',
                     }
                     for subs in subtitles_list:
-                        lang = subs['Language']
-                        subtitles[LANGS.get(lang, lang)] = [{'url': subs['Uri'], 'ext': 'vtt'}]
+                        if not subs.get('Uri'):
+                            continue
+                        lang = subs.get('Language') or 'da'
+                        subtitles.setdefault(LANGS.get(lang, lang), []).append({
+                            'url': subs['Uri'],
+                            'ext': mimetype2ext(subs.get('MimeType')) or 'vtt'
+                        })
 
         if not formats and restricted_to_denmark:
-            raise ExtractorError(
-                'Unfortunately, DR is not allowed to show this program outside Denmark.', expected=True)
+            self.raise_geo_restricted(
+                'Unfortunately, DR is not allowed to show this program outside Denmark.',
+                expected=True)
 
         self._sort_formats(formats)
 
