@@ -16,21 +16,23 @@ class DRTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
 
     _TESTS = [{
-        'url': 'https://www.dr.dk/tv/se/boern/ultra/panisk-paske/panisk-paske-5',
-        'md5': 'dc515a9ab50577fa14cc4e4b0265168f',
+        'url': 'https://www.dr.dk/tv/se/boern/ultra/klassen-ultra/klassen-darlig-taber-10',
+        'md5': '25e659cccc9a2ed956110a299fdf5983',
         'info_dict': {
-            'id': 'panisk-paske-5',
+            'id': 'klassen-darlig-taber-10',
             'ext': 'mp4',
-            'title': 'Panisk Påske (5)',
-            'description': 'md5:ca14173c5ab24cd26b0fcc074dff391c',
-            'timestamp': 1426984612,
-            'upload_date': '20150322',
-            'duration': 1455,
+            'title': 'Klassen - Dårlig taber (10)',
+            'description': 'md5:815fe1b7fa656ed80580f31e8b3c79aa',
+            'timestamp': 1471991907,
+            'upload_date': '20160823',
+            'duration': 606.84,
         },
-        'skip': 'Video is no longer available',
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'https://www.dr.dk/nyheder/indland/live-christianias-rydning-af-pusher-street-er-i-gang',
-        'md5': '2ada5074f9e79afc0d324a8e9784d850',
+        'md5': '2c37175c718155930f939ef59952474a',
         'info_dict': {
             'id': 'christiania-pusher-street-ryddes-drdkrjpo',
             'ext': 'mp4',
@@ -39,7 +41,7 @@ class DRTVIE(InfoExtractor):
             'timestamp': 1472800279,
             'upload_date': '20160902',
             'duration': 131.4,
-        }
+        },
     }]
 
     def _real_extract(self, url):
