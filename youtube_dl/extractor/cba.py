@@ -35,8 +35,8 @@ class CBAIE(InfoExtractor):
     }
     _NETRC_MACHINE = 'cba'
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
+
+    def _try_wp_api(self, video_id, api_key):
         api_posts_url = "https://cba.fro.at/wp-json/wp/v2/posts/%s" % video_id
         api_media_url = "https://cba.fro.at/wp-json/wp/v2/media?media_type=audio&parent=%s" % video_id
 
@@ -59,7 +59,6 @@ class CBAIE(InfoExtractor):
             except KeyError:
                 pass
 
-        (_, api_key) = self._get_login_info()
         api_key_msg = " (without API_KEY)"
         if api_key:
             api_key_msg =  " (using API_KEY '%s')" % api_key
@@ -85,13 +84,8 @@ class CBAIE(InfoExtractor):
 
             formats.append(f)
 
-        if not formats:
-            if api_key:
-                raise ExtractorError('unable to fetch CBA entry')
-            else:
-                self.raise_login_required('you need an API key to download copyright protected files')
-
-        self._sort_formats(formats)
+        if formats:
+            self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -99,3 +93,36 @@ class CBAIE(InfoExtractor):
             'description': description,
             'formats': formats,
         }
+
+
+    def _try_preview_player(self, video_id):
+        url = "https://cba.fro.at/%s" % video_id
+        webpage = self._download_webpage(url, video_id, "fetch preview player", "unable to fetch preview player")
+
+        info_dict = self._parse_html5_media_entries(url, webpage, video_id)[0]
+
+        self._sort_formats(info_dict['formats'])
+        self._remove_duplicate_formats(info_dict['formats'])
+
+        info_dict.update({
+            'id': video_id,
+            'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
+        })
+
+        return info_dict
+
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        (_, api_key) = self._get_login_info()
+        info = self._try_wp_api(video_id, api_key)
+
+        if not info.get('formats'):
+            if api_key:
+                raise ExtractorError('unable to fetch CBA entry from API')
+            else:
+                return self._try_preview_player(video_id)
+
+        return info
