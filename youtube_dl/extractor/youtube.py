@@ -1841,6 +1841,28 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'UUXw-G3eDE9trcvY2sBMM_aA',
         },
         'playlist_mincout': 21,
+    }, {
+        # Playlist URL that does not actually serve a playlist
+        'url': 'https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4',
+        'info_dict': {
+            'id': 'FqZTN594JQw',
+            'ext': 'webm',
+            'title': "Smiley's People 01 detective, Adventure Series, Action",
+            'uploader': 'STREEM',
+            'uploader_id': 'UCyPhqAZgwYWZfxElWVbVJng',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/channel/UCyPhqAZgwYWZfxElWVbVJng',
+            'upload_date': '20150526',
+            'license': 'Standard YouTube License',
+            'description': 'md5:507cdcb5a49ac0da37a920ece610be80',
+            'categories': ['People & Blogs'],
+            'tags': list,
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [YoutubeIE.ie_key()],
     }]
 
     def _real_initialize(self):
@@ -1901,9 +1923,20 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         playlist_title = self._html_search_regex(
             r'(?s)<h1 class="pl-header-title[^"]*"[^>]*>\s*(.*?)\s*</h1>',
-            page, 'title')
+            page, 'title', default=None)
 
-        return self.playlist_result(self._entries(page, playlist_id), playlist_id, playlist_title)
+        has_videos = True
+
+        if not playlist_title:
+            try:
+                # Some playlist URLs don't actually serve a playlist (e.g.
+                # https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4)
+                next(self._entries(page, playlist_id))
+            except StopIteration:
+                has_videos = False
+
+        return has_videos, self.playlist_result(
+            self._entries(page, playlist_id), playlist_id, playlist_title)
 
     def _check_download_just_video(self, url, playlist_id):
         # Check if it's a video-specific URL
@@ -1912,9 +1945,11 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             video_id = query_dict['v'][0]
             if self._downloader.params.get('noplaylist'):
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
-                return self.url_result(video_id, 'Youtube', video_id=video_id)
+                return video_id, self.url_result(video_id, 'Youtube', video_id=video_id)
             else:
                 self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+                return video_id, None
+        return None, None
 
     def _real_extract(self, url):
         # Extract playlist id
@@ -1923,7 +1958,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             raise ExtractorError('Invalid URL: %s' % url)
         playlist_id = mobj.group(1) or mobj.group(2)
 
-        video = self._check_download_just_video(url, playlist_id)
+        video_id, video = self._check_download_just_video(url, playlist_id)
         if video:
             return video
 
@@ -1931,7 +1966,15 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
 
-        return self._extract_playlist(playlist_id)
+        has_videos, playlist = self._extract_playlist(playlist_id)
+        if has_videos or not video_id:
+            return playlist
+
+        # Some playlist URLs don't actually serve a playlist (see
+        # https://github.com/rg3/youtube-dl/issues/10537).
+        # Fallback to plain video extraction if there is a video id
+        # along with playlist id.
+        return self.url_result(video_id, 'Youtube', video_id=video_id)
 
 
 class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
@@ -2312,7 +2355,8 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
         video = self._check_download_just_video(url, 'WL')
         if video:
             return video
-        return self._extract_playlist('WL')
+        _, playlist = self._extract_playlist('WL')
+        return playlist
 
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
