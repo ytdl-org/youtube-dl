@@ -171,6 +171,8 @@
  - **CTVNews**
  - **culturebox.francetvinfo.fr**
  - **CultureUnplugged**
+ - **curiositystream**
+ - **curiositystream:collection**
  - **CWTV**
  - **DailyMail**
  - **dailymotion**
@@ -223,11 +225,11 @@
  - **EsriVideo**
  - **Europa**
  - **EveryonesMixtape**
- - **exfm**: ex.fm
  - **ExpoTV**
  - **ExtremeTube**
  - **EyedoTV**
  - **facebook**
+ - **FacebookPluginsVideo**
  - **faz.net**
  - **fc2**
  - **Fczenit**
@@ -271,6 +273,7 @@
  - **Glide**: Glide mobile video messages (glide.me)
  - **Globo**
  - **GloboArticle**
+ - **Go**
  - **GodTube**
  - **GodTV**
  - **Golem**
@@ -406,6 +409,7 @@
  - **MovieClips**
  - **MovieFap**
  - **Moviezine**
+ - **MovingImage**
  - **MPORA**
  - **MSN**
  - **mtg**: MTG services
@@ -659,7 +663,6 @@
  - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**
  - **SRGSSRPlay**: srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites
- - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **Stitcher**
@@ -702,8 +705,6 @@
  - **TheStar**
  - **ThisAmericanLife**
  - **ThisAV**
- - **THVideo**
- - **THVideoPlaylist**
  - **tinypic**: tinypic.com videos
  - **tlc.de**
  - **TMZ**

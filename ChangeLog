@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.09.03
 
 Core
 * Restore usage of NAME attribute from EXT-X-MEDIA tag for formats codes in
