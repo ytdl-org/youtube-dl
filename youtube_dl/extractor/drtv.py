@@ -5,13 +5,14 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     parse_iso8601,
+    remove_end,
 )
 
 
 class DRTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dr\.dk/tv/se/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
+    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.dr.dk/tv/se/boern/ultra/panisk-paske/panisk-paske-5',
         'md5': 'dc515a9ab50577fa14cc4e4b0265168f',
         'info_dict': {
@@ -23,7 +24,20 @@ class DRTVIE(InfoExtractor):
             'upload_date': '20150322',
             'duration': 1455,
         },
-    }
+        'skip': 'Video is no longer available',
+    }, {
+        'url': 'https://www.dr.dk/nyheder/indland/live-christianias-rydning-af-pusher-street-er-i-gang',
+        'md5': '2ada5074f9e79afc0d324a8e9784d850',
+        'info_dict': {
+            'id': 'christiania-pusher-street-ryddes-drdkrjpo',
+            'ext': 'mp4',
+            'title': 'LIVE Christianias rydning af Pusher Street er i gang',
+            'description': '- Det er det fedeste, der er sket i 20 år, fortæller christianit til DR Nyheder.',
+            'timestamp': 1472800279,
+            'upload_date': '20160902',
+            'duration': 131.4,
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -35,7 +49,8 @@ class DRTVIE(InfoExtractor):
                 'Video %s is not available' % video_id, expected=True)
 
         video_id = self._search_regex(
-            r'data-(?:material-identifier|episode-slug)="([^"]+)"',
+            (r'data-(?:material-identifier|episode-slug)="([^"]+)"',
+                r'data-resource="[^>"]+mu/programcard/expanded/([^"]+)"'),
             webpage, 'video id')
 
         programcard = self._download_json(
@@ -43,8 +58,9 @@ class DRTVIE(InfoExtractor):
             video_id, 'Downloading video JSON')
         data = programcard['Data'][0]
 
-        title = data['Title']
-        description = data['Description']
+        title = remove_end(self._og_search_title(webpage), ' | TV | DR') or data['Title']
+        description = self._og_search_description(webpage) or data['Description']
+
         timestamp = parse_iso8601(data['CreatedTime'])
 
         thumbnail = None
