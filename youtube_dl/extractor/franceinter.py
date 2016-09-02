@@ -2,20 +2,24 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    unified_timestamp,
+    month_by_name,
+)
 
 
 class FranceInterIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/player/reecouter\?play=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/emissions/(?P<id>[^?#]+)'
+
     _TEST = {
-        'url': 'http://www.franceinter.fr/player/reecouter?play=793962',
+        'url': 'https://www.franceinter.fr/emissions/la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
         'md5': '4764932e466e6f6c79c317d2e74f6884',
         'info_dict': {
-            'id': '793962',
+            'id': 'la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
             'ext': 'mp3',
-            'title': 'L’Histoire dans les jeux vidéo',
-            'description': 'md5:7e93ddb4451e7530022792240a3049c7',
-            'timestamp': 1387369800,
+            'title': 'L’Histoire dans les jeux vidéo du 18 décembre 2013 - France Inter',
+            'description': 'L’Histoire dans les jeux vidéo du 18 décembre 2013  par Jean Lebrun en replay sur France Inter. Retrouvez l\'émission en réécoute gratuite et abonnez-vous au podcast !',
+            'timestamp': 1387324800,
             'upload_date': '20131218',
         },
     }
@@ -25,17 +29,17 @@ class FranceInterIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        path = self._search_regex(
-            r'<a id="player".+?href="([^"]+)"', webpage, 'video url')
-        video_url = 'http://www.franceinter.fr/' + path
+        video_url = self._search_regex(
+            r'<button class="replay-button playable" data-is-aod="1" data-url="([^"]+)"', webpage, 'video url')
 
-        title = self._html_search_regex(
-            r'<span class="title-diffusion">(.+?)</span>', webpage, 'title')
-        description = self._html_search_regex(
-            r'<span class="description">(.*?)</span>',
-            webpage, 'description', fatal=False)
-        timestamp = int_or_none(self._search_regex(
-            r'data-date="(\d+)"', webpage, 'upload date', fatal=False))
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
+
+        extractdate = self._search_regex('(\d{2}-([a-zA-Z\s]+)-\d{4}$)', url, 'extractdate', fatal=False)
+        extractdate = extractdate.split('-')
+        extractdate = extractdate[2] + "," + str(month_by_name(extractdate[1], 'fr')) + "," + extractdate[0]
+
+        timestamp = unified_timestamp(extractdate)
 
         return {
             'id': video_id,
