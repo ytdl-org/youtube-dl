@@ -33,13 +33,7 @@ class CBAIE(InfoExtractor):
         'audio/ogg': {'id': '1', 'ext': 'ogg', 'preference': 100},
         'audio/mpeg': {'id': '2', 'ext': 'mp3', 'preference': 50}
     }
-    _API_KEY = None
-
-    def __init__(self, *args, **kwargs):
-        try:
-            self._API_KEY = os.environ["CBA_API_KEY"]
-        except KeyError:
-            pass
+    _NETRC_MACHINE = 'cba'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -65,14 +59,14 @@ class CBAIE(InfoExtractor):
             except KeyError:
                 pass
 
+        (_, api_key) = self._get_login_info()
+        api_key_msg = " (without API_KEY)"
+        if api_key:
+            api_key_msg =  " (using API_KEY '%s')" % api_key
+            api_media_url = update_url_query(api_media_url, {'c': api_key})
 
-        api_key_str = " (without API_KEY)"
-        if self._API_KEY:
-            api_key_str =  " (using API_KEY '%s')" % self._API_KEY
-            api_media_url = update_url_query(api_media_url, {'c': self._API_KEY})
-
-        media_result = self._download_json(api_media_url, video_id, 'query media api-endpoint%s' % api_key_str,
-                                           'unable to qeury media api-endpoint%s' % api_key_str, encoding='utf-8-sig')
+        media_result = self._download_json(api_media_url, video_id, 'query media api-endpoint%s' % api_key_msg,
+                                           'unable to qeury media api-endpoint%s' % api_key_msg, encoding='utf-8-sig')
         for media in media_result:
             try:
                 url = media['source_url']
@@ -92,10 +86,10 @@ class CBAIE(InfoExtractor):
                 pass
 
         if not formats:
-            if self._API_KEY:
+            if api_key:
                 raise ExtractorError('unable to fetch CBA entry')
             else:
-                raise UnavailableVideoError('you may need an API key to download copyright protected files')
+                self.raise_login_required('you need an API key to download copyright protected files')
 
         self._sort_formats(formats)
 
