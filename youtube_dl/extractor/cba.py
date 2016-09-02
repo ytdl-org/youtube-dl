@@ -68,22 +68,22 @@ class CBAIE(InfoExtractor):
         media_result = self._download_json(api_media_url, video_id, 'query media api-endpoint%s' % api_key_msg,
                                            'unable to qeury media api-endpoint%s' % api_key_msg, encoding='utf-8-sig')
         for media in media_result:
-            try:
-                url = media['source_url']
-                if not url:
-                    continue
+            url = media.get('source_url')
+            if not url:
+                continue
 
-                ft = media['mime_type']
-                f = { 'url': url, 'format': ft, 'format_id': self._FORMATS[ft]['id'], 'preference': self._FORMATS[ft]['preference'] }
-                media_details = media.get('media_details')
-                if media_details:
-                    f['filesize'] = int_or_none(media_details.get('filesize'))
-                    f['abr'] = int_or_none(media_details.get('bitrate'), 1000)
-                    f['asr'] = int_or_none(media_details.get('sample_rate'))
+            ft = media.get('mime_type')
+            if not ft or not self._FORMATS.get(ft):
+                continue
 
-                formats.append(f)
-            except KeyError:
-                pass
+            f = { 'url': url, 'format': ft, 'format_id': self._FORMATS[ft]['id'], 'preference': self._FORMATS[ft]['preference'] }
+            media_details = media.get('media_details')
+            if media_details:
+                f['filesize'] = int_or_none(media_details.get('filesize'))
+                f['abr'] = int_or_none(media_details.get('bitrate'), 1000)
+                f['asr'] = int_or_none(media_details.get('sample_rate'))
+
+            formats.append(f)
 
         if not formats:
             if api_key:
