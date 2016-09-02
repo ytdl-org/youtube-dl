@@ -318,6 +318,7 @@ from .globo import (
     GloboIE,
     GloboArticleIE,
 )
+from .go import GoIE
 from .godtube import GodTubeIE
 from .godtv import GodTVIE
 from .golem import GolemIE
