@@ -578,10 +578,13 @@ class YoutubeDL(object):
 
             template_dict['epoch'] = int(time.time())
             autonumber_size = self.params.get('autonumber_size')
+            autonumber_start = self.params.get('autonumber_start')
             if autonumber_size is None:
                 autonumber_size = 5
+            if autonumber_start is None or autonumber_start < 1:
+                autonumber_start = 1
             autonumber_templ = '%0' + str(autonumber_size) + 'd'
-            template_dict['autonumber'] = autonumber_templ % self._num_downloads
+            template_dict['autonumber'] = autonumber_templ % (self._num_downloads + int(autonumber_start)-1)
             if template_dict.get('playlist_index') is not None:
                 template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
             if template_dict.get('resolution') is None:

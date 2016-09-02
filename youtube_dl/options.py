@@ -634,6 +634,10 @@ def parseOpts(overrideArguments=None):
         dest='autonumber_size', metavar='NUMBER',
         help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given')
     filesystem.add_option(
+        '--autonumber-start',
+        dest='autonumber_start', metavar='NUMBER', default=0,
+        help='Starts %(autonumber)s at the passed number (positive numbers only).')
+    filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
         help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames')
@@ -699,6 +703,7 @@ def parseOpts(overrideArguments=None):
         '--rm-cache-dir',
         action='store_true', dest='rm_cachedir',
         help='Delete all filesystem cache files')
+
 
     thumbnail = optparse.OptionGroup(parser, 'Thumbnail images')
     thumbnail.add_option(
