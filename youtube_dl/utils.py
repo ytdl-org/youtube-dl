@@ -2148,7 +2148,7 @@ def mimetype2ext(mt):
         return ext
 
     _, _, res = mt.rpartition('/')
-    res = res.lower()
+    res = res.split(';')[0].strip().lower()
 
     return {
         '3gpp': '3gp',
