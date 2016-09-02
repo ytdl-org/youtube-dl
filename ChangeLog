@@ -1,8 +1,32 @@
 version <unreleased>
 
+Core
+* Restore usage of NAME attribute from EXT-X-MEDIA tag for formats codes in
+  _extract_m3u8_formats (#10522)
+* Handle semicolon in mimetype2ext
+
+
 Extractors
++ [youtube] Add support for rental videos' previews (#10532)
+* [youtube:playlist] Fallback to video extraction for video/playlist URLs when
+  no playlist is actually served (#10537)
++ [drtv] Add support for dr.dk/nyheder (#10536)
++ [facebook:plugins:video] Add extractor (#10530)
++ [go] Add extractor for *.go.com sites
+* [adobepass] Check for authz_token expiration (#10527)
+* [nytimes] improve extraction
+* [thestar] Fix extraction (#10465)
+* [glide] Fix extraction (#10478)
+- [exfm] Remove extractor (#10482)
+* [youporn] Fix categories and tags extraction (#10521)
++ [curiositystream] Add extractor for app.curiositystream.com
 - [thvideo] Remove extractor (#10464)
 * [movingimage] Fix for the new site name (#10466)
++ [cbs] Add support for once formats (#10515)
+* [limelight] Skip ism snd duplicate manifests
++ [porncom] Extract categories and tags (#10510)
++ [facebook] Extract timestamp (#10508)
++ [yahoo] Extract more formats
 
 
 version 2016.08.31
