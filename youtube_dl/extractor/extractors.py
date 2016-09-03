@@ -287,7 +287,10 @@ from .formula1 import Formula1IE
 from .fourtube import FourTubeIE
 from .fox import FOXIE
 from .foxgay import FoxgayIE
-from .foxnews import FoxNewsIE
+from .foxnews import (
+    FoxNewsIE,
+    FoxNewsInsiderIE,
+)
 from .foxsports import FoxSportsIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
