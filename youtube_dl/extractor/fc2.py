@@ -153,6 +153,7 @@ class FC2EmbedIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
+            'ie_key': FC2IE.ie_key(),
             'url': 'fc2:%s' % video_id,
             'title': title,
             'thumbnail': thumbnail,
