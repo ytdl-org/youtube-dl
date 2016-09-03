@@ -2376,7 +2376,7 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
     }]
 
     def _real_extract(self, url):
-        video = self._check_download_just_video(url, 'WL')
+        _, video = self._check_download_just_video(url, 'WL')
         if video:
             return video
         _, playlist = self._extract_playlist('WL')
