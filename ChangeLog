@@ -1,5 +1,9 @@
 version <unreleased>
 
+Core
+* If the first segment of DASH fails, abort the whole download process to
+  prevent throttling (#10497)
+
 Extractors
 * [youjizz] Fix extraction (#10437)
 + [foxnews] Add support for FoxNews Insider (#10445)
