@@ -1,10 +1,12 @@
-#! -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import hashlib
+import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_parse_qs,
     compat_urllib_request,
     compat_urlparse,
 )
@@ -16,7 +18,7 @@ from ..utils import (
 
 
 class FC2IE(InfoExtractor):
-    _VALID_URL = r'^https?://video\.fc2\.com/(?:[^/]+/)*content/(?P<id>[^/]+)'
+    _VALID_URL = r'^(?:https?://video\.fc2\.com/(?:[^/]+/)*content/|fc2:)(?P<id>[^/]+)'
     IE_NAME = 'fc2'
     _NETRC_MACHINE = 'fc2'
     _TESTS = [{
@@ -75,12 +77,17 @@ class FC2IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         self._login()
-        webpage = self._download_webpage(url, video_id)
-        self._downloader.cookiejar.clear_session_cookies()  # must clear
-        self._login()
+        webpage = None
+        if not url.startswith('fc2:'):
+            webpage = self._download_webpage(url, video_id)
+            self._downloader.cookiejar.clear_session_cookies()  # must clear
+            self._login()
 
-        title = self._og_search_title(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
+        title = 'FC2 video %s' % video_id
+        thumbnail = None
+        if webpage is not None:
+            title = self._og_search_title(webpage)
+            thumbnail = self._og_search_thumbnail(webpage)
         refer = url.replace('/content/', '/a/content/') if '/a/content/' not in url else url
 
         mimi = hashlib.md5((video_id + '_gGddgPfeaf_gzyr').encode('utf-8')).hexdigest()
@@ -111,5 +118,42 @@ class FC2IE(InfoExtractor):
             'title': title,
             'url': video_url,
             'ext': 'flv',
+            'thumbnail': thumbnail,
+        }
+
+
+class FC2EmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://video\.fc2\.com/flv2\.swf\?(?P<query>.+)'
+    IE_NAME = 'fc2:embed'
+
+    _TEST = {
+        'url': 'http://video.fc2.com/flv2.swf?t=201404182936758512407645&i=20130316kwishtfitaknmcgd76kjd864hso93htfjcnaogz629mcgfs6rbfk0hsycma7shkf85937cbchfygd74&i=201403223kCqB3Ez&d=2625&sj=11&lang=ja&rel=1&from=11&cmt=1&tk=TlRBM09EQTNNekU9&tl=プリズン･ブレイク%20S1-01%20マイケル%20【吹替】',
+        'md5': 'b8aae5334cb691bdb1193a88a6ab5d5a',
+        'info_dict': {
+            'id': '201403223kCqB3Ez',
+            'ext': 'flv',
+            'title': 'プリズン･ブレイク S1-01 マイケル 【吹替】',
+            'thumbnail': 're:^https?://.*\.jpg$',
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        query = compat_parse_qs(mobj.group('query'))
+
+        video_id = query['i'][-1]
+        title = query.get('tl', ['FC2 video %s' % video_id])[0]
+
+        sj = query.get('sj', [None])[0]
+        thumbnail = None
+        if sj:
+            # See thumbnailImagePath() in ServerConst.as of flv2.swf
+            thumbnail = 'http://video%s-thumbnail.fc2.com/up/pic/%s.jpg' % (
+                sj, '/'.join((video_id[:6], video_id[6:8], video_id[-2], video_id[-1], video_id)))
+
+        return {
+            '_type': 'url_transparent',
+            'url': 'fc2:%s' % video_id,
+            'title': title,
             'thumbnail': thumbnail,
         }

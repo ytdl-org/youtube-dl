@@ -269,7 +269,10 @@ from .facebook import (
     FacebookPluginsVideoIE,
 )
 from .faz import FazIE
-from .fc2 import FC2IE
+from .fc2 import (
+    FC2IE,
+    FC2EmbedIE,
+)
 from .fczenit import FczenitIE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE

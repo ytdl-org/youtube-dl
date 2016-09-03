@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
++ [fc2] Recognize Flash player URLs (#10512)
+
+
 version 2016.09.03
 
 Core
