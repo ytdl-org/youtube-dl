@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [youjizz] Fix extraction (#10437)
 + [foxnews] Add support for FoxNews Insider (#10445)
 + [fc2] Recognize Flash player URLs (#10512)
 
