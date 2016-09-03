@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     unified_timestamp,
-    month_by_french_name,
+    month_by_name,
 )
 
 
@@ -37,7 +37,7 @@ class FranceInterIE(InfoExtractor):
 
         extractdate = self._search_regex('(\d{2}-([a-zA-Z\s]+)-\d{4}$)', url, 'extractdate', fatal=False)
         extractdate = extractdate.split('-')
-        extractdate = extractdate[2] + "," + str(month_by_french_name(extractdate[1])) + "," + extractdate[0]
+        extractdate = extractdate[2] + "," + str(month_by_name(extractdate[1],'fr')) + "," + extractdate[0]
 
         timestamp = unified_timestamp(extractdate)
 
