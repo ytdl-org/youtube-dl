@@ -1,5 +1,9 @@
 version <unreleased>
 
+Core
+* If the first segment of DASH fails, abort the whole download process to
+  prevent throttling (#10497)
+
 Extractors
 * [pornvoisines] Fix extraction (#10469)
 * [rottentomatoes] Fix extraction (#10467)
