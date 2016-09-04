@@ -96,7 +96,7 @@ class ThePlatformBaseIE(OnceIE):
 class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
     _VALID_URL = r'''(?x)
         (?:https?://(?:link|player)\.theplatform\.com/[sp]/(?P<provider_id>[^/]+)/
-           (?:(?:(?:[^/]+/)+select/)?(?P<media>media/(?:guid/\d+/)?)|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
+           (?:(?:(?:[^/]+/)+select/)?(?P<media>media/(?:guid/\d+/)?)?|(?P<config>(?:[^/\?]+/(?:swf|config)|onsite)/select/))?
          |theplatform:)(?P<id>[^/\?&]+)'''
 
     _TESTS = [{
@@ -116,6 +116,7 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
             # rtmp download
             'skip_download': True,
         },
+        'skip': '404 Not Found',
     }, {
         # from http://www.cnet.com/videos/tesla-model-s-a-second-step-towards-a-cleaner-motoring-future/
         'url': 'http://link.theplatform.com/s/kYEXFC/22d_qsQ6MIRT',
