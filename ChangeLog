@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [pornvoisines] Fix extraction (#10469)
 * [rottentomatoes] Fix extraction (#10467)
 * [youjizz] Fix extraction (#10437)
 + [foxnews] Add support for FoxNews Insider (#10445)
