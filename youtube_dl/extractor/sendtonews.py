@@ -4,33 +4,43 @@ from __future__ import unicode_literals
 import re
 
 from .jwplatform import JWPlatformBaseIE
-from ..compat import compat_parse_qs
 from ..utils import (
-    ExtractorError,
-    parse_duration,
+    float_or_none,
+    parse_iso8601,
+    update_url_query,
 )
 
 
 class SendtoNewsIE(JWPlatformBaseIE):
-    _VALID_URL = r'https?://embed\.sendtonews\.com/player/embed\.php\?(?P<query>[^#]+)'
+    _VALID_URL = r'https?://embed\.sendtonews\.com/player2/embedplayer\.php\?.*\bSC=(?P<id>[0-9A-Za-z-]+)'
 
     _TEST = {
         # From http://cleveland.cbslocal.com/2016/05/16/indians-score-season-high-15-runs-in-blowout-win-over-reds-rapid-reaction/
-        'url': 'http://embed.sendtonews.com/player/embed.php?SK=GxfCe0Zo7D&MK=175909&PK=5588&autoplay=on&sound=yes',
+        'url': 'http://embed.sendtonews.com/player2/embedplayer.php?SC=GxfCe0Zo7D-175909-5588&type=single&autoplay=on&sound=YES',
         'info_dict': {
-            'id': 'GxfCe0Zo7D-175909-5588',
-            'ext': 'mp4',
-            'title': 'Recap: CLE 15, CIN 6',
-            'description': '5/16/16: Indians\' bats explode for 15 runs in a win',
-            'duration': 49,
+            'id': 'GxfCe0Zo7D-175909-5588'
         },
+        'playlist_count': 9,
+        # test the first video only to prevent lengthy tests
+        'playlist': [{
+            'info_dict': {
+                'id': '198180',
+                'ext': 'mp4',
+                'title': 'Recap: CLE 5, LAA 4',
+                'description': '8/14/16: Naquin, Almonte lead Indians in 5-4 win',
+                'duration': 57.343,
+                'thumbnail': 're:https?://.*\.jpg$',
+                'upload_date': '20160815',
+                'timestamp': 1471221961,
+            },
+        }],
         'params': {
             # m3u8 download
             'skip_download': True,
         },
     }
 
-    _URL_TEMPLATE = '//embed.sendtonews.com/player/embed.php?SK=%s&MK=%s&PK=%s'
+    _URL_TEMPLATE = '//embed.sendtonews.com/player2/embedplayer.php?SC=%s'
 
     @classmethod
     def _extract_url(cls, webpage):
@@ -39,48 +49,41 @@ class SendtoNewsIE(JWPlatformBaseIE):
                 .*\bSC=(?P<SC>[0-9a-zA-Z-]+).*
             \1>''', webpage)
         if mobj:
-            sk, mk, pk = mobj.group('SC').split('-')
-            return cls._URL_TEMPLATE % (sk, mk, pk)
+            sc = mobj.group('SC')
+            return cls._URL_TEMPLATE % sc
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        params = compat_parse_qs(mobj.group('query'))
+        playlist_id = self._match_id(url)
 
-        if 'SK' not in params or 'MK' not in params or 'PK' not in params:
-            raise ExtractorError('Invalid URL', expected=True)
+        data_url = update_url_query(
+            url.replace('embedplayer.php', 'data_read.php'),
+            {'cmd': 'loadInitial'})
+        playlist_data = self._download_json(data_url, playlist_id)
 
-        video_id = '-'.join([params['SK'][0], params['MK'][0], params['PK'][0]])
+        entries = []
+        for video in playlist_data['playlistData'][0]:
+            info_dict = self._parse_jwplayer_data(
+                video['jwconfiguration'],
+                require_title=False, rtmp_params={'no_resume': True})
 
-        webpage = self._download_webpage(url, video_id)
+            thumbnails = []
+            if video.get('thumbnailUrl'):
+                thumbnails.append({
+                    'id': 'normal',
+                    'url': video['thumbnailUrl'],
+                })
+            if video.get('smThumbnailUrl'):
+                thumbnails.append({
+                    'id': 'small',
+                    'url': video['smThumbnailUrl'],
+                })
+            info_dict.update({
+                'title': video['S_headLine'],
+                'description': video.get('S_fullStory'),
+                'thumbnails': thumbnails,
+                'duration': float_or_none(video.get('SM_length')),
+                'timestamp': parse_iso8601(video.get('S_sysDate'), delimiter=' '),
+            })
+            entries.append(info_dict)
 
-        jwplayer_data_str = self._search_regex(
-            r'jwplayer\("[^"]+"\)\.setup\((.+?)\);', webpage, 'JWPlayer data')
-        js_vars = {
-            'w': 1024,
-            'h': 768,
-            'modeVar': 'html5',
-        }
-        for name, val in js_vars.items():
-            js_val = '%d' % val if isinstance(val, int) else '"%s"' % val
-            jwplayer_data_str = jwplayer_data_str.replace(':%s,' % name, ':%s,' % js_val)
-
-        info_dict = self._parse_jwplayer_data(
-            self._parse_json(jwplayer_data_str, video_id),
-            video_id, require_title=False, rtmp_params={'no_resume': True})
-
-        title = self._html_search_regex(
-            r'<div[^>]+class="embedTitle">([^<]+)</div>', webpage, 'title')
-        description = self._html_search_regex(
-            r'<div[^>]+class="embedSubTitle">([^<]+)</div>', webpage,
-            'description', fatal=False)
-        duration = parse_duration(self._html_search_regex(
-            r'<div[^>]+class="embedDetails">([0-9:]+)', webpage,
-            'duration', fatal=False))
-
-        info_dict.update({
-            'title': title,
-            'description': description,
-            'duration': duration,
-        })
-
-        return info_dict
+        return self.playlist_result(entries, playlist_id)

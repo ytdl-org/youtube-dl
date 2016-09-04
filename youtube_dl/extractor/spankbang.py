@@ -14,7 +14,7 @@ class SpankBangIE(InfoExtractor):
             'id': '3vvn',
             'ext': 'mp4',
             'title': 'fantasy solo',
-            'description': 'dillion harper masturbates on a bed',
+            'description': 'Watch fantasy solo free HD porn video - 05 minutes - dillion harper masturbates on a bed free adult movies.',
             'thumbnail': 're:^https?://.*\.jpg$',
             'uploader': 'silly2587',
             'age_limit': 18,
@@ -44,12 +44,10 @@ class SpankBangIE(InfoExtractor):
 
         title = self._html_search_regex(
             r'(?s)<h1[^>]*>(.+?)</h1>', webpage, 'title')
-        description = self._search_regex(
-            r'class="desc"[^>]*>([^<]+)',
-            webpage, 'description', default=None)
+        description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         uploader = self._search_regex(
-            r'class="user"[^>]*>([^<]+)',
+            r'class="user"[^>]*><img[^>]+>([^<]+)',
             webpage, 'uploader', fatal=False)
 
         age_limit = self._rta_search(webpage)

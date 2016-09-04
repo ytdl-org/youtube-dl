@@ -13,15 +13,15 @@ class RadioBremenIE(InfoExtractor):
     IE_NAME = 'radiobremen'
 
     _TEST = {
-        'url': 'http://www.radiobremen.de/mediathek/index.html?id=114720',
+        'url': 'http://www.radiobremen.de/mediathek/?id=141876',
         'info_dict': {
-            'id': '114720',
+            'id': '141876',
             'ext': 'mp4',
-            'duration': 1685,
+            'duration': 178,
             'width': 512,
-            'title': 'buten un binnen vom 22. Dezember',
+            'title': 'Druck auf Patrick Öztürk',
             'thumbnail': 're:https?://.*\.jpg$',
-            'description': 'Unter anderem mit diesen Themen: 45 Flüchtlinge sind in Worpswede angekommen +++ Freies Internet für alle: Bremer arbeiten an einem flächendeckenden W-Lan-Netzwerk +++ Aktivisten kämpfen für das Unibad +++ So war das Wetter 2014 +++',
+            'description': 'Gegen den SPD-Bürgerschaftsabgeordneten Patrick Öztürk wird wegen Beihilfe zum gewerbsmäßigen Betrug ermittelt. Am Donnerstagabend sollte er dem Vorstand des SPD-Unterbezirks Bremerhaven dazu Rede und Antwort stehen.',
         },
     }
 

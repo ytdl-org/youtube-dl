@@ -4,12 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
 from ..utils import (
     ExtractorError,
+    int_or_none,
+    update_url_query,
 )
 
 
@@ -51,48 +49,74 @@ class NaverIE(InfoExtractor):
             if error:
                 raise ExtractorError(error, expected=True)
             raise ExtractorError('couldn\'t extract vid and key')
-        vid = m_id.group(1)
-        key = m_id.group(2)
-        query = compat_urllib_parse_urlencode({'vid': vid, 'inKey': key, })
-        query_urls = compat_urllib_parse_urlencode({
-            'masterVid': vid,
-            'protocol': 'p2p',
-            'inKey': key,
-        })
-        info = self._download_xml(
-            'http://serviceapi.rmcnmv.naver.com/flash/videoInfo.nhn?' + query,
-            video_id, 'Downloading video info')
-        urls = self._download_xml(
-            'http://serviceapi.rmcnmv.naver.com/flash/playableEncodingOption.nhn?' + query_urls,
-            video_id, 'Downloading video formats info')
-
+        video_data = self._download_json(
+            'http://play.rmcnmv.naver.com/vod/play/v2.0/' + m_id.group(1),
+            video_id, query={
+                'key': m_id.group(2),
+            })
+        meta = video_data['meta']
+        title = meta['subject']
         formats = []
-        for format_el in urls.findall('EncodingOptions/EncodingOption'):
-            domain = format_el.find('Domain').text
-            uri = format_el.find('uri').text
-            f = {
-                'url': compat_urlparse.urljoin(domain, uri),
-                'ext': 'mp4',
-                'width': int(format_el.find('width').text),
-                'height': int(format_el.find('height').text),
-            }
-            if domain.startswith('rtmp'):
-                # urlparse does not support custom schemes
-                # https://bugs.python.org/issue18828
-                f.update({
-                    'url': domain + uri,
-                    'ext': 'flv',
-                    'rtmp_protocol': '1',  # rtmpt
+
+        def extract_formats(streams, stream_type, query={}):
+            for stream in streams:
+                stream_url = stream.get('source')
+                if not stream_url:
+                    continue
+                stream_url = update_url_query(stream_url, query)
+                encoding_option = stream.get('encodingOption', {})
+                bitrate = stream.get('bitrate', {})
+                formats.append({
+                    'format_id': '%s_%s' % (stream.get('type') or stream_type, encoding_option.get('id') or encoding_option.get('name')),
+                    'url': stream_url,
+                    'width': int_or_none(encoding_option.get('width')),
+                    'height': int_or_none(encoding_option.get('height')),
+                    'vbr': int_or_none(bitrate.get('video')),
+                    'abr': int_or_none(bitrate.get('audio')),
+                    'filesize': int_or_none(stream.get('size')),
+                    'protocol': 'm3u8_native' if stream_type == 'HLS' else None,
                 })
-            formats.append(f)
+
+        extract_formats(video_data.get('videos', {}).get('list', []), 'H264')
+        for stream_set in video_data.get('streams', []):
+            query = {}
+            for param in stream_set.get('keys', []):
+                query[param['name']] = param['value']
+            stream_type = stream_set.get('type')
+            videos = stream_set.get('videos')
+            if videos:
+                extract_formats(videos, stream_type, query)
+            elif stream_type == 'HLS':
+                stream_url = stream_set.get('source')
+                if not stream_url:
+                    continue
+                formats.extend(self._extract_m3u8_formats(
+                    update_url_query(stream_url, query), video_id,
+                    'mp4', 'm3u8_native', m3u8_id=stream_type, fatal=False))
         self._sort_formats(formats)
+
+        subtitles = {}
+        for caption in video_data.get('captions', {}).get('list', []):
+            caption_url = caption.get('source')
+            if not caption_url:
+                continue
+            subtitles.setdefault(caption.get('language') or caption.get('locale'), []).append({
+                'url': caption_url,
+            })
+
+        upload_date = self._search_regex(
+            r'<span[^>]+class="date".*?(\d{4}\.\d{2}\.\d{2})',
+            webpage, 'upload date', fatal=False)
+        if upload_date:
+            upload_date = upload_date.replace('.', '')
 
         return {
             'id': video_id,
-            'title': info.find('Subject').text,
+            'title': title,
             'formats': formats,
+            'subtitles': subtitles,
             'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'upload_date': info.find('WriteDate').text.replace('.', ''),
-            'view_count': int(info.find('PlayCount').text),
+            'thumbnail': meta.get('cover', {}).get('source') or self._og_search_thumbnail(webpage),
+            'view_count': int_or_none(meta.get('count')),
+            'upload_date': upload_date,
         }

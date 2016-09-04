@@ -4,27 +4,42 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
+    determine_ext,
+    ExtractorError,
+    int_or_none,
     parse_iso8601,
     qualities,
-    determine_ext,
+    try_get,
     update_url_query,
-    int_or_none,
 )
 
 
 class TVPlayIE(InfoExtractor):
-    IE_DESC = 'TV3Play and related services'
-    _VALID_URL = r'''(?x)https?://(?:www\.)?
-        (?:tvplay(?:\.skaties)?\.lv/parraides|
-           (?:tv3play|play\.tv3)\.lt/programos|
-           tv3play(?:\.tv3)?\.ee/sisu|
-           tv(?:3|6|8|10)play\.se/program|
-           (?:(?:tv3play|viasat4play|tv6play)\.no|tv3play\.dk)/programmer|
-           play\.novatv\.bg/programi
-        )/[^/]+/(?P<id>\d+)
-        '''
+    IE_NAME = 'mtg'
+    IE_DESC = 'MTG services'
+    _VALID_URL = r'''(?x)
+                    (?:
+                        mtg:|
+                        https?://
+                            (?:www\.)?
+                            (?:
+                                tvplay(?:\.skaties)?\.lv/parraides|
+                                (?:tv3play|play\.tv3)\.lt/programos|
+                                tv3play(?:\.tv3)?\.ee/sisu|
+                                (?:tv(?:3|6|8|10)play|viafree)\.se/program|
+                                (?:(?:tv3play|viasat4play|tv6play|viafree)\.no|(?:tv3play|viafree)\.dk)/programmer|
+                                play\.novatv\.bg/programi
+                            )
+                            /(?:[^/]+/)+
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [
         {
             'url': 'http://www.tvplay.lv/parraides/vinas-melo-labak/418113?autostart=true',
@@ -34,6 +49,9 @@ class TVPlayIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Kādi ir īri? - Viņas melo labāk',
                 'description': 'Baiba apsmej īrus, kādi tie ir un ko viņi dara.',
+                'series': 'Viņas melo labāk',
+                'season': '2.sezona',
+                'season_number': 2,
                 'duration': 25,
                 'timestamp': 1406097056,
                 'upload_date': '20140723',
@@ -46,6 +64,10 @@ class TVPlayIE(InfoExtractor):
                 'ext': 'flv',
                 'title': 'Moterys meluoja geriau',
                 'description': 'md5:9aec0fc68e2cbc992d2a140bd41fa89e',
+                'series': 'Moterys meluoja geriau',
+                'episode_number': 47,
+                'season': '1 sezonas',
+                'season_number': 1,
                 'duration': 1330,
                 'timestamp': 1403769181,
                 'upload_date': '20140626',
@@ -183,7 +205,20 @@ class TVPlayIE(InfoExtractor):
             'only_matching': True,
         },
         {
+            # views is null
+            'url': 'http://tvplay.skaties.lv/parraides/tv3-zinas/760183',
+            'only_matching': True,
+        },
+        {
             'url': 'http://tv3play.tv3.ee/sisu/kodu-keset-linna/238551?autostart=true',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.viafree.se/program/underhallning/i-like-radio-live/sasong-1/676869',
+            'only_matching': True,
+        },
+        {
+            'url': 'mtg:418113',
             'only_matching': True,
         }
     ]
@@ -192,16 +227,19 @@ class TVPlayIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://playapi.mtgx.tv/v1/videos/%s' % video_id, video_id, 'Downloading video JSON')
+            'http://playapi.mtgx.tv/v3/videos/%s' % video_id, video_id, 'Downloading video JSON')
 
         title = video['title']
 
-        if video.get('is_geo_blocked'):
-            self.report_warning(
-                'This content might not be available in your country due to copyright reasons')
-
-        streams = self._download_json(
-            'http://playapi.mtgx.tv/v1/videos/stream/%s' % video_id, video_id, 'Downloading streams JSON')
+        try:
+            streams = self._download_json(
+                'http://playapi.mtgx.tv/v3/videos/stream/%s' % video_id,
+                video_id, 'Downloading streams JSON')
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                msg = self._parse_json(e.cause.read().decode('utf-8'), video_id)
+                raise ExtractorError(msg['msg'], expected=True)
+            raise
 
         quality = qualities(['hls', 'medium', 'high'])
         formats = []
@@ -226,7 +264,8 @@ class TVPlayIE(InfoExtractor):
                     'ext': ext,
                 }
                 if video_url.startswith('rtmp'):
-                    m = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
+                    m = re.search(
+                        r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
                     if not m:
                         continue
                     fmt.update({
@@ -240,15 +279,94 @@ class TVPlayIE(InfoExtractor):
                         'url': video_url,
                     })
                 formats.append(fmt)
+
+        if not formats and video.get('is_geo_blocked'):
+            self.raise_geo_restricted(
+                'This content might not be available in your country due to copyright reasons')
+
         self._sort_formats(formats)
+
+        # TODO: webvtt in m3u8
+        subtitles = {}
+        sami_path = video.get('sami_path')
+        if sami_path:
+            lang = self._search_regex(
+                r'_([a-z]{2})\.xml', sami_path, 'lang',
+                default=compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1])
+            subtitles[lang] = [{
+                'url': sami_path,
+            }]
+
+        series = video.get('format_title')
+        episode_number = int_or_none(video.get('format_position', {}).get('episode'))
+        season = video.get('_embedded', {}).get('season', {}).get('title')
+        season_number = int_or_none(video.get('format_position', {}).get('season'))
 
         return {
             'id': video_id,
             'title': title,
             'description': video.get('description'),
+            'series': series,
+            'episode_number': episode_number,
+            'season': season,
+            'season_number': season_number,
             'duration': int_or_none(video.get('duration')),
             'timestamp': parse_iso8601(video.get('created_at')),
-            'view_count': int_or_none(video.get('views', {}).get('total')),
+            'view_count': try_get(video, lambda x: x['views']['total'], int),
             'age_limit': int_or_none(video.get('age_limit', 0)),
             'formats': formats,
+            'subtitles': subtitles,
         }
+
+
+class ViafreeIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        viafree\.
+                        (?:
+                            (?:dk|no)/programmer|
+                            se/program
+                        )
+                        /(?:[^/]+/)+(?P<id>[^/?#&]+)
+                    '''
+    _TESTS = [{
+        'url': 'http://www.viafree.se/program/livsstil/husraddarna/sasong-2/avsnitt-2',
+        'info_dict': {
+            'id': '395375',
+            'ext': 'mp4',
+            'title': 'Husräddarna S02E02',
+            'description': 'md5:4db5c933e37db629b5a2f75dfb34829e',
+            'series': 'Husräddarna',
+            'season': 'Säsong 2',
+            'season_number': 2,
+            'duration': 2576,
+            'timestamp': 1400596321,
+            'upload_date': '20140520',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [TVPlayIE.ie_key()],
+    }, {
+        'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.viafree.dk/programmer/reality/paradise-hotel/saeson-7/episode-5',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if TVPlayIE.suitable(url) else super(ViafreeIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        video_id = self._search_regex(
+            r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](?P<id>\d{6,})',
+            webpage, 'video id')
+
+        return self.url_result('mtg:%s' % video_id, TVPlayIE.ie_key())

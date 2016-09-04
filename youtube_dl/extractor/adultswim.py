@@ -3,16 +3,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .turner import TurnerBaseIE
 from ..utils import (
-    determine_ext,
     ExtractorError,
-    float_or_none,
-    xpath_text,
+    int_or_none,
 )
 
 
-class AdultSwimIE(InfoExtractor):
+class AdultSwimIE(TurnerBaseIE):
     _VALID_URL = r'https?://(?:www\.)?adultswim\.com/videos/(?P<is_playlist>playlists/)?(?P<show_path>[^/]+)/(?P<episode_path>[^/?#]+)/?'
 
     _TESTS = [{
@@ -83,6 +81,21 @@ class AdultSwimIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        # heroMetadata.trailer
+        'url': 'http://www.adultswim.com/videos/decker/inside-decker-a-new-hero/',
+        'info_dict': {
+            'id': 'I0LQFQkaSUaFp8PnAWHhoQ',
+            'ext': 'mp4',
+            'title': 'Decker - Inside Decker: A New Hero',
+            'description': 'md5:c916df071d425d62d70c86d4399d3ee0',
+            'duration': 249.008,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }]
 
     @staticmethod
@@ -133,79 +146,56 @@ class AdultSwimIE(InfoExtractor):
             if video_info is None:
                 if bootstrapped_data.get('slugged_video', {}).get('slug') == episode_path:
                     video_info = bootstrapped_data['slugged_video']
-                else:
-                    raise ExtractorError('Unable to find video info')
+            if not video_info:
+                video_info = bootstrapped_data.get(
+                    'heroMetadata', {}).get('trailer', {}).get('video')
+            if not video_info:
+                video_info = bootstrapped_data.get('onlineOriginals', [None])[0]
+            if not video_info:
+                raise ExtractorError('Unable to find video info')
 
             show = bootstrapped_data['show']
             show_title = show['title']
             stream = video_info.get('stream')
-            clips = [stream] if stream else video_info.get('clips')
-            if not clips:
-                raise ExtractorError(
-                    'This video is only available via cable service provider subscription that'
-                    ' is not currently supported. You may want to use --cookies.'
-                    if video_info.get('auth') is True else 'Unable to find stream or clips',
-                    expected=True)
-            segment_ids = [clip['videoPlaybackID'] for clip in clips]
+            if stream and stream.get('videoPlaybackID'):
+                segment_ids = [stream['videoPlaybackID']]
+            elif video_info.get('clips'):
+                segment_ids = [clip['videoPlaybackID'] for clip in video_info['clips']]
+            elif video_info.get('videoPlaybackID'):
+                segment_ids = [video_info['videoPlaybackID']]
+            else:
+                if video_info.get('auth') is True:
+                    raise ExtractorError(
+                        'This video is only available via cable service provider subscription that'
+                        ' is not currently supported. You may want to use --cookies.', expected=True)
+                else:
+                    raise ExtractorError('Unable to find stream or clips')
 
         episode_id = video_info['id']
         episode_title = video_info['title']
-        episode_description = video_info['description']
-        episode_duration = video_info.get('duration')
+        episode_description = video_info.get('description')
+        episode_duration = int_or_none(video_info.get('duration'))
+        view_count = int_or_none(video_info.get('views'))
 
         entries = []
         for part_num, segment_id in enumerate(segment_ids):
-            segment_url = 'http://www.adultswim.com/videos/api/v0/assets?id=%s&platform=desktop' % segment_id
-
+            segement_info = self._extract_cvp_info(
+                'http://www.adultswim.com/videos/api/v0/assets?id=%s&platform=desktop' % segment_id,
+                segment_id, {
+                    'secure': {
+                        'media_src': 'http://androidhls-secure.cdn.turner.com/adultswim/big',
+                        'tokenizer_src': 'http://www.adultswim.com/astv/mvpd/processors/services/token_ipadAdobe.do',
+                    },
+                })
             segment_title = '%s - %s' % (show_title, episode_title)
             if len(segment_ids) > 1:
                 segment_title += ' Part %d' % (part_num + 1)
-
-            idoc = self._download_xml(
-                segment_url, segment_title,
-                'Downloading segment information', 'Unable to download segment information')
-
-            segment_duration = float_or_none(
-                xpath_text(idoc, './/trt', 'segment duration').strip())
-
-            formats = []
-            file_els = idoc.findall('.//files/file') or idoc.findall('./files/file')
-
-            unique_urls = []
-            unique_file_els = []
-            for file_el in file_els:
-                media_url = file_el.text
-                if not media_url or determine_ext(media_url) == 'f4m':
-                    continue
-                if file_el.text not in unique_urls:
-                    unique_urls.append(file_el.text)
-                    unique_file_els.append(file_el)
-
-            for file_el in unique_file_els:
-                bitrate = file_el.attrib.get('bitrate')
-                ftype = file_el.attrib.get('type')
-                media_url = file_el.text
-                if determine_ext(media_url) == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        media_url, segment_title, 'mp4', preference=0,
-                        m3u8_id='hls', fatal=False))
-                else:
-                    formats.append({
-                        'format_id': '%s_%s' % (bitrate, ftype),
-                        'url': file_el.text.strip(),
-                        # The bitrate may not be a number (for example: 'iphone')
-                        'tbr': int(bitrate) if bitrate.isdigit() else None,
-                    })
-
-            self._sort_formats(formats)
-
-            entries.append({
+            segement_info.update({
                 'id': segment_id,
                 'title': segment_title,
-                'formats': formats,
-                'duration': segment_duration,
-                'description': episode_description
+                'description': episode_description,
             })
+            entries.append(segement_info)
 
         return {
             '_type': 'playlist',
@@ -214,5 +204,6 @@ class AdultSwimIE(InfoExtractor):
             'entries': entries,
             'title': '%s - %s' % (show_title, episode_title),
             'description': episode_description,
-            'duration': episode_duration
+            'duration': episode_duration,
+            'view_count': view_count,
         }

@@ -396,12 +396,12 @@ class GloboIE(InfoExtractor):
 
 
 class GloboArticleIE(InfoExtractor):
-    _VALID_URL = 'https?://.+?\.globo\.com/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+    _VALID_URL = 'https?://.+?\.globo\.com/(?:[^/]+/)*(?P<id>[^/]+)(?:\.html)?'
 
     _VIDEOID_REGEXES = [
         r'\bdata-video-id=["\'](\d{7,})',
         r'\bdata-player-videosids=["\'](\d{7,})',
-        r'\bvideosIDs\s*:\s*["\'](\d{7,})',
+        r'\bvideosIDs\s*:\s*["\']?(\d{7,})',
         r'\bdata-id=["\'](\d{7,})',
         r'<div[^>]+\bid=["\'](\d{7,})',
     ]
@@ -422,6 +422,9 @@ class GloboArticleIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://gshow.globo.com/programas/tv-xuxa/O-Programa/noticia/2014/01/xuxa-e-junno-namoram-muuuito-em-luau-de-zeze-di-camargo-e-luciano.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://oglobo.globo.com/rio/a-amizade-entre-um-entregador-de-farmacia-um-piano-19946271',
         'only_matching': True,
     }]
 

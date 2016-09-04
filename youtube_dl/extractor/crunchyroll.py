@@ -115,6 +115,21 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'skip_download': True,
         },
     }, {
+        'url': 'http://www.crunchyroll.com/rezero-starting-life-in-another-world-/episode-5-the-morning-of-our-promise-is-still-distant-702409',
+        'info_dict': {
+            'id': '702409',
+            'ext': 'mp4',
+            'title': 'Re:ZERO -Starting Life in Another World- Episode 5 – The Morning of Our Promise Is Still Distant',
+            'description': 'md5:97664de1ab24bbf77a9c01918cb7dca9',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'uploader': 'TV TOKYO',
+            'upload_date': '20160508',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
         'only_matching': True,
     }, {
@@ -336,9 +351,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             if video_encode_id in video_encode_ids:
                 continue
             video_encode_ids.append(video_encode_id)
+
+            video_file = xpath_text(stream_info, './file')
+            if not video_file:
+                continue
+            if video_file.startswith('http'):
+                formats.extend(self._extract_m3u8_formats(
+                    video_file, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+                continue
+
             video_url = xpath_text(stream_info, './host')
-            video_play_path = xpath_text(stream_info, './file')
-            if not video_url or not video_play_path:
+            if not video_url:
                 continue
             metadata = stream_info.find('./metadata')
             format_info = {
@@ -353,7 +377,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 parsed_video_url = compat_urlparse.urlparse(video_url)
                 direct_video_url = compat_urlparse.urlunparse(parsed_video_url._replace(
                     netloc='v.lvlt.crcdn.net',
-                    path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_play_path.split(':')[-1])))
+                    path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_file.split(':')[-1])))
                 if self._is_valid_url(direct_video_url, video_id, video_format):
                     format_info.update({
                         'url': direct_video_url,
@@ -363,7 +387,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
             format_info.update({
                 'url': video_url,
-                'play_path': video_play_path,
+                'play_path': video_file,
                 'ext': 'flv',
             })
             formats.append(format_info)

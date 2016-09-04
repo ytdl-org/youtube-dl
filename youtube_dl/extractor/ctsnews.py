@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import parse_iso8601, ExtractorError
+from ..utils import unified_timestamp
 
 
 class CtsNewsIE(InfoExtractor):
     IE_DESC = '華視新聞'
-    # https connection failed (Connection reset)
     _VALID_URL = r'https?://news\.cts\.com\.tw/[a-z]+/[a-z]+/\d+/(?P<id>\d+)\.html'
     _TESTS = [{
         'url': 'http://news.cts.com.tw/cts/international/201501/201501291578109.html',
@@ -16,7 +15,7 @@ class CtsNewsIE(InfoExtractor):
             'id': '201501291578109',
             'ext': 'mp4',
             'title': '以色列.真主黨交火 3人死亡',
-            'description': 'md5:95e9b295c898b7ff294f09d450178d7d',
+            'description': '以色列和黎巴嫩真主黨，爆發五年最嚴重衝突，雙方砲轟交火，兩名以軍死亡，還有一名西班牙籍的聯合國維和人...',
             'timestamp': 1422528540,
             'upload_date': '20150129',
         }
@@ -28,7 +27,7 @@ class CtsNewsIE(InfoExtractor):
             'id': '201309031304098',
             'ext': 'mp4',
             'title': '韓國31歲童顏男 貌如十多歲小孩',
-            'description': 'md5:f183feeba3752b683827aab71adad584',
+            'description': '越有年紀的人，越希望看起來年輕一點，而南韓卻有一位31歲的男子，看起來像是11、12歲的小孩，身...',
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1378205880,
             'upload_date': '20130903',
@@ -36,8 +35,7 @@ class CtsNewsIE(InfoExtractor):
     }, {
         # With Youtube embedded video
         'url': 'http://news.cts.com.tw/cts/money/201501/201501291578003.html',
-        'md5': '1d842c771dc94c8c3bca5af2cc1db9c5',
-        'add_ie': ['Youtube'],
+        'md5': 'e4726b2ccd70ba2c319865e28f0a91d1',
         'info_dict': {
             'id': 'OVbfO7d0_hQ',
             'ext': 'mp4',
@@ -47,42 +45,37 @@ class CtsNewsIE(InfoExtractor):
             'upload_date': '20150128',
             'uploader_id': 'TBSCTS',
             'uploader': '中華電視公司',
-        }
+        },
+        'add_ie': ['Youtube'],
     }]
 
     def _real_extract(self, url):
         news_id = self._match_id(url)
         page = self._download_webpage(url, news_id)
 
-        if self._search_regex(r'(CTSPlayer2)', page, 'CTSPlayer2 identifier', default=None):
-            feed_url = self._html_search_regex(
-                r'(http://news\.cts\.com\.tw/action/mp4feed\.php\?news_id=\d+)',
-                page, 'feed url')
-            video_url = self._download_webpage(
-                feed_url, news_id, note='Fetching feed')
+        news_id = self._hidden_inputs(page).get('get_id')
+
+        if news_id:
+            mp4_feed = self._download_json(
+                'http://news.cts.com.tw/action/test_mp4feed.php',
+                news_id, note='Fetching feed', query={'news_id': news_id})
+            video_url = mp4_feed['source_url']
         else:
             self.to_screen('Not CTSPlayer video, trying Youtube...')
             youtube_url = self._search_regex(
-                r'src="(//www\.youtube\.com/embed/[^"]+)"', page, 'youtube url',
-                default=None)
-            if not youtube_url:
-                raise ExtractorError('The news includes no videos!', expected=True)
+                r'src="(//www\.youtube\.com/embed/[^"]+)"', page, 'youtube url')
 
-            return {
-                '_type': 'url',
-                'url': youtube_url,
-                'ie_key': 'Youtube',
-            }
+            return self.url_result(youtube_url, ie='Youtube')
 
         description = self._html_search_meta('description', page)
-        title = self._html_search_meta('title', page)
+        title = self._html_search_meta('title', page, fatal=True)
         thumbnail = self._html_search_meta('image', page)
 
         datetime_str = self._html_search_regex(
-            r'(\d{4}/\d{2}/\d{2} \d{2}:\d{2})', page, 'date and time')
-        # Transform into ISO 8601 format with timezone info
-        datetime_str = datetime_str.replace('/', '-') + ':00+0800'
-        timestamp = parse_iso8601(datetime_str, delimiter=' ')
+            r'(\d{4}/\d{2}/\d{2} \d{2}:\d{2})', page, 'date and time', fatal=False)
+        timestamp = None
+        if datetime_str:
+            timestamp = unified_timestamp(datetime_str) - 8 * 3600
 
         return {
             'id': news_id,

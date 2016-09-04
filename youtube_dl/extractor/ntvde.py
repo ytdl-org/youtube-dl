@@ -1,5 +1,7 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
+
+import re
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
@@ -40,8 +42,8 @@ class NTVDeIE(InfoExtractor):
         timestamp = int_or_none(info.get('publishedDateAsUnixTimeStamp'))
         vdata = self._parse_json(self._search_regex(
             r'(?s)\$\(\s*"\#player"\s*\)\s*\.data\(\s*"player",\s*(\{.*?\})\);',
-            webpage, 'player data'),
-            video_id, transform_source=js_to_json)
+            webpage, 'player data'), video_id,
+            transform_source=lambda s: js_to_json(re.sub(r'advertising:\s*{[^}]+},', '', s)))
         duration = parse_duration(vdata.get('duration'))
 
         formats = []

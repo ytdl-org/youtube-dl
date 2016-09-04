@@ -24,7 +24,8 @@ class BIQLEIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ребенок в шоке от автоматической мойки',
             'uploader': 'Dmitry Kotov',
-        }
+        },
+        'skip': ' This video was marked as adult.  Embedding adult videos on external sites is prohibited.',
     }]
 
     def _real_extract(self, url):

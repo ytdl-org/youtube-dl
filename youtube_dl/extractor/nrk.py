@@ -14,16 +14,6 @@ from ..utils import (
 
 
 class NRKBaseIE(InfoExtractor):
-    def _extract_formats(self, manifest_url, video_id, fatal=True):
-        formats = []
-        formats.extend(self._extract_f4m_formats(
-            manifest_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81',
-            video_id, f4m_id='hds', fatal=fatal))
-        formats.extend(self._extract_m3u8_formats(manifest_url.replace(
-            'akamaihd.net/z/', 'akamaihd.net/i/').replace('/manifest.f4m', '/master.m3u8'),
-            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=fatal))
-        return formats
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -45,7 +35,7 @@ class NRKBaseIE(InfoExtractor):
                 asset_url = asset.get('url')
                 if not asset_url:
                     continue
-                formats = self._extract_formats(asset_url, video_id, fatal=False)
+                formats = self._extract_akamai_formats(asset_url, video_id)
                 if not formats:
                     continue
                 self._sort_formats(formats)
@@ -69,7 +59,7 @@ class NRKBaseIE(InfoExtractor):
         if not entries:
             media_url = data.get('mediaUrl')
             if media_url:
-                formats = self._extract_formats(media_url, video_id)
+                formats = self._extract_akamai_formats(media_url, video_id)
                 self._sort_formats(formats)
                 duration = parse_duration(data.get('duration'))
                 entries = [{

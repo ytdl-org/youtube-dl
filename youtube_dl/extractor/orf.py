@@ -137,13 +137,16 @@ class ORFTVthekIE(InfoExtractor):
 class ORFOE1IE(InfoExtractor):
     IE_NAME = 'orf:oe1'
     IE_DESC = 'Radio Österreich 1'
-    _VALID_URL = r'https?://oe1\.orf\.at/(?:programm/|konsole.*?#\?track_id=)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://oe1\.orf\.at/(?:programm/|konsole\?.*?\btrack_id=)(?P<id>[0-9]+)'
 
     # Audios on ORF radio are only available for 7 days, so we can't add tests.
-    _TEST = {
+    _TESTS = [{
         'url': 'http://oe1.orf.at/konsole?show=on_demand#?track_id=394211',
         'only_matching': True,
-    }
+    }, {
+        'url': 'http://oe1.orf.at/konsole?show=ondemand&track_id=443608&load_day=/programm/konsole/tag/20160726',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         show_id = self._match_id(url)

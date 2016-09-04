@@ -13,7 +13,7 @@ class MyVidsterIE(InfoExtractor):
             'id': '3685814',
             'title': 'md5:7d8427d6d02c4fbcef50fe269980c749',
             'upload_date': '20141027',
-            'uploader_id': 'utkualp',
+            'uploader': 'utkualp',
             'ext': 'mp4',
             'age_limit': 18,
         },

@@ -2,19 +2,23 @@
 from __future__ import unicode_literals
 
 import re
+import itertools
 
 from .common import InfoExtractor
 from ..utils import (
+    dict_get,
     ExtractorError,
     float_or_none,
     int_or_none,
     parse_duration,
     parse_iso8601,
+    try_get,
     unescapeHTML,
 )
 from ..compat import (
     compat_etree_fromstring,
     compat_HTTPError,
+    compat_urlparse,
 )
 
 
@@ -55,11 +59,12 @@ class BBCCoUkIE(InfoExtractor):
             'url': 'http://www.bbc.co.uk/programmes/b039g8p7',
             'info_dict': {
                 'id': 'b039d07m',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Leonard Cohen, Kaleidoscope - BBC Radio 4',
                 'description': 'The Canadian poet and songwriter reflects on his musical career.',
             },
             'params': {
+                # rtmp download
                 'skip_download': True,
             }
         },
@@ -91,7 +96,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'this episode is not currently available',
+            'skip': 'Currently BBC iPlayer TV programmes are available to play in the UK only',
         },
         {
             'url': 'http://www.bbc.co.uk/iplayer/episode/p026c7jt/tomorrows-worlds-the-unearthly-history-of-science-fiction-2-invasion',
@@ -106,7 +111,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'this episode is not currently available',
+            'skip': 'Currently BBC iPlayer TV programmes are available to play in the UK only',
         }, {
             'url': 'http://www.bbc.co.uk/programmes/b04v20dw',
             'info_dict': {
@@ -126,12 +131,13 @@ class BBCCoUkIE(InfoExtractor):
             'note': 'Audio',
             'info_dict': {
                 'id': 'p022h44j',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'BBC Proms Music Guides, Rachmaninov: Symphonic Dances',
                 'description': "In this Proms Music Guide, Andrew McGregor looks at Rachmaninov's Symphonic Dances.",
                 'duration': 227,
             },
             'params': {
+                # rtmp download
                 'skip_download': True,
             }
         }, {
@@ -139,12 +145,13 @@ class BBCCoUkIE(InfoExtractor):
             'note': 'Video',
             'info_dict': {
                 'id': 'p025c103',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Reading and Leeds Festival, 2014, Rae Morris - Closer (Live on BBC Three)',
                 'description': 'Rae Morris performs Closer for BBC Three at Reading 2014',
                 'duration': 226,
             },
             'params': {
+                # rtmp download
                 'skip_download': True,
             }
         }, {
@@ -160,7 +167,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'this episode is not currently available',
+            'skip': 'geolocation',
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/episode/b05zmgwn/royal-academy-summer-exhibition',
             'info_dict': {
@@ -174,7 +181,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'this episode is not currently available',
+            'skip': 'geolocation',
         }, {
             # iptv-all mediaset fails with geolocation however there is no geo restriction
             # for this programme at all
@@ -189,17 +196,18 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'this episode is not currently available on BBC iPlayer Radio',
+            'skip': 'Now it\'s really geo-restricted',
         }, {
             # compact player (https://github.com/rg3/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
             'info_dict': {
                 'id': 'p028bfkj',
-                'ext': 'mp4',
+                'ext': 'flv',
                 'title': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
                 'description': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
             },
             'params': {
+                # rtmp download
                 'skip_download': True,
             },
         }, {
@@ -225,51 +233,6 @@ class BBCCoUkIE(InfoExtractor):
         asx = self._download_xml(connection.get('href'), programme_id, 'Downloading ASX playlist')
         return [ref.get('href') for ref in asx.findall('./Entry/ref')]
 
-    def _extract_connection(self, connection, programme_id):
-        formats = []
-        kind = connection.get('kind')
-        protocol = connection.get('protocol')
-        supplier = connection.get('supplier')
-        if protocol == 'http':
-            href = connection.get('href')
-            transfer_format = connection.get('transferFormat')
-            # ASX playlist
-            if supplier == 'asx':
-                for i, ref in enumerate(self._extract_asx_playlist(connection, programme_id)):
-                    formats.append({
-                        'url': ref,
-                        'format_id': 'ref%s_%s' % (i, supplier),
-                    })
-            # Skip DASH until supported
-            elif transfer_format == 'dash':
-                pass
-            elif transfer_format == 'hls':
-                formats.extend(self._extract_m3u8_formats(
-                    href, programme_id, 'mp4', 'm3u8_native',
-                    m3u8_id=supplier, fatal=False))
-            # Direct link
-            else:
-                formats.append({
-                    'url': href,
-                    'format_id': supplier or kind or protocol,
-                })
-        elif protocol == 'rtmp':
-            application = connection.get('application', 'ondemand')
-            auth_string = connection.get('authString')
-            identifier = connection.get('identifier')
-            server = connection.get('server')
-            formats.append({
-                'url': '%s://%s/%s?%s' % (protocol, server, application, auth_string),
-                'play_path': identifier,
-                'app': '%s?%s' % (application, auth_string),
-                'page_url': 'http://www.bbc.co.uk',
-                'player_url': 'http://www.bbc.co.uk/emp/releases/iplayer/revisions/617463_618125_4/617463_618125_4_emp.swf',
-                'rtmp_live': False,
-                'ext': 'flv',
-                'format_id': supplier,
-            })
-        return formats
-
     def _extract_items(self, playlist):
         return playlist.findall('./{%s}item' % self._EMP_PLAYLIST_NS)
 
@@ -289,47 +252,6 @@ class BBCCoUkIE(InfoExtractor):
 
     def _extract_connections(self, media):
         return self._findall_ns(media, './{%s}connection')
-
-    def _extract_video(self, media, programme_id):
-        formats = []
-        vbr = int_or_none(media.get('bitrate'))
-        vcodec = media.get('encoding')
-        service = media.get('service')
-        width = int_or_none(media.get('width'))
-        height = int_or_none(media.get('height'))
-        file_size = int_or_none(media.get('media_file_size'))
-        for connection in self._extract_connections(media):
-            conn_formats = self._extract_connection(connection, programme_id)
-            for format in conn_formats:
-                if format.get('protocol') != 'm3u8_native':
-                    format.update({
-                        'width': width,
-                        'height': height,
-                        'vbr': vbr,
-                        'vcodec': vcodec,
-                        'filesize': file_size,
-                    })
-                if service:
-                    format['format_id'] = '%s_%s' % (service, format['format_id'])
-            formats.extend(conn_formats)
-        return formats
-
-    def _extract_audio(self, media, programme_id):
-        formats = []
-        abr = int_or_none(media.get('bitrate'))
-        acodec = media.get('encoding')
-        service = media.get('service')
-        for connection in self._extract_connections(media):
-            conn_formats = self._extract_connection(connection, programme_id)
-            for format in conn_formats:
-                format.update({
-                    'format_id': '%s_%s' % (service, format['format_id']),
-                    'abr': abr,
-                    'acodec': acodec,
-                    'vcodec': 'none',
-                })
-            formats.extend(conn_formats)
-        return formats
 
     def _get_subtitles(self, media, programme_id):
         subtitles = {}
@@ -376,13 +298,87 @@ class BBCCoUkIE(InfoExtractor):
     def _process_media_selector(self, media_selection, programme_id):
         formats = []
         subtitles = None
+        urls = []
 
         for media in self._extract_medias(media_selection):
             kind = media.get('kind')
-            if kind == 'audio':
-                formats.extend(self._extract_audio(media, programme_id))
-            elif kind == 'video':
-                formats.extend(self._extract_video(media, programme_id))
+            if kind in ('video', 'audio'):
+                bitrate = int_or_none(media.get('bitrate'))
+                encoding = media.get('encoding')
+                service = media.get('service')
+                width = int_or_none(media.get('width'))
+                height = int_or_none(media.get('height'))
+                file_size = int_or_none(media.get('media_file_size'))
+                for connection in self._extract_connections(media):
+                    href = connection.get('href')
+                    if href in urls:
+                        continue
+                    if href:
+                        urls.append(href)
+                    conn_kind = connection.get('kind')
+                    protocol = connection.get('protocol')
+                    supplier = connection.get('supplier')
+                    transfer_format = connection.get('transferFormat')
+                    format_id = supplier or conn_kind or protocol
+                    if service:
+                        format_id = '%s_%s' % (service, format_id)
+                    # ASX playlist
+                    if supplier == 'asx':
+                        for i, ref in enumerate(self._extract_asx_playlist(connection, programme_id)):
+                            formats.append({
+                                'url': ref,
+                                'format_id': 'ref%s_%s' % (i, format_id),
+                            })
+                    elif transfer_format == 'dash':
+                        formats.extend(self._extract_mpd_formats(
+                            href, programme_id, mpd_id=format_id, fatal=False))
+                    elif transfer_format == 'hls':
+                        formats.extend(self._extract_m3u8_formats(
+                            href, programme_id, ext='mp4', entry_protocol='m3u8_native',
+                            m3u8_id=format_id, fatal=False))
+                    elif transfer_format == 'hds':
+                        formats.extend(self._extract_f4m_formats(
+                            href, programme_id, f4m_id=format_id, fatal=False))
+                    else:
+                        if not service and not supplier and bitrate:
+                            format_id += '-%d' % bitrate
+                        fmt = {
+                            'format_id': format_id,
+                            'filesize': file_size,
+                        }
+                        if kind == 'video':
+                            fmt.update({
+                                'width': width,
+                                'height': height,
+                                'vbr': bitrate,
+                                'vcodec': encoding,
+                            })
+                        else:
+                            fmt.update({
+                                'abr': bitrate,
+                                'acodec': encoding,
+                                'vcodec': 'none',
+                            })
+                        if protocol == 'http':
+                            # Direct link
+                            fmt.update({
+                                'url': href,
+                            })
+                        elif protocol == 'rtmp':
+                            application = connection.get('application', 'ondemand')
+                            auth_string = connection.get('authString')
+                            identifier = connection.get('identifier')
+                            server = connection.get('server')
+                            fmt.update({
+                                'url': '%s://%s/%s?%s' % (protocol, server, application, auth_string),
+                                'play_path': identifier,
+                                'app': '%s?%s' % (application, auth_string),
+                                'page_url': 'http://www.bbc.co.uk',
+                                'player_url': 'http://www.bbc.co.uk/emp/releases/iplayer/revisions/617463_618125_4/617463_618125_4_emp.swf',
+                                'rtmp_live': False,
+                                'ext': 'flv',
+                            })
+                        formats.append(fmt)
             elif kind == 'captions':
                 subtitles = self.extract_subtitles(media, programme_id)
         return formats, subtitles
@@ -587,6 +583,7 @@ class BBCIE(BBCCoUkIE):
             'id': '150615_telabyad_kentin_cogu',
             'ext': 'mp4',
             'title': "YPG: Tel Abyad'ın tamamı kontrolümüzde",
+            'description': 'md5:33a4805a855c9baf7115fcbde57e7025',
             'timestamp': 1434397334,
             'upload_date': '20150615',
         },
@@ -600,6 +597,7 @@ class BBCIE(BBCCoUkIE):
             'id': '150619_video_honduras_militares_hospitales_corrupcion_aw',
             'ext': 'mp4',
             'title': 'Honduras militariza sus hospitales por nuevo escándalo de corrupción',
+            'description': 'md5:1525f17448c4ee262b64b8f0c9ce66c8',
             'timestamp': 1434713142,
             'upload_date': '20150619',
         },
@@ -649,6 +647,23 @@ class BBCIE(BBCCoUkIE):
             # rtmp download
             'skip_download': True,
         }
+    }, {
+        # single video embedded with Morph
+        'url': 'http://www.bbc.co.uk/sport/live/olympics/36895975',
+        'info_dict': {
+            'id': 'p041vhd0',
+            'ext': 'mp4',
+            'title': "Nigeria v Japan - Men's First Round",
+            'description': 'Live coverage of the first round from Group B at the Amazonia Arena.',
+            'duration': 7980,
+            'uploader': 'BBC Sport',
+            'uploader_id': 'bbc_sport',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'skip': 'Georestricted to UK',
     }, {
         # single video with playlist.sxml URL in playlist param
         'url': 'http://www.bbc.com/sport/0/football/33653409',
@@ -746,7 +761,7 @@ class BBCIE(BBCCoUkIE):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        json_ld_info = self._search_json_ld(webpage, playlist_id, default=None)
+        json_ld_info = self._search_json_ld(webpage, playlist_id, default={})
         timestamp = json_ld_info.get('timestamp')
 
         playlist_title = json_ld_info.get('title')
@@ -815,8 +830,29 @@ class BBCIE(BBCCoUkIE):
                         # http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani)
                         playlist = data_playable.get('otherSettings', {}).get('playlist', {})
                         if playlist:
-                            entries.append(self._extract_from_playlist_sxml(
-                                playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
+                            entry = None
+                            for key in ('streaming', 'progressiveDownload'):
+                                playlist_url = playlist.get('%sUrl' % key)
+                                if not playlist_url:
+                                    continue
+                                try:
+                                    info = self._extract_from_playlist_sxml(
+                                        playlist_url, playlist_id, timestamp)
+                                    if not entry:
+                                        entry = info
+                                    else:
+                                        entry['title'] = info['title']
+                                        entry['formats'].extend(info['formats'])
+                                except Exception as e:
+                                    # Some playlist URL may fail with 500, at the same time
+                                    # the other one may work fine (e.g.
+                                    # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu)
+                                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 500:
+                                        continue
+                                    raise
+                            if entry:
+                                self._sort_formats(entry['formats'])
+                                entries.append(entry)
 
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
@@ -849,6 +885,50 @@ class BBCIE(BBCCoUkIE):
                 'subtitles': subtitles,
             }
 
+        # Morph based embed (e.g. http://www.bbc.co.uk/sport/live/olympics/36895975)
+        # There are several setPayload calls may be present but the video
+        # seems to be always related to the first one
+        morph_payload = self._parse_json(
+            self._search_regex(
+                r'Morph\.setPayload\([^,]+,\s*({.+?})\);',
+                webpage, 'morph payload', default='{}'),
+            playlist_id, fatal=False)
+        if morph_payload:
+            components = try_get(morph_payload, lambda x: x['body']['components'], list) or []
+            for component in components:
+                if not isinstance(component, dict):
+                    continue
+                lead_media = try_get(component, lambda x: x['props']['leadMedia'], dict)
+                if not lead_media:
+                    continue
+                identifiers = lead_media.get('identifiers')
+                if not identifiers or not isinstance(identifiers, dict):
+                    continue
+                programme_id = identifiers.get('vpid') or identifiers.get('playablePid')
+                if not programme_id:
+                    continue
+                title = lead_media.get('title') or self._og_search_title(webpage)
+                formats, subtitles = self._download_media_selector(programme_id)
+                self._sort_formats(formats)
+                description = lead_media.get('summary')
+                uploader = lead_media.get('masterBrand')
+                uploader_id = lead_media.get('mid')
+                duration = None
+                duration_d = lead_media.get('duration')
+                if isinstance(duration_d, dict):
+                    duration = parse_duration(dict_get(
+                        duration_d, ('rawDuration', 'formattedDuration', 'spokenDuration')))
+                return {
+                    'id': programme_id,
+                    'title': title,
+                    'description': description,
+                    'duration': duration,
+                    'uploader': uploader,
+                    'uploader_id': uploader_id,
+                    'formats': formats,
+                    'subtitles': subtitles,
+                }
+
         def extract_all(pattern):
             return list(filter(None, map(
                 lambda s: self._parse_json(s, playlist_id, fatal=False),
@@ -866,7 +946,7 @@ class BBCIE(BBCCoUkIE):
             r'setPlaylist\("(%s)"\)' % EMBED_URL, webpage))
         if entries:
             return self.playlist_result(
-                [self.url_result(entry, 'BBCCoUk') for entry in entries],
+                [self.url_result(entry_, 'BBCCoUk') for entry_ in entries],
                 playlist_id, playlist_title, playlist_description)
 
         # Multiple video article (e.g. http://www.bbc.com/news/world-europe-32668511)
@@ -978,27 +1058,43 @@ class BBCCoUkArticleIE(InfoExtractor):
 
 
 class BBCCoUkPlaylistBaseIE(InfoExtractor):
+    def _entries(self, webpage, url, playlist_id):
+        single_page = 'page' in compat_urlparse.parse_qs(
+            compat_urlparse.urlparse(url).query)
+        for page_num in itertools.count(2):
+            for video_id in re.findall(
+                    self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage):
+                yield self.url_result(
+                    self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
+            if single_page:
+                return
+            next_page = self._search_regex(
+                r'<li[^>]+class=(["\'])pagination_+next\1[^>]*><a[^>]+href=(["\'])(?P<url>(?:(?!\2).)+)\2',
+                webpage, 'next page url', default=None, group='url')
+            if not next_page:
+                break
+            webpage = self._download_webpage(
+                compat_urlparse.urljoin(url, next_page), playlist_id,
+                'Downloading page %d' % page_num, page_num)
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
 
-        entries = [
-            self.url_result(self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
-            for video_id in re.findall(
-                self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage)]
-
         title, description = self._extract_title_and_description(webpage)
 
-        return self.playlist_result(entries, playlist_id, title, description)
+        return self.playlist_result(
+            self._entries(webpage, url, playlist_id),
+            playlist_id, title, description)
 
 
 class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
     IE_NAME = 'bbc.co.uk:iplayer:playlist'
-    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/episodes/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/(?:episodes|group)/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
     _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
     _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
         'info_dict': {
             'id': 'b05rcz9v',
@@ -1006,7 +1102,17 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'French thriller serial about a missing teenager.',
         },
         'playlist_mincount': 6,
-    }
+        'skip': 'This programme is not currently available on BBC iPlayer',
+    }, {
+        # Available for over a year unlike 30 days for most other programmes
+        'url': 'http://www.bbc.co.uk/iplayer/group/p02tcc32',
+        'info_dict': {
+            'id': 'p02tcc32',
+            'title': 'Bohemian Icons',
+            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
+        },
+        'playlist_mincount': 10,
+    }]
 
     def _extract_title_and_description(self, webpage):
         title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
@@ -1029,6 +1135,24 @@ class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'French thriller serial about a missing teenager.',
         },
         'playlist_mincount': 7,
+    }, {
+        # multipage playlist, explicit page
+        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips?page=1',
+        'info_dict': {
+            'id': 'b00mfl7n',
+            'title': 'Frozen Planet - Clips - BBC One',
+            'description': 'md5:65dcbf591ae628dafe32aa6c4a4a0d8c',
+        },
+        'playlist_mincount': 24,
+    }, {
+        # multipage playlist, all pages
+        'url': 'http://www.bbc.co.uk/programmes/b00mfl7n/clips',
+        'info_dict': {
+            'id': 'b00mfl7n',
+            'title': 'Frozen Planet - Clips - BBC One',
+            'description': 'md5:65dcbf591ae628dafe32aa6c4a4a0d8c',
+        },
+        'playlist_mincount': 142,
     }, {
         'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/broadcasts/2016/06',
         'only_matching': True,

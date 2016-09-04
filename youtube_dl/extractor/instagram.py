@@ -36,7 +36,6 @@ class InstagramIE(InfoExtractor):
         'info_dict': {
             'id': 'BA-pQFBG8HZ',
             'ext': 'mp4',
-            'uploader_id': 'britneyspears',
             'title': 'Video by britneyspears',
             'thumbnail': 're:^https?://.*\.jpg',
             'timestamp': 1453760977,

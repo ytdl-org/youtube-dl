@@ -17,7 +17,7 @@ youtube-dl - download videos from youtube.com or other video platforms
 
 To install it right away for all UNIX users (Linux, OS X, etc.), type:
 
-    sudo curl -L https://yt-dl.org/latest/youtube-dl -o /usr/local/bin/youtube-dl
+    sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
 If you do not have curl, you can alternatively use a recent wget:
@@ -201,32 +201,8 @@ which means you can modify it, redistribute it or use it however you like.
     -a, --batch-file FILE            File containing URLs to download ('-' for
                                      stdin)
     --id                             Use only video ID in file name
-    -o, --output TEMPLATE            Output filename template. Use %(title)s to
-                                     get the title, %(uploader)s for the
-                                     uploader name, %(uploader_id)s for the
-                                     uploader nickname if different,
-                                     %(autonumber)s to get an automatically
-                                     incremented number, %(ext)s for the
-                                     filename extension, %(format)s for the
-                                     format description (like "22 - 1280x720" or
-                                     "HD"), %(format_id)s for the unique id of
-                                     the format (like YouTube's itags: "137"),
-                                     %(upload_date)s for the upload date
-                                     (YYYYMMDD), %(extractor)s for the provider
-                                     (youtube, metacafe, etc), %(id)s for the
-                                     video id, %(playlist_title)s,
-                                     %(playlist_id)s, or %(playlist)s (=title if
-                                     present, ID otherwise) for the playlist the
-                                     video is in, %(playlist_index)s for the
-                                     position in the playlist. %(height)s and
-                                     %(width)s for the width and height of the
-                                     video format. %(resolution)s for a textual
-                                     description of the resolution of the video
-                                     format. %% for a literal percent. Use - to
-                                     output to stdout. Can also be used to
-                                     download to a different directory, for
-                                     example with -o '/my/downloads/%(uploader)s
-                                     /%(title)s-%(id)s.%(ext)s' .
+    -o, --output TEMPLATE            Output filename template, see the "OUTPUT
+                                     TEMPLATE" for all the info
     --autonumber-size NUMBER         Specify the number of digits in
                                      %(autonumber)s when it is present in output
                                      filename template or --auto-number option
@@ -330,7 +306,15 @@ which means you can modify it, redistribute it or use it however you like.
                                      bidirectional text support. Requires bidiv
                                      or fribidi executable in PATH
     --sleep-interval SECONDS         Number of seconds to sleep before each
-                                     download.
+                                     download when used alone or a lower bound
+                                     of a range for randomized sleep before each
+                                     download (minimum possible number of
+                                     seconds to sleep) when used along with
+                                     --max-sleep-interval.
+    --max-sleep-interval SECONDS     Upper bound of a range for randomized sleep
+                                     before each download (maximum possible
+                                     number of seconds to sleep). Must only be
+                                     used along with --min-sleep-interval.
 
 ## Video Format Options:
     -f, --format FORMAT              Video format code, see the "FORMAT
@@ -428,11 +412,19 @@ You can configure youtube-dl by placing any supported command line option to a c
 
 For example, with the following configuration file youtube-dl will always extract the audio, not copy the mtime, use a proxy and save all videos under `Movies` directory in your home directory:
 ```
--x
---no-mtime
---proxy 127.0.0.1:3128
--o ~/Movies/%(title)s.%(ext)s
 # Lines starting with # are comments
+
+# Always extract audio
+-x
+
+# Do not copy the mtime
+--no-mtime
+
+# Use this proxy
+--proxy 127.0.0.1:3128
+
+# Save all videos under Movies directory in your home directory
+-o ~/Movies/%(title)s.%(ext)s
 ```
 
 Note that options in configuration file are just the same options aka switches used in regular command line calls thus there **must be no whitespace** after `-` or `--`, e.g. `-o` or `--proxy` but not `- o` or `-- proxy`.
@@ -661,7 +653,11 @@ $ youtube-dl -f 'best[filesize<50M]'
 
 # Download best format available via direct link over HTTP/HTTPS protocol
 $ youtube-dl -f '(bestvideo+bestaudio/best)[protocol^=http]'
+
+# Download the best video format and the best audio format without merging them
+$ youtube-dl -f 'bestvideo,bestaudio' -o '%(title)s.f%(format_id)s.%(ext)s'
 ```
+Note that in the last example, an output template is recommended as bestvideo and bestaudio may have the same file name.
 
 
 # VIDEO SELECTION
@@ -742,7 +738,7 @@ Videos or video formats streamed via RTMP protocol can only be downloaded when [
 
 ### I have downloaded a video but how can I play it?
 
-Once the video is fully downloaded, use any video player, such as [mpv](https://mpv.io/), [vlc](http://www.videolan.org) or [mplayer](http://www.mplayerhq.hu/).
+Once the video is fully downloaded, use any video player, such as [mpv](https://mpv.io/), [vlc](http://www.videolan.org/) or [mplayer](http://www.mplayerhq.hu/).
 
 ### I extracted a video URL with `-g`, but it does not play on another machine / in my webbrowser.
 
@@ -824,9 +820,31 @@ Either prepend `http://www.youtube.com/watch?v=` or separate the ID from the opt
 
 ### How do I pass cookies to youtube-dl?
 
-Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`. Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows, `LF` (`\n`) for Linux and `CR` (`\r`) for Mac OS. `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
+Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`.
+
+In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [cookies.txt](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg) (for Chrome) or [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies/) (for Firefox).
+
+Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows, `LF` (`\n`) for Linux and `CR` (`\r`) for Mac OS. `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
 
 Passing cookies to youtube-dl is a good way to workaround login when a particular extractor does not implement it explicitly. Another use case is working around [CAPTCHA](https://en.wikipedia.org/wiki/CAPTCHA) some websites require you to solve in particular cases in order to get access (e.g. YouTube, CloudFlare).
+
+### How do I stream directly to media player?
+
+You will first need to tell youtube-dl to stream media to stdout with `-o -`, and also tell your media player to read from stdin (it must be capable of this for streaming) and then pipe former to latter. For example, streaming to [vlc](http://www.videolan.org/) can be achieved with:
+
+    youtube-dl -o - "http://www.youtube.com/watch?v=BaW_jenozKcj" | vlc -
+
+### How do I download only new videos from a playlist?
+
+Use download-archive feature. With this feature you should initially download the complete playlist with `--download-archive /path/to/download/archive/file.txt` that will record identifiers of all the videos in a special file. Each subsequent run with the same `--download-archive` will download only new videos and skip all videos that have been downloaded before. Note that only successful downloads are recorded in the file.
+
+For example, at first,
+
+    youtube-dl --download-archive archive.txt "https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re"
+
+will download the complete `PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re` playlist and create a file `archive.txt`. Each subsequent run will only download new videos if any:
+
+    youtube-dl --download-archive archive.txt "https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re"
 
 ### Can you add support for this anime video site, or site which shows current movies for free?
 
@@ -1196,7 +1214,7 @@ Make sure that someone has not already opened the issue you're trying to open. S
 
 ###  Why are existing options not enough?
 
-Before requesting a new feature, please have a quick peek at [the list of supported options](https://github.com/rg3/youtube-dl/blob/master/README.md#synopsis). Many feature requests are for features that actually exist already! Please, absolutely do show off your work in the issue report and detail how the existing similar options do *not* solve your problem.
+Before requesting a new feature, please have a quick peek at [the list of supported options](https://github.com/rg3/youtube-dl/blob/master/README.md#options). Many feature requests are for features that actually exist already! Please, absolutely do show off your work in the issue report and detail how the existing similar options do *not* solve your problem.
 
 ###  Is there enough context in your bug report?
 

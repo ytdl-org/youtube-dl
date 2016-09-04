@@ -32,7 +32,7 @@ class SoundcloudIE(InfoExtractor):
     _VALID_URL = r'''(?x)^(?:https?://)?
                     (?:(?:(?:www\.|m\.)?soundcloud\.com/
                             (?P<uploader>[\w\d-]+)/
-                            (?!(?:tracks|sets(?:/[^/?#]+)?|reposts|likes|spotlight)/?(?:$|[?#]))
+                            (?!(?:tracks|sets(?:/.+?)?|reposts|likes|spotlight)/?(?:$|[?#]))
                             (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+)
@@ -118,6 +118,12 @@ class SoundcloudIE(InfoExtractor):
 
     _CLIENT_ID = '02gUJC0hH2ct1EGOcYXQIzRFU91c72Ea'
     _IPHONE_CLIENT_ID = '376f225bf427445fc4bfb6b99b72e0bf'
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [m.group('url') for m in re.finditer(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?://)?(?:w\.)?soundcloud\.com/player.+?)\1',
+            webpage)]
 
     def report_resolve(self, video_id):
         """Report information extraction."""
@@ -259,6 +265,9 @@ class SoundcloudSetIE(SoundcloudIE):
             'title': 'The Royal Concept EP',
         },
         'playlist_mincount': 6,
+    }, {
+        'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep/token',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

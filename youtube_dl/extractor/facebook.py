@@ -15,6 +15,7 @@ from ..compat import (
 from ..utils import (
     error_to_compat_str,
     ExtractorError,
+    int_or_none,
     limit_length,
     sanitized_Request,
     urlencode_postdata,
@@ -27,7 +28,7 @@ class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                 (?:
                     https?://
-                        (?:\w+\.)?facebook\.com/
+                        (?:[\w-]+\.)?facebook\.com/
                         (?:[^#]*?\#!/)?
                         (?:
                             (?:
@@ -62,6 +63,8 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'title': 're:Did you know Kei Nishikori is the first Asian man to ever reach a Grand Slam',
             'uploader': 'Tennis on Facebook',
+            'upload_date': '20140908',
+            'timestamp': 1410199200,
         }
     }, {
         'note': 'Video without discernible title',
@@ -71,6 +74,8 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Facebook video #274175099429670',
             'uploader': 'Asif Nawab Butt',
+            'upload_date': '20140506',
+            'timestamp': 1399398998,
         },
         'expected_warnings': [
             'title'
@@ -78,12 +83,14 @@ class FacebookIE(InfoExtractor):
     }, {
         'note': 'Video with DASH manifest',
         'url': 'https://www.facebook.com/video.php?v=957955867617029',
-        'md5': '54706e4db4f5ad58fbad82dde1f1213f',
+        'md5': 'b2c28d528273b323abe5c6ab59f0f030',
         'info_dict': {
             'id': '957955867617029',
             'ext': 'mp4',
             'title': 'When you post epic content on instagram.com/433 8 million followers, this is ...',
             'uploader': 'Demy de Zeeuw',
+            'upload_date': '20160110',
+            'timestamp': 1452431627,
         },
     }, {
         'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
@@ -126,6 +133,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.facebook.com/groups/164828000315060/permalink/764967300301124/',
+        'only_matching': True,
+    }, {
+        'url': 'https://zh-hk.facebook.com/peoplespower/videos/1135894589806027/',
         'only_matching': True,
     }]
 
@@ -303,12 +313,16 @@ class FacebookIE(InfoExtractor):
         if not video_title:
             video_title = 'Facebook video #%s' % video_id
         uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
+        timestamp = int_or_none(self._search_regex(
+            r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
+            'timestamp', default=None))
 
         info_dict = {
             'id': video_id,
             'title': video_title,
             'formats': formats,
             'uploader': uploader,
+            'timestamp': timestamp,
         }
 
         return webpage, info_dict
@@ -337,3 +351,32 @@ class FacebookIE(InfoExtractor):
                 self._VIDEO_PAGE_TEMPLATE % video_id,
                 video_id, fatal_if_no_video=True)
             return info_dict
+
+
+class FacebookPluginsVideoIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:[\w-]+\.)?facebook\.com/plugins/video\.php\?.*?\bhref=(?P<id>https.+)'
+
+    _TESTS = [{
+        'url': 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fgov.sg%2Fvideos%2F10154383743583686%2F&show_text=0&width=560',
+        'md5': '5954e92cdfe51fe5782ae9bda7058a07',
+        'info_dict': {
+            'id': '10154383743583686',
+            'ext': 'mp4',
+            'title': 'What to do during the haze?',
+            'uploader': 'Gov.sg',
+            'upload_date': '20160826',
+            'timestamp': 1472184808,
+        },
+        'add_ie': [FacebookIE.ie_key()],
+    }, {
+        'url': 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fvideo.php%3Fv%3D10204634152394104',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/plugins/video.php?href=https://www.facebook.com/gov.sg/videos/10154383743583686/&show_text=0&width=560',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        return self.url_result(
+            compat_urllib_parse_unquote(self._match_id(url)),
+            FacebookIE.ie_key())

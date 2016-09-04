@@ -47,11 +47,10 @@ class TelegraafIE(InfoExtractor):
             ext = determine_ext(manifest_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    manifest_url, video_id, ext='mp4', m3u8_id='hls'))
+                    manifest_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
             elif ext == 'mpd':
-                # TODO: Current DASH formats are broken - $Time$ pattern in
-                # <SegmentTemplate> not implemented yet
-                continue
+                formats.extend(self._extract_mpd_formats(
+                    manifest_url, video_id, mpd_id='dash', fatal=False))
             else:
                 self.report_warning('Unknown adaptive format %s' % ext)
         for location in locations.get('progressive', []):

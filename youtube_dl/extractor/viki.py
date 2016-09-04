@@ -130,7 +130,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # clip
         'url': 'http://www.viki.com/videos/1067139v-the-avengers-age-of-ultron-press-conference',
-        'md5': 'feea2b1d7b3957f70886e6dfd8b8be84',
+        'md5': '86c0b5dbd4d83a6611a79987cc7a1989',
         'info_dict': {
             'id': '1067139v',
             'ext': 'mp4',
@@ -156,15 +156,11 @@ class VikiIE(VikiBaseIE):
             'like_count': int,
             'age_limit': 13,
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
         'skip': 'Blocked in the US',
     }, {
         # episode
         'url': 'http://www.viki.com/videos/44699v-boys-over-flowers-episode-1',
-        'md5': '1f54697dabc8f13f31bf06bb2e4de6db',
+        'md5': '5fa476a902e902783ac7a4d615cdbc7a',
         'info_dict': {
             'id': '44699v',
             'ext': 'mp4',
@@ -200,7 +196,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # non-English description
         'url': 'http://www.viki.com/videos/158036v-love-in-magic',
-        'md5': '013dc282714e22acf9447cad14ff1208',
+        'md5': '1713ae35df5a521b31f6dc40730e7c9c',
         'info_dict': {
             'id': '158036v',
             'ext': 'mp4',
@@ -281,9 +277,16 @@ class VikiIE(VikiBaseIE):
                 r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
                 if format_id == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        format_dict['url'], video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='m3u8-%s' % protocol, fatal=False))
+                    m3u8_formats = self._extract_m3u8_formats(
+                        format_dict['url'], video_id, 'mp4',
+                        entry_protocol='m3u8_native', preference=-1,
+                        m3u8_id='m3u8-%s' % protocol, fatal=False)
+                    # Despite CODECS metadata in m3u8 all video-only formats
+                    # are actually video+audio
+                    for f in m3u8_formats:
+                        if f.get('acodec') == 'none' and f.get('vcodec') != 'none':
+                            f['acodec'] = None
+                    formats.extend(m3u8_formats)
                 else:
                     formats.append({
                         'url': format_dict['url'],

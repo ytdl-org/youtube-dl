@@ -59,11 +59,8 @@ class OnetBaseIE(InfoExtractor):
                         # TODO: Support Microsoft Smooth Streaming
                         continue
                     elif ext == 'mpd':
-                        # TODO: Current DASH formats are broken - $Time$ pattern in
-                        # <SegmentTemplate> not implemented yet
-                        # formats.extend(self._extract_mpd_formats(
-                        #    video_url, video_id, mpd_id='dash', fatal=False))
-                        continue
+                        formats.extend(self._extract_mpd_formats(
+                            video_url, video_id, mpd_id='dash', fatal=False))
                     else:
                         formats.append({
                             'url': video_url,

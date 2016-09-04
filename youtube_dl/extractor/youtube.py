@@ -53,6 +53,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
+    _PASSWORD_CHALLENGE_URL = 'https://accounts.google.com/signin/challenge/sl/password'
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -90,38 +91,18 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         if login_page is False:
             return
 
-        galx = self._search_regex(r'(?s)<input.+?name="GALX".+?value="(.+?)"',
-                                  login_page, 'Login GALX parameter')
+        login_form = self._hidden_inputs(login_page)
 
-        # Log in
-        login_form_strs = {
-            'continue': 'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+        login_form.update({
+            'checkConnection': 'youtube',
             'Email': username,
-            'GALX': galx,
             'Passwd': password,
+        })
 
-            'PersistentCookie': 'yes',
-            '_utf8': '霱',
-            'bgresponse': 'js_disabled',
-            'checkConnection': '',
-            'checkedDomains': 'youtube',
-            'dnConn': '',
-            'pstMsg': '0',
-            'rmShown': '1',
-            'secTok': '',
-            'signIn': 'Sign in',
-            'timeStmp': '',
-            'service': 'youtube',
-            'uilel': '3',
-            'hl': 'en_US',
-        }
-
-        login_data = urlencode_postdata(login_form_strs)
-
-        req = sanitized_Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
-            req, None,
-            note='Logging in', errnote='unable to log in', fatal=False)
+            self._PASSWORD_CHALLENGE_URL, None,
+            note='Logging in', errnote='unable to log in', fatal=False,
+            data=urlencode_postdata(login_form))
         if login_results is False:
             return False
 
@@ -863,6 +844,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # YouTube Red paid video (https://github.com/rg3/youtube-dl/issues/10059)
             'url': 'https://www.youtube.com/watch?v=i1Ko8UG-Tdo',
             'only_matching': True,
+        },
+        {
+            # Rental video preview
+            'url': 'https://www.youtube.com/watch?v=yYr8q0y5Jfg',
+            'info_dict': {
+                'id': 'uGpuVWrhIzE',
+                'ext': 'mp4',
+                'title': 'Piku - Trailer',
+                'description': 'md5:c36bd60c3fd6f1954086c083c72092eb',
+                'upload_date': '20150811',
+                'uploader': 'FlixMatrix',
+                'uploader_id': 'FlixMatrixKaravan',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/FlixMatrixKaravan',
+                'license': 'Standard YouTube License',
+            },
+            'params': {
+                'skip_download': True,
+            },
         }
     ]
 
@@ -1273,6 +1272,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # Convert to the same format returned by compat_parse_qs
                     video_info = dict((k, [v]) for k, v in args.items())
                     add_dash_mpd(video_info)
+                # Rental video is not rented but preview is available (e.g.
+                # https://www.youtube.com/watch?v=yYr8q0y5Jfg,
+                # https://github.com/rg3/youtube-dl/issues/10532)
+                if not video_info and args.get('ypc_vid'):
+                    return self.url_result(
+                        args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
@@ -1736,7 +1741,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
 
 class YoutubeSharedVideoIE(InfoExtractor):
-    _VALID_URL = r'(?:https?:)?//(?:www\.)?youtube\.com/shared\?ci=(?P<id>[0-9A-Za-z_-]{11})'
+    _VALID_URL = r'(?:https?:)?//(?:www\.)?youtube\.com/shared\?.*\bci=(?P<id>[0-9A-Za-z_-]{11})'
     IE_NAME = 'youtube:shared'
 
     _TEST = {
@@ -1860,6 +1865,28 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'UUXw-G3eDE9trcvY2sBMM_aA',
         },
         'playlist_mincout': 21,
+    }, {
+        # Playlist URL that does not actually serve a playlist
+        'url': 'https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4',
+        'info_dict': {
+            'id': 'FqZTN594JQw',
+            'ext': 'webm',
+            'title': "Smiley's People 01 detective, Adventure Series, Action",
+            'uploader': 'STREEM',
+            'uploader_id': 'UCyPhqAZgwYWZfxElWVbVJng',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/channel/UCyPhqAZgwYWZfxElWVbVJng',
+            'upload_date': '20150526',
+            'license': 'Standard YouTube License',
+            'description': 'md5:507cdcb5a49ac0da37a920ece610be80',
+            'categories': ['People & Blogs'],
+            'tags': list,
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [YoutubeIE.ie_key()],
     }]
 
     def _real_initialize(self):
@@ -1920,9 +1947,20 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         playlist_title = self._html_search_regex(
             r'(?s)<h1 class="pl-header-title[^"]*"[^>]*>\s*(.*?)\s*</h1>',
-            page, 'title')
+            page, 'title', default=None)
 
-        return self.playlist_result(self._entries(page, playlist_id), playlist_id, playlist_title)
+        has_videos = True
+
+        if not playlist_title:
+            try:
+                # Some playlist URLs don't actually serve a playlist (e.g.
+                # https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4)
+                next(self._entries(page, playlist_id))
+            except StopIteration:
+                has_videos = False
+
+        return has_videos, self.playlist_result(
+            self._entries(page, playlist_id), playlist_id, playlist_title)
 
     def _check_download_just_video(self, url, playlist_id):
         # Check if it's a video-specific URL
@@ -1931,9 +1969,11 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             video_id = query_dict['v'][0]
             if self._downloader.params.get('noplaylist'):
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
-                return self.url_result(video_id, 'Youtube', video_id=video_id)
+                return video_id, self.url_result(video_id, 'Youtube', video_id=video_id)
             else:
                 self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+                return video_id, None
+        return None, None
 
     def _real_extract(self, url):
         # Extract playlist id
@@ -1942,7 +1982,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             raise ExtractorError('Invalid URL: %s' % url)
         playlist_id = mobj.group(1) or mobj.group(2)
 
-        video = self._check_download_just_video(url, playlist_id)
+        video_id, video = self._check_download_just_video(url, playlist_id)
         if video:
             return video
 
@@ -1950,7 +1990,15 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
 
-        return self._extract_playlist(playlist_id)
+        has_videos, playlist = self._extract_playlist(playlist_id)
+        if has_videos or not video_id:
+            return playlist
+
+        # Some playlist URLs don't actually serve a playlist (see
+        # https://github.com/rg3/youtube-dl/issues/10537).
+        # Fallback to plain video extraction if there is a video id
+        # along with playlist id.
+        return self.url_result(video_id, 'Youtube', video_id=video_id)
 
 
 class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
@@ -2328,10 +2376,11 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
     }]
 
     def _real_extract(self, url):
-        video = self._check_download_just_video(url, 'WL')
+        _, video = self._check_download_just_video(url, 'WL')
         if video:
             return video
-        return self._extract_playlist('WL')
+        _, playlist = self._extract_playlist('WL')
+        return playlist
 
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
