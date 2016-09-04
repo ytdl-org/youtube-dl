@@ -1549,6 +1549,16 @@ class InfoExtractor(object):
                 initialization = segment_list.find(_add_ns('Initialization'))
                 if initialization is not None:
                     ms_info['initialization_url'] = initialization.attrib['sourceURL']
+                segment_timeline = segment_list.find(_add_ns('SegmentTimeline'))
+                if segment_timeline is not None:
+                    s_e = segment_timeline.findall(_add_ns('S'))
+                    if s_e:
+                        ms_info['total_number'] = 0
+                        ms_info['segment_durations'] = []
+                        for s in s_e:
+                            r = int(s.get('r', 0))
+                            ms_info['total_number'] += 1 + r
+                            ms_info['segment_durations'].append(int(s.attrib['d']))
             else:
                 segment_template = element.find(_add_ns('SegmentTemplate'))
                 if segment_template is not None:
@@ -1687,6 +1697,7 @@ class InfoExtractor(object):
                         if 'segment_urls' in representation_ms_info:
                             f.update({
                                 'segment_urls': representation_ms_info['segment_urls'],
+                                'segment_durations': representation_ms_info['segment_durations'],
                                 'protocol': 'http_dash_segments',
                             })
                             if 'initialization_url' in representation_ms_info:
