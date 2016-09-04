@@ -1,12 +1,26 @@
-version 2016.09.04
+version <unreleased>
 
 Core
-* If the first segment of DASH fails, abort the whole download process to
-  prevent throttling (#10497)
+* In DASH downloader if the first segment fails, abort the whole download
+  process to prevent throttling (#10497)
++ Add support for --skip-unavailable-fragments and --fragment retries in
+  hlsnative downloader (#10165, #10448).
++ Add support for --skip-unavailable-fragments in DASH downloader
++ Introduce --skip-unavailable-fragments option for fragment based downloaders
+  that allows to skip fragments unavailable due to a HTTP error
+* Fix extraction of video/audio entries with src attribute in
+  _parse_html5_media_entries (#10540)
 
 Extractors
+* [theplatform] Relax URL regular expression (#10546)
+* [youtube:playlist] Extend URL regular expression
+* [rottentomatoes] Delegate extraction to internetvideoarchive extractor
+* [internetvideoarchive] Extract all formats
 * [pornvoisines] Fix extraction (#10469)
 * [rottentomatoes] Fix extraction (#10467)
+* [espn] Extend URL regular expression (#10549)
+* [vimple] Extend URL regular expression (#10547)
+* [youtube:watchlater] Fix extraction (#10544)
 * [youjizz] Fix extraction (#10437)
 + [foxnews] Add support for FoxNews Insider (#10445)
 + [fc2] Recognize Flash player URLs (#10512)
@@ -18,7 +32,6 @@ Core
 * Restore usage of NAME attribute from EXT-X-MEDIA tag for formats codes in
   _extract_m3u8_formats (#10522)
 * Handle semicolon in mimetype2ext
-
 
 Extractors
 + [youtube] Add support for rental videos' previews (#10532)
