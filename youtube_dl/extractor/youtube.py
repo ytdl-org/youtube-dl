@@ -264,7 +264,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
-                     (?!.*?&list=)                                            # combined list/video URLs are handled by the playlist IE
+                     (?!.*?\blist=)                                            # combined list/video URLs are handled by the playlist IE
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
@@ -1778,11 +1778,14 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     _VALID_URL = r"""(?x)(?:
                         (?:https?://)?
                         (?:\w+\.)?
-                        youtube\.com/
                         (?:
-                           (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
-                           \? (?:.*?[&;])*? (?:p|a|list)=
-                        |  p/
+                            youtube\.com/
+                            (?:
+                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
+                               \? (?:.*?[&;])*? (?:p|a|list)=
+                            |  p/
+                            )|
+                            youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
                             (?:PL|LL|EC|UU|FL|RD|UL)?[0-9A-Za-z-_]{10,}
@@ -1887,6 +1890,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'skip_download': True,
         },
         'add_ie': [YoutubeIE.ie_key()],
+    }, {
+        'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
