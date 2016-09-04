@@ -109,7 +109,7 @@ class TvpleIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         playpage = self._download_json(re.search(r'data-meta="(.*?)"', webpage).group(1), "playurl_%d" % int(video_id))
 
-        title = re.search("<h2.*title=\"(.*)\"", webpage).group(1)  # title
+        title = re.search("<h2.*title=\"(.*?)\"", webpage).group(1)  # title
         uploader = re.search(r'personacon-sm".*/>\s*(.*?)\s*<', webpage).group(1)  # username
         uploader_id = re.search(r'"/ch/(.*)/videos"', webpage).group(1)  # userid
         description = re.search(r'collapse-content linkify break-word video-body">\s*(.*)\s*<button type="button" class="collapse-button', webpage, re.DOTALL).group(1).replace(" <br />", "").replace("<br />", "").replace("\n            ", "")  # description
@@ -126,9 +126,10 @@ class TvpleIE(InfoExtractor):
         uploadeddatetime = re.search(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})에 업로드됨', webpage)
         timestamp = time.mktime(datetime.strptime(uploadeddatetime.group(1), '%Y-%m-%d %H:%M:%S').timetuple()) + (60 * 60 * 9)  # timestamp + KST(+9)
 
-        categories = re.search(r'badge-info">(.*)</span>', webpage).group(1)  # categories
+        categories = re.search(r'badge-info" href="\/videos\?cat=\d{1,4}">(.*?)<\/a>', webpage).group(1)  # categories
         tags = re.findall(r'class="tag "\n.*}">(.*)</a>', webpage)  # tags
 
+        thumbnail = re.search(r'<meta property="og:image" content="(.*)" \/>', webpage).group(1)
         formats = []
         for formatid in playpage['stream']['sources']:
             formats.append({
@@ -150,7 +151,7 @@ class TvpleIE(InfoExtractor):
             'uploader_id': uploader_id,
             'view_count': view_count,
             'comment_count': comment_count,
-            'thumbnail': playpage['poster'],
+            'thumbnail': thumbnail,
             'formats': formats,
             'subtitles': subtitles,
             'categories': categories,
