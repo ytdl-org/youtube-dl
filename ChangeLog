@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.09.04.1
 
 Core
 * In DASH downloader if the first segment fails, abort the whole download
