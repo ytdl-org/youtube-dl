@@ -89,6 +89,8 @@ which means you can modify it, redistribute it or use it however you like.
     --mark-watched                   Mark videos watched (YouTube only)
     --no-mark-watched                Do not mark videos watched (YouTube only)
     --no-color                       Do not emit color codes in output
+    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
+                                     available
 
 ## Network Options:
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
@@ -173,7 +175,10 @@ which means you can modify it, redistribute it or use it however you like.
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
     --fragment-retries RETRIES       Number of retries for a fragment (default
-                                     is 10), or "infinite" (DASH only)
+                                     is 10), or "infinite" (DASH and hlsnative
+                                     only)
+    --skip-unavailable-fragments     Skip unavailable fragments (DASH and
+                                     hlsnative only)
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer

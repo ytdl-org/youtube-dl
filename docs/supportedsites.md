@@ -232,6 +232,7 @@
  - **FacebookPluginsVideo**
  - **faz.net**
  - **fc2**
+ - **fc2:embed**
  - **Fczenit**
  - **features.aol.com**
  - **fernsehkritik.tv**
@@ -245,6 +246,7 @@
  - **FOX**
  - **Foxgay**
  - **FoxNews**: Fox News and Fox Business Video
+ - **foxnews:insider**
  - **FoxSports**
  - **france2.fr:generation-quoi**
  - **FranceCulture**
