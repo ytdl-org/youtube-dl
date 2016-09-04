@@ -1163,13 +1163,6 @@ class InfoExtractor(object):
                               m3u8_id=None, note=None, errnote=None,
                               fatal=True, live=False):
 
-        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
-
-        format_url = lambda u: (
-            u
-            if re.match(r'^https?://', u)
-            else compat_urlparse.urljoin(m3u8_url, u))
-
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
@@ -1179,6 +1172,13 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
+
+        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
+
+        format_url = lambda u: (
+            u
+            if re.match(r'^https?://', u)
+            else compat_urlparse.urljoin(m3u8_url, u))
 
         # We should try extracting formats only from master playlists [1], i.e.
         # playlists that describe available qualities. On the other hand media
