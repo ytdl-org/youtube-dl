@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import js_to_json
+from .internetvideoarchive import InternetVideoArchiveIE
 
 
 class RottenTomatoesIE(InfoExtractor):
@@ -13,6 +13,7 @@ class RottenTomatoesIE(InfoExtractor):
             'id': '11028566',
             'ext': 'mp4',
             'title': 'Toy Story 3',
+            'description': 'From the creators of the beloved TOY STORY films, comes a story that will reunite the gang in a whole new way.',
             'thumbnail': 're:^https?://.*\.jpg$',
         },
     }
@@ -20,26 +21,12 @@ class RottenTomatoesIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-
-        params = self._parse_json(
-            self._search_regex(r'(?s)RTVideo\(({.+?})\);', webpage, 'player parameters'),
-            video_id, transform_source=lambda s: js_to_json(s.replace('window.location.href', '""')))
-
-        formats = []
-        if params.get('urlHLS'):
-            formats.extend(self._extract_m3u8_formats(
-                params['urlHLS'], video_id, ext='mp4',
-                entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
-        if params.get('urlMP4'):
-            formats.append({
-                'url': params['urlMP4'],
-                'format_id': 'mp4',
-            })
-        self._sort_formats(formats)
+        iva_id = self._search_regex(r'publishedid=(\d+)', webpage, 'internet video archive id')
 
         return {
+            '_type': 'url_transparent',
+            'url': 'http://video.internetvideoarchive.net/player/6/configuration.ashx?domain=www.videodetective.com&customerid=69249&playerid=641&publishedid=' + iva_id,
+            'ie_key': InternetVideoArchiveIE.ie_key(),
             'id': video_id,
             'title': self._og_search_title(webpage),
-            'formats': formats,
-            'thumbnail': params.get('thumbnailImg'),
         }
