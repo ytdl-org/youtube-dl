@@ -5,10 +5,13 @@ from .abc import (
     ABCIE,
     ABCIViewIE,
 )
-from .abc7news import Abc7NewsIE
 from .abcnews import (
     AbcNewsIE,
     AbcNewsVideoIE,
+)
+from .abcotvs import (
+    ABCOTVSIE,
+    ABCOTVSClipsIE,
 )
 from .academicearth import AcademicEarthCourseIE
 from .acast import (
