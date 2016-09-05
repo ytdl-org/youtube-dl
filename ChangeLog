@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [bilibili] Support episodes (#10190)
 + [tvnoe] New extractor (#10524)
 
 
