@@ -45,8 +45,8 @@ class NineNowIE(InfoExtractor):
             r'window\.__data\s*=\s*({.*?});', webpage,
             'page data'), display_id)
         current_key = (
-            page_data.get('episode', {}).get('currentEpisodeKey', {}) or
-            page_data.get('clip', {}).get('currentClipKey', {})
+            page_data.get('episode', {}).get('currentEpisodeKey') or
+            page_data.get('clip', {}).get('currentClipKey')
         )
         common_data = (
             page_data.get('episode', {}).get('episodeCache', {}).get(current_key, {}).get('episode') or
