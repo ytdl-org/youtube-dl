@@ -10,15 +10,12 @@ from ..utils import (
     int_or_none,
     float_or_none,
     unified_timestamp,
+    urlencode_postdata,
 )
-
-HEADERS = {
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-}
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://(www.|bangumi.|)bilibili\.(?:tv|com)/(video/av|anime/v/)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/v/)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
@@ -89,7 +86,7 @@ class BiliBiliIE(InfoExtractor):
             'ext': 'mp4',
             'duration': 1402.357,
             'title': '混沌武士 : 第7集 四面楚歌 A Risky Racket',
-            'description': "故事发生在日本的江户时代。风是一个小酒馆的打工女。一日，酒馆里来了一群恶霸，虽然他们的举动令风十分不满，但是毕竟风只是一届女流，无法对他们采取什么行动，只能在心里嘟哝。这时，酒家里又进来了个“不良份子”无幻，说以50个丸子帮她搞定这群人，风觉得他莫名其妙，也就没多搭理他。而在这时，风因为一个意外而将茶水泼在了恶霸头领——龙次郎身上。愤怒的恶霸们欲将风的手指砍掉，风在无奈中大喊道：“丸子100个！”…… 　　另一方面，龙次郎的父亲也就是当地的代官，依仗自己有着雄厚的保镖实力，在当地欺压穷人，当看到一穷人无法交齐足够的钱过桥时，欲下令将其杀死，武士仁看不惯这一幕，于是走上前，与代官的保镖交手了…… 　　酒馆内，因为风答应给无幻100个团子，无幻将恶霸们打败了，就在这时，仁进来了。好战的无幻立刻向仁发了战书，最后两败俱伤，被代官抓入牢房，预计第二天斩首…… 　　得知该状况的风，为报救命之恩，来到了刑场，利用烟花救出了无幻和仁。而风则以救命恩人的身份，命令二人和她一起去寻找带着向日葵香味的武士……(by百科)",
+            'description': 'md5:6a9622b911565794c11f25f81d6a97d2',
             'thumbnail': 're:^http?://.+\.jpg',
         },
     }]
@@ -101,17 +98,16 @@ class BiliBiliIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        _is_episode = 'anime/v' in url
-        if not _is_episode:
+        if 'anime/v' not in url:
             cid = compat_parse_qs(self._search_regex(
                 [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-                r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                 r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
                 webpage, 'player parameters'))['cid'][0]
         else:
-            url_t = 'http://bangumi.bilibili.com/web_api/get_source'
-            js = self._download_json(url_t, video_id,
-                                     data='episode_id=%s' % video_id,
-                                     headers=HEADERS)
+            js = self._download_json(
+                'http://bangumi.bilibili.com/web_api/get_source', video_id,
+                data=urlencode_postdata({'episode_id': video_id}),
+                headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
             cid = js['result']['cid']
 
         payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
@@ -147,10 +143,7 @@ class BiliBiliIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
         timestamp = unified_timestamp(self._html_search_regex(
             r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', fatal=False))
-        if _is_episode:
-            thumbnail = self._html_search_meta('og:image', webpage)
-        else:
-            thumbnail = self._html_search_meta('thumbnailUrl', webpage)
+        thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage)
 
         # TODO 'view_count' requires deobfuscating Javascript
         info = {
