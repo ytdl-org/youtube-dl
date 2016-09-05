@@ -34,11 +34,11 @@ class MiaoPaiIE(InfoExtractor):
                                         'title')
         regex = r"""<div *class=['"]video_img[^>]*data-url=['"]([^'"]*\.jpg)['"]"""
         thumbnail = self._html_search_regex(regex, webpage, '')
-        regex = r"""<video *[^>]*src=['"]([^'"]*)['"]""",
-        video_url = self._html_search_regex(regex, webpage, '')
+        videos = self._parse_html5_media_entries(url, webpage, video_id)
+        info = videos[0]
 
-        return {'id': video_id,
-                'title': title,
-                'url': video_url,
-                'thumbnail': thumbnail,
-                }
+        info.update({'id': video_id,
+                     'title': title,
+                     'thumbnail': thumbnail,
+                     })
+        return info
