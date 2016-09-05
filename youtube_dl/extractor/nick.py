@@ -76,6 +76,9 @@ class NickDeIE(MTVServicesInfoExtractor):
     }, {
         'url': 'http://www.nick.de/shows/342-icarly',
         'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.nl/shows/474-spongebob/videos/17403-een-kijkje-in-de-keuken-met-sandy-van-binnenuit',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
