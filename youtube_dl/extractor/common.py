@@ -86,7 +86,9 @@ class InfoExtractor(object):
                     from worst to best quality.
 
                     Potential fields:
-                    * url        Mandatory. The URL of the video file
+                    * url        Mandatory. The URL of the video file or URL of
+                                 the manifest file in case of fragmented media
+                                 (DASH, hls, hds).
                     * ext        Will be calculated from URL if missing
                     * format     A human-readable description of the format
                                  ("mp4 container with h264/opus").
@@ -115,6 +117,11 @@ class InfoExtractor(object):
                                  download, lower-case.
                                  "http", "https", "rtsp", "rtmp", "rtmpe",
                                  "m3u8", "m3u8_native" or "http_dash_segments".
+                    * fragments  A list of fragments of the fragmented media,
+                                 with the following entries:
+                                 * "url" (mandatory) - fragment's URL
+                                 * "duration" (optional, int or float)
+                                 * "filesize" (optional, int)
                     * preference Order number of this format. If this field is
                                  present and not None, the formats get sorted
                                  by this field, regardless of all other values.
