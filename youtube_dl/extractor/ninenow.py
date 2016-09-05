@@ -29,11 +29,11 @@ class NineNowIE(InfoExtractor):
         'skip': 'Only available in Australia',
     }, {
         # episode
-        'url': 'https://www.9now.com.au/afl-footy-show/2016/episode-19',
+        'url': 'https://www.9now.com.au/afl-footy-show/2016/episode-26',
         'only_matching': True,
     }, {
         # DRM protected
-        'url': 'https://www.9now.com.au/andrew-marrs-history-of-the-world/season-1/episode-1',
+        'url': 'https://www.9now.com.au/black-adder-goes-forth/season-4/episode-5',
         'only_matching': True,
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/4460760524001/default_default/index.html?videoId=%s'
@@ -44,7 +44,14 @@ class NineNowIE(InfoExtractor):
         page_data = self._parse_json(self._search_regex(
             r'window\.__data\s*=\s*({.*?});', webpage,
             'page data'), display_id)
-        common_data = page_data.get('episode', {}).get('episode') or page_data.get('clip', {}).get('clip')
+        current_key = (
+            page_data.get('episode', {}).get('currentEpisodeKey', {}) or
+            page_data.get('clip', {}).get('currentClipKey', {})
+        )
+        common_data = (
+            page_data.get('episode', {}).get('episodeCache', {}).get(current_key, {}).get('episode') or
+            page_data.get('clip', {}).get('clipCache', {}).get(current_key, {}).get('clip')
+        )
         video_data = common_data['video']
 
         if video_data.get('drm'):
