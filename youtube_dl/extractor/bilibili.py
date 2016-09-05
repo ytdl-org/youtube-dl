@@ -10,11 +10,12 @@ from ..utils import (
     int_or_none,
     float_or_none,
     unified_timestamp,
+    urlencode_postdata,
 )
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.bilibili\.(?:tv|com)/video/av(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/v/)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
@@ -77,6 +78,17 @@ class BiliBiliIE(InfoExtractor):
             'skip_download': True,
         },
         'expected_warnings': ['upload time'],
+    }, {
+        'url': 'http://bangumi.bilibili.com/anime/v/40068',
+        'md5': '08d539a0884f3deb7b698fb13ba69696',
+        'info_dict': {
+            'id': '40068',
+            'ext': 'mp4',
+            'duration': 1402.357,
+            'title': '混沌武士 : 第7集 四面楚歌 A Risky Racket',
+            'description': 'md5:6a9622b911565794c11f25f81d6a97d2',
+            'thumbnail': 're:^http?://.+\.jpg',
+        },
     }]
 
     _APP_KEY = '6f90a59ac58a4123'
@@ -84,13 +96,19 @@ class BiliBiliIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
 
-        cid = compat_parse_qs(self._search_regex(
-            [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-             r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
-            webpage, 'player parameters'))['cid'][0]
+        if 'anime/v' not in url:
+            cid = compat_parse_qs(self._search_regex(
+                [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
+                 r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                webpage, 'player parameters'))['cid'][0]
+        else:
+            js = self._download_json(
+                'http://bangumi.bilibili.com/web_api/get_source', video_id,
+                data=urlencode_postdata({'episode_id': video_id}),
+                headers={'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'})
+            cid = js['result']['cid']
 
         payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
         sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
@@ -125,6 +143,7 @@ class BiliBiliIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
         timestamp = unified_timestamp(self._html_search_regex(
             r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', fatal=False))
+        thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage)
 
         # TODO 'view_count' requires deobfuscating Javascript
         info = {
@@ -132,7 +151,7 @@ class BiliBiliIE(InfoExtractor):
             'title': title,
             'description': description,
             'timestamp': timestamp,
-            'thumbnail': self._html_search_meta('thumbnailUrl', webpage),
+            'thumbnail': thumbnail,
             'duration': float_or_none(video_info.get('timelength'), scale=1000),
         }
 
