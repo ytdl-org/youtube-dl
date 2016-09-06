@@ -30,7 +30,7 @@ class CartoonNetworkIE(TurnerBaseIE):
         return self._extract_cvp_info(
             'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&' + query, video_id, {
                 'secure': {
-                    'media_src': 'http://apple-secure.cdn.turner.com/toon/big',
+                    'media_src': 'http://androidhls-secure.cdn.turner.com/toon/big',
                     'tokenizer_src': 'http://www.cartoonnetwork.com/cntv/mvpd/processors/services/token_ipadAdobe.do',
                 },
             })

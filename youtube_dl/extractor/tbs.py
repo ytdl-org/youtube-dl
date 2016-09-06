@@ -53,7 +53,7 @@ class TBSIE(TurnerBaseIE):
                     'media_src': 'http://ht.cdn.turner.com/%s/big' % site,
                 },
                 'secure': {
-                    'media_src': 'http://apple-secure.cdn.turner.com/%s/big' % site,
+                    'media_src': 'http://androidhls-secure.cdn.turner.com/%s/big' % site,
                     'tokenizer_src': 'http://www.%s.com/video/processors/services/token_ipadAdobe.do' % domain,
                 },
             })
