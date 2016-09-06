@@ -349,6 +349,25 @@ class ViafreeIE(InfoExtractor):
         },
         'add_ie': [TVPlayIE.ie_key()],
     }, {
+        # with relatedClips
+        'url': 'http://www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-1',
+        'info_dict': {
+            'id': '758770',
+            'ext': 'mp4',
+            'title': 'Sommaren med YouTube-stjärnorna S01E01',
+            'description': 'md5:2bc69dce2c4bb48391e858539bbb0e3f',
+            'series': 'Sommaren med YouTube-stjärnorna',
+            'season': 'Säsong 1',
+            'season_number': 1,
+            'duration': 1326,
+            'timestamp': 1470905572,
+            'upload_date': '20160811',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [TVPlayIE.ie_key()],
+    }, {
         'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
         'only_matching': True,
     }, {
@@ -365,8 +384,17 @@ class ViafreeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_id = self._search_regex(
-            r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](?P<id>\d{6,})',
-            webpage, 'video id')
+        video_id = None
+
+        thumbnail = self._og_search_thumbnail(webpage, default=None)
+        if thumbnail:
+            video_id = self._search_regex(
+                r'https?://[^/]+/imagecache/(?:[^/]+/)+seasons/\d+/(\d{6,})/',
+            thumbnail, 'video id', default=None)
+
+        if not video_id:
+            video_id = self._search_regex(
+                r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](\d{6,})',
+                webpage, 'video id')
 
         return self.url_result('mtg:%s' % video_id, TVPlayIE.ie_key())
