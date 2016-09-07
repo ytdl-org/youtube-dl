@@ -1,10 +1,14 @@
 # encoding: utf-8
 from __future__ import unicode_literals
+
 import re
 
 from .common import InfoExtractor
 from .brightcove import BrightcoveLegacyIE
-from ..compat import compat_parse_qs
+from ..compat import (
+    compat_parse_qs,
+    compat_urlparse,
+)
 
 
 class TlcDeIE(InfoExtractor):
@@ -35,5 +39,5 @@ class TlcDeIE(InfoExtractor):
             title = mobj.group('title')
             webpage = self._download_webpage(url, title)
             brightcove_legacy_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
-            brightcove_id = compat_parse_qs(brightcove_legacy_url)['@videoPlayer'][0]
+            brightcove_id = compat_parse_qs(compat_urlparse.urlparse(brightcove_legacy_url).query)['@videoPlayer'][0]
         return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)
