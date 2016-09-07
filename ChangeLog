@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [foxgay] Fix extraction (#10480)
 + [miaopai] New extractor (#10556)
 * [gamestar] Fix metadata extraction (#10479)
 + [bilibili] Support episodes (#10190)

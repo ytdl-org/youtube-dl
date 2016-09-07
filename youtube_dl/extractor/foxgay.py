@@ -1,18 +1,24 @@
 from __future__ import unicode_literals
 
+import itertools
+
 from .common import InfoExtractor
+from ..utils import (
+    get_element_by_id,
+    remove_end,
+)
 
 
 class FoxgayIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?foxgay\.com/videos/(?:\S+-)?(?P<id>\d+)\.shtml'
     _TEST = {
         'url': 'http://foxgay.com/videos/fuck-turkish-style-2582.shtml',
-        'md5': '80d72beab5d04e1655a56ad37afe6841',
+        'md5': '344558ccfea74d33b7adbce22e577f54',
         'info_dict': {
             'id': '2582',
             'ext': 'mp4',
-            'title': 'md5:6122f7ae0fc6b21ebdf59c5e083ce25a',
-            'description': 'md5:5e51dc4405f1fd315f7927daed2ce5cf',
+            'title': 'Fuck Turkish-style',
+            'description': 'md5:6ae2d9486921891efe89231ace13ffdf',
             'age_limit': 18,
             'thumbnail': 're:https?://.*\.jpg$',
         },
@@ -22,27 +28,35 @@ class FoxgayIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(
-            r'<title>(?P<title>.*?)</title>',
-            webpage, 'title', fatal=False)
-        description = self._html_search_regex(
-            r'<div class="ico_desc"><h2>(?P<description>.*?)</h2>',
-            webpage, 'description', fatal=False)
+        title = remove_end(self._html_search_regex(
+            r'<title>([^<]+)</title>', webpage, 'title'), ' - Foxgay.com')
+        description = get_element_by_id('inf_tit', webpage)
 
+        # The default user-agent with foxgay cookies leads to pages without videos
+        self._downloader.cookiejar.clear('.foxgay.com')
         # Find the URL for the iFrame which contains the actual video.
+        iframe_url = self._html_search_regex(
+            r'<iframe[^>]+src=([\'"])(?P<url>[^\'"]+)\1', webpage,
+            'video frame', group='url')
         iframe = self._download_webpage(
-            self._html_search_regex(r'iframe src="(?P<frame>.*?)"', webpage, 'video frame'),
-            video_id)
-        video_url = self._html_search_regex(
-            r"v_path = '(?P<vid>http://.*?)'", iframe, 'url')
-        thumb_url = self._html_search_regex(
-            r"t_path = '(?P<thumb>http://.*?)'", iframe, 'thumbnail', fatal=False)
+            iframe_url, video_id, headers={'User-Agent': 'curl/7.50.1'},
+            note='Downloading video frame')
+        video_data = self._parse_json(self._search_regex(
+            r'video_data\s*=\s*([^;]+);', iframe, 'video data'), video_id)
+
+        formats = [{
+            'url': source,
+            'height': resolution,
+        } for source, resolution in zip(
+            video_data['sources'], video_data.get('resolutions', itertools.repeat(None)))]
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'formats': formats,
             'description': description,
-            'thumbnail': thumb_url,
+            'thumbnail': video_data.get('act_vid', {}).get('thumb'),
             'age_limit': 18,
         }
