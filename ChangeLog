@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [gamestar] Fix metadata extraction (#10479)
 + [bilibili] Support episodes (#10190)
 + [tvnoe] New extractor (#10524)
 
