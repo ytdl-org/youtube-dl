@@ -390,7 +390,7 @@ class ViafreeIE(InfoExtractor):
         if thumbnail:
             video_id = self._search_regex(
                 r'https?://[^/]+/imagecache/(?:[^/]+/)+seasons/\d+/(\d{6,})/',
-            thumbnail, 'video id', default=None)
+                thumbnail, 'video id', default=None)
 
         if not video_id:
             video_id = self._search_regex(
