@@ -6,7 +6,7 @@ from ..utils import ExtractorError
 
 class CMTIE(MTVIE):
     IE_NAME = 'cmt.com'
-    _VALID_URL = r'https?://www\.cmt\.com/(?:videos|shows)/(?:[^/]+/)*(?P<videoid>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?cmt\.com/(?:videos|shows)/(?:[^/]+/)*(?P<videoid>\d+)'
     _FEED_URL = 'http://www.cmt.com/sitewide/apps/player/embed/rss/'
 
     _TESTS = [{

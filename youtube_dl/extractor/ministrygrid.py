@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class MinistryGridIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ministrygrid.com/([^/?#]*/)*(?P<id>[^/#?]+)/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?ministrygrid\.com/([^/?#]*/)*(?P<id>[^/#?]+)/?(?:$|[?#])'
 
     _TEST = {
         'url': 'http://www.ministrygrid.com/training-viewer/-/training/t4g-2014-conference/the-gospel-by-numbers-4/the-gospel-by-numbers',

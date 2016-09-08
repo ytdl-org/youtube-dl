@@ -94,7 +94,7 @@ class PeriscopeIE(PeriscopeBaseIE):
 
 
 class PeriscopeUserIE(PeriscopeBaseIE):
-    _VALID_URL = r'https?://www\.periscope\.tv/(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/(?P<id>[^/]+)/?$'
     IE_DESC = 'Periscope user videos'
     IE_NAME = 'periscope:user'
 

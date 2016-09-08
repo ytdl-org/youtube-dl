@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class SlideshareIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.slideshare\.net/[^/]+?/(?P<title>.+?)($|\?)'
+    _VALID_URL = r'https?://(?:www\.)?slideshare\.net/[^/]+?/(?P<title>.+?)($|\?)'
 
     _TEST = {
         'url': 'http://www.slideshare.net/Dataversity/keynote-presentation-managing-scale-and-complexity',

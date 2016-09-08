@@ -74,7 +74,7 @@ class MiTeleBaseIE(InfoExtractor):
 
 class MiTeleIE(MiTeleBaseIE):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'https?://www\.mitele\.es/(?:[^/]+/){3}(?P<id>[^/]+)/'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/){3}(?P<id>[^/]+)/'
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',

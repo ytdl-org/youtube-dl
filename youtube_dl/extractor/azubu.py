@@ -103,7 +103,7 @@ class AzubuIE(InfoExtractor):
 
 
 class AzubuLiveIE(InfoExtractor):
-    _VALID_URL = r'https?://www.azubu.tv/(?P<id>[^/]+)$'
+    _VALID_URL = r'https?://(?:www\.)?azubu\.tv/(?P<id>[^/]+)$'
 
     _TEST = {
         'url': 'http://www.azubu.tv/MarsTVMDLen',
