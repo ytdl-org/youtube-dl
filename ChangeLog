@@ -1,11 +1,25 @@
 version <unreleased>
 
 Extractors
++ [jwplatform] Extract height from format label
++ [yahoo] Extract Brightcove Legacy Studio embeds (#9345)
+* [videomore] Fix extraction (#10592)
 * [foxgay] Fix extraction (#10480)
-+ [miaopai] New extractor (#10556)
++ [rmcdecouverte] Add extractor for rmcdecouverte.bfmtv.com (#9709)
 * [gamestar] Fix metadata extraction (#10479)
-+ [bilibili] Support episodes (#10190)
-+ [tvnoe] New extractor (#10524)
+* [puls4] Fix extraction (#10583)
++ [cctv] Add extractor for CCTV and CNTV (#8153)
++ [lci] Add extractor for lci.fr (#10573)
++ [wat] Extract DASH formats
++ [viafree] Improve video id detection (#10569)
++ [trutv] Add extractor for trutv.com (#10519)
++ [nick] Add support for nickelodeon.nl (#10559)
++ [abcotvs:clips] Add support for clips.abcotvs.com
++ [abcotvs] Add support for ABC Owned Television Stations sites (#9551)
++ [miaopai] Add extractor for miaopai.com (#10556)
+* [gamestar] Fix metadata extraction (#10479)
++ [bilibili] Add support for episodes (#10190)
++ [tvnoe] Add extractor for tvnoe.cz (#10524)
 
 
 version 2016.09.04.1
