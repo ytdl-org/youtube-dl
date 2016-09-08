@@ -112,7 +112,7 @@ class CamdemyIE(InfoExtractor):
 
 
 class CamdemyFolderIE(InfoExtractor):
-    _VALID_URL = r'https?://www.camdemy.com/folder/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?camdemy\.com/folder/(?P<id>\d+)'
     _TESTS = [{
         # links with trailing slash
         'url': 'http://www.camdemy.com/folder/450',

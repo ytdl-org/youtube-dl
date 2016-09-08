@@ -59,7 +59,7 @@ class KuwoBaseIE(InfoExtractor):
 class KuwoIE(KuwoBaseIE):
     IE_NAME = 'kuwo:song'
     IE_DESC = '酷我音乐'
-    _VALID_URL = r'https?://www\.kuwo\.cn/yinyue/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/yinyue/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/yinyue/635632/',
         'info_dict': {
@@ -139,7 +139,7 @@ class KuwoIE(KuwoBaseIE):
 class KuwoAlbumIE(InfoExtractor):
     IE_NAME = 'kuwo:album'
     IE_DESC = '酷我音乐 - 专辑'
-    _VALID_URL = r'https?://www\.kuwo\.cn/album/(?P<id>\d+?)/'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/album/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/album/502294/',
         'info_dict': {
@@ -200,7 +200,7 @@ class KuwoChartIE(InfoExtractor):
 class KuwoSingerIE(InfoExtractor):
     IE_NAME = 'kuwo:singer'
     IE_DESC = '酷我音乐 - 歌手'
-    _VALID_URL = r'https?://www\.kuwo\.cn/mingxing/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/mingxing/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/mingxing/bruno+mars/',
         'info_dict': {
@@ -296,7 +296,7 @@ class KuwoCategoryIE(InfoExtractor):
 class KuwoMvIE(KuwoBaseIE):
     IE_NAME = 'kuwo:mv'
     IE_DESC = '酷我音乐 - MV'
-    _VALID_URL = r'https?://www\.kuwo\.cn/mv/(?P<id>\d+?)/'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/mv/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/mv/6480076/',
         'info_dict': {

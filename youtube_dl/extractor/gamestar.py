@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class GameStarIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.gamestar\.de/videos/.*,(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?gamestar\.de/videos/.*,(?P<id>[0-9]+)\.html'
     _TEST = {
         'url': 'http://www.gamestar.de/videos/trailer,3/hobbit-3-die-schlacht-der-fuenf-heere,76110.html',
         'md5': '96974ecbb7fd8d0d20fca5a00810cea7',

@@ -5,7 +5,7 @@ from .internetvideoarchive import InternetVideoArchiveIE
 
 
 class RottenTomatoesIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.rottentomatoes\.com/m/[^/]+/trailers/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rottentomatoes\.com/m/[^/]+/trailers/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.rottentomatoes.com/m/toy_story_3/trailers/11028566/',

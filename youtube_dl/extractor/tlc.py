@@ -13,7 +13,7 @@ from ..compat import (
 
 class TlcDeIE(InfoExtractor):
     IE_NAME = 'tlc.de'
-    _VALID_URL = r'https?://www\.tlc\.de/(?:[^/]+/)*videos/(?P<title>[^/?#]+)?(?:.*#(?P<id>\d+))?'
+    _VALID_URL = r'https?://(?:www\.)?tlc\.de/(?:[^/]+/)*videos/(?P<title>[^/?#]+)?(?:.*#(?P<id>\d+))?'
 
     _TEST = {
         'url': 'http://www.tlc.de/sendungen/breaking-amish/videos/#3235167922001',

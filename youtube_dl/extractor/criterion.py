@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class CriterionIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.criterion\.com/films/(?P<id>[0-9]+)-.+'
+    _VALID_URL = r'https?://(?:www\.)?criterion\.com/films/(?P<id>[0-9]+)-.+'
     _TEST = {
         'url': 'http://www.criterion.com/films/184-le-samourai',
         'md5': 'bc51beba55685509883a9a7830919ec3',
