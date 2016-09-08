@@ -2417,7 +2417,7 @@ class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
-    _VALID_URL = 'https?://www\.youtube\.com/feed/history|:ythistory'
+    _VALID_URL = r'https?://www\.youtube\.com/feed/history|:ythistory'
     _FEED_NAME = 'history'
     _PLAYLIST_TITLE = 'Youtube History'
 
