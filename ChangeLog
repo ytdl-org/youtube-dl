@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.09.08
 
 Extractors
 + [jwplatform] Extract height from format label

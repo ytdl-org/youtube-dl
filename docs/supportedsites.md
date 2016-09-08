@@ -19,9 +19,10 @@
  - **9now.com.au**
  - **abc.net.au**
  - **abc.net.au:iview**
- - **Abc7News**
  - **abcnews**
  - **abcnews:video**
+ - **abcotvs**: ABC Owned Television Stations
+ - **abcotvs:clips**
  - **AcademicEarth:Course**
  - **acast**
  - **acast:channel**
@@ -128,6 +129,7 @@
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
+ - **CCTV**
  - **CDA**
  - **CeskaTelevize**
  - **channel9**: Channel 9
@@ -352,6 +354,7 @@
  - **kuwo:song**: 酷我音乐
  - **la7.it**
  - **Laola1Tv**
+ - **LCI**
  - **Lcp**
  - **LcpPlay**
  - **Le**: 乐视网
@@ -390,6 +393,7 @@
  - **Metacritic**
  - **Mgoon**
  - **MGTV**: 芒果TV
+ - **MiaoPai**
  - **Minhateca**
  - **MinistryGrid**
  - **Minoto**
@@ -576,6 +580,7 @@
  - **revision3:embed**
  - **RICE**
  - **RingTV**
+ - **RMCDecouverte**
  - **RockstarGames**
  - **RoosterTeeth**
  - **RottenTomatoes**
@@ -721,6 +726,7 @@
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
  - **trollvids**
+ - **TruTV**
  - **Tube8**
  - **TubiTv**
  - **tudou**
@@ -742,6 +748,7 @@
  - **TVCArticle**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
+ - **TVNoe**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
  - **tvp:series**
