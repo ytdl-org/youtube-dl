@@ -12,6 +12,7 @@ from ..utils import (
 
 class ABCOTVSIE(InfoExtractor):
     IE_NAME = 'abcotvs'
+    IE_DESC = 'ABC Owned Television Stations'
     _VALID_URL = r'https?://(?:abc(?:7(?:news|ny|chicago)?|11|13|30)|6abc)\.com(?:/[^/]+/(?P<display_id>[^/]+))?/(?P<id>\d+)'
     _TESTS = [
         {
