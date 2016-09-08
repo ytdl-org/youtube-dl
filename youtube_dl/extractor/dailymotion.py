@@ -394,7 +394,7 @@ class DailymotionUserIE(DailymotionPlaylistIE):
 
 
 class DailymotionCloudIE(DailymotionBaseInfoExtractor):
-    _VALID_URL_PREFIX = r'http://api\.dmcloud\.net/(?:player/)?embed/'
+    _VALID_URL_PREFIX = r'https?://api\.dmcloud\.net/(?:player/)?embed/'
     _VALID_URL = r'%s[^/]+/(?P<id>[^/?]+)' % _VALID_URL_PREFIX
     _VALID_EMBED_URL = r'%s[^/]+/[^\'"]+' % _VALID_URL_PREFIX
 
