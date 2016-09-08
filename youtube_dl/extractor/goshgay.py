@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class GoshgayIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.goshgay\.com/video(?P<id>\d+?)($|/)'
+    _VALID_URL = r'https?://(?:www\.)?goshgay\.com/video(?P<id>\d+?)($|/)'
     _TEST = {
         'url': 'http://www.goshgay.com/video299069/diesel_sfw_xxx_video',
         'md5': '4b6db9a0a333142eb9f15913142b0ed1',

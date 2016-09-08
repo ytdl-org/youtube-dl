@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class SyfyIE(AdobePassIE):
-    _VALID_URL = r'https?://www\.syfy\.com/(?:[^/]+/)?videos/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?syfy\.com/(?:[^/]+/)?videos/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.syfy.com/theinternetruinedmylife/videos/the-internet-ruined-my-life-season-1-trailer',
         'info_dict': {

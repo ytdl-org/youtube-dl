@@ -9,7 +9,7 @@ from ..compat import (
 
 class MotorsportIE(InfoExtractor):
     IE_DESC = 'motorsport.com'
-    _VALID_URL = r'https?://www\.motorsport\.com/[^/?#]+/video/(?:[^/?#]+/)(?P<id>[^/]+)/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?motorsport\.com/[^/?#]+/video/(?:[^/?#]+/)(?P<id>[^/]+)/?(?:$|[?#])'
     _TEST = {
         'url': 'http://www.motorsport.com/f1/video/main-gallery/red-bull-racing-2014-rules-explained/',
         'info_dict': {

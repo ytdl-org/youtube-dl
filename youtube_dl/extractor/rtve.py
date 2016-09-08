@@ -64,7 +64,7 @@ def _decrypt_url(png):
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://www\.rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -184,7 +184,7 @@ class RTVEInfantilIE(InfoExtractor):
 class RTVELiveIE(InfoExtractor):
     IE_NAME = 'rtve.es:live'
     IE_DESC = 'RTVE.es live streams'
-    _VALID_URL = r'https?://www\.rtve\.es/directo/(?P<id>[a-zA-Z0-9-]+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/directo/(?P<id>[a-zA-Z0-9-]+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/directo/la-1/',
@@ -226,7 +226,7 @@ class RTVELiveIE(InfoExtractor):
 
 class RTVETelevisionIE(InfoExtractor):
     IE_NAME = 'rtve.es:television'
-    _VALID_URL = r'https?://www\.rtve\.es/television/[^/]+/[^/]+/(?P<id>\d+).shtml'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/television/[^/]+/[^/]+/(?P<id>\d+).shtml'
 
     _TEST = {
         'url': 'http://www.rtve.es/television/20160628/revolucion-del-movil/1364141.shtml',

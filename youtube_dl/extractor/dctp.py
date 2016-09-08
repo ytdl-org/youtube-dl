@@ -6,7 +6,7 @@ from ..compat import compat_str
 
 
 class DctpTvIE(InfoExtractor):
-    _VALID_URL = r'https?://www.dctp.tv/(#/)?filme/(?P<id>.+?)/$'
+    _VALID_URL = r'https?://(?:www\.)?dctp\.tv/(#/)?filme/(?P<id>.+?)/$'
     _TEST = {
         'url': 'http://www.dctp.tv/filme/videoinstallation-fuer-eine-kaufhausfassade/',
         'info_dict': {

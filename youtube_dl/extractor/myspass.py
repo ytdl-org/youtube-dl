@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class MySpassIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.myspass\.de/.*'
+    _VALID_URL = r'https?://(?:www\.)?myspass\.de/.*'
     _TEST = {
         'url': 'http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/',
         'md5': '0b49f4844a068f8b33f4b7c88405862b',

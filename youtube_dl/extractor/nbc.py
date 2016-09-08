@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class NBCIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
+    _VALID_URL = r'https?://(?:www\.)?nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
 
     _TESTS = [
         {
@@ -138,7 +138,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
 class NBCSportsIE(InfoExtractor):
     # Does not include https because its certificate is invalid
-    _VALID_URL = r'https?://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
 
     _TEST = {
         'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
@@ -161,7 +161,7 @@ class NBCSportsIE(InfoExtractor):
 
 
 class CSNNEIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.csnne\.com/video/(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?csnne\.com/video/(?P<id>[0-9a-z-]+)'
 
     _TEST = {
         'url': 'http://www.csnne.com/video/snc-evening-update-wright-named-red-sox-no-5-starter',
