@@ -63,10 +63,17 @@ class JWPlatformBaseIE(InfoExtractor):
                         'ext': ext,
                     })
                 else:
+                    height = int_or_none(source.get('height'))
+                    if height is None:
+                        # Often no height is provided but there is a label in
+                        # format like 1080p.
+                        height = int_or_none(self._search_regex(
+                            r'^(\d{3,})[pP]$', source.get('label') or '',
+                            'height', default=None))
                     a_format = {
                         'url': source_url,
                         'width': int_or_none(source.get('width')),
-                        'height': int_or_none(source.get('height')),
+                        'height': height,
                         'ext': ext,
                     }
                     if source_url.startswith('rtmp'):
