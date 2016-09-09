@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import float_or_none
 
 
 class CanvasIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?canvas\.be/video/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site_id>canvas|een)\.be/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.canvas.be/video/de-afspraak/najaar-2015/de-afspraak-veilt-voor-de-warmste-week',
         'md5': 'ea838375a547ac787d4064d8c7860a6c',
@@ -38,22 +40,42 @@ class CanvasIE(InfoExtractor):
         'params': {
             'skip_download': True,
         }
+    }, {
+        'url': 'https://www.een.be/sorry-voor-alles/herbekijk-sorry-voor-alles',
+        'info_dict': {
+            'id': 'mz-ast-11a587f8-b921-4266-82e2-0bce3e80d07f',
+            'display_id': 'herbekijk-sorry-voor-alles',
+            'ext': 'mp4',
+            'title': 'Herbekijk Sorry voor alles',
+            'description': 'md5:8bb2805df8164e5eb95d6a7a29dc0dd3',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'duration': 3788.06,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        'url': 'https://www.canvas.be/check-point/najaar-2016/de-politie-uw-vriend',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        site_id, display_id = mobj.group('site_id'), mobj.group('id')
 
         webpage = self._download_webpage(url, display_id)
 
-        title = self._search_regex(
+        title = (self._search_regex(
             r'<h1[^>]+class="video__body__header__title"[^>]*>(.+?)</h1>',
-            webpage, 'title', default=None) or self._og_search_title(webpage)
+            webpage, 'title', default=None) or self._og_search_title(
+            webpage)).strip()
 
         video_id = self._html_search_regex(
             r'data-video=(["\'])(?P<id>.+?)\1', webpage, 'video id', group='id')
 
         data = self._download_json(
-            'https://mediazone.vrt.be/api/v1/canvas/assets/%s' % video_id, display_id)
+            'https://mediazone.vrt.be/api/v1/%s/assets/%s'
+            % (site_id, video_id), display_id)
 
         formats = []
         for target in data['targetUrls']:
