@@ -8,18 +8,20 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     clean_html,
-    sanitized_Request
 )
-from ..compat import compat_urllib_request
 
 
 class ViuBaseIE(InfoExtractor):
 
-    @classmethod
-    def _get_viu_auth(self):
-        viu_auth_url = 'https://www.viu.com/api/apps/v2/authenticate?acct=test&appid=viu_desktop&fmt=json' \
-                       '&iid=guest&languageid=default&platform=desktop&userid=guest&useridtype=guest&ver=1.0'
-        viu_auth_res = compat_urllib_request.urlopen(viu_auth_url)
+    def _get_viu_auth(self, video_id):
+        viu_auth_res = self._request_webpage(
+            'https://www.viu.com/api/apps/v2/authenticate', video_id,
+            note='Requesting Viu auth',
+            query={
+                'acct': 'test', 'appid': 'viu_desktop', 'fmt': 'json',
+                'iid': 'guest', 'languageid': 'default', 'platform': 'desktop',
+                'userid': 'guest', 'useridtype': 'guest', 'ver': '1.0'
+            })
         return viu_auth_res.info().get('X-VIU-AUTH')
 
 
@@ -95,10 +97,11 @@ class ViuIE(ViuBaseIE):
 
         if not config_js_url:
             # content is from ID, IN, MY
-            req = sanitized_Request('https://www.viu.com/api/clip/load?appid=viu_desktop&fmt=json&id=' + video_id)
-            req.add_header('X-VIU-AUTH', self._get_viu_auth())
             video_info = self._download_json(
-                req, video_id, note='Downloading video info').get('response', {}).get('item', [{}])[0]
+                'https://www.viu.com/api/clip/load', video_id,
+                headers={'X-VIU-AUTH': self._get_viu_auth(video_id)},
+                query={'appid': 'viu_desktop', 'fmt': 'json', 'id': video_id},
+                note='Downloading video info').get('response', {}).get('item', [{}])[0]
 
             formats = self._extract_m3u8_formats(
                 video_info['href'], video_id, 'mp4',
@@ -235,10 +238,11 @@ class ViuPlaylistIE(ViuBaseIE):
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
-        req = sanitized_Request('https://www.viu.com/api/container/load?appid=viu_desktop&fmt=json&id=' + playlist_id)
-        req.add_header('X-VIU-AUTH', self._get_viu_auth())
         playlist_info = self._download_json(
-            req, playlist_id, note='Downloading playlist info').get('response', {}).get('container')
+            'https://www.viu.com/api/container/load', playlist_id,
+            headers={'X-VIU-AUTH': self._get_viu_auth(playlist_id)},
+            query={'appid': 'viu_desktop', 'fmt': 'json', 'id': playlist_id},
+            note='Downloading playlist info').get('response', {}).get('container')
 
         name = playlist_info['title']
         entries = [
