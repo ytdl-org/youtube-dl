@@ -51,7 +51,7 @@ class CBSIE(CBSBaseIE):
         path = 'dJ5BDC/media/guid/2198311517/' + guid
         smil_url = 'http://link.theplatform.com/s/%s?mbr=true' % path
         formats, subtitles = self._extract_theplatform_smil(smil_url + '&manifest=m3u', guid)
-        for r in ('HLS&formats=M3U', 'RTMP', 'WIFI', '3G'):
+        for r in ('OnceURL&formats=M3U', 'HLS&formats=M3U', 'RTMP', 'WIFI', '3G'):
             try:
                 tp_formats, _ = self._extract_theplatform_smil(smil_url + '&assetTypes=' + r, guid, 'Downloading %s SMIL data' % r.split('&')[0])
                 formats.extend(tp_formats)

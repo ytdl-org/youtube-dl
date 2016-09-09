@@ -12,7 +12,7 @@ from ..utils import (
     parse_duration,
     xpath_attr,
     update_url_query,
-    compat_urlparse,
+    ExtractorError,
 )
 
 
@@ -24,6 +24,7 @@ class TurnerBaseIE(InfoExtractor):
         video_data = self._download_xml(data_src, video_id)
         video_id = video_data.attrib['id']
         title = xpath_text(video_data, 'headline', fatal=True)
+        content_id = xpath_text(video_data, 'contentId') or video_id
         # rtmp_src = xpath_text(video_data, 'akamai/src')
         # if rtmp_src:
         #     splited_rtmp_src = rtmp_src.split(',')
@@ -54,7 +55,7 @@ class TurnerBaseIE(InfoExtractor):
                 # auth = self._download_webpage(
                 #     protected_path_data['tokenizer_src'], query={
                 #         'path': protected_path,
-                #         'videoId': video_id,
+                #         'videoId': content_id,
                 #         'aifp': aifp,
                 #     })
                 # token = xpath_text(auth, 'token')
@@ -72,8 +73,11 @@ class TurnerBaseIE(InfoExtractor):
                     auth = self._download_xml(
                         secure_path_data['tokenizer_src'], video_id, query={
                             'path': secure_path,
-                            'videoId': video_id,
+                            'videoId': content_id,
                         })
+                    error_msg = xpath_text(auth, 'error/msg')
+                    if error_msg:
+                        raise ExtractorError(error_msg, expected=True)
                     token = xpath_text(auth, 'token')
                     if not token:
                         continue
@@ -93,19 +97,9 @@ class TurnerBaseIE(InfoExtractor):
                 formats.extend(self._extract_smil_formats(
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
-                m3u8_formats = self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id=format_id or 'hls',
-                    fatal=False)
-                if m3u8_formats:
-                    # Sometimes final URLs inside m3u8 are unsigned, let's fix this
-                    # ourselves
-                    qs = compat_urlparse.urlparse(video_url).query
-                    if qs:
-                        query = compat_urlparse.parse_qs(qs)
-                        for m3u8_format in m3u8_formats:
-                            m3u8_format['url'] = update_url_query(m3u8_format['url'], query)
-                            m3u8_format['extra_param_to_segment_url'] = qs
-                    formats.extend(m3u8_formats)
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4',
+                    m3u8_id=format_id or 'hls', fatal=False))
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     update_url_query(video_url, {'hdcore': '3.7.0'}),

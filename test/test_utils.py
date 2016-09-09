@@ -39,6 +39,7 @@ from youtube_dl.utils import (
     is_html,
     js_to_json,
     limit_length,
+    mimetype2ext,
     ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
@@ -624,6 +625,14 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(
             limit_length('foo bar baz asd', 12).startswith('foo bar'))
         self.assertTrue('...' in limit_length('foo bar baz asd', 12))
+
+    def test_mimetype2ext(self):
+        self.assertEqual(mimetype2ext(None), None)
+        self.assertEqual(mimetype2ext('video/x-flv'), 'flv')
+        self.assertEqual(mimetype2ext('application/x-mpegURL'), 'm3u8')
+        self.assertEqual(mimetype2ext('text/vtt'), 'vtt')
+        self.assertEqual(mimetype2ext('text/vtt;charset=utf-8'), 'vtt')
+        self.assertEqual(mimetype2ext('text/html; charset=utf-8'), 'html')
 
     def test_parse_codecs(self):
         self.assertEqual(parse_codecs(''), {})

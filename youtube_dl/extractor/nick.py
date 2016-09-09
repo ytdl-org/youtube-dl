@@ -69,12 +69,15 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.de'
-    _VALID_URL = r'https?://(?:www\.)?nick\.de/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:nick\.de|nickelodeon\.nl)/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
         'only_matching': True,
     }, {
         'url': 'http://www.nick.de/shows/342-icarly',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.nl/shows/474-spongebob/videos/17403-een-kijkje-in-de-keuken-met-sandy-van-binnenuit',
         'only_matching': True,
     }]
 

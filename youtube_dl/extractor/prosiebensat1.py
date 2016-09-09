@@ -15,7 +15,111 @@ from ..utils import (
 )
 
 
-class ProSiebenSat1IE(InfoExtractor):
+class ProSiebenSat1BaseIE(InfoExtractor):
+    def _extract_video_info(self, url, clip_id):
+        client_location = url
+
+        video = self._download_json(
+            'http://vas.sim-technik.de/vas/live/v2/videos',
+            clip_id, 'Downloading videos JSON', query={
+                'access_token': self._TOKEN,
+                'client_location': client_location,
+                'client_name': self._CLIENT_NAME,
+                'ids': clip_id,
+            })[0]
+
+        if video.get('is_protected') is True:
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
+        duration = float_or_none(video.get('duration'))
+        source_ids = [compat_str(source['id']) for source in video['sources']]
+
+        client_id = self._SALT[:2] + sha1(''.join([clip_id, self._SALT, self._TOKEN, client_location, self._SALT, self._CLIENT_NAME]).encode('utf-8')).hexdigest()
+
+        sources = self._download_json(
+            'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources' % clip_id,
+            clip_id, 'Downloading sources JSON', query={
+                'access_token': self._TOKEN,
+                'client_id': client_id,
+                'client_location': client_location,
+                'client_name': self._CLIENT_NAME,
+            })
+        server_id = sources['server_id']
+
+        def fix_bitrate(bitrate):
+            bitrate = int_or_none(bitrate)
+            if not bitrate:
+                return None
+            return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
+
+        formats = []
+        for source_id in source_ids:
+            client_id = self._SALT[:2] + sha1(''.join([self._SALT, clip_id, self._TOKEN, server_id, client_location, source_id, self._SALT, self._CLIENT_NAME]).encode('utf-8')).hexdigest()
+            urls = self._download_json(
+                'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources/url' % clip_id,
+                clip_id, 'Downloading urls JSON', fatal=False, query={
+                    'access_token': self._TOKEN,
+                    'client_id': client_id,
+                    'client_location': client_location,
+                    'client_name': self._CLIENT_NAME,
+                    'server_id': server_id,
+                    'source_ids': source_id,
+                })
+            if not urls:
+                continue
+            if urls.get('status_code') != 0:
+                raise ExtractorError('This video is unavailable', expected=True)
+            urls_sources = urls['sources']
+            if isinstance(urls_sources, dict):
+                urls_sources = urls_sources.values()
+            for source in urls_sources:
+                source_url = source.get('url')
+                if not source_url:
+                    continue
+                protocol = source.get('protocol')
+                mimetype = source.get('mimetype')
+                if mimetype == 'application/f4m+xml' or 'f4mgenerator' in source_url or determine_ext(source_url) == 'f4m':
+                    formats.extend(self._extract_f4m_formats(
+                        source_url, clip_id, f4m_id='hds', fatal=False))
+                elif mimetype == 'application/x-mpegURL':
+                    formats.extend(self._extract_m3u8_formats(
+                        source_url, clip_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
+                else:
+                    tbr = fix_bitrate(source['bitrate'])
+                    if protocol in ('rtmp', 'rtmpe'):
+                        mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source_url)
+                        if not mobj:
+                            continue
+                        path = mobj.group('path')
+                        mp4colon_index = path.rfind('mp4:')
+                        app = path[:mp4colon_index]
+                        play_path = path[mp4colon_index:]
+                        formats.append({
+                            'url': '%s/%s' % (mobj.group('url'), app),
+                            'app': app,
+                            'play_path': play_path,
+                            'player_url': 'http://livepassdl.conviva.com/hf/ver/2.79.0.17083/LivePassModuleMain.swf',
+                            'page_url': 'http://www.prosieben.de',
+                            'tbr': tbr,
+                            'ext': 'flv',
+                            'format_id': 'rtmp%s' % ('-%d' % tbr if tbr else ''),
+                        })
+                    else:
+                        formats.append({
+                            'url': source_url,
+                            'tbr': tbr,
+                            'format_id': 'http%s' % ('-%d' % tbr if tbr else ''),
+                        })
+        self._sort_formats(formats)
+
+        return {
+            'duration': duration,
+            'formats': formats,
+        }
+
+
+class ProSiebenSat1IE(ProSiebenSat1BaseIE):
     IE_NAME = 'prosiebensat1'
     IE_DESC = 'ProSiebenSat.1 Digital'
     _VALID_URL = r'https?://(?:www\.)?(?:(?:prosieben|prosiebenmaxx|sixx|sat1|kabeleins|the-voice-of-germany|7tv)\.(?:de|at|ch)|ran\.de|fem\.com)/(?P<id>.+)'
@@ -188,6 +292,9 @@ class ProSiebenSat1IE(InfoExtractor):
         },
     ]
 
+    _TOKEN = 'prosieben'
+    _SALT = '01!8d8F_)r9]4s[qeuXfP%'
+    _CLIENT_NAME = 'kolibri-2.0.19-splec4'
     _CLIPID_REGEXES = [
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
@@ -234,123 +341,22 @@ class ProSiebenSat1IE(InfoExtractor):
     def _extract_clip(self, url, webpage):
         clip_id = self._html_search_regex(
             self._CLIPID_REGEXES, webpage, 'clip id')
-
-        access_token = 'prosieben'
-        client_name = 'kolibri-2.0.19-splec4'
-        client_location = url
-
-        video = self._download_json(
-            'http://vas.sim-technik.de/vas/live/v2/videos',
-            clip_id, 'Downloading videos JSON', query={
-                'access_token': access_token,
-                'client_location': client_location,
-                'client_name': client_name,
-                'ids': clip_id,
-            })[0]
-
-        if video.get('is_protected') is True:
-            raise ExtractorError('This video is DRM protected.', expected=True)
-
-        duration = float_or_none(video.get('duration'))
-        source_ids = [compat_str(source['id']) for source in video['sources']]
-
-        g = '01!8d8F_)r9]4s[qeuXfP%'
-        client_id = g[:2] + sha1(''.join([clip_id, g, access_token, client_location, g, client_name]).encode('utf-8')).hexdigest()
-
-        sources = self._download_json(
-            'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources' % clip_id,
-            clip_id, 'Downloading sources JSON', query={
-                'access_token': access_token,
-                'client_id': client_id,
-                'client_location': client_location,
-                'client_name': client_name,
-            })
-        server_id = sources['server_id']
-
         title = self._html_search_regex(self._TITLE_REGEXES, webpage, 'title')
-
-        def fix_bitrate(bitrate):
-            bitrate = int_or_none(bitrate)
-            if not bitrate:
-                return None
-            return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
-
-        formats = []
-        for source_id in source_ids:
-            client_id = g[:2] + sha1(''.join([g, clip_id, access_token, server_id, client_location, source_id, g, client_name]).encode('utf-8')).hexdigest()
-            urls = self._download_json(
-                'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources/url' % clip_id,
-                clip_id, 'Downloading urls JSON', fatal=False, query={
-                    'access_token': access_token,
-                    'client_id': client_id,
-                    'client_location': client_location,
-                    'client_name': client_name,
-                    'server_id': server_id,
-                    'source_ids': source_id,
-                })
-            if not urls:
-                continue
-            if urls.get('status_code') != 0:
-                raise ExtractorError('This video is unavailable', expected=True)
-            urls_sources = urls['sources']
-            if isinstance(urls_sources, dict):
-                urls_sources = urls_sources.values()
-            for source in urls_sources:
-                source_url = source.get('url')
-                if not source_url:
-                    continue
-                protocol = source.get('protocol')
-                mimetype = source.get('mimetype')
-                if mimetype == 'application/f4m+xml' or 'f4mgenerator' in source_url or determine_ext(source_url) == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        source_url, clip_id, f4m_id='hds', fatal=False))
-                elif mimetype == 'application/x-mpegURL':
-                    formats.extend(self._extract_m3u8_formats(
-                        source_url, clip_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
-                else:
-                    tbr = fix_bitrate(source['bitrate'])
-                    if protocol in ('rtmp', 'rtmpe'):
-                        mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source_url)
-                        if not mobj:
-                            continue
-                        path = mobj.group('path')
-                        mp4colon_index = path.rfind('mp4:')
-                        app = path[:mp4colon_index]
-                        play_path = path[mp4colon_index:]
-                        formats.append({
-                            'url': '%s/%s' % (mobj.group('url'), app),
-                            'app': app,
-                            'play_path': play_path,
-                            'player_url': 'http://livepassdl.conviva.com/hf/ver/2.79.0.17083/LivePassModuleMain.swf',
-                            'page_url': 'http://www.prosieben.de',
-                            'tbr': tbr,
-                            'ext': 'flv',
-                            'format_id': 'rtmp%s' % ('-%d' % tbr if tbr else ''),
-                        })
-                    else:
-                        formats.append({
-                            'url': source_url,
-                            'tbr': tbr,
-                            'format_id': 'http%s' % ('-%d' % tbr if tbr else ''),
-                        })
-        self._sort_formats(formats)
-
+        info = self._extract_video_info(url, clip_id)
         description = self._html_search_regex(
             self._DESCRIPTION_REGEXES, webpage, 'description', fatal=False)
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._html_search_regex(
             self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
 
-        return {
+        info.update({
             'id': clip_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
-            'duration': duration,
-            'formats': formats,
-        }
+        })
+        return info
 
     def _extract_playlist(self, url, webpage):
         playlist_id = self._html_search_regex(

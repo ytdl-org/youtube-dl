@@ -89,6 +89,8 @@ which means you can modify it, redistribute it or use it however you like.
     --mark-watched                   Mark videos watched (YouTube only)
     --no-mark-watched                Do not mark videos watched (YouTube only)
     --no-color                       Do not emit color codes in output
+    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
+                                     available
 
 ## Network Options:
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
@@ -173,7 +175,10 @@ which means you can modify it, redistribute it or use it however you like.
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
     --fragment-retries RETRIES       Number of retries for a fragment (default
-                                     is 10), or "infinite" (DASH only)
+                                     is 10), or "infinite" (DASH and hlsnative
+                                     only)
+    --skip-unavailable-fragments     Skip unavailable fragments (DASH and
+                                     hlsnative only)
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -845,6 +850,16 @@ For example, at first,
 will download the complete `PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re` playlist and create a file `archive.txt`. Each subsequent run will only download new videos if any:
 
     youtube-dl --download-archive archive.txt "https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re"
+
+### Should I add `--hls-prefer-native` into my config?
+
+When youtube-dl detects an HLS video, it can download it either with the built-in downloader or ffmpeg. Since many HLS streams are slightly invalid and ffmpeg/youtube-dl each handle some invalid cases better than the other, there is an option to switch the downloader if needed.
+
+When youtube-dl knows that one particular downloader works better for a given website, that downloader will be picked. Otherwise, youtube-dl will pick the best downloader for general compatibility, which at the moment happens to be ffmpeg. This choice may change in future versions of youtube-dl, with improvements of the built-in downloader and/or ffmpeg.
+
+In particular, the generic extractor (used when your website is not in the [list of supported sites by youtube-dl](http://rg3.github.io/youtube-dl/supportedsites.html) cannot mandate one specific downloader.
+
+If you put either `--hls-prefer-native` or `--hls-prefer-ffmpeg` into your configuration, a different subset of videos will fail to download correctly. Instead, it is much better to [file an issue](https://yt-dl.org/bug) or a pull request which details why the native or the ffmpeg HLS downloader is a better choice for your use case.
 
 ### Can you add support for this anime video site, or site which shows current movies for free?
 

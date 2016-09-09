@@ -238,7 +238,7 @@ class ARDMediathekIE(InfoExtractor):
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = '(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
+    _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
     _TEST = {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
         'md5': 'd216c3a86493f9322545e045ddc3eb35',

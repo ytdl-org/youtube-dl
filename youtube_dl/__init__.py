@@ -318,6 +318,7 @@ def _real_main(argv=None):
         'nooverwrites': opts.nooverwrites,
         'retries': opts.retries,
         'fragment_retries': opts.fragment_retries,
+        'skip_unavailable_fragments': opts.skip_unavailable_fragments,
         'buffersize': opts.buffersize,
         'noresizebuffer': opts.noresizebuffer,
         'continuedl': opts.continue_dl,

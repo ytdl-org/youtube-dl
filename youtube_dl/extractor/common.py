@@ -1163,13 +1163,6 @@ class InfoExtractor(object):
                               m3u8_id=None, note=None, errnote=None,
                               fatal=True, live=False):
 
-        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
-
-        format_url = lambda u: (
-            u
-            if re.match(r'^https?://', u)
-            else compat_urlparse.urljoin(m3u8_url, u))
-
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
@@ -1179,6 +1172,13 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
+
+        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
+
+        format_url = lambda u: (
+            u
+            if re.match(r'^https?://', u)
+            else compat_urlparse.urljoin(m3u8_url, u))
 
         # We should try extracting formats only from master playlists [1], i.e.
         # playlists that describe available qualities. On the other hand media
@@ -1201,7 +1201,8 @@ class InfoExtractor(object):
                 'protocol': entry_protocol,
                 'preference': preference,
             }]
-        last_info = None
+        last_info = {}
+        last_media = {}
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
                 last_info = parse_m3u8_attributes(line)
@@ -1224,23 +1225,24 @@ class InfoExtractor(object):
                             'protocol': entry_protocol,
                             'preference': preference,
                         })
+                    else:
+                        # When there is no URI in EXT-X-MEDIA let this tag's
+                        # data be used by regular URI lines below
+                        last_media = media
             elif line.startswith('#') or not line.strip():
                 continue
             else:
-                if last_info is None:
-                    formats.append({'url': format_url(line)})
-                    continue
                 tbr = int_or_none(last_info.get('AVERAGE-BANDWIDTH') or last_info.get('BANDWIDTH'), scale=1000)
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
+                # Despite specification does not mention NAME attribute for
+                # EXT-X-STREAM-INF it still sometimes may be present
+                stream_name = last_info.get('NAME') or last_media.get('NAME')
                 # Bandwidth of live streams may differ over time thus making
                 # format_id unpredictable. So it's better to keep provided
                 # format_id intact.
                 if not live:
-                    # Despite specification does not mention NAME attribute for
-                    # EXT-X-STREAM-INF it still sometimes may be present
-                    stream_name = last_info.get('NAME')
                     format_id.append(stream_name if stream_name else '%d' % (tbr if tbr else len(formats)))
                 f = {
                     'format_id': '-'.join(format_id),
@@ -1269,6 +1271,7 @@ class InfoExtractor(object):
                 f.update(parse_codecs(last_info.get('CODECS')))
                 formats.append(f)
                 last_info = {}
+                last_media = {}
         return formats
 
     @staticmethod
@@ -1746,7 +1749,7 @@ class InfoExtractor(object):
             media_attributes = extract_attributes(media_tag)
             src = media_attributes.get('src')
             if src:
-                _, formats = _media_formats(src)
+                _, formats = _media_formats(src, media_type)
                 media_info['formats'].extend(formats)
             media_info['thumbnail'] = media_attributes.get('poster')
             if media_content:

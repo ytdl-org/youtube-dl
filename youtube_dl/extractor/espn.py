@@ -5,7 +5,7 @@ from ..utils import remove_end
 
 
 class ESPNIE(InfoExtractor):
-    _VALID_URL = r'https?://espn\.go\.com/(?:[^/]+/)*(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:espn\.go|(?:www\.)?espn)\.com/(?:[^/]+/)*(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://espn.go.com/video/clip?id=10365079',
         'md5': '60e5d097a523e767d06479335d1bdc58',
@@ -46,6 +46,9 @@ class ESPNIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://espn.go.com/nba/playoffs/2015/story/_/id/12887571/john-wall-washington-wizards-no-swelling-left-hand-wrist-game-5-return',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/video/clip?id=10365079',
         'only_matching': True,
     }]
 

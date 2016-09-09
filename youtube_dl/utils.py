@@ -2148,7 +2148,7 @@ def mimetype2ext(mt):
         return ext
 
     _, _, res = mt.rpartition('/')
-    res = res.lower()
+    res = res.split(';')[0].strip().lower()
 
     return {
         '3gpp': '3gp',
@@ -2168,6 +2168,7 @@ def mimetype2ext(mt):
         'f4m+xml': 'f4m',
         'hds+xml': 'f4m',
         'vnd.ms-sstr+xml': 'ism',
+        'quicktime': 'mov',
     }.get(res, res)
 
 

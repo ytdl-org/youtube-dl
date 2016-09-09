@@ -423,7 +423,15 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--fragment-retries',
         dest='fragment_retries', metavar='RETRIES', default=10,
-        help='Number of retries for a fragment (default is %default), or "infinite" (DASH only)')
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH and hlsnative only)')
+    downloader.add_option(
+        '--skip-unavailable-fragments',
+        action='store_true', dest='skip_unavailable_fragments', default=True,
+        help='Skip unavailable fragments (DASH and hlsnative only)')
+    general.add_option(
+        '--abort-on-unavailable-fragment',
+        action='store_false', dest='skip_unavailable_fragments',
+        help='Abort downloading when some fragment is not available')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',

@@ -5,10 +5,13 @@ from .abc import (
     ABCIE,
     ABCIViewIE,
 )
-from .abc7news import Abc7NewsIE
 from .abcnews import (
     AbcNewsIE,
     AbcNewsVideoIE,
+)
+from .abcotvs import (
+    ABCOTVSIE,
+    ABCOTVSClipsIE,
 )
 from .academicearth import AcademicEarthCourseIE
 from .acast import (
@@ -143,6 +146,7 @@ from .cbsnews import (
 )
 from .cbssports import CBSSportsIE
 from .ccc import CCCIE
+from .cctv import CCTVIE
 from .cda import CDAIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
@@ -194,6 +198,10 @@ from .ctsnews import CtsNewsIE
 from .ctv import CTVIE
 from .ctvnews import CTVNewsIE
 from .cultureunplugged import CultureUnpluggedIE
+from .curiositystream import (
+    CuriosityStreamIE,
+    CuriosityStreamCollectionIE,
+)
 from .cwtv import CWTVIE
 from .dailymail import DailyMailIE
 from .dailymotion import (
@@ -257,13 +265,18 @@ from .espn import ESPNIE
 from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
-from .exfm import ExfmIE
 from .expotv import ExpoTVIE
 from .extremetube import ExtremeTubeIE
 from .eyedotv import EyedoTVIE
-from .facebook import FacebookIE
+from .facebook import (
+    FacebookIE,
+    FacebookPluginsVideoIE,
+)
 from .faz import FazIE
-from .fc2 import FC2IE
+from .fc2 import (
+    FC2IE,
+    FC2EmbedIE,
+)
 from .fczenit import FczenitIE
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
@@ -278,7 +291,10 @@ from .formula1 import Formula1IE
 from .fourtube import FourTubeIE
 from .fox import FOXIE
 from .foxgay import FoxgayIE
-from .foxnews import FoxNewsIE
+from .foxnews import (
+    FoxNewsIE,
+    FoxNewsInsiderIE,
+)
 from .foxsports import FoxSportsIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
@@ -315,6 +331,7 @@ from .globo import (
     GloboIE,
     GloboArticleIE,
 )
+from .go import GoIE
 from .godtube import GodTubeIE
 from .godtv import GodTVIE
 from .golem import GolemIE
@@ -408,6 +425,7 @@ from .kuwo import (
 )
 from .la7 import LA7IE
 from .laola1tv import Laola1TvIE
+from .lci import LCIIE
 from .lcp import (
     LcpPlayIE,
     LcpIE,
@@ -458,6 +476,7 @@ from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
+from .miaopai import MiaoPaiIE
 from .microsoftvirtualacademy import (
     MicrosoftVirtualAcademyIE,
     MicrosoftVirtualAcademyCourseIE,
@@ -486,6 +505,7 @@ from .motherless import MotherlessIE
 from .motorsport import MotorsportIE
 from .movieclips import MovieClipsIE
 from .moviezine import MoviezineIE
+from .movingimage import MovingImageIE
 from .msn import MSNIE
 from .mtv import (
     MTVIE,
@@ -704,6 +724,7 @@ from .revision3 import (
 )
 from .rice import RICEIE
 from .ringtv import RingTVIE
+from .rmcdecouverte import RMCDecouverteIE
 from .ro220 import Ro220IE
 from .rockstargames import RockstarGamesIE
 from .roosterteeth import RoosterTeethIE
@@ -806,7 +827,6 @@ from .srgssr import (
     SRGSSRPlayIE,
 )
 from .srmediathek import SRMediathekIE
-from .ssa import SSAIE
 from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
 from .streamable import StreamableIE
@@ -841,6 +861,7 @@ from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
+from .telequebec import TeleQuebecIE
 from .teletask import TeleTaskIE
 from .telewebion import TelewebionIE
 from .testurl import TestURLIE
@@ -869,15 +890,12 @@ from .tnaflix import (
     MovieFapIE,
 )
 from .toggle import ToggleIE
-from .thvideo import (
-    THVideoIE,
-    THVideoPlaylistIE
-)
 from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
 from .trollvids import TrollvidsIE
+from .trutv import TruTVIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
 from .tudou import (
@@ -907,6 +925,7 @@ from .tvc import (
 )
 from .tvigle import TvigleIE
 from .tvland import TVLandIE
+from .tvnoe import TVNoeIE
 from .tvp import (
     TVPEmbedIE,
     TVPIE,
