@@ -38,9 +38,8 @@ class ViuIE(ViuBaseIE):
         },
         'params': {
             'skip_download': 'm3u8 download',
-            'no_check_certificate': True,
         },
-        'skip': 'Geo-restricted to Singapore',
+        # 'skip': 'Geo-restricted to Singapore',
     }, {
         'url': 'http://www.viu.com/ott/hk/zh-hk/vod/7123/%E5%A4%A7%E4%BA%BA%E5%A5%B3%E5%AD%90',
         'info_dict': {
