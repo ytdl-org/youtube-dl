@@ -1044,6 +1044,10 @@ from .viki import (
     VikiIE,
     VikiChannelIE,
 )
+from .viu import (
+    ViuIE,
+    ViuPlaylistIE,
+)
 from .vk import (
     VKIE,
     VKUserVideosIE,
