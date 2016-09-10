@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -10,88 +11,11 @@ from ..compat import (
     compat_urlparse
 )
 from ..utils import (
+    extract_attributes,
     int_or_none,
     strip_or_none,
     unified_timestamp,
 )
-
-
-class PolskieRadioProgrammeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?polskieradio\.pl/\d+(,[^/]+)?/(?P<id>\d+)'
-    _TESTS = [{
-        'url': 'http://www.polskieradio.pl/7/5102,HISTORIA-ZYWA',
-        'info_dict': {
-            'id': '5102',
-            'title': 'HISTORIA ŻYWA',
-        },
-        'playlist_mincount': 34,
-    }, {
-        'url': 'http://www.polskieradio.pl/7/4807',
-        'info_dict': {
-            'id': '4807',
-            'title': 'Vademecum 1050. rocznicy Chrztu Polski'
-        },
-        'playlist_mincount': 5
-    }, {
-        'url': 'http://www.polskieradio.pl/7/129,Sygnaly-dnia?ref=source',
-        'only_matching': True
-    }, {
-        'url': 'http://www.polskieradio.pl/37,RedakcjaKatolicka/4143,Kierunek-Krakow',
-        'info_dict': {
-            'id': '4143',
-            'title': 'Kierunek Kraków',
-        },
-        'playlist_mincount': 61
-    }, {
-        'url': 'http://www.polskieradio.pl/7,Jedynka/5102,HISTORIA-ZYWA',
-        'only_matching': True
-    }]
-
-    def _get_entries_from_page_content(self, base_url, content):
-        entries = []
-
-        articles = re.findall(
-            r'<article class="ID-(\d+) article">\s+<a href="([^"]+)"( data-layer="[^"]*")? class="[^"]*" title="([^"]+)">',
-            content)
-        for article_id, article_url, _, article_title in articles:
-            resolved_article_url = compat_urlparse.urljoin(base_url, article_url)
-            entries.append(self.url_result(
-                resolved_article_url,
-                ie='PolskieRadio',
-                video_id=article_id,
-                video_title=article_title))
-
-        return entries
-
-    @classmethod
-    def suitable(cls, url):
-        return False if PolskieRadioIE.suitable(url) else super(PolskieRadioProgrammeIE, cls).suitable(url)
-
-    def _real_extract(self, url):
-        programme_id = self._match_id(url)
-        webpage = self._download_webpage(url, programme_id)
-
-        title = self._html_search_regex(
-            r'<a href="[^"]+" id=".*_linkCategory" title="[^"]+">(.+?)</a>',
-            webpage, 'title', fatal=False)
-        description = None
-
-        entries = self._get_entries_from_page_content(url, webpage)
-
-        pages = re.findall(r'<a( href="([^"]+/Strona/)\d+")? id="[^"]+" title="strona&#32;(\d+)"', webpage)
-        page_count = max(int(page_number) for _, _, page_number in pages) if pages else 1
-
-        if page_count > 1:
-            page_url_root = next(url for _, url, _ in pages if len(url) > 0)
-            for page_number in range(2, page_count + 1):
-                page_url = page_url_root + str(page_number)
-                resolved_page_url = compat_urlparse.urljoin(url, page_url)
-                page_content = self._download_webpage(
-                    resolved_page_url, programme_id,
-                    note="Downloading page number %d" % page_number)
-                entries.extend(self._get_entries_from_page_content(url, page_content))
-
-        return self.playlist_result(entries, programme_id, title, description)
 
 
 class PolskieRadioIE(InfoExtractor):
@@ -176,3 +100,81 @@ class PolskieRadioIE(InfoExtractor):
         description = strip_or_none(self._og_search_description(webpage))
 
         return self.playlist_result(entries, playlist_id, title, description)
+
+
+class PolskieRadioCategoryIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?polskieradio\.pl/\d+(?:,[^/]+)?/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'http://www.polskieradio.pl/7/5102,HISTORIA-ZYWA',
+        'info_dict': {
+            'id': '5102',
+            'title': 'HISTORIA ŻYWA',
+        },
+        'playlist_mincount': 38,
+    }, {
+        'url': 'http://www.polskieradio.pl/7/4807',
+        'info_dict': {
+            'id': '4807',
+            'title': 'Vademecum 1050. rocznicy Chrztu Polski'
+        },
+        'playlist_mincount': 5
+    }, {
+        'url': 'http://www.polskieradio.pl/7/129,Sygnaly-dnia?ref=source',
+        'only_matching': True
+    }, {
+        'url': 'http://www.polskieradio.pl/37,RedakcjaKatolicka/4143,Kierunek-Krakow',
+        'info_dict': {
+            'id': '4143',
+            'title': 'Kierunek Kraków',
+        },
+        'playlist_mincount': 61
+    }, {
+        'url': 'http://www.polskieradio.pl/10,czworka/214,muzyka',
+        'info_dict': {
+            'id': '214',
+            'title': 'Muzyka',
+        },
+        'playlist_mincount': 61
+    }, {
+        'url': 'http://www.polskieradio.pl/7,Jedynka/5102,HISTORIA-ZYWA',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.polskieradio.pl/8,Dwojka/196,Publicystyka',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if PolskieRadioIE.suitable(url) else super(PolskieRadioCategoryIE, cls).suitable(url)
+
+    def _entries(self, url, page, category_id):
+        content = page
+        for page_num in itertools.count(2):
+            for a_entry, entry_id in re.findall(
+                    r'(?s)<article[^>]+>.*?(<a[^>]+href=["\']/\d+/\d+/Artykul/(\d+)[^>]+>).*?</article>',
+                    content):
+                entry = extract_attributes(a_entry)
+                href = entry.get('href')
+                if not href:
+                    continue
+                yield self.url_result(
+                    compat_urlparse.urljoin(url, href), PolskieRadioIE.ie_key(),
+                    entry_id, entry.get('title'))
+            mobj = re.search(
+                r'<div[^>]+class=["\']next["\'][^>]*>\s*<a[^>]+href=(["\'])(?P<url>(?:(?!\1).)+)\1',
+                content)
+            if not mobj:
+                break
+            next_url = compat_urlparse.urljoin(url, mobj.group('url'))
+            content = self._download_webpage(
+                next_url, category_id, 'Downloading page %s' % page_num)
+
+    def _real_extract(self, url):
+        category_id = self._match_id(url)
+        webpage = self._download_webpage(url, category_id)
+        title = self._html_search_regex(
+            r'<title>([^<]+) - [^<]+ - [^<]+</title>',
+            webpage, 'title', fatal=False)
+        return self.playlist_result(
+            self._entries(url, webpage, category_id),
+            category_id, title)
