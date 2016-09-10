@@ -129,7 +129,15 @@ def _real_main(argv=None):
     if opts.usetitle and opts.useid:
         parser.error('using title conflicts with using video ID')
     if opts.username is not None and opts.password is None:
-        opts.password = compat_getpass('Type account password and press [Return]: ')
+        try:
+            from gi import require_version
+            require_version('Secret', '1')
+            from gi.repository import Secret
+            opts.password = Secret.Service.get_sync(
+                    Secret.ServiceFlags.NONE, None).lookup_sync(None, {
+                        "username": opts.username}).get_text()
+        except:
+            opts.password = compat_getpass('Type account password and press [Return]: ')
     if opts.ratelimit is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
         if numeric_limit is None:
