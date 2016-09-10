@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [newgrounds] Fix uploader extraction (#10584)
+
+
 version 2016.09.08
 
 Extractors
