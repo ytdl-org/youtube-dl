@@ -23,6 +23,7 @@ class CanalplusIE(InfoExtractor):
                                     (?:(?:www|m)\.)?canalplus\.fr|
                                     (?:www\.)?piwiplus\.fr|
                                     (?:www\.)?d8\.tv|
+                                    (?:www\.)?c8\.fr|
                                     (?:www\.)?d17\.tv|
                                     (?:www\.)?itele\.fr
                                 )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
@@ -35,6 +36,7 @@ class CanalplusIE(InfoExtractor):
         'canalplus': 'cplus',
         'piwiplus': 'teletoon',
         'd8': 'd8',
+        'c8': 'd8',
         'd17': 'd17',
         'itele': 'itele',
     }
