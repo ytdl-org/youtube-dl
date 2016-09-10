@@ -353,7 +353,8 @@ which means you can modify it, redistribute it or use it however you like.
 ## Authentication Options:
     -u, --username USERNAME          Login with this account ID
     -p, --password PASSWORD          Account password. If this option is left
-                                     out, youtube-dl will ask interactively.
+                                     out, youtube-dl will query libsecret, if
+                                     available, or ask interactively.
     -2, --twofactor TWOFACTOR        Two-factor auth code
     -n, --netrc                      Use .netrc authentication data
     --video-password PASSWORD        Video password (vimeo, smotri, youku)
