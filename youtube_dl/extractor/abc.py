@@ -100,6 +100,7 @@ class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
     _VALID_URL = r'https?://iview\.abc\.net\.au/programs/[^/]+/(?P<id>[^/?#]+)'
 
+    # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
         'url': 'http://iview.abc.net.au/programs/gardening-australia/FA1505V024S00',
         'md5': '979d10b2939101f0d27a06b79edad536',
@@ -112,6 +113,7 @@ class ABCIViewIE(InfoExtractor):
             'uploader_id': 'abc1',
             'timestamp': 1471719600,
         },
+        'skip': 'Video gone',
     }]
 
     def _real_extract(self, url):
