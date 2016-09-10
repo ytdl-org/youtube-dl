@@ -395,6 +395,7 @@ from .ivi import (
     IviCompilationIE
 )
 from .ivideon import IvideonIE
+from .iwara import IwaraIE
 from .izlesene import IzleseneIE
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
@@ -899,7 +900,6 @@ from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
-from .trollvids import TrollvidsIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE

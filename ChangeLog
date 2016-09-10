@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [iwara] Fix extraction after relaunch (#10462, #3215)
 * [newgrounds] Fix uploader extraction (#10584)
 
 
