@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 
 
 class TVANouvellesIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.tvanouvelles\.com/.*?'
+    _VALID_URL = r'https?://(www\.|)tvanouvelles\.(ca|com|qc)/.*.?/(?P<id>[^/]+)'
 
     _TEST = {
         'url': 'http://www.tvanouvelles.ca/videos/5117035533001',
@@ -18,7 +19,7 @@ class TVANouvellesIE(InfoExtractor):
             'upload_date': '20140919',
         },
         'add_ie': ['BrightcoveNew'],
-        'skip': 'Not accessible from Travis CI server',
+
     }
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1741764581/default_default/index.html?videoId=%s'
 
@@ -26,5 +27,5 @@ class TVANouvellesIE(InfoExtractor):
         program_name = self._match_id(url)
         webpage = self._download_webpage(url, program_name)
         brightcove_id = self._search_regex(
-            r'RenderPagesVideo\(\'(.+?)\'', webpage, 'brightcove id')
+            r'data-video-id\=(.+[0-9]?)', webpage, 'brightcove id')
         return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)

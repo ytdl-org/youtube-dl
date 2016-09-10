@@ -920,6 +920,7 @@ from .tv2 import (
 )
 from .tv3 import TV3IE
 from .tv4 import TV4IE
+from .tvanouvelles import TVANouvellesIE
 from .tvc import (
     TVCIE,
     TVCArticleIE,
