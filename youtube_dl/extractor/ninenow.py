@@ -44,14 +44,20 @@ class NineNowIE(InfoExtractor):
         page_data = self._parse_json(self._search_regex(
             r'window\.__data\s*=\s*({.*?});', webpage,
             'page data'), display_id)
-        current_key = (
-            page_data.get('episode', {}).get('currentEpisodeKey') or
-            page_data.get('clip', {}).get('currentClipKey')
-        )
-        common_data = (
-            page_data.get('episode', {}).get('episodeCache', {}).get(current_key, {}).get('episode') or
-            page_data.get('clip', {}).get('clipCache', {}).get(current_key, {}).get('clip')
-        )
+
+        for kind in ('episode', 'clip'):
+            current_key = page_data.get(kind, {}).get(
+                'current%sKey' % kind.capitalize())
+            if not current_key:
+                continue
+            cache = page_data.get(kind, {}).get('%sCache' % kind, {})
+            if not cache:
+                continue
+            common_data = (cache.get(current_key) or list(cache.values())[0])[kind]
+            break
+        else:
+            raise ExtractorError('Unable to find video data')
+
         video_data = common_data['video']
 
         if video_data.get('drm'):
