@@ -16,6 +16,7 @@ from ..utils import (
     parse_iso8601,
     qualities,
     try_get,
+    js_to_json,
     update_url_query,
 )
 
@@ -368,6 +369,10 @@ class ViafreeIE(InfoExtractor):
         },
         'add_ie': [TVPlayIE.ie_key()],
     }, {
+        # Different og:image URL schema
+        'url': 'www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-2',
+        'only_matching': True,
+    }, {
         'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
         'only_matching': True,
     }, {
@@ -384,14 +389,35 @@ class ViafreeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        data = self._parse_json(
+            self._search_regex(
+                r'(?s)window\.App\s*=\s*({.+?})\s*;\s*</script',
+                webpage, 'data', default='{}'),
+            video_id, transform_source=lambda x: re.sub(
+                r'(?s)function\s+[a-zA-Z_][\da-zA-Z_]*\s*\([^)]*\)\s*{[^}]*}\s*',
+                'null', x), fatal=False)
+
         video_id = None
 
-        thumbnail = self._og_search_thumbnail(webpage, default=None)
-        if thumbnail:
-            video_id = self._search_regex(
-                r'https?://[^/]+/imagecache/(?:[^/]+/)+seasons/\d+/(\d{6,})/',
-                thumbnail, 'video id', default=None)
+        if data:
+            video_id = try_get(
+                data, lambda x: x['context']['dispatcher']['stores'][
+                    'ContentPageProgramStore']['currentVideo']['id'],
+                compat_str)
 
+        # Fallback #1 (extract from og:image URL schema)
+        if not video_id:
+            thumbnail = self._og_search_thumbnail(webpage, default=None)
+            if thumbnail:
+                video_id = self._search_regex(
+                    # Patterns seen:
+                    #  http://cdn.playapi.mtgx.tv/imagecache/600x315/cloud/content-images/inbox/765166/a2e95e5f1d735bab9f309fa345cc3f25.jpg
+                    #  http://cdn.playapi.mtgx.tv/imagecache/600x315/cloud/content-images/seasons/15204/758770/4a5ba509ca8bc043e1ebd1a76131cdf2.jpg
+                    r'https?://[^/]+/imagecache/(?:[^/]+/)+(\d{6,})/',
+                    thumbnail, 'video id', default=None)
+
+        # Fallback #2. Extract from raw JSON string.
+        # May extract wrong video id if relatedClips is present.
         if not video_id:
             video_id = self._search_regex(
                 r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](\d{6,})',
