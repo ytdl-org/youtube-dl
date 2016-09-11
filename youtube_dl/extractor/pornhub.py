@@ -15,6 +15,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    js_to_json,
     orderedSet,
     sanitized_Request,
     str_to_int,
@@ -48,6 +49,8 @@ class PornHubIE(InfoExtractor):
             'dislike_count': int,
             'comment_count': int,
             'age_limit': 18,
+            'tags': list,
+            'categories': list,
         },
     }, {
         # non-ASCII title
@@ -63,6 +66,8 @@ class PornHubIE(InfoExtractor):
             'dislike_count': int,
             'comment_count': int,
             'age_limit': 18,
+            'tags': list,
+            'categories': list,
         },
         'params': {
             'skip_download': True,
@@ -183,6 +188,15 @@ class PornHubIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
+        page_params = self._parse_json(self._search_regex(
+            r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
+            webpage, 'page parameters', group='data', default='{}'),
+            video_id, transform_source=js_to_json, fatal=False)
+        tags = categories = None
+        if page_params:
+            tags = page_params.get('tags', '').split(',')
+            categories = page_params.get('categories', '').split(',')
+
         return {
             'id': video_id,
             'uploader': video_uploader,
@@ -195,6 +209,8 @@ class PornHubIE(InfoExtractor):
             'comment_count': comment_count,
             'formats': formats,
             'age_limit': 18,
+            'tags': tags,
+            'categories': categories,
         }
 
 
