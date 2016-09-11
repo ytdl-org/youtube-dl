@@ -61,7 +61,7 @@ if ! python3 -c 'import rsa' 2>/dev/null; then echo 'ERROR: python3-rsa is missi
 if ! python3 -c 'import wheel' 2>/dev/null; then echo 'ERROR: wheel is missing'; exit 1; fi
 
 read -p "Is ChangeLog up to date? (y/n) " -n 1
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1;
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
 
 /bin/echo -e "\n### First of all, testing..."
 make clean
