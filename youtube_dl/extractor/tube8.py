@@ -26,10 +26,6 @@ class Tube8IE(KeezMoviesIE):
             'categories': ['Teen'],
             'tags': ['dancing'],
         },
-        'params': {
-            'proxy': '127.0.0.1:8118',
-        }
-
     }, {
         'url': 'http://www.tube8.com/shemale/teen/blonde-cd-gets-kidnapped-by-two-blacks-and-punished-for-being-a-slutty-girl/19569151/',
         'only_matching': True,
