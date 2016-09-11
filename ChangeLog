@@ -1,10 +1,22 @@
-version 2016.09.11
+version <unreleased>
 
 Extractors
++ [tube8] Extract categories and tags (#10579)
 + [pornhub] Extract categories and tags (#10499)
-+ [foxnews] Support Fox News articles (#10598)
+* [openload] Temporary fix (#10408)
++ [foxnews] Add support Fox News articles (#10598)
+* [viafree] Improve video id extraction (#10615)
 * [iwara] Fix extraction after relaunch (#10462, #3215)
++ [tfo] Add extractor for tfo.org
+* [lrt] Fix audio extraction (#10566)
+* [9now] Fix extraction (#10561)
++ [canalplus] Add support for c8.fr (#10577)
 * [newgrounds] Fix uploader extraction (#10584)
++ [polskieradio:category] Add support for category lists (#10576)
++ [ketnet] Add extractor for ketnet.be (#10343)
++ [canvas] Add support for een.be (#10605)
++ [telequebec] Add extractor for telequebec.tv (#1999)
+* [parliamentliveuk] Fix extraction (#9137)
 
 
 version 2016.09.08
