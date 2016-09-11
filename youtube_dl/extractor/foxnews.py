@@ -6,8 +6,8 @@ from .amp import AMPIE
 from .common import InfoExtractor
 
 
-class FoxNewsVideoIE(AMPIE):
-    IE_NAME = 'foxnews:video'
+class FoxNewsIE(AMPIE):
+    IE_NAME = 'foxnews'
     IE_DESC = 'Fox News and Fox Business Video'
     _VALID_URL = r'https?://(?P<host>video\.(?:insider\.)?fox(?:news|business)\.com)/v/(?:video-embed\.html\?video_id=)?(?P<id>\d+)'
     _TESTS = [
@@ -67,9 +67,9 @@ class FoxNewsVideoIE(AMPIE):
         return info
 
 
-class FoxNewsIE(InfoExtractor):
+class FoxNewsArticleIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?foxnews\.com/(?!v)([^/]+/)+(?P<id>[a-z-]+)'
-    IE_NAME = 'foxnews'
+    IE_NAME = 'foxnews:article'
 
     _TEST = {
         'url': 'http://www.foxnews.com/politics/2016/09/08/buzz-about-bud-clinton-camp-denies-claims-wore-earpiece-at-forum.html',
@@ -93,7 +93,7 @@ class FoxNewsIE(InfoExtractor):
             webpage, 'video ID', group='id')
         return self.url_result(
             'http://video.foxnews.com/v/' + video_id,
-            FoxNewsVideoIE.ie_key())
+            FoxNewsIE.ie_key())
 
 
 class FoxNewsInsiderIE(InfoExtractor):
@@ -117,7 +117,7 @@ class FoxNewsInsiderIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
-        'add_ie': [FoxNewsVideoIE.ie_key()],
+        'add_ie': [FoxNewsIE.ie_key()],
     }
 
     def _real_extract(self, url):
@@ -132,7 +132,7 @@ class FoxNewsInsiderIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
-            'ie_key': FoxNewsVideoIE.ie_key(),
+            'ie_key': FoxNewsIE.ie_key(),
             'url': embed_url,
             'display_id': display_id,
             'title': title,
