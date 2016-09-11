@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.09.11.1
 
 Extractors
 + [tube8] Extract categories and tags (#10579)
