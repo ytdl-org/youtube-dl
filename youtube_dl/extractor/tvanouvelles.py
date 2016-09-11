@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .youtube import YoutubeIE
 
 
 class TVANouvellesIE(InfoExtractor):
@@ -10,13 +9,13 @@ class TVANouvellesIE(InfoExtractor):
     _TEST = {
         'url': 'http://www.tvanouvelles.ca/videos/5117035533001',
         'info_dict': {
-            'id': '3792260579001',
+            'id': '5117035533001',
             'ext': 'mp4',
-            'title': 'title',
-            'description': 'description',
+            'title': 'L\u2019industrie du taxi d\xe9nonce l\u2019entente entre Qu\xe9bec et Uber: explications',
+            'description': 'L\u2019industrie du taxi a unanimement a d\xe9nonc\xe9 l\u2019entente avec le gouvernement du Qu\xe9bec qui permet \xe0 l\u2019entreprise de covoiturage Uber de faire des affaires l\xe9galement dans le cadre d\u2019un projet pilote d\u2019un an.',
             'uploader_id': '1741764581',
-            'timestamp': 1411116829,
-            'upload_date': '20140919',
+            'timestamp': 1473352030,
+            'upload_date': '20160908',
         },
         'add_ie': ['BrightcoveNew'],
 
