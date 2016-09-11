@@ -16,7 +16,6 @@ from ..utils import (
     parse_iso8601,
     qualities,
     try_get,
-    js_to_json,
     update_url_query,
 )
 
