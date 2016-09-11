@@ -292,6 +292,7 @@ from .fourtube import FourTubeIE
 from .fox import FOXIE
 from .foxgay import FoxgayIE
 from .foxnews import (
+    FoxNewsVideoIE,
     FoxNewsIE,
     FoxNewsInsiderIE,
 )
