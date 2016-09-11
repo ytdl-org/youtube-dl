@@ -795,7 +795,7 @@ class YoutubeDL(object):
                                 yield int(item)
                         else:
                             yield int(string_segment)
-                playlistitems = iter_playlistitems(playlistitems_str)
+                playlistitems = list(iter_playlistitems(playlistitems_str))
 
             ie_entries = ie_result['entries']
             if isinstance(ie_entries, list):
@@ -836,6 +836,14 @@ class YoutubeDL(object):
                     '[%s] playlist %s: Downloading %d videos' %
                     (ie_result['extractor'], playlist, n_entries))
 
+            if playlistitems:
+                playlistindexes = playlistitems
+            else:
+                playlistindexes = range(playliststart + 1, playlistend + 1)
+
+            for entry, index in zip(entries, playlistindexes):
+                entry['index'] = index
+
             if self.params.get('playlistreverse', False):
                 entries = entries[::-1]
 
@@ -846,7 +854,7 @@ class YoutubeDL(object):
                     'playlist': playlist,
                     'playlist_id': ie_result.get('id'),
                     'playlist_title': ie_result.get('title'),
-                    'playlist_index': i + playliststart,
+                    'playlist_index': entry['index'],
                     'extractor': ie_result['extractor'],
                     'webpage_url': ie_result['webpage_url'],
                     'webpage_url_basename': url_basename(ie_result['webpage_url']),
