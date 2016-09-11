@@ -247,7 +247,8 @@
  - **Formula1**
  - **FOX**
  - **Foxgay**
- - **FoxNews**: Fox News and Fox Business Video
+ - **foxnews**: Fox News and Fox Business Video
+ - **foxnews:article**
  - **foxnews:insider**
  - **FoxSports**
  - **france2.fr:generation-quoi**
@@ -326,6 +327,7 @@
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
  - **ivideon**: Ivideon TV
+ - **Iwara**
  - **Izlesene**
  - **JeuxVideo**
  - **Jove**
@@ -339,6 +341,7 @@
  - **KarriereVideos**
  - **keek**
  - **KeezMovies**
+ - **Ketnet**
  - **KhanAcademy**
  - **KickStarter**
  - **KonserthusetPlay**
@@ -540,6 +543,7 @@
  - **podomatic**
  - **Pokemon**
  - **PolskieRadio**
+ - **PolskieRadioCategory**
  - **PornCom**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
@@ -701,9 +705,11 @@
  - **Telecinco**: telecinco.es, cuatro.com and mediaset.es
  - **Telegraaf**
  - **TeleMB**
+ - **TeleQuebec**
  - **TeleTask**
  - **Telewebion**
  - **TF1**
+ - **TFO**
  - **TheIntercept**
  - **ThePlatform**
  - **ThePlatformFeed**
@@ -725,7 +731,6 @@
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
- - **trollvids**
  - **TruTV**
  - **Tube8**
  - **TubiTv**
