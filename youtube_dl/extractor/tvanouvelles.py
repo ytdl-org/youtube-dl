@@ -18,7 +18,7 @@ class TVANouvellesIE(InfoExtractor):
             'upload_date': '20160908',
         },
         'add_ie': ['BrightcoveNew'],
-
+        'skip': 'Not accessible from Travis CI server',
     }
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1741764581/default_default/index.html?videoId=%s'
 
