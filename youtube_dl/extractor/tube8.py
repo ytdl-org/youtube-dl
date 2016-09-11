@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from ..utils import (
     int_or_none,
     str_to_int,
@@ -21,7 +23,13 @@ class Tube8IE(KeezMoviesIE):
             'title': 'Kasia music video',
             'age_limit': 18,
             'duration': 230,
+            'categories': ['Teen'],
+            'tags': ['dancing'],
+        },
+        'params': {
+            'proxy': '127.0.0.1:8118',
         }
+
     }, {
         'url': 'http://www.tube8.com/shemale/teen/blonde-cd-gets-kidnapped-by-two-blacks-and-punished-for-being-a-slutty-girl/19569151/',
         'only_matching': True,
@@ -51,6 +59,17 @@ class Tube8IE(KeezMoviesIE):
             r'<span id="allCommentsCount">(\d+)</span>',
             webpage, 'comment count', fatal=False))
 
+        category = self._search_regex(
+            r'Category:\s*</strong>\s*<a[^>]+href=[^>]+>([^<]+)',
+            webpage, 'category', fatal=False)
+        categories = [category] if category else None
+
+        tags_str = self._search_regex(
+            r'(?s)Tags:\s*</strong>(.+?)</(?!a)',
+            webpage, 'tags', fatal=False)
+        tags = [t for t in re.findall(
+            r'<a[^>]+href=[^>]+>([^<]+)', tags_str)] if tags_str else None
+
         info.update({
             'description': description,
             'uploader': uploader,
@@ -58,6 +77,8 @@ class Tube8IE(KeezMoviesIE):
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
+            'categories': categories,
+            'tags': tags,
         })
 
         return info
