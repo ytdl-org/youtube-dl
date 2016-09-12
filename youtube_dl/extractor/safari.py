@@ -103,13 +103,13 @@ class SafariIE(SafariBaseIE):
 
         webpage = self._download_webpage(url, video_id)
         reference_id = self._search_regex(
-            r'data-reference-id=(["\'])(?P<id>.+?)\1',
+            r'data-reference-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'kaltura reference id', group='id')
         partner_id = self._search_regex(
-            r'data-partner-id=(["\'])(?P<id>.+?)\1',
+            r'data-partner-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'kaltura widget id', group='id')
         ui_id = self._search_regex(
-            r'data-ui-id=(["\'])(?P<id>.+?)\1',
+            r'data-ui-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'kaltura uiconf id', group='id')
 
         query = {
