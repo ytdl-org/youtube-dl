@@ -55,4 +55,4 @@ $ youtube-dl -v <your command line>
 ### Description of your *issue*, suggested solution and other information
 
 Explanation of your *issue* in arbitrary form goes here. Please make sure the [description is worded well enough to be understood](https://github.com/rg3/youtube-dl#is-the-description-of-the-issue-itself-sufficient). Provide as much context and examples as possible.
-If work on your *issue* required an account credentials please provide them or explain how one can obtain them.
+If work on your *issue* requires an account credentials please provide them or explain how one can obtain them.
