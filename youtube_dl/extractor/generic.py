@@ -1370,6 +1370,11 @@ class GenericIE(InfoExtractor):
             'add_ie': ['Vimeo'],
         },
         {
+            # generic vimeo embed that requires original URL passed as Referer
+            'url': 'http://racing4everyone.eu/2016/07/30/formula-1-2016-round12-germany/',
+            'only_matching': True,
+        },
+        {
             'url': 'https://support.arkena.com/display/PLAY/Ways+to+embed+your+video',
             'md5': 'b96f2f71b359a8ecd05ce4e1daa72365',
             'info_dict': {
