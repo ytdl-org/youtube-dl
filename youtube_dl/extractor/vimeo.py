@@ -351,14 +351,17 @@ class VimeoIE(VimeoBaseInfoExtractor):
     ]
 
     @staticmethod
+    def _smuggle_referrer(url, referrer_url):
+        return smuggle_url(url, {'http_headers': {'Referer': referrer_url}})
+
+    @staticmethod
     def _extract_vimeo_url(url, webpage):
         # Look for embedded (iframe) Vimeo player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
         if mobj:
             player_url = unescapeHTML(mobj.group('url'))
-            surl = smuggle_url(player_url, {'http_headers': {'Referer': url}})
-            return surl
+            return VimeoIE._smuggle_referrer(player_url, url)
         # Look for embedded (swf embed) Vimeo player
         mobj = re.search(
             r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
@@ -586,6 +589,20 @@ class VimeoOndemandIE(VimeoBaseInfoExtractor):
             'uploader_id': 'gumfilms',
         },
     }, {
+        # requires Referer to be passed along with og:video:url
+        'url': 'https://vimeo.com/ondemand/36938/126682985',
+        'info_dict': {
+            'id': '126682985',
+            'ext': 'mp4',
+            'title': 'Rävlock, rätt läte på rätt plats',
+            'uploader': 'Lindroth & Norin',
+            'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user14430847',
+            'uploader_id': 'user14430847',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://vimeo.com/ondemand/nazmaalik',
         'only_matching': True,
     }, {
@@ -599,7 +616,12 @@ class VimeoOndemandIE(VimeoBaseInfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        return self.url_result(self._og_search_video_url(webpage), VimeoIE.ie_key())
+        return self.url_result(
+            # Some videos require Referer to be passed along with og:video:url
+            # similarly to generic vimeo embeds (e.g.
+            # https://vimeo.com/ondemand/36938/126682985).
+            VimeoIE._smuggle_referrer(self._og_search_video_url(webpage), url),
+            VimeoIE.ie_key())
 
 
 class VimeoChannelIE(VimeoBaseInfoExtractor):
