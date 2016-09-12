@@ -48,13 +48,20 @@ class BloombergIE(InfoExtractor):
             r'["\']bmmrId["\']\s*:\s*(["\'])(?P<url>.+?)\1',
             webpage, 'id', group='url', default=None)
         if not video_id:
-            bplayer_data = self._parse_json(self._search_regex(
-                r'BPlayer\(null,\s*({[^;]+})\);', webpage, 'id'), name)
+            bplayer_json = self._search_regex(r'BPlayer\(null,\s*({[^;]+})\);',
+                webpage, 'id')
+            # It's not good JSON; it uses single quotes and contains function
+            # calls. Sweep that under the rug.
+            bplayer_json = bplayer_json.replace("\'", '"')
+            bplayer_json = re.sub("\w+\(([^)]+)\)", '"FUNCTION"', bplayer_json)
+            bplayer_data = self._parse_json(bplayer_json, name)
             video_id = bplayer_data['id']
+            video_id_type = bplayer_data['idType']
         title = re.sub(': Video$', '', self._og_search_title(webpage))
 
         embed_info = self._download_json(
-            'http://www.bloomberg.com/api/embed?id=%s' % video_id, video_id)
+            'https://www.bloomberg.com/api/embed?id=%s&idType=%s' %
+            (video_id, video_id_type), video_id)
         formats = []
         for stream in embed_info['streams']:
             stream_url = stream.get('url')
