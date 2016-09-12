@@ -262,6 +262,10 @@ class KalturaIE(InfoExtractor):
             # Continue if asset is not ready
             if f.get('status') != 2:
                 continue
+            # Original format that's not available (e.g. kaltura:1926081:0_c03e1b5g)
+            # skip for now.
+            if f.get('fileExt') == 'chun':
+                continue
             video_url = sign_url(
                 '%s/flavorId/%s' % (data_url, f['id']))
             formats.append({
