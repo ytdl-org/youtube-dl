@@ -293,6 +293,7 @@ def _real_main(argv=None):
         'password': opts.password,
         'twofactor': opts.twofactor,
         'videopassword': opts.videopassword,
+        'ap_mso_id': opts.ap_mso_id,
         'quiet': (opts.quiet or any_getting or any_printing),
         'no_warnings': opts.no_warnings,
         'forceurl': opts.geturl,

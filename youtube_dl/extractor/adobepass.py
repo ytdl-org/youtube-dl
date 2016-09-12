@@ -6,10 +6,12 @@ import time
 import xml.etree.ElementTree as etree
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     unescapeHTML,
     urlencode_postdata,
     unified_timestamp,
+    ExtractorError,
 )
 
 
@@ -41,6 +43,11 @@ class AdobePassIE(InfoExtractor):
             token_expires = unified_timestamp(re.sub(r'[_ ]GMT', '', xml_text(token, date_ele)))
             return token_expires and token_expires <= int(time.time())
 
+        def raise_mvpd_required():
+            raise ExtractorError('This video is only available for users of participating TV providers. '
+                'Use --ap-mso-id to specify Adobe Pass Multiple-system operator Identifier '
+                'and --netrc to provide account credentials.', expected=True)
+
         mvpd_headers = {
             'ap_42': 'anonymous',
             'ap_11': 'Linux i686',
@@ -55,19 +62,26 @@ class AdobePassIE(InfoExtractor):
             authn_token = None
         if not authn_token:
             # TODO add support for other TV Providers
-            mso_id = 'DTV'
+            mso_id = self._downloader.params.get('ap_mso_id')
+            if not mso_id:
+                raise_mvpd_required()
             username, password = self._get_netrc_login_info(mso_id)
             if not username or not password:
-                return ''
+                return raise_mvpd_required()
 
-            def post_form(form_page, note, data={}):
+            def post_form(form_page_res, note, data={}):
+                form_page, urlh = form_page_res
                 post_url = self._html_search_regex(r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_page, 'post url', group='url')
-                return self._download_webpage(
-                    post_url, video_id, note, data=urlencode_postdata(data or self._hidden_inputs(form_page)), headers={
+                if not re.match(r'https?://', post_url):
+                    post_url = compat_urlparse.urljoin(urlh.geturl(), post_url)
+                form_data = self._hidden_inputs(form_page)
+                form_data.update(data)
+                return self._download_webpage_handle(
+                    post_url, video_id, note, data=urlencode_postdata(form_data), headers={
                         'Content-Type': 'application/x-www-form-urlencoded',
                     })
 
-            provider_redirect_page = self._download_webpage(
+            provider_redirect_page_res = self._download_webpage_handle(
                 self._SERVICE_PROVIDER_TEMPLATE % 'authenticate/saml', video_id,
                 'Downloading Provider Redirect Page', query={
                     'noflash': 'true',
@@ -77,13 +91,22 @@ class AdobePassIE(InfoExtractor):
                     'domain_name': 'adobe.com',
                     'redirect_url': url,
                 })
-            provider_login_page = post_form(
-                provider_redirect_page, 'Downloading Provider Login Page')
-            mvpd_confirm_page = post_form(provider_login_page, 'Logging in', {
-                'username': username,
-                'password': password,
-            })
-            post_form(mvpd_confirm_page, 'Confirming Login')
+            provider_login_page_res = post_form(
+                provider_redirect_page_res, 'Downloading Provider Login Page')
+            login_data = {}
+            if mso_id == 'DTV':
+                login_data = {
+                    'username': username,
+                    'password': password,
+                }
+            elif mso_id == 'Rogers':
+                login_data = {
+                    'UserName': username,
+                    'UserPassword': password,
+                }
+            mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', login_data)
+            if mso_id == 'DTV':
+                post_form(mvpd_confirm_page_res, 'Confirming Login')
 
             session = self._download_webpage(
                 self._SERVICE_PROVIDER_TEMPLATE % 'session', video_id,
