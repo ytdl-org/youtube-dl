@@ -268,6 +268,10 @@ class KalturaIE(InfoExtractor):
                 continue
             video_url = sign_url(
                 '%s/flavorId/%s' % (data_url, f['id']))
+            # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
+            # -f mp4-56)
+            vcodec = 'none' if 'videoCodecId' not in f and f.get(
+                'frameRate') == 0 else f.get('videoCodecId')
             formats.append({
                 'format_id': '%(fileExt)s-%(bitrate)s' % f,
                 'ext': f.get('fileExt'),
@@ -275,7 +279,7 @@ class KalturaIE(InfoExtractor):
                 'fps': int_or_none(f.get('frameRate')),
                 'filesize_approx': int_or_none(f.get('size'), invscale=1024),
                 'container': f.get('containerFormat'),
-                'vcodec': f.get('videoCodecId'),
+                'vcodec': vcodec,
                 'height': int_or_none(f.get('height')),
                 'width': int_or_none(f.get('width')),
                 'url': video_url,
