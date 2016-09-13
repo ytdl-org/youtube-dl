@@ -131,7 +131,9 @@ class YoutubeDL(object):
     username:          Username for authentication purposes.
     password:          Password for authentication purposes.
     videopassword:     Password for accessing a video.
-    ap_mso_id          Adobe Pass Multiple-system operator Identifier.
+    ap_mso_id:         Adobe Pass Multiple-system operator Identifier.
+    ap_username:       TV Provider username for authentication purposes.
+    ap_password:       TV Provider password for authentication purposes.
     usenetrc:          Use netrc for authentication instead.
     verbose:           Print additional info to stdout.
     quiet:             Do not print messages to stdout.

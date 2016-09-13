@@ -34,12 +34,14 @@ from .utils import (
     setproctitle,
     std_headers,
     write_string,
+    render_table,
 )
 from .update import update_self
 from .downloader import (
     FileDownloader,
 )
 from .extractor import gen_extractors, list_extractors
+from .extractor.adobepass import MSO_INFO
 from .YoutubeDL import YoutubeDL
 
 
@@ -118,18 +120,26 @@ def _real_main(argv=None):
                 desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
             write_string(desc + '\n', out=sys.stdout)
         sys.exit(0)
+    if opts.list_ap_mso_ids:
+        table = [[mso_id, mso_info['name']] for mso_id, mso_info in MSO_INFO.items()]
+        write_string('Supported TV Providers:\n' + render_table(['mso id', 'mso name'], table) + '\n', out=sys.stdout)
+        sys.exit(0)
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error('using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
         parser.error('account username missing\n')
+    if opts.ap_password is not None and opts.ap_username is None:
+        parser.error('TV Provider account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error('using output template conflicts with using title, video ID or auto number')
     if opts.usetitle and opts.useid:
         parser.error('using title conflicts with using video ID')
     if opts.username is not None and opts.password is None:
         opts.password = compat_getpass('Type account password and press [Return]: ')
+    if opts.ap_username is not None and opts.ap_password is None:
+        opts.ap_password = compat_getpass('Type TV provider account password and press [Return]: ')
     if opts.ratelimit is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
         if numeric_limit is None:
@@ -169,6 +179,8 @@ def _real_main(argv=None):
         opts.retries = parse_retries(opts.retries)
     if opts.fragment_retries is not None:
         opts.fragment_retries = parse_retries(opts.fragment_retries)
+    if opts.ap_retries is not None:
+        opts.ap_retries = parse_retries(opts.ap_retries)
     if opts.buffersize is not None:
         numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
         if numeric_buffersize is None:
@@ -294,6 +306,9 @@ def _real_main(argv=None):
         'twofactor': opts.twofactor,
         'videopassword': opts.videopassword,
         'ap_mso_id': opts.ap_mso_id,
+        'ap_username': opts.ap_username,
+        'ap_password': opts.ap_password,
+        'ap_retries': opts.ap_retries,
         'quiet': (opts.quiet or any_getting or any_printing),
         'no_warnings': opts.no_warnings,
         'forceurl': opts.geturl,
