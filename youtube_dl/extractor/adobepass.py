@@ -44,7 +44,8 @@ class AdobePassIE(InfoExtractor):
             return token_expires and token_expires <= int(time.time())
 
         def raise_mvpd_required():
-            raise ExtractorError('This video is only available for users of participating TV providers. '
+            raise ExtractorError(
+                'This video is only available for users of participating TV providers. '
                 'Use --ap-mso-id to specify Adobe Pass Multiple-system operator Identifier '
                 'and --netrc to provide account credentials.', expected=True)
 
