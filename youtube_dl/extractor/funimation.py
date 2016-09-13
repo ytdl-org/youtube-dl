@@ -87,26 +87,43 @@ class FunimationIE(InfoExtractor):
         (username, password) = self._get_login_info()
         if username is None:
             return
+
         data = urlencode_postdata({
             'email_field': username,
             'password_field': password,
         })
+
         user_agent = self._extract_cloudflare_session_ua(self._LOGIN_URL)
         if not user_agent:
             user_agent = 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0'
-        login_request = sanitized_Request(self._LOGIN_URL, data, headers={
+        headers = {
             'User-Agent': user_agent,
             'Content-Type': 'application/x-www-form-urlencoded'
-        })
+        }
+
+        # Request home page to establish initial session and cookies
+        self._download_webpage(
+            self._LOGIN_URL, None,
+            note='Starting session with Funimation',
+            headers=headers)
+
+        # Log in
         login_page = self._download_webpage(
-            login_request, None, 'Logging in as %s' % username)
+            self._LOGIN_URL, None,
+            data=data,
+            note='Logging in as %s' % username,
+            headers=headers)
+
+        # Check for successful login
         if any(p in login_page for p in ('funimation.com/logout', '>Log Out<')):
             return
+
         error = self._html_search_regex(
             r'(?s)<div[^>]+id=["\']errorMessages["\'][^>]*>(.+?)</div>',
             login_page, 'error messages', default=None)
         if error:
             raise ExtractorError('Unable to login: %s' % error, expected=True)
+
         raise ExtractorError('Unable to log in')
 
     def _real_initialize(self):
