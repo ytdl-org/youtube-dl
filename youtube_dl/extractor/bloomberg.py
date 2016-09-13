@@ -47,7 +47,9 @@ class BloombergIE(InfoExtractor):
         video_id = self._search_regex(
             r'["\']bmmrId["\']\s*:\s*(["\'])(?P<url>.+?)\1',
             webpage, 'id', group='url', default=None)
-        if not video_id:
+        if video_id:
+            video_id_type = 'BMMR'
+        else:
             bplayer_json = self._search_regex(r'BPlayer\(null,\s*({[^;]+})\);',
                 webpage, 'id')
             # It's not good JSON; it uses single quotes and contains function
