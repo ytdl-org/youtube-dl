@@ -1,14 +1,15 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class NhkVodIE(InfoExtractor):
-    _VALID_URL = r'https?://www3\.nhk\.or\.jp/nhkworld/en/vod/(?P<id>.+?)\.html'
+    _VALID_URL = r'https?://www3\.nhk\.or\.jp/nhkworld/en/vod/(?P<id>[^/]+/[^/?#&]+)'
     _TEST = {
         # Videos available only for a limited period of time. Visit
         # http://www3.nhk.or.jp/nhkworld/en/vod/ for working samples.
-        'url': 'http://www3.nhk.or.jp/nhkworld/en/vod/tokyofashion/20160815.html',
+        'url': 'http://www3.nhk.or.jp/nhkworld/en/vod/tokyofashion/20160815',
         'info_dict': {
             'id': 'A1bnNiNTE6nY3jLllS-BIISfcC_PpvF5',
             'ext': 'flv',
@@ -19,25 +20,25 @@ class NhkVodIE(InfoExtractor):
         },
         'skip': 'Videos available only for a limited period of time',
     }
+    _API_URL = 'http://api.nhk.or.jp/nhkworld/vodesdlist/v1/all/all/all.json?apikey=EJfK8jdS57GqlupFgAfAAwr573q01y6k'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        data = self._download_json(self._API_URL, video_id)
 
-        embed_code = self._search_regex(
-            r'nw_vod_ooplayer\([^,]+,\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
-            webpage, 'ooyala embed code', group='id')
+        try:
+            episode = next(
+                e for e in data['data']['episodes']
+                if e.get('url') and video_id in e['url'])
+        except StopIteration:
+            raise ExtractorError('Unable to find episode')
 
-        title = self._search_regex(
-            r'<div[^>]+class=["\']episode-detail["\']>\s*<h\d+>([^<]+)',
-            webpage, 'title', default=None)
-        description = self._html_search_regex(
-            r'(?s)<p[^>]+class=["\']description["\'][^>]*>(.+?)</p>',
-            webpage, 'description', default=None)
-        series = self._search_regex(
-            r'<h2[^>]+class=["\']detail-top-player-title[^>]+><a[^>]+>([^<]+)',
-            webpage, 'series', default=None)
+        embed_code = episode['vod_id']
+
+        title = episode.get('sub_title_clean') or episode['sub_title']
+        description = episode.get('description_clean') or episode.get('description')
+        series = episode.get('title_clean') or episode.get('title')
 
         return {
             '_type': 'url_transparent',
