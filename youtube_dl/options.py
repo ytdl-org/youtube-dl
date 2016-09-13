@@ -350,6 +350,10 @@ def parseOpts(overrideArguments=None):
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
         help='Video password (vimeo, smotri, youku)')
+    authentication.add_option(
+        '--ap-mso-id',
+        dest='ap_mso_id', metavar='APMSOID',
+        help='Adobe Pass Multiple-system operator Identifier(DTV, Rogers)')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
