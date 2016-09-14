@@ -94,8 +94,8 @@ ENGLISH_MONTH_NAMES = [
 MONTH_NAMES = {
     'en': ENGLISH_MONTH_NAMES,
     'fr': [
-        'janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin',
-        'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'],
+        'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+        'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
 }
 
 KNOWN_EXTENSIONS = (

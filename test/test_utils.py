@@ -638,12 +638,10 @@ class TestUtil(unittest.TestCase):
     def test_month_by_name(self):
         self.assertEqual(month_by_name(None), None)
         self.assertEqual(month_by_name('December', 'en'), 12)
-        self.assertEqual(month_by_name('decembre', 'fr'), 12)
+        self.assertEqual(month_by_name('décembre', 'fr'), 12)
         self.assertEqual(month_by_name('December'), 12)
-        self.assertEqual(month_by_name('decembre'), None)
+        self.assertEqual(month_by_name('décembre'), None)
         self.assertEqual(month_by_name('Unknown', 'unknown'), None)
-
-    def test_m
 
     def test_parse_codecs(self):
         self.assertEqual(parse_codecs(''), {})
