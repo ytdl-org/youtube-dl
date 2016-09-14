@@ -70,8 +70,8 @@ class GoIE(InfoExtractor):
                         }))
                     errors = entitlement.get('errors', {}).get('errors', [])
                     if errors:
-                        error_massege = ', '.join([error['message'] for error in errors])
-                        raise ExtractorError('%s said: %s' % (self.IE_NAME, error_massege), expected=True)
+                        error_message = ', '.join([error['message'] for error in errors])
+                        raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message), expected=True)
                     asset_url += '?' + entitlement['uplynkData']['sessionKey']
                 formats.extend(self._extract_m3u8_formats(
                     asset_url, video_id, 'mp4', m3u8_id=format_id or 'hls', fatal=False))
