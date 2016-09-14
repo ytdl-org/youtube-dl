@@ -1762,11 +1762,14 @@ class YoutubeDL(object):
                                 new_info['__postprocessors'] = []
                                 self.add_fixup_post_processors(fname, new_info, protocol_only=True)
 
+                                _pps = self._pps
+                                self._pps = []
                                 try:
                                     self.post_process(fname, new_info)
                                 except (PostProcessingError) as err:
                                     self.report_error('fixup postprocessing: %s' % str(err))
                                     success = False
+                                self._pps = _pps
 
                         info_dict['__postprocessors'] = postprocessors
                         info_dict['__files_to_merge'] = downloaded
