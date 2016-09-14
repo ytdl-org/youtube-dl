@@ -368,10 +368,6 @@ def parseOpts(overrideArguments=None):
         '--list-ap-mso-ids',
         action='store_true', dest='list_ap_mso_ids', default=False,
         help='List all supported TV Providers')
-    adobe_pass.add_option(
-        '--ap-retries',
-        dest='ap_retries', metavar='APRETRIES', default=3,
-        help='Number of retries for Adobe Pass Authorization requests')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
