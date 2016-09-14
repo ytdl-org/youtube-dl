@@ -179,8 +179,6 @@ def _real_main(argv=None):
         opts.retries = parse_retries(opts.retries)
     if opts.fragment_retries is not None:
         opts.fragment_retries = parse_retries(opts.fragment_retries)
-    if opts.ap_retries is not None:
-        opts.ap_retries = parse_retries(opts.ap_retries)
     if opts.buffersize is not None:
         numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
         if numeric_buffersize is None:
@@ -308,7 +306,6 @@ def _real_main(argv=None):
         'ap_mso_id': opts.ap_mso_id,
         'ap_username': opts.ap_username,
         'ap_password': opts.ap_password,
-        'ap_retries': opts.ap_retries,
         'quiet': (opts.quiet or any_getting or any_printing),
         'no_warnings': opts.no_warnings,
         'forceurl': opts.geturl,

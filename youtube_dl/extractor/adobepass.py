@@ -83,9 +83,8 @@ class AdobePassIE(InfoExtractor):
         }
 
         guid = xml_text(resource, 'guid')
-        retries = self._downloader.params.get('ap_retries', 3)
         count = 0
-        while count < retries:
+        while count < 2:
             requestor_info = self._downloader.cache.load('mvpd', requestor_id) or {}
             authn_token = requestor_info.get('authn_token')
             if authn_token and is_expired(authn_token, 'simpleTokenExpires'):
