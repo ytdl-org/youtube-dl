@@ -1486,6 +1486,70 @@ class YoutubeDL(object):
             subs[lang] = f
         return subs
 
+    def add_fixup_post_processors(self, filename, info_dict, protocol_only=False):
+        # Fixup content
+        fixup_policy = self.params.get('fixup')
+        if fixup_policy is None:
+            fixup_policy = 'detect_or_warn'
+
+        INSTALL_FFMPEG_MESSAGE = 'Install ffmpeg or avconv to fix this automatically.'
+
+        if not protocol_only:
+            stretched_ratio = info_dict.get('stretched_ratio')
+            if stretched_ratio is not None and stretched_ratio != 1:
+                if fixup_policy == 'warn':
+                    self.report_warning('%s: Non-uniform pixel ratio (%s)' % (
+                        info_dict['id'], stretched_ratio))
+                elif fixup_policy == 'detect_or_warn':
+                    stretched_pp = FFmpegFixupStretchedPP(self)
+                    if stretched_pp.available:
+                        info_dict.setdefault('__postprocessors', [])
+                        info_dict['__postprocessors'].append(stretched_pp)
+                    else:
+                        self.report_warning(
+                            '%s: Non-uniform pixel ratio (%s). %s'
+                            % (info_dict['id'], stretched_ratio, INSTALL_FFMPEG_MESSAGE))
+                else:
+                    assert fixup_policy in ('ignore', 'never')
+    
+            if (info_dict.get('requested_formats') is None and
+                    info_dict.get('container') == 'm4a_dash'):
+                if fixup_policy == 'warn':
+                    self.report_warning(
+                        '%s: writing DASH m4a. '
+                        'Only some players support this container.'
+                        % info_dict['id'])
+                elif fixup_policy == 'detect_or_warn':
+                    fixup_pp = FFmpegFixupM4aPP(self)
+                    if fixup_pp.available:
+                        info_dict.setdefault('__postprocessors', [])
+                        info_dict['__postprocessors'].append(fixup_pp)
+                    else:
+                        self.report_warning(
+                            '%s: writing DASH m4a. '
+                            'Only some players support this container. %s'
+                            % (info_dict['id'], INSTALL_FFMPEG_MESSAGE))
+                else:
+                    assert fixup_policy in ('ignore', 'never')
+
+        if (info_dict.get('protocol') == 'm3u8_native' or
+                info_dict.get('protocol') == 'm3u8' and
+                self.params.get('hls_prefer_native')):
+            if fixup_policy == 'warn':
+                self.report_warning('%s: malformated aac bitstream.' % (
+                    info_dict['id']))
+            elif fixup_policy == 'detect_or_warn':
+                fixup_pp = FFmpegFixupM3u8PP(self)
+                if fixup_pp.available:
+                    info_dict.setdefault('__postprocessors', [])
+                    info_dict['__postprocessors'].append(fixup_pp)
+                else:
+                    self.report_warning(
+                        '%s: malformated aac bitstream. %s'
+                        % (info_dict['id'], INSTALL_FFMPEG_MESSAGE))
+            else:
+                assert fixup_policy in ('ignore', 'never')
+
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
 
@@ -1692,6 +1756,18 @@ class YoutubeDL(object):
                             downloaded.append(fname)
                             partial_success = dl(fname, new_info)
                             success = success and partial_success
+
+                            if partial_success:
+                                # Clear the list so that we only apply fixup post-processors for now
+                                new_info['__postprocessors'] = []
+                                self.add_fixup_post_processors(fname, new_info, protocol_only=True)
+
+                                try:
+                                    self.post_process(fname, new_info)
+                                except (PostProcessingError) as err:
+                                    self.report_error('fixup postprocessing: %s' % str(err))
+                                    success = False
+
                         info_dict['__postprocessors'] = postprocessors
                         info_dict['__files_to_merge'] = downloaded
                 else:
@@ -1707,67 +1783,7 @@ class YoutubeDL(object):
                 return
 
             if success and filename != '-':
-                # Fixup content
-                fixup_policy = self.params.get('fixup')
-                if fixup_policy is None:
-                    fixup_policy = 'detect_or_warn'
-
-                INSTALL_FFMPEG_MESSAGE = 'Install ffmpeg or avconv to fix this automatically.'
-
-                stretched_ratio = info_dict.get('stretched_ratio')
-                if stretched_ratio is not None and stretched_ratio != 1:
-                    if fixup_policy == 'warn':
-                        self.report_warning('%s: Non-uniform pixel ratio (%s)' % (
-                            info_dict['id'], stretched_ratio))
-                    elif fixup_policy == 'detect_or_warn':
-                        stretched_pp = FFmpegFixupStretchedPP(self)
-                        if stretched_pp.available:
-                            info_dict.setdefault('__postprocessors', [])
-                            info_dict['__postprocessors'].append(stretched_pp)
-                        else:
-                            self.report_warning(
-                                '%s: Non-uniform pixel ratio (%s). %s'
-                                % (info_dict['id'], stretched_ratio, INSTALL_FFMPEG_MESSAGE))
-                    else:
-                        assert fixup_policy in ('ignore', 'never')
-
-                if (info_dict.get('requested_formats') is None and
-                        info_dict.get('container') == 'm4a_dash'):
-                    if fixup_policy == 'warn':
-                        self.report_warning(
-                            '%s: writing DASH m4a. '
-                            'Only some players support this container.'
-                            % info_dict['id'])
-                    elif fixup_policy == 'detect_or_warn':
-                        fixup_pp = FFmpegFixupM4aPP(self)
-                        if fixup_pp.available:
-                            info_dict.setdefault('__postprocessors', [])
-                            info_dict['__postprocessors'].append(fixup_pp)
-                        else:
-                            self.report_warning(
-                                '%s: writing DASH m4a. '
-                                'Only some players support this container. %s'
-                                % (info_dict['id'], INSTALL_FFMPEG_MESSAGE))
-                    else:
-                        assert fixup_policy in ('ignore', 'never')
-
-                if (info_dict.get('protocol') == 'm3u8_native' or
-                        info_dict.get('protocol') == 'm3u8' and
-                        self.params.get('hls_prefer_native')):
-                    if fixup_policy == 'warn':
-                        self.report_warning('%s: malformated aac bitstream.' % (
-                            info_dict['id']))
-                    elif fixup_policy == 'detect_or_warn':
-                        fixup_pp = FFmpegFixupM3u8PP(self)
-                        if fixup_pp.available:
-                            info_dict.setdefault('__postprocessors', [])
-                            info_dict['__postprocessors'].append(fixup_pp)
-                        else:
-                            self.report_warning(
-                                '%s: malformated aac bitstream. %s'
-                                % (info_dict['id'], INSTALL_FFMPEG_MESSAGE))
-                    else:
-                        assert fixup_policy in ('ignore', 'never')
+                self.add_fixup_post_processors(filename, info_dict)
 
                 try:
                     self.post_process(filename, info_dict)
