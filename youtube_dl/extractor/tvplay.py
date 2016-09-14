@@ -369,7 +369,7 @@ class ViafreeIE(InfoExtractor):
         'add_ie': [TVPlayIE.ie_key()],
     }, {
         # Different og:image URL schema
-        'url': 'www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-2',
+        'url': 'http://www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-2',
         'only_matching': True,
     }, {
         'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
