@@ -82,7 +82,7 @@ class KuwoIE(KuwoBaseIE):
             'upload_date': '20150518',
         },
         'params': {
-            'format': 'mp3-320'
+            'format': 'mp3-320',
         },
     }, {
         'url': 'http://www.kuwo.cn/yinyue/3197154?catalog=yueku2016',
@@ -181,7 +181,7 @@ class KuwoChartIE(InfoExtractor):
         'info_dict': {
             'id': '香港中文龙虎榜',
         },
-        'playlist_mincount': 10,
+        'playlist_mincount': 7,
     }
 
     def _real_extract(self, url):
@@ -303,7 +303,7 @@ class KuwoMvIE(KuwoBaseIE):
             'id': '6480076',
             'ext': 'mp4',
             'title': 'My HouseMV',
-            'creator': 'PM02:00',
+            'creator': '2PM',
         },
         # In this video, music URLs (anti.s) are blocked outside China and
         # USA, while the MV URL (mvurl) is available globally, so force the MV
