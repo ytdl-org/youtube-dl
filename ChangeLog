@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [kwuo] Improve error detection (#10650)
 * [bilibili] Fix extraction for specific videos (#10647)
 + [nbc] Add support for NBC Olympics (#10361)
 
