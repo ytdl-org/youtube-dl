@@ -353,20 +353,20 @@ def parseOpts(overrideArguments=None):
 
     adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
     adobe_pass.add_option(
-        '--ap-mso-id',
-        dest='ap_mso_id', metavar='APMSOID',
+        '--ap-mso',
+        dest='ap_mso', metavar='MSO',
         help='Adobe Pass Multiple-system operator Identifier')
     adobe_pass.add_option(
         '--ap-username',
-        dest='ap_username', metavar='APUSERNAME',
+        dest='ap_username', metavar='USERNAME',
         help='TV Provider Login with this account ID')
     adobe_pass.add_option(
         '--ap-password',
-        dest='ap_password', metavar='APPASSWORD',
+        dest='ap_password', metavar='PASSWORD',
         help='TV Provider Account password. If this option is left out, youtube-dl will ask interactively.')
     adobe_pass.add_option(
-        '--list-ap-mso-ids',
-        action='store_true', dest='list_ap_mso_ids', default=False,
+        '--ap-mso-list',
+        action='store_true', dest='ap_mso_list', default=False,
         help='List all supported TV Providers')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
