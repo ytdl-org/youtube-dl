@@ -8,6 +8,8 @@ from ..utils import (
     int_or_none,
     determine_ext,
     parse_age_limit,
+    urlencode_postdata,
+    ExtractorError,
 )
 
 
@@ -19,7 +21,7 @@ class GoIE(InfoExtractor):
         'watchdisneyjunior': '008',
         'watchdisneyxd': '009',
     }
-    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/.*?vdka(?P<id>\w+)' % '|'.join(_BRANDS.keys())
+    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:[^/]+/)*(?:vdka(?P<id>\w+)|season-\d+/\d+-(?P<display_id>[^/?#]+))' % '|'.join(_BRANDS.keys())
     _TESTS = [{
         'url': 'http://abc.go.com/shows/castle/video/most-recent/vdka0_g86w5onx',
         'info_dict': {
@@ -38,9 +40,13 @@ class GoIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        sub_domain, video_id = re.match(self._VALID_URL, url).groups()
+        sub_domain, video_id, display_id = re.match(self._VALID_URL, url).groups()
+        if not video_id:
+            webpage = self._download_webpage(url, display_id)
+            video_id = self._search_regex(r'data-video-id=["\']VDKA(\w+)', webpage, 'video id')
+        brand = self._BRANDS[sub_domain]
         video_data = self._download_json(
-            'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/-1/-1/%s/-1/-1.json' % (self._BRANDS[sub_domain], video_id),
+            'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/-1/-1/%s/-1/-1.json' % (brand, video_id),
             video_id)['video'][0]
         title = video_data['title']
 
@@ -52,6 +58,21 @@ class GoIE(InfoExtractor):
             format_id = asset.get('format')
             ext = determine_ext(asset_url)
             if ext == 'm3u8':
+                video_type = video_data.get('type')
+                if video_type == 'lf':
+                    entitlement = self._download_json(
+                        'https://api.entitlement.watchabc.go.com/vp2/ws-secure/entitlement/2020/authorize.json',
+                        video_id, data=urlencode_postdata({
+                            'video_id': video_data['id'],
+                            'video_type': video_type,
+                            'brand': brand,
+                            'device': '001',
+                        }))
+                    errors = entitlement.get('errors', {}).get('errors', [])
+                    if errors:
+                        error_massege = ', '.join([error['message'] for error in errors])
+                        raise ExtractorError('%s said: %s' % (self.IE_NAME, error_massege), expected=True)
+                    asset_url += '?' + entitlement['uplynkData']['sessionKey']
                 formats.extend(self._extract_m3u8_formats(
                     asset_url, video_id, 'mp4', m3u8_id=format_id or 'hls', fatal=False))
             else:
