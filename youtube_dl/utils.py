@@ -91,9 +91,12 @@ ENGLISH_MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December']
 
-FRENCH_MONTH_NAMES = [
-    'janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin',
-    'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre']
+MONTH_NAMES = {
+    'en': ENGLISH_MONTH_NAMES,
+    'fr': [
+        'janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin',
+        'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'],
+}
 
 KNOWN_EXTENSIONS = (
     'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'aac',
@@ -1594,13 +1597,10 @@ def parse_count(s):
 def month_by_name(name, lang='en'):
     """ Return the number of a month by (locale-independently) English name """
 
-    name_list = ENGLISH_MONTH_NAMES
-
-    if lang == 'fr':
-        name_list = FRENCH_MONTH_NAMES
+    month_names = MONTH_NAMES.get(lang, MONTH_NAMES['en'])
 
     try:
-        return name_list.index(name) + 1
+        return month_names.index(name) + 1
     except ValueError:
         return None
 

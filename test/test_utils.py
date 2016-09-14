@@ -40,6 +40,7 @@ from youtube_dl.utils import (
     js_to_json,
     limit_length,
     mimetype2ext,
+    month_by_name,
     ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
@@ -633,6 +634,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(mimetype2ext('text/vtt'), 'vtt')
         self.assertEqual(mimetype2ext('text/vtt;charset=utf-8'), 'vtt')
         self.assertEqual(mimetype2ext('text/html; charset=utf-8'), 'html')
+
+    def test_month_by_name(self):
+        self.assertEqual(month_by_name(None), None)
+        self.assertEqual(month_by_name('December', 'en'), 12)
+        self.assertEqual(month_by_name('decembre', 'fr'), 12)
+        self.assertEqual(month_by_name('December'), 12)
+        self.assertEqual(month_by_name('decembre'), None)
+        self.assertEqual(month_by_name('Unknown', 'unknown'), None)
+
+    def test_m
 
     def test_parse_codecs(self):
         self.assertEqual(parse_codecs(''), {})
