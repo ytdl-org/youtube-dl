@@ -179,6 +179,10 @@ def parseOpts(overrideArguments=None):
         'Do not read the user configuration in ~/.config/youtube-dl/config '
         '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
+        '--config-file',
+        dest='configfile', metavar='FILE',
+        help='File to read configuration from.')
+    general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
         default=False,
@@ -845,19 +849,29 @@ def parseOpts(overrideArguments=None):
             return conf
 
         command_line_conf = compat_conf(sys.argv[1:])
+        opts, args = parser.parse_args(command_line_conf)
 
         if '--ignore-config' in command_line_conf:
             system_conf = []
             user_conf = []
+        elif '--config-file' in command_line_conf:
+            if not os.path.isfile(opts.configfile):
+                parser.error('Config file {0} not found.'.format(opts.configfile))
+            else:
+                user_conf = _readOptions(opts.configfile)
+                system_conf = []
+
         else:
             system_conf = _readOptions('/etc/youtube-dl.conf')
             if '--ignore-config' in system_conf:
                 user_conf = []
             else:
                 user_conf = _readUserConf()
+
         argv = system_conf + user_conf + command_line_conf
 
         opts, args = parser.parse_args(argv)
+
         if opts.verbose:
             write_string('[debug] System config: ' + repr(_hide_login_info(system_conf)) + '\n')
             write_string('[debug] User config: ' + repr(_hide_login_info(user_conf)) + '\n')
