@@ -71,7 +71,7 @@ class CanvasIE(InfoExtractor):
             webpage)).strip()
 
         video_id = self._html_search_regex(
-            r'data-video=(["\'])(?P<id>.+?)\1', webpage, 'video id', group='id')
+            r'data-video=(["\'])(?P<id>(?:(?!\1).)+)\1', webpage, 'video id', group='id')
 
         data = self._download_json(
             'https://mediazone.vrt.be/api/v1/%s/assets/%s'
