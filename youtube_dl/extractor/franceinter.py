@@ -2,10 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    unified_timestamp,
-    month_by_name,
-)
+from ..compat import compat_str
+from ..utils import month_by_name
 
 
 class FranceInterIE(InfoExtractor):
@@ -18,8 +16,7 @@ class FranceInterIE(InfoExtractor):
             'id': 'la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
             'ext': 'mp3',
             'title': 'L’Histoire dans les jeux vidéo du 18 décembre 2013 - France Inter',
-            'description': 'L’Histoire dans les jeux vidéo du 18 décembre 2013  par Jean Lebrun en replay sur France Inter. Retrouvez l\'émission en réécoute gratuite et abonnez-vous au podcast !',
-            'timestamp': 1387324800,
+            'description': 'md5:7f2ce449894d1e585932273080fb410d',
             'upload_date': '20131218',
         },
     }
@@ -30,22 +27,28 @@ class FranceInterIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            r'<button class="replay-button playable" data-is-aod="1" data-url="([^"]+)"', webpage, 'video url')
+            r'(?s)<div[^>]+class=["\']page-diffusion["\'][^>]*>.*?<button[^>]+data-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+            webpage, 'video url', group='url')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
 
-        extractdate = self._search_regex('(\d{2}-([a-zA-Z\s]+)-\d{4}$)', url, 'extractdate', fatal=False)
-        extractdate = extractdate.split('-')
-        extractdate = extractdate[2] + "," + str(month_by_name(extractdate[1], 'fr')) + "," + extractdate[0]
-
-        timestamp = unified_timestamp(extractdate)
+        upload_date_str = self._search_regex(
+            r'class=["\']cover-emission-period["\'][^>]*>[^<]+\s+(\d{1,2}\s+[^\s]+\s+\d{4})<',
+            webpage, 'upload date', fatal=False)
+        if upload_date_str:
+            upload_date_list = upload_date_str.split()
+            upload_date_list.reverse()
+            upload_date_list[1] = compat_str(month_by_name(upload_date_list[1], lang='fr'))
+            upload_date = ''.join(upload_date_list)
+        else:
+            upload_date = None
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'timestamp': timestamp,
+            'upload_date': upload_date,
             'formats': [{
                 'url': video_url,
                 'vcodec': 'none',
