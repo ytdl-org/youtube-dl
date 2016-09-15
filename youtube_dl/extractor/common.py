@@ -674,11 +674,13 @@ class InfoExtractor(object):
                     username = info[0]
                     password = info[2]
                 else:
-                    raise netrc.NetrcParseError('No authenticators for %s' % netrc_machine)
+                    raise netrc.NetrcParseError(
+                        'No authenticators for %s' % netrc_machine)
             except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning('parsing .netrc: %s' % error_to_compat_str(err))
+                self._downloader.report_warning(
+                    'parsing .netrc: %s' % error_to_compat_str(err))
 
-        return (username, password)
+        return username, password
 
     def _get_login_info(self, username_option='username', password_option='password', netrc_machine=None):
         """
