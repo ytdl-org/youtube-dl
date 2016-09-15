@@ -89,6 +89,7 @@
  - **BeatportPro**
  - **Beeg**
  - **BehindKink**
+ - **BellMedia**
  - **Bet**
  - **Bigflix**
  - **Bild**: Bild.de
@@ -169,7 +170,6 @@
  - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
- - **CTV**
  - **CTVNews**
  - **culturebox.francetvinfo.fr**
  - **CultureUnplugged**
@@ -445,6 +445,7 @@
  - **NBA**
  - **NBC**
  - **NBCNews**
+ - **NBCOlympics**
  - **NBCSports**
  - **NBCSportsVPlayer**
  - **ndr**: NDR.de - Norddeutscher Rundfunk
