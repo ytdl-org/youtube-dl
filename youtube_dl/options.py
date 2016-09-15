@@ -94,7 +94,7 @@ def parseOpts(overrideArguments=None):
         setattr(parser.values, option.dest, value.split(','))
 
     def _hide_login_info(opts):
-        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password']
+        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username']
         eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
 
         def _scrub_eq(o):
@@ -351,6 +351,24 @@ def parseOpts(overrideArguments=None):
         dest='videopassword', metavar='PASSWORD',
         help='Video password (vimeo, smotri, youku)')
 
+    adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
+    adobe_pass.add_option(
+        '--ap-mso',
+        dest='ap_mso', metavar='MSO',
+        help='Adobe Pass Multiple-system operator Identifier')
+    adobe_pass.add_option(
+        '--ap-username',
+        dest='ap_username', metavar='USERNAME',
+        help='TV Provider Login with this account ID')
+    adobe_pass.add_option(
+        '--ap-password',
+        dest='ap_password', metavar='PASSWORD',
+        help='TV Provider Account password. If this option is left out, youtube-dl will ask interactively.')
+    adobe_pass.add_option(
+        '--ap-list-mso',
+        action='store_true', dest='ap_list_mso', default=False,
+        help='List all supported TV Providers')
+
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
         '-f', '--format',
@@ -423,7 +441,15 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--fragment-retries',
         dest='fragment_retries', metavar='RETRIES', default=10,
-        help='Number of retries for a fragment (default is %default), or "infinite" (DASH only)')
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH and hlsnative only)')
+    downloader.add_option(
+        '--skip-unavailable-fragments',
+        action='store_true', dest='skip_unavailable_fragments', default=True,
+        help='Skip unavailable fragments (DASH and hlsnative only)')
+    general.add_option(
+        '--abort-on-unavailable-fragment',
+        action='store_false', dest='skip_unavailable_fragments',
+        help='Abort downloading when some fragment is not available')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',

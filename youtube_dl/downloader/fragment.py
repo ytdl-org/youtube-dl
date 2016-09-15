@@ -6,6 +6,7 @@ import time
 from .common import FileDownloader
 from .http import HttpFD
 from ..utils import (
+    error_to_compat_str,
     encodeFilename,
     sanitize_open,
 )
@@ -22,13 +23,19 @@ class FragmentFD(FileDownloader):
 
     Available options:
 
-    fragment_retries:   Number of times to retry a fragment for HTTP error (DASH only)
+    fragment_retries:   Number of times to retry a fragment for HTTP error (DASH
+                        and hlsnative only)
+    skip_unavailable_fragments:
+                        Skip unavailable fragments (DASH and hlsnative only)
     """
 
-    def report_retry_fragment(self, fragment_name, count, retries):
+    def report_retry_fragment(self, err, fragment_name, count, retries):
         self.to_screen(
-            '[download] Got server HTTP error. Retrying fragment %s (attempt %d of %s)...'
-            % (fragment_name, count, self.format_retries(retries)))
+            '[download] Got server HTTP error: %s. Retrying fragment %s (attempt %d of %s)...'
+            % (error_to_compat_str(err), fragment_name, count, self.format_retries(retries)))
+
+    def report_skip_fragment(self, fragment_name):
+        self.to_screen('[download] Skipping fragment %s...' % fragment_name)
 
     def _prepare_and_start_frag_download(self, ctx):
         self._prepare_frag_download(ctx)

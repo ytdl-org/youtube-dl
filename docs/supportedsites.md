@@ -19,9 +19,10 @@
  - **9now.com.au**
  - **abc.net.au**
  - **abc.net.au:iview**
- - **Abc7News**
  - **abcnews**
  - **abcnews:video**
+ - **abcotvs**: ABC Owned Television Stations
+ - **abcotvs:clips**
  - **AcademicEarth:Course**
  - **acast**
  - **acast:channel**
@@ -128,6 +129,7 @@
  - **CBSNews**: CBS News
  - **CBSNewsLiveVideo**: CBS News Live Videos
  - **CBSSports**
+ - **CCTV**
  - **CDA**
  - **CeskaTelevize**
  - **channel9**: Channel 9
@@ -171,6 +173,8 @@
  - **CTVNews**
  - **culturebox.francetvinfo.fr**
  - **CultureUnplugged**
+ - **curiositystream**
+ - **curiositystream:collection**
  - **CWTV**
  - **DailyMail**
  - **dailymotion**
@@ -223,13 +227,14 @@
  - **EsriVideo**
  - **Europa**
  - **EveryonesMixtape**
- - **exfm**: ex.fm
  - **ExpoTV**
  - **ExtremeTube**
  - **EyedoTV**
  - **facebook**
+ - **FacebookPluginsVideo**
  - **faz.net**
  - **fc2**
+ - **fc2:embed**
  - **Fczenit**
  - **features.aol.com**
  - **fernsehkritik.tv**
@@ -242,7 +247,9 @@
  - **Formula1**
  - **FOX**
  - **Foxgay**
- - **FoxNews**: Fox News and Fox Business Video
+ - **foxnews**: Fox News and Fox Business Video
+ - **foxnews:article**
+ - **foxnews:insider**
  - **FoxSports**
  - **france2.fr:generation-quoi**
  - **FranceCulture**
@@ -271,6 +278,7 @@
  - **Glide**: Glide mobile video messages (glide.me)
  - **Globo**
  - **GloboArticle**
+ - **Go**
  - **GodTube**
  - **GodTV**
  - **Golem**
@@ -319,6 +327,7 @@
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
  - **ivideon**: Ivideon TV
+ - **Iwara**
  - **Izlesene**
  - **JeuxVideo**
  - **Jove**
@@ -332,6 +341,7 @@
  - **KarriereVideos**
  - **keek**
  - **KeezMovies**
+ - **Ketnet**
  - **KhanAcademy**
  - **KickStarter**
  - **KonserthusetPlay**
@@ -347,6 +357,7 @@
  - **kuwo:song**: 酷我音乐
  - **la7.it**
  - **Laola1Tv**
+ - **LCI**
  - **Lcp**
  - **LcpPlay**
  - **Le**: 乐视网
@@ -385,6 +396,7 @@
  - **Metacritic**
  - **Mgoon**
  - **MGTV**: 芒果TV
+ - **MiaoPai**
  - **Minhateca**
  - **MinistryGrid**
  - **Minoto**
@@ -406,6 +418,7 @@
  - **MovieClips**
  - **MovieFap**
  - **Moviezine**
+ - **MovingImage**
  - **MPORA**
  - **MSN**
  - **mtg**: MTG services
@@ -530,6 +543,7 @@
  - **podomatic**
  - **Pokemon**
  - **PolskieRadio**
+ - **PolskieRadioCategory**
  - **PornCom**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
@@ -570,6 +584,7 @@
  - **revision3:embed**
  - **RICE**
  - **RingTV**
+ - **RMCDecouverte**
  - **RockstarGames**
  - **RoosterTeeth**
  - **RottenTomatoes**
@@ -659,7 +674,6 @@
  - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**
  - **SRGSSRPlay**: srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites
- - **SSA**
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **Stitcher**
@@ -691,9 +705,11 @@
  - **Telecinco**: telecinco.es, cuatro.com and mediaset.es
  - **Telegraaf**
  - **TeleMB**
+ - **TeleQuebec**
  - **TeleTask**
  - **Telewebion**
  - **TF1**
+ - **TFO**
  - **TheIntercept**
  - **ThePlatform**
  - **ThePlatformFeed**
@@ -702,8 +718,6 @@
  - **TheStar**
  - **ThisAmericanLife**
  - **ThisAV**
- - **THVideo**
- - **THVideoPlaylist**
  - **tinypic**: tinypic.com videos
  - **tlc.de**
  - **TMZ**
@@ -717,7 +731,7 @@
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
- - **trollvids**
+ - **TruTV**
  - **Tube8**
  - **TubiTv**
  - **tudou**
@@ -739,6 +753,7 @@
  - **TVCArticle**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
+ - **TVNoe**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
  - **tvp:series**

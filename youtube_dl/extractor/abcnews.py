@@ -12,7 +12,7 @@ from ..compat import compat_urlparse
 
 class AbcNewsVideoIE(AMPIE):
     IE_NAME = 'abcnews:video'
-    _VALID_URL = 'http://abcnews.go.com/[^/]+/video/(?P<display_id>[0-9a-z-]+)-(?P<id>\d+)'
+    _VALID_URL = r'https?://abcnews\.go\.com/[^/]+/video/(?P<display_id>[0-9a-z-]+)-(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://abcnews.go.com/ThisWeek/video/week-exclusive-irans-foreign-minister-zarif-20411932',
@@ -49,7 +49,7 @@ class AbcNewsVideoIE(AMPIE):
 
 class AbcNewsIE(InfoExtractor):
     IE_NAME = 'abcnews'
-    _VALID_URL = 'https?://abcnews\.go\.com/(?:[^/]+/)+(?P<display_id>[0-9a-z-]+)/story\?id=(?P<id>\d+)'
+    _VALID_URL = r'https?://abcnews\.go\.com/(?:[^/]+/)+(?P<display_id>[0-9a-z-]+)/story\?id=(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://abcnews.go.com/Blotter/News/dramatic-video-rare-death-job-america/story?id=10498713#.UIhwosWHLjY',

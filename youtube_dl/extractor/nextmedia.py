@@ -7,7 +7,7 @@ from ..utils import parse_iso8601
 
 class NextMediaIE(InfoExtractor):
     IE_DESC = '蘋果日報'
-    _VALID_URL = r'https?://hk.apple.nextmedia.com/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://hk\.apple\.nextmedia\.com/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://hk.apple.nextmedia.com/realtime/news/20141108/53109199',
         'md5': 'dff9fad7009311c421176d1ac90bfe4f',
@@ -68,7 +68,7 @@ class NextMediaIE(InfoExtractor):
 
 class NextMediaActionNewsIE(NextMediaIE):
     IE_DESC = '蘋果日報 - 動新聞'
-    _VALID_URL = r'https?://hk.dv.nextmedia.com/actionnews/[^/]+/(?P<date>\d+)/(?P<id>\d+)/\d+'
+    _VALID_URL = r'https?://hk\.dv\.nextmedia\.com/actionnews/[^/]+/(?P<date>\d+)/(?P<id>\d+)/\d+'
     _TESTS = [{
         'url': 'http://hk.dv.nextmedia.com/actionnews/hit/20150121/19009428/20061460',
         'md5': '05fce8ffeed7a5e00665d4b7cf0f9201',
@@ -93,7 +93,7 @@ class NextMediaActionNewsIE(NextMediaIE):
 
 class AppleDailyIE(NextMediaIE):
     IE_DESC = '臺灣蘋果日報'
-    _VALID_URL = r'https?://(www|ent).appledaily.com.tw/(?:animation|appledaily|enews|realtimenews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
+    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/(?:animation|appledaily|enews|realtimenews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
         'md5': 'a843ab23d150977cc55ef94f1e2c1e4d',

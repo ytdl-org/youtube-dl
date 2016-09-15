@@ -65,7 +65,7 @@ class ChirbitIE(InfoExtractor):
 
 class ChirbitProfileIE(InfoExtractor):
     IE_NAME = 'chirbit:profile'
-    _VALID_URL = r'https?://(?:www\.)?chirbit.com/(?:rss/)?(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?chirbit\.com/(?:rss/)?(?P<id>[^/]+)'
     _TEST = {
         'url': 'http://chirbit.com/ScarletBeauty',
         'info_dict': {

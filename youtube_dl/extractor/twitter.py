@@ -342,7 +342,7 @@ class TwitterIE(InfoExtractor):
 
 class TwitterAmplifyIE(TwitterBaseIE):
     IE_NAME = 'twitter:amplify'
-    _VALID_URL = 'https?://amp\.twimg\.com/v/(?P<id>[0-9a-f\-]{36})'
+    _VALID_URL = r'https?://amp\.twimg\.com/v/(?P<id>[0-9a-f\-]{36})'
 
     _TEST = {
         'url': 'https://amp.twimg.com/v/0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',

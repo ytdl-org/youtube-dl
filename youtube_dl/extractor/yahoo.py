@@ -19,7 +19,10 @@ from ..utils import (
     determine_ext,
 )
 
-from .brightcove import BrightcoveNewIE
+from .brightcove import (
+    BrightcoveLegacyIE,
+    BrightcoveNewIE,
+)
 from .nbc import NBCSportsVPlayerIE
 
 
@@ -222,6 +225,11 @@ class YahooIE(InfoExtractor):
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
             return self.url_result(nbc_sports_url, NBCSportsVPlayerIE.ie_key())
+
+        # Look for Brightcove Legacy Studio embeds
+        bc_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
+        if bc_url:
+            return self.url_result(bc_url, BrightcoveLegacyIE.ie_key())
 
         # Look for Brightcove New Studio embeds
         bc_url = BrightcoveNewIE._extract_url(webpage)

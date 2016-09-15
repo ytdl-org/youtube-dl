@@ -307,7 +307,7 @@ class UdemyIE(InfoExtractor):
 
 class UdemyCourseIE(UdemyIE):
     IE_NAME = 'udemy:course'
-    _VALID_URL = r'https?://www\.udemy\.com/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?udemy\.com/(?P<id>[^/?#&]+)'
     _TESTS = []
 
     @classmethod

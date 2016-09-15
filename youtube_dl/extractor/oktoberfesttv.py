@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class OktoberfestTVIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.oktoberfest-tv\.de/[^/]+/[^/]+/video/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?oktoberfest-tv\.de/[^/]+/[^/]+/video/(?P<id>[^/?#]+)'
 
     _TEST = {
         'url': 'http://www.oktoberfest-tv.de/de/kameras/video/hb-zelt',

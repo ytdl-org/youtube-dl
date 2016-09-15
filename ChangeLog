@@ -1,8 +1,112 @@
 version <unreleased>
 
 Extractors
+* [kwuo] Improve error detection (#10650)
+* [bilibili] Fix extraction for specific videos (#10647)
++ [nbc] Add support for NBC Olympics (#10361)
+
+
+version 2016.09.11.1
+
+Extractors
++ [tube8] Extract categories and tags (#10579)
++ [pornhub] Extract categories and tags (#10499)
+* [openload] Temporary fix (#10408)
++ [foxnews] Add support Fox News articles (#10598)
+* [viafree] Improve video id extraction (#10615)
+* [iwara] Fix extraction after relaunch (#10462, #3215)
++ [tfo] Add extractor for tfo.org
+* [lrt] Fix audio extraction (#10566)
+* [9now] Fix extraction (#10561)
++ [canalplus] Add support for c8.fr (#10577)
+* [newgrounds] Fix uploader extraction (#10584)
++ [polskieradio:category] Add support for category lists (#10576)
++ [ketnet] Add extractor for ketnet.be (#10343)
++ [canvas] Add support for een.be (#10605)
++ [telequebec] Add extractor for telequebec.tv (#1999)
+* [parliamentliveuk] Fix extraction (#9137)
+
+
+version 2016.09.08
+
+Extractors
++ [jwplatform] Extract height from format label
++ [yahoo] Extract Brightcove Legacy Studio embeds (#9345)
+* [videomore] Fix extraction (#10592)
+* [foxgay] Fix extraction (#10480)
++ [rmcdecouverte] Add extractor for rmcdecouverte.bfmtv.com (#9709)
+* [gamestar] Fix metadata extraction (#10479)
+* [puls4] Fix extraction (#10583)
++ [cctv] Add extractor for CCTV and CNTV (#8153)
++ [lci] Add extractor for lci.fr (#10573)
++ [wat] Extract DASH formats
++ [viafree] Improve video id detection (#10569)
++ [trutv] Add extractor for trutv.com (#10519)
++ [nick] Add support for nickelodeon.nl (#10559)
++ [abcotvs:clips] Add support for clips.abcotvs.com
++ [abcotvs] Add support for ABC Owned Television Stations sites (#9551)
++ [miaopai] Add extractor for miaopai.com (#10556)
+* [gamestar] Fix metadata extraction (#10479)
++ [bilibili] Add support for episodes (#10190)
++ [tvnoe] Add extractor for tvnoe.cz (#10524)
+
+
+version 2016.09.04.1
+
+Core
+* In DASH downloader if the first segment fails, abort the whole download
+  process to prevent throttling (#10497)
++ Add support for --skip-unavailable-fragments and --fragment retries in
+  hlsnative downloader (#10165, #10448).
++ Add support for --skip-unavailable-fragments in DASH downloader
++ Introduce --skip-unavailable-fragments option for fragment based downloaders
+  that allows to skip fragments unavailable due to a HTTP error
+* Fix extraction of video/audio entries with src attribute in
+  _parse_html5_media_entries (#10540)
+
+Extractors
+* [theplatform] Relax URL regular expression (#10546)
+* [youtube:playlist] Extend URL regular expression
+* [rottentomatoes] Delegate extraction to internetvideoarchive extractor
+* [internetvideoarchive] Extract all formats
+* [pornvoisines] Fix extraction (#10469)
+* [rottentomatoes] Fix extraction (#10467)
+* [espn] Extend URL regular expression (#10549)
+* [vimple] Extend URL regular expression (#10547)
+* [youtube:watchlater] Fix extraction (#10544)
+* [youjizz] Fix extraction (#10437)
++ [foxnews] Add support for FoxNews Insider (#10445)
++ [fc2] Recognize Flash player URLs (#10512)
+
+
+version 2016.09.03
+
+Core
+* Restore usage of NAME attribute from EXT-X-MEDIA tag for formats codes in
+  _extract_m3u8_formats (#10522)
+* Handle semicolon in mimetype2ext
+
+Extractors
++ [youtube] Add support for rental videos' previews (#10532)
+* [youtube:playlist] Fallback to video extraction for video/playlist URLs when
+  no playlist is actually served (#10537)
++ [drtv] Add support for dr.dk/nyheder (#10536)
++ [facebook:plugins:video] Add extractor (#10530)
++ [go] Add extractor for *.go.com sites
+* [adobepass] Check for authz_token expiration (#10527)
+* [nytimes] improve extraction
+* [thestar] Fix extraction (#10465)
+* [glide] Fix extraction (#10478)
+- [exfm] Remove extractor (#10482)
+* [youporn] Fix categories and tags extraction (#10521)
++ [curiositystream] Add extractor for app.curiositystream.com
 - [thvideo] Remove extractor (#10464)
 * [movingimage] Fix for the new site name (#10466)
++ [cbs] Add support for once formats (#10515)
+* [limelight] Skip ism snd duplicate manifests
++ [porncom] Extract categories and tags (#10510)
++ [facebook] Extract timestamp (#10508)
++ [yahoo] Extract more formats
 
 
 version 2016.08.31

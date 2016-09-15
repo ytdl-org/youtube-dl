@@ -17,7 +17,7 @@ from ..utils import (
 
 
 class CeskaTelevizeIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ceskatelevize\.cz/(porady|ivysilani)/(?:[^/]+/)*(?P<id>[^/#?]+)/*(?:[#?].*)?$'
+    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/(porady|ivysilani)/(?:[^/]+/)*(?P<id>[^/#?]+)/*(?:[#?].*)?$'
     _TESTS = [{
         'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
         'info_dict': {

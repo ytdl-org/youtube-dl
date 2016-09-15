@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class NBCIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
+    _VALID_URL = r'https?://(?:www\.)?nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
 
     _TESTS = [
         {
@@ -138,7 +138,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
 class NBCSportsIE(InfoExtractor):
     # Does not include https because its certificate is invalid
-    _VALID_URL = r'https?://www\.nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
 
     _TEST = {
         'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
@@ -161,7 +161,7 @@ class NBCSportsIE(InfoExtractor):
 
 
 class CSNNEIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.csnne\.com/video/(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?csnne\.com/video/(?P<id>[0-9a-z-]+)'
 
     _TEST = {
         'url': 'http://www.csnne.com/video/snc-evening-update-wright-named-red-sox-no-5-starter',
@@ -335,3 +335,43 @@ class NBCNewsIE(ThePlatformIE):
                 'url': 'http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews?byId=%s' % video_id,
                 'ie_key': 'ThePlatformFeed',
             }
+
+
+class NBCOlympicsIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.nbcolympics\.com/video/(?P<id>[a-z-]+)'
+
+    _TEST = {
+        # Geo-restricted to US
+        'url': 'http://www.nbcolympics.com/video/justin-roses-son-leo-was-tears-after-his-dad-won-gold',
+        'md5': '54fecf846d05429fbaa18af557ee523a',
+        'info_dict': {
+            'id': 'WjTBzDXx5AUq',
+            'display_id': 'justin-roses-son-leo-was-tears-after-his-dad-won-gold',
+            'ext': 'mp4',
+            'title': 'Rose\'s son Leo was in tears after his dad won gold',
+            'description': 'Olympic gold medalist Justin Rose gets emotional talking to the impact his win in men\'s golf has already had on his children.',
+            'timestamp': 1471274964,
+            'upload_date': '20160815',
+            'uploader': 'NBCU-SPORTS',
+        },
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        drupal_settings = self._parse_json(self._search_regex(
+            r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
+            webpage, 'drupal settings'), display_id)
+
+        iframe_url = drupal_settings['vod']['iframe_url']
+        theplatform_url = iframe_url.replace(
+            'vplayer.nbcolympics.com', 'player.theplatform.com')
+
+        return {
+            '_type': 'url_transparent',
+            'url': theplatform_url,
+            'ie_key': ThePlatformIE.ie_key(),
+            'display_id': display_id,
+        }

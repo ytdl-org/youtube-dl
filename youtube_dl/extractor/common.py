@@ -680,7 +680,7 @@ class InfoExtractor(object):
 
         return (username, password)
 
-    def _get_login_info(self):
+    def _get_login_info(self, username_option='username', password_option='password', netrc_machine=None):
         """
         Get the login info as (username, password)
         It will look in the netrc file using the _NETRC_MACHINE value
@@ -694,11 +694,11 @@ class InfoExtractor(object):
         downloader_params = self._downloader.params
 
         # Attempt to use provided username and password or .netrc data
-        if downloader_params.get('username') is not None:
-            username = downloader_params['username']
-            password = downloader_params['password']
+        if downloader_params.get(username_option) is not None:
+            username = downloader_params[username_option]
+            password = downloader_params[password_option]
         else:
-            username, password = self._get_netrc_login_info()
+            username, password = self._get_netrc_login_info(netrc_machine)
 
         return (username, password)
 
@@ -1163,13 +1163,6 @@ class InfoExtractor(object):
                               m3u8_id=None, note=None, errnote=None,
                               fatal=True, live=False):
 
-        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
-
-        format_url = lambda u: (
-            u
-            if re.match(r'^https?://', u)
-            else compat_urlparse.urljoin(m3u8_url, u))
-
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
@@ -1179,6 +1172,13 @@ class InfoExtractor(object):
             return []
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
+
+        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
+
+        format_url = lambda u: (
+            u
+            if re.match(r'^https?://', u)
+            else compat_urlparse.urljoin(m3u8_url, u))
 
         # We should try extracting formats only from master playlists [1], i.e.
         # playlists that describe available qualities. On the other hand media
@@ -1749,7 +1749,7 @@ class InfoExtractor(object):
             media_attributes = extract_attributes(media_tag)
             src = media_attributes.get('src')
             if src:
-                _, formats = _media_formats(src)
+                _, formats = _media_formats(src, media_type)
                 media_info['formats'].extend(formats)
             media_info['thumbnail'] = media_attributes.get('poster')
             if media_content:

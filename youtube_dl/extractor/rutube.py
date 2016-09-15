@@ -88,7 +88,7 @@ class RutubeIE(InfoExtractor):
 class RutubeEmbedIE(InfoExtractor):
     IE_NAME = 'rutube:embed'
     IE_DESC = 'Rutube embedded videos'
-    _VALID_URL = 'https?://rutube\.ru/(?:video|play)/embed/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://rutube\.ru/(?:video|play)/embed/(?P<id>[0-9]+)'
 
     _TESTS = [{
         'url': 'http://rutube.ru/video/embed/6722881?vk_puid37=&vk_puid38=',

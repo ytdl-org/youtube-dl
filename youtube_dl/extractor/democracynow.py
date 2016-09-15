@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class DemocracynowIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?democracynow.org/(?P<id>[^\?]*)'
+    _VALID_URL = r'https?://(?:www\.)?democracynow\.org/(?P<id>[^\?]*)'
     IE_NAME = 'democracynow'
     _TESTS = [{
         'url': 'http://www.democracynow.org/shows/2015/7/3',

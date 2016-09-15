@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https://openload.(?:co|io)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://openload\.(?:co|io)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -60,7 +60,7 @@ class OpenloadIE(InfoExtractor):
             if j >= 33 and j <= 126:
                 j = ((j + 14) % 94) + 33
             if idx == len(enc_data) - 1:
-                j += 1
+                j += 3
             video_url_chars += compat_chr(j)
 
         video_url = 'https://openload.co/stream/%s?mime=true' % ''.join(video_url_chars)

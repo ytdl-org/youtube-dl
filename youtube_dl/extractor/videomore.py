@@ -6,8 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    parse_age_limit,
-    parse_iso8601,
+    xpath_element,
     xpath_text,
 )
 
@@ -17,38 +16,32 @@ class VideomoreIE(InfoExtractor):
     _VALID_URL = r'videomore:(?P<sid>\d+)$|https?://videomore\.ru/(?:(?:embed|[^/]+/[^/]+)/|[^/]+\?.*\btrack_id=)(?P<id>\d+)(?:[/?#&]|\.(?:xml|json)|$)'
     _TESTS = [{
         'url': 'http://videomore.ru/kino_v_detalayah/5_sezon/367617',
-        'md5': '70875fbf57a1cd004709920381587185',
+        'md5': '44455a346edc0d509ac5b5a5b531dc35',
         'info_dict': {
             'id': '367617',
             'ext': 'flv',
-            'title': 'В гостях Алексей Чумаков и Юлия Ковальчук',
-            'description': 'В гостях – лучшие романтические комедии года, «Выживший» Иньярриту и «Стив Джобс» Дэнни Бойла.',
+            'title': 'Кино в деталях 5 сезон В гостях Алексей Чумаков и Юлия Ковальчук',
             'series': 'Кино в деталях',
             'episode': 'В гостях Алексей Чумаков и Юлия Ковальчук',
-            'episode_number': None,
-            'season': 'Сезон 2015',
-            'season_number': 5,
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 2910,
-            'age_limit': 16,
             'view_count': int,
+            'comment_count': int,
+            'age_limit': 16,
         },
     }, {
         'url': 'http://videomore.ru/embed/259974',
         'info_dict': {
             'id': '259974',
             'ext': 'flv',
-            'title': '80 серия',
-            'description': '«Медведей» ждет решающий матч. Макеев выясняет отношения со Стрельцовым. Парни узнают подробности прошлого Макеева.',
+            'title': 'Молодежка 2 сезон 40 серия',
             'series': 'Молодежка',
-            'episode': '80 серия',
-            'episode_number': 40,
-            'season': '2 сезон',
-            'season_number': 2,
+            'episode': '40 серия',
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 2809,
-            'age_limit': 16,
             'view_count': int,
+            'comment_count': int,
+            'age_limit': 16,
         },
         'params': {
             'skip_download': True,
@@ -58,13 +51,8 @@ class VideomoreIE(InfoExtractor):
         'info_dict': {
             'id': '341073',
             'ext': 'flv',
-            'title': 'Команда проиграла из-за Бакина?',
-            'description': 'Молодежка 3 сезон скоро',
-            'series': 'Молодежка',
+            'title': 'Промо Команда проиграла из-за Бакина?',
             'episode': 'Команда проиграла из-за Бакина?',
-            'episode_number': None,
-            'season': 'Промо',
-            'season_number': 99,
             'thumbnail': 're:^https?://.*\.jpg',
             'duration': 29,
             'age_limit': 16,
@@ -109,43 +97,33 @@ class VideomoreIE(InfoExtractor):
             'http://videomore.ru/video/tracks/%s.xml' % video_id,
             video_id, 'Downloading video XML')
 
-        video_url = xpath_text(video, './/video_url', 'video url', fatal=True)
+        item = xpath_element(video, './/playlist/item', fatal=True)
+
+        title = xpath_text(
+            item, ('./title', './episode_name'), 'title', fatal=True)
+
+        video_url = xpath_text(item, './video_url', 'video url', fatal=True)
         formats = self._extract_f4m_formats(video_url, video_id, f4m_id='hds')
         self._sort_formats(formats)
 
-        data = self._download_json(
-            'http://videomore.ru/video/tracks/%s.json' % video_id,
-            video_id, 'Downloading video JSON')
+        thumbnail = xpath_text(item, './thumbnail_url')
+        duration = int_or_none(xpath_text(item, './duration'))
+        view_count = int_or_none(xpath_text(item, './views'))
+        comment_count = int_or_none(xpath_text(item, './count_comments'))
+        age_limit = int_or_none(xpath_text(item, './min_age'))
 
-        title = data.get('title') or data['project_title']
-        description = data.get('description') or data.get('description_raw')
-        timestamp = parse_iso8601(data.get('published_at'))
-        duration = int_or_none(data.get('duration'))
-        view_count = int_or_none(data.get('views'))
-        age_limit = parse_age_limit(data.get('min_age'))
-        thumbnails = [{
-            'url': thumbnail,
-        } for thumbnail in data.get('big_thumbnail_urls', [])]
-
-        series = data.get('project_title')
-        episode = data.get('title')
-        episode_number = int_or_none(data.get('episode_of_season') or None)
-        season = data.get('season_title')
-        season_number = int_or_none(data.get('season_pos') or None)
+        series = xpath_text(item, './project_name')
+        episode = xpath_text(item, './episode_name')
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
             'series': series,
             'episode': episode,
-            'episode_number': episode_number,
-            'season': season,
-            'season_number': season_number,
-            'thumbnails': thumbnails,
-            'timestamp': timestamp,
+            'thumbnail': thumbnail,
             'duration': duration,
             'view_count': view_count,
+            'comment_count': comment_count,
             'age_limit': age_limit,
             'formats': formats,
         }

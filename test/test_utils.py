@@ -39,6 +39,8 @@ from youtube_dl.utils import (
     is_html,
     js_to_json,
     limit_length,
+    mimetype2ext,
+    month_by_name,
     ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
@@ -624,6 +626,22 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(
             limit_length('foo bar baz asd', 12).startswith('foo bar'))
         self.assertTrue('...' in limit_length('foo bar baz asd', 12))
+
+    def test_mimetype2ext(self):
+        self.assertEqual(mimetype2ext(None), None)
+        self.assertEqual(mimetype2ext('video/x-flv'), 'flv')
+        self.assertEqual(mimetype2ext('application/x-mpegURL'), 'm3u8')
+        self.assertEqual(mimetype2ext('text/vtt'), 'vtt')
+        self.assertEqual(mimetype2ext('text/vtt;charset=utf-8'), 'vtt')
+        self.assertEqual(mimetype2ext('text/html; charset=utf-8'), 'html')
+
+    def test_month_by_name(self):
+        self.assertEqual(month_by_name(None), None)
+        self.assertEqual(month_by_name('December', 'en'), 12)
+        self.assertEqual(month_by_name('décembre', 'fr'), 12)
+        self.assertEqual(month_by_name('December'), 12)
+        self.assertEqual(month_by_name('décembre'), None)
+        self.assertEqual(month_by_name('Unknown', 'unknown'), None)
 
     def test_parse_codecs(self):
         self.assertEqual(parse_codecs(''), {})

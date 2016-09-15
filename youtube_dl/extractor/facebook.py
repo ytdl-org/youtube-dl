@@ -351,3 +351,32 @@ class FacebookIE(InfoExtractor):
                 self._VIDEO_PAGE_TEMPLATE % video_id,
                 video_id, fatal_if_no_video=True)
             return info_dict
+
+
+class FacebookPluginsVideoIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:[\w-]+\.)?facebook\.com/plugins/video\.php\?.*?\bhref=(?P<id>https.+)'
+
+    _TESTS = [{
+        'url': 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fgov.sg%2Fvideos%2F10154383743583686%2F&show_text=0&width=560',
+        'md5': '5954e92cdfe51fe5782ae9bda7058a07',
+        'info_dict': {
+            'id': '10154383743583686',
+            'ext': 'mp4',
+            'title': 'What to do during the haze?',
+            'uploader': 'Gov.sg',
+            'upload_date': '20160826',
+            'timestamp': 1472184808,
+        },
+        'add_ie': [FacebookIE.ie_key()],
+    }, {
+        'url': 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fvideo.php%3Fv%3D10204634152394104',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/plugins/video.php?href=https://www.facebook.com/gov.sg/videos/10154383743583686/&show_text=0&width=560',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        return self.url_result(
+            compat_urllib_parse_unquote(self._match_id(url)),
+            FacebookIE.ie_key())

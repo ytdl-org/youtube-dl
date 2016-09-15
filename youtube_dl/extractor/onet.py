@@ -90,7 +90,7 @@ class OnetBaseIE(InfoExtractor):
 
 
 class OnetIE(OnetBaseIE):
-    _VALID_URL = 'https?://(?:www\.)?onet\.tv/[a-z]/[a-z]+/(?P<display_id>[0-9a-z-]+)/(?P<id>[0-9a-z]+)'
+    _VALID_URL = r'https?://(?:www\.)?onet\.tv/[a-z]/[a-z]+/(?P<display_id>[0-9a-z-]+)/(?P<id>[0-9a-z]+)'
     IE_NAME = 'onet.tv'
 
     _TEST = {

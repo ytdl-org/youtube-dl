@@ -86,38 +86,50 @@ class WatIE(InfoExtractor):
 
         def extract_url(path_template, url_type):
             req_url = 'http://www.wat.tv/get/%s' % (path_template % video_id)
-            head = self._request_webpage(HEADRequest(req_url), video_id, 'Extracting %s url' % url_type)
-            red_url = head.geturl()
-            if req_url == red_url:
-                raise ExtractorError(
-                    '%s said: Sorry, this video is not available from your country.' % self.IE_NAME,
-                    expected=True)
-            return red_url
+            head = self._request_webpage(HEADRequest(req_url), video_id, 'Extracting %s url' % url_type, fatal=False)
+            if head:
+                red_url = head.geturl()
+                if req_url != red_url:
+                    return red_url
+            return None
+
+        def remove_bitrate_limit(manifest_url):
+            return re.sub(r'(?:max|min)_bitrate=\d+&?', '', manifest_url)
 
         formats = []
         try:
-            http_url = extract_url('android5/%s.mp4', 'http')
-            m3u8_url = extract_url('ipad/%s.m3u8', 'm3u8')
-            m3u8_formats = self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls')
-            formats.extend(m3u8_formats)
-            formats.extend(self._extract_f4m_formats(
-                m3u8_url.replace('ios.', 'web.').replace('.m3u8', '.f4m'),
-                video_id, f4m_id='hds', fatal=False))
-            for m3u8_format in m3u8_formats:
-                vbr, abr = m3u8_format.get('vbr'), m3u8_format.get('abr')
-                if not vbr or not abr:
-                    continue
-                format_id = m3u8_format['format_id'].replace('hls', 'http')
-                fmt_url = re.sub(r'%s-\d+00-\d+' % video_id, '%s-%d00-%d' % (video_id, round(vbr / 100), round(abr)), http_url)
-                if self._is_valid_url(fmt_url, video_id, format_id):
-                    f = m3u8_format.copy()
-                    f.update({
-                        'url': fmt_url,
-                        'format_id': format_id,
-                        'protocol': 'http',
-                    })
-                    formats.append(f)
+            manifest_urls = self._download_json(
+                'http://www.wat.tv/get/webhtml/' + video_id, video_id)
+            m3u8_url = manifest_urls.get('hls')
+            if m3u8_url:
+                m3u8_url = remove_bitrate_limit(m3u8_url)
+                m3u8_formats = self._extract_m3u8_formats(
+                    m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+                if m3u8_formats:
+                    formats.extend(m3u8_formats)
+                    formats.extend(self._extract_f4m_formats(
+                        m3u8_url.replace('ios', 'web').replace('.m3u8', '.f4m'),
+                        video_id, f4m_id='hds', fatal=False))
+                    http_url = extract_url('android5/%s.mp4', 'http')
+                    if http_url:
+                        for m3u8_format in m3u8_formats:
+                            vbr, abr = m3u8_format.get('vbr'), m3u8_format.get('abr')
+                            if not vbr or not abr:
+                                continue
+                            format_id = m3u8_format['format_id'].replace('hls', 'http')
+                            fmt_url = re.sub(r'%s-\d+00-\d+' % video_id, '%s-%d00-%d' % (video_id, round(vbr / 100), round(abr)), http_url)
+                            if self._is_valid_url(fmt_url, video_id, format_id):
+                                f = m3u8_format.copy()
+                                f.update({
+                                    'url': fmt_url,
+                                    'format_id': format_id,
+                                    'protocol': 'http',
+                                })
+                                formats.append(f)
+            mpd_url = manifest_urls.get('mpd')
+            if mpd_url:
+                formats.extend(self._extract_mpd_formats(remove_bitrate_limit(
+                    mpd_url), video_id, mpd_id='dash', fatal=False))
             self._sort_formats(formats)
         except ExtractorError:
             abr = 64
