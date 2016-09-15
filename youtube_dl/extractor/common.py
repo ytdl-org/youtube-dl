@@ -683,7 +683,10 @@ class InfoExtractor(object):
     def _get_login_info(self, username_option='username', password_option='password', netrc_machine=None):
         """
         Get the login info as (username, password)
-        It will look in the netrc file using the _NETRC_MACHINE value
+        First look for the manually specified credentials using username_option
+        and password_option as keys in params dictionary. If no such credentials
+        available look in the netrc file using the netrc_machine or _NETRC_MACHINE
+        value.
         If there's no info available, return (None, None)
         """
         if self._downloader is None:
