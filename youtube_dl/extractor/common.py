@@ -689,8 +689,6 @@ class InfoExtractor(object):
         if self._downloader is None:
             return (None, None)
 
-        username = None
-        password = None
         downloader_params = self._downloader.params
 
         # Attempt to use provided username and password or .netrc data
@@ -700,7 +698,7 @@ class InfoExtractor(object):
         else:
             username, password = self._get_netrc_login_info(netrc_machine)
 
-        return (username, password)
+        return username, password
 
     def _get_tfa_info(self, note='two-factor verification code'):
         """
