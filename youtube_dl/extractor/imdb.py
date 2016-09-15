@@ -56,7 +56,7 @@ class ImdbIE(InfoExtractor):
         formats = []
         for format_page in format_pages:
             json_data = self._search_regex(
-                r'<script[^>]+class="imdb-player-data"[^>]*?>(.*?)</script>',
+                r'(?s)<script[^>]+class="imdb-player-data"[^>]*?>(.*?)</script>',
                 format_page, 'json data', flags=re.DOTALL)
             info = self._parse_json(json_data, video_id, fatal=False)
             if not info:
