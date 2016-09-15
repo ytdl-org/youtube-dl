@@ -32,6 +32,7 @@ MSO_INFO = {
 class AdobePassIE(InfoExtractor):
     _SERVICE_PROVIDER_TEMPLATE = 'https://sp.auth.adobe.com/adobe-services/%s'
     _USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0'
+    _MVPD_CACHE = 'ap-mvpd'
 
     @staticmethod
     def _get_mvpd_resource(provider_id, title, guid, rating):
@@ -85,7 +86,7 @@ class AdobePassIE(InfoExtractor):
         guid = xml_text(resource, 'guid')
         count = 0
         while count < 2:
-            requestor_info = self._downloader.cache.load('mvpd', requestor_id) or {}
+            requestor_info = self._downloader.cache.load(self._MVPD_CACHE, requestor_id) or {}
             authn_token = requestor_info.get('authn_token')
             if authn_token and is_expired(authn_token, 'simpleTokenExpires'):
                 authn_token = None
@@ -125,12 +126,12 @@ class AdobePassIE(InfoExtractor):
                         'requestor_id': requestor_id,
                     }), headers=mvpd_headers)
                 if '<pendingLogout' in session:
-                    self._downloader.cache.store('mvpd', requestor_id, {})
+                    self._downloader.cache.store(self._MVPD_CACHE, requestor_id, {})
                     count += 1
                     continue
                 authn_token = unescapeHTML(xml_text(session, 'authnToken'))
                 requestor_info['authn_token'] = authn_token
-                self._downloader.cache.store('mvpd', requestor_id, requestor_info)
+                self._downloader.cache.store(self._MVPD_CACHE, requestor_id, requestor_info)
 
             authz_token = requestor_info.get(guid)
             if authz_token and is_expired(authz_token, 'simpleTokenTTL'):
@@ -146,12 +147,12 @@ class AdobePassIE(InfoExtractor):
                         'userMeta': '1',
                     }), headers=mvpd_headers)
                 if '<pendingLogout' in authorize:
-                    self._downloader.cache.store('mvpd', requestor_id, {})
+                    self._downloader.cache.store(self._MVPD_CACHE, requestor_id, {})
                     count += 1
                     continue
                 authz_token = unescapeHTML(xml_text(authorize, 'authzToken'))
                 requestor_info[guid] = authz_token
-                self._downloader.cache.store('mvpd', requestor_id, requestor_info)
+                self._downloader.cache.store(self._MVPD_CACHE, requestor_id, requestor_info)
 
             mvpd_headers.update({
                 'ap_19': xml_text(authn_token, 'simpleSamlNameID'),
@@ -167,7 +168,7 @@ class AdobePassIE(InfoExtractor):
                     'hashed_guid': 'false',
                 }), headers=mvpd_headers)
             if '<pendingLogout' in short_authorize:
-                self._downloader.cache.store('mvpd', requestor_id, {})
+                self._downloader.cache.store(self._MVPD_CACHE, requestor_id, {})
                 count += 1
                 continue
             return short_authorize
