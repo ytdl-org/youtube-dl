@@ -87,7 +87,7 @@ class LiveLeakIE(InfoExtractor):
             else:
                 # Maybe an embed?
                 embed_url = self._search_regex(
-                    r'<iframe[^>]+src="(http://www.prochan.com/embed\?[^"]+)"',
+                    r'<iframe[^>]+src="((http://www.prochan.com/embed\?)|(http://www.youtube.com/embed)[^"]+)"',
                     webpage, 'embed URL')
                 return {
                     '_type': 'url_transparent',
@@ -107,6 +107,7 @@ class LiveLeakIE(InfoExtractor):
             'format_note': s.get('label'),
             'url': s['file'],
         } for i, s in enumerate(sources)]
+
         for i, s in enumerate(sources):
             # Removing '.h264_*.mp4' gives the raw video, which is essentially
             # the same video without the LiveLeak logo at the top (see
