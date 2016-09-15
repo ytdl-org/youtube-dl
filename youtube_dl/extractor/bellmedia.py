@@ -6,8 +6,25 @@ import re
 from .common import InfoExtractor
 
 
-class CTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>ctv|tsn|bnn|thecomedynetwork)\.ca/.*?(?:\bvid=|-vid|~|%7E)(?P<id>[0-9.]+)'
+class BellMediaIE(InfoExtractor):
+    _VALID_URL = r'''(?x)https?://(?:www\.)?
+        (?P<domain>
+            (?:
+                ctv|
+                tsn|
+                bnn|
+                thecomedynetwork|
+                discovery|
+                discoveryvelocity|
+                sciencechannel|
+                investigationdiscovery|
+                animalplanet|
+                bravo|
+                mtv|
+                space
+            )\.ca|
+            much\.com
+        )/.*?(?:\bvid=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6})'''
     _TESTS = [{
         'url': 'http://www.ctv.ca/video/player?vid=706966',
         'md5': 'ff2ebbeae0aa2dcc32a830c3fd69b7b0',
@@ -32,15 +49,27 @@ class CTVIE(InfoExtractor):
     }, {
         'url': 'http://www.ctv.ca/YourMorning/Video/S1E6-Monday-August-29-2016-vid938009',
         'only_matching': True,
+    }, {
+        'url': 'http://www.much.com/shows/atmidnight/episode948007/tuesday-september-13-2016',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.much.com/shows/the-almost-impossible-gameshow/928979/episode-6',
+        'only_matching': True,
     }]
+    _DOMAINS = {
+        'thecomedynetwork': 'comedy',
+        'discoveryvelocity': 'discvel',
+        'sciencechannel': 'discsci',
+        'investigationdiscovery': 'invdisc',
+        'animalplanet': 'aniplan',
+    }
 
     def _real_extract(self, url):
         domain, video_id = re.match(self._VALID_URL, url).groups()
-        if domain == 'thecomedynetwork':
-            domain = 'comedy'
+        domain = domain.split('.')[0]
         return {
             '_type': 'url_transparent',
             'id': video_id,
-            'url': '9c9media:%s_web:%s' % (domain, video_id),
+            'url': '9c9media:%s_web:%s' % (self._DOMAINS.get(domain, domain), video_id),
             'ie_key': 'NineCNineMedia',
         }

@@ -93,6 +93,7 @@ from .bbc import (
 )
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
+from .bellmedia import BellMediaIE
 from .beatportpro import BeatportProIE
 from .bet import BetIE
 from .bigflix import BigflixIE
@@ -195,7 +196,6 @@ from .crunchyroll import (
 )
 from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
-from .ctv import CTVIE
 from .ctvnews import CTVNewsIE
 from .cultureunplugged import CultureUnpluggedIE
 from .curiositystream import (
