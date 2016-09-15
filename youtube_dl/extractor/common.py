@@ -888,16 +888,16 @@ class InfoExtractor(object):
     def _hidden_inputs(html):
         html = re.sub(r'<!--(?:(?!<!--).)*-->', '', html)
         hidden_inputs = {}
-        for input in re.findall(r'(?i)<input([^>]+)>', html):
-            if not re.search(r'type=(["\'])(?:hidden|submit)\1', input):
+        for input in re.findall(r'(?i)(<input[^>]+>)', html):
+            attrs = extract_attributes(input)
+            if not input:
                 continue
-            name = re.search(r'(?:name|id)=(["\'])(?P<value>.+?)\1', input)
-            if not name:
+            if attrs.get('type') not in ('hidden', 'submit'):
                 continue
-            value = re.search(r'value=(["\'])(?P<value>.*?)\1', input)
-            if not value:
-                continue
-            hidden_inputs[name.group('value')] = value.group('value')
+            name = attrs.get('name') or attrs.get('id')
+            value = attrs.get('value')
+            if name and value is not None:
+                hidden_inputs[name] = value
         return hidden_inputs
 
     def _form_hidden_inputs(self, form_id, html):
