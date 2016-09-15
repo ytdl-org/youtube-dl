@@ -355,19 +355,19 @@ def parseOpts(overrideArguments=None):
     adobe_pass.add_option(
         '--ap-mso',
         dest='ap_mso', metavar='MSO',
-        help='Adobe Pass Multiple-system operator Identifier')
+        help='Adobe Pass multiple-system operator (TV provider) identifier, use --ap-list-mso for a list of available MSOs')
     adobe_pass.add_option(
         '--ap-username',
         dest='ap_username', metavar='USERNAME',
-        help='TV Provider Login with this account ID')
+        help='Multiple-system operator account login')
     adobe_pass.add_option(
         '--ap-password',
         dest='ap_password', metavar='PASSWORD',
-        help='TV Provider Account password. If this option is left out, youtube-dl will ask interactively.')
+        help='Multiple-system operator account password. If this option is left out, youtube-dl will ask interactively.')
     adobe_pass.add_option(
         '--ap-list-mso',
         action='store_true', dest='ap_list_mso', default=False,
-        help='List all supported TV Providers')
+        help='List all supported multiple-system operators')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
