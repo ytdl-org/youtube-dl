@@ -1,8 +1,26 @@
 version <unreleased>
 
+Core
+* Improve _hidden_inputs
++ Introduce improved explicit Adobe Pass support
++ Add --ap-mso to provide multiple-system operator identifier
++ Add --ap-username to provide MSO account username
++ Add --ap-password to provide MSO account password
++ Add --ap-list-mso to list all supported MSOs
++ Add support for Rogers Cable multiple-system operator (#10606)
+
 Extractors
-* [kwuo] Improve error detection (#10650)
+* [crunchyroll] Fix authentication (#10655)
+* [twitch] Fix API calls (#10654, #10660)
++ [bellmedia] Add support for more Bell Media Television sites
+* [franceinter] Fix extraction (#10538, #2105)
+* [kuwo] Improve error detection (#10650)
++ [go] Add support for free full episodes (#10439)
 * [bilibili] Fix extraction for specific videos (#10647)
+* [nhk] Fix extraction (#10633)
+* [kaltura] Improve audio detection
+* [kaltura] Skip chun format
++ [vimeo:ondemand] Pass Referer along with embed URL (#10624)
 + [nbc] Add support for NBC Olympics (#10361)
 
 
