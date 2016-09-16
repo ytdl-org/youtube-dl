@@ -2254,6 +2254,35 @@ class GenericIE(InfoExtractor):
             return self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group('url'))), 'VODPlatform')
 
+        # Look for Mangomolo embeds
+        mobj = re.search(
+            r'''(?x)<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?admin\.mangomolo.com/analytics/index\.php/customers/embed/
+                (?:
+                    video\?.*?\bid=(?P<video_id>\d+)|
+                    index\?.*?\bchannelid=(?P<channel_id>(?:[A-Za-z0-9+/=]|%2B|%2F|%3D)+)
+                ).+?)\1''', webpage)
+        if mobj is not None:
+            info = {
+                '_type': 'url_transparent',
+                'url': self._proto_relative_url(unescapeHTML(mobj.group('url'))),
+                'title': video_title,
+                'description': video_description,
+                'thumbnail': video_thumbnail,
+                'uploader': video_uploader,
+            }
+            video_id = mobj.group('video_id')
+            if video_id:
+                info.update({
+                    'ie_key': 'MangomoloVideo',
+                    'id': video_id,
+                })
+            else:
+                info.update({
+                    'ie_key': 'MangomoloLive',
+                    'id': mobj.group('channel_id'),
+                })
+            return info
+
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
         if instagram_embed_url is not None:

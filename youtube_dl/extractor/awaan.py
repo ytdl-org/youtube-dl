@@ -50,25 +50,6 @@ class AWAANBaseIE(InfoExtractor):
             'is_live': is_live,
         }
 
-    def _extract_video_formats(self, webpage, video_id, m3u8_entry_protocol):
-        formats = []
-        format_url_base = 'http' + self._html_search_regex(
-            [
-                r'file\s*:\s*"https?(://[^"]+)/playlist.m3u8',
-                r'<a[^>]+href="rtsp(://[^"]+)"'
-            ], webpage, 'format url')
-        formats.extend(self._extract_mpd_formats(
-            format_url_base + '/manifest.mpd',
-            video_id, mpd_id='dash', fatal=False))
-        formats.extend(self._extract_m3u8_formats(
-            format_url_base + '/playlist.m3u8', video_id, 'mp4',
-            m3u8_entry_protocol, m3u8_id='hls', fatal=False))
-        formats.extend(self._extract_f4m_formats(
-            format_url_base + '/manifest.f4m',
-            video_id, f4m_id='hds', fatal=False))
-        self._sort_formats(formats)
-        return formats
-
 
 class AWAANVideoIE(AWAANBaseIE):
     IE_NAME = 'awaan:video'
@@ -99,16 +80,18 @@ class AWAANVideoIE(AWAANBaseIE):
             video_id, headers={'Origin': 'http://awaan.ae'})
         info = self._parse_video_data(video_data, video_id, False)
 
-        webpage = self._download_webpage(
-            'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?' +
-            compat_urllib_parse_urlencode({
-                'id': video_data['id'],
-                'user_id': video_data['user_id'],
-                'signature': video_data['signature'],
-                'countries': 'Q0M=',
-                'filter': 'DENY',
-            }), video_id)
-        info['formats'] = self._extract_video_formats(webpage, video_id, 'm3u8_native')
+        embed_url = 'http://admin.mangomolo.com/analytics/index.php/customers/embed/video?' + compat_urllib_parse_urlencode({
+            'id': video_data['id'],
+            'user_id': video_data['user_id'],
+            'signature': video_data['signature'],
+            'countries': 'Q0M=',
+            'filter': 'DENY',
+        })
+        info.update({
+            '_type': 'url_transparent',
+            'url': embed_url,
+            'ie_key': 'MangomoloVideo',
+        })
         return info
 
 
@@ -138,16 +121,18 @@ class AWAANLiveIE(AWAANBaseIE):
             channel_id, headers={'Origin': 'http://awaan.ae'})
         info = self._parse_video_data(channel_data, channel_id, True)
 
-        webpage = self._download_webpage(
-            'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?' +
-            compat_urllib_parse_urlencode({
-                'id': base64.b64encode(channel_data['user_id'].encode()).decode(),
-                'channelid': base64.b64encode(channel_data['id'].encode()).decode(),
-                'signature': channel_data['signature'],
-                'countries': 'Q0M=',
-                'filter': 'DENY',
-            }), channel_id)
-        info['formats'] = self._extract_video_formats(webpage, channel_id, 'm3u8')
+        embed_url = 'http://admin.mangomolo.com/analytics/index.php/customers/embed/index?' + compat_urllib_parse_urlencode({
+            'id': base64.b64encode(channel_data['user_id'].encode()).decode(),
+            'channelid': base64.b64encode(channel_data['id'].encode()).decode(),
+            'signature': channel_data['signature'],
+            'countries': 'Q0M=',
+            'filter': 'DENY',
+        })
+        info.update({
+            '_type': 'url_transparent',
+            'url': embed_url,
+            'ie_key': 'MangomoloLive',
+        })
         return info
 
 
