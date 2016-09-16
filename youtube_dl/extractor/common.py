@@ -674,23 +674,26 @@ class InfoExtractor(object):
                     username = info[0]
                     password = info[2]
                 else:
-                    raise netrc.NetrcParseError('No authenticators for %s' % netrc_machine)
+                    raise netrc.NetrcParseError(
+                        'No authenticators for %s' % netrc_machine)
             except (IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning('parsing .netrc: %s' % error_to_compat_str(err))
+                self._downloader.report_warning(
+                    'parsing .netrc: %s' % error_to_compat_str(err))
 
-        return (username, password)
+        return username, password
 
     def _get_login_info(self, username_option='username', password_option='password', netrc_machine=None):
         """
         Get the login info as (username, password)
-        It will look in the netrc file using the _NETRC_MACHINE value
+        First look for the manually specified credentials using username_option
+        and password_option as keys in params dictionary. If no such credentials
+        available look in the netrc file using the netrc_machine or _NETRC_MACHINE
+        value.
         If there's no info available, return (None, None)
         """
         if self._downloader is None:
             return (None, None)
 
-        username = None
-        password = None
         downloader_params = self._downloader.params
 
         # Attempt to use provided username and password or .netrc data
@@ -700,7 +703,7 @@ class InfoExtractor(object):
         else:
             username, password = self._get_netrc_login_info(netrc_machine)
 
-        return (username, password)
+        return username, password
 
     def _get_tfa_info(self, note='two-factor verification code'):
         """
@@ -888,16 +891,16 @@ class InfoExtractor(object):
     def _hidden_inputs(html):
         html = re.sub(r'<!--(?:(?!<!--).)*-->', '', html)
         hidden_inputs = {}
-        for input in re.findall(r'(?i)<input([^>]+)>', html):
-            if not re.search(r'type=(["\'])(?:hidden|submit)\1', input):
+        for input in re.findall(r'(?i)(<input[^>]+>)', html):
+            attrs = extract_attributes(input)
+            if not input:
                 continue
-            name = re.search(r'(?:name|id)=(["\'])(?P<value>.+?)\1', input)
-            if not name:
+            if attrs.get('type') not in ('hidden', 'submit'):
                 continue
-            value = re.search(r'value=(["\'])(?P<value>.*?)\1', input)
-            if not value:
-                continue
-            hidden_inputs[name.group('value')] = value.group('value')
+            name = attrs.get('name') or attrs.get('id')
+            value = attrs.get('value')
+            if name and value is not None:
+                hidden_inputs[name] = value
         return hidden_inputs
 
     def _form_hidden_inputs(self, form_id, html):
