@@ -48,8 +48,8 @@ class VierIE(InfoExtractor):
             [r'data-filename="([^"]+)"', r'"filename"\s*:\s*"([^"]+)"'],
             webpage, 'filename')
 
-        playlist_url = 'http://vod.streamcloud.be/%s/mp4:_definst_/%s.mp4/playlist.m3u8' % (application, filename)
-        formats = self._extract_m3u8_formats(playlist_url, display_id, 'mp4')
+        playlist_url = 'http://vod.streamcloud.be/%s/_definst_/mp4:%s.mp4/playlist.m3u8' % (application, filename)
+        formats = self._extract_wowza_formats(playlist_url, display_id)
         self._sort_formats(formats)
 
         title = self._og_search_title(webpage, default=display_id)
