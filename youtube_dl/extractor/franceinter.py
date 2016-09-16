@@ -9,7 +9,7 @@ from ..utils import month_by_name
 class FranceInterIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/emissions/(?P<id>[^?#]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.franceinter.fr/emissions/la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
         'md5': '4764932e466e6f6c79c317d2e74f6884',
         'info_dict': {
@@ -19,7 +19,17 @@ class FranceInterIE(InfoExtractor):
             'description': 'md5:7f2ce449894d1e585932273080fb410d',
             'upload_date': '20131218',
         },
-    }
+    }, {
+        'url': 'https://www.franceinter.fr/emissions/affaires-sensibles/affaires-sensibles-07-septembre-2016',
+        'md5': '9e54d7bdb6fdc02a841007f8a975c094',
+        'info_dict': {
+            'id': 'affaires-sensibles/affaires-sensibles-07-septembre-2016',
+            'ext': 'mp3',
+            'title': 'Affaire Cahuzac : le contentieux du compte en Suisse',
+            'description': 'md5:401969c5d318c061f86bda1fa359292b',
+            'upload_date': '20160907',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
