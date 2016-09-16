@@ -358,6 +358,17 @@ which means you can modify it, redistribute it or use it however you like.
     -n, --netrc                      Use .netrc authentication data
     --video-password PASSWORD        Video password (vimeo, smotri, youku)
 
+## Adobe Pass Options:
+    --ap-mso MSO                     Adobe Pass multiple-system operator (TV
+                                     provider) identifier, use --ap-list-mso for
+                                     a list of available MSOs
+    --ap-username USERNAME           Multiple-system operator account login
+    --ap-password PASSWORD           Multiple-system operator account password.
+                                     If this option is left out, youtube-dl will
+                                     ask interactively.
+    --ap-list-mso                    List all supported multiple-system
+                                     operators
+
 ## Post-processing Options:
     -x, --extract-audio              Convert video files to audio-only files
                                      (requires ffmpeg or avconv and ffprobe or

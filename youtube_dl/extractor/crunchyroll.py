@@ -34,22 +34,51 @@ from ..aes import (
 
 
 class CrunchyrollBaseIE(InfoExtractor):
+    _LOGIN_URL = 'https://www.crunchyroll.com/login'
+    _LOGIN_FORM = 'login_form'
     _NETRC_MACHINE = 'crunchyroll'
 
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
             return
-        self.report_login()
-        login_url = 'https://www.crunchyroll.com/?a=formhandler'
-        data = urlencode_postdata({
-            'formname': 'RpcApiUser_Login',
-            'name': username,
-            'password': password,
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        login_form_str = self._search_regex(
+            r'(?P<form><form[^>]+?id=(["\'])%s\2[^>]*>)' % self._LOGIN_FORM,
+            login_page, 'login form', group='form')
+
+        post_url = extract_attributes(login_form_str).get('action')
+        if not post_url:
+            post_url = self._LOGIN_URL
+        elif not post_url.startswith('http'):
+            post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
+
+        login_form = self._form_hidden_inputs(self._LOGIN_FORM, login_page)
+
+        login_form.update({
+            'login_form[name]': username,
+            'login_form[password]': password,
         })
-        login_request = sanitized_Request(login_url, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        self._download_webpage(login_request, None, False, 'Wrong login info')
+
+        response = self._download_webpage(
+            post_url, None, 'Logging in', 'Wrong login info',
+            data=urlencode_postdata(login_form),
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+        # Successful login
+        if '<title>Redirecting' in response:
+            return
+
+        error = self._html_search_regex(
+            '(?s)<ul[^>]+class=["\']messages["\'][^>]*>(.+?)</ul>',
+            response, 'error message', default=None)
+        if error:
+            raise ExtractorError('Unable to login: %s' % error, expected=True)
+
+        raise ExtractorError('Unable to log in')
 
     def _real_initialize(self):
         self._login()

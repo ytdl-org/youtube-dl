@@ -32,6 +32,7 @@ class TwitchBaseIE(InfoExtractor):
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
     _LOGIN_URL = 'http://www.twitch.tv/login'
+    _CLIENT_ID = 'jzkbprff40iqj646a697cyrvl0zt2m6'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -44,15 +45,9 @@ class TwitchBaseIE(InfoExtractor):
                 expected=True)
 
     def _call_api(self, path, item_id, note):
-        headers = {
-            'Referer': 'http://api.twitch.tv/crossdomain/receiver.html?v=2',
-            'X-Requested-With': 'XMLHttpRequest',
-        }
-        for cookie in self._downloader.cookiejar:
-            if cookie.name == 'api_token':
-                headers['Twitch-Api-Token'] = cookie.value
         response = self._download_json(
-            '%s/%s' % (self._API_BASE, path), item_id, note)
+            '%s/%s' % (self._API_BASE, path), item_id, note,
+            headers={'Client-ID': self._CLIENT_ID})
         self._handle_error(response)
         return response
 

@@ -10,14 +10,14 @@ class FranceInterIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/emissions/(?P<id>[^?#]+)'
 
     _TEST = {
-        'url': 'https://www.franceinter.fr/emissions/la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
-        'md5': '4764932e466e6f6c79c317d2e74f6884',
+        'url': 'https://www.franceinter.fr/emissions/la-tete-au-carre/la-tete-au-carre-14-septembre-2016',
+        'md5': '4e3aeb58fe0e83d7b0581fa213c409d0',
         'info_dict': {
-            'id': 'la-marche-de-l-histoire/la-marche-de-l-histoire-18-decembre-2013',
+            'id': 'la-tete-au-carre/la-tete-au-carre-14-septembre-2016',
             'ext': 'mp3',
-            'title': 'L’Histoire dans les jeux vidéo du 18 décembre 2013 - France Inter',
-            'description': 'md5:7f2ce449894d1e585932273080fb410d',
-            'upload_date': '20131218',
+            'title': 'Et si les rêves pouvaient nous aider à agir dans notre vie quotidienne ?',
+            'description': 'md5:a245dd62cf5bf51de915f8d9956d180a',
+            'upload_date': '20160914',
         },
     }
 
@@ -39,7 +39,7 @@ class FranceInterIE(InfoExtractor):
         if upload_date_str:
             upload_date_list = upload_date_str.split()
             upload_date_list.reverse()
-            upload_date_list[1] = compat_str(month_by_name(upload_date_list[1], lang='fr'))
+            upload_date_list[1] = '%02d' % (month_by_name(upload_date_list[1], lang='fr') or 0)
             upload_date = ''.join(upload_date_list)
         else:
             upload_date = None

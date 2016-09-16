@@ -165,7 +165,7 @@ class NFLIE(InfoExtractor):
             group='config'))
         # For articles, the id in the url is not the video id
         video_id = self._search_regex(
-            r'(?:<nflcs:avplayer[^>]+data-content[Ii]d\s*=\s*|content[Ii]d\s*:\s*)(["\'])(?P<id>.+?)\1',
+            r'(?:<nflcs:avplayer[^>]+data-content[Ii]d\s*=\s*|content[Ii]d\s*:\s*)(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'video id', default=video_id, group='id')
         config = self._download_json(config_url, video_id, 'Downloading player config')
         url_template = NFLIE.prepend_host(
