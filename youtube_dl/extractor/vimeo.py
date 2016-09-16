@@ -182,7 +182,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
     IE_NAME = 'vimeo'
     _TESTS = [
         {
-            'url': 'http://vimeo.com/56015672#at=0',
+            'url': 'https://vimeo.com/56015672#at=0',
             'md5': '8879b6cc097e987f02484baf890129e5',
             'info_dict': {
                 'id': '56015672',
@@ -197,7 +197,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
-            'url': 'http://vimeopro.com/openstreetmapus/state-of-the-map-us-2013/video/68093876',
+            'url': 'https://vimeopro.com/openstreetmapus/state-of-the-map-us-2013/video/68093876',
             'md5': '3b5ca6aa22b60dfeeadf50b72e44ed82',
             'note': 'Vimeo Pro video (#1197)',
             'info_dict': {
@@ -212,7 +212,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
-            'url': 'http://player.vimeo.com/video/54469442',
+            'url': 'https://player.vimeo.com/video/54469442',
             'md5': '619b811a4417aa4abe78dc653becf511',
             'note': 'Videos that embed the url in the player page',
             'info_dict': {
@@ -227,7 +227,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
-            'url': 'http://vimeo.com/68375962',
+            'url': 'https://vimeo.com/68375962',
             'md5': 'aaf896bdb7ddd6476df50007a0ac0ae7',
             'note': 'Video protected with password',
             'info_dict': {
@@ -246,7 +246,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
-            'url': 'http://vimeo.com/channels/keypeele/75629013',
+            'url': 'https://vimeo.com/channels/keypeele/75629013',
             'md5': '2f86a05afe9d7abc0b9126d229bbe15d',
             'info_dict': {
                 'id': '75629013',
@@ -261,7 +261,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
-            'url': 'http://vimeo.com/76979871',
+            'url': 'https://vimeo.com/76979871',
             'note': 'Video with subtitles',
             'info_dict': {
                 'id': '76979871',
