@@ -40,13 +40,13 @@ class MangomoloBaseIE(InfoExtractor):
 
 
 class MangomoloVideoIE(MangomoloBaseIE):
-    IENAME = 'mangomolo:video'
+    IE_NAME = 'mangomolo:video'
     _VALID_URL = r'https?://admin\.mangomolo.com/analytics/index\.php/customers/embed/video\?.*?\bid=(?P<id>\d+)'
     _IS_LIVE = False
 
 
 class MangomoloLiveIE(MangomoloBaseIE):
-    IENAME = 'mangomolo:live'
+    IE_NAME = 'mangomolo:live'
     _VALID_URL = r'https?://admin\.mangomolo.com/analytics/index\.php/customers/embed/index\?.*?\bchannelid=(?P<id>(?:[A-Za-z0-9+/=]|%2B|%2F|%3D)+)'
     _IS_LIVE = True
 
