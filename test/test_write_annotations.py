@@ -24,6 +24,7 @@ class YoutubeDL(youtube_dl.YoutubeDL):
         super(YoutubeDL, self).__init__(*args, **kwargs)
         self.to_stderr = self.to_screen
 
+
 params = get_params({
     'writeannotations': True,
     'skip_download': True,
@@ -73,6 +74,7 @@ class TestAnnotations(unittest.TestCase):
 
     def tearDown(self):
         try_rm(ANNOTATIONS_FILE)
+
 
 if __name__ == '__main__':
     unittest.main()

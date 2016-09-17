@@ -103,6 +103,7 @@ class ProxyType(object):
     SOCKS4A = 1
     SOCKS5 = 2
 
+
 Proxy = collections.namedtuple('Proxy', (
     'type', 'host', 'port', 'username', 'password', 'remote_dns'))
 

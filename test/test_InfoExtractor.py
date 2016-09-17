@@ -84,5 +84,6 @@ class TestInfoExtractor(unittest.TestCase):
         self.assertRaises(ExtractorError, self.ie._download_json, uri, None)
         self.assertEqual(self.ie._download_json(uri, None, fatal=False), None)
 
+
 if __name__ == '__main__':
     unittest.main()

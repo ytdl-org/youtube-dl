@@ -66,5 +66,6 @@ class TestYoutubeLists(unittest.TestCase):
         for entry in result['entries']:
             self.assertTrue(entry.get('title'))
 
+
 if __name__ == '__main__':
     unittest.main()
