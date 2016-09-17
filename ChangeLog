@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [thisav] Recognize HTML5 videos (#10447)
 * [jwplatform] Improve JWPlayer detection
 
 
