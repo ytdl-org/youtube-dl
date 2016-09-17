@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [jwplatform] Improve JWPlayer detection
+
+
 version 2016.09.15
 
 Core

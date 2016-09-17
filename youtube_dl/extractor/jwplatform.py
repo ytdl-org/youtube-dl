@@ -9,6 +9,7 @@ from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    js_to_json,
     mimetype2ext,
 )
 
@@ -19,14 +20,15 @@ class JWPlatformBaseIE(InfoExtractor):
         # TODO: Merge this with JWPlayer-related codes in generic.py
 
         mobj = re.search(
-            'jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)\.setup\((?P<options>[^)]+)\)',
+            r'jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)\.setup\s*\((?P<options>[^)]+)\)',
             webpage)
         if mobj:
             return mobj.group('options')
 
     def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
         jwplayer_data = self._parse_json(
-            self._find_jwplayer_data(webpage), video_id)
+            self._find_jwplayer_data(webpage), video_id,
+            transform_source=js_to_json)
         return self._parse_jwplayer_data(
             jwplayer_data, video_id, *args, **kwargs)
 
