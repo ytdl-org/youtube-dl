@@ -16,7 +16,7 @@ class SVTBaseIE(InfoExtractor):
     def _extract_video(self, video_info, video_id):
         formats = []
         for vr in video_info['videoReferences']:
-            player_type = vr.get('playerType')
+            player_type = vr.get('playerType') or vr.get('format')
             vurl = vr['url']
             ext = determine_ext(vurl)
             if ext == 'm3u8':
