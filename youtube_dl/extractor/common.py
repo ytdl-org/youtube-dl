@@ -1150,6 +1150,7 @@ class InfoExtractor(object):
             formats.append({
                 'format_id': format_id,
                 'url': manifest_url,
+                'manifest_url': manifest_url,
                 'ext': 'flv' if bootstrap_info is not None else None,
                 'tbr': tbr,
                 'width': width,
@@ -1255,9 +1256,11 @@ class InfoExtractor(object):
                 # format_id intact.
                 if not live:
                     format_id.append(stream_name if stream_name else '%d' % (tbr if tbr else len(formats)))
+                manifest_url = format_url(line.strip())
                 f = {
                     'format_id': '-'.join(format_id),
-                    'url': format_url(line.strip()),
+                    'url': manifest_url,
+                    'manifest_url': manifest_url,
                     'tbr': tbr,
                     'ext': ext,
                     'fps': float_or_none(last_info.get('FRAME-RATE')),
