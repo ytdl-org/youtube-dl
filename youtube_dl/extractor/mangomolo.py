@@ -41,13 +41,13 @@ class MangomoloBaseIE(InfoExtractor):
 
 class MangomoloVideoIE(MangomoloBaseIE):
     IE_NAME = 'mangomolo:video'
-    _VALID_URL = r'https?://admin\.mangomolo.com/analytics/index\.php/customers/embed/video\?.*?\bid=(?P<id>\d+)'
+    _VALID_URL = r'https?://admin\.mangomolo\.com/analytics/index\.php/customers/embed/video\?.*?\bid=(?P<id>\d+)'
     _IS_LIVE = False
 
 
 class MangomoloLiveIE(MangomoloBaseIE):
     IE_NAME = 'mangomolo:live'
-    _VALID_URL = r'https?://admin\.mangomolo.com/analytics/index\.php/customers/embed/index\?.*?\bchannelid=(?P<id>(?:[A-Za-z0-9+/=]|%2B|%2F|%3D)+)'
+    _VALID_URL = r'https?://admin\.mangomolo\.com/analytics/index\.php/customers/embed/index\?.*?\bchannelid=(?P<id>(?:[A-Za-z0-9+/=]|%2B|%2F|%3D)+)'
     _IS_LIVE = True
 
     def _get_real_id(self, page_id):

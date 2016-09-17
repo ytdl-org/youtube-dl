@@ -2256,7 +2256,7 @@ class GenericIE(InfoExtractor):
 
         # Look for Mangomolo embeds
         mobj = re.search(
-            r'''(?x)<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?admin\.mangomolo.com/analytics/index\.php/customers/embed/
+            r'''(?x)<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?admin\.mangomolo\.com/analytics/index\.php/customers/embed/
                 (?:
                     video\?.*?\bid=(?P<video_id>\d+)|
                     index\?.*?\bchannelid=(?P<channel_id>(?:[A-Za-z0-9+/=]|%2B|%2F|%3D)+)
