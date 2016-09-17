@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import month_by_name
 
 
@@ -10,14 +9,14 @@ class FranceInterIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?franceinter\.fr/emissions/(?P<id>[^?#]+)'
 
     _TEST = {
-        'url': 'https://www.franceinter.fr/emissions/la-tete-au-carre/la-tete-au-carre-14-septembre-2016',
-        'md5': '4e3aeb58fe0e83d7b0581fa213c409d0',
+        'url': 'https://www.franceinter.fr/emissions/affaires-sensibles/affaires-sensibles-07-septembre-2016',
+        'md5': '9e54d7bdb6fdc02a841007f8a975c094',
         'info_dict': {
-            'id': 'la-tete-au-carre/la-tete-au-carre-14-septembre-2016',
+            'id': 'affaires-sensibles/affaires-sensibles-07-septembre-2016',
             'ext': 'mp3',
-            'title': 'Et si les rêves pouvaient nous aider à agir dans notre vie quotidienne ?',
-            'description': 'md5:a245dd62cf5bf51de915f8d9956d180a',
-            'upload_date': '20160914',
+            'title': 'Affaire Cahuzac : le contentieux du compte en Suisse',
+            'description': 'md5:401969c5d318c061f86bda1fa359292b',
+            'upload_date': '20160907',
         },
     }
 
@@ -40,6 +39,7 @@ class FranceInterIE(InfoExtractor):
             upload_date_list = upload_date_str.split()
             upload_date_list.reverse()
             upload_date_list[1] = '%02d' % (month_by_name(upload_date_list[1], lang='fr') or 0)
+            upload_date_list[2] = '%02d' % int(upload_date_list[2])
             upload_date = ''.join(upload_date_list)
         else:
             upload_date = None
