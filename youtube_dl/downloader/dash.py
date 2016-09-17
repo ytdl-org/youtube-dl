@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import os
-import re
 
 from .fragment import FragmentFD
 from ..compat import compat_urllib_error
@@ -19,34 +18,32 @@ class DashSegmentsFD(FragmentFD):
     FD_NAME = 'dashsegments'
 
     def real_download(self, filename, info_dict):
-        base_url = info_dict['url']
-        segment_urls = [info_dict['segment_urls'][0]] if self.params.get('test', False) else info_dict['segment_urls']
-        initialization_url = info_dict.get('initialization_url')
+        segments = info_dict['fragments'][:1] if self.params.get(
+            'test', False) else info_dict['fragments']
 
         ctx = {
             'filename': filename,
-            'total_frags': len(segment_urls) + (1 if initialization_url else 0),
+            'total_frags': len(segments),
         }
 
         self._prepare_and_start_frag_download(ctx)
-
-        def combine_url(base_url, target_url):
-            if re.match(r'^https?://', target_url):
-                return target_url
-            return '%s%s%s' % (base_url, '' if base_url.endswith('/') else '/', target_url)
 
         segments_filenames = []
 
         fragment_retries = self.params.get('fragment_retries', 0)
         skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
 
-        def process_segment(segment, tmp_filename, fatal):
-            target_url, segment_name = segment
+        def process_segment(segment, tmp_filename, num):
+            segment_url = segment['url']
+            segment_name = 'Frag%d' % num
             target_filename = '%s-%s' % (tmp_filename, segment_name)
+            # In DASH, the first segment contains necessary headers to
+            # generate a valid MP4 file, so always abort for the first segment
+            fatal = num == 0 or not skip_unavailable_fragments
             count = 0
             while count <= fragment_retries:
                 try:
-                    success = ctx['dl'].download(target_filename, {'url': combine_url(base_url, target_url)})
+                    success = ctx['dl'].download(target_filename, {'url': segment_url})
                     if not success:
                         return False
                     down, target_sanitized = sanitize_open(target_filename, 'rb')
@@ -72,16 +69,8 @@ class DashSegmentsFD(FragmentFD):
                 return False
             return True
 
-        segments_to_download = [(initialization_url, 'Init')] if initialization_url else []
-        segments_to_download.extend([
-            (segment_url, 'Seg%d' % i)
-            for i, segment_url in enumerate(segment_urls)])
-
-        for i, segment in enumerate(segments_to_download):
-            # In DASH, the first segment contains necessary headers to
-            # generate a valid MP4 file, so always abort for the first segment
-            fatal = i == 0 or not skip_unavailable_fragments
-            if not process_segment(segment, ctx['tmpfilename'], fatal):
+        for i, segment in enumerate(segments):
+            if not process_segment(segment, ctx['tmpfilename'], i):
                 return False
 
         self._finish_frag_download(ctx)

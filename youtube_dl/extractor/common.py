@@ -86,9 +86,10 @@ class InfoExtractor(object):
                     from worst to best quality.
 
                     Potential fields:
-                    * url        Mandatory. The URL of the video file or URL of
-                                 the manifest file in case of fragmented media
-                                 (DASH, hls, hds).
+                    * url        Mandatory. The URL of the video file
+                    * manifest_url
+                                 The URL of the manifest file in case of
+                                 fragmented media (DASH, hls, hds)
                     * ext        Will be calculated from URL if missing
                     * format     A human-readable description of the format
                                  ("mp4 container with h264/opus").
@@ -1528,9 +1529,10 @@ class InfoExtractor(object):
         mpd_base_url = re.match(r'https?://.+/', urlh.geturl()).group()
 
         return self._parse_mpd_formats(
-            compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url, formats_dict=formats_dict)
+            compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url,
+            formats_dict=formats_dict, mpd_url=mpd_url)
 
-    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}):
+    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}, mpd_url=None):
         """
         Parse formats from MPD manifest.
         References:
@@ -1654,6 +1656,7 @@ class InfoExtractor(object):
                         f = {
                             'format_id': '%s-%s' % (mpd_id, representation_id) if mpd_id else representation_id,
                             'url': base_url,
+                            'manifest_url': mpd_url,
                             'ext': mimetype2ext(mime_type),
                             'width': int_or_none(representation_attrib.get('width')),
                             'height': int_or_none(representation_attrib.get('height')),
@@ -1682,14 +1685,6 @@ class InfoExtractor(object):
                                 if 'total_number' not in representation_ms_info and 'segment_duration':
                                     segment_duration = float_or_none(representation_ms_info['segment_duration'], representation_ms_info['timescale'])
                                     representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
-                                representation_ms_info['segment_urls'] = [
-                                    media_template % {
-                                        'Number': segment_number,
-                                        'Bandwidth': representation_attrib.get('bandwidth'),
-                                    }
-                                    for segment_number in range(
-                                        representation_ms_info['start_number'],
-                                        representation_ms_info['total_number'] + representation_ms_info['start_number'])]
                                 representation_ms_info['fragments'] = [{
                                     'url': media_template % {
                                         'Number': segment_number,
@@ -1703,7 +1698,6 @@ class InfoExtractor(object):
                                 # $Number*$ or $Time$ in media template with S list available
                                 # Example $Number*$: http://www.svtplay.se/klipp/9023742/stopptid-om-bjorn-borg
                                 # Example $Time$: https://play.arkena.com/embed/avp/v2/player/media/b41dda37-d8e7-4d3f-b1b5-9a9db578bdfe/1/129411
-                                representation_ms_info['segment_urls'] = []
                                 representation_ms_info['fragments'] = []
                                 segment_time = 0
                                 segment_d = None
@@ -1715,7 +1709,6 @@ class InfoExtractor(object):
                                         'Bandwidth': representation_attrib.get('bandwidth'),
                                         'Number': segment_number,
                                     }
-                                    representation_ms_info['segment_urls'].append(segment_url)
                                     representation_ms_info['fragments'].append({
                                         'url': segment_url,
                                         'duration': float_or_none(segment_d, representation_ms_info['timescale']),
@@ -1745,17 +1738,15 @@ class InfoExtractor(object):
                                         'duration': float_or_none(s['d'], representation_ms_info['timescale']),
                                     })
                             representation_ms_info['fragments'] = fragments
-                        if 'segment_urls' in representation_ms_info:
+                        # NB: MPD manifest may contain direct URLs to unfragmented media.
+                        # No fragments key is present in this case.
+                        if 'fragments' in representation_ms_info:
                             f.update({
-                                'segment_urls': representation_ms_info['segment_urls'],
                                 'fragments': [],
                                 'protocol': 'http_dash_segments',
                             })
                             if 'initialization_url' in representation_ms_info:
                                 initialization_url = representation_ms_info['initialization_url'].replace('$RepresentationID$', representation_id)
-                                f.update({
-                                    'initialization_url': initialization_url,
-                                })
                                 if not f.get('url'):
                                     f['url'] = initialization_url
                                 f['fragments'].append({'url': initialization_url})
