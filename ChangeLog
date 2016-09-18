@@ -1,8 +1,23 @@
 version <unreleased>
 
+Core
++ Introduce manifest_url and fragments fields in formats dictionary for
+  fragmented media
++ Provide manifest_url field for DASH segments, HLS and HDS
++ Provide fragments field for DASH segments
+* Rework DASH segments downloader to use fragments field
++ Add helper method for Wowza Streaming Engine formats extraction
+
 Extractors
++ [vyborymos] Add extractor for vybory.mos.ru (#10692)
++ [xfileshare] Add title regular expression for streamin.to (#10646)
++ [globo:article] Add support for multiple videos (#10653)
 + [thisav] Recognize HTML5 videos (#10447)
 * [jwplatform] Improve JWPlayer detection
++ [mangomolo] Add support for Mangomolo embeds
++ [toutv] Add support for authentication (#10669)
+* [franceinter] Fix upload date extraction
+* [tv4] Fix HLS and HDS formats extraction (#10659)
 
 
 version 2016.09.15
