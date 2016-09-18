@@ -46,6 +46,13 @@ class CrunchyrollBaseIE(InfoExtractor):
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
+        def is_logged(webpage):
+            return '<title>Redirecting' in webpage
+
+        # Already logged in
+        if is_logged(login_page):
+            return
+
         login_form_str = self._search_regex(
             r'(?P<form><form[^>]+?id=(["\'])%s\2[^>]*>)' % self._LOGIN_FORM,
             login_page, 'login form', group='form')
@@ -69,7 +76,7 @@ class CrunchyrollBaseIE(InfoExtractor):
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
         # Successful login
-        if '<title>Redirecting' in response:
+        if is_logged(response):
             return
 
         error = self._html_search_regex(
