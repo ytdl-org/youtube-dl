@@ -1069,6 +1069,7 @@ from .vporn import VpornIE
 from .vrt import VRTIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
+from .vyborymos import VyboryMosIE
 from .walla import WallaIE
 from .washingtonpost import (
     WashingtonPostIE,
