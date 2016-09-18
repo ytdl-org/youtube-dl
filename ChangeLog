@@ -1,7 +1,10 @@
 version <unreleased>
 
 Extractors
++ [crunchyroll] Check if already authenticated (#10700)
+- [twitch:stream] Remove fallback to profile extraction when stream is offline
 * [thisav] Improve title extraction (#10682)
+* [vyborymos] Improve station info extraction
 
 
 version 2016.09.18
