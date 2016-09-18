@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.09.19
 
 Extractors
 + [crunchyroll] Check if already authenticated (#10700)
