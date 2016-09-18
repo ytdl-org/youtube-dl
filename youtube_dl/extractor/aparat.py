@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    HEADRequest,
-)
+from ..utils import ExtractorError
 
 
 class AparatIE(InfoExtractor):
@@ -32,27 +29,70 @@ class AparatIE(InfoExtractor):
         embed_url = 'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id
         webpage = self._download_webpage(embed_url, video_id)
 
-        file_list = self._parse_json(self._search_regex(
-            r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage, 'file list'), video_id)
-        for i, item in enumerate(file_list[0]):
-            video_url = item['file']
-            req = HEADRequest(video_url)
-            res = self._request_webpage(
-                req, video_id, note='Testing video URL %d' % i, errnote=False)
-            if res:
-                break
-        else:
+        file_list = self._parse_json(
+            self._search_regex(
+                r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)',
+                webpage,
+                'file list',
+                default='[]'
+            ),
+            video_id
+        )
+        file_list_pseudo = self._parse_json(
+            self._search_regex(
+                r'fileListPseudo\s*=\s*JSON\.parse\(\'([^\']+)\'\)',
+                webpage,
+                'file list pseudo',
+                default='[]'
+            ),
+            video_id
+        )
+
+        total_file_list = []
+        if file_list:
+            total_file_list.extend(file_list[0])
+
+        if file_list_pseudo:
+            total_file_list.extend(file_list_pseudo[0])
+
+        if not total_file_list:
             raise ExtractorError('No working video URLs found')
 
-        title = self._search_regex(r'\s+title:\s*"([^"]+)"', webpage, 'title')
+        labels = {
+            'unknown': 0,
+            '270p': 1,
+            '360p': 2,
+            '720p': 3,
+            '1080p': 4
+        }
+        formats = []
+        for item in total_file_list:
+            video = {}
+            video['url'] = item['file']
+            video['format'] = item['type']
+            video['ext'] = 'mp4'
+            video_label = item.get('label', 'unknown')
+            video['label'] = labels.get(video_label, 0)
+
+            formats.append(video)
+
+        formats = sorted(formats, key=lambda x: x['label'])
+        title = self._search_regex(
+            r'\s+title:\s*"([^"]+)"',
+            webpage,
+            'title'
+        )
         thumbnail = self._search_regex(
-            r'image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
+            r'image:\s*"([^"]+)"',
+            webpage,
+            'thumbnail',
+            fatal=False
+        )
 
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
-            'ext': 'mp4',
+            'formats': formats,
             'thumbnail': thumbnail,
             'age_limit': self._family_friendly_search(webpage),
         }
