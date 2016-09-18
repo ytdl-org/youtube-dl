@@ -400,11 +400,8 @@ class TwitchStreamIE(TwitchBaseIE):
             'kraken/streams/%s' % channel_id, channel_id,
             'Downloading stream JSON').get('stream')
 
-        # Fallback on profile extraction if stream is offline
         if not stream:
-            return self.url_result(
-                'http://www.twitch.tv/%s/profile' % channel_id,
-                'TwitchProfile', channel_id)
+            raise ExtractorError('%s is offline' % channel_id, expected=True)
 
         # Channel name may be typed if different case than the original channel name
         # (e.g. http://www.twitch.tv/TWITCHPLAYSPOKEMON) that will lead to constructing
