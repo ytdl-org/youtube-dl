@@ -168,6 +168,14 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='force_generic_extractor', default=False,
         help='Force extraction to use the generic extractor')
     general.add_option(
+        '--enable-extractors', metavar='EXTRACTORS',
+        action='append', dest='enable_extractors',
+        help='Enable only the chosen extractors. Comma-separated list of patterns, wildcards allowed. Example: "twitch:*,youtube:*,vimeo"')
+    general.add_option(
+        '--disable-extractors', metavar='EXTRACTORS',
+        action='append', dest='disable_extractors',
+        help='Disable the chosen extractors. Comma-separated list of patterns, wildcards allowed. Example: "twitch:*,youtube:*,vimeo"')
+    general.add_option(
         '--default-search',
         dest='default_search', metavar='PREFIX',
         help='Use this prefix for unqualified URLs. For example "gvsearch2:" downloads two videos from google videos for youtube-dl "large apple". Use the value "auto" to let youtube-dl guess ("auto_warning" to emit a warning when guessing). "error" just throws an error. The default value "fixup_error" repairs broken URLs, but emits an error if this is not possible instead of searching.')

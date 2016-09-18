@@ -10,7 +10,8 @@ import io
 import os
 import random
 import sys
-
+import fnmatch
+from collections import OrderedDict
 
 from .options import (
     parseOpts,
@@ -40,7 +41,7 @@ from .update import update_self
 from .downloader import (
     FileDownloader,
 )
-from .extractor import gen_extractors, list_extractors
+from .extractor import gen_extractors, gen_extractor_classes
 from .extractor.adobepass import MSO_INFO
 from .YoutubeDL import YoutubeDL
 
@@ -100,15 +101,67 @@ def _real_main(argv=None):
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
 
+    def get_usable_extractors(enable_patterns, disable_patterns, age_limit):
+        # Unfortunately it's necessary to create instances of all extractors
+        # instead of just looking at the classes, because some of them don't
+        # override the ie_key() classmethod to the correct value.
+
+        all_extractors = OrderedDict((ie.IE_NAME.lower(), ie) for ie in gen_extractors())
+        extractors = OrderedDict() if enable_patterns else all_extractors
+
+        if enable_patterns:
+            all_names = list(all_extractors.keys())
+            for pattern in enable_patterns:
+                accepted_names = fnmatch.filter(all_names, pattern)
+                for name in accepted_names:
+                    if name not in extractors:
+                        if opts.verbose:
+                            write_string('[debug] Enabling extractor %s\n' % name)
+
+                        extractors[name] = all_extractors[name]
+
+        if disable_patterns:
+            for pattern in disable_patterns:
+                rejected_names = fnmatch.filter(extractors.keys(), pattern)
+                for name in rejected_names:
+                    if opts.verbose:
+                        write_string('[debug] Disabling extractor %s\n' % name)
+
+                    del extractors[name]
+
+        if age_limit:
+            for name, extractor in extractors.items():
+                if not extractor.is_suitable(age_limit):
+                    if opts.verbose:
+                        write_string('[debug] Extractor %s selected by filter, but ignored due to age limit\n' % name)
+
+                    del extractors[name]
+
+        return extractors.values()
+
+    def patterns_from_args(args):
+        if not args:
+            return
+
+        for arg in args:
+            for pattern in arg.split(','):
+                yield pattern.lower()
+
+    enable_extractors = list(patterns_from_args(opts.enable_extractors))
+    disable_extractors = list(patterns_from_args(opts.disable_extractors))
+    extractors = get_usable_extractors(enable_extractors, disable_extractors, opts.age_limit)
+
     if opts.list_extractors:
-        for ie in list_extractors(opts.age_limit):
+        extractors.sort(key=lambda ie: ie.IE_NAME.lower())
+        for ie in extractors:
             write_string(ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie._WORKING else '') + '\n', out=sys.stdout)
             matchedUrls = [url for url in all_urls if ie.suitable(url)]
             for mu in matchedUrls:
                 write_string('  ' + mu + '\n', out=sys.stdout)
         sys.exit(0)
     if opts.list_extractor_descriptions:
-        for ie in list_extractors(opts.age_limit):
+        extractors.sort(key=lambda ie: ie.IE_NAME.lower())
+        for ie in extractors:
             if not ie._WORKING:
                 continue
             desc = getattr(ie, 'IE_DESC', ie.IE_NAME)
@@ -413,7 +466,10 @@ def _real_main(argv=None):
 
     }
 
-    with YoutubeDL(ydl_opts) as ydl:
+    if not extractors:
+        parser.error('No usable extractors selected')
+
+    with YoutubeDL(ydl_opts, auto_init=False) as ydl:
         # Update version
         if opts.update_self:
             update_self(ydl.to_screen, opts.verbose, ydl._opener)
@@ -421,6 +477,9 @@ def _real_main(argv=None):
         # Remove cache dir
         if opts.rm_cachedir:
             ydl.cache.remove()
+
+        for extractor in extractors:
+            ydl.add_info_extractor(extractor)
 
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):
