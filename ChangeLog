@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.09.18
 
 Core
 + Introduce manifest_url and fragments fields in formats dictionary for
