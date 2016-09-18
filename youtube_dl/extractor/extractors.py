@@ -38,6 +38,7 @@ from .alphaporno import AlphaPornoIE
 from .amcnetworks import AMCNetworksIE
 from .animeondemand import AnimeOnDemandIE
 from .anitube import AnitubeIE
+from .antenna import AntennaIE
 from .anysex import AnySexIE
 from .aol import (
     AolIE,
