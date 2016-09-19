@@ -138,13 +138,13 @@ class SoundcloudIE(InfoExtractor):
     def _resolv_url(cls, url):
         return 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
 
-    def _extract_info_dict(self, info, license, full_title=None, quiet=False, secret_token=None):
+    def _extract_info_dict(self, info, full_title=None, quiet=False, secret_token=None):
         track_id = compat_str(info['id'])
         name = full_title or track_id
         if quiet:
             self.report_extraction(name)
-
         thumbnail = info['artwork_url']
+        track_license = info['license']
         if thumbnail is not None:
             thumbnail = thumbnail.replace('-large', '-t500x500')
         ext = 'mp3'
@@ -157,7 +157,7 @@ class SoundcloudIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': int_or_none(info.get('duration'), 1000),
             'webpage_url': info.get('permalink_url'),
-            'license': license,
+            'license': track_license,
         }
         formats = []
         if info.get('downloadable', False):
@@ -229,13 +229,6 @@ class SoundcloudIE(InfoExtractor):
         track_id = mobj.group('track_id')
         token = None
 
-        #Get the tracks license, could be improved.
-        track_webpage = self._download_webpage(url, track_id) 
-        track_license = self._html_search_regex(
-            r'</ul>\s*License: (.*)\s*</footer>',
-            track_webpage, 'license', default="all-rights-reserved")
-        #for anything else, assume copywrite
-
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
@@ -266,7 +259,7 @@ class SoundcloudIE(InfoExtractor):
             info_json_url = self._resolv_url(url)
         info = self._download_json(info_json_url, full_title, 'Downloading info JSON')
 
-        return self._extract_info_dict(info, track_license, full_title, secret_token=token)
+        return self._extract_info_dict(info, full_title, secret_token=token)
 
 
 class SoundcloudSetIE(SoundcloudIE):
