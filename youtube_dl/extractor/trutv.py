@@ -22,9 +22,17 @@ class TruTVIE(TurnerBaseIE):
 
     def _real_extract(self, url):
         path, video_id = re.match(self._VALID_URL, url).groups()
+        auth_required = False
         if path:
             data_src = 'http://www.trutv.com/video/cvp/v2/xml/content.xml?id=%s.xml' % path
         else:
+            webpage = self._download_webpage(url, video_id)
+            video_id = self._search_regex(
+                r"TTV\.TVE\.episodeId\s*=\s*'([^']+)';",
+                webpage, 'video id', default=video_id)
+            auth_required = self._search_regex(
+                r'TTV\.TVE\.authRequired\s*=\s*(true|false);',
+                webpage, 'auth required', default='false') == 'true'
             data_src = 'http://www.trutv.com/tveverywhere/services/cvpXML.do?titleId=' + video_id
         return self._extract_cvp_info(
             data_src, path, {
@@ -32,4 +40,8 @@ class TruTVIE(TurnerBaseIE):
                     'media_src': 'http://androidhls-secure.cdn.turner.com/trutv/big',
                     'tokenizer_src': 'http://www.trutv.com/tveverywhere/processors/services/token_ipadAdobe.do',
                 },
+            }, {
+                'url': url,
+                'site_name': 'truTV',
+                'auth_required': auth_required,
             })

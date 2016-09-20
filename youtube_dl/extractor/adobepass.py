@@ -83,7 +83,7 @@ class AdobePassIE(InfoExtractor):
             'User-Agent': self._USER_AGENT,
         }
 
-        guid = xml_text(resource, 'guid')
+        guid = xml_text(resource, 'guid') if '<' in resource else resource
         count = 0
         while count < 2:
             requestor_info = self._downloader.cache.load(self._MVPD_CACHE, requestor_id) or {}

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .adobepass import AdobePassIE
 from ..compat import compat_str
 from ..utils import (
     xpath_text,
@@ -16,11 +16,11 @@ from ..utils import (
 )
 
 
-class TurnerBaseIE(InfoExtractor):
+class TurnerBaseIE(AdobePassIE):
     def _extract_timestamp(self, video_data):
         return int_or_none(xpath_attr(video_data, 'dateCreated', 'uts'))
 
-    def _extract_cvp_info(self, data_src, video_id, path_data={}):
+    def _extract_cvp_info(self, data_src, video_id, path_data={}, ap_data={}):
         video_data = self._download_xml(data_src, video_id)
         video_id = video_data.attrib['id']
         title = xpath_text(video_data, 'headline', fatal=True)
@@ -70,11 +70,14 @@ class TurnerBaseIE(InfoExtractor):
                 secure_path = self._search_regex(r'https?://[^/]+(.+/)', video_url, 'secure path') + '*'
                 token = tokens.get(secure_path)
                 if not token:
+                    query = {
+                        'path': secure_path,
+                        'videoId': content_id,
+                    }
+                    if ap_data.get('auth_required'):
+                        query['accessToken'] = self._extract_mvpd_auth(ap_data['url'], video_id, ap_data['site_name'], ap_data['site_name'])
                     auth = self._download_xml(
-                        secure_path_data['tokenizer_src'], video_id, query={
-                            'path': secure_path,
-                            'videoId': content_id,
-                        })
+                        secure_path_data['tokenizer_src'], video_id, query=query)
                     error_msg = xpath_text(auth, 'error/msg')
                     if error_msg:
                         raise ExtractorError(error_msg, expected=True)
