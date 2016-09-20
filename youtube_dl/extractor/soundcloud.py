@@ -53,6 +53,7 @@ class SoundcloudIE(InfoExtractor):
                 'uploader': 'E.T. ExTerrestrial Music',
                 'title': 'Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1',
                 'duration': 143,
+                'license': 'all-rights-reserved',
             }
         },
         # not streamable song
@@ -66,6 +67,7 @@ class SoundcloudIE(InfoExtractor):
                 'uploader': 'The Royal Concept',
                 'upload_date': '20120521',
                 'duration': 227,
+                'license': 'all-rights-reserved',
             },
             'params': {
                 # rtmp
@@ -84,6 +86,7 @@ class SoundcloudIE(InfoExtractor):
                 'description': 'test chars:  \"\'/\\ä↭',
                 'upload_date': '20131209',
                 'duration': 9,
+                'license': 'all-rights-reserved',
             },
         },
         # private link (alt format)
@@ -98,6 +101,7 @@ class SoundcloudIE(InfoExtractor):
                 'description': 'test chars:  \"\'/\\ä↭',
                 'upload_date': '20131209',
                 'duration': 9,
+                'license': 'all-rights-reserved',
             },
         },
         # downloadable song
@@ -112,6 +116,7 @@ class SoundcloudIE(InfoExtractor):
                 'uploader': 'oddsamples',
                 'upload_date': '20140109',
                 'duration': 17,
+                'license': 'cc-by-sa',
             },
         },
     ]
@@ -138,8 +143,8 @@ class SoundcloudIE(InfoExtractor):
         name = full_title or track_id
         if quiet:
             self.report_extraction(name)
-
         thumbnail = info['artwork_url']
+        track_license = info['license']
         if thumbnail is not None:
             thumbnail = thumbnail.replace('-large', '-t500x500')
         ext = 'mp3'
@@ -152,6 +157,7 @@ class SoundcloudIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': int_or_none(info.get('duration'), 1000),
             'webpage_url': info.get('permalink_url'),
+            'license': track_license,
         }
         formats = []
         if info.get('downloadable', False):
@@ -222,6 +228,7 @@ class SoundcloudIE(InfoExtractor):
 
         track_id = mobj.group('track_id')
         token = None
+
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
