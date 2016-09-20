@@ -143,21 +143,20 @@ class SoundcloudIE(InfoExtractor):
         name = full_title or track_id
         if quiet:
             self.report_extraction(name)
-        thumbnail = info['artwork_url']
-        track_license = info['license']
-        if thumbnail is not None:
+        thumbnail = info.get('artwork_url')
+        if isinstance(thumbnail, compat_str):
             thumbnail = thumbnail.replace('-large', '-t500x500')
         ext = 'mp3'
         result = {
             'id': track_id,
-            'uploader': info['user']['username'],
-            'upload_date': unified_strdate(info['created_at']),
+            'uploader': info.get('user', {}).get('username'),
+            'upload_date': unified_strdate(info.get('created_at')),
             'title': info['title'],
-            'description': info['description'],
+            'description': info.get('description'),
             'thumbnail': thumbnail,
             'duration': int_or_none(info.get('duration'), 1000),
             'webpage_url': info.get('permalink_url'),
-            'license': track_license,
+            'license': info.get('license'),
         }
         formats = []
         if info.get('downloadable', False):
@@ -227,7 +226,6 @@ class SoundcloudIE(InfoExtractor):
             raise ExtractorError('Invalid URL: %s' % url)
 
         track_id = mobj.group('track_id')
-        token = None
 
         if track_id is not None:
             info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
