@@ -33,4 +33,10 @@ class CartoonNetworkIE(TurnerBaseIE):
                     'media_src': 'http://androidhls-secure.cdn.turner.com/toon/big',
                     'tokenizer_src': 'http://www.cartoonnetwork.com/cntv/mvpd/processors/services/token_ipadAdobe.do',
                 },
+            }, {
+                'url': url,
+                'site_name': 'CartoonNetwork',
+                'auth_required': self._search_regex(
+                    r'_cnglobal\.cvpFullOrPreviewAuth\s*=\s*(true|false);',
+                    webpage, 'auth required', default='false') == 'true',
             })
