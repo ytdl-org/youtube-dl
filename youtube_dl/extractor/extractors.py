@@ -478,6 +478,7 @@ from .mangomolo import (
 )
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
+from .meipai import MeipaiIE
 from .meta import METAIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
