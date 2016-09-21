@@ -47,7 +47,7 @@ class OoyalaBaseIE(InfoExtractor):
                 delivery_type = stream['delivery_type']
                 if delivery_type == 'hls' or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        s_url, embed_code, 'mp4', 'm3u8_native',
+                        re.sub(r'/ip(?:ad|hone)/', '/all/', s_url), embed_code, 'mp4', 'm3u8_native',
                         m3u8_id='hls', fatal=False))
                 elif delivery_type == 'hds' or ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
