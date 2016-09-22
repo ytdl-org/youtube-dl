@@ -51,7 +51,8 @@ class OpenloadIE(InfoExtractor):
         # declared to be freely used in youtube-dl
         # See https://github.com/rg3/youtube-dl/issues/10408
         enc_data = self._html_search_regex(
-            r'<span[^>]+id="hiddenurl"[^>]*>([^<]+)</span>', webpage, 'encrypted data')
+            r'<span[^>]*>([^<]+)</span>\s*<span[^>]*>[^<]+</span>\s*<span[^>]+id="streamurl"',
+            webpage, 'encrypted data')
 
         video_url_chars = []
 
@@ -60,7 +61,7 @@ class OpenloadIE(InfoExtractor):
             if j >= 33 and j <= 126:
                 j = ((j + 14) % 94) + 33
             if idx == len(enc_data) - 1:
-                j += 3
+                j += 2
             video_url_chars += compat_chr(j)
 
         video_url = 'https://openload.co/stream/%s?mime=true' % ''.join(video_url_chars)
