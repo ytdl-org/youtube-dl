@@ -4,24 +4,32 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse,
+    compat_urlparse,
+    compat_urllib_request,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
-    update_url_query,
+    float_or_none,
+    determine_ext,
+    unescapeHTML,
 )
 
 
 class NaverIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?tvcast\.naver\.com/v/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:m\.)?(?:tvcast\.naver\.com/v/|news\.naver\.com/main/read\.nhn?.*aid=|sports\.news\.naver.com/(?:videoCenter|sports)/(?:index|video)\.nhn?.*id=|movie\.naver.com/movie/bi/mi/mediaView\.nhn?.*mid=|music\.naver\.com/artist/videoPlayer\.nhn?.*videoId=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://tvcast.naver.com/v/81652',
+        'md5': '0fe25e226a0ec388cd75679981bd2a1a',
         'info_dict': {
-            'id': '81652',
+            'id': '4B40C2B7F4BC7C7BBA5237C5E3CED1ADEAF5',
             'ext': 'mp4',
             'title': '[9월 모의고사 해설강의][수학_김상희] 수학 A형 16~20번',
-            'description': '합격불변의 법칙 메가스터디 | 메가스터디 수학 김상희 선생님이 9월 모의고사 수학A형 16번에서 20번까지 해설강의를 공개합니다.',
-            'upload_date': '20130903',
+            'uploader_id': 'megastudy',
+            'uploader': '합격불변의 법칙 메가스터디',
         },
     }, {
         'url': 'http://tvcast.naver.com/v/395837',
@@ -34,89 +42,147 @@ class NaverIE(InfoExtractor):
             'upload_date': '20150519',
         },
         'skip': 'Georestricted',
+    }, {
+        'url': 'http://news.naver.com/main/read.nhn?mode=LSD&mid=tvh&oid=056&aid=0010235712&sid1=293',
+        'md5': 'ea02b7943173553618f49de08d6bd36e',
+        'info_dict': {
+            'id': '3C026B64F022C136ED9057AA820458275CD7',
+            'ext': 'mp4',
+            'title': '한미 정상 “북핵 문제 최우선”…공동성명 첫 채택',
+            'uploader_id': 'muploader_o',
+            'uploader': '',
+        },
+    }, {
+        'url': 'http://sports.news.naver.com/videoCenter/index.nhn?uCategory=esports&category=lol&id=158508',
+        'md5': '436254dbbb7dde42053c731039f6f14d',
+        'info_dict': {
+            'id': '3CD20A3B7B15044056189B09557FB349DE0B',
+            'ext': 'mp4',
+            'title': '\'전승 가도\' 절대강자 Faker의 인터뷰',
+            'uploader_id': 'muploader_n',
+            'uploader': '',
+        },
+    }, {
+        'url': 'http://movie.naver.com/movie/bi/mi/mediaView.nhn?code=115622&mid=27362',
+        'md5': 'ad9623ff5a23d6e9c0c7f451b063912f',
+        'info_dict': {
+            'id': '1132280440B9037B8E48DB0F569208440008',
+            'ext': 'mp4',
+            'title': '<인사이드 아웃> 메인 예고편',
+            'uploader_id': 'navermovie',
+            'uploader': '네이버 영화',
+        },
+    }, {
+        'url': 'http://music.naver.com/artist/videoPlayer.nhn?videoId=99476',
+        'md5': '4378409358f457bdce12e90f40ba33e2',
+        'info_dict': {
+            'id': 'E2651FBE1723D209C17AB611C296C57EA0A1',
+            'ext': 'mp4',
+            'title': '디아크 인사말',
+            'uploader_id': 'muploader_c',
+            'uploader': '',
+        },
     }]
+
+    def _extract_video_formats(self, formats_list, vid):
+        formats = []
+        for format_el in formats_list:
+            url = format_el.get('source')
+            if url:
+                if format_el.get('type') == 'HLS':
+                    key = format_el.get('key')
+                    if key:
+                        url += '?%s=%s' % (key['name'], key['value'])
+                    formats.extend(self._extract_m3u8_formats(url, vid, 'mp4', m3u8_id='hls'))
+                else:
+                    encoding_option = format_el.get('encodingOption')
+                    bitrate = format_el.get('bitrate')
+                    formats.append({
+                        'format_id': encoding_option.get('id') or encoding_option.get('name'),
+                        'url': format_el['source'],
+                        'width': int_or_none(encoding_option.get('width')),
+                        'height': int_or_none(encoding_option.get('height')),
+                        'vbr': float_or_none(bitrate.get('video')),
+                        'abr': float_or_none(bitrate.get('audio')),
+                        'filesize': int_or_none(format_el.get('size')),
+                        'vcodec': format_el.get('type'),
+                        'ext': determine_ext(url, 'mp4'),
+                    })
+        if formats:
+            self._sort_formats(formats)
+        return formats
+
+    def _parse_video_info(self, play_data, vid):
+        meta = play_data.get('meta')
+        user = meta.get('user', {})
+
+        thumbnails = []
+        for thumbnail in play_data.get('thumbnails', {}).get('list', []):
+            thumbnails.append({'url': thumbnail['source']})
+
+        subtitles = {}
+        for caption in play_data.get('captions', {}).get('list', []):
+            subtitles[caption['language']] = [
+                {'ext': determine_ext(caption['source'], default_ext='vtt'),
+                 'url': caption['source']}]
+
+        formats = self._extract_video_formats(play_data['videos']['list'] + play_data.get('streams', []), vid)
+
+        return {
+            'id': vid,
+            'title': meta.get('subject'),
+            'formats': formats,
+            'thumbnail': meta.get('cover', {}).get('source'),
+            'thumbnails': thumbnails,
+            'view_count': int_or_none(meta.get('count')),
+            'uploader_id': user.get('id'),
+            'uploader': user.get('name'),
+        }
+
+    def _extract_video_info(self, vid, key):
+        play_data = self._download_json(
+            'http://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?' + compat_urllib_parse.urlencode({'videoId': vid, 'key': key}),
+            vid, 'Downloading video info')
+        info = self._parse_video_info(play_data, vid)
+        if not info['formats']:
+            play_data = self._download_json(
+                'http://serviceapi.rmcnmv.naver.com/mobile/getVideoInfo.nhn?' + compat_urllib_parse.urlencode({'videoId': vid, 'inKey': key, 'protocol': 'http'}),
+                vid, 'Downloading video info')
+            info['formats'] = self._extract_video_formats(play_data['videos']['list'] + play_data.get('streams', []), vid)
+        return info
+
+    def _extract_id_and_key(self, webpage):
+        m_id = re.search(r'(?s)new\s+nhn.rmcnmv.RMCVideoPlayer\(\s*["\']([^"\']+)["\']\s*,\s*(?:{[^}]*?value[^:]*?:\s*?)?["\']([^"\']+)["\']', webpage)
+        if not m_id:
+            m_id = re.search(r'(?s)_sVid\s*=\s*["\']([^"\']+)["\'];\s*var\s+_sInkey\s*=\s*["\']([^"\']+)["\'];', webpage)
+        return m_id
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        m_id = re.search(r'var rmcPlayer = new nhn.rmcnmv.RMCVideoPlayer\("(.+?)", "(.+?)"',
-                         webpage)
-        if m_id is None:
-            error = self._html_search_regex(
-                r'(?s)<div class="(?:nation_error|nation_box|error_box)">\s*(?:<!--.*?-->)?\s*<p class="[^"]+">(?P<msg>.+?)</p>\s*</div>',
-                webpage, 'error', default=None)
-            if error:
-                raise ExtractorError(error, expected=True)
-            raise ExtractorError('couldn\'t extract vid and key')
-        video_data = self._download_json(
-            'http://play.rmcnmv.naver.com/vod/play/v2.0/' + m_id.group(1),
-            video_id, query={
-                'key': m_id.group(2),
-            })
-        meta = video_data['meta']
-        title = meta['subject']
-        formats = []
-
-        def extract_formats(streams, stream_type, query={}):
-            for stream in streams:
-                stream_url = stream.get('source')
-                if not stream_url:
-                    continue
-                stream_url = update_url_query(stream_url, query)
-                encoding_option = stream.get('encodingOption', {})
-                bitrate = stream.get('bitrate', {})
-                formats.append({
-                    'format_id': '%s_%s' % (stream.get('type') or stream_type, encoding_option.get('id') or encoding_option.get('name')),
-                    'url': stream_url,
-                    'width': int_or_none(encoding_option.get('width')),
-                    'height': int_or_none(encoding_option.get('height')),
-                    'vbr': int_or_none(bitrate.get('video')),
-                    'abr': int_or_none(bitrate.get('audio')),
-                    'filesize': int_or_none(stream.get('size')),
-                    'protocol': 'm3u8_native' if stream_type == 'HLS' else None,
-                })
-
-        extract_formats(video_data.get('videos', {}).get('list', []), 'H264')
-        for stream_set in video_data.get('streams', []):
-            query = {}
-            for param in stream_set.get('keys', []):
-                query[param['name']] = param['value']
-            stream_type = stream_set.get('type')
-            videos = stream_set.get('videos')
-            if videos:
-                extract_formats(videos, stream_type, query)
-            elif stream_type == 'HLS':
-                stream_url = stream_set.get('source')
-                if not stream_url:
-                    continue
-                formats.extend(self._extract_m3u8_formats(
-                    update_url_query(stream_url, query), video_id,
-                    'mp4', 'm3u8_native', m3u8_id=stream_type, fatal=False))
-        self._sort_formats(formats)
-
-        subtitles = {}
-        for caption in video_data.get('captions', {}).get('list', []):
-            caption_url = caption.get('source')
-            if not caption_url:
-                continue
-            subtitles.setdefault(caption.get('language') or caption.get('locale'), []).append({
-                'url': caption_url,
-            })
-
-        upload_date = self._search_regex(
-            r'<span[^>]+class="date".*?(\d{4}\.\d{2}\.\d{2})',
-            webpage, 'upload date', fatal=False)
-        if upload_date:
-            upload_date = upload_date.replace('.', '')
-
-        return {
-            'id': video_id,
-            'title': title,
-            'formats': formats,
-            'subtitles': subtitles,
-            'description': self._og_search_description(webpage),
-            'thumbnail': meta.get('cover', {}).get('source') or self._og_search_thumbnail(webpage),
-            'view_count': int_or_none(meta.get('count')),
-            'upload_date': upload_date,
-        }
+        m_id = self._extract_id_and_key(webpage)
+        if not m_id:
+            iframe_urls = re.findall(r'<(?:iframe|IFRAME)[^>]+src="((?:/main/readVod|/movie/bi/mi/videoPlayer|http://serviceapi\.rmcnmv\.naver\.com/flash/outKeyPlayer)\.nhn[^"]+)"', webpage)
+            if iframe_urls:
+                entries = []
+                for iframe_url in iframe_urls:
+                    iframe_url = unescapeHTML(iframe_url)
+                    if iframe_url.startswith('/'):
+                        iframe_url = compat_urlparse.urljoin(url, iframe_url)
+                    request = compat_urllib_request.Request(iframe_url, headers={'Referer': url})
+                    iframe_webpage = self._download_webpage(request, video_id, 'Downloading iframe webpage')
+                    m_id = self._extract_id_and_key(iframe_webpage)
+                    if m_id:
+                        vid, key = m_id.groups()
+                        entries.append(self._extract_video_info(vid, key))
+                return entries[0] if len(entries) == 1 else self.playlist_result(entries)
+            else:
+                error = self._html_search_regex(
+                    r'(?s)<div class="(?:nation_error|nation_box|error_box)">\s*(?:<!--.*?-->)?\s*<p class="[^"]+">(?P<msg>.+?)</p>\s*</div>',
+                    webpage, 'error', default=None)
+                if error:
+                    raise ExtractorError(error, expected=True)
+                raise ExtractorError('couldn\'t extract vid and key')
+        vid, key = m_id.groups()
+        return self._extract_video_info(vid, key)
