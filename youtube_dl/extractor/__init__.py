@@ -22,6 +22,7 @@ from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
 from .appletrailers import AppleTrailersIE
 from .archiveorg import ArchiveOrgIE
+from .hoofoot import HooFootIE
 from .ard import (
     ARDIE,
     ARDMediathekIE,
