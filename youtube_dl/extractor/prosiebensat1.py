@@ -122,7 +122,7 @@ class ProSiebenSat1BaseIE(InfoExtractor):
 class ProSiebenSat1IE(ProSiebenSat1BaseIE):
     IE_NAME = 'prosiebensat1'
     IE_DESC = 'ProSiebenSat.1 Digital'
-    _VALID_URL = r'https?://(?:www\.)?(?:(?:prosieben|prosiebenmaxx|sixx|sat1|kabeleins|the-voice-of-germany|7tv)\.(?:de|at|ch)|ran\.de|fem\.com)/(?P<id>.+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:prosieben|prosiebenmaxx|sixx|sat1|kabeleins|the-voice-of-germany|7tv|kabeleinsdoku)\.(?:de|at|ch)|ran\.de|fem\.com)/(?P<id>.+)'
 
     _TESTS = [
         {
@@ -289,6 +289,11 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            # geo restricted to Germany
+            'url': 'http://www.kabeleinsdoku.de/tv/mayday-alarm-im-cockpit/video/102-notlandung-im-hudson-river-ganze-folge',
+            'only_matching': True,
         },
     ]
 
