@@ -1,8 +1,23 @@
 version <unreleased>
 
+Core
++ Add support for watchTVeverywhere.com authentication provider based MSOs for
+  Adobe Pass authentication (#10709)
+
 Extractors
++ [soundcloud:playlist] Provide video id for early playlist entries (#10733)
++ [prosiebensat1] Add support for kabeleinsdoku (#10732)
+* [cbs] Extract info from thunder videoPlayerService (#10728)
 * [openload] Fix extraction (#10408)
 + [ustream] Support the new HLS streams (#10698)
++ [ooyala] Extract all HLS formats
++ [cartoonnetwork] Add support for Adobe Pass authentication
++ [soundcloud] Extract license metadata
++ [fox] Add support for Adobe Pass authentication (#8584)
++ [tbs] Add support for Adobe Pass authentication (#10642, #10222)
++ [trutv] Add support for Adobe Pass authentication (#10519)
++ [turner] Add support for Adobe Pass authentication
+
 
 version 2016.09.19
 
