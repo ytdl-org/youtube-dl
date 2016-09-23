@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class NaverIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?(?:tvcast\.naver\.com/v/|news\.naver\.com/main/read\.nhn?.*aid=|sports\.news\.naver.com/(?:videoCenter|sports)/(?:index|video)\.nhn?.*id=|movie\.naver.com/movie/bi/mi/mediaView\.nhn?.*mid=|music\.naver\.com/artist/videoPlayer\.nhn?.*videoId=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:m\.)?(?:tvcast\.naver\.com/v/|sports\.news\.naver.com/(?:videoCenter|sports)/(?:index|video)\.nhn?.*id=|music\.naver\.com/artist/videoPlayer\.nhn?.*videoId=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://tvcast.naver.com/v/81652',
@@ -43,16 +43,6 @@ class NaverIE(InfoExtractor):
         },
         'skip': 'Georestricted',
     }, {
-        'url': 'http://news.naver.com/main/read.nhn?mode=LSD&mid=tvh&oid=056&aid=0010235712&sid1=293',
-        'md5': 'ea02b7943173553618f49de08d6bd36e',
-        'info_dict': {
-            'id': '3C026B64F022C136ED9057AA820458275CD7',
-            'ext': 'mp4',
-            'title': '한미 정상 “북핵 문제 최우선”…공동성명 첫 채택',
-            'uploader_id': 'muploader_o',
-            'uploader': '',
-        },
-    }, {
         'url': 'http://sports.news.naver.com/videoCenter/index.nhn?uCategory=esports&category=lol&id=158508',
         'md5': '436254dbbb7dde42053c731039f6f14d',
         'info_dict': {
@@ -61,16 +51,6 @@ class NaverIE(InfoExtractor):
             'title': '\'전승 가도\' 절대강자 Faker의 인터뷰',
             'uploader_id': 'muploader_n',
             'uploader': '',
-        },
-    }, {
-        'url': 'http://movie.naver.com/movie/bi/mi/mediaView.nhn?code=115622&mid=27362',
-        'md5': 'ad9623ff5a23d6e9c0c7f451b063912f',
-        'info_dict': {
-            'id': '1132280440B9037B8E48DB0F569208440008',
-            'ext': 'mp4',
-            'title': '<인사이드 아웃> 메인 예고편',
-            'uploader_id': 'navermovie',
-            'uploader': '네이버 영화',
         },
     }, {
         'url': 'http://music.naver.com/artist/videoPlayer.nhn?videoId=99476',
