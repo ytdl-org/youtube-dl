@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.09.24
 
 Core
 + Add support for watchTVeverywhere.com authentication provider based MSOs for
