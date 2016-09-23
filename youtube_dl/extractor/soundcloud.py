@@ -477,7 +477,11 @@ class SoundcloudPlaylistIE(SoundcloudIE):
         data = self._download_json(
             base_url + data, playlist_id, 'Downloading playlist')
 
-        entries = [self.url_result(track['permalink_url'], 'Soundcloud') for track in data['tracks']]
+        entries = [
+            self.url_result(
+                track['permalink_url'], SoundcloudIE.ie_key(),
+                video_id=compat_str(track['id']) if track.get('id') else None)
+            for track in data['tracks'] if track.get('permalink_url')]
 
         return {
             '_type': 'playlist',
