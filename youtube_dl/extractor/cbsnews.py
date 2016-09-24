@@ -9,6 +9,7 @@ from ..utils import (
 
 
 class CBSNewsIE(CBSIE):
+    IE_NAME = 'cbsnews'
     IE_DESC = 'CBS News'
     _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
 
@@ -68,15 +69,16 @@ class CBSNewsIE(CBSIE):
 
 
 class CBSNewsLiveVideoIE(InfoExtractor):
+    IE_NAME = 'cbsnews:livevideo'
     IE_DESC = 'CBS News Live Videos'
-    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[^/?#]+)'
 
     # Live videos get deleted soon. See http://www.cbsnews.com/live/ for the latest examples
     _TEST = {
         'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',
         'info_dict': {
             'id': 'clinton-sanders-prepare-to-face-off-in-nh',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Clinton, Sanders Prepare To Face Off In NH',
             'duration': 334,
         },
@@ -84,25 +86,22 @@ class CBSNewsLiveVideoIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        video_info = self._download_json(
+            'http://feeds.cbsn.cbsnews.com/rundown/story', display_id, query={
+                'device': 'desktop',
+                'dvr_slug': display_id,
+            })
 
-        video_info = self._parse_json(self._html_search_regex(
-            r'data-story-obj=\'({.+?})\'', webpage, 'video JSON info'), video_id)['story']
-
-        hdcore_sign = 'hdcore=3.3.1'
-        f4m_formats = self._extract_f4m_formats(video_info['url'] + '&' + hdcore_sign, video_id)
-        if f4m_formats:
-            for entry in f4m_formats:
-                # URLs without the extra param induce an 404 error
-                entry.update({'extra_param_to_segment_url': hdcore_sign})
-        self._sort_formats(f4m_formats)
+        formats = self._extract_akamai_formats(video_info['url'], display_id)
+        self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': display_id,
+            'display_id': display_id,
             'title': video_info['headline'],
             'thumbnail': video_info.get('thumbnail_url_hd') or video_info.get('thumbnail_url_sd'),
             'duration': parse_duration(video_info.get('segmentDur')),
-            'formats': f4m_formats,
+            'formats': formats,
         }
