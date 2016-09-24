@@ -260,7 +260,20 @@ class SoundcloudIE(InfoExtractor):
         return self._extract_info_dict(info, full_title, secret_token=token)
 
 
-class SoundcloudSetIE(SoundcloudIE):
+class SoundcloudBaseIE(SoundcloudIE):
+    @staticmethod
+    def _extract_id(e):
+        return compat_str(e['id']) if e.get('id') else None
+
+    def _extract_track_entries(self, tracks):
+        return [
+            self.url_result(
+                track['permalink_url'], SoundcloudIE.ie_key(),
+                video_id=self._extract_id(track))
+            for track in tracks if track.get('permalink_url')]
+
+
+class SoundcloudSetIE(SoundcloudBaseIE):
     _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[\w\d-]+)(?:/(?P<token>[^?/]+))?'
     IE_NAME = 'soundcloud:set'
     _TESTS = [{
@@ -299,7 +312,7 @@ class SoundcloudSetIE(SoundcloudIE):
             msgs = (compat_str(err['error_message']) for err in info['errors'])
             raise ExtractorError('unable to download video webpage: %s' % ','.join(msgs))
 
-        entries = [self.url_result(track['permalink_url'], 'Soundcloud') for track in info['tracks']]
+        entries = self._extract_track_entries(info['tracks'])
 
         return {
             '_type': 'playlist',
@@ -309,7 +322,7 @@ class SoundcloudSetIE(SoundcloudIE):
         }
 
 
-class SoundcloudUserIE(SoundcloudIE):
+class SoundcloudUserIE(SoundcloudBaseIE):
     _VALID_URL = r'''(?x)
                         https?://
                             (?:(?:www|m)\.)?soundcloud\.com/
@@ -326,21 +339,21 @@ class SoundcloudUserIE(SoundcloudIE):
             'id': '114582580',
             'title': 'The Akashic Chronicler (All)',
         },
-        'playlist_mincount': 111,
+        'playlist_mincount': 74,
     }, {
         'url': 'https://soundcloud.com/the-akashic-chronicler/tracks',
         'info_dict': {
             'id': '114582580',
             'title': 'The Akashic Chronicler (Tracks)',
         },
-        'playlist_mincount': 50,
+        'playlist_mincount': 37,
     }, {
         'url': 'https://soundcloud.com/the-akashic-chronicler/sets',
         'info_dict': {
             'id': '114582580',
             'title': 'The Akashic Chronicler (Playlists)',
         },
-        'playlist_mincount': 3,
+        'playlist_mincount': 2,
     }, {
         'url': 'https://soundcloud.com/the-akashic-chronicler/reposts',
         'info_dict': {
@@ -359,7 +372,7 @@ class SoundcloudUserIE(SoundcloudIE):
         'url': 'https://soundcloud.com/grynpyret/spotlight',
         'info_dict': {
             'id': '7098329',
-            'title': 'Grynpyret (Spotlight)',
+            'title': 'GRYNPYRET (Spotlight)',
         },
         'playlist_mincount': 1,
     }]
@@ -421,13 +434,14 @@ class SoundcloudUserIE(SoundcloudIE):
                 for cand in candidates:
                     if isinstance(cand, dict):
                         permalink_url = cand.get('permalink_url')
+                        entry_id = self._extract_id(cand)
                         if permalink_url and permalink_url.startswith('http'):
-                            return permalink_url
+                            return permalink_url, entry_id
 
             for e in collection:
-                permalink_url = resolve_permalink_url((e, e.get('track'), e.get('playlist')))
+                permalink_url, entry_id = resolve_permalink_url((e, e.get('track'), e.get('playlist')))
                 if permalink_url:
-                    entries.append(self.url_result(permalink_url))
+                    entries.append(self.url_result(permalink_url, video_id=entry_id))
 
             next_href = response.get('next_href')
             if not next_href:
@@ -447,7 +461,7 @@ class SoundcloudUserIE(SoundcloudIE):
         }
 
 
-class SoundcloudPlaylistIE(SoundcloudIE):
+class SoundcloudPlaylistIE(SoundcloudBaseIE):
     _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)(?:/?\?secret_token=(?P<token>[^&]+?))?$'
     IE_NAME = 'soundcloud:playlist'
     _TESTS = [{
@@ -477,11 +491,7 @@ class SoundcloudPlaylistIE(SoundcloudIE):
         data = self._download_json(
             base_url + data, playlist_id, 'Downloading playlist')
 
-        entries = [
-            self.url_result(
-                track['permalink_url'], SoundcloudIE.ie_key(),
-                video_id=compat_str(track['id']) if track.get('id') else None)
-            for track in data['tracks'] if track.get('permalink_url')]
+        entries = self._extract_track_entries(data['tracks'])
 
         return {
             '_type': 'playlist',
