@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class MwaveIE(InfoExtractor):
-    _VALID_URL = r'https?://mwave\.interest\.me/(([a-z][a-z]\/)?)mnettv/videodetail\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://mwave\.interest\.me/([^/][^/]/)?mnettv/videodetail\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)'
     _URL_TEMPLATE = 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id=%s'
     _TEST = {
         'url': 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id=168859',
@@ -27,13 +27,6 @@ class MwaveIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        # Check that language (if given) is valid
-        languages = ['en/', 'jp/', 'cn/', 'tw/', 'kr/', 'es/']
-        start = url.index('mwave.interest.me/') + len('mwave.interest.me/')
-        end = url.index('mnettv/', start)
-        if url[start:end] and not url[start:end] in languages:
-            raise Exception('[mwave] invalid language detected: {}'.format(url[start:end]))
 
         vod_info = self._download_json(
             'http://mwave.interest.me/onair/vod_info.m?vodtype=CL&sectorid=&endinfo=Y&id=%s' % video_id,
@@ -83,14 +76,6 @@ class MwaveMeetGreetIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        # Check that language (if given) is valid
-        languages = ['en/', 'jp/', 'cn/', 'tw/', 'kr/', 'es/']
-        start = url.index('mwave.interest.me/') + len('mwave.interest.me/')
-        end = url.index('meetgreet/', start)
-        if url[start:end] and not url[start:end] in languages:
-            raise Exception('[mwave] invalid language detected: {}'.format(url[start:end]))
-
         webpage = self._download_webpage(url, video_id)
         clip_id = self._html_search_regex(
             r'<iframe[^>]+src="/mnettv/ifr_clip\.m\?searchVideoDetailVO\.clip_id=(\d+)',
