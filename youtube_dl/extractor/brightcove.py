@@ -621,15 +621,21 @@ class BrightcoveNewIE(InfoExtractor):
                     'url': text_track['src'],
                 })
 
+        is_live = False
+        duration = float_or_none(json_data.get('duration'), 1000)
+        if duration and duration < 0:
+            is_live = True
+
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'description': clean_html(json_data.get('description')),
             'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
-            'duration': float_or_none(json_data.get('duration'), 1000),
+            'duration': duration,
             'timestamp': parse_iso8601(json_data.get('published_at')),
             'uploader_id': account_id,
             'formats': formats,
             'subtitles': subtitles,
             'tags': json_data.get('tags', []),
+            'is_live': is_live,
         }
