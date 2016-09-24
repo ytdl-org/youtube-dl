@@ -270,6 +270,27 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
 
 
 class MTVIE(MTVServicesInfoExtractor):
+    _VALID_URL = r'(?x)https?://(?:www\.)?mtv\.com/(video-clips|full-episodes)/(?P<id>[^/?#.]+)'
+    _FEED_URL = 'http://www.mtv.com/feeds/mrss/'
+
+    _TESTS = [{
+        'url': 'http://www.mtv.com/video-clips/vl8qof/unlocking-the-truth-trailer',
+        'md5': '1edbcdf1e7628e414a8c5dcebca3d32b',
+        'info_dict': {
+            'id': '5e14040d-18a4-47c4-a582-43ff602de88e',
+            'ext': 'mp4',
+            'title': 'Unlocking The Truth|July 18, 2016|1|101|Trailer',
+            'description': '"Unlocking the Truth" premieres August 17th at 11/10c.',
+            'timestamp': 1468846800,
+            'upload_date': '20160718',
+        },
+    }, {
+        'url': 'http://www.mtv.com/full-episodes/94tujl/unlocking-the-truth-gates-of-hell-season-1-ep-101',
+        'only_matching': True,
+    }]
+
+
+class MTVVideoIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)^https?://
         (?:(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$|
            m\.mtv\.com/videos/video\.rbml\?.*?id=(?P<mgid>[^&]+))'''

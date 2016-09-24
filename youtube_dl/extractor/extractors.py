@@ -516,6 +516,7 @@ from .movingimage import MovingImageIE
 from .msn import MSNIE
 from .mtv import (
     MTVIE,
+    MTVVideoIE,
     MTVServicesEmbeddedIE,
     MTVDEIE,
 )
