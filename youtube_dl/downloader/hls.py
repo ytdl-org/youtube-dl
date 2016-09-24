@@ -31,7 +31,7 @@ class HlsFD(FragmentFD):
     FD_NAME = 'hlsnative'
 
     @staticmethod
-    def can_download(manifest):
+    def can_download(manifest, info_dict):
         UNSUPPORTED_FEATURES = (
             r'#EXT-X-KEY:METHOD=(?!NONE|AES-128)',  # encrypted streams [1]
             r'#EXT-X-BYTERANGE',  # playlists composed of byte ranges of media files [2]
@@ -53,6 +53,7 @@ class HlsFD(FragmentFD):
         )
         check_results = [not re.search(feature, manifest) for feature in UNSUPPORTED_FEATURES]
         check_results.append(can_decrypt_frag or '#EXT-X-KEY:METHOD=AES-128' not in manifest)
+        check_results.append(not info_dict.get('is_live'))
         return all(check_results)
 
     def real_download(self, filename, info_dict):
@@ -62,7 +63,7 @@ class HlsFD(FragmentFD):
 
         s = manifest.decode('utf-8', 'ignore')
 
-        if not self.can_download(s):
+        if not self.can_download(s, info_dict):
             self.report_warning(
                 'hlsnative has detected features it does not support, '
                 'extraction will be delegated to ffmpeg')
