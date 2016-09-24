@@ -127,9 +127,9 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                         (?:www\.)?
                         (?:
                             (?:
-                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv
+                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv|advopedia
                             )\.(?:de|at|ch)|
-                            ran\.de|fem\.com
+                            ran\.de|fem\.com|advopedia\.de
                         )
                         /(?P<id>.+)
                     '''
@@ -312,6 +312,10 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         },
         {
             'url': 'http://www.sat1gold.de/tv/edel-starck/playlist/die-gesamte-1-staffel',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.advopedia.de/videos/lenssen-klaert-auf/lenssen-klaert-auf-folge-8-staffel-3-feiertage-und-freie-tage',
             'only_matching': True,
         },
     ]
