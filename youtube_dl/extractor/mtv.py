@@ -270,7 +270,8 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
 
 
 class MTVIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'(?x)https?://(?:www\.)?mtv\.com/(video-clips|full-episodes)/(?P<id>[^/?#.]+)'
+    IE_NAME = 'mtv'
+    _VALID_URL = r'https?://(?:www\.)?mtv\.com/(video-clips|full-episodes)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://www.mtv.com/feeds/mrss/'
 
     _TESTS = [{
@@ -291,6 +292,7 @@ class MTVIE(MTVServicesInfoExtractor):
 
 
 class MTVVideoIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtv:video'
     _VALID_URL = r'''(?x)^https?://
         (?:(?:www\.)?mtv\.com/videos/.+?/(?P<videoid>[0-9]+)/[^/]+$|
            m\.mtv\.com/videos/video\.rbml\?.*?id=(?P<mgid>[^&]+))'''
