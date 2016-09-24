@@ -60,7 +60,7 @@ class MwaveIE(InfoExtractor):
 
 
 class MwaveMeetGreetIE(InfoExtractor):
-    _VALID_URL = r'https?://mwave\.interest\.me/(([a-z][a-z]\/)?)meetgreet/view/(?P<id>\d+)'
+    _VALID_URL = r'https?://mwave\.interest\.me/([^/][^/]/)?meetgreet/view/(?P<id>\d+)'
     _TEST = {
         'url': 'http://mwave.interest.me/meetgreet/view/256',
         'info_dict': {
