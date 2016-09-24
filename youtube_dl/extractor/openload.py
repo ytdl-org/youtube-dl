@@ -25,6 +25,22 @@ class OpenloadIE(InfoExtractor):
             'thumbnail': 're:^https?://.*\.jpg$',
         },
     }, {
+        'url': 'https://openload.co/embed/rjC09fkPLYs',
+        'info_dict': {
+            'id': 'rjC09fkPLYs',
+            'ext': 'mp4',
+            'title': 'movie.mp4',
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'subtitles': {
+                'en': [{
+                    'ext': 'vtt',
+                }],
+            },
+        },
+        'params': {
+            'skip_download': True,  # test subtitles only
+        },
+    }, {
         'url': 'https://openload.co/embed/kUEfGclsU9o/skyrim_no-audio_1080.mp4',
         'only_matching': True,
     }, {
@@ -71,11 +87,17 @@ class OpenloadIE(InfoExtractor):
             'title', default=None) or self._html_search_meta(
             'description', webpage, 'title', fatal=True)
 
-        return {
+        entries = self._parse_html5_media_entries(url, webpage, video_id)
+        subtitles = entries[0]['subtitles'] if entries else None
+
+        info_dict = {
             'id': video_id,
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
             # Seems all videos have extensions in their titles
             'ext': determine_ext(title),
+            'subtitles': subtitles,
         }
+
+        return info_dict
