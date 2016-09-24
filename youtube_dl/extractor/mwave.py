@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class MwaveIE(InfoExtractor):
-    _VALID_URL = r'https?://mwave\.interest\.me/mnettv/videodetail\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://mwave\.interest\.me/([^/][^/]/)?mnettv/videodetail\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)'
     _URL_TEMPLATE = 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id=%s'
     _TEST = {
         'url': 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id=168859',
@@ -60,7 +60,7 @@ class MwaveIE(InfoExtractor):
 
 
 class MwaveMeetGreetIE(InfoExtractor):
-    _VALID_URL = r'https?://mwave\.interest\.me/meetgreet/view/(?P<id>\d+)'
+    _VALID_URL = r'https?://mwave\.interest\.me/([^/][^/]/)?meetgreet/view/(?P<id>\d+)'
     _TEST = {
         'url': 'http://mwave.interest.me/meetgreet/view/256',
         'info_dict': {
