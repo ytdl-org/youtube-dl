@@ -1842,10 +1842,15 @@ class InfoExtractor(object):
 
     def _extract_akamai_formats(self, manifest_url, video_id):
         formats = []
+        hdcore_sign = 'hdcore=3.7.0'
         f4m_url = re.sub(r'(https?://.+?)/i/', r'\1/z/', manifest_url).replace('/master.m3u8', '/manifest.f4m')
-        formats.extend(self._extract_f4m_formats(
-            update_url_query(f4m_url, {'hdcore': '3.7.0'}),
-            video_id, f4m_id='hds', fatal=False))
+        if 'hdcore=' not in f4m_url:
+            f4m_url += ('&' if '?' in f4m_url else '?') + hdcore_sign
+        f4m_formats = self._extract_f4m_formats(
+            f4m_url, video_id, f4m_id='hds', fatal=False)
+        for entry in f4m_formats:
+            entry.update({'extra_param_to_segment_url': hdcore_sign})
+        formats.extend(f4m_formats)
         m3u8_url = re.sub(r'(https?://.+?)/z/', r'\1/i/', manifest_url).replace('/manifest.f4m', '/master.m3u8')
         formats.extend(self._extract_m3u8_formats(
             m3u8_url, video_id, 'mp4', 'm3u8_native',
