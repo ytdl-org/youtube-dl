@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
@@ -40,6 +42,13 @@ class PeriscopeIE(PeriscopeBaseIE):
         'url': 'https://www.periscope.tv/bastaakanoggano/1OdKrlkZZjOJX',
         'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?periscope\.tv/(?:(?!\1).)+)\1', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _real_extract(self, url):
         token = self._match_id(url)
