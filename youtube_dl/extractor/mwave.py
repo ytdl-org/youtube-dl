@@ -35,7 +35,6 @@ class MwaveIE(InfoExtractor):
         if url[start:end] and not url[start:end] in languages:
             raise Exception('[mwave] invalid language detected: {}'.format(url[start:end]))
 
-
         vod_info = self._download_json(
             'http://mwave.interest.me/onair/vod_info.m?vodtype=CL&sectorid=&endinfo=Y&id=%s' % video_id,
             video_id, 'Download vod JSON')
