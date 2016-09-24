@@ -127,7 +127,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                         (?:www\.)?
                         (?:
                             (?:
-                                prosieben|prosiebenmaxx|sixx|sat1(?:gold)?|kabeleins|the-voice-of-germany|7tv|kabeleinsdoku
+                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv
                             )\.(?:de|at|ch)|
                             ran\.de|fem\.com
                         )
