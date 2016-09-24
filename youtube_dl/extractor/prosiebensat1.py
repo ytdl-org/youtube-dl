@@ -310,6 +310,10 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'url': 'http://www.sat1gold.de/tv/edel-starck/video/11-staffel-1-episode-1-partner-wider-willen-ganze-folge',
             'only_matching': True,
         },
+        {
+            'url': 'http://www.sat1gold.de/tv/edel-starck/playlist/die-gesamte-1-staffel',
+            'only_matching': True,
+        },
     ]
 
     _TOKEN = 'prosieben'
@@ -381,19 +385,28 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
     def _extract_playlist(self, url, webpage):
         playlist_id = self._html_search_regex(
             self._PLAYLIST_ID_REGEXES, webpage, 'playlist id')
-        for regex in self._PLAYLIST_CLIP_REGEXES:
-            playlist_clips = re.findall(regex, webpage)
-            if playlist_clips:
-                title = self._html_search_regex(
-                    self._TITLE_REGEXES, webpage, 'title')
-                description = self._html_search_regex(
-                    self._DESCRIPTION_REGEXES, webpage, 'description', fatal=False)
-                entries = [
-                    self.url_result(
-                        re.match('(.+?//.+?)/', url).group(1) + clip_path,
-                        'ProSiebenSat1')
-                    for clip_path in playlist_clips]
-                return self.playlist_result(entries, playlist_id, title, description)
+        playlist = self._parse_json(
+            self._search_regex(
+                'var\s+contentResources\s*=\s*(\[.+?\]);\s*</script',
+                webpage, 'playlist'),
+            playlist_id)
+        entries = []
+        for item in playlist:
+            clip_id = item.get('id') or item.get('upc')
+            if not clip_id:
+                continue
+            info = self._extract_video_info(url, clip_id)
+            info.update({
+                'id': clip_id,
+                'title': item.get('title') or item.get('teaser', {}).get('headline'),
+                'description': item.get('teaser', {}).get('description'),
+                'thumbnail': item.get('poster'),
+                'duration': float_or_none(item.get('duration')),
+                'series': item.get('tvShowTitle'),
+                'uploader': item.get('broadcastPublisher'),
+            })
+            entries.append(info)
+        return self.playlist_result(entries, playlist_id)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
