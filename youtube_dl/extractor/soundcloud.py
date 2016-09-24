@@ -260,7 +260,7 @@ class SoundcloudIE(InfoExtractor):
         return self._extract_info_dict(info, full_title, secret_token=token)
 
 
-class SoundcloudBaseIE(SoundcloudIE):
+class SoundcloudPlaylistBaseIE(SoundcloudIE):
     @staticmethod
     def _extract_id(e):
         return compat_str(e['id']) if e.get('id') else None
@@ -273,7 +273,7 @@ class SoundcloudBaseIE(SoundcloudIE):
             for track in tracks if track.get('permalink_url')]
 
 
-class SoundcloudSetIE(SoundcloudBaseIE):
+class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
     _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[\w\d-]+)(?:/(?P<token>[^?/]+))?'
     IE_NAME = 'soundcloud:set'
     _TESTS = [{
@@ -322,7 +322,7 @@ class SoundcloudSetIE(SoundcloudBaseIE):
         }
 
 
-class SoundcloudUserIE(SoundcloudBaseIE):
+class SoundcloudUserIE(SoundcloudPlaylistBaseIE):
     _VALID_URL = r'''(?x)
                         https?://
                             (?:(?:www|m)\.)?soundcloud\.com/
@@ -461,7 +461,7 @@ class SoundcloudUserIE(SoundcloudBaseIE):
         }
 
 
-class SoundcloudPlaylistIE(SoundcloudBaseIE):
+class SoundcloudPlaylistIE(SoundcloudPlaylistBaseIE):
     _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)(?:/?\?secret_token=(?P<token>[^&]+?))?$'
     IE_NAME = 'soundcloud:playlist'
     _TESTS = [{
