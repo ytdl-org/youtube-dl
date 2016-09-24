@@ -1828,7 +1828,7 @@ class InfoExtractor(object):
                 for track_tag in re.findall(r'<track[^>]+>', media_content):
                     track_attributes = extract_attributes(track_tag)
                     kind = track_attributes.get('kind')
-                    if not kind or kind == 'subtitles':
+                    if not kind or kind in ('subtitles', 'captions'):
                         src = track_attributes.get('src')
                         if not src:
                             continue
@@ -1836,7 +1836,7 @@ class InfoExtractor(object):
                         media_info['subtitles'].setdefault(lang, []).append({
                             'url': absolute_url(src),
                         })
-            if media_info['formats']:
+            if media_info['formats'] or media_info['subtitles']:
                 entries.append(media_info)
         return entries
 
