@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import ExtractorError, HEADRequest
 
 
 class AparatIE(InfoExtractor):
@@ -29,36 +29,20 @@ class AparatIE(InfoExtractor):
         embed_url = 'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id
         webpage = self._download_webpage(embed_url, video_id)
 
-        file_list = self._parse_json(
-            self._search_regex(
-                r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)',
-                webpage,
-                'file list',
-                default='[]'
-            ),
-            video_id
-        )
-        file_list_pseudo = self._parse_json(
-            self._search_regex(
-                r'fileListPseudo\s*=\s*JSON\.parse\(\'([^\']+)\'\)',
-                webpage,
-                'file list pseudo',
-                default='[]'
-            ),
-            video_id
-        )
+        patterns = [
+            r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)',
+            r'fileListPseudo\s*=\s*JSON\.parse\(\'([^\']+)\'\)'
+        ]
+        file_list = []
+        for p in patterns:
+            res = self._parse_json(
+                self._search_regex(p, webpage, 'file list', default='[]'),
+                video_id
+            )
+            if res:
+                file_list.extend(res[0])
 
-        total_file_list = []
-        if file_list:
-            total_file_list.extend(file_list[0])
-
-        if file_list_pseudo:
-            total_file_list.extend(file_list_pseudo[0])
-
-        if not total_file_list:
-            raise ExtractorError('No working video URLs found')
-
-        labels = {
+        prefs = {
             'unknown': 0,
             '270p': 1,
             '360p': 2,
@@ -66,17 +50,32 @@ class AparatIE(InfoExtractor):
             '1080p': 4
         }
         formats = []
-        for item in total_file_list:
+        for i, item in enumerate(file_list):
+            # check for video availability
+            video_url = item['file']
+            req = HEADRequest(video_url)
+            res = self._request_webpage(
+                req,
+                video_id,
+                note='Testing video URL %d' % (i + 1),
+                errnote=False
+            )
+            if not res:
+                continue
+
             video = {}
             video['url'] = item['file']
             video['format'] = item['type']
             video['ext'] = 'mp4'
-            video_label = item.get('label', 'unknown')
-            video['label'] = labels.get(video_label, 0)
+            video_pref = item.get('label', 'unknown')
+            video['preference'] = prefs.get(video_pref, -1)
 
             formats.append(video)
 
-        formats = sorted(formats, key=lambda x: x['label'])
+        if not formats:
+            raise ExtractorError('No working video URLs found')
+
+        self._sort_formats(formats)
         title = self._search_regex(
             r'\s+title:\s*"([^"]+)"',
             webpage,
