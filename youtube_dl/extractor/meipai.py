@@ -1,24 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from ..utils import parse_iso8601, unescapeHTML
+from ..utils import parse_iso8601
 from .common import InfoExtractor
-
-# This is a sloppy fallback, except there is currently no other more reliable
-# ways to get the title if the page does not contain OpenGraph data, which
-# might be the case for some of the videos, the HTML output of the server is
-# not consistent.
-RE_TITLE = r'<title[^>]*>(.+)</title>'
-
-# This pattern will only showed up when this video is a playback of previous
-# live streaming
-RE_M3U8_URL = r'file:\s*encodeURIComponent\(["\'](.+)["\']\)'
-
-# This is the word in Simplified Chinese meaning 'Live Streaming Playback', it
-# will showed up in the keyword meta tag if the video is a recorded playback,
-# we use it to avoid false positives in the future as the RE_M3U8_URL pattern
-# is not specific enough.
-KEYWORD_PLAYBACK = '直播回放'
 
 
 class MeipaiIE(InfoExtractor):
@@ -76,13 +60,12 @@ class MeipaiIE(InfoExtractor):
         title = self._og_search_title(webpage, default=None)
         if title is None:
             # fall back to text used in title
-            title = unescapeHTML(
-                self._html_search_regex(RE_TITLE, webpage, 'title'))
+            title = self._html_search_regex(
+                r'<title[^>]*>(.+)</title>', webpage, 'title')
 
         release_date = self._og_search_property(
-            'video:release_date', webpage, 'release date', default=None)
-        if release_date:
-            release_date = parse_iso8601(release_date)
+            'video:release_date', webpage, 'release date', fatal=False)
+        release_date = parse_iso8601(release_date)
 
         tags = self._og_search_property(
             'video:tag', webpage, 'tags', default='').split(',')
@@ -90,21 +73,23 @@ class MeipaiIE(InfoExtractor):
         info = {
             'id': video_id,
             'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage, default=None),
-            'description': self._og_search_description(webpage, default=None),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(webpage),
             'release_date': release_date,
             'creator': self._og_search_property(
-                'video:director', webpage, 'creator', default=None),
+                'video:director', webpage, 'creator', fatal=False),
             'tags': tags,
         }
 
         keywords = self._html_search_meta(
             'keywords', webpage, 'keywords', default=[])
 
-        if KEYWORD_PLAYBACK in keywords:
+        if '直播回放' in keywords:
             # recorded playback of live streaming
             m3u8_url = self._html_search_regex(
-                RE_M3U8_URL, webpage, 'm3u8_url')
+                r'file:\s*encodeURIComponent\(["\'](.+)["\']\)',
+                webpage,
+                'm3u8_url')
             info['formats'] = self._extract_m3u8_formats(
                 m3u8_url, video_id, 'mp4', 'm3u8_native')
         else:
