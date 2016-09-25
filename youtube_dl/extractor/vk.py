@@ -23,8 +23,9 @@ from ..utils import (
     unified_strdate,
     urlencode_postdata,
 )
-from .vimeo import VimeoIE
+from .dailymotion import DailymotionIE
 from .pladform import PladformIE
+from .vimeo import VimeoIE
 
 
 class VKBaseIE(InfoExtractor):
@@ -211,6 +212,23 @@ class VKIE(VKBaseIE):
             },
         },
         {
+            # dailymotion embed
+            'url': 'https://vk.com/video-37468416_456239855',
+            'info_dict': {
+                'id': 'k3lz2cmXyRuJQSjGHUv',
+                'ext': 'mp4',
+                'title': 'md5:d52606645c20b0ddbb21655adaa4f56f',
+                'description': 'md5:c651358f03c56f1150b555c26d90a0fd',
+                'uploader': 'AniLibria.Tv',
+                'upload_date': '20160914',
+                'uploader_id': 'x1p5vl5',
+                'timestamp': 1473877246,
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
+        {
             # video key is extra_data not url\d+
             'url': 'http://vk.com/video-110305615_171782105',
             'md5': 'e13fcda136f99764872e739d13fac1d1',
@@ -314,6 +332,10 @@ class VKIE(VKBaseIE):
             rutube_url = self._proto_relative_url(
                 m_rutube.group(1).replace('\\', ''))
             return self.url_result(rutube_url)
+
+        dailymotion_urls = DailymotionIE._extract_urls(info_page)
+        if dailymotion_urls:
+            return self.url_result(dailymotion_urls[0], DailymotionIE.ie_key())
 
         m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.+?});', info_page)
         if m_opts:
