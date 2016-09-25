@@ -16,6 +16,7 @@
 
 ### What is the purpose of your *pull request*?
 - [ ] Bug fix
+- [ ] Improvement
 - [ ] New extractor
 - [ ] New feature
 
