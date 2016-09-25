@@ -30,7 +30,7 @@ Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.ex
 You can also use pip:
 
     sudo pip install --upgrade youtube-dl
-    
+
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
 OS X users can install youtube-dl with [Homebrew](http://brew.sh/):
@@ -497,7 +497,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `average_rating`: Average rating give by users, the scale used depends on the webpage
  - `comment_count`: Number of comments on the video
  - `age_limit`: Age restriction for the video (years)
- - `format`: A human-readable description of the format 
+ - `format`: A human-readable description of the format
  - `format_id`: Format code specified by `--format`
  - `format_note`: Additional info about the format
  - `width`: Width of the video
@@ -584,7 +584,7 @@ $ youtube-dl -o '%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' https://ww
 $ youtube-dl -o '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' https://www.youtube.com/user/TheLinuxFoundation/playlists
 
 # Download Udemy course keeping each chapter in separate directory under MyVideos directory in your home
-$ youtube-dl -u user -p password -o '~/MyVideos/%(playlist)s/%(chapter_number)s - %(chapter)s/%(title)s.%(ext)s' https://www.udemy.com/java-tutorial/
+$ youtube-dl -u user -p password -o '~/MyVideos/%(playlist)s/%(chapter_number)s - %(chapter)s/%(playlist_index)s - %(title)s.%(ext)s' https://www.udemy.com/java-tutorial/
 
 # Download entire series season keeping each series and each season in separate directory under C:/MyVideos
 $ youtube-dl -o "C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode_number)s - %(episode)s.%(ext)s" http://videomore.ru/kino_v_detalayah/5_sezon/367617
@@ -603,7 +603,7 @@ The general syntax for format selection is `--format FORMAT` or shorter `-f FORM
 
 **tl;dr:** [navigate me to examples](#format-selection-examples).
 
-The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific. 
+The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific.
 
 You can also use a file extension (currently `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm` are supported) to download best quality format of particular file extension served as a single file, e.g. `-f webm` will download best quality format with `webm` extension served as a single file.
 
@@ -682,7 +682,7 @@ Videos can be filtered by their upload date using the options `--date`, `--dateb
 
  - Absolute dates: Dates in the format `YYYYMMDD`.
  - Relative dates: Dates in the format `(now|today)[+-][0-9](day|week|month|year)(s)?`
- 
+
 Examples:
 
 ```bash
@@ -1026,7 +1026,7 @@ Say you have some source dictionary `meta` that you've fetched as JSON with HTTP
 ```python
 meta = self._download_json(url, video_id)
 ```
-    
+
 Assume at this point `meta`'s layout is:
 
 ```python
@@ -1049,7 +1049,7 @@ and not like:
 description = meta['summary']  # incorrect
 ```
 
-The latter will break extraction process with `KeyError` if `summary` disappears from `meta` at some time later but with former approach extraction will just go ahead with `description` set to `None` that is perfectly fine (remember `None` is equivalent for absence of data). 
+The latter will break extraction process with `KeyError` if `summary` disappears from `meta` at some time later but with former approach extraction will just go ahead with `description` set to `None` that is perfectly fine (remember `None` is equivalent for absence of data).
 
 Similarly, you should pass `fatal=False` when extracting optional data from a webpage with `_search_regex`, `_html_search_regex` or similar methods, for instance:
 
@@ -1070,7 +1070,7 @@ description = self._search_regex(
 ```
 
 On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that are known to may or may not be present.
- 
+
 ### Provide fallbacks
 
 When extracting metadata try to provide several scenarios for that. For example if `title` is present in several places/sources try extracting from at least some of them. This would make it more future-proof in case some of the sources became unavailable.
@@ -1096,7 +1096,7 @@ This code will try to extract from `meta` first and if it fails it will try extr
 ### Make regular expressions flexible
 
 When using regular expressions try to write them fuzzy and flexible.
- 
+
 #### Example
 
 Say you need to extract `title` from the following HTML code:
@@ -1120,7 +1120,7 @@ title = self._search_regex(
     webpage, 'title', group='title')
 ```
 
-Note how you tolerate potential changes in `style` attribute's value or switch from using double quotes to single for `class` attribute: 
+Note how you tolerate potential changes in `style` attribute's value or switch from using double quotes to single for `class` attribute:
 
 The code definitely should not look like:
 
