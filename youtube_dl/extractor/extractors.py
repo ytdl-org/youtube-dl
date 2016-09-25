@@ -612,13 +612,14 @@ from .nowtv import (
 )
 from .noz import NozIE
 from .npo import (
+    AndereTijdenIE,
     NPOIE,
     NPOLiveIE,
     NPORadioIE,
     NPORadioFragmentIE,
     SchoolTVIE,
     VPROIE,
-    WNLIE
+    WNLIE,
 )
 from .npr import NprIE
 from .nrk import (
