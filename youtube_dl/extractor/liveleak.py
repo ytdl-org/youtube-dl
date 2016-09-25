@@ -100,7 +100,7 @@ class LiveLeakIE(InfoExtractor):
             else:
                 # Maybe an embed?
                 embed_url = self._search_regex(
-                    r'<iframe[^>]+src="((?:http://www.prochan.com/embed\?)|(?:http://www.youtube.com/embed)[^"]+)"',
+                    r'<iframe[^>]+src="((?:(?:http://www.prochan.com/embed\?)|(?:http://www.youtube.com/embed))[^"]+)"',
                     webpage, 'embed URL')
                 return {
                     '_type': 'url_transparent',
