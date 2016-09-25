@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     fix_xml_ampersands,
+    orderedSet,
     parse_duration,
     qualities,
     strip_jsonp,
@@ -446,7 +447,7 @@ class NPOPlaylistBaseIE(NPOIE):
 
         entries = [
             self.url_result('npo:%s' % video_id if not video_id.startswith('http') else video_id)
-            for video_id in re.findall(self._PLAYLIST_ENTRY_RE, webpage)
+            for video_id in orderedSet(re.findall(self._PLAYLIST_ENTRY_RE, webpage))
         ]
 
         playlist_title = self._html_search_regex(
@@ -507,4 +508,19 @@ class WNLIE(NPOPlaylistBaseIE):
             'title': 'Vandaag de Dag 6 mei',
         },
         'playlist_count': 4,
+    }]
+
+
+class AndereTijdenIE(NPOPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?anderetijden\.nl/programma/(?:[^/]+/)+(?P<id>[^/?#&]+)'
+    _PLAYLIST_TITLE_RE = r'(?s)<h1[^>]+class=["\'].*?\bpage-title\b.*?["\'][^>]*>(.+?)</h1>'
+    _PLAYLIST_ENTRY_RE = r'<figure[^>]+class=["\']episode-container episode-page["\'][^>]+data-prid=["\'](.+?)["\']'
+
+    _TESTS = [{
+        'url': 'http://anderetijden.nl/programma/1/Andere-Tijden/aflevering/676/Duitse-soldaten-over-de-Slag-bij-Arnhem',
+        'info_dict': {
+            'id': 'Duitse-soldaten-over-de-Slag-bij-Arnhem',
+            'title': 'Duitse soldaten over de Slag bij Arnhem',
+        },
+        'playlist_count': 3,
     }]
