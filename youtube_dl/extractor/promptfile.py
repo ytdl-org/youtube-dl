@@ -15,12 +15,12 @@ from ..utils import (
 class PromptFileIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?promptfile\.com/l/(?P<id>[0-9A-Z\-]+)'
     _TEST = {
-        'url': 'http://www.promptfile.com/l/D21B4746E9-F01462F0FF',
-        'md5': 'd1451b6302da7215485837aaea882c4c',
+        'url': 'http://www.promptfile.com/l/86D1CE8462-576CAAE416',
+        'md5': '2125298091532905922013119cc3d2e9',
         'info_dict': {
-            'id': 'D21B4746E9-F01462F0FF',
+            'id': '86D1CE8462-576CAAE416',
             'ext': 'mp4',
-            'title': 'Birds.mp4',
+            'title': 'oceans.mp4',
             'thumbnail': 're:^https?://.*\.jpg$',
         }
     }
@@ -33,7 +33,12 @@ class PromptFileIE(InfoExtractor):
             raise ExtractorError('Video %s does not exist' % video_id,
                                  expected=True)
 
+        chash_pattern = r'\$\("#chash"\)\.val\("(.+)"\+\$\("#chash"\)'
+        chash = self._search_regex(chash_pattern, webpage, "chash")
         fields = self._hidden_inputs(webpage)
+        k = fields.keys()[0]
+        fields[k] = chash + fields[k]
+
         post = urlencode_postdata(fields)
         req = sanitized_Request(url, post)
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
