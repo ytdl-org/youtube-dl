@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .jwplatform import JWPlatformBaseIE
+from ..utils import remove_end
 
 
 class ThisAVIE(JWPlatformBaseIE):
@@ -35,7 +36,9 @@ class ThisAVIE(JWPlatformBaseIE):
 
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<h1>([^<]*)</h1>', webpage, 'title')
+        title = remove_end(self._html_search_regex(
+            r'<title>([^<]+)</title>', webpage, 'title'),
+            ' - 視頻 - ThisAV.com-世界第一中文成人娛樂網站')
         video_url = self._html_search_regex(
             r"addVariable\('file','([^']+)'\);", webpage, 'video url', default=None)
         if video_url:

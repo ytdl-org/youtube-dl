@@ -1,14 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+from .adobepass import AdobePassIE
 from ..utils import (
     smuggle_url,
     update_url_query,
 )
 
 
-class FOXIE(InfoExtractor):
+class FOXIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?fox\.com/watch/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.fox.com/watch/255180355939/7684182528',
@@ -30,14 +30,26 @@ class FOXIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        release_url = self._parse_json(self._search_regex(
-            r'"fox_pdk_player"\s*:\s*({[^}]+?})', webpage, 'fox_pdk_player'),
-            video_id)['release_url']
+        settings = self._parse_json(self._search_regex(
+            r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
+            webpage, 'drupal settings'), video_id)
+        fox_pdk_player = settings['fox_pdk_player']
+        release_url = fox_pdk_player['release_url']
+        query = {
+            'mbr': 'true',
+            'switch': 'http'
+        }
+        if fox_pdk_player.get('access') == 'locked':
+            ap_p = settings['foxAdobePassProvider']
+            rating = ap_p.get('videoRating')
+            if rating == 'n/a':
+                rating = None
+            resource = self._get_mvpd_resource('fbc-fox', None, ap_p['videoGUID'], rating)
+            query['auth'] = self._extract_mvpd_auth(url, video_id, 'fbc-fox', resource)
 
         return {
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
-            'url': smuggle_url(update_url_query(
-                release_url, {'switch': 'http'}), {'force_smil_url': True}),
+            'url': smuggle_url(update_url_query(release_url, query), {'force_smil_url': True}),
             'id': video_id,
         }

@@ -516,6 +516,7 @@ from .movingimage import MovingImageIE
 from .msn import MSNIE
 from .mtv import (
     MTVIE,
+    MTVVideoIE,
     MTVServicesEmbeddedIE,
     MTVDEIE,
 )
@@ -1069,6 +1070,7 @@ from .vporn import VpornIE
 from .vrt import VRTIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
+from .vyborymos import VyboryMosIE
 from .walla import WallaIE
 from .washingtonpost import (
     WashingtonPostIE,

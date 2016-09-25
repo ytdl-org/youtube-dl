@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import random
+import re
 import math
 
 from .common import InfoExtractor
@@ -14,6 +15,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    orderedSet,
     str_or_none,
 )
 
@@ -62,6 +64,9 @@ class GloboIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://canaloff.globo.com/programas/desejar-profundo/videos/4518560.html',
+        'only_matching': True,
+    }, {
+        'url': 'globo:3607726',
         'only_matching': True,
     }]
 
@@ -396,7 +401,7 @@ class GloboIE(InfoExtractor):
 
 
 class GloboArticleIE(InfoExtractor):
-    _VALID_URL = r'https?://.+?\.globo\.com/(?:[^/]+/)*(?P<id>[^/]+)(?:\.html)?'
+    _VALID_URL = r'https?://.+?\.globo\.com/(?:[^/]+/)*(?P<id>[^/.]+)(?:\.html)?'
 
     _VIDEOID_REGEXES = [
         r'\bdata-video-id=["\'](\d{7,})',
@@ -408,15 +413,20 @@ class GloboArticleIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://g1.globo.com/jornal-nacional/noticia/2014/09/novidade-na-fiscalizacao-de-bagagem-pela-receita-provoca-discussoes.html',
-        'md5': '307fdeae4390ccfe6ba1aa198cf6e72b',
         'info_dict': {
-            'id': '3652183',
-            'ext': 'mp4',
-            'title': 'Receita Federal explica como vai fiscalizar bagagens de quem retorna ao Brasil de avião',
-            'duration': 110.711,
-            'uploader': 'Rede Globo',
-            'uploader_id': '196',
-        }
+            'id': 'novidade-na-fiscalizacao-de-bagagem-pela-receita-provoca-discussoes',
+            'title': 'Novidade na fiscalização de bagagem pela Receita provoca discussões',
+            'description': 'md5:c3c4b4d4c30c32fce460040b1ac46b12',
+        },
+        'playlist_count': 1,
+    }, {
+        'url': 'http://g1.globo.com/pr/parana/noticia/2016/09/mpf-denuncia-lula-marisa-e-mais-seis-na-operacao-lava-jato.html',
+        'info_dict': {
+            'id': 'mpf-denuncia-lula-marisa-e-mais-seis-na-operacao-lava-jato',
+            'title': "Lula era o 'comandante máximo' do esquema da Lava Jato, diz MPF",
+            'description': 'md5:8aa7cc8beda4dc71cc8553e00b77c54c',
+        },
+        'playlist_count': 6,
     }, {
         'url': 'http://gq.globo.com/Prazeres/Poder/noticia/2015/10/all-o-desafio-assista-ao-segundo-capitulo-da-serie.html',
         'only_matching': True,
@@ -435,5 +445,12 @@ class GloboArticleIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_id = self._search_regex(self._VIDEOID_REGEXES, webpage, 'video id')
-        return self.url_result('globo:%s' % video_id, 'Globo')
+        video_ids = []
+        for video_regex in self._VIDEOID_REGEXES:
+            video_ids.extend(re.findall(video_regex, webpage))
+        entries = [
+            self.url_result('globo:%s' % video_id, GloboIE.ie_key())
+            for video_id in orderedSet(video_ids)]
+        title = self._og_search_title(webpage, fatal=False)
+        description = self._html_search_meta('description', webpage)
+        return self.playlist_result(entries, display_id, title, description)

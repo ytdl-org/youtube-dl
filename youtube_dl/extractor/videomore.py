@@ -84,7 +84,7 @@ class VideomoreIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<object[^>]+data=(["\'])https?://videomore.ru/player\.swf\?.*config=(?P<url>https?://videomore\.ru/(?:[^/]+/)+\d+\.xml).*\1',
+            r'<object[^>]+data=(["\'])https?://videomore\.ru/player\.swf\?.*config=(?P<url>https?://videomore\.ru/(?:[^/]+/)+\d+\.xml).*\1',
             webpage)
         if mobj:
             return mobj.group('url')

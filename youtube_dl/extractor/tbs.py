@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .turner import TurnerBaseIE
-from ..utils import (
-    extract_attributes,
-    ExtractorError,
-)
+from ..utils import extract_attributes
 
 
 class TBSIE(TurnerBaseIE):
@@ -37,10 +34,6 @@ class TBSIE(TurnerBaseIE):
         site = domain[:3]
         webpage = self._download_webpage(url, display_id)
         video_params = extract_attributes(self._search_regex(r'(<[^>]+id="page-video"[^>]*>)', webpage, 'video params'))
-        if video_params.get('isAuthRequired') == 'true':
-            raise ExtractorError(
-                'This video is only available via cable service provider subscription that'
-                ' is not currently supported.', expected=True)
         query = None
         clip_id = video_params.get('clipid')
         if clip_id:
@@ -56,4 +49,8 @@ class TBSIE(TurnerBaseIE):
                     'media_src': 'http://androidhls-secure.cdn.turner.com/%s/big' % site,
                     'tokenizer_src': 'http://www.%s.com/video/processors/services/token_ipadAdobe.do' % domain,
                 },
+            }, {
+                'url': url,
+                'site_name': site.upper(),
+                'auth_required': video_params.get('isAuthRequired') != 'false',
             })

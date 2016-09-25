@@ -388,6 +388,8 @@
  - **mailru**: Видео@Mail.Ru
  - **MakersChannel**
  - **MakerTV**
+ - **mangomolo:live**
+ - **mangomolo:video**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
@@ -849,6 +851,7 @@
  - **VRT**
  - **vube**: Vube.com
  - **VuClip**
+ - **VyboryMos**
  - **Walla**
  - **washingtonpost**
  - **washingtonpost:article**
