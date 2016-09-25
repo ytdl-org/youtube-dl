@@ -123,6 +123,8 @@ DATE_FORMATS = (
     '%d %b %Y',
     '%B %d %Y',
     '%b %d %Y',
+    '%b %d %Y at %H:%M',
+    '%b %d %Y at %H:%M:%S',
     '%b %dst %Y %I:%M',
     '%b %dnd %Y %I:%M',
     '%b %dth %Y %I:%M',

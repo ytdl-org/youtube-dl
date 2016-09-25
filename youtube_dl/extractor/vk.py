@@ -328,19 +328,12 @@ class VKIE(VKBaseIE):
         data = json.loads(data_json)
 
         # Extract upload date
-        upload_date = None
-        mobj = re.search(r'id="mv_date(?:_views)?_wrap"[^>]*>([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
-        if mobj is not None:
-            mobj.group(1) + ' ' + mobj.group(2)
-            upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
+        upload_date = unified_strdate(self._html_search_regex(
+            r'class="mv_info_date[^>]*>([^<]*)<', info_page, 'upload date', default=None))
 
-        view_count = None
-        views = self._html_search_regex(
-            r'"mv_views_count_number"[^>]*>(.+?\bviews?)<',
-            info_page, 'view count', default=None)
-        if views:
-            view_count = str_to_int(self._search_regex(
-                r'([\d,.]+)', views, 'view count', fatal=False))
+        view_count = str_to_int(self._html_search_regex(
+            r'class="mv_views_count[^>]*>([\d,.]+)',
+            info_page, 'view count', default=None))
 
         formats = []
         for k, v in data.items():
