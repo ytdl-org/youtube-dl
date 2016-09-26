@@ -105,20 +105,20 @@ class KalturaIE(InfoExtractor):
                     kWidget\.(?:thumb)?[Ee]mbed\(
                     \{.*?
                         (?P<q1>['\"])wid(?P=q1)\s*:\s*
-                        (?P<q2>['\"])_?(?P<partner_id>[^'\"]+)(?P=q2),.*?
+                        (?P<q2>['\"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
                         (?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['\"])(?P<id>[^'\"]+)(?P=q4),
+                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4),
                 """, webpage) or
             re.search(
                 r'''(?xs)
                     (?P<q1>["\'])
-                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?
+                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/(?:(?!(?P=q1)).)*(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
                         entry_?[Ii]d|
                         (?P<q2>["\'])entry_?[Ii]d(?P=q2)
                     )\s*:\s*
-                    (?P<q3>["\'])(?P<id>.+?)(?P=q3)
+                    (?P<q3>["\'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage))
         if mobj:
             embed_info = mobj.groupdict()
