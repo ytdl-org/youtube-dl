@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     ExtractorError,
-    sanitized_Request,
     urlencode_postdata,
 )
 
@@ -33,20 +32,23 @@ class PromptFileIE(InfoExtractor):
             raise ExtractorError('Video %s does not exist' % video_id,
                                  expected=True)
 
-        chash_pattern = r'\$\("#chash"\)\.val\("(.+)"\+\$\("#chash"\)'
-        chash = self._html_search_regex(chash_pattern, webpage, "chash")
+        chash = self._search_regex(
+            r'val\("([^"]*)"\s*\+\s*\$\("#chash"\)', webpage, 'chash')
         fields = self._hidden_inputs(webpage)
-        k = list(fields)[0]
-        fields[k] = chash + fields[k]
+        keys = list(fields.keys())
+        chash_key = keys[0] if len(keys) == 1 else next(
+            key for key in keys if key.startswith('cha'))
+        fields[chash_key] = chash + fields[chash_key]
 
-        post = urlencode_postdata(fields)
-        req = sanitized_Request(url, post)
-        req.add_header('Content-type', 'application/x-www-form-urlencoded')
         webpage = self._download_webpage(
-            req, video_id, 'Downloading video page')
+            url, video_id, 'Downloading video page',
+            data=urlencode_postdata(fields),
+            headers={'Content-type': 'application/x-www-form-urlencoded'})
 
-        url_pattern = r'<a href="(http://www\.promptfile\.com/file/[^"]+)'
-        url = self._html_search_regex(url_pattern, webpage, 'URL')
+        video_url = self._search_regex(
+            (r'<a[^>]+href=(["\'])(?P<url>(?:(?!\1).)+)\1[^>]*>\s*Download File',
+             r'<a[^>]+href=(["\'])(?P<url>https?://(?:www\.)?promptfile\.com/file/(?:(?!\1).)+)\1'),
+            webpage, 'video url', group='url')
         title = self._html_search_regex(
             r'<span.+title="([^"]+)">', webpage, 'title')
         thumbnail = self._html_search_regex(
@@ -55,7 +57,7 @@ class PromptFileIE(InfoExtractor):
 
         formats = [{
             'format_id': 'sd',
-            'url': url,
+            'url': video_url,
             'ext': determine_ext(title),
         }]
         self._sort_formats(formats)
