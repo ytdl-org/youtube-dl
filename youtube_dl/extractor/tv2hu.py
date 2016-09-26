@@ -27,34 +27,10 @@ class TV2HUIE(InfoExtractor):
         }
     }, {
         'url': 'http://tv2.hu/ezek_megorultek/teljes_adasok/217677_ezek-megorultek---1.-adas-2.-resz.html',
-        'info_dict': {
-            'id': '217677',
-            'ext': 'mp4',
-            'title': 'Ezek megőrültek! - 1. adás 2. rész',
-            'upload_id': '220290',
-            'upload_date': '20160826',
-            'uploader': 'ezek_megorultek',
-            'thumbnail': 're:^https?://.*\.jpg$'
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        }
+        'only_matching': True
     }, {
         'url': 'http://tv2.hu/musoraink/aktiv/aktiv_teljes_adas/217963_aktiv-teljes-adas---2016.08.30..html',
-        'info_dict': {
-            'id': '217963',
-            'ext': 'mp4',
-            'title': 'AKTÍV / Aktív teljes adás - 2016.08.30. / tv2.hu',
-            'upload_id': '220700',
-            'upload_date': '20160830',
-            'uploader': 'aktiv',
-            'thumbnail': 're:^https?://.*\.jpg$'
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        }
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
@@ -73,20 +49,20 @@ class TV2HUIE(InfoExtractor):
             manifest_url, video_id, 'mp4', entry_protocol='m3u8_native')
 
         for i in range(len(json_data['bitrates']['mp4'])):
+            quality = json_data.get('mp4Labels')[i]
+
             if json_data['mp4Labels'][i].lower() == 'auto':
                 continue
-
-            quality = str_to_int(json_data['mp4Labels'][i][:-1])
 
             formats.append({
                 'protocol': 'http',
                 'url': json_data['bitrates']['mp4'][i],
-                'height': quality,
-                'width': quality/9*16,
+                'height': int(quality[:-1]),
+                'width': int(quality[:-1])/9*16,
                 'ext': 'mp4',
-                'format_id': json_data['mp4Labels'][i],
+                'format_id': quality,
                 'format_note': 'HTTP',
-                'preference': str_to_int(json_data['mp4Labels'][i][:-1])
+                'preference': int(quality[:-1])
             })
 
         self._sort_formats(formats)
