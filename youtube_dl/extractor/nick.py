@@ -69,7 +69,7 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.de'
-    _VALID_URL = r'https?://(?:www\.)?(?:nick\.de|nickelodeon\.nl)/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:nick\.de|nickelodeon\.(?:nl|at))/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
         'only_matching': True,
@@ -89,5 +89,31 @@ class NickDeIE(MTVServicesInfoExtractor):
         mrss_url = update_url_query(self._search_regex(
             r'data-mrss=(["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url'),
             {'siteKey': 'nick.de'})
+
+        return self._get_videos_info_from_url(mrss_url, video_id)
+
+
+class NickNightAtIE(MTVServicesInfoExtractor):
+    IE_NAME = 'nicknight.de'
+    _VALID_URL = r'https?://(?:www\.)nicknight\.(?:de|at|tv)/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'http://www.nicknight.at/shows/977-awkward/videos/85987-nimmer-beste-freunde',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nicknight.at/shows/977-awkward',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nicknight.at/shows/1900-faking-it',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        mrss_url = update_url_query(self._search_regex(
+            r'mrss: (["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url'),
+            {'siteKey': 'nicknight.de'})
 
         return self._get_videos_info_from_url(mrss_url, video_id)
