@@ -51,7 +51,7 @@ class TV2HUIE(InfoExtractor):
         for i in range(len(json_data['bitrates']['mp4'])):
             quality = json_data.get('mp4Labels')[i]
 
-            if json_data['mp4Labels'][i].lower() == 'auto':
+            if quality.lower() == 'auto':
                 continue
 
             formats.append({
