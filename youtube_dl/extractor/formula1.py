@@ -11,8 +11,12 @@ class Formula1IE(InfoExtractor):
         'md5': '8c79e54be72078b26b89e0e111c0502b',
         'info_dict': {
             'id': 'JvYXJpMzE6pArfHWm5ARp5AiUmD-gibV',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Race highlights - Spain 2016',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
         'add_ie': ['Ooyala'],
     }, {
