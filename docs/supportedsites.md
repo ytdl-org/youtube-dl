@@ -40,6 +40,7 @@
  - **Allocine**
  - **AlphaPorno**
  - **AMCNetworks**
+ - **anderetijden**: npo.nl and ntr.nl
  - **AnimeOnDemand**
  - **anitube.se**
  - **AnySex**
@@ -127,8 +128,8 @@
  - **CBS**
  - **CBSInteractive**
  - **CBSLocal**
- - **CBSNews**: CBS News
- - **CBSNewsLiveVideo**: CBS News Live Videos
+ - **cbsnews**: CBS News
+ - **cbsnews:livevideo**: CBS News Live Videos
  - **CBSSports**
  - **CCTV**
  - **CDA**
@@ -424,8 +425,9 @@
  - **MPORA**
  - **MSN**
  - **mtg**: MTG services
- - **MTV**
+ - **mtv**
  - **mtv.de**
+ - **mtv:video**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
  - **MusicPlayOn**
@@ -865,7 +867,7 @@
  - **wholecloud**: WholeCloud
  - **Wimp**
  - **Wistia**
- - **WNL**
+ - **wnl**: npo.nl and ntr.nl
  - **WorldStarHipHop**
  - **wrzuta.pl**
  - **wrzuta.pl:playlist**
