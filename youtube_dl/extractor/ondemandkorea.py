@@ -47,7 +47,7 @@ class OnDemandKoreaIE(InfoExtractor):
         subs = re.findall(r'file:\s\'(?P<file>[^\']+\.vtt)\',\s+label:\s+\'(?P<lang>[^\']+)\'', webpage)
         subtitles = {}
         for sub in subs:
-            subtitles[sub[1]] = [{'url': 'http://www.ondemandkorea.com' + sub[0], 'ext': 'vtt'}]
+            subtitles[sub[1]] = [{'url': 'http://www.ondemandkorea.com' + sub[0], 'ext': sub[0][-3:]}]
 
         return {
             'id': video_id,
