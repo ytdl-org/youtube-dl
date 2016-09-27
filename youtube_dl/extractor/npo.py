@@ -497,6 +497,7 @@ class VPROIE(NPOPlaylistBaseIE):
 
 
 class WNLIE(NPOPlaylistBaseIE):
+    IE_NAME = 'wnl'
     _VALID_URL = r'https?://(?:www\.)?omroepwnl\.nl/video/detail/(?P<id>[^/]+)__\d+'
     _PLAYLIST_TITLE_RE = r'(?s)<h1[^>]+class="subject"[^>]*>(.+?)</h1>'
     _PLAYLIST_ENTRY_RE = r'<a[^>]+href="([^"]+)"[^>]+class="js-mid"[^>]*>Deel \d+'
@@ -512,6 +513,7 @@ class WNLIE(NPOPlaylistBaseIE):
 
 
 class AndereTijdenIE(NPOPlaylistBaseIE):
+    IE_NAME = 'anderetijden'
     _VALID_URL = r'https?://(?:www\.)?anderetijden\.nl/programma/(?:[^/]+/)+(?P<id>[^/?#&]+)'
     _PLAYLIST_TITLE_RE = r'(?s)<h1[^>]+class=["\'].*?\bpage-title\b.*?["\'][^>]*>(.+?)</h1>'
     _PLAYLIST_ENTRY_RE = r'<figure[^>]+class=["\']episode-container episode-page["\'][^>]+data-prid=["\'](.+?)["\']'
