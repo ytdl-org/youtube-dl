@@ -1,9 +1,24 @@
 vesion <unreleased>
 
 Core
++ Add hdcore query parameter to akamai f4m formats
++ Delegate HLS live streams downloading to ffmpeg
 + Improved support for HTML5 subtitles
 
 Extractors
++ [vk] Add support for dailymotion embeds (#10661)
+* [einthusan] Fix extraction (#10714)
+* [promptfile] Fix extraction (#10634)
+* [kaltura] Speed up embed regular expressions (#10764)
++ [npo] Add support for anderetijden.nl (#10754)
++ [prosiebensat1] Add support for advopedia sites
+* [mwave] Relax URL regular expression (#10735, #10748)
+* [prosiebensat1] Fix playlist support (#10745)
++ [prosiebensat1] Add support for sat1gold sites (#10745)
++ [cbsnews:livevideo] Fix extraction and extract m3u8 formats
++ [brightcove:new] Add support for live streams
+* [soundcloud] Generalize playlist entries extraction (#10733)
++ [mtv] Add support for new URL schema (#8169, #9808)
 * [einthusan] Fix extraction (#10714)
 + [twitter] Support Periscope embeds (#10737)
 + [openload] Support subtitles (#10625)
