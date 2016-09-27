@@ -7,7 +7,6 @@ Core
 
 Extractors
 + [vk] Add support for dailymotion embeds (#10661)
-* [einthusan] Fix extraction (#10714)
 * [promptfile] Fix extraction (#10634)
 * [kaltura] Speed up embed regular expressions (#10764)
 + [npo] Add support for anderetijden.nl (#10754)
