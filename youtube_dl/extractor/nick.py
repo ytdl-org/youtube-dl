@@ -112,8 +112,7 @@ class NickNightAtIE(MTVServicesInfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        mrss_url = update_url_query(self._search_regex(
-            r'mrss: (["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url'),
-            {'siteKey': 'nicknight.de'})
+        mrss_url = self._search_regex(
+            r'mrss: (["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url')
 
         return self._get_videos_info_from_url(mrss_url, video_id)
