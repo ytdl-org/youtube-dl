@@ -34,6 +34,9 @@ class OnDemandKoreaIE(InfoExtractor):
         if 'msg_block_01.png' in webpage:
             raise ExtractorError('This content is not available in your region.', expected=True)
         
+        if 'This video is only available to ODK PLUS members.' in webpage:
+            raise ExtractorError('This video is only available to ODK PLUS members.', expected=True)
+
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
 
