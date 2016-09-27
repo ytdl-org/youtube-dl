@@ -87,7 +87,7 @@ class PeriscopeIE(PeriscopeBaseIE):
                 'ext': 'flv' if format_id == 'rtmp' else 'mp4',
             }
             if format_id != 'rtmp':
-                f['protocol'] = 'm3u8_native' if state == 'ended' else 'm3u8'
+                f['protocol'] = 'm3u8_native' if state in ('ended', 'timed_out') else 'm3u8'
             formats.append(f)
         self._sort_formats(formats)
 
