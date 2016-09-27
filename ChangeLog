@@ -4,6 +4,7 @@ Core
 + Improved support for HTML5 subtitles
 
 Extractors
+* [einthusan] Fix extraction (#10714)
 + [twitter] Support Periscope embeds (#10737)
 + [openload] Support subtitles (#10625)
 
