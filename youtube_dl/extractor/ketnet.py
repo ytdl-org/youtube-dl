@@ -21,6 +21,10 @@ class KetnetIE(InfoExtractor):
     }, {
         'url': 'https://www.ketnet.be/achter-de-schermen/sien-repeteert-voor-stars-for-life',
         'only_matching': True,
+    }, {
+        # mzsource, geo restricted to Belgium
+        'url': 'https://www.ketnet.be/kijken/nachtwacht/de-bermadoe',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -36,9 +40,25 @@ class KetnetIE(InfoExtractor):
 
         title = config['title']
 
-        formats = self._extract_m3u8_formats(
-            config['source']['hls'], video_id, 'mp4',
-            entry_protocol='m3u8_native', m3u8_id='hls')
+        formats = []
+        for source_key in ('', 'mz'):
+            source = config.get('%ssource' % source_key)
+            if not isinstance(source, dict):
+                continue
+            for format_id, format_url in source.items():
+                if format_id == 'hls':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id=format_id,
+                        fatal=False))
+                elif format_id == 'hds':
+                    formats.extend(self._extract_f4m_formats(
+                        format_url, video_id, f4m_id=format_id, fatal=False))
+                else:
+                    formats.append({
+                        'url': format_url,
+                        'format_id': format_id,
+                    })
         self._sort_formats(formats)
 
         return {
