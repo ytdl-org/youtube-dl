@@ -59,7 +59,7 @@ class LimelightBaseIE(InfoExtractor):
                     format_id = 'rtmp'
                     if stream.get('videoBitRate'):
                         format_id += '-%d' % int_or_none(stream['videoBitRate'])
-                    http_url = 'http://%s/%s' % (rtmp.group('host').replace('csl.', 'cpl.'), rtmp.group('playpath')[4:])
+                    http_url = 'http://cpl.delvenetworks.com/' + rtmp.group('playpath')[4:]
                     urls.append(http_url)
                     http_fmt = fmt.copy()
                     http_fmt.update({
