@@ -29,6 +29,7 @@ class InstagramIE(InfoExtractor):
             'uploader': 'Naomi Leonor Phan-Quang',
             'like_count': int,
             'comment_count': int,
+            'comments': list,
         },
     }, {
         # missing description
@@ -44,6 +45,7 @@ class InstagramIE(InfoExtractor):
             'uploader': 'Britney Spears',
             'like_count': int,
             'comment_count': int,
+            'comments': list,
         },
         'params': {
             'skip_download': True,
@@ -101,6 +103,14 @@ class InstagramIE(InfoExtractor):
                 uploader_id = media.get('owner', {}).get('username')
                 like_count = int_or_none(media.get('likes', {}).get('count'))
                 comment_count = int_or_none(media.get('comments', {}).get('count'))
+                comments = [{
+                    'author': comment.get('user', {}).get('username'),
+                    'author_id': comment.get('user', {}).get('id'),
+                    'id': comment.get('id'),
+                    'text': comment.get('text'),
+                    'timestamp': int_or_none(comment.get('created_at')),
+                } for comment in media.get('comments', {}).get('nodes', [])
+                if comment.get('text')]
 
         if not video_url:
             video_url = self._og_search_video_url(webpage, secure=False)
@@ -131,6 +141,7 @@ class InstagramIE(InfoExtractor):
             'uploader': uploader,
             'like_count': like_count,
             'comment_count': comment_count,
+            'comments': comments,
         }
 
 
