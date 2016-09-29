@@ -283,12 +283,6 @@ def _real_main(argv=None):
             'key': 'ExecAfterDownload',
             'exec_cmd': opts.exec_cmd,
         })
-    if opts.xattr_set_filesize:
-        try:
-            import xattr
-            xattr  # Confuse flake8
-        except ImportError:
-            parser.error('setting filesize xattr requested but python-xattr is not available')
     external_downloader_args = None
     if opts.external_downloader_args:
         external_downloader_args = compat_shlex_split(opts.external_downloader_args)
