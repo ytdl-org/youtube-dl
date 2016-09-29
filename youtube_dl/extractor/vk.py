@@ -226,7 +226,7 @@ class VKIE(VKBaseIE):
             },
             'params': {
                 'skip_download': True,
-            }
+            },
         },
         {
             # video key is extra_data not url\d+
@@ -239,6 +239,18 @@ class VKIE(VKBaseIE):
                 'uploader': 'THE WAY SHOW | 17 апреля',
                 'upload_date': '20160207',
                 'view_count': int,
+            },
+        },
+        {
+            # finished live stream, live_mp4
+            'url': 'https://vk.com/videos-387766?z=video-387766_456242764%2Fpl_-387766_-2',
+            'md5': '90d22d051fccbbe9becfccc615be6791',
+            'info_dict': {
+                'id': '456242764',
+                'ext': 'mp4',
+                'title': 'ИгроМир 2016 — день 1',
+                'uploader': 'Игромания',
+                'duration': 5239,
             },
         },
         {
@@ -366,7 +378,10 @@ class VKIE(VKBaseIE):
 
         formats = []
         for k, v in data.items():
-            if not k.startswith('url') and not k.startswith('cache') and k != 'extra_data' or not v:
+            if (not k.startswith('url') and not k.startswith('cache')
+                    and k not in ('extra_data', 'live_mp4')):
+                continue
+            if not isinstance(v, compat_str) or not v.startswith('http'):
                 continue
             height = int_or_none(self._search_regex(
                 r'^(?:url|cache)(\d+)', k, 'height', default=None))
