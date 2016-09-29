@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
-
-import re
 
 from .common import InfoExtractor
 
@@ -20,16 +18,15 @@ class CriterionIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         final_url = self._search_regex(
-            r'so.addVariable\("videoURL", "(.+?)"\)\;', webpage, 'video url')
+            r'so\.addVariable\("videoURL", "(.+?)"\)\;', webpage, 'video url')
         title = self._og_search_title(webpage)
         description = self._html_search_meta('description', webpage)
         thumbnail = self._search_regex(
-            r'so.addVariable\("thumbnailURL", "(.+?)"\)\;',
+            r'so\.addVariable\("thumbnailURL", "(.+?)"\)\;',
             webpage, 'thumbnail url')
 
         return {

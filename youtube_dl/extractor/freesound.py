@@ -20,8 +20,8 @@ class FreesoundIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        music_id = mobj.group('id')
+        music_id = self._match_id(url)
+
         webpage = self._download_webpage(url, music_id)
         title = self._html_search_regex(
             r'<div id="single_sample_header">.*?<a href="#">(.+?)</a>',

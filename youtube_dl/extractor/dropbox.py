@@ -26,8 +26,7 @@ class DropboxIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         fn = compat_urllib_parse_unquote(url_basename(url))
         title = os.path.splitext(fn)[0]
         video_url = re.sub(r'[?&]dl=0', '', url)

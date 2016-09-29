@@ -1,14 +1,11 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
-
-import re
 
 from .common import InfoExtractor
 
 
 class MoviezineIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?moviezine\.se/video/(?P<id>[^?#]+)'
-
     _TEST = {
         'url': 'http://www.moviezine.se/video/205866',
         'info_dict': {
@@ -21,8 +18,7 @@ class MoviezineIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         jsplayer = self._download_webpage('http://www.moviezine.se/api/player.js?video=%s' % video_id, video_id, 'Downloading js api player')

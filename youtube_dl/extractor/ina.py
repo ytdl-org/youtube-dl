@@ -1,7 +1,5 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
-
-import re
 
 from .common import InfoExtractor
 
@@ -19,9 +17,7 @@ class InaIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         mrss_url = 'http://player.ina.fr/notices/%s.mrss' % video_id
         info_doc = self._download_xml(mrss_url, video_id)
 

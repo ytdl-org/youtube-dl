@@ -8,7 +8,6 @@ from ..utils import qualities
 
 class UnistraIE(InfoExtractor):
     _VALID_URL = r'https?://utv\.unistra\.fr/(?:index|video)\.php\?id_video\=(?P<id>\d+)'
-
     _TESTS = [
         {
             'url': 'http://utv.unistra.fr/video.php?id_video=154',
@@ -33,9 +32,7 @@ class UnistraIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         files = set(re.findall(r'file\s*:\s*"(/[^"]+)"', webpage))
