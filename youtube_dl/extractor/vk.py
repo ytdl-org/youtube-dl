@@ -255,6 +255,7 @@ class VKIE(VKBaseIE):
                 'title': 'ИгроМир 2016 — день 1',
                 'uploader': 'Игромания',
                 'duration': 5239,
+                'view_count': int,
             },
         },
         {
@@ -376,14 +377,13 @@ class VKIE(VKBaseIE):
         if data.get('live') == 2:
             title = self._live_title(title)
 
-        # Extract upload date
         timestamp = unified_timestamp(self._html_search_regex(
-            r'class=["\']mv_info_date[^>]*>([^<]+)(?:<|from)', info_page,
+            r'class=["\']mv_info_date[^>]+>([^<]+)(?:<|from)', info_page,
             'upload date', fatal=False))
 
-        view_count = str_to_int(self._html_search_regex(
-            r'class="mv_views_count[^>]*>([\d,.]+)',
-            info_page, 'view count', default=None))
+        view_count = str_to_int(self._search_regex(
+            r'class=["\']mv_views_count[^>]+>\s*([\d,.]+)',
+            info_page, 'view count', fatal=False))
 
         formats = []
         for format_id, format_url in data.items():
