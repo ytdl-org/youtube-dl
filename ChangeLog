@@ -1,4 +1,10 @@
-vesion 2016.09.27
+version <unreleased>
+
+Extractors
++ [leeco] Recognize more Le Sports URLs (#10794)
+
+
+version 2016.09.27
 
 Core
 + Add hdcore query parameter to akamai f4m formats
