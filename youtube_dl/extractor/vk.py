@@ -254,6 +254,12 @@ class VKIE(VKBaseIE):
             },
         },
         {
+            # live stream, hls and rtmp links,most likely already finished live
+            # stream by the time you are reading this comment
+            'url': 'https://vk.com/video-140332_456239111',
+            'only_matching': True,
+        },
+        {
             # removed video, just testing that we match the pattern
             'url': 'http://vk.com/feed?z=video-43215063_166094326%2Fbb50cacd3177146d7a',
             'only_matching': True,
@@ -361,6 +367,11 @@ class VKIE(VKBaseIE):
         data_json = self._search_regex(r'var\s+vars\s*=\s*({.+?});', info_page, 'vars')
         data = json.loads(data_json)
 
+        title = unescapeHTML(data['md_title'])
+
+        if data.get('live') == 2:
+            title = self._live_title(title)
+
         # Extract upload date
         upload_date = None
         mobj = re.search(r'id="mv_date(?:_views)?_wrap"[^>]*>([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
@@ -377,25 +388,33 @@ class VKIE(VKBaseIE):
                 r'([\d,.]+)', views, 'view count', fatal=False))
 
         formats = []
-        for k, v in data.items():
-            if (not k.startswith('url') and not k.startswith('cache')
-                    and k not in ('extra_data', 'live_mp4')):
+        for format_id, format_url in data.items():
+            if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
-            if not isinstance(v, compat_str) or not v.startswith('http'):
-                continue
-            height = int_or_none(self._search_regex(
-                r'^(?:url|cache)(\d+)', k, 'height', default=None))
-            formats.append({
-                'format_id': k,
-                'url': v,
-                'height': height,
-            })
+            if format_id.startswith(('url', 'cache')) or format_id in ('extra_data', 'live_mp4'):
+                height = int_or_none(self._search_regex(
+                    r'^(?:url|cache)(\d+)', format_id, 'height', default=None))
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'height': height,
+                })
+            elif format_id == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id,
+                    fatal=False, live=True))
+            elif format_id == 'rtmp':
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'ext': 'flv',
+                })
         self._sort_formats(formats)
 
         return {
-            'id': compat_str(data['vid']),
+            'id': compat_str(data.get('vid') or video_id),
             'formats': formats,
-            'title': unescapeHTML(data['md_title']),
+            'title': title,
             'thumbnail': data.get('jpg'),
             'uploader': data.get('md_author'),
             'duration': data.get('duration'),
