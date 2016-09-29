@@ -31,7 +31,6 @@ from .aenetworks import (
     HistoryTopicIE,
 )
 from .afreecatv import AfreecaTVIE
-from .aftonbladet import AftonbladetIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
