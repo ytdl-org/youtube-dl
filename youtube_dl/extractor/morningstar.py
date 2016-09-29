@@ -1,9 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import (
+    ExtractorError,
+    get_element_by_id,
+)
 
 
 class MorningstarIE(InfoExtractor):
@@ -16,32 +18,30 @@ class MorningstarIE(InfoExtractor):
             'id': '615869',
             'ext': 'mp4',
             'title': 'Get Ahead of the Curve on 2013 Taxes',
-            'description': "Vanguard's Joel Dickson on managing higher tax rates for high-income earners and fund capital-gain distributions in 2013.",
+            'description': 'md5:0f71dedfd54bb3dca09e6474e2b624f7',
             'thumbnail': r're:^https?://.*m(?:orning)?star\.com/.+thumb\.jpg$'
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(
-            r'<h1 id="titleLink">(.*?)</h1>', webpage, 'title')
+        
+        title = get_element_by_id('titleLink', webpage)
+        if not title:
+            raise ExtractorError('Unable to extract title for %s.' % video_id)
+
         video_url = self._html_search_regex(
             r'<input type="hidden" id="hidVideoUrl" value="([^"]+)"',
             webpage, 'video URL')
         thumbnail = self._html_search_regex(
             r'<input type="hidden" id="hidSnapshot" value="([^"]+)"',
             webpage, 'thumbnail', fatal=False)
-        description = self._html_search_regex(
-            r'<div id="mstarDeck".*?>(.*?)</div>',
-            webpage, 'description', fatal=False)
 
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
             'thumbnail': thumbnail,
-            'description': description,
+            'description': get_element_by_id('mstarDeck', webpage),
         }
