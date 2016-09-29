@@ -124,8 +124,6 @@ DATE_FORMATS = (
     '%d %b %Y',
     '%B %d %Y',
     '%b %d %Y',
-    '%b %d %Y at %H:%M',
-    '%b %d %Y at %H:%M:%S',
     '%b %dst %Y %I:%M',
     '%b %dnd %Y %I:%M',
     '%b %dth %Y %I:%M',
@@ -144,6 +142,8 @@ DATE_FORMATS = (
     '%Y-%m-%dT%H:%M:%S',
     '%Y-%m-%dT%H:%M:%S.%f',
     '%Y-%m-%dT%H:%M',
+    '%b %d %Y at %H:%M',
+    '%b %d %Y at %H:%M:%S',
 )
 
 DATE_FORMATS_DAY_FIRST = list(DATE_FORMATS)
