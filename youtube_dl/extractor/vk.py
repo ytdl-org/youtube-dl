@@ -20,7 +20,7 @@ from ..utils import (
     remove_start,
     str_to_int,
     unescapeHTML,
-    unified_strdate,
+    unified_timestamp,
     urlencode_postdata,
 )
 from .dailymotion import DailymotionIE
@@ -106,6 +106,7 @@ class VKIE(VKBaseIE):
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
                 'duration': 195,
+                'timestamp': 1329060660,
                 'upload_date': '20120212',
                 'view_count': int,
             },
@@ -119,6 +120,7 @@ class VKIE(VKBaseIE):
                 'uploader': 'Tom Cruise',
                 'title': 'No name',
                 'duration': 9,
+                'timestamp': 1374374880,
                 'upload_date': '20130721',
                 'view_count': int,
             }
@@ -195,6 +197,7 @@ class VKIE(VKBaseIE):
                 'upload_date': '20150709',
                 'view_count': int,
             },
+            'skip': 'Removed',
         },
         {
             # youtube embed
@@ -237,6 +240,7 @@ class VKIE(VKBaseIE):
                 'ext': 'mp4',
                 'title': 'S-Dance, репетиции к The way show',
                 'uploader': 'THE WAY SHOW | 17 апреля',
+                'timestamp': 1454870100,
                 'upload_date': '20160207',
                 'view_count': int,
             },
@@ -373,8 +377,9 @@ class VKIE(VKBaseIE):
             title = self._live_title(title)
 
         # Extract upload date
-        upload_date = unified_strdate(self._html_search_regex(
-            r'class="mv_info_date[^>]*>([^<]*)<', info_page, 'upload date', default=None))
+        timestamp = unified_timestamp(self._html_search_regex(
+            r'class=["\']mv_info_date[^>]*>([^<]+)(?:<|from)', info_page,
+            'upload date', fatal=False))
 
         view_count = str_to_int(self._html_search_regex(
             r'class="mv_views_count[^>]*>([\d,.]+)',
@@ -411,7 +416,7 @@ class VKIE(VKBaseIE):
             'thumbnail': data.get('jpg'),
             'uploader': data.get('md_author'),
             'duration': data.get('duration'),
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'view_count': view_count,
         }
 
