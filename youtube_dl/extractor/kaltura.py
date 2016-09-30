@@ -302,7 +302,8 @@ class KalturaIE(InfoExtractor):
             })
         if '/playManifest/' in data_url:
             m3u8_url = sign_url(data_url.replace(
-                'format/url', 'format/applehttp'))
+                'format/url', 'format/applehttp').replace(
+                    "protocol/http", "protocol/https"))
             formats.extend(self._extract_m3u8_formats(
                 m3u8_url, entry_id, 'mp4', 'm3u8_native',
                 m3u8_id='hls', fatal=False))
