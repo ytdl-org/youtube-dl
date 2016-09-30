@@ -111,8 +111,8 @@ class InstagramIE(InfoExtractor):
                     'id': comment.get('id'),
                     'text': comment.get('text'),
                     'timestamp': int_or_none(comment.get('created_at')),
-                } for comment in media.get('comments', {}).get('nodes', [])
-                if comment.get('text')]
+                } for comment in media.get(
+                    'comments', {}).get('nodes', []) if comment.get('text')]
 
         if not video_url:
             video_url = self._og_search_video_url(webpage, secure=False)
