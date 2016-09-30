@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .zdf import ZDFIE
 
 
@@ -32,7 +30,6 @@ class DreiSatIE(ZDFIE):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
         details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
         return self.extract_from_xml_url(video_id, details_url)
