@@ -1,6 +1,7 @@
 version <unreleased>
 
 Core
+* Fix possibly lost extended attributes
 + Support pyxattr as well as python-xattr for --xattrs and
   --xattr-set-filesize (#9054)
 
