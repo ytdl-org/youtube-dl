@@ -6,6 +6,7 @@ Core
   --xattr-set-filesize (#9054)
 
 Extractors
+* [jwplatform] Improve JWPlayer handling
 * [dctp] Fix extraction (#10734)
 + [leeco] Recognize more Le Sports URLs (#10794)
 

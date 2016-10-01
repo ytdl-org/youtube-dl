@@ -39,6 +39,12 @@ class JWPlatformBaseIE(InfoExtractor):
             jwplayer_data = {'playlist': [jwplayer_data]}
 
         entries = []
+
+        # JWPlayer backward compatibility: single playlist item
+        # https://github.com/jwplayer/jwplayer/blob/v7.7.0/src/js/playlist/playlist.js#L10
+        if not isinstance(jwplayer_data['playlist'], list):
+            jwplayer_data['playlist'] = [jwplayer_data['playlist']]
+
         for video_data in jwplayer_data['playlist']:
             # JWPlayer backward compatibility: flattened sources
             # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/playlist/item.js#L29-L35
