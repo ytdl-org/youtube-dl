@@ -2332,12 +2332,23 @@ class GenericIE(InfoExtractor):
             info_dict.update(json_ld)
             return info_dict
 
+        # Look for HTML5 media
+        entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
+        if entries:
+            for entry in entries:
+                entry.update({
+                    'id': video_id,
+                    'title': video_title,
+                })
+                self._sort_formats(entry['formats'])
+            return self.playlist_result(entries)
+
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
                 return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
-            return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml')
+            return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml', 'js')
 
         def filter_video(urls):
             return list(filter(check_video, urls))
@@ -2387,9 +2398,6 @@ class GenericIE(InfoExtractor):
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
                 found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
-        if not found:
-            # HTML5 video
-            found = re.findall(r'(?s)<(?:video|audio)[^<]*(?:>.*?<source[^>]*)?\s+src=["\'](.*?)["\']', webpage)
         if not found:
             REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(

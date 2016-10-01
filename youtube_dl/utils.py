@@ -782,6 +782,7 @@ class XAttrMetadataError(Exception):
     def __init__(self, code=None, msg='Unknown error'):
         super(XAttrMetadataError, self).__init__(msg)
         self.code = code
+        self.msg = msg
 
         # Parsing code and msg
         if (self.code in (errno.ENOSPC, errno.EDQUOT) or
