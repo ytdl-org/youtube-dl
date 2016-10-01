@@ -132,7 +132,7 @@ class PeriscopeUserIE(PeriscopeBaseIE):
 
         user = list(data_store['UserCache']['users'].values())[0]['user']
         user_id = user['id']
-        session_id = data_store['SessionToken']['broadcastHistory']['token']['session_id']
+        session_id = data_store['SessionToken']['public']['broadcastHistory']['token']['session_id']
 
         broadcasts = self._call_api(
             'getUserBroadcastsPublic',
