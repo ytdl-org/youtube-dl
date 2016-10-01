@@ -4,14 +4,13 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    get_element_by_attribute,
+    get_element_by_class,
     clean_html,
 )
 
 
 class TechTalksIE(InfoExtractor):
     _VALID_URL = r'https?://techtalks\.tv/talks/[^/]*/(?P<id>\d+)/'
-
     _TEST = {
         'url': 'http://techtalks.tv/talks/learning-topic-models-going-beyond-svd/57758/',
         'info_dict': {
@@ -41,15 +40,14 @@ class TechTalksIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        talk_id = mobj.group('id')
+        talk_id = self._match_id(url)
         webpage = self._download_webpage(url, talk_id)
         rtmp_url = self._search_regex(
             r'netConnectionUrl: \'(.*?)\'', webpage, 'rtmp url')
         play_path = self._search_regex(
             r'href=\'(.*?)\' [^>]*id="flowplayer_presenter"',
             webpage, 'presenter play path')
-        title = clean_html(get_element_by_attribute('class', 'title', webpage))
+        title = clean_html(get_element_by_class('title', webpage))
         video_info = {
             'id': talk_id,
             'title': title,
