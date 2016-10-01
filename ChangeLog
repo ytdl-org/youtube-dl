@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [dctp] Fix extraction (#10734)
 + [leeco] Recognize more Le Sports URLs (#10794)
 
 
