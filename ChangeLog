@@ -1,5 +1,9 @@
 version <unreleased>
 
+Core
++ Support pyxattr as well as python-xattr for --xattrs and
+  --xattr-set-filesize (#9054)
+
 Extractors
 * [dctp] Fix extraction (#10734)
 + [leeco] Recognize more Le Sports URLs (#10794)

@@ -3161,20 +3161,25 @@ def write_xattr(path, key, value):
         # try the pyxattr module...
         import xattr
 
-        # Unicode arguments are not supported in python-pyxattr until
-        # version 0.5.0
-        # See https://github.com/rg3/youtube-dl/issues/5498
-        pyxattr_required_version = '0.5.0'
-        if version_tuple(xattr.__version__) < version_tuple(pyxattr_required_version):
-            # TODO: fallback to CLI tools
-            raise XAttrUnavailableError(
-                'python-pyxattr is detected but is too old. '
-                'youtube-dl requires %s or above while your version is %s. '
-                'Falling back to other xattr implementations' % (
-                    pyxattr_required_version, xattr.__version__))
+        if hasattr(xattr, 'set'):  # pyxattr
+            # Unicode arguments are not supported in python-pyxattr until
+            # version 0.5.0
+            # See https://github.com/rg3/youtube-dl/issues/5498
+            pyxattr_required_version = '0.5.0'
+            if version_tuple(xattr.__version__) < version_tuple(pyxattr_required_version):
+                # TODO: fallback to CLI tools
+                raise XAttrUnavailableError(
+                    'python-pyxattr is detected but is too old. '
+                    'youtube-dl requires %s or above while your version is %s. '
+                    'Falling back to other xattr implementations' % (
+                        pyxattr_required_version, xattr.__version__))
+
+            setxattr = xattr.set
+        else:  # xattr
+            setxattr = xattr.setxattr
 
         try:
-            xattr.set(path, key, value)
+            setxattr(path, key, value)
         except EnvironmentError as e:
             raise XAttrMetadataError(e.errno, e.strerror)
 
