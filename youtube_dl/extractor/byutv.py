@@ -7,7 +7,7 @@ from ..utils import ExtractorError
 
 
 class BYUtvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?byutv.org/watch/(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
+    _VALID_URL = r'https?://(?:www\.)?byutv\.org/watch/(?!event/)(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
     _TESTS = [{
         'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
         'info_dict': {
@@ -53,4 +53,41 @@ class BYUtvIE(InfoExtractor):
             'title': ep['title'],
             'description': ep.get('description'),
             'thumbnail': ep.get('imageThumbnail'),
+        }
+
+
+class BYUtvEventIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?byutv\.org/watch/event/(?P<id>[0-9a-f-]+)'
+    _TEST = {
+        'url': 'http://www.byutv.org/watch/event/29941b9b-8bf6-48d2-aebf-7a87add9e34b',
+        'info_dict': {
+            'id': '29941b9b-8bf6-48d2-aebf-7a87add9e34b',
+            'ext': 'mp4',
+            'title': 'Toledo vs. BYU (9/30/16)',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': ['Ooyala'],
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        ooyala_id = self._search_regex(
+            r'providerId\s*:\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
+            webpage, 'ooyala id', group='id')
+
+        title = self._search_regex(
+            r'class=["\']description["\'][^>]*>\s*<h1>([^<]+)</h1>', webpage,
+            'title').strip()
+
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'Ooyala',
+            'url': 'ooyala:%s' % ooyala_id,
+            'id': video_id,
+            'title': title,
         }
