@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -6,12 +6,12 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    js_to_json,
     parse_duration,
 )
 
 
 class KontrTubeIE(InfoExtractor):
-    IE_NAME = 'kontrtube'
     IE_DESC = 'KontrTube.ru - Труба зовёт'
     _VALID_URL = r'https?://(?:www\.)?kontrtube\.ru/videos/(?P<id>\d+)/(?P<display_id>[^/]+)/'
 
@@ -31,16 +31,25 @@ class KontrTubeIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        display_id = mobj.group('display_id')
+        video_id, display_id = mobj.groups()
 
-        webpage = self._download_webpage(
-            url, display_id, 'Downloading page')
+        webpage = self._download_webpage(url, display_id)
+
+        video_data = self._parse_json(
+            self._search_regex(
+                r'var\s+flashvars\s*=\s*({[^}]+});', webpage, 'video data', fatal=False),
+            video_id, transform_source=js_to_json)
 
         video_url = self._search_regex(
-            r"video_url\s*:\s*'(.+?)/?',", webpage, 'video URL')
+            r"video_url\s*:\s*'(.+?)/?',", webpage, 'video URL', fatal=False)
         thumbnail = self._search_regex(
             r"preview_url\s*:\s*'(.+?)/?',", webpage, 'thumbnail', fatal=False)
+
+        if not video_url:
+            video_url = video_data['video_url']
+        if not thumbnail:
+            thumbnail = video_data.get('preview_url')
+
         title = self._html_search_regex(
             r'(?s)<h2>(.+?)</h2>', webpage, 'title')
         description = self._html_search_meta(
