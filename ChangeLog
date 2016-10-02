@@ -1,15 +1,26 @@
 version <unreleased>
 
 Core
-* Fix possibly lost extended attributes
+* Fix possibly lost extended attributes during post-processing
 + Support pyxattr as well as python-xattr for --xattrs and
   --xattr-set-filesize (#9054)
 
 Extractors
 + [jwplatform] Support DASH streams in JWPlayer
-* [jwplatform] Improve JWPlayer handling
++ [jwplatform] Support old-style JWPlayer playlists
++ [byutv:event] Add extractor
+* [periscope:user] Fix extraction (#10820)
 * [dctp] Fix extraction (#10734)
++ [instagram] Extract video dimensions (#10790)
++ [tvland] Extend URL regular expression (#10812)
++ [vgtv] Add support for tv.aftonbladet.se (#10800)
+- [aftonbladet] Remove extractor
+* [vk] Fix timestamp and view count extraction (#10760)
++ [vk] Add support for running and finished live streams (#10799)
 + [leeco] Recognize more Le Sports URLs (#10794)
++ [instagram] Extract comments (#10788)
++ [ketnet] Extract mzsource formats (#10770)
+* [limelight:media] Improve HTTP formats extraction
 
 
 version 2016.09.27
