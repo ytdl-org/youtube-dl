@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.02
 
 Core
 * Fix possibly lost extended attributes during post-processing

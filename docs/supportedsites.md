@@ -34,7 +34,6 @@
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
  - **AfreecaTV**: afreecatv.com
- - **Aftonbladet**
  - **AirMozilla**
  - **AlJazeera**
  - **Allocine**
@@ -112,6 +111,7 @@
  - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
  - **BuzzFeed**
  - **BYUtv**
+ - **BYUtvEvent**
  - **Camdemy**
  - **CamdemyFolder**
  - **CamWithHer**
