@@ -1,18 +1,32 @@
 from __future__ import unicode_literals
 
-from .videodetective import VideoDetectiveIE
+from .common import InfoExtractor
+from .internetvideoarchive import InternetVideoArchiveIE
 
 
-# It just uses the same method as videodetective.com,
-# the internetvideoarchive.com is extracted from the og:video property
-class RottenTomatoesIE(VideoDetectiveIE):
-    _VALID_URL = r'https?://www\.rottentomatoes\.com/m/[^/]+/trailers/(?P<id>\d+)'
+class RottenTomatoesIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?rottentomatoes\.com/m/[^/]+/trailers/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.rottentomatoes.com/m/toy_story_3/trailers/11028566/',
-        'file': '613340.mp4',
         'info_dict': {
-            'title': 'TOY STORY 3',
+            'id': '11028566',
+            'ext': 'mp4',
+            'title': 'Toy Story 3',
             'description': 'From the creators of the beloved TOY STORY films, comes a story that will reunite the gang in a whole new way.',
+            'thumbnail': 're:^https?://.*\.jpg$',
         },
     }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        iva_id = self._search_regex(r'publishedid=(\d+)', webpage, 'internet video archive id')
+
+        return {
+            '_type': 'url_transparent',
+            'url': 'http://video.internetvideoarchive.net/player/6/configuration.ashx?domain=www.videodetective.com&customerid=69249&playerid=641&publishedid=' + iva_id,
+            'ie_key': InternetVideoArchiveIE.ie_key(),
+            'id': video_id,
+            'title': self._og_search_title(webpage),
+        }

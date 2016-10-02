@@ -11,16 +11,16 @@ from ..utils import (
 
 
 class GoshgayIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.goshgay\.com/video(?P<id>\d+?)($|/)'
+    _VALID_URL = r'https?://(?:www\.)?goshgay\.com/video(?P<id>\d+?)($|/)'
     _TEST = {
         'url': 'http://www.goshgay.com/video299069/diesel_sfw_xxx_video',
-        'md5': '027fcc54459dff0feb0bc06a7aeda680',
+        'md5': '4b6db9a0a333142eb9f15913142b0ed1',
         'info_dict': {
             'id': '299069',
             'ext': 'flv',
             'title': 'DIESEL SFW XXX Video',
             'thumbnail': 're:^http://.*\.jpg$',
-            'duration': 79,
+            'duration': 80,
             'age_limit': 18,
         }
     }
@@ -34,8 +34,6 @@ class GoshgayIE(InfoExtractor):
         duration = parse_duration(self._html_search_regex(
             r'<span class="duration">\s*-?\s*(.*?)</span>',
             webpage, 'duration', fatal=False))
-        family_friendly = self._html_search_meta(
-            'isFamilyFriendly', webpage, default='false')
 
         flashvars = compat_parse_qs(self._html_search_regex(
             r'<embed.+?id="flash-player-embed".+?flashvars="([^"]+)"',
@@ -49,5 +47,5 @@ class GoshgayIE(InfoExtractor):
             'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
-            'age_limit': 0 if family_friendly == 'true' else 18,
+            'age_limit': 18,
         }

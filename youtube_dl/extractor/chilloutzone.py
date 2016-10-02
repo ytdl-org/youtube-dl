@@ -57,7 +57,7 @@ class ChilloutzoneIE(InfoExtractor):
 
         base64_video_info = self._html_search_regex(
             r'var cozVidData = "(.+?)";', webpage, 'video data')
-        decoded_video_info = base64.b64decode(base64_video_info).decode("utf-8")
+        decoded_video_info = base64.b64decode(base64_video_info.encode('utf-8')).decode('utf-8')
         video_info_dict = json.loads(decoded_video_info)
 
         # get video information from dict

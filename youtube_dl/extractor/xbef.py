@@ -1,13 +1,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-)
+from ..compat import compat_urllib_parse_unquote
 
 
 class XBefIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?xbef\.com/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xbef\.com/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://xbef.com/video/5119-glamourous-lesbians-smoking-drinking-and-fucking',
         'md5': 'a478b565baff61634a98f5e5338be995',
@@ -30,7 +28,7 @@ class XBefIE(InfoExtractor):
         config_url_enc = self._download_webpage(
             'http://xbef.com/Main/GetVideoURLEncoded/%s' % video_id, video_id,
             note='Retrieving config URL')
-        config_url = compat_urllib_parse.unquote(config_url_enc)
+        config_url = compat_urllib_parse_unquote(config_url_enc)
         config = self._download_xml(
             config_url, video_id, note='Retrieving config')
 

@@ -1,53 +1,40 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
 class ParliamentLiveUKIE(InfoExtractor):
     IE_NAME = 'parliamentlive.tv'
     IE_DESC = 'UK parliament videos'
-    _VALID_URL = r'https?://www\.parliamentlive\.tv/Main/Player\.aspx\?(?:[^&]+&)*?meetingId=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?parliamentlive\.tv/Event/Index/(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
 
     _TEST = {
-        'url': 'http://www.parliamentlive.tv/Main/Player.aspx?meetingId=15121&player=windowsmedia',
+        'url': 'http://parliamentlive.tv/Event/Index/c1e9d44d-fd6c-4263-b50f-97ed26cc998b',
         'info_dict': {
-            'id': '15121',
-            'ext': 'asf',
-            'title': 'hoc home affairs committee, 18 mar 2014.pm',
-            'description': 'md5:033b3acdf83304cd43946b2d5e5798d1',
+            'id': 'c1e9d44d-fd6c-4263-b50f-97ed26cc998b',
+            'ext': 'mp4',
+            'title': 'Home Affairs Committee',
+            'uploader_id': 'FFMPEG-01',
+            'timestamp': 1422696664,
+            'upload_date': '20150131',
         },
-        'params': {
-            'skip_download': True,  # Requires mplayer (mms)
-        }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-
-        asx_url = self._html_search_regex(
-            r'embed.*?src="([^"]+)" name="MediaPlayer"', webpage,
-            'metadata URL')
-        asx = self._download_xml(asx_url, video_id, 'Downloading ASX metadata')
-        video_url = asx.find('.//REF').attrib['HREF']
-
-        title = self._search_regex(
-            r'''(?x)player\.setClipDetails\(
-                (?:(?:[0-9]+|"[^"]+"),\s*){2}
-                "([^"]+",\s*"[^"]+)"
-                ''',
-            webpage, 'title').replace('", "', ', ')
-        description = self._html_search_regex(
-            r'(?s)<span id="MainContentPlaceHolder_CaptionsBlock_WitnessInfo">(.*?)</span>',
-            webpage, 'description')
-
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(
+            'http://vodplayer.parliamentlive.tv/?mid=' + video_id, video_id)
+        widget_config = self._parse_json(self._search_regex(
+            r'kWidgetConfig\s*=\s*({.+});',
+            webpage, 'kaltura widget config'), video_id)
+        kaltura_url = 'kaltura:%s:%s' % (widget_config['wid'][1:], widget_config['entry_id'])
+        event_title = self._download_json(
+            'http://parliamentlive.tv/Event/GetShareVideo/' + video_id, video_id)['event']['title']
         return {
+            '_type': 'url_transparent',
             'id': video_id,
-            'ext': 'asf',
-            'url': video_url,
-            'title': title,
-            'description': description,
+            'title': event_title,
+            'description': '',
+            'url': kaltura_url,
+            'ie_key': 'Kaltura',
         }

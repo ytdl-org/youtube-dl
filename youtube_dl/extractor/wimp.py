@@ -1,55 +1,57 @@
 from __future__ import unicode_literals
 
-import re
-
-from .common import InfoExtractor
 from .youtube import YoutubeIE
+from .jwplatform import JWPlatformBaseIE
 
 
-class WimpIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?wimp\.com/([^/]+)/'
+class WimpIE(JWPlatformBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?wimp\.com/(?P<id>[^/]+)'
     _TESTS = [{
-        'url': 'http://www.wimp.com/maruexhausted/',
-        'md5': 'f1acced123ecb28d9bb79f2479f2b6a1',
+        'url': 'http://www.wimp.com/maru-is-exhausted/',
+        'md5': 'ee21217ffd66d058e8b16be340b74883',
         'info_dict': {
-            'id': 'maruexhausted',
-            'ext': 'flv',
+            'id': 'maru-is-exhausted',
+            'ext': 'mp4',
             'title': 'Maru is exhausted.',
             'description': 'md5:57e099e857c0a4ea312542b684a869b8',
         }
     }, {
-        # youtube video
         'url': 'http://www.wimp.com/clowncar/',
+        'md5': '5c31ad862a90dc5b1f023956faec13fe',
         'info_dict': {
             'id': 'cG4CEr2aiSg',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'Basset hound clown car...incredible!',
-            'description': 'md5:8d228485e0719898c017203f900b3a35',
+            'description': '5 of my Bassets crawled in this dog loo! www.bellinghambassets.com\n\nFor licensing/usage please contact: licensing(at)jukinmediadotcom',
+            'upload_date': '20140303',
             'uploader': 'Gretchen Hoey',
             'uploader_id': 'gretchenandjeff1',
-            'upload_date': '20140303',
         },
         'add_ie': ['Youtube'],
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group(1)
+        video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
-        video_url = self._search_regex(
-            r"[\"']file[\"']\s*[:,]\s*[\"'](.+?)[\"']", webpage, 'video URL')
-        if YoutubeIE.suitable(video_url):
-            self.to_screen('Found YouTube video')
+
+        youtube_id = self._search_regex(
+            r"videoId\s*:\s*[\"']([0-9A-Za-z_-]{11})[\"']",
+            webpage, 'video URL', default=None)
+        if youtube_id:
             return {
                 '_type': 'url',
-                'url': video_url,
+                'url': youtube_id,
                 'ie_key': YoutubeIE.ie_key(),
             }
 
-        return {
+        info_dict = self._extract_jwplayer_data(
+            webpage, video_id, require_title=False)
+
+        info_dict.update({
             'id': video_id,
-            'url': video_url,
             'title': self._og_search_title(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
             'description': self._og_search_description(webpage),
-        }
+        })
+
+        return info_dict

@@ -1,60 +1,113 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
-    unescapeHTML,
+    int_or_none,
+    qualities,
 )
 
 
 class FlickrIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|secure\.)?flickr\.com/photos/(?P<uploader_id>[\w\-_@]+)/(?P<id>\d+).*'
+    _VALID_URL = r'https?://(?:www\.|secure\.)?flickr\.com/photos/[\w\-_@]+/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/',
-        'md5': '6fdc01adbc89d72fc9c4f15b4a4ba87b',
+        'md5': '164fe3fa6c22e18d448d4d5af2330f31',
         'info_dict': {
             'id': '5645318632',
-            'ext': 'mp4',
-            "description": "Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.",
-            "uploader_id": "forestwander-nature-pictures",
-            "title": "Dark Hollow Waterfalls"
+            'ext': 'mpg',
+            'description': 'Waterfalls in the Springtime at Dark Hollow Waterfalls. These are located just off of Skyline Drive in Virginia. They are only about 6/10 of a mile hike but it is a pretty steep hill and a good climb back up.',
+            'title': 'Dark Hollow Waterfalls',
+            'duration': 19,
+            'timestamp': 1303528740,
+            'upload_date': '20110423',
+            'uploader_id': '10922353@N03',
+            'uploader': 'Forest Wander',
+            'uploader_url': 'https://www.flickr.com/photos/forestwander-nature-pictures/',
+            'comment_count': int,
+            'view_count': int,
+            'tags': list,
+            'license': 'Attribution-ShareAlike',
         }
     }
+    _API_BASE_URL = 'https://api.flickr.com/services/rest?'
+    # https://help.yahoo.com/kb/flickr/SLN25525.html
+    _LICENSES = {
+        '0': 'All Rights Reserved',
+        '1': 'Attribution-NonCommercial-ShareAlike',
+        '2': 'Attribution-NonCommercial',
+        '3': 'Attribution-NonCommercial-NoDerivs',
+        '4': 'Attribution',
+        '5': 'Attribution-ShareAlike',
+        '6': 'Attribution-NoDerivs',
+        '7': 'No known copyright restrictions',
+        '8': 'United States government work',
+        '9': 'Public Domain Dedication (CC0)',
+        '10': 'Public Domain Work',
+    }
+
+    def _call_api(self, method, video_id, api_key, note, secret=None):
+        query = {
+            'photo_id': video_id,
+            'method': 'flickr.%s' % method,
+            'api_key': api_key,
+            'format': 'json',
+            'nojsoncallback': 1,
+        }
+        if secret:
+            query['secret'] = secret
+        data = self._download_json(self._API_BASE_URL + compat_urllib_parse_urlencode(query), video_id, note)
+        if data['stat'] != 'ok':
+            raise ExtractorError(data['message'])
+        return data
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        video_id = self._match_id(url)
 
-        video_id = mobj.group('id')
-        video_uploader_id = mobj.group('uploader_id')
-        webpage_url = 'http://www.flickr.com/photos/' + video_uploader_id + '/' + video_id
-        webpage = self._download_webpage(webpage_url, video_id)
+        api_key = self._download_json(
+            'https://www.flickr.com/hermes_error_beacon.gne', video_id,
+            'Downloading api key')['site_key']
 
-        secret = self._search_regex(r"photo_secret: '(\w+)'", webpage, 'secret')
+        video_info = self._call_api(
+            'photos.getInfo', video_id, api_key, 'Downloading video info')['photo']
+        if video_info['media'] == 'video':
+            streams = self._call_api(
+                'video.getStreamInfo', video_id, api_key,
+                'Downloading streams info', video_info['secret'])['streams']
 
-        first_url = 'https://secure.flickr.com/apps/video/video_mtl_xml.gne?v=x&photo_id=' + video_id + '&secret=' + secret + '&bitrate=700&target=_self'
-        first_xml = self._download_webpage(first_url, video_id, 'Downloading first data webpage')
+            preference = qualities(
+                ['288p', 'iphone_wifi', '100', '300', '700', '360p', 'appletv', '720p', '1080p', 'orig'])
 
-        node_id = self._html_search_regex(r'<Item id="id">(\d+-\d+)</Item>',
-                                          first_xml, 'node_id')
+            formats = []
+            for stream in streams['stream']:
+                stream_type = str(stream.get('type'))
+                formats.append({
+                    'format_id': stream_type,
+                    'url': stream['_content'],
+                    'preference': preference(stream_type),
+                })
+            self._sort_formats(formats)
 
-        second_url = 'https://secure.flickr.com/video_playlist.gne?node_id=' + node_id + '&tech=flash&mode=playlist&bitrate=700&secret=' + secret + '&rd=video.yahoo.com&noad=1'
-        second_xml = self._download_webpage(second_url, video_id, 'Downloading second data webpage')
+            owner = video_info.get('owner', {})
+            uploader_id = owner.get('nsid')
+            uploader_path = owner.get('path_alias') or uploader_id
+            uploader_url = 'https://www.flickr.com/photos/%s/' % uploader_path if uploader_path else None
 
-        self.report_extraction(video_id)
-
-        mobj = re.search(r'<STREAM APP="(.+?)" FULLPATH="(.+?)"', second_xml)
-        if mobj is None:
-            raise ExtractorError('Unable to extract video url')
-        video_url = mobj.group(1) + unescapeHTML(mobj.group(2))
-
-        return {
-            'id': video_id,
-            'url': video_url,
-            'ext': 'mp4',
-            'title': self._og_search_title(webpage),
-            'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'uploader_id': video_uploader_id,
-        }
+            return {
+                'id': video_id,
+                'title': video_info['title']['_content'],
+                'description': video_info.get('description', {}).get('_content'),
+                'formats': formats,
+                'timestamp': int_or_none(video_info.get('dateuploaded')),
+                'duration': int_or_none(video_info.get('video', {}).get('duration')),
+                'uploader_id': uploader_id,
+                'uploader': owner.get('realname'),
+                'uploader_url': uploader_url,
+                'comment_count': int_or_none(video_info.get('comments', {}).get('_content')),
+                'view_count': int_or_none(video_info.get('views')),
+                'tags': [tag.get('_content') for tag in video_info.get('tags', {}).get('tag', [])],
+                'license': self._LICENSES.get(video_info.get('license')),
+            }
+        else:
+            raise ExtractorError('not a video', expected=True)

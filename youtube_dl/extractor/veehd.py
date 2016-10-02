@@ -5,6 +5,7 @@ import json
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_urllib_parse_unquote,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,7 +18,9 @@ from ..utils import (
 class VeeHDIE(InfoExtractor):
     _VALID_URL = r'https?://veehd\.com/video/(?P<id>\d+)'
 
-    _TEST = {
+    # Seems VeeHD videos have multiple copies on several servers, all of
+    # whom have different MD5 checksums, so omit md5 field in all tests
+    _TESTS = [{
         'url': 'http://veehd.com/video/4639434_Solar-Sinter',
         'info_dict': {
             'id': '4639434',
@@ -26,7 +29,26 @@ class VeeHDIE(InfoExtractor):
             'uploader_id': 'VideoEyes',
             'description': 'md5:46a840e8692ddbaffb5f81d9885cb457',
         },
-    }
+        'skip': 'Video deleted',
+    }, {
+        'url': 'http://veehd.com/video/4905758_Elysian-Fields-Channeling',
+        'info_dict': {
+            'id': '4905758',
+            'ext': 'mp4',
+            'title': 'Elysian Fields - Channeling',
+            'description': 'md5:360e4e95fdab58aefbea0f2a19e5604b',
+            'uploader_id': 'spotted',
+        }
+    }, {
+        'url': 'http://veehd.com/video/2046729_2012-2009-DivX-Trailer',
+        'info_dict': {
+            'id': '2046729',
+            'ext': 'avi',
+            'title': '2012 (2009) DivX Trailer',
+            'description': 'md5:75435ee95255e6a9838ac6f6f3a2396b',
+            'uploader_id': 'Movie_Trailers',
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -48,13 +70,21 @@ class VeeHDIE(InfoExtractor):
         player_page = self._download_webpage(
             player_url, video_id, 'Downloading player page')
 
+        video_url = None
+
         config_json = self._search_regex(
             r'value=\'config=({.+?})\'', player_page, 'config json', default=None)
 
         if config_json:
             config = json.loads(config_json)
-            video_url = compat_urlparse.unquote(config['clip']['url'])
-        else:
+            video_url = compat_urllib_parse_unquote(config['clip']['url'])
+
+        if not video_url:
+            video_url = self._html_search_regex(
+                r'<embed[^>]+type="video/divx"[^>]+src="([^"]+)"',
+                player_page, 'video url', default=None)
+
+        if not video_url:
             iframe_src = self._search_regex(
                 r'<iframe[^>]+src="/?([^"]+)"', player_page, 'iframe url')
             iframe_url = 'http://veehd.com/%s' % iframe_src
@@ -82,7 +112,6 @@ class VeeHDIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'url': video_url,
-            'ext': 'mp4',
             'uploader_id': uploader_id,
             'thumbnail': thumbnail,
             'description': description,

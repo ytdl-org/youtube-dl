@@ -1,13 +1,16 @@
-from __future__ import unicode_literals
+from __future__ import division, unicode_literals
 
 import os
 import re
 import sys
 import time
+import random
 
-from ..compat import compat_str
+from ..compat import compat_os_name
 from ..utils import (
     encodeFilename,
+    error_to_compat_str,
+    decodeArgument,
     format_bytes,
     timeconvert,
 )
@@ -25,21 +28,26 @@ class FileDownloader(object):
 
     Available options:
 
-    verbose:           Print additional info to stdout.
-    quiet:             Do not print messages to stdout.
-    ratelimit:         Download speed limit, in bytes/sec.
-    retries:           Number of times to retry for HTTP error 5xx
-    buffersize:        Size of download buffer in bytes.
-    noresizebuffer:    Do not automatically resize the download buffer.
-    continuedl:        Try to continue downloads if possible.
-    noprogress:        Do not print the progress bar.
-    logtostderr:       Log messages to stderr instead of stdout.
-    consoletitle:      Display progress in console window's titlebar.
-    nopart:            Do not use temporary .part files.
-    updatetime:        Use the Last-modified header to set output file timestamps.
-    test:              Download only first bytes to test the downloader.
-    min_filesize:      Skip files smaller than this size
-    max_filesize:      Skip files larger than this size
+    verbose:            Print additional info to stdout.
+    quiet:              Do not print messages to stdout.
+    ratelimit:          Download speed limit, in bytes/sec.
+    retries:            Number of times to retry for HTTP error 5xx
+    buffersize:         Size of download buffer in bytes.
+    noresizebuffer:     Do not automatically resize the download buffer.
+    continuedl:         Try to continue downloads if possible.
+    noprogress:         Do not print the progress bar.
+    logtostderr:        Log messages to stderr instead of stdout.
+    consoletitle:       Display progress in console window's titlebar.
+    nopart:             Do not use temporary .part files.
+    updatetime:         Use the Last-modified header to set output file timestamps.
+    test:               Download only first bytes to test the downloader.
+    min_filesize:       Skip files smaller than this size
+    max_filesize:       Skip files larger than this size
+    xattr_set_filesize: Set ytdl.filesize user xattribute with expected size.
+                        (experimental)
+    external_downloader_args:  A list of additional command-line arguments for the
+                        external downloader.
+    hls_use_mpegts:     Use the mpegts container for HLS videos.
 
     Subclasses of this one must re-define the real_download method.
     """
@@ -52,6 +60,7 @@ class FileDownloader(object):
         self.ydl = ydl
         self._progress_hooks = []
         self.params = params
+        self.add_progress_hook(self.report_progress)
 
     @staticmethod
     def format_seconds(seconds):
@@ -108,6 +117,10 @@ class FileDownloader(object):
         return '%10s' % ('%s/s' % format_bytes(speed))
 
     @staticmethod
+    def format_retries(retries):
+        return 'inf' if retries == float('inf') else '%.0f' % retries
+
+    @staticmethod
     def best_block_size(elapsed_time, bytes):
         new_min = max(bytes / 2.0, 1.0)
         new_max = min(max(bytes * 2.0, 1.0), 4194304)  # Do not surpass 4 MB
@@ -150,7 +163,7 @@ class FileDownloader(object):
 
     def slow_down(self, start_time, now, byte_counter):
         """Sleep if the download speed is over the rate limit."""
-        rate_limit = self.params.get('ratelimit', None)
+        rate_limit = self.params.get('ratelimit')
         if rate_limit is None or byte_counter == 0:
             return
         if now is None:
@@ -180,7 +193,7 @@ class FileDownloader(object):
                 return
             os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
         except (IOError, OSError) as err:
-            self.report_error('unable to rename file: %s' % compat_str(err))
+            self.report_error('unable to rename file: %s' % error_to_compat_str(err))
 
     def try_utime(self, filename, last_modified_hdr):
         """Try to set the last-modified time of the given file."""
@@ -199,7 +212,7 @@ class FileDownloader(object):
             return
         try:
             os.utime(filename, (time.time(), filetime))
-        except:
+        except Exception:
             pass
         return filetime
 
@@ -212,7 +225,7 @@ class FileDownloader(object):
         if self.params.get('progress_with_newline', False):
             self.to_screen(fullmsg)
         else:
-            if os.name == 'nt':
+            if compat_os_name == 'nt':
                 prev_len = getattr(self, '_report_progress_prev_line_length',
                                    0)
                 if prev_len > len(fullmsg):
@@ -224,42 +237,64 @@ class FileDownloader(object):
             self.to_screen(clear_line + fullmsg, skip_eol=not is_last_line)
         self.to_console_title('youtube-dl ' + msg)
 
-    def report_progress(self, percent, data_len_str, speed, eta):
-        """Report download progress."""
-        if self.params.get('noprogress', False):
+    def report_progress(self, s):
+        if s['status'] == 'finished':
+            if self.params.get('noprogress', False):
+                self.to_screen('[download] Download completed')
+            else:
+                s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+                if s.get('elapsed') is not None:
+                    s['_elapsed_str'] = self.format_seconds(s['elapsed'])
+                    msg_template = '100%% of %(_total_bytes_str)s in %(_elapsed_str)s'
+                else:
+                    msg_template = '100%% of %(_total_bytes_str)s'
+                self._report_progress_status(
+                    msg_template % s, is_last_line=True)
+
+        if self.params.get('noprogress'):
             return
-        if eta is not None:
-            eta_str = self.format_eta(eta)
-        else:
-            eta_str = 'Unknown ETA'
-        if percent is not None:
-            percent_str = self.format_percent(percent)
-        else:
-            percent_str = 'Unknown %'
-        speed_str = self.format_speed(speed)
 
-        msg = ('%s of %s at %s ETA %s' %
-               (percent_str, data_len_str, speed_str, eta_str))
-        self._report_progress_status(msg)
-
-    def report_progress_live_stream(self, downloaded_data_len, speed, elapsed):
-        if self.params.get('noprogress', False):
+        if s['status'] != 'downloading':
             return
-        downloaded_str = format_bytes(downloaded_data_len)
-        speed_str = self.format_speed(speed)
-        elapsed_str = FileDownloader.format_seconds(elapsed)
-        msg = '%s at %s (%s)' % (downloaded_str, speed_str, elapsed_str)
-        self._report_progress_status(msg)
 
-    def report_finish(self, data_len_str, tot_time):
-        """Report download finished."""
-        if self.params.get('noprogress', False):
-            self.to_screen('[download] Download completed')
+        if s.get('eta') is not None:
+            s['_eta_str'] = self.format_eta(s['eta'])
         else:
-            self._report_progress_status(
-                ('100%% of %s in %s' %
-                 (data_len_str, self.format_seconds(tot_time))),
-                is_last_line=True)
+            s['_eta_str'] = 'Unknown ETA'
+
+        if s.get('total_bytes') and s.get('downloaded_bytes') is not None:
+            s['_percent_str'] = self.format_percent(100 * s['downloaded_bytes'] / s['total_bytes'])
+        elif s.get('total_bytes_estimate') and s.get('downloaded_bytes') is not None:
+            s['_percent_str'] = self.format_percent(100 * s['downloaded_bytes'] / s['total_bytes_estimate'])
+        else:
+            if s.get('downloaded_bytes') == 0:
+                s['_percent_str'] = self.format_percent(0)
+            else:
+                s['_percent_str'] = 'Unknown %'
+
+        if s.get('speed') is not None:
+            s['_speed_str'] = self.format_speed(s['speed'])
+        else:
+            s['_speed_str'] = 'Unknown speed'
+
+        if s.get('total_bytes') is not None:
+            s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+            msg_template = '%(_percent_str)s of %(_total_bytes_str)s at %(_speed_str)s ETA %(_eta_str)s'
+        elif s.get('total_bytes_estimate') is not None:
+            s['_total_bytes_estimate_str'] = format_bytes(s['total_bytes_estimate'])
+            msg_template = '%(_percent_str)s of ~%(_total_bytes_estimate_str)s at %(_speed_str)s ETA %(_eta_str)s'
+        else:
+            if s.get('downloaded_bytes') is not None:
+                s['_downloaded_bytes_str'] = format_bytes(s['downloaded_bytes'])
+                if s.get('elapsed'):
+                    s['_elapsed_str'] = self.format_seconds(s['elapsed'])
+                    msg_template = '%(_downloaded_bytes_str)s at %(_speed_str)s (%(_elapsed_str)s)'
+                else:
+                    msg_template = '%(_downloaded_bytes_str)s at %(_speed_str)s'
+            else:
+                msg_template = '%(_percent_str)s % at %(_speed_str)s ETA %(_eta_str)s'
+
+        self._report_progress_status(msg_template % s)
 
     def report_resuming_byte(self, resume_len):
         """Report attempt to resume at given byte."""
@@ -267,7 +302,9 @@ class FileDownloader(object):
 
     def report_retry(self, count, retries):
         """Report retry in case of HTTP error 5xx"""
-        self.to_screen('[download] Got server HTTP error. Retrying (attempt %d of %d)...' % (count, retries))
+        self.to_screen(
+            '[download] Got server HTTP error. Retrying (attempt %d of %s)...'
+            % (count, self.format_retries(retries)))
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""
@@ -284,19 +321,20 @@ class FileDownloader(object):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
         """
+
         nooverwrites_and_exists = (
-            self.params.get('nooverwrites', False)
-            and os.path.exists(encodeFilename(filename))
+            self.params.get('nooverwrites', False) and
+            os.path.exists(encodeFilename(filename))
         )
 
         continuedl_and_exists = (
-            self.params.get('continuedl', False)
-            and os.path.isfile(encodeFilename(filename))
-            and not self.params.get('nopart', False)
+            self.params.get('continuedl', True) and
+            os.path.isfile(encodeFilename(filename)) and
+            not self.params.get('nopart', False)
         )
 
         # Check file already present
-        if filename != '-' and nooverwrites_and_exists or continuedl_and_exists:
+        if filename != '-' and (nooverwrites_and_exists or continuedl_and_exists):
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,
@@ -304,6 +342,14 @@ class FileDownloader(object):
                 'total_bytes': os.path.getsize(encodeFilename(filename)),
             })
             return True
+
+        min_sleep_interval = self.params.get('sleep_interval')
+        if min_sleep_interval:
+            max_sleep_interval = self.params.get('max_sleep_interval', min_sleep_interval)
+            print(min_sleep_interval, max_sleep_interval)
+            sleep_interval = random.uniform(min_sleep_interval, max_sleep_interval)
+            self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
+            time.sleep(sleep_interval)
 
         return self.real_download(filename, info_dict)
 
@@ -319,3 +365,20 @@ class FileDownloader(object):
         # See YoutubeDl.py (search for progress_hooks) for a description of
         # this interface
         self._progress_hooks.append(ph)
+
+    def _debug_cmd(self, args, exe=None):
+        if not self.params.get('verbose', False):
+            return
+
+        str_args = [decodeArgument(a) for a in args]
+
+        if exe is None:
+            exe = os.path.basename(str_args[0])
+
+        try:
+            import pipes
+            shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
+        except ImportError:
+            shell_quote = repr
+        self.to_screen('[debug] %s command line: %s' % (
+            exe, shell_quote(str_args)))

@@ -9,11 +9,12 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
+    get_element_by_id,
 )
 
 
 class SlideshareIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.slideshare\.net/[^/]+?/(?P<title>.+?)($|\?)'
+    _VALID_URL = r'https?://(?:www\.)?slideshare\.net/[^/]+?/(?P<title>.+?)($|\?)'
 
     _TEST = {
         'url': 'http://www.slideshare.net/Dataversity/keynote-presentation-managing-scale-and-complexity',
@@ -30,7 +31,7 @@ class SlideshareIE(InfoExtractor):
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
         slideshare_obj = self._search_regex(
-            r'var\s+slideshare_object\s*=\s*({.*?});\s*var\s+user_info\s*=',
+            r'\$\.extend\(slideshare_object,\s*(\{.*?\})\);',
             webpage, 'slideshare object')
         info = json.loads(slideshare_obj)
         if info['slideshow']['type'] != 'video':
@@ -40,7 +41,7 @@ class SlideshareIE(InfoExtractor):
         bucket = info['jsplayer']['video_bucket']
         ext = info['jsplayer']['video_extension']
         video_url = compat_urlparse.urljoin(bucket, doc + '-SD.' + ext)
-        description = self._html_search_regex(
+        description = get_element_by_id('slideshow-description-paragraph', webpage) or self._html_search_regex(
             r'(?s)<p[^>]+itemprop="description"[^>]*>(.+?)</p>', webpage,
             'description', fatal=False)
 
@@ -51,5 +52,5 @@ class SlideshareIE(InfoExtractor):
             'ext': ext,
             'url': video_url,
             'thumbnail': info['slideshow']['pin_image_url'],
-            'description': description,
+            'description': description.strip() if description else None,
         }

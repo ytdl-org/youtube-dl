@@ -1,73 +1,97 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
+    int_or_none,
+    js_to_json,
     ExtractorError,
-    unified_strdate,
+    urlencode_postdata,
+    extract_attributes,
+    smuggle_url,
 )
 
 
 class TouTvIE(InfoExtractor):
+    _NETRC_MACHINE = 'toutv'
     IE_NAME = 'tou.tv'
-    _VALID_URL = r'https?://www\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+(?:/(?P<episode>S[0-9]+E[0-9]+)))'
+    _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+/S[0-9]+E[0-9]+)'
+    _access_token = None
+    _claims = None
 
     _TEST = {
-        'url': 'http://www.tou.tv/30-vies/S04E41',
-        'file': '30-vies_S04E41.mp4',
+        'url': 'http://ici.tou.tv/garfield-tout-court/S2015E17',
         'info_dict': {
-            'title': '30 vies Saison 4 / Épisode 41',
-            'description': 'md5:da363002db82ccbe4dafeb9cab039b09',
-            'age_limit': 8,
-            'uploader': 'Groupe des Nouveaux Médias',
-            'duration': 1296,
-            'upload_date': '20131118',
-            'thumbnail': 'http://static.tou.tv/medias/images/2013-11-18_19_00_00_30VIES_0341_01_L.jpeg',
+            'id': '122017',
+            'ext': 'mp4',
+            'title': 'Saison 2015 Épisode 17',
+            'description': 'La photo de famille 2',
+            'upload_date': '20100717',
         },
         'params': {
-            'skip_download': True,  # Requires rtmpdump
+            # m3u8 download
+            'skip_download': True,
         },
-        'skip': 'Only available in Canada'
+        'skip': '404 Not Found',
     }
 
+    def _real_initialize(self):
+        email, password = self._get_login_info()
+        if email is None:
+            return
+        state = 'http://ici.tou.tv//'
+        webpage = self._download_webpage(state, None, 'Downloading homepage')
+        toutvlogin = self._parse_json(self._search_regex(
+            r'(?s)toutvlogin\s*=\s*({.+?});', webpage, 'toutvlogin'), None, js_to_json)
+        authorize_url = toutvlogin['host'] + '/auth/oauth/v2/authorize'
+        login_webpage = self._download_webpage(
+            authorize_url, None, 'Downloading login page', query={
+                'client_id': toutvlogin['clientId'],
+                'redirect_uri': 'https://ici.tou.tv/login/loginCallback',
+                'response_type': 'token',
+                'scope': 'media-drmt openid profile email id.write media-validation.read.privileged',
+                'state': state,
+            })
+        login_form = self._search_regex(
+            r'(?s)(<form[^>]+id="Form-login".+?</form>)', login_webpage, 'login form')
+        form_data = self._hidden_inputs(login_form)
+        form_data.update({
+            'login-email': email,
+            'login-password': password,
+        })
+        post_url = extract_attributes(login_form).get('action') or authorize_url
+        _, urlh = self._download_webpage_handle(
+            post_url, None, 'Logging in', data=urlencode_postdata(form_data))
+        self._access_token = self._search_regex(
+            r'access_token=([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
+            urlh.geturl(), 'access token')
+        self._claims = self._download_json(
+            'https://services.radio-canada.ca/media/validation/v2/getClaims',
+            None, 'Extracting Claims', query={
+                'token': self._access_token,
+                'access_token': self._access_token,
+            })['claims']
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        webpage = self._download_webpage(url, video_id)
-
-        mediaId = self._search_regex(
-            r'"idMedia":\s*"([^"]+)"', webpage, 'media ID')
-
-        streams_url = 'http://release.theplatform.com/content.select?pid=' + mediaId
-        streams_doc = self._download_xml(
-            streams_url, video_id, note='Downloading stream list')
-
-        video_url = next(n.text
-                         for n in streams_doc.findall('.//choice/url')
-                         if '//ad.doubleclick' not in n.text)
-        if video_url.endswith('/Unavailable.flv'):
-            raise ExtractorError(
-                'Access to this video is blocked from outside of Canada',
-                expected=True)
-
-        duration_str = self._html_search_meta(
-            'video:duration', webpage, 'duration')
-        duration = int(duration_str) if duration_str else None
-        upload_date_str = self._html_search_meta(
-            'video:release_date', webpage, 'upload date')
-        upload_date = unified_strdate(upload_date_str) if upload_date_str else None
+        path = self._match_id(url)
+        metadata = self._download_json('http://ici.tou.tv/presentation/%s' % path, path)
+        if metadata.get('IsDrm'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
+        video_id = metadata['IdMedia']
+        details = metadata['Details']
+        title = details['OriginalTitle']
+        video_url = 'radiocanada:%s:%s' % (metadata.get('AppCode', 'toutv'), video_id)
+        if self._access_token and self._claims:
+            video_url = smuggle_url(video_url, {
+                'access_token': self._access_token,
+                'claims': self._claims,
+            })
 
         return {
-            'id': video_id,
-            'title': self._og_search_title(webpage),
+            '_type': 'url_transparent',
             'url': video_url,
-            'description': self._og_search_description(webpage),
-            'uploader': self._dc_search_uploader(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'age_limit': self._media_rating_search(webpage),
-            'duration': duration,
-            'upload_date': upload_date,
-            'ext': 'mp4',
+            'id': video_id,
+            'title': title,
+            'thumbnail': details.get('ImageUrl'),
+            'duration': int_or_none(details.get('LengthInSeconds')),
         }

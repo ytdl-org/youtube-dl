@@ -7,6 +7,7 @@ from .common import InfoExtractor
 
 
 class SoundgasmIE(InfoExtractor):
+    IE_NAME = 'soundgasm'
     _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<user>[0-9a-zA-Z_\-]+)/(?P<title>[0-9a-zA-Z_\-]+)'
     _TEST = {
         'url': 'http://soundgasm.net/u/ytdl/Piano-sample',
@@ -38,3 +39,26 @@ class SoundgasmIE(InfoExtractor):
             'title': audio_title,
             'description': description
         }
+
+
+class SoundgasmProfileIE(InfoExtractor):
+    IE_NAME = 'soundgasm:profile'
+    _VALID_URL = r'https?://(?:www\.)?soundgasm\.net/u/(?P<id>[^/]+)/?(?:\#.*)?$'
+    _TEST = {
+        'url': 'http://soundgasm.net/u/ytdl',
+        'info_dict': {
+            'id': 'ytdl',
+        },
+        'playlist_count': 1,
+    }
+
+    def _real_extract(self, url):
+        profile_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, profile_id)
+
+        entries = [
+            self.url_result(audio_url, 'Soundgasm')
+            for audio_url in re.findall(r'href="([^"]+/u/%s/[^"]+)' % profile_id, webpage)]
+
+        return self.playlist_result(entries, profile_id)

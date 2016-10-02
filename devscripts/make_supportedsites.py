@@ -9,7 +9,7 @@ import sys
 
 # Import youtube_dl
 ROOT_DIR = os.path.join(os.path.dirname(__file__), '..')
-sys.path.append(ROOT_DIR)
+sys.path.insert(0, ROOT_DIR)
 import youtube_dl
 
 

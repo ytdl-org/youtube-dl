@@ -2,23 +2,24 @@ from __future__ import unicode_literals
 
 import time
 import hmac
+import hashlib
+import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse,
-    compat_urllib_request,
-)
+from ..compat import compat_str
 from ..utils import (
-    int_or_none,
-    float_or_none,
-    xpath_text,
     ExtractorError,
+    float_or_none,
+    int_or_none,
+    sanitized_Request,
+    urlencode_postdata,
+    xpath_text,
 )
 
 
 class AtresPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/television/[^/]+/[^/]+/[^/]+/(?P<id>.+?)_\d+\.html'
+    _NETRC_MACHINE = 'atresplayer'
     _TESTS = [
         {
             'url': 'http://www.atresplayer.com/television/programas/el-club-de-la-comedia/temporada-4/capitulo-10-especial-solidario-nochebuena_2014122100174.html',
@@ -29,6 +30,19 @@ class AtresPlayerIE(InfoExtractor):
                 'title': 'Especial Solidario de Nochebuena',
                 'description': 'md5:e2d52ff12214fa937107d21064075bf1',
                 'duration': 5527.6,
+                'thumbnail': 're:^https?://.*\.jpg$',
+            },
+            'skip': 'This video is only available for registered users'
+        },
+        {
+            'url': 'http://www.atresplayer.com/television/especial/videoencuentros/temporada-1/capitulo-112-david-bustamante_2014121600375.html',
+            'md5': '0d0e918533bbd4b263f2de4d197d4aac',
+            'info_dict': {
+                'id': 'capitulo-112-david-bustamante',
+                'ext': 'flv',
+                'title': 'David Bustamante',
+                'description': 'md5:f33f1c0a05be57f6708d4dd83a3b81c6',
+                'duration': 1439.0,
                 'thumbnail': 're:^https?://.*\.jpg$',
             },
         },
@@ -49,6 +63,13 @@ class AtresPlayerIE(InfoExtractor):
 
     _LOGIN_URL = 'https://servicios.atresplayer.com/j_spring_security_check'
 
+    _ERRORS = {
+        'UNPUBLISHED': 'We\'re sorry, but this video is not yet available.',
+        'DELETED': 'This video has expired and is no longer available for online streaming.',
+        'GEOUNPUBLISHED': 'We\'re sorry, but this video is not available in your region due to right restrictions.',
+        # 'PREMIUM': 'PREMIUM',
+    }
+
     def _real_initialize(self):
         self._login()
 
@@ -62,8 +83,8 @@ class AtresPlayerIE(InfoExtractor):
             'j_password': password,
         }
 
-        request = compat_urllib_request.Request(
-            self._LOGIN_URL, compat_urllib_parse.urlencode(login_form).encode('utf-8'))
+        request = sanitized_Request(
+            self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         response = self._download_webpage(
             request, None, 'Logging in as %s' % username)
@@ -82,49 +103,72 @@ class AtresPlayerIE(InfoExtractor):
         episode_id = self._search_regex(
             r'episode="([^"]+)"', webpage, 'episode id')
 
+        request = sanitized_Request(
+            self._PLAYER_URL_TEMPLATE % episode_id,
+            headers={'User-Agent': self._USER_AGENT})
+        player = self._download_json(request, episode_id, 'Downloading player JSON')
+
+        episode_type = player.get('typeOfEpisode')
+        error_message = self._ERRORS.get(episode_type)
+        if error_message:
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, error_message), expected=True)
+
+        formats = []
+        video_url = player.get('urlVideo')
+        if video_url:
+            format_info = {
+                'url': video_url,
+                'format_id': 'http',
+            }
+            mobj = re.search(r'(?P<bitrate>\d+)K_(?P<width>\d+)x(?P<height>\d+)', video_url)
+            if mobj:
+                format_info.update({
+                    'width': int_or_none(mobj.group('width')),
+                    'height': int_or_none(mobj.group('height')),
+                    'tbr': int_or_none(mobj.group('bitrate')),
+                })
+            formats.append(format_info)
+
         timestamp = int_or_none(self._download_webpage(
             self._TIME_API_URL,
             video_id, 'Downloading timestamp', fatal=False), 1000, time.time())
         timestamp_shifted = compat_str(timestamp + self._TIMESTAMP_SHIFT)
         token = hmac.new(
             self._MAGIC.encode('ascii'),
-            (episode_id + timestamp_shifted).encode('utf-8')
+            (episode_id + timestamp_shifted).encode('utf-8'), hashlib.md5
         ).hexdigest()
 
-        formats = []
-        for fmt in ['windows', 'android_tablet']:
-            request = compat_urllib_request.Request(
-                self._URL_VIDEO_TEMPLATE.format(fmt, episode_id, timestamp_shifted, token))
-            request.add_header('Youtubedl-user-agent', self._USER_AGENT)
+        request = sanitized_Request(
+            self._URL_VIDEO_TEMPLATE.format('windows', episode_id, timestamp_shifted, token),
+            headers={'User-Agent': self._USER_AGENT})
 
-            fmt_json = self._download_json(
-                request, video_id, 'Downloading %s video JSON' % fmt)
+        fmt_json = self._download_json(
+            request, video_id, 'Downloading windows video JSON')
 
-            result = fmt_json.get('resultDes')
-            if result.lower() != 'ok':
-                raise ExtractorError(
-                    '%s returned error: %s' % (self.IE_NAME, result), expected=True)
+        result = fmt_json.get('resultDes')
+        if result.lower() != 'ok':
+            raise ExtractorError(
+                '%s returned error: %s' % (self.IE_NAME, result), expected=True)
 
-            for _, video_url in fmt_json['resultObject'].items():
-                if video_url.endswith('/Manifest'):
-                    formats.extend(self._extract_f4m_formats(video_url[:-9] + '/manifest.f4m', video_id))
-                else:
-                    formats.append({
-                        'url': video_url,
-                        'format_id': 'android',
-                        'preference': 1,
-                    })
+        for format_id, video_url in fmt_json['resultObject'].items():
+            if format_id == 'token' or not video_url.startswith('http'):
+                continue
+            if 'geodeswowsmpra3player' in video_url:
+                f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
+                f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
+                # this videos are protected by DRM, the f4m downloader doesn't support them
+                continue
+            else:
+                f4m_url = video_url[:-9] + '/manifest.f4m'
+            formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
-
-        player = self._download_json(
-            self._PLAYER_URL_TEMPLATE % episode_id,
-            episode_id)
 
         path_data = player.get('pathData')
 
         episode = self._download_xml(
-            self._EPISODE_URL_TEMPLATE % path_data,
-            video_id, 'Downloading episode XML')
+            self._EPISODE_URL_TEMPLATE % path_data, video_id,
+            'Downloading episode XML')
 
         duration = float_or_none(xpath_text(
             episode, './media/asset/info/technical/contentDuration', 'duration'))
@@ -134,6 +178,14 @@ class AtresPlayerIE(InfoExtractor):
         description = xpath_text(art, './description', 'description')
         thumbnail = xpath_text(episode, './media/asset/files/background', 'thumbnail')
 
+        subtitles = {}
+        subtitle_url = xpath_text(episode, './media/asset/files/subtitle', 'subtitle')
+        if subtitle_url:
+            subtitles['es'] = [{
+                'ext': 'srt',
+                'url': subtitle_url,
+            }]
+
         return {
             'id': video_id,
             'title': title,
@@ -141,4 +193,5 @@ class AtresPlayerIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }

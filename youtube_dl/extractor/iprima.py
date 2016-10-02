@@ -1,107 +1,90 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
-from random import random
-from math import floor
+import time
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_request,
-)
 from ..utils import (
-    ExtractorError,
+    determine_ext,
+    js_to_json,
+    sanitized_Request,
 )
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.iprima\.cz/[^?#]+/(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://play\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
 
     _TESTS = [{
-        'url': 'http://play.iprima.cz/particka/particka-92',
+        'url': 'http://play.iprima.cz/gondici-s-r-o-33',
         'info_dict': {
-            'id': '39152',
-            'ext': 'flv',
-            'title': 'Partička (92)',
-            'description': 'md5:3740fda51464da35a2d4d0670b8e4fd6',
-            'thumbnail': 'http://play.iprima.cz/sites/default/files/image_crops/image_620x349/3/491483_particka-92_image_620x349.jpg',
+            'id': 'p136534',
+            'ext': 'mp4',
+            'title': 'Gondíci s. r. o. (34)',
+            'description': 'md5:16577c629d006aa91f59ca8d8e7f99bd',
         },
         'params': {
-            'skip_download': True,  # requires rtmpdump
+            'skip_download': True,  # m3u8 download
         },
     }, {
-        'url': 'http://play.iprima.cz/particka/tchibo-particka-jarni-moda',
-        'info_dict': {
-            'id': '9718337',
-            'ext': 'flv',
-            'title': 'Tchibo Partička - Jarní móda',
-            'description': 'md5:589f8f59f414220621ff8882eb3ce7be',
-            'thumbnail': 're:^http:.*\.jpg$',
-        },
-        'params': {
-            'skip_download': True,  # requires rtmpdump
-        },
-        'skip': 'Do not have permission to access this page',
+        'url': 'http://play.iprima.cz/particka/particka-92',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
-        if re.search(r'Nemáte oprávnění přistupovat na tuto stránku\.\s*</div>', webpage):
-            raise ExtractorError(
-                '%s said: You do not have permission to access this page' % self.IE_NAME, expected=True)
+        video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
 
-        player_url = (
-            'http://embed.livebox.cz/iprimaplay/player-embed-v2.js?__tok%s__=%s' %
-            (floor(random() * 1073741824), floor(random() * 1073741824))
-        )
-
-        req = compat_urllib_request.Request(player_url)
+        req = sanitized_Request(
+            'http://play.iprima.cz/prehravac/init?_infuse=1'
+            '&_ts=%s&productId=%s' % (round(time.time()), video_id))
         req.add_header('Referer', url)
-        playerpage = self._download_webpage(req, video_id)
-
-        base_url = ''.join(re.findall(r"embed\['stream'\] = '(.+?)'.+'(\?auth=)'.+'(.+?)';", playerpage)[1])
-
-        zoneGEO = self._html_search_regex(r'"zoneGEO":(.+?),', webpage, 'zoneGEO')
-        if zoneGEO != '0':
-            base_url = base_url.replace('token', 'token_' + zoneGEO)
+        playerpage = self._download_webpage(req, video_id, note='Downloading player')
 
         formats = []
-        for format_id in ['lq', 'hq', 'hd']:
-            filename = self._html_search_regex(
-                r'"%s_id":(.+?),' % format_id, webpage, 'filename')
 
-            if filename == 'null':
-                continue
+        def extract_formats(format_url, format_key=None, lang=None):
+            ext = determine_ext(format_url)
+            new_formats = []
+            if format_key == 'hls' or ext == 'm3u8':
+                new_formats = self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False)
+            elif format_key == 'dash' or ext == 'mpd':
+                return
+                new_formats = self._extract_mpd_formats(
+                    format_url, video_id, mpd_id='dash', fatal=False)
+            if lang:
+                for f in new_formats:
+                    if not f.get('language'):
+                        f['language'] = lang
+            formats.extend(new_formats)
 
-            real_id = self._search_regex(
-                r'Prima-(?:[0-9]{10}|WEB)-([0-9]+)[-_]',
-                filename, 'real video id')
+        options = self._parse_json(
+            self._search_regex(
+                r'(?s)var\s+playerOptions\s*=\s*({.+?});',
+                playerpage, 'player options', default='{}'),
+            video_id, transform_source=js_to_json, fatal=False)
+        if options:
+            for key, tracks in options.get('tracks', {}).items():
+                if not isinstance(tracks, list):
+                    continue
+                for track in tracks:
+                    src = track.get('src')
+                    if src:
+                        extract_formats(src, key.lower(), track.get('lang'))
 
-            if format_id == 'lq':
-                quality = 0
-            elif format_id == 'hq':
-                quality = 1
-            elif format_id == 'hd':
-                quality = 2
-                filename = 'hq/' + filename
-
-            formats.append({
-                'format_id': format_id,
-                'url': base_url,
-                'quality': quality,
-                'play_path': 'mp4:' + filename.replace('"', '')[:-4],
-                'rtmp_live': True,
-                'ext': 'flv',
-            })
+        if not formats:
+            for _, src in re.findall(r'src["\']\s*:\s*(["\'])(.+?)\1', playerpage):
+                extract_formats(src)
 
         self._sort_formats(formats)
 
         return {
-            'id': real_id,
+            'id': video_id,
             'title': self._og_search_title(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
             'formats': formats,

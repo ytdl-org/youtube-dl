@@ -1,15 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
+from ..utils import (
+    int_or_none,
+    ExtractorError,
+)
 
 
 class RTBFIE(InfoExtractor):
-    _VALID_URL = r'https?://www.rtbf.be/video/[^\?]+\?id=(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+        https?://(?:www\.)?rtbf\.be/
+        (?:
+            video/[^?]+\?.*\bid=|
+            ouftivi/(?:[^/]+/)*[^?]+\?.*\bvideoId=|
+            auvio/[^/]+\?.*id=
+        )(?P<id>\d+)'''
+    _TESTS = [{
         'url': 'https://www.rtbf.be/video/detail_les-diables-au-coeur-episode-2?id=1921274',
         'md5': '799f334ddf2c0a582ba80c44655be570',
         'info_dict': {
@@ -18,32 +25,74 @@ class RTBFIE(InfoExtractor):
             'title': 'Les Diables au coeur (épisode 2)',
             'description': 'Football - Diables Rouges',
             'duration': 3099,
-            'timestamp': 1398456336,
             'upload_date': '20140425',
+            'timestamp': 1398456336,
+            'uploader': 'rtbfsport',
         }
+    }, {
+        # geo restricted
+        'url': 'http://www.rtbf.be/ouftivi/heros/detail_scooby-doo-mysteres-associes?id=1097&videoId=2057442',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.rtbf.be/ouftivi/niouzz?videoId=2055858',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.rtbf.be/auvio/detail_jeudi-en-prime-siegfried-bracke?id=2102996',
+        'only_matching': True,
+    }]
+    _IMAGE_HOST = 'http://ds1.ds.static.rtbf.be'
+    _PROVIDERS = {
+        'YOUTUBE': 'Youtube',
+        'DAILYMOTION': 'Dailymotion',
+        'VIMEO': 'Vimeo',
     }
+    _QUALITIES = [
+        ('mobile', 'SD'),
+        ('web', 'MD'),
+        ('high', 'HD'),
+    ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        data = self._download_json(
+            'http://www.rtbf.be/api/media/video?method=getVideoDetail&args[]=%s' % video_id, video_id)
 
-        page = self._download_webpage('https://www.rtbf.be/video/embed?id=%s' % video_id, video_id)
+        error = data.get('error')
+        if error:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
 
-        data = json.loads(self._html_search_regex(
-            r'<div class="js-player-embed(?: player-embed)?" data-video="([^"]+)"', page, 'data video'))['data']
+        data = data['data']
 
-        video_url = data.get('downloadUrl') or data.get('url')
+        provider = data.get('provider')
+        if provider in self._PROVIDERS:
+            return self.url_result(data['url'], self._PROVIDERS[provider])
 
-        if data['provider'].lower() == 'youtube':
-            return self.url_result(video_url, 'Youtube')
+        formats = []
+        for key, format_id in self._QUALITIES:
+            format_url = data.get(key + 'Url')
+            if format_url:
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                })
+
+        thumbnails = []
+        for thumbnail_id, thumbnail_url in data.get('thumbnail', {}).items():
+            if thumbnail_id != 'default':
+                thumbnails.append({
+                    'url': self._IMAGE_HOST + thumbnail_url,
+                    'id': thumbnail_id,
+                })
 
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': formats,
             'title': data['title'],
             'description': data.get('description') or data.get('subtitle'),
-            'thumbnail': data['thumbnail']['large'],
+            'thumbnails': thumbnails,
             'duration': data.get('duration') or data.get('realDuration'),
-            'timestamp': data['created'],
-            'view_count': data['viewCount'],
+            'timestamp': int_or_none(data.get('created')),
+            'view_count': int_or_none(data.get('viewCount')),
+            'uploader': data.get('channel'),
+            'tags': data.get('tags'),
         }

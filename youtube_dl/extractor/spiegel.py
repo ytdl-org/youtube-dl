@@ -4,19 +4,17 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-    compat_HTTPError,
-)
-from ..utils import (
-    HEADRequest,
-    ExtractorError,
-)
 from .spiegeltv import SpiegeltvIE
+from ..compat import compat_urlparse
+from ..utils import (
+    extract_attributes,
+    unified_strdate,
+    get_element_by_attribute,
+)
 
 
 class SpiegelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed)?(?:\.html)?(?:#.*)?$'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed|-iframe)?(?:\.html)?(?:#.*)?$'
     _TESTS = [{
         'url': 'http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html',
         'md5': '2c2754212136f35fb4b19767d242f66e',
@@ -26,6 +24,7 @@ class SpiegelIE(InfoExtractor):
             'title': 'Vulkanausbruch in Ecuador: Der "Feuerschlund" ist wieder aktiv',
             'description': 'md5:8029d8310232196eb235d27575a8b9f4',
             'duration': 49,
+            'upload_date': '20130311',
         },
     }, {
         'url': 'http://www.spiegel.de/video/schach-wm-videoanalyse-des-fuenften-spiels-video-1309159.html',
@@ -36,6 +35,7 @@ class SpiegelIE(InfoExtractor):
             'title': 'Schach-WM in der Videoanalyse: Carlsen nutzt die Fehlgriffe des Titelverteidigers',
             'description': 'md5:c2322b65e58f385a820c10fa03b2d088',
             'duration': 983,
+            'upload_date': '20131115',
         },
     }, {
         'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-embed.html',
@@ -45,7 +45,11 @@ class SpiegelIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'SPIEGEL ONLINE-Nutzer durften den deutschen Astronauten Alexander Gerst über sein Leben auf der ISS-Station befragen. Hier kommen seine Antworten auf die besten sechs Fragen.',
             'title': 'Fragen an Astronaut Alexander Gerst: "Bekommen Sie die Tageszeiten mit?"',
+            'upload_date': '20140904',
         }
+    }, {
+        'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-iframe.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -56,13 +60,14 @@ class SpiegelIE(InfoExtractor):
         if SpiegeltvIE.suitable(handle.geturl()):
             return self.url_result(handle.geturl(), 'Spiegeltv')
 
-        title = re.sub(r'\s+', ' ', self._html_search_regex(
-            r'(?s)<(?:h1|div) class="module-title"[^>]*>(.*?)</(?:h1|div)>',
-            webpage, 'title'))
-        description = self._html_search_meta('description', webpage, 'description')
+        video_data = extract_attributes(self._search_regex(r'(<div[^>]+id="spVideoElements"[^>]+>)', webpage, 'video element', default=''))
+
+        title = video_data.get('data-video-title') or get_element_by_attribute('class', 'module-title', webpage)
+        description = video_data.get('data-video-teaser') or self._html_search_meta('description', webpage, 'description')
 
         base_url = self._search_regex(
-            r'var\s+server\s*=\s*"([^"]+)\"', webpage, 'server URL')
+            [r'server\s*:\s*(["\'])(?P<url>.+?)\1', r'var\s+server\s*=\s*"(?P<url>[^"]+)\"'],
+            webpage, 'server URL', group='url')
 
         xml_url = base_url + video_id + '.xml'
         idoc = self._download_xml(xml_url, video_id)
@@ -72,16 +77,6 @@ class SpiegelIE(InfoExtractor):
             if n.tag.startswith('type') and n.tag != 'type6':
                 format_id = n.tag.rpartition('type')[2]
                 video_url = base_url + n.find('./filename').text
-                # Test video URLs beforehand as some of them are invalid
-                try:
-                    self._request_webpage(
-                        HEADRequest(video_url), video_id,
-                        'Checking %s video URL' % format_id)
-                except ExtractorError as e:
-                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
-                        self.report_warning(
-                            '%s video URL is invalid, skipping' % format_id, video_id)
-                        continue
                 formats.append({
                     'format_id': format_id,
                     'url': video_url,
@@ -94,19 +89,21 @@ class SpiegelIE(InfoExtractor):
                 })
         duration = float(idoc[0].findall('./duration')[0].text)
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
+            'description': description.strip() if description else None,
             'duration': duration,
+            'upload_date': unified_strdate(video_data.get('data-video-date')),
             'formats': formats,
         }
 
 
 class SpiegelArticleIE(InfoExtractor):
-    _VALID_URL = 'https?://www\.spiegel\.de/(?!video/)[^?#]*?-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/(?!video/)[^?#]*?-(?P<id>[0-9]+)\.html'
     IE_NAME = 'Spiegel:Article'
     IE_DESC = 'Articles on spiegel.de'
     _TESTS = [{
@@ -116,6 +113,7 @@ class SpiegelArticleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Faszination Badminton: Nennt es bloß nicht Federball',
             'description': 're:^Patrick Kämnitz gehört.{100,}',
+            'upload_date': '20140825',
         },
     }, {
         'url': 'http://www.spiegel.de/wissenschaft/weltall/astronaut-alexander-gerst-antwortet-spiegel-online-lesern-a-989876.html',

@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -15,11 +13,12 @@ class AparatIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.aparat.com/v/wP8On',
-        'md5': '6714e0af7e0d875c5a39c4dc4ab46ad1',
+        'md5': '131aca2e14fe7c4dcb3c4877ba300c89',
         'info_dict': {
             'id': 'wP8On',
             'ext': 'mp4',
             'title': 'تیم گلکسی 11 - زومیت',
+            'age_limit': 0,
         },
         # 'skip': 'Extremely unreliable',
     }
@@ -30,12 +29,13 @@ class AparatIE(InfoExtractor):
         # Note: There is an easier-to-parse configuration at
         # http://www.aparat.com/video/video/config/videohash/%video_id
         # but the URL in there does not work
-        embed_url = ('http://www.aparat.com/video/video/embed/videohash/' +
-                     video_id + '/vt/frame')
+        embed_url = 'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id
         webpage = self._download_webpage(embed_url, video_id)
 
-        video_urls = re.findall(r'fileList\[[0-9]+\]\s*=\s*"([^"]+)"', webpage)
-        for i, video_url in enumerate(video_urls):
+        file_list = self._parse_json(self._search_regex(
+            r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage, 'file list'), video_id)
+        for i, item in enumerate(file_list[0]):
+            video_url = item['file']
             req = HEADRequest(video_url)
             res = self._request_webpage(
                 req, video_id, note='Testing video URL %d' % i, errnote=False)
@@ -46,7 +46,7 @@ class AparatIE(InfoExtractor):
 
         title = self._search_regex(r'\s+title:\s*"([^"]+)"', webpage, 'title')
         thumbnail = self._search_regex(
-            r'\s+image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
+            r'image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,
@@ -54,4 +54,5 @@ class AparatIE(InfoExtractor):
             'url': video_url,
             'ext': 'mp4',
             'thumbnail': thumbnail,
+            'age_limit': self._family_friendly_search(webpage),
         }

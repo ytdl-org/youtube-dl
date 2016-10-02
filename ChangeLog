@@ -1,0 +1,760 @@
+version 2016.10.02
+
+Core
+* Fix possibly lost extended attributes during post-processing
++ Support pyxattr as well as python-xattr for --xattrs and
+  --xattr-set-filesize (#9054)
+
+Extractors
++ [jwplatform] Support DASH streams in JWPlayer
++ [jwplatform] Support old-style JWPlayer playlists
++ [byutv:event] Add extractor
+* [periscope:user] Fix extraction (#10820)
+* [dctp] Fix extraction (#10734)
++ [instagram] Extract video dimensions (#10790)
++ [tvland] Extend URL regular expression (#10812)
++ [vgtv] Add support for tv.aftonbladet.se (#10800)
+- [aftonbladet] Remove extractor
+* [vk] Fix timestamp and view count extraction (#10760)
++ [vk] Add support for running and finished live streams (#10799)
++ [leeco] Recognize more Le Sports URLs (#10794)
++ [instagram] Extract comments (#10788)
++ [ketnet] Extract mzsource formats (#10770)
+* [limelight:media] Improve HTTP formats extraction
+
+
+version 2016.09.27
+
+Core
++ Add hdcore query parameter to akamai f4m formats
++ Delegate HLS live streams downloading to ffmpeg
++ Improved support for HTML5 subtitles
+
+Extractors
++ [vk] Add support for dailymotion embeds (#10661)
+* [promptfile] Fix extraction (#10634)
+* [kaltura] Speed up embed regular expressions (#10764)
++ [npo] Add support for anderetijden.nl (#10754)
++ [prosiebensat1] Add support for advopedia sites
+* [mwave] Relax URL regular expression (#10735, #10748)
+* [prosiebensat1] Fix playlist support (#10745)
++ [prosiebensat1] Add support for sat1gold sites (#10745)
++ [cbsnews:livevideo] Fix extraction and extract m3u8 formats
++ [brightcove:new] Add support for live streams
+* [soundcloud] Generalize playlist entries extraction (#10733)
++ [mtv] Add support for new URL schema (#8169, #9808)
+* [einthusan] Fix extraction (#10714)
++ [twitter] Support Periscope embeds (#10737)
++ [openload] Support subtitles (#10625)
+
+
+version 2016.09.24
+
+Core
++ Add support for watchTVeverywhere.com authentication provider based MSOs for
+  Adobe Pass authentication (#10709)
+
+Extractors
++ [soundcloud:playlist] Provide video id for early playlist entries (#10733)
++ [prosiebensat1] Add support for kabeleinsdoku (#10732)
+* [cbs] Extract info from thunder videoPlayerService (#10728)
+* [openload] Fix extraction (#10408)
++ [ustream] Support the new HLS streams (#10698)
++ [ooyala] Extract all HLS formats
++ [cartoonnetwork] Add support for Adobe Pass authentication
++ [soundcloud] Extract license metadata
++ [fox] Add support for Adobe Pass authentication (#8584)
++ [tbs] Add support for Adobe Pass authentication (#10642, #10222)
++ [trutv] Add support for Adobe Pass authentication (#10519)
++ [turner] Add support for Adobe Pass authentication
+
+
+version 2016.09.19
+
+Extractors
++ [crunchyroll] Check if already authenticated (#10700)
+- [twitch:stream] Remove fallback to profile extraction when stream is offline
+* [thisav] Improve title extraction (#10682)
+* [vyborymos] Improve station info extraction
+
+
+version 2016.09.18
+
+Core
++ Introduce manifest_url and fragments fields in formats dictionary for
+  fragmented media
++ Provide manifest_url field for DASH segments, HLS and HDS
++ Provide fragments field for DASH segments
+* Rework DASH segments downloader to use fragments field
++ Add helper method for Wowza Streaming Engine formats extraction
+
+Extractors
++ [vyborymos] Add extractor for vybory.mos.ru (#10692)
++ [xfileshare] Add title regular expression for streamin.to (#10646)
++ [globo:article] Add support for multiple videos (#10653)
++ [thisav] Recognize HTML5 videos (#10447)
+* [jwplatform] Improve JWPlayer detection
++ [mangomolo] Add support for Mangomolo embeds
++ [toutv] Add support for authentication (#10669)
+* [franceinter] Fix upload date extraction
+* [tv4] Fix HLS and HDS formats extraction (#10659)
+
+
+version 2016.09.15
+
+Core
+* Improve _hidden_inputs
++ Introduce improved explicit Adobe Pass support
++ Add --ap-mso to provide multiple-system operator identifier
++ Add --ap-username to provide MSO account username
++ Add --ap-password to provide MSO account password
++ Add --ap-list-mso to list all supported MSOs
++ Add support for Rogers Cable multiple-system operator (#10606)
+
+Extractors
+* [crunchyroll] Fix authentication (#10655)
+* [twitch] Fix API calls (#10654, #10660)
++ [bellmedia] Add support for more Bell Media Television sites
+* [franceinter] Fix extraction (#10538, #2105)
+* [kuwo] Improve error detection (#10650)
++ [go] Add support for free full episodes (#10439)
+* [bilibili] Fix extraction for specific videos (#10647)
+* [nhk] Fix extraction (#10633)
+* [kaltura] Improve audio detection
+* [kaltura] Skip chun format
++ [vimeo:ondemand] Pass Referer along with embed URL (#10624)
++ [nbc] Add support for NBC Olympics (#10361)
+
+
+version 2016.09.11.1
+
+Extractors
++ [tube8] Extract categories and tags (#10579)
++ [pornhub] Extract categories and tags (#10499)
+* [openload] Temporary fix (#10408)
++ [foxnews] Add support Fox News articles (#10598)
+* [viafree] Improve video id extraction (#10615)
+* [iwara] Fix extraction after relaunch (#10462, #3215)
++ [tfo] Add extractor for tfo.org
+* [lrt] Fix audio extraction (#10566)
+* [9now] Fix extraction (#10561)
++ [canalplus] Add support for c8.fr (#10577)
+* [newgrounds] Fix uploader extraction (#10584)
++ [polskieradio:category] Add support for category lists (#10576)
++ [ketnet] Add extractor for ketnet.be (#10343)
++ [canvas] Add support for een.be (#10605)
++ [telequebec] Add extractor for telequebec.tv (#1999)
+* [parliamentliveuk] Fix extraction (#9137)
+
+
+version 2016.09.08
+
+Extractors
++ [jwplatform] Extract height from format label
++ [yahoo] Extract Brightcove Legacy Studio embeds (#9345)
+* [videomore] Fix extraction (#10592)
+* [foxgay] Fix extraction (#10480)
++ [rmcdecouverte] Add extractor for rmcdecouverte.bfmtv.com (#9709)
+* [gamestar] Fix metadata extraction (#10479)
+* [puls4] Fix extraction (#10583)
++ [cctv] Add extractor for CCTV and CNTV (#8153)
++ [lci] Add extractor for lci.fr (#10573)
++ [wat] Extract DASH formats
++ [viafree] Improve video id detection (#10569)
++ [trutv] Add extractor for trutv.com (#10519)
++ [nick] Add support for nickelodeon.nl (#10559)
++ [abcotvs:clips] Add support for clips.abcotvs.com
++ [abcotvs] Add support for ABC Owned Television Stations sites (#9551)
++ [miaopai] Add extractor for miaopai.com (#10556)
+* [gamestar] Fix metadata extraction (#10479)
++ [bilibili] Add support for episodes (#10190)
++ [tvnoe] Add extractor for tvnoe.cz (#10524)
+
+
+version 2016.09.04.1
+
+Core
+* In DASH downloader if the first segment fails, abort the whole download
+  process to prevent throttling (#10497)
++ Add support for --skip-unavailable-fragments and --fragment retries in
+  hlsnative downloader (#10165, #10448).
++ Add support for --skip-unavailable-fragments in DASH downloader
++ Introduce --skip-unavailable-fragments option for fragment based downloaders
+  that allows to skip fragments unavailable due to a HTTP error
+* Fix extraction of video/audio entries with src attribute in
+  _parse_html5_media_entries (#10540)
+
+Extractors
+* [theplatform] Relax URL regular expression (#10546)
+* [youtube:playlist] Extend URL regular expression
+* [rottentomatoes] Delegate extraction to internetvideoarchive extractor
+* [internetvideoarchive] Extract all formats
+* [pornvoisines] Fix extraction (#10469)
+* [rottentomatoes] Fix extraction (#10467)
+* [espn] Extend URL regular expression (#10549)
+* [vimple] Extend URL regular expression (#10547)
+* [youtube:watchlater] Fix extraction (#10544)
+* [youjizz] Fix extraction (#10437)
++ [foxnews] Add support for FoxNews Insider (#10445)
++ [fc2] Recognize Flash player URLs (#10512)
+
+
+version 2016.09.03
+
+Core
+* Restore usage of NAME attribute from EXT-X-MEDIA tag for formats codes in
+  _extract_m3u8_formats (#10522)
+* Handle semicolon in mimetype2ext
+
+Extractors
++ [youtube] Add support for rental videos' previews (#10532)
+* [youtube:playlist] Fallback to video extraction for video/playlist URLs when
+  no playlist is actually served (#10537)
++ [drtv] Add support for dr.dk/nyheder (#10536)
++ [facebook:plugins:video] Add extractor (#10530)
++ [go] Add extractor for *.go.com sites
+* [adobepass] Check for authz_token expiration (#10527)
+* [nytimes] improve extraction
+* [thestar] Fix extraction (#10465)
+* [glide] Fix extraction (#10478)
+- [exfm] Remove extractor (#10482)
+* [youporn] Fix categories and tags extraction (#10521)
++ [curiositystream] Add extractor for app.curiositystream.com
+- [thvideo] Remove extractor (#10464)
+* [movingimage] Fix for the new site name (#10466)
++ [cbs] Add support for once formats (#10515)
+* [limelight] Skip ism snd duplicate manifests
++ [porncom] Extract categories and tags (#10510)
++ [facebook] Extract timestamp (#10508)
++ [yahoo] Extract more formats
+
+
+version 2016.08.31
+
+Extractors
+* [soundcloud] Fix URL regular expression to avoid clashes with sets (#10505)
+* [bandcamp:album] Fix title extraction (#10455)
+* [pyvideo] Fix extraction (#10468)
++ [ctv] Add support for tsn.ca, bnn.ca and thecomedynetwork.ca (#10016)
+* [9c9media] Extract more metadata
+* [9c9media] Fix multiple stacks extraction (#10016)
+* [adultswim] Improve video info extraction (#10492)
+* [vodplatform] Improve embed regular expression
+- [played] Remove extractor (#10470)
++ [tbs] Add extractor for tbs.com and tntdrama.com (#10222)
++ [cartoonnetwork] Add extractor for cartoonnetwork.com (#10110)
+* [adultswim] Rework in terms of turner extractor
+* [cnn] Rework in terms of turner extractor
+* [nba] Rework in terms of turner extractor
++ [turner] Add base extractor for Turner Broadcasting System based sites
+* [bilibili] Fix extraction (#10375)
+* [openload] Fix extraction (#10408)
+
+
+version 2016.08.28
+
+Core
++ Add warning message that ffmpeg doesn't support SOCKS
+* Improve thumbnail sorting
++ Extract formats from #EXT-X-MEDIA tags in _extract_m3u8_formats
+* Fill IV with leading zeros for IVs shorter than 16 octets in hlsnative
++ Add ac-3 to the list of audio codecs in parse_codecs
+
+Extractors
+* [periscope:user] Fix extraction (#10453)
+* [douyutv] Fix extraction (#10153, #10318, #10444)
++ [nhk:vod] Add extractor for www3.nhk.or.jp on demand (#4437, #10424)
+- [trutube] Remove extractor (#10438)
++ [usanetwork] Add extractor for usanetwork.com
+* [crackle] Fix extraction (#10333)
+* [spankbang] Fix description and uploader extraction (#10339)
+* [discoverygo] Detect cable provider restricted videos (#10425)
++ [cbc] Add support for watch.cbc.ca
+* [kickstarter] Silent the warning for og:description (#10415)
+* [mtvservices:embedded] Fix extraction for the new 'edge' player (#10363)
+
+
+version 2016.08.24.1
+
+Extractors
++ [pluralsight] Add support for subtitles (#9681)
+
+
+version 2016.08.24
+
+Extractors
+* [youtube] Fix authentication (#10392)
+* [openload] Fix extraction (#10408)
++ [bravotv] Add support for Adobe Pass (#10407)
+* [bravotv] Fix clip info extraction (#10407)
+* [eagleplatform] Improve embedded videos detection (#10409)
+* [awaan] Fix extraction
+* [mtvservices:embedded] Update config URL
++ [abc:iview] Add extractor (#6148)
+
+
+version 2016.08.22
+
+Core
+* Improve formats and subtitles extension auto calculation
++ Recognize full unit names in parse_filesize
++ Add support for m3u8 manifests in HTML5 multimedia tags
+* Fix octal/hexadecimal number detection in js_to_json
+
+Extractors
++ [ivi] Add support for 720p and 1080p
++ [charlierose] Add new extractor (#10382)
+* [1tv] Fix extraction (#9249)
+* [twitch] Renew authentication
+* [kaltura] Improve subtitles extension calculation
++ [zingmp3] Add support for video clips
+* [zingmp3] Fix extraction (#10041)
+* [kaltura] Improve subtitles extraction (#10279)
+* [cultureunplugged] Fix extraction (#10330)
++ [cnn] Add support for money.cnn.com (#2797)
+* [cbsnews] Fix extraction (#10362)
+* [cbs] Fix extraction (#10393)
++ [litv] Support 'promo' URLs (#10385)
+* [snotr] Fix extraction (#10338)
+* [n-tv.de] Fix extraction (#10331)
+* [globo:article] Relax URL and video id regular expressions (#10379)
+
+
+version 2016.08.19
+
+Core
+- Remove output template description from --help
+* Recognize lowercase units in parse_filesize
+
+Extractors
++ [porncom] Add extractor for porn.com (#2251, #10251)
++ [generic] Add support for DBTV embeds
+* [vk:wallpost] Fix audio extraction for new site layout
+* [vk] Fix authentication
++ [hgtvcom:show] Add extractor for hgtv.com shows (#10365)
++ [discoverygo] Add support for another GO network sites
+
+
+version 2016.08.17
+
+Core
++ Add _get_netrc_login_info
+
+Extractors
+* [mofosex] Extract all formats (#10335)
++ [generic] Add support for vbox7 embeds
++ [vbox7] Add support for embed URLs
++ [viafree] Add extractor (#10358)
++ [mtg] Add support for viafree URLs (#10358)
+* [theplatform] Extract all subtitles per language
++ [xvideos] Fix HLS extraction (#10356)
++ [amcnetworks] Add extractor
++ [bbc:playlist] Add support for pagination (#10349)
++ [fxnetworks] Add extractor (#9462)
+* [cbslocal] Fix extraction for SendtoNews-based videos
+* [sendtonews] Fix extraction
+* [jwplatform] Extract video id from JWPlayer data
+- [zippcast] Remove extractor (#10332)
++ [viceland] Add extractor (#8799)
++ [adobepass] Add base extractor for Adobe Pass Authentication
+* [life:embed] Improve extraction
+* [vgtv] Detect geo restricted videos (#10348)
++ [uplynk] Add extractor
+* [xiami] Fix extraction (#10342)
+
+
+version 2016.08.13
+
+Core
+* Show progress for curl external downloader
+* Forward more options to curl external downloader
+
+Extractors
+* [pbs] Fix description extraction
+* [franceculture] Fix extraction (#10324)
+* [pornotube] Fix extraction (#10322)
+* [4tube] Fix metadata extraction (#10321)
+* [imgur] Fix width and height extraction (#10325)
+* [expotv] Improve extraction
++ [vbox7] Fix extraction (#10309)
+- [tapely] Remove extractor (#10323)
+* [muenchentv] Fix extraction (#10313)
++ [24video] Add support for .me and .xxx TLDs
+* [24video] Fix comment count extraction
+* [sunporno] Add support for embed URLs
+* [sunporno] Fix metadata extraction (#10316)
++ [hgtv] Add extractor for hgtv.ca (#3999)
+- [pbs] Remove request to unavailable API
++ [pbs] Add support for high quality HTTP formats
++ [crunchyroll] Add support for HLS formats (#10301)
+
+
+version 2016.08.12
+
+Core
+* Subtitles are now written as is. Newline conversions are disabled. (#10268)
++ Recognize more formats in unified_timestamp
+
+Extractors
+- [goldenmoustache] Remove extractor (#10298)
+* [drtuber] Improve title extraction
+* [drtuber] Make dislike count optional (#10297)
+* [chirbit] Fix extraction (#10296)
+* [francetvinfo] Relax URL regular expression
+* [rtlnl] Relax URL regular expression (#10282)
+* [formula1] Relax URL regular expression (#10283)
+* [wat] Improve extraction (#10281)
+* [ctsnews] Fix extraction
+
+
+version 2016.08.10
+
+Core
+* Make --metadata-from-title non fatal when title does not match the pattern
+* Introduce options for randomized sleep before each download
+  --min-sleep-interval and --max-sleep-interval (#9930)
+* Respect default in _search_json_ld
+
+Extractors
++ [uol] Add extractor for uol.com.br (#4263)
+* [rbmaradio] Fix extraction and extract all formats (#10242)
++ [sonyliv] Add extractor for sonyliv.com (#10258)
+* [aparat] Fix extraction
+* [cwtv] Extract HTTP formats
++ [rozhlas] Add extractor for prehravac.rozhlas.cz (#10253)
+* [kuwo:singer] Fix extraction
+
+
+version 2016.08.07
+
+Core
++ Add support for TV Parental Guidelines ratings in parse_age_limit
++ Add decode_png (#9706)
++ Add support for partOfTVSeries in JSON-LD
+* Lower master M3U8 manifest preference for better format sorting
+
+Extractors
++ [discoverygo] Add extractor (#10245)
+* [flipagram] Make JSON-LD extraction non fatal
+* [generic] Make JSON-LD extraction non fatal
++ [bbc] Add support for morph embeds (#10239)
+* [tnaflixnetworkbase] Improve title extraction
+* [tnaflix] Fix metadata extraction (#10249)
+* [fox] Fix theplatform release URL query
+* [openload] Fix extraction (#9706)
+* [bbc] Skip duplicate manifest URLs
+* [bbc] Improve format code
++ [bbc] Add support for DASH and F4M
+* [bbc] Improve format sorting and listing
+* [bbc] Improve playlist extraction
++ [pokemon] Add extractor (#10093)
++ [condenast] Add fallback scenario for video info extraction
+
+
+version 2016.08.06
+
+Core
+* Add support for JSON-LD root list entries (#10203)
+* Improve unified_timestamp
+* Lower preference of RTSP formats in generic sorting
++ Add support for multiple properties in _og_search_property
+* Improve password hiding from verbose output
+
+Extractors
++ [adultswim] Add support for trailers (#10235)
+* [archiveorg] Improve extraction (#10219)
++ [jwplatform] Add support for playlists
++ [jwplatform] Add support for relative URLs
+* [jwplatform] Improve audio detection
++ [tvplay] Capture and output native error message
++ [tvplay] Extract series metadata
++ [tvplay] Add support for subtitles (#10194)
+* [tvp] Improve extraction (#7799)
+* [cbslocal] Fix timestamp parsing (#10213)
++ [naver] Add support for subtitles (#8096)
+* [naver] Improve extraction
+* [condenast] Improve extraction
+* [engadget] Relax URL regular expression
+* [5min] Fix extraction
++ [nationalgeographic] Add support for Episode Guide
++ [kaltura] Add support for subtitles
+* [kaltura] Optimize network requests
++ [vodplatform] Add extractor for vod-platform.net
+- [gamekings] Remove extractor
+* [limelight] Extract HTTP formats
+* [ntvru] Fix extraction
++ [comedycentral] Re-add :tds and :thedailyshow shortnames
+
+
+version 2016.08.01
+
+Fixed/improved extractors
+- [yandexmusic:track] Adapt to changes in track location JSON (#10193)
+- [bloomberg] Support another form of player (#10187)
+- [limelight] Skip DRM protected videos
+- [safari] Relax regular expressions for URL matching (#10202)
+- [cwtv] Add support for cwtvpr.com (#10196)
+
+
+version 2016.07.30
+
+Fixed/improved extractors
+- [twitch:clips] Sort formats
+- [tv2] Use m3u8_native
+- [tv2:article] Fix video detection (#10188)
+- rtve (#10076)
+- [dailymotion:playlist] Optimize download archive processing (#10180)
+
+
+version 2016.07.28
+
+Fixed/improved extractors
+- shared (#10170)
+- soundcloud (#10179)
+- twitch (#9767)
+
+
+version 2016.07.26.2
+
+Fixed/improved extractors
+- smotri
+- camdemy
+- mtv
+- comedycentral
+- cmt
+- cbc
+- mgtv
+- orf
+
+
+version 2016.07.24
+
+New extractors
+- arkena (#8682)
+- lcp (#8682)
+
+Fixed/improved extractors
+- facebook (#10151)
+- dailymail
+- telegraaf
+- dcn
+- onet
+- tvp
+
+Miscellaneous
+- Support $Time$ in DASH manifests
+
+
+version 2016.07.22
+
+New extractors
+- odatv (#9285)
+
+Fixed/improved extractors
+- bbc
+- youjizz (#10131)
+- youtube (#10140)
+- pornhub (#10138)
+- eporner (#10139)
+
+
+version 2016.07.17
+
+New extractors
+- nintendo (#9986)
+- streamable (#9122)
+
+Fixed/improved extractors
+- ard (#10095)
+- mtv
+- comedycentral (#10101)
+- viki (#10098)
+- spike (#10106)
+
+Miscellaneous
+- Improved twitter player detection (#10090)
+
+
+version 2016.07.16
+
+New extractors
+- ninenow (#5181)
+
+Fixed/improved extractors
+- rtve (#10076)
+- brightcove
+- 3qsdn
+- syfy (#9087, #3820, #2388)
+- youtube (#10083)
+
+Miscellaneous
+- Fix subtitle embedding for video-only and audio-only files (#10081)
+
+
+version 2016.07.13
+
+New extractors
+- rudo
+
+Fixed/improved extractors
+- biobiochiletv
+- tvplay
+- dbtv
+- brightcove
+- tmz
+- youtube (#10059)
+- shahid (#10062)
+- vk
+- ellentv (#10067)
+
+
+version 2016.07.11
+
+New Extractors
+- roosterteeth (#9864)
+
+Fixed/improved extractors
+- miomio (#9605)
+- vuclip
+- youtube
+- vidzi (#10058)
+
+
+version 2016.07.09.2
+
+Fixed/improved extractors
+- vimeo (#1638)
+- facebook (#10048)
+- lynda (#10047)
+- animeondemand
+
+Fixed/improved features
+- Embedding subtitles no longer throws an error with problematic inputs (#9063)
+
+
+version 2016.07.09.1
+
+Fixed/improved extractors
+- youtube
+- ard
+- srmediatek (#9373)
+
+
+version 2016.07.09
+
+New extractors
+- Flipagram (#9898)
+
+Fixed/improved extractors
+- telecinco
+- toutv
+- radiocanada
+- tweakers (#9516)
+- lynda
+- nick (#7542)
+- polskieradio (#10028)
+- le
+- facebook (#9851)
+- mgtv
+- animeondemand (#10031)
+
+Fixed/improved features
+- `--postprocessor-args` and `--downloader-args` now accepts non-ASCII inputs
+  on non-Windows systems
+
+
+version 2016.07.07
+
+New extractors
+- kamcord (#10001)
+
+Fixed/improved extractors
+- spiegel (#10018)
+- metacafe (#8539, #3253)
+- onet (#9950)
+- francetv (#9955)
+- brightcove (#9965)
+- daum (#9972)
+
+
+version 2016.07.06
+
+Fixed/improved extractors
+- youtube (#10007, #10009)
+- xuite
+- stitcher
+- spiegel
+- slideshare
+- sandia
+- rtvnh
+- prosiebensat1
+- onionstudios
+
+
+version 2016.07.05
+
+Fixed/improved extractors
+- brightcove
+- yahoo (#9995)
+- pornhub (#9997)
+- iqiyi
+- kaltura (#5557)
+- la7
+- Changed features
+- Rename --cn-verfication-proxy to --geo-verification-proxy
+Miscellaneous
+- Add script for displaying downloads statistics
+
+
+version 2016.07.03.1
+
+Fixed/improved extractors
+- theplatform
+- aenetworks
+- nationalgeographic
+- hrti (#9482)
+- facebook (#5701)
+- buzzfeed (#5701)
+- rai (#8617, #9157, #9232, #8552, #8551)
+- nationalgeographic (#9991)
+- iqiyi
+
+
+version 2016.07.03
+
+New extractors
+- hrti (#9482)
+
+Fixed/improved extractors
+- vk (#9981)
+- facebook (#9938)
+- xtube (#9953, #9961)
+
+
+version 2016.07.02
+
+New extractors
+- fusion (#9958)
+
+Fixed/improved extractors
+- twitch (#9975)
+- vine (#9970)
+- periscope (#9967)
+- pornhub (#8696)
+
+
+version 2016.07.01
+
+New extractors
+- 9c9media
+- ctvnews (#2156)
+- ctv (#4077)
+
+Fixed/Improved extractors
+- rds
+- meta (#8789)
+- pornhub (#9964)
+- sixplay (#2183)
+
+New features
+- Accept quoted strings across multiple lines (#9940)

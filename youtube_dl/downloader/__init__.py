@@ -1,35 +1,54 @@
 from __future__ import unicode_literals
 
 from .common import FileDownloader
-from .hls import HlsFD
-from .hls import NativeHlsFD
-from .http import HttpFD
-from .mplayer import MplayerFD
-from .rtmp import RtmpFD
 from .f4m import F4mFD
-
-from ..utils import (
-    determine_ext,
+from .hls import HlsFD
+from .http import HttpFD
+from .rtmp import RtmpFD
+from .dash import DashSegmentsFD
+from .rtsp import RtspFD
+from .external import (
+    get_external_downloader,
+    FFmpegFD,
 )
 
+from ..utils import (
+    determine_protocol,
+)
 
-def get_suitable_downloader(info_dict):
+PROTOCOL_MAP = {
+    'rtmp': RtmpFD,
+    'm3u8_native': HlsFD,
+    'm3u8': FFmpegFD,
+    'mms': RtspFD,
+    'rtsp': RtspFD,
+    'f4m': F4mFD,
+    'http_dash_segments': DashSegmentsFD,
+}
+
+
+def get_suitable_downloader(info_dict, params={}):
     """Get the downloader class that can handle the info dict."""
-    url = info_dict['url']
-    protocol = info_dict.get('protocol')
+    protocol = determine_protocol(info_dict)
+    info_dict['protocol'] = protocol
 
-    if url.startswith('rtmp'):
-        return RtmpFD
-    if protocol == 'm3u8_native':
-        return NativeHlsFD
-    if (protocol == 'm3u8') or (protocol is None and determine_ext(url) == 'm3u8'):
+    # if (info_dict.get('start_time') or info_dict.get('end_time')) and not info_dict.get('requested_formats') and FFmpegFD.can_download(info_dict):
+    #     return FFmpegFD
+
+    external_downloader = params.get('external_downloader')
+    if external_downloader is not None:
+        ed = get_external_downloader(external_downloader)
+        if ed.can_download(info_dict):
+            return ed
+
+    if protocol == 'm3u8' and params.get('hls_prefer_native') is True:
         return HlsFD
-    if url.startswith('mms') or url.startswith('rtsp'):
-        return MplayerFD
-    if determine_ext(url) == 'f4m':
-        return F4mFD
-    else:
-        return HttpFD
+
+    if protocol == 'm3u8_native' and params.get('hls_prefer_native') is False:
+        return FFmpegFD
+
+    return PROTOCOL_MAP.get(protocol, HttpFD)
+
 
 __all__ = [
     'get_suitable_downloader',

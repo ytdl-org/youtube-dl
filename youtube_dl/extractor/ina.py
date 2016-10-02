@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class InaIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?ina\.fr/video/(?P<id>I?[A-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?ina\.fr/video/(?P<id>I?[A-Z0-9]+)'
     _TEST = {
         'url': 'http://www.ina.fr/video/I12055569/francois-hollande-je-crois-que-c-est-clair-video.html',
         'md5': 'a667021bf2b41f8dc6049479d9bb38a3',

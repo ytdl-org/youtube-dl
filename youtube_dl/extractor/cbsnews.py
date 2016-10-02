@@ -1,15 +1,17 @@
 # encoding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
+from .cbs import CBSIE
+from ..utils import (
+    parse_duration,
+)
 
 
-class CBSNewsIE(InfoExtractor):
+class CBSNewsIE(CBSIE):
+    IE_NAME = 'cbsnews'
     IE_DESC = 'CBS News'
-    _VALID_URL = r'http://(?:www\.)?cbsnews\.com/(?:[^/]+/)+(?P<id>[\da-z_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/(?:news|videos)/(?P<id>[\da-z_-]+)'
 
     _TESTS = [
         {
@@ -25,63 +27,81 @@ class CBSNewsIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+            'skip': 'Subscribers only',
         },
         {
             'url': 'http://www.cbsnews.com/videos/fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack/',
             'info_dict': {
-                'id': 'fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack',
-                'ext': 'flv',
+                'id': 'SNJBOYzXiWBOvaLsdzwH8fmtP1SCd91Y',
+                'ext': 'mp4',
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
-                'thumbnail': 'http://cbsnews2.cbsistatic.com/hub/i/r/2014/04/04/0c9fbc66-576b-41ca-8069-02d122060dd2/thumbnail/140x90/6dad7a502f88875ceac38202984b6d58/en-0404-werner-replace-640x360.jpg',
+                'description': 'md5:4a6983e480542d8b333a947bfc64ddc7',
+                'upload_date': '20140404',
+                'timestamp': 1396650660,
+                'uploader': 'CBSI-NEW',
+                'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
+                'subtitles': {
+                    'en': [{
+                        'ext': 'ttml',
+                    }],
+                },
             },
             'params': {
-                # rtmp download
+                # m3u8 download
                 'skip_download': True,
             },
         },
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
-        video_info = json.loads(self._html_search_regex(
+        video_info = self._parse_json(self._html_search_regex(
             r'(?:<ul class="media-list items" id="media-related-items"><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
-            webpage, 'video JSON info'))
+            webpage, 'video JSON info'), video_id)
 
         item = video_info['item'] if 'item' in video_info else video_info
-        title = item.get('articleTitle') or item.get('hed')
-        duration = item.get('duration')
-        thumbnail = item.get('mediaImage') or item.get('thumbnail')
+        guid = item['mpxRefId']
+        return self._extract_video_info(guid)
 
-        formats = []
-        for format_id in ['RtmpMobileLow', 'RtmpMobileHigh', 'Hls', 'RtmpDesktop']:
-            uri = item.get('media' + format_id + 'URI')
-            if not uri:
-                continue
-            fmt = {
-                'url': uri,
-                'format_id': format_id,
-            }
-            if uri.startswith('rtmp'):
-                fmt.update({
-                    'app': 'ondemand?auth=cbs',
-                    'play_path': 'mp4:' + uri.split('<break>')[-1],
-                    'player_url': 'http://www.cbsnews.com/[[IMPORT]]/vidtech.cbsinteractive.com/player/3_3_0/CBSI_PLAYER_HD.swf',
-                    'page_url': 'http://www.cbsnews.com',
-                    'ext': 'flv',
-                })
-            elif uri.endswith('.m3u8'):
-                fmt['ext'] = 'mp4'
-            formats.append(fmt)
+
+class CBSNewsLiveVideoIE(InfoExtractor):
+    IE_NAME = 'cbsnews:livevideo'
+    IE_DESC = 'CBS News Live Videos'
+    _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[^/?#]+)'
+
+    # Live videos get deleted soon. See http://www.cbsnews.com/live/ for the latest examples
+    _TEST = {
+        'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',
+        'info_dict': {
+            'id': 'clinton-sanders-prepare-to-face-off-in-nh',
+            'ext': 'mp4',
+            'title': 'Clinton, Sanders Prepare To Face Off In NH',
+            'duration': 334,
+        },
+        'skip': 'Video gone',
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        video_info = self._download_json(
+            'http://feeds.cbsn.cbsnews.com/rundown/story', display_id, query={
+                'device': 'desktop',
+                'dvr_slug': display_id,
+            })
+
+        formats = self._extract_akamai_formats(video_info['url'], display_id)
+        self._sort_formats(formats)
 
         return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'duration': duration,
+            'id': display_id,
+            'display_id': display_id,
+            'title': video_info['headline'],
+            'thumbnail': video_info.get('thumbnail_url_hd') or video_info.get('thumbnail_url_sd'),
+            'duration': parse_duration(video_info.get('segmentDur')),
             'formats': formats,
         }

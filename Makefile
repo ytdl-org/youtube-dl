@@ -1,10 +1,9 @@
 all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
 
 clean:
-	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish *.dump *.part *.info.json CONTRIBUTING.md.tmp
-
-cleanall: clean
-	rm -f youtube-dl youtube-dl.exe
+	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish youtube_dl/extractor/lazy_extractors.py *.dump *.part* *.info.json *.mp4 *.m4a *.flv *.mp3 *.avi *.mkv *.webm *.3gp *.jpg *.png CONTRIBUTING.md.tmp ISSUE_TEMPLATE.md.tmp youtube-dl youtube-dl.exe
+	find . -name "*.pyc" -delete
+	find . -name "*.class" -delete
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
@@ -13,15 +12,7 @@ SHAREDIR ?= $(PREFIX)/share
 PYTHON ?= /usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
-ifeq ($(PREFIX),/usr)
-	SYSCONFDIR=/etc
-else
-	ifeq ($(PREFIX),/usr/local)
-		SYSCONFDIR=/etc
-	else
-		SYSCONFDIR=$(PREFIX)/etc
-	endif
-endif
+SYSCONFDIR != if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi
 
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)
@@ -46,7 +37,7 @@ test:
 ot: offlinetest
 
 offlinetest: codetest
-	nosetests --verbose test --exclude test_download --exclude test_age_restriction --exclude test_subtitles --exclude test_write_annotations --exclude test_youtube_lists
+	$(PYTHON) -m nose --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py --exclude test_socks.py
 
 tar: youtube-dl.tar.gz
 
@@ -63,38 +54,47 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	chmod a+x youtube-dl
 
 README.md: youtube_dl/*.py youtube_dl/*/*.py
-	COLUMNS=80 python youtube_dl/__main__.py --help | python devscripts/make_readme.py
+	COLUMNS=80 $(PYTHON) youtube_dl/__main__.py --help | $(PYTHON) devscripts/make_readme.py
 
 CONTRIBUTING.md: README.md
-	python devscripts/make_contributing.py README.md CONTRIBUTING.md
+	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
+
+.github/ISSUE_TEMPLATE.md: devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md  youtube_dl/version.py
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md .github/ISSUE_TEMPLATE.md
 
 supportedsites:
-	python devscripts/make_supportedsites.py docs/supportedsites.md
+	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
 
 README.txt: README.md
 	pandoc -f markdown -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
-	python devscripts/prepare_manpage.py >youtube-dl.1.temp.md
+	$(PYTHON) devscripts/prepare_manpage.py youtube-dl.1.temp.md
 	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in
-	python devscripts/bash-completion.py
+	$(PYTHON) devscripts/bash-completion.py
 
 bash-completion: youtube-dl.bash-completion
 
 youtube-dl.zsh: youtube_dl/*.py youtube_dl/*/*.py devscripts/zsh-completion.in
-	python devscripts/zsh-completion.py
+	$(PYTHON) devscripts/zsh-completion.py
 
 zsh-completion: youtube-dl.zsh
 
 youtube-dl.fish: youtube_dl/*.py youtube_dl/*/*.py devscripts/fish-completion.in
-	python devscripts/fish-completion.py
+	$(PYTHON) devscripts/fish-completion.py
 
 fish-completion: youtube-dl.fish
 
-youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
+lazy-extractors: youtube_dl/extractor/lazy_extractors.py
+
+_EXTRACTOR_FILES != find youtube_dl/extractor -iname '*.py' -and -not -iname 'lazy_extractors.py'
+youtube_dl/extractor/lazy_extractors.py: devscripts/make_lazy_extractors.py devscripts/lazy_load_template.py $(_EXTRACTOR_FILES)
+	$(PYTHON) devscripts/make_lazy_extractors.py $@
+
+youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish ChangeLog
 	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \
 		--exclude '*.DS_Store' \
 		--exclude '*.kate-swp' \
@@ -107,7 +107,7 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude 'docs/_build' \
 		-- \
 		bin devscripts test youtube_dl docs \
-		LICENSE README.md README.txt \
+		ChangeLog LICENSE README.md README.txt \
 		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion \
 		youtube-dl.zsh youtube-dl.fish setup.py \
 		youtube-dl

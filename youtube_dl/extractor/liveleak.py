@@ -8,26 +8,28 @@ from ..utils import int_or_none
 
 
 class LiveLeakIE(InfoExtractor):
-    _VALID_URL = r'^(?:http://)?(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<video_id>[\w_]+)(?:.*)'
+    _VALID_URL = r'https?://(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)'
     _TESTS = [{
         'url': 'http://www.liveleak.com/view?i=757_1364311680',
-        'md5': '0813c2430bea7a46bf13acf3406992f4',
+        'md5': '50f79e05ba149149c1b4ea961223d5b3',
         'info_dict': {
             'id': '757_1364311680',
-            'ext': 'mp4',
+            'ext': 'flv',
             'description': 'extremely bad day for this guy..!',
             'uploader': 'ljfriel2',
-            'title': 'Most unlucky car accident'
+            'title': 'Most unlucky car accident',
+            'thumbnail': 're:^https?://.*\.jpg$'
         }
     }, {
         'url': 'http://www.liveleak.com/view?i=f93_1390833151',
-        'md5': 'd3f1367d14cc3c15bf24fbfbe04b9abf',
+        'md5': 'b13a29626183c9d33944e6a04f41aafc',
         'info_dict': {
             'id': 'f93_1390833151',
             'ext': 'mp4',
             'description': 'German Television Channel NDR does an exclusive interview with Edward Snowden.\r\nUploaded on LiveLeak cause German Television thinks the rest of the world isn\'t intereseted in Edward Snowden.',
             'uploader': 'ARD_Stinkt',
             'title': 'German Television does first Edward Snowden Interview (ENGLISH)',
+            'thumbnail': 're:^https?://.*\.jpg$'
         }
     }, {
         'url': 'http://www.liveleak.com/view?i=4f7_1392687779',
@@ -40,11 +42,30 @@ class LiveLeakIE(InfoExtractor):
             'title': 'Man is Fatally Struck by Reckless Car While Packing up a Moving Truck',
             'age_limit': 18,
         }
+    }, {
+        # Covers https://github.com/rg3/youtube-dl/pull/5983
+        'url': 'http://www.liveleak.com/view?i=801_1409392012',
+        'md5': '0b3bec2d888c20728ca2ad3642f0ef15',
+        'info_dict': {
+            'id': '801_1409392012',
+            'ext': 'mp4',
+            'description': 'Happened on 27.7.2014. \r\nAt 0:53 you can see people still swimming at near beach.',
+            'uploader': 'bony333',
+            'title': 'Crazy Hungarian tourist films close call waterspout in Croatia',
+            'thumbnail': 're:^https?://.*\.jpg$'
+        }
     }]
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src="https?://(?:\w+\.)?liveleak\.com/ll_embed\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)',
+            webpage)
+        if mobj:
+            return 'http://www.liveleak.com/view?i=%s' % mobj.group('id')
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         video_title = self._og_search_title(webpage).replace('LiveLeak.com -', '').strip()
@@ -54,6 +75,7 @@ class LiveLeakIE(InfoExtractor):
         age_limit = int_or_none(self._search_regex(
             r'you confirm that you are ([0-9]+) years and over.',
             webpage, 'age limit', default=None))
+        video_thumbnail = self._og_search_thumbnail(webpage)
 
         sources_raw = self._search_regex(
             r'(?s)sources:\s*(\[.*?\]),', webpage, 'video URLs', default=None)
@@ -81,9 +103,22 @@ class LiveLeakIE(InfoExtractor):
         sources = json.loads(sources_json)
 
         formats = [{
+            'format_id': '%s' % i,
             'format_note': s.get('label'),
             'url': s['file'],
-        } for s in sources]
+        } for i, s in enumerate(sources)]
+        for i, s in enumerate(sources):
+            # Removing '.h264_*.mp4' gives the raw video, which is essentially
+            # the same video without the LiveLeak logo at the top (see
+            # https://github.com/rg3/youtube-dl/pull/4768)
+            orig_url = re.sub(r'\.h264_.+?\.mp4', '', s['file'])
+            if s['file'] != orig_url:
+                formats.append({
+                    'format_id': 'original-%s' % i,
+                    'format_note': s.get('label'),
+                    'url': orig_url,
+                    'preference': 1,
+                })
         self._sort_formats(formats)
 
         return {
@@ -93,4 +128,5 @@ class LiveLeakIE(InfoExtractor):
             'uploader': video_uploader,
             'formats': formats,
             'age_limit': age_limit,
+            'thumbnail': video_thumbnail,
         }

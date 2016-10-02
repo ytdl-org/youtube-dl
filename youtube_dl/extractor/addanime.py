@@ -6,17 +6,18 @@ from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_str,
-    compat_urllib_parse,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     ExtractorError,
+    qualities,
 )
 
 
 class AddAnimeIE(InfoExtractor):
-    _VALID_URL = r'^http://(?:\w+\.)?add-anime\.net/watch_video\.php\?(?:.*?)v=(?P<id>[\w_]+)(?:.*)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:\w+\.)?add-anime\.net/(?:watch_video\.php\?(?:.*?)v=|video/)(?P<id>[\w_]+)'
+    _TESTS = [{
         'url': 'http://www.add-anime.net/watch_video.php?v=24MR3YO5SAS9',
         'md5': '72954ea10bc979ab5e2eb288b21425a0',
         'info_dict': {
@@ -25,7 +26,10 @@ class AddAnimeIE(InfoExtractor):
             'description': 'One Piece 606',
             'title': 'One Piece 606',
         }
-    }
+    }, {
+        'url': 'http://add-anime.net/video/MDUGWYKNGBD8/One-Piece-687',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -56,15 +60,17 @@ class AddAnimeIE(InfoExtractor):
             confirm_url = (
                 parsed_url.scheme + '://' + parsed_url.netloc +
                 action + '?' +
-                compat_urllib_parse.urlencode({
+                compat_urllib_parse_urlencode({
                     'jschl_vc': vc, 'jschl_answer': compat_str(av_val)}))
             self._download_webpage(
                 confirm_url, video_id,
                 note='Confirming after redirect')
             webpage = self._download_webpage(url, video_id)
 
+        FORMATS = ('normal', 'hq')
+        quality = qualities(FORMATS)
         formats = []
-        for format_id in ('normal', 'hq'):
+        for format_id in FORMATS:
             rex = r"var %s_video_file = '(.*?)';" % re.escape(format_id)
             video_url = self._search_regex(rex, webpage, 'video file URLx',
                                            fatal=False)
@@ -73,6 +79,7 @@ class AddAnimeIE(InfoExtractor):
             formats.append({
                 'format_id': format_id,
                 'url': video_url,
+                'quality': quality(format_id),
             })
         self._sort_formats(formats)
         video_title = self._og_search_title(webpage)

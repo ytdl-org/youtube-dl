@@ -5,15 +5,15 @@ from ..utils import ExtractorError
 
 
 class FreeVideoIE(InfoExtractor):
-    _VALID_URL = r'^http://www.freevideo.cz/vase-videa/(?P<id>[^.]+)\.html(?:$|[?#])'
+    _VALID_URL = r'^https?://www.freevideo.cz/vase-videa/(?P<id>[^.]+)\.html(?:$|[?#])'
 
     _TEST = {
         'url': 'http://www.freevideo.cz/vase-videa/vysukany-zadecek-22033.html',
         'info_dict': {
             'id': 'vysukany-zadecek-22033',
             'ext': 'mp4',
-            "title": "vysukany-zadecek-22033",
-            "age_limit": 18,
+            'title': 'vysukany-zadecek-22033',
+            'age_limit': 18,
         },
         'skip': 'Blocked outside .cz',
     }

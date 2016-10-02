@@ -29,6 +29,9 @@ class NetzkinoIE(InfoExtractor):
             'timestamp': 1344858571,
             'age_limit': 12,
         },
+        'params': {
+            'skip_download': 'Download only works from Germany',
+        }
     }
 
     def _real_extract(self, url):
@@ -46,7 +49,7 @@ class NetzkinoIE(InfoExtractor):
             'http://www.netzkino.de/beta/dist/production.min.js', video_id,
             note='Downloading player code')
         avo_js = self._search_regex(
-            r'window\.avoCore\s*=.*?urlTemplate:\s*(\{.*?"\})',
+            r'var urlTemplate=(\{.*?"\})',
             production_js, 'URL templates')
         templates = self._parse_json(
             avo_js, video_id, transform_source=js_to_json)

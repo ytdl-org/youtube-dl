@@ -6,13 +6,12 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    js_to_json,
     unified_strdate,
 )
 
 
 class LnkGoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?lnkgo\.alfa\.lt/visi\-video/(?P<show>[^/]+)/ziurek\-(?P<display_id>[A-Za-z0-9\-]+)'
+    _VALID_URL = r'https?://(?:www\.)?lnkgo\.alfa\.lt/visi-video/(?P<show>[^/]+)/ziurek-(?P<id>[A-Za-z0-9-]+)'
     _TESTS = [{
         'url': 'http://lnkgo.alfa.lt/visi-video/yra-kaip-yra/ziurek-yra-kaip-yra-162',
         'info_dict': {
@@ -51,8 +50,7 @@ class LnkGoIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('display_id')
+        display_id = self._match_id(url)
 
         webpage = self._download_webpage(
             url, display_id, 'Downloading player webpage')
@@ -61,6 +59,8 @@ class LnkGoIE(InfoExtractor):
             r'data-ep="([^"]+)"', webpage, 'video ID')
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
+        upload_date = unified_strdate(self._search_regex(
+            r'class="[^"]*meta-item[^"]*air-time[^"]*">.*?<strong>([^<]+)</strong>', webpage, 'upload date', fatal=False))
 
         thumbnail_w = int_or_none(
             self._og_search_property('image:width', webpage, 'thumbnail width', fatal=False))
@@ -75,39 +75,28 @@ class LnkGoIE(InfoExtractor):
                 'height': thumbnail_h,
             })
 
-        upload_date = unified_strdate(self._search_regex(
-            r'class="meta-item\sair-time">.*?<strong>([^<]+)</strong>', webpage, 'upload date', fatal=False))
-        duration = int_or_none(self._search_regex(
-            r'VideoDuration = "([^"]+)"', webpage, 'duration', fatal=False))
+        config = self._parse_json(self._search_regex(
+            r'episodePlayer\((\{.*?\}),\s*\{', webpage, 'sources'), video_id)
 
-        pg_rating = self._search_regex(
-            r'pgrating="([^"]+)"', webpage, 'PG rating', fatal=False, default='')
-        age_limit = self._AGE_LIMITS.get(pg_rating.upper(), 0)
+        if config.get('pGeo'):
+            self.report_warning(
+                'This content might not be available in your country due to copyright reasons')
 
-        sources_js = self._search_regex(
-            r'(?s)sources:\s(\[.*?\]),', webpage, 'sources')
-        sources = self._parse_json(
-            sources_js, video_id, transform_source=js_to_json)
+        formats = [{
+            'format_id': 'hls',
+            'ext': 'mp4',
+            'url': config['EpisodeVideoLink_HLS'],
+        }]
 
-        formats = []
-        for source in sources:
-            if source.get('provider') == 'rtmp':
-                m = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<play_path>.+)$', source['file'])
-                if not m:
-                    continue
-                formats.append({
-                    'format_id': 'rtmp',
-                    'ext': 'flv',
-                    'url': m.group('url'),
-                    'play_path': m.group('play_path'),
-                    'page_url': url,
-                })
-            elif source.get('file').endswith('.m3u8'):
-                formats.append({
-                    'format_id': 'hls',
-                    'ext': source.get('type', 'mp4'),
-                    'url': source['file'],
-                })
+        m = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<play_path>.+)$', config['EpisodeVideoLink'])
+        if m:
+            formats.append({
+                'format_id': 'rtmp',
+                'ext': 'flv',
+                'url': m.group('url'),
+                'play_path': m.group('play_path'),
+                'page_url': url,
+            })
 
         self._sort_formats(formats)
 
@@ -117,8 +106,8 @@ class LnkGoIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'thumbnails': [thumbnail],
-            'duration': duration,
+            'duration': int_or_none(config.get('VideoTime')),
             'description': description,
-            'age_limit': age_limit,
+            'age_limit': self._AGE_LIMITS.get(config.get('PGRating'), 0),
             'upload_date': upload_date,
         }

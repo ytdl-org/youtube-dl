@@ -85,7 +85,8 @@ class GigaIE(InfoExtractor):
             r'class="author">([^<]+)</a>', webpage, 'uploader', fatal=False)
 
         view_count = str_to_int(self._search_regex(
-            r'<span class="views"><strong>([\d.]+)</strong>', webpage, 'view count', fatal=False))
+            r'<span class="views"><strong>([\d.,]+)</strong>',
+            webpage, 'view count', fatal=False))
 
         return {
             'id': video_id,

@@ -22,23 +22,23 @@ class SteamIE(InfoExtractor):
     _VIDEO_PAGE_TEMPLATE = 'http://store.steampowered.com/video/%s/'
     _AGECHECK_TEMPLATE = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970'
     _TESTS = [{
-        "url": "http://store.steampowered.com/video/105600/",
-        "playlist": [
+        'url': 'http://store.steampowered.com/video/105600/',
+        'playlist': [
             {
-                "md5": "f870007cee7065d7c76b88f0a45ecc07",
-                "info_dict": {
+                'md5': 'f870007cee7065d7c76b88f0a45ecc07',
+                'info_dict': {
                     'id': '81300',
                     'ext': 'flv',
-                    "title": "Terraria 1.1 Trailer",
+                    'title': 'Terraria 1.1 Trailer',
                     'playlist_index': 1,
                 }
             },
             {
-                "md5": "61aaf31a5c5c3041afb58fb83cbb5751",
-                "info_dict": {
+                'md5': '61aaf31a5c5c3041afb58fb83cbb5751',
+                'info_dict': {
                     'id': '80859',
                     'ext': 'flv',
-                    "title": "Terraria Trailer",
+                    'title': 'Terraria Trailer',
                     'playlist_index': 2,
                 }
             }

@@ -1,6 +1,12 @@
 from __future__ import unicode_literals
 
-from ..utils import PostProcessingError
+import os
+
+from ..utils import (
+    PostProcessingError,
+    cli_configuration_args,
+    encodeFilename,
+)
 
 
 class PostProcessor(object):
@@ -18,6 +24,9 @@ class PostProcessor(object):
 
     PostProcessor objects follow a "mutual registration" process similar
     to InfoExtractor objects.
+
+    Optionally PostProcessor can use a list of additional command-line arguments
+    with self._configuration_args.
     """
 
     _downloader = None
@@ -37,14 +46,23 @@ class PostProcessor(object):
         one has an extra field called "filepath" that points to the
         downloaded file.
 
-        This method returns a tuple, the first element of which describes
-        whether the original file should be kept (i.e. not deleted - None for
-        no preference), and the second of which is the updated information.
+        This method returns a tuple, the first element is a list of the files
+        that can be deleted, and the second of which is the updated
+        information.
 
         In addition, this method may raise a PostProcessingError
         exception if post processing fails.
         """
-        return None, information  # by default, keep file and do nothing
+        return [], information  # by default, keep file and do nothing
+
+    def try_utime(self, path, atime, mtime, errnote='Cannot update utime of file'):
+        try:
+            os.utime(encodeFilename(path), (atime, mtime))
+        except Exception:
+            self._downloader.report_warning(errnote)
+
+    def _configuration_args(self, default=[]):
+        return cli_configuration_args(self._downloader.params, 'postprocessor_args', default)
 
 
 class AudioConversionError(PostProcessingError):

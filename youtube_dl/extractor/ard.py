@@ -13,33 +13,154 @@ from ..utils import (
     parse_duration,
     unified_strdate,
     xpath_text,
-    parse_xml,
+    update_url_query,
 )
+from ..compat import compat_etree_fromstring
 
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
-        'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
-        'file': '22429276.mp4',
-        'md5': '469751912f1de0816a9fc9df8336476c',
+        'url': 'http://www.ardmediathek.de/tv/Dokumentation-und-Reportage/Ich-liebe-das-Leben-trotzdem/rbb-Fernsehen/Video?documentId=29582122&bcastId=3822114',
         'info_dict': {
-            'title': 'Vertrauen ist gut, Spionieren ist besser - Geht so deutsch-amerikanische Freundschaft?',
-            'description': 'Das Erste Mediathek [ARD]: Vertrauen ist gut, Spionieren ist besser - Geht so deutsch-amerikanische Freundschaft?, Anne Will, Über die Spionage-Affäre diskutieren Clemens Binninger, Katrin Göring-Eckardt, Georg Mascolo, Andrew B. Denison und Constanze Kurz.. Das Video zur Sendung Anne Will am Mittwoch, 16.07.2014',
-        },
-        'skip': 'Blocked outside of Germany',
-    }, {
-        'url': 'http://www.ardmediathek.de/tv/Tatort/Das-Wunder-von-Wolbeck-Video-tgl-ab-20/Das-Erste/Video?documentId=22490580&bcastId=602916',
-        'info_dict': {
-            'id': '22490580',
+            'id': '29582122',
             'ext': 'mp4',
-            'title': 'Das Wunder von Wolbeck (Video tgl. ab 20 Uhr)',
-            'description': 'Auf einem restaurierten Hof bei Wolbeck wird der Heilpraktiker Raffael Lembeck eines morgens von seiner Frau Stella tot aufgefunden. Das Opfer war offensichtlich in seiner Praxis zu Fall gekommen und ist dann verblutet, erklärt Prof. Boerne am Tatort.',
+            'title': 'Ich liebe das Leben trotzdem',
+            'description': 'md5:45e4c225c72b27993314b31a84a5261c',
+            'duration': 4557,
         },
-        'skip': 'Blocked outside of Germany',
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'skip': 'HTTP Error 404: Not Found',
+    }, {
+        'url': 'http://www.ardmediathek.de/tv/Tatort/Tatort-Scheinwelten-H%C3%B6rfassung-Video/Das-Erste/Video?documentId=29522730&bcastId=602916',
+        'md5': 'f4d98b10759ac06c0072bbcd1f0b9e3e',
+        'info_dict': {
+            'id': '29522730',
+            'ext': 'mp4',
+            'title': 'Tatort: Scheinwelten - Hörfassung (Video tgl. ab 20 Uhr)',
+            'description': 'md5:196392e79876d0ac94c94e8cdb2875f1',
+            'duration': 5252,
+        },
+        'skip': 'HTTP Error 404: Not Found',
+    }, {
+        # audio
+        'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
+        'md5': '219d94d8980b4f538c7fcb0865eb7f2c',
+        'info_dict': {
+            'id': '28488308',
+            'ext': 'mp3',
+            'title': 'Tod eines Fußballers',
+            'description': 'md5:f6e39f3461f0e1f54bfa48c8875c86ef',
+            'duration': 3240,
+        },
+        'skip': 'HTTP Error 404: Not Found',
+    }, {
+        'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
+        'only_matching': True,
+    }, {
+        # audio
+        'url': 'http://mediathek.rbb-online.de/radio/Hörspiel/Vor-dem-Fest/kulturradio/Audio?documentId=30796318&topRessort=radio&bcastId=9839158',
+        'md5': '4e8f00631aac0395fee17368ac0e9867',
+        'info_dict': {
+            'id': '30796318',
+            'ext': 'mp3',
+            'title': 'Vor dem Fest',
+            'description': 'md5:c0c1c8048514deaed2a73b3a60eecacb',
+            'duration': 3287,
+        },
+        'skip': 'Video is no longer available',
     }]
+
+    def _extract_media_info(self, media_info_url, webpage, video_id):
+        media_info = self._download_json(
+            media_info_url, video_id, 'Downloading media JSON')
+
+        formats = self._extract_formats(media_info, video_id)
+
+        if not formats:
+            if '"fsk"' in webpage:
+                raise ExtractorError(
+                    'This video is only available after 20:00', expected=True)
+            elif media_info.get('_geoblocked'):
+                raise ExtractorError('This video is not available due to geo restriction', expected=True)
+
+        self._sort_formats(formats)
+
+        duration = int_or_none(media_info.get('_duration'))
+        thumbnail = media_info.get('_previewImage')
+
+        subtitles = {}
+        subtitle_url = media_info.get('_subtitleUrl')
+        if subtitle_url:
+            subtitles['de'] = [{
+                'ext': 'ttml',
+                'url': subtitle_url,
+            }]
+
+        return {
+            'id': video_id,
+            'duration': duration,
+            'thumbnail': thumbnail,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
+
+    def _extract_formats(self, media_info, video_id):
+        type_ = media_info.get('_type')
+        media_array = media_info.get('_mediaArray', [])
+        formats = []
+        for num, media in enumerate(media_array):
+            for stream in media.get('_mediaStreamArray', []):
+                stream_urls = stream.get('_stream')
+                if not stream_urls:
+                    continue
+                if not isinstance(stream_urls, list):
+                    stream_urls = [stream_urls]
+                quality = stream.get('_quality')
+                server = stream.get('_server')
+                for stream_url in stream_urls:
+                    ext = determine_ext(stream_url)
+                    if quality != 'auto' and ext in ('f4m', 'm3u8'):
+                        continue
+                    if ext == 'f4m':
+                        formats.extend(self._extract_f4m_formats(
+                            update_url_query(stream_url, {
+                                'hdcore': '3.1.1',
+                                'plugin': 'aasp-3.1.1.69.124'
+                            }),
+                            video_id, f4m_id='hds', fatal=False))
+                    elif ext == 'm3u8':
+                        formats.extend(self._extract_m3u8_formats(
+                            stream_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                    else:
+                        if server and server.startswith('rtmp'):
+                            f = {
+                                'url': server,
+                                'play_path': stream_url,
+                                'format_id': 'a%s-rtmp-%s' % (num, quality),
+                            }
+                        elif stream_url.startswith('http'):
+                            f = {
+                                'url': stream_url,
+                                'format_id': 'a%s-%s-%s' % (num, ext, quality)
+                            }
+                        else:
+                            continue
+                        m = re.search(r'_(?P<width>\d+)x(?P<height>\d+)\.mp4$', stream_url)
+                        if m:
+                            f.update({
+                                'width': int(m.group('width')),
+                                'height': int(m.group('height')),
+                            })
+                        if type_ == 'audio':
+                            f['vcodec'] = 'none'
+                        formats.append(f)
+        return formats
 
     def _real_extract(self, url):
         # determine video id from url
@@ -56,8 +177,11 @@ class ARDMediathekIE(InfoExtractor):
         if '>Der gewünschte Beitrag ist nicht mehr verfügbar.<' in webpage:
             raise ExtractorError('Video %s is no longer available' % video_id, expected=True)
 
+        if 'Diese Sendung ist für Jugendliche unter 12 Jahren nicht geeignet. Der Clip ist deshalb nur von 20 bis 6 Uhr verfügbar.' in webpage:
+            raise ExtractorError('This program is only suitable for those aged 12 and older. Video %s is therefore only available between 20 pm and 6 am.' % video_id, expected=True)
+
         if re.search(r'[\?&]rss($|[=&])', url):
-            doc = parse_xml(webpage)
+            doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return GenericIE()._extract_rss(url, video_id, doc)
 
@@ -95,50 +219,26 @@ class ARDMediathekIE(InfoExtractor):
                     'format_id': fid,
                     'url': furl,
                 })
+            self._sort_formats(formats)
+            info = {
+                'formats': formats,
+            }
         else:  # request JSON file
-            media_info = self._download_json(
-                'http://www.ardmediathek.de/play/media/%s' % video_id, video_id)
-            # The second element of the _mediaArray contains the standard http urls
-            streams = media_info['_mediaArray'][1]['_mediaStreamArray']
-            if not streams:
-                if '"fsk"' in webpage:
-                    raise ExtractorError('This video is only available after 20:00')
+            info = self._extract_media_info(
+                'http://www.ardmediathek.de/play/media/%s' % video_id, webpage, video_id)
 
-            formats = []
-            for s in streams:
-                if type(s['_stream']) == list:
-                    for index, url in enumerate(s['_stream'][::-1]):
-                        quality = s['_quality'] + index
-                        formats.append({
-                            'quality': quality,
-                            'url': url,
-                            'format_id': '%s-%s' % (determine_ext(url), quality)
-                        })
-                    continue
-
-                format = {
-                    'quality': s['_quality'],
-                    'url': s['_stream'],
-                }
-
-                format['format_id'] = '%s-%s' % (
-                    determine_ext(format['url']), format['quality'])
-
-                formats.append(format)
-
-        self._sort_formats(formats)
-
-        return {
+        info.update({
             'id': video_id,
             'title': title,
             'description': description,
-            'formats': formats,
             'thumbnail': thumbnail,
-        }
+        })
+
+        return info
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = '(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
+    _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
     _TEST = {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
         'md5': 'd216c3a86493f9322545e045ddc3eb35',
@@ -150,7 +250,8 @@ class ARDIE(InfoExtractor):
             'title': 'Die Story im Ersten: Mission unter falscher Flagge',
             'upload_date': '20140804',
             'thumbnail': 're:^https?://.*\.jpg$',
-        }
+        },
+        'skip': 'HTTP Error 404: Not Found',
     }
 
     def _real_extract(self, url):

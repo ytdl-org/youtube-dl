@@ -11,13 +11,14 @@ from ..utils import (
 
 
 class BreakIE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?break\.com/video/(?:[^/]+/)*.+-(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?break\.com/video/(?:[^/]+/)*.+-(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.break.com/video/when-girls-act-like-guys-2468056',
         'info_dict': {
             'id': '2468056',
             'ext': 'mp4',
             'title': 'When Girls Act Like D-Bags',
+            'age_limit': 13,
         }
     }, {
         'url': 'http://www.break.com/video/ugc/baby-flex-2773063',
@@ -41,7 +42,7 @@ class BreakIE(InfoExtractor):
             'tbr': media['bitRate'],
             'width': media['width'],
             'height': media['height'],
-        } for media in info['media']]
+        } for media in info['media'] if media.get('mediaPurpose') == 'play']
 
         if not formats:
             formats.append({

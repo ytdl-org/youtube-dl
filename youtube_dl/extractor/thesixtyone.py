@@ -1,9 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..utils import unified_strdate
 
@@ -15,9 +12,9 @@ class TheSixtyOneIE(InfoExtractor):
             s|
             song/comments/list|
             song
-        )/(?P<id>[A-Za-z0-9]+)/?$'''
+        )/(?:[^/]+/)?(?P<id>[A-Za-z0-9]+)/?$'''
     _SONG_URL_TEMPLATE = 'http://thesixtyone.com/s/{0:}'
-    _SONG_FILE_URL_TEMPLATE = 'http://{audio_server:}.thesixtyone.com/thesixtyone_production/audio/{0:}_stream'
+    _SONG_FILE_URL_TEMPLATE = 'http://{audio_server:}/thesixtyone_production/audio/{0:}_stream'
     _THUMBNAIL_URL_TEMPLATE = '{photo_base_url:}_desktop'
     _TESTS = [
         {
@@ -48,36 +45,45 @@ class TheSixtyOneIE(InfoExtractor):
             'url': 'http://www.thesixtyone.com/song/SrE3zD7s1jt/',
             'only_matching': True,
         },
+        {
+            'url': 'http://www.thesixtyone.com/maryatmidnight/song/StrawberriesandCream/yvWtLp0c4GQ/',
+            'only_matching': True,
+        },
     ]
 
     _DECODE_MAP = {
-        "x": "a",
-        "m": "b",
-        "w": "c",
-        "q": "d",
-        "n": "e",
-        "p": "f",
-        "a": "0",
-        "h": "1",
-        "e": "2",
-        "u": "3",
-        "s": "4",
-        "i": "5",
-        "o": "6",
-        "y": "7",
-        "r": "8",
-        "c": "9"
+        'x': 'a',
+        'm': 'b',
+        'w': 'c',
+        'q': 'd',
+        'n': 'e',
+        'p': 'f',
+        'a': '0',
+        'h': '1',
+        'e': '2',
+        'u': '3',
+        's': '4',
+        'i': '5',
+        'o': '6',
+        'y': '7',
+        'r': '8',
+        'c': '9'
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        song_id = mobj.group('id')
+        song_id = self._match_id(url)
 
         webpage = self._download_webpage(
             self._SONG_URL_TEMPLATE.format(song_id), song_id)
 
-        song_data = json.loads(self._search_regex(
-            r'"%s":\s(\{.*?\})' % song_id, webpage, 'song_data'))
+        song_data = self._parse_json(self._search_regex(
+            r'"%s":\s(\{.*?\})' % song_id, webpage, 'song_data'), song_id)
+
+        if self._search_regex(r'(t61\.s3_audio_load\s*=\s*1\.0;)', webpage, 's3_audio_load marker', default=None):
+            song_data['audio_server'] = 's3.amazonaws.com'
+        else:
+            song_data['audio_server'] = song_data['audio_server'] + '.thesixtyone.com'
+
         keys = [self._DECODE_MAP.get(s, s) for s in song_data['key']]
         url = self._SONG_FILE_URL_TEMPLATE.format(
             "".join(reversed(keys)), **song_data)

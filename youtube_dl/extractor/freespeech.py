@@ -8,13 +8,13 @@ from .common import InfoExtractor
 
 class FreespeechIE(InfoExtractor):
     IE_NAME = 'freespeech.org'
-    _VALID_URL = r'https://www\.freespeech\.org/video/(?P<title>.+)'
+    _VALID_URL = r'https?://(?:www\.)?freespeech\.org/video/(?P<title>.+)'
     _TEST = {
         'add_ie': ['Youtube'],
         'url': 'https://www.freespeech.org/video/obama-romney-campaign-colorado-ahead-debate-0',
         'info_dict': {
             'id': 'poKsVCZ64uU',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'Obama, Romney Campaign in Colorado Ahead of Debate',
             'description': 'Obama, Romney Campaign in Colorado Ahead of Debate',
             'uploader': 'freespeechtv',

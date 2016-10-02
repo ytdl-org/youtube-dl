@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import str_to_int
+from ..utils import (
+    NO_DEFAULT,
+    str_to_int,
+)
 
 
 class DrTuberIE(InfoExtractor):
@@ -15,9 +18,8 @@ class DrTuberIE(InfoExtractor):
             'id': '1740434',
             'display_id': 'hot-perky-blonde-naked-golf',
             'ext': 'mp4',
-            'title': 'Hot Perky Blonde Naked Golf',
+            'title': 'hot perky blonde naked golf',
             'like_count': int,
-            'dislike_count': int,
             'comment_count': int,
             'categories': ['Babe', 'Blonde', 'Erotic', 'Outdoor', 'Softcore', 'Solo'],
             'thumbnail': 're:https?://.*\.jpg$',
@@ -36,25 +38,29 @@ class DrTuberIE(InfoExtractor):
             r'<source src="([^"]+)"', webpage, 'video URL')
 
         title = self._html_search_regex(
-            r'<title>([^<]+)\s*-\s*Free', webpage, 'title')
+            (r'class="title_watch"[^>]*><p>([^<]+)<',
+             r'<p[^>]+class="title_substrate">([^<]+)</p>',
+             r'<title>([^<]+) - \d+'),
+            webpage, 'title')
 
         thumbnail = self._html_search_regex(
             r'poster="([^"]+)"',
             webpage, 'thumbnail', fatal=False)
 
-        like_count = str_to_int(self._html_search_regex(
-            r'<span id="rate_likes">\s*<img[^>]+>\s*<span>([\d,\.]+)</span>',
-            webpage, 'like count', fatal=False))
-        dislike_count = str_to_int(self._html_search_regex(
-            r'<span id="rate_dislikes">\s*<img[^>]+>\s*<span>([\d,\.]+)</span>',
-            webpage, 'like count', fatal=False))
-        comment_count = str_to_int(self._html_search_regex(
-            r'<span class="comments_count">([\d,\.]+)</span>',
-            webpage, 'comment count', fatal=False))
+        def extract_count(id_, name, default=NO_DEFAULT):
+            return str_to_int(self._html_search_regex(
+                r'<span[^>]+(?:class|id)="%s"[^>]*>([\d,\.]+)</span>' % id_,
+                webpage, '%s count' % name, default=default, fatal=False))
+
+        like_count = extract_count('rate_likes', 'like')
+        dislike_count = extract_count('rate_dislikes', 'dislike', default=None)
+        comment_count = extract_count('comments_count', 'comment')
 
         cats_str = self._search_regex(
-            r'<span>Categories:</span><div>(.+?)</div>', webpage, 'categories', fatal=False)
-        categories = [] if not cats_str else re.findall(r'<a title="([^"]+)"', cats_str)
+            r'<div[^>]+class="categories_list">(.+?)</div>',
+            webpage, 'categories', fatal=False)
+        categories = [] if not cats_str else re.findall(
+            r'<a title="([^"]+)"', cats_str)
 
         return {
             'id': video_id,

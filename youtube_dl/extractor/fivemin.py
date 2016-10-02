@@ -1,22 +1,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse,
-)
-from ..utils import (
-    ExtractorError,
-)
 
 
 class FiveMinIE(InfoExtractor):
     IE_NAME = '5min'
-    _VALID_URL = r'''(?x)
-        (?:https?://[^/]*?5min\.com/Scripts/PlayerSeed\.js\?(?:.*?&)?playList=|
-            5min:)
-        (?P<id>\d+)
-        '''
+    _VALID_URL = r'(?:5min:|https?://(?:[^/]*?5min\.com/|delivery\.vidible\.tv/aol)(?:(?:Scripts/PlayerSeed\.js|playerseed/?)?\?.*?playList=)?)(?P<id>\d+)'
 
     _TESTS = [
         {
@@ -27,7 +16,16 @@ class FiveMinIE(InfoExtractor):
                 'id': '518013791',
                 'ext': 'mp4',
                 'title': 'iPad Mini with Retina Display Review',
+                'description': 'iPad mini with Retina Display review',
+                'duration': 177,
+                'uploader': 'engadget',
+                'upload_date': '20131115',
+                'timestamp': 1384515288,
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            }
         },
         {
             # From http://on.aol.com/video/how-to-make-a-next-level-fruit-salad-518086247
@@ -37,47 +35,20 @@ class FiveMinIE(InfoExtractor):
                 'id': '518086247',
                 'ext': 'mp4',
                 'title': 'How to Make a Next-Level Fruit Salad',
+                'duration': 184,
             },
+            'skip': 'no longer available',
         },
+        {
+            'url': 'http://embed.5min.com/518726732/',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://delivery.vidible.tv/aol?playList=518013791',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        embed_url = 'https://embed.5min.com/playerseed/?playList=%s' % video_id
-        embed_page = self._download_webpage(embed_url, video_id,
-                                            'Downloading embed page')
-        sid = self._search_regex(r'sid=(\d+)', embed_page, 'sid')
-        query = compat_urllib_parse.urlencode({
-            'func': 'GetResults',
-            'playlist': video_id,
-            'sid': sid,
-            'isPlayerSeed': 'true',
-            'url': embed_url,
-        })
-        response = self._download_json(
-            'https://syn.5min.com/handlers/SenseHandler.ashx?' + query,
-            video_id)
-        if not response['success']:
-            err_msg = response['errorMessage']
-            if err_msg == 'ErrorVideoUserNotGeo':
-                msg = 'Video not available from your location'
-            else:
-                msg = 'Aol said: %s' % err_msg
-            raise ExtractorError(msg, expected=True, video_id=video_id)
-        info = response['binding'][0]
-
-        second_id = compat_str(int(video_id[:-2]) + 1)
-        formats = []
-        for quality, height in [(1, 320), (2, 480), (4, 720), (8, 1080)]:
-            if any(r['ID'] == quality for r in info['Renditions']):
-                formats.append({
-                    'format_id': compat_str(quality),
-                    'url': 'http://avideos.5min.com/%s/%s/%s_%s.mp4' % (second_id[-3:], second_id, video_id, quality),
-                    'height': height,
-                })
-
-        return {
-            'id': video_id,
-            'title': info['Title'],
-            'formats': formats,
-        }
+        return self.url_result('aol-video:%s' % video_id)
