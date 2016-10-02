@@ -32,7 +32,8 @@ class JWPlatformBaseIE(InfoExtractor):
         return self._parse_jwplayer_data(
             jwplayer_data, video_id, *args, **kwargs)
 
-    def _parse_jwplayer_data(self, jwplayer_data, video_id=None, require_title=True, m3u8_id=None, rtmp_params=None, base_url=None):
+    def _parse_jwplayer_data(self, jwplayer_data, video_id=None, require_title=True,
+                             m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
         # JWPlayer backward compatibility: flattened playlists
         # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/api/config.js#L81-L96
         if 'playlist' not in jwplayer_data:
@@ -63,6 +64,9 @@ class JWPlatformBaseIE(InfoExtractor):
                 if source_type == 'hls' or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
                         source_url, this_video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
+                elif ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        source_url, this_video_id, mpd_id=mpd_id, fatal=False))
                 # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
                 elif source_type.startswith('audio') or ext in ('oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
                     formats.append({
