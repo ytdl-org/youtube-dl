@@ -28,6 +28,7 @@ class AMCNetworksIE(ThePlatformIE):
             # m3u8 download
             'skip_download': True,
         },
+        'skip': 'Requires TV provider accounts',
     }, {
         'url': 'http://www.bbcamerica.com/shows/the-hunt/full-episodes/season-1/episode-01-the-hardest-challenge',
         'only_matching': True,
