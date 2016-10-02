@@ -1081,7 +1081,7 @@ from .washingtonpost import (
 )
 from .wat import WatIE
 from .watchindianporn import WatchIndianPornIE
-from wch2016 import WCH2016IE
+from .wch2016 import WCH2016IE
 from .wdr import (
     WDRIE,
     WDRMobileIE,
