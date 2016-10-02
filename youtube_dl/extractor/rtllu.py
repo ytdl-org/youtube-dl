@@ -12,11 +12,12 @@ class RtlluIE(InfoExtractor):
     _VALID_URL = r'https?://(www|tele|radio|5minutes)\.rtl\.lu\/.*?\/(?P<id>[0-9]+)'
 
     _TEST = {
-        'url': 'http://radio.rtl.lu/emissiounen/background/599319.html',
-        'md5': 'TODO:',
+        'url': 'http://tele.rtl.lu/emissiounen/documentaire-routwaissgro/lu/890363.html',
+        'md5': '38a2d2286ff4b8ccc300e847294cb90a',
         'info_dict': {
             'id': '599319',
             'ext': 'mp4',
+            'title': '"Vënz de Prënz" (18.03.2016)',
         },
     }
 
@@ -33,16 +34,23 @@ class RtlluIE(InfoExtractor):
             javascript_sources_regex = r'object.*\.sources = \'(?P<value>.*?)\';'
             sources = json.loads(re.search(javascript_sources_regex, javascript).group('value'))
 
-            javascript_thumbnail_regex = r'object.*\.title = \'(?P<value>.*?)\';'
-            javascript_thumbnail = re.search(javascript_thumbnail_regex, javascript).group('value')
-
             javascript_videoid_regex = r'object.*\.videoid = \'(?P<value>.*?)\';'
             javascript_videoid = re.search(javascript_videoid_regex, javascript).group('value')
 
             javascript_publicdate_regex = r'object.*\.publicdate = \'(?P<value>.*?)\';'
             javascript_publicdate = re.search(javascript_publicdate_regex, javascript).group('value')
 
+            javascript_thumbnail_regex = r'object.*\.thumbnail = \'(?P<value>.*?)\';'
+            javascript_thumbnail = re.search(javascript_thumbnail_regex, javascript).group('value')
+
             formats = [
+                {
+                    'url': sources['rtmp']['src'],
+                    'format': 'RTMP Stream',
+                    'format_id': 'rtmp',
+                    'protocol': 'rtmp',
+                },
+
                 {
                     'url': sources['httplq']['src'],
                     'format': 'Low Quality',
@@ -73,7 +81,6 @@ class RtlluIE(InfoExtractor):
         except AttributeError:
             javascript_mp3_regex = r'play_mp3\("object[0-9]*", "(?P<value>.*?)",'
             javascript_mp3 = re.search(javascript_mp3_regex, javascript).group('value')
-            print(javascript_mp3)
 
             return {
                 'id': id,
