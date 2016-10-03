@@ -14,11 +14,12 @@ class RtlluIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://tele.rtl.lu/emissiounen/documentaire-routwaissgro/lu/890363.html',
-        'md5': '38a2d2286ff4b8ccc300e847294cb90a',
+        'md5': 'a9f34b9c8a20a61c2332b1f2f8c084d6',
         'info_dict': {
-            'id': '599319',
+            'id': '3057497',
             'ext': 'mp4',
             'title': '"Vënz de Prënz" (18.03.2016)',
+            'upload_date': '20160318',
         },
     }
 
