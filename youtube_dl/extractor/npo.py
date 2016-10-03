@@ -526,3 +526,29 @@ class AndereTijdenIE(NPOPlaylistBaseIE):
         },
         'playlist_count': 3,
     }]
+
+
+class TweeDocIE(NPOPlaylistBaseIE):
+    IE_NAME = 'tweedoc'
+    _VALID_URL = 'https?://(?:www\.)2doc\.nl[^.]*/(?P<id>[^/]+)\.html'
+    _PLAYLIST_TITLE_RE = r'(?s)<h1[^>]+class=["\'].*?\bpage-title\b.*?["\'][^>]*>(.+?)</h1>'
+    _PLAYLIST_ENTRY_RE = r'data-media-id="([^"]+)"'
+
+    _TESTS = [
+        {
+            'url': 'http://www.2doc.nl/documentaires/series/2doc/2015/oktober/de-tegenprestatie.html',
+            'info_dict': {
+                'id': 'de-tegenprestatie',
+                'title': 'De Tegenprestatie - De Tegenprestatie - 2Doc:',
+            },
+            'playlist_count': 2,
+        },
+        {
+            'url': 'http://www.2doc.nl/speel~VARA_101375237~mh17-het-verdriet-van-nederland~.html',
+            'info_dict': {
+                'id': 'speel~VARA_101375237~mh17-het-verdriet-van-nederland~',
+                'title': 'Speel - - MH17: Het verdriet van Nederland',
+            },
+            'playlist_count': 1,
+        },
+    ]

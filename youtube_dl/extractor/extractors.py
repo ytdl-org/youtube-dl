@@ -622,6 +622,7 @@ from .npo import (
     SchoolTVIE,
     VPROIE,
     WNLIE,
+    TweeDocIE,
 )
 from .npr import NprIE
 from .nrk import (
