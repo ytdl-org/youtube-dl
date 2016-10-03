@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class TechTalksIE(InfoExtractor):
-    _VALID_URL = r'https?://techtalks\.tv/talks/[^/]*/(?P<id>\d+)/'
+    _VALID_URL = r'https?://techtalks\.tv/talks/(?:[^/]*/)?(?P<id>\d+)/'
 
     _TEST = {
         'url': 'http://techtalks.tv/talks/learning-topic-models-going-beyond-svd/57758/',
