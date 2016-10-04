@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [mitele] Fix extraction after website redesign (#10824)
+
+
 version 2016.11.04
 
 Core
