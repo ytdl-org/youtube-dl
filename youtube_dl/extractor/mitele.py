@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import uuid
 
 from .common import InfoExtractor
 from ..compat import (
@@ -70,11 +71,76 @@ class MiTeleBaseIE(InfoExtractor):
             'thumbnail': player_data.get('data-poster') or config.get('poster', {}).get('imageUrl'),
             'duration': duration,
         }
+    def _mitele_extract(self, url, webpage):
+        #Extract video ID from URL
+        video_id = self._search_regex(
+            r'https?://(?:www\.)?mitele\.es/(?:[^/]+/){2}([0-9a-zA-Z]+)/[^/]*',
+            url, 'video_id', default=None)
 
+        #Get the Gigya script for getting auth keys
+        gigya_url = self._search_regex(r'<gigya-api>[^>]*</gigya-api>[^>]*<script\s*src="([^"]*)">[^>]*</script>', webpage, 'gigya', default=None)
+        gigya_sc = self._download_webpage(compat_urlparse.urljoin(r'http://www.mitele.es/', gigya_url), 'Downloading gigya script')
+        #Get a appKey/uuid for getting the session key
+        appKey = self._search_regex(r'value\("appGridApplicationKey","([0-9a-f]*)"\)', gigya_sc, 'appKey', default=None)
+        uid = str(uuid.uuid4())
+        #Extract session keys
+        session_url = r'https://appgrid-api.cloud.accedo.tv/session?appKey=%s&uuid=%s' % (appKey,uid)
+        session_json = self._download_json(session_url, video_id, 'Downloading session keys')
+        sessionKey = str(session_json['sessionKey'])
+        #Extract paths
+        paths_url = r'https://appgrid-api.cloud.accedo.tv/metadata/general_configuration,%20web_configuration?sessionKey='+sessionKey
+        paths = self._download_json(paths_url, video_id, 'Downloading paths JSON')
+        #Extract data from the provider with ID
+        ooyala_s = paths['general_configuration']['api_configuration']['ooyala_search']
+        data_p = 'http://'+ooyala_s['base_url']+ooyala_s['full_path']+ooyala_s['provider_id']+\
+            '/docs/'+video_id+'?include_titles=Series,Season&product_name=test&format=full'
+        data = self._download_json(data_p, id, 'Downloading data JSON')
+        import pdb; pdb.set_trace()
+        #TODO THE REST
+
+
+        info = self._get_player_info(url, webpage)
+
+        title = self._search_regex(
+            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>',
+            webpage, 'title', default=None)
+
+        mobj = re.search(r'''(?sx)
+                            class="Destacado-text"[^>]*>.*?<h1>\s*
+                            <span>(?P<series>[^<]+)</span>\s*
+                            <span>(?P<season>[^<]+)</span>\s*
+                            <span>(?P<episode>[^<]+)</span>''', webpage)
+        series, season, episode = mobj.groups() if mobj else [None] * 3
+
+        if not title:
+            if mobj:
+                title = '%s - %s - %s' % (series, season, episode)
+            else:
+                title = remove_start(self._search_regex(
+                    r'<title>([^<]+)</title>', webpage, 'title'), 'Ver online ')
+
+        info.update({
+            'display_id': display_id,
+            'title': title,
+            'description': get_element_by_attribute('class', 'text', webpage),
+            'series': series,
+            'season': season,
+            'episode': episode,
+        })
+        return info
 
 class MiTeleIE(MiTeleBaseIE):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/){3}(?P<id>[^/]+)/'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/){2}(?P<id>[^/]+)/[^/]*' # NEW FORMAT
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        return self._mitele_extract(url, webpage)
+
+class MiTeleOldIE(MiTeleIE):
+    IE_DESC = 'mitele.es'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/){3}(?P<id>[^/]+)/' # OLD FORMAT
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
@@ -113,35 +179,7 @@ class MiTeleIE(MiTeleBaseIE):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
-        info = self._get_player_info(url, webpage)
-
-        title = self._search_regex(
-            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>',
-            webpage, 'title', default=None)
-
-        mobj = re.search(r'''(?sx)
-                            class="Destacado-text"[^>]*>.*?<h1>\s*
-                            <span>(?P<series>[^<]+)</span>\s*
-                            <span>(?P<season>[^<]+)</span>\s*
-                            <span>(?P<episode>[^<]+)</span>''', webpage)
-        series, season, episode = mobj.groups() if mobj else [None] * 3
-
-        if not title:
-            if mobj:
-                title = '%s - %s - %s' % (series, season, episode)
-            else:
-                title = remove_start(self._search_regex(
-                    r'<title>([^<]+)</title>', webpage, 'title'), 'Ver online ')
-
-        info.update({
-            'display_id': display_id,
-            'title': title,
-            'description': get_element_by_attribute('class', 'text', webpage),
-            'series': series,
-            'season': season,
-            'episode': episode,
-        })
-        return info
+        resp = self._download_webpage_handle(url, display_id)
+        #If the address is "OLD" then will give us a redirected URL for the new address
+        #Continue with the new parser
+        return self._mitele_extract(resp[1].url, resp[0])
