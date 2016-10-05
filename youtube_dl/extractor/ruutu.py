@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class RuutuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ruutu\.fi/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla)/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://www.ruutu.fi/video/2058907',
