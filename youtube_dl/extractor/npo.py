@@ -459,8 +459,9 @@ class NPOPlaylistBaseIE(NPOIE):
 
 class VPROIE(NPOPlaylistBaseIE):
     IE_NAME = 'vpro'
-    _VALID_URL = r'https?://(?:www\.)?(?:tegenlicht\.)?vpro\.nl/(?:[^/]+/){2,}(?P<id>[^/]+)\.html'
-    _PLAYLIST_TITLE_RE = r'<h1[^>]+class=["\'].*?\bmedia-platform-title\b.*?["\'][^>]*>([^<]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:tegenlicht\.)?vpro|2doc)\.nl/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+    _PLAYLIST_TITLE_RE = (r'<h1[^>]+class=["\'].*?\bmedia-platform-title\b.*?["\'][^>]*>([^<]+)',
+                          r'<h5[^>]+class=["\'].*?\bmedia-platform-subtitle\b.*?["\'][^>]*>([^<]+)')
     _PLAYLIST_ENTRY_RE = r'data-media-id="([^"]+)"'
 
     _TESTS = [
@@ -492,6 +493,27 @@ class VPROIE(NPOPlaylistBaseIE):
                 'title': 'education education',
             },
             'playlist_count': 2,
+        },
+        {
+            'url': 'http://www.2doc.nl/documentaires/series/2doc/2015/oktober/de-tegenprestatie.html',
+            'info_dict': {
+                'id': 'de-tegenprestatie',
+                'title': 'De Tegenprestatie',
+            },
+            'playlist_count': 2,
+        }, {
+            'url': 'http://www.2doc.nl/speel~VARA_101375237~mh17-het-verdriet-van-nederland~.html',
+            'info_dict': {
+                'id': 'VARA_101375237',
+                'ext': 'm4v',
+                'title': 'MH17: Het verdriet van Nederland',
+                'description': 'md5:09e1a37c1fdb144621e22479691a9f18',
+                'upload_date': '20150716',
+            },
+            'params': {
+                # Skip because of m3u8 download
+                'skip_download': True
+            },
         }
     ]
 
