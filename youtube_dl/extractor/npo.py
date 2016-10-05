@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     fix_xml_ampersands,
     orderedSet,
@@ -10,6 +11,7 @@ from ..utils import (
     qualities,
     strip_jsonp,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -181,9 +183,16 @@ class NPOIE(NPOBaseIE):
                     continue
                 streams = format_info.get('streams')
                 if streams:
-                    video_info = self._download_json(
-                        streams[0] + '&type=json',
-                        video_id, 'Downloading %s stream JSON' % format_id)
+                    try:
+                        video_info = self._download_json(
+                            streams[0] + '&type=json',
+                            video_id, 'Downloading %s stream JSON' % format_id)
+                    except ExtractorError as ee:
+                        if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
+                            error = (self._parse_json(ee.cause.read().decode(), video_id, fatal=False) or {}).get('errorstring')
+                            if error:
+                                raise ExtractorError(error, expected=True)
+                        raise
                 else:
                     video_info = format_info
                 video_url = video_info.get('url')
