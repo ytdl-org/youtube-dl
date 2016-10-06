@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_urlparse
+from ..compat import compat_urlparse
 from .generic import GenericIE
 
 # IQM2 aka Accela is a municipal meeting management platform that
@@ -90,13 +90,14 @@ class IQM2IE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        purl = compat_urllib_parse_urlparse(url)
-        hostname = purl.hostname
-        print "URL is", url, "at", hostname
-        nurl = self._html_search_regex(r'<div id="VideoPanelInner".*src="([^"]+)"',
-                                      webpage, 'url');
-        print "URL is", nurl
-        nnurl = purl.scheme+'://'+purl.netloc+nurl
-        print "URL is", nnurl
+        print "Original URL is", url
 
-        return GenericIE(self._downloader)._real_extract(nnurl)
+        inner_url_rel = self._html_search_regex(
+            r'<div id="VideoPanelInner".*src="([^"]+)"',
+            webpage, 'url');
+        print "inner_URL is", inner_url_rel
+
+        inner_url = compat_urlparse.urljoin(url, inner_url_rel)
+        print "Joined URL is", inner_url
+
+        return GenericIE(self._downloader)._real_extract(inner_url)
