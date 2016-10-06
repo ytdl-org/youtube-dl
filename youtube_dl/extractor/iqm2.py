@@ -32,6 +32,11 @@ from .generic import GenericIE
 # matches it under the "Broaden the findall a little bit: JWPlayer JS
 # loader" (line 2372 as of 6 Oct 2016).
 
+# It appears that the metadata associated with the video (like it's
+# title) does not appear anywhere in the 2 HTML pages that get
+# downloaded through this extractor. So it would need to download
+# additional HTTP resources in order to get appropriate metadata.
+
 # This also appears to be the only example to date of an extractor
 # that calls-out to the GenericIE generic extractor, so it may be
 # useful as an example. Or perhaps it means that there's a better way
@@ -40,11 +45,34 @@ from .generic import GenericIE
 
 # Contributed by John Hawkinson <jhawk@mit.edu>, 6 Oct 2016.
 
-
+# Potential test URLs:
+# http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
 # https://CambridgeMA.IQM2.com/Citizens/VideoMain.aspx?MeetingID=1679
 
 class IQM2IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:\w+\.)?iqm2\.com/Citizens/SplitView.aspx\?Mode=Video&MeetingID=(?P<id>[0-9]+)'
+
+    # xxx is really right that InfoExtractor.suitable() calls re.compile()
+    # on _VALID_URL in a case-sensitive fashion? It's obviously reasonable
+    # for the path portion of a URL to be case-sensitive, but the hostname
+    # ought not to be. And it seems like strict adherence might mess up a
+    # bunch of extractors in funny-cased URLs? Redefine suitable() to search
+    # case-insentitively. Note this also changes the re.match() call at the
+    # start of _real_extract()
+    #
+    # In this case, we commonly see both iqm2.com and IQM2.com
+    
+    @classmethod
+    def suitable(cls, url):
+        """Receives a URL and returns True if suitable for this IE."""
+
+        # This does not use has/getattr intentionally - we want to know whether
+        # we have cached the regexp for *this* class, whereas getattr would also
+        # match the superclass
+        if '_VALID_URL_RE' not in cls.__dict__:
+            cls._VALID_URL_RE = re.compile(cls._VALID_URL, flags=re.IGNORECASE)
+        return cls._VALID_URL_RE.match(url) is not None
+
+    _VALID_URL = r'https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MeetingID=(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679#',
         'md5': '478ea30eee1966f7be0d8dd623122148',
@@ -62,7 +90,7 @@ class IQM2IE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        mobj = re.match(self._VALID_URL, url, flags=re.IGNORECASE)
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
