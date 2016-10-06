@@ -1754,9 +1754,9 @@ class GenericIE(InfoExtractor):
         if matches:
             return _playlist_from_matches(matches, ie='RtlNl')
 
-        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
-        if vimeo_url is not None:
-            return self.url_result(vimeo_url)
+        vimeo_urls = VimeoIE._extract_urls(url, webpage)
+        if vimeo_urls:
+            return _playlist_from_matches(vimeo_urls, ie=VimeoIE.ie_key())
 
         vid_me_embed_url = self._search_regex(
             r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
