@@ -90,14 +90,20 @@ class IQM2IE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        print "Original URL is", url
+        # print "Original URL is", url
 
+        # We want to extract an inner URL like this:
+        # <div id="VideoPanel" class="LeftTopContent">
+        #   <div id="VideoPanelInner" onselectstart="javascript:return false;"
+        #     style="overflow:hidden"
+        #     src="/Citizens/VideoScreen.aspx?MediaID=1563&Frame=SplitView"
+        #     quality="hd">
         inner_url_rel = self._html_search_regex(
             r'<div id="VideoPanelInner".*src="([^"]+)"',
             webpage, 'url');
-        print "inner_URL is", inner_url_rel
+        # print "inner_URL is", inner_url_rel
 
         inner_url = compat_urlparse.urljoin(url, inner_url_rel)
-        print "Joined URL is", inner_url
+        # print "Joined URL is", inner_url
 
         return GenericIE(self._downloader)._real_extract(inner_url)
