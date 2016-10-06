@@ -81,11 +81,6 @@ class IQM2IE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Cambridge, MA (2)',
             'uploader': 'cambridgema.iqm2.com',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         }
     }
 
