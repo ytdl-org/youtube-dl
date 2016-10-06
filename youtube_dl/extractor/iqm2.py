@@ -89,8 +89,6 @@ class IQM2IE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-        # title = self._html_search_regex(r'<h1>(.*?)</h1>', webpage, 'title')
-        title = 'Video title goes here'
 
         purl = compat_urllib_parse_urlparse(url)
         hostname = purl.hostname
