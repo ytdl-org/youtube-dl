@@ -18,25 +18,22 @@ class YuvutuIE(InfoExtractor):
         }
     }
 
-    _title_regex = r"class=[\"']video-title-content[\"']>.+?>(.+?)<"
-    _thumbnail_regex = r"itemprop=[\"']thumbnailURL[\"']\s+content=[\"'](.+?)[\"']"
-    _embed_regex = r"[\"'](\/embed_video\.php.+?)[\"']"
-    _video_regex = r"file:\s*[\"']([^\s]+)[\"']"
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(self._title_regex, webpage, 'title')
-        thumbnail_url = self._html_search_regex(self._thumbnail_regex, webpage, 'thumbnail')
+        title = self._html_search_regex(
+            r"class=[\"']video-title-content[\"']>.+?>(.+?)<", webpage, 'title')
+        thumbnail_url = self._html_search_regex(
+            r"itemprop=[\"']thumbnailURL[\"']\s+content=[\"'](.+?)[\"']", webpage, 'thumbnail')
 
-        embed_url = self._html_search_regex(self._embed_regex, webpage,
-                                            'embed')
+        embed_url = self._html_search_regex(
+            r"[\"'](\/embed_video\.php.+?)[\"']", webpage, 'embed')
         embed_webpage = self._download_webpage(
             "http://www.yuvutu.com/" + embed_url, video_id)
-        video_url = self._html_search_regex(self._video_regex, embed_webpage,
-                                            'video_url')
+        video_url = self._html_search_regex(
+            r"file:\s*[\"']([^\s]+)[\"']", embed_webpage, 'video_url')
 
         return {
             'id': video_id,
