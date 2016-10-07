@@ -1412,6 +1412,18 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 3,
         },
+        {
+            # Direct MMS link
+            'url': 'mms://kentro.kaist.ac.kr/200907/MilesReid(0709).wmv',
+            'info_dict': {
+                'id': 'MilesReid(0709)',
+                'ext': 'wmv',
+                'title': 'MilesReid(0709)',
+            },
+            'params': {
+                'skip_download': True,  # rtsp downloads, requiring mplayer or mpv
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -1550,6 +1562,13 @@ class GenericIE(InfoExtractor):
             video_id = force_videoid
         else:
             video_id = compat_urllib_parse_unquote(os.path.splitext(url.rstrip('/').split('/')[-1])[0])
+
+        if parsed_url.scheme == 'mms':
+            return {
+                'id': video_id,
+                'title': video_id,
+                'url': url,
+            }
 
         self.to_screen('%s: Requesting header' % video_id)
 
