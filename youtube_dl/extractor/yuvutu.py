@@ -29,6 +29,7 @@ class YuvutuIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(self._title_regex, webpage, 'title')
+        thumbnail_url = self._html_search_regex(self._thumbnail_regex, webpage, 'thumbnail')
 
         embed_url = self._html_search_regex(self._embed_regex, webpage,
                                             'embed')
@@ -40,6 +41,7 @@ class YuvutuIE(InfoExtractor):
         return {
             'id': video_id,
             'url': video_url,
+            'thumbnail': thumbnail_url,
             'ext': determine_ext(video_url, 'mp4'),
             'title': title,
             'age_limit': 18,
