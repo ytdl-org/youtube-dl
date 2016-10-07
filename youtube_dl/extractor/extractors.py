@@ -186,7 +186,10 @@ from .comedycentral import (
 )
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
-from .commonprotocols import RtmpIE
+from .commonprotocols import (
+    MmsIE,
+    RtmpIE,
+)
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
