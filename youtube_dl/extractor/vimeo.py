@@ -359,7 +359,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
         urls = []
         # Look for embedded (iframe) Vimeo player
         for mobj in re.finditer(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage):
+                r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1',
+                webpage):
             urls.append(VimeoIE._smuggle_referrer(unescapeHTML(mobj.group('url')), url))
         PLAIN_EMBED_RE = (
             # Look for embedded (swf embed) Vimeo player
