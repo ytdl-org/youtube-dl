@@ -1,7 +1,7 @@
 version <unreleased>
 
 Extractors
-+ [generic] Support direct MMS links (#10838)
++ [commonprotocols] Support direct MMS links (#10838)
 
 
 version 2016.10.02

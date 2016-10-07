@@ -27,7 +27,6 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     UnsupportedError,
-    url_basename,
     xpath_text,
 )
 from .brightcove import (
@@ -1412,18 +1411,6 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 3,
         },
-        {
-            # Direct MMS link
-            'url': 'mms://kentro.kaist.ac.kr/200907/MilesReid(0709).wmv',
-            'info_dict': {
-                'id': 'MilesReid(0709)',
-                'ext': 'wmv',
-                'title': 'MilesReid(0709)',
-            },
-            'params': {
-                'skip_download': True,  # rtsp downloads, requiring mplayer or mpv
-            },
-        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -1561,14 +1548,7 @@ class GenericIE(InfoExtractor):
             force_videoid = smuggled_data['force_videoid']
             video_id = force_videoid
         else:
-            video_id = compat_urllib_parse_unquote(os.path.splitext(url.rstrip('/').split('/')[-1])[0])
-
-        if parsed_url.scheme == 'mms':
-            return {
-                'id': video_id,
-                'title': video_id,
-                'url': url,
-            }
+            video_id = self._generic_id(url)
 
         self.to_screen('%s: Requesting header' % video_id)
 
@@ -1597,7 +1577,7 @@ class GenericIE(InfoExtractor):
 
         info_dict = {
             'id': video_id,
-            'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            'title': self._generic_title(url),
             'upload_date': unified_strdate(head_response.headers.get('Last-Modified'))
         }
 
