@@ -1,9 +1,3 @@
-version <unreleased>
-
-Core
-* Support for GNU make < 4 is fixed (#9387)
-
-
 version 2016.10.02
 
 Core
