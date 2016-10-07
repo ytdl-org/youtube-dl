@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [facebook] Fix video extraction (#10846)
 + [commonprotocols] Support direct MMS links (#10838)
 
 

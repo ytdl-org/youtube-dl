@@ -258,7 +258,7 @@ class FacebookIE(InfoExtractor):
 
         if not video_data:
             server_js_data = self._parse_json(self._search_regex(
-                r'handleServerJS\(({.+})\);', webpage, 'server js data', default='{}'), video_id)
+                r'handleServerJS\(({.+})(?:\);|,")', webpage, 'server js data', default='{}'), video_id)
             for item in server_js_data.get('instances', []):
                 if item[1][0] == 'VideoConfig':
                     video_data = video_data_list2dict(item[2][0]['videoData'])
