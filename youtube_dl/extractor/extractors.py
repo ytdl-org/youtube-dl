@@ -1162,6 +1162,7 @@ from .youtube import (
     YoutubeUserIE,
     YoutubeWatchLaterIE,
 )
+from .yuvutu import YuvutuIE
 from .zapiks import ZapiksIE
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
