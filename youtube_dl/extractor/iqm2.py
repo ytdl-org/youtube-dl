@@ -27,21 +27,12 @@ from .generic import GenericIE
 #   http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
 # to determine the location of an inner div defined by a URL of the form
 #   http://cambridgema.iqm2.com/Citizens/VideoScreen.aspx?MediaID=1563&Frame=SplitView
-
-# and then simply hands that URL to the GenericIE generic extractor,
-# which matches it under the "Broaden the findall a little bit:
-# JWPlayer JS loader" (line 2372 as of 6 Oct 2016).
+# and then feed it to the generic extractor.
 
 # It appears that the metadata associated with the video (like its
 # title) does not appear anywhere in the 2 HTML pages that get
 # downloaded through this extractor. So it would need to download
 # additional HTTP resources in order to get "real" metadata.
-
-# This also appears to be the only example to date of an extractor
-# that calls-out to the generic extractor, so it may be
-# useful as an example. Or perhaps it means that there's a better way
-# to do this and it should be rewritten differently, esp. to not
-# leverage the generic? (xxx)
 
 # Contributed by John Hawkinson <jhawk@mit.edu>, 6 Oct 2016.
 
@@ -80,4 +71,7 @@ class IQM2IE(InfoExtractor):
         inner_url = compat_urlparse.urljoin(url, inner_url_rel)
         # print "Joined URL is", inner_url
 
-        return GenericIE(self._downloader)._real_extract(inner_url)
+        # Generic extractor matches this under the "Broaden the
+        # findall a little bit: JWPlayer JS loader" (line 2372 as of 6
+        # Oct 2016, dcdb292fddc82ae11f4c0b647815a45c88a6b6d5).
+        return self.url_result(inner_url, 'Generic')
