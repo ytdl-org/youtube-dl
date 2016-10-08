@@ -27,15 +27,20 @@ class ExternalFD(FileDownloader):
 
         retval = self._call_downloader(tmpfilename, info_dict)
         if retval == 0:
-            fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
-            self.try_rename(tmpfilename, filename)
-            self._hook_progress({
-                'downloaded_bytes': fsize,
-                'total_bytes': fsize,
-                'filename': filename,
-                'status': 'finished',
-            })
+            if filename == '-':
+                # xxx report_progress() expects total_bytes to be set or it throws a KeyError, so
+                # we can't just call: self._hook_progress({'status': 'finished'})
+                self.to_screen('[download] Download completed')
+            else:
+                fsize = os.path.getsize(encodeFilename(tmpfilename))
+                self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
+                self.try_rename(tmpfilename, filename)
+                self._hook_progress({
+                    'downloaded_bytes': fsize,
+                    'total_bytes': fsize,
+                    'filename': filename,
+                    'status': 'finished',
+                })
             return True
         else:
             self.to_stderr('\n')
