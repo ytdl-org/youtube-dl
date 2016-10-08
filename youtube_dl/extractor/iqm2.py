@@ -17,22 +17,12 @@ from .generic import GenericIE
 #   http://www.iqm2.com/About/Accela.aspx
 #   http://www.accela.com/
 
-# This processing makes it challenging to produce a test case for,
-# because the extractor will want to find the processed and easily
-# downloadable version. So there may be interesting bugs during the
-# race condition time before the processed video is available (which
-# is really the only time this extractor is especially important).
+# This processing makes hard to test since there's only a narrow
+# window when it matters. After that the extractor finds links to
+# the processed video intead.
 
-# This is also a relatively braindead extractor. It parses a given page like
-#   http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
-# to determine the location of an inner div defined by a URL of the form
-#   http://cambridgema.iqm2.com/Citizens/VideoScreen.aspx?MediaID=1563&Frame=SplitView
-# and then feed it to the generic extractor.
-
-# It appears that the metadata associated with the video (like its
-# title) does not appear anywhere in the 2 HTML pages that get
-# downloaded through this extractor. So it would need to download
-# additional HTTP resources in order to get "real" metadata.
+# No metadata is retrieved, as that would require finding a metadata
+# URL and retreiving a 3rd HTTP resource.
 
 # Contributed by John Hawkinson <jhawk@mit.edu>, 6 Oct 2016.
 
@@ -61,8 +51,12 @@ class IQM2IE(InfoExtractor):
 
         # print "Original URL is", url
 
-        # <div id="VideoPanel" class="LeftTopContent">
-        #   <div id="VideoPanelInner" ... src="/Citizens/VideoScreen.aspx?MediaID=1563&Frame=SplitView">
+        # Simple extractor: take, e.g.
+        #   http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
+        # and look for
+        #   <div id="VideoPanel" class="LeftTopContent">
+        #     <div id="VideoPanelInner" ... src="/Citizens/VideoScreen.aspx?MediaID=1563&Frame=SplitView">
+        # and feed the canonicalized src element to the generic extractor
         inner_url_rel = self._html_search_regex(
             r'<div id="VideoPanelInner".*src="([^"]+)"',
             webpage, 'url');
