@@ -70,12 +70,8 @@ class IQM2IE(InfoExtractor):
 
         # print "Original URL is", url
 
-        # We want to extract an inner URL like this:
         # <div id="VideoPanel" class="LeftTopContent">
-        #   <div id="VideoPanelInner" onselectstart="javascript:return false;"
-        #     style="overflow:hidden"
-        #     src="/Citizens/VideoScreen.aspx?MediaID=1563&Frame=SplitView"
-        #     quality="hd">
+        #   <div id="VideoPanelInner" ... src="/Citizens/VideoScreen.aspx?MediaID=1563&Frame=SplitView">
         inner_url_rel = self._html_search_regex(
             r'<div id="VideoPanelInner".*src="([^"]+)"',
             webpage, 'url');
