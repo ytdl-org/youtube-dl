@@ -608,12 +608,12 @@ The simplest case is requesting a specific format, for example with `-f 22` you 
 You can also use a file extension (currently `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm` are supported) to download the best quality format of a particular file extension served as a single file, e.g. `-f webm` will download the best quality format with the `webm` extension served as a single file.
 
 You can also use special names to select particular edge case formats:
- - `best`: Select the best quality format represented by a single file with video and audio
- - `worst`: Select the worst quality format represented by a single file with video and audio
- - `bestvideo`: Select the best quality video-only format (e.g. DASH video), may not be available
- - `worstvideo`: Select the worst quality video-only format. May not be available
- - `bestaudio`: Select the best quality audio only-format. May not be available
- - `worstaudio`: Select the worst quality audio only-format. May not be available
+ - `best`: Select the best quality format represented by a single file with video and audio.
+ - `worst`: Select the worst quality format represented by a single file with video and audio.
+ - `bestvideo`: Select the best quality video-only format (e.g. DASH video). May not be available.
+ - `worstvideo`: Select the worst quality video-only format. May not be available.
+ - `bestaudio`: Select the best quality audio only-format. May not be available.
+ - `worstaudio`: Select the worst quality audio only-format. May not be available.
 
 For example, to download the worst quality video-only format you can use `-f worstvideo`.
 
