@@ -45,10 +45,6 @@ from .generic import GenericIE
 
 # Contributed by John Hawkinson <jhawk@mit.edu>, 6 Oct 2016.
 
-# Potential test URLs:
-# http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
-# https://CambridgeMA.IQM2.com/Citizens/VideoMain.aspx?MeetingID=1679
-
 class IQM2IE(InfoExtractor):
 
     # xxx is really right that InfoExtractor.suitable() calls re.compile()
@@ -73,7 +69,7 @@ class IQM2IE(InfoExtractor):
         return cls._VALID_URL_RE.match(url) is not None
 
     _VALID_URL = r'https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MeetingID=(?P<id>[0-9]+)'
-    _TEST = {
+    _TESTS = [ {
         'url': 'http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679#',
         'md5': '478ea30eee1966f7be0d8dd623122148',
         'info_dict': {
@@ -81,8 +77,10 @@ class IQM2IE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Cambridge, MA (2)',
             'uploader': 'cambridgema.iqm2.com',
-        }
-    }
+        }}, {
+            'url': 'https://CambridgeMA.IQM2.com/Citizens/VideoMain.aspx?MeetingID=1679',
+            'only_matching': True,
+        }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url, flags=re.IGNORECASE)
