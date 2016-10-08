@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import str_or_none
+from ..utils import (
+    qualities,
+    str_or_none,
+)
 
 
 class ReverbNationIE(InfoExtractor):
@@ -28,16 +31,15 @@ class ReverbNationIE(InfoExtractor):
             note='Downloading information of song %s' % song_id
         )
 
+        THUMBNAILS = ('thumbnail', 'image')
+        quality = qualities(THUMBNAILS)
         thumbnails = []
-        if api_res.get('image'):
-            thumbnails.append({
-                'url': api_res.get('image'),
-            })
-        if api_res.get('thumbnail'):
-            thumbnails.append({
-                'url': api_res.get('thumbnail'),
-                'preference': -2,
-            })
+        for thumb_key in THUMBNAILS:
+            if api_res.get(thumb_key):
+                thumbnails.append({
+                    'url': api_res[thumb_key],
+                    'preference': quality(thumb_key)
+                })
 
         return {
             'id': song_id,
