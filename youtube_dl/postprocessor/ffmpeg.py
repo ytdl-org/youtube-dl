@@ -278,6 +278,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         prefix, sep, ext = path.rpartition('.')  # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
+        
+        information['filepath'] = new_path
+        information['ext'] = extension
 
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
         if (new_path == path or
@@ -299,9 +302,6 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             self.try_utime(
                 new_path, time.time(), information['filetime'],
                 errnote='Cannot update utime of audio file')
-
-        information['filepath'] = new_path
-        information['ext'] = extension
 
         return [path], information
 
