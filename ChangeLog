@@ -3,6 +3,9 @@ version <unreleased>
 Core
 * [Makefile] Support for GNU make < 4 is fixed; BSD make dropped (#9387)
 
+Extractors
++ [nextmedia] Recognize action news on AppleDaily
+
 
 version 2016.10.07
 
