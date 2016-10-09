@@ -57,9 +57,7 @@ class IQM2IE(InfoExtractor):
         }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         # print "Original URL is", url
