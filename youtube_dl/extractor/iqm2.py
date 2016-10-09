@@ -9,13 +9,17 @@ from .generic import GenericIE
 
 # IQM2 aka Accela is a municipal meeting management platform that
 # (among other things) stores livestreamed video from municipal
-# meetings.  After a hefty (several-hour) processing time, that video
-# is available in easily downloadable form from their web portal, but
-# prior to that, the video can only be watched in realtime through
-# JWPlayer. This extractor is designed to download the realtime video
-# prior to download links being available. For more info on Accela, see:
+# meetings.  In some cases (e.g. cambridgema.iqm2.com), after a hefty
+# (several-hour) processing time, that video is available in easily
+# downloadable form from their web portal, but prior to that, the
+# video can only be watched in realtime through JWPlayer. Other
+# (somervillecityma.iqm2.com) instances don't seem to ever offer a
+# downloadable form. This extractor is designed to download the
+# realtime video without the download links being available. For more
+# info on Accela, see:
 #   http://www.iqm2.com/About/Accela.aspx
 #   http://www.accela.com/
+#   https://github.com/Accela-Inc/leg-man-api-docs
 
 # This processing makes hard to test since there's only a narrow
 # window when it matters. After that the extractor finds links to
@@ -31,6 +35,14 @@ class IQM2IE(InfoExtractor):
     # We commonly see both iqm2.com and IQM2.com.
     _VALID_URL = r'(?i)https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MeetingID=(?P<id>[0-9]+)'
     _TESTS = [ {
+            'url': 'http://somervillecityma.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=2308',
+         'md5': '9ef458ff6c93f8b9323cf79db4ede9cf',
+         'info_dict': {
+             'id': '70472_480',
+             'ext': 'mp4',
+             'title': 'City of Somerville, Massachusetts',
+             'uploader': 'somervillecityma.iqm2.com',
+         }}, {
         'url': 'http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679#',
         'md5': '478ea30eee1966f7be0d8dd623122148',
         'info_dict': {
