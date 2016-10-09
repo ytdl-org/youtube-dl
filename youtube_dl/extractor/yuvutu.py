@@ -15,6 +15,7 @@ class YuvutuIE(InfoExtractor):
             'title': 'carnal bliss',
             'ext': 'flv',
             'age_limit': 18,
+            'thumbnail': 're:https?://.*?\.jpg'
         }
     }
 
