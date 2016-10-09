@@ -364,6 +364,7 @@
  - **Le**: 乐视网
  - **Learnr**
  - **Lecture2Go**
+ - **LEGO**
  - **Lemonde**
  - **LePlaylist**
  - **LetvCloud**: 乐视云
@@ -507,6 +508,7 @@
  - **Nuvid**
  - **NYTimes**
  - **NYTimesArticle**
+ - **NZZ**
  - **ocw.mit.edu**
  - **OdaTV**
  - **Odnoklassniki**
@@ -692,6 +694,7 @@
  - **SWRMediathek**
  - **Syfy**
  - **SztvHu**
+ - **t-online.de**
  - **Tagesschau**
  - **tagesschau:player**
  - **Tass**
@@ -721,8 +724,10 @@
  - **TheScene**
  - **TheSixtyOne**
  - **TheStar**
+ - **TheWeatherChannel**
  - **ThisAmericanLife**
  - **ThisAV**
+ - **ThisOldHouse**
  - **tinypic**: tinypic.com videos
  - **tlc.de**
  - **TMZ**

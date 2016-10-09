@@ -186,7 +186,10 @@ from .comedycentral import (
 )
 from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
-from .commonprotocols import RtmpIE
+from .commonprotocols import (
+    MmsIE,
+    RtmpIE,
+)
 from .condenast import CondeNastIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
@@ -638,6 +641,7 @@ from .nytimes import (
     NYTimesArticleIE,
 )
 from .nuvid import NuvidIE
+from .nzz import NZZIE
 from .odatv import OdaTVIE
 from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE

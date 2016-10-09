@@ -1,3 +1,32 @@
+version <unreleased>
+
+Core
+* [Makefile] Support for GNU make < 4 is fixed; BSD make dropped (#9387)
+
+Extractors
++ [nextmedia] Recognize action news on AppleDaily
+
+
+version 2016.10.07
+
+Extractors
++ [iprima] Detect geo restriction
+* [facebook] Fix video extraction (#10846)
++ [commonprotocols] Support direct MMS links (#10838)
++ [generic] Add support for multiple vimeo embeds (#10862)
++ [nzz] Add support for nzz.ch (#4407)
++ [npo] Detect geo restriction
++ [npo] Add support for 2doc.nl (#10842)
++ [lego] Add support for lego.com (#10369)
++ [tonline] Add support for t-online.de (#10376)
+* [techtalks] Relax URL regular expression (#10840)
+* [youtube:live] Extend URL regular expression (#10839)
++ [theweatherchannel] Add support for weather.com (#7188)
++ [thisoldhouse] Add support for thisoldhouse.com (#10837)
++ [nhl] Add support for wch2016.com (#10833)
+* [pornoxo] Use JWPlatform to improve metadata extraction
+
+
 version 2016.10.02
 
 Core

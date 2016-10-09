@@ -27,7 +27,6 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     UnsupportedError,
-    url_basename,
     xpath_text,
 )
 from .brightcove import (
@@ -1549,7 +1548,7 @@ class GenericIE(InfoExtractor):
             force_videoid = smuggled_data['force_videoid']
             video_id = force_videoid
         else:
-            video_id = compat_urllib_parse_unquote(os.path.splitext(url.rstrip('/').split('/')[-1])[0])
+            video_id = self._generic_id(url)
 
         self.to_screen('%s: Requesting header' % video_id)
 
@@ -1578,7 +1577,7 @@ class GenericIE(InfoExtractor):
 
         info_dict = {
             'id': video_id,
-            'title': compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0]),
+            'title': self._generic_title(url),
             'upload_date': unified_strdate(head_response.headers.get('Last-Modified'))
         }
 
@@ -1754,9 +1753,9 @@ class GenericIE(InfoExtractor):
         if matches:
             return _playlist_from_matches(matches, ie='RtlNl')
 
-        vimeo_url = VimeoIE._extract_vimeo_url(url, webpage)
-        if vimeo_url is not None:
-            return self.url_result(vimeo_url)
+        vimeo_urls = VimeoIE._extract_urls(url, webpage)
+        if vimeo_urls:
+            return _playlist_from_matches(vimeo_urls, ie=VimeoIE.ie_key())
 
         vid_me_embed_url = self._search_regex(
             r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',

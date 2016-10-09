@@ -12,7 +12,7 @@ SHAREDIR ?= $(PREFIX)/share
 PYTHON ?= /usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
-SYSCONFDIR != if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi
+SYSCONFDIR = $(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi)
 
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)
@@ -90,7 +90,7 @@ fish-completion: youtube-dl.fish
 
 lazy-extractors: youtube_dl/extractor/lazy_extractors.py
 
-_EXTRACTOR_FILES != find youtube_dl/extractor -iname '*.py' -and -not -iname 'lazy_extractors.py'
+_EXTRACTOR_FILES = $(shell find youtube_dl/extractor -iname '*.py' -and -not -iname 'lazy_extractors.py')
 youtube_dl/extractor/lazy_extractors.py: devscripts/make_lazy_extractors.py devscripts/lazy_load_template.py $(_EXTRACTOR_FILES)
 	$(PYTHON) devscripts/make_lazy_extractors.py $@
 

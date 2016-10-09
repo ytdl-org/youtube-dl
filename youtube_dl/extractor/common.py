@@ -21,6 +21,7 @@ from ..compat import (
     compat_os_name,
     compat_str,
     compat_urllib_error,
+    compat_urllib_parse_unquote,
     compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
@@ -2019,6 +2020,12 @@ class InfoExtractor(object):
         if geo_verification_proxy:
             headers['Ytdl-request-proxy'] = geo_verification_proxy
         return headers
+
+    def _generic_id(self, url):
+        return compat_urllib_parse_unquote(os.path.splitext(url.rstrip('/').split('/')[-1])[0])
+
+    def _generic_title(self, url):
+        return compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0])
 
 
 class SearchInfoExtractor(InfoExtractor):

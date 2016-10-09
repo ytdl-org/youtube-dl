@@ -93,7 +93,7 @@ class NextMediaActionNewsIE(NextMediaIE):
 
 class AppleDailyIE(NextMediaIE):
     IE_DESC = '臺灣蘋果日報'
-    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/(?:animation|appledaily|enews|realtimenews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
+    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/(?:animation|appledaily|enews|realtimenews|actionnews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
         'md5': 'a843ab23d150977cc55ef94f1e2c1e4d',
@@ -154,6 +154,9 @@ class AppleDailyIE(NextMediaIE):
             'description': 'md5:7b859991a6a4fedbdf3dd3b66545c748',
             'upload_date': '20140417',
         },
+    }, {
+        'url': 'http://www.appledaily.com.tw/actionnews/appledaily/7/20161003/960588/',
+        'only_matching': True,
     }]
 
     _URL_PATTERN = r'\{url: \'(.+)\'\}'

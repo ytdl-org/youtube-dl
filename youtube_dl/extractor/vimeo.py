@@ -355,23 +355,28 @@ class VimeoIE(VimeoBaseInfoExtractor):
         return smuggle_url(url, {'http_headers': {'Referer': referrer_url}})
 
     @staticmethod
-    def _extract_vimeo_url(url, webpage):
+    def _extract_urls(url, webpage):
+        urls = []
         # Look for embedded (iframe) Vimeo player
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1', webpage)
-        if mobj:
-            player_url = unescapeHTML(mobj.group('url'))
-            return VimeoIE._smuggle_referrer(player_url, url)
-        # Look for embedded (swf embed) Vimeo player
-        mobj = re.search(
-            r'<embed[^>]+?src="((?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)"', webpage)
-        if mobj:
-            return mobj.group(1)
-        # Look more for non-standard embedded Vimeo player
-        mobj = re.search(
-            r'<video[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/[0-9]+)(?P=q1)', webpage)
-        if mobj:
-            return mobj.group('url')
+        for mobj in re.finditer(
+                r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1',
+                webpage):
+            urls.append(VimeoIE._smuggle_referrer(unescapeHTML(mobj.group('url')), url))
+        PLAIN_EMBED_RE = (
+            # Look for embedded (swf embed) Vimeo player
+            r'<embed[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)\1',
+            # Look more for non-standard embedded Vimeo player
+            r'<video[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/[0-9]+)\1',
+        )
+        for embed_re in PLAIN_EMBED_RE:
+            for mobj in re.finditer(embed_re, webpage):
+                urls.append(mobj.group('url'))
+        return urls
+
+    @staticmethod
+    def _extract_url(url, webpage):
+        urls = VimeoIE._extract_urls(url, webpage)
+        return urls[0] if urls else None
 
     def _verify_player_video_password(self, url, video_id):
         password = self._downloader.params.get('videopassword')

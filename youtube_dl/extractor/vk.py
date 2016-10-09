@@ -341,7 +341,7 @@ class VKIE(VKBaseIE):
         if youtube_url:
             return self.url_result(youtube_url, 'Youtube')
 
-        vimeo_url = VimeoIE._extract_vimeo_url(url, info_page)
+        vimeo_url = VimeoIE._extract_url(url, info_page)
         if vimeo_url is not None:
             return self.url_result(vimeo_url)
 

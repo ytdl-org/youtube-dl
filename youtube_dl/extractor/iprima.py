@@ -81,6 +81,9 @@ class IPrimaIE(InfoExtractor):
             for _, src in re.findall(r'src["\']\s*:\s*(["\'])(.+?)\1', playerpage):
                 extract_formats(src)
 
+        if not formats and '>GEO_IP_NOT_ALLOWED<' in playerpage:
+            self.raise_geo_restricted()
+
         self._sort_formats(formats)
 
         return {

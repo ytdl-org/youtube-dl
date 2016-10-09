@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     fix_xml_ampersands,
     orderedSet,
@@ -10,6 +11,7 @@ from ..utils import (
     qualities,
     strip_jsonp,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -181,9 +183,16 @@ class NPOIE(NPOBaseIE):
                     continue
                 streams = format_info.get('streams')
                 if streams:
-                    video_info = self._download_json(
-                        streams[0] + '&type=json',
-                        video_id, 'Downloading %s stream JSON' % format_id)
+                    try:
+                        video_info = self._download_json(
+                            streams[0] + '&type=json',
+                            video_id, 'Downloading %s stream JSON' % format_id)
+                    except ExtractorError as ee:
+                        if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
+                            error = (self._parse_json(ee.cause.read().decode(), video_id, fatal=False) or {}).get('errorstring')
+                            if error:
+                                raise ExtractorError(error, expected=True)
+                        raise
                 else:
                     video_info = format_info
                 video_url = video_info.get('url')
@@ -459,8 +468,9 @@ class NPOPlaylistBaseIE(NPOIE):
 
 class VPROIE(NPOPlaylistBaseIE):
     IE_NAME = 'vpro'
-    _VALID_URL = r'https?://(?:www\.)?(?:tegenlicht\.)?vpro\.nl/(?:[^/]+/){2,}(?P<id>[^/]+)\.html'
-    _PLAYLIST_TITLE_RE = r'<h1[^>]+class=["\'].*?\bmedia-platform-title\b.*?["\'][^>]*>([^<]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:tegenlicht\.)?vpro|2doc)\.nl/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+    _PLAYLIST_TITLE_RE = (r'<h1[^>]+class=["\'].*?\bmedia-platform-title\b.*?["\'][^>]*>([^<]+)',
+                          r'<h5[^>]+class=["\'].*?\bmedia-platform-subtitle\b.*?["\'][^>]*>([^<]+)')
     _PLAYLIST_ENTRY_RE = r'data-media-id="([^"]+)"'
 
     _TESTS = [
@@ -492,6 +502,27 @@ class VPROIE(NPOPlaylistBaseIE):
                 'title': 'education education',
             },
             'playlist_count': 2,
+        },
+        {
+            'url': 'http://www.2doc.nl/documentaires/series/2doc/2015/oktober/de-tegenprestatie.html',
+            'info_dict': {
+                'id': 'de-tegenprestatie',
+                'title': 'De Tegenprestatie',
+            },
+            'playlist_count': 2,
+        }, {
+            'url': 'http://www.2doc.nl/speel~VARA_101375237~mh17-het-verdriet-van-nederland~.html',
+            'info_dict': {
+                'id': 'VARA_101375237',
+                'ext': 'm4v',
+                'title': 'MH17: Het verdriet van Nederland',
+                'description': 'md5:09e1a37c1fdb144621e22479691a9f18',
+                'upload_date': '20150716',
+            },
+            'params': {
+                # Skip because of m3u8 download
+                'skip_download': True
+            },
         }
     ]
 

@@ -923,7 +923,7 @@ To run the test, simply invoke your favorite test runner, or execute a test file
 If you want to create a build of youtube-dl yourself, you'll need
 
 * python
-* make (both GNU make and BSD make are supported)
+* make (only GNU make is supported)
 * pandoc
 * zip
 * nosetests
