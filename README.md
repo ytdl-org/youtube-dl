@@ -954,7 +954,7 @@ After you have ensured this site is distributing it's content legally, you can f
 
 
     class YourExtractorIE(InfoExtractor):
-        _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
+        _VALID_URL = r'(?i)https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
         _TEST = {
             'url': 'http://yourextractor.com/watch/42',
             'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
