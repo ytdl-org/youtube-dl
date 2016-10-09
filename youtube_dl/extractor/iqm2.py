@@ -75,7 +75,9 @@ class IQM2IE(InfoExtractor):
         # print "inner_URL is", inner_url_rel
 
         inner_url = compat_urlparse.urljoin(url, inner_url_rel)
-        # print "Joined URL is", inner_url
+
+        if self._downloader.params.get('verbose'):
+            self.to_screen('Invoking downloader on %s' % inner_url)
 
         # Generic extractor matches this under the "Broaden the
         # findall a little bit: JWPlayer JS loader" (line 2372 as of 6
