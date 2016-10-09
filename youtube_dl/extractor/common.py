@@ -327,7 +327,7 @@ class InfoExtractor(object):
         # we have cached the regexp for *this* class, whereas getattr would also
         # match the superclass
         if '_VALID_URL_RE' not in cls.__dict__:
-            cls._VALID_URL_RE = re.compile(cls._VALID_URL, flags=re.IGNORECASE)
+            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
         return cls._VALID_URL_RE.match(url) is not None
 
     @classmethod
