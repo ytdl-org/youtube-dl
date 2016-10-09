@@ -60,8 +60,6 @@ class IQM2IE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        # print "Original URL is", url
-
         # Simple extractor: take, e.g.
         #   http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
         # and look for
@@ -71,7 +69,6 @@ class IQM2IE(InfoExtractor):
         inner_url_rel = self._html_search_regex(
             r'<div id="VideoPanelInner".*src="([^"]+)"',
             webpage, 'url');
-        # print "inner_URL is", inner_url_rel
 
         inner_url = compat_urlparse.urljoin(url, inner_url_rel)
 
