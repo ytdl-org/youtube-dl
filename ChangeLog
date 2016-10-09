@@ -1,3 +1,9 @@
+version <unreleased>
+
+Core
+* [Makefile] Support for GNU make < 4 is fixed; BSD make dropped (#9387)
+
+
 version 2016.10.07
 
 Extractors
