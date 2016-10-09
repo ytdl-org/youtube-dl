@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
+from ..utils import smuggle_url
 
 import re
 
@@ -82,4 +83,6 @@ class IQM2IE(InfoExtractor):
         # Generic extractor matches this under the "Broaden the
         # findall a little bit: JWPlayer JS loader" (line 2372 as of 6
         # Oct 2016, dcdb292fddc82ae11f4c0b647815a45c88a6b6d5).
-        return self.url_result(inner_url, 'Generic')
+
+        return self.url_result(smuggle_url(inner_url, {'to_generic': True}),
+                               'Generic')
