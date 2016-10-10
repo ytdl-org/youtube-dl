@@ -35,23 +35,26 @@ class IQM2IE(InfoExtractor):
 
     # We commonly see both iqm2.com and IQM2.com.
     _VALID_URL = r'(?i)https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MeetingID=(?P<id>[0-9]+)'
-    _TESTS = [ {
+    _TESTS = [
+        {
             'url': 'http://somervillecityma.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=2308',
-         'md5': '9ef458ff6c93f8b9323cf79db4ede9cf',
-         'info_dict': {
-             'id': '70472_480',
-             'ext': 'mp4',
-             'title': 'City of Somerville, Massachusetts',
-             'uploader': 'somervillecityma.iqm2.com',
-         }}, {
-        'url': 'http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679#',
-        'md5': '478ea30eee1966f7be0d8dd623122148',
-        'info_dict': {
-            'id': '1563_720',
-            'ext': 'mp4',
-            'title': 'Cambridge, MA (2)',
-            'uploader': 'cambridgema.iqm2.com',
-        }}, {
+            'md5': '9ef458ff6c93f8b9323cf79db4ede9cf',
+            'info_dict': {
+                'id': '70472_480',
+                'ext': 'mp4',
+                'title': 'City of Somerville, Massachusetts',
+                'uploader': 'somervillecityma.iqm2.com',
+            }},
+        {
+            'url': 'http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679#',
+            'md5': '478ea30eee1966f7be0d8dd623122148',
+            'info_dict': {
+                'id': '1563_720',
+                'ext': 'mp4',
+                'title': 'Cambridge, MA (2)',
+                'uploader': 'cambridgema.iqm2.com',
+            }},
+        {
             'url': 'https://CambridgeMA.IQM2.com/Citizens/VideoMain.aspx?MeetingID=1679',
             'only_matching': True,
         }]
