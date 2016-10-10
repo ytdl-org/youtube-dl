@@ -50,11 +50,7 @@ class JWPlatformBaseIE(InfoExtractor):
             # JWPlayer backward compatibility: flattened sources
             # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/playlist/item.js#L29-L35
             if 'sources' not in video_data:
-                if isinstance(video_data, list):
-                    video_data = {'sources': video_data }
-                    video_data['tracks'] = video_data['sources'][0].get('tracks')
-                else:
-                    video_data['sources'] = [video_data]
+                video_data['sources'] = [video_data]
 
             this_video_id = video_id or video_data['mediaid']
 

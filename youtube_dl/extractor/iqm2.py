@@ -1,12 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
-from ..utils import smuggle_url
 
 import re
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from .jwplatform import JWPlatformBaseIE
+from ..utils import js_to_json
 
 # IQM2 aka Accela is a municipal meeting management platform that
 # (among other things) stores livestreamed video from municipal
@@ -63,6 +63,18 @@ class IQM2IE(JWPlatformBaseIE):
         if mobj:
             return mobj.group('options')
         
+    def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
+        jwplayer_data = self._parse_json(
+            self._find_jwplayer_data(webpage), video_id,
+            transform_source=js_to_json)
+
+        assert(isinstance(jwplayer_data, list))
+        jwplayer_data = {'sources': jwplayer_data }
+        jwplayer_data['tracks'] = jwplayer_data['sources'][0].get('tracks')
+        
+        return self._parse_jwplayer_data(
+            jwplayer_data, video_id, *args, **kwargs)
+
     def _real_extract(self, url):
         parent_id = self._match_id(url)
         webpage = self._download_webpage(url, parent_id)
