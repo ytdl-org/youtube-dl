@@ -40,7 +40,7 @@ class IQM2IE(JWPlatformBaseIE):
             'url': 'http://somervillecityma.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=2308',
             'md5': '9ef458ff6c93f8b9323cf79db4ede9cf',
             'info_dict': {
-                'id': '2308',
+                'id': '70472',
                 'ext': 'mp4',
                 'title': 'City of Somerville, Massachusetts',
             }},
@@ -49,7 +49,7 @@ class IQM2IE(JWPlatformBaseIE):
             'url': 'http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679#',
             'md5': '478ea30eee1966f7be0d8dd623122148',
             'info_dict': {
-                'id': '1679',
+                'id': '1563',
                 'ext': 'mp4',
                 'title': 'Cambridge, MA',
             }},
@@ -64,8 +64,8 @@ class IQM2IE(JWPlatformBaseIE):
             return mobj.group('options')
         
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        parent_id = self._match_id(url)
+        webpage = self._download_webpage(url, parent_id)
 
         # Take, e.g.
         #   http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
@@ -78,6 +78,10 @@ class IQM2IE(JWPlatformBaseIE):
             webpage, 'url');
 
         inner_url = compat_urlparse.urljoin(url, inner_url_rel)
+        mobj = re.match(
+            r'(?i)https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MediaID=(?P<id>[0-9]+)',
+            inner_url)
+        video_id = mobj.group('id')
         webpage = self._download_webpage(inner_url, video_id)
 
         info_dict = self._extract_jwplayer_data(
