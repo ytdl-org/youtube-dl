@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 # Allow direct execution
 import os
+import re
 import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -217,18 +218,28 @@ def generator(test_case):
 
     return test_template
 
+module = ""
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv)>2 and sys.argv[1] == '-m':
+        module = sys.argv[2]
+        del sys.argv[2], sys.argv[1]
+
 # And add them to TestDownload
 for n, test_case in enumerate(defs):
     test_method = generator(test_case)
+    if not re.match(module, test_case['name']):
+        continue
     tname = 'test_' + str(test_case['name'])
+
     i = 1
     while hasattr(TestDownload, tname):
         tname = 'test_%s_%d' % (test_case['name'], i)
         i += 1
     test_method.__name__ = str(tname)
     setattr(TestDownload, test_method.__name__, test_method)
-    del test_method
 
+    del test_method
 
 if __name__ == '__main__':
     unittest.main()
