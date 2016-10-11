@@ -4,6 +4,7 @@ Core
 * [Makefile] Support for GNU make < 4 is fixed; BSD make dropped (#9387)
 
 Extractors
+* [nhl] Correctly handle invalid formats (#10713)
 * [footyroom] Fix extraction (#10810)
 * [abc.net.au:iview] Fix for standalone (non series) videos (#10895)
 + [hbo] Add support for episode pages (#10892)
