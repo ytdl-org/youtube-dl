@@ -1802,7 +1802,11 @@ class InfoExtractor(object):
             return is_plain_url, formats
 
         entries = []
-        for media_tag, media_type, media_content in re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage):
+        media_tags = [(media_tag, media_type, '')
+                      for media_tag, media_type
+                      in re.findall(r'(?s)(<(video|audio)[^>]*/>)', webpage)]
+        media_tags.extend(re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage))
+        for media_tag, media_type, media_content in media_tags:
             media_info = {
                 'formats': [],
                 'subtitles': {},

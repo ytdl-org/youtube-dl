@@ -1,6 +1,7 @@
 version <unreleased>
 
 Core
++ Support HTML media elements without child nodes
 * [Makefile] Support for GNU make < 4 is fixed; BSD make dropped (#9387)
 
 Extractors
