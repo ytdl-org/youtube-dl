@@ -138,11 +138,15 @@ class HBOEpisodeIE(HBOBaseIE):
         'md5': '689132b253cc0ab7434237fc3a293210',
         'info_dict': {
             'id': '1439518',
+            'display_id': 'ep-52-inside-the-episode',
             'ext': 'mp4',
             'title': 'Ep. 52: Inside the Episode',
             'thumbnail': 're:https?://.*\.jpg$',
             'duration': 240,
         },
+    }, {
+        'url': 'http://www.hbo.com/game-of-thrones/about/video/season-5-invitation-to-the-set.html?autoplay=true',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -154,4 +158,7 @@ class HBOEpisodeIE(HBOBaseIE):
             r'(?P<q1>[\'"])videoId(?P=q1)\s*:\s*(?P<q2>[\'"])(?P<video_id>\d+)(?P=q2)',
             webpage, 'video ID', group='video_id')
 
-        return self._extract_from_id(video_id)
+        info_dict = self._extract_from_id(video_id)
+        info_dict['display_id'] = display_id
+
+        return info_dict
