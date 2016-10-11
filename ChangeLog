@@ -5,6 +5,7 @@ Core
 * [Makefile] Support for GNU make < 4 is fixed; BSD make dropped (#9387)
 
 Extractors
+* [vimeo:review] Fix extraction (#10900)
 * [nhl] Correctly handle invalid formats (#10713)
 * [footyroom] Fix extraction (#10810)
 * [abc.net.au:iview] Fix for standalone (non series) videos (#10895)
