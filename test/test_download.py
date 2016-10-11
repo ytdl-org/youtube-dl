@@ -238,7 +238,6 @@ for n, test_case in enumerate(defs):
         i += 1
     test_method.__name__ = str(tname)
     setattr(TestDownload, test_method.__name__, test_method)
-
     del test_method
 
 if __name__ == '__main__':
