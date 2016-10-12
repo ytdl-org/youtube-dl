@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.12
 
 Core
 + Support HTML media elements without child nodes
