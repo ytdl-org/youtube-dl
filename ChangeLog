@@ -13,6 +13,7 @@ Extractors
 + [hbo] Add support for episode pages (#10892)
 * [allocine] Fix extraction (#10860)
 + [nextmedia] Recognize action news on AppleDaily
+* [lego] Improve info extraction and bypass geo restriction (#10872)
 
 
 version 2016.10.07
