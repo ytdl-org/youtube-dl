@@ -52,7 +52,6 @@ class StreamableIE(InfoExtractor):
 
     @staticmethod
     def _extract_url(webpage):
-        print(webpage)
         mobj = re.search(
             r'<iframe[^>]+src=(?P<q1>[\'"])(?P<src>(?:https?:)?//streamable\.com/(?:(?!\1).+))(?P=q1)',
             webpage)
