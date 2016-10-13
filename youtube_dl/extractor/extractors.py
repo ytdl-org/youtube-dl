@@ -66,6 +66,7 @@ from .arte import (
     ArteTVDDCIE,
     ArteTVMagazineIE,
     ArteTVEmbedIE,
+    ArteTVOperaPlatformIE,
     ArteTVPlaylistIE,
 )
 from .atresplayer import AtresPlayerIE
