@@ -408,6 +408,22 @@ class ArteTVEmbedIE(ArteTVPlus7IE):
         lang = mobj.group('lang')
         json_url = mobj.group('json_url')
         return self._extract_from_json_url(json_url, video_id, lang)
+  
+        
+class ArteTVOperaPlatformIE(ArteTVPlus7IE):
+    IE_NAME = 'arte.tv:operaplatform'
+    _VALID_URL = r'https?://www.theoperaplatform.eu/(?P<lang>fr|de|en|es)/(?P<id>[^/?#&]+)'
+
+    _TESTS = [{
+        'url': 'http://www.theoperaplatform.eu/de/opera/verdi-otello',
+        'md5': '80f5d3fc97957b5dbfc1ddfde93b8098',
+        'info_dict': {
+            'id': '060338-009-A',
+            'ext': 'mp4',
+            'title': 'Verdi - OTELLO',
+            'upload_date': '20160927',
+        },
+    }]
 
 
 class ArteTVPlaylistIE(ArteTVBaseIE):
