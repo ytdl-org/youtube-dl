@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [cbsinteractive] Fix extraction for cnet.com
 * [parliamentliveuk] Lower case URLs are now recognized (#10912)
 
 
