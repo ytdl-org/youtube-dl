@@ -412,7 +412,7 @@ class ArteTVEmbedIE(ArteTVPlus7IE):
         
 class ArteTVOperaPlatformIE(ArteTVPlus7IE):
     IE_NAME = 'arte.tv:operaplatform'
-    _VALID_URL = r'https?://www.theoperaplatform.eu/(?P<lang>fr|de|en|es)/opera/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://www.theoperaplatform.eu/(?P<lang>fr|de|en|es)/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://www.theoperaplatform.eu/de/opera/verdi-otello',
