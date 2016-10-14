@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [charambatv] Fix extraction
 * [canalplus] Fix extraction for some videos
 * [cbsinteractive] Fix extraction for cnet.com
 * [parliamentliveuk] Lower case URLs are now recognized (#10912)
