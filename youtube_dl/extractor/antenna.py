@@ -15,7 +15,7 @@ class AntennaIE(InfoExtractor):
             'info_dict': {
                 'id': 'jbq_kgua8_jw_a%3d',
                 'ext': 'mp4',
-                'title': 'ANT1 News 19-09-2016 στις 19:00 \r\n',
+                'title': 'ANT1 News 19-09-2016 στις 19:00',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'description': 'Μετά από αλλεπάλληλες αναβολές ξεκίνησε η δίκη για την τραγωδία της Marfin.',
             },
@@ -57,20 +57,17 @@ class AntennaIE(InfoExtractor):
         if video_url == 'http://extranet.antenna.gr/flvsteaming/GR.flv':
             raise AntennaIE.MediaSelectionError('Content not available outside Greece.')
         formats.extend(self._extract_akamai_formats(video_url, video_id))
-        for video_format in formats:
-            if video_format.get('format_note') == 'Quality selection URL':
-                formats.remove(video_format)
-        if len(formats) == 0:
+        if not formats:
             raise AntennaIE.MediaSelectionError('No formats available')
         title = self._og_search_title(webpage).split(' | ')[-1] or self._search_regex(r'<title>(.+?)</title>', rss,
                                                                                       'title')[9:-3]
         thumbnail = self._og_search_thumbnail(webpage)
-        desc = self._og_search_description(webpage).split(' | ')[-1] or self._search_regex(desc_re, rss, 'description')
+        desc = self._og_search_description(webpage).split(' | ')[-1] or self._search_regex(desc_re, rss, 'description', fatal=false)
 
         return {
             'id': video_id,
             'formats': formats,
-            'title': title,
+            'title': title.strip(),
             'thumbnail': thumbnail,
             'description': desc,
         }
@@ -83,10 +80,7 @@ class AntennaIE(InfoExtractor):
         if manifest_url == 'http://extranet.antenna.gr/flvsteaming/GR.mp4':
             raise AntennaIE.MediaSelectionError('Content not available outside Greece.')
         formats.extend(self._extract_akamai_formats(manifest_url, video_id))
-        for video_format in formats:
-            if video_format.get('format_note') == 'Quality selection URL':
-                formats.remove(video_format)
-        if len(formats) == 0:
+        if not formats:
             raise AntennaIE.MediaSelectionError('No formats available')
         title = meta.get('title') or self._og_search_title(webpage)
         thumbnail = meta.get('thumb') or self._og_search_thumbnail(webpage)
