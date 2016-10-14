@@ -86,6 +86,11 @@ class VideomoreIE(InfoExtractor):
         mobj = re.search(
             r'<object[^>]+data=(["\'])https?://videomore\.ru/player\.swf\?.*config=(?P<url>https?://videomore\.ru/(?:[^/]+/)+\d+\.xml).*\1',
             webpage)
+        if not mobj:
+            mobj = re.search(
+                r'<iframe[^>]+src=([\'"])(?P<url>https?://videomore\.ru/embed/\d+)',
+                webpage)
+
         if mobj:
             return mobj.group('url')
 
