@@ -36,15 +36,18 @@ class HuajiaoIE(InfoExtractor):
         description = self._html_search_meta(
             'description', webpage, 'description', fatal=False)
 
+        def get(section, field):
+            return feed.get(section, {}).get(field)
+
         return {
             'id': video_id,
             'title': feed['feed']['formated_title'],
             'description': description,
-            'duration': parse_duration(feed['feed']['duration']),
-            'thumbnail': feed['feed']['image'],
-            'timestamp': parse_iso8601(feed['creatime'], ' '),
-            'uploader': feed['author']['nickname'],
-            'uploader_id': feed['author']['uid'],
+            'duration': parse_duration(get('feed', 'duration')),
+            'thumbnail': get('feed', 'image'),
+            'timestamp': parse_iso8601(feed.get('creatime'), ' '),
+            'uploader': get('author', 'nickname'),
+            'uploader_id': get('author', 'uid'),
             'formats': self._extract_m3u8_formats(
                 feed['feed']['m3u8'], video_id, 'mp4', 'm3u8_native'),
         }
