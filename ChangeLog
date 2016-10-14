@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [chirbit] Fix extraction of user profile pages
 * [charambatv] Fix extraction
 * [canalplus] Fix extraction for some videos
 * [cbsinteractive] Fix extraction for cnet.com
