@@ -1,6 +1,5 @@
 # Relatório ESOF - 1ª Entrega
 
-## Youtube-DL
 ![youtube-dl image](https://github.com/atomicscale/youtube-dl/blob/master/ESOF-Docs/images1/youtube-dl.jpg)
 ### Description of the project
 
