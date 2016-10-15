@@ -13,6 +13,7 @@ from ..utils import (
     parse_iso8601,
     mimetype2ext,
     determine_ext,
+    UnsupportedError,
 )
 
 
