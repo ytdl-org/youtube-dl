@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.16
 
 Core
 * [postprocessor/ffmpeg] Return correct filepath and ext in updated information

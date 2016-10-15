@@ -86,7 +86,7 @@
  - **bbc.co.uk:article**: BBC articles
  - **bbc.co.uk:iplayer:playlist**
  - **bbc.co.uk:playlist**
- - **BeatportPro**
+ - **Beatport**
  - **Beeg**
  - **BehindKink**
  - **BellMedia**
@@ -308,6 +308,7 @@
  - **HowStuffWorks**
  - **HRTi**
  - **HRTiPlaylist**
+ - **Huajiao**: 花椒直播
  - **HuffPost**: Huffington Post
  - **Hypem**
  - **Iconosquare**
@@ -720,6 +721,7 @@
  - **TF1**
  - **TFO**
  - **TheIntercept**
+ - **theoperaplatform**
  - **ThePlatform**
  - **ThePlatformFeed**
  - **TheScene**
