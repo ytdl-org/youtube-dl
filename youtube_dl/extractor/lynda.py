@@ -99,7 +99,7 @@ class LyndaIE(LyndaBaseIE):
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
     _TESTS = [{
-        'url': 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
+        'url': 'https://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
         # md5 is unstable
         'info_dict': {
             'id': '114408',
@@ -116,7 +116,7 @@ class LyndaIE(LyndaBaseIE):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id,
+            'https://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id,
             video_id, 'Downloading video JSON')
 
         if 'Status' in video:
@@ -187,7 +187,7 @@ class LyndaIE(LyndaBaseIE):
             return srt
 
     def _get_subtitles(self, video_id):
-        url = 'http://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
+        url = 'https://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
         subs = self._download_json(url, None, False)
         if subs:
             return {'en': [{'ext': 'srt', 'data': self._fix_subtitles(subs)}]}
@@ -209,7 +209,7 @@ class LyndaCourseIE(LyndaBaseIE):
         course_id = mobj.group('courseid')
 
         course = self._download_json(
-            'http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
+            'https://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
             course_id, 'Downloading course JSON')
 
         if course.get('Status') == 'NotFound':
@@ -231,7 +231,7 @@ class LyndaCourseIE(LyndaBaseIE):
                 if video_id:
                     entries.append({
                         '_type': 'url_transparent',
-                        'url': 'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
+                        'url': 'https://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
                         'ie_key': LyndaIE.ie_key(),
                         'chapter': chapter.get('Title'),
                         'chapter_number': int_or_none(chapter.get('ChapterIndex')),
