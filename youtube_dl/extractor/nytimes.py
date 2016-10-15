@@ -101,13 +101,10 @@ class NYTimesBaseIE(InfoExtractor):
     def _extract_podcast_from_json(self, json, page_id, webpage):
         audio_data = self._parse_json(json, page_id, transform_source=js_to_json)['data']
         
-        print audio_data
-        
         description = audio_data['track']['description']
         if not len(description):
             description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
 
-            
         episode_title = audio_data['track']['title'].strip(u"‘’") # strip curlyquotes
         episode_number = None
         episode = audio_data['podcast']['episode'].split()
@@ -116,7 +113,6 @@ class NYTimesBaseIE(InfoExtractor):
             video_id = episode[-1]
         else:
             video_id = page_id
-            
 
         podcast_title = audio_data['podcast']['title']
         title = None
@@ -128,6 +124,7 @@ class NYTimesBaseIE(InfoExtractor):
         info_dict = {
             'id': video_id,
             'title': title,
+            'creator': audio_data['track'].get('credit'),
             'series': audio_data['podcast']['title'],
             'episode': episode_title,
             'episode_number': episode_number,
@@ -139,7 +136,6 @@ class NYTimesBaseIE(InfoExtractor):
         return info_dict
 
 
-    
 class NYTimesIE(NYTimesBaseIE):
     _VALID_URL = r'https?://(?:(?:www\.)?nytimes\.com/video/(?:[^/]+/)+?|graphics8\.nytimes\.com/bcvideo/\d+(?:\.\d+)?/iframe/embed\.html\?videoId=)(?P<id>\d+)'
 
@@ -166,7 +162,7 @@ class NYTimesIE(NYTimesBaseIE):
 
         return self._extract_video_from_id(video_id)
 
-        
+
 class NYTimesArticleIE(NYTimesBaseIE):
     _VALID_URL = r'https?://(?:www\.)?nytimes\.com/(.(?<!video))*?/(?:[^/]+/)*(?P<id>[^.]+)(?:\.html)?'
     _TESTS = [{
@@ -213,6 +209,17 @@ class NYTimesArticleIE(NYTimesBaseIE):
         if video_id is not None:
             return self._extract_video_from_id(video_id)
         
-        data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data');
+        data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data', None, False);
         if data_json is not None:
             return self._extract_podcast_from_json(data_json, page_id, webpage)
+
+        # Fallback case
+        # "source":"https:\/\/rss.art19.com\/episodes\/0e2bd0b3-10ef-42c4-9494-0e3d21d2b82a.mp3","
+        url=self._html_search_regex(r'"source":"(https?:[^"]+)"', webpage, 'mp3 url')
+        url = url.replace('\\/','/')
+        if url is not None:
+            return {
+                'id': page_id,
+                'title': self._og_search_title(webpage),
+                'url': url
+            }
