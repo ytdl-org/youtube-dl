@@ -125,11 +125,11 @@ class NYTimesBaseIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'creator': audio_data['track'].get('credit'),
-            'series': audio_data['podcast']['title'],
+            'series': podcast_title,
             'episode': episode_title,
             'episode_number': episode_number,
             'url': audio_data['track']['source'],
-            'duration': audio_data['track']['duration'],
+            'duration': audio_data['track'].get('duration'),
             'description': description,
         }
         
