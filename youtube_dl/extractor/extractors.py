@@ -369,6 +369,7 @@ from .ivi import (
 )
 from .ivideon import IvideonIE
 from .izlesene import IzleseneIE
+from .jamendo import JamendoIE, JamendoAlbumIE
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jwplatform import JWPlatformIE
