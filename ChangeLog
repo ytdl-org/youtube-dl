@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [cmt] Fix mgid extraction (#10813)
 * [chirbit] Fix extraction of user profile pages
 * [charambatv] Fix extraction
 * [canalplus] Fix extraction for some videos

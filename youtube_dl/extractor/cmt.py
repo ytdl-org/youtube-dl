@@ -26,7 +26,7 @@ class CMTIE(MTVIE):
             'id': '1504699',
             'ext': 'mp4',
             'title': 'Still The King Ep. 109 in 3 Minutes',
-            'description': 'Relive or catch up with Still The King by watching this recap of season 1, episode 9. New episodes Sundays 9/8c.',
+            'description': 'Relive or catch up with Still The King by watching this recap of season 1, episode 9.',
             'timestamp': 1469421000.0,
             'upload_date': '20160725',
         },
@@ -42,3 +42,8 @@ class CMTIE(MTVIE):
                 '%s said: video is not available' % cls.IE_NAME, expected=True)
 
         return super(CMTIE, cls)._transform_rtmp_url(rtmp_video_url)
+
+    def _extract_mgid(self, webpage):
+        return self._search_regex(
+            r'MTVN\.VIDEO\.contentUri\s*=\s*([\'"])(?P<mgid>.+?)\1',
+            webpage, 'mgid', group='mgid')
