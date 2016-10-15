@@ -200,7 +200,7 @@ class LyndaIE(LyndaBaseIE):
             for prioritized_stream_id, prioritized_stream in prioritized_streams.items():
                 formats.extend([{
                     'url': video_url,
-                    'width': int_or_none(format_id),
+                    'height': int_or_none(format_id),
                     'format_id': '%s-%s' % (prioritized_stream_id, format_id),
                 } for format_id, video_url in prioritized_stream.items()])
 
