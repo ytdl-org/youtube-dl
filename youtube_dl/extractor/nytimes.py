@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import hmac
@@ -8,6 +9,7 @@ from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     int_or_none,
+    js_to_json,
     parse_iso8601,
     mimetype2ext,
     determine_ext,
@@ -96,6 +98,43 @@ class NYTimesBaseIE(InfoExtractor):
             'thumbnails': thumbnails,
         }
 
+    def _extract_podcast_from_json(self, json, page_id, webpage):
+        audio_data = self._parse_json(json, page_id, transform_source=js_to_json)['data']
+        
+        description = audio_data['track'].get('description')
+        if not description:
+            description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
+
+        episode_title = audio_data['track']['title']
+        episode_number = None
+        episode = audio_data['podcast']['episode'].split()
+        if episode:
+            episode_number = int_or_none(episode[-1])
+            video_id = episode[-1]
+        else:
+            video_id = page_id
+
+        podcast_title = audio_data['podcast']['title']
+        title = None
+        if podcast_title:
+            title = "%s: %s" % (podcast_title, episode_title)
+        else:
+            title = episode_title
+        
+        info_dict = {
+            'id': video_id,
+            'title': title,
+            'creator': audio_data['track'].get('credit'),
+            'series': podcast_title,
+            'episode': episode_title,
+            'episode_number': episode_number,
+            'url': audio_data['track']['source'],
+            'duration': audio_data['track'].get('duration'),
+            'description': description,
+        }
+        
+        return info_dict
+
 
 class NYTimesIE(NYTimesBaseIE):
     _VALID_URL = r'https?://(?:(?:www\.)?nytimes\.com/video/(?:[^/]+/)+?|graphics8\.nytimes\.com/bcvideo/\d+(?:\.\d+)?/iframe/embed\.html\?videoId=)(?P<id>\d+)'
@@ -139,15 +178,36 @@ class NYTimesArticleIE(NYTimesBaseIE):
             'uploader': 'Matthew Williams',
         }
     }, {
+        'url': 'http://www.nytimes.com/2016/10/14/podcasts/revelations-from-the-final-weeks.html',
+        'md5': 'e0d52040cafb07662acf3c9132db3575',
+        'info_dict': {
+            'id': '20',
+            'title': "The Run-Up: \u2018He Was Like an Octopus\u2019",
+            'ext': 'mp3',
+            'description': 'We go behind the story of the two women who told us that Donald Trump touched them inappropriately (which he denies) and check in on Hillary Clinton’s campaign.',
+        }
+    }, {
+        'url': 'http://www.nytimes.com/2016/10/16/books/review/inside-the-new-york-times-book-review-the-rise-of-hitler.html',
+        'md5': '66fb5471d7ef15da98af176dc1af4cb9',
+        'info_dict': {
+            'id': 'inside-the-new-york-times-book-review-the-rise-of-hitler',
+            'title': "The Rise of Hitler",
+            'ext': 'mp3',
+            'description': 'Adam Kirsch discusses Volker Ullrich\'s new biography of Hitler; Billy Collins talks about his latest collection of poems; and iO Tillett Wright on his new memoir, "Darling Days."',
+            }
+    }, {
         'url': 'http://www.nytimes.com/news/minute/2014/03/17/times-minute-whats-next-in-crimea/?_php=true&_type=blogs&_php=true&_type=blogs&_r=1',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        page_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, page_id)
 
-        video_id = self._html_search_regex(r'data-videoid="(\d+)"', webpage, 'video id')
-
-        return self._extract_video_from_id(video_id)
+        video_id = self._html_search_regex(r'data-videoid="(\d+)"', webpage, 'video id', None, False)
+        if video_id is not None:
+            return self._extract_video_from_id(video_id)
+        
+        data_json = self._html_search_regex(r'NYTD\.FlexTypes\.push\(({.*})\);', webpage, 'json data')
+        return self._extract_podcast_from_json(data_json, page_id, webpage)
