@@ -212,14 +212,5 @@ class NYTimesArticleIE(NYTimesBaseIE):
         data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data', None, False);
         if data_json is not None:
             return self._extract_podcast_from_json(data_json, page_id, webpage)
-
-        # Fallback case
-        # "source":"https:\/\/rss.art19.com\/episodes\/0e2bd0b3-10ef-42c4-9494-0e3d21d2b82a.mp3","
-        url=self._html_search_regex(r'"source":"(https?:[^"]+)"', webpage, 'mp3 url')
-        url = url.replace('\\/','/')
-        if url is not None:
-            return {
-                'id': page_id,
-                'title': self._og_search_title(webpage),
-                'url': url
-            }
+        else:
+            raise UnsupportedError(url)
