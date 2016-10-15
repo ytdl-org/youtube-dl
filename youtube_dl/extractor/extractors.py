@@ -641,7 +641,6 @@ from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
 from .nytimes import (
     NYTimesIE,
-    NYTimesPodcastIE,
     NYTimesArticleIE,
 )
 from .nuvid import NuvidIE

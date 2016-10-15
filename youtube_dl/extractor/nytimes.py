@@ -125,47 +125,9 @@ class NYTimesIE(NYTimesBaseIE):
 
         return self._extract_video_from_id(video_id)
 
-class NYTimesPodcastIE(InfoExtractor):
-    _VALID_URL = r'(?i)https?://(?:www\.)?nytimes\.com/.*/podcasts/(?P<id>[^.]+)(?:\.html)?'
-    _TESTS = [{
-        'url': 'http://www.nytimes.com/2016/10/14/podcasts/revelations-from-the-final-weeks.html',
-        'md5': 'e0d52040cafb07662acf3c9132db3575',
-        'info_dict': {
-            'id': '20',
-            'title': "The Run-Up: He Was Like an Octopus",
-            'ext': 'mp3',
-            'description': 'We go behind the story of the two women who told us that Donald Trump touched them inappropriately (which he denies) and check in on Hillary Clinton’s campaign.',
-        }
-        } ]
-    
-
-    def _real_extract(self, url):
-        page_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, page_id)
-
-        data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data');
-        audio_data = self._parse_json(data_json, page_id, transform_source=js_to_json)['data']
-
-        episode_title = audio_data['track']['title'].strip(u"‘’") # strip curlyquotes
-        episode_number = audio_data['podcast']['episode'].split()[1]
-        
-        info_dict = {
-            'id': episode_number,
-            'title': "%s: %s" % (audio_data['podcast']['title'], episode_title),
-            'series': audio_data['podcast']['title'],
-            'episode': episode_title,
-            'episode_number': episode_number,
-            'url': audio_data['track']['source'],
-            'duration': audio_data['track']['duration'],
-            'description': self._html_search_meta(['og:description', 'twitter:description'], webpage)
-            }
-
-        return info_dict
-
         
 class NYTimesArticleIE(NYTimesBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?nytimes\.com/(.(?<!video)(?<!podcast))*?/(?:[^/]+/)*(?P<id>[^.]+)(?:\.html)?'
+    _VALID_URL = r'https?://(?:www\.)?nytimes\.com/(.(?<!video))*?/(?:[^/]+/)*(?P<id>[^.]+)(?:\.html)?'
     _TESTS = [{
         'url': 'http://www.nytimes.com/2015/04/14/business/owner-of-gravity-payments-a-credit-card-processor-is-setting-a-new-minimum-wage-70000-a-year.html?_r=0',
         'md5': 'e2076d58b4da18e6a001d53fd56db3c9',
@@ -179,15 +141,74 @@ class NYTimesArticleIE(NYTimesBaseIE):
             'uploader': 'Matthew Williams',
         }
     }, {
+        'url': 'http://www.nytimes.com/2016/10/14/podcasts/revelations-from-the-final-weeks.html',
+        'md5': 'e0d52040cafb07662acf3c9132db3575',
+        'info_dict': {
+            'id': '20',
+            'title': "The Run-Up: He Was Like an Octopus",
+            'ext': 'mp3',
+            'description': 'We go behind the story of the two women who told us that Donald Trump touched them inappropriately (which he denies) and check in on Hillary Clinton’s campaign.',
+        }
+    }, {
+        'url': 'http://www.nytimes.com/2016/10/16/books/review/inside-the-new-york-times-book-review-the-rise-of-hitler.html',
+        'md5': '66fb5471d7ef15da98af176dc1af4cb9',
+        'info_dict': {
+            'id': 'inside-the-new-york-times-book-review-the-rise-of-hitler',
+            'title': "The Rise of Hitler",
+            'ext': 'mp3',
+            'description': 'Adam Kirsch discusses Volker Ullrich\'s new biography of Hitler; Billy Collins talks about his latest collection of poems; and iO Tillett Wright on his new memoir, "Darling Days."',
+            }
+    }, {
         'url': 'http://www.nytimes.com/news/minute/2014/03/17/times-minute-whats-next-in-crimea/?_php=true&_type=blogs&_php=true&_type=blogs&_r=1',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        page_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, page_id)
 
-        video_id = self._html_search_regex(r'data-videoid="(\d+)"', webpage, 'video id')
+        video_id = self._html_search_regex(r'data-videoid="(\d+)"', webpage, 'video id', None, False)
+        if video_id is not None:
+            return self._extract_video_from_id(video_id)
+        
+        data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data');
+        if data_json is not None:
+            audio_data = self._parse_json(data_json, page_id, transform_source=js_to_json)['data']
 
-        return self._extract_video_from_id(video_id)
+            print audio_data
+
+            description = audio_data['track']['description']
+            if not len(description):
+                description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
+
+            
+            episode_title = audio_data['track']['title'].strip(u"‘’") # strip curlyquotes
+            episode_number = None
+            episode = audio_data['podcast']['episode'].split()
+            if len(episode):
+                episode_number = int_or_none(episode[-1])
+                video_id = episode[-1]
+            else:
+                video_id = page_id
+
+
+            podcast_title = audio_data['podcast']['title']
+            title = None
+            if podcast_title:
+                title = "%s: %s" % (podcast_title, episode_title)
+            else:
+                title = episode_title
+                
+            info_dict = {
+                'id': video_id,
+                'title': title,
+                'series': audio_data['podcast']['title'],
+                'episode': episode_title,
+                'episode_number': episode_number,
+                'url': audio_data['track']['source'],
+                'duration': audio_data['track']['duration'],
+                'description': description
+            }
+            
+            return info_dict
