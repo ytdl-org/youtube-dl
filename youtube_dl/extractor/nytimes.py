@@ -102,13 +102,13 @@ class NYTimesBaseIE(InfoExtractor):
         audio_data = self._parse_json(json, page_id, transform_source=js_to_json)['data']
         
         description = audio_data['track']['description']
-        if not len(description):
+        if not description:
             description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
 
         episode_title = audio_data['track']['title'].strip("‘’") # strip curlyquotes
         episode_number = None
         episode = audio_data['podcast']['episode'].split()
-        if len(episode):
+        if episode:
             episode_number = int_or_none(episode[-1])
             video_id = episode[-1]
         else:
