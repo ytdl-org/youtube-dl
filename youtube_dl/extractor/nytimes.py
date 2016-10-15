@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import hmac
@@ -8,6 +9,7 @@ from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     int_or_none,
+    js_to_json,
     parse_iso8601,
     mimetype2ext,
     determine_ext,
@@ -123,9 +125,47 @@ class NYTimesIE(NYTimesBaseIE):
 
         return self._extract_video_from_id(video_id)
 
+class NYTimesPodcastIE(InfoExtractor):
+    _VALID_URL = r'(?i)https?://(?:www\.)?nytimes\.com/.*/podcasts/(?P<id>[^.]+)(?:\.html)?'
+    _TESTS = [{
+        'url': 'http://www.nytimes.com/2016/10/14/podcasts/revelations-from-the-final-weeks.html',
+        'md5': 'e0d52040cafb07662acf3c9132db3575',
+        'info_dict': {
+            'id': '20',
+            'title': "The Run-Up: He Was Like an Octopus",
+            'ext': 'mp3',
+            'description': 'We go behind the story of the two women who told us that Donald Trump touched them inappropriately (which he denies) and check in on Hillary Clinton’s campaign.',
+        }
+        } ]
+    
 
+    def _real_extract(self, url):
+        page_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, page_id)
+
+        data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data');
+        audio_data = self._parse_json(data_json, page_id, transform_source=js_to_json)['data']
+
+        episode_title = audio_data['track']['title'].strip(u"‘’") # strip curlyquotes
+        episode_number = audio_data['podcast']['episode'].split()[1]
+        
+        info_dict = {
+            'id': episode_number,
+            'title': "%s: %s" % (audio_data['podcast']['title'], episode_title),
+            'series': audio_data['podcast']['title'],
+            'episode': episode_title,
+            'episode_number': episode_number,
+            'url': audio_data['track']['source'],
+            'duration': audio_data['track']['duration'],
+            'description': self._html_search_meta(['og:description', 'twitter:description'], webpage)
+            }
+
+        return info_dict
+
+        
 class NYTimesArticleIE(NYTimesBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?nytimes\.com/(.(?<!video))*?/(?:[^/]+/)*(?P<id>[^.]+)(?:\.html)?'
+    _VALID_URL = r'https?://(?:www\.)?nytimes\.com/(.(?<!video)(?<!podcast))*?/(?:[^/]+/)*(?P<id>[^.]+)(?:\.html)?'
     _TESTS = [{
         'url': 'http://www.nytimes.com/2015/04/14/business/owner-of-gravity-payments-a-credit-card-processor-is-setting-a-new-minimum-wage-70000-a-year.html?_r=0',
         'md5': 'e2076d58b4da18e6a001d53fd56db3c9',
