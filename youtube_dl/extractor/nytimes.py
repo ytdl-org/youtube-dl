@@ -101,7 +101,7 @@ class NYTimesBaseIE(InfoExtractor):
     def _extract_podcast_from_json(self, json, page_id, webpage):
         audio_data = self._parse_json(json, page_id, transform_source=js_to_json)['data']
         
-        description = audio_data['track']['description']
+        description = audio_data['track'].get('description')
         if not description:
             description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
 
