@@ -33,7 +33,7 @@ class HuajiaoIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         feed_json = self._search_regex(
-            r'var\s*feed\s*=\s*({.*})', webpage, 'feed json str')
+            r'var\s+feed\s*=\s*({.+})', webpage, 'feed json')
         feed = self._parse_json(feed_json, video_id)
 
         description = self._html_search_meta(
