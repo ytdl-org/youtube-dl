@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class RuutuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ruutu\.fi/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla)/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://www.ruutu.fi/video/2058907',
@@ -34,9 +34,21 @@ class RuutuIE(InfoExtractor):
                 'id': '2057306',
                 'ext': 'mp4',
                 'title': 'Superpesis: katso koko kausi Ruudussa',
-                'description': 'md5:da2736052fef3b2bd5e0005e63c25eac',
+                'description': 'md5:bfb7336df2a12dc21d18fa696c9f8f23',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 40,
+                'age_limit': 0,
+            },
+        },
+        {
+            'url': 'http://www.supla.fi/supla/2231370',
+            'md5': 'df14e782d49a2c0df03d3be2a54ef949',
+            'info_dict': {
+                'id': '2231370',
+                'ext': 'mp4',
+                'title': 'Osa 1: Mikael Jungner',
+                'description': 'md5:7d90f358c47542e3072ff65d7b1bcffe',
+                'thumbnail': 're:^https?://.*\.jpg$',
                 'age_limit': 0,
             },
         },
