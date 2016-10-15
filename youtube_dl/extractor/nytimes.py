@@ -105,7 +105,7 @@ class NYTimesBaseIE(InfoExtractor):
         if not len(description):
             description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
 
-        episode_title = audio_data['track']['title'].strip(u"‘’") # strip curlyquotes
+        episode_title = audio_data['track']['title'].strip("‘’") # strip curlyquotes
         episode_number = None
         episode = audio_data['podcast']['episode'].split()
         if len(episode):
