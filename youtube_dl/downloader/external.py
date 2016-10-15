@@ -28,7 +28,10 @@ class ExternalFD(FileDownloader):
         retval = self._call_downloader(tmpfilename, info_dict)
         if retval == 0:
             if filename == '-':
-                self._hook_progress({'status': 'finished'})
+                self._hook_progress({
+                    'filename': filename,
+                    'status': 'finished',
+                })
             else:
                 fsize = os.path.getsize(encodeFilename(tmpfilename))
                 self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
