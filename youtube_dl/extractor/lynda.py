@@ -94,7 +94,7 @@ class LyndaBaseIE(InfoExtractor):
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
-    _VALID_URL = r'https?://(?:www\.)?lynda\.com/(?:[^/]+/[^/]+/\d+|player/embed)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?lynda\.com/(?:[^/]+/[^/]+/(?P<course_id>\d+)|player/embed)/(?P<id>\d+)'
 
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
@@ -112,19 +112,71 @@ class LyndaIE(LyndaBaseIE):
         'only_matching': True,
     }]
 
+    def _raise_unavailable(self, video_id):
+        self.raise_login_required(
+            'Video %s is only available for members' % video_id)
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        course_id = mobj.group('course_id')
+
+        query = {
+            'videoId': video_id,
+            'type': 'video',
+        }
 
         video = self._download_json(
-            'https://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id,
-            video_id, 'Downloading video JSON')
+            'https://www.lynda.com/ajax/player', video_id,
+            'Downloading video JSON', fatal=False, query=query)
+
+        # Fallback scenario
+        if not video:
+            query['courseId'] = course_id
+
+            play = self._download_json(
+                'https://www.lynda.com/ajax/course/%s/%s/play'
+                % (course_id, video_id), video_id, 'Downloading play JSON')
+
+            if not play:
+                self._raise_unavailable(video_id)
+
+            formats = []
+            for formats_dict in play:
+                urls = formats_dict.get('urls')
+                if not isinstance(urls, dict):
+                    continue
+                cdn = formats_dict.get('name')
+                for format_id, format_url in urls.items():
+                    if not format_url:
+                        continue
+                    formats.append({
+                        'url': format_url,
+                        'format_id': '%s-%s' % (cdn, format_id) if cdn else format_id,
+                        'height': int_or_none(format_id),
+                    })
+            self._sort_formats(formats)
+
+            conviva = self._download_json(
+                'https://www.lynda.com/ajax/player/conviva', video_id,
+                'Downloading conviva JSON', query=query)
+
+            return {
+                'id': video_id,
+                'title': conviva['VideoTitle'],
+                'description': conviva.get('VideoDescription'),
+                'release_year': int_or_none(conviva.get('ReleaseYear')),
+                'duration': int_or_none(conviva.get('Duration')),
+                'creator': conviva.get('Author'),
+                'formats': formats,
+            }
 
         if 'Status' in video:
             raise ExtractorError(
                 'lynda returned error: %s' % video['Message'], expected=True)
 
         if video.get('HasAccess') is False:
-            self.raise_login_required('Video %s is only available for members' % video_id)
+            self._raise_unavailable(video_id)
 
         video_id = compat_str(video.get('ID') or video_id)
         duration = int_or_none(video.get('DurationInSeconds'))
