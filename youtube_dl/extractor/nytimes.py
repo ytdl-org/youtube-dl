@@ -98,7 +98,48 @@ class NYTimesBaseIE(InfoExtractor):
             'thumbnails': thumbnails,
         }
 
+    def _extract_podcast_from_json(self, json, page_id, webpage):
+        audio_data = self._parse_json(json, page_id, transform_source=js_to_json)['data']
+        
+        print audio_data
+        
+        description = audio_data['track']['description']
+        if not len(description):
+            description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
 
+            
+        episode_title = audio_data['track']['title'].strip(u"‘’") # strip curlyquotes
+        episode_number = None
+        episode = audio_data['podcast']['episode'].split()
+        if len(episode):
+            episode_number = int_or_none(episode[-1])
+            video_id = episode[-1]
+        else:
+            video_id = page_id
+            
+
+        podcast_title = audio_data['podcast']['title']
+        title = None
+        if podcast_title:
+            title = "%s: %s" % (podcast_title, episode_title)
+        else:
+            title = episode_title
+        
+        info_dict = {
+            'id': video_id,
+            'title': title,
+            'series': audio_data['podcast']['title'],
+            'episode': episode_title,
+            'episode_number': episode_number,
+            'url': audio_data['track']['source'],
+            'duration': audio_data['track']['duration'],
+            'description': description,
+        }
+        
+        return info_dict
+
+
+    
 class NYTimesIE(NYTimesBaseIE):
     _VALID_URL = r'https?://(?:(?:www\.)?nytimes\.com/video/(?:[^/]+/)+?|graphics8\.nytimes\.com/bcvideo/\d+(?:\.\d+)?/iframe/embed\.html\?videoId=)(?P<id>\d+)'
 
@@ -174,41 +215,4 @@ class NYTimesArticleIE(NYTimesBaseIE):
         
         data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data');
         if data_json is not None:
-            audio_data = self._parse_json(data_json, page_id, transform_source=js_to_json)['data']
-
-            print audio_data
-
-            description = audio_data['track']['description']
-            if not len(description):
-                description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
-
-            
-            episode_title = audio_data['track']['title'].strip(u"‘’") # strip curlyquotes
-            episode_number = None
-            episode = audio_data['podcast']['episode'].split()
-            if len(episode):
-                episode_number = int_or_none(episode[-1])
-                video_id = episode[-1]
-            else:
-                video_id = page_id
-
-
-            podcast_title = audio_data['podcast']['title']
-            title = None
-            if podcast_title:
-                title = "%s: %s" % (podcast_title, episode_title)
-            else:
-                title = episode_title
-                
-            info_dict = {
-                'id': video_id,
-                'title': title,
-                'series': audio_data['podcast']['title'],
-                'episode': episode_title,
-                'episode_number': episode_number,
-                'url': audio_data['track']['source'],
-                'duration': audio_data['track']['duration'],
-                'description': description
-            }
-            
-            return info_dict
+            return self._extract_podcast_from_json(data_json, page_id, webpage)
