@@ -105,7 +105,7 @@ class NYTimesBaseIE(InfoExtractor):
         if not description:
             description = self._html_search_meta(['og:description', 'twitter:description'], webpage)
 
-        episode_title = audio_data['track']['title'].strip("‘’") # strip curlyquotes
+        episode_title = audio_data['track']['title']
         episode_number = None
         episode = audio_data['podcast']['episode'].split()
         if episode:
@@ -182,7 +182,7 @@ class NYTimesArticleIE(NYTimesBaseIE):
         'md5': 'e0d52040cafb07662acf3c9132db3575',
         'info_dict': {
             'id': '20',
-            'title': "The Run-Up: He Was Like an Octopus",
+            'title': "The Run-Up: \u2018He Was Like an Octopus\u2019",
             'ext': 'mp3',
             'description': 'We go behind the story of the two women who told us that Donald Trump touched them inappropriately (which he denies) and check in on Hillary Clinton’s campaign.',
         }
