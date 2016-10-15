@@ -209,5 +209,5 @@ class NYTimesArticleIE(NYTimesBaseIE):
         if video_id is not None:
             return self._extract_video_from_id(video_id)
         
-        data_json = self._html_search_regex(r'NYTD.FlexTypes.push\(({[^)]*)\)', webpage, 'json data')
+        data_json = self._html_search_regex(r'NYTD\.FlexTypes\.push\(({.*})\);', webpage, 'json data')
         return self._extract_podcast_from_json(data_json, page_id, webpage)
