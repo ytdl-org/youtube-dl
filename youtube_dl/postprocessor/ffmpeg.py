@@ -595,7 +595,6 @@ class FFmpegSlicePP(FFmpegPostProcessor):
         return start_time, end_time
 
     def run(self, info):
-        import pudb; pudb.set_trace()
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
         start_time, end_time = self._parse_time(info['duration'])
