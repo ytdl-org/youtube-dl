@@ -30,7 +30,10 @@ In the opinion of the authors of this report, the development process of the app
 
 
 **Informações**
+
+
     Autores:
+    
         Bruno Marques (up201405781@fe.up.pt)
         Número de horas despendidas: 5
         Contribuição: 25%
