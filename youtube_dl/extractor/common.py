@@ -235,7 +235,7 @@ class InfoExtractor(object):
     chapter_id:     Id of the chapter the video belongs to, as a unicode string.
 
     The following fields should only be used when the video is an episode of some
-    series or programme:
+    series, programme or podcast:
 
     series:         Title of the series or programme the video episode belongs to.
     season:         Title of the season the video episode belongs to.
