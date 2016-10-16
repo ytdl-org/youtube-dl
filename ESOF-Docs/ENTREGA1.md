@@ -21,3 +21,5 @@ He went on to explain that the project started as a very short script to downloa
 After some time, things kept evolving in the same direction. The new developers separated the earlier designed code into modules, improving future error spotting, practicality and made it easier to add user requested features as download options, even though none of these were projected features and the project never really did fit any concrete design process some correct decisions were taken in an organic way. Some features however continue missing such as the a validation activity or a defined evolution plan.
 
 ## Opinions, Critics and Alternatives 
+
+After an extensive review of the project, we found that for an open-source project that started as a straightforward youtube downloader, surprisingly it evolved into a **multi website** video downloader with many more features than the ones it started with.
