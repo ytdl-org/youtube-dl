@@ -27,8 +27,9 @@ class JamendoIE(InfoExtractor):
         track_id = url_data.group('id')
         webpage = self._download_webpage(url, track_id)
 
-        thumbnail = self._html_search_regex(r'<meta itemprop="image" content="(.+)">', webpage, 'thumbnail', fatal=False)
-        title = self._html_search_regex('<meta itemprop="name" content="(.+)">', webpage, 'title')
+        thumbnail = self._html_search_meta(
+            'image', webpage, 'thumbnail', fatal=False)
+        title = self._html_search_meta('name', webpage, 'title')
 
         return {
             'id': track_id,
@@ -79,7 +80,7 @@ class JamendoAlbumIE(InfoExtractor):
         album_id = url_data.group('id')
         webpage = self._download_webpage(url, album_id)
 
-        title = self._html_search_regex('<meta itemprop="name" content="(.+)">', webpage, 'title')
+        title = self._html_search_meta('name', webpage, 'title')
 
         track_paths = re.findall(r'<a href="(.+)" class="link-wrap js-trackrow-albumpage-link" itemprop="url">', webpage)
         entries = [
