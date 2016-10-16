@@ -28,7 +28,7 @@ class PluralsightBaseIE(InfoExtractor):
 
 class PluralsightIE(PluralsightBaseIE):
     IE_NAME = 'pluralsight'
-    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/training/player\?'
+    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/(?:training/)?player\?'
     _LOGIN_URL = 'https://app.pluralsight.com/id/'
 
     _NETRC_MACHINE = 'pluralsight'
@@ -49,6 +49,9 @@ class PluralsightIE(PluralsightBaseIE):
     }, {
         # available without pluralsight account
         'url': 'http://app.pluralsight.com/training/player?author=scott-allen&name=angularjs-get-started-m1-introduction&mode=live&clip=0&course=angularjs-get-started',
+        'only_matching': True,
+    }, {
+        'url': 'https://app.pluralsight.com/player?course=ccna-intro-networking&author=ross-bagurdes&name=ccna-intro-networking-m06&clip=0',
         'only_matching': True,
     }]
 
