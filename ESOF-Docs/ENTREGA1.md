@@ -15,6 +15,8 @@ In order to know more about the development process of this project, we decide t
 
 After meeting with the workgroup members we wrote an email directed to them and awaited response. We were later contacted by the project founder and one of the main contributors of **Youtube-dl** [Ricardo Gonzalez](https://github.com/rg3) .
 
-He went on to explain that the project started as a very short script to download videos from **Youtube**, it had no process model to follow, and no long term development plan. So with lack of organization or any sort of software development process soon Ricardo ran into an unanticipated issue **modularity**, after receiving some feedback he quickly realized adding support to new websites was crucial. This raised some problems as the application was conceived only to download videos from *youtube*. 
+He went on to explain that the project started as a very short script to download videos from **Youtube**, it had no process model to follow, and no long term development plan. So with lack of organization or any sort of software development process soon Ricardo ran into an unanticipated issue **modularity**, after receiving some feedback he quickly realized adding support to new websites was crucial. This raised some problems as the application was conceived only to download videos from *youtube*.
+
+After some time, things kept evolving in the same direction. The new developers separated the earlier designed code into modules, improving future error spotting, practicality and made it easier to add user requested features as download options, even though none of these were projected features and the project never really did fit any concrete design process some correct decisions were taken in an organic way. Some features however continue missing such as the a validation activity or a defined evolution plan.
 
 ## Opinions, Critics and Alternatives 
