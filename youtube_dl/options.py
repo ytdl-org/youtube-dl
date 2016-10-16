@@ -758,11 +758,11 @@ def parseOpts(overrideArguments=None):
         help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv|avi)')
     postproc.add_option(
         '--slice-start',
-        metavar='START_TIME', dest='slicestart', default=None,
+        metavar='TIME', dest='slicestart', default=None,
         help='Slice start time')
     postproc.add_option(
         '--slice-end',
-        metavar='END_TIME', dest='sliceend', default=None,
+        metavar='TIME', dest='sliceend', default=None,
         help='Slice end time')
     postproc.add_option(
         '--postprocessor-args',

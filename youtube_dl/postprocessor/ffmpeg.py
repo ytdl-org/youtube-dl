@@ -22,6 +22,7 @@ from ..utils import (
     subtitles_filename,
     dfxp2srt,
     ISO639Utils,
+    parse_duration,
 )
 
 
@@ -586,15 +587,22 @@ class FFmpegSlicePP(FFmpegPostProcessor):
         self.slice_start_time = slice_start_time
         self.slice_end_time = slice_end_time
 
+    def _parse_time(self, duration):
+        start_time = self.slice_start_time or '0'
+        end_time = self.slice_end_time or ('%s' % duration)
+        start_time = "%s" % parse_duration(start_time)
+        end_time = "%s" % parse_duration(end_time)
+        return start_time, end_time
+
     def run(self, info):
+        import pudb; pudb.set_trace()
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
-        start_time = self.slice_start_time or "0"
-        end_time = self.slice_end_time or "{}".format(info['duration'])
+        start_time, end_time = self._parse_time(info['duration'])
         options = ['-ss', start_time, '-to', end_time]
         self.run_ffmpeg(filename, temp_filename, options)
-        msg = '[ffmpeg] Sliced: from ({}) seconds to ({}) seconds'.format(
-            start_time, end_time)
+        msg = ('[ffmpeg] Sliced: from "%s" seconds to "%s" seconds' %
+               (start_time, end_time))
         self._downloader.to_screen(msg)
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
