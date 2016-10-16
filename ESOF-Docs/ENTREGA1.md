@@ -24,4 +24,4 @@ After some time, things kept evolving in the same direction. The new developers 
 
 After an extensive review of the project, we found that for an open-source project that started as a straightforward youtube downloader, surprisingly it evolved into a **multi website** video downloader with many more features than the ones it started with.
 
-In the opinion of the authors of this report, the development process of the application, even though it wasn’t structured from the beginning, took advantage of the best part of the open source community. The constant feedback from users and the help of new developers created a structure that was organically put together by the community .
+In the opinion of the authors of this report, the development process of the application, even though it wasn’t structured from the beginning, took advantage of the best part of the open source community. The constant feedback from users and the help of new developers created a structure that was organically put together by the community. This worked well in this specific case as the final result it’s more mature and well structured than the initial prototype.
