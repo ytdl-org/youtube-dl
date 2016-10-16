@@ -252,6 +252,12 @@ def _real_main(argv=None):
             'preferredquality': opts.audioquality,
             'nopostoverwrites': opts.nopostoverwrites,
         })
+    if opts.slicestart or opts.sliceend:
+        postprocessors.append({
+            'key': 'FFmpegSlice',
+            'slice_start_time': opts.slicestart,
+            'slice_end_time': opts.sliceend,
+        })
     if opts.recodevideo:
         postprocessors.append({
             'key': 'FFmpegVideoConvertor',

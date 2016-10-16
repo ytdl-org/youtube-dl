@@ -278,7 +278,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         prefix, sep, ext = path.rpartition('.')  # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
-        
+
         information['filepath'] = new_path
         information['ext'] = extension
 
@@ -577,3 +577,25 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 }
 
         return sub_filenames, info
+
+
+class FFmpegSlicePP(FFmpegPostProcessor):
+
+    def __init__(self, downloader, slice_start_time, slice_end_time):
+        super(FFmpegSlicePP, self).__init__(downloader)
+        self.slice_start_time = slice_start_time
+        self.slice_end_time = slice_end_time
+
+    def run(self, info):
+        filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
+        start_time = self.slice_start_time or "0"
+        end_time = self.slice_end_time or "{}".format(info['duration'])
+        options = ['-ss', start_time, '-to', end_time]
+        self.run_ffmpeg(filename, temp_filename, options)
+        msg = '[ffmpeg] Sliced: from ({}) seconds to ({}) seconds'.format(
+            start_time, end_time)
+        self._downloader.to_screen(msg)
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        return [], info
