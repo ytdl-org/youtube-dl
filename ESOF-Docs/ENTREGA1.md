@@ -27,3 +27,26 @@ After an extensive review of the project, we found that for an open-source proje
 Interestingly enough, around the date when the original developer, Ricardo, stopped working on **Youtube-DL** the community took over and there was a _boom_. Fortunately this went well, but could result in inconsistencies or even some redundant pieces of code.Maybe an alternative approach would be to elaborate a transitional plan to be implemented by the new “core team” where the growth wouldn’t be so all over the place. Instead this would lead to a more organized and well thought development process.
 
 In the opinion of the authors of this report, the development process of the application, even though it wasn’t structured from the beginning, took advantage of the best part of the open source community. The constant feedback from users and the help of new developers created a structure that was organically put together by the community. This worked well in this specific case as the final result it’s more mature and well structured than the initial prototype.
+
+
+**Informações**
+    Autores:
+        Bruno Marques (up201405781@fe.up.pt)
+        Número de horas despendidas: 5
+        Contribuição: 25%
+        
+        João Ferreira  ( j.jofe2@gmail.com )
+        Número de horas despendidas: 5
+        Contribuição: 25%
+        
+        Simão Lúcio (simaolucio@gmail.com)
+        Número de horas despendidas: 5
+        Contribuição: 25%
+        
+        Vitor Esteves(up201303104@fe.up.pt)
+        Número de horas despendidas: 5
+        Contribuição: 25%
+
+
+Faculdade de Engenharia da Universidade do Porto - MIEIC
+2016/10/16
