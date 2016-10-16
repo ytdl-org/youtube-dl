@@ -278,7 +278,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         prefix, sep, ext = path.rpartition('.')  # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
-        
+
         information['filepath'] = new_path
         information['ext'] = extension
 
