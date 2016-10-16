@@ -1357,6 +1357,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else:
                 video_description = ''
 
+        # game
+        video_game = self._html_search_regex(
+            r'<h4[^>]+class="title"[^>]*>\s*Game\s*</h4>\s*(<span[^>]*>.*\s*.*\s*.*\s.*\s*</span>\s*)?<ul[^>]*>\s*<li><a[^>]*>(?P<game>.+?)</a></li',
+            video_webpage, 'game', default=None, group="game")
+        if video_game is None:
+            video_game = self._html_search_regex(
+                r'<h4[^>]+class="title"[^>]*>\s*Game\s*</h4>\s*(<span[^>]*>.*\s*.*\s*.*\s.*\s*</span>\s*)?<ul[^>]*>\s*<li>(?P<game>.+?)( \(<a .*>.*</a>\))?</li',
+                video_webpage, 'game', default=None, group="game")
+
         if 'multifeed_metadata_list' in video_info and not smuggled_data.get('force_singlefeed', False):
             if not self._downloader.params.get('noplaylist'):
                 entries = []
@@ -1722,6 +1731,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'thumbnail': video_thumbnail,
             'description': video_description,
             'categories': video_categories,
+            'game': video_game,
             'tags': video_tags,
             'subtitles': video_subtitles,
             'automatic_captions': automatic_captions,
