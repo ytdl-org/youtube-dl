@@ -11,4 +11,10 @@ Once the video is fully downloaded, use any video player, such as **mpv**, **vlc
 
 ## Development Process
 
+In order to know more about the development process of this project, we decide to inquire some of the top contributors (past and present) in order to try and acquire a closer and more personal to the project look on the way it was developed.
+
+After meeting with the workgroup members we wrote an email directed to them and awaited response. We were later contacted by the project founder and one of the main contributors of **Youtube-dl** Ricardo Gonzalez](https://github.com/rg3) .
+
+He went on to explain that the project started as a very short script to download videos from **Youtube**, it had no process model to follow, and no long term development plan. So with lack of organization or any sort of software development process soon Ricardo ran into an unanticipated issue **modularity**, after receiving some feedback he quickly realized adding support to new websites was crucial. This raised some problems as the application was conceived only to download videos from *youtube*. 
+
 ## Opinions, Critics and Alternatives 
