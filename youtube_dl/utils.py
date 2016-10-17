@@ -701,7 +701,12 @@ def bug_reports_message():
     return msg
 
 
-class ExtractorError(Exception):
+class YoutubeDLError(Exception):
+    """Base exception for YoutubeDL errors."""
+    pass
+
+
+class ExtractorError(YoutubeDLError):
     """Error during info extraction."""
 
     def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
@@ -742,7 +747,7 @@ class RegexNotFoundError(ExtractorError):
     pass
 
 
-class DownloadError(Exception):
+class DownloadError(YoutubeDLError):
     """Download Error exception.
 
     This exception may be thrown by FileDownloader objects if they are not
@@ -756,7 +761,7 @@ class DownloadError(Exception):
         self.exc_info = exc_info
 
 
-class SameFileError(Exception):
+class SameFileError(YoutubeDLError):
     """Same File exception.
 
     This exception will be thrown by FileDownloader objects if they detect
@@ -765,7 +770,7 @@ class SameFileError(Exception):
     pass
 
 
-class PostProcessingError(Exception):
+class PostProcessingError(YoutubeDLError):
     """Post Processing exception.
 
     This exception may be raised by PostProcessor's .run() method to
@@ -773,15 +778,16 @@ class PostProcessingError(Exception):
     """
 
     def __init__(self, msg):
+        super(PostProcessingError, self).__init__(msg)
         self.msg = msg
 
 
-class MaxDownloadsReached(Exception):
+class MaxDownloadsReached(YoutubeDLError):
     """ --max-downloads limit has been reached. """
     pass
 
 
-class UnavailableVideoError(Exception):
+class UnavailableVideoError(YoutubeDLError):
     """Unavailable Format exception.
 
     This exception will be thrown when a video is requested
@@ -790,7 +796,7 @@ class UnavailableVideoError(Exception):
     pass
 
 
-class ContentTooShortError(Exception):
+class ContentTooShortError(YoutubeDLError):
     """Content Too Short exception.
 
     This exception may be raised by FileDownloader objects when a file they
@@ -799,12 +805,15 @@ class ContentTooShortError(Exception):
     """
 
     def __init__(self, downloaded, expected):
+        super(ContentTooShortError, self).__init__(
+            'Downloaded {0} bytes, expected {1} bytes'.format(downloaded, expected)
+        )
         # Both in bytes
         self.downloaded = downloaded
         self.expected = expected
 
 
-class XAttrMetadataError(Exception):
+class XAttrMetadataError(YoutubeDLError):
     def __init__(self, code=None, msg='Unknown error'):
         super(XAttrMetadataError, self).__init__(msg)
         self.code = code
@@ -820,7 +829,7 @@ class XAttrMetadataError(Exception):
             self.reason = 'NOT_SUPPORTED'
 
 
-class XAttrUnavailableError(Exception):
+class XAttrUnavailableError(YoutubeDLError):
     pass
 
 
