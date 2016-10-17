@@ -752,6 +752,7 @@ class PostProcessingError(YoutubeDLError):
     """
 
     def __init__(self, msg):
+        super(PostProcessingError, self).__init__(msg)
         self.msg = msg
 
 
@@ -778,6 +779,9 @@ class ContentTooShortError(YoutubeDLError):
     """
 
     def __init__(self, downloaded, expected):
+        super(ContentTooShortError, self).__init__(
+            'Downloaded {} bytes, expected {} bytes'.format(downloaded, expected)
+        )
         # Both in bytes
         self.downloaded = downloaded
         self.expected = expected
