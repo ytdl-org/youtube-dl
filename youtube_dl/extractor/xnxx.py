@@ -6,17 +6,23 @@ from ..compat import compat_urllib_parse_unquote
 
 
 class XNXXIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:video|www)\.xnxx\.com/video(?P<id>[0-9]+)/(.*)'
-    _TEST = {
-        'url': 'http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_',
-        'md5': '0831677e2b4761795f68d417e0b7b445',
+    _VALID_URL = r'https?://(?:video|www)\.xnxx\.com/video-?(?P<id>[0-9a-z]+)/'
+    _TESTS = [{
+        'url': 'http://www.xnxx.com/video-55awb78/skyrim_test_video',
+        'md5': 'ef7ecee5af78f8b03dca2cf31341d3a0',
         'info_dict': {
-            'id': '1135332',
+            'id': '55awb78',
             'ext': 'flv',
-            'title': 'lida » Naked Funny Actress  (5)',
+            'title': 'Skyrim Test Video',
             'age_limit': 18,
-        }
-    }
+        },
+    }, {
+        'url': 'http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.xnxx.com/video-55awb78/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

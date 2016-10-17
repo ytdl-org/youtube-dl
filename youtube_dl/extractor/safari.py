@@ -75,7 +75,7 @@ class SafariBaseIE(InfoExtractor):
 class SafariIE(SafariBaseIE):
     IE_NAME = 'safari'
     IE_DESC = 'safaribooksonline.com online video'
-    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/library/view/[^/]+/(?P<course_id>[^/]+)/(?P<part>part\d+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/library/view/[^/]+/(?P<course_id>[^/]+)/(?P<part>[^/?#&]+)\.html'
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/part00.html',
@@ -91,6 +91,9 @@ class SafariIE(SafariBaseIE):
     }, {
         # non-digits in course id
         'url': 'https://www.safaribooksonline.com/library/view/create-a-nodejs/100000006A0210/part00.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.safaribooksonline.com/library/view/learning-path-red/9780134664057/RHCE_Introduction.html',
         'only_matching': True,
     }]
 
@@ -132,12 +135,15 @@ class SafariIE(SafariBaseIE):
 
 class SafariApiIE(SafariBaseIE):
     IE_NAME = 'safari:api'
-    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/api/v1/book/(?P<course_id>[^/]+)/chapter(?:-content)?/(?P<part>part\d+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/api/v1/book/(?P<course_id>[^/]+)/chapter(?:-content)?/(?P<part>[^/?#&]+)\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
         'only_matching': True,
-    }
+    }, {
+        'url': 'https://www.safaribooksonline.com/api/v1/book/9780134664057/chapter/RHCE_Introduction.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

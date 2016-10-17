@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -24,7 +25,15 @@ from ..aes import (
 
 
 class PornHubIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)(?P<id>[0-9a-z]+)'
+    IE_DESC = 'PornHub and Thumbzilla'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)|
+                            (?:www\.)?thumbzilla\.com/video/
+                        )
+                        (?P<id>[0-9a-z]+)
+                    '''
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '1e19b41231a02eba417839222ac9d58e',
@@ -39,12 +48,46 @@ class PornHubIE(InfoExtractor):
             'dislike_count': int,
             'comment_count': int,
             'age_limit': 18,
-        }
+        },
+    }, {
+        # non-ASCII title
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=1331683002',
+        'info_dict': {
+            'id': '1331683002',
+            'ext': 'mp4',
+            'title': '重庆婷婷女王足交',
+            'uploader': 'cj397186295',
+            'duration': 1753,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
         'only_matching': True,
     }, {
+        # removed at the request of cam4.com
         'url': 'http://fr.pornhub.com/view_video.php?viewkey=ph55ca2f9760862',
+        'only_matching': True,
+    }, {
+        # removed at the request of the copyright owner
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=788152859',
+        'only_matching': True,
+    }, {
+        # removed by uploader
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph572716d15a111',
+        'only_matching': True,
+    }, {
+        # private video
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph56fd731fce6b7',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.thumbzilla.com/video/ph56c6114abd99a/horny-girlfriend-sex',
         'only_matching': True,
     }]
 
@@ -68,27 +111,33 @@ class PornHubIE(InfoExtractor):
         webpage = self._download_webpage(req, video_id)
 
         error_msg = self._html_search_regex(
-            r'(?s)<div class="userMessageSection[^"]*".*?>(.*?)</div>',
-            webpage, 'error message', default=None)
+            r'(?s)<div[^>]+class=(["\'])(?:(?!\1).)*\b(?:removed|userMessageSection)\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</div>',
+            webpage, 'error message', default=None, group='error')
         if error_msg:
             error_msg = re.sub(r'\s+', ' ', error_msg)
             raise ExtractorError(
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
+        # video_title from flashvars contains whitespace instead of non-ASCII (see
+        # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
+        # on that anymore.
+        title = self._html_search_meta(
+            'twitter:title', webpage, default=None) or self._search_regex(
+            (r'<h1[^>]+class=["\']title["\'][^>]*>(?P<title>[^<]+)',
+             r'<div[^>]+data-video-title=(["\'])(?P<title>.+?)\1',
+             r'shareTitle\s*=\s*(["\'])(?P<title>.+?)\1'),
+            webpage, 'title', group='title')
+
         flashvars = self._parse_json(
             self._search_regex(
                 r'var\s+flashvars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
             video_id)
         if flashvars:
-            video_title = flashvars.get('video_title')
             thumbnail = flashvars.get('image_url')
             duration = int_or_none(flashvars.get('video_duration'))
         else:
-            video_title, thumbnail, duration = [None] * 3
-
-        if not video_title:
-            video_title = self._html_search_regex(r'<h1 [^>]+>([^<]+)', webpage, 'title')
+            title, thumbnail, duration = [None] * 3
 
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
@@ -137,7 +186,7 @@ class PornHubIE(InfoExtractor):
         return {
             'id': video_id,
             'uploader': video_uploader,
-            'title': video_title,
+            'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
             'view_count': view_count,

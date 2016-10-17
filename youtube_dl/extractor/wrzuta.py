@@ -5,8 +5,10 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
     qualities,
+    remove_start,
 )
 
 
@@ -26,16 +28,17 @@ class WrzutaIE(InfoExtractor):
             'uploader_id': 'laboratoriumdextera',
             'description': 'md5:7fb5ef3c21c5893375fda51d9b15d9cd',
         },
+        'skip': 'Redirected to wrzuta.pl',
     }, {
-        'url': 'http://jolka85.wrzuta.pl/audio/063jOPX5ue2/liber_natalia_szroeder_-_teraz_ty',
-        'md5': 'bc78077859bea7bcfe4295d7d7fc9025',
+        'url': 'http://vexling.wrzuta.pl/audio/01xBFabGXu6/james_horner_-_into_the_na_39_vi_world_bonus',
+        'md5': 'f80564fb5a2ec6ec59705ae2bf2ba56d',
         'info_dict': {
-            'id': '063jOPX5ue2',
-            'ext': 'ogg',
-            'title': 'Liber & Natalia Szroeder - Teraz Ty',
-            'duration': 203,
-            'uploader_id': 'jolka85',
-            'description': 'md5:2d2b6340f9188c8c4cd891580e481096',
+            'id': '01xBFabGXu6',
+            'ext': 'mp3',
+            'title': 'James Horner - Into The Na\'vi World [Bonus]',
+            'description': 'md5:30a70718b2cd9df3120fce4445b0263b',
+            'duration': 95,
+            'uploader_id': 'vexling',
         },
     }]
 
@@ -45,7 +48,10 @@ class WrzutaIE(InfoExtractor):
         typ = mobj.group('typ')
         uploader = mobj.group('uploader')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage, urlh = self._download_webpage_handle(url, video_id)
+
+        if urlh.geturl() == 'http://www.wrzuta.pl/':
+            raise ExtractorError('Video removed', expected=True)
 
         quality = qualities(['SD', 'MQ', 'HQ', 'HD'])
 
@@ -80,3 +86,73 @@ class WrzutaIE(InfoExtractor):
             'description': self._og_search_description(webpage),
             'age_limit': embedpage.get('minimalAge', 0),
         }
+
+
+class WrzutaPlaylistIE(InfoExtractor):
+    """
+        this class covers extraction of wrzuta playlist entries
+        the extraction process bases on following steps:
+        * collect information of playlist size
+        * download all entries provided on
+          the playlist webpage (the playlist is split
+          on two pages: first directly reached from webpage
+          second: downloaded on demand by ajax call and rendered
+          using the ajax call response)
+        * in case size of extracted entries not reached total number of entries
+          use the ajax call to collect the remaining entries
+    """
+
+    IE_NAME = 'wrzuta.pl:playlist'
+    _VALID_URL = r'https?://(?P<uploader>[0-9a-zA-Z]+)\.wrzuta\.pl/playlista/(?P<id>[0-9a-zA-Z]+)'
+    _TESTS = [{
+        'url': 'http://miromak71.wrzuta.pl/playlista/7XfO4vE84iR/moja_muza',
+        'playlist_mincount': 14,
+        'info_dict': {
+            'id': '7XfO4vE84iR',
+            'title': 'Moja muza',
+        },
+    }, {
+        'url': 'http://heroesf70.wrzuta.pl/playlista/6Nj3wQHx756/lipiec_-_lato_2015_muzyka_swiata',
+        'playlist_mincount': 144,
+        'info_dict': {
+            'id': '6Nj3wQHx756',
+            'title': 'Lipiec - Lato 2015 Muzyka Świata',
+        },
+    }, {
+        'url': 'http://miromak71.wrzuta.pl/playlista/7XfO4vE84iR',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        uploader = mobj.group('uploader')
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        playlist_size = int_or_none(self._html_search_regex(
+            (r'<div[^>]+class=["\']playlist-counter["\'][^>]*>\d+/(\d+)',
+             r'<div[^>]+class=["\']all-counter["\'][^>]*>(.+?)</div>'),
+            webpage, 'playlist size', default=None))
+
+        playlist_title = remove_start(
+            self._og_search_title(webpage), 'Playlista: ')
+
+        entries = []
+        if playlist_size:
+            entries = [
+                self.url_result(entry_url)
+                for _, entry_url in re.findall(
+                    r'<a[^>]+href=(["\'])(http.+?)\1[^>]+class=["\']playlist-file-page',
+                    webpage)]
+            if playlist_size > len(entries):
+                playlist_content = self._download_json(
+                    'http://%s.wrzuta.pl/xhr/get_playlist_offset/%s' % (uploader, playlist_id),
+                    playlist_id,
+                    'Downloading playlist JSON',
+                    'Unable to download playlist JSON')
+                entries.extend([
+                    self.url_result(entry['filelink'])
+                    for entry in playlist_content.get('files', []) if entry.get('filelink')])
+
+        return self.playlist_result(entries, playlist_id, playlist_title)

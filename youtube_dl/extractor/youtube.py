@@ -53,6 +53,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
+    _PASSWORD_CHALLENGE_URL = 'https://accounts.google.com/signin/challenge/sl/password'
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -116,12 +117,10 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'hl': 'en_US',
         }
 
-        login_data = urlencode_postdata(login_form_strs)
-
-        req = sanitized_Request(self._LOGIN_URL, login_data)
         login_results = self._download_webpage(
-            req, None,
-            note='Logging in', errnote='unable to log in', fatal=False)
+            self._PASSWORD_CHALLENGE_URL, None,
+            note='Logging in', errnote='unable to log in', fatal=False,
+            data=urlencode_postdata(login_form_strs))
         if login_results is False:
             return False
 
@@ -137,7 +136,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         # Two-Factor
         # TODO add SMS and phone call support - these require making a request and then prompting the user
 
-        if re.search(r'(?i)<form[^>]* id="challenge"', login_results) is not None:
+        if re.search(r'(?i)<form[^>]+id="challenge"', login_results) is not None:
             tfa_code = self._get_tfa_info('2-step verification code')
 
             if not tfa_code:
@@ -165,17 +164,17 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             if tfa_results is False:
                 return False
 
-            if re.search(r'(?i)<form[^>]* id="challenge"', tfa_results) is not None:
+            if re.search(r'(?i)<form[^>]+id="challenge"', tfa_results) is not None:
                 self._downloader.report_warning('Two-factor code expired or invalid. Please try again, or use a one-use backup code instead.')
                 return False
-            if re.search(r'(?i)<form[^>]* id="gaia_loginform"', tfa_results) is not None:
+            if re.search(r'(?i)<form[^>]+id="gaia_loginform"', tfa_results) is not None:
                 self._downloader.report_warning('unable to log in - did the page structure change?')
                 return False
             if re.search(r'smsauth-interstitial-reviewsettings', tfa_results) is not None:
                 self._downloader.report_warning('Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
                 return False
 
-        if re.search(r'(?i)<form[^>]* id="gaia_loginform"', login_results) is not None:
+        if re.search(r'(?i)<form[^>]+id="gaia_loginform"', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
         return True
@@ -344,6 +343,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 48, 'preference': -50, 'container': 'm4a_dash'},
         '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 128, 'preference': -50, 'container': 'm4a_dash'},
         '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 256, 'preference': -50, 'container': 'm4a_dash'},
+        '256': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
+        '258': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
 
         # Dash webm
         '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
@@ -499,6 +500,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'youtube_include_dash_manifest': True,
                 'format': '141',
             },
+            'skip': 'format 141 not served anymore',
         },
         # DASH manifest with encrypted signature
         {
@@ -515,7 +517,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'youtube_include_dash_manifest': True,
-                'format': '141',
+                'format': '141/bestaudio[ext=m4a]',
             },
         },
         # JS player signature function name containing $
@@ -535,7 +537,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'params': {
                 'youtube_include_dash_manifest': True,
-                'format': '141',
+                'format': '141/bestaudio[ext=m4a]',
             },
         },
         # Controversy video
@@ -616,7 +618,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/olympic',
                 'license': 'Standard YouTube License',
                 'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
-                'uploader': 'Olympics',
+                'uploader': 'Olympic',
                 'title': 'Hockey - Women -  GER-AUS - London 2012 Olympic Games',
             },
             'params': {
@@ -669,7 +671,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/dorappi2000',
                 'uploader': 'dorappi2000',
                 'license': 'Standard YouTube License',
-                'formats': 'mincount:33',
+                'formats': 'mincount:32',
             },
         },
         # DASH manifest with segment_list
@@ -689,7 +691,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'youtube_include_dash_manifest': True,
                 'format': '135',  # bestvideo
-            }
+            },
+            'skip': 'This live event has ended.',
         },
         {
             # Multifeed videos (multiple cameras), URL is for Main Camera
@@ -760,6 +763,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'DevConf.cz 2016 Day 2 Workshops 1 14:00 - 15:30',
             },
             'playlist_count': 2,
+            'skip': 'Not multifeed anymore',
         },
         {
             'url': 'http://vid.plus/FlRa-iH7PGw',
@@ -812,6 +816,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'This video does not exist.',
         },
         {
             # Video licensed under Creative Commons
@@ -851,6 +856,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         {
             'url': 'https://www.youtube.com/watch?feature=player_embedded&amp;amp;v=V36LpHqtcDY',
+            'only_matching': True,
+        },
+        {
+            # YouTube Red paid video (https://github.com/rg3/youtube-dl/issues/10059)
+            'url': 'https://www.youtube.com/watch?v=i1Ko8UG-Tdo',
             'only_matching': True,
         }
     ]
@@ -1329,7 +1339,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     (?:[a-zA-Z-]+="[^"]*"\s+)*?
                     (?:title|href)="([^"]+)"\s+
                     (?:[a-zA-Z-]+="[^"]*"\s+)*?
-                    class="(?:yt-uix-redirect-link|yt-uix-sessionlink[^"]*)"[^>]*>
+                    class="[^"]*"[^>]*>
                 [^<]+\.{3}\s*
                 </a>
             ''', r'\1', video_description)
@@ -1724,6 +1734,39 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
 
+class YoutubeSharedVideoIE(InfoExtractor):
+    _VALID_URL = r'(?:https?:)?//(?:www\.)?youtube\.com/shared\?.*\bci=(?P<id>[0-9A-Za-z_-]{11})'
+    IE_NAME = 'youtube:shared'
+
+    _TEST = {
+        'url': 'https://www.youtube.com/shared?ci=1nEzmT-M4fU',
+        'info_dict': {
+            'id': 'uPDB5I9wfp8',
+            'ext': 'webm',
+            'title': 'Pocoyo: 90 minutos de episódios completos Português para crianças - PARTE 3',
+            'description': 'md5:d9e4d9346a2dfff4c7dc4c8cec0f546d',
+            'upload_date': '20160219',
+            'uploader': 'Pocoyo - Português (BR)',
+            'uploader_id': 'PocoyoBrazil',
+        },
+        'add_ie': ['Youtube'],
+        'params': {
+            # There are already too many Youtube downloads
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        real_video_id = self._html_search_meta(
+            'videoId', webpage, 'YouTube video id', fatal=True)
+
+        return self.url_result(real_video_id, YoutubeIE.ie_key())
+
+
 class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com playlists'
     _VALID_URL = r"""(?x)(?:
@@ -1939,10 +1982,13 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         return (False if YoutubePlaylistsIE.suitable(url) or YoutubeLiveIE.suitable(url)
                 else super(YoutubeChannelIE, cls).suitable(url))
 
+    def _build_template_url(self, url, channel_id):
+        return self._TEMPLATE_URL % channel_id
+
     def _real_extract(self, url):
         channel_id = self._match_id(url)
 
-        url = self._TEMPLATE_URL % channel_id
+        url = self._build_template_url(url, channel_id)
 
         # Channel by page listing is restricted to 35 pages of 30 items, i.e. 1050 videos total (see #5778)
         # Workaround by extracting as a playlist if managed to obtain channel playlist URL
@@ -1956,9 +2002,13 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
             channel_playlist_id = self._html_search_meta(
                 'channelId', channel_page, 'channel id', default=None)
             if not channel_playlist_id:
-                channel_playlist_id = self._search_regex(
-                    r'data-(?:channel-external-|yt)id="([^"]+)"',
-                    channel_page, 'channel id', default=None)
+                channel_url = self._html_search_meta(
+                    ('al:ios:url', 'twitter:app:url:iphone', 'twitter:app:url:ipad'),
+                    channel_page, 'channel url', default=None)
+                if channel_url:
+                    channel_playlist_id = self._search_regex(
+                        r'vnd\.youtube://user/([0-9A-Za-z_-]+)',
+                        channel_url, 'channel id', default=None)
         if channel_playlist_id and channel_playlist_id.startswith('UC'):
             playlist_id = 'UU' + channel_playlist_id[2:]
             return self.url_result(
@@ -1981,23 +2031,52 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
                 for video_id, video_title in self.extract_videos_from_page(channel_page)]
             return self.playlist_result(entries, channel_id)
 
+        try:
+            next(self._entries(channel_page, channel_id))
+        except StopIteration:
+            alert_message = self._html_search_regex(
+                r'(?s)<div[^>]+class=(["\']).*?\byt-alert-message\b.*?\1[^>]*>(?P<alert>[^<]+)</div>',
+                channel_page, 'alert', default=None, group='alert')
+            if alert_message:
+                raise ExtractorError('Youtube said: %s' % alert_message, expected=True)
+
         return self.playlist_result(self._entries(channel_page, channel_id), channel_id)
 
 
 class YoutubeUserIE(YoutubeChannelIE):
     IE_DESC = 'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:user/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
-    _TEMPLATE_URL = 'https://www.youtube.com/user/%s/videos'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:(?P<user>user|c)/)?(?!(?:attribution_link|watch|results)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
+    _TEMPLATE_URL = 'https://www.youtube.com/%s/%s/videos'
     IE_NAME = 'youtube:user'
 
     _TESTS = [{
         'url': 'https://www.youtube.com/user/TheLinuxFoundation',
         'playlist_mincount': 320,
         'info_dict': {
-            'title': 'TheLinuxFoundation',
+            'id': 'UUfX55Sx5hEFjoC3cNs6mCUQ',
+            'title': 'Uploads from The Linux Foundation',
+        }
+    }, {
+        # Only available via https://www.youtube.com/c/12minuteathlete/videos
+        # but not https://www.youtube.com/user/12minuteathlete/videos
+        'url': 'https://www.youtube.com/c/12minuteathlete/videos',
+        'playlist_mincount': 249,
+        'info_dict': {
+            'id': 'UUVjM-zV6_opMDx7WYxnjZiQ',
+            'title': 'Uploads from 12 Minute Athlete',
         }
     }, {
         'url': 'ytuser:phihag',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/c/gametrailers',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/gametrailers',
+        'only_matching': True,
+    }, {
+        # This channel is not available.
+        'url': 'https://www.youtube.com/user/kananishinoSMEJ/videos',
         'only_matching': True,
     }]
 
@@ -2010,6 +2089,10 @@ class YoutubeUserIE(YoutubeChannelIE):
             return False
         else:
             return super(YoutubeUserIE, cls).suitable(url)
+
+    def _build_template_url(self, url, channel_id):
+        mobj = re.match(self._VALID_URL, url)
+        return self._TEMPLATE_URL % (mobj.group('user') or 'user', mobj.group('id'))
 
 
 class YoutubeLiveIE(YoutubeBaseInfoExtractor):

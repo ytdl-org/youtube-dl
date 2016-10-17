@@ -51,6 +51,14 @@ class EaglePlatformIE(InfoExtractor):
     }]
 
     @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//.+?\.media\.eagleplatform\.com/index/player\?.+?)\1',
+            webpage)
+        if mobj is not None:
+            return mobj.group('url')
+
+    @staticmethod
     def _handle_error(response):
         status = int_or_none(response.get('status', 200))
         if status != 200:

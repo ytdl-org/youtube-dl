@@ -516,9 +516,14 @@ class PBSIE(InfoExtractor):
                 # https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
                 if not bitrate or bitrate not in ('400k', '800k', '1200k', '2500k'):
                     continue
+                f_url = re.sub(r'\d+k|baseline', bitrate, http_url)
+                # This may produce invalid links sometimes (e.g.
+                # http://www.pbs.org/wgbh/frontline/film/suicide-plan)
+                if not self._is_valid_url(f_url, display_id, 'http-%s video' % bitrate):
+                    continue
                 f = m3u8_format.copy()
                 f.update({
-                    'url': re.sub(r'\d+k|baseline', bitrate, http_url),
+                    'url': f_url,
                     'format_id': m3u8_format['format_id'].replace('hls', 'http'),
                     'protocol': 'http',
                 })

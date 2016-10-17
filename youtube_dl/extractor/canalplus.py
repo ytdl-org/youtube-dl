@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     ExtractorError,
     HEADRequest,
     unified_strdate,
-    url_basename,
     qualities,
     int_or_none,
 )
@@ -16,24 +16,38 @@ from ..utils import (
 
 class CanalplusIE(InfoExtractor):
     IE_DESC = 'canalplus.fr, piwiplus.fr and d8.tv'
-    _VALID_URL = r'https?://(?:www\.(?P<site>canalplus\.fr|piwiplus\.fr|d8\.tv|itele\.fr)/.*?/(?P<path>.*)|player\.canalplus\.fr/#/(?P<id>[0-9]+))'
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:
+                                (?:
+                                    (?:(?:www|m)\.)?canalplus\.fr|
+                                    (?:www\.)?piwiplus\.fr|
+                                    (?:www\.)?d8\.tv|
+                                    (?:www\.)?d17\.tv|
+                                    (?:www\.)?itele\.fr
+                                )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
+                                player\.canalplus\.fr/#/(?P<id>\d+)
+                            )
+
+                    '''
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/%s/%s?format=json'
     _SITE_ID_MAP = {
-        'canalplus.fr': 'cplus',
-        'piwiplus.fr': 'teletoon',
-        'd8.tv': 'd8',
-        'itele.fr': 'itele',
+        'canalplus': 'cplus',
+        'piwiplus': 'teletoon',
+        'd8': 'd8',
+        'd17': 'd17',
+        'itele': 'itele',
     }
 
     _TESTS = [{
-        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1263092',
-        'md5': '12164a6f14ff6df8bd628e8ba9b10b78',
+        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1192814',
+        'md5': '41f438a4904f7664b91b4ed0dec969dc',
         'info_dict': {
-            'id': '1263092',
+            'id': '1192814',
             'ext': 'mp4',
-            'title': 'Le Zapping - 13/05/15',
-            'description': 'md5:09738c0d06be4b5d06a0940edb0da73f',
-            'upload_date': '20150513',
+            'title': "L'Année du Zapping 2014 - L'Année du Zapping 2014",
+            'description': "Toute l'année 2014 dans un Zapping exceptionnel !",
+            'upload_date': '20150105',
         },
     }, {
         'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
@@ -46,35 +60,45 @@ class CanalplusIE(InfoExtractor):
         },
         'skip': 'Only works from France',
     }, {
-        'url': 'http://www.d8.tv/d8-docs-mags/pid6589-d8-campagne-intime.html',
+        'url': 'http://www.d8.tv/d8-docs-mags/pid5198-d8-en-quete-d-actualite.html?vid=1390231',
         'info_dict': {
-            'id': '966289',
-            'ext': 'flv',
-            'title': 'Campagne intime - Documentaire exceptionnel',
-            'description': 'md5:d2643b799fb190846ae09c61e59a859f',
-            'upload_date': '20131108',
-        },
-        'skip': 'videos get deleted after a while',
-    }, {
-        'url': 'http://www.itele.fr/france/video/aubervilliers-un-lycee-en-colere-111559',
-        'md5': '38b8f7934def74f0d6f3ba6c036a5f82',
-        'info_dict': {
-            'id': '1213714',
+            'id': '1390231',
             'ext': 'mp4',
-            'title': 'Aubervilliers : un lycée en colère - Le 11/02/2015 à 06h45',
-            'description': 'md5:8216206ec53426ea6321321f3b3c16db',
-            'upload_date': '20150211',
+            'title': "Vacances pas chères : prix discount ou grosses dépenses ? - En quête d'actualité",
+            'description': 'md5:edb6cf1cb4a1e807b5dd089e1ac8bfc6',
+            'upload_date': '20160512',
         },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.itele.fr/chroniques/invite-bruce-toussaint/thierry-solere-nicolas-sarkozy-officialisera-sa-candidature-a-la-primaire-quand-il-le-voudra-167224',
+        'info_dict': {
+            'id': '1398334',
+            'ext': 'mp4',
+            'title': "L'invité de Bruce Toussaint du 07/06/2016 - ",
+            'description': 'md5:40ac7c9ad0feaeb6f605bad986f61324',
+            'upload_date': '20160607',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://m.canalplus.fr/?vid=1398231',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.d17.tv/emissions/pid8303-lolywood.html?vid=1397061',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.groupdict().get('id')
+        video_id = mobj.groupdict().get('id') or mobj.groupdict().get('vid')
 
-        site_id = self._SITE_ID_MAP[mobj.group('site') or 'canal']
+        site_id = self._SITE_ID_MAP[compat_urllib_parse_urlparse(url).netloc.rsplit('.', 2)[-2]]
 
         # Beware, some subclasses do not define an id group
-        display_id = url_basename(mobj.group('path'))
+        display_id = mobj.group('display_id') or video_id
 
         if video_id is None:
             webpage = self._download_webpage(url, display_id)
