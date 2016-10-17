@@ -14,15 +14,17 @@ if os.path.exists(lazy_extractors_filename):
     os.remove(lazy_extractors_filename)
 
 from youtube_dl.extractor import _ALL_CLASSES
-from youtube_dl.extractor.common import InfoExtractor
+from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
 
 with open('devscripts/lazy_load_template.py', 'rt') as f:
     module_template = f.read()
 
-module_contents = [module_template + '\n' + getsource(InfoExtractor.suitable)]
+module_contents = [
+    module_template + '\n' + getsource(InfoExtractor.suitable) + '\n',
+    'class LazyLoadSearchExtractor(LazyLoadExtractor):\n    pass\n']
 
 ie_template = '''
-class {name}(LazyLoadExtractor):
+class {name}({bases}):
     _VALID_URL = {valid_url!r}
     _module = '{module}'
 '''
@@ -34,10 +36,20 @@ make_valid_template = '''
 '''
 
 
+def get_base_name(base):
+    if base is InfoExtractor:
+        return 'LazyLoadExtractor'
+    elif base is SearchInfoExtractor:
+        return 'LazyLoadSearchExtractor'
+    else:
+        return base.__name__
+
+
 def build_lazy_ie(ie, name):
     valid_url = getattr(ie, '_VALID_URL', None)
     s = ie_template.format(
         name=name,
+        bases=', '.join(map(get_base_name, ie.__bases__)),
         valid_url=valid_url,
         module=ie.__module__)
     if ie.suitable.__func__ is not InfoExtractor.suitable.__func__:
@@ -47,12 +59,35 @@ def build_lazy_ie(ie, name):
         s += make_valid_template.format(valid_url=ie._make_valid_url())
     return s
 
+# find the correct sorting and add the required base classes so that sublcasses
+# can be correctly created
+classes = _ALL_CLASSES[:-1]
+ordered_cls = []
+while classes:
+    for c in classes[:]:
+        bases = set(c.__bases__) - set((object, InfoExtractor, SearchInfoExtractor))
+        stop = False
+        for b in bases:
+            if b not in classes and b not in ordered_cls:
+                if b.__name__ == 'GenericIE':
+                    exit()
+                classes.insert(0, b)
+                stop = True
+        if stop:
+            break
+        if all(b in ordered_cls for b in bases):
+            ordered_cls.append(c)
+            classes.remove(c)
+            break
+ordered_cls.append(_ALL_CLASSES[-1])
+
 names = []
-for ie in list(sorted(_ALL_CLASSES[:-1], key=lambda cls: cls.ie_key())) + _ALL_CLASSES[-1:]:
-    name = ie.ie_key() + 'IE'
+for ie in ordered_cls:
+    name = ie.__name__
     src = build_lazy_ie(ie, name)
     module_contents.append(src)
-    names.append(name)
+    if ie in _ALL_CLASSES:
+        names.append(name)
 
 module_contents.append(
     '_ALL_CLASSES = [{0}]'.format(', '.join(names)))

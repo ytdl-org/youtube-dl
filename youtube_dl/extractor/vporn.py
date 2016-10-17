@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     parse_duration,
     str_to_int,
 )
@@ -27,7 +28,8 @@ class VpornIE(InfoExtractor):
                 'duration': 393,
                 'age_limit': 18,
                 'view_count': int,
-            }
+            },
+            'skip': 'video removed',
         },
         {
             'url': 'http://www.vporn.com/female/hana-shower/523564/',
@@ -40,7 +42,7 @@ class VpornIE(InfoExtractor):
                 'description': 'Hana showers at the bathroom.',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'uploader': 'Hmmmmm',
-                'categories': ['Big Boobs', 'Erotic', 'Teen', 'Female'],
+                'categories': ['Big Boobs', 'Erotic', 'Teen', 'Female', '720p'],
                 'duration': 588,
                 'age_limit': 18,
                 'view_count': int,
@@ -54,6 +56,10 @@ class VpornIE(InfoExtractor):
         display_id = mobj.group('display_id')
 
         webpage = self._download_webpage(url, display_id)
+
+        errmsg = 'This video has been deleted due to Copyright Infringement or by the account owner!'
+        if errmsg in webpage:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, errmsg), expected=True)
 
         title = self._html_search_regex(
             r'videoname\s*=\s*\'([^\']+)\'', webpage, 'title').strip()

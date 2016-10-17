@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import smuggle_url
+from ..utils import (
+    smuggle_url,
+    update_url_query,
+)
 
 
 class FoxSportsIE(InfoExtractor):
@@ -9,11 +12,15 @@ class FoxSportsIE(InfoExtractor):
 
     _TEST = {
         'url': 'http://www.foxsports.com/video?vid=432609859715',
+        'md5': 'b49050e955bebe32c301972e4012ac17',
         'info_dict': {
-            'id': 'gA0bHB3Ladz3',
-            'ext': 'flv',
+            'id': 'i0qKWsk3qJaM',
+            'ext': 'mp4',
             'title': 'Courtney Lee on going up 2-0 in series vs. Blazers',
             'description': 'Courtney Lee talks about Memphis being focused.',
+            'upload_date': '20150423',
+            'timestamp': 1429761109,
+            'uploader': 'NEWA-FNG-FOXSPORTS',
         },
         'add_ie': ['ThePlatform'],
     }
@@ -28,5 +35,8 @@ class FoxSportsIE(InfoExtractor):
                 r"data-player-config='([^']+)'", webpage, 'data player config'),
             video_id)
 
-        return self.url_result(smuggle_url(
-            config['releaseURL'] + '&manifest=f4m', {'force_smil_url': True}))
+        return self.url_result(smuggle_url(update_url_query(
+            config['releaseURL'], {
+                'mbr': 'true',
+                'switch': 'http',
+            }), {'force_smil_url': True}))

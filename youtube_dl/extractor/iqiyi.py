@@ -3,28 +3,22 @@ from __future__ import unicode_literals
 
 import hashlib
 import itertools
-import math
-import os
-import random
 import re
 import time
-import uuid
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_parse_qs,
     compat_str,
     compat_urllib_parse_urlencode,
-    compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    clean_html,
     decode_packed_codes,
+    get_element_by_id,
+    get_element_by_attribute,
     ExtractorError,
     ohdave_rsa_encrypt,
     remove_start,
-    sanitized_Request,
-    urlencode_postdata,
-    url_basename,
 )
 
 
@@ -171,70 +165,21 @@ class IqiyiIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.iqiyi.com/v_19rrojlavg.html',
-        'md5': '2cb594dc2781e6c941a110d8f358118b',
+        # MD5 checksum differs on my machine and Travis CI
         'info_dict': {
             'id': '9c1fb1b99d192b21c559e5a1a2cb3c73',
+            'ext': 'mp4',
             'title': '美国德州空中惊现奇异云团 酷似UFO',
-            'ext': 'f4v',
         }
     }, {
         'url': 'http://www.iqiyi.com/v_19rrhnnclk.html',
+        'md5': '667171934041350c5de3f5015f7f1152',
         'info_dict': {
             'id': 'e3f585b550a280af23c98b6cb2be19fb',
-            'title': '名侦探柯南第752集',
+            'ext': 'mp4',
+            'title': '名侦探柯南 国语版：第752集 迫近灰原秘密的黑影 下篇',
         },
-        'playlist': [{
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part1',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }, {
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part2',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }, {
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part3',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }, {
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part4',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }, {
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part5',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }, {
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part6',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }, {
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part7',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }, {
-            'info_dict': {
-                'id': 'e3f585b550a280af23c98b6cb2be19fb_part8',
-                'ext': 'f4v',
-                'title': '名侦探柯南第752集',
-            },
-        }],
-        'params': {
-            'skip_download': True,
-        },
+        'skip': 'Geo-restricted to China',
     }, {
         'url': 'http://www.iqiyi.com/w_19rt6o8t9p.html',
         'only_matching': True,
@@ -250,22 +195,10 @@ class IqiyiIE(InfoExtractor):
         'url': 'http://www.iqiyi.com/v_19rrny4w8w.html',
         'info_dict': {
             'id': 'f3cf468b39dddb30d676f89a91200dc1',
+            'ext': 'mp4',
             'title': '泰坦尼克号',
         },
-        'playlist': [{
-            'info_dict': {
-                'id': 'f3cf468b39dddb30d676f89a91200dc1_part1',
-                'ext': 'f4v',
-                'title': '泰坦尼克号',
-            },
-        }, {
-            'info_dict': {
-                'id': 'f3cf468b39dddb30d676f89a91200dc1_part2',
-                'ext': 'f4v',
-                'title': '泰坦尼克号',
-            },
-        }],
-        'expected_warnings': ['Needs a VIP account for full video'],
+        'skip': 'Geo-restricted to China',
     }, {
         'url': 'http://www.iqiyi.com/a_19rrhb8ce1.html',
         'info_dict': {
@@ -278,20 +211,15 @@ class IqiyiIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    _FORMATS_MAP = [
-        ('1', 'h6'),
-        ('2', 'h5'),
-        ('3', 'h4'),
-        ('4', 'h3'),
-        ('5', 'h2'),
-        ('10', 'h1'),
-    ]
-
-    AUTH_API_ERRORS = {
-        # No preview available (不允许试看鉴权失败)
-        'Q00505': 'This video requires a VIP account',
-        # End of preview time (试看结束鉴权失败)
-        'Q00506': 'Needs a VIP account for full video',
+    _FORMATS_MAP = {
+        '96': 1,    # 216p, 240p
+        '1': 2,     # 336p, 360p
+        '2': 3,     # 480p, 504p
+        '21': 4,    # 504p
+        '4': 5,     # 720p
+        '17': 5,    # 720p
+        '5': 6,     # 1072p, 1080p
+        '18': 7,    # 1080p
     }
 
     def _real_initialize(self):
@@ -352,177 +280,23 @@ class IqiyiIE(InfoExtractor):
 
         return True
 
-    def _authenticate_vip_video(self, api_video_url, video_id, tvid, _uuid, do_report_warning):
-        auth_params = {
-            # version and platform hard-coded in com/qiyi/player/core/model/remote/AuthenticationRemote.as
-            'version': '2.0',
-            'platform': 'b6c13e26323c537d',
-            'aid': tvid,
+    def get_raw_data(self, tvid, video_id):
+        tm = int(time.time() * 1000)
+
+        key = 'd5fb4bd9d50c4be6948c97edd7254b0e'
+        sc = md5_text(compat_str(tm) + key + tvid)
+        params = {
             'tvid': tvid,
-            'uid': '',
-            'deviceId': _uuid,
-            'playType': 'main',  # XXX: always main?
-            'filename': os.path.splitext(url_basename(api_video_url))[0],
-        }
-
-        qd_items = compat_parse_qs(compat_urllib_parse_urlparse(api_video_url).query)
-        for key, val in qd_items.items():
-            auth_params[key] = val[0]
-
-        auth_req = sanitized_Request(
-            'http://api.vip.iqiyi.com/services/ckn.action',
-            urlencode_postdata(auth_params))
-        # iQiyi server throws HTTP 405 error without the following header
-        auth_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        auth_result = self._download_json(
-            auth_req, video_id,
-            note='Downloading video authentication JSON',
-            errnote='Unable to download video authentication JSON')
-
-        code = auth_result.get('code')
-        msg = self.AUTH_API_ERRORS.get(code) or auth_result.get('msg') or code
-        if code == 'Q00506':
-            if do_report_warning:
-                self.report_warning(msg)
-            return False
-        if 'data' not in auth_result:
-            if msg is not None:
-                raise ExtractorError('%s said: %s' % (self.IE_NAME, msg), expected=True)
-            raise ExtractorError('Unexpected error from Iqiyi auth API')
-
-        return auth_result['data']
-
-    def construct_video_urls(self, data, video_id, _uuid, tvid):
-        def do_xor(x, y):
-            a = y % 3
-            if a == 1:
-                return x ^ 121
-            if a == 2:
-                return x ^ 72
-            return x ^ 103
-
-        def get_encode_code(l):
-            a = 0
-            b = l.split('-')
-            c = len(b)
-            s = ''
-            for i in range(c - 1, -1, -1):
-                a = do_xor(int(b[c - i - 1], 16), i)
-                s += chr(a)
-            return s[::-1]
-
-        def get_path_key(x, format_id, segment_index):
-            mg = ')(*&^flash@#$%a'
-            tm = self._download_json(
-                'http://data.video.qiyi.com/t?tn=' + str(random.random()), video_id,
-                note='Download path key of segment %d for format %s' % (segment_index + 1, format_id)
-            )['t']
-            t = str(int(math.floor(int(tm) / (600.0))))
-            return md5_text(t + mg + x)
-
-        video_urls_dict = {}
-        need_vip_warning_report = True
-        for format_item in data['vp']['tkl'][0]['vs']:
-            if 0 < int(format_item['bid']) <= 10:
-                format_id = self.get_format(format_item['bid'])
-            else:
-                continue
-
-            video_urls = []
-
-            video_urls_info = format_item['fs']
-            if not format_item['fs'][0]['l'].startswith('/'):
-                t = get_encode_code(format_item['fs'][0]['l'])
-                if t.endswith('mp4'):
-                    video_urls_info = format_item['flvs']
-
-            for segment_index, segment in enumerate(video_urls_info):
-                vl = segment['l']
-                if not vl.startswith('/'):
-                    vl = get_encode_code(vl)
-                is_vip_video = '/vip/' in vl
-                filesize = segment['b']
-                base_url = data['vp']['du'].split('/')
-                if not is_vip_video:
-                    key = get_path_key(
-                        vl.split('/')[-1].split('.')[0], format_id, segment_index)
-                    base_url.insert(-1, key)
-                base_url = '/'.join(base_url)
-                param = {
-                    'su': _uuid,
-                    'qyid': uuid.uuid4().hex,
-                    'client': '',
-                    'z': '',
-                    'bt': '',
-                    'ct': '',
-                    'tn': str(int(time.time()))
-                }
-                api_video_url = base_url + vl
-                if is_vip_video:
-                    api_video_url = api_video_url.replace('.f4v', '.hml')
-                    auth_result = self._authenticate_vip_video(
-                        api_video_url, video_id, tvid, _uuid, need_vip_warning_report)
-                    if auth_result is False:
-                        need_vip_warning_report = False
-                        break
-                    param.update({
-                        't': auth_result['t'],
-                        # cid is hard-coded in com/qiyi/player/core/player/RuntimeData.as
-                        'cid': 'afbe8fd3d73448c9',
-                        'vid': video_id,
-                        'QY00001': auth_result['u'],
-                    })
-                api_video_url += '?' if '?' not in api_video_url else '&'
-                api_video_url += compat_urllib_parse_urlencode(param)
-                js = self._download_json(
-                    api_video_url, video_id,
-                    note='Download video info of segment %d for format %s' % (segment_index + 1, format_id))
-                video_url = js['l']
-                video_urls.append(
-                    (video_url, filesize))
-
-            video_urls_dict[format_id] = video_urls
-        return video_urls_dict
-
-    def get_format(self, bid):
-        matched_format_ids = [_format_id for _bid, _format_id in self._FORMATS_MAP if _bid == str(bid)]
-        return matched_format_ids[0] if len(matched_format_ids) else None
-
-    def get_bid(self, format_id):
-        matched_bids = [_bid for _bid, _format_id in self._FORMATS_MAP if _format_id == format_id]
-        return matched_bids[0] if len(matched_bids) else None
-
-    def get_raw_data(self, tvid, video_id, enc_key, _uuid):
-        tm = str(int(time.time()))
-        tail = tm + tvid
-        param = {
-            'key': 'fvip',
-            'src': md5_text('youtube-dl'),
-            'tvId': tvid,
             'vid': video_id,
-            'vinfo': 1,
-            'tm': tm,
-            'enc': md5_text(enc_key + tail),
-            'qyid': _uuid,
-            'tn': random.random(),
-            # In iQiyi's flash player, um is set to 1 if there's a logged user
-            # Some 1080P formats are only available with a logged user.
-            # Here force um=1 to trick the iQiyi server
-            'um': 1,
-            'authkey': md5_text(md5_text('') + tail),
-            'k_tag': 1,
+            'src': '76f90cbd92f94a2e925d83e8ccd22cb7',
+            'sc': sc,
+            't': tm,
         }
 
-        api_url = 'http://cache.video.qiyi.com/vms' + '?' + \
-            compat_urllib_parse_urlencode(param)
-        raw_data = self._download_json(api_url, video_id)
-        return raw_data
-
-    def get_enc_key(self, video_id):
-        # TODO: automatic key extraction
-        # last update at 2016-01-22 for Zombie::bite
-        enc_key = '4a1caba4b4465345366f28da7c117d20'
-        return enc_key
+        return self._download_json(
+            'http://cache.m.iqiyi.com/jp/tmts/%s/%s/' % (tvid, video_id),
+            video_id, transform_source=lambda s: remove_start(s, 'var tvInfoJs='),
+            query=params, headers=self.geo_verification_headers())
 
     def _extract_playlist(self, webpage):
         PAGE_SIZE = 50
@@ -571,58 +345,41 @@ class IqiyiIE(InfoExtractor):
             r'data-player-tvid\s*=\s*[\'"](\d+)', webpage, 'tvid')
         video_id = self._search_regex(
             r'data-player-videoid\s*=\s*[\'"]([a-f\d]+)', webpage, 'video_id')
-        _uuid = uuid.uuid4().hex
 
-        enc_key = self.get_enc_key(video_id)
+        formats = []
+        for _ in range(5):
+            raw_data = self.get_raw_data(tvid, video_id)
 
-        raw_data = self.get_raw_data(tvid, video_id, enc_key, _uuid)
+            if raw_data['code'] != 'A00000':
+                if raw_data['code'] == 'A00111':
+                    self.raise_geo_restricted()
+                raise ExtractorError('Unable to load data. Error code: ' + raw_data['code'])
 
-        if raw_data['code'] != 'A000000':
-            raise ExtractorError('Unable to load data. Error code: ' + raw_data['code'])
+            data = raw_data['data']
 
-        data = raw_data['data']
+            for stream in data['vidl']:
+                if 'm3utx' not in stream:
+                    continue
+                vd = compat_str(stream['vd'])
+                formats.append({
+                    'url': stream['m3utx'],
+                    'format_id': vd,
+                    'ext': 'mp4',
+                    'preference': self._FORMATS_MAP.get(vd, -1),
+                    'protocol': 'm3u8_native',
+                })
 
-        title = data['vi']['vn']
+            if formats:
+                break
 
-        # generate video_urls_dict
-        video_urls_dict = self.construct_video_urls(
-            data, video_id, _uuid, tvid)
+            self._sleep(5, video_id)
 
-        # construct info
-        entries = []
-        for format_id in video_urls_dict:
-            video_urls = video_urls_dict[format_id]
-            for i, video_url_info in enumerate(video_urls):
-                if len(entries) < i + 1:
-                    entries.append({'formats': []})
-                entries[i]['formats'].append(
-                    {
-                        'url': video_url_info[0],
-                        'filesize': video_url_info[-1],
-                        'format_id': format_id,
-                        'preference': int(self.get_bid(format_id))
-                    }
-                )
+        self._sort_formats(formats)
+        title = (get_element_by_id('widget-videotitle', webpage) or
+                 clean_html(get_element_by_attribute('class', 'mod-play-tit', webpage)))
 
-        for i in range(len(entries)):
-            self._sort_formats(entries[i]['formats'])
-            entries[i].update(
-                {
-                    'id': '%s_part%d' % (video_id, i + 1),
-                    'title': title,
-                }
-            )
-
-        if len(entries) > 1:
-            info = {
-                '_type': 'multi_video',
-                'id': video_id,
-                'title': title,
-                'entries': entries,
-            }
-        else:
-            info = entries[0]
-            info['id'] = video_id
-            info['title'] = title
-
-        return info
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': formats,
+        }

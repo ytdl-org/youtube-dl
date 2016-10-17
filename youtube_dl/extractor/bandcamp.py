@@ -29,7 +29,7 @@ class BandcampIE(InfoExtractor):
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '2b68e5851514c20efdff2afc5603b8b4',
+        'md5': '73d0b3171568232574e45652f8720b5c',
         'info_dict': {
             'id': '2650410135',
             'ext': 'mp3',
@@ -48,6 +48,10 @@ class BandcampIE(InfoExtractor):
             if m_trackinfo:
                 json_code = m_trackinfo.group(1)
                 data = json.loads(json_code)[0]
+                track_id = compat_str(data['id'])
+
+                if not data.get('file'):
+                    raise ExtractorError('Not streamable', video_id=track_id, expected=True)
 
                 formats = []
                 for format_id, format_url in data['file'].items():
@@ -64,7 +68,7 @@ class BandcampIE(InfoExtractor):
                 self._sort_formats(formats)
 
                 return {
-                    'id': compat_str(data['id']),
+                    'id': track_id,
                     'title': data['title'],
                     'formats': formats,
                     'duration': float_or_none(data.get('duration')),

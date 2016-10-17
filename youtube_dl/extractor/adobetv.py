@@ -156,7 +156,10 @@ class AdobeTVVideoIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_data = self._download_json(url + '?format=json', video_id)
+        webpage = self._download_webpage(url, video_id)
+
+        video_data = self._parse_json(self._search_regex(
+            r'var\s+bridge\s*=\s*([^;]+);', webpage, 'bridged data'), video_id)
 
         formats = [{
             'format_id': '%s-%s' % (determine_ext(source['src']), source.get('height')),

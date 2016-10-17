@@ -141,6 +141,10 @@ class ViewLiftIE(ViewLiftBaseIE):
     }, {
         'url': 'http://www.kesari.tv/news/video/1461919076414',
         'only_matching': True,
+    }, {
+        # Was once Kaltura embed
+        'url': 'https://www.monumentalsportsnetwork.com/videos/john-carlson-postgame-2-25-15',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

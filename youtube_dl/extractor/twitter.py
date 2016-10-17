@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     float_or_none,
     xpath_text,
     remove_end,
@@ -52,7 +53,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': 'dq4Oj5quskI',
                 'ext': 'mp4',
                 'title': 'Ubuntu 11.10 Overview',
-                'description': 'Take a quick peek at what\'s new and improved in Ubuntu 11.10.\n\nOnce installed take a look at 10 Things to Do After Installing: http://www.omgubuntu.co.uk/2011/10/10-things-to-do-after-installing-ubuntu-11-10/',
+                'description': 'Take a quick peek at what\'s new and improved in Ubuntu 11.10.\n\nOnce installed take a look at 10 Things to Do After Installing: http://www.omgubuntu.co.uk/2011/10/10...',
                 'upload_date': '20111013',
                 'uploader': 'OMG! Ubuntu!',
                 'uploader_id': 'omgubuntu',
@@ -116,13 +117,16 @@ class TwitterCardIE(TwitterBaseIE):
         video_url = config.get('video_url') or config.get('playlist', [{}])[0].get('source')
 
         if video_url:
-            f = {
-                'url': video_url,
-            }
+            if determine_ext(video_url) == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(video_url, video_id, ext='mp4', m3u8_id='hls'))
+            else:
+                f = {
+                    'url': video_url,
+                }
 
-            _search_dimensions_in_video_url(f, video_url)
+                _search_dimensions_in_video_url(f, video_url)
 
-            formats.append(f)
+                formats.append(f)
 
         vmap_url = config.get('vmapUrl') or config.get('vmap_url')
         if vmap_url:
@@ -207,6 +211,7 @@ class TwitterIE(InfoExtractor):
             'uploader_id': 'giphz',
         },
         'expected_warnings': ['height', 'width'],
+        'skip': 'Account suspended',
     }, {
         'url': 'https://twitter.com/starwars/status/665052190608723968',
         'md5': '39b7199856dee6cd4432e72c74bc69d4',
@@ -239,10 +244,10 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'jay - BEAT PROD: @suhmeduh #Damndaniel',
-            'description': 'jay on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'title': 'Donte The Dumbass - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'Donte The Dumbass on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
             'thumbnail': 're:^https?://.*\.jpg',
-            'uploader': 'jay',
+            'uploader': 'Donte The Dumbass',
             'uploader_id': 'jaydingeer',
         },
         'params': {
@@ -262,7 +267,6 @@ class TwitterIE(InfoExtractor):
         'add_ie': ['Vine'],
     }, {
         'url': 'https://twitter.com/captainamerica/status/719944021058060289',
-        # md5 constantly changes
         'info_dict': {
             'id': '719944021058060289',
             'ext': 'mp4',
@@ -271,6 +275,9 @@ class TwitterIE(InfoExtractor):
             'uploader_id': 'captainamerica',
             'uploader': 'Captain America',
         },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        },
     }]
 
     def _real_extract(self, url):
@@ -278,7 +285,11 @@ class TwitterIE(InfoExtractor):
         user_id = mobj.group('user_id')
         twid = mobj.group('id')
 
-        webpage = self._download_webpage(self._TEMPLATE_URL % (user_id, twid), twid)
+        webpage, urlh = self._download_webpage_handle(
+            self._TEMPLATE_URL % (user_id, twid), twid)
+
+        if 'twitter.com/account/suspended' in urlh.geturl():
+            raise ExtractorError('Account suspended by Twitter.', expected=True)
 
         username = remove_end(self._og_search_title(webpage), ' on Twitter')
 

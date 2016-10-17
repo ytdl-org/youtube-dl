@@ -13,8 +13,64 @@ from ..utils import (
 )
 
 
+class Revision3EmbedIE(InfoExtractor):
+    IE_NAME = 'revision3:embed'
+    _VALID_URL = r'(?:revision3:(?:(?P<playlist_type>[^:]+):)?|https?://(?:(?:(?:www|embed)\.)?(?:revision3|animalist)|(?:(?:api|embed)\.)?seekernetwork)\.com/player/embed\?videoId=)(?P<playlist_id>\d+)'
+    _TEST = {
+        'url': 'http://api.seekernetwork.com/player/embed?videoId=67558',
+        'md5': '83bcd157cab89ad7318dd7b8c9cf1306',
+        'info_dict': {
+            'id': '67558',
+            'ext': 'mp4',
+            'title': 'The Pros & Cons Of Zoos',
+            'description': 'Zoos are often depicted as a terrible place for animals to live, but is there any truth to this?',
+            'uploader_id': 'dnews',
+            'uploader': 'DNews',
+        }
+    }
+    _API_KEY = 'ba9c741bce1b9d8e3defcc22193f3651b8867e62'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('playlist_id')
+        playlist_type = mobj.group('playlist_type') or 'video_id'
+        video_data = self._download_json(
+            'http://revision3.com/api/getPlaylist.json', playlist_id, query={
+                'api_key': self._API_KEY,
+                'codecs': 'h264,vp8,theora',
+                playlist_type: playlist_id,
+            })['items'][0]
+
+        formats = []
+        for vcodec, media in video_data['media'].items():
+            for quality_id, quality in media.items():
+                if quality_id == 'hls':
+                    formats.extend(self._extract_m3u8_formats(
+                        quality['url'], playlist_id, 'mp4',
+                        'm3u8_native', m3u8_id='hls', fatal=False))
+                else:
+                    formats.append({
+                        'url': quality['url'],
+                        'format_id': '%s-%s' % (vcodec, quality_id),
+                        'tbr': int_or_none(quality.get('bitrate')),
+                        'vcodec': vcodec,
+                    })
+        self._sort_formats(formats)
+
+        return {
+            'id': playlist_id,
+            'title': unescapeHTML(video_data['title']),
+            'description': unescapeHTML(video_data.get('summary')),
+            'uploader': video_data.get('show', {}).get('name'),
+            'uploader_id': video_data.get('show', {}).get('slug'),
+            'duration': int_or_none(video_data.get('duration')),
+            'formats': formats,
+        }
+
+
 class Revision3IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:revision3|testtube|animalist)\.com)/(?P<id>[^/]+(?:/[^/?#]+)?)'
+    IE_NAME = 'revision'
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:revision3|animalist)\.com)/(?P<id>[^/]+(?:/[^/?#]+)?)'
     _TESTS = [{
         'url': 'http://www.revision3.com/technobuffalo/5-google-predictions-for-2016',
         'md5': 'd94a72d85d0a829766de4deb8daaf7df',
@@ -32,52 +88,14 @@ class Revision3IE(InfoExtractor):
         }
     }, {
         # Show
-        'url': 'http://testtube.com/brainstuff',
-        'info_dict': {
-            'id': '251',
-            'title': 'BrainStuff',
-            'description': 'Whether the topic is popcorn or particle physics, you can count on the HowStuffWorks team to explore-and explain-the everyday science in the world around us on BrainStuff.',
-        },
-        'playlist_mincount': 93,
-    }, {
-        'url': 'https://testtube.com/dnews/5-weird-ways-plants-can-eat-animals?utm_source=FB&utm_medium=DNews&utm_campaign=DNewsSocial',
-        'info_dict': {
-            'id': '58227',
-            'display_id': 'dnews/5-weird-ways-plants-can-eat-animals',
-            'duration': 275,
-            'ext': 'webm',
-            'title': '5 Weird Ways Plants Can Eat Animals',
-            'description': 'Why have some plants evolved to eat meat?',
-            'upload_date': '20150120',
-            'timestamp': 1421763300,
-            'uploader': 'DNews',
-            'uploader_id': 'dnews',
-        },
-    }, {
-        'url': 'http://testtube.com/tt-editors-picks/the-israel-palestine-conflict-explained-in-ten-min',
-        'info_dict': {
-            'id': '71618',
-            'ext': 'mp4',
-            'display_id': 'tt-editors-picks/the-israel-palestine-conflict-explained-in-ten-min',
-            'title': 'The Israel-Palestine Conflict Explained in Ten Minutes',
-            'description': 'If you\'d like to learn about the struggle between Israelis and Palestinians, this video is a great place to start',
-            'uploader': 'Editors\' Picks',
-            'uploader_id': 'tt-editors-picks',
-            'timestamp': 1453309200,
-            'upload_date': '20160120',
-        },
-        'add_ie': ['Youtube'],
+        'url': 'http://revision3.com/variant',
+        'only_matching': True,
     }, {
         # Tag
-        'url': 'http://testtube.com/tech-news',
-        'info_dict': {
-            'id': '21018',
-            'title': 'tech news',
-        },
-        'playlist_mincount': 9,
+        'url': 'http://revision3.com/vr',
+        'only_matching': True,
     }]
     _PAGE_DATA_TEMPLATE = 'http://www.%s/apiProxy/ddn/%s?domain=%s'
-    _API_KEY = 'ba9c741bce1b9d8e3defcc22193f3651b8867e62'
 
     def _real_extract(self, url):
         domain, display_id = re.match(self._VALID_URL, url).groups()
@@ -119,33 +137,9 @@ class Revision3IE(InfoExtractor):
                 })
                 return info
 
-            video_data = self._download_json(
-                'http://revision3.com/api/getPlaylist.json?api_key=%s&codecs=h264,vp8,theora&video_id=%s' % (self._API_KEY, video_id),
-                video_id)['items'][0]
-
-            formats = []
-            for vcodec, media in video_data['media'].items():
-                for quality_id, quality in media.items():
-                    if quality_id == 'hls':
-                        formats.extend(self._extract_m3u8_formats(
-                            quality['url'], video_id, 'mp4',
-                            'm3u8_native', m3u8_id='hls', fatal=False))
-                    else:
-                        formats.append({
-                            'url': quality['url'],
-                            'format_id': '%s-%s' % (vcodec, quality_id),
-                            'tbr': int_or_none(quality.get('bitrate')),
-                            'vcodec': vcodec,
-                        })
-            self._sort_formats(formats)
-
             info.update({
-                'title': unescapeHTML(video_data['title']),
-                'description': unescapeHTML(video_data.get('summary')),
-                'uploader': video_data.get('show', {}).get('name'),
-                'uploader_id': video_data.get('show', {}).get('slug'),
-                'duration': int_or_none(video_data.get('duration')),
-                'formats': formats,
+                '_type': 'url_transparent',
+                'url': 'revision3:%s' % video_id,
             })
             return info
         else:

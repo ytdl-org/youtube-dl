@@ -60,7 +60,8 @@ class IndavideoEmbedIE(InfoExtractor):
 
         formats = [{
             'url': video_url,
-            'height': self._search_regex(r'\.(\d{3,4})\.mp4$', video_url, 'height', default=None),
+            'height': int_or_none(self._search_regex(
+                r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None)),
         } for video_url in video_urls]
         self._sort_formats(formats)
 
