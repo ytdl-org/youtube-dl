@@ -17,7 +17,7 @@ class YouPornIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?youporn\.com/watch/(?P<id>\d+)/(?P<display_id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
-        'md5': '71ec5fcfddacf80f495efa8b6a8d9a89',
+        'md5': '3744d24c50438cf5b6f6d59feb5055c2',
         'info_dict': {
             'id': '505835',
             'display_id': 'sex-ed-is-it-safe-to-masturbate-daily',
@@ -121,21 +121,21 @@ class YouPornIE(InfoExtractor):
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
         uploader = self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']videoInfoBy(?:\s+[^"\']+)?["\'][^>]*>\s*By:\s*</div>(.+?)</(?:a|div)>',
+            r'(?s)<div[^>]+class=["\']submitByLink["\'][^>]*>(.+?)</div>',
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']videoInfoTime["\'][^>]*>(.+?)</div>',
+            r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>',
             webpage, 'upload date', fatal=False))
 
         age_limit = self._rta_search(webpage)
 
         average_rating = int_or_none(self._search_regex(
-            r'<div[^>]+class=["\']videoInfoRating["\'][^>]*>\s*<div[^>]+class=["\']videoRatingPercentage["\'][^>]*>(\d+)%</div>',
+            r'<div[^>]+class=["\']videoRatingPercentage["\'][^>]*>(\d+)%</div>',
             webpage, 'average rating', fatal=False))
 
         view_count = str_to_int(self._search_regex(
-            r'(?s)<div[^>]+class=["\']videoInfoViews["\'][^>]*>.*?([\d,.]+)\s*</div>',
-            webpage, 'view count', fatal=False))
+            r'(?s)<div[^>]+class=(["\']).*?\bvideoInfoViews\b.*?\1[^>]*>.*?(?P<count>[\d,.]+)<',
+            webpage, 'view count', fatal=False, group='count'))
         comment_count = str_to_int(self._search_regex(
             r'>All [Cc]omments? \(([\d,.]+)\)',
             webpage, 'comment count', fatal=False))

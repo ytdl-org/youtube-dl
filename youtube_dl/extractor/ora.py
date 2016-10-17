@@ -12,8 +12,8 @@ from ..utils import (
 
 
 class OraTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ora\.tv/([^/]+/)*(?P<id>[^/\?#]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:ora\.tv|unsafespeech\.com)/([^/]+/)*(?P<id>[^/\?#]+)'
+    _TESTS = [{
         'url': 'https://www.ora.tv/larrykingnow/2015/12/16/vine-youtube-stars-zach-king-king-bach-on-their-viral-videos-0_36jupg6090pq',
         'md5': 'fa33717591c631ec93b04b0e330df786',
         'info_dict': {
@@ -22,7 +22,10 @@ class OraTVIE(InfoExtractor):
             'title': 'Vine & YouTube Stars Zach King & King Bach On Their Viral Videos!',
             'description': 'md5:ebbc5b1424dd5dba7be7538148287ac1',
         }
-    }
+    }, {
+        'url': 'http://www.unsafespeech.com/video/2016/5/10/student-self-censorship-and-the-thought-police-on-university-campuses-0_6622bnkppw4d',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)

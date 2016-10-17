@@ -15,7 +15,8 @@ class VoxMediaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Google\'s new material design direction',
             'description': 'md5:2f44f74c4d14a1f800ea73e1c6832ad2',
-        }
+        },
+        'add_ie': ['Ooyala'],
     }, {
         # data-ooyala-id
         'url': 'http://www.theverge.com/2014/10/21/7025853/google-nexus-6-hands-on-photos-video-android-phablet',
@@ -25,7 +26,8 @@ class VoxMediaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The Nexus 6: hands-on with Google\'s phablet',
             'description': 'md5:87a51fe95ff8cea8b5bdb9ac7ae6a6af',
-        }
+        },
+        'add_ie': ['Ooyala'],
     }, {
         # volume embed
         'url': 'http://www.vox.com/2016/3/31/11336640/mississippi-lgbt-religious-freedom-bill',
@@ -35,7 +37,8 @@ class VoxMediaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The new frontier of LGBTQ civil rights, explained',
             'description': 'md5:0dc58e94a465cbe91d02950f770eb93f',
-        }
+        },
+        'add_ie': ['Ooyala'],
     }, {
         # youtube embed
         'url': 'http://www.vox.com/2016/3/24/11291692/robot-dance',
@@ -48,7 +51,8 @@ class VoxMediaIE(InfoExtractor):
             'upload_date': '20160324',
             'uploader_id': 'voxdotcom',
             'uploader': 'Vox',
-        }
+        },
+        'add_ie': ['Youtube'],
     }, {
         # SBN.VideoLinkset.entryGroup multiple ooyala embeds
         'url': 'http://www.sbnation.com/college-football-recruiting/2015/2/3/7970291/national-signing-day-rationalizations-itll-be-ok-itll-be-ok',
@@ -117,7 +121,7 @@ class VoxMediaIE(InfoExtractor):
             volume_webpage = self._download_webpage(
                 'http://volume.vox-cdn.com/embed/%s' % volume_uuid, volume_uuid)
             video_data = self._parse_json(self._search_regex(
-                r'Volume\.createVideo\(({.+})\s*,\s*{.*}\);', volume_webpage, 'video data'), volume_uuid)
+                r'Volume\.createVideo\(({.+})\s*,\s*{.*}\s*,\s*\[.*\]\s*,\s*{.*}\);', volume_webpage, 'video data'), volume_uuid)
             for provider_video_type in ('ooyala', 'youtube'):
                 provider_video_id = video_data.get('%s_id' % provider_video_type)
                 if provider_video_id:

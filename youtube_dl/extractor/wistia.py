@@ -3,16 +3,17 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    sanitized_Request,
     int_or_none,
+    float_or_none,
 )
 
 
 class WistiaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:fast\.)?wistia\.net/embed/iframe/(?P<id>[a-z0-9]+)'
-    _API_URL = 'http://fast.wistia.com/embed/medias/{0:}.json'
+    _VALID_URL = r'(?:wistia:|https?://(?:fast\.)?wistia\.net/embed/iframe/)(?P<id>[a-z0-9]+)'
+    _API_URL = 'http://fast.wistia.com/embed/medias/%s.json'
+    _IFRAME_URL = 'http://fast.wistia.net/embed/iframe/%s'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://fast.wistia.net/embed/iframe/sh7fpupwlt',
         'md5': 'cafeb56ec0c53c18c97405eecb3133df',
         'info_dict': {
@@ -24,36 +25,54 @@ class WistiaIE(InfoExtractor):
             'timestamp': 1386185018,
             'duration': 117,
         },
-    }
+    }, {
+        'url': 'wistia:sh7fpupwlt',
+        'only_matching': True,
+    }, {
+        # with hls video
+        'url': 'wistia:807fafadvk',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        request = sanitized_Request(self._API_URL.format(video_id))
-        request.add_header('Referer', url)  # Some videos require this.
-        data_json = self._download_json(request, video_id)
+        data_json = self._download_json(
+            self._API_URL % video_id, video_id,
+            # Some videos require this.
+            headers={
+                'Referer': url if url.startswith('http') else self._IFRAME_URL % video_id,
+            })
+
         if data_json.get('error'):
-            raise ExtractorError('Error while getting the playlist',
-                                 expected=True)
+            raise ExtractorError(
+                'Error while getting the playlist', expected=True)
+
         data = data_json['media']
         title = data['name']
 
         formats = []
         thumbnails = []
         for a in data['assets']:
+            aurl = a.get('url')
+            if not aurl:
+                continue
             astatus = a.get('status')
             atype = a.get('type')
-            if (astatus is not None and astatus != 2) or atype == 'preview':
+            if (astatus is not None and astatus != 2) or atype in ('preview', 'storyboard'):
                 continue
             elif atype in ('still', 'still_image'):
                 thumbnails.append({
-                    'url': a['url'],
-                    'resolution': '%dx%d' % (a['width'], a['height']),
+                    'url': aurl,
+                    'width': int_or_none(a.get('width')),
+                    'height': int_or_none(a.get('height')),
                 })
             else:
+                aext = a.get('ext')
+                is_m3u8 = a.get('container') == 'm3u8' or aext == 'm3u8'
                 formats.append({
                     'format_id': atype,
-                    'url': a['url'],
+                    'url': aurl,
                     'tbr': int_or_none(a.get('bitrate')),
                     'vbr': int_or_none(a.get('opt_vbitrate')),
                     'width': int_or_none(a.get('width')),
@@ -61,7 +80,8 @@ class WistiaIE(InfoExtractor):
                     'filesize': int_or_none(a.get('size')),
                     'vcodec': a.get('codec'),
                     'container': a.get('container'),
-                    'ext': a.get('ext'),
+                    'ext': 'mp4' if is_m3u8 else aext,
+                    'protocol': 'm3u8' if is_m3u8 else None,
                     'preference': 1 if atype == 'original' else None,
                 })
 
@@ -73,6 +93,6 @@ class WistiaIE(InfoExtractor):
             'description': data.get('seoDescription'),
             'formats': formats,
             'thumbnails': thumbnails,
-            'duration': int_or_none(data.get('duration')),
+            'duration': float_or_none(data.get('duration')),
             'timestamp': int_or_none(data.get('createdAt')),
         }

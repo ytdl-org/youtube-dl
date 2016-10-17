@@ -76,7 +76,7 @@ class Socks4Error(ProxyError):
 
     CODES = {
         91: 'request rejected or failed',
-        92: 'request rejected becasue SOCKS server cannot connect to identd on the client',
+        92: 'request rejected because SOCKS server cannot connect to identd on the client',
         93: 'request rejected because the client program and identd report different user-ids'
     }
 

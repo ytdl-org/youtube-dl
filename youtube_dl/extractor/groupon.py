@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class GrouponIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.groupon\.com/deals/(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?groupon\.com/deals/(?P<id>[^/?#&]+)'
 
     _TEST = {
         'url': 'https://www.groupon.com/deals/bikram-yoga-huntington-beach-2#ooid=tubGNycTo_9Uxg82uESj4i61EYX8nyuf',
@@ -14,17 +14,27 @@ class GrouponIE(InfoExtractor):
             'description': 'Studio kept at 105 degrees and 40% humidity with anti-microbial and anti-slip Flotex flooring; certified instructors',
         },
         'playlist': [{
+            'md5': '42428ce8a00585f9bc36e49226eae7a1',
             'info_dict': {
-                'id': 'tubGNycTo_9Uxg82uESj4i61EYX8nyuf',
-                'ext': 'flv',
-                'title': 'Bikram Yoga Huntington Beach | Orange County',
+                'id': 'fk6OhWpXgIQ',
+                'ext': 'mp4',
+                'title': 'Bikram Yoga Huntington Beach | Orange County !tubGNycTo@9Uxg82uESj4i61EYX8nyuf',
                 'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
-                'duration': 44.961,
+                'duration': 45,
+                'upload_date': '20160405',
+                'uploader_id': 'groupon',
+                'uploader': 'Groupon',
             },
+            'add_ie': ['Youtube'],
         }],
         'params': {
-            'skip_download': 'HDS',
-        }
+            'skip_download': True,
+        },
+    }
+
+    _PROVIDERS = {
+        'ooyala': ('ooyala:%s', 'Ooyala'),
+        'youtube': ('%s', 'Youtube'),
     }
 
     def _real_extract(self, url):
@@ -36,12 +46,17 @@ class GrouponIE(InfoExtractor):
         videos = payload['carousel'].get('dealVideos', [])
         entries = []
         for v in videos:
-            if v.get('provider') != 'OOYALA':
+            provider = v.get('provider')
+            video_id = v.get('media') or v.get('id') or v.get('baseURL')
+            if not provider or not video_id:
+                continue
+            url_pattern, ie_key = self._PROVIDERS.get(provider.lower())
+            if not url_pattern:
                 self.report_warning(
                     '%s: Unsupported video provider %s, skipping video' %
-                    (playlist_id, v.get('provider')))
+                    (playlist_id, provider))
                 continue
-            entries.append(self.url_result('ooyala:%s' % v['media']))
+            entries.append(self.url_result(url_pattern % video_id, ie_key))
 
         return {
             '_type': 'playlist',

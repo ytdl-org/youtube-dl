@@ -2,22 +2,19 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    js_to_json,
-    unescapeHTML,
-    int_or_none,
-)
+from ..utils import int_or_none
 
 
 class R7IE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://
+    _VALID_URL = r'''(?x)
+                        https?://
                         (?:
                             (?:[a-zA-Z]+)\.r7\.com(?:/[^/]+)+/idmedia/|
                             noticias\.r7\.com(?:/[^/]+)+/[^/]+-|
                             player\.r7\.com/video/i/
                         )
                         (?P<id>[\da-f]{24})
-                        '''
+                    '''
     _TESTS = [{
         'url': 'http://videos.r7.com/policiais-humilham-suspeito-a-beira-da-morte-morre-com-dignidade-/idmedia/54e7050b0cf2ff57e0279389.html',
         'md5': '403c4e393617e8e8ddc748978ee8efde',
@@ -25,6 +22,7 @@ class R7IE(InfoExtractor):
             'id': '54e7050b0cf2ff57e0279389',
             'ext': 'mp4',
             'title': 'Policiais humilham suspeito à beira da morte: "Morre com dignidade"',
+            'description': 'md5:01812008664be76a6479aa58ec865b72',
             'thumbnail': 're:^https?://.*\.jpg$',
             'duration': 98,
             'like_count': int,
@@ -44,45 +42,72 @@ class R7IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(
-            'http://player.r7.com/video/i/%s' % video_id, video_id)
+        video = self._download_json(
+            'http://player-api.r7.com/video/i/%s' % video_id, video_id)
 
-        item = self._parse_json(js_to_json(self._search_regex(
-            r'(?s)var\s+item\s*=\s*({.+?});', webpage, 'player')), video_id)
-
-        title = unescapeHTML(item['title'])
-        thumbnail = item.get('init', {}).get('thumbUri')
-        duration = None
-
-        statistics = item.get('statistics', {})
-        like_count = int_or_none(statistics.get('likes'))
-        view_count = int_or_none(statistics.get('views'))
+        title = video['title']
 
         formats = []
-        for format_key, format_dict in item['playlist'][0].items():
-            src = format_dict.get('src')
-            if not src:
-                continue
-            format_id = format_dict.get('format') or format_key
-            if duration is None:
-                duration = format_dict.get('duration')
-            if '.f4m' in src:
-                formats.extend(self._extract_f4m_formats(src, video_id, preference=-1))
-            elif src.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(src, video_id, 'mp4', preference=-2))
-            else:
-                formats.append({
-                    'url': src,
-                    'format_id': format_id,
-                })
+        media_url_hls = video.get('media_url_hls')
+        if media_url_hls:
+            formats.extend(self._extract_m3u8_formats(
+                media_url_hls, video_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False))
+        media_url = video.get('media_url')
+        if media_url:
+            f = {
+                'url': media_url,
+                'format_id': 'http',
+            }
+            # m3u8 format always matches the http format, let's copy metadata from
+            # one to another
+            m3u8_formats = list(filter(
+                lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+                formats))
+            if len(m3u8_formats) == 1:
+                f_copy = m3u8_formats[0].copy()
+                f_copy.update(f)
+                f_copy['protocol'] = 'http'
+                f = f_copy
+            formats.append(f)
         self._sort_formats(formats)
+
+        description = video.get('description')
+        thumbnail = video.get('thumb')
+        duration = int_or_none(video.get('media_duration'))
+        like_count = int_or_none(video.get('likes'))
+        view_count = int_or_none(video.get('views'))
 
         return {
             'id': video_id,
             'title': title,
+            'description': description,
             'thumbnail': thumbnail,
             'duration': duration,
             'like_count': like_count,
             'view_count': view_count,
             'formats': formats,
         }
+
+
+class R7ArticleIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:[a-zA-Z]+)\.r7\.com/(?:[^/]+/)+[^/?#&]+-(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://tv.r7.com/record-play/balanco-geral/videos/policiais-humilham-suspeito-a-beira-da-morte-morre-com-dignidade-16102015',
+        'only_matching': True,
+    }
+
+    @classmethod
+    def suitable(cls, url):
+        return False if R7IE.suitable(url) else super(R7ArticleIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        video_id = self._search_regex(
+            r'<div[^>]+(?:id=["\']player-|class=["\']embed["\'][^>]+id=["\'])([\da-f]{24})',
+            webpage, 'video id')
+
+        return self.url_result('http://player.r7.com/video/i/%s' % video_id, R7IE.ie_key())

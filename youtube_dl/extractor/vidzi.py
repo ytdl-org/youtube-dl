@@ -9,8 +9,8 @@ from ..utils import (
 
 
 class VidziIE(JWPlatformBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?P<id>\w+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
+    _TESTS = [{
         'url': 'http://vidzi.tv/cghql9yq6emu.html',
         'md5': '4f16c71ca0c8c8635ab6932b5f3f1660',
         'info_dict': {
@@ -22,12 +22,16 @@ class VidziIE(JWPlatformBaseIE):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://vidzi.tv/embed-4z2yb0rzphe9-600x338.html',
+        'skip_download': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'http://vidzi.tv/%s' % video_id, video_id)
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 

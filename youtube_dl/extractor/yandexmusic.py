@@ -20,18 +20,24 @@ class YandexMusicBaseIE(InfoExtractor):
             error = response.get('error')
             if error:
                 raise ExtractorError(error, expected=True)
+            if response.get('type') == 'captcha' or 'captcha' in response:
+                YandexMusicBaseIE._raise_captcha()
+
+    @staticmethod
+    def _raise_captcha():
+        raise ExtractorError(
+            'YandexMusic has considered youtube-dl requests automated and '
+            'asks you to solve a CAPTCHA. You can either wait for some '
+            'time until unblocked and optionally use --sleep-interval '
+            'in future or alternatively you can go to https://music.yandex.ru/ '
+            'solve CAPTCHA, then export cookies and pass cookie file to '
+            'youtube-dl with --cookies',
+            expected=True)
 
     def _download_webpage(self, *args, **kwargs):
         webpage = super(YandexMusicBaseIE, self)._download_webpage(*args, **kwargs)
         if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
-            raise ExtractorError(
-                'YandexMusic has considered youtube-dl requests automated and '
-                'asks you to solve a CAPTCHA. You can either wait for some '
-                'time until unblocked and optionally use --sleep-interval '
-                'in future or alternatively you can go to https://music.yandex.ru/ '
-                'solve CAPTCHA, then export cookies and pass cookie file to '
-                'youtube-dl with --cookies',
-                expected=True)
+            self._raise_captcha()
         return webpage
 
     def _download_json(self, *args, **kwargs):
@@ -68,6 +74,12 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'http://music.yandex.ru/api/v1.5/handlers/api-jsonp.jsx?action=getTrackSrc&p=download-info/%s'
             % storage_dir,
             track_id, 'Downloading track location JSON')
+
+        # Each string is now wrapped in a list, this is probably only temporarily thus
+        # supporting both scenarios (see https://github.com/rg3/youtube-dl/issues/10193)
+        for k, v in data.items():
+            if v and isinstance(v, list):
+                data[k] = v[0]
 
         key = hashlib.md5(('XGRlBW9FXlekgbPrRHuSiA' + data['path'][1:] + data['s']).encode('utf-8')).hexdigest()
         storage = storage_dir.split('.')

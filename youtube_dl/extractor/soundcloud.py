@@ -119,6 +119,12 @@ class SoundcloudIE(InfoExtractor):
     _CLIENT_ID = '02gUJC0hH2ct1EGOcYXQIzRFU91c72Ea'
     _IPHONE_CLIENT_ID = '376f225bf427445fc4bfb6b99b72e0bf'
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return [m.group('url') for m in re.finditer(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?://)?(?:w\.)?soundcloud\.com/player.+?)\1',
+            webpage)]
+
     def report_resolve(self, video_id):
         """Report information extraction."""
         self.to_screen('%s: Resolving id' % video_id)

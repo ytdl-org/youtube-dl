@@ -31,7 +31,7 @@ class BBCCoUkIE(InfoExtractor):
                             music/clips[/#]|
                             radio/player/
                         )
-                        (?P<id>%s)
+                        (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
                     ''' % _ID_REGEX
 
     _MEDIASELECTOR_URLS = [
@@ -192,6 +192,7 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+            'skip': 'Now it\'s really geo-restricted',
         }, {
             # compact player (https://github.com/rg3/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
@@ -588,7 +589,8 @@ class BBCIE(BBCCoUkIE):
         'info_dict': {
             'id': '150615_telabyad_kentin_cogu',
             'ext': 'mp4',
-            'title': "YPG: Tel Abyad'ın tamamı kontrolümüzde",
+            'title': "Tel Abyad'da IŞİD bayrağı indirildi YPG bayrağı çekildi",
+            'description': 'md5:33a4805a855c9baf7115fcbde57e7025',
             'timestamp': 1434397334,
             'upload_date': '20150615',
         },
@@ -602,6 +604,7 @@ class BBCIE(BBCCoUkIE):
             'id': '150619_video_honduras_militares_hospitales_corrupcion_aw',
             'ext': 'mp4',
             'title': 'Honduras militariza sus hospitales por nuevo escándalo de corrupción',
+            'description': 'md5:1525f17448c4ee262b64b8f0c9ce66c8',
             'timestamp': 1434713142,
             'upload_date': '20150619',
         },
@@ -698,7 +701,9 @@ class BBCIE(BBCCoUkIE):
 
     @classmethod
     def suitable(cls, url):
-        return False if BBCCoUkIE.suitable(url) or BBCCoUkArticleIE.suitable(url) else super(BBCIE, cls).suitable(url)
+        EXCLUDE_IE = (BBCCoUkIE, BBCCoUkArticleIE, BBCCoUkIPlayerPlaylistIE, BBCCoUkPlaylistIE)
+        return (False if any(ie.suitable(url) for ie in EXCLUDE_IE)
+                else super(BBCIE, cls).suitable(url))
 
     def _extract_from_media_meta(self, media_meta, video_id):
         # Direct links to media in media metadata (e.g.
@@ -815,8 +820,20 @@ class BBCIE(BBCCoUkIE):
                         # http://www.bbc.com/turkce/multimedya/2015/10/151010_vid_ankara_patlama_ani)
                         playlist = data_playable.get('otherSettings', {}).get('playlist', {})
                         if playlist:
-                            entries.append(self._extract_from_playlist_sxml(
-                                playlist.get('progressiveDownloadUrl'), playlist_id, timestamp))
+                            for key in ('progressiveDownload', 'streaming'):
+                                playlist_url = playlist.get('%sUrl' % key)
+                                if not playlist_url:
+                                    continue
+                                try:
+                                    entries.append(self._extract_from_playlist_sxml(
+                                        playlist_url, playlist_id, timestamp))
+                                except Exception as e:
+                                    # Some playlist URL may fail with 500, at the same time
+                                    # the other one may work fine (e.g.
+                                    # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu)
+                                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 500:
+                                        continue
+                                    raise
 
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
@@ -975,3 +992,82 @@ class BBCCoUkArticleIE(InfoExtractor):
             r'<div[^>]+typeof="Clip"[^>]+resource="([^"]+)"', webpage)]
 
         return self.playlist_result(entries, playlist_id, title, description)
+
+
+class BBCCoUkPlaylistBaseIE(InfoExtractor):
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result(self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
+            for video_id in re.findall(
+                self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage)]
+
+        title, description = self._extract_title_and_description(webpage)
+
+        return self.playlist_result(entries, playlist_id, title, description)
+
+
+class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
+    IE_NAME = 'bbc.co.uk:iplayer:playlist'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/(?:episodes|group)/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
+    _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
+    _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
+    _TESTS = [{
+        'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
+        'info_dict': {
+            'id': 'b05rcz9v',
+            'title': 'The Disappearance',
+            'description': 'French thriller serial about a missing teenager.',
+        },
+        'playlist_mincount': 6,
+        'skip': 'This programme is not currently available on BBC iPlayer',
+    }, {
+        # Available for over a year unlike 30 days for most other programmes
+        'url': 'http://www.bbc.co.uk/iplayer/group/p02tcc32',
+        'info_dict': {
+            'id': 'p02tcc32',
+            'title': 'Bohemian Icons',
+            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
+        },
+        'playlist_mincount': 10,
+    }]
+
+    def _extract_title_and_description(self, webpage):
+        title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
+        description = self._search_regex(
+            r'<p[^>]+class=(["\'])subtitle\1[^>]*>(?P<value>[^<]+)</p>',
+            webpage, 'description', fatal=False, group='value')
+        return title, description
+
+
+class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
+    IE_NAME = 'bbc.co.uk:playlist'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/programmes/(?P<id>%s)/(?:episodes|broadcasts|clips)' % BBCCoUkIE._ID_REGEX
+    _URL_TEMPLATE = 'http://www.bbc.co.uk/programmes/%s'
+    _VIDEO_ID_TEMPLATE = r'data-pid=["\'](%s)'
+    _TESTS = [{
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/clips',
+        'info_dict': {
+            'id': 'b05rcz9v',
+            'title': 'The Disappearance - Clips - BBC Four',
+            'description': 'French thriller serial about a missing teenager.',
+        },
+        'playlist_mincount': 7,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/broadcasts/2016/06',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b05rcz9v/clips',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bbc.co.uk/programmes/b055jkys/episodes/player',
+        'only_matching': True,
+    }]
+
+    def _extract_title_and_description(self, webpage):
+        title = self._og_search_title(webpage, fatal=False)
+        description = self._og_search_description(webpage)
+        return title, description
