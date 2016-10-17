@@ -9,9 +9,8 @@ from ..utils import (
 
 
 class SRMediathekIE(ARDMediathekIE):
-    IE_NAME = 'sr:mediathek'
     IE_DESC = 'Saarländischer Rundfunk'
-    _VALID_URL = r'https?://sr-mediathek(?:\.sr-online)?\.de/index\.php\?.*?&id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://sr-mediathek\.sr-online\.de/index\.php\?.*?&id=(?P<id>[0-9]+)'
 
     _TESTS = [{
         'url': 'http://sr-mediathek.sr-online.de/index.php?seite=7&id=28455',
@@ -35,9 +34,7 @@ class SRMediathekIE(ARDMediathekIE):
             # m3u8 download
             'skip_download': True,
         },
-    }, {
-        'url': 'http://sr-mediathek.de/index.php?seite=7&id=7480',
-        'only_matching': True,
+        'expected_warnings': ['Unable to download f4m manifest']
     }]
 
     def _real_extract(self, url):

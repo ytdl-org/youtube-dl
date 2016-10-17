@@ -47,8 +47,7 @@ class TwentyFourVideoIE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         description = self._html_search_regex(
-            r'<(p|span)[^>]+itemprop="description"[^>]*>(?P<description>[^<]+)</\1>',
-            webpage, 'description', fatal=False, group='description')
+            r'<span itemprop="description">([^<]+)</span>', webpage, 'description', fatal=False)
         thumbnail = self._og_search_thumbnail(webpage)
         duration = int_or_none(self._og_search_property(
             'duration', webpage, 'duration', fatal=False))

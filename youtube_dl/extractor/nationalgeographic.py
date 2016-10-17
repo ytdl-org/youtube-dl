@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .theplatform import ThePlatformIE
 from ..utils import (
     smuggle_url,
     url_basename,
@@ -62,7 +61,7 @@ class NationalGeographicIE(InfoExtractor):
         }
 
 
-class NationalGeographicChannelIE(ThePlatformIE):
+class NationalGeographicChannelIE(InfoExtractor):
     IE_NAME = 'natgeo:channel'
     _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/videos/(?P<id>[^/?]+)'
 
@@ -103,22 +102,12 @@ class NationalGeographicChannelIE(ThePlatformIE):
         release_url = self._search_regex(
             r'video_auth_playlist_url\s*=\s*"([^"]+)"',
             webpage, 'release url')
-        query = {
-            'mbr': 'true',
-            'switch': 'http',
-        }
-        is_auth = self._search_regex(r'video_is_auth\s*=\s*"([^"]+)"', webpage, 'is auth', fatal=False)
-        if is_auth == 'auth':
-            auth_resource_id = self._search_regex(
-                r"video_auth_resourceId\s*=\s*'([^']+)'",
-                webpage, 'auth resource id')
-            query['auth'] = self._extract_mvpd_auth(url, display_id, 'natgeo', auth_resource_id) or ''
 
         return {
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
             'url': smuggle_url(
-                update_url_query(release_url, query),
+                update_url_query(release_url, {'mbr': 'true', 'switch': 'http'}),
                 {'force_smil_url': True}),
             'display_id': display_id,
         }

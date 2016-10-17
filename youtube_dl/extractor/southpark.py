@@ -17,8 +17,6 @@ class SouthParkIE(MTVServicesInfoExtractor):
             'ext': 'mp4',
             'title': 'South Park|Bat Daded',
             'description': 'Randy disqualifies South Park by getting into a fight with Bat Dad.',
-            'timestamp': 1112760000,
-            'upload_date': '20050406',
         },
     }]
 
@@ -30,10 +28,6 @@ class SouthParkEsIE(SouthParkIE):
 
     _TESTS = [{
         'url': 'http://southpark.cc.com/episodios-en-espanol/s01e01-cartman-consigue-una-sonda-anal#source=351c1323-0b96-402d-a8b9-40d01b2e9bde&position=1&sort=!airdate',
-        'info_dict': {
-            'title': 'Cartman Consigue Una Sonda Anal',
-            'description': 'Cartman Consigue Una Sonda Anal',
-        },
         'playlist_count': 4,
     }]
 
@@ -48,27 +42,17 @@ class SouthParkDeIE(SouthParkIE):
         'info_dict': {
             'id': '85487c96-b3b9-4e39-9127-ad88583d9bf2',
             'ext': 'mp4',
-            'title': 'South Park|The Government Won\'t Respect My Privacy',
+            'title': 'The Government Won\'t Respect My Privacy',
             'description': 'Cartman explains the benefits of "Shitter" to Stan, Kyle and Craig.',
-            'timestamp': 1380160800,
-            'upload_date': '20130926',
         },
     }, {
         # non-ASCII characters in initial URL
         'url': 'http://www.southpark.de/alle-episoden/s18e09-hashtag-aufwärmen',
-        'info_dict': {
-            'title': 'Hashtag „Aufwärmen“',
-            'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
-        },
-        'playlist_count': 3,
+        'playlist_count': 4,
     }, {
         # non-ASCII characters in redirect URL
         'url': 'http://www.southpark.de/alle-episoden/s18e09',
-        'info_dict': {
-            'title': 'Hashtag „Aufwärmen“',
-            'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
-        },
-        'playlist_count': 3,
+        'playlist_count': 4,
     }]
 
 
@@ -79,11 +63,7 @@ class SouthParkNlIE(SouthParkIE):
 
     _TESTS = [{
         'url': 'http://www.southpark.nl/full-episodes/s18e06-freemium-isnt-free',
-        'info_dict': {
-            'title': 'Freemium Isn\'t Free',
-            'description': 'Stan is addicted to the new Terrance and Phillip mobile game.',
-        },
-        'playlist_mincount': 3,
+        'playlist_count': 4,
     }]
 
 
@@ -94,9 +74,5 @@ class SouthParkDkIE(SouthParkIE):
 
     _TESTS = [{
         'url': 'http://www.southparkstudios.dk/full-episodes/s18e07-grounded-vindaloop',
-        'info_dict': {
-            'title': 'Grounded Vindaloop',
-            'description': 'Butters is convinced he\'s living in a virtual reality.',
-        },
-        'playlist_mincount': 3,
+        'playlist_count': 4,
     }]

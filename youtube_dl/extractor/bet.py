@@ -1,27 +1,31 @@
 from __future__ import unicode_literals
 
-from .mtv import MTVServicesInfoExtractor
-from ..utils import unified_strdate
-from ..compat import compat_urllib_parse_urlencode
+from .common import InfoExtractor
+from ..compat import compat_urllib_parse_unquote
+from ..utils import (
+    xpath_text,
+    xpath_with_ns,
+    int_or_none,
+    parse_iso8601,
+)
 
 
-class BetIE(MTVServicesInfoExtractor):
+class BetIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bet\.com/(?:[^/]+/)+(?P<id>.+?)\.html'
     _TESTS = [
         {
             'url': 'http://www.bet.com/news/politics/2014/12/08/in-bet-exclusive-obama-talks-race-and-racism.html',
             'info_dict': {
-                'id': '07e96bd3-8850-3051-b856-271b457f0ab8',
+                'id': 'news/national/2014/a-conversation-with-president-obama',
                 'display_id': 'in-bet-exclusive-obama-talks-race-and-racism',
                 'ext': 'flv',
                 'title': 'A Conversation With President Obama',
-                'description': 'President Obama urges persistence in confronting racism and bias.',
+                'description': 'md5:699d0652a350cf3e491cd15cc745b5da',
                 'duration': 1534,
+                'timestamp': 1418075340,
                 'upload_date': '20141208',
+                'uploader': 'admin',
                 'thumbnail': 're:(?i)^https?://.*\.jpg$',
-                'subtitles': {
-                    'en': 'mincount:2',
-                }
             },
             'params': {
                 # rtmp download
@@ -31,17 +35,16 @@ class BetIE(MTVServicesInfoExtractor):
         {
             'url': 'http://www.bet.com/video/news/national/2014/justice-for-ferguson-a-community-reacts.html',
             'info_dict': {
-                'id': '9f516bf1-7543-39c4-8076-dd441b459ba9',
+                'id': 'news/national/2014/justice-for-ferguson-a-community-reacts',
                 'display_id': 'justice-for-ferguson-a-community-reacts',
                 'ext': 'flv',
                 'title': 'Justice for Ferguson: A Community Reacts',
                 'description': 'A BET News special.',
                 'duration': 1696,
+                'timestamp': 1416942360,
                 'upload_date': '20141125',
+                'uploader': 'admin',
                 'thumbnail': 're:(?i)^https?://.*\.jpg$',
-                'subtitles': {
-                    'en': 'mincount:2',
-                }
             },
             'params': {
                 # rtmp download
@@ -50,32 +53,57 @@ class BetIE(MTVServicesInfoExtractor):
         }
     ]
 
-    _FEED_URL = "http://feeds.mtvnservices.com/od/feed/bet-mrss-player"
-
-    def _get_feed_query(self, uri):
-        return compat_urllib_parse_urlencode({
-            'uuid': uri,
-        })
-
-    def _extract_mgid(self, webpage):
-        return self._search_regex(r'data-uri="([^"]+)', webpage, 'mgid')
-
     def _real_extract(self, url):
         display_id = self._match_id(url)
-
         webpage = self._download_webpage(url, display_id)
-        mgid = self._extract_mgid(webpage)
-        videos_info = self._get_videos_info(mgid)
 
-        info_dict = videos_info['entries'][0]
+        media_url = compat_urllib_parse_unquote(self._search_regex(
+            [r'mediaURL\s*:\s*"([^"]+)"', r"var\s+mrssMediaUrl\s*=\s*'([^']+)'"],
+            webpage, 'media URL'))
 
-        upload_date = unified_strdate(self._html_search_meta('date', webpage))
-        description = self._html_search_meta('description', webpage)
+        video_id = self._search_regex(
+            r'/video/(.*)/_jcr_content/', media_url, 'video id')
 
-        info_dict.update({
+        mrss = self._download_xml(media_url, display_id)
+
+        item = mrss.find('./channel/item')
+
+        NS_MAP = {
+            'dc': 'http://purl.org/dc/elements/1.1/',
+            'media': 'http://search.yahoo.com/mrss/',
+            'ka': 'http://kickapps.com/karss',
+        }
+
+        title = xpath_text(item, './title', 'title')
+        description = xpath_text(
+            item, './description', 'description', fatal=False)
+
+        timestamp = parse_iso8601(xpath_text(
+            item, xpath_with_ns('./dc:date', NS_MAP),
+            'upload date', fatal=False))
+        uploader = xpath_text(
+            item, xpath_with_ns('./dc:creator', NS_MAP),
+            'uploader', fatal=False)
+
+        media_content = item.find(
+            xpath_with_ns('./media:content', NS_MAP))
+        duration = int_or_none(media_content.get('duration'))
+        smil_url = media_content.get('url')
+
+        thumbnail = media_content.find(
+            xpath_with_ns('./media:thumbnail', NS_MAP)).get('url')
+
+        formats = self._extract_smil_formats(smil_url, display_id)
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
             'display_id': display_id,
+            'title': title,
             'description': description,
-            'upload_date': upload_date,
-        })
-
-        return info_dict
+            'thumbnail': thumbnail,
+            'timestamp': timestamp,
+            'uploader': uploader,
+            'duration': duration,
+            'formats': formats,
+        }

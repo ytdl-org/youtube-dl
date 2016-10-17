@@ -5,8 +5,6 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     parse_iso8601,
-    mimetype2ext,
-    determine_ext,
 )
 
 
@@ -52,25 +50,21 @@ class AMPIE(InfoExtractor):
         if isinstance(media_content, dict):
             media_content = [media_content]
         for media_data in media_content:
-            media = media_data.get('@attributes', {})
-            media_url = media.get('url')
-            if not media_url:
-                continue
-            ext = mimetype2ext(media.get('type')) or determine_ext(media_url)
-            if ext == 'f4m':
+            media = media_data['@attributes']
+            media_type = media['type']
+            if media_type == 'video/f4m':
                 formats.extend(self._extract_f4m_formats(
-                    media_url + '?hdcore=3.4.0&plugin=aasp-3.4.0.132.124',
+                    media['url'] + '?hdcore=3.4.0&plugin=aasp-3.4.0.132.124',
                     video_id, f4m_id='hds', fatal=False))
-            elif ext == 'm3u8':
+            elif media_type == 'application/x-mpegURL':
                 formats.extend(self._extract_m3u8_formats(
-                    media_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                    media['url'], video_id, 'mp4', m3u8_id='hls', fatal=False))
             else:
                 formats.append({
-                    'format_id': media_data.get('media-category', {}).get('@attributes', {}).get('label'),
+                    'format_id': media_data['media-category']['@attributes']['label'],
                     'url': media['url'],
                     'tbr': int_or_none(media.get('bitrate')),
                     'filesize': int_or_none(media.get('fileSize')),
-                    'ext': ext,
                 })
 
         self._sort_formats(formats)
