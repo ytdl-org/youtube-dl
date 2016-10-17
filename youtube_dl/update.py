@@ -83,8 +83,11 @@ def update_self(to_screen, verbose, opener):
 
     print_notes(to_screen, versions_info['versions'])
 
-    # sys.executable is set to the full pathname of the exe-file for py2exe
-    filename = sys.executable if hasattr(sys, 'frozen') else sys.argv[0]
+    filename = sys.argv[0]
+    # Py2EXE: Filename could be different
+    if hasattr(sys, 'frozen') and not os.path.isfile(filename):
+        if os.path.isfile(filename + '.exe'):
+            filename += '.exe'
 
     if not os.access(filename, os.W_OK):
         to_screen('ERROR: no write permissions on %s' % filename)
@@ -92,7 +95,7 @@ def update_self(to_screen, verbose, opener):
 
     # Py2EXE
     if hasattr(sys, 'frozen'):
-        exe = filename
+        exe = os.path.abspath(filename)
         directory = os.path.dirname(exe)
         if not os.access(directory, os.W_OK):
             to_screen('ERROR: no write permissions on %s' % directory)

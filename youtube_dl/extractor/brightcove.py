@@ -26,8 +26,6 @@ from ..utils import (
     unescapeHTML,
     unsmuggle_url,
     update_url_query,
-    clean_html,
-    mimetype2ext,
 )
 
 
@@ -92,7 +90,6 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'description': 'md5:363109c02998fee92ec02211bd8000df',
                 'uploader': 'National Ballet of Canada',
             },
-            'skip': 'Video gone',
         },
         {
             # test flv videos served by akamaihd.net
@@ -111,7 +108,7 @@ class BrightcoveLegacyIE(InfoExtractor):
             },
         },
         {
-            # playlist with 'videoList'
+            # playlist test
             # from http://support.brightcove.com/en/video-cloud/docs/playlist-support-single-video-players
             'url': 'http://c.brightcove.com/services/viewer/htmlFederated?playerID=3550052898001&playerKey=AQ%7E%7E%2CAAABmA9XpXk%7E%2C-Kp7jNgisre1fG5OdqpAFUTcs0lP_ZoL',
             'info_dict': {
@@ -119,15 +116,6 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'id': '3550319591001',
             },
             'playlist_mincount': 7,
-        },
-        {
-            # playlist with 'playlistTab' (https://github.com/rg3/youtube-dl/issues/9965)
-            'url': 'http://c.brightcove.com/services/json/experience/runtime/?command=get_programming_for_experience&playerKey=AQ%7E%7E,AAABXlLMdok%7E,NJ4EoMlZ4rZdx9eU1rkMVd8EaYPBBUlg',
-            'info_dict': {
-                'id': '1522758701001',
-                'title': 'Lesson 08',
-            },
-            'playlist_mincount': 10,
         },
     ]
     FLV_VCODECS = {
@@ -310,19 +298,13 @@ class BrightcoveLegacyIE(InfoExtractor):
             info_url, player_key, 'Downloading playlist information')
 
         json_data = json.loads(playlist_info)
-        if 'videoList' in json_data:
-            playlist_info = json_data['videoList']
-            playlist_dto = playlist_info['mediaCollectionDTO']
-        elif 'playlistTabs' in json_data:
-            playlist_info = json_data['playlistTabs']
-            playlist_dto = playlist_info['lineupListDTO']['playlistDTOs'][0]
-        else:
+        if 'videoList' not in json_data:
             raise ExtractorError('Empty playlist')
-
-        videos = [self._extract_video_info(video_info) for video_info in playlist_dto['videoDTOs']]
+        playlist_info = json_data['videoList']
+        videos = [self._extract_video_info(video_info) for video_info in playlist_info['mediaCollectionDTO']['videoDTOs']]
 
         return self.playlist_result(videos, playlist_id='%s' % playlist_info['id'],
-                                    playlist_title=playlist_dto['displayName'])
+                                    playlist_title=playlist_info['mediaCollectionDTO']['displayName'])
 
     def _extract_video_info(self, video_info):
         video_id = compat_str(video_info['id'])
@@ -462,10 +444,6 @@ class BrightcoveNewIE(InfoExtractor):
         # non numeric ref: prefixed video id
         'url': 'http://players.brightcove.net/710858724001/default_default/index.html?videoId=ref:event-stream-356',
         'only_matching': True,
-    }, {
-        # unavailable video without message but with error_code
-        'url': 'http://players.brightcove.net/1305187701/c832abfb-641b-44eb-9da0-2fe76786505f_default/index.html?videoId=4377407326001',
-        'only_matching': True,
     }]
 
     @staticmethod
@@ -536,9 +514,8 @@ class BrightcoveNewIE(InfoExtractor):
             })
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                json_data = self._parse_json(e.cause.read().decode(), video_id)[0]
-                raise ExtractorError(
-                    json_data.get('message') or json_data['error_code'], expected=True)
+                json_data = self._parse_json(e.cause.read().decode(), video_id)
+                raise ExtractorError(json_data[0]['message'], expected=True)
             raise
 
         title = json_data['name'].strip()
@@ -546,16 +523,14 @@ class BrightcoveNewIE(InfoExtractor):
         formats = []
         for source in json_data.get('sources', []):
             container = source.get('container')
-            ext = mimetype2ext(source.get('type'))
+            source_type = source.get('type')
             src = source.get('src')
-            if ext == 'ism':
-                continue
-            elif ext == 'm3u8' or container == 'M2TS':
+            if source_type == 'application/x-mpegURL' or container == 'M2TS':
                 if not src:
                     continue
                 formats.extend(self._extract_m3u8_formats(
                     src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-            elif ext == 'mpd':
+            elif source_type == 'application/dash+xml':
                 if not src:
                     continue
                 formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
@@ -571,7 +546,7 @@ class BrightcoveNewIE(InfoExtractor):
                     'tbr': tbr,
                     'filesize': int_or_none(source.get('size')),
                     'container': container,
-                    'ext': ext or container.lower(),
+                    'ext': container.lower(),
                 }
                 if width == 0 and height == 0:
                     f.update({
@@ -605,13 +580,6 @@ class BrightcoveNewIE(InfoExtractor):
                         'format_id': build_format_id('rtmp'),
                     })
                 formats.append(f)
-
-        errors = json_data.get('errors')
-        if not formats and errors:
-            error = errors[0]
-            raise ExtractorError(
-                error.get('message') or error.get('error_subcode') or error['error_code'], expected=True)
-
         self._sort_formats(formats)
 
         subtitles = {}
@@ -624,7 +592,7 @@ class BrightcoveNewIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': clean_html(json_data.get('description')),
+            'description': json_data.get('description'),
             'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
             'duration': float_or_none(json_data.get('duration'), 1000),
             'timestamp': parse_iso8601(json_data.get('published_at')),

@@ -26,17 +26,13 @@ class CBSNewsIE(CBSBaseIE):
                 # rtmp download
                 'skip_download': True,
             },
-            'skip': 'Subscribers only',
         },
         {
             'url': 'http://www.cbsnews.com/videos/fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack/',
             'info_dict': {
-                'id': 'SNJBOYzXiWBOvaLsdzwH8fmtP1SCd91Y',
+                'id': 'fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack',
                 'ext': 'mp4',
                 'title': 'Fort Hood shooting: Army downplays mental illness as cause of attack',
-                'description': 'md5:4a6983e480542d8b333a947bfc64ddc7',
-                'upload_date': '19700101',
-                'uploader': 'CBSI-NEW',
                 'thumbnail': 're:^https?://.*\.jpg$',
                 'duration': 205,
                 'subtitles': {
@@ -62,15 +58,37 @@ class CBSNewsIE(CBSBaseIE):
             webpage, 'video JSON info'), video_id)
 
         item = video_info['item'] if 'item' in video_info else video_info
-        guid = item['mpxRefId']
-        return self._extract_video_info('byGuid=%s' % guid, guid)
+        title = item.get('articleTitle') or item.get('hed')
+        duration = item.get('duration')
+        thumbnail = item.get('mediaImage') or item.get('thumbnail')
+
+        subtitles = {}
+        formats = []
+        for format_id in ['RtmpMobileLow', 'RtmpMobileHigh', 'Hls', 'RtmpDesktop']:
+            pid = item.get('media' + format_id)
+            if not pid:
+                continue
+            release_url = 'http://link.theplatform.com/s/dJ5BDC/%s?mbr=true' % pid
+            tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % pid)
+            formats.extend(tp_formats)
+            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
 
 
 class CBSNewsLiveVideoIE(InfoExtractor):
     IE_DESC = 'CBS News Live Videos'
     _VALID_URL = r'https?://(?:www\.)?cbsnews\.com/live/video/(?P<id>[\da-z_-]+)'
 
-    _TESTS = [{
+    _TEST = {
         'url': 'http://www.cbsnews.com/live/video/clinton-sanders-prepare-to-face-off-in-nh/',
         'info_dict': {
             'id': 'clinton-sanders-prepare-to-face-off-in-nh',
@@ -78,15 +96,7 @@ class CBSNewsLiveVideoIE(InfoExtractor):
             'title': 'Clinton, Sanders Prepare To Face Off In NH',
             'duration': 334,
         },
-        'skip': 'Video gone, redirected to http://www.cbsnews.com/live/',
-    }, {
-        'url': 'http://www.cbsnews.com/live/video/video-shows-intense-paragliding-accident/',
-        'info_dict': {
-            'id': 'video-shows-intense-paragliding-accident',
-            'ext': 'flv',
-            'title': 'Video Shows Intense Paragliding Accident',
-        },
-    }]
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

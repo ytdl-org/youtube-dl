@@ -49,7 +49,7 @@ class PladformIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//out\.pladform\.ru/player\?.+?)\1', webpage)
+            r'<iframe[^>]+src="(?P<url>(?:https?:)?//out\.pladform\.ru/player\?.+?)"', webpage)
         if mobj:
             return mobj.group('url')
 

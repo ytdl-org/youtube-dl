@@ -9,7 +9,6 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
-    get_element_by_id,
 )
 
 
@@ -41,7 +40,7 @@ class SlideshareIE(InfoExtractor):
         bucket = info['jsplayer']['video_bucket']
         ext = info['jsplayer']['video_extension']
         video_url = compat_urlparse.urljoin(bucket, doc + '-SD.' + ext)
-        description = get_element_by_id('slideshow-description-paragraph', webpage) or self._html_search_regex(
+        description = self._html_search_regex(
             r'(?s)<p[^>]+itemprop="description"[^>]*>(.+?)</p>', webpage,
             'description', fatal=False)
 
@@ -52,5 +51,5 @@ class SlideshareIE(InfoExtractor):
             'ext': ext,
             'url': video_url,
             'thumbnail': info['slideshow']['pin_image_url'],
-            'description': description.strip() if description else None,
+            'description': description,
         }

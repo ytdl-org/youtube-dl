@@ -8,7 +8,6 @@ from ..utils import (
     int_or_none,
     limit_length,
     lowercase_escape,
-    try_get,
 )
 
 
@@ -20,30 +19,18 @@ class InstagramIE(InfoExtractor):
         'info_dict': {
             'id': 'aye83DjauH',
             'ext': 'mp4',
+            'uploader_id': 'naomipq',
             'title': 'Video by naomipq',
             'description': 'md5:1f17f0ab29bd6fe2bfad705f58de3cb8',
-            'thumbnail': 're:^https?://.*\.jpg',
-            'timestamp': 1371748545,
-            'upload_date': '20130620',
-            'uploader_id': 'naomipq',
-            'uploader': 'Naomi Leonor Phan-Quang',
-            'like_count': int,
-            'comment_count': int,
-        },
+        }
     }, {
         # missing description
         'url': 'https://www.instagram.com/p/BA-pQFBG8HZ/?taken-by=britneyspears',
         'info_dict': {
             'id': 'BA-pQFBG8HZ',
             'ext': 'mp4',
-            'title': 'Video by britneyspears',
-            'thumbnail': 're:^https?://.*\.jpg',
-            'timestamp': 1453760977,
-            'upload_date': '20160125',
             'uploader_id': 'britneyspears',
-            'uploader': 'Britney Spears',
-            'like_count': int,
-            'comment_count': int,
+            'title': 'Video by britneyspears',
         },
         'params': {
             'skip_download': True,
@@ -80,57 +67,21 @@ class InstagramIE(InfoExtractor):
         url = mobj.group('url')
 
         webpage = self._download_webpage(url, video_id)
-
-        (video_url, description, thumbnail, timestamp, uploader,
-         uploader_id, like_count, comment_count) = [None] * 8
-
-        shared_data = self._parse_json(
-            self._search_regex(
-                r'window\._sharedData\s*=\s*({.+?});',
-                webpage, 'shared data', default='{}'),
-            video_id, fatal=False)
-        if shared_data:
-            media = try_get(
-                shared_data, lambda x: x['entry_data']['PostPage'][0]['media'], dict)
-            if media:
-                video_url = media.get('video_url')
-                description = media.get('caption')
-                thumbnail = media.get('display_src')
-                timestamp = int_or_none(media.get('date'))
-                uploader = media.get('owner', {}).get('full_name')
-                uploader_id = media.get('owner', {}).get('username')
-                like_count = int_or_none(media.get('likes', {}).get('count'))
-                comment_count = int_or_none(media.get('comments', {}).get('count'))
-
-        if not video_url:
-            video_url = self._og_search_video_url(webpage, secure=False)
-
-        if not uploader_id:
-            uploader_id = self._search_regex(
-                r'"owner"\s*:\s*{\s*"username"\s*:\s*"(.+?)"',
-                webpage, 'uploader id', fatal=False)
-
-        if not description:
-            description = self._search_regex(
-                r'"caption"\s*:\s*"(.+?)"', webpage, 'description', default=None)
-            if description is not None:
-                description = lowercase_escape(description)
-
-        if not thumbnail:
-            thumbnail = self._og_search_thumbnail(webpage)
+        uploader_id = self._search_regex(r'"owner":{"username":"(.+?)"',
+                                         webpage, 'uploader id', fatal=False)
+        desc = self._search_regex(
+            r'"caption":"(.+?)"', webpage, 'description', default=None)
+        if desc is not None:
+            desc = lowercase_escape(desc)
 
         return {
             'id': video_id,
-            'url': video_url,
+            'url': self._og_search_video_url(webpage, secure=False),
             'ext': 'mp4',
             'title': 'Video by %s' % uploader_id,
-            'description': description,
-            'thumbnail': thumbnail,
-            'timestamp': timestamp,
+            'thumbnail': self._og_search_thumbnail(webpage),
             'uploader_id': uploader_id,
-            'uploader': uploader,
-            'like_count': like_count,
-            'comment_count': comment_count,
+            'description': desc,
         }
 
 
