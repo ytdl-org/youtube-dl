@@ -58,8 +58,7 @@ class CDAIE(InfoExtractor):
         def extract_format(page, version):
             unpacked = decode_packed_codes(page)
             format_url = self._search_regex(
-                r"(?:file|url)\s*:\s*(\\?[\"'])(?P<url>http.+?)\1", unpacked,
-                '%s url' % version, fatal=False, group='url')
+                r"url:\\'(.+?)\\'", unpacked, '%s url' % version, fatal=False)
             if not format_url:
                 return
             f = {
@@ -76,8 +75,7 @@ class CDAIE(InfoExtractor):
             info_dict['formats'].append(f)
             if not info_dict['duration']:
                 info_dict['duration'] = parse_duration(self._search_regex(
-                    r"duration\s*:\s*(\\?[\"'])(?P<duration>.+?)\1",
-                    unpacked, 'duration', fatal=False, group='duration'))
+                    r"duration:\\'(.+?)\\'", unpacked, 'duration', fatal=False))
 
         extract_format(webpage, 'default')
 

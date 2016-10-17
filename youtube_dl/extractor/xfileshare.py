@@ -5,10 +5,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    decode_packed_codes,
     ExtractorError,
     int_or_none,
-    NO_DEFAULT,
     sanitized_Request,
     urlencode_postdata,
 )
@@ -25,24 +23,20 @@ class XFileShareIE(InfoExtractor):
         ('thevideobee.to', 'TheVideoBee'),
         ('vidto.me', 'Vidto'),
         ('streamin.to', 'Streamin.To'),
-        ('xvidstage.com', 'XVIDSTAGE'),
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
     _VALID_URL = (r'https?://(?P<host>(?:www\.)?(?:%s))/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
                   % '|'.join(re.escape(site) for site in list(zip(*_SITES))[0]))
 
-    _FILE_NOT_FOUND_REGEXES = (
-        r'>(?:404 - )?File Not Found<',
-        r'>The file was removed by administrator<',
-    )
+    _FILE_NOT_FOUND_REGEX = r'>(?:404 - )?File Not Found<'
 
     _TESTS = [{
         'url': 'http://gorillavid.in/06y9juieqpmi',
         'md5': '5ae4a3580620380619678ee4875893ba',
         'info_dict': {
             'id': '06y9juieqpmi',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Rebecca Black My Moment Official Music Video Reaction-6GK87Rc8bzQ',
             'thumbnail': 're:http://.*\.jpg',
         },
@@ -68,8 +62,7 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
             'thumbnail': 're:http://.*\.jpg',
-        },
-        'skip': 'Video removed',
+        }
     }, {
         'url': 'http://vidto.me/ku5glz52nqe1.html',
         'info_dict': {
@@ -84,17 +77,6 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Big Buck Bunny trailer',
         },
-    }, {
-        'url': 'http://xvidstage.com/e0qcnl03co6z',
-        'info_dict': {
-            'id': 'e0qcnl03co6z',
-            'ext': 'mp4',
-            'title': 'Chucky Prank 2015.mp4',
-        },
-    }, {
-        # removed by administrator
-        'url': 'http://xvidstage.com/amfy7atlkx25',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -104,7 +86,7 @@ class XFileShareIE(InfoExtractor):
         url = 'http://%s/%s' % (mobj.group('host'), video_id)
         webpage = self._download_webpage(url, video_id)
 
-        if any(re.search(p, webpage) for p in self._FILE_NOT_FOUND_REGEXES):
+        if re.search(self._FILE_NOT_FOUND_REGEX, webpage) is not None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         fields = self._hidden_inputs(webpage)
@@ -130,23 +112,10 @@ class XFileShareIE(InfoExtractor):
              r'>Watch (.+) ',
              r'<h2 class="video-page-head">([^<]+)</h2>'],
             webpage, 'title', default=None) or self._og_search_title(webpage)).strip()
-
-        def extract_video_url(default=NO_DEFAULT):
-            return self._search_regex(
-                (r'file\s*:\s*(["\'])(?P<url>http.+?)\1,',
-                 r'file_link\s*=\s*(["\'])(?P<url>http.+?)\1',
-                 r'addVariable\((\\?["\'])file\1\s*,\s*(\\?["\'])(?P<url>http.+?)\2\)',
-                 r'<embed[^>]+src=(["\'])(?P<url>http.+?)\1'),
-                webpage, 'file url', default=default, group='url')
-
-        video_url = extract_video_url(default=None)
-
-        if not video_url:
-            webpage = decode_packed_codes(self._search_regex(
-                r"(}\('(.+)',(\d+),(\d+),'[^']*\b(?:file|embed)\b[^']*'\.split\('\|'\))",
-                webpage, 'packed code'))
-            video_url = extract_video_url()
-
+        video_url = self._search_regex(
+            [r'file\s*:\s*["\'](http[^"\']+)["\'],',
+             r'file_link\s*=\s*\'(https?:\/\/[0-9a-zA-z.\/\-_]+)'],
+            webpage, 'file url')
         thumbnail = self._search_regex(
             r'image\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'thumbnail', default=None)
 

@@ -26,11 +26,9 @@ def parseOpts(overrideArguments=None):
         except IOError:
             return default  # silently skip if file is not present
         try:
-            # FIXME: https://github.com/rg3/youtube-dl/commit/dfe5fa49aed02cf36ba9f743b11b0903554b5e56
-            contents = optionf.read()
-            if sys.version_info < (3,):
-                contents = contents.decode(preferredencoding())
-            res = compat_shlex_split(contents, comments=True)
+            res = []
+            for l in optionf:
+                res += compat_shlex_split(l, comments=True)
         finally:
             optionf.close()
         return res
@@ -218,15 +216,10 @@ def parseOpts(overrideArguments=None):
         help='Make all connections via IPv6 (experimental)',
     )
     network.add_option(
-        '--geo-verification-proxy',
-        dest='geo_verification_proxy', default=None, metavar='URL',
-        help='Use this proxy to verify the IP address for some geo-restricted sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
-    )
-    network.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
-        help=optparse.SUPPRESS_HELP,
+        help='Use this proxy to verify the IP address for some Chinese sites. '
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
     )
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
@@ -406,8 +399,8 @@ def parseOpts(overrideArguments=None):
 
     downloader = optparse.OptionGroup(parser, 'Download Options')
     downloader.add_option(
-        '-r', '--limit-rate', '--rate-limit',
-        dest='ratelimit', metavar='RATE',
+        '-r', '--rate-limit',
+        dest='ratelimit', metavar='LIMIT',
         help='Maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option(
         '-R', '--retries',
@@ -679,7 +672,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writeannotations', default=False,
         help='Write video annotations to a .annotations.xml file')
     filesystem.add_option(
-        '--load-info-json', '--load-info',
+        '--load-info',
         dest='load_info_filename', metavar='FILE',
         help='JSON file containing the video information (created with the "--write-info-json" option)')
     filesystem.add_option(
@@ -820,11 +813,11 @@ def parseOpts(overrideArguments=None):
             system_conf = []
             user_conf = []
         else:
-            system_conf = _readOptions('/etc/youtube-dl.conf')
+            system_conf = compat_conf(_readOptions('/etc/youtube-dl.conf'))
             if '--ignore-config' in system_conf:
                 user_conf = []
             else:
-                user_conf = _readUserConf()
+                user_conf = compat_conf(_readUserConf())
         argv = system_conf + user_conf + command_line_conf
 
         opts, args = parser.parse_args(argv)
