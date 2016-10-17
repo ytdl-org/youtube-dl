@@ -85,7 +85,7 @@ class ExternalFD(FileDownloader):
             cmd, stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         if p.returncode != 0:
-            self.to_stderr(stderr)
+            self.to_stderr(stderr.decode('utf-8', 'replace'))
         return p.returncode
 
 
@@ -210,6 +210,7 @@ class FFmpegFD(ExternalFD):
             # args += ['-http_proxy', proxy]
             env = os.environ.copy()
             compat_setenv('HTTP_PROXY', proxy, env=env)
+            compat_setenv('http_proxy', proxy, env=env)
 
         protocol = info_dict.get('protocol')
 

@@ -150,7 +150,7 @@ class LivestreamIE(InfoExtractor):
         }
 
     def _extract_stream_info(self, stream_info):
-        broadcast_id = stream_info['broadcast_id']
+        broadcast_id = compat_str(stream_info['broadcast_id'])
         is_live = stream_info.get('is_live')
 
         formats = []
@@ -203,9 +203,10 @@ class LivestreamIE(InfoExtractor):
             if not videos_info:
                 break
             for v in videos_info:
+                v_id = compat_str(v['id'])
                 entries.append(self.url_result(
-                    'http://livestream.com/accounts/%s/events/%s/videos/%s' % (account_id, event_id, v['id']),
-                    'Livestream', v['id'], v['caption']))
+                    'http://livestream.com/accounts/%s/events/%s/videos/%s' % (account_id, event_id, v_id),
+                    'Livestream', v_id, v.get('caption')))
             last_video = videos_info[-1]['id']
         return self.playlist_result(entries, event_id, event_data['full_name'])
 

@@ -8,19 +8,19 @@ from .generic import GenericIE
 from ..utils import (
     determine_ext,
     ExtractorError,
-    get_element_by_attribute,
     qualities,
     int_or_none,
     parse_duration,
     unified_strdate,
     xpath_text,
+    update_url_query,
 )
 from ..compat import compat_etree_fromstring
 
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.daserste\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         'url': 'http://www.ardmediathek.de/tv/Dokumentation-und-Reportage/Ich-liebe-das-Leben-trotzdem/rbb-Fernsehen/Video?documentId=29582122&bcastId=3822114',
@@ -35,6 +35,7 @@ class ARDMediathekIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         'url': 'http://www.ardmediathek.de/tv/Tatort/Tatort-Scheinwelten-H%C3%B6rfassung-Video/Das-Erste/Video?documentId=29522730&bcastId=602916',
         'md5': 'f4d98b10759ac06c0072bbcd1f0b9e3e',
@@ -45,6 +46,7 @@ class ARDMediathekIE(InfoExtractor):
             'description': 'md5:196392e79876d0ac94c94e8cdb2875f1',
             'duration': 5252,
         },
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         # audio
         'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
@@ -56,9 +58,22 @@ class ARDMediathekIE(InfoExtractor):
             'description': 'md5:f6e39f3461f0e1f54bfa48c8875c86ef',
             'duration': 3240,
         },
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
         'only_matching': True,
+    }, {
+        # audio
+        'url': 'http://mediathek.rbb-online.de/radio/Hörspiel/Vor-dem-Fest/kulturradio/Audio?documentId=30796318&topRessort=radio&bcastId=9839158',
+        'md5': '4e8f00631aac0395fee17368ac0e9867',
+        'info_dict': {
+            'id': '30796318',
+            'ext': 'mp3',
+            'title': 'Vor dem Fest',
+            'description': 'md5:c0c1c8048514deaed2a73b3a60eecacb',
+            'duration': 3287,
+        },
+        'skip': 'Video is no longer available',
     }]
 
     def _extract_media_info(self, media_info_url, webpage, video_id):
@@ -114,11 +129,14 @@ class ARDMediathekIE(InfoExtractor):
                         continue
                     if ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
-                            stream_url + '?hdcore=3.1.1&plugin=aasp-3.1.1.69.124',
-                            video_id, preference=-1, f4m_id='hds', fatal=False))
+                            update_url_query(stream_url, {
+                                'hdcore': '3.1.1',
+                                'plugin': 'aasp-3.1.1.69.124'
+                            }),
+                            video_id, f4m_id='hds', fatal=False))
                     elif ext == 'm3u8':
                         formats.extend(self._extract_m3u8_formats(
-                            stream_url, video_id, 'mp4', preference=1, m3u8_id='hls', fatal=False))
+                            stream_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
                     else:
                         if server and server.startswith('rtmp'):
                             f = {
@@ -232,7 +250,8 @@ class ARDIE(InfoExtractor):
             'title': 'Die Story im Ersten: Mission unter falscher Flagge',
             'upload_date': '20140804',
             'thumbnail': 're:^https?://.*\.jpg$',
-        }
+        },
+        'skip': 'HTTP Error 404: Not Found',
     }
 
     def _real_extract(self, url):
@@ -274,41 +293,3 @@ class ARDIE(InfoExtractor):
             'upload_date': upload_date,
             'thumbnail': thumbnail,
         }
-
-
-class SportschauIE(ARDMediathekIE):
-    IE_NAME = 'Sportschau'
-    _VALID_URL = r'(?P<baseurl>https?://(?:www\.)?sportschau\.de/(?:[^/]+/)+video(?P<id>[^/#?]+))\.html'
-    _TESTS = [{
-        'url': 'http://www.sportschau.de/tourdefrance/videoseppeltkokainhatnichtsmitklassischemdopingzutun100.html',
-        'info_dict': {
-            'id': 'seppeltkokainhatnichtsmitklassischemdopingzutun100',
-            'ext': 'mp4',
-            'title': 'Seppelt: "Kokain hat nichts mit klassischem Doping zu tun"',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'description': 'Der ARD-Doping Experte Hajo Seppelt gibt seine Einschätzung zum ersten Dopingfall der diesjährigen Tour de France um den Italiener Luca Paolini ab.',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        base_url = mobj.group('baseurl')
-
-        webpage = self._download_webpage(url, video_id)
-        title = get_element_by_attribute('class', 'headline', webpage)
-        description = self._html_search_meta('description', webpage, 'description')
-
-        info = self._extract_media_info(
-            base_url + '-mc_defaultQuality-h.json', webpage, video_id)
-
-        info.update({
-            'title': title,
-            'description': description,
-        })
-
-        return info

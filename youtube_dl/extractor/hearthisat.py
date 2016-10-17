@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     HEADRequest,
+    KNOWN_EXTENSIONS,
     sanitized_Request,
     str_to_int,
     urlencode_postdata,
@@ -17,7 +18,7 @@ from ..utils import (
 class HearThisAtIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?hearthis\.at/(?P<artist>[^/]+)/(?P<title>[A-Za-z0-9\-]+)/?$'
     _PLAYLIST_URL = 'https://hearthis.at/playlist.php'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://hearthis.at/moofi/dr-kreep',
         'md5': 'ab6ec33c8fed6556029337c7885eb4e0',
         'info_dict': {
@@ -26,7 +27,7 @@ class HearThisAtIE(InfoExtractor):
             'title': 'Moofi - Dr. Kreep',
             'thumbnail': 're:^https?://.*\.jpg$',
             'timestamp': 1421564134,
-            'description': 'Creepy Patch. Mutable Instruments Braids Vowel + Formant Mode.',
+            'description': 'Listen to Dr. Kreep by Moofi on hearthis.at - Modular, Eurorack, Mutable Intruments Braids, Valhalla-DSP',
             'upload_date': '20150118',
             'comment_count': int,
             'view_count': int,
@@ -34,7 +35,25 @@ class HearThisAtIE(InfoExtractor):
             'duration': 71,
             'categories': ['Experimental'],
         }
-    }
+    }, {
+        # 'download' link redirects to the original webpage
+        'url': 'https://hearthis.at/twitchsf/dj-jim-hopkins-totally-bitchin-80s-dance-mix/',
+        'md5': '5980ceb7c461605d30f1f039df160c6e',
+        'info_dict': {
+            'id': '811296',
+            'ext': 'mp3',
+            'title': 'TwitchSF - DJ Jim Hopkins -  Totally Bitchin\' 80\'s Dance Mix!',
+            'description': 'Listen to DJ Jim Hopkins -  Totally Bitchin\' 80\'s Dance Mix! by TwitchSF on hearthis.at - Dance',
+            'upload_date': '20160328',
+            'timestamp': 1459186146,
+            'thumbnail': 're:^https?://.*\.jpg$',
+            'comment_count': int,
+            'view_count': int,
+            'like_count': int,
+            'duration': 4360,
+            'categories': ['Dance'],
+        },
+    }]
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
@@ -90,13 +109,14 @@ class HearThisAtIE(InfoExtractor):
             ext_handle = self._request_webpage(
                 ext_req, display_id, note='Determining extension')
             ext = urlhandle_detect_ext(ext_handle)
-            formats.append({
-                'format_id': 'download',
-                'vcodec': 'none',
-                'ext': ext,
-                'url': download_url,
-                'preference': 2,  # Usually better quality
-            })
+            if ext in KNOWN_EXTENSIONS:
+                formats.append({
+                    'format_id': 'download',
+                    'vcodec': 'none',
+                    'ext': ext,
+                    'url': download_url,
+                    'preference': 2,  # Usually better quality
+                })
         self._sort_formats(formats)
 
         return {

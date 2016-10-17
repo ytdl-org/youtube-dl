@@ -37,11 +37,12 @@ class LimelightBaseIE(InfoExtractor):
 
         for stream in streams:
             stream_url = stream.get('url')
-            if not stream_url:
+            if not stream_url or stream.get('drmProtected'):
                 continue
-            if '.f4m' in stream_url:
+            ext = determine_ext(stream_url)
+            if ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
-                    stream_url, video_id, fatal=False))
+                    stream_url, video_id, f4m_id='hds', fatal=False))
             else:
                 fmt = {
                     'url': stream_url,
@@ -50,7 +51,7 @@ class LimelightBaseIE(InfoExtractor):
                     'fps': float_or_none(stream.get('videoFrameRate')),
                     'width': int_or_none(stream.get('videoWidthInPixels')),
                     'height': int_or_none(stream.get('videoHeightInPixels')),
-                    'ext': determine_ext(stream_url)
+                    'ext': ext,
                 }
                 rtmp = re.search(r'^(?P<url>rtmpe?://[^/]+/(?P<app>.+))/(?P<playpath>mp4:.+)$', stream_url)
                 if rtmp:
@@ -68,18 +69,23 @@ class LimelightBaseIE(InfoExtractor):
 
         for mobile_url in mobile_urls:
             media_url = mobile_url.get('mobileUrl')
-            if not media_url:
-                continue
             format_id = mobile_url.get('targetMediaPlatform')
-            if determine_ext(media_url) == 'm3u8':
+            if not media_url or format_id == 'Widevine':
+                continue
+            ext = determine_ext(media_url)
+            if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     media_url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id=format_id, fatal=False))
+            elif ext == 'f4m':
+                formats.extend(self._extract_f4m_formats(
+                    stream_url, video_id, f4m_id=format_id, fatal=False))
             else:
                 formats.append({
                     'url': media_url,
                     'format_id': format_id,
                     'preference': -1,
+                    'ext': ext,
                 })
 
         self._sort_formats(formats)
@@ -98,13 +104,19 @@ class LimelightBaseIE(InfoExtractor):
         } for thumbnail in properties.get('thumbnails', []) if thumbnail.get('url')]
 
         subtitles = {}
-        for caption in properties.get('captions', {}):
+        for caption in properties.get('captions', []):
             lang = caption.get('language_code')
             subtitles_url = caption.get('url')
             if lang and subtitles_url:
-                subtitles[lang] = [{
+                subtitles.setdefault(lang, []).append({
                     'url': subtitles_url,
-                }]
+                })
+        closed_captions_url = properties.get('closed_captions_url')
+        if closed_captions_url:
+            subtitles.setdefault('en', []).append({
+                'url': closed_captions_url,
+                'ext': 'ttml',
+            })
 
         return {
             'id': video_id,
@@ -123,12 +135,23 @@ class LimelightBaseIE(InfoExtractor):
 
 class LimelightMediaIE(LimelightBaseIE):
     IE_NAME = 'limelight'
-    _VALID_URL = r'(?:limelight:media:|https?://link\.videoplatform\.limelight\.com/media/\??\bmediaId=)(?P<id>[a-z0-9]{32})'
+    _VALID_URL = r'''(?x)
+                        (?:
+                            limelight:media:|
+                            https?://
+                                (?:
+                                    link\.videoplatform\.limelight\.com/media/|
+                                    assets\.delvenetworks\.com/player/loader\.swf
+                                )
+                                \?.*?\bmediaId=
+                        )
+                        (?P<id>[a-z0-9]{32})
+                    '''
     _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?mediaId=3ffd040b522b4485b6d84effc750cd86',
         'info_dict': {
             'id': '3ffd040b522b4485b6d84effc750cd86',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'HaP and the HB Prince Trailer',
             'description': 'md5:8005b944181778e313d95c1237ddb640',
             'thumbnail': 're:^https?://.*\.jpeg$',
@@ -137,7 +160,7 @@ class LimelightMediaIE(LimelightBaseIE):
             'upload_date': '20090604',
         },
         'params': {
-            # rtmp download
+            # m3u8 download
             'skip_download': True,
         },
     }, {
@@ -147,7 +170,6 @@ class LimelightMediaIE(LimelightBaseIE):
             'id': 'a3e00274d4564ec4a9b29b9466432335',
             'ext': 'flv',
             'title': '3Play Media Overview Video',
-            'description': '',
             'thumbnail': 're:^https?://.*\.jpeg$',
             'duration': 78.101,
             'timestamp': 1338929955,
@@ -158,6 +180,9 @@ class LimelightMediaIE(LimelightBaseIE):
             # rtmp download
             'skip_download': True,
         },
+    }, {
+        'url': 'https://assets.delvenetworks.com/player/loader.swf?mediaId=8018a574f08d416e95ceaccae4ba0452',
+        'only_matching': True,
     }]
     _PLAYLIST_SERVICE_PATH = 'media'
     _API_PATH = 'media'
@@ -176,15 +201,29 @@ class LimelightMediaIE(LimelightBaseIE):
 
 class LimelightChannelIE(LimelightBaseIE):
     IE_NAME = 'limelight:channel'
-    _VALID_URL = r'(?:limelight:channel:|https?://link\.videoplatform\.limelight\.com/media/\??\bchannelId=)(?P<id>[a-z0-9]{32})'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                        (?:
+                            limelight:channel:|
+                            https?://
+                                (?:
+                                    link\.videoplatform\.limelight\.com/media/|
+                                    assets\.delvenetworks\.com/player/loader\.swf
+                                )
+                                \?.*?\bchannelId=
+                        )
+                        (?P<id>[a-z0-9]{32})
+                    '''
+    _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?channelId=ab6a524c379342f9b23642917020c082',
         'info_dict': {
             'id': 'ab6a524c379342f9b23642917020c082',
             'title': 'Javascript Sample Code',
         },
         'playlist_mincount': 3,
-    }
+    }, {
+        'url': 'http://assets.delvenetworks.com/player/loader.swf?channelId=ab6a524c379342f9b23642917020c082',
+        'only_matching': True,
+    }]
     _PLAYLIST_SERVICE_PATH = 'channel'
     _API_PATH = 'channels'
 
@@ -207,15 +246,29 @@ class LimelightChannelIE(LimelightBaseIE):
 
 class LimelightChannelListIE(LimelightBaseIE):
     IE_NAME = 'limelight:channel_list'
-    _VALID_URL = r'(?:limelight:channel_list:|https?://link\.videoplatform\.limelight\.com/media/\?.*?\bchannelListId=)(?P<id>[a-z0-9]{32})'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                        (?:
+                            limelight:channel_list:|
+                            https?://
+                                (?:
+                                    link\.videoplatform\.limelight\.com/media/|
+                                    assets\.delvenetworks\.com/player/loader\.swf
+                                )
+                                \?.*?\bchannelListId=
+                        )
+                        (?P<id>[a-z0-9]{32})
+                    '''
+    _TESTS = [{
         'url': 'http://link.videoplatform.limelight.com/media/?channelListId=301b117890c4465c8179ede21fd92e2b',
         'info_dict': {
             'id': '301b117890c4465c8179ede21fd92e2b',
             'title': 'Website - Hero Player',
         },
         'playlist_mincount': 2,
-    }
+    }, {
+        'url': 'https://assets.delvenetworks.com/player/loader.swf?channelListId=301b117890c4465c8179ede21fd92e2b',
+        'only_matching': True,
+    }]
     _PLAYLIST_SERVICE_PATH = 'channel_list'
 
     def _real_extract(self, url):
