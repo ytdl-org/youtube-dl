@@ -191,7 +191,7 @@ class NYTimesArticleIE(NYTimesBaseIE):
 
         episode = audio_data.get('podcast', {}).get('episode') or ''
         episode_number = int_or_none(self._search_regex(
-            r'[Ee]pisode\s+(\d+)', episode, 'epidode number', default=None))
+            r'[Ee]pisode\s+(\d+)', episode, 'episode number', default=None))
 
         return {
             'id': remove_start(podcast_audio.get('target'), 'FT') or page_id,
