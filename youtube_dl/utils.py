@@ -780,7 +780,7 @@ class ContentTooShortError(YoutubeDLError):
 
     def __init__(self, downloaded, expected):
         super(ContentTooShortError, self).__init__(
-            'Downloaded {} bytes, expected {} bytes'.format(downloaded, expected)
+            'Downloaded {0} bytes, expected {1} bytes'.format(downloaded, expected)
         )
         # Both in bytes
         self.downloaded = downloaded
