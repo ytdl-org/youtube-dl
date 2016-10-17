@@ -17,12 +17,8 @@ class DreiSatIE(ZDFIE):
                 'ext': 'mp4',
                 'title': 'Waidmannsheil',
                 'description': 'md5:cce00ca1d70e21425e72c86a98a56817',
-                'uploader': 'SCHWEIZWEIT',
-                'uploader_id': '100000210',
+                'uploader': '3sat',
                 'upload_date': '20140913'
-            },
-            'params': {
-                'skip_download': True,  # m3u8 downloads
             }
         },
         {

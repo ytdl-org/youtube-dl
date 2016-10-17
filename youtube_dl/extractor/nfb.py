@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    clean_html,
-    determine_ext,
-    int_or_none,
-    qualities,
+    sanitized_Request,
     urlencode_postdata,
-    xpath_text,
 )
 
 
@@ -20,12 +16,12 @@ class NFBIE(InfoExtractor):
         'url': 'https://www.nfb.ca/film/qallunaat_why_white_people_are_funny',
         'info_dict': {
             'id': 'qallunaat_why_white_people_are_funny',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Qallunaat! Why White People Are Funny ',
-            'description': 'md5:6b8e32dde3abf91e58857b174916620c',
+            'description': 'md5:836d8aff55e087d04d9f6df554d4e038',
             'duration': 3128,
-            'creator': 'Mark Sandiford',
             'uploader': 'Mark Sandiford',
+            'uploader_id': 'mark-sandiford',
         },
         'params': {
             # rtmp download
@@ -35,78 +31,65 @@ class NFBIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        page = self._download_webpage(
+            'https://www.nfb.ca/film/%s' % video_id, video_id,
+            'Downloading film page')
 
-        config = self._download_xml(
+        uploader_id = self._html_search_regex(r'<a class="director-link" href="/explore-all-directors/([^/]+)/"',
+                                              page, 'director id', fatal=False)
+        uploader = self._html_search_regex(r'<em class="director-name" itemprop="name">([^<]+)</em>',
+                                           page, 'director name', fatal=False)
+
+        request = sanitized_Request(
             'https://www.nfb.ca/film/%s/player_config' % video_id,
-            video_id, 'Downloading player config XML',
-            data=urlencode_postdata({'getConfig': 'true'}),
-            headers={
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-NFB-Referer': 'http://www.nfb.ca/medias/flash/NFBVideoPlayer.swf'
-            })
+            urlencode_postdata({'getConfig': 'true'}))
+        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        request.add_header('X-NFB-Referer', 'http://www.nfb.ca/medias/flash/NFBVideoPlayer.swf')
 
-        title, description, thumbnail, duration, uploader, author = [None] * 6
-        thumbnails, formats = [[]] * 2
-        subtitles = {}
+        config = self._download_xml(request, video_id, 'Downloading player config XML')
+
+        title = None
+        description = None
+        thumbnail = None
+        duration = None
+        formats = []
+
+        def extract_thumbnail(media):
+            thumbnails = {}
+            for asset in media.findall('assets/asset'):
+                thumbnails[asset.get('quality')] = asset.find('default/url').text
+            if not thumbnails:
+                return None
+            if 'high' in thumbnails:
+                return thumbnails['high']
+            return list(thumbnails.values())[0]
 
         for media in config.findall('./player/stream/media'):
             if media.get('type') == 'posterImage':
-                quality_key = qualities(('low', 'high'))
-                thumbnails = []
-                for asset in media.findall('assets/asset'):
-                    asset_url = xpath_text(asset, 'default/url', default=None)
-                    if not asset_url:
-                        continue
-                    quality = asset.get('quality')
-                    thumbnails.append({
-                        'url': asset_url,
-                        'id': quality,
-                        'preference': quality_key(quality),
-                    })
+                thumbnail = extract_thumbnail(media)
             elif media.get('type') == 'video':
-                title = xpath_text(media, 'title', fatal=True)
+                duration = int(media.get('duration'))
+                title = media.find('title').text
+                description = media.find('description').text
+                # It seems assets always go from lower to better quality, so no need to sort
                 for asset in media.findall('assets/asset'):
-                    quality = asset.get('quality')
-                    height = int_or_none(self._search_regex(
-                        r'^(\d+)[pP]$', quality or '', 'height', default=None))
-                    for node in asset:
-                        streamer = xpath_text(node, 'streamerURI', default=None)
-                        if not streamer:
-                            continue
-                        play_path = xpath_text(node, 'url', default=None)
-                        if not play_path:
-                            continue
+                    for x in asset:
                         formats.append({
-                            'url': streamer,
-                            'app': streamer.split('/', 3)[3],
-                            'play_path': play_path,
+                            'url': x.find('streamerURI').text,
+                            'app': x.find('streamerURI').text.split('/', 3)[3],
+                            'play_path': x.find('url').text,
                             'rtmp_live': False,
-                            'ext': 'flv',
-                            'format_id': '%s-%s' % (node.tag, quality) if quality else node.tag,
-                            'height': height,
+                            'ext': 'mp4',
+                            'format_id': '%s-%s' % (x.tag, asset.get('quality')),
                         })
-                self._sort_formats(formats)
-                description = clean_html(xpath_text(media, 'description'))
-                uploader = xpath_text(media, 'author')
-                duration = int_or_none(media.get('duration'))
-                for subtitle in media.findall('./subtitles/subtitle'):
-                    subtitle_url = xpath_text(subtitle, 'url', default=None)
-                    if not subtitle_url:
-                        continue
-                    lang = xpath_text(subtitle, 'lang', default='en')
-                    subtitles.setdefault(lang, []).append({
-                        'url': subtitle_url,
-                        'ext': (subtitle.get('format') or determine_ext(subtitle_url)).lower(),
-                    })
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'thumbnails': thumbnails,
+            'thumbnail': thumbnail,
             'duration': duration,
-            'creator': uploader,
             'uploader': uploader,
+            'uploader_id': uploader_id,
             'formats': formats,
-            'subtitles': subtitles,
         }

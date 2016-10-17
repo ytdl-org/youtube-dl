@@ -142,9 +142,7 @@ class UdemyIE(InfoExtractor):
             self._LOGIN_URL, None, 'Downloading login popup')
 
         def is_logged(webpage):
-            return any(re.search(p, webpage) for p in (
-                r'href=["\'](?:https://www\.udemy\.com)?/user/logout/',
-                r'>Logout<'))
+            return any(p in webpage for p in ['href="https://www.udemy.com/user/logout/', '>Logout<'])
 
         # already logged in
         if is_logged(login_popup):
