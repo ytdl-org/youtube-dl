@@ -1867,7 +1867,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'title': 'Uploads from Interstellar Movie',
             'id': 'UUXw-G3eDE9trcvY2sBMM_aA',
         },
-        'playlist_mincout': 21,
+        'playlist_mincount': 21,
     }, {
         # Playlist URL that does not actually serve a playlist
         'url': 'https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4',
@@ -1890,6 +1890,27 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'skip_download': True,
         },
         'add_ie': [YoutubeIE.ie_key()],
+    }, {
+        'url': 'https://youtu.be/yeWKywCrFtk?list=PL2qgrgXsNUG5ig9cat4ohreBjYLAPC0J5',
+        'info_dict': {
+            'id': 'yeWKywCrFtk',
+            'ext': 'mp4',
+            'title': 'Small Scale Baler and Braiding Rugs',
+            'uploader': 'Backus-Page House Museum',
+            'uploader_id': 'backuspagemuseum',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/backuspagemuseum',
+            'upload_date': '20161008',
+            'license': 'Standard YouTube License',
+            'description': 'md5:800c0c78d5eb128500bffd4f0b4f2e8a',
+            'categories': ['Nonprofits & Activism'],
+            'tags': list,
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'noplaylist': True,
+            'skip_download': True,
+        },
     }, {
         'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
         'only_matching': True,
@@ -1971,8 +1992,10 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     def _check_download_just_video(self, url, playlist_id):
         # Check if it's a video-specific URL
         query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
-        if 'v' in query_dict:
-            video_id = query_dict['v'][0]
+        video_id = query_dict.get('v', [None])[0] or self._search_regex(
+            r'(?:^|//)youtu\.be/([0-9A-Za-z_-]{11})', url,
+            'video id', default=None)
+        if video_id:
             if self._downloader.params.get('noplaylist'):
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
                 return video_id, self.url_result(video_id, 'Youtube', video_id=video_id)
