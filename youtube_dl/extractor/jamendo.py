@@ -11,14 +11,14 @@ class JamendoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?jamendo\.com/track/(?P<id>[0-9]+)/(?P<display_id>[\w-]+)'
     _TEST = {
         'url': 'https://www.jamendo.com/track/196219/stories-from-emona-i',
-        'md5': '697564d8b10c60af35edda4fafb3fbfd',
+        'md5': '6e9e82ed6db98678f171c25a8ed09ffd',
         'info_dict': {
             'id': '196219',
             'display_id': 'stories-from-emona-i',
-            'ext': 'mp3',
+            'ext': 'flac',
             'title': 'Stories from Emona I',
             'thumbnail': 're:^https?://.*\.jpg',
-            'url': 'https://mp3d.jamendo.com/download/track/196219/mp32'
+            'url': 'https://flac.jamendo.com/download/track/196219/flac/'
         }
     }
 
@@ -30,14 +30,39 @@ class JamendoIE(InfoExtractor):
         thumbnail = self._html_search_meta(
             'image', webpage, 'thumbnail', fatal=False)
         title = self._html_search_meta('name', webpage, 'title')
-
+        formats = [
+            {
+                'format_id': 'mp31',
+                'url': 'https://mp3l.jamendo.com/download/track/%s/mp31/'
+                % track_id,
+                'ext': 'mp3'
+            },
+            {
+                'format_id': 'mp32',
+                'url': 'https://mp3d.jamendo.com/download/track/%s/mp32/'
+                % track_id,
+                'ext': 'mp3'
+            },
+            {
+                'format_id': 'ogg',
+                'url': 'https://ogg.jamendo.com/download/track/%s/ogg1/'
+                % track_id,
+                'ext': 'ogg'
+            },
+            {
+                'format_id': 'flac',
+                'url': 'https://flac.jamendo.com/download/track/%s/flac/'
+                % track_id,
+                'ext': 'flac'
+            }
+        ]
+        self._check_formats(formats, video_id=track_id)
         return {
             'id': track_id,
             'display_id': url_data.group('display_id'),
-            'ext': 'mp3',
-            'title': title,
             'thumbnail': thumbnail,
-            'url': 'https://mp3d.jamendo.com/download/track/%s/mp32' % track_id
+            'title': title,
+            'formats': formats
         }
 
 
