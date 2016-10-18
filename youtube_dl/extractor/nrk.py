@@ -113,7 +113,17 @@ class NRKBaseIE(InfoExtractor):
 
 
 class NRKIE(NRKBaseIE):
-    _VALID_URL = r'(?:nrk:|https?://(?:www\.)?nrk\.no/video/PS\*)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)
+                        (?:
+                            nrk:|
+                            https?://
+                                (?:
+                                    (?:www\.)?nrk\.no/video/PS\*|
+                                    v8-psapi\.nrk\.no/mediaelement/
+                                )
+                            )
+                            (?P<id>[^/?#&]+)
+                        '''
     _API_HOST = 'v8.psapi.nrk.no'
     _TESTS = [{
         # video
@@ -139,6 +149,9 @@ class NRKIE(NRKBaseIE):
         }
     }, {
         'url': 'nrk:ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
+    }, {
+        'url': 'https://v8-psapi.nrk.no/mediaelement/ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
         'only_matching': True,
     }]
 
