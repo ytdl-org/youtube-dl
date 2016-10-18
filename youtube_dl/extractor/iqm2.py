@@ -56,10 +56,15 @@ class IQM2IE(JWPlatformBaseIE):
         {
             'url': 'https://CambridgeMA.IQM2.com/Citizens/VideoMain.aspx?MeetingID=1679',
             'only_matching': True,
-        }]
+        },
+        {
+            'url': 'https://CambridgeMA.IQM2.com/Citizens/VideoMain.aspx?MeetingID=1594',
+            'only_matching': True,
+            }
+    ]
 
     def _find_jwplayer_data(self, webpage):
-        mobj = re.search(r'SetupJWPlayer\(eval\(\'(?P<options>[^)]+)\'\)', webpage)
+        mobj = re.search(r'SetupJWPlayer\(eval\(\'(?P<options>.+)\'\)\);', webpage)
         if mobj:
             return mobj.group('options')
         
