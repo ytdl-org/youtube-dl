@@ -1,5 +1,8 @@
 version <unreleased>
 
+Extractors
+* [openload] Fix extraction (#10408, #10971)
+
 
 version 2016.10.19
 
