@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.19
 
 Core
 + [utils] Expose PACKED_CODES_RE
