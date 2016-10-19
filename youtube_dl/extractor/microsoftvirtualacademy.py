@@ -71,11 +71,14 @@ class MicrosoftVirtualAcademyIE(MicrosoftVirtualAcademyBaseIE):
         formats = []
 
         for sources in settings.findall(compat_xpath('.//MediaSources')):
-            if sources.get('videoType') == 'smoothstreaming':
-                continue
+            sources_type = sources.get('videoType')
             for source in sources.findall(compat_xpath('./MediaSource')):
                 video_url = source.text
                 if not video_url or not video_url.startswith('http'):
+                    continue
+                if sources_type == 'smoothstreaming':
+                    formats.extend(self._extract_ism_formats(
+                        video_url, video_id, 'mss', fatal=False))
                     continue
                 video_mode = source.get('videoMode')
                 height = int_or_none(self._search_regex(
