@@ -35,7 +35,8 @@ class VidziIE(JWPlatformBaseIE):
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 
-        code = decode_packed_codes(webpage).replace('\\\'', '\'')
+        code = decode_packed_codes(self._html_search_regex(
+            r'.*jwplayer\.js.*\n(.*)', webpage, 'code')).replace('\\\'', '\'')
         jwplayer_data = self._parse_json(
             self._search_regex(r'setup\(([^)]+)\)', code, 'jwplayer data'),
             video_id, transform_source=js_to_json)
