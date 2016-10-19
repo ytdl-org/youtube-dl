@@ -49,7 +49,7 @@ class VierIE(InfoExtractor):
             webpage, 'filename')
 
         playlist_url = 'http://vod.streamcloud.be/%s/_definst_/mp4:%s.mp4/playlist.m3u8' % (application, filename)
-        formats = self._extract_wowza_formats(playlist_url, display_id)
+        formats = self._extract_wowza_formats(playlist_url, display_id, skip_protocols=['dash'])
         self._sort_formats(formats)
 
         title = self._og_search_title(webpage, default=display_id)

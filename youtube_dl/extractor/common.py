@@ -1884,11 +1884,11 @@ class InfoExtractor(object):
             formats.extend(self._extract_f4m_formats(
                 http_base_url + '/manifest.f4m',
                 video_id, f4m_id='hds', fatal=False))
+        if 'dash' not in skip_protocols:
+            formats.extend(self._extract_mpd_formats(
+                http_base_url + '/manifest.mpd',
+                video_id, mpd_id='dash', fatal=False))
         if re.search(r'(?:/smil:|\.smil)', url_base):
-            if 'dash' not in skip_protocols:
-                formats.extend(self._extract_mpd_formats(
-                    http_base_url + '/manifest.mpd',
-                    video_id, mpd_id='dash', fatal=False))
             if 'smil' not in skip_protocols:
                 rtmp_formats = self._extract_smil_formats(
                     http_base_url + '/jwplayer.smil',
