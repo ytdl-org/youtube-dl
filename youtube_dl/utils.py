@@ -165,6 +165,8 @@ DATE_FORMATS_MONTH_FIRST.extend([
     '%m/%d/%Y %H:%M:%S',
 ])
 
+PACKED_CODES_RE = r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)"
+
 
 def preferredencoding():
     """Get preferred encoding.
@@ -3017,9 +3019,7 @@ def encode_base_n(num, n, table=None):
 
 
 def decode_packed_codes(code):
-    mobj = re.search(
-        r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)",
-        code)
+    mobj = re.search(PACKED_CODES_RE, code)
     obfucasted_code, base, count, symbols = mobj.groups()
     base = int(base)
     count = int(count)
