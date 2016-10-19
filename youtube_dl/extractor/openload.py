@@ -70,10 +70,15 @@ class OpenloadIE(InfoExtractor):
             r'<span[^>]*>([^<]+)</span>\s*<span[^>]*>[^<]+</span>\s*<span[^>]+id="streamurl"',
             webpage, 'encrypted data')
 
+        magic = compat_ord(enc_data[-1])
         video_url_chars = []
 
         for idx, c in enumerate(enc_data):
             j = compat_ord(c)
+            if j == magic:
+                j -= 1
+            elif j == magic - 1:
+                j += 1
             if j >= 33 and j <= 126:
                 j = ((j + 14) % 94) + 33
             if idx == len(enc_data) - 1:
