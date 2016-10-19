@@ -56,8 +56,8 @@ class OnetBaseIE(InfoExtractor):
                         continue
                     ext = determine_ext(video_url)
                     if format_id == 'ism':
-                        # TODO: Support Microsoft Smooth Streaming
-                        continue
+                        formats.extend(self._extract_ism_formats(
+                            video_url, video_id, 'mss', fatal=False))
                     elif ext == 'mpd':
                         formats.extend(self._extract_mpd_formats(
                             video_url, video_id, mpd_id='dash', fatal=False))
