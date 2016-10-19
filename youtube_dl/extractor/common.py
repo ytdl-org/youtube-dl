@@ -1100,6 +1100,13 @@ class InfoExtractor(object):
             manifest, ['{http://ns.adobe.com/f4m/1.0}bootstrapInfo', '{http://ns.adobe.com/f4m/2.0}bootstrapInfo'],
             'bootstrap info', default=None)
 
+        vcodec = None
+        mime_type = xpath_text(
+            manifest, ['{http://ns.adobe.com/f4m/1.0}mimeType', '{http://ns.adobe.com/f4m/2.0}mimeType'],
+            'base URL', default=None)
+        if mime_type and mime_type.startswith('audio/'):
+            vcodec = 'none'
+
         for i, media_el in enumerate(media_nodes):
             tbr = int_or_none(media_el.attrib.get('bitrate'))
             width = int_or_none(media_el.attrib.get('width'))
@@ -1140,6 +1147,7 @@ class InfoExtractor(object):
                             'width': f.get('width') or width,
                             'height': f.get('height') or height,
                             'format_id': f.get('format_id') if not tbr else format_id,
+                            'vcodec': vcodec,
                         })
                     formats.extend(f4m_formats)
                     continue
@@ -1156,6 +1164,7 @@ class InfoExtractor(object):
                 'tbr': tbr,
                 'width': width,
                 'height': height,
+                'vcodec': vcodec,
                 'preference': preference,
             })
         return formats
