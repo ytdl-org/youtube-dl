@@ -115,12 +115,22 @@ class ORFTVthekIE(InfoExtractor):
             self._check_formats(formats, video_id)
             self._sort_formats(formats)
 
+            subtitles = {}
+            for sub in sd.get('subtitles', []):
+                sub_src = sub.get('src')
+                if not sub_src:
+                    continue
+                subtitles.setdefault(sub.get('lang', 'de-AT'), []).append({
+                    'url': sub_src,
+                })
+
             upload_date = unified_strdate(sd.get('created_date'))
             entries.append({
                 '_type': 'video',
                 'id': video_id,
                 'title': title,
                 'formats': formats,
+                'subtitles': subtitles,
                 'description': sd.get('description'),
                 'duration': int_or_none(sd.get('duration_in_seconds')),
                 'upload_date': upload_date,
