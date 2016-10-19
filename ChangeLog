@@ -1,3 +1,21 @@
+version <unreleased>
+
+Core
++ [utils] Expose PACKED_CODES_RE
++ [extractor/common] Extract non smil wowza mpd manifests
++ [extractor/common] Detect f4m audio-only formats
+
+Extractors
+* [vidzi] Fix extraction (#10908, #10952)
+* [urplay] Fix subtitle extraction
++ [urplay] Add supprt for urskola.se (#10915)
++ [orf] Add subtitles support (#10939)
+* [youtube] Fix --no-playlist behavior for youtu.be/id URLs (#10896)
+* [nrk] Relax URL regular expression (#10928)
++ [nytimes] Add support for podcasts (#10926)
+* [pluralsight] Relax URL regular expression (#10941)
+
+
 version 2016.10.16
 
 Core
