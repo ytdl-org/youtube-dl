@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from .adobepass import AdobePassIE
+from .theplatform import ThePlatformIE
 from ..utils import (
     smuggle_url,
     url_basename,
@@ -65,7 +66,7 @@ class NationalGeographicVideoIE(InfoExtractor):
         }
 
 
-class NationalGeographicIE(AdobePassIE):
+class NationalGeographicIE(ThePlatformIE, AdobePassIE):
     IE_NAME = 'natgeo'
     _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/(?:videos|episodes)/(?P<id>[^/?]+)'
 
@@ -110,25 +111,39 @@ class NationalGeographicIE(AdobePassIE):
         release_url = self._search_regex(
             r'video_auth_playlist_url\s*=\s*"([^"]+)"',
             webpage, 'release url')
+        theplatform_path = self._search_regex(r'https?://link.theplatform.com/s/([^?]+)', release_url, 'theplatform path')
+        video_id = theplatform_path.split('/')[-1]
         query = {
             'mbr': 'true',
-            'switch': 'http',
         }
         is_auth = self._search_regex(r'video_is_auth\s*=\s*"([^"]+)"', webpage, 'is auth', fatal=False)
         if is_auth == 'auth':
             auth_resource_id = self._search_regex(
                 r"video_auth_resourceId\s*=\s*'([^']+)'",
                 webpage, 'auth resource id')
-            query['auth'] = self._extract_mvpd_auth(url, display_id, 'natgeo', auth_resource_id)
+            query['auth'] = self._extract_mvpd_auth(url, video_id, 'natgeo', auth_resource_id)
 
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'ThePlatform',
-            'url': smuggle_url(
-                update_url_query(release_url, query),
-                {'force_smil_url': True}),
+        formats = []
+        subtitles = {}
+        for key, value in (('switch', 'http'), ('manifest', 'm3u')):
+            tp_query = query.copy()
+            tp_query.update({
+                key: value,
+            })
+            tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                update_url_query(release_url, tp_query), video_id, 'Downloading %s SMIL data' % value)
+            formats.extend(tp_formats)
+            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        self._sort_formats(formats)
+
+        info = self._extract_theplatform_metadata(theplatform_path, display_id)
+        info.update({
+            'id': video_id,
+            'formats': formats,
+            'subtitles': subtitles,
             'display_id': display_id,
-        }
+        })
+        return info
 
 
 class NationalGeographicEpisodeGuideIE(InfoExtractor):
