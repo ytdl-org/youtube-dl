@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.21.1
 
 Extractors
 + [pluralsight] Process all clip URLs (#10984)
