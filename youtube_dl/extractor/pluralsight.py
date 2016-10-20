@@ -23,7 +23,7 @@ from ..utils import (
 
 
 class PluralsightBaseIE(InfoExtractor):
-    _API_BASE = 'http://app.pluralsight.com'
+    _API_BASE = 'https://app.pluralsight.com'
 
 
 class PluralsightIE(PluralsightBaseIE):
@@ -102,7 +102,7 @@ class PluralsightIE(PluralsightBaseIE):
             'm': name,
         }
         captions = self._download_json(
-            '%s/training/Player/Captions' % self._API_BASE, video_id,
+            '%s/player/retrieve-captions' % self._API_BASE, video_id,
             'Downloading captions JSON', 'Unable to download captions JSON',
             fatal=False, data=json.dumps(captions_post).encode('utf-8'),
             headers={'Content-Type': 'application/json;charset=utf-8'})
@@ -147,28 +147,22 @@ class PluralsightIE(PluralsightBaseIE):
         author = qs.get('author', [None])[0]
         name = qs.get('name', [None])[0]
         clip_id = qs.get('clip', [None])[0]
-        course = qs.get('course', [None])[0]
+        course_name = qs.get('course', [None])[0]
 
-        if any(not f for f in (author, name, clip_id, course,)):
+        if any(not f for f in (author, name, clip_id, course_name,)):
             raise ExtractorError('Invalid URL', expected=True)
 
         display_id = '%s-%s' % (name, clip_id)
 
-        webpage = self._download_webpage(url, display_id)
+        parsed_url = compat_urlparse.urlparse(url)
 
-        modules = self._search_regex(
-            r'moduleCollection\s*:\s*new\s+ModuleCollection\((\[.+?\])\s*,\s*\$rootScope\)',
-            webpage, 'modules', default=None)
+        payload_url = compat_urlparse.urlunparse(parsed_url._replace(
+            netloc='app.pluralsight.com', path='player/api/v1/payload'))
 
-        if modules:
-            collection = self._parse_json(modules, display_id)
-        else:
-            # Webpage may be served in different layout (see
-            # https://github.com/rg3/youtube-dl/issues/7607)
-            collection = self._parse_json(
-                self._search_regex(
-                    r'var\s+initialState\s*=\s*({.+?});\n', webpage, 'initial state'),
-                display_id)['course']['modules']
+        course = self._download_json(
+            payload_url, display_id, headers={'Referer': url})['payload']['course']
+
+        collection = course['modules']
 
         module, clip = None, None
 
@@ -209,8 +203,7 @@ class PluralsightIE(PluralsightBaseIE):
 
         # Some courses also offer widescreen resolution for high quality (see
         # https://github.com/rg3/youtube-dl/issues/7766)
-        widescreen = True if re.search(
-            r'courseSupportsWidescreenVideoFormats\s*:\s*true', webpage) else False
+        widescreen = course.get('supportsWideScreenVideoFormats') is True
         best_quality = 'high-widescreen' if widescreen else 'high'
         if widescreen:
             for allowed_quality in ALLOWED_QUALITIES:
@@ -239,18 +232,18 @@ class PluralsightIE(PluralsightBaseIE):
             for quality in qualities_:
                 f = QUALITIES[quality].copy()
                 clip_post = {
-                    'a': author,
-                    'cap': 'false',
-                    'cn': clip_id,
-                    'course': course,
-                    'lc': 'en',
-                    'm': name,
-                    'mt': ext,
-                    'q': '%dx%d' % (f['width'], f['height']),
+                    'author': author,
+                    'includeCaptions': False,
+                    'clipIndex': int(clip_id),
+                    'courseName': course_name,
+                    'locale': 'en',
+                    'moduleName': name,
+                    'mediaType': ext,
+                    'quality': '%dx%d' % (f['width'], f['height']),
                 }
                 format_id = '%s-%s' % (ext, quality)
                 clip_url = self._download_webpage(
-                    '%s/training/Player/ViewClip' % self._API_BASE, display_id,
+                    '%s/video/clips/viewclip' % self._API_BASE, display_id,
                     'Downloading %s URL' % format_id, fatal=False,
                     data=json.dumps(clip_post).encode('utf-8'),
                     headers={'Content-Type': 'application/json;charset=utf-8'})
