@@ -4,7 +4,6 @@ import collections
 import json
 import os
 import random
-import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -242,9 +241,9 @@ class PluralsightIE(PluralsightBaseIE):
                     'quality': '%dx%d' % (f['width'], f['height']),
                 }
                 format_id = '%s-%s' % (ext, quality)
-                clip_url = self._download_webpage(
+                viewclip = self._download_json(
                     '%s/video/clips/viewclip' % self._API_BASE, display_id,
-                    'Downloading %s URL' % format_id, fatal=False,
+                    'Downloading %s viewclip JSON' % format_id, fatal=False,
                     data=json.dumps(clip_post).encode('utf-8'),
                     headers={'Content-Type': 'application/json;charset=utf-8'})
 
@@ -258,15 +257,28 @@ class PluralsightIE(PluralsightBaseIE):
                     random.randint(2, 5), display_id,
                     '%(video_id)s: Waiting for %(timeout)s seconds to avoid throttling')
 
-                if not clip_url:
+                if not viewclip:
                     continue
-                f.update({
-                    'url': clip_url,
-                    'ext': ext,
-                    'format_id': format_id,
-                    'quality': quality_key(quality),
-                })
-                formats.append(f)
+
+                clip_urls = viewclip.get('urls')
+                if not isinstance(clip_urls, list):
+                    continue
+
+                for clip_url_data in clip_urls:
+                    clip_url = clip_url_data.get('url')
+                    if not clip_url:
+                        continue
+                    cdn = clip_url_data.get('cdn')
+                    clip_f = f.copy()
+                    clip_f.update({
+                        'url': clip_url,
+                        'ext': ext,
+                        'format_id': '%s-%s' % (format_id, cdn) if cdn else format_id,
+                        'quality': quality_key(quality),
+                        'source_preference': int_or_none(clip_url_data.get('rank')),
+                    })
+                    formats.append(clip_f)
+
         self._sort_formats(formats)
 
         duration = int_or_none(
