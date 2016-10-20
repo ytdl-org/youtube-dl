@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
++ [pluralsight] Process all clip URLs (#10984)
+
+
 version 2016.10.21
 
 Core
