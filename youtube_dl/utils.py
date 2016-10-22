@@ -1818,6 +1818,9 @@ def get_exe_version(exe, args=['--version'],
     """ Returns the version of the specified executable,
     or False if the executable is not present """
     try:
+        # STDIN should be redirected too. On UNIX-like systems, ffmpeg triggers
+        # SIGTTOU if youtube-dl is run in the background.
+        # See https://github.com/rg3/youtube-dl/issues/955#issuecomment-209789656
         out, _ = subprocess.Popen(
             [encodeArgument(exe)] + args,
             stdin=subprocess.PIPE,
