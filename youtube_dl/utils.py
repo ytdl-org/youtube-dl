@@ -1820,6 +1820,7 @@ def get_exe_version(exe, args=['--version'],
     try:
         out, _ = subprocess.Popen(
             [encodeArgument(exe)] + args,
+            stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
         return False
