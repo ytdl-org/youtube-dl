@@ -128,6 +128,7 @@ from .camdemy import (
 )
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
+from .canalu import CanalUIE
 from .canalc2 import Canalc2IE
 from .canvas import CanvasIE
 from .carambatv import (
