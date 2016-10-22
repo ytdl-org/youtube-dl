@@ -11,6 +11,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    dict_get,
     ExtractorError,
     float_or_none,
     int_or_none,
@@ -119,14 +120,17 @@ class PluralsightIE(PluralsightBaseIE):
     @staticmethod
     def _convert_subtitles(duration, subs):
         srt = ''
+        TIME_OFFSET_KEYS = ('displayTimeOffset', 'DisplayTimeOffset')
+        TEXT_KEYS = ('text', 'Text')
         for num, current in enumerate(subs):
             current = subs[num]
-            start, text = float_or_none(
-                current.get('DisplayTimeOffset')), current.get('Text')
+            start, text = (
+                float_or_none(dict_get(current, TIME_OFFSET_KEYS)),
+                dict_get(current, TEXT_KEYS))
             if start is None or text is None:
                 continue
             end = duration if num == len(subs) - 1 else float_or_none(
-                subs[num + 1].get('DisplayTimeOffset'))
+                dict_get(subs[num + 1], TIME_OFFSET_KEYS))
             if end is None:
                 continue
             srt += os.linesep.join(
