@@ -3,6 +3,9 @@ version <unreleased>
 Core
 * Running youtube-dl in the background is fixed (#10996, #10706, #955)
 
+Extractors
+* [litv] Fix extraction
+
 
 version 2016.10.21.1
 
