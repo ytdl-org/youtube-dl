@@ -4,8 +4,13 @@ Core
 * Running youtube-dl in the background is fixed (#10996, #10706, #955)
 
 Extractors
++ [pandatv] Add support for panda.tv (#10736)
 + [dotsub] Support Vimeo embed (#10964)
 * [litv] Fix extraction
++ [vimeo] Delegate ondemand redirects to ondemand extractor (#10994)
+* [vivo] Fix extraction (#11003)
++ [twitch:stream] Add support for rebroadcasts (#10995)
+* [pluralsight] Fix subtitles conversion (#10990)
 
 
 version 2016.10.21.1
