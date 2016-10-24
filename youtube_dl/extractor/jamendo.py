@@ -7,7 +7,8 @@ from collections import namedtuple
 from ..compat import compat_urlparse
 from .common import InfoExtractor
 
-FormatData = namedtuple('FormatData', ['format_id', 'sub_domain', 'ext'])
+FormatData = namedtuple('FormatData', [
+    'format_id', 'sub_domain', 'ext', 'quality'])
 
 
 class JamendoIE(InfoExtractor):
@@ -36,16 +37,21 @@ class JamendoIE(InfoExtractor):
 
         url_template = 'https://%s.jamendo.com/?trackid=%s&format=%s&from=app-97dab294'
         format_data = [
-            FormatData(format_id='mp31', sub_domain='mp3l', ext='mp3'),
-            FormatData(format_id='mp32', sub_domain='mp3d', ext='mp3'),
-            FormatData(format_id='ogg1', sub_domain='ogg', ext='ogg'),
-            FormatData(format_id='flac', sub_domain='flac', ext='flac'),
+            FormatData(
+                format_id='mp31', sub_domain='mp3l', ext='mp3', quality=0),
+            FormatData(
+                format_id='mp32', sub_domain='mp3d', ext='mp3', quality=1),
+            FormatData(
+                format_id='ogg1', sub_domain='ogg', ext='ogg', quality=2),
+            FormatData(
+                format_id='flac', sub_domain='flac', ext='flac', quality=3),
         ]
         formats = [
             {
                 'format_id': fd.format_id,
                 'url': url_template % (fd.sub_domain, track_id, fd.format_id),
-                'ext': fd.ext
+                'ext': fd.ext,
+                'quality': fd.quality
             }
             for fd in format_data
         ]
