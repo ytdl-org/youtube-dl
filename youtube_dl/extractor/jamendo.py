@@ -17,8 +17,7 @@ class JamendoIE(InfoExtractor):
             'display_id': 'stories-from-emona-i',
             'ext': 'flac',
             'title': 'Stories from Emona I',
-            'thumbnail': 're:^https?://.*\.jpg',
-            'url': 'https://flac.jamendo.com/?trackid=196219&format=flac'
+            'thumbnail': 're:^https?://.*\.jpg'
         }
     }
 
@@ -77,7 +76,6 @@ class JamendoAlbumIE(InfoExtractor):
         'playlist_mincount': 2,
         'playlist': [
             {
-                'url': 'https://flac.jamendo.com/?trackid=1032333&format=flac',
                 'md5': 'e1a2fcb42bda30dfac990212924149a8',
                 'info_dict': {
                     'id': '1032333',
@@ -86,7 +84,6 @@ class JamendoAlbumIE(InfoExtractor):
                 }
             },
             {
-                'url': 'https://flac.jamendo.com/?trackid=1032330&format=flac',
                 'md5': '1f358d7b2f98edfe90fd55dac0799d50',
                 'info_dict': {
                     'id': '1032330',
