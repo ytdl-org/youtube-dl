@@ -1,7 +1,29 @@
 version <unreleased>
 
+Core
+* Running youtube-dl in the background is fixed (#10996, #10706, #955)
+
 Extractors
++ [dotsub] Support Vimeo embed (#10964)
+* [litv] Fix extraction
+
+
+version 2016.10.21.1
+
+Extractors
++ [pluralsight] Process all clip URLs (#10984)
+
+
+version 2016.10.21
+
+Core
+- Disable thumbnails embedding in mkv
++ Add support for Comcast multiple-system operator (#10819)
+
+Extractors
+* [pluralsight] Adapt to new API (#10972)
 * [openload] Fix extraction (#10408, #10971)
++ [natgeo] Extract m3u8 formats (#10959)
 
 
 version 2016.10.19

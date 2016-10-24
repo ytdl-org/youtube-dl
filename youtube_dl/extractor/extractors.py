@@ -796,7 +796,10 @@ from .sendtonews import SendtoNewsIE
 from .servingsys import ServingSysIE
 from .sexu import SexuIE
 from .shahid import ShahidIE
-from .shared import SharedIE
+from .shared import (
+    SharedIE,
+    VivoIE,
+)
 from .sharesix import ShareSixIE
 from .sina import SinaIE
 from .sixplay import SixPlayIE

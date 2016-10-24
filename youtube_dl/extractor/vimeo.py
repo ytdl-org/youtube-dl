@@ -323,6 +323,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'expected_warnings': ['Unable to download JSON metadata'],
         },
         {
+            # redirects to ondemand extractor and should be passed throught it
+            # for successful extraction
+            'url': 'https://vimeo.com/73445910',
+            'info_dict': {
+                'id': '73445910',
+                'ext': 'mp4',
+                'title': 'The Reluctant Revolutionary',
+                'uploader': '10Ft Films',
+                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/tenfootfilms',
+                'uploader_id': 'tenfootfilms',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             'url': 'http://vimeo.com/moogaloop.swf?clip_id=2539741',
             'only_matching': True,
         },
@@ -414,7 +430,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
         # Retrieve video webpage to extract further information
         request = sanitized_Request(url, headers=headers)
         try:
-            webpage = self._download_webpage(request, video_id)
+            webpage, urlh = self._download_webpage_handle(request, video_id)
+            # Some URLs redirect to ondemand can't be extracted with
+            # this extractor right away thus should be passed through
+            # ondemand extractor (e.g. https://vimeo.com/73445910)
+            if VimeoOndemandIE.suitable(urlh.geturl()):
+                return self.url_result(urlh.geturl(), VimeoOndemandIE.ie_key())
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
                 errmsg = ee.cause.read()

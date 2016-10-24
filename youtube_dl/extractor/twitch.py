@@ -398,7 +398,7 @@ class TwitchStreamIE(TwitchBaseIE):
         channel_id = self._match_id(url)
 
         stream = self._call_api(
-            'kraken/streams/%s' % channel_id, channel_id,
+            'kraken/streams/%s?stream_type=all' % channel_id, channel_id,
             'Downloading stream JSON').get('stream')
 
         if not stream:
@@ -417,6 +417,7 @@ class TwitchStreamIE(TwitchBaseIE):
         query = {
             'allow_source': 'true',
             'allow_audio_only': 'true',
+            'allow_spectre': 'true',
             'p': random.randint(1000000, 10000000),
             'player': 'twitchweb',
             'segment_preference': '4',
