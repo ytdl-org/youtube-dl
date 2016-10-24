@@ -77,20 +77,20 @@ class JamendoAlbumIE(InfoExtractor):
         'playlist_mincount': 2,
         'playlist': [
             {
-                'url': 'https://mp3d.jamendo.com/?trackid=1032333&format=mp32',
-                'md5': '84a1dfcc15c78943d9f736c0fc60191b',
+                'url': 'https://flac.jamendo.com/?trackid=1032333&format=flac',
+                'md5': 'e1a2fcb42bda30dfac990212924149a8',
                 'info_dict': {
                     'id': '1032333',
-                    'ext': 'mp3',
+                    'ext': 'flac',
                     'title': 'Warmachine'
                 }
             },
             {
-                'url': 'https://mp3d.jamendo.com/?trackid=1032330&format=mp32',
-                'md5': '6a3f03c8bc01bc2f6eedef277ecaf310',
+                'url': 'https://flac.jamendo.com/?trackid=1032330&format=flac',
+                'md5': '1f358d7b2f98edfe90fd55dac0799d50',
                 'info_dict': {
                     'id': '1032330',
-                    'ext': 'mp3',
+                    'ext': 'flac',
                     'title': 'Without Your Ghost'
                 }
             }
