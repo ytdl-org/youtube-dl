@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.25
 
 Core
 * Running youtube-dl in the background is fixed (#10996, #10706, #955)
