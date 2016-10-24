@@ -2,9 +2,12 @@
 from __future__ import unicode_literals
 
 import re
+from collections import namedtuple
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
+from .common import InfoExtractor
+
+FormatData = namedtuple('FormatData', ['format_id', 'sub_domain', 'ext'])
 
 
 class JamendoIE(InfoExtractor):
@@ -30,31 +33,21 @@ class JamendoIE(InfoExtractor):
         thumbnail = self._html_search_meta(
             'image', webpage, 'thumbnail', fatal=False)
         title = self._html_search_meta('name', webpage, 'title')
+
+        url_template = 'https://%s.jamendo.com/?trackid=%s&format=%s&from=app-97dab294'
+        format_data = [
+            FormatData(format_id='mp31', sub_domain='mp3l', ext='mp3'),
+            FormatData(format_id='mp32', sub_domain='mp3d', ext='mp3'),
+            FormatData(format_id='ogg1', sub_domain='ogg', ext='ogg'),
+            FormatData(format_id='flac', sub_domain='flac', ext='flac'),
+        ]
         formats = [
             {
-                'format_id': 'mp31',
-                'url': 'https://mp3l.jamendo.com/?trackid=%s&format=mp31'
-                % track_id,
-                'ext': 'mp3'
-            },
-            {
-                'format_id': 'mp32',
-                'url': 'https://mp3d.jamendo.com/?trackid=%s&format=mp32'
-                % track_id,
-                'ext': 'mp3'
-            },
-            {
-                'format_id': 'ogg',
-                'url': 'https://ogg.jamendo.com/?trackid=%s&format=ogg1'
-                % track_id,
-                'ext': 'ogg'
-            },
-            {
-                'format_id': 'flac',
-                'url': 'https://flac.jamendo.com/?trackid=%s&format=flac'
-                % track_id,
-                'ext': 'flac'
+                'format_id': fd.format_id,
+                'url': url_template % (fd.sub_domain, track_id, fd.format_id),
+                'ext': fd.ext
             }
+            for fd in format_data
         ]
         self._check_formats(formats, video_id=display_id)
         return {
