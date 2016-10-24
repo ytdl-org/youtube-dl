@@ -18,7 +18,7 @@ class JamendoIE(InfoExtractor):
             'ext': 'flac',
             'title': 'Stories from Emona I',
             'thumbnail': 're:^https?://.*\.jpg',
-            'url': 'https://flac.jamendo.com/download/track/196219/flac/'
+            'url': 'https://flac.jamendo.com/?trackid=196219&format=flac'
         }
     }
 
@@ -33,25 +33,25 @@ class JamendoIE(InfoExtractor):
         formats = [
             {
                 'format_id': 'mp31',
-                'url': 'https://mp3l.jamendo.com/download/track/%s/mp31/'
+                'url': 'https://mp3l.jamendo.com/?trackid=%s&format=mp31'
                 % track_id,
                 'ext': 'mp3'
             },
             {
                 'format_id': 'mp32',
-                'url': 'https://mp3d.jamendo.com/download/track/%s/mp32/'
+                'url': 'https://mp3d.jamendo.com/?trackid=%s&format=mp32'
                 % track_id,
                 'ext': 'mp3'
             },
             {
                 'format_id': 'ogg',
-                'url': 'https://ogg.jamendo.com/download/track/%s/ogg1/'
+                'url': 'https://ogg.jamendo.com/?trackid=%s&format=ogg1'
                 % track_id,
                 'ext': 'ogg'
             },
             {
                 'format_id': 'flac',
-                'url': 'https://flac.jamendo.com/download/track/%s/flac/'
+                'url': 'https://flac.jamendo.com/?trackid=%s&format=flac'
                 % track_id,
                 'ext': 'flac'
             }
@@ -77,7 +77,7 @@ class JamendoAlbumIE(InfoExtractor):
         'playlist_mincount': 2,
         'playlist': [
             {
-                'url': 'https://mp3d.jamendo.com/download/track/1032333/mp32',
+                'url': 'https://mp3d.jamendo.com/?trackid=1032333&format=mp32',
                 'md5': '84a1dfcc15c78943d9f736c0fc60191b',
                 'info_dict': {
                     'id': '1032333',
@@ -86,7 +86,7 @@ class JamendoAlbumIE(InfoExtractor):
                 }
             },
             {
-                'url': 'https://mp3d.jamendo.com/download/track/1032330/mp32',
+                'url': 'https://mp3d.jamendo.com/?trackid=1032330&format=mp32',
                 'md5': '6a3f03c8bc01bc2f6eedef277ecaf310',
                 'info_dict': {
                     'id': '1032330',
