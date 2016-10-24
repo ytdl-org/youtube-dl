@@ -408,7 +408,10 @@ from .ivi import (
 from .ivideon import IvideonIE
 from .iwara import IwaraIE
 from .izlesene import IzleseneIE
-from .jamendo import JamendoIE, JamendoAlbumIE
+from .jamendo import (
+    JamendoIE,
+    JamendoAlbumIE,
+)
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .jwplatform import JWPlatformIE
