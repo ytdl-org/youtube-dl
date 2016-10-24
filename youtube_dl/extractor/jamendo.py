@@ -24,7 +24,8 @@ class JamendoIE(InfoExtractor):
     def _real_extract(self, url):
         url_data = self._VALID_URL_RE.match(url)
         track_id = url_data.group('id')
-        webpage = self._download_webpage(url, track_id)
+        display_id = url_data.group('display_id')
+        webpage = self._download_webpage(url, display_id)
 
         thumbnail = self._html_search_meta(
             'image', webpage, 'thumbnail', fatal=False)
@@ -55,10 +56,10 @@ class JamendoIE(InfoExtractor):
                 'ext': 'flac'
             }
         ]
-        self._check_formats(formats, video_id=track_id)
+        self._check_formats(formats, video_id=display_id)
         return {
             'id': track_id,
-            'display_id': url_data.group('display_id'),
+            'display_id': display_id,
             'thumbnail': thumbnail,
             'title': title,
             'formats': formats
@@ -100,7 +101,7 @@ class JamendoAlbumIE(InfoExtractor):
     def _real_extract(self, url):
         url_data = self._VALID_URL_RE.match(url)
         album_id = url_data.group('id')
-        webpage = self._download_webpage(url, album_id)
+        webpage = self._download_webpage(url, url_data.group('display_id'))
 
         title = self._html_search_meta('name', webpage, 'title')
 
