@@ -4,6 +4,7 @@ Core
 * Running youtube-dl in the background is fixed (#10996, #10706, #955)
 
 Extractors
++ [jamendo] Add support for jamendo.com (#10132, #10736)
 + [pandatv] Add support for panda.tv (#10736)
 + [dotsub] Support Vimeo embed (#10964)
 * [litv] Fix extraction
