@@ -69,7 +69,8 @@ class TVPIE(InfoExtractor):
         webpage = self._download_webpage(url, page_id)
         video_id = self._search_regex([
             r'<iframe[^>]+src="[^"]*?object_id=(\d+)',
-            "object_id\s*:\s*'(\d+)'"], webpage, 'video id')
+            r"object_id\s*:\s*'(\d+)'",
+            r'data-video-id="(\d+)"'], webpage, 'video id', default=page_id)
         return {
             '_type': 'url_transparent',
             'url': 'tvp:' + video_id,
