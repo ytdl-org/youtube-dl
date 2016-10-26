@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [adultswim] Fix extraction (#10979)
 * [hornbunny] Fix extraction (#10981)
 
 
