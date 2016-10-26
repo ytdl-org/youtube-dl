@@ -1,3 +1,11 @@
+version <unreleased>
+
+Extractors
++ [rentv] Add support for ren.tv (#10620)
++ [ard] Detect unavailable videos (#11018)
+* [vk] Fix extraction (#11022)
+
+
 version 2016.10.25
 
 Core
