@@ -179,7 +179,7 @@ class ARDMediathekIE(InfoExtractor):
             ('>Der gewünschte Beitrag ist nicht mehr verfügbar.<',
              'Video %s is no longer available'),
             ('Diese Sendung ist für Jugendliche unter 12 Jahren nicht geeignet. Der Clip ist deshalb nur von 20 bis 6 Uhr verfügbar.',
-             'This program is only suitable for those aged 12 and older. Video %s is therefore only available between 20 pm and 6 am.'),
+             'This program is only suitable for those aged 12 and older. Video %s is therefore only available between 8 pm and 6 am.'),
         )
 
         for pattern, message in ERRORS:
