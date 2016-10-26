@@ -1208,20 +1208,6 @@ class GenericIE(InfoExtractor):
                 'duration': 51690,
             },
         },
-        # JWPlayer with M3U8
-        {
-            'url': 'http://ren.tv/novosti/2015-09-25/sluchaynyy-prohozhiy-poymal-avtougonshchika-v-murmanske-video',
-            'info_dict': {
-                'id': 'playlist',
-                'ext': 'mp4',
-                'title': 'Случайный прохожий поймал автоугонщика в Мурманске. ВИДЕО | РЕН ТВ',
-                'uploader': 'ren.tv',
-            },
-            'params': {
-                # m3u8 downloads
-                'skip_download': True,
-            }
-        },
         # Brightcove embed, with no valid 'renditions' but valid 'IOSRenditions'
         # This video can't be played in browsers if Flash disabled and UA set to iPhone, which is actually a false alarm
         {
