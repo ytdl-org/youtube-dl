@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.26
 
 Extractors
 + [rentv] Add support for ren.tv (#10620)

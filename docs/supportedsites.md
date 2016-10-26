@@ -589,6 +589,8 @@
  - **RDS**: RDS.ca
  - **RedTube**
  - **RegioTV**
+ - **RENTV**
+ - **RENTVArticle**
  - **Restudy**
  - **Reuters**
  - **ReverbNation**
