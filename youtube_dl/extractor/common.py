@@ -1188,7 +1188,7 @@ class InfoExtractor(object):
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
-            errnote=errnote or 'Failed to download m3u8 information',
+            errnote=errnote or 'Failed to download m3u8 information: %s' % m3u8_url,
             fatal=fatal)
         if res is False:
             return []
