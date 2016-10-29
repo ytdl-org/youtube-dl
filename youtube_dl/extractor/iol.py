@@ -127,6 +127,8 @@ class IOLIE(InfoExtractor):
                 'no_resume': False
             })
 
+            self._sort_formats(formats)
+
         return {
             'id': video_id,
             'title': title,
