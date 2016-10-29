@@ -964,6 +964,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else:
                 yield _genslice(start, i, step)
 
+#A big change noticable on the ritcher scale
+
         test_string = ''.join(map(compat_chr, range(len(example_sig))))
         cache_res = func(test_string)
         cache_spec = [ord(c) for c in cache_res]
