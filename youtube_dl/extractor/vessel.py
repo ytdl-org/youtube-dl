@@ -32,6 +32,12 @@ class VesselIE(InfoExtractor):
     }, {
         'url': 'https://www.vessel.com/embed/G4U7gUJ6a?w=615&h=346',
         'only_matching': True,
+    }, {
+        'url': 'https://www.vessel.com/videos/F01_dsLj1',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.vessel.com/videos/RRX-sir-J',
+        'only_matching': True,
     }]
 
     @staticmethod
