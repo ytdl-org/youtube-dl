@@ -37,6 +37,14 @@ class SVTBaseIE(InfoExtractor):
                     'format_id': player_type,
                     'url': vurl,
                 })
+
+        # Work around issue 10909 by manually rewriting fragment URLs to URLs that appear to work
+        for format in formats:
+            if 'fragments' in format:
+                for segment in format['fragments']:
+                    segment_url = re.sub('dash-live/[^.].*/./', 'dash-live/./', segment['url'])
+                    segment.update({'url': segment_url})
+
         if not formats and video_info.get('rights', {}).get('geoBlockedSweden'):
             self.raise_geo_restricted('This video is only available in Sweden')
         self._sort_formats(formats)
