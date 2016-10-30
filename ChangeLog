@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [facebook] Improve 1080P video detection (#11073)
 * [imgur] Recognize /r/ URLs (#11071)
 * [openload] Fix extraction (#10408)
 * [adultswim] Fix extraction (#10979)

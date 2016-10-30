@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import json
 import re
 import socket
 
@@ -100,7 +99,8 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'title': '"What are you doing running in the snow?"',
             'uploader': 'FailArmy',
-        }
+        },
+        'skip': 'Video gone',
     }, {
         'url': 'https://m.facebook.com/story.php?story_fbid=1035862816472149&id=116132035111903',
         'md5': '1deb90b6ac27f7efcf6d747c8a27f5e3',
@@ -110,6 +110,7 @@ class FacebookIE(InfoExtractor):
             'title': 'What the Flock Is Going On In New Zealand  Credit: ViralHog',
             'uploader': 'S. Saint',
         },
+        'skip': 'Video gone',
     }, {
         'note': 'swf params escaped',
         'url': 'https://www.facebook.com/barackobama/posts/10153664894881749',
@@ -118,6 +119,18 @@ class FacebookIE(InfoExtractor):
             'id': '10153664894881749',
             'ext': 'mp4',
             'title': 'Facebook video #10153664894881749',
+        },
+    }, {
+        # have 1080P, but only up to 720p in swf params
+        'url': 'https://www.facebook.com/cnn/videos/10155529876156509/',
+        'md5': '0d9813160b146b3bc8744e006027fcc6',
+        'info_dict': {
+            'id': '10155529876156509',
+            'ext': 'mp4',
+            'title': 'Holocaust survivor becomes US citizen',
+            'timestamp': 1477818095,
+            'upload_date': '20161030',
+            'uploader': 'CNN',
         },
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
@@ -227,42 +240,12 @@ class FacebookIE(InfoExtractor):
 
         video_data = None
 
-        BEFORE = '{swf.addParam(param[0], param[1]);});'
-        AFTER = '.forEach(function(variable) {swf.addVariable(variable[0], variable[1]);});'
-        PATTERN = re.escape(BEFORE) + '(?:\n|\\\\n)(.*?)' + re.escape(AFTER)
-
-        for m in re.findall(PATTERN, webpage):
-            swf_params = m.replace('\\\\', '\\').replace('\\"', '"')
-            data = dict(json.loads(swf_params))
-            params_raw = compat_urllib_parse_unquote(data['params'])
-            video_data_candidate = json.loads(params_raw)['video_data']
-            for _, f in video_data_candidate.items():
-                if not f:
-                    continue
-                if isinstance(f, dict):
-                    f = [f]
-                if not isinstance(f, list):
-                    continue
-                if f[0].get('video_id') == video_id:
-                    video_data = video_data_candidate
-                    break
-            if video_data:
+        server_js_data = self._parse_json(self._search_regex(
+            r'handleServerJS\(({.+})(?:\);|,")', webpage, 'server js data', default='{}'), video_id)
+        for item in server_js_data.get('instances', []):
+            if item[1][0] == 'VideoConfig':
+                video_data = item[2][0]['videoData']
                 break
-
-        def video_data_list2dict(video_data):
-            ret = {}
-            for item in video_data:
-                format_id = item['stream_type']
-                ret.setdefault(format_id, []).append(item)
-            return ret
-
-        if not video_data:
-            server_js_data = self._parse_json(self._search_regex(
-                r'handleServerJS\(({.+})(?:\);|,")', webpage, 'server js data', default='{}'), video_id)
-            for item in server_js_data.get('instances', []):
-                if item[1][0] == 'VideoConfig':
-                    video_data = video_data_list2dict(item[2][0]['videoData'])
-                    break
 
         if not video_data:
             if not fatal_if_no_video:
@@ -276,7 +259,8 @@ class FacebookIE(InfoExtractor):
                 raise ExtractorError('Cannot parse data')
 
         formats = []
-        for format_id, f in video_data.items():
+        for f in video_data:
+            format_id = f['stream_type']
             if f and isinstance(f, dict):
                 f = [f]
             if not f or not isinstance(f, list):
