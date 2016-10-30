@@ -1375,13 +1375,20 @@ class AdobePassIE(InfoExtractor):
                     # are on Comcast's network.
                     provider_redirect_page, urlh = provider_redirect_page_res
                     # Check for Comcast auto login
-                    if 'automatically signing you in' in provider_redirect_page:
+                    if 'automatically signed in' in provider_redirect_page:
                         oauth_redirect_url = self._html_search_regex(
-                            r'window\.location\s*=\s*[\'"]([^\'"]+)',
-                            provider_redirect_page, 'oauth redirect')
+                            r'continue:\s*[\'"]([^\'"]+)',
+                            provider_redirect_page, 'oauth redirect [1]')
                         # Just need to process the request. No useful data comes back
                         self._download_webpage(
-                            oauth_redirect_url, video_id, 'Confirming auto login')
+                            oauth_redirect_url, video_id, 'Confirming auto login [1]')
+                    elif 'automatically signing you in' in provider_redirect_page:
+                        oauth_redirect_url = self._html_search_regex(
+                            r'window\.location\s*=\s*[\'"]([^\'"]+)',
+                            provider_redirect_page, 'oauth redirect [2]')
+                        # Just need to process the request. No useful data comes back
+                        self._download_webpage(
+                            oauth_redirect_url, video_id, 'Confirming auto login [2]')
                     else:
                         if '<form name="signin"' in provider_redirect_page:
                             # already have the form, just fill it
