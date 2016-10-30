@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [imgur] Recognize /r/ URLs (#11071)
 * [openload] Fix extraction (#10408)
 * [adultswim] Fix extraction (#10979)
 * [hornbunny] Fix extraction (#10981)
