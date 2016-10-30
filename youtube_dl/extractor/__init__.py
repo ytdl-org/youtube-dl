@@ -7,6 +7,10 @@ try:
 except ImportError:
     _LAZY_LOADER = False
     from .extractors import *
+from .iol import (
+    IOLIE,
+    IOLStreamIE
+)
 
     _ALL_CLASSES = [
         klass
