@@ -488,6 +488,7 @@
  - **Nintendo**
  - **njoy**: N-JOY
  - **njoy:embed**
+ - **NobelPrize**
  - **Noco**
  - **Normalboots**
  - **NosVideo**

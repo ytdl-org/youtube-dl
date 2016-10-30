@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.10.30
 
 Extractors
 * [facebook] Improve 1080P video detection (#11073)
