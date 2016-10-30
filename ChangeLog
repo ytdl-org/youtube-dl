@@ -3,9 +3,13 @@ version <unreleased>
 Extractors
 * [facebook] Improve 1080P video detection (#11073)
 * [imgur] Recognize /r/ URLs (#11071)
+* [beeg] Fix extraction (#11069)
 * [openload] Fix extraction (#10408)
+* [gvsearch] Modernize and fix search request (#11051)
 * [adultswim] Fix extraction (#10979)
++ [nobelprize] Add support for nobelprize.org (#9999)
 * [hornbunny] Fix extraction (#10981)
+* [tvp] Improve video id extraction (#10585)
 
 
 version 2016.10.26
