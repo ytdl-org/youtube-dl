@@ -2345,11 +2345,18 @@ def _match_one(filter_part, dct):
     m = operator_rex.search(filter_part)
     if m:
         op = COMPARISON_OPERATORS[m.group('op')]
-        if m.group('strval') is not None:
+        actual_value = dct.get(m.group('key'))
+        if (m.group('strval') is not None or
+            # If the original field is a string and matching comparisonvalue is
+            # a number we should respect the origin of the original field
+            # and process comparison value as a string (see
+            # https://github.com/rg3/youtube-dl/issues/11082).
+            actual_value is not None and m.group('intval') is not None and
+                isinstance(actual_value, compat_str)):
             if m.group('op') not in ('=', '!='):
                 raise ValueError(
                     'Operator %s does not support string values!' % m.group('op'))
-            comparison_value = m.group('strval')
+            comparison_value = m.group('strval') or m.group('intval')
         else:
             try:
                 comparison_value = int(m.group('intval'))
@@ -2361,7 +2368,6 @@ def _match_one(filter_part, dct):
                     raise ValueError(
                         'Invalid integer value %r in filter part %r' % (
                             m.group('intval'), filter_part))
-        actual_value = dct.get(m.group('key'))
         if actual_value is None:
             return m.group('none_inclusive')
         return op(actual_value, comparison_value)
