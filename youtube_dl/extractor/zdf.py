@@ -42,7 +42,7 @@ class ZDFIE(InfoExtractor):
         meta_data_url_template = main_video_content['http://zdf.de/rels/streams/ptmd-template']
         meta_data_url = 'https://api.zdf.de' + meta_data_url_template.replace('{playerId}', player_id)
 
-        title = main_video_content['title']
+        title = content_json['title']
 
         meta_data = self._download_json(meta_data_url, video_id, note='Downloading meta data')
 
