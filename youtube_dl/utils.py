@@ -2338,7 +2338,7 @@ def _match_one(filter_part, dct):
         \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
         (?:
             (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
-            (?P<strval>(?![0-9.])[a-z0-9A-Z]*)
+            (?P<strval>(?![0-9.])[a-z0-9A-Z\.\'\(\)\{\}\[\]/\\\^\?:;~#!§+\s_-]*)
         )
         \s*$
         ''' % '|'.join(map(re.escape, COMPARISON_OPERATORS.keys())))
@@ -2349,7 +2349,7 @@ def _match_one(filter_part, dct):
             if m.group('op') not in ('=', '!='):
                 raise ValueError(
                     'Operator %s does not support string values!' % m.group('op'))
-            comparison_value = m.group('strval')
+            comparison_value = m.group('strval').strip()
         else:
             try:
                 comparison_value = int(m.group('intval'))
@@ -2364,6 +2364,8 @@ def _match_one(filter_part, dct):
         actual_value = dct.get(m.group('key'))
         if actual_value is None:
             return m.group('none_inclusive')
+        if isinstance(actual_value, compat_basestring):
+            actual_value = actual_value.strip()
         return op(actual_value, comparison_value)
 
     UNARY_OPERATORS = {
