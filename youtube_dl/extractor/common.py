@@ -1539,7 +1539,7 @@ class InfoExtractor(object):
         if res is False:
             return []
         mpd, urlh = res
-        mpd_base_url = re.match(r'https?://.+/', urlh.geturl()).group()
+        mpd_base_url = re.match(r'https?://[^?#&]+/', urlh.geturl()).group()
 
         return self._parse_mpd_formats(
             compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url,
