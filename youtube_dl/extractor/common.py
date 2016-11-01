@@ -1839,10 +1839,10 @@ class InfoExtractor(object):
                             next_fragment_time = int(stream_fragment[stream_fragment_index + 1].attrib['t'])
                         except IndexError:
                             next_fragment_time = duration
-                        fragment_ctx['duration'] = (next_fragment_time - frgament_time) / fragment_repeat
+                        fragment_ctx['duration'] = (next_fragment_time - fragment_ctx['time']) / fragment_repeat
                     for _ in range(fragment_repeat):
                         fragments.append({
-                            'url': re.sub(r'{start[ _]time}', str(fragment_ctx['time']), track_url_pattern),
+                            'url': re.sub(r'{start[ _]time}', compat_str(fragment_ctx['time']), track_url_pattern),
                             'duration': fragment_ctx['duration'] / stream_timescale,
                         })
                         fragment_ctx['time'] += fragment_ctx['duration']
