@@ -1691,6 +1691,10 @@ def url_basename(url):
     return path.strip('/').split('/')[-1]
 
 
+def base_url(url):
+    return re.match(r'https?://[^?#&]+/', url).group()
+
+
 class HEADRequest(compat_urllib_request.Request):
     def get_method(self):
         return 'HEAD'

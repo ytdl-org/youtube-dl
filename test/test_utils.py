@@ -69,6 +69,7 @@ from youtube_dl.utils import (
     uppercase_escape,
     lowercase_escape,
     url_basename,
+    base_url,
     urlencode_postdata,
     urshift,
     update_url_query,
@@ -436,6 +437,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             url_basename('http://media.w3.org/2010/05/sintel/trailer.mp4'),
             'trailer.mp4')
+
+    def test_base_url(self):
+        self.assertEqual(base_url('http://foo.de/'), 'http://foo.de/')
+        self.assertEqual(base_url('http://foo.de/bar'), 'http://foo.de/')
+        self.assertEqual(base_url('http://foo.de/bar/'), 'http://foo.de/bar/')
+        self.assertEqual(base_url('http://foo.de/bar/baz'), 'http://foo.de/bar/')
+        self.assertEqual(base_url('http://foo.de/bar/baz?x=z/x/c'), 'http://foo.de/bar/')
 
     def test_parse_age_limit(self):
         self.assertEqual(parse_age_limit(None), None)

@@ -30,6 +30,7 @@ from ..downloader.f4m import remove_encrypted_media
 from ..utils import (
     NO_DEFAULT,
     age_restricted,
+    base_url,
     bug_reports_message,
     clean_html,
     compiled_regex_type,
@@ -1539,7 +1540,7 @@ class InfoExtractor(object):
         if res is False:
             return []
         mpd, urlh = res
-        mpd_base_url = re.match(r'https?://[^?#&]+/', urlh.geturl()).group()
+        mpd_base_url = base_url(urlh.geturl())
 
         return self._parse_mpd_formats(
             compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url,
@@ -1797,7 +1798,7 @@ class InfoExtractor(object):
         if ism_doc.get('IsLive') == 'TRUE' or ism_doc.find('Protection') is not None:
             return []
 
-        ism_base_url = re.match(r'https?://.+/', ism_url).group()
+        ism_base_url = base_url(ism_url)
 
         duration = int(ism_doc.attrib['Duration'])
         timescale = int_or_none(ism_doc.get('TimeScale')) or 10000000
