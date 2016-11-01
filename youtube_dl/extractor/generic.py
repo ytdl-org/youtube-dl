@@ -1634,6 +1634,10 @@ class GenericIE(InfoExtractor):
             doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
+            elif doc.tag == 'SmoothStreamingMedia':
+                info_dict['formats'] = self._parse_ism_formats(doc, url)
+                self._sort_formats(info_dict['formats'])
+                return info_dict
             elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
                 smil = self._parse_smil(doc, url, video_id)
                 self._sort_formats(smil['formats'])
@@ -2449,6 +2453,8 @@ class GenericIE(InfoExtractor):
                 entry_info_dict['formats'] = self._extract_mpd_formats(video_url, video_id)
             elif ext == 'f4m':
                 entry_info_dict['formats'] = self._extract_f4m_formats(video_url, video_id)
+            elif re.search(r'(?i)\.ism/manifest', video_url):
+                entry_info_dict['formats'] = self._extract_ism_formats(video_url, video_id)
             else:
                 entry_info_dict['url'] = video_url
 
