@@ -1798,8 +1798,6 @@ class InfoExtractor(object):
         if ism_doc.get('IsLive') == 'TRUE' or ism_doc.find('Protection') is not None:
             return []
 
-        ism_base_url = base_url(ism_url)
-
         duration = int(ism_doc.attrib['Duration'])
         timescale = int_or_none(ism_doc.get('TimeScale')) or 10000000
 
