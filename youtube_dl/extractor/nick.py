@@ -86,6 +86,11 @@ class NickDeIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }]
 
+    def _extract_mrss_url(self, webpage, host):
+        return update_url_query(self._search_regex(
+            r'data-mrss=(["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url'),
+            {'siteKey': host})
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -93,16 +98,14 @@ class NickDeIE(MTVServicesInfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        mrss_url = update_url_query(self._search_regex(
-            r'data-mrss=(["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url'),
-            {'siteKey': host})
+        mrss_url = self._extract_mrss_url(webpage, host)
 
         return self._get_videos_info_from_url(mrss_url, video_id)
 
 
-class NickNightAtIE(MTVServicesInfoExtractor):
-    IE_NAME = 'nicknight.de'
-    _VALID_URL = r'https?://(?:www\.)nicknight\.(?:de|at|tv)/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+class NickNightIE(NickDeIE):
+    IE_NAME = 'nicknight'
+    _VALID_URL = r'https?://(?:www\.)(?P<host>nicknight\.(?:de|at|tv))/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nicknight.at/shows/977-awkward/videos/85987-nimmer-beste-freunde',
         'only_matching': True,
@@ -114,12 +117,7 @@ class NickNightAtIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
-
-        mrss_url = self._search_regex(
-            r'mrss: (["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url')
-
-        return self._get_videos_info_from_url(mrss_url, video_id)
+    def _extract_mrss_url(self, webpage, *args):
+        return self._search_regex(
+            r'mrss\s*:\s*(["\'])(?P<url>http.+?)\1', webpage,
+            'mrss url', group='url')
