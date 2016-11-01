@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.11.02
 
 Core
 + Add basic support for Smooth Streaming protocol (#8118, #10969)
