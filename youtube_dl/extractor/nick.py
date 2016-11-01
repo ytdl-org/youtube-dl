@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .mtv import MTVServicesInfoExtractor
 from ..utils import update_url_query
 
@@ -69,7 +71,7 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.de'
-    _VALID_URL = r'https?://(?:www\.)?(?:nick\.de|nickelodeon\.(?:nl|at))/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.de|nickelodeon\.(?:nl|at))/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
         'only_matching': True,
@@ -79,16 +81,21 @@ class NickDeIE(MTVServicesInfoExtractor):
     }, {
         'url': 'http://www.nickelodeon.nl/shows/474-spongebob/videos/17403-een-kijkje-in-de-keuken-met-sandy-van-binnenuit',
         'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.at/playlist/3773-top-videos/videos/episode/77993-das-letzte-gefecht',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        host = mobj.group('host')
 
         webpage = self._download_webpage(url, video_id)
 
         mrss_url = update_url_query(self._search_regex(
             r'data-mrss=(["\'])(?P<url>http.+?)\1', webpage, 'mrss url', group='url'),
-            {'siteKey': 'nick.de'})
+            {'siteKey': host})
 
         return self._get_videos_info_from_url(mrss_url, video_id)
 
