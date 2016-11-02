@@ -2453,7 +2453,7 @@ class GenericIE(InfoExtractor):
                 entry_info_dict['formats'] = self._extract_mpd_formats(video_url, video_id)
             elif ext == 'f4m':
                 entry_info_dict['formats'] = self._extract_f4m_formats(video_url, video_id)
-            elif re.search(r'(?i)\.(?:ism|smil)/manifest', video_url):
+            elif re.search(r'(?i)\.(?:ism|smil)/manifest', video_url) and video_url != url:
                 # Just matching .ism/manifest is not enough to be reliably sure
                 # whether it's actually an ISM manifest or some other streaming
                 # manifest since there are various streaming URL formats
