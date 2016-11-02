@@ -12,7 +12,7 @@ $ youtube-dl -v <your command line>
 [debug] Proxy map: {}
 ...
 ```
-**Do not post screenshots of verbose log only plain text is acceptable.**
+**Do not post screenshots of verbose logs; only plain text is acceptable.**
 
 The output (including the first lines) contains important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
@@ -46,7 +46,7 @@ Make sure that someone has not already opened the issue you're trying to open. S
 
 ###  Why are existing options not enough?
 
-Before requesting a new feature, please have a quick peek at [the list of supported options](https://github.com/rg3/youtube-dl/blob/master/README.md#synopsis). Many feature requests are for features that actually exist already! Please, absolutely do show off your work in the issue report and detail how the existing similar options do *not* solve your problem.
+Before requesting a new feature, please have a quick peek at [the list of supported options](https://github.com/rg3/youtube-dl/blob/master/README.md#options). Many feature requests are for features that actually exist already! Please, absolutely do show off your work in the issue report and detail how the existing similar options do *not* solve your problem.
 
 ###  Is there enough context in your bug report?
 
@@ -66,7 +66,7 @@ Only post features that you (or an incapacitated friend you can personally talk 
 
 ###  Is your question about youtube-dl?
 
-It may sound strange, but some bug reports we receive are completely unrelated to youtube-dl and relate to a different or even the reporter's own application. Please make sure that you are actually using youtube-dl. If you are using a UI for youtube-dl, report the bug to the maintainer of the actual application providing the UI. On the other hand, if your UI for youtube-dl fails in some way you believe is related to youtube-dl, by all means, go ahead and report the bug.
+It may sound strange, but some bug reports we receive are completely unrelated to youtube-dl and relate to a different, or even the reporter's own, application. Please make sure that you are actually using youtube-dl. If you are using a UI for youtube-dl, report the bug to the maintainer of the actual application providing the UI. On the other hand, if your UI for youtube-dl fails in some way you believe is related to youtube-dl, by all means, go ahead and report the bug.
 
 # DEVELOPER INSTRUCTIONS
 
@@ -85,7 +85,7 @@ To run the test, simply invoke your favorite test runner, or execute a test file
 If you want to create a build of youtube-dl yourself, you'll need
 
 * python
-* make (both GNU make and BSD make are supported)
+* make (only GNU make is supported)
 * pandoc
 * zip
 * nosetests
@@ -167,19 +167,19 @@ In any case, thank you very much for your contributions!
 
 This section introduces a guide lines for writing idiomatic, robust and future-proof extractor code.
 
-Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hoster out of your control and this layout tend to change. As an extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize code dependency on source's layout changes and even to make the code foresee potential future changes and be ready for that. This is important because it will allow extractor not to break on minor layout changes thus keeping old youtube-dl versions working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with fix incorporated all the previous version become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say some may never receive an update at all that is possible for non rolling release distros.
+Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hosters out of your control and this layout tends to change. As an extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize dependency on the source's layout and even to make the code foresee potential future changes and be ready for that. This is important because it will allow the extractor not to break on minor layout changes thus keeping old youtube-dl versions working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with a fix incorporated, all the previous versions become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say, some non rolling release distros may never receive an update at all.
 
 ### Mandatory and optional metafields
 
-For extraction to work youtube-dl relies on metadata your extractor extracts and provides to youtube-dl expressed by [information dictionary](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L75-L257) or simply *info dict*. Only the following meta fields in *info dict* are considered mandatory for successful extraction process by youtube-dl:
+For extraction to work youtube-dl relies on metadata your extractor extracts and provides to youtube-dl expressed by an [information dictionary](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L75-L257) or simply *info dict*. Only the following meta fields in the *info dict* are considered mandatory for a successful extraction process by youtube-dl:
 
  - `id` (media identifier)
  - `title` (media title)
  - `url` (media download URL) or `formats`
 
-In fact only the last option is technically mandatory (i.e. if you can't figure out the download location of the media the extraction does not make any sense). But by convention youtube-dl also treats `id` and `title` to be mandatory. Thus aforementioned metafields are the critical data the extraction does not make any sense without and if any of them fail to be extracted then extractor is considered completely broken.
+In fact only the last option is technically mandatory (i.e. if you can't figure out the download location of the media the extraction does not make any sense). But by convention youtube-dl also treats `id` and `title` as mandatory. Thus the aforementioned metafields are the critical data that the extraction does not make any sense without and if any of them fail to be extracted then the extractor is considered completely broken.
 
-[Any field](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L149-L257) apart from the aforementioned ones are considered **optional**. That means that extraction should be **tolerate** to situations when sources for these fields can potentially be unavailable (even if they are always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields.
+[Any field](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L149-L257) apart from the aforementioned ones are considered **optional**. That means that extraction should be **tolerant** to situations when sources for these fields can potentially be unavailable (even if they are always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields.
 
 #### Example
 
@@ -199,7 +199,7 @@ Assume at this point `meta`'s layout is:
 }
 ```
 
-Assume you want to extract `summary` and put into resulting info dict as `description`. Since `description` is optional metafield you should be ready that this key may be missing from the `meta` dict, so that you should extract it like:
+Assume you want to extract `summary` and put it into the resulting info dict as `description`. Since `description` is an optional metafield you should be ready that this key may be missing from the `meta` dict, so that you should extract it like:
 
 ```python
 description = meta.get('summary')  # correct
@@ -211,7 +211,7 @@ and not like:
 description = meta['summary']  # incorrect
 ```
 
-The latter will break extraction process with `KeyError` if `summary` disappears from `meta` at some time later but with former approach extraction will just go ahead with `description` set to `None` that is perfectly fine (remember `None` is equivalent for absence of data). 
+The latter will break extraction process with `KeyError` if `summary` disappears from `meta` at some later time but with the former approach extraction will just go ahead with `description` set to `None` which is perfectly fine (remember `None` is equivalent to the absence of data).
 
 Similarly, you should pass `fatal=False` when extracting optional data from a webpage with `_search_regex`, `_html_search_regex` or similar methods, for instance:
 
@@ -231,21 +231,21 @@ description = self._search_regex(
     webpage, 'description', default=None)
 ```
 
-On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that are known to may or may not be present.
+On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that may or may not be present.
  
 ### Provide fallbacks
 
-When extracting metadata try to provide several scenarios for that. For example if `title` is present in several places/sources try extracting from at least some of them. This would make it more future-proof in case some of the sources became unavailable.
+When extracting metadata try to do so from multiple sources. For example if `title` is present in several places, try extracting from at least some of them. This makes it more future-proof in case some of the sources become unavailable.
 
 #### Example
 
-Say `meta` from previous example has a `title` and you are about to extract it. Since `title` is mandatory meta field you should end up with something like:
+Say `meta` from the previous example has a `title` and you are about to extract it. Since `title` is a mandatory meta field you should end up with something like:
 
 ```python
 title = meta['title']
 ```
 
-If `title` disappeares from `meta` in future due to some changes on hoster's side the extraction would fail since `title` is mandatory. That's expected.
+If `title` disappears from `meta` in future due to some changes on the hoster's side the extraction would fail since `title` is mandatory. That's expected.
 
 Assume that you have some another source you can extract `title` from, for example `og:title` HTML meta of a `webpage`. In this case you can provide a fallback scenario:
 
@@ -282,7 +282,7 @@ title = self._search_regex(
     webpage, 'title', group='title')
 ```
 
-Note how you tolerate potential changes in `style` attribute's value or switch from using double quotes to single for `class` attribute: 
+Note how you tolerate potential changes in the `style` attribute's value or switch from using double quotes to single for `class` attribute: 
 
 The code definitely should not look like:
 

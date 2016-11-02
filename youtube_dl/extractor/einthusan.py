@@ -14,7 +14,7 @@ class EinthusanIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.einthusan.com/movies/watch.php?id=2447',
-            'md5': 'af244f4458cd667205e513d75da5b8b1',
+            'md5': 'd71379996ff5b7f217eca034c34e3461',
             'info_dict': {
                 'id': '2447',
                 'ext': 'mp4',
@@ -25,13 +25,13 @@ class EinthusanIE(InfoExtractor):
         },
         {
             'url': 'http://www.einthusan.com/movies/watch.php?id=1671',
-            'md5': 'ef63c7a803e22315880ed182c10d1c5c',
+            'md5': 'b16a6fd3c67c06eb7c79c8a8615f4213',
             'info_dict': {
                 'id': '1671',
                 'ext': 'mp4',
                 'title': 'Soodhu Kavvuum',
                 'thumbnail': 're:^https?://.*\.jpg$',
-                'description': 'md5:05d8a0c0281a4240d86d76e14f2f4d51',
+                'description': 'md5:b40f2bf7320b4f9414f3780817b2af8c',
             }
         },
     ]
@@ -50,9 +50,11 @@ class EinthusanIE(InfoExtractor):
         video_id = self._search_regex(
             r'data-movieid=["\'](\d+)', webpage, 'video id', default=video_id)
 
-        video_url = self._download_webpage(
+        m3u8_url = self._download_webpage(
             'http://cdn.einthusan.com/geturl/%s/hd/London,Washington,Toronto,Dallas,San,Sydney/'
-            % video_id, video_id)
+            % video_id, video_id, headers={'Referer': url})
+        formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native')
 
         description = self._html_search_meta('description', webpage)
         thumbnail = self._html_search_regex(
@@ -64,7 +66,7 @@ class EinthusanIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'formats': formats,
             'thumbnail': thumbnail,
             'description': description,
         }

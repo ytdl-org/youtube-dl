@@ -13,6 +13,7 @@ from .fragment import FragmentFD
 from .external import FFmpegFD
 
 from ..compat import (
+    compat_urllib_error,
     compat_urlparse,
     compat_struct_pack,
 )
@@ -20,6 +21,7 @@ from ..utils import (
     encodeFilename,
     sanitize_open,
     parse_m3u8_attributes,
+    update_url_query,
 )
 
 
@@ -29,7 +31,7 @@ class HlsFD(FragmentFD):
     FD_NAME = 'hlsnative'
 
     @staticmethod
-    def can_download(manifest):
+    def can_download(manifest, info_dict):
         UNSUPPORTED_FEATURES = (
             r'#EXT-X-KEY:METHOD=(?!NONE|AES-128)',  # encrypted streams [1]
             r'#EXT-X-BYTERANGE',  # playlists composed of byte ranges of media files [2]
@@ -51,6 +53,7 @@ class HlsFD(FragmentFD):
         )
         check_results = [not re.search(feature, manifest) for feature in UNSUPPORTED_FEATURES]
         check_results.append(can_decrypt_frag or '#EXT-X-KEY:METHOD=AES-128' not in manifest)
+        check_results.append(not info_dict.get('is_live'))
         return all(check_results)
 
     def real_download(self, filename, info_dict):
@@ -60,7 +63,7 @@ class HlsFD(FragmentFD):
 
         s = manifest.decode('utf-8', 'ignore')
 
-        if not self.can_download(s):
+        if not self.can_download(s, info_dict):
             self.report_warning(
                 'hlsnative has detected features it does not support, '
                 'extraction will be delegated to ffmpeg')
@@ -82,6 +85,14 @@ class HlsFD(FragmentFD):
 
         self._prepare_and_start_frag_download(ctx)
 
+        fragment_retries = self.params.get('fragment_retries', 0)
+        skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
+        test = self.params.get('test', False)
+
+        extra_query = None
+        extra_param_to_segment_url = info_dict.get('extra_param_to_segment_url')
+        if extra_param_to_segment_url:
+            extra_query = compat_urlparse.parse_qs(extra_param_to_segment_url)
         i = 0
         media_sequence = 0
         decrypt_info = {'METHOD': 'NONE'}
@@ -94,13 +105,37 @@ class HlsFD(FragmentFD):
                         line
                         if re.match(r'^https?://', line)
                         else compat_urlparse.urljoin(man_url, line))
-                    frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], i)
-                    success = ctx['dl'].download(frag_filename, {'url': frag_url})
-                    if not success:
+                    frag_name = 'Frag%d' % i
+                    frag_filename = '%s-%s' % (ctx['tmpfilename'], frag_name)
+                    if extra_query:
+                        frag_url = update_url_query(frag_url, extra_query)
+                    count = 0
+                    while count <= fragment_retries:
+                        try:
+                            success = ctx['dl'].download(frag_filename, {'url': frag_url})
+                            if not success:
+                                return False
+                            down, frag_sanitized = sanitize_open(frag_filename, 'rb')
+                            frag_content = down.read()
+                            down.close()
+                            break
+                        except compat_urllib_error.HTTPError as err:
+                            # Unavailable (possibly temporary) fragments may be served.
+                            # First we try to retry then either skip or abort.
+                            # See https://github.com/rg3/youtube-dl/issues/10165,
+                            # https://github.com/rg3/youtube-dl/issues/10448).
+                            count += 1
+                            if count <= fragment_retries:
+                                self.report_retry_fragment(err, frag_name, count, fragment_retries)
+                    if count > fragment_retries:
+                        if skip_unavailable_fragments:
+                            i += 1
+                            media_sequence += 1
+                            self.report_skip_fragment(frag_name)
+                            continue
+                        self.report_error(
+                            'giving up after %s fragment retries' % fragment_retries)
                         return False
-                    down, frag_sanitized = sanitize_open(frag_filename, 'rb')
-                    frag_content = down.read()
-                    down.close()
                     if decrypt_info['METHOD'] == 'AES-128':
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
                         frag_content = AES.new(
@@ -108,7 +143,7 @@ class HlsFD(FragmentFD):
                     ctx['dest_stream'].write(frag_content)
                     frags_filenames.append(frag_sanitized)
                     # We only download the first fragment during the test
-                    if self.params.get('test', False):
+                    if test:
                         break
                     i += 1
                     media_sequence += 1
@@ -116,10 +151,12 @@ class HlsFD(FragmentFD):
                     decrypt_info = parse_m3u8_attributes(line[11:])
                     if decrypt_info['METHOD'] == 'AES-128':
                         if 'IV' in decrypt_info:
-                            decrypt_info['IV'] = binascii.unhexlify(decrypt_info['IV'][2:])
+                            decrypt_info['IV'] = binascii.unhexlify(decrypt_info['IV'][2:].zfill(32))
                         if not re.match(r'^https?://', decrypt_info['URI']):
                             decrypt_info['URI'] = compat_urlparse.urljoin(
                                 man_url, decrypt_info['URI'])
+                        if extra_query:
+                            decrypt_info['URI'] = update_url_query(decrypt_info['URI'], extra_query)
                         decrypt_info['KEY'] = self.ydl.urlopen(decrypt_info['URI']).read()
                 elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
                     media_sequence = int(line[22:])

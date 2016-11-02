@@ -1,8 +1,8 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
+import collections
 import re
-import json
 import sys
 
 from .common import InfoExtractor
@@ -16,15 +16,15 @@ from ..utils import (
     get_element_by_class,
     int_or_none,
     orderedSet,
-    parse_duration,
     remove_start,
     str_to_int,
     unescapeHTML,
-    unified_strdate,
+    unified_timestamp,
     urlencode_postdata,
 )
-from .vimeo import VimeoIE
+from .dailymotion import DailymotionIE
 from .pladform import PladformIE
+from .vimeo import VimeoIE
 
 
 class VKBaseIE(InfoExtractor):
@@ -52,8 +52,9 @@ class VKBaseIE(InfoExtractor):
         # what actually happens.
         # We will workaround this VK issue by resetting the remixlhk cookie to
         # the first one manually.
-        cookies = url_handle.headers.get('Set-Cookie')
-        if cookies:
+        for header, cookies in url_handle.headers.items():
+            if header.lower() != 'set-cookie':
+                continue
             if sys.version_info[0] >= 3:
                 cookies = cookies.encode('iso-8859-1')
             cookies = cookies.decode('utf-8')
@@ -61,6 +62,7 @@ class VKBaseIE(InfoExtractor):
             if remixlhk:
                 value, domain = remixlhk.groups()
                 self._set_cookie(domain, 'remixlhk', value)
+                break
 
         login_page = self._download_webpage(
             'https://login.vk.com/?act=login', None,
@@ -103,6 +105,7 @@ class VKIE(VKBaseIE):
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
                 'duration': 195,
+                'timestamp': 1329060660,
                 'upload_date': '20120212',
                 'view_count': int,
             },
@@ -116,6 +119,7 @@ class VKIE(VKBaseIE):
                 'uploader': 'Tom Cruise',
                 'title': 'No name',
                 'duration': 9,
+                'timestamp': 1374374880,
                 'upload_date': '20130721',
                 'view_count': int,
             }
@@ -192,6 +196,7 @@ class VKIE(VKBaseIE):
                 'upload_date': '20150709',
                 'view_count': int,
             },
+            'skip': 'Removed',
         },
         {
             # youtube embed
@@ -209,6 +214,23 @@ class VKIE(VKBaseIE):
             },
         },
         {
+            # dailymotion embed
+            'url': 'https://vk.com/video-37468416_456239855',
+            'info_dict': {
+                'id': 'k3lz2cmXyRuJQSjGHUv',
+                'ext': 'mp4',
+                'title': 'md5:d52606645c20b0ddbb21655adaa4f56f',
+                'description': 'md5:c651358f03c56f1150b555c26d90a0fd',
+                'uploader': 'AniLibria.Tv',
+                'upload_date': '20160914',
+                'uploader_id': 'x1p5vl5',
+                'timestamp': 1473877246,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             # video key is extra_data not url\d+
             'url': 'http://vk.com/video-110305615_171782105',
             'md5': 'e13fcda136f99764872e739d13fac1d1',
@@ -217,9 +239,29 @@ class VKIE(VKBaseIE):
                 'ext': 'mp4',
                 'title': 'S-Dance, репетиции к The way show',
                 'uploader': 'THE WAY SHOW | 17 апреля',
+                'timestamp': 1454870100,
                 'upload_date': '20160207',
                 'view_count': int,
             },
+        },
+        {
+            # finished live stream, live_mp4
+            'url': 'https://vk.com/videos-387766?z=video-387766_456242764%2Fpl_-387766_-2',
+            'md5': '90d22d051fccbbe9becfccc615be6791',
+            'info_dict': {
+                'id': '456242764',
+                'ext': 'mp4',
+                'title': 'ИгроМир 2016 — день 1',
+                'uploader': 'Игромания',
+                'duration': 5239,
+                'view_count': int,
+            },
+        },
+        {
+            # live stream, hls and rtmp links,most likely already finished live
+            # stream by the time you are reading this comment
+            'url': 'https://vk.com/video-140332_456239111',
+            'only_matching': True,
         },
         {
             # removed video, just testing that we match the pattern
@@ -298,7 +340,7 @@ class VKIE(VKBaseIE):
         if youtube_url:
             return self.url_result(youtube_url, 'Youtube')
 
-        vimeo_url = VimeoIE._extract_vimeo_url(url, info_page)
+        vimeo_url = VimeoIE._extract_url(url, info_page)
         if vimeo_url is not None:
             return self.url_result(vimeo_url)
 
@@ -313,6 +355,10 @@ class VKIE(VKBaseIE):
                 m_rutube.group(1).replace('\\', ''))
             return self.url_result(rutube_url)
 
+        dailymotion_urls = DailymotionIE._extract_urls(info_page)
+        if dailymotion_urls:
+            return self.url_result(dailymotion_urls[0], DailymotionIE.ie_key())
+
         m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.+?});', info_page)
         if m_opts:
             m_opts_url = re.search(r"url\s*:\s*'((?!/\b)[^']+)", m_opts.group(1))
@@ -322,45 +368,64 @@ class VKIE(VKBaseIE):
                     opts_url = 'http:' + opts_url
                 return self.url_result(opts_url)
 
-        data_json = self._search_regex(r'var\s+vars\s*=\s*({.+?});', info_page, 'vars')
-        data = json.loads(data_json)
+        # vars does not look to be served anymore since 24.10.2016
+        data = self._parse_json(
+            self._search_regex(
+                r'var\s+vars\s*=\s*({.+?});', info_page, 'vars', default='{}'),
+            video_id, fatal=False)
 
-        # Extract upload date
-        upload_date = None
-        mobj = re.search(r'id="mv_date(?:_views)?_wrap"[^>]*>([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
-        if mobj is not None:
-            mobj.group(1) + ' ' + mobj.group(2)
-            upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
+        # <!json> is served instead
+        if not data:
+            data = self._parse_json(
+                self._search_regex(
+                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json'),
+                video_id)['player']['params'][0]
 
-        view_count = None
-        views = self._html_search_regex(
-            r'"mv_views_count_number"[^>]*>(.+?\bviews?)<',
-            info_page, 'view count', default=None)
-        if views:
-            view_count = str_to_int(self._search_regex(
-                r'([\d,.]+)', views, 'view count', fatal=False))
+        title = unescapeHTML(data['md_title'])
+
+        if data.get('live') == 2:
+            title = self._live_title(title)
+
+        timestamp = unified_timestamp(self._html_search_regex(
+            r'class=["\']mv_info_date[^>]+>([^<]+)(?:<|from)', info_page,
+            'upload date', fatal=False))
+
+        view_count = str_to_int(self._search_regex(
+            r'class=["\']mv_views_count[^>]+>\s*([\d,.]+)',
+            info_page, 'view count', fatal=False))
 
         formats = []
-        for k, v in data.items():
-            if not k.startswith('url') and not k.startswith('cache') and k != 'extra_data' or not v:
+        for format_id, format_url in data.items():
+            if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
-            height = int_or_none(self._search_regex(
-                r'^(?:url|cache)(\d+)', k, 'height', default=None))
-            formats.append({
-                'format_id': k,
-                'url': v,
-                'height': height,
-            })
+            if format_id.startswith(('url', 'cache')) or format_id in ('extra_data', 'live_mp4'):
+                height = int_or_none(self._search_regex(
+                    r'^(?:url|cache)(\d+)', format_id, 'height', default=None))
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'height': height,
+                })
+            elif format_id == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id,
+                    fatal=False, live=True))
+            elif format_id == 'rtmp':
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'ext': 'flv',
+                })
         self._sort_formats(formats)
 
         return {
-            'id': compat_str(data['vid']),
+            'id': compat_str(data.get('vid') or video_id),
             'formats': formats,
-            'title': unescapeHTML(data['md_title']),
+            'title': title,
             'thumbnail': data.get('jpg'),
             'uploader': data.get('md_author'),
             'duration': data.get('duration'),
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'view_count': view_count,
         }
 
@@ -445,6 +510,9 @@ class VKWallPostIE(VKBaseIE):
                 'skip_download': True,
             },
         }],
+        'params': {
+            'usenetrc': True,
+        },
         'skip': 'Requires vk account credentials',
     }, {
         # single YouTube embed, no leading -
@@ -454,6 +522,9 @@ class VKWallPostIE(VKBaseIE):
             'title': 'Sergey Gorbunov - Wall post 85155021_6319',
         },
         'playlist_count': 1,
+        'params': {
+            'usenetrc': True,
+        },
         'skip': 'Requires vk account credentials',
     }, {
         # wall page URL
@@ -481,37 +552,41 @@ class VKWallPostIE(VKBaseIE):
             raise ExtractorError('VK said: %s' % error, expected=True)
 
         description = clean_html(get_element_by_class('wall_post_text', webpage))
-        uploader = clean_html(get_element_by_class(
-            'fw_post_author', webpage)) or self._og_search_description(webpage)
+        uploader = clean_html(get_element_by_class('author', webpage))
         thumbnail = self._og_search_thumbnail(webpage)
 
         entries = []
 
-        for audio in re.finditer(r'''(?sx)
-                            <input[^>]+
-                                id=(?P<q1>["\'])audio_info(?P<id>\d+_\d+).*?(?P=q1)[^>]+
-                                value=(?P<q2>["\'])(?P<url>http.+?)(?P=q2)
-                                .+?
-                            </table>''', webpage):
-            audio_html = audio.group(0)
-            audio_id = audio.group('id')
-            duration = parse_duration(get_element_by_class('duration', audio_html))
-            track = self._html_search_regex(
-                r'<span[^>]+id=["\']title%s[^>]*>([^<]+)' % audio_id,
-                audio_html, 'title', default=None)
-            artist = self._html_search_regex(
-                r'>([^<]+)</a></b>\s*&ndash', audio_html,
-                'artist', default=None)
-            entries.append({
-                'id': audio_id,
-                'url': audio.group('url'),
-                'title': '%s - %s' % (artist, track) if artist and track else audio_id,
-                'thumbnail': thumbnail,
-                'duration': duration,
-                'uploader': uploader,
-                'artist': artist,
-                'track': track,
-            })
+        audio_ids = re.findall(r'data-full-id=["\'](\d+_\d+)', webpage)
+        if audio_ids:
+            al_audio = self._download_webpage(
+                'https://vk.com/al_audio.php', post_id,
+                note='Downloading audio info', fatal=False,
+                data=urlencode_postdata({
+                    'act': 'reload_audio',
+                    'al': '1',
+                    'ids': ','.join(audio_ids)
+                }))
+            if al_audio:
+                Audio = collections.namedtuple(
+                    'Audio', ['id', 'user_id', 'url', 'track', 'artist', 'duration'])
+                audios = self._parse_json(
+                    self._search_regex(
+                        r'<!json>(.+?)<!>', al_audio, 'audios', default='[]'),
+                    post_id, fatal=False, transform_source=unescapeHTML)
+                if isinstance(audios, list):
+                    for audio in audios:
+                        a = Audio._make(audio[:6])
+                        entries.append({
+                            'id': '%s_%s' % (a.user_id, a.id),
+                            'url': a.url,
+                            'title': '%s - %s' % (a.artist, a.track) if a.artist and a.track else a.id,
+                            'thumbnail': thumbnail,
+                            'duration': a.duration,
+                            'uploader': uploader,
+                            'artist': a.artist,
+                            'track': a.track,
+                        })
 
         for video in re.finditer(
                 r'<a[^>]+href=(["\'])(?P<url>/video(?:-?[\d_]+).*?)\1', webpage):

@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class WeiqiTVIE(InfoExtractor):
     IE_DESC = 'WQTV'
-    _VALID_URL = r'https?://www\.weiqitv\.com/index/video_play\?videoId=(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?weiqitv\.com/index/video_play\?videoId=(?P<id>[A-Za-z0-9]+)'
 
     _TESTS = [{
         'url': 'http://www.weiqitv.com/index/video_play?videoId=53c744f09874f0e76a8b46f3',

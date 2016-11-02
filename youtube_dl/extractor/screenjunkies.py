@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class ScreenJunkiesIE(InfoExtractor):
-    _VALID_URL = r'https?://www.screenjunkies.com/video/(?P<display_id>[^/]+?)(?:-(?P<id>\d+))?(?:[/?#&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?screenjunkies\.com/video/(?P<display_id>[^/]+?)(?:-(?P<id>\d+))?(?:[/?#&]|$)'
     _TESTS = [{
         'url': 'http://www.screenjunkies.com/video/best-quentin-tarantino-movie-2841915',
         'md5': '5c2b686bec3d43de42bde9ec047536b0',

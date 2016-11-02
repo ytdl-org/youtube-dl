@@ -5,17 +5,20 @@ from .common import InfoExtractor
 
 
 class URPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?urplay\.se/program/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?ur(?:play|skola)\.se/(?:program|Produkter)/(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://urplay.se/program/190031-tripp-trapp-trad-sovkudde',
-        'md5': '15ca67b63fd8fb320ac2bcd854bad7b6',
+        'md5': 'ad5f0de86f16ca4c8062cd103959a9eb',
         'info_dict': {
             'id': '190031',
             'ext': 'mp4',
             'title': 'Tripp, Trapp, Träd : Sovkudde',
             'description': 'md5:b86bffdae04a7e9379d1d7e5947df1d1',
-        }
-    }
+        },
+    }, {
+        'url': 'http://urskola.se/Produkter/155794-Smasagor-meankieli-Grodan-i-vida-varlden',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -27,30 +30,17 @@ class URPlayIE(InfoExtractor):
 
         formats = []
         for quality_attr, quality, preference in (('', 'sd', 0), ('_hd', 'hd', 1)):
-            file_rtmp = urplayer_data.get('file_rtmp' + quality_attr)
-            if file_rtmp:
-                formats.append({
-                    'url': 'rtmp://%s/urplay/mp4:%s' % (host, file_rtmp),
-                    'format_id': quality + '-rtmp',
-                    'ext': 'flv',
-                    'preference': preference,
-                })
             file_http = urplayer_data.get('file_http' + quality_attr) or urplayer_data.get('file_http_sub' + quality_attr)
             if file_http:
-                file_http_base_url = 'http://%s/%s' % (host, file_http)
-                formats.extend(self._extract_f4m_formats(
-                    file_http_base_url + 'manifest.f4m', video_id,
-                    preference, '%s-hds' % quality, fatal=False))
-                formats.extend(self._extract_m3u8_formats(
-                    file_http_base_url + 'playlist.m3u8', video_id, 'mp4',
-                    'm3u8_native', preference, '%s-hls' % quality, fatal=False))
+                formats.extend(self._extract_wowza_formats(
+                    'http://%s/%splaylist.m3u8' % (host, file_http), video_id, skip_protocols=['rtmp', 'rtsp']))
         self._sort_formats(formats)
 
         subtitles = {}
         for subtitle in urplayer_data.get('subtitles', []):
             subtitle_url = subtitle.get('file')
             kind = subtitle.get('kind')
-            if subtitle_url or kind and kind != 'captions':
+            if not subtitle_url or (kind and kind != 'captions'):
                 continue
             subtitles.setdefault(subtitle.get('label', 'Svenska'), []).append({
                 'url': subtitle_url,

@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
+from .common import InfoExtractor
 
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
@@ -96,3 +97,22 @@ class ComedyCentralTVIE(MTVServicesInfoExtractor):
             webpage, 'mrss url', group='url')
 
         return self._get_videos_info_from_url(mrss_url, video_id)
+
+
+class ComedyCentralShortnameIE(InfoExtractor):
+    _VALID_URL = r'^:(?P<id>tds|thedailyshow)$'
+    _TESTS = [{
+        'url': ':tds',
+        'only_matching': True,
+    }, {
+        'url': ':thedailyshow',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        shortcut_map = {
+            'tds': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
+            'thedailyshow': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
+        }
+        return self.url_result(shortcut_map[video_id])

@@ -9,6 +9,8 @@ from ..utils import (
     try_get,
 )
 
+from .videomore import VideomoreIE
+
 
 class CarambaTVIE(InfoExtractor):
     _VALID_URL = r'(?:carambatv:|https?://video1\.carambatv\.ru/v/)(?P<id>\d+)'
@@ -62,20 +64,32 @@ class CarambaTVPageIE(InfoExtractor):
     _VALID_URL = r'https?://carambatv\.ru/(?:[^/]+/)+(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'http://carambatv.ru/movie/bad-comedian/razborka-v-manile/',
-        'md5': '',
+        'md5': 'a49fb0ec2ad66503eeb46aac237d3c86',
         'info_dict': {
-            'id': '191910501',
-            'ext': 'mp4',
+            'id': '475222',
+            'ext': 'flv',
             'title': '[BadComedian] - Разборка в Маниле (Абсолютный обзор)',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 2678.31,
+            'thumbnail': 're:^https?://.*\.jpg',
+            # duration reported by videomore is incorrect
+            'duration': int,
         },
+        'add_ie': [VideomoreIE.ie_key()],
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
+
+        videomore_url = VideomoreIE._extract_url(webpage)
+        if videomore_url:
+            title = self._og_search_title(webpage)
+            return {
+                '_type': 'url_transparent',
+                'url': videomore_url,
+                'ie_key': VideomoreIE.ie_key(),
+                'title': title,
+            }
 
         video_url = self._og_search_property('video:iframe', webpage, default=None)
 

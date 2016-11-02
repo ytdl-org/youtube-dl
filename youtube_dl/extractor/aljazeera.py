@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class AlJazeeraIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.aljazeera\.com/programmes/.*?/(?P<id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?aljazeera\.com/programmes/.*?/(?P<id>[^/]+)\.html'
 
     _TEST = {
         'url': 'http://www.aljazeera.com/programmes/the-slum/2014/08/deliverance-201482883754237240.html',

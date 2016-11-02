@@ -2,17 +2,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     int_or_none,
-    sanitized_Request,
     str_to_int,
 )
-from ..aes import aes_decrypt_text
+from .keezmovies import KeezMoviesIE
 
 
-class Tube8IE(InfoExtractor):
+class Tube8IE(KeezMoviesIE):
     _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:[^/]+/)+(?P<display_id>[^/]+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.tube8.com/teen/kasia-music-video/229795/',
@@ -26,54 +23,26 @@ class Tube8IE(InfoExtractor):
             'title': 'Kasia music video',
             'age_limit': 18,
             'duration': 230,
-        }
+            'categories': ['Teen'],
+            'tags': ['dancing'],
+        },
     }, {
         'url': 'http://www.tube8.com/shemale/teen/blonde-cd-gets-kidnapped-by-two-blacks-and-punished-for-being-a-slutty-girl/19569151/',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        display_id = mobj.group('display_id')
+        webpage, info = self._extract_info(url)
 
-        req = sanitized_Request(url)
-        req.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(req, display_id)
+        if not info['title']:
+            info['title'] = self._html_search_regex(
+                r'videoTitle\s*=\s*"([^"]+)', webpage, 'title')
 
-        flashvars = self._parse_json(
-            self._search_regex(
-                r'flashvars\s*=\s*({.+?});\r?\n', webpage, 'flashvars'),
-            video_id)
-
-        formats = []
-        for key, video_url in flashvars.items():
-            if not isinstance(video_url, compat_str) or not video_url.startswith('http'):
-                continue
-            height = self._search_regex(
-                r'quality_(\d+)[pP]', key, 'height', default=None)
-            if not height:
-                continue
-            if flashvars.get('encrypted') is True:
-                video_url = aes_decrypt_text(
-                    video_url, flashvars['video_title'], 32).decode('utf-8')
-            formats.append({
-                'url': video_url,
-                'format_id': '%sp' % height,
-                'height': int(height),
-            })
-        self._sort_formats(formats)
-
-        thumbnail = flashvars.get('image_url')
-
-        title = self._html_search_regex(
-            r'videoTitle\s*=\s*"([^"]+)', webpage, 'title')
         description = self._html_search_regex(
             r'>Description:</strong>\s*(.+?)\s*<', webpage, 'description', fatal=False)
         uploader = self._html_search_regex(
             r'<span class="username">\s*(.+?)\s*<',
             webpage, 'uploader', fatal=False)
-        duration = int_or_none(flashvars.get('video_duration'))
 
         like_count = int_or_none(self._search_regex(
             r'rupVar\s*=\s*"(\d+)"', webpage, 'like count', fatal=False))
@@ -86,18 +55,26 @@ class Tube8IE(InfoExtractor):
             r'<span id="allCommentsCount">(\d+)</span>',
             webpage, 'comment count', fatal=False))
 
-        return {
-            'id': video_id,
-            'display_id': display_id,
-            'title': title,
+        category = self._search_regex(
+            r'Category:\s*</strong>\s*<a[^>]+href=[^>]+>([^<]+)',
+            webpage, 'category', fatal=False)
+        categories = [category] if category else None
+
+        tags_str = self._search_regex(
+            r'(?s)Tags:\s*</strong>(.+?)</(?!a)',
+            webpage, 'tags', fatal=False)
+        tags = [t for t in re.findall(
+            r'<a[^>]+href=[^>]+>([^<]+)', tags_str)] if tags_str else None
+
+        info.update({
             'description': description,
-            'thumbnail': thumbnail,
             'uploader': uploader,
-            'duration': duration,
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
-            'age_limit': 18,
-            'formats': formats,
-        }
+            'categories': categories,
+            'tags': tags,
+        })
+
+        return info

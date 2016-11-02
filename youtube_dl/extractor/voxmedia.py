@@ -9,12 +9,15 @@ class VoxMediaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:theverge|vox|sbnation|eater|polygon|curbed|racked)\.com/(?:[^/]+/)*(?P<id>[^/?]+)'
     _TESTS = [{
         'url': 'http://www.theverge.com/2014/6/27/5849272/material-world-how-google-discovered-what-software-is-made-of',
-        'md5': '73856edf3e89a711e70d5cf7cb280b37',
         'info_dict': {
             'id': '11eXZobjrG8DCSTgrNjVinU-YmmdYjhe',
             'ext': 'mp4',
             'title': 'Google\'s new material design direction',
             'description': 'md5:2f44f74c4d14a1f800ea73e1c6832ad2',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
         'add_ie': ['Ooyala'],
     }, {
@@ -31,12 +34,15 @@ class VoxMediaIE(InfoExtractor):
     }, {
         # volume embed
         'url': 'http://www.vox.com/2016/3/31/11336640/mississippi-lgbt-religious-freedom-bill',
-        'md5': '375c483c5080ab8cd85c9c84cfc2d1e4',
         'info_dict': {
             'id': 'wydzk3dDpmRz7PQoXRsTIX6XTkPjYL0b',
             'ext': 'mp4',
             'title': 'The new frontier of LGBTQ civil rights, explained',
             'description': 'md5:0dc58e94a465cbe91d02950f770eb93f',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
         'add_ie': ['Ooyala'],
     }, {

@@ -94,7 +94,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'title': 'Leanna Decker - Cyber Girl Of The Year Desires Nude [Playboy Plus]',
                 'uploader': 'HotWaves1012',
                 'age_limit': 18,
-            }
+            },
+            'skip': 'video gone',
         },
         # geo-restricted, player v5
         {
@@ -144,7 +145,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         player_v5 = self._search_regex(
             [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/rg3/youtube-dl/issues/7826
              r'playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);',
-             r'buildPlayer\(({.+?})\);'],
+             r'buildPlayer\(({.+?})\);',
+             r'var\s+config\s*=\s*({.+?});'],
             webpage, 'player v5', default=None)
         if player_v5:
             player = self._parse_json(player_v5, video_id)
@@ -331,7 +333,9 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
             for video_id in re.findall(r'data-xid="(.+?)"', webpage):
                 if video_id not in video_ids:
-                    yield self.url_result('http://www.dailymotion.com/video/%s' % video_id, 'Dailymotion')
+                    yield self.url_result(
+                        'http://www.dailymotion.com/video/%s' % video_id,
+                        DailymotionIE.ie_key(), video_id)
                     video_ids.add(video_id)
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
@@ -392,7 +396,7 @@ class DailymotionUserIE(DailymotionPlaylistIE):
 
 
 class DailymotionCloudIE(DailymotionBaseInfoExtractor):
-    _VALID_URL_PREFIX = r'http://api\.dmcloud\.net/(?:player/)?embed/'
+    _VALID_URL_PREFIX = r'https?://api\.dmcloud\.net/(?:player/)?embed/'
     _VALID_URL = r'%s[^/]+/(?P<id>[^/?]+)' % _VALID_URL_PREFIX
     _VALID_EMBED_URL = r'%s[^/]+/[^\'"]+' % _VALID_URL_PREFIX
 

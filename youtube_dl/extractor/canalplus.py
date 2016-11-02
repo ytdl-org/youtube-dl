@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -6,11 +6,13 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
+    dict_get,
     ExtractorError,
     HEADRequest,
-    unified_strdate,
-    qualities,
     int_or_none,
+    qualities,
+    remove_end,
+    unified_strdate,
 )
 
 
@@ -23,6 +25,7 @@ class CanalplusIE(InfoExtractor):
                                     (?:(?:www|m)\.)?canalplus\.fr|
                                     (?:www\.)?piwiplus\.fr|
                                     (?:www\.)?d8\.tv|
+                                    (?:www\.)?c8\.fr|
                                     (?:www\.)?d17\.tv|
                                     (?:www\.)?itele\.fr
                                 )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
@@ -35,53 +38,53 @@ class CanalplusIE(InfoExtractor):
         'canalplus': 'cplus',
         'piwiplus': 'teletoon',
         'd8': 'd8',
+        'c8': 'd8',
         'd17': 'd17',
         'itele': 'itele',
     }
 
     _TESTS = [{
         'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1192814',
-        'md5': '41f438a4904f7664b91b4ed0dec969dc',
         'info_dict': {
-            'id': '1192814',
+            'id': '1405510',
+            'display_id': 'pid1830-c-zapping',
             'ext': 'mp4',
-            'title': "L'Année du Zapping 2014 - L'Année du Zapping 2014",
-            'description': "Toute l'année 2014 dans un Zapping exceptionnel !",
-            'upload_date': '20150105',
+            'title': 'Zapping - 02/07/2016',
+            'description': 'Le meilleur de toutes les chaînes, tous les jours',
+            'upload_date': '20160702',
         },
     }, {
         'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
         'info_dict': {
             'id': '1108190',
-            'ext': 'flv',
-            'title': 'Le labyrinthe - Boing super ranger',
+            'display_id': 'pid1405-le-labyrinthe-boing-super-ranger',
+            'ext': 'mp4',
+            'title': 'BOING SUPER RANGER - Ep : Le labyrinthe',
             'description': 'md5:4cea7a37153be42c1ba2c1d3064376ff',
             'upload_date': '20140724',
         },
         'skip': 'Only works from France',
     }, {
-        'url': 'http://www.d8.tv/d8-docs-mags/pid5198-d8-en-quete-d-actualite.html?vid=1390231',
+        'url': 'http://www.c8.fr/c8-divertissement/ms-touche-pas-a-mon-poste/pid6318-videos-integrales.html',
+        'md5': '4b47b12b4ee43002626b97fad8fb1de5',
         'info_dict': {
-            'id': '1390231',
+            'id': '1420213',
+            'display_id': 'pid6318-videos-integrales',
             'ext': 'mp4',
-            'title': "Vacances pas chères : prix discount ou grosses dépenses ? - En quête d'actualité",
-            'description': 'md5:edb6cf1cb4a1e807b5dd089e1ac8bfc6',
-            'upload_date': '20160512',
+            'title': 'TPMP ! Même le matin - Les 35H de Baba - 14/10/2016',
+            'description': 'md5:f96736c1b0ffaa96fd5b9e60ad871799',
+            'upload_date': '20161014',
         },
-        'params': {
-            'skip_download': True,
-        },
+        'skip': 'Only works from France',
     }, {
-        'url': 'http://www.itele.fr/chroniques/invite-bruce-toussaint/thierry-solere-nicolas-sarkozy-officialisera-sa-candidature-a-la-primaire-quand-il-le-voudra-167224',
+        'url': 'http://www.itele.fr/chroniques/invite-michael-darmon/rachida-dati-nicolas-sarkozy-est-le-plus-en-phase-avec-les-inquietudes-des-francais-171510',
         'info_dict': {
-            'id': '1398334',
+            'id': '1420176',
+            'display_id': 'rachida-dati-nicolas-sarkozy-est-le-plus-en-phase-avec-les-inquietudes-des-francais-171510',
             'ext': 'mp4',
-            'title': "L'invité de Bruce Toussaint du 07/06/2016 - ",
-            'description': 'md5:40ac7c9ad0feaeb6f605bad986f61324',
-            'upload_date': '20160607',
-        },
-        'params': {
-            'skip_download': True,
+            'title': 'L\'invité de Michaël Darmon du 14/10/2016 - ',
+            'description': 'Chaque matin du lundi au vendredi, Michaël Darmon reçoit un invité politique à 8h25.',
+            'upload_date': '20161014',
         },
     }, {
         'url': 'http://m.canalplus.fr/?vid=1398231',
@@ -93,18 +96,17 @@ class CanalplusIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.groupdict().get('id') or mobj.groupdict().get('vid')
 
         site_id = self._SITE_ID_MAP[compat_urllib_parse_urlparse(url).netloc.rsplit('.', 2)[-2]]
 
         # Beware, some subclasses do not define an id group
-        display_id = mobj.group('display_id') or video_id
+        display_id = remove_end(dict_get(mobj.groupdict(), ('display_id', 'id', 'vid')), '.html')
 
-        if video_id is None:
-            webpage = self._download_webpage(url, display_id)
-            video_id = self._search_regex(
-                [r'<canal:player[^>]+?videoId=(["\'])(?P<id>\d+)', r'id=["\']canal_video_player(?P<id>\d+)'],
-                webpage, 'video id', group='id')
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(
+            [r'<canal:player[^>]+?videoId=(["\'])(?P<id>\d+)',
+             r'id=["\']canal_video_player(?P<id>\d+)'],
+            webpage, 'video id', group='id')
 
         info_url = self._VIDEO_INFO_TEMPLATE % (site_id, video_id)
         video_data = self._download_json(info_url, video_id, 'Downloading video JSON')

@@ -48,13 +48,23 @@ class InternetVideoArchiveIE(InfoExtractor):
             # There are multiple videos in the playlist whlie only the first one
             # matches the video played in browsers
             video_info = configuration['playlist'][0]
+            title = video_info['title']
 
             formats = []
             for source in video_info['sources']:
                 file_url = source['file']
                 if determine_ext(file_url) == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        file_url, video_id, ext='mp4', m3u8_id='hls'))
+                    m3u8_formats = self._extract_m3u8_formats(
+                        file_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+                    if m3u8_formats:
+                        formats.extend(m3u8_formats)
+                        file_url = m3u8_formats[0]['url']
+                        formats.extend(self._extract_f4m_formats(
+                            file_url.replace('.m3u8', '.f4m'),
+                            video_id, f4m_id='hds', fatal=False))
+                        formats.extend(self._extract_mpd_formats(
+                            file_url.replace('.m3u8', '.mpd'),
+                            video_id, mpd_id='dash', fatal=False))
                 else:
                     a_format = {
                         'url': file_url,
@@ -70,7 +80,6 @@ class InternetVideoArchiveIE(InfoExtractor):
 
             self._sort_formats(formats)
 
-            title = video_info['title']
             description = video_info.get('description')
             thumbnail = video_info.get('image')
         else:

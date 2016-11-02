@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     float_or_none,
 )
 
@@ -75,7 +74,6 @@ class VRTIE(InfoExtractor):
         },
         {
             'url': 'http://cobra.canvas.be/cm/cobra/videozone/rubriek/film-videozone/1.2377055',
-            'md5': '',
             'info_dict': {
                 'id': '2377055',
                 'ext': 'mp4',
@@ -119,39 +117,17 @@ class VRTIE(InfoExtractor):
                 video_id, 'mp4', m3u8_id='hls', fatal=False))
 
         if src:
-            if determine_ext(src) == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    src, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
-                formats.extend(self._extract_f4m_formats(
-                    src.replace('playlist.m3u8', 'manifest.f4m'),
-                    video_id, f4m_id='hds', fatal=False))
-                if 'data-video-geoblocking="true"' not in webpage:
-                    rtmp_formats = self._extract_smil_formats(
-                        src.replace('playlist.m3u8', 'jwplayer.smil'),
-                        video_id, fatal=False)
-                    formats.extend(rtmp_formats)
-                    for rtmp_format in rtmp_formats:
-                        rtmp_format_c = rtmp_format.copy()
-                        rtmp_format_c['url'] = '%s/%s' % (rtmp_format['url'], rtmp_format['play_path'])
-                        del rtmp_format_c['play_path']
-                        del rtmp_format_c['ext']
-                        http_format = rtmp_format_c.copy()
+            formats = self._extract_wowza_formats(src, video_id)
+            if 'data-video-geoblocking="true"' not in webpage:
+                for f in formats:
+                    if f['url'].startswith('rtsp://'):
+                        http_format = f.copy()
                         http_format.update({
-                            'url': rtmp_format_c['url'].replace('rtmp://', 'http://').replace('vod.', 'download.').replace('/_definst_/', '/').replace('mp4:', ''),
-                            'format_id': rtmp_format['format_id'].replace('rtmp', 'http'),
+                            'url': f['url'].replace('rtsp://', 'http://').replace('vod.', 'download.').replace('/_definst_/', '/').replace('mp4:', ''),
+                            'format_id': f['format_id'].replace('rtsp', 'http'),
                             'protocol': 'http',
                         })
-                        rtsp_format = rtmp_format_c.copy()
-                        rtsp_format.update({
-                            'url': rtsp_format['url'].replace('rtmp://', 'rtsp://'),
-                            'format_id': rtmp_format['format_id'].replace('rtmp', 'rtsp'),
-                            'protocol': 'rtsp',
-                        })
-                        formats.extend([http_format, rtsp_format])
-            else:
-                formats.extend(self._extract_f4m_formats(
-                    '%s/manifest.f4m' % src, video_id, f4m_id='hds', fatal=False))
+                        formats.append(http_format)
 
         if not formats and 'data-video-geoblocking="true"' in webpage:
             self.raise_geo_restricted('This video is only available in Belgium')

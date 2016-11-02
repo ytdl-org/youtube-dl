@@ -605,6 +605,7 @@ class TestYoutubeDL(unittest.TestCase):
             'extractor': 'TEST',
             'duration': 30,
             'filesize': 10 * 1024,
+            'playlist_id': '42',
         }
         second = {
             'id': '2',
@@ -614,6 +615,7 @@ class TestYoutubeDL(unittest.TestCase):
             'duration': 10,
             'description': 'foo',
             'filesize': 5 * 1024,
+            'playlist_id': '43',
         }
         videos = [first, second]
 
@@ -647,6 +649,10 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(res, ['1', '2'])
 
         f = match_filter_func('filesize > 5KiB')
+        res = get_videos(f)
+        self.assertEqual(res, ['1'])
+
+        f = match_filter_func('playlist_id = 42')
         res = get_videos(f)
         self.assertEqual(res, ['1'])
 

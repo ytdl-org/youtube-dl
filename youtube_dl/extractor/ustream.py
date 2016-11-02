@@ -1,20 +1,25 @@
 from __future__ import unicode_literals
 
+import random
 import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_str,
     compat_urlparse,
 )
 from ..utils import (
+    encode_data_uri,
     ExtractorError,
     int_or_none,
     float_or_none,
+    mimetype2ext,
+    str_or_none,
 )
 
 
 class UstreamIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<id>\d+)'
     IE_NAME = 'ustream'
     _TESTS = [{
         'url': 'http://www.ustream.tv/recorded/20274954',
@@ -47,7 +52,107 @@ class UstreamIE(InfoExtractor):
             'id': '10299409',
         },
         'playlist_count': 3,
+    }, {
+        'url': 'http://www.ustream.tv/recorded/91343263',
+        'info_dict': {
+            'id': '91343263',
+            'ext': 'mp4',
+            'title': 'GitHub Universe - General Session - Day 1',
+            'upload_date': '20160914',
+            'description': 'GitHub Universe - General Session - Day 1',
+            'timestamp': 1473872730,
+            'uploader': 'wa0dnskeqkr',
+            'uploader_id': '38977840',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 download
+        },
     }]
+
+    def _get_stream_info(self, url, video_id, app_id_ver, extra_note=None):
+        def num_to_hex(n):
+            return hex(n)[2:]
+
+        rnd = random.randrange
+
+        if not extra_note:
+            extra_note = ''
+
+        conn_info = self._download_json(
+            'http://r%d-1-%s-recorded-lp-live.ums.ustream.tv/1/ustream' % (rnd(1e8), video_id),
+            video_id, note='Downloading connection info' + extra_note,
+            query={
+                'type': 'viewer',
+                'appId': app_id_ver[0],
+                'appVersion': app_id_ver[1],
+                'rsid': '%s:%s' % (num_to_hex(rnd(1e8)), num_to_hex(rnd(1e8))),
+                'rpin': '_rpin.%d' % rnd(1e15),
+                'referrer': url,
+                'media': video_id,
+                'application': 'recorded',
+            })
+        host = conn_info[0]['args'][0]['host']
+        connection_id = conn_info[0]['args'][0]['connectionId']
+
+        return self._download_json(
+            'http://%s/1/ustream?connectionId=%s' % (host, connection_id),
+            video_id, note='Downloading stream info' + extra_note)
+
+    def _get_streams(self, url, video_id, app_id_ver):
+        # Sometimes the return dict does not have 'stream'
+        for trial_count in range(3):
+            stream_info = self._get_stream_info(
+                url, video_id, app_id_ver,
+                extra_note=' (try %d)' % (trial_count + 1) if trial_count > 0 else '')
+            if 'stream' in stream_info[0]['args'][0]:
+                return stream_info[0]['args'][0]['stream']
+        return []
+
+    def _parse_segmented_mp4(self, dash_stream_info):
+        def resolve_dash_template(template, idx, chunk_hash):
+            return template.replace('%', compat_str(idx), 1).replace('%', chunk_hash)
+
+        formats = []
+        for stream in dash_stream_info['streams']:
+            # Use only one provider to avoid too many formats
+            provider = dash_stream_info['providers'][0]
+            fragments = [{
+                'url': resolve_dash_template(
+                    provider['url'] + stream['initUrl'], 0, dash_stream_info['hashes']['0'])
+            }]
+            for idx in range(dash_stream_info['videoLength'] // dash_stream_info['chunkTime']):
+                fragments.append({
+                    'url': resolve_dash_template(
+                        provider['url'] + stream['segmentUrl'], idx,
+                        dash_stream_info['hashes'][compat_str(idx // 10 * 10)])
+                })
+            content_type = stream['contentType']
+            kind = content_type.split('/')[0]
+            f = {
+                'format_id': '-'.join(filter(None, [
+                    'dash', kind, str_or_none(stream.get('bitrate'))])),
+                'protocol': 'http_dash_segments',
+                # TODO: generate a MPD doc for external players?
+                'url': encode_data_uri(b'<MPD/>', 'text/xml'),
+                'ext': mimetype2ext(content_type),
+                'height': stream.get('height'),
+                'width': stream.get('width'),
+                'fragments': fragments,
+            }
+            if kind == 'video':
+                f.update({
+                    'vcodec': stream.get('codec'),
+                    'acodec': 'none',
+                    'vbr': stream.get('bitrate'),
+                })
+            else:
+                f.update({
+                    'vcodec': 'none',
+                    'acodec': stream.get('codec'),
+                    'abr': stream.get('bitrate'),
+                })
+            formats.append(f)
+        return formats
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
@@ -86,7 +191,22 @@ class UstreamIE(InfoExtractor):
             'url': video_url,
             'ext': format_id,
             'filesize': filesize,
-        } for format_id, video_url in video['media_urls'].items()]
+        } for format_id, video_url in video['media_urls'].items() if video_url]
+
+        if not formats:
+            hls_streams = self._get_streams(url, video_id, app_id_ver=(11, 2))
+            if hls_streams:
+                # m3u8_native leads to intermittent ContentTooShortError
+                formats.extend(self._extract_m3u8_formats(
+                    hls_streams[0]['url'], video_id, ext='mp4', m3u8_id='hls'))
+
+            '''
+            # DASH streams handling is incomplete as 'url' is missing
+            dash_streams = self._get_streams(url, video_id, app_id_ver=(3, 1))
+            if dash_streams:
+                formats.extend(self._parse_segmented_mp4(dash_streams))
+            '''
+
         self._sort_formats(formats)
 
         description = video.get('description')
@@ -117,7 +237,7 @@ class UstreamIE(InfoExtractor):
 
 
 class UstreamChannelIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ustream\.tv/channel/(?P<slug>.+)'
+    _VALID_URL = r'https?://(?:www\.)?ustream\.tv/channel/(?P<slug>.+)'
     IE_NAME = 'ustream:channel'
     _TEST = {
         'url': 'http://www.ustream.tv/channel/channeljapan',

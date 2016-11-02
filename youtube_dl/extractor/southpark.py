@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
@@ -35,6 +35,7 @@ class SouthParkEsIE(SouthParkIE):
             'description': 'Cartman Consigue Una Sonda Anal',
         },
         'playlist_count': 4,
+        'skip': 'Geo-restricted',
     }]
 
 

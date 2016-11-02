@@ -7,12 +7,13 @@ from ..utils import (
     ExtractorError,
     js_to_json,
     int_or_none,
+    parse_iso8601,
 )
 
 
 class ABCIE(InfoExtractor):
     IE_NAME = 'abc.net.au'
-    _VALID_URL = r'https?://www\.abc\.net\.au/news/(?:[^/]+/){1,2}(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?abc\.net\.au/news/(?:[^/]+/){1,2}(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.abc.net.au/news/2014-11-05/australia-to-staff-ebola-treatment-centre-in-sierra-leone/5868334',
@@ -92,4 +93,60 @@ class ABCIE(InfoExtractor):
             'formats': formats,
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
+        }
+
+
+class ABCIViewIE(InfoExtractor):
+    IE_NAME = 'abc.net.au:iview'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/programs/[^/]+/(?P<id>[^/?#]+)'
+
+    # ABC iview programs are normally available for 14 days only.
+    _TESTS = [{
+        'url': 'http://iview.abc.net.au/programs/diaries-of-a-broken-mind/ZX9735A001S00',
+        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
+        'info_dict': {
+            'id': 'ZX9735A001S00',
+            'ext': 'mp4',
+            'title': 'Diaries Of A Broken Mind',
+            'description': 'md5:7de3903874b7a1be279fe6b68718fc9e',
+            'upload_date': '20161010',
+            'uploader_id': 'abc2',
+            'timestamp': 1476064920,
+        },
+        'skip': 'Video gone',
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        video_params = self._parse_json(self._search_regex(
+            r'videoParams\s*=\s*({.+?});', webpage, 'video params'), video_id)
+        title = video_params.get('title') or video_params['seriesTitle']
+        stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
+
+        formats = self._extract_akamai_formats(stream['hds-unmetered'], video_id)
+        self._sort_formats(formats)
+
+        subtitles = {}
+        src_vtt = stream.get('captions', {}).get('src-vtt')
+        if src_vtt:
+            subtitles['en'] = [{
+                'url': src_vtt,
+                'ext': 'vtt',
+            }]
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': self._html_search_meta(['og:description', 'twitter:description'], webpage),
+            'thumbnail': self._html_search_meta(['og:image', 'twitter:image:src'], webpage),
+            'duration': int_or_none(video_params.get('eventDuration')),
+            'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
+            'series': video_params.get('seriesTitle'),
+            'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
+            'episode_number': int_or_none(self._html_search_meta('episodeNumber', webpage, default=None)),
+            'episode': self._html_search_meta('episode_title', webpage, default=None),
+            'uploader_id': video_params.get('channel'),
+            'formats': formats,
+            'subtitles': subtitles,
         }

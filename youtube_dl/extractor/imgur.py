@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:gallery|topic/[^/]+)/)?(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z]+)?$'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:gallery|(?:topic|r)/[^/]+)/)?(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z]+)?$'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
@@ -43,6 +43,9 @@ class ImgurIE(InfoExtractor):
     }, {
         'url': 'http://imgur.com/topic/Funny/N8rOudd',
         'only_matching': True,
+    }, {
+        'url': 'http://imgur.com/r/aww/VQcQPhM',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -50,12 +53,10 @@ class ImgurIE(InfoExtractor):
         webpage = self._download_webpage(
             compat_urlparse.urljoin(url, video_id), video_id)
 
-        width = int_or_none(self._search_regex(
-            r'<param name="width" value="([0-9]+)"',
-            webpage, 'width', fatal=False))
-        height = int_or_none(self._search_regex(
-            r'<param name="height" value="([0-9]+)"',
-            webpage, 'height', fatal=False))
+        width = int_or_none(self._og_search_property(
+            'video:width', webpage, default=None))
+        height = int_or_none(self._og_search_property(
+            'video:height', webpage, default=None))
 
         video_elements = self._search_regex(
             r'(?s)<div class="video-elements">(.*?)</div>',

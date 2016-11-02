@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -14,16 +14,6 @@ from ..utils import (
 
 
 class NRKBaseIE(InfoExtractor):
-    def _extract_formats(self, manifest_url, video_id, fatal=True):
-        formats = []
-        formats.extend(self._extract_f4m_formats(
-            manifest_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81',
-            video_id, f4m_id='hds', fatal=fatal))
-        formats.extend(self._extract_m3u8_formats(manifest_url.replace(
-            'akamaihd.net/z/', 'akamaihd.net/i/').replace('/manifest.f4m', '/master.m3u8'),
-            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=fatal))
-        return formats
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -45,7 +35,7 @@ class NRKBaseIE(InfoExtractor):
                 asset_url = asset.get('url')
                 if not asset_url:
                     continue
-                formats = self._extract_formats(asset_url, video_id, fatal=False)
+                formats = self._extract_akamai_formats(asset_url, video_id)
                 if not formats:
                     continue
                 self._sort_formats(formats)
@@ -69,7 +59,7 @@ class NRKBaseIE(InfoExtractor):
         if not entries:
             media_url = data.get('mediaUrl')
             if media_url:
-                formats = self._extract_formats(media_url, video_id)
+                formats = self._extract_akamai_formats(media_url, video_id)
                 self._sort_formats(formats)
                 duration = parse_duration(data.get('duration'))
                 entries = [{
@@ -123,7 +113,17 @@ class NRKBaseIE(InfoExtractor):
 
 
 class NRKIE(NRKBaseIE):
-    _VALID_URL = r'(?:nrk:|https?://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                        (?:
+                            nrk:|
+                            https?://
+                                (?:
+                                    (?:www\.)?nrk\.no/video/PS\*|
+                                    v8-psapi\.nrk\.no/mediaelement/
+                                )
+                            )
+                            (?P<id>[^/?#&]+)
+                        '''
     _API_HOST = 'v8.psapi.nrk.no'
     _TESTS = [{
         # video
@@ -147,6 +147,12 @@ class NRKIE(NRKBaseIE):
             'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
             'duration': 20,
         }
+    }, {
+        'url': 'nrk:ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
+    }, {
+        'url': 'https://v8-psapi.nrk.no/mediaelement/ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
     }]
 
 
