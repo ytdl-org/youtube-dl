@@ -1,3 +1,24 @@
+version <unreleased>
+
+Extractors
++ [generic] Add support for ISM manifests
+
+
+version 2016.11.02
+
+Core
++ Add basic support for Smooth Streaming protocol (#8118, #10969)
+* Improve MPD manifest base URL extraction (#10909, #11079)
+* Fix --match-filter for int-like strings (#11082)
+
+Extractors
++ [mva] Add support for ISM formats
++ [msn] Add support for ISM formats
++ [onet] Add support for ISM formats
++ [tvp] Add support for ISM formats
++ [nicknight] Add support for nicknight sites (#10769)
+
+
 version 2016.10.30
 
 Extractors

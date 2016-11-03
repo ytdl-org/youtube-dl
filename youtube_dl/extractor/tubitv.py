@@ -9,7 +9,6 @@ from ..utils import (
     int_or_none,
     sanitized_Request,
     urlencode_postdata,
-    parse_iso8601,
 )
 
 
@@ -19,17 +18,13 @@ class TubiTvIE(InfoExtractor):
     _NETRC_MACHINE = 'tubitv'
     _TEST = {
         'url': 'http://tubitv.com/video/283829/the_comedian_at_the_friday',
+        'md5': '43ac06be9326f41912dc64ccf7a80320',
         'info_dict': {
             'id': '283829',
             'ext': 'mp4',
             'title': 'The Comedian at The Friday',
             'description': 'A stand up comedian is forced to look at the decisions in his life while on a one week trip to the west coast.',
-            'uploader': 'Indie Rights Films',
-            'upload_date': '20160111',
-            'timestamp': 1452555979,
-        },
-        'params': {
-            'skip_download': 'HLS download',
+            'uploader_id': 'bc168bee0d18dd1cb3b86c68706ab434',
         },
     }
 
@@ -58,19 +53,28 @@ class TubiTvIE(InfoExtractor):
         video_id = self._match_id(url)
         video_data = self._download_json(
             'http://tubitv.com/oz/videos/%s/content' % video_id, video_id)
-        title = video_data['n']
+        title = video_data['title']
 
         formats = self._extract_m3u8_formats(
-            video_data['mh'], video_id, 'mp4', 'm3u8_native')
+            self._proto_relative_url(video_data['url']),
+            video_id, 'mp4', 'm3u8_native')
         self._sort_formats(formats)
 
+        thumbnails = []
+        for thumbnail_url in video_data.get('thumbnails', []):
+            if not thumbnail_url:
+                continue
+            thumbnails.append({
+                'url': self._proto_relative_url(thumbnail_url),
+            })
+
         subtitles = {}
-        for sub in video_data.get('sb', []):
-            sub_url = sub.get('u')
+        for sub in video_data.get('subtitles', []):
+            sub_url = sub.get('url')
             if not sub_url:
                 continue
-            subtitles.setdefault(sub.get('l', 'en'), []).append({
-                'url': sub_url,
+            subtitles.setdefault(sub.get('lang', 'English'), []).append({
+                'url': self._proto_relative_url(sub_url),
             })
 
         return {
@@ -78,9 +82,8 @@ class TubiTvIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'subtitles': subtitles,
-            'thumbnail': video_data.get('ph'),
-            'description': video_data.get('d'),
-            'duration': int_or_none(video_data.get('s')),
-            'timestamp': parse_iso8601(video_data.get('u')),
-            'uploader': video_data.get('on'),
+            'thumbnails': thumbnails,
+            'description': video_data.get('description'),
+            'duration': int_or_none(video_data.get('duration')),
+            'uploader_id': video_data.get('publisher_id'),
         }

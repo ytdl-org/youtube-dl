@@ -139,6 +139,9 @@ class TVPEmbedIE(InfoExtractor):
             # formats.extend(self._extract_mpd_formats(
             #     video_url_base + '.ism/video.mpd',
             #     video_id, mpd_id='dash', fatal=False))
+            formats.extend(self._extract_ism_formats(
+                video_url_base + '.ism/Manifest',
+                video_id, 'mss', fatal=False))
             formats.extend(self._extract_f4m_formats(
                 video_url_base + '.ism/video.f4m',
                 video_id, f4m_id='hds', fatal=False))
