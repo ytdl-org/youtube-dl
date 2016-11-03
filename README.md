@@ -69,6 +69,14 @@ which means you can modify it, redistribute it or use it however you like.
                                      extractors
     --force-generic-extractor        Force extraction to use the generic
                                      extractor
+    --enable-extractors EXTRACTORS   Enable only the chosen extractors. Comma-
+                                     separated list of patterns, wildcards
+                                     allowed. Example:
+                                     "twitch:*,youtube:*,vimeo"
+    --disable-extractors EXTRACTORS  Disable the chosen extractors. Comma-
+                                     separated list of patterns, wildcards
+                                     allowed. Example:
+                                     "twitch:*,youtube:*,vimeo"
     --default-search PREFIX          Use this prefix for unqualified URLs. For
                                      example "gvsearch2:" downloads two videos
                                      from google videos for youtube-dl "large
