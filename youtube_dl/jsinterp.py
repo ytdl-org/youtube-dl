@@ -131,9 +131,8 @@ class JSInterpreter(object):
             if variable in local_vars:
                 obj = local_vars[variable]
             else:
-                if variable not in self._objects:
-                    self._objects[variable] = self.extract_object(variable)
-                obj = self._objects[variable]
+                obj = self._objects.setdefault(
+                    variable, self.extract_object(variable))
 
             if arg_str is None:
                 # Member access
@@ -204,8 +203,7 @@ class JSInterpreter(object):
             argvals = tuple([
                 int(v) if v.isdigit() else local_vars[v]
                 for v in m.group('args').split(',')])
-            if fname not in self._functions:
-                self._functions[fname] = self.extract_function(fname)
+            self._functions.setdefault(fname, self.extract_function(fname))
             return self._functions[fname](argvals)
 
         raise ExtractorError('Unsupported JS expression %r' % expr)
