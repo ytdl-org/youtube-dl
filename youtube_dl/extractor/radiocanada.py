@@ -125,6 +125,14 @@ class RadioCanadaIE(InfoExtractor):
                                 f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
+        subtitles = {}
+        closed_caption_url = get_meta('closedCaption') or get_meta('closedCaptionHTML5')
+        if closed_caption_url:
+            subtitles['fr'] = [{
+                'url': closed_caption_url,
+                'ext': determine_ext(closed_caption_url, 'vtt'),
+            }]
+
         return {
             'id': video_id,
             'title': get_meta('Title'),
@@ -135,6 +143,7 @@ class RadioCanadaIE(InfoExtractor):
             'season_number': int_or_none('SrcSaison'),
             'episode_number': int_or_none('SrcEpisode'),
             'upload_date': unified_strdate(get_meta('Date')),
+            'subtitles': subtitles,
             'formats': formats,
         }
 

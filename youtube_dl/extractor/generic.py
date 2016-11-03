@@ -2453,8 +2453,21 @@ class GenericIE(InfoExtractor):
                 entry_info_dict['formats'] = self._extract_mpd_formats(video_url, video_id)
             elif ext == 'f4m':
                 entry_info_dict['formats'] = self._extract_f4m_formats(video_url, video_id)
-            elif re.search(r'(?i)\.ism/manifest', video_url):
-                entry_info_dict['formats'] = self._extract_ism_formats(video_url, video_id)
+            elif re.search(r'(?i)\.(?:ism|smil)/manifest', video_url) and video_url != url:
+                # Just matching .ism/manifest is not enough to be reliably sure
+                # whether it's actually an ISM manifest or some other streaming
+                # manifest since there are various streaming URL formats
+                # possible (see [1]) as well as some other shenanigans like
+                # .smil/manifest URLs that actually serve an ISM (see [2]) and
+                # so on.
+                # Thus the most reasonable way to solve this is to delegate
+                # to generic extractor in order to look into the contents of
+                # the manifest itself.
+                # 1. https://azure.microsoft.com/en-us/documentation/articles/media-services-deliver-content-overview/#streaming-url-formats
+                # 2. https://svs.itworkscdn.net/lbcivod/smil:itwfcdn/lbci/170976.smil/Manifest
+                entry_info_dict = self.url_result(
+                    smuggle_url(video_url, {'to_generic': True}),
+                    GenericIE.ie_key())
             else:
                 entry_info_dict['url'] = video_url
 
