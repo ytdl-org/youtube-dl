@@ -129,7 +129,7 @@ def write_piff_header(stream, params):
         sample_entry_payload += u1616.pack(params['sampling_rate'])
 
         if fourcc == 'AACL':
-            smaple_entry_box = box(b'mp4a', sample_entry_payload)
+            sample_entry_box = box(b'mp4a', sample_entry_payload)
     else:
         sample_entry_payload = sample_entry_payload
         sample_entry_payload += u16.pack(0)  # pre defined
@@ -158,8 +158,8 @@ def write_piff_header(stream, params):
             avcc_payload += u16.pack(len(pps))
             avcc_payload += pps
             sample_entry_payload += box(b'avcC', avcc_payload)  # AVC Decoder Configuration Record
-            smaple_entry_box = box(b'avc1', sample_entry_payload)  # AVC Simple Entry
-    stsd_payload += smaple_entry_box
+            sample_entry_box = box(b'avc1', sample_entry_payload)  # AVC Simple Entry
+    stsd_payload += sample_entry_box
 
     stbl_payload = full_box(b'stsd', 0, 0, stsd_payload)  # Sample Description Box
 
