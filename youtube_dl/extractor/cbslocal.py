@@ -22,6 +22,7 @@ class CBSLocalIE(AnvatoIE):
             'thumbnail': 're:^https?://.*',
             'timestamp': 1463440500,
             'upload_date': '20160516',
+            'uploader': 'CBS',
             'subtitles': {
                 'en': 'mincount:5',
             },
@@ -35,6 +36,7 @@ class CBSLocalIE(AnvatoIE):
                 'Syndication\\Curb.tv',
                 'Content\\News'
             ],
+            'tags': ['CBS 2 News Evening'],
         },
     }, {
         # SendtoNews embed
