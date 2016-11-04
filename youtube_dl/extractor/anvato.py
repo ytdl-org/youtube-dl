@@ -157,14 +157,7 @@ class AnvatoIE(InfoExtractor):
             video_data_url, video_id, transform_source=strip_jsonp,
             data=json.dumps(payload).encode('utf-8'))
 
-    def _extract_anvato_videos(self, webpage, video_id):
-        anvplayer_data = self._parse_json(self._html_search_regex(
-            r'<script[^>]+data-anvp=\'([^\']+)\'', webpage,
-            'Anvato player data'), video_id)
-
-        video_id = anvplayer_data['video']
-        access_key = anvplayer_data['accessKey']
-
+    def _get_anvato_videos(self, access_key, video_id):
         video_data = self._get_video_json(access_key, video_id)
 
         formats = []
@@ -218,7 +211,19 @@ class AnvatoIE(InfoExtractor):
             'formats': formats,
             'title': video_data.get('def_title'),
             'description': video_data.get('def_description'),
+            'tags': video_data.get('def_tags', '').split(','),
             'categories': video_data.get('categories'),
             'thumbnail': video_data.get('thumbnail'),
+            'timestamp': int_or_none(video_data.get(
+                'ts_published') or video_data.get('ts_added')),
+            'uploader': video_data.get('mcp_id'),
+            'duration': int_or_none(video_data.get('duration')),
             'subtitles': subtitles,
         }
+
+    def _extract_anvato_videos(self, webpage, video_id):
+        anvplayer_data = self._parse_json(self._html_search_regex(
+            r'<script[^>]+data-anvp=\'([^\']+)\'', webpage,
+            'Anvato player data'), video_id)
+        return self._get_anvato_videos(
+            anvplayer_data['accessKey'], anvplayer_data['video'])
