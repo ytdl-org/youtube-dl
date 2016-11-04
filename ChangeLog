@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.11.04
 
 Core
 * [extractor/common] Tolerate malformed RESOLUTION attribute in m3u8
