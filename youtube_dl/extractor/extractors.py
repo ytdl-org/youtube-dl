@@ -804,7 +804,6 @@ from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
 from .screenjunkies import ScreenJunkiesIE
-from .screenwavemedia import ScreenwaveMediaIE, TeamFourIE
 from .seeker import SeekerIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
@@ -897,6 +896,7 @@ from .teachertube import (
 )
 from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
+from .teamfourstar import TeamFourStarIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tele13 import Tele13IE
