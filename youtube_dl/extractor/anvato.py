@@ -163,9 +163,10 @@ class AnvatoIE(InfoExtractor):
         formats = []
         for published_url in video_data['published_urls']:
             video_url = published_url['embed_url']
+            media_format = published_url.get('format')
             ext = determine_ext(video_url)
 
-            if ext == 'smil':
+            if ext == 'smil' or media_format == 'smil':
                 formats.extend(self._extract_smil_formats(video_url, video_id))
                 continue
 
@@ -176,7 +177,7 @@ class AnvatoIE(InfoExtractor):
                 'tbr': tbr if tbr != 0 else None,
             }
 
-            if ext == 'm3u8':
+            if ext == 'm3u8' or media_format in ('m3u8', 'm3u8-variant'):
                 # Not using _extract_m3u8_formats here as individual media
                 # playlists are also included in published_urls.
                 if tbr is None:
@@ -187,7 +188,7 @@ class AnvatoIE(InfoExtractor):
                         'format_id': '-'.join(filter(None, ['hls', compat_str(tbr)])),
                         'ext': 'mp4',
                     })
-            elif ext == 'mp3':
+            elif ext == 'mp3' or media_format == 'mp3':
                 a_format['vcodec'] = 'none'
             else:
                 a_format.update({
