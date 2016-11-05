@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals, division
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_chr,
@@ -9,6 +11,10 @@ from ..compat import (
 from ..utils import (
     determine_ext,
     ExtractorError,
+)
+from ..jsinterp import (
+    JSInterpreter,
+    _NAME_RE
 )
 
 
@@ -56,6 +62,44 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    def openload_decode(self, txt):
+        symbol_dict = {
+            '(ﾟДﾟ) [ﾟΘﾟ]': '_',
+            '(ﾟДﾟ) [ﾟωﾟﾉ]': 'a',
+            '(ﾟДﾟ) [ﾟΘﾟﾉ]': 'b',
+            '(ﾟДﾟ) [\'c\']': 'c',
+            '(ﾟДﾟ) [ﾟｰﾟﾉ]': 'd',
+            '(ﾟДﾟ) [ﾟДﾟﾉ]': 'e',
+            '(ﾟДﾟ) [1]': 'f',
+            '(ﾟДﾟ) [\'o\']': 'o',
+            '(oﾟｰﾟo)': 'u',
+            '(ﾟДﾟ) [\'c\']': 'c',
+            '((ﾟｰﾟ) + (o^_^o))': '7',
+            '((o^_^o) +(o^_^o) +(c^_^o))': '6',
+            '((ﾟｰﾟ) + (ﾟΘﾟ))': '5',
+            '(-~3)': '4',
+            '(-~-~1)': '3',
+            '(-~1)': '2',
+            '(-~0)': '1',
+            '((c^_^o)-(c^_^o))': '0',
+        }
+        delim = '(ﾟДﾟ)[ﾟεﾟ]+'
+        end_token = '(ﾟДﾟ)[ﾟoﾟ]'
+        symbols = '|'.join(map(re.escape, symbol_dict.keys()))
+        txt = re.sub('(%s)\+\s?' % symbols, lambda m: symbol_dict[m.group(1)], txt)
+        ret = ''
+        for aacode in re.findall(r'{0}\+\s?{1}(.*?){0}'.format(re.escape(end_token), re.escape(delim)), txt):
+            for aachar in aacode.split(delim):
+                if aachar.isdigit():
+                    ret += compat_chr(int(aachar, 8))
+                else:
+                    m = re.match(r'^u([\da-f]{4})$', aachar)
+                    if m:
+                        ret += compat_chr(int(m.group(1), 16))
+                    else:
+                        self.report_warning("Cannot decode: %s" % aachar)
+        return ret
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage('https://openload.co/embed/%s/' % video_id, video_id)
@@ -70,19 +114,26 @@ class OpenloadIE(InfoExtractor):
             r'<span[^>]*>([^<]+)</span>\s*<span[^>]*>[^<]+</span>\s*<span[^>]+id="streamurl"',
             webpage, 'encrypted data')
 
-        magic = compat_ord(enc_data[-1])
+        enc_code = self._html_search_regex(r'<script[^>]+>(ﾟωﾟ[^<]+)</script>',
+                                           webpage, 'encrypted code')
+
+        js_code = self.openload_decode(enc_code)
+        jsi = JSInterpreter(js_code)
+
+        m_offset_fun = self._search_regex(r'slice\(0\s*-\s*(%s)\(\)' % _NAME_RE, js_code, 'javascript offset function')
+        m_diff_fun = self._search_regex(r'charCodeAt\(0\)\s*\+\s*(%s)\(\)' % _NAME_RE, js_code, 'javascript diff function')
+
+        offset = jsi.call_function(m_offset_fun)
+        diff = jsi.call_function(m_diff_fun)
+
         video_url_chars = []
 
         for idx, c in enumerate(enc_data):
             j = compat_ord(c)
-            if j == magic:
-                j -= 1
-            elif j == magic - 1:
-                j += 1
             if j >= 33 and j <= 126:
                 j = ((j + 14) % 94) + 33
-            if idx == len(enc_data) - 1:
-                j += 3
+            if idx == len(enc_data) - offset:
+                j += diff
             video_url_chars += compat_chr(j)
 
         video_url = 'https://openload.co/stream/%s?mime=true' % ''.join(video_url_chars)
