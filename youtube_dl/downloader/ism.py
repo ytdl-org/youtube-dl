@@ -129,7 +129,7 @@ def write_piff_header(stream, params):
         sample_entry_payload += u1616.pack(params['sampling_rate'])
 
         if fourcc == 'AACL':
-            smaple_entry_box = box(b'mp4a', sample_entry_payload)
+            sample_entry_box = box(b'mp4a', sample_entry_payload)
     else:
         sample_entry_payload = sample_entry_payload
         sample_entry_payload += u16.pack(0)  # pre defined
@@ -149,9 +149,7 @@ def write_piff_header(stream, params):
         if fourcc in ('H264', 'AVC1'):
             sps, pps = codec_private_data.split(u32.pack(1))[1:]
             avcc_payload = u8.pack(1)  # configuration version
-            avcc_payload += sps[1]  # avc profile indication
-            avcc_payload += sps[2]  # profile compatibility
-            avcc_payload += sps[3]  # avc level indication
+            avcc_payload += sps[1:4]  # avc profile indication + profile compatibility + avc level indication
             avcc_payload += u8.pack(0xfc | (params.get('nal_unit_length_field', 4) - 1))  # complete represenation (1) + reserved (11111) + length size minus one
             avcc_payload += u8.pack(1)  # reserved (0) + number of sps (0000001)
             avcc_payload += u16.pack(len(sps))
@@ -160,8 +158,8 @@ def write_piff_header(stream, params):
             avcc_payload += u16.pack(len(pps))
             avcc_payload += pps
             sample_entry_payload += box(b'avcC', avcc_payload)  # AVC Decoder Configuration Record
-            smaple_entry_box = box(b'avc1', sample_entry_payload)  # AVC Simple Entry
-    stsd_payload += smaple_entry_box
+            sample_entry_box = box(b'avc1', sample_entry_payload)  # AVC Simple Entry
+    stsd_payload += sample_entry_box
 
     stbl_payload = full_box(b'stsd', 0, 0, stsd_payload)  # Sample Description Box
 

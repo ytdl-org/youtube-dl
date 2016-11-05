@@ -1280,9 +1280,10 @@ class InfoExtractor(object):
                 }
                 resolution = last_info.get('RESOLUTION')
                 if resolution:
-                    width_str, height_str = resolution.split('x')
-                    f['width'] = int(width_str)
-                    f['height'] = int(height_str)
+                    mobj = re.search(r'(?P<width>\d+)[xX](?P<height>\d+)', resolution)
+                    if mobj:
+                        f['width'] = int(mobj.group('width'))
+                        f['height'] = int(mobj.group('height'))
                 # Unified Streaming Platform
                 mobj = re.search(
                     r'audio.*?(?:%3D|=)(\d+)(?:-video.*?(?:%3D|=)(\d+))?', f['url'])
