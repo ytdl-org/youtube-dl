@@ -201,6 +201,19 @@ class YahooIE(InfoExtractor):
             },
             'skip': 'redirect to https://www.yahoo.com/music',
         },
+        {
+            # ytwnews://cavideo/
+            'url': 'https://tw.video.yahoo.com/movie-tw/單車天使-中文版預-092316541.html',
+            'info_dict': {
+                'id': 'ba133ff2-0793-3510-b636-59dfe9ff6cff',
+                'ext': 'mp4',
+                'title': '單車天使 - 中文版預',
+                'description': '中文版預',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -270,6 +283,7 @@ class YahooIE(InfoExtractor):
                     r'%s[^}]*"ccm_id"\s*:\s*"([^"]+)"' % re.escape(page_id),
                     r'<article[^>]data-uuid=["\']([^"\']+)',
                     r'yahoo://article/view\?.*\buuid=([^&"\']+)',
+                    r'<meta[^<>]+["\']ytwnews://cavideo/(?:[^/]+/)+([\da-fA-F-]+)[&"\']',
                 ]
                 video_id = self._search_regex(
                     CONTENT_ID_REGEXES, webpage, 'content ID')
