@@ -30,6 +30,12 @@ class DrTuberIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?drtuber\.com/embed/\d+)',
+            webpage)
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')

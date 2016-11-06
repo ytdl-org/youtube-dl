@@ -47,6 +47,7 @@ from .svt import SVTIE
 from .pornhub import PornHubIE
 from .xhamster import XHamsterEmbedIE
 from .tnaflix import TNAFlixNetworkEmbedIE
+from .drtuber import DrTuberIE
 from .vimeo import VimeoIE
 from .dailymotion import (
     DailymotionIE,
@@ -1995,6 +1996,11 @@ class GenericIE(InfoExtractor):
         tnaflix_urls = TNAFlixNetworkEmbedIE._extract_urls(webpage)
         if tnaflix_urls:
             return _playlist_from_matches(tnaflix_urls, ie=TNAFlixNetworkEmbedIE.ie_key())
+
+        # Look for embedded DrTuber player
+        drtuber_urls = DrTuberIE._extract_urls(webpage)
+        if drtuber_urls:
+            return _playlist_from_matches(drtuber_urls, ie=DrTuberIE.ie_key())
 
         # Look for embedded Tvigle player
         mobj = re.search(
