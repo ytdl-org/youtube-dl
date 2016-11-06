@@ -39,7 +39,7 @@ class ZDFIE(InfoExtractor):
         else:
             player_id = None
 
-        content_json = self._download_json(jsb_json['content'], video_id, headers={'Api-Auth': 'Bearer {}'.format(api_token)}, note='Downloading content description')
+        content_json = self._download_json(jsb_json['content'], video_id, headers={'Api-Auth': 'Bearer %s' % api_token}, note='Downloading content description')
         main_video_content = content_json['mainVideoContent']['http://zdf.de/rels/target']
         meta_data_url = None
         if not player_id:
