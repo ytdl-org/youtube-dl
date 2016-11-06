@@ -42,7 +42,7 @@ class DrTuberIE(InfoExtractor):
             r'<source src="([^"]+)"', webpage, 'video URL')
 
         title = self._html_search_regex(
-            (r'class="title_watch"[^>]*><p>([^<]+)<',
+            (r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
              r'<p[^>]+class="title_substrate">([^<]+)</p>',
              r'<title>([^<]+) - \d+'),
             webpage, 'title')
