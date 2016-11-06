@@ -1983,11 +1983,6 @@ class GenericIE(InfoExtractor):
         if sportbox_urls:
             return _playlist_from_matches(sportbox_urls, ie='SportBoxEmbed')
 
-        # Look for embedded PornHub player
-        pornhub_url = PornHubIE._extract_url(webpage)
-        if pornhub_url:
-            return self.url_result(pornhub_url, 'PornHub')
-
         # Look for embedded XHamster player
         xhamster_urls = XHamsterEmbedIE._extract_urls(webpage)
         if xhamster_urls:
@@ -1997,6 +1992,11 @@ class GenericIE(InfoExtractor):
         tnaflix_urls = TNAFlixNetworkEmbedIE._extract_urls(webpage)
         if tnaflix_urls:
             return _playlist_from_matches(tnaflix_urls, ie=TNAFlixNetworkEmbedIE.ie_key())
+
+        # Look for embedded PornHub player
+        pornhub_urls = PornHubIE._extract_urls(webpage)
+        if pornhub_urls:
+            return _playlist_from_matches(pornhub_urls, ie=PornHubIE.ie_key())
 
         # Look for embedded DrTuber player
         drtuber_urls = DrTuberIE._extract_urls(webpage)
