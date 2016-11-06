@@ -24,23 +24,35 @@ class ZDFIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        print('video_id: {}'.format(video_id))
         webpage = self._download_webpage(url, video_id)
 
-        jsb = self._search_regex(r"data-zdfplayer-jsb='([^']*)'", webpage, 'zdfplayer jsb data', flags=re.DOTALL)
+        jsb = self._search_regex(r"data-zdfplayer-jsb='([^']*)'", webpage, 'zdfplayer jsb data')
         jsb_json = self._parse_json(jsb, video_id)
 
         configuration_url = 'https://www.zdf.de' + jsb_json['config']
         configuration_json = self._download_json(configuration_url, video_id, note='Downloading player configuration')
         api_token = configuration_json['apiToken']
 
-        player_js = self._download_webpage('https://www.zdf.de/ZDFplayer/latest-v2/skins/zdf/zdf-player.js', video_id, note='Downloading player script')
-        player_id = self._search_regex(r'this\.ptmd_player_id="([^"]*)"', player_js, 'player id')
+        player_js = self._download_webpage('https://www.zdf.de/ZDFplayer/latest-v2/skins/zdf/zdf-player.js', video_id, fatal=False, note='Downloading player script')
+        if player_js:
+            player_id = self._search_regex(r'this\.ptmd_player_id="([^"]*)"', player_js, 'player id', fatal=False)
+        else:
+            player_id = None
 
         content_json = self._download_json(jsb_json['content'], video_id, headers={'Api-Auth': 'Bearer {}'.format(api_token)}, note='Downloading content description')
         main_video_content = content_json['mainVideoContent']['http://zdf.de/rels/target']
-        meta_data_url_template = main_video_content['http://zdf.de/rels/streams/ptmd-template']
-        meta_data_url = 'https://api.zdf.de' + meta_data_url_template.replace('{playerId}', player_id)
+        meta_data_url = None
+        if not player_id:
+            # could not determine player_id => try alternativ generic URL
+            meta_data_url = main_video_content.get('http://zdf.de/rels/streams/ptmd')
+            if meta_data_url:
+                meta_data_url = 'https://api.zdf.de' + meta_data_url
+            else:
+                # no generic URL found => 2nd fallback: hardcoded player_id
+                player_id = 'ngplayer_2_3'
+        if not meta_data_url:
+            meta_data_url_template = main_video_content['http://zdf.de/rels/streams/ptmd-template']
+            meta_data_url = 'https://api.zdf.de' + meta_data_url_template.replace('{playerId}', player_id)
 
         title = content_json['title']
 
