@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -27,6 +29,12 @@ class RedTubeIE(InfoExtractor):
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
         'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//embed\.redtube\.com/\?.*?\bid=\d+)',
+            webpage)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
