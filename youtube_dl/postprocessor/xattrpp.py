@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-
+from sys import version_info
 from .common import PostProcessor
 from ..compat import compat_os_name
 from ..utils import (
@@ -23,6 +23,34 @@ class XAttrMetadataPP(PostProcessor):
     #  * figure out which xattrs can be used for 'duration', 'thumbnail', 'resolution'
     #
 
+    @staticmethod
+    def write_xattr(path, key, value):
+        """ proxy to make it easier to mockup and run unit tests. """
+        write_xattr(path, key, value)
+
+    @staticmethod
+    def get_tags(info):
+        """ Get comma-separated and non-duplicated keywords from tags and categories. """
+
+        mixed = []
+        tags = info.get('tags')
+        if tags is not None and len(tags) > 0:
+            mixed += tags
+
+        categories = info.get('categories')
+        if categories is not None and len(categories) > 0:
+            mixed += categories
+
+        if len(mixed) > 0:
+            if version_info.major < 3:
+                mixed = map(lambda x: x.decode('utf-8'), mixed)
+
+            mixed = set(map(lambda x: x.lower(), mixed))
+            mixed = sorted(mixed)
+            return ','.join(mixed).encode('utf-8')
+
+        return None
+
     def run(self, info):
         """ Set extended attributes on downloaded file (if xattr support is found). """
 
@@ -33,6 +61,7 @@ class XAttrMetadataPP(PostProcessor):
 
         try:
             xattr_mapping = {
+                'user.xdg.origin.url': 'webpage_url',
                 'user.xdg.referrer.url': 'webpage_url',
                 # 'user.xdg.comment':            'description',
                 'user.dublincore.title': 'title',
@@ -52,8 +81,25 @@ class XAttrMetadataPP(PostProcessor):
                         value = hyphenate_date(value)
 
                     byte_value = value.encode('utf-8')
-                    write_xattr(filename, xattrname, byte_value)
+                    self.write_xattr(filename, xattrname, byte_value)
                     num_written += 1
+
+            tags = self.get_tags(info)
+            if tags is not None and len(tags) > 0:
+                self.write_xattr(filename, 'user.xdg.tags', tags)
+                self.write_xattr(filename, 'user.dublincore.subject', tags)
+                num_written += 2
+
+            if info.get('age_limit') is not None and info.get('age_limit') >= 18:
+                self.write_xattr(filename, 'user.dublincore.audience', 'adults'.encode('utf-8'))
+                num_written += 1
+            else:
+                self.write_xattr(filename, 'user.dublincore.audience', 'everybody'.encode('utf-8'))
+                num_written += 1
+
+            self.write_xattr(filename, 'user.dublincore.type', 'MovingImage'.encode('utf-8'))
+            self.write_xattr(filename, 'user.creator', 'youtube-dl'.encode('utf-8'))
+            num_written += 2
 
             return [], info
 
