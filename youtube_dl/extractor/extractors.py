@@ -741,8 +741,8 @@ from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import (
-    RaiTVIE,
-    RaiIE,
+    RaiPlayIE,
+    RaiItIE,
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
