@@ -1667,6 +1667,9 @@ class InfoExtractor(object):
                     'url': media['URI'],
                     'ext': determine_ext(media['URI'])
                 }
+                if sub_info['ext'] == 'm3u8': # XXX
+                    sub_info['ext'] = 'vtt'
+                    sub_info['protocol'] = 'm3u8_webvtt'
                 subtitles.setdefault(lang, []).append(sub_info)
             if media_type not in ('VIDEO', 'AUDIO'):
                 return

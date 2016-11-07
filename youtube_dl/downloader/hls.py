@@ -208,3 +208,153 @@ class HlsFD(FragmentFD):
         self._finish_frag_download(ctx)
 
         return True
+
+
+class WebVttHlsFD(FragmentFD):
+    """ A downloader for HLS WebVTT subtitles. """
+    FD_NAME = 'hlswebvtt'
+
+    @staticmethod
+    def _parse_ts(ts):
+        m = re.match('(?:(?:([0-9]+):)?([0-9]+):)?([0-9]+)(?:\.([0-9]+))?', ts)
+        hrs, min, sec, msc = m.groups()
+        return 90 * (
+            int(hrs or 0) * 3600000 +
+            int(min or 0) *   60000 +
+            int(sec or 0) *    1000 +
+            int(msc or 0)
+        )
+
+    @staticmethod
+    def _format_ts(ts):
+        ts  = int(ts / 90)
+        hrs = ts / 3600000
+        ts %=      3600000
+        min = ts /   60000
+        ts %=        60000
+        sec = ts /    1000
+        ts %=         1000
+        return '%02u:%02u:%02u.%03u' % (hrs, min, sec, ts)
+
+    def real_download(self, filename, info_dict):
+        url = info_dict['url']
+        self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
+        data = self.ydl.urlopen(url).read()
+        s = data.decode('utf-8', 'ignore')
+        segment_urls = []
+        for line in s.splitlines():
+            line = line.strip()
+            if line and not line.startswith('#'):
+                segment_url = (
+                    line if re.match(r'^https?://', line)
+                    else compat_urlparse.urljoin(url, line))
+                segment_urls.append(segment_url)
+
+        ctx = {
+            'filename': filename,
+            'total_frags': len(segment_urls),
+        }
+
+        self._prepare_and_start_frag_download(ctx)
+
+        cues = []
+        header = []
+        frags_filenames = []
+        for i, frag_url in enumerate(segment_urls):
+            frag_name = 'Frag%d' % i
+            frag_filename = '%s-%s' % (ctx['tmpfilename'], frag_name)
+
+            success = ctx['dl'].download(frag_filename, {'url': frag_url})
+            if not success:
+                return False
+            down, frag_sanitized = sanitize_open(frag_filename, 'rb')
+            lines = down.read().decode('utf-8', 'ignore').splitlines()
+            down.close()
+            frags_filenames.append(frag_sanitized)
+
+            line_iter = iter(lines)
+            line = next(line_iter)
+            if not line.startswith('WEBVTT'):
+                self.report_error('Not a valid WebVTT subtitles segment')
+            if len(line) > 6 and not (line.startswith('WEBVTT ') or line.startswith('WEBVTT\t')):
+                self.report_error('Not a valid WebVTT subtitles segment')
+
+            try:
+                # read header
+                tsadj = 0
+                while True:
+                    line = next(line_iter)
+                    if line == '':
+                        break
+                    elif line.find('-->') != -1:
+                        break
+
+                    if line.startswith('X-TIMESTAMP-MAP='):
+                        m = re.search(r'LOCAL:([0-9:.]+)', line)
+                        locl_ts = self._parse_ts(m.group(1))
+                        m = re.search(r'MPEGTS:([0-9]+)', line)
+                        mpeg_ts = int(m.group(1))
+                        tsadj = mpeg_ts - locl_ts
+                    else:
+                        header.append(line)
+
+                subtitle = None
+                while True:
+                    while line == '':
+                        line = next(line_iter)
+                    cue = {}
+
+                    if line.find('-->') == -1:
+                        cue['id'] = line
+                        line = next(line_iter)
+                        if line == '':
+                            continue
+
+                    m = re.match(r'^([0-9:.]+\s*)-->\s*([0-9:.]+)(\s+.*)?', line)
+                    if m:
+                        ts_start = self._parse_ts(m.group(1))
+                        ts_end   = self._parse_ts(m.group(2))
+                        cue['style'] = m.group(3) or ''
+                    else:
+                        continue
+
+                    ts_start += tsadj
+                    ts_end   += tsadj
+
+                    cue['start_ts'] = self._format_ts(ts_start)
+                    cue['end_ts'] = self._format_ts(ts_end)
+
+                    line = next(line_iter)
+
+                    cue['text'] = ''
+
+                    try:
+                        while line != '':
+                            if line.find('-->') != -1:
+                                break
+                            cue['text'] += line + '\n'
+                            line = next(line_iter)
+                    finally:
+                        cues.append(cue)
+            except StopIteration:
+                pass
+
+        cues.sort(key=lambda cue: cue['start_ts'])
+        with ctx['dest_stream'] as outf:
+            outf.write(b'WEBVTT\n')
+            for item in header:
+                outf.write(('%s\n' % item).encode('utf-8'))
+            for cue in cues:
+                outf.write(b'\n')
+                if cue.get('id'):
+                    outf.write(('%s\n' % cue['id']).encode('utf-8'))
+                outf.write(
+                    ('%s --> %s%s\n' % (cue['start_ts'], cue['end_ts'], cue['style']))
+                        .encode('utf-8')
+                )
+                outf.write(cue['text'].encode('utf-8'))
+
+        self._finish_frag_download(ctx)
+
+        for frag_file in frags_filenames:
+            os.remove(encodeFilename(frag_file))

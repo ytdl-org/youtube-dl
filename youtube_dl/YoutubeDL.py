@@ -1830,10 +1830,19 @@ class YoutubeDL(object):
                             return
                     else:
                         try:
-                            sub_data = ie._request_webpage(
-                                sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
-                                subfile.write(sub_data)
+                            if sub_info.get('protocol') is not None:
+                                sub_info_dict = {
+                                    'id': info_dict['id'],
+                                    'protocol': sub_info['protocol'],
+                                    'url': sub_info['url']
+                                }
+                                sub_fd = get_suitable_downloader(sub_info_dict)(self, self.params)
+                                sub_fd.download(sub_filename, sub_info_dict)
+                            else:
+                                sub_data = ie._request_webpage(
+                                    sub_info['url'], info_dict['id'], note=False).read()
+                                with io.open(encodeFilename(sub_filename), 'wb') as subfile:
+                                    subfile.write(sub_data)
                         except (ExtractorError, IOError, OSError, ValueError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
