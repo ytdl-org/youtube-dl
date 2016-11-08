@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     OnDemandPagedList,
     determine_ext,
+    parse_iso8601
 )
 
 class ZDFIE(InfoExtractor):
@@ -115,11 +116,27 @@ class ZDFIE(InfoExtractor):
                         subformat['ext'] = 'ttml'
                     subtitles['de'].append(subformat)
 
+        teaser_images = content_json.get('teaserImageRef')
+        if teaser_images:
+            teaser_images_layouts = teaser_images.get('layouts')
+            if teaser_images_layouts:
+                thumbnail = teaser_images_layouts.get('original')
+            else:
+                thumbnail = None
+        else:
+            thumbnail = None
+
+        description = content_json.get('teasertext')
+        timestamp = parse_iso8601(content_json.get('editorialDate'))
+
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
-            'subtitles': subtitles
+            'subtitles': subtitles,
+            'thumbnail': thumbnail,
+            'description': description,
+            'timestamp': timestamp
         }
 
 class ZDFChannelIE(InfoExtractor):
