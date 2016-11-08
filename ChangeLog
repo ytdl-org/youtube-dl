@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.11.08
 
 Extractors
 * [tmz:article] Fix extraction (#11052)
