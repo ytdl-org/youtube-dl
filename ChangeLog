@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [tmz:article] Fix extraction (#11052)
 * [mitele] Fix extraction after website redesign (#10824)
 
 
