@@ -1,3 +1,10 @@
+version <unreleased>
+
+Extractors
+* [espn:article] Fix support for espn.com articles
+* [franceculture] Fix extraction (#11140)
+
+
 version 2016.11.08
 
 Extractors
