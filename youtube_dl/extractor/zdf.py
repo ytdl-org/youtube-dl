@@ -102,10 +102,24 @@ class ZDFIE(InfoExtractor):
                             'format_note': ', '.join(facets)
                         })
         self._sort_formats(formats)
+
+        subtitles = {}
+        if meta_data.get('captions'):
+            subtitles['de'] = []
+            for caption in meta_data['captions']:
+                if caption.get('language') == 'deu':
+                    subformat = {'url': caption.get('uri')}
+                    if caption.get('format') == 'webvtt':
+                        subformat['ext'] = 'vtt'
+                    elif caption.get('format') == 'ebu-tt-d-basic-de':
+                        subformat['ext'] = 'ttml'
+                    subtitles['de'].append(subformat)
+
         return {
             'id': video_id,
             'title': title,
-            'formats': formats
+            'formats': formats,
+            'subtitles': subtitles
         }
 
 class ZDFChannelIE(InfoExtractor):
