@@ -2,7 +2,16 @@ version <unreleased>
 
 Extractors
 * [tmz:article] Fix extraction (#11052)
+* [espn] Fix extraction (#11041)
 * [mitele] Fix extraction after website redesign (#10824)
+- [ard] Remove age restriction check (#11129)
+* [generic] Improve support for pornhub.com embeds (#11100)
++ [generic] Add support for redtube.com embeds (#11099)
++ [generic] Add support for drtuber.com embeds (#11098)
++ [redtube] Add support for embed URLs
++ [drtuber] Add support for embed URLs
++ [yahoo] Improve content id extraction (#11088)
+* [toutv] Relax URL regular expression (#11121)
 
 
 version 2016.11.04
