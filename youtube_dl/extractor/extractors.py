@@ -296,6 +296,7 @@ from .footyroom import FootyRoomIE
 from .formula1 import Formula1IE
 from .fourtube import FourTubeIE
 from .fox import FOXIE
+from .fox9 import FOX9IE
 from .foxgay import FoxgayIE
 from .foxnews import (
     FoxNewsIE,
@@ -1101,6 +1102,7 @@ from .vrt import VRTIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vyborymos import VyboryMosIE
+from .vzaar import VzaarIE
 from .walla import WallaIE
 from .washingtonpost import (
     WashingtonPostIE,

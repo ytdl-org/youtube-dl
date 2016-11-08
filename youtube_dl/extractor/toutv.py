@@ -15,11 +15,11 @@ from ..utils import (
 class TouTvIE(InfoExtractor):
     _NETRC_MACHINE = 'toutv'
     IE_NAME = 'tou.tv'
-    _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+/S[0-9]+E[0-9]+)'
+    _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+(?:/S[0-9]+E[0-9]+)?)'
     _access_token = None
     _claims = None
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://ici.tou.tv/garfield-tout-court/S2015E17',
         'info_dict': {
             'id': '122017',
@@ -33,7 +33,10 @@ class TouTvIE(InfoExtractor):
             'skip_download': True,
         },
         'skip': '404 Not Found',
-    }
+    }, {
+        'url': 'http://ici.tou.tv/hackers',
+        'only_matching': True,
+    }]
 
     def _real_initialize(self):
         email, password = self._get_login_info()
