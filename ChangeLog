@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.11.08.1
 
 Extractors
 * [espn:article] Fix support for espn.com articles
