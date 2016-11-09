@@ -1321,7 +1321,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if regions_allowed:
                         raise ExtractorError('YouTube said: This video is available in %s only' % (
                             ', '.join(map(ISO3166Utils.short2full, regions_allowed.split(',')))),
-                            expected=True)
+                            expected=True, video_id=video_id)
                 raise ExtractorError(
                     'YouTube said: %s' % video_info['reason'][0],
                     expected=True, video_id=video_id)
@@ -1389,14 +1389,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
-            raise ExtractorError('"rental" videos not supported')
+            raise ExtractorError('"rental" videos not supported', video_id=video_id)
 
         # Start extracting information
         self.report_information_extraction(video_id)
 
         # uploader
         if 'author' not in video_info:
-            raise ExtractorError('Unable to extract uploader name')
+            raise ExtractorError('Unable to extract uploader name', video_id=video_id)
         video_uploader = compat_urllib_parse_unquote_plus(video_info['author'][0])
 
         # uploader_id
@@ -1511,7 +1511,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1:
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
-                raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
+                raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True, video_id=video_id)
             formats_spec = {}
             fmt_list = video_info.get('fmt_list', [''])[0]
             if fmt_list:
@@ -1650,8 +1650,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
                 video_webpage, 'unavailable message', default=None)
             if unavailable_message:
-                raise ExtractorError(unavailable_message, expected=True)
-            raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
+                raise ExtractorError(unavailable_message, expected=True, video_id=video_id)
+            raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info', video_id=video_id)
 
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
