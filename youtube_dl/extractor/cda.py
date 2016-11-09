@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from json import loads
 from .common import InfoExtractor
 from ..utils import (
-    decode_packed_codes,
     ExtractorError,
     parse_duration
 )
@@ -40,12 +40,10 @@ class CDAIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage('http://ebd.cda.pl/0x0/' + video_id, video_id)
-
         if 'Ten film jest dostępny dla użytkowników premium' in webpage:
             raise ExtractorError('This video is only available for premium users.', expected=True)
 
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
-
         formats = []
 
         info_dict = {
@@ -56,28 +54,19 @@ class CDAIE(InfoExtractor):
         }
 
         def extract_format(page, version):
-            unpacked = decode_packed_codes(page)
-            format_url = self._search_regex(
-                r"(?:file|url)\s*:\s*(\\?[\"'])(?P<url>http.+?)\1", unpacked,
-                '%s url' % version, fatal=False, group='url')
-            if not format_url:
+            video_info = loads(self._search_regex(
+                r"player_data='(?P<video_info>.*?)'", page,
+                '%s url' % version, fatal=False, group='video_info'))
+            if not video_info:
                 return
             f = {
-                'url': format_url,
+                'url': video_info['video']['file'],
+                'height': video_info['video']['height'],
+                'width': video_info['video']['width'],
             }
-            m = re.search(
-                r'<a[^>]+data-quality="(?P<format_id>[^"]+)"[^>]+href="[^"]+"[^>]+class="[^"]*quality-btn-active[^"]*">(?P<height>[0-9]+)p',
-                page)
-            if m:
-                f.update({
-                    'format_id': m.group('format_id'),
-                    'height': int(m.group('height')),
-                })
             info_dict['formats'].append(f)
             if not info_dict['duration']:
-                info_dict['duration'] = parse_duration(self._search_regex(
-                    r"duration\s*:\s*(\\?[\"'])(?P<duration>.+?)\1",
-                    unpacked, 'duration', fatal=False, group='duration'))
+                info_dict['duration'] = parse_duration(video_info['video']['duration'])
 
         extract_format(webpage, 'default')
 
