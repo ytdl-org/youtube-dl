@@ -4,11 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
-    url_basename,
 )
 
 
@@ -77,7 +79,7 @@ class EaglePlatformIE(InfoExtractor):
         if status != 200:
             raise ExtractorError(' '.join(response['errors']), expected=True)
 
-    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata'):
+    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata', *args, **kwargs):
         try:
             response = super(EaglePlatformIE, self)._download_json(url_or_request, video_id, note)
         except ExtractorError as ee:
@@ -116,29 +118,38 @@ class EaglePlatformIE(InfoExtractor):
 
         m3u8_url = self._get_video_url(secure_m3u8, video_id, 'Downloading m3u8 JSON')
         m3u8_formats = self._extract_m3u8_formats(
-            m3u8_url, video_id,
-            'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
+            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls', fatal=False)
         formats.extend(m3u8_formats)
 
-        mp4_url = self._get_video_url(
+        m3u8_formats_dict = {}
+        for f in m3u8_formats:
+            if f.get('height') is not None:
+                m3u8_formats_dict[f['height']] = f
+
+        mp4_data = self._download_json(
             # Secure mp4 URL is constructed according to Player.prototype.mp4 from
             # http://lentaru.media.eagleplatform.com/player/player.js
-            re.sub(r'm3u8|hlsvod|hls|f4m', 'mp4', secure_m3u8),
-            video_id, 'Downloading mp4 JSON')
-        mp4_url_basename = url_basename(mp4_url)
-        for m3u8_format in m3u8_formats:
-            mobj = re.search('/([^/]+)/index\.m3u8', m3u8_format['url'])
-            if mobj:
-                http_format = m3u8_format.copy()
-                video_url = mp4_url.replace(mp4_url_basename, mobj.group(1))
-                if not self._is_valid_url(video_url, video_id):
+            re.sub(r'm3u8|hlsvod|hls|f4m', 'mp4s', secure_m3u8),
+            video_id, 'Downloading mp4 JSON', fatal=False)
+        if mp4_data:
+            for format_id, format_url in mp4_data.get('data', {}).items():
+                if not isinstance(format_url, compat_str):
                     continue
-                http_format.update({
-                    'url': video_url,
-                    'format_id': m3u8_format['format_id'].replace('hls', 'http'),
-                    'protocol': 'http',
-                })
-                formats.append(http_format)
+                height = int_or_none(format_id)
+                if height is not None and m3u8_formats_dict.get(height):
+                    f = m3u8_formats_dict[height].copy()
+                    f.update({
+                        'format_id': f['format_id'].replace('hls', 'http'),
+                        'protocol': 'http',
+                    })
+                else:
+                    f = {
+                        'format_id': 'http-%s' % format_id,
+                        'height': int_or_none(format_id),
+                    }
+                f['url'] = format_url
+                formats.append(f)
 
         self._sort_formats(formats)
 
