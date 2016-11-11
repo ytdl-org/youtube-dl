@@ -854,6 +854,7 @@ class YoutubeDL(object):
                     'webpage_url': ie_result['webpage_url'],
                     'webpage_url_basename': url_basename(ie_result['webpage_url']),
                     'extractor_key': ie_result['extractor_key'],
+                    'alt_title': entry.get('title'),
                 }
 
                 reason = self._match_entry(entry, incomplete=True)
