@@ -1703,7 +1703,7 @@ class InfoExtractor(object):
                                 representation_ms_info['fragments'] = [{
                                     'url': media_template % {
                                         'Number': segment_number,
-                                        'Bandwidth': representation_attrib.get('bandwidth'),
+                                        'Bandwidth': int_or_none(representation_attrib.get('bandwidth')),
                                     },
                                     'duration': segment_duration,
                                 } for segment_number in range(
@@ -1721,7 +1721,7 @@ class InfoExtractor(object):
                                 def add_segment_url():
                                     segment_url = media_template % {
                                         'Time': segment_time,
-                                        'Bandwidth': representation_attrib.get('bandwidth'),
+                                        'Bandwidth': int_or_none(representation_attrib.get('bandwidth')),
                                         'Number': segment_number,
                                     }
                                     representation_ms_info['fragments'].append({
