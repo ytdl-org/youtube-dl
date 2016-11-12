@@ -47,6 +47,8 @@ from .svt import SVTIE
 from .pornhub import PornHubIE
 from .xhamster import XHamsterEmbedIE
 from .tnaflix import TNAFlixNetworkEmbedIE
+from .drtuber import DrTuberIE
+from .redtube import RedTubeIE
 from .vimeo import VimeoIE
 from .dailymotion import (
     DailymotionIE,
@@ -1208,20 +1210,6 @@ class GenericIE(InfoExtractor):
                 'duration': 51690,
             },
         },
-        # JWPlayer with M3U8
-        {
-            'url': 'http://ren.tv/novosti/2015-09-25/sluchaynyy-prohozhiy-poymal-avtougonshchika-v-murmanske-video',
-            'info_dict': {
-                'id': 'playlist',
-                'ext': 'mp4',
-                'title': 'Случайный прохожий поймал автоугонщика в Мурманске. ВИДЕО | РЕН ТВ',
-                'uploader': 'ren.tv',
-            },
-            'params': {
-                # m3u8 downloads
-                'skip_download': True,
-            }
-        },
         # Brightcove embed, with no valid 'renditions' but valid 'IOSRenditions'
         # This video can't be played in browsers if Flash disabled and UA set to iPhone, which is actually a false alarm
         {
@@ -1648,6 +1636,10 @@ class GenericIE(InfoExtractor):
             doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
                 return self._extract_rss(url, video_id, doc)
+            elif doc.tag == 'SmoothStreamingMedia':
+                info_dict['formats'] = self._parse_ism_formats(doc, url)
+                self._sort_formats(info_dict['formats'])
+                return info_dict
             elif re.match(r'^(?:{[^}]+})?smil$', doc.tag):
                 smil = self._parse_smil(doc, url, video_id)
                 self._sort_formats(smil['formats'])
@@ -1991,11 +1983,6 @@ class GenericIE(InfoExtractor):
         if sportbox_urls:
             return _playlist_from_matches(sportbox_urls, ie='SportBoxEmbed')
 
-        # Look for embedded PornHub player
-        pornhub_url = PornHubIE._extract_url(webpage)
-        if pornhub_url:
-            return self.url_result(pornhub_url, 'PornHub')
-
         # Look for embedded XHamster player
         xhamster_urls = XHamsterEmbedIE._extract_urls(webpage)
         if xhamster_urls:
@@ -2005,6 +1992,21 @@ class GenericIE(InfoExtractor):
         tnaflix_urls = TNAFlixNetworkEmbedIE._extract_urls(webpage)
         if tnaflix_urls:
             return _playlist_from_matches(tnaflix_urls, ie=TNAFlixNetworkEmbedIE.ie_key())
+
+        # Look for embedded PornHub player
+        pornhub_urls = PornHubIE._extract_urls(webpage)
+        if pornhub_urls:
+            return _playlist_from_matches(pornhub_urls, ie=PornHubIE.ie_key())
+
+        # Look for embedded DrTuber player
+        drtuber_urls = DrTuberIE._extract_urls(webpage)
+        if drtuber_urls:
+            return _playlist_from_matches(drtuber_urls, ie=DrTuberIE.ie_key())
+
+        # Look for embedded RedTube player
+        redtube_urls = RedTubeIE._extract_urls(webpage)
+        if redtube_urls:
+            return _playlist_from_matches(redtube_urls, ie=RedTubeIE.ie_key())
 
         # Look for embedded Tvigle player
         mobj = re.search(
@@ -2463,6 +2465,21 @@ class GenericIE(InfoExtractor):
                 entry_info_dict['formats'] = self._extract_mpd_formats(video_url, video_id)
             elif ext == 'f4m':
                 entry_info_dict['formats'] = self._extract_f4m_formats(video_url, video_id)
+            elif re.search(r'(?i)\.(?:ism|smil)/manifest', video_url) and video_url != url:
+                # Just matching .ism/manifest is not enough to be reliably sure
+                # whether it's actually an ISM manifest or some other streaming
+                # manifest since there are various streaming URL formats
+                # possible (see [1]) as well as some other shenanigans like
+                # .smil/manifest URLs that actually serve an ISM (see [2]) and
+                # so on.
+                # Thus the most reasonable way to solve this is to delegate
+                # to generic extractor in order to look into the contents of
+                # the manifest itself.
+                # 1. https://azure.microsoft.com/en-us/documentation/articles/media-services-deliver-content-overview/#streaming-url-formats
+                # 2. https://svs.itworkscdn.net/lbcivod/smil:itwfcdn/lbci/170976.smil/Manifest
+                entry_info_dict = self.url_result(
+                    smuggle_url(video_url, {'to_generic': True}),
+                    GenericIE.ie_key())
             else:
                 entry_info_dict['url'] = video_url
 

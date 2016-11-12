@@ -245,7 +245,7 @@ Say `meta` from the previous example has a `title` and you are about to extract 
 title = meta['title']
 ```
 
-If `title` disappeares from `meta` in future due to some changes on the hoster's side the extraction would fail since `title` is mandatory. That's expected.
+If `title` disappears from `meta` in future due to some changes on the hoster's side the extraction would fail since `title` is mandatory. That's expected.
 
 Assume that you have some another source you can extract `title` from, for example `og:title` HTML meta of a `webpage`. In this case you can provide a fallback scenario:
 

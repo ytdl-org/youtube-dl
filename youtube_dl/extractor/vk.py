@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import collections
 import re
-import json
 import sys
 
 from .common import InfoExtractor
@@ -369,8 +368,18 @@ class VKIE(VKBaseIE):
                     opts_url = 'http:' + opts_url
                 return self.url_result(opts_url)
 
-        data_json = self._search_regex(r'var\s+vars\s*=\s*({.+?});', info_page, 'vars')
-        data = json.loads(data_json)
+        # vars does not look to be served anymore since 24.10.2016
+        data = self._parse_json(
+            self._search_regex(
+                r'var\s+vars\s*=\s*({.+?});', info_page, 'vars', default='{}'),
+            video_id, fatal=False)
+
+        # <!json> is served instead
+        if not data:
+            data = self._parse_json(
+                self._search_regex(
+                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json'),
+                video_id)['player']['params'][0]
 
         title = unescapeHTML(data['md_title'])
 

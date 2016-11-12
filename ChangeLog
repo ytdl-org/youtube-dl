@@ -1,11 +1,102 @@
 version <unreleased>
 
+Extractors
++ [audioboom] Recognize /posts/ URLs (#11149)
+
+
+version 2016.11.08.1
+
+Extractors
+* [espn:article] Fix support for espn.com articles
+* [franceculture] Fix extraction (#11140)
+
+
+version 2016.11.08
+
+Extractors
+* [tmz:article] Fix extraction (#11052)
+* [espn] Fix extraction (#11041)
+* [mitele] Fix extraction after website redesign (#10824)
+- [ard] Remove age restriction check (#11129)
+* [generic] Improve support for pornhub.com embeds (#11100)
++ [generic] Add support for redtube.com embeds (#11099)
++ [generic] Add support for drtuber.com embeds (#11098)
++ [redtube] Add support for embed URLs
++ [drtuber] Add support for embed URLs
++ [yahoo] Improve content id extraction (#11088)
+* [toutv] Relax URL regular expression (#11121)
+
+
+version 2016.11.04
+
+Core
+* [extractor/common] Tolerate malformed RESOLUTION attribute in m3u8
+  manifests (#11113)
+* [downloader/ism] Fix AVC Decoder Configuration Record
+
+Extractors
++ [fox9] Add support for fox9.com (#11110)
++ [anvato] Extract more metadata and improve formats extraction
+* [vodlocker] Improve removed videos detection (#11106)
++ [vzaar] Add support for vzaar.com (#11093)
++ [vice] Add support for uplynk preplay videos (#11101)
+* [tubitv] Fix extraction (#11061)
++ [shahid] Add support for authentication (#11091)
++ [radiocanada] Add subtitles support (#11096)
++ [generic] Add support for ISM manifests
+
+
+version 2016.11.02
+
+Core
++ Add basic support for Smooth Streaming protocol (#8118, #10969)
+* Improve MPD manifest base URL extraction (#10909, #11079)
+* Fix --match-filter for int-like strings (#11082)
+
+Extractors
++ [mva] Add support for ISM formats
++ [msn] Add support for ISM formats
++ [onet] Add support for ISM formats
++ [tvp] Add support for ISM formats
++ [nicknight] Add support for nicknight sites (#10769)
+
+
+version 2016.10.30
+
+Extractors
+* [facebook] Improve 1080P video detection (#11073)
+* [imgur] Recognize /r/ URLs (#11071)
+* [beeg] Fix extraction (#11069)
+* [openload] Fix extraction (#10408)
+* [gvsearch] Modernize and fix search request (#11051)
+* [adultswim] Fix extraction (#10979)
++ [nobelprize] Add support for nobelprize.org (#9999)
+* [hornbunny] Fix extraction (#10981)
+* [tvp] Improve video id extraction (#10585)
+
+
+version 2016.10.26
+
+Extractors
++ [rentv] Add support for ren.tv (#10620)
++ [ard] Detect unavailable videos (#11018)
+* [vk] Fix extraction (#11022)
+
+
+version 2016.10.25
+
 Core
 * Running youtube-dl in the background is fixed (#10996, #10706, #955)
 
 Extractors
++ [jamendo] Add support for jamendo.com (#10132, #10736)
++ [pandatv] Add support for panda.tv (#10736)
 + [dotsub] Support Vimeo embed (#10964)
 * [litv] Fix extraction
++ [vimeo] Delegate ondemand redirects to ondemand extractor (#10994)
+* [vivo] Fix extraction (#11003)
++ [twitch:stream] Add support for rebroadcasts (#10995)
+* [pluralsight] Fix subtitles conversion (#10990)
 
 
 version 2016.10.21.1
