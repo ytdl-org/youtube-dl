@@ -886,7 +886,7 @@ class InfoExtractor(object):
                         'url': e.get('contentUrl'),
                         'title': unescapeHTML(e.get('name')),
                         'description': unescapeHTML(e.get('description')),
-                        'thumbnail': e.get('thumbnailUrl'),
+                        'thumbnail': e.get('thumbnailUrl') or e.get('thumbnailURL'),
                         'duration': parse_duration(e.get('duration')),
                         'timestamp': unified_timestamp(e.get('uploadDate')),
                         'filesize': float_or_none(e.get('contentSize')),
