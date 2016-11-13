@@ -93,8 +93,9 @@ class NRKBaseIE(InfoExtractor):
                 }]
 
         if not entries:
-            message_type = data.get('messageType')
-            if message_type == 'ProgramIsGeoBlocked' and not self._faked_ip:
+            message_type = data.get('messageType', '')
+            # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
+            if 'IsGeoBlocked' in message_type and not self._faked_ip:
                 self.report_warning(
                     'Video is geo restricted, trying to fake IP')
                 self._fake_ip()
