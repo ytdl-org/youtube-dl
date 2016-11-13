@@ -1,4 +1,4 @@
-version 2016.11.14
+version <unreleased>
 
 Core
 + [downoader/fragment,f4m,hls] Respect HTTP headers from info dict
