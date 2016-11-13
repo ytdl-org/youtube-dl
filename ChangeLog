@@ -1,6 +1,18 @@
 version <unreleased>
 
+Core
++ [downoader/fragment,f4m,hls] Respect HTTP headers from info dict
+* [extractor/common] Fix media templates with Bandwidth substitution pattern in
+  MPD manifests (#11175)
+* [extractor/common] Improve thumbnail extraction from JSON-LD
+
 Extractors
++ [nrk] Workaround geo restriction
++ [nrk] Improve error detection and messages
++ [afreecatv] Add support for vod.afreecatv.com (#11174)
+* [cda] Fix and improve extraction (#10929, #10936)
+* [plays] Fix extraction (#11165)
+* [eagleplatform] Fix extraction (#11160)
 + [audioboom] Recognize /posts/ URLs (#11149)
 
 
