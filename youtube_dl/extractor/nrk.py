@@ -17,14 +17,15 @@ from ..utils import (
 class NRKBaseIE(InfoExtractor):
     _faked_ip = None
 
-    def _download_webpage(self, *args, **kwargs):
+    def _download_webpage_handle(self, *args, **kwargs):
         # NRK checks X-Forwarded-For HTTP header in order to figure out the
         # origin of the client behind proxy. This allows to bypass geo
         # restriction by faking this header's value to some Norway IP.
         # We will do so once we encounter any geo restriction error.
         if self._faked_ip:
-            kwargs.setdefault('headers', {})['X-Forwarded-For'] = self._faked_ip
-        return super(NRKBaseIE, self)._download_webpage(*args, **kwargs)
+            # NB: str is intentional
+            kwargs.setdefault(str('headers'), {})['X-Forwarded-For'] = self._faked_ip
+        return super(NRKBaseIE, self)._download_webpage_handle(*args, **kwargs)
 
     def _fake_ip(self):
         # Use fake IP from 37.191.128.0/17 in order to workaround geo
@@ -42,6 +43,8 @@ class NRKBaseIE(InfoExtractor):
 
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
         video_id = data.get('id') or video_id
+
+        http_headers = {'X-Forwarded-For': self._faked_ip} if self._faked_ip else {}
 
         entries = []
 
@@ -73,6 +76,7 @@ class NRKBaseIE(InfoExtractor):
                     'duration': duration,
                     'subtitles': subtitles,
                     'formats': formats,
+                    'http_headers': http_headers,
                 })
 
         if not entries:
