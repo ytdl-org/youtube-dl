@@ -10,7 +10,7 @@ from ..utils import unified_strdate
 
 class GooglePlusIE(InfoExtractor):
     IE_DESC = 'Google Plus'
-    _VALID_URL = r'https://plus\.google\.com/(?:[^/]+/)*?posts/(?P<id>\w+)'
+    _VALID_URL = r'https?://plus\.google\.com/(?:[^/]+/)*?posts/(?P<id>\w+)'
     IE_NAME = 'plus.google'
     _TEST = {
         'url': 'https://plus.google.com/u/0/108897254135232129896/posts/ZButuJc6CtH',

@@ -9,10 +9,19 @@ from ..utils import (
     js_to_json,
     smuggle_url,
     try_get,
+    xpath_text,
+    xpath_element,
+    xpath_with_ns,
+    find_xpath_attr,
+    parse_iso8601,
+    parse_age_limit,
+    int_or_none,
+    ExtractorError,
 )
 
 
 class CBCIE(InfoExtractor):
+    IE_NAME = 'cbc.ca'
     _VALID_URL = r'https?://(?:www\.)?cbc\.ca/(?!player/)(?:[^/]+/)+(?P<id>[^/?#]+)'
     _TESTS = [{
         # with mediaId
@@ -114,6 +123,7 @@ class CBCIE(InfoExtractor):
 
 
 class CBCPlayerIE(InfoExtractor):
+    IE_NAME = 'cbc.ca:player'
     _VALID_URL = r'(?:cbcplayer:|https?://(?:www\.)?cbc\.ca/(?:player/play/|i/caffeine/syndicate/\?mediaId=))(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.cbc.ca/player/play/2683190193',
@@ -167,3 +177,165 @@ class CBCPlayerIE(InfoExtractor):
                 }),
             'id': video_id,
         }
+
+
+class CBCWatchBaseIE(InfoExtractor):
+    _device_id = None
+    _device_token = None
+    _API_BASE_URL = 'https://api-cbc.cloud.clearleap.com/cloffice/client/'
+    _NS_MAP = {
+        'media': 'http://search.yahoo.com/mrss/',
+        'clearleap': 'http://www.clearleap.com/namespace/clearleap/1.0/',
+    }
+
+    def _call_api(self, path, video_id):
+        url = path if path.startswith('http') else self._API_BASE_URL + path
+        result = self._download_xml(url, video_id, headers={
+            'X-Clearleap-DeviceId': self._device_id,
+            'X-Clearleap-DeviceToken': self._device_token,
+        })
+        error_message = xpath_text(result, 'userMessage') or xpath_text(result, 'systemMessage')
+        if error_message:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message))
+        return result
+
+    def _real_initialize(self):
+        if not self._device_id or not self._device_token:
+            device = self._downloader.cache.load('cbcwatch', 'device') or {}
+            self._device_id, self._device_token = device.get('id'), device.get('token')
+            if not self._device_id or not self._device_token:
+                result = self._download_xml(
+                    self._API_BASE_URL + 'device/register',
+                    None, data=b'<device><type>web</type></device>')
+                self._device_id = xpath_text(result, 'deviceId', fatal=True)
+                self._device_token = xpath_text(result, 'deviceToken', fatal=True)
+                self._downloader.cache.store(
+                    'cbcwatch', 'device', {
+                        'id': self._device_id,
+                        'token': self._device_token,
+                    })
+
+    def _parse_rss_feed(self, rss):
+        channel = xpath_element(rss, 'channel', fatal=True)
+
+        def _add_ns(path):
+            return xpath_with_ns(path, self._NS_MAP)
+
+        entries = []
+        for item in channel.findall('item'):
+            guid = xpath_text(item, 'guid', fatal=True)
+            title = xpath_text(item, 'title', fatal=True)
+
+            media_group = xpath_element(item, _add_ns('media:group'), fatal=True)
+            content = xpath_element(media_group, _add_ns('media:content'), fatal=True)
+            content_url = content.attrib['url']
+
+            thumbnails = []
+            for thumbnail in media_group.findall(_add_ns('media:thumbnail')):
+                thumbnail_url = thumbnail.get('url')
+                if not thumbnail_url:
+                    continue
+                thumbnails.append({
+                    'id': thumbnail.get('profile'),
+                    'url': thumbnail_url,
+                    'width': int_or_none(thumbnail.get('width')),
+                    'height': int_or_none(thumbnail.get('height')),
+                })
+
+            timestamp = None
+            release_date = find_xpath_attr(
+                item, _add_ns('media:credit'), 'role', 'releaseDate')
+            if release_date is not None:
+                timestamp = parse_iso8601(release_date.text)
+
+            entries.append({
+                '_type': 'url_transparent',
+                'url': content_url,
+                'id': guid,
+                'title': title,
+                'description': xpath_text(item, 'description'),
+                'timestamp': timestamp,
+                'duration': int_or_none(content.get('duration')),
+                'age_limit': parse_age_limit(xpath_text(item, _add_ns('media:rating'))),
+                'episode': xpath_text(item, _add_ns('clearleap:episode')),
+                'episode_number': int_or_none(xpath_text(item, _add_ns('clearleap:episodeInSeason'))),
+                'series': xpath_text(item, _add_ns('clearleap:series')),
+                'season_number': int_or_none(xpath_text(item, _add_ns('clearleap:season'))),
+                'thumbnails': thumbnails,
+                'ie_key': 'CBCWatchVideo',
+            })
+
+        return self.playlist_result(
+            entries, xpath_text(channel, 'guid'),
+            xpath_text(channel, 'title'),
+            xpath_text(channel, 'description'))
+
+
+class CBCWatchVideoIE(CBCWatchBaseIE):
+    IE_NAME = 'cbc.ca:watch:video'
+    _VALID_URL = r'https?://api-cbc\.cloud\.clearleap\.com/cloffice/client/web/play/?\?.*?\bcontentId=(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        result = self._call_api(url, video_id)
+
+        m3u8_url = xpath_text(result, 'url', fatal=True)
+        formats = self._extract_m3u8_formats(re.sub(r'/([^/]+)/[^/?]+\.m3u8', r'/\1/\1.m3u8', m3u8_url), video_id, 'mp4', fatal=False)
+        if len(formats) < 2:
+            formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+        # Despite metadata in m3u8 all video+audio formats are
+        # actually video-only (no audio)
+        for f in formats:
+            if f.get('acodec') != 'none' and f.get('vcodec') != 'none':
+                f['acodec'] = 'none'
+        self._sort_formats(formats)
+
+        info = {
+            'id': video_id,
+            'title': video_id,
+            'formats': formats,
+        }
+
+        rss = xpath_element(result, 'rss')
+        if rss:
+            info.update(self._parse_rss_feed(rss)['entries'][0])
+            del info['url']
+            del info['_type']
+            del info['ie_key']
+        return info
+
+
+class CBCWatchIE(CBCWatchBaseIE):
+    IE_NAME = 'cbc.ca:watch'
+    _VALID_URL = r'https?://watch\.cbc\.ca/(?:[^/]+/)+(?P<id>[0-9a-f-]+)'
+    _TESTS = [{
+        'url': 'http://watch.cbc.ca/doc-zone/season-6/customer-disservice/38e815a-009e3ab12e4',
+        'info_dict': {
+            'id': '38e815a-009e3ab12e4',
+            'ext': 'mp4',
+            'title': 'Customer (Dis)Service',
+            'description': 'md5:8bdd6913a0fe03d4b2a17ebe169c7c87',
+            'upload_date': '20160219',
+            'timestamp': 1455840000,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+            'format': 'bestvideo',
+        },
+        'skip': 'Geo-restricted to Canada',
+    }, {
+        'url': 'http://watch.cbc.ca/arthur/all/1ed4b385-cd84-49cf-95f0-80f004680057',
+        'info_dict': {
+            'id': '1ed4b385-cd84-49cf-95f0-80f004680057',
+            'title': 'Arthur',
+            'description': 'Arthur, the sweetest 8-year-old aardvark, and his pals solve all kinds of problems with humour, kindness and teamwork.',
+        },
+        'playlist_mincount': 30,
+        'skip': 'Geo-restricted to Canada',
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        rss = self._call_api('web/browse/' + video_id, video_id)
+        return self._parse_rss_feed(rss)

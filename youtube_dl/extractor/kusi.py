@@ -18,31 +18,20 @@ from ..utils import (
 class KUSIIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?kusi\.com/(?P<path>story/.+|video\?clipId=(?P<clipId>\d+))'
     _TESTS = [{
-        'url': 'http://www.kusi.com/story/31183873/turko-files-case-closed-put-on-hold',
-        'md5': 'f926e7684294cf8cb7bdf8858e1b3988',
+        'url': 'http://www.kusi.com/story/32849881/turko-files-refused-to-help-it-aint-right',
+        'md5': '4e76ce8e53660ce9697d06c0ba6fc47d',
         'info_dict': {
-            'id': '12203019',
+            'id': '12689020',
             'ext': 'mp4',
-            'title': 'Turko Files: Case Closed! & Put On Hold!',
-            'duration': 231.0,
-            'upload_date': '20160210',
-            'timestamp': 1455087571,
+            'title': "Turko Files: Refused to Help, It Ain't Right!",
+            'duration': 223.586,
+            'upload_date': '20160826',
+            'timestamp': 1472233118,
             'thumbnail': 're:^https?://.*\.jpg$'
         },
     }, {
         'url': 'http://kusi.com/video?clipId=12203019',
-        'info_dict': {
-            'id': '12203019',
-            'ext': 'mp4',
-            'title': 'Turko Files: Case Closed! & Put On Hold!',
-            'duration': 231.0,
-            'upload_date': '20160210',
-            'timestamp': 1455087571,
-            'thumbnail': 're:^https?://.*\.jpg$'
-        },
-        'params': {
-            'skip_download': True,  # Same as previous one
-        },
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

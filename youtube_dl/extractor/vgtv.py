@@ -8,6 +8,7 @@ from .xstream import XstreamIE
 from ..utils import (
     ExtractorError,
     float_or_none,
+    try_get,
 )
 
 
@@ -21,6 +22,7 @@ class VGTVIE(XstreamIE):
         'fvn.no/fvntv': 'fvntv',
         'aftenposten.no/webtv': 'aptv',
         'ap.vgtv.no/webtv': 'aptv',
+        'tv.aftonbladet.se/abtv': 'abtv',
     }
 
     _APP_NAME_TO_VENDOR = {
@@ -29,6 +31,7 @@ class VGTVIE(XstreamIE):
         'satv': 'sa',
         'fvntv': 'fvn',
         'aptv': 'ap',
+        'abtv': 'ab',
     }
 
     _VALID_URL = r'''(?x)
@@ -39,7 +42,8 @@ class VGTVIE(XstreamIE):
                     /?
                     (?:
                         \#!/(?:video|live)/|
-                        embed?.*id=
+                        embed?.*id=|
+                        articles/
                     )|
                     (?P<appname>
                         %s
@@ -129,6 +133,19 @@ class VGTVIE(XstreamIE):
             'url': 'http://ap.vgtv.no/webtv#!/video/111084/de-nye-bysyklene-lettere-bedre-gir-stoerre-hjul-og-feste-til-mobil',
             'only_matching': True,
         },
+        {
+            # geoblocked
+            'url': 'http://www.vgtv.no/#!/video/127205/inside-the-mind-of-favela-funk',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
+            'only_matching': True,
+        },
+        {
+            'url': 'abtv:140026',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
@@ -195,6 +212,12 @@ class VGTVIE(XstreamIE):
             formats.append(format_info)
 
         info['formats'].extend(formats)
+
+        if not info['formats']:
+            properties = try_get(
+                data, lambda x: x['streamConfiguration']['properties'], list)
+            if properties and 'geoblocked' in properties:
+                raise self.raise_geo_restricted()
 
         self._sort_formats(info['formats'])
 

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     get_element_by_id,
     clean_html,
@@ -58,7 +59,7 @@ class KuwoBaseIE(InfoExtractor):
 class KuwoIE(KuwoBaseIE):
     IE_NAME = 'kuwo:song'
     IE_DESC = '酷我音乐'
-    _VALID_URL = r'https?://www\.kuwo\.cn/yinyue/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/yinyue/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/yinyue/635632/',
         'info_dict': {
@@ -81,7 +82,7 @@ class KuwoIE(KuwoBaseIE):
             'upload_date': '20150518',
         },
         'params': {
-            'format': 'mp3-320'
+            'format': 'mp3-320',
         },
     }, {
         'url': 'http://www.kuwo.cn/yinyue/3197154?catalog=yueku2016',
@@ -90,10 +91,10 @@ class KuwoIE(KuwoBaseIE):
 
     def _real_extract(self, url):
         song_id = self._match_id(url)
-        webpage = self._download_webpage(
+        webpage, urlh = self._download_webpage_handle(
             url, song_id, note='Download song detail info',
             errnote='Unable to get song detail info')
-        if '对不起，该歌曲由于版权问题已被下线，将返回网站首页' in webpage:
+        if song_id not in urlh.geturl() or '对不起，该歌曲由于版权问题已被下线，将返回网站首页' in webpage:
             raise ExtractorError('this song has been offline because of copyright issues', expected=True)
 
         song_name = self._html_search_regex(
@@ -138,7 +139,7 @@ class KuwoIE(KuwoBaseIE):
 class KuwoAlbumIE(InfoExtractor):
     IE_NAME = 'kuwo:album'
     IE_DESC = '酷我音乐 - 专辑'
-    _VALID_URL = r'https?://www\.kuwo\.cn/album/(?P<id>\d+?)/'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/album/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/album/502294/',
         'info_dict': {
@@ -180,7 +181,7 @@ class KuwoChartIE(InfoExtractor):
         'info_dict': {
             'id': '香港中文龙虎榜',
         },
-        'playlist_mincount': 10,
+        'playlist_mincount': 7,
     }
 
     def _real_extract(self, url):
@@ -199,7 +200,7 @@ class KuwoChartIE(InfoExtractor):
 class KuwoSingerIE(InfoExtractor):
     IE_NAME = 'kuwo:singer'
     IE_DESC = '酷我音乐 - 歌手'
-    _VALID_URL = r'https?://www\.kuwo\.cn/mingxing/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/mingxing/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.kuwo.cn/mingxing/bruno+mars/',
         'info_dict': {
@@ -242,8 +243,9 @@ class KuwoSingerIE(InfoExtractor):
                 query={'artistId': artist_id, 'pn': page_num, 'rn': self.PAGE_SIZE})
 
             return [
-                self.url_result(song_url, 'Kuwo') for song_url in re.findall(
-                    r'<div[^>]+class="name"><a[^>]+href="(http://www\.kuwo\.cn/yinyue/\d+)',
+                self.url_result(compat_urlparse.urljoin(url, song_url), 'Kuwo')
+                for song_url in re.findall(
+                    r'<div[^>]+class="name"><a[^>]+href="(/yinyue/\d+)',
                     webpage)
             ]
 
@@ -294,14 +296,14 @@ class KuwoCategoryIE(InfoExtractor):
 class KuwoMvIE(KuwoBaseIE):
     IE_NAME = 'kuwo:mv'
     IE_DESC = '酷我音乐 - MV'
-    _VALID_URL = r'https?://www\.kuwo\.cn/mv/(?P<id>\d+?)/'
+    _VALID_URL = r'https?://(?:www\.)?kuwo\.cn/mv/(?P<id>\d+?)/'
     _TEST = {
         'url': 'http://www.kuwo.cn/mv/6480076/',
         'info_dict': {
             'id': '6480076',
             'ext': 'mp4',
             'title': 'My HouseMV',
-            'creator': 'PM02:00',
+            'creator': '2PM',
         },
         # In this video, music URLs (anti.s) are blocked outside China and
         # USA, while the MV URL (mvurl) is available globally, so force the MV

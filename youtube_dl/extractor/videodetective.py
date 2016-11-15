@@ -6,7 +6,7 @@ from .internetvideoarchive import InternetVideoArchiveIE
 
 
 class VideoDetectiveIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.videodetective\.com/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?videodetective\.com/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.videodetective.com/movies/kick-ass-2/194487',

@@ -3,11 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import PostProcessor
-from ..utils import PostProcessingError
-
-
-class MetadataFromTitlePPError(PostProcessingError):
-    pass
 
 
 class MetadataFromTitlePP(PostProcessor):
@@ -38,7 +33,8 @@ class MetadataFromTitlePP(PostProcessor):
         title = info['title']
         match = re.match(self._titleregex, title)
         if match is None:
-            raise MetadataFromTitlePPError('Could not interpret title of video as "%s"' % self._titleformat)
+            self._downloader.to_screen('[fromtitle] Could not interpret title of video as "%s"' % self._titleformat)
+            return [], info
         for attribute, value in match.groupdict().items():
             value = match.group(attribute)
             info[attribute] = value

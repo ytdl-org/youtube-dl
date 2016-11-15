@@ -18,7 +18,7 @@ class OoyalaBaseIE(InfoExtractor):
     _CONTENT_TREE_BASE = _PLAYER_BASE + 'player_api/v1/content_tree/'
     _AUTHORIZATION_URL_TEMPLATE = _PLAYER_BASE + 'sas/player_api/v2/authorization/embed_code/%s/%s?'
 
-    def _extract(self, content_tree_url, video_id, domain='example.org'):
+    def _extract(self, content_tree_url, video_id, domain='example.org', supportedformats=None):
         content_tree = self._download_json(content_tree_url, video_id)['content_tree']
         metadata = content_tree[list(content_tree)[0]]
         embed_code = metadata['embed_code']
@@ -29,7 +29,7 @@ class OoyalaBaseIE(InfoExtractor):
             self._AUTHORIZATION_URL_TEMPLATE % (pcode, embed_code) +
             compat_urllib_parse_urlencode({
                 'domain': domain,
-                'supportedFormats': 'mp4,rtmp,m3u8,hds',
+                'supportedFormats': supportedformats or 'mp4,rtmp,m3u8,hds',
             }), video_id)
 
         cur_auth_data = auth_data['authorization_data'][embed_code]
@@ -47,7 +47,7 @@ class OoyalaBaseIE(InfoExtractor):
                 delivery_type = stream['delivery_type']
                 if delivery_type == 'hls' or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        s_url, embed_code, 'mp4', 'm3u8_native',
+                        re.sub(r'/ip(?:ad|hone)/', '/all/', s_url), embed_code, 'mp4', 'm3u8_native',
                         m3u8_id='hls', fatal=False))
                 elif delivery_type == 'hds' or ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
@@ -145,8 +145,9 @@ class OoyalaIE(OoyalaBaseIE):
         url, smuggled_data = unsmuggle_url(url, {})
         embed_code = self._match_id(url)
         domain = smuggled_data.get('domain')
+        supportedformats = smuggled_data.get('supportedformats')
         content_tree_url = self._CONTENT_TREE_BASE + 'embed_code/%s/%s' % (embed_code, embed_code)
-        return self._extract(content_tree_url, embed_code, domain)
+        return self._extract(content_tree_url, embed_code, domain, supportedformats)
 
 
 class OoyalaExternalIE(OoyalaBaseIE):

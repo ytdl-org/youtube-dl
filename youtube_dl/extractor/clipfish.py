@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -10,15 +11,15 @@ from ..utils import (
 class ClipfishIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?clipfish\.de/(?:[^/]+/)+video/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'http://www.clipfish.de/special/game-trailer/video/3966754/fifa-14-e3-2013-trailer/',
-        'md5': '79bc922f3e8a9097b3d68a93780fd475',
+        'url': 'http://www.clipfish.de/special/ugly-americans/video/4343170/s01-e01-ugly-americans-date-in-der-hoelle/',
+        'md5': '720563e467b86374c194bdead08d207d',
         'info_dict': {
-            'id': '3966754',
+            'id': '4343170',
             'ext': 'mp4',
-            'title': 'FIFA 14 - E3 2013 Trailer',
-            'description': 'Video zu FIFA 14: E3 2013 Trailer',
-            'upload_date': '20130611',
-            'duration': 82,
+            'title': 'S01 E01 - Ugly Americans - Date in der Hölle',
+            'description': 'Mark Lilly arbeitet im Sozialdienst der Stadt New York und soll Immigranten bei ihrer Einbürgerung in die USA zur Seite stehen.',
+            'upload_date': '20161005',
+            'duration': 1291,
             'view_count': int,
         }
     }
@@ -50,10 +51,14 @@ class ClipfishIE(InfoExtractor):
                 'tbr': int_or_none(video_info.get('bitrate')),
             })
 
+        descr = video_info.get('descr')
+        if descr:
+            descr = descr.strip()
+
         return {
             'id': video_id,
             'title': video_info['title'],
-            'description': video_info.get('descr'),
+            'description': descr,
             'formats': formats,
             'thumbnail': video_info.get('media_content_thumbnail_large') or video_info.get('media_thumbnail'),
             'duration': int_or_none(video_info.get('media_length')),

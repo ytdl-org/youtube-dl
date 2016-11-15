@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import json
-import re
 
 from .common import InfoExtractor
 from ..utils import (
@@ -14,7 +13,7 @@ from ..utils import (
 
 
 class LiTVIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.litv\.tv/vod/[^/]+/content\.do\?.*?\bid=(?P<id>[^&]+)'
+    _VALID_URL = r'https?://(?:www\.)?litv\.tv/(?:vod|promo)/[^/]+/(?:content\.do)?\?.*?\b(?:content_)?id=(?P<id>[^&]+)'
 
     _URL_TEMPLATE = 'https://www.litv.tv/vod/%s/content.do?id=%s'
 
@@ -27,6 +26,7 @@ class LiTVIE(InfoExtractor):
         'playlist_count': 50,
     }, {
         'url': 'https://www.litv.tv/vod/drama/content.do?brc_id=root&id=VOD00041610&isUHEnabled=true&autoPlay=1',
+        'md5': '969e343d9244778cb29acec608e53640',
         'info_dict': {
             'id': 'VOD00041610',
             'ext': 'mp4',
@@ -37,13 +37,22 @@ class LiTVIE(InfoExtractor):
         },
         'params': {
             'noplaylist': True,
-            'skip_download': True,  # m3u8 download
+        },
+        'skip': 'Georestricted to Taiwan',
+    }, {
+        'url': 'https://www.litv.tv/promo/miyuezhuan/?content_id=VOD00044841&',
+        'md5': '88322ea132f848d6e3e18b32a832b918',
+        'info_dict': {
+            'id': 'VOD00044841',
+            'ext': 'mp4',
+            'title': '芈月傳第1集　霸星芈月降世楚國',
+            'description': '楚威王二年，太史令唐昧夜觀星象，發現霸星即將現世。王后得知霸星的預言後，想盡辦法不讓孩子順利出生，幸得莒姬相護化解危機。沒想到眾人期待下出生的霸星卻是位公主，楚威王對此失望至極。楚王后命人將女嬰丟棄河中，居然奇蹟似的被少司命像攔下，楚威王認為此女非同凡響，為她取名芈月。',
         },
         'skip': 'Georestricted to Taiwan',
     }]
 
-    def _extract_playlist(self, season_list, video_id, vod_data, view_data, prompt=True):
-        episode_title = view_data['title']
+    def _extract_playlist(self, season_list, video_id, program_info, prompt=True):
+        episode_title = program_info['title']
         content_id = season_list['contentId']
 
         if prompt:
@@ -51,7 +60,7 @@ class LiTVIE(InfoExtractor):
 
         all_episodes = [
             self.url_result(smuggle_url(
-                self._URL_TEMPLATE % (view_data['contentType'], episode['contentId']),
+                self._URL_TEMPLATE % (program_info['contentType'], episode['contentId']),
                 {'force_noplaylist': True}))  # To prevent infinite recursion
             for episode in season_list['episode']]
 
@@ -70,19 +79,15 @@ class LiTVIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        view_data = dict(map(lambda t: (t[0], t[2]), re.findall(
-            r'viewData\.([a-zA-Z]+)\s*=\s*(["\'])([^"\']+)\2',
-            webpage)))
-
-        vod_data = self._parse_json(self._search_regex(
-            'var\s+vod\s*=\s*([^;]+)', webpage, 'VOD data', default='{}'),
+        program_info = self._parse_json(self._search_regex(
+            'var\s+programInfo\s*=\s*([^;]+)', webpage, 'VOD data', default='{}'),
             video_id)
 
-        season_list = list(vod_data.get('seasonList', {}).values())
+        season_list = list(program_info.get('seasonList', {}).values())
         if season_list:
             if not noplaylist:
                 return self._extract_playlist(
-                    season_list[0], video_id, vod_data, view_data,
+                    season_list[0], video_id, program_info,
                     prompt=noplaylist_prompt)
 
             if noplaylist_prompt:
@@ -92,14 +97,19 @@ class LiTVIE(InfoExtractor):
         # endpoint gives the same result as the data embedded in the webpage.
         # If georestricted, there are no embedded data, so an extra request is
         # necessary to get the error code
+        if 'assetId' not in program_info:
+            program_info = self._download_json(
+                'https://www.litv.tv/vod/ajax/getProgramInfo', video_id,
+                query={'contentId': video_id},
+                headers={'Accept': 'application/json'})
         video_data = self._parse_json(self._search_regex(
             r'uiHlsUrl\s*=\s*testBackendData\(([^;]+)\);',
             webpage, 'video data', default='{}'), video_id)
         if not video_data:
             payload = {
-                'assetId': view_data['assetId'],
-                'watchDevices': vod_data['watchDevices'],
-                'contentType': view_data['contentType'],
+                'assetId': program_info['assetId'],
+                'watchDevices': program_info['watchDevices'],
+                'contentType': program_info['contentType'],
             }
             video_data = self._download_json(
                 'https://www.litv.tv/vod/getMainUrl', video_id,
@@ -115,16 +125,17 @@ class LiTVIE(InfoExtractor):
             raise ExtractorError('Unexpected result from %s' % self.IE_NAME)
 
         formats = self._extract_m3u8_formats(
-            video_data['fullpath'], video_id, ext='mp4', m3u8_id='hls')
+            video_data['fullpath'], video_id, ext='mp4',
+            entry_protocol='m3u8_native', m3u8_id='hls')
         for a_format in formats:
             # LiTV HLS segments doesn't like compressions
             a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = True
 
-        title = view_data['title'] + view_data.get('secondaryMark', '')
-        description = view_data.get('description')
-        thumbnail = view_data.get('imageFile')
-        categories = [item['name'] for item in vod_data.get('category', [])]
-        episode = int_or_none(view_data.get('episode'))
+        title = program_info['title'] + program_info.get('secondaryMark', '')
+        description = program_info.get('description')
+        thumbnail = program_info.get('imageFile')
+        categories = [item['name'] for item in program_info.get('category', [])]
+        episode = int_or_none(program_info.get('episode'))
 
         return {
             'id': video_id,

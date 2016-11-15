@@ -56,8 +56,8 @@ class OnetBaseIE(InfoExtractor):
                         continue
                     ext = determine_ext(video_url)
                     if format_id == 'ism':
-                        # TODO: Support Microsoft Smooth Streaming
-                        continue
+                        formats.extend(self._extract_ism_formats(
+                            video_url, video_id, 'mss', fatal=False))
                     elif ext == 'mpd':
                         formats.extend(self._extract_mpd_formats(
                             video_url, video_id, mpd_id='dash', fatal=False))
@@ -90,7 +90,7 @@ class OnetBaseIE(InfoExtractor):
 
 
 class OnetIE(OnetBaseIE):
-    _VALID_URL = 'https?://(?:www\.)?onet\.tv/[a-z]/[a-z]+/(?P<display_id>[0-9a-z-]+)/(?P<id>[0-9a-z]+)'
+    _VALID_URL = r'https?://(?:www\.)?onet\.tv/[a-z]/[a-z]+/(?P<display_id>[0-9a-z-]+)/(?P<id>[0-9a-z]+)'
     IE_NAME = 'onet.tv'
 
     _TEST = {

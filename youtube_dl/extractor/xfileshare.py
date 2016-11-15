@@ -124,12 +124,14 @@ class XFileShareIE(InfoExtractor):
             webpage = self._download_webpage(req, video_id, 'Downloading video page')
 
         title = (self._search_regex(
-            [r'style="z-index: [0-9]+;">([^<]+)</span>',
+            (r'style="z-index: [0-9]+;">([^<]+)</span>',
              r'<td nowrap>([^<]+)</td>',
              r'h4-fine[^>]*>([^<]+)<',
              r'>Watch (.+) ',
-             r'<h2 class="video-page-head">([^<]+)</h2>'],
-            webpage, 'title', default=None) or self._og_search_title(webpage)).strip()
+             r'<h2 class="video-page-head">([^<]+)</h2>',
+             r'<h2 style="[^"]*color:#403f3d[^"]*"[^>]*>([^<]+)<'),  # streamin.to
+            webpage, 'title', default=None) or self._og_search_title(
+            webpage, default=None) or video_id).strip()
 
         def extract_video_url(default=NO_DEFAULT):
             return self._search_regex(

@@ -3,12 +3,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     fix_xml_ampersands,
+    orderedSet,
     parse_duration,
     qualities,
     strip_jsonp,
     unified_strdate,
+    ExtractorError,
 )
 
 
@@ -180,9 +183,16 @@ class NPOIE(NPOBaseIE):
                     continue
                 streams = format_info.get('streams')
                 if streams:
-                    video_info = self._download_json(
-                        streams[0] + '&type=json',
-                        video_id, 'Downloading %s stream JSON' % format_id)
+                    try:
+                        video_info = self._download_json(
+                            streams[0] + '&type=json',
+                            video_id, 'Downloading %s stream JSON' % format_id)
+                    except ExtractorError as ee:
+                        if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
+                            error = (self._parse_json(ee.cause.read().decode(), video_id, fatal=False) or {}).get('errorstring')
+                            if error:
+                                raise ExtractorError(error, expected=True)
+                        raise
                 else:
                     video_info = format_info
                 video_url = video_info.get('url')
@@ -429,7 +439,7 @@ class SchoolTVIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         video_id = self._search_regex(
-            r'data-mid=(["\'])(?P<id>.+?)\1', webpage, 'video_id', group='id')
+            r'data-mid=(["\'])(?P<id>(?:(?!\1).)+)\1', webpage, 'video_id', group='id')
         return {
             '_type': 'url_transparent',
             'ie_key': 'NPO',
@@ -438,9 +448,30 @@ class SchoolTVIE(InfoExtractor):
         }
 
 
-class VPROIE(NPOIE):
+class NPOPlaylistBaseIE(NPOIE):
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('npo:%s' % video_id if not video_id.startswith('http') else video_id)
+            for video_id in orderedSet(re.findall(self._PLAYLIST_ENTRY_RE, webpage))
+        ]
+
+        playlist_title = self._html_search_regex(
+            self._PLAYLIST_TITLE_RE, webpage, 'playlist title',
+            default=None) or self._og_search_title(webpage)
+
+        return self.playlist_result(entries, playlist_id, playlist_title)
+
+
+class VPROIE(NPOPlaylistBaseIE):
     IE_NAME = 'vpro'
-    _VALID_URL = r'https?://(?:www\.)?(?:tegenlicht\.)?vpro\.nl/(?:[^/]+/){2,}(?P<id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?:(?:tegenlicht\.)?vpro|2doc)\.nl/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+    _PLAYLIST_TITLE_RE = (r'<h1[^>]+class=["\'].*?\bmedia-platform-title\b.*?["\'][^>]*>([^<]+)',
+                          r'<h5[^>]+class=["\'].*?\bmedia-platform-subtitle\b.*?["\'][^>]*>([^<]+)')
+    _PLAYLIST_ENTRY_RE = r'data-media-id="([^"]+)"'
 
     _TESTS = [
         {
@@ -453,12 +484,13 @@ class VPROIE(NPOIE):
                 'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
             },
+            'skip': 'Video gone',
         },
         {
             'url': 'http://www.vpro.nl/programmas/2doc/2015/sergio-herman.html',
             'info_dict': {
                 'id': 'sergio-herman',
-                'title': 'Sergio Herman: Fucking perfect',
+                'title': 'sergio herman: fucking perfect',
             },
             'playlist_count': 2,
         },
@@ -467,54 +499,61 @@ class VPROIE(NPOIE):
             'url': 'http://www.vpro.nl/programmas/2doc/2015/education-education.html',
             'info_dict': {
                 'id': 'education-education',
-                'title': '2Doc',
+                'title': 'education education',
             },
             'playlist_count': 2,
+        },
+        {
+            'url': 'http://www.2doc.nl/documentaires/series/2doc/2015/oktober/de-tegenprestatie.html',
+            'info_dict': {
+                'id': 'de-tegenprestatie',
+                'title': 'De Tegenprestatie',
+            },
+            'playlist_count': 2,
+        }, {
+            'url': 'http://www.2doc.nl/speel~VARA_101375237~mh17-het-verdriet-van-nederland~.html',
+            'info_dict': {
+                'id': 'VARA_101375237',
+                'ext': 'm4v',
+                'title': 'MH17: Het verdriet van Nederland',
+                'description': 'md5:09e1a37c1fdb144621e22479691a9f18',
+                'upload_date': '20150716',
+            },
+            'params': {
+                # Skip because of m3u8 download
+                'skip_download': True
+            },
         }
     ]
 
-    def _real_extract(self, url):
-        playlist_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, playlist_id)
-
-        entries = [
-            self.url_result('npo:%s' % video_id if not video_id.startswith('http') else video_id)
-            for video_id in re.findall(r'data-media-id="([^"]+)"', webpage)
-        ]
-
-        playlist_title = self._search_regex(
-            r'<title>\s*([^>]+?)\s*-\s*Teledoc\s*-\s*VPRO\s*</title>',
-            webpage, 'playlist title', default=None) or self._og_search_title(webpage)
-
-        return self.playlist_result(entries, playlist_id, playlist_title)
-
-
-class WNLIE(InfoExtractor):
+class WNLIE(NPOPlaylistBaseIE):
+    IE_NAME = 'wnl'
     _VALID_URL = r'https?://(?:www\.)?omroepwnl\.nl/video/detail/(?P<id>[^/]+)__\d+'
+    _PLAYLIST_TITLE_RE = r'(?s)<h1[^>]+class="subject"[^>]*>(.+?)</h1>'
+    _PLAYLIST_ENTRY_RE = r'<a[^>]+href="([^"]+)"[^>]+class="js-mid"[^>]*>Deel \d+'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.omroepwnl.nl/video/detail/vandaag-de-dag-6-mei__060515',
         'info_dict': {
             'id': 'vandaag-de-dag-6-mei',
             'title': 'Vandaag de Dag 6 mei',
         },
         'playlist_count': 4,
-    }
+    }]
 
-    def _real_extract(self, url):
-        playlist_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, playlist_id)
+class AndereTijdenIE(NPOPlaylistBaseIE):
+    IE_NAME = 'anderetijden'
+    _VALID_URL = r'https?://(?:www\.)?anderetijden\.nl/programma/(?:[^/]+/)+(?P<id>[^/?#&]+)'
+    _PLAYLIST_TITLE_RE = r'(?s)<h1[^>]+class=["\'].*?\bpage-title\b.*?["\'][^>]*>(.+?)</h1>'
+    _PLAYLIST_ENTRY_RE = r'<figure[^>]+class=["\']episode-container episode-page["\'][^>]+data-prid=["\'](.+?)["\']'
 
-        entries = [
-            self.url_result('npo:%s' % video_id, 'NPO')
-            for video_id, part in re.findall(
-                r'<a[^>]+href="([^"]+)"[^>]+class="js-mid"[^>]*>(Deel \d+)', webpage)
-        ]
-
-        playlist_title = self._html_search_regex(
-            r'(?s)<h1[^>]+class="subject"[^>]*>(.+?)</h1>',
-            webpage, 'playlist title')
-
-        return self.playlist_result(entries, playlist_id, playlist_title)
+    _TESTS = [{
+        'url': 'http://anderetijden.nl/programma/1/Andere-Tijden/aflevering/676/Duitse-soldaten-over-de-Slag-bij-Arnhem',
+        'info_dict': {
+            'id': 'Duitse-soldaten-over-de-Slag-bij-Arnhem',
+            'title': 'Duitse soldaten over de Slag bij Arnhem',
+        },
+        'playlist_count': 3,
+    }]

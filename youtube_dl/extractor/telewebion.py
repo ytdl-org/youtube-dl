@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class TelewebionIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.telewebion\.com/#!/episode/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?telewebion\.com/#!/episode/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.telewebion.com/#!/episode/1263668/',

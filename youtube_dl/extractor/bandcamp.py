@@ -162,6 +162,15 @@ class BandcampAlbumIE(InfoExtractor):
             'uploader_id': 'dotscale',
         },
         'playlist_mincount': 7,
+    }, {
+        # with escaped quote in title
+        'url': 'https://jstrecords.bandcamp.com/album/entropy-ep',
+        'info_dict': {
+            'title': '"Entropy" EP',
+            'uploader_id': 'jstrecords',
+            'id': 'entropy-ep',
+        },
+        'playlist_mincount': 3,
     }]
 
     def _real_extract(self, url):
@@ -176,8 +185,11 @@ class BandcampAlbumIE(InfoExtractor):
         entries = [
             self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
             for t_path in tracks_paths]
-        title = self._search_regex(
-            r'album_title\s*:\s*"(.*?)"', webpage, 'title', fatal=False)
+        title = self._html_search_regex(
+            r'album_title\s*:\s*"((?:\\.|[^"\\])+?)"',
+            webpage, 'title', fatal=False)
+        if title:
+            title = title.replace(r'\"', '"')
         return {
             '_type': 'playlist',
             'uploader_id': uploader_id,

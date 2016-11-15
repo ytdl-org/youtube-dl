@@ -8,10 +8,10 @@ from ..compat import compat_str
 from ..utils import int_or_none
 
 
-class BeatportProIE(InfoExtractor):
-    _VALID_URL = r'https?://pro\.beatport\.com/track/(?P<display_id>[^/]+)/(?P<id>[0-9]+)'
+class BeatportIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.|pro\.)?beatport\.com/track/(?P<display_id>[^/]+)/(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'https://pro.beatport.com/track/synesthesia-original-mix/5379371',
+        'url': 'https://beatport.com/track/synesthesia-original-mix/5379371',
         'md5': 'b3c34d8639a2f6a7f734382358478887',
         'info_dict': {
             'id': '5379371',
@@ -20,7 +20,7 @@ class BeatportProIE(InfoExtractor):
             'title': 'Froxic - Synesthesia (Original Mix)',
         },
     }, {
-        'url': 'https://pro.beatport.com/track/love-and-war-original-mix/3756896',
+        'url': 'https://beatport.com/track/love-and-war-original-mix/3756896',
         'md5': 'e44c3025dfa38c6577fbaeb43da43514',
         'info_dict': {
             'id': '3756896',
@@ -29,7 +29,7 @@ class BeatportProIE(InfoExtractor):
             'title': 'Wolfgang Gartner - Love & War (Original Mix)',
         },
     }, {
-        'url': 'https://pro.beatport.com/track/birds-original-mix/4991738',
+        'url': 'https://beatport.com/track/birds-original-mix/4991738',
         'md5': 'a1fd8e8046de3950fd039304c186c05f',
         'info_dict': {
             'id': '4991738',

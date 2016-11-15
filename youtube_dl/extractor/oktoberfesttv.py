@@ -1,11 +1,11 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
 
 class OktoberfestTVIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.oktoberfest-tv\.de/[^/]+/[^/]+/video/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?oktoberfest-tv\.de/[^/]+/[^/]+/video/(?P<id>[^/?#]+)'
 
     _TEST = {
         'url': 'http://www.oktoberfest-tv.de/de/kameras/video/hb-zelt',

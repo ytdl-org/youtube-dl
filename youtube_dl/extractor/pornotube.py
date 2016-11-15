@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    sanitized_Request,
-)
+from ..utils import int_or_none
 
 
 class PornotubeIE(InfoExtractor):
@@ -31,59 +28,55 @@ class PornotubeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # Fetch origin token
-        js_config = self._download_webpage(
-            'http://www.pornotube.com/assets/src/app/config.js', video_id,
-            note='Download JS config')
-        originAuthenticationSpaceKey = self._search_regex(
-            r"constant\('originAuthenticationSpaceKey',\s*'([^']+)'",
-            js_config, 'originAuthenticationSpaceKey')
+        token = self._download_json(
+            'https://api.aebn.net/auth/v2/origins/authenticate',
+            video_id, note='Downloading token',
+            data=json.dumps({'credentials': 'Clip Application'}).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json',
+                'Origin': 'http://www.pornotube.com',
+            })['tokenKey']
 
-        # Fetch actual token
-        token_req_data = {
-            'authenticationSpaceKey': originAuthenticationSpaceKey,
-            'credentials': 'Clip Application',
-        }
-        token_req = sanitized_Request(
-            'https://api.aebn.net/auth/v1/token/primal',
-            data=json.dumps(token_req_data).encode('utf-8'))
-        token_req.add_header('Content-Type', 'application/json')
-        token_req.add_header('Origin', 'http://www.pornotube.com')
-        token_answer = self._download_json(
-            token_req, video_id, note='Requesting primal token')
-        token = token_answer['tokenKey']
+        video_url = self._download_json(
+            'https://api.aebn.net/delivery/v1/clips/%s/MP4' % video_id,
+            video_id, note='Downloading delivery information',
+            headers={'Authorization': token})['mediaUrl']
 
-        # Get video URL
-        delivery_req = sanitized_Request(
-            'https://api.aebn.net/delivery/v1/clips/%s/MP4' % video_id)
-        delivery_req.add_header('Authorization', token)
-        delivery_info = self._download_json(
-            delivery_req, video_id, note='Downloading delivery information')
-        video_url = delivery_info['mediaUrl']
+        FIELDS = (
+            'title', 'description', 'startSecond', 'endSecond', 'publishDate',
+            'studios{name}', 'categories{name}', 'movieId', 'primaryImageNumber'
+        )
 
-        # Get additional info (title etc.)
-        info_req = sanitized_Request(
-            'https://api.aebn.net/content/v1/clips/%s?expand='
-            'title,description,primaryImageNumber,startSecond,endSecond,'
-            'movie.title,movie.MovieId,movie.boxCoverFront,movie.stars,'
-            'movie.studios,stars.name,studios.name,categories.name,'
-            'clipActive,movieActive,publishDate,orientations' % video_id)
-        info_req.add_header('Authorization', token)
         info = self._download_json(
-            info_req, video_id, note='Downloading metadata')
+            'https://api.aebn.net/content/v2/clips/%s?fields=%s'
+            % (video_id, ','.join(FIELDS)), video_id,
+            note='Downloading metadata',
+            headers={'Authorization': token})
+
+        if isinstance(info, list):
+            info = info[0]
+
+        title = info['title']
 
         timestamp = int_or_none(info.get('publishDate'), scale=1000)
         uploader = info.get('studios', [{}])[0].get('name')
-        movie_id = info['movie']['movieId']
-        thumbnail = 'http://pic.aebn.net/dis/t/%s/%s_%08d.jpg' % (
-            movie_id, movie_id, info['primaryImageNumber'])
-        categories = [c['name'] for c in info.get('categories')]
+        movie_id = info.get('movieId')
+        primary_image_number = info.get('primaryImageNumber')
+        thumbnail = None
+        if movie_id and primary_image_number:
+            thumbnail = 'http://pic.aebn.net/dis/t/%s/%s_%08d.jpg' % (
+                movie_id, movie_id, primary_image_number)
+        start = int_or_none(info.get('startSecond'))
+        end = int_or_none(info.get('endSecond'))
+        duration = end - start if start and end else None
+        categories = [c['name'] for c in info.get('categories', []) if c.get('name')]
 
         return {
             'id': video_id,
             'url': video_url,
-            'title': info['title'],
+            'title': title,
             'description': info.get('description'),
+            'duration': duration,
             'timestamp': timestamp,
             'uploader': uploader,
             'thumbnail': thumbnail,

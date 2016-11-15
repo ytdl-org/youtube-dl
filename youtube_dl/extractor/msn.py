@@ -69,10 +69,9 @@ class MSNIE(InfoExtractor):
             if not format_url:
                 continue
             ext = determine_ext(format_url)
-            # .ism is not yet supported (see
-            # https://github.com/rg3/youtube-dl/issues/8118)
             if ext == 'ism':
-                continue
+                formats.extend(self._extract_ism_formats(
+                    format_url + '/Manifest', display_id, 'mss', fatal=False))
             if 'm3u8' in format_url:
                 # m3u8_native should not be used here until
                 # https://github.com/rg3/youtube-dl/issues/9913 is fixed

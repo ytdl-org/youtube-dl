@@ -11,15 +11,6 @@ from ..compat import compat_urllib_parse_unquote
 class BigflixIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bigflix\.com/.+/(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://www.bigflix.com/Hindi-movies/Action-movies/Singham-Returns/16537',
-        'md5': 'dc1b4aebb46e3a7077ecc0d9f43f61e3',
-        'info_dict': {
-            'id': '16537',
-            'ext': 'mp4',
-            'title': 'Singham Returns',
-            'description': 'md5:3d2ba5815f14911d5cc6a501ae0cf65d',
-        }
-    }, {
         # 2 formats
         'url': 'http://www.bigflix.com/Tamil-movies/Drama-movies/Madarasapatinam/16070',
         'info_dict': {

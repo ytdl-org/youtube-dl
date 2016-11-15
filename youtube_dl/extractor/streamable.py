@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -47,6 +49,14 @@ class StreamableIE(InfoExtractor):
             'only_matching': True,
         }
     ]
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=(?P<q1>[\'"])(?P<src>(?:https?:)?//streamable\.com/(?:(?!\1).+))(?P=q1)',
+            webpage)
+        if mobj:
+            return mobj.group('src')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

@@ -91,36 +91,18 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         if login_page is False:
             return
 
-        galx = self._search_regex(r'(?s)<input.+?name="GALX".+?value="(.+?)"',
-                                  login_page, 'Login GALX parameter')
+        login_form = self._hidden_inputs(login_page)
 
-        # Log in
-        login_form_strs = {
-            'continue': 'https://www.youtube.com/signin?action_handle_signin=true&feature=sign_in_button&hl=en_US&nomobiletemp=1',
+        login_form.update({
+            'checkConnection': 'youtube',
             'Email': username,
-            'GALX': galx,
             'Passwd': password,
-
-            'PersistentCookie': 'yes',
-            '_utf8': '霱',
-            'bgresponse': 'js_disabled',
-            'checkConnection': '',
-            'checkedDomains': 'youtube',
-            'dnConn': '',
-            'pstMsg': '0',
-            'rmShown': '1',
-            'secTok': '',
-            'signIn': 'Sign in',
-            'timeStmp': '',
-            'service': 'youtube',
-            'uilel': '3',
-            'hl': 'en_US',
-        }
+        })
 
         login_results = self._download_webpage(
             self._PASSWORD_CHALLENGE_URL, None,
             note='Logging in', errnote='unable to log in', fatal=False,
-            data=urlencode_postdata(login_form_strs))
+            data=urlencode_postdata(login_form))
         if login_results is False:
             return False
 
@@ -282,7 +264,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
                      ([0-9A-Za-z_-]{11})                                      # here is it! the YouTube video ID
-                     (?!.*?&list=)                                            # combined list/video URLs are handled by the playlist IE
+                     (?!.*?\blist=)                                            # combined list/video URLs are handled by the playlist IE
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $"""
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
@@ -387,7 +369,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube'
     _TESTS = [
         {
-            'url': 'http://www.youtube.com/watch?v=BaW_jenozKc&t=1s&end=9',
+            'url': 'https://www.youtube.com/watch?v=BaW_jenozKc&t=1s&end=9',
             'info_dict': {
                 'id': 'BaW_jenozKc',
                 'ext': 'mp4',
@@ -407,7 +389,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'http://www.youtube.com/watch?v=UxxajLWwzqY',
+            'url': 'https://www.youtube.com/watch?v=UxxajLWwzqY',
             'note': 'Test generic use_cipher_signature video (#897)',
             'info_dict': {
                 'id': 'UxxajLWwzqY',
@@ -461,7 +443,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'http://www.youtube.com/watch?v=BaW_jenozKc&v=UxxajLWwzqY',
+            'url': 'https://www.youtube.com/watch?v=BaW_jenozKc&v=UxxajLWwzqY',
             'note': 'Use the first video ID in the URL',
             'info_dict': {
                 'id': 'BaW_jenozKc',
@@ -483,7 +465,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            'url': 'http://www.youtube.com/watch?v=a9LDPn-MO4I',
+            'url': 'https://www.youtube.com/watch?v=a9LDPn-MO4I',
             'note': '256k DASH audio (format 141) via DASH manifest',
             'info_dict': {
                 'id': 'a9LDPn-MO4I',
@@ -557,7 +539,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         # Normal age-gate video (No vevo, embed allowed)
         {
-            'url': 'http://youtube.com/watch?v=HtVdAasjOgU',
+            'url': 'https://youtube.com/watch?v=HtVdAasjOgU',
             'info_dict': {
                 'id': 'HtVdAasjOgU',
                 'ext': 'mp4',
@@ -573,7 +555,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         # Age-gate video with encrypted signature
         {
-            'url': 'http://www.youtube.com/watch?v=6kLq3WMV1nU',
+            'url': 'https://www.youtube.com/watch?v=6kLq3WMV1nU',
             'info_dict': {
                 'id': '6kLq3WMV1nU',
                 'ext': 'mp4',
@@ -766,11 +748,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'Not multifeed anymore',
         },
         {
-            'url': 'http://vid.plus/FlRa-iH7PGw',
+            'url': 'https://vid.plus/FlRa-iH7PGw',
             'only_matching': True,
         },
         {
-            'url': 'http://zwearz.com/watch/9lWxNJF-ufM/electra-woman-dyna-girl-official-trailer-grace-helbig.html',
+            'url': 'https://zwearz.com/watch/9lWxNJF-ufM/electra-woman-dyna-girl-official-trailer-grace-helbig.html',
             'only_matching': True,
         },
         {
@@ -862,6 +844,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # YouTube Red paid video (https://github.com/rg3/youtube-dl/issues/10059)
             'url': 'https://www.youtube.com/watch?v=i1Ko8UG-Tdo',
             'only_matching': True,
+        },
+        {
+            # Rental video preview
+            'url': 'https://www.youtube.com/watch?v=yYr8q0y5Jfg',
+            'info_dict': {
+                'id': 'uGpuVWrhIzE',
+                'ext': 'mp4',
+                'title': 'Piku - Trailer',
+                'description': 'md5:c36bd60c3fd6f1954086c083c72092eb',
+                'upload_date': '20150811',
+                'uploader': 'FlixMatrix',
+                'uploader_id': 'FlixMatrixKaravan',
+                'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/FlixMatrixKaravan',
+                'license': 'Standard YouTube License',
+            },
+            'params': {
+                'skip_download': True,
+            },
         }
     ]
 
@@ -1272,6 +1272,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # Convert to the same format returned by compat_parse_qs
                     video_info = dict((k, [v]) for k, v in args.items())
                     add_dash_mpd(video_info)
+                # Rental video is not rented but preview is available (e.g.
+                # https://www.youtube.com/watch?v=yYr8q0y5Jfg,
+                # https://github.com/rg3/youtube-dl/issues/10532)
+                if not video_info and args.get('ypc_vid'):
+                    return self.url_result(
+                        args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
@@ -1772,11 +1778,14 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     _VALID_URL = r"""(?x)(?:
                         (?:https?://)?
                         (?:\w+\.)?
-                        youtube\.com/
                         (?:
-                           (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
-                           \? (?:.*?[&;])*? (?:p|a|list)=
-                        |  p/
+                            youtube\.com/
+                            (?:
+                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
+                               \? (?:.*?[&;])*? (?:p|a|list)=
+                            |  p/
+                            )|
+                            youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
                             (?:PL|LL|EC|UU|FL|RD|UL)?[0-9A-Za-z-_]{10,}
@@ -1837,7 +1846,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'playlist_count': 2,
     }, {
         'note': 'embedded',
-        'url': 'http://www.youtube.com/embed/videoseries?list=PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
+        'url': 'https://www.youtube.com/embed/videoseries?list=PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
         'playlist_count': 4,
         'info_dict': {
             'title': 'JODA15',
@@ -1845,7 +1854,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         }
     }, {
         'note': 'Embedded SWF player',
-        'url': 'http://www.youtube.com/p/YN5VISEtHet5D4NEvfTd0zcgFk84NqFZ?hl=en_US&fs=1&rel=0',
+        'url': 'https://www.youtube.com/p/YN5VISEtHet5D4NEvfTd0zcgFk84NqFZ?hl=en_US&fs=1&rel=0',
         'playlist_count': 4,
         'info_dict': {
             'title': 'JODA7',
@@ -1858,7 +1867,53 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'title': 'Uploads from Interstellar Movie',
             'id': 'UUXw-G3eDE9trcvY2sBMM_aA',
         },
-        'playlist_mincout': 21,
+        'playlist_mincount': 21,
+    }, {
+        # Playlist URL that does not actually serve a playlist
+        'url': 'https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4',
+        'info_dict': {
+            'id': 'FqZTN594JQw',
+            'ext': 'webm',
+            'title': "Smiley's People 01 detective, Adventure Series, Action",
+            'uploader': 'STREEM',
+            'uploader_id': 'UCyPhqAZgwYWZfxElWVbVJng',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/channel/UCyPhqAZgwYWZfxElWVbVJng',
+            'upload_date': '20150526',
+            'license': 'Standard YouTube License',
+            'description': 'md5:507cdcb5a49ac0da37a920ece610be80',
+            'categories': ['People & Blogs'],
+            'tags': list,
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [YoutubeIE.ie_key()],
+    }, {
+        'url': 'https://youtu.be/yeWKywCrFtk?list=PL2qgrgXsNUG5ig9cat4ohreBjYLAPC0J5',
+        'info_dict': {
+            'id': 'yeWKywCrFtk',
+            'ext': 'mp4',
+            'title': 'Small Scale Baler and Braiding Rugs',
+            'uploader': 'Backus-Page House Museum',
+            'uploader_id': 'backuspagemuseum',
+            'uploader_url': 're:https?://(?:www\.)?youtube\.com/user/backuspagemuseum',
+            'upload_date': '20161008',
+            'license': 'Standard YouTube License',
+            'description': 'md5:800c0c78d5eb128500bffd4f0b4f2e8a',
+            'categories': ['Nonprofits & Activism'],
+            'tags': list,
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'noplaylist': True,
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
@@ -1919,20 +1974,35 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         playlist_title = self._html_search_regex(
             r'(?s)<h1 class="pl-header-title[^"]*"[^>]*>\s*(.*?)\s*</h1>',
-            page, 'title')
+            page, 'title', default=None)
 
-        return self.playlist_result(self._entries(page, playlist_id), playlist_id, playlist_title)
+        has_videos = True
+
+        if not playlist_title:
+            try:
+                # Some playlist URLs don't actually serve a playlist (e.g.
+                # https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4)
+                next(self._entries(page, playlist_id))
+            except StopIteration:
+                has_videos = False
+
+        return has_videos, self.playlist_result(
+            self._entries(page, playlist_id), playlist_id, playlist_title)
 
     def _check_download_just_video(self, url, playlist_id):
         # Check if it's a video-specific URL
         query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
-        if 'v' in query_dict:
-            video_id = query_dict['v'][0]
+        video_id = query_dict.get('v', [None])[0] or self._search_regex(
+            r'(?:^|//)youtu\.be/([0-9A-Za-z_-]{11})', url,
+            'video id', default=None)
+        if video_id:
             if self._downloader.params.get('noplaylist'):
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
-                return self.url_result(video_id, 'Youtube', video_id=video_id)
+                return video_id, self.url_result(video_id, 'Youtube', video_id=video_id)
             else:
                 self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+                return video_id, None
+        return None, None
 
     def _real_extract(self, url):
         # Extract playlist id
@@ -1941,7 +2011,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             raise ExtractorError('Invalid URL: %s' % url)
         playlist_id = mobj.group(1) or mobj.group(2)
 
-        video = self._check_download_just_video(url, playlist_id)
+        video_id, video = self._check_download_just_video(url, playlist_id)
         if video:
             return video
 
@@ -1949,7 +2019,15 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             # Mixes require a custom extraction process
             return self._extract_mix(playlist_id)
 
-        return self._extract_playlist(playlist_id)
+        has_videos, playlist = self._extract_playlist(playlist_id)
+        if has_videos or not video_id:
+            return playlist
+
+        # Some playlist URLs don't actually serve a playlist (see
+        # https://github.com/rg3/youtube-dl/issues/10537).
+        # Fallback to plain video extraction if there is a video id
+        # along with playlist id.
+        return self.url_result(video_id, 'Youtube', video_id=video_id)
 
 
 class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
@@ -2097,11 +2175,11 @@ class YoutubeUserIE(YoutubeChannelIE):
 
 class YoutubeLiveIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com live streams'
-    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+))/live'
+    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:user|channel|c)/(?P<id>[^/]+))/live'
     IE_NAME = 'youtube:live'
 
     _TESTS = [{
-        'url': 'http://www.youtube.com/user/TheYoungTurks/live',
+        'url': 'https://www.youtube.com/user/TheYoungTurks/live',
         'info_dict': {
             'id': 'a48o2S1cPoo',
             'ext': 'mp4',
@@ -2121,7 +2199,10 @@ class YoutubeLiveIE(YoutubeBaseInfoExtractor):
             'skip_download': True,
         },
     }, {
-        'url': 'http://www.youtube.com/channel/UC1yBKRuGpC1tSM73A0ZjYjQ/live',
+        'url': 'https://www.youtube.com/channel/UC1yBKRuGpC1tSM73A0ZjYjQ/live',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/c/CommanderVideoHq/live',
         'only_matching': True,
     }]
 
@@ -2146,7 +2227,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
     IE_NAME = 'youtube:playlists'
 
     _TESTS = [{
-        'url': 'http://www.youtube.com/user/ThirstForScience/playlists',
+        'url': 'https://www.youtube.com/user/ThirstForScience/playlists',
         'playlist_mincount': 4,
         'info_dict': {
             'id': 'ThirstForScience',
@@ -2154,7 +2235,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
         },
     }, {
         # with "Load more" button
-        'url': 'http://www.youtube.com/user/igorkle1/playlists?view=1&sort=dd',
+        'url': 'https://www.youtube.com/user/igorkle1/playlists?view=1&sort=dd',
         'playlist_mincount': 70,
         'info_dict': {
             'id': 'igorkle1',
@@ -2247,7 +2328,7 @@ class YoutubeSearchURLIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeShowIE(YoutubePlaylistsBaseInfoExtractor):
     IE_DESC = 'YouTube.com (multi-season) shows'
-    _VALID_URL = r'https?://www\.youtube\.com/show/(?P<id>[^?#]*)'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/show/(?P<id>[^?#]*)'
     IE_NAME = 'youtube:show'
     _TESTS = [{
         'url': 'https://www.youtube.com/show/airdisasters',
@@ -2316,7 +2397,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
 class YoutubeWatchLaterIE(YoutubePlaylistIE):
     IE_NAME = 'youtube:watchlater'
     IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/(?:feed/watch_later|(?:playlist|watch)\?(?:.+&)?list=WL)|:ytwatchlater'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/(?:feed/watch_later|(?:playlist|watch)\?(?:.+&)?list=WL)|:ytwatchlater'
 
     _TESTS = [{
         'url': 'https://www.youtube.com/playlist?list=WL',
@@ -2327,16 +2408,17 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
     }]
 
     def _real_extract(self, url):
-        video = self._check_download_just_video(url, 'WL')
+        _, video = self._check_download_just_video(url, 'WL')
         if video:
             return video
-        return self._extract_playlist('WL')
+        _, playlist = self._extract_playlist('WL')
+        return playlist
 
 
 class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube:favorites'
     IE_DESC = 'YouTube.com favourite videos, ":ytfav" for short (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
     _LOGIN_REQUIRED = True
 
     def _real_extract(self, url):
@@ -2347,21 +2429,21 @@ class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
 
 class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'YouTube.com recommended videos, ":ytrec" for short (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/feed/recommended|:ytrec(?:ommended)?'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/recommended|:ytrec(?:ommended)?'
     _FEED_NAME = 'recommended'
     _PLAYLIST_TITLE = 'Youtube Recommended videos'
 
 
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
-    _VALID_URL = r'https?://www\.youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
     _FEED_NAME = 'subscriptions'
     _PLAYLIST_TITLE = 'Youtube Subscriptions'
 
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
-    _VALID_URL = 'https?://www\.youtube\.com/feed/history|:ythistory'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/history|:ythistory'
     _FEED_NAME = 'history'
     _PLAYLIST_TITLE = 'Youtube History'
 
@@ -2386,10 +2468,10 @@ class YoutubeTruncatedURLIE(InfoExtractor):
     '''
 
     _TESTS = [{
-        'url': 'http://www.youtube.com/watch?annotation_id=annotation_3951667041',
+        'url': 'https://www.youtube.com/watch?annotation_id=annotation_3951667041',
         'only_matching': True,
     }, {
-        'url': 'http://www.youtube.com/watch?',
+        'url': 'https://www.youtube.com/watch?',
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/watch?x-yt-cl=84503534',
@@ -2410,7 +2492,7 @@ class YoutubeTruncatedURLIE(InfoExtractor):
             'Did you forget to quote the URL? Remember that & is a meta '
             'character in most shells, so you want to put the URL in quotes, '
             'like  youtube-dl '
-            '"http://www.youtube.com/watch?feature=foo&v=BaW_jenozKc" '
+            '"https://www.youtube.com/watch?feature=foo&v=BaW_jenozKc" '
             ' or simply  youtube-dl BaW_jenozKc  .',
             expected=True)
 

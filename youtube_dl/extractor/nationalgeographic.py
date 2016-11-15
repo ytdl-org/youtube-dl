@@ -1,16 +1,20 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from .adobepass import AdobePassIE
 from .theplatform import ThePlatformIE
 from ..utils import (
     smuggle_url,
     url_basename,
     update_url_query,
+    get_element_by_class,
 )
 
 
-class NationalGeographicIE(InfoExtractor):
-    IE_NAME = 'natgeo'
+class NationalGeographicVideoIE(InfoExtractor):
+    IE_NAME = 'natgeo:video'
     _VALID_URL = r'https?://video\.nationalgeographic\.com/.*?'
 
     _TESTS = [
@@ -62,16 +66,16 @@ class NationalGeographicIE(InfoExtractor):
         }
 
 
-class NationalGeographicChannelIE(ThePlatformIE):
-    IE_NAME = 'natgeo:channel'
-    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/videos/(?P<id>[^/?]+)'
+class NationalGeographicIE(ThePlatformIE, AdobePassIE):
+    IE_NAME = 'natgeo'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/(?:videos|episodes)/(?P<id>[^/?]+)'
 
     _TESTS = [
         {
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/videos/uncovering-a-universal-knowledge/',
             'md5': '518c9aa655686cf81493af5cc21e2a04',
             'info_dict': {
-                'id': 'nB5vIAfmyllm',
+                'id': 'vKInpacll2pC',
                 'ext': 'mp4',
                 'title': 'Uncovering a Universal Knowledge',
                 'description': 'md5:1a89148475bf931b3661fcd6ddb2ae3a',
@@ -85,7 +89,7 @@ class NationalGeographicChannelIE(ThePlatformIE):
             'url': 'http://channel.nationalgeographic.com/wild/destination-wild/videos/the-stunning-red-bird-of-paradise/',
             'md5': 'c4912f656b4cbe58f3e000c489360989',
             'info_dict': {
-                'id': '3TmMv9OvGwIR',
+                'id': 'Pok5lWCkiEFA',
                 'ext': 'mp4',
                 'title': 'The Stunning Red Bird of Paradise',
                 'description': 'md5:7bc8cd1da29686be4d17ad1230f0140c',
@@ -95,6 +99,10 @@ class NationalGeographicChannelIE(ThePlatformIE):
             },
             'add_ie': ['ThePlatform'],
         },
+        {
+            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episodes/the-power-of-miracles/',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
@@ -103,22 +111,73 @@ class NationalGeographicChannelIE(ThePlatformIE):
         release_url = self._search_regex(
             r'video_auth_playlist_url\s*=\s*"([^"]+)"',
             webpage, 'release url')
+        theplatform_path = self._search_regex(r'https?://link.theplatform.com/s/([^?]+)', release_url, 'theplatform path')
+        video_id = theplatform_path.split('/')[-1]
         query = {
             'mbr': 'true',
-            'switch': 'http',
         }
         is_auth = self._search_regex(r'video_is_auth\s*=\s*"([^"]+)"', webpage, 'is auth', fatal=False)
         if is_auth == 'auth':
             auth_resource_id = self._search_regex(
                 r"video_auth_resourceId\s*=\s*'([^']+)'",
                 webpage, 'auth resource id')
-            query['auth'] = self._extract_mvpd_auth(url, display_id, 'natgeo', auth_resource_id) or ''
+            query['auth'] = self._extract_mvpd_auth(url, video_id, 'natgeo', auth_resource_id)
 
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'ThePlatform',
-            'url': smuggle_url(
-                update_url_query(release_url, query),
-                {'force_smil_url': True}),
+        formats = []
+        subtitles = {}
+        for key, value in (('switch', 'http'), ('manifest', 'm3u')):
+            tp_query = query.copy()
+            tp_query.update({
+                key: value,
+            })
+            tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                update_url_query(release_url, tp_query), video_id, 'Downloading %s SMIL data' % value)
+            formats.extend(tp_formats)
+            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        self._sort_formats(formats)
+
+        info = self._extract_theplatform_metadata(theplatform_path, display_id)
+        info.update({
+            'id': video_id,
+            'formats': formats,
+            'subtitles': subtitles,
             'display_id': display_id,
-        }
+        })
+        return info
+
+
+class NationalGeographicEpisodeGuideIE(InfoExtractor):
+    IE_NAME = 'natgeo:episodeguide'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?(?P<id>[^/]+)/episode-guide'
+    _TESTS = [
+        {
+            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episode-guide/',
+            'info_dict': {
+                'id': 'the-story-of-god-with-morgan-freeman-season-1',
+                'title': 'The Story of God with Morgan Freeman - Season 1',
+            },
+            'playlist_mincount': 6,
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/underworld-inc/episode-guide/?s=2',
+            'info_dict': {
+                'id': 'underworld-inc-season-2',
+                'title': 'Underworld, Inc. - Season 2',
+            },
+            'playlist_mincount': 7,
+        },
+    ]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        show = get_element_by_class('show', webpage)
+        selected_season = self._search_regex(
+            r'<div[^>]+class="select-seasons[^"]*".*?<a[^>]*>(.*?)</a>',
+            webpage, 'selected season')
+        entries = [
+            self.url_result(self._proto_relative_url(entry_url), 'NationalGeographic')
+            for entry_url in re.findall('(?s)<div[^>]+class="col-inner"[^>]*?>.*?<a[^>]+href="([^"]+)"', webpage)]
+        return self.playlist_result(
+            entries, '%s-%s' % (display_id, selected_season.lower().replace(' ', '-')),
+            '%s - %s' % (show, selected_season))

@@ -35,7 +35,8 @@ class MoeVideoIE(InfoExtractor):
                 'height': 360,
                 'duration': 179,
                 'filesize': 17822500,
-            }
+            },
+            'skip': 'Video has been removed',
         },
         {
             'url': 'http://playreplay.net/video/77107.7f325710a627383d40540d8e991a',

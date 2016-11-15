@@ -123,6 +123,10 @@ class AolFeaturesIE(InfoExtractor):
             'title': 'What To Watch - February 17, 2016',
         },
         'add_ie': ['FiveMin'],
+        'params': {
+            # encrypted m3u8 download
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):

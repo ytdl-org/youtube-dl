@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -252,7 +252,7 @@ class NiconicoIE(InfoExtractor):
 
 
 class NiconicoPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.nicovideo\.jp/mylist/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?nicovideo\.jp/mylist/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.nicovideo.jp/mylist/27411728',

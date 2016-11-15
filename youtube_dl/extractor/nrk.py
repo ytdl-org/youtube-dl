@@ -1,6 +1,7 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
+import random
 import re
 
 from .common import InfoExtractor
@@ -14,15 +15,24 @@ from ..utils import (
 
 
 class NRKBaseIE(InfoExtractor):
-    def _extract_formats(self, manifest_url, video_id, fatal=True):
-        formats = []
-        formats.extend(self._extract_f4m_formats(
-            manifest_url + '?hdcore=3.5.0&plugin=aasp-3.5.0.151.81',
-            video_id, f4m_id='hds', fatal=fatal))
-        formats.extend(self._extract_m3u8_formats(manifest_url.replace(
-            'akamaihd.net/z/', 'akamaihd.net/i/').replace('/manifest.f4m', '/master.m3u8'),
-            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=fatal))
-        return formats
+    _faked_ip = None
+
+    def _download_webpage_handle(self, *args, **kwargs):
+        # NRK checks X-Forwarded-For HTTP header in order to figure out the
+        # origin of the client behind proxy. This allows to bypass geo
+        # restriction by faking this header's value to some Norway IP.
+        # We will do so once we encounter any geo restriction error.
+        if self._faked_ip:
+            # NB: str is intentional
+            kwargs.setdefault(str('headers'), {})['X-Forwarded-For'] = self._faked_ip
+        return super(NRKBaseIE, self)._download_webpage_handle(*args, **kwargs)
+
+    def _fake_ip(self):
+        # Use fake IP from 37.191.128.0/17 in order to workaround geo
+        # restriction
+        def octet(lb=0, ub=255):
+            return random.randint(lb, ub)
+        self._faked_ip = '37.191.%d.%d' % (octet(128), octet())
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -33,6 +43,8 @@ class NRKBaseIE(InfoExtractor):
 
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
         video_id = data.get('id') or video_id
+
+        http_headers = {'X-Forwarded-For': self._faked_ip} if self._faked_ip else {}
 
         entries = []
 
@@ -45,7 +57,7 @@ class NRKBaseIE(InfoExtractor):
                 asset_url = asset.get('url')
                 if not asset_url:
                     continue
-                formats = self._extract_formats(asset_url, video_id, fatal=False)
+                formats = self._extract_akamai_formats(asset_url, video_id)
                 if not formats:
                     continue
                 self._sort_formats(formats)
@@ -64,12 +76,13 @@ class NRKBaseIE(InfoExtractor):
                     'duration': duration,
                     'subtitles': subtitles,
                     'formats': formats,
+                    'http_headers': http_headers,
                 })
 
         if not entries:
             media_url = data.get('mediaUrl')
             if media_url:
-                formats = self._extract_formats(media_url, video_id)
+                formats = self._extract_akamai_formats(media_url, video_id)
                 self._sort_formats(formats)
                 duration = parse_duration(data.get('duration'))
                 entries = [{
@@ -80,10 +93,23 @@ class NRKBaseIE(InfoExtractor):
                 }]
 
         if not entries:
-            if data.get('usageRights', {}).get('isGeoBlocked'):
-                raise ExtractorError(
-                    'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
-                    expected=True)
+            message_type = data.get('messageType', '')
+            # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
+            if 'IsGeoBlocked' in message_type and not self._faked_ip:
+                self.report_warning(
+                    'Video is geo restricted, trying to fake IP')
+                self._fake_ip()
+                return self._real_extract(url)
+
+            MESSAGES = {
+                'ProgramRightsAreNotReady': 'Du kan dessverre ikke se eller høre programmet',
+                'ProgramRightsHasExpired': 'Programmet har gått ut',
+                'ProgramIsGeoBlocked': 'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
+            }
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, MESSAGES.get(
+                    message_type, message_type)),
+                expected=True)
 
         conviva = data.get('convivaStatistics') or {}
         series = conviva.get('seriesName') or data.get('seriesTitle')
@@ -123,7 +149,17 @@ class NRKBaseIE(InfoExtractor):
 
 
 class NRKIE(NRKBaseIE):
-    _VALID_URL = r'(?:nrk:|https?://(?:www\.)?nrk\.no/video/PS\*)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                        (?:
+                            nrk:|
+                            https?://
+                                (?:
+                                    (?:www\.)?nrk\.no/video/PS\*|
+                                    v8-psapi\.nrk\.no/mediaelement/
+                                )
+                            )
+                            (?P<id>[^/?#&]+)
+                        '''
     _API_HOST = 'v8.psapi.nrk.no'
     _TESTS = [{
         # video
@@ -147,6 +183,12 @@ class NRKIE(NRKBaseIE):
             'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
             'duration': 20,
         }
+    }, {
+        'url': 'nrk:ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
+    }, {
+        'url': 'https://v8-psapi.nrk.no/mediaelement/ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
     }]
 
 
