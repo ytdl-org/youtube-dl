@@ -170,7 +170,7 @@ class TwitterCardIE(TwitterBaseIE):
 
                     formats.append(a_format)
 
-            duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
+            duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e12)
 
         self._sort_formats(formats)
 
