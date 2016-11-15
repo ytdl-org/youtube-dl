@@ -116,7 +116,7 @@ class VLiveIE(InfoExtractor):
 
         subtitles = {}
         for caption in playinfo.get('captions', {}).get('list', []):
-            lang = dict_get(caption, ('language', 'locale', 'country', 'label'))
+            lang = dict_get(caption, ('locale', 'language', 'country', 'label'))
             if lang and caption.get('source'):
                 subtitles[lang] = [{
                     'ext': 'vtt',
