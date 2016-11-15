@@ -11,7 +11,7 @@ class FunnyOrDieIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|articles|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
     _TESTS = [{
         'url': 'http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version',
-        'md5': 'bcd81e0c4f26189ee09be362ad6e6ba9',
+        'md5': 'c26b9ee0e1ca138c12071f59572ba9c7',
         'info_dict': {
             'id': '0732f586d7',
             'ext': 'mp4',
@@ -51,10 +51,7 @@ class FunnyOrDieIE(InfoExtractor):
 
         formats = []
 
-        formats.extend(self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-
-        bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)[,/]', m3u8_url)]
+        bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)(?=[,/])', m3u8_url)]
         bitrates.sort()
 
         for bitrate in bitrates:
@@ -64,6 +61,11 @@ class FunnyOrDieIE(InfoExtractor):
                     'format_id': '%s-%d' % (link[1], bitrate),
                     'vbr': bitrate,
                 })
+
+        self._check_formats(formats, video_id)
+
+        formats.extend(self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
 
         subtitles = {}
         for src, src_lang in re.findall(r'<track kind="captions" src="([^"]+)" srclang="([^"]+)"', webpage):
