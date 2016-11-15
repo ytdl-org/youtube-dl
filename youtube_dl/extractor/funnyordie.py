@@ -51,10 +51,7 @@ class FunnyOrDieIE(InfoExtractor):
 
         formats = []
 
-        formats.extend(self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-
-        bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)[,/]', m3u8_url)]
+        bitrates = [int(bitrate) for bitrate in re.findall(r'v(\d+)[,/]', m3u8_url)]
         bitrates.sort()
 
         for bitrate in bitrates:
@@ -64,6 +61,11 @@ class FunnyOrDieIE(InfoExtractor):
                     'format_id': '%s-%d' % (link[1], bitrate),
                     'vbr': bitrate,
                 })
+
+        self._check_formats(formats, video_id)
+
+        formats.extend(self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
 
         subtitles = {}
         for src, src_lang in re.findall(r'<track kind="captions" src="([^"]+)" srclang="([^"]+)"', webpage):
@@ -78,7 +80,7 @@ class FunnyOrDieIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': post['name'],
+            'title': post.get('name'),
             'description': post.get('description'),
             'thumbnail': post.get('picture'),
             'formats': formats,
