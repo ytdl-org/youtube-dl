@@ -59,7 +59,8 @@ class HlsFD(FragmentFD):
     def real_download(self, filename, info_dict):
         man_url = info_dict['url']
         self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
-        manifest = self.ydl.urlopen(man_url).read()
+
+        manifest = self.ydl.urlopen(self._prepare_url(info_dict, man_url)).read()
 
         s = manifest.decode('utf-8', 'ignore')
 
@@ -112,7 +113,10 @@ class HlsFD(FragmentFD):
                     count = 0
                     while count <= fragment_retries:
                         try:
-                            success = ctx['dl'].download(frag_filename, {'url': frag_url})
+                            success = ctx['dl'].download(frag_filename, {
+                                'url': frag_url,
+                                'http_headers': info_dict.get('http_headers'),
+                            })
                             if not success:
                                 return False
                             down, frag_sanitized = sanitize_open(frag_filename, 'rb')

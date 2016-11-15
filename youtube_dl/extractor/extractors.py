@@ -267,7 +267,10 @@ from .engadget import EngadgetIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
-from .espn import ESPNIE
+from .espn import (
+    ESPNIE,
+    ESPNArticleIE,
+)
 from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
@@ -296,6 +299,7 @@ from .footyroom import FootyRoomIE
 from .formula1 import Formula1IE
 from .fourtube import FourTubeIE
 from .fox import FOXIE
+from .fox9 import FOX9IE
 from .foxgay import FoxgayIE
 from .foxnews import (
     FoxNewsIE,

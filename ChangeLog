@@ -1,6 +1,60 @@
-version <unreleased>
+version 2016.11.14.1
+
+Core
++ [downoader/fragment,f4m,hls] Respect HTTP headers from info dict
+* [extractor/common] Fix media templates with Bandwidth substitution pattern in
+  MPD manifests (#11175)
+* [extractor/common] Improve thumbnail extraction from JSON-LD
 
 Extractors
++ [nrk] Workaround geo restriction
++ [nrk] Improve error detection and messages
++ [afreecatv] Add support for vod.afreecatv.com (#11174)
+* [cda] Fix and improve extraction (#10929, #10936)
+* [plays] Fix extraction (#11165)
+* [eagleplatform] Fix extraction (#11160)
++ [audioboom] Recognize /posts/ URLs (#11149)
+
+
+version 2016.11.08.1
+
+Extractors
+* [espn:article] Fix support for espn.com articles
+* [franceculture] Fix extraction (#11140)
+
+
+version 2016.11.08
+
+Extractors
+* [tmz:article] Fix extraction (#11052)
+* [espn] Fix extraction (#11041)
+* [mitele] Fix extraction after website redesign (#10824)
+- [ard] Remove age restriction check (#11129)
+* [generic] Improve support for pornhub.com embeds (#11100)
++ [generic] Add support for redtube.com embeds (#11099)
++ [generic] Add support for drtuber.com embeds (#11098)
++ [redtube] Add support for embed URLs
++ [drtuber] Add support for embed URLs
++ [yahoo] Improve content id extraction (#11088)
+* [toutv] Relax URL regular expression (#11121)
+
+
+version 2016.11.04
+
+Core
+* [extractor/common] Tolerate malformed RESOLUTION attribute in m3u8
+  manifests (#11113)
+* [downloader/ism] Fix AVC Decoder Configuration Record
+
+Extractors
++ [fox9] Add support for fox9.com (#11110)
++ [anvato] Extract more metadata and improve formats extraction
+* [vodlocker] Improve removed videos detection (#11106)
++ [vzaar] Add support for vzaar.com (#11093)
++ [vice] Add support for uplynk preplay videos (#11101)
+* [tubitv] Fix extraction (#11061)
++ [shahid] Add support for authentication (#11091)
++ [radiocanada] Add subtitles support (#11096)
 + [generic] Add support for ISM manifests
 
 

@@ -157,22 +157,16 @@ class AnvatoIE(InfoExtractor):
             video_data_url, video_id, transform_source=strip_jsonp,
             data=json.dumps(payload).encode('utf-8'))
 
-    def _extract_anvato_videos(self, webpage, video_id):
-        anvplayer_data = self._parse_json(self._html_search_regex(
-            r'<script[^>]+data-anvp=\'([^\']+)\'', webpage,
-            'Anvato player data'), video_id)
-
-        video_id = anvplayer_data['video']
-        access_key = anvplayer_data['accessKey']
-
+    def _get_anvato_videos(self, access_key, video_id):
         video_data = self._get_video_json(access_key, video_id)
 
         formats = []
         for published_url in video_data['published_urls']:
             video_url = published_url['embed_url']
+            media_format = published_url.get('format')
             ext = determine_ext(video_url)
 
-            if ext == 'smil':
+            if ext == 'smil' or media_format == 'smil':
                 formats.extend(self._extract_smil_formats(video_url, video_id))
                 continue
 
@@ -183,7 +177,7 @@ class AnvatoIE(InfoExtractor):
                 'tbr': tbr if tbr != 0 else None,
             }
 
-            if ext == 'm3u8':
+            if ext == 'm3u8' or media_format in ('m3u8', 'm3u8-variant'):
                 # Not using _extract_m3u8_formats here as individual media
                 # playlists are also included in published_urls.
                 if tbr is None:
@@ -194,7 +188,7 @@ class AnvatoIE(InfoExtractor):
                         'format_id': '-'.join(filter(None, ['hls', compat_str(tbr)])),
                         'ext': 'mp4',
                     })
-            elif ext == 'mp3':
+            elif ext == 'mp3' or media_format == 'mp3':
                 a_format['vcodec'] = 'none'
             else:
                 a_format.update({
@@ -218,7 +212,19 @@ class AnvatoIE(InfoExtractor):
             'formats': formats,
             'title': video_data.get('def_title'),
             'description': video_data.get('def_description'),
+            'tags': video_data.get('def_tags', '').split(','),
             'categories': video_data.get('categories'),
             'thumbnail': video_data.get('thumbnail'),
+            'timestamp': int_or_none(video_data.get(
+                'ts_published') or video_data.get('ts_added')),
+            'uploader': video_data.get('mcp_id'),
+            'duration': int_or_none(video_data.get('duration')),
             'subtitles': subtitles,
         }
+
+    def _extract_anvato_videos(self, webpage, video_id):
+        anvplayer_data = self._parse_json(self._html_search_regex(
+            r'<script[^>]+data-anvp=\'([^\']+)\'', webpage,
+            'Anvato player data'), video_id)
+        return self._get_anvato_videos(
+            anvplayer_data['accessKey'], anvplayer_data['video'])

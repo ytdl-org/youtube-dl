@@ -6,8 +6,8 @@ from ..utils import float_or_none
 
 
 class AudioBoomIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?audioboom\.com/boos/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?audioboom\.com/(?:boos|posts)/(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'https://audioboom.com/boos/4279833-3-09-2016-czaban-hour-3?t=0',
         'md5': '63a8d73a055c6ed0f1e51921a10a5a76',
         'info_dict': {
@@ -19,7 +19,10 @@ class AudioBoomIE(InfoExtractor):
             'uploader': 'Steve Czaban',
             'uploader_url': 're:https?://(?:www\.)?audioboom\.com/channel/steveczabanyahoosportsradio',
         }
-    }
+    }, {
+        'url': 'https://audioboom.com/posts/4279833-3-09-2016-czaban-hour-3?t=0',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

@@ -225,6 +225,7 @@
  - **EroProfile**
  - **Escapist**
  - **ESPN**
+ - **ESPNArticle**
  - **EsriVideo**
  - **Europa**
  - **EveryonesMixtape**
@@ -247,6 +248,7 @@
  - **FootyRoom**
  - **Formula1**
  - **FOX**
+ - **FOX9**
  - **Foxgay**
  - **foxnews**: Fox News and Fox Business Video
  - **foxnews:article**
@@ -870,6 +872,7 @@
  - **vube**: Vube.com
  - **VuClip**
  - **VyboryMos**
+ - **Vzaar**
  - **Walla**
  - **washingtonpost**
  - **washingtonpost:article**
