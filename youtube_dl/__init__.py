@@ -194,7 +194,7 @@ def _real_main(argv=None):
         if opts.audioformat not in ['best', 'aac', 'mp3', 'm4a', 'opus', 'vorbis', 'wav']:
             parser.error('invalid audio format specified')
     if opts.audioquality:
-        opts.audioquality = opts.audioquality.strip('k').strip('K')
+        opts.audioquality = opts.audioquality.lower().strip('k')
         if not opts.audioquality.isdigit():
             parser.error('invalid audio quality specified')
     if opts.recodevideo is not None:
