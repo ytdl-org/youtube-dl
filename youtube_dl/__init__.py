@@ -95,8 +95,7 @@ def _real_main(argv=None):
                 write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
         except IOError:
             sys.exit('ERROR: batch file could not be read')
-    all_urls = batch_urls + args
-    all_urls = [url.strip() for url in all_urls]
+    all_urls = batch_urls + [url.strip() for url in args]  # batch_urls are already striped in read_batch_urls
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
 
