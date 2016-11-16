@@ -140,21 +140,6 @@ def _real_main(argv=None):
         opts.password = compat_getpass('Type account password and press [Return]: ')
     if opts.ap_username is not None and opts.ap_password is None:
         opts.ap_password = compat_getpass('Type TV provider account password and press [Return]: ')
-    if opts.ratelimit is not None:
-        numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
-        if numeric_limit is None:
-            parser.error('invalid rate limit specified')
-        opts.ratelimit = numeric_limit
-    if opts.min_filesize is not None:
-        numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
-        if numeric_limit is None:
-            parser.error('invalid min_filesize specified')
-        opts.min_filesize = numeric_limit
-    if opts.max_filesize is not None:
-        numeric_limit = FileDownloader.parse_bytes(opts.max_filesize)
-        if numeric_limit is None:
-            parser.error('invalid max_filesize specified')
-        opts.max_filesize = numeric_limit
     if opts.sleep_interval is not None:
         if opts.sleep_interval < 0:
             parser.error('sleep interval must be positive or 0')
@@ -181,11 +166,6 @@ def _real_main(argv=None):
         opts.retries = parse_retries(opts.retries)
     if opts.fragment_retries is not None:
         opts.fragment_retries = parse_retries(opts.fragment_retries)
-    if opts.buffersize is not None:
-        numeric_buffersize = FileDownloader.parse_bytes(opts.buffersize)
-        if numeric_buffersize is None:
-            parser.error('invalid buffer size specified')
-        opts.buffersize = numeric_buffersize
     if opts.playliststart <= 0:
         raise ValueError('Playlist start must be positive')
     if opts.playlistend not in (-1, None) and opts.playlistend < opts.playliststart:
@@ -231,7 +211,16 @@ def _real_main(argv=None):
                      ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
                      ' template'.format(outtmpl))
 
-    any_getting = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
+    any_getting = any((getattr(opts, attr, None) for attr in ('geturl',
+                                                              'gettitle',
+                                                              'getid',
+                                                              'getthumbnail',
+                                                              'getdescription',
+                                                              'getfilename',
+                                                              'getformat',
+                                                              'getduration',
+                                                              'dumpjson',
+                                                              'dump_single_json')))
     any_printing = opts.print_json
     download_archive_fn = compat_expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
