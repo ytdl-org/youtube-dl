@@ -11,7 +11,7 @@ class FunnyOrDieIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?funnyordie\.com/(?P<type>embed|articles|videos)/(?P<id>[0-9a-f]+)(?:$|[?#/])'
     _TESTS = [{
         'url': 'http://www.funnyordie.com/videos/0732f586d7/heart-shaped-box-literal-video-version',
-        'md5': 'bcd81e0c4f26189ee09be362ad6e6ba9',
+        'md5': 'c26b9ee0e1ca138c12071f59572ba9c7',
         'info_dict': {
             'id': '0732f586d7',
             'ext': 'mp4',
@@ -51,7 +51,7 @@ class FunnyOrDieIE(InfoExtractor):
 
         formats = []
 
-        bitrates = [int(bitrate) for bitrate in re.findall(r'v(\d+)[,/]', m3u8_url)]
+        bitrates = [int(bitrate) for bitrate in re.findall(r'v(\d+)(?=,|/)', m3u8_url)]
         bitrates.sort()
 
         for bitrate in bitrates:
@@ -80,7 +80,7 @@ class FunnyOrDieIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': post.get('name'),
+            'title': post['name'],
             'description': post.get('description'),
             'thumbnail': post.get('picture'),
             'formats': formats,
