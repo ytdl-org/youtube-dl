@@ -99,7 +99,7 @@ def parseOpts(overrideArguments=None):
     def _bytes_option_callback(option, opt_str, value, parser):
         _bytes = FileDownloader.parse_bytes(value)
         if _bytes is None:
-            raise OptionValueError('invalid %s specified' % option.dest)
+            raise optparse.OptionValueError('invalid %s specified' % option.dest)
         setattr(parser.values, option.dest, _bytes)
 
     def _hide_login_info(opts):
