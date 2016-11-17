@@ -738,6 +738,7 @@ from .r7 import (
 from .radiocanada import (
     RadioCanadaIE,
     RadioCanadaAudioVideoIE,
+    RadioCanadaArticleIE
 )
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE

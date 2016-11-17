@@ -14,6 +14,7 @@ from ..utils import (
     ExtractorError,
     determine_protocol,
     unsmuggle_url,
+    unescapeHTML
 )
 
 
@@ -168,3 +169,30 @@ class RadioCanadaAudioVideoIE(InfoExtractor):
 
     def _real_extract(self, url):
         return self.url_result('radiocanada:medianet:%s' % self._match_id(url))
+
+
+
+class RadioCanadaArticleIE(InfoExtractor):
+    'radiocanada:article'
+    _VALID_URL = r'https?://ici\.radio-canada\.ca/(?P<id>[^?#&]+)'
+
+    @classmethod
+    def suitable(cls, url):
+        return False if RadioCanadaAudioVideoIE.suitable(url) else super(RadioCanadaArticleIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        display_id.replace('/', '-')
+
+        webpage = unescapeHTML(self._download_webpage(url, display_id))
+
+
+        entries = [
+            self.url_result(
+                'radiocanada:medianet:%s' % mobj.group('id'),
+                ie=RadioCanadaIE.ie_key(), video_id=mobj.group('id'))
+            for mobj in re.finditer(
+                r'\"idMedia\"\s*:\s*\"(?P<id>\d+)\"', webpage)]
+
+        return self.playlist_result(entries, display_id)
+
