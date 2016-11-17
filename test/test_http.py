@@ -169,5 +169,6 @@ class TestProxy(unittest.TestCase):
         # b'xn--fiq228c' is '中文'.encode('idna')
         self.assertEqual(response, 'normal: http://xn--fiq228c.tw/')
 
+
 if __name__ == '__main__':
     unittest.main()

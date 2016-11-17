@@ -112,5 +112,6 @@ class TestJSInterpreter(unittest.TestCase):
         ''')
         self.assertEqual(jsi.call_function('z'), 5)
 
+
 if __name__ == '__main__':
     unittest.main()

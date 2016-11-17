@@ -115,6 +115,8 @@ def _u30(reader):
     res = _read_int(reader)
     assert res & 0xf0000000 == 0
     return res
+
+
 _u32 = _read_int
 
 
@@ -175,6 +177,7 @@ class _Undefined(object):
     def __str__(self):
         return 'undefined'
     __repr__ = __str__
+
 
 undefined = _Undefined()
 
