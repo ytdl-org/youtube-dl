@@ -338,6 +338,7 @@ class FileDownloader(object):
             self.report_file_already_downloaded(filename)
             self._hook_progress({
                 'filename': filename,
+                'alreadyexists':True,
                 'status': 'finished',
                 'total_bytes': os.path.getsize(encodeFilename(filename)),
             })
