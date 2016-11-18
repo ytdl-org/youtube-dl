@@ -273,12 +273,12 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--min-filesize',
         metavar='SIZE', dest='min_filesize', default=None,
-        action='callback', callback=_bytes_option_callback,
+        type=str, action='callback', callback=_bytes_option_callback,
         help='Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)')
     selection.add_option(
         '--max-filesize',
         metavar='SIZE', dest='max_filesize', default=None,
-        action='callback', callback=_bytes_option_callback,
+        type=str, action='callback', callback=_bytes_option_callback,
         help='Do not download any videos larger than SIZE (e.g. 50k or 44.6m)')
     selection.add_option(
         '--date',
@@ -444,7 +444,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '-r', '--limit-rate', '--rate-limit',
         dest='ratelimit', metavar='RATE',
-        action='callback', callback=_bytes_option_callback,
+        type=str, action='callback', callback=_bytes_option_callback,
         help='Maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option(
         '-R', '--retries',
@@ -465,7 +465,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
-        action='callback', callback=_bytes_option_callback,
+        type=str, action='callback', callback=_bytes_option_callback,
         help='Size of download buffer (e.g. 1024 or 16K) (default is %default)')
     downloader.add_option(
         '--no-resize-buffer',
