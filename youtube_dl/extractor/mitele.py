@@ -75,7 +75,7 @@ class MiTeleBaseIE(InfoExtractor):
 
 class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'https?://(?:www\.)?mitele\.es/programas-tv/(?:[^/]+/)(?P<id>[^/]+)/player'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/)+(?P<id>[^/]+)/player'
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/57b0dfb9c715da65618b4afa/player',
@@ -109,6 +109,9 @@ class MiTeleIE(InfoExtractor):
             'skip_download': True,
         },
         'add_ie': ['Ooyala'],
+    }, {
+        'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57aac5c1c915da951a8b45ed/player',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
