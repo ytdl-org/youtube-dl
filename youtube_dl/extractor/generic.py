@@ -2232,6 +2232,16 @@ class GenericIE(InfoExtractor):
             return self.url_result('limelight:%s:%s' % (
                 lm[mobj.group(1)], mobj.group(2)), 'Limelight%s' % mobj.group(1), mobj.group(2))
 
+        mobj = re.search(
+            r'''(?sx)
+                <object[^>]+class=(["\'])LimelightEmbeddedPlayerFlash\1[^>]*>.*?
+                    <param[^>]+
+                        name=(["\'])flashVars\2[^>]+
+                        value=(["\'])(?:(?!\3).)*mediaId=(?P<id>[a-z0-9]{32})
+            ''', webpage)
+        if mobj:
+            return self.url_result('limelight:media:%s' % mobj.group('id'))
+
         # Look for AdobeTVVideo embeds
         mobj = re.search(
             r'<iframe[^>]+src=[\'"]((?:https?:)?//video\.tv\.adobe\.com/v/\d+[^"]+)[\'"]',
