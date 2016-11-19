@@ -18,6 +18,6 @@ class LaPresseIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        id = self._match_id(url)
+        media_id = self._match_id(url)
 
-        return self.url_result('limelight:media:%s' % id, ie=LimelightMediaIE.ie_key(), video_id=id)
+        return self.url_result('limelight:media:%s' % media_id, ie=LimelightMediaIE.ie_key(), video_id=media_id)
