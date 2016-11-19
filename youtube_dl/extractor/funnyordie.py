@@ -51,7 +51,7 @@ class FunnyOrDieIE(InfoExtractor):
 
         formats = []
 
-        bitrates = [int(bitrate) for bitrate in re.findall(r'v(\d+)(?=,|/)', m3u8_url)]
+        bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)(?=[,/])', m3u8_url)]
         bitrates.sort()
 
         for bitrate in bitrates:
