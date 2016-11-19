@@ -75,7 +75,7 @@ class MiTeleBaseIE(InfoExtractor):
 
 class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'https?://(?:www\.)?mitele\.es/programas-tv/(?:[^/]+/)(?P<id>[^/]+)/player'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/)(?:[^/]+/)(?P<id>[^/]+)/player'
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/57b0dfb9c715da65618b4afa/player',
@@ -107,6 +107,20 @@ class MiTeleIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
+        },
+        'add_ie': ['Ooyala'],
+    }, {
+        'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57adb4bac715dac3628b4732/player',
+        'info_dict': {
+            'id': '58299dc5c915daa12a8b45da',
+            'ext': 'mp4',
+            'title': 'Una poliza premium, un novio tirita y un mayorista con el género a la vista',
+            'description': 'Gabi, amigo y antiguo compa\xf1ero de universidad de Javi, regresa a Mirador de Montepinar. Cuando conoce a Judith inician un t\xf3rrido romance. Cansada de encadenar un fracaso sentimental con otro, la psic\xf3loga comienza a salir con el joven para tratar de enderezar su vida.',
+            'series': 'La Que Se Avecina',
+            'season': 'Temporada 9',
+            'episode': 'Capítulo 124',
+            'thumbnail': 're:(?i)^https?://.*\.jpg$',
+            'duration': 5206,
         },
         'add_ie': ['Ooyala'],
     }]
