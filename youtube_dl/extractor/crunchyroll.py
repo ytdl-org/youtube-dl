@@ -236,7 +236,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         output += 'WrapStyle: %s\n' % sub_root.attrib['wrap_style']
         output += 'PlayResX: %s\n' % sub_root.attrib['play_res_x']
         output += 'PlayResY: %s\n' % sub_root.attrib['play_res_y']
-        output += """ScaledBorderAndShadow: yes
+        output += """ScaledBorderAndShadow: no
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
