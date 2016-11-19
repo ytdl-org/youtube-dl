@@ -75,7 +75,7 @@ class MiTeleBaseIE(InfoExtractor):
 
 class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/)(?:[^/]+/)(?P<id>[^/]+)/player'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/[^/]+/)(?P<id>[^/]+)/player'
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/57b0dfb9c715da65618b4afa/player',
@@ -110,19 +110,18 @@ class MiTeleIE(InfoExtractor):
         },
         'add_ie': ['Ooyala'],
     }, {
-        'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57adb4bac715dac3628b4732/player',
+        'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57aac5c1c915da951a8b45ed/player',
         'info_dict': {
-            'id': '58299dc5c915daa12a8b45da',
+            'id': '57aac5c1c915da951a8b45ed',
             'ext': 'mp4',
-            'title': 'Una poliza premium, un novio tirita y un mayorista con el género a la vista',
-            'description': 'Gabi, amigo y antiguo compa\xf1ero de universidad de Javi, regresa a Mirador de Montepinar. Cuando conoce a Judith inician un t\xf3rrido romance. Cansada de encadenar un fracaso sentimental con otro, la psic\xf3loga comienza a salir con el joven para tratar de enderezar su vida.',
+            'title': 'Una sonámbula, un hombre florero y un ácaro en chándal',
+            'description': 'La comunidad de Mirador de Montepinar está descabezada desde la espantada de Enrique. La elección por sorteo del nuevo presidente no mejorará las cosas. Los problemas económicos de Mariscos Recio, los conflictos de Amador como hombre florero y el empecinamiento de Fina con sus vecinos de arriba marcan el comienzo de la nueva temporada de la serie.',
             'series': 'La Que Se Avecina',
             'season': 'Temporada 9',
-            'episode': 'Capítulo 124',
+            'episode': 'Capítulo 110',
             'thumbnail': 're:(?i)^https?://.*\.jpg$',
-            'duration': 5206,
-        },
-        'add_ie': ['Ooyala'],
+            'duration': 5436,
+        }
     }]
 
     def _real_extract(self, url):
