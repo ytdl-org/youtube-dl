@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 import sys
 
+from ..jsinterp import JSInterpreter
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -61,29 +62,6 @@ class YouWatchIE(InfoExtractor):
             }
         }
     ]
-
-    def extract_arguments(self, call, code):
-        if not call.endswith(')'):
-            pattern = r'%s\s*\(' % re.escape(call)
-        else:
-            pattern = re.escape(call)
-        mobj = re.search(pattern, code)
-
-        if mobj:
-            # XXX: context-free!
-            close_pos = open_pos = mobj.end()
-            counter = 1
-            while counter > 0:
-                if close_pos > len(code):
-                    break
-                c = code[close_pos]
-                close_pos += 1
-                if c == '(':
-                    counter += 1
-                elif c == ')':
-                    counter -= 1
-            else:
-                return code[open_pos:close_pos - 1]
 
     @staticmethod
     def __v_rot(text):
@@ -151,10 +129,9 @@ class YouWatchIE(InfoExtractor):
         jwplayer_setup = self._html_search_regex(r'(jwplayer\s*\((.|\n)*\)\.setup)',
                                            jwplayer_setup_script, 'jwplayer')
 
-        jwplayer_json = self.extract_arguments(jwplayer_setup, jwplayer_setup_script)
+        js = JSInterpreter(jwplayer_setup_script)
+        jwplayer_json = js.extract_arguments(jwplayer_setup)
         jwplayer_json = js_to_json(jwplayer_json)
-        # fix unbalanced commas
-        jwplayer_json = re.sub(r',\s*([}\]])', '\g<1>', jwplayer_json)
         jwplayer_json = self._parse_json(jwplayer_json, video_id)
 
         video_urls = [
