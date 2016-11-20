@@ -104,6 +104,14 @@ class TestJSInterpreter(unittest.TestCase):
         }''')
         self.assertEqual(jsi.call_function('x'), [20, 20, 30, 40, 50])
 
+    def test_call(self):
+        jsi = JSInterpreter('''
+        function x() { return 2; }
+        function y(a) { return x() + a; }
+        function z() { return y(3); }
+        ''')
+        self.assertEqual(jsi.call_function('z'), 5)
+
 
 if __name__ == '__main__':
     unittest.main()

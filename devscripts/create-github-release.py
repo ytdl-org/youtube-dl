@@ -2,11 +2,13 @@
 from __future__ import unicode_literals
 
 import base64
+import io
 import json
 import mimetypes
 import netrc
 import optparse
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -90,16 +92,23 @@ class GitHubReleaser(object):
 
 
 def main():
-    parser = optparse.OptionParser(usage='%prog VERSION BUILDPATH')
+    parser = optparse.OptionParser(usage='%prog CHANGELOG VERSION BUILDPATH')
     options, args = parser.parse_args()
-    if len(args) != 2:
+    if len(args) != 3:
         parser.error('Expected a version and a build directory')
 
-    version, build_path = args
+    changelog_file, version, build_path = args
+
+    with io.open(changelog_file, encoding='utf-8') as inf:
+        changelog = inf.read()
+
+    mobj = re.search(r'(?s)version %s\n{2}(.+?)\n{3}' % version, changelog)
+    body = mobj.group(1) if mobj else ''
 
     releaser = GitHubReleaser()
 
-    new_release = releaser.create_release(version, name='youtube-dl %s' % version)
+    new_release = releaser.create_release(
+        version, name='youtube-dl %s' % version, body=body)
     release_id = new_release['id']
 
     for asset in os.listdir(build_path):

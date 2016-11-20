@@ -1,3 +1,17 @@
+version <unreleased>
+
+Extractors
+- [Crunchyroll] ScaledBorderAndShadow are removed from ASS subtitles
+  (#8207, #9028)
+
+version 2016.11.18
+
+Extractors
+* [youtube:live] Relax URL regular expression (#11164)
+* [openload] Fix extraction (#10408, #11122)
+* [vlive] Prefer locale over language for subtitles id (#11203)
+
+
 version 2016.11.14.1
 
 Core

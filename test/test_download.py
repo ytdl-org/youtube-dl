@@ -60,6 +60,7 @@ def _file_md5(fn):
     with open(fn, 'rb') as f:
         return hashlib.md5(f.read()).hexdigest()
 
+
 defs = gettestcases()
 
 
@@ -216,6 +217,7 @@ def generator(test_case):
                 try_rm_tcs_files(res_tcs)
 
     return test_template
+
 
 # And add them to TestDownload
 for n, test_case in enumerate(defs):

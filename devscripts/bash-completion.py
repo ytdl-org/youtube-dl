@@ -25,5 +25,6 @@ def build_completion(opt_parser):
         filled_template = template.replace("{{flags}}", " ".join(opts_flag))
         f.write(filled_template)
 
+
 parser = youtube_dl.parseOpts()[0]
 build_completion(parser)
