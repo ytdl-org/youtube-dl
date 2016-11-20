@@ -44,5 +44,6 @@ def build_completion(opt_parser):
     with open(ZSH_COMPLETION_FILE, "w") as f:
         f.write(template)
 
+
 parser = youtube_dl.parseOpts()[0]
 build_completion(parser)

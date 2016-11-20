@@ -114,6 +114,7 @@ def make_tfunc(url, stype, sig_input, expected_sig):
     test_func.__name__ = str('test_signature_' + stype + '_' + test_id)
     setattr(TestSignature, test_func.__name__, test_func)
 
+
 for test_spec in _TESTS:
     make_tfunc(*test_spec)
 

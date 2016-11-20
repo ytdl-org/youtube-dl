@@ -1075,5 +1075,6 @@ The first line
         self.assertEqual(get_element_by_class('foo', html), 'nice')
         self.assertEqual(get_element_by_class('no-such-class', html), None)
 
+
 if __name__ == '__main__':
     unittest.main()

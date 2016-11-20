@@ -25,7 +25,7 @@ class TwitterBaseIE(InfoExtractor):
 
 class TwitterCardIE(TwitterBaseIE):
     IE_NAME = 'twitter:card'
-    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/(?:cards/tfw/v1|videos/tweet)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/(?:cards/tfw/v1|videos(?:/tweet)?)/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
@@ -84,6 +84,9 @@ class TwitterCardIE(TwitterBaseIE):
                 'title': 'Twitter web player',
                 'thumbnail': 're:^https?://.*\.jpg',
             },
+        }, {
+            'url': 'https://twitter.com/i/videos/752274308186120192',
+            'only_matching': True,
         },
     ]
 

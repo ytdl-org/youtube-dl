@@ -23,6 +23,7 @@ def openssl_encode(algo, key, iv):
     out, _ = prog.communicate(secret_msg)
     return out
 
+
 iv = key = [0x20, 0x15] + 14 * [0]
 
 r = openssl_encode('aes-128-cbc', key, iv)
