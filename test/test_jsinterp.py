@@ -74,7 +74,7 @@ class TestJSInterpreter(unittest.TestCase):
 
     def test_comments(self):
         'Skipping: Not yet fully implemented'
-        return
+        # return
         jsi = JSInterpreter('''
         function x() {
             var x = /* 1 + */ 2;

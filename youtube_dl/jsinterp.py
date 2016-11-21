@@ -241,7 +241,23 @@ class JSInterpreter(object):
             raise ExtractorError('Could not find JS function %r' % funcname)
         argnames = func_m.group('args').split(',')
 
-        return self.build_function(argnames, func_m.group('code'))
+        def validate_token(m):
+            if m.group(0).startswith('/*') and m.group(0).endswith('*/'):
+                return ''
+            elif (m.group(0).startswith('"') and m.group(0).endswith('"') or
+                    m.group(0).startswith('\'') and m.group(0).endswith('\'')):
+                return m.group(0)
+            else:
+                # This shouldn't happen
+                return m.group(0)
+
+        # no comment
+        code = re.sub(r'''(?sx)
+            "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
+            '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
+            /\*(?:(?!\*/)(?:\n|.))*\*/''', validate_token, func_m.group('code'))
+
+        return self.build_function(argnames, code)
 
     def extract_arguments(self, call):
         pattern = re.escape(call) if call.endswith(')') else r'%s\s*\(' % re.escape(call)
