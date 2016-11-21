@@ -267,7 +267,10 @@ from .engadget import EngadgetIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
-from .espn import ESPNIE
+from .espn import (
+    ESPNIE,
+    ESPNArticleIE,
+)
 from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
@@ -760,6 +763,7 @@ from .revision3 import (
     Revision3IE,
 )
 from .rice import RICEIE
+from .richannel import RIChannelIE
 from .ringtv import RingTVIE
 from .rmcdecouverte import RMCDecouverteIE
 from .ro220 import Ro220IE
