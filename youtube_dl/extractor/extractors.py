@@ -742,7 +742,7 @@ from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import (
     RaiPlayIE,
-    RaiItIE,
+    RaiIE,
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE

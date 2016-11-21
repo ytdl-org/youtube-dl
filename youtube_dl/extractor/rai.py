@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    ExtractorError,
     determine_ext,
     find_xpath_attr,
     fix_xml_ampersands,
@@ -11,7 +12,7 @@ from ..utils import (
     parse_duration,
     unified_strdate,
     update_url_query,
-    xpath_text
+    xpath_text,
 )
 
 
@@ -55,10 +56,11 @@ class RaiBaseIE(InfoExtractor):
 
         return formats
 
+
 class RaiPlayIE(RaiBaseIE):
     _VALID_URL = r'https?://(?:www\.)?raiplay\.it/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})\.html'
     _TESTS = [{
-        'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html',
+        'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html?source=twitter',
         'md5': '340aa3b7afb54bfd14a8c11786450d76',
         'info_dict': {
             'id': 'e06118bb-59a9-4636-b914-498e4cfd2c66',
@@ -69,7 +71,7 @@ class RaiPlayIE(RaiBaseIE):
             'description': 're:^[A-Za-z]+'
         }
     }, {
-        'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html',
+        'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
         'md5': 'ed4da3d70ccf8129a33ab16b34d20ab8',
         'info_dict': {
             'id': 'efebe701-969c-4593-92f3-285f0d1ce750',
@@ -105,18 +107,19 @@ class RaiPlayIE(RaiBaseIE):
 
         thumbnails = []
         if 'images' in media:
-            for key in media.get('images'):
-                if media.get('images').get(key):
+            for _, value in media.get('images').items():
+                if value:
                     thumbnails.append({
-                        'url': media.get('images').get(key).replace('[RESOLUTION]', self._RESOLUTION)
+                        'url': value.replace('[RESOLUTION]', self._RESOLUTION)
                     })
 
-        formats = []
+        formats = None
         duration = None
         if 'video' in media:
+            formats
             video = media.get('video')
             duration = parse_duration(video.get('duration')),
-            formats.extend(self._extract_relinker_formats(video.get('contentUrl'), video_id))
+            formats = self._extract_relinker_formats(video.get('contentUrl'), video_id)
             self._sort_formats(formats)
 
         return {
@@ -129,7 +132,8 @@ class RaiPlayIE(RaiBaseIE):
             'formats': formats
         }
 
-class RaiItIE(RaiBaseIE):
+
+class RaiIE(RaiBaseIE):
     _VALID_URL = r'https?://.+\.(rai|rainews)\.it/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})\.html'
     _TESTS = [{
         'url': 'http://www.raisport.rai.it/dl/raiSport/media/rassegna-stampa-04a9f4bd-b563-40cf-82a6-aad3529cb4a9.html',
@@ -166,7 +170,7 @@ class RaiItIE(RaiBaseIE):
 
     def _real_extract(self, url):
         content_id = self._match_id(url)
-        
+
         media = self._download_json(
             'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-%s.html?json' % content_id,
             content_id, 'Downloading video JSON')
