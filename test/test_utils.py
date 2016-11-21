@@ -743,6 +743,26 @@ class TestUtil(unittest.TestCase):
         inp = '''{"duration": "00:01:07"}'''
         self.assertEqual(js_to_json(inp), '''{"duration": "00:01:07"}''')
 
+    def test_js_to_json_landofoz(self):
+        inp = '''{
+            character: {
+                name: "Dorothy",
+                pet: "Toto",
+                /*   source: "Kansas",
+                destination:  "Emerald City",
+                roll: "heroine" */
+            },
+            comment: /* over the rainbow */ "/*",
+            no_comment: "*/"
+        }'''
+        self.assertEqual(js_to_json(inp), '''{
+            "character": {
+                "name": "Dorothy",
+                "pet": "Toto"\n                \n            },
+            "comment":  "/*",
+            "no_comment": "*/"
+        }''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
