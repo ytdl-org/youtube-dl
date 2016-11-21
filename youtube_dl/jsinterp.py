@@ -252,15 +252,20 @@ class JSInterpreter(object):
         # XXX: context-free!
         close_pos = open_pos = call_m.end()
         counter = 1
+        in_string = ''
         while counter > 0:
             if close_pos > len(self.code):
                 raise ExtractorError('Runaway argument found of JS call %r' % call)
             c = self.code[close_pos]
             close_pos += 1
-            if c == '(':
+            if c == '(' and not in_string:
                 counter += 1
-            elif c == ')':
+            elif c == ')' and not in_string:
                 counter -= 1
+            elif in_string and c == in_string:
+                in_string = ''
+            elif c in ['"', '\'']:
+                in_string = c
         else:
             return self.code[open_pos:close_pos - 1]
 
