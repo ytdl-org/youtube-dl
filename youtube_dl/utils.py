@@ -2109,14 +2109,11 @@ def js_to_json(code):
 
         return '"%s"' % v
 
-    # fixing , followed nothing, but comments
-    # fixing unnecessary ? in /\*.*?\*/
-    # fixing greedy comment
     return re.sub(r'''(?sx)
         "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
         '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
-        ,(?=(\s|(/\*((?!\*/)\n|.)*\*/))*[\]}])|
-        /\*((?!\*/)\n|.)*\*/|[a-zA-Z_][.a-zA-Z_0-9]*|
+        ,(?=(\s|(/\*((?!\*/)(\n|.))*\*/))*[\]}])|
+        /\*((?!\*/)(\n|.))*\*/|[a-zA-Z_][.a-zA-Z_0-9]*|
         \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:\s*:)?|
         [0-9]+(?=\s*:)
         ''', fix_kv, code)
