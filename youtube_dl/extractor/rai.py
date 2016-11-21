@@ -134,7 +134,7 @@ class RaiPlayIE(RaiBaseIE):
 
 
 class RaiIE(RaiBaseIE):
-    _VALID_URL = r'https?://.+\.(rai|rainews)\.it/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})\.html'
+    _VALID_URL = r'https?://.+\.(?:rai|rainews)\.it/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})\.html'
     _TESTS = [{
         'url': 'http://www.raisport.rai.it/dl/raiSport/media/rassegna-stampa-04a9f4bd-b563-40cf-82a6-aad3529cb4a9.html',
         'info_dict': {
