@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [amcnetworks] Recognize more BBC America URLs (#11263)
 - [Crunchyroll] ScaledBorderAndShadow are removed from ASS subtitles
   (#8207, #9028)
 

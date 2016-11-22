@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class AMCNetworksIE(ThePlatformIE):
-    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies/|shows/[^/]+/(?:full-episodes/)?season-\d+/episode-\d+(?:-(?:[^/]+/)?|/))(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies/|shows/[^/]+/(?:full-episodes/)?[^/]+/episode-\d+(?:-(?:[^/]+/)?|/))(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.ifc.com/shows/maron/season-04/episode-01/step-1',
         'md5': '',
@@ -40,6 +40,9 @@ class AMCNetworksIE(ThePlatformIE):
         'only_matching': True,
     }, {
         'url': 'http://www.ifc.com/movies/chaos',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.bbcamerica.com/shows/doctor-who/full-episodes/the-power-of-the-daleks/episode-01-episode-1-color-version',
         'only_matching': True,
     }]
 
