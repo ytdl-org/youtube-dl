@@ -771,6 +771,8 @@
  - **TV2Article**
  - **TV3**
  - **TV4**: tv4.se and tv4play.se
+ - **TVANouvelles**
+ - **TVANouvellesArticle**
  - **TVC**
  - **TVCArticle**
  - **tvigle**: Интернет-телевидение Tvigle.ru
