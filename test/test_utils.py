@@ -753,15 +753,19 @@ class TestUtil(unittest.TestCase):
                 roll: "heroine" */
             },
             comment: /* over the rainbow */ "/*",
-            no_comment: "*/"
+            no_comment: "*/",
+                  /*******/
+                /***********/
+              /***         ***/
+            /***             ***/
         }'''
         self.assertEqual(js_to_json(inp), '''{
             "character": {
                 "name": "Dorothy",
-                "pet": "Toto"\n                \n            },
+                "pet": "Toto"
+                \n            },
             "comment":  "/*",
-            "no_comment": "*/"
-        }''')
+            "no_comment": "*/"\n                  \n                \n              \n            \n        }''')
 
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
