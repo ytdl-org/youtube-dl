@@ -1,9 +1,16 @@
 version <unreleased>
 
 Extractors
+* [hellporno] Fix video extension extraction (#11247)
++ [hellporno] Add support for hellporno.net (#11247)
 + [amcnetworks] Recognize more BBC America URLs (#11263)
-- [Crunchyroll] ScaledBorderAndShadow are removed from ASS subtitles
-  (#8207, #9028)
+* [funnyordie] Improve extraction (#11208)
+* [extractor/generic] Improve limelight embeds support
+- [crunchyroll] Remove ScaledBorderAndShadow from ASS subtitles (#8207, #9028)
+* [bandcamp] Fix free downloads extraction and extract all formats (#11067)
+* [twitter:card] Relax URL regular expression (#11225)
++ [tvanouvelles] Add support for tvanouvelles.ca (#10616)
+
 
 version 2016.11.18
 
