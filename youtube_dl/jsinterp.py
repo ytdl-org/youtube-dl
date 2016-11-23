@@ -64,14 +64,19 @@ _EXP_RE = r'''(?P<id>%(name)s)|(?P<val>%(val)s)|(?P<op>%(op)s)|%(par)s''' % {
 }  # TODO validate expression (it's probably recursive!)
 _ARRAY_ELEMENT_RE = r'%(name)s\s*\[\s*(%(index)s)\s*\]' % {'name': _NAME_RE, 'index': _EXP_RE}
 
-token = re.compile(r'''(?x)\s*
-    ((?P<rsv>%(rsv)s)|(?P<call>%(call)s)|(?P<field>\.%(name)s)|
+_COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
+
+token = re.compile(r'''(?x)\s*(
+    (?P<comment>%(comment)s)|
+    (?P<rsv>%(rsv)s)|(?P<call>%(call)s)|(?P<field>\.%(name)s)|
     (?P<assign>%(aop)s)|(%(exp)s)|
-    (?P<end>;))\s*''' % {
+    (?P<end>;)
+    )\s*''' % {
     'rsv': _RESERVED_RE,
     'call': _CALL_RE,
     'name': _NAME_RE,
     'aop': _ASSIGN_OPERATORS_RE,
+    'comment': _COMMENT_RE,
     'exp': _EXP_RE
 })
 
@@ -96,6 +101,8 @@ class JSInterpreter(object):
                         if token_id == 'end':
                             yield stmt
                             stmt = ''
+                        elif token_id == 'comment':
+                            pass
                         else:
                             if token_id == 'rsv':
                                 pass
