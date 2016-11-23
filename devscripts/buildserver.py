@@ -424,8 +424,6 @@ class BuildHTTPRequestHandler(compat_http_server.BaseHTTPRequestHandler):
                     self.send_header('Content-Length', len(msg))
                     self.end_headers()
                     self.wfile.write(msg)
-                except HTTPError as e:
-                    self.send_response(e.code, str(e))
             else:
                 self.send_response(500, 'Unknown build method "%s"' % action)
         else:
