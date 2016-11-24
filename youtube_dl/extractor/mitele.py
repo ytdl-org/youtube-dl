@@ -75,7 +75,7 @@ class MiTeleBaseIE(InfoExtractor):
 
 class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'https?://(?:www\.)?mitele\.es/programas-tv/(?:[^/]+/)(?P<id>[^/]+)/player'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/[^/]+/)(?P<id>[^/]+)/player'
 
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/57b0dfb9c715da65618b4afa/player',
@@ -109,6 +109,19 @@ class MiTeleIE(InfoExtractor):
             'skip_download': True,
         },
         'add_ie': ['Ooyala'],
+    }, {
+        'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57aac5c1c915da951a8b45ed/player',
+        'info_dict': {
+            'id': '57aac5c1c915da951a8b45ed',
+            'ext': 'mp4',
+            'title': 'Una sonámbula, un hombre florero y un ácaro en chándal',
+            'description': 'La comunidad de Mirador de Montepinar está descabezada desde la espantada de Enrique. La elección por sorteo del nuevo presidente no mejorará las cosas. Los problemas económicos de Mariscos Recio, los conflictos de Amador como hombre florero y el empecinamiento de Fina con sus vecinos de arriba marcan el comienzo de la nueva temporada de la serie.',
+            'series': 'La Que Se Avecina',
+            'season': 'Temporada 9',
+            'episode': 'Capítulo 110',
+            'thumbnail': 're:(?i)^https?://.*\.jpg$',
+            'duration': 5436,
+        }
     }]
 
     def _real_extract(self, url):
