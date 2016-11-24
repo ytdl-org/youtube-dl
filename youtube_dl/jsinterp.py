@@ -8,7 +8,7 @@ from .utils import (
     ExtractorError,
 )
 
-__DECIMAL_RE = r'([1-9][0-9]*)|0'
+__DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
 __OCTAL_RE = r'0+[0-7]+'
 __HEXADECIMAL_RE = r'(0[xX])[0-9a-fA-F]+'
 
@@ -27,7 +27,7 @@ _OPERATORS = [
 _ASSIGN_OPERATORS = [(op + '=', opfunc) for op, opfunc in _OPERATORS]
 _ASSIGN_OPERATORS.append(('=', lambda cur, right: right))
 
-_RESERVED_RE = r'(function|var|return)\s'
+_RESERVED_RE = r'(?:function|var|(?P<ret>return))\s'
 
 _OPERATORS_RE = r'|'.join(re.escape(op) for op, opfunc in _OPERATORS)
 _ASSIGN_OPERATORS_RE = r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATORS)
@@ -42,7 +42,9 @@ _INTEGER_RE = r'%(hex)s|%(dec)s|%(oct)s' % {'hex': __HEXADECIMAL_RE, 'dec': __DE
 _FLOAT_RE = r'%(dec)s\.%(dec)s' % {'dec': __DECIMAL_RE}
 
 _BOOL_RE = r'true|false'
-_REGEX_RE = r'/[^/]*/'  # TODO make validation work
+# XXX: it seams group cannot be refed this way
+# r'/(?=[^*])[^/\n]*/(?![gimy]*(?P<reflag>[gimy])[gimy]*\g<reflag>)[gimy]{0,4}'
+_REGEX_RE = r'/(?=[^*])[^/\n]*/[gimy]{0,4}'
 
 _LITERAL_RE = r'(%(int)s|%(float)s|%(str)s|%(bool)s|%(regex)s)' % {
     'int': _INTEGER_RE,
@@ -53,31 +55,40 @@ _LITERAL_RE = r'(%(int)s|%(float)s|%(str)s|%(bool)s|%(regex)s)' % {
 }
 _ARRAY_RE = r'\[(%(literal)s\s*,\s*)*(%(literal)s\s*)?\]' % {'literal': _LITERAL_RE}  # TODO nested array
 
-_VALUE_RE = r'(%(literal)s)|(%(array)s)' % {'literal': _LITERAL_RE, 'array': _ARRAY_RE}
-_CALL_RE = r'%(name)s\s*\((%(val)s\s*,\s*)*(%(val)s\s*)?\)' % {'name': _NAME_RE, 'val': _VALUE_RE}
-_PARENTHESES_RE = r'(?P<popen>\()|(?P<pclose>\))|(?P<iopen>\[)|(?P<iclose>\])'
-_EXP_RE = r'''(?P<id>%(name)s)|(?P<val>%(val)s)|(?P<op>%(op)s)|%(par)s''' % {
-    'name': _NAME_RE,
-    'val': _VALUE_RE,
-    'op': _OPERATORS_RE,
-    'par': _PARENTHESES_RE
-}  # TODO validate expression (it's probably recursive!)
-_ARRAY_ELEMENT_RE = r'%(name)s\s*\[\s*(%(index)s)\s*\]' % {'name': _NAME_RE, 'index': _EXP_RE}
+_VALUE_RE = r'(?:%(literal)s)|(%(array)s)' % {'literal': _LITERAL_RE, 'array': _ARRAY_RE}
+_CALL_RE = r'%(name)s\s*\(' % {'name': _NAME_RE}
 
 _COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
 
-token = re.compile(r'''(?x)\s*(
+expr_token = re.compile(r'''(?x)\s*(?:
     (?P<comment>%(comment)s)|
-    (?P<rsv>%(rsv)s)|(?P<call>%(call)s)|(?P<field>\.%(name)s)|
-    (?P<assign>%(aop)s)|(%(exp)s)|
+    (?P<call>%(call)s)|(?P<elem>%(name)s\s*\[)|
+    (?P<pclose>\))|(?P<sclose>\])|
+    (?P<id>%(name)s)|(?P<field>\.%(name)s)|
+    (?P<val>%(val)s)|(?P<op>%(op)s)|
+    (?P<popen>\()|(?P<array>\[)|(?P<expend>,)|(?P<end>;)
+    )\s*''' % {
+    'comment': _COMMENT_RE,
+    'name': _NAME_RE,
+    'val': _LITERAL_RE,
+    'op': _OPERATORS_RE,
+    'call': _CALL_RE
+})
+
+token = re.compile(r'''(?x)\s*(?:
+    (?P<comment>%(comment)s)|
+    (?P<rsv>%(rsv)s)|
+    (?P<call>%(call)s)|(?P<elem>%(name)s\[)|
+    (?P<pclose>\))|(?P<sclose>\])|
+    (?P<id>%(name)s)|(?P<field>\.%(name)s)|
+    (?P<assign>%(aop)s)|
     (?P<end>;)
     )\s*''' % {
+    'comment': _COMMENT_RE,
     'rsv': _RESERVED_RE,
     'call': _CALL_RE,
     'name': _NAME_RE,
-    'aop': _ASSIGN_OPERATORS_RE,
-    'comment': _COMMENT_RE,
-    'exp': _EXP_RE
+    'aop': _ASSIGN_OPERATORS_RE
 })
 
 
@@ -91,40 +102,80 @@ class JSInterpreter(object):
 
     @staticmethod
     def _next_statement(code, pos=0):
+
+        def parse_expression(lookahead, allowrecursion=100):
+            expr = ''
+            while lookahead < len(code):
+                efeed_m = expr_token.match(code[lookahead:])
+                if efeed_m:
+                    etoken_id = efeed_m.lastgroup
+                    if etoken_id in ('pclose', 'sclose', 'expend', 'end'):
+                        return lookahead, expr
+                    etoken_value = efeed_m.group(0)
+                    lookahead += efeed_m.end()
+                    if etoken_id in ('id', 'val', 'field', 'op'):
+                        expr += etoken_value
+                    elif etoken_id in ('call', 'elem'):
+                        expr += etoken_value
+                        while lookahead < len(code):
+                            lookahead, sexpr = parse_expression(lookahead)
+                            expr += sexpr
+                            peek = expr_token.match(code[lookahead:])
+                            if (etoken_id == 'call' and peek.lastgroup == 'pclose' or
+                                            etoken_id == 'elem' and peek.lastgroup == 'sclose'):
+                                expr += peek.group(0)
+                                lookahead += len(peek.group(0))
+                                break
+                            elif peek.lastgroup == 'expend':
+                                expr += peek.group(0)
+                                lookahead += len(peek.group(0))
+                            else:
+                                raise ExtractorError('Runaway call or element index')  # TODO report pos
+                    elif etoken_id in ('popen', 'array'):
+                        expr += etoken_value
+                        while lookahead < len(code):
+                            lookahead, sexpr = parse_expression(lookahead, allowrecursion - 1)
+                            expr += sexpr
+                            peek = expr_token.match(code[lookahead:])
+                            if (etoken_id == 'popen' and peek.lastgroup == 'pclose' or
+                                            etoken_id == 'array' and peek.lastgroup == 'sclose'):
+                                expr += peek.group(0)
+                                lookahead += len(peek.group(0))
+                                break
+                            elif peek.lastgroup == 'expend':
+                                expr += peek.group(0)
+                                lookahead += len(peek.group(0))
+                            else:
+                                raise ExtractorError('Runaway array')  # TODO report pos
+                else:
+                    return expr
+
         stmt = ''
         while pos < len(code):
             feed_m = token.match(code[pos:])
             if feed_m:
-                for token_id, token_value in feed_m.groupdict().items():
-                    if token_value is not None:
-                        pos += feed_m.end()
-                        if token_id == 'end':
-                            yield stmt
-                            stmt = ''
-                        elif token_id == 'comment':
-                            pass
-                        else:
-                            if token_id == 'rsv':
-                                pass
-                            if token_id == 'call':
-                                pass
-                            if token_id == 'field':
-                                pass
-                            if token_id == 'id':
-                                pass
-                            if token_id == 'val':
-                                pass
-                            if token_id == 'popen':
-                                pass
-                            if token_id == 'pclose':
-                                pass
-                            if token_id == 'op':
-                                pass
-                            if token_id == 'assign':
-                                pass
-                            stmt += token_value
+                token_id = feed_m.lastgroup
+                token_value = feed_m.group(0)
+                pos += feed_m.end()
+                if token_id == 'end':
+                    yield stmt
+                    stmt = ''
+                elif token_id == 'comment':
+                    pass
+                elif token_id == 'rsv':
+                    stmt += token_value
+                    if feed_m.group('ret') is not None:
+                        pos, parsed_expr = parse_expression(pos)
+                        stmt += parsed_expr
+                elif token_id in ('id', 'field', 'sclose', 'pclose'):
+                    stmt += token_value
+                elif token_id in ('assign', 'call', 'elem'):
+                    pos, parsed_expr = parse_expression(pos)
+                    stmt += token_value + parsed_expr
+
             else:
                 raise NotImplemented("Possibly I've missed something")
+        raise StopIteration()
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
