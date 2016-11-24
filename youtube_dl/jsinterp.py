@@ -34,9 +34,9 @@ _ASSIGN_OPERATORS_RE = r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATO
 
 _NAME_RE = r'[a-zA-Z_$][a-zA-Z_$0-9]*'
 
-# can't use raw string, starts with " and end with '
-_STRING_RE = '''"(?:[^"\\\\]*(?:\\\\\\\\|\\\\[\'"nurtbfx/\\n]))*[^"\\\\]*"|
-                \'(?:[^\'\\\\]*(?:\\\\\\\\|\\\\[\'"nurtbfx/\\n]))*[^\'\\\\]*\''''
+_SINGLE_QUOTED = r"""'(?:[^'\\\\]*(?:\\\\\\\\|\\\\['"nurtbfx/\\n]))*[^'\\\\]*'"""
+_DOUBLE_QUOTED = r'''"(?:[^"\\\\]*(?:\\\\\\\\|\\\\['"nurtbfx/\\n]))*[^"\\\\]*"'''
+_STRING_RE = r'%s|%s' % (_SINGLE_QUOTED, _DOUBLE_QUOTED)
 
 _INTEGER_RE = r'%(hex)s|%(dec)s|%(oct)s' % {'hex': __HEXADECIMAL_RE, 'dec': __DECIMAL_RE, 'oct': __OCTAL_RE}
 _FLOAT_RE = r'%(dec)s\.%(dec)s' % {'dec': __DECIMAL_RE}
@@ -46,17 +46,17 @@ _BOOL_RE = r'true|false'
 # r'/(?=[^*])[^/\n]*/(?![gimy]*(?P<reflag>[gimy])[gimy]*\g<reflag>)[gimy]{0,4}'
 _REGEX_RE = r'/(?=[^*])[^/\n]*/[gimy]{0,4}'
 
-_LITERAL_RE = r'(%(int)s|%(float)s|%(str)s|%(bool)s|%(regex)s)' % {
+_LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool>%(bool)s)|(?P<regex>%(regex)s))' % {
     'int': _INTEGER_RE,
     'float': _FLOAT_RE,
     'str': _STRING_RE,
     'bool': _BOOL_RE,
     'regex': _REGEX_RE
 }
-_ARRAY_RE = r'\[(%(literal)s\s*,\s*)*(%(literal)s\s*)?\]' % {'literal': _LITERAL_RE}  # TODO nested array
 
-_VALUE_RE = r'(?:%(literal)s)|(%(array)s)' % {'literal': _LITERAL_RE, 'array': _ARRAY_RE}
-_CALL_RE = r'%(name)s\s*\(' % {'name': _NAME_RE}
+# _ARRAY_RE = r'\[(%(literal)s\s*,\s*)*(%(literal)s\s*)?\]' % {'literal': _LITERAL_RE}
+# _VALUE_RE = r'(?:%(literal)s)|(%(array)s)' % {'literal': _LITERAL_RE, 'array': _ARRAY_RE}
+_CALL_RE = r'\.?%(name)s\s*\(' % {'name': _NAME_RE}  # function or method!
 
 _COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
 

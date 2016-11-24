@@ -111,7 +111,8 @@ class TestJSInterpreter(unittest.TestCase):
         function z() { return y(3); }
         ''')
         self.assertEqual(jsi.call_function('z'), 5)
-
+        jsi = JSInterpreter('function w(a) { return a.split(""); }', objects={'a': 'abc'})
+        self.assertEqual(jsi.call_function('w'), ["a", "b", "c"])
 
 if __name__ == '__main__':
     unittest.main()
