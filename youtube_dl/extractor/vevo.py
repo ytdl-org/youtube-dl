@@ -51,7 +51,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'Hurts',
             'genre': 'Pop',
         },
-        'expected_warnings': ['Unable to download SMIL file'],
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
@@ -67,7 +67,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'Cassadee Pope',
             'genre': 'Country',
         },
-        'expected_warnings': ['Unable to download SMIL file'],
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'Age-limited video',
         'url': 'https://www.vevo.com/watch/justin-timberlake/tunnel-vision-explicit/USRV81300282',
@@ -83,7 +83,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'Justin Timberlake',
             'genre': 'Pop',
         },
-        'expected_warnings': ['Unable to download SMIL file'],
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'No video_info',
         'url': 'http://www.vevo.com/watch/k-camp-1/Till-I-Die/USUV71503000',
@@ -100,6 +100,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'K Camp',
             'genre': 'Hip-Hop',
         },
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'Featured test',
         'url': 'https://www.vevo.com/watch/lemaitre/Wait/USUV71402190',
@@ -116,6 +117,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'Lemaitre',
             'genre': 'Electronic',
         },
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'Only available via webpage',
         'url': 'http://www.vevo.com/watch/GBUV71600656',
