@@ -60,35 +60,21 @@ _CALL_RE = r'\.?%(name)s\s*\(' % {'name': _NAME_RE}  # function or method!
 
 _COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
 
-expr_token = re.compile(r'''(?x)\s*(?:
-    (?P<comment>%(comment)s)|
-    (?P<call>%(call)s)|(?P<elem>%(name)s\s*\[)|
-    (?P<pclose>\))|(?P<sclose>\])|
-    (?P<id>%(name)s)|(?P<field>\.%(name)s)|
-    (?P<val>%(val)s)|(?P<op>%(op)s)|
-    (?P<popen>\()|(?P<array>\[)|(?P<expend>,)|(?P<end>;)
-    )\s*''' % {
-    'comment': _COMMENT_RE,
-    'name': _NAME_RE,
-    'val': _LITERAL_RE,
-    'op': _OPERATORS_RE,
-    'call': _CALL_RE
-})
-
 token = re.compile(r'''(?x)\s*(?:
-    (?P<comment>%(comment)s)|
-    (?P<rsv>%(rsv)s)|
-    (?P<call>%(call)s)|(?P<elem>%(name)s\[)|
-    (?P<pclose>\))|(?P<sclose>\])|
+    (?P<comment>%(comment)s)|(?P<rsv>%(rsv)s)|
+    (?P<call>%(call)s)|(?P<elem>%(name)s\s*\[)|
     (?P<id>%(name)s)|(?P<field>\.%(name)s)|
-    (?P<assign>%(aop)s)|
-    (?P<end>;)
+    (?P<val>%(val)s)|(?P<assign>%(aop)s)|(?P<op>%(op)s)|
+    (?P<popen>\()|(?P<array>\[)|(?P<pclose>\))|(?P<sclose>\])|
+    (?P<expend>,)|(?P<end>;)
     )\s*''' % {
     'comment': _COMMENT_RE,
     'rsv': _RESERVED_RE,
     'call': _CALL_RE,
     'name': _NAME_RE,
-    'aop': _ASSIGN_OPERATORS_RE
+    'val': _LITERAL_RE,
+    'aop': _ASSIGN_OPERATORS_RE,
+    'op': _OPERATORS_RE
 })
 
 
@@ -103,79 +89,58 @@ class JSInterpreter(object):
     @staticmethod
     def _next_statement(code, pos=0):
 
-        def parse_expression(lookahead, allowrecursion=100):
+        def parse_expression(_pos, allowrecursion=100):
             expr = ''
-            while lookahead < len(code):
-                efeed_m = expr_token.match(code[lookahead:])
-                if efeed_m:
-                    etoken_id = efeed_m.lastgroup
-                    if etoken_id in ('pclose', 'sclose', 'expend', 'end'):
-                        return lookahead, expr
-                    etoken_value = efeed_m.group(0)
-                    lookahead += efeed_m.end()
-                    if etoken_id in ('id', 'val', 'field', 'op'):
-                        expr += etoken_value
-                    elif etoken_id in ('call', 'elem'):
-                        expr += etoken_value
-                        while lookahead < len(code):
-                            lookahead, sexpr = parse_expression(lookahead)
-                            expr += sexpr
-                            peek = expr_token.match(code[lookahead:])
-                            if (etoken_id == 'call' and peek.lastgroup == 'pclose' or
-                                            etoken_id == 'elem' and peek.lastgroup == 'sclose'):
-                                expr += peek.group(0)
-                                lookahead += len(peek.group(0))
-                                break
-                            elif peek.lastgroup == 'expend':
-                                expr += peek.group(0)
-                                lookahead += len(peek.group(0))
+            while _pos < len(code):
+                feed_m = token.match(code[_pos:])
+                if feed_m:
+                    token_id = feed_m.lastgroup
+                    if token_id in ('pclose', 'sclose', 'expend', 'end'):
+                        return _pos, expr, feed_m.end()
+                    _pos += feed_m.end()
+                    if token_id == 'comment':
+                        pass
+                    elif token_id == 'rsv':
+                        expr += feed_m.group(token_id)
+                        if feed_m.group('ret') is not None:
+                            _pos, parsed_expr, _ = parse_expression(_pos, allowrecursion - 1)
+                            expr += parsed_expr
+                    elif token_id in ('id', 'field', 'val', 'op'):
+                        expr += feed_m.group(token_id)
+                    elif token_id in ('assign', 'call', 'elem', 'popen', 'array'):
+                        expr += feed_m.group(token_id)
+                        while _pos < len(code):
+                            _pos, parsed_expr, _ = parse_expression(_pos, allowrecursion - 1)
+                            expr += parsed_expr
+                            peek = token.match(code[_pos:])
+                            if peek:
+                                peek_id = peek.lastgroup
+                                if (token_id == 'call' and peek_id == 'pclose' or
+                                        token_id == 'elem' and peek_id == 'sclose' or
+                                        token_id == 'popen' and peek_id == 'pclose' or
+                                        token_id == 'array' and peek_id == 'sclose'):
+                                    expr += peek.group(peek_id)
+                                    _pos += peek.end()
+                                    break
+                                elif peek_id == 'end':
+                                    break
+                                elif peek_id == 'expend':
+                                    expr += peek.group(peek_id)
+                                    _pos += peek.end()
+                                else:
+                                    raise ExtractorError('Unexpected character %s at %d' % (
+                                        peek.group(peek_id), _pos + peek.start(peek_id)))
                             else:
-                                raise ExtractorError('Runaway call or element index')  # TODO report pos
-                    elif etoken_id in ('popen', 'array'):
-                        expr += etoken_value
-                        while lookahead < len(code):
-                            lookahead, sexpr = parse_expression(lookahead, allowrecursion - 1)
-                            expr += sexpr
-                            peek = expr_token.match(code[lookahead:])
-                            if (etoken_id == 'popen' and peek.lastgroup == 'pclose' or
-                                            etoken_id == 'array' and peek.lastgroup == 'sclose'):
-                                expr += peek.group(0)
-                                lookahead += len(peek.group(0))
-                                break
-                            elif peek.lastgroup == 'expend':
-                                expr += peek.group(0)
-                                lookahead += len(peek.group(0))
-                            else:
-                                raise ExtractorError('Runaway array')  # TODO report pos
+                                raise ExtractorError("Not yet implemented")
                 else:
-                    return expr
+                    raise ExtractorError("Not yet implemented")
+            raise ExtractorError('Runaway script')
 
-        stmt = ''
         while pos < len(code):
-            feed_m = token.match(code[pos:])
-            if feed_m:
-                token_id = feed_m.lastgroup
-                token_value = feed_m.group(0)
-                pos += feed_m.end()
-                if token_id == 'end':
-                    yield stmt
-                    stmt = ''
-                elif token_id == 'comment':
-                    pass
-                elif token_id == 'rsv':
-                    stmt += token_value
-                    if feed_m.group('ret') is not None:
-                        pos, parsed_expr = parse_expression(pos)
-                        stmt += parsed_expr
-                elif token_id in ('id', 'field', 'sclose', 'pclose'):
-                    stmt += token_value
-                elif token_id in ('assign', 'call', 'elem'):
-                    pos, parsed_expr = parse_expression(pos)
-                    stmt += token_value + parsed_expr
-
-            else:
-                raise NotImplemented("Possibly I've missed something")
-        raise StopIteration()
+            pos, stmt, lookahead = parse_expression(pos)
+            pos += lookahead
+            yield stmt
+        raise StopIteration
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
