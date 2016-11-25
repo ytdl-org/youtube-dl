@@ -1968,8 +1968,8 @@ class YoutubeDL(object):
 
         header_line = ['format code', 'extension', 'resolution', 'note']
         self.to_screen(
-            '[info] Available formats for %s:\n%s' %
-            (info_dict['id'], render_table(header_line, table)))
+            '[info] Available formats for %s (%s):\n%s' %
+            (info_dict['id'], info_dict['title'], render_table(header_line, table)))
 
     def list_thumbnails(self, info_dict):
         thumbnails = info_dict.get('thumbnails')
