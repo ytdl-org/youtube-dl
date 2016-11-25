@@ -113,6 +113,12 @@ class TestJSInterpreter(unittest.TestCase):
         self.assertEqual(jsi.call_function('z'), 5)
         jsi = JSInterpreter('function x(a) { return a.split(""); }', objects={'a': 'abc'})
         self.assertEqual(jsi.call_function('x'), ["a", "b", "c"])
+        jsi = JSInterpreter('''
+                function a(x) { return x; }
+                function b(x) { return x; }
+                function c()  { return [a, b][0](0); }
+                ''')
+        self.assertEqual(jsi.call_function('c'), 0)
 
     def test_getfield(self):
         jsi = JSInterpreter('function c() { return a.var; }', objects={'a': {'var': 3}})

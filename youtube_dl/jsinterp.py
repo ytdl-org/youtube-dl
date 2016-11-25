@@ -58,7 +58,7 @@ _LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool
 
 # _ARRAY_RE = r'\[(%(literal)s\s*,\s*)*(%(literal)s\s*)?\]' % {'literal': _LITERAL_RE}
 # _VALUE_RE = r'(?:%(literal)s)|(%(array)s)' % {'literal': _LITERAL_RE, 'array': _ARRAY_RE}
-_CALL_RE = r'\.?%(name)s\s*\(' % {'name': _NAME_RE}  # function or method!
+_CALL_RE = r'\.?(%(name)s)?\s*\(' % {'name': _NAME_RE}  # function or method!
 
 _COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
 
