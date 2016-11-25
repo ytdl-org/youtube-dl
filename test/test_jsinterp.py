@@ -111,8 +111,12 @@ class TestJSInterpreter(unittest.TestCase):
         function z() { return y(3); }
         ''')
         self.assertEqual(jsi.call_function('z'), 5)
-        jsi = JSInterpreter('function w(a) { return a.split(""); }', objects={'a': 'abc'})
-        self.assertEqual(jsi.call_function('w'), ["a", "b", "c"])
+        jsi = JSInterpreter('function x(a) { return a.split(""); }', objects={'a': 'abc'})
+        self.assertEqual(jsi.call_function('x'), ["a", "b", "c"])
+
+    def test_getfield(self):
+        jsi = JSInterpreter('function c() { return a.var; }', objects={'a': {'var': 3}})
+        self.assertEqual(jsi.call_function('c'), 3)
 
 if __name__ == '__main__':
     unittest.main()

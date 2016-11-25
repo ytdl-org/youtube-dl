@@ -39,12 +39,14 @@ _DOUBLE_QUOTED = r'''"(?:[^"\\\\]*(?:\\\\\\\\|\\\\['"nurtbfx/\\n]))*[^"\\\\]*"''
 _STRING_RE = r'%s|%s' % (_SINGLE_QUOTED, _DOUBLE_QUOTED)
 
 _INTEGER_RE = r'%(hex)s|%(dec)s|%(oct)s' % {'hex': __HEXADECIMAL_RE, 'dec': __DECIMAL_RE, 'oct': __OCTAL_RE}
-_FLOAT_RE = r'%(dec)s\.%(dec)s' % {'dec': __DECIMAL_RE}
+_FLOAT_RE = r'(%(dec)s)?\.%(dec)s' % {'dec': __DECIMAL_RE}
 
 _BOOL_RE = r'true|false'
 # XXX: it seams group cannot be refed this way
 # r'/(?=[^*])[^/\n]*/(?![gimy]*(?P<reflag>[gimy])[gimy]*\g<reflag>)[gimy]{0,4}'
-_REGEX_RE = r'/(?=[^*])[^/\n]*/[gimy]{0,4}'
+_REGEX_RE = r'''/(?=[^*])
+    ((\\([tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|
+    [^/\n])*/[gimy]{0,4}'''
 
 _LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool>%(bool)s)|(?P<regex>%(regex)s))' % {
     'int': _INTEGER_RE,
@@ -88,7 +90,6 @@ class JSInterpreter(object):
 
     @staticmethod
     def _next_statement(code, pos=0):
-
         def parse_expression(_pos, allowrecursion=100):
             expr = ''
             while _pos < len(code):
