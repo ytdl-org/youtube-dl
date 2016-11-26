@@ -42,6 +42,7 @@ _INTEGER_RE = r'%(hex)s|%(dec)s|%(oct)s' % {'hex': __HEXADECIMAL_RE, 'dec': __DE
 _FLOAT_RE = r'(%(dec)s)?\.%(dec)s' % {'dec': __DECIMAL_RE}
 
 _BOOL_RE = r'true|false'
+# TODO check if they can be multiline
 # XXX: it seams group cannot be refed this way
 # r'/(?=[^*])[^/\n]*/(?![gimy]*(?P<reflag>[gimy])[gimy]*\g<reflag>)[gimy]{0,4}'
 _REGEX_RE = r'''/(?=[^*])
@@ -56,7 +57,7 @@ _LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool
     'regex': _REGEX_RE
 }
 
-_CALL_RE = r'\.?(%(name)s)?\s*\(' % {'name': _NAME_RE}  # function or method!
+_CALL_RE = r'(\.%(name)s|%(name)s)?\s*\(' % {'name': _NAME_RE}  # function or method!
 
 _COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
 
@@ -89,6 +90,7 @@ class JSInterpreter(object):
     @staticmethod
     def _next_statement(code, pos=0):
         def parse_expression(_pos, allowrecursion=100):
+            # TODO migrate interpretation
             expr = ''
             while _pos < len(code):
                 feed_m = token.match(code[_pos:])
