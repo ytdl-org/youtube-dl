@@ -10,7 +10,7 @@ from .utils import (
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
 __OCTAL_RE = r'0+[0-7]+'
-__HEXADECIMAL_RE = r'(0[xX])[0-9a-fA-F]+'
+__HEXADECIMAL_RE = r'0[xX][0-9a-fA-F]+'
 
 _OPERATORS = [
     ('|', operator.or_),
@@ -27,6 +27,7 @@ _OPERATORS = [
 _ASSIGN_OPERATORS = [(op + '=', opfunc) for op, opfunc in _OPERATORS]
 _ASSIGN_OPERATORS.append(('=', lambda cur, right: right))
 
+# TODO flow control and others probably
 _RESERVED_RE = r'(?:function|var|(?P<ret>return))\s'
 
 _OPERATORS_RE = r'|'.join(re.escape(op) for op, opfunc in _OPERATORS)
@@ -43,11 +44,10 @@ _FLOAT_RE = r'(%(dec)s)?\.%(dec)s' % {'dec': __DECIMAL_RE}
 
 _BOOL_RE = r'true|false'
 # TODO check if they can be multiline
-# XXX: it seams group cannot be refed this way
-# r'/(?=[^*])[^/\n]*/(?![gimy]*(?P<reflag>[gimy])[gimy]*\g<reflag>)[gimy]{0,4}'
-_REGEX_RE = r'''/(?=[^*])
-    ((\\([tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|
-    [^/\n])*/[gimy]{0,4}'''
+# r'''/(?=[^*])
+#     ((\\([tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|[^/\n])*
+#     /(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|\n|$)'''
+_REGEX_RE = r'\/(?!\*)([^/\n]|\/)*\/(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|\n|$)'
 
 _LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool>%(bool)s)|(?P<regex>%(regex)s))' % {
     'int': _INTEGER_RE,
@@ -56,10 +56,9 @@ _LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool
     'bool': _BOOL_RE,
     'regex': _REGEX_RE
 }
-
 _CALL_RE = r'(\.%(name)s|%(name)s)?\s*\(' % {'name': _NAME_RE}  # function or method!
-
 _COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
+# TODO statement block
 
 token = re.compile(r'''(?x)\s*(?:
     (?P<comment>%(comment)s)|(?P<rsv>%(rsv)s)|
