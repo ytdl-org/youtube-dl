@@ -34,8 +34,8 @@ _ASSIGN_OPERATORS_RE = r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATO
 
 _NAME_RE = r'[a-zA-Z_$][a-zA-Z_$0-9]*'
 
-_SINGLE_QUOTED = r"""'(?:[^'\\\\]*(?:\\\\\\\\|\\\\['"nurtbfx/\\n]))*[^'\\\\]*'"""
-_DOUBLE_QUOTED = r'''"(?:[^"\\\\]*(?:\\\\\\\\|\\\\['"nurtbfx/\\n]))*[^"\\\\]*"'''
+_SINGLE_QUOTED = r"""'(?:[^'\\]|\\['"nurtbfx/\\n])*'"""
+_DOUBLE_QUOTED = r'''"(?:[^"\\]|\\['"nurtbfx/\\n])*"'''
 _STRING_RE = r'%s|%s' % (_SINGLE_QUOTED, _DOUBLE_QUOTED)
 
 _INTEGER_RE = r'%(hex)s|%(dec)s|%(oct)s' % {'hex': __HEXADECIMAL_RE, 'dec': __DECIMAL_RE, 'oct': __OCTAL_RE}
@@ -56,8 +56,6 @@ _LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool
     'regex': _REGEX_RE
 }
 
-# _ARRAY_RE = r'\[(%(literal)s\s*,\s*)*(%(literal)s\s*)?\]' % {'literal': _LITERAL_RE}
-# _VALUE_RE = r'(?:%(literal)s)|(%(array)s)' % {'literal': _LITERAL_RE, 'array': _ARRAY_RE}
 _CALL_RE = r'\.?(%(name)s)?\s*\(' % {'name': _NAME_RE}  # function or method!
 
 _COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
