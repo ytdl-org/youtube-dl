@@ -1121,6 +1121,10 @@ from .wdr import (
     WDRIE,
     WDRMobileIE,
 )
+from .webcaster import (
+    WebcasterIE,
+    WebcasterFeedIE,
+)
 from .webofstories import (
     WebOfStoriesIE,
     WebOfStoriesPlaylistIE,
