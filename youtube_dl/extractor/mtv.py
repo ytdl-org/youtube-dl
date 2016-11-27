@@ -201,7 +201,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             [self._get_video_info(item) for item in idoc.findall('.//item')],
             playlist_title=title, playlist_description=description)
 
-    def _extract_mgid(self, webpage):
+    def _extract_mgid(self, webpage, fatal=True):
         try:
             # the url can be http://media.mtvnservices.com/fb/{mgid}.swf
             # or http://media.mtvnservices.com/{mgid}
@@ -221,7 +221,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             sm4_embed = self._html_search_meta(
                 'sm4:video:embed', webpage, 'sm4 embed', default='')
             mgid = self._search_regex(
-                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid')
+                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid', fatal=fatal)
         return mgid
 
     def _real_extract(self, url):
