@@ -60,6 +60,7 @@ from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
 from .videomore import VideomoreIE
+from .webcaster import WebcasterFeedIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
@@ -2139,6 +2140,11 @@ class GenericIE(InfoExtractor):
         videomore_url = VideomoreIE._extract_url(webpage)
         if videomore_url:
             return self.url_result(videomore_url)
+
+        # Look for Webcaster embeds
+        webcaster_url = WebcasterFeedIE._extract_url(self, webpage)
+        if webcaster_url:
+            return self.url_result(webcaster_url, ie=WebcasterFeedIE.ie_key())
 
         # Look for Playwire embeds
         mobj = re.search(

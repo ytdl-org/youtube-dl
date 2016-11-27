@@ -74,6 +74,23 @@ class WebcasterFeedIE(InfoExtractor):
         'only_matching': True,
     }
 
+    @staticmethod
+    def _extract_url(ie, webpage):
+        mobj = re.search(
+            r'<(?:object|a[^>]+class=["\']webcaster-player["\'])[^>]+data(?:-config)?=(["\']).*?config=(?P<url>https?://bl\.webcaster\.pro/feed/start/free_.*?)(?:[?&]|\1)',
+            webpage)
+        if mobj:
+            return mobj.group('url')
+        for secure in (True, False):
+            video_url = ie._og_search_video_url(
+                webpage, secure=secure, default=None)
+            if video_url:
+                mobj = re.search(
+                    r'config=(?P<url>https?://bl\.webcaster\.pro/feed/start/free_[^?&=]+)',
+                    video_url)
+                if mobj:
+                    return mobj.group('url')
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
