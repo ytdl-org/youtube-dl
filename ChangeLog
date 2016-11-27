@@ -1,7 +1,15 @@
 version <unreleased>
 
 Extractors
++ [webcaster] Add support for webcaster.pro
++ [azubu] Add support for azubu.uol.com.br (#11305)
+* [viki] Prefer hls formats
+* [viki] Fix rtmp formats extraction (#11255)
+* [puls4] Relax URL regular expression (#11267)
+* [vevo] Improve artist extraction (#10911)
+* [mitele] Relax URL regular expression and extract more metadata (#11244)
 + [cbslocal] Recognize New York site (#11285)
++ [youtube:playlist] Pass disable_polymer in URL query (#11193)
 
 
 version 2016.11.22
