@@ -19,6 +19,16 @@ class SpikeIE(MTVServicesInfoExtractor):
             'upload_date': '20131227',
         },
     }, {
+        'url': 'http://www.spike.com/full-episodes/j830qm/lip-sync-battle-joel-mchale-vs-jim-rash-season-2-ep-209',
+        'md5': 'b25c6f16418aefb9ad5a6cae2559321f',
+        'expected_warnings': ['unable to extract .*mgid'],
+        'info_dict': {
+            'id': '37ace3a8-1df6-48be-85b8-38df8229e241',
+            'ext': 'mp4',
+            'title': 'Lip Sync Battle|April 28, 2016|2|209|Joel McHale Vs. Jim Rash|Act 1',
+            'description': 'md5:a739ca8f978a7802f67f8016d27ce114',
+        },
+    }, {
         'url': 'http://www.spike.com/video-clips/lhtu8m/',
         'only_matching': True,
     }, {
