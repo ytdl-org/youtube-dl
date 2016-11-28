@@ -7,13 +7,13 @@ from ..utils import unified_strdate
 
 
 class TeamFourStarIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?teamfourstar\.com/(?P<id>[a-z0-9\-]+)/?'
+    _VALID_URL = r'https?://(?:www\.)?teamfourstar\.com/(?P<id>[a-z0-9\-]+)'
     _TEST = {
         'url': 'http://teamfourstar.com/tfs-abridged-parody-episode-1-2/',
         'info_dict': {
             'id': '0WdZO31W',
             'title': 'TFS Abridged Parody Episode 1',
-            'description': 'Episode 1: The Return of Raditz! … Wait…\nCast\nMasakoX – Goku, Roshi\nLanipator – Piccolo, Radditz, Krillin, Vegeta\nVegeta3986 – Radditz, Yamcha, Oolong, Gohan\nHbi2k – Farmer with Shotgun\nMegami33 – Bulma, Puar\nTakahata101 – Nappa\nKaiserNeko – SpacePod\nSongs\nMorgenstemning by Edvard Hagerup Grieg\nCha-La-Head-Cha-La by Kageyama Hiranobu\nWE DO NOT OWN DRAGONBALL. DragonBall is Owned by TOEI ANIMATION, Ltd. and Licensed by FUNimation Productions, Ltd.. All Rights Reserved. DragonBall, DragonBall Z, DragonBall GT and all logos, character names and distinctive likenesses thereof are trademarks of TOEI ANIMATION, Ltd.\nThis is nothing more than a Parody made for entertainment purposes only.',            
+            'description': 'md5:d60bc389588ebab2ee7ad432bda953ae',
             'ext': 'mp4',
             'timestamp': 1394168400,
             'upload_date': '20080508',
@@ -27,13 +27,13 @@ class TeamFourStarIE(InfoExtractor):
         jwplatform_url = JWPlatformIE._extract_url(webpage)
 
         video_title = self._html_search_regex(
-            r'<h1 class="entry-title">(?P<title>.+?)</h1>',
+            r'<h1[^>]+class="entry-title"[^>]*>(?P<title>.+?)</h1>',
             webpage, 'title')
         video_date = unified_strdate(self._html_search_regex(
-            r'<span class="meta-date date updated">(?P<date>.+?)</span>',
+            r'<span[^>]+class="meta-date date updated"[^>]*>(?P<date>.+?)</span>',
             webpage, 'date', fatal=False))
         video_description = self._html_search_regex(
-            r'(?s)<div class="content-inner">.*?(?P<description><p>.+?)</div>',
+            r'(?s)<div[^>]+class="content-inner"[^>]*>.*?(?P<description><p>.+?)</div>',
             webpage, 'description', fatal=False)
         video_thumbnail = self._og_search_thumbnail(webpage)
 
