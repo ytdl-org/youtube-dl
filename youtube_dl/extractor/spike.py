@@ -41,5 +41,5 @@ class SpikeIE(MTVServicesInfoExtractor):
         if mgid is None:
             url_parts = self._search_regex(self._CUSTOM_URL_REGEX, webpage, 'episode_id')
             video_type, episode_id = url_parts.split('/', 1)
-            mgid = 'mgid:arc:{}:spike.com:{}'.format(video_type, episode_id)
+            mgid = 'mgid:arc:{0}:spike.com:{1}'.format(video_type, episode_id)
         return mgid
