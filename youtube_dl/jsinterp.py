@@ -3,16 +3,19 @@ from __future__ import unicode_literals
 import json
 import operator
 import re
+from collections import OrderedDict
 
 from .utils import (
     ExtractorError,
 )
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
-__OCTAL_RE = r'0+[0-7]+'
+__OCTAL_RE = r'0+[0-7]*'
 __HEXADECIMAL_RE = r'0[xX][0-9a-fA-F]+'
+__ESC_UNICODE_RE = r'u[0-9a-fA-F]{4}'
+__ESC_HEX_RE = r'x[0-9a-fA-F]{2}'
 
-_OPERATORS = [
+_OPERATORS = OrderedDict([
     ('|', operator.or_),
     ('^', operator.xor),
     ('&', operator.and_),
@@ -23,57 +26,78 @@ _OPERATORS = [
     ('%', operator.mod),
     ('/', operator.truediv),
     ('*', operator.mul)
-]
-_ASSIGN_OPERATORS = [(op + '=', opfunc) for op, opfunc in _OPERATORS]
-_ASSIGN_OPERATORS.append(('=', lambda cur, right: right))
+])
+_ASSIGN_OPERATORS = dict((op + '=', opfunc) for op, opfunc in _OPERATORS.items())
+_ASSIGN_OPERATORS['='] = lambda cur, right: right
 
 # TODO flow control and others probably
-_RESERVED_RE = r'(?:function|var|(?P<ret>return))\s'
-
-_OPERATORS_RE = r'|'.join(re.escape(op) for op, opfunc in _OPERATORS)
-_ASSIGN_OPERATORS_RE = r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATORS)
+_RESERVED = {
+    'func': 'function',
+    'decl': 'var',
+    'rets': 'return'
+}
 
 _NAME_RE = r'[a-zA-Z_$][a-zA-Z_$0-9]*'
 
-_SINGLE_QUOTED = r"""'(?:[^'\\]|\\['"nurtbfx/\\n])*'"""
-_DOUBLE_QUOTED = r'''"(?:[^"\\]|\\['"nurtbfx/\\n])*"'''
-_STRING_RE = r'%s|%s' % (_SINGLE_QUOTED, _DOUBLE_QUOTED)
+# non-escape char also can be escaped, but line continuation and quotes has to be
+# XXX unicode and hexadecimal escape sequences should be validated
+_SINGLE_QUOTED_RE = r"""'(?:(?:\\'|\n)|[^'\n])*'"""
+_DOUBLE_QUOTED_RE = r'''"(?:(?:\\"|\n)|[^"\n])*"'''
+_STRING_RE = r'(?:%s)|(?:%s)' % (_SINGLE_QUOTED_RE, _DOUBLE_QUOTED_RE)
 
-_INTEGER_RE = r'%(hex)s|%(dec)s|%(oct)s' % {'hex': __HEXADECIMAL_RE, 'dec': __DECIMAL_RE, 'oct': __OCTAL_RE}
-_FLOAT_RE = r'(%(dec)s)?\.%(dec)s' % {'dec': __DECIMAL_RE}
+_INTEGER_RE = r'(?:%(hex)s)|(?:%(dec)s)|(?:%(oct)s)' % {'hex': __HEXADECIMAL_RE, 'dec': __DECIMAL_RE, 'oct': __OCTAL_RE}
+_FLOAT_RE = r'(?:(?:%(dec)s\.[0-9]*)|(?:\.[0-9]+))(?:[eE][+-]?[0-9]+)?' % {'dec': __DECIMAL_RE}
 
 _BOOL_RE = r'true|false'
-# TODO check if they can be multiline
-# r'''/(?=[^*])
-#     ((\\([tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|[^/\n])*
-#     /(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|\n|$)'''
-_REGEX_RE = r'\/(?!\*)([^/\n]|\/)*\/(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|\n|$)'
+_NULL_RE = r'null'
 
-_LITERAL_RE = r'((?P<int>%(int)s)|(?P<float>%(float)s)|(?P<str>%(str)s)|(?P<bool>%(bool)s)|(?P<regex>%(regex)s))' % {
-    'int': _INTEGER_RE,
-    'float': _FLOAT_RE,
-    'str': _STRING_RE,
-    'bool': _BOOL_RE,
-    'regex': _REGEX_RE
-}
-_CALL_RE = r'(\.%(name)s|%(name)s)?\s*\(' % {'name': _NAME_RE}  # function or method!
-_COMMENT_RE = r'/\*(?:(?!\*/)(?:\n|.))*\*/'
+# XXX early validation might needed
+# r'''/(?!\*)
+#     (?:(?:\\(?:[tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|[^/\n])*
+#     /(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|$)'''
+_REGEX_RE = r'/(?!\*)(?:[^/\n]|(?:\\/))*/(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|$)'
+
+_PUNCTUATIONS = OrderedDict([
+    ('copen', '{'),
+    ('cclose', '}'),
+    ('popen', '('),
+    ('pclose', ')'),
+    ('sopen', '['),
+    ('sclose', ']'),
+    ('dot', '.'),
+    ('end', ';'),
+    ('comma', ',')
+])
+
+_TOKENS = OrderedDict([
+    ('id', _NAME_RE),
+    ('null', _NULL_RE),
+    ('bool', _BOOL_RE),
+    ('str', _STRING_RE),
+    ('int', _INTEGER_RE),
+    ('float', _FLOAT_RE),
+    ('regex', _REGEX_RE)
+])
+
+_COMMENT_RE = r'(?P<comment>/\*(?:(?!\*/)(?:\n|.))*\*/)'
+_TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
+                       for name, value in _TOKENS.items())
+_RESERVED_RE = r'(?:%s)\b' % r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
+                                       for name, value in _RESERVED.items())
+_PUNCTUATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.escape(value)}
+                             for name, value in _PUNCTUATIONS.items())
+_OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(op) for op, opfunc in _OPERATORS.items())
+_ASSIGN_OPERATORS_RE = r'(?P<assign>%s)' % r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATORS.items())
+
+
 # TODO statement block
 
-token = re.compile(r'''(?x)\s*(?:
-    (?P<comment>%(comment)s)|(?P<rsv>%(rsv)s)|
-    (?P<call>%(call)s)|(?P<elem>%(name)s\s*\[)|
-    (?P<id>%(name)s)|(?P<field>\.%(name)s)|
-    (?P<val>%(val)s)|(?P<assign>%(aop)s)|(?P<op>%(op)s)|
-    (?P<popen>\()|(?P<array>\[)|(?P<pclose>\))|(?P<sclose>\])|
-    (?P<expend>,)|(?P<end>;)
-    )\s*''' % {
+token = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(assign)s|%(op)s)\s*''' % {
     'comment': _COMMENT_RE,
     'rsv': _RESERVED_RE,
-    'call': _CALL_RE,
-    'name': _NAME_RE,
-    'val': _LITERAL_RE,
-    'aop': _ASSIGN_OPERATORS_RE,
+    'token': _TOKENS_RE,
+    'punct': _PUNCTUATIONS_RE,
+    'assign': _ASSIGN_OPERATORS_RE,
     'op': _OPERATORS_RE
 })
 
@@ -87,59 +111,59 @@ class JSInterpreter(object):
         self._objects = objects
 
     @staticmethod
-    def _next_statement(code, pos=0):
-        def parse_expression(_pos, allowrecursion=100):
+    def _next_statement(code, pos=0, allowrecursion=100):
+        def next_statement(_pos, allowrecursion=100):
             # TODO migrate interpretation
-            expr = ''
+            expr = []
+            feed_m = None
             while _pos < len(code):
-                feed_m = token.match(code[_pos:])
+                feed_m = token.match(code, _pos)
                 if feed_m:
                     token_id = feed_m.lastgroup
-                    if token_id in ('pclose', 'sclose', 'expend', 'end'):
-                        return _pos, expr, feed_m.end()
-                    _pos += feed_m.end()
+                    if token_id in ('pclose', 'sclose', 'comma', 'end'):
+                        return expr, _pos, feed_m.end()
+                    token_value = feed_m.group(token_id)
+                    _pos = feed_m.end()
                     if token_id == 'comment':
                         pass
-                    elif token_id == 'rsv':
-                        expr += feed_m.group(token_id)
-                        if feed_m.group('ret') is not None:
-                            _pos, parsed_expr, _ = parse_expression(_pos, allowrecursion - 1)
-                            expr += parsed_expr
-                    elif token_id in ('id', 'field', 'val', 'op'):
-                        expr += feed_m.group(token_id)
-                    elif token_id in ('assign', 'call', 'elem', 'popen', 'array'):
-                        expr += feed_m.group(token_id)
+                    elif token_id in _RESERVED:
+                        expr.append((token_id, token_value + ' '))
+                        if feed_m.group('rets') is not None:
+                            parsed_expr, _pos, _ = next_statement(_pos, allowrecursion - 1)
+                            expr.extend(parsed_expr)
+                    elif token_id in ('id', 'op') or token_id in _TOKENS or token_id == 'dot':
+                        expr.append((token_id, token_value))
+                    elif token_id in ('assign', 'popen', 'sopen'):
+                        expr.append((token_id, token_value))
                         while _pos < len(code):
-                            _pos, parsed_expr, _ = parse_expression(_pos, allowrecursion - 1)
-                            expr += parsed_expr
-                            peek = token.match(code[_pos:])
+                            parsed_expr, _pos, _ = next_statement(_pos, allowrecursion - 1)
+                            expr.extend(parsed_expr)
+                            peek = token.match(code, _pos)
                             if peek:
                                 peek_id = peek.lastgroup
-                                if (token_id == 'call' and peek_id == 'pclose' or
-                                        token_id == 'elem' and peek_id == 'sclose' or
-                                        token_id == 'popen' and peek_id == 'pclose' or
-                                        token_id == 'array' and peek_id == 'sclose'):
-                                    expr += peek.group(peek_id)
-                                    _pos += peek.end()
+                                peek_value = peek.group(peek_id)
+                                if (token_id == 'popen' and peek_id == 'pclose' or
+                                        token_id == 'sopen' and peek_id == 'sclose'):
+                                    expr.append((peek_id, peek_value))
+                                    _pos = peek.end()
                                     break
                                 elif peek_id == 'end':
                                     break
-                                elif peek_id == 'expend':
-                                    expr += peek.group(peek_id)
-                                    _pos += peek.end()
+                                elif peek_id == 'comma':
+                                    expr.append((peek_id, peek_value))
+                                    _pos = peek.end()
                                 else:
                                     raise ExtractorError('Unexpected character %s at %d' % (
-                                        peek.group(peek_id), _pos + peek.start(peek_id)))
+                                        peek_value, peek.start(peek_id)))
                             else:
                                 raise ExtractorError("Not yet implemented")
                 else:
                     raise ExtractorError("Not yet implemented")
-            raise ExtractorError('Runaway script')
+            return expr, _pos, 0 if feed_m is None else feed_m.end()
 
         while pos < len(code):
-            pos, stmt, lookahead = parse_expression(pos)
-            pos += lookahead
-            yield stmt
+            stmt, _, pos = next_statement(pos, allowrecursion)
+            yield ''.join(value for id, value in stmt)
         raise StopIteration
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
@@ -189,7 +213,7 @@ class JSInterpreter(object):
             else:
                 raise ExtractorError('Premature end of parens in %r' % expr)
 
-        for op, opfunc in _ASSIGN_OPERATORS:
+        for op, opfunc in _ASSIGN_OPERATORS.items():
             m = re.match(r'''(?x)
                 (?P<out>%s)(?:\[(?P<index>[^\]]+?)\])?
                 \s*%s
@@ -289,7 +313,7 @@ class JSInterpreter(object):
                 m.group('idx'), local_vars, allow_recursion - 1)
             return val[idx]
 
-        for op, opfunc in _OPERATORS:
+        for op, opfunc in _OPERATORS.items():
             m = re.match(r'(?P<x>.+?)%s(?P<y>.+)' % re.escape(op), expr)
             if not m:
                 continue
