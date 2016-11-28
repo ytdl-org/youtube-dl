@@ -56,7 +56,6 @@ from .dailymotion import (
 )
 from .onionstudios import OnionStudiosIE
 from .viewlift import ViewLiftEmbedIE
-from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
 from .videomore import VideomoreIE
@@ -1190,16 +1189,6 @@ class GenericIE(InfoExtractor):
                 'duration': 248.667,
             },
         },
-        # ScreenwaveMedia embed
-        {
-            'url': 'http://www.thecinemasnob.com/the-cinema-snob/a-nightmare-on-elm-street-2-freddys-revenge1',
-            'md5': '24ace5baba0d35d55c6810b51f34e9e0',
-            'info_dict': {
-                'id': 'cinemasnob-55d26273809dd',
-                'ext': 'mp4',
-                'title': 'cinemasnob',
-            },
-        },
         # BrightcoveInPageEmbed embed
         {
             'url': 'http://www.geekandsundry.com/tabletop-bonus-wils-final-thoughts-on-dread/',
@@ -2211,11 +2200,6 @@ class GenericIE(InfoExtractor):
         jwplatform_url = JWPlatformIE._extract_url(webpage)
         if jwplatform_url:
             return self.url_result(jwplatform_url, 'JWPlatform')
-
-        # Look for ScreenwaveMedia embeds
-        mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
-        if mobj is not None:
-            return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
 
         # Look for Digiteka embeds
         digiteka_url = DigitekaIE._extract_url(webpage)
