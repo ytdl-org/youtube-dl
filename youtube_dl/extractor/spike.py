@@ -21,7 +21,6 @@ class SpikeIE(MTVServicesInfoExtractor):
     }, {
         'url': 'http://www.spike.com/full-episodes/j830qm/lip-sync-battle-joel-mchale-vs-jim-rash-season-2-ep-209',
         'md5': 'b25c6f16418aefb9ad5a6cae2559321f',
-        'expected_warnings': ['unable to extract .*mgid'],
         'info_dict': {
             'id': '37ace3a8-1df6-48be-85b8-38df8229e241',
             'ext': 'mp4',
@@ -47,7 +46,7 @@ class SpikeIE(MTVServicesInfoExtractor):
     _CUSTOM_URL_REGEX = re.compile(r'spikenetworkapp://([^/]+/[-a-fA-F0-9]+)')
 
     def _extract_mgid(self, webpage):
-        mgid = super(SpikeIE, self)._extract_mgid(webpage, fatal=False)
+        mgid = super(SpikeIE, self)._extract_mgid(webpage, default=None)
         if mgid is None:
             url_parts = self._search_regex(self._CUSTOM_URL_REGEX, webpage, 'episode_id')
             video_type, episode_id = url_parts.split('/', 1)
