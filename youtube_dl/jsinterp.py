@@ -27,11 +27,11 @@ _OPERATORS = OrderedDict([
     ('/', operator.truediv),
     ('*', operator.mul)
 ])
-_ASSIGN_OPERATORS = dict((op + '=', opfunc) for op, opfunc in _OPERATORS.items())
+_ASSIGN_OPERATORS = OrderedDict((op + '=', opfunc) for op, opfunc in _OPERATORS.items())
 _ASSIGN_OPERATORS['='] = lambda cur, right: right
 
 # TODO flow control and others probably
-_RESERVED = {
+_RESERVED_WORDS = {
     'func': 'function',
     'decl': 'var',
     'rets': 'return'
@@ -55,19 +55,10 @@ _NULL_RE = r'null'
 # r'''/(?!\*)
 #     (?:(?:\\(?:[tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|[^/\n])*
 #     /(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|$)'''
-_REGEX_RE = r'/(?!\*)(?:[^/\n]|(?:\\/))*/(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|$)'
+_REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<reflags>[gimy]{0,4}\b)'
+_REGEX_RE = r'/(?!\*)(?P<rebody>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % _REGEX_FLAGS_RE
 
-_PUNCTUATIONS = OrderedDict([
-    ('copen', '{'),
-    ('cclose', '}'),
-    ('popen', '('),
-    ('pclose', ')'),
-    ('sopen', '['),
-    ('sclose', ']'),
-    ('dot', '.'),
-    ('end', ';'),
-    ('comma', ',')
-])
+re.compile(_REGEX_RE)
 
 _TOKENS = OrderedDict([
     ('id', _NAME_RE),
@@ -79,22 +70,31 @@ _TOKENS = OrderedDict([
     ('regex', _REGEX_RE)
 ])
 
+_PUNCTUATIONS = {
+    'copen': '{',
+    'cclose': '}',
+    'popen': '(',
+    'pclose': ')',
+    'sopen': '[',
+    'sclose': ']',
+    'dot': '.',
+    'end': ';',
+    'comma': ','
+}
+
 _COMMENT_RE = r'(?P<comment>/\*(?:(?!\*/)(?:\n|.))*\*/)'
 _TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
                        for name, value in _TOKENS.items())
-_RESERVED_RE = r'(?:%s)\b' % r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
-                                       for name, value in _RESERVED.items())
+_RESERVED_WORDS_RE = r'(?:%s)\b' % r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
+                                             for name, value in _RESERVED_WORDS.items())
 _PUNCTUATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.escape(value)}
                              for name, value in _PUNCTUATIONS.items())
 _OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(op) for op, opfunc in _OPERATORS.items())
 _ASSIGN_OPERATORS_RE = r'(?P<assign>%s)' % r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATORS.items())
 
-
-# TODO statement block
-
-token = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(assign)s|%(op)s)\s*''' % {
+input_element = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(assign)s|%(op)s)\s*''' % {
     'comment': _COMMENT_RE,
-    'rsv': _RESERVED_RE,
+    'rsv': _RESERVED_WORDS_RE,
     'token': _TOKENS_RE,
     'punct': _PUNCTUATIONS_RE,
     'assign': _ASSIGN_OPERATORS_RE,
@@ -112,46 +112,63 @@ class JSInterpreter(object):
 
     @staticmethod
     def _next_statement(code, pos=0, allowrecursion=100):
-        def next_statement(_pos, allowrecursion=100):
+        def next_statement(lookahead, allowrecursion=100):
             # TODO migrate interpretation
-            expr = []
+            statement = []
             feed_m = None
-            while _pos < len(code):
-                feed_m = token.match(code, _pos)
+            while lookahead < len(code):
+                feed_m = input_element.match(code, lookahead)
                 if feed_m:
                     token_id = feed_m.lastgroup
                     if token_id in ('pclose', 'sclose', 'comma', 'end'):
-                        return expr, _pos, feed_m.end()
+                        return statement, lookahead, feed_m.end()
                     token_value = feed_m.group(token_id)
-                    _pos = feed_m.end()
+                    lookahead = feed_m.end()
                     if token_id == 'comment':
                         pass
-                    elif token_id in _RESERVED:
-                        expr.append((token_id, token_value + ' '))
-                        if feed_m.group('rets') is not None:
-                            parsed_expr, _pos, _ = next_statement(_pos, allowrecursion - 1)
-                            expr.extend(parsed_expr)
-                    elif token_id in ('id', 'op') or token_id in _TOKENS or token_id == 'dot':
-                        expr.append((token_id, token_value))
+                    elif token_id in _RESERVED_WORDS:
+                        # XXX backward compatibility till parser migration
+                        statement.append((token_id, token_value + ' '))
+                        if token_id == 'rets':
+                            expressions, lookahead, _ = next_statement(lookahead, allowrecursion - 1)
+                            statement.extend(expressions)
+                    elif token_id in ('id', 'op') or token_id == 'dot':
+                        statement.append((token_id, token_value))
+                    elif token_id in _TOKENS:
+                        # TODO date
+                        # TODO error handling
+                        if token_id == 'null':
+                            statement.append((token_id, None))
+                        elif token_id == 'bool':
+                            statement.append((token_id, {'true': True, 'false': False}[token_value]))
+                        elif token_id == 'str':
+                            statement.append((token_id, token_value))
+                        elif token_id == 'int':
+                            statement.append((token_id, int(token_value)))
+                        elif token_id == 'float':
+                            statement.append((token_id, float(token_value)))
+                        elif token_id == 'regex':
+                            regex = re.compile(feed_m.group('rebody'))
+                            statement.append((token_id, {'re': regex, 'flags': feed_m.group('reflags')}))
                     elif token_id in ('assign', 'popen', 'sopen'):
-                        expr.append((token_id, token_value))
-                        while _pos < len(code):
-                            parsed_expr, _pos, _ = next_statement(_pos, allowrecursion - 1)
-                            expr.extend(parsed_expr)
-                            peek = token.match(code, _pos)
+                        statement.append((token_id, token_value))
+                        while lookahead < len(code):
+                            expressions, lookahead, _ = next_statement(lookahead, allowrecursion - 1)
+                            statement.extend(expressions)
+                            peek = input_element.match(code, lookahead)
                             if peek:
                                 peek_id = peek.lastgroup
                                 peek_value = peek.group(peek_id)
-                                if (token_id == 'popen' and peek_id == 'pclose' or
-                                        token_id == 'sopen' and peek_id == 'sclose'):
-                                    expr.append((peek_id, peek_value))
-                                    _pos = peek.end()
-                                    break
-                                elif peek_id == 'end':
+                                if ((token_id == 'popen' and peek_id == 'pclose') or
+                                        (token_id == 'sopen' and peek_id == 'sclose')):
+                                    statement.append((peek_id, peek_value))
+                                    lookahead = peek.end()
                                     break
                                 elif peek_id == 'comma':
-                                    expr.append((peek_id, peek_value))
-                                    _pos = peek.end()
+                                    statement.append((peek_id, peek_value))
+                                    lookahead = peek.end()
+                                elif peek_id == 'end':
+                                    break
                                 else:
                                     raise ExtractorError('Unexpected character %s at %d' % (
                                         peek_value, peek.start(peek_id)))
@@ -159,11 +176,12 @@ class JSInterpreter(object):
                                 raise ExtractorError("Not yet implemented")
                 else:
                     raise ExtractorError("Not yet implemented")
-            return expr, _pos, 0 if feed_m is None else feed_m.end()
+            return statement, lookahead, 0 if feed_m is None else feed_m.end()
 
         while pos < len(code):
             stmt, _, pos = next_statement(pos, allowrecursion)
-            yield ''.join(value for id, value in stmt)
+            # XXX backward compatibility till parser migration
+            yield ''.join(str(value) for id, value in stmt)
         raise StopIteration
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
