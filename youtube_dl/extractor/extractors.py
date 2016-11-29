@@ -180,6 +180,7 @@ from .cnn import (
 from .coub import CoubIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import (
+    ComedyCentralFullEpisodesIE,
     ComedyCentralIE,
     ComedyCentralShortnameIE,
     ComedyCentralTVIE,
