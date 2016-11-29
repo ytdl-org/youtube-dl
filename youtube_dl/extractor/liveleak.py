@@ -56,7 +56,7 @@ class LiveLeakIE(InfoExtractor):
         }
     }, {
         # Covers https://github.com/rg3/youtube-dl/pull/10664#issuecomment-247439521
-        'url' : 'http://m.liveleak.com/view?i=763_1473349649',
+        'url': 'http://m.liveleak.com/view?i=763_1473349649',
         'add_ie': ['Youtube'],
         'info_dict': {
             'id': '763_1473349649',
@@ -66,7 +66,10 @@ class LiveLeakIE(InfoExtractor):
             'uploader': 'Ziz',
             'upload_date': '20160908',
             'uploader_id': 'UCEbta5E_jqlZmEJsriTEtnw'
-        }
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     @staticmethod
@@ -100,7 +103,7 @@ class LiveLeakIE(InfoExtractor):
             else:
                 # Maybe an embed?
                 embed_url = self._search_regex(
-                    r'<iframe[^>]+src="((?:(?:http://www.prochan.com/embed\?)|(?:http://www.youtube.com/embed))[^"]+)"',
+                    r'<iframe[^>]+src="(https?://(?:www\.)?(?:prochan|youtube)\.com/embed[^"]+)"',
                     webpage, 'embed URL')
                 return {
                     '_type': 'url_transparent',
