@@ -1794,7 +1794,7 @@ class InfoExtractor(object):
                 out.append('{%s}%s' % (namespace, c))
         return '/'.join(out)
 
-    def _extract_smil_formats(self, smil_url, video_id, fatal=True, f4m_params=None, transform_source=None):
+    def _extract_smil_formats(self, smil_url, video_id, fatal=True, f4m_params=None, transform_source=None, rtmp_securetoken=None):
         smil = self._download_smil(smil_url, video_id, fatal=fatal, transform_source=transform_source)
 
         if smil is False:
@@ -1804,7 +1804,8 @@ class InfoExtractor(object):
         namespace = self._parse_smil_namespace(smil)
 
         return self._parse_smil_formats(
-            smil, smil_url, video_id, namespace=namespace, f4m_params=f4m_params)
+            smil, smil_url, video_id, namespace=namespace, f4m_params=f4m_params,
+            rtmp_securetoken=rtmp_securetoken)
 
     def _extract_smil_info(self, smil_url, video_id, fatal=True, f4m_params=None):
         smil = self._download_smil(smil_url, video_id, fatal=fatal)
@@ -1861,7 +1862,7 @@ class InfoExtractor(object):
         return self._search_regex(
             r'(?i)^{([^}]+)?}smil$', smil.tag, 'namespace', default=None)
 
-    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
+    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None, rtmp_securetoken=None):
         base = smil_url
         for meta in smil.findall(self._xpath_ns('./head/meta', namespace)):
             b = meta.get('base') or meta.get('httpBase')
@@ -1903,6 +1904,8 @@ class InfoExtractor(object):
                     'width': width,
                     'height': height,
                 })
+                if rtmp_securetoken:
+                    formats[-1]['rtmp_securetoken'] = rtmp_securetoken
                 if transform_rtmp_url:
                     streamer, src = transform_rtmp_url(streamer, src)
                     formats[-1].update({
