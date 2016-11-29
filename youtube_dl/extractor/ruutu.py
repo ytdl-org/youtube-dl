@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
     xpath_attr,
     xpath_text,
@@ -101,6 +102,11 @@ class RuutuIE(InfoExtractor):
                         })
 
         extract_formats(video_xml.find('./Clip'))
+
+        drm = xpath_text(video_xml, './Clip/DRM', default=None)
+        if not formats and drm:
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
         self._sort_formats(formats)
 
         return {
