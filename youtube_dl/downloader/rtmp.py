@@ -106,6 +106,7 @@ class RtmpFD(FileDownloader):
         conn = info_dict.get('rtmp_conn')
         protocol = info_dict.get('rtmp_protocol')
         real_time = info_dict.get('rtmp_real_time', False)
+        securetoken = info_dict.get('rtmp_securetoken')
         no_resume = info_dict.get('no_resume', False)
         continue_dl = self.params.get('continuedl', True)
 
@@ -149,6 +150,8 @@ class RtmpFD(FileDownloader):
             basic_args += ['--protocol', protocol]
         if real_time:
             basic_args += ['--realtime']
+        if securetoken is not None:
+            basic_args += ['--token', securetoken]
 
         args = basic_args
         if not no_resume and continue_dl and not live:
