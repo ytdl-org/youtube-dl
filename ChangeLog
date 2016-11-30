@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.01
 
 Extractors
 * [soundcloud] Update client id (#11327)
