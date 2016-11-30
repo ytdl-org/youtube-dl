@@ -664,7 +664,7 @@ $ youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
 # Download best format available but not better that 480p
 $ youtube-dl -f 'bestvideo[height<=480]+bestaudio/best[height<=480]'
 
-# Download best video only format but no bigger that 50 MB
+# Download best video only format but no bigger than 50 MB
 $ youtube-dl -f 'best[filesize<50M]'
 
 # Download best format available via direct link over HTTP/HTTPS protocol
