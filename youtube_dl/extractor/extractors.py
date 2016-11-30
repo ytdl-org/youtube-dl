@@ -1095,6 +1095,7 @@ from .viki import (
     VikiIE,
     VikiChannelIE,
 )
+from .viu import ViuIE
 from .vk import (
     VKIE,
     VKUserVideosIE,
