@@ -3,14 +3,13 @@ from __future__ import unicode_literals
 import json
 import operator
 import re
-from collections import OrderedDict
 
 from .utils import (
     ExtractorError,
 )
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
-__OCTAL_RE = r'0+[0-7]*'
+__OCTAL_RE = r'0[0-7]+'
 __HEXADECIMAL_RE = r'0[xX][0-9a-fA-F]+'
 __ESC_UNICODE_RE = r'u[0-9a-fA-F]{4}'
 __ESC_HEX_RE = r'x[0-9a-fA-F]{2}'
@@ -21,6 +20,7 @@ _OPERATORS = [
     ('&', operator.and_),
     ('>>', operator.rshift),
     ('<<', operator.lshift),
+    ('>>>', lambda cur, right: cur >> right if cur >= 0 else (cur + 0x100000000) >> right),
     ('-', operator.sub),
     ('+', operator.add),
     ('%', operator.mod),
@@ -56,7 +56,7 @@ _REGEX_RE = r'/(?!\*)(?P<rebody>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % _REG
 
 re.compile(_REGEX_RE)
 
-_TOKENS = OrderedDict([
+_TOKENS = [
     ('id', _NAME_RE),
     ('null', _NULL_RE),
     ('bool', _BOOL_RE),
@@ -64,7 +64,18 @@ _TOKENS = OrderedDict([
     ('int', _INTEGER_RE),
     ('float', _FLOAT_RE),
     ('regex', _REGEX_RE)
-])
+]
+
+_RELATIONS = {
+    'lt': '<',
+    'gt': '>',
+    'le': '<=',
+    'ge': '>=',
+    'eq': '==',
+    'ne': '!=',
+    'seq': '===',
+    'sne': '!=='
+}
 
 _PUNCTUATIONS = {
     'copen': '{',
@@ -75,7 +86,15 @@ _PUNCTUATIONS = {
     'sclose': ']',
     'dot': '.',
     'end': ';',
-    'comma': ','
+    'comma': ',',
+    'inc': '++',
+    'dec': '--',
+    'not': '!',
+    'bnot': '~',
+    'and': '&&',
+    'or': '||',
+    'hook': '?',
+    'colon': ':'
 }
 
 token_ids = dict((token[0], i) for i, token in enumerate(_TOKENS))
@@ -88,17 +107,22 @@ _TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
 _RESERVED_WORDS_RE = r'(?:(?P<rsv>%s)\b)' % r'|'.join(_RESERVED_WORDS)
 _PUNCTUATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.escape(value)}
                              for name, value in _PUNCTUATIONS.items())
+_RELATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.escape(value)}
+                             for name, value in _RELATIONS.items())
 _OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(op) for op, opfunc in _OPERATORS)
 _ASSIGN_OPERATORS_RE = r'(?P<assign>%s)' % r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATORS)
 
-input_element = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(assign)s|%(op)s)\s*''' % {
+input_element = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(rel)s|%(assign)s|%(op)s)\s*''' % {
     'comment': _COMMENT_RE,
     'rsv': _RESERVED_WORDS_RE,
     'token': _TOKENS_RE,
     'punct': _PUNCTUATIONS_RE,
+    'rel': _RELATIONS_RE,
     'assign': _ASSIGN_OPERATORS_RE,
     'op': _OPERATORS_RE
 })
+
+undefined = object()
 
 
 class JSInterpreter(object):
@@ -126,7 +150,8 @@ class JSInterpreter(object):
                     if token_id == 'comment':
                         pass
                     elif token_id == 'rsv':
-                        statement.append((token_id, token_value))
+                        # XXX backward compatibility till parser migration
+                        statement.append((token_id, token_value + ' '))
                         if token_value == 'return':
                             expressions, lookahead, _ = next_statement(lookahead, stack_top - 1)
                             statement.extend(expressions)
@@ -184,6 +209,61 @@ class JSInterpreter(object):
             # XXX backward compatibility till parser migration
             yield ''.join(str(value) for _, value in stmt)
         raise StopIteration
+
+    @staticmethod
+    def _interpret_statement(stmt, local_vars, stack_size=100):
+        while stmt:
+            token_id, token_value = stmt.pop(0)
+            if token_id == 'copen':
+                # TODO block
+                pass
+            elif token_id == 'rsv':
+                if token_value == 'var':
+                    has_another = True
+                    while has_another:
+                        next_token_id, next_token_value = stmt.pop(0)
+                        if next_token_id in ('sopen', 'copen'):
+                            pass
+                        elif next_token_id != 'id':
+                            raise ExtractorError('Missing variable name')
+                        local_vars[token_value] = undefined
+
+                        if stmt[0][0] == 'assign':
+                            pass
+
+                        if stmt[0][0] != 'comma':
+                            break
+                elif token_value == 'function':
+                    pass
+                elif token_value == 'if':
+                    pass
+                elif token_value in ('break', 'continue'):
+                    pass
+                elif token_value == 'return':
+                    pass
+                elif token_value == 'with':
+                    pass
+                elif token_value == 'switch':
+                    pass
+                elif token_value == 'throw':
+                    pass
+                elif token_value == 'try':
+                    pass
+                elif token_value == 'debugger':
+                    pass
+            elif token_id == 'label':
+                pass
+            elif token_id == 'id':
+                pass
+            else:
+                # lefthand-side_expr -> new_expr | call_expr
+                # call_expr -> member_expr args | call_expr args | call_expr [ expr ] | call_expr . id_name
+                # new_expr -> member_expr | new member_expr
+                # member_expr -> prime_expr | func_expr |
+                #                member_expr [ expr ] |  member_expr . id_name | new member_expr args
+                pass
+
+        # empty statement goes straight here
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
