@@ -98,8 +98,8 @@ _PUNCTUATIONS = {
 }
 
 token_ids = dict((token[0], i) for i, token in enumerate(_TOKENS))
-op_ids = dict((op[0], i) for i, op in _OPERATORS)
-aop_ids = dict((aop[0], i)for i, aop in _ASSIGN_OPERATORS)
+op_ids = dict((op[0], i) for i, op in enumerate(_OPERATORS))
+aop_ids = dict((aop[0], i)for i, aop in enumerate(_ASSIGN_OPERATORS))
 
 _COMMENT_RE = r'(?P<comment>/\*(?:(?!\*/)(?:\n|.))*\*/)'
 _TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
@@ -112,14 +112,14 @@ _RELATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.es
 _OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(op) for op, opfunc in _OPERATORS)
 _ASSIGN_OPERATORS_RE = r'(?P<assign>%s)' % r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATORS)
 
-input_element = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(rel)s|%(assign)s|%(op)s)\s*''' % {
+input_element = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(assign)s|%(op)s|%(rel)s)\s*''' % {
     'comment': _COMMENT_RE,
     'rsv': _RESERVED_WORDS_RE,
     'token': _TOKENS_RE,
     'punct': _PUNCTUATIONS_RE,
-    'rel': _RELATIONS_RE,
     'assign': _ASSIGN_OPERATORS_RE,
-    'op': _OPERATORS_RE
+    'op': _OPERATORS_RE,
+    'rel': _RELATIONS_RE
 })
 
 undefined = object()
