@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
-        (video-clips|episodes|cc-studios|video-collections|shows)
+        (video-clips|episodes|cc-studios|video-collections|shows(?=/[^/]+/(?!full-episodes)))
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
@@ -29,7 +29,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
 
 class ComedyCentralFullEpisodesIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
-        (?:full-episodes)
+        (?:full-episodes|shows(?=/[^/]+/full-episodes))
         /(?P<id>[^?]+)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
@@ -40,6 +40,9 @@ class ComedyCentralFullEpisodesIE(MTVServicesInfoExtractor):
             'title': 'November 28, 2016 - Ryan Speedo Green',
         },
         'playlist_count': 4,
+    }, {
+        'url': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
