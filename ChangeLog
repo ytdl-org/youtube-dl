@@ -1,3 +1,16 @@
+version <unreleased>
+
+Extractors
+* [soundcloud] Update client id (#11327)
+* [ruutu] Detect DRM protected videos
++ [liveleak] Add support for youtube embeds (#10688)
+* [spike] Fix full episodes support (#11312)
+* [comedycentral] Fix full episodes support
+* [normalboots] Rewrite in terms of JWPlatform (#11184)
+* [teamfourstar] Rewrite in terms of JWPlatform (#11184)
+- [screenwavemedia] Remove extractor (#11184)
+
+
 version 2016.11.27
 
 Extractors
