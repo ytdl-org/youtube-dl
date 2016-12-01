@@ -1,3 +1,8 @@
+version <unreleased>
+
+Extractors
++ [thisoldhouse] Recognize /tv-episode/ URLs (#11271)
+
 version 2016.12.01
 
 Extractors
