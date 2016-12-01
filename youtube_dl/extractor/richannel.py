@@ -11,7 +11,7 @@ class RIChannelIE(InfoExtractor):
     _VALID_URL = r'http?://(?:www\.)?richannel\.org/(?P<id>[-a-z0-9]+)'
     _TEST = {
         'url': 'http://www.richannel.org/christmas-lectures-1991-richard-dawkins--waking-up-in-the-universe',
-        'md5': 'd41d8cd98f00b204e9800998ecf8427e',
+        'md5': '76170b1fe4eb12f5631d204a241b0bfe',
         'info_dict': {
             'id': 'christmas-lectures-1991-richard-dawkins--waking-up-in-the-universe',
             'ext': 'mp4',
