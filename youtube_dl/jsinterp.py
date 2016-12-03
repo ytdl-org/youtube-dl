@@ -14,21 +14,69 @@ __HEXADECIMAL_RE = r'0[xX][0-9a-fA-F]+'
 __ESC_UNICODE_RE = r'u[0-9a-fA-F]{4}'
 __ESC_HEX_RE = r'x[0-9a-fA-F]{2}'
 
-_OPERATORS = [
-    ('|', operator.or_),
-    ('^', operator.xor),
-    ('&', operator.and_),
-    ('>>', operator.rshift),
-    ('<<', operator.lshift),
-    ('>>>', lambda cur, right: cur >> right if cur >= 0 else (cur + 0x100000000) >> right),
-    ('-', operator.sub),
-    ('+', operator.add),
-    ('%', operator.mod),
-    ('/', operator.truediv),
-    ('*', operator.mul)
-]
-_ASSIGN_OPERATORS = [(op + '=', opfunc) for op, opfunc in _OPERATORS]
-_ASSIGN_OPERATORS.append(('=', lambda cur, right: right))
+
+_PUNCTUATIONS = {
+    'copen': '{',
+    'cclose': '}',
+    'popen': '(',
+    'pclose': ')',
+    'sopen': '[',
+    'sclose': ']',
+    'dot': '.',
+    'end': ';',
+    'comma': ',',
+    'hook': '?',
+    'colon': ':'
+}
+
+# TODO find a final storage solution (already)
+_LOGICAL_OPERATORS = {
+    '&&': ('and', lambda cur, right: cur and right),
+    '||': ('or', lambda cur, right: cur or right)
+}
+_UNARY_OPERATORS ={
+    '++': ('inc', lambda cur: cur + 1),
+    '--': ('dec', lambda cur: cur - 1),
+    '!': ('not', operator.not_),
+    '~': ('bnot', lambda cur: cur ^ -1)
+}
+_RELATIONS = {
+    '<': ('lt', operator.lt),
+    '>': ('gt', operator.gt),
+    '<=': ('le', operator.le),
+    '>=': ('ge', operator.ge),
+    # XXX check python and JavaScript equality difference
+    '==': ('eq', operator.eq),
+    '!=': ('ne', operator.ne),
+    '===': ('seq', lambda cur, right: cur == right and type(cur) == type(right)),
+    '!==': ('sne', lambda cur, right: not cur == right or not type(cur) == type(right))
+}
+_OPERATORS = {
+    '|': ('bor', operator.or_),
+    '^': ('bxor', operator.xor),
+    '&': ('band', operator.and_),
+    # NOTE convert to int before shift float
+    '>>': ('rshift', operator.rshift),
+    '<<': ('lshift', operator.lshift),
+    '>>>': ('urshift', lambda cur, right: cur >> right if cur >= 0 else (cur + 0x100000000) >> right),
+    '-': ('sub', operator.sub),
+    '+': ('add', operator.add),
+    '%': ('mod', operator.mod),
+    '/': ('div', operator.truediv),
+    '*': ('mul', operator.mul)
+}
+_ASSIGN_OPERATORS = dict((op + '=', ('set_%s' % token[0], token[1])) for op, token in _OPERATORS.items())
+_ASSIGN_OPERATORS['='] = ('set', lambda cur, right: right)
+
+# NOTE merely fixed due to regex matching, does not represent any precedence
+_logical_operator_order = _LOGICAL_OPERATORS.keys()  # whatever
+_unary_operator_order = _UNARY_OPERATORS.keys()  # evs
+_relation_order = ['===', '!==', '==', '!=', '<=', '>=', '<', '>']
+_bitwise_operator_order = ['|', '^', '&']
+_operator_order = ['>>>', '>>', '<<', '-', '+', '%', '/', '*']
+_assign_operator_order = ['=']
+_assign_operator_order.extend(op + '=' for op in _bitwise_operator_order)
+_assign_operator_order.extend(op + '=' for op in _operator_order)
 
 # TODO flow control and others probably
 _RESERVED_WORDS = ['function', 'var', 'const', 'return']
@@ -57,75 +105,95 @@ _REGEX_RE = r'/(?!\*)(?P<rebody>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % _REG
 re.compile(_REGEX_RE)
 
 _TOKENS = [
-    ('id', _NAME_RE),
     ('null', _NULL_RE),
     ('bool', _BOOL_RE),
+    ('id', _NAME_RE),
     ('str', _STRING_RE),
     ('int', _INTEGER_RE),
     ('float', _FLOAT_RE),
     ('regex', _REGEX_RE)
 ]
 
-_RELATIONS = {
-    'lt': '<',
-    'gt': '>',
-    'le': '<=',
-    'ge': '>=',
-    'eq': '==',
-    'ne': '!=',
-    'seq': '===',
-    'sne': '!=='
-}
-
-_PUNCTUATIONS = {
-    'copen': '{',
-    'cclose': '}',
-    'popen': '(',
-    'pclose': ')',
-    'sopen': '[',
-    'sclose': ']',
-    'dot': '.',
-    'end': ';',
-    'comma': ',',
-    'inc': '++',
-    'dec': '--',
-    'not': '!',
-    'bnot': '~',
-    'and': '&&',
-    'or': '||',
-    'hook': '?',
-    'colon': ':'
-}
-
-token_ids = dict((token[0], i) for i, token in enumerate(_TOKENS))
-op_ids = dict((op[0], i) for i, op in enumerate(_OPERATORS))
-aop_ids = dict((aop[0], i)for i, aop in enumerate(_ASSIGN_OPERATORS))
+_token_keys = set(name for name, value in _TOKENS)
 
 _COMMENT_RE = r'(?P<comment>/\*(?:(?!\*/)(?:\n|.))*\*/)'
 _TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
                        for name, value in _TOKENS)
-_RESERVED_WORDS_RE = r'(?:(?P<rsv>%s)\b)' % r'|'.join(_RESERVED_WORDS)
+# _RESERVED_WORDS_RE = r'(?:(?P<rsv>%s)\b)' % r'|'.join(_RESERVED_WORDS)
 _PUNCTUATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.escape(value)}
                              for name, value in _PUNCTUATIONS.items())
-_RELATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.escape(value)}
-                             for name, value in _RELATIONS.items())
-_OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(op) for op, opfunc in _OPERATORS)
-_ASSIGN_OPERATORS_RE = r'(?P<assign>%s)' % r'|'.join(re.escape(op) for op, opfunc in _ASSIGN_OPERATORS)
+_LOGICAL_OPERATORS_RE = r'(?P<lop>%s)' % r'|'.join(re.escape(value) for value in _logical_operator_order)
+_UNARY_OPERATORS_RE = r'(?P<uop>%s)' % r'|'.join(re.escape(value) for value in _unary_operator_order)
+_RELATIONS_RE = r'(?P<rel>%s)' % r'|'.join(re.escape(value) for value in _relation_order)
+_OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(value) for value in _operator_order)
+_ASSIGN_OPERATORS_RE = r'(?P<assign>%s)' % r'|'.join(re.escape(value) for value in _assign_operator_order)
 
-input_element = re.compile(r'''\s*(?:%(comment)s|%(rsv)s|%(token)s|%(punct)s|%(assign)s|%(op)s|%(rel)s)\s*''' % {
+input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(punct)s|%(lop)s|%(uop)s|%(rel)s|%(assign)s|%(op)s)\s*' % {
     'comment': _COMMENT_RE,
-    'rsv': _RESERVED_WORDS_RE,
     'token': _TOKENS_RE,
     'punct': _PUNCTUATIONS_RE,
+    'lop': _LOGICAL_OPERATORS_RE,
+    'uop': _UNARY_OPERATORS_RE,
+    'rel': _RELATIONS_RE,
     'assign': _ASSIGN_OPERATORS_RE,
-    'op': _OPERATORS_RE,
-    'rel': _RELATIONS_RE
+    'op': _OPERATORS_RE
 })
 
-undefined = object()
+
+class TokenStream(object):
+    def __init__(self, code, start=0):
+        self.code = code
+        self.peeked = []
+        self._ts = self._next_token(start)
+
+    def _next_token(self, pos=0):
+        while pos < len(self.code):
+            feed_m = input_element.match(self.code, pos)
+            if feed_m is not None:
+                token_id = feed_m.lastgroup
+                token_value = feed_m.group(token_id)
+                pos = feed_m.start(token_id)
+                if token_id == 'comment':
+                    pass
+                elif token_id in _token_keys:
+                    # TODO date
+                    if token_id == 'null':
+                        yield (token_id, None, pos)
+                    elif token_id == 'bool':
+                        yield (token_id, {'true': True, 'false': False}[token_value], pos)
+                    elif token_id == 'str':
+                        yield (token_id, token_value, pos)
+                    elif token_id == 'int':
+                        yield (token_id, int(token_value), pos)
+                    elif token_id == 'float':
+                        yield (token_id, float(token_value), pos)
+                    elif token_id == 'regex':
+                        # TODO error handling
+                        regex = re.compile(feed_m.group('rebody'))
+                        yield (token_id, {'re': regex, 'flags': feed_m.group('reflags')}, pos)
+                    else:
+                        yield (token_id, token_value, pos)
+                else:
+                    yield (token_id, token_value, pos)
+                pos = feed_m.end()
+            else:
+                raise ExtractorError('Unexpected character sequence at %d' % pos)
+        raise StopIteration
+
+    def peek(self, count=1):
+        for _ in range(count - len(self.peeked)):
+            self.peeked.append(next(self._ts, ('end', ';', len(self.code))))
+        return self.peeked[count - 1]
+
+    def pop(self):
+        if not self.peeked:
+            self.peek()
+        return self.peeked.pop(0)
 
 
 class JSInterpreter(object):
+    undefined = object()
+
     def __init__(self, code, objects=None):
         if objects is None:
             objects = {}
@@ -134,108 +202,80 @@ class JSInterpreter(object):
         self._objects = objects
 
     @staticmethod
-    def _next_statement(code, pos=0, stack_size=100):
-        def next_statement(lookahead, stack_top=100):
-            # TODO migrate interpretation
-            statement = []
-            feed_m = None
-            while lookahead < len(code):
-                feed_m = input_element.match(code, lookahead)
-                if feed_m is not None:
-                    token_id = feed_m.lastgroup
-                    if token_id in ('pclose', 'sclose', 'cclose', 'comma', 'end'):
-                        return statement, lookahead, feed_m.end()
-                    token_value = feed_m.group(token_id)
-                    lookahead = feed_m.end()
-                    if token_id == 'comment':
-                        pass
-                    elif token_id == 'rsv':
-                        # XXX backward compatibility till parser migration
-                        statement.append((token_id, token_value + ' '))
-                        if token_value == 'return':
-                            expressions, lookahead, _ = next_statement(lookahead, stack_top - 1)
-                            statement.extend(expressions)
-                    elif token_id in ('id', 'op', 'dot'):
-                        if token_id == 'id':
-                            # TODO handle label
-                            pass
-                        statement.append((token_id, token_value))
-                    elif token_id in token_ids:
-                        # TODO date
-                        # TODO error handling
-                        if token_id == 'null':
-                            statement.append((token_id, None))
-                        elif token_id == 'bool':
-                            statement.append((token_id, {'true': True, 'false': False}[token_value]))
-                        elif token_id == 'str':
-                            statement.append((token_id, token_value))
-                        elif token_id == 'int':
-                            statement.append((token_id, int(token_value)))
-                        elif token_id == 'float':
-                            statement.append((token_id, float(token_value)))
-                        elif token_id == 'regex':
-                            regex = re.compile(feed_m.group('rebody'))
-                            statement.append((token_id, {'re': regex, 'flags': feed_m.group('reflags')}))
-                    elif token_id in ('assign', 'popen', 'sopen'):
-                        statement.append((token_id, token_value))
-                        while lookahead < len(code):
-                            expressions, lookahead, _ = next_statement(lookahead, stack_top - 1)
-                            statement.extend(expressions)
-                            peek = input_element.match(code, lookahead)
-                            if peek is not None:
-                                peek_id = peek.lastgroup
-                                peek_value = peek.group(peek_id)
-                                if ((token_id == 'popen' and peek_id == 'pclose') or
-                                        (token_id == 'sopen' and peek_id == 'sclose')):
-                                    statement.append((peek_id, peek_value))
-                                    lookahead = peek.end()
-                                    break
-                                elif peek_id == 'comma':
-                                    statement.append((peek_id, peek_value))
-                                    lookahead = peek.end()
-                                elif peek_id == 'end':
-                                    break
-                                else:
-                                    raise ExtractorError('Unexpected character %s at %d' % (
-                                        peek_value, peek.start(peek_id)))
-                            else:
-                                raise ExtractorError("Not yet implemented")
-                else:
-                    raise ExtractorError("Not yet implemented")
-            return statement, lookahead, lookahead if feed_m is None else feed_m.end()
+    def _chk_id(name, at):
+        if name in _RESERVED_WORDS:
+            raise ExtractorError('Invalid identifier at %d' % at)
 
-        while pos < len(code):
-            stmt, _, pos = next_statement(pos, stack_size)
-            # XXX backward compatibility till parser migration
-            yield ''.join(str(value) for _, value in stmt)
-        raise StopIteration
-
-    @staticmethod
-    def _interpret_statement(stmt, local_vars, stack_size=100):
-        while stmt:
-            token_id, token_value = stmt.pop(0)
-            if token_id == 'copen':
-                # TODO block
+    def _next_statement(self, token_stream, stack_top):
+        # TODO migrate interpretation
+        # ast
+        statement = []
+        while True:
+            token_id, token_value, token_pos = token_stream.peek()
+            if token_id in ('pclose', 'sclose', 'cclose', 'comma', 'end'):
+                # empty statement goes straight here
+                return statement, False
+            token_stream.pop()
+            if token_id == 'id' and token_value == 'function':
+                # TODO handle funcdecl
                 pass
-            elif token_id == 'rsv':
+            elif token_id == 'copen':
+                # block
+                statement_list = []
+                for s in self._next_statement(token_stream, stack_top - 1):
+                    statement_list.append(s)
+                    token_id, token_value, token_pos = token_stream.peek()
+                    if token_id == 'cclose':
+                        token_stream.pop()
+                        break
+                statement.append(('block', statement_list))
+            elif token_id == 'id':
+                # TODO handle label
                 if token_value == 'var':
+                    variables = []
+                    init = []
                     has_another = True
                     while has_another:
-                        next_token_id, next_token_value = stmt.pop(0)
-                        if next_token_id in ('sopen', 'copen'):
-                            pass
-                        elif next_token_id != 'id':
-                            raise ExtractorError('Missing variable name')
-                        local_vars[token_value] = undefined
+                        token_id, token_value, token_pos = token_stream.pop()
+                        if token_id != 'id':
+                            raise ExtractorError('Missing variable name at %d' % token_pos)
+                        self._chk_id(token_value, token_pos)
+                        variables.append(token_value)
 
-                        if stmt[0][0] == 'assign':
-                            pass
+                        peek_id, peek_value, peek_pos = token_stream.peek()
+                        if peek_id == 'assign':
+                            token_stream.pop()
+                            init.append(self._assign_expression(token_stream))
+                            peek_id, peek_value, peek_pos = token_stream.peek()
+                        else:
+                            init.append(JSInterpreter.undefined)
 
-                        if stmt[0][0] != 'comma':
-                            break
-                elif token_value == 'function':
+                        if peek_id == 'end':
+                            has_another = False
+                        elif peek_id == 'comma':
+                            pass
+                        else:
+                            # FIXME automatic end insertion
+                            # - token_id == cclose
+                            # - check line terminator
+                            # - restricted token
+                            raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                    statement.append(('vardecl', self._expression(token_stream)))
+
+                elif (token_value in ('new', 'this', 'function') or
+                              token_id in ('id', 'str', 'int', 'float', 'array', 'object', 'popen')):
+                    # TODO conditional_expr ->> lhs_expr
+                    # TODO func_expr
+                    # lhs_expr -> new_expr | call_expr
+                    # call_expr -> member_expr args | call_expr args | call_expr [ expr ] | call_expr . id_name
+                    # new_expr -> member_expr | new member_expr
+                    # member_expr -> prime_expr | func_expr |
+                    #                member_expr [ expr ] |  member_expr . id_name | new member_expr args
+                    # prime_expr -> 'this' | id | literal | array | object | '(' expr ')'
                     pass
                 elif token_value == 'if':
+                    pass
+                elif token_value in ('for', 'do', 'while'):
                     pass
                 elif token_value in ('break', 'continue'):
                     pass
@@ -251,19 +291,73 @@ class JSInterpreter(object):
                     pass
                 elif token_value == 'debugger':
                     pass
-            elif token_id == 'label':
-                pass
-            elif token_id == 'id':
-                pass
+            elif token_id in ('assign', 'popen', 'sopen', 'copen'):
+                # TODO handle prop_name in object literals
+                statement.append((token_id, token_value))
+                while True:
+                    expressions, _ = self._next_statement(token_stream, stack_top - 1)
+                    statement.extend(expressions)
+                    peek_id, peek_value, peek_pos = token_stream.peek()
+                    if ((token_id == 'popen' and peek_id == 'pclose') or
+                            (token_id == 'sopen' and peek_id == 'sclose') or
+                            (token_id == 'copen' and peek_id == 'cclose')):
+                        statement.append((peek_id, peek_value))
+                        token_stream.pop()
+                        break
+                    elif peek_id == 'comma':
+                        statement.append((peek_id, peek_value))
+                        token_stream.pop()
+                    elif peek_id == 'end':
+                        break
+                    else:
+                        # FIXME automatic end insertion
+                        # TODO detect unmatched parentheses
+                        raise ExtractorError('Unexpected sequence %s at %d' % (
+                            peek_value, peek_pos))
             else:
-                # lefthand-side_expr -> new_expr | call_expr
-                # call_expr -> member_expr args | call_expr args | call_expr [ expr ] | call_expr . id_name
-                # new_expr -> member_expr | new member_expr
-                # member_expr -> prime_expr | func_expr |
-                #                member_expr [ expr ] |  member_expr . id_name | new member_expr args
-                pass
+                statement.append((token_id, token_value))
+        return statement, True
 
-        # empty statement goes straight here
+    def statements(self, code=None, pos=0, stack_size=100):
+        if code is None:
+            code = self.code
+        ts = TokenStream(code, pos)
+        ended = False
+
+        while not ended:
+            stmt, ended = self._next_statement(ts, stack_size)
+            yield stmt
+            ts.pop()
+        raise StopIteration
+
+    def _expression(self, token_stream):
+        # TODO expression
+        pass
+
+    def _assign_expression(self, token_stream):
+        left = self._lefthand_side_expression(token_stream)
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id in _assign_operator_order:
+            pass
+        elif peek_id == 'hook':
+            pass
+        elif peek_id in _logical_operator_order:
+            pass
+        elif peek_id in _bitwise_operator_order:
+            pass
+        elif peek_id in _relation_order:
+            pass
+        elif peek_id in _operator_order:
+            pass
+        elif peek_id in _unary_operator_order:
+            pass
+        else:
+            return ('assign', left, None)
+        token_stream.pop()
+
+    def _lefthand_side_expression(self, token_stream):
+        # TODO lefthand_side_expression
+        pass
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
@@ -481,7 +575,7 @@ class JSInterpreter(object):
     def build_function(self, argnames, code):
         def resf(args):
             local_vars = dict(zip(argnames, args))
-            for stmt in self._next_statement(code):
+            for stmt in self.statements(code):
                 res, abort = self.interpret_statement(stmt, local_vars)
                 if abort:
                     break
