@@ -34,7 +34,7 @@ _LOGICAL_OPERATORS = {
     '&&': ('and', lambda cur, right: cur and right),
     '||': ('or', lambda cur, right: cur or right)
 }
-_UNARY_OPERATORS ={
+_UNARY_OPERATORS = {
     '++': ('inc', lambda cur: cur + 1),
     '--': ('dec', lambda cur: cur - 1),
     '!': ('not', operator.not_),
@@ -126,16 +126,16 @@ _LOGICAL_OPERATORS_RE = r'(?P<lop>%s)' % r'|'.join(re.escape(value) for value in
 _UNARY_OPERATORS_RE = r'(?P<uop>%s)' % r'|'.join(re.escape(value) for value in _unary_operator_order)
 _RELATIONS_RE = r'(?P<rel>%s)' % r'|'.join(re.escape(value) for value in _relation_order)
 _OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(value) for value in _operator_order)
-_ASSIGN_OPERATORS_RE = r'(?P<assign>%s)' % r'|'.join(re.escape(value) for value in _assign_operator_order)
+_ASSIGN_OPERATORS_RE = r'(?P<aop>%s)' % r'|'.join(re.escape(value) for value in _assign_operator_order)
 
-input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(punct)s|%(lop)s|%(uop)s|%(rel)s|%(assign)s|%(op)s)\s*' % {
+input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(punct)s|%(lop)s|%(uop)s|%(rel)s|%(aop)s|%(op)s)\s*' % {
     'comment': _COMMENT_RE,
     'token': _TOKENS_RE,
     'punct': _PUNCTUATIONS_RE,
     'lop': _LOGICAL_OPERATORS_RE,
     'uop': _UNARY_OPERATORS_RE,
     'rel': _RELATIONS_RE,
-    'assign': _ASSIGN_OPERATORS_RE,
+    'aop': _ASSIGN_OPERATORS_RE,
     'op': _OPERATORS_RE
 })
 
@@ -171,6 +171,8 @@ class TokenStream(object):
                         # TODO error handling
                         regex = re.compile(feed_m.group('rebody'))
                         yield (token_id, {'re': regex, 'flags': feed_m.group('reflags')}, pos)
+                    elif token_id in ('lor', 'uop', 'rel', 'aop', 'op'):
+                        yield (token_id, _LOGICAL_OPERATORS[token_value])
                     else:
                         yield (token_id, token_value, pos)
                 else:
@@ -207,6 +209,8 @@ class JSInterpreter(object):
             raise ExtractorError('Invalid identifier at %d' % at)
 
     def _next_statement(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
         # TODO migrate interpretation
         # ast
         statement = []
@@ -263,7 +267,7 @@ class JSInterpreter(object):
                     statement.append(('vardecl', self._expression(token_stream)))
 
                 elif (token_value in ('new', 'this', 'function') or
-                              token_id in ('id', 'str', 'int', 'float', 'array', 'object', 'popen')):
+                        token_id in ('id', 'str', 'int', 'float', 'array', 'object', 'popen')):
                     # TODO conditional_expr ->> lhs_expr
                     # TODO func_expr
                     # lhs_expr -> new_expr | call_expr
@@ -335,29 +339,135 @@ class JSInterpreter(object):
         pass
 
     def _assign_expression(self, token_stream):
-        left = self._lefthand_side_expression(token_stream)
+        left = self._conditional_expression(token_stream)
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id in _assign_operator_order:
-            pass
-        elif peek_id == 'hook':
-            pass
-        elif peek_id in _logical_operator_order:
-            pass
-        elif peek_id in _bitwise_operator_order:
-            pass
-        elif peek_id in _relation_order:
-            pass
-        elif peek_id in _operator_order:
-            pass
-        elif peek_id in _unary_operator_order:
-            pass
+            token_stream.pop()
+            right = self._assign_expression(token_stream)
         else:
-            return ('assign', left, None)
-        token_stream.pop()
+            right = None
+        return ('assign', left, right)
 
     def _lefthand_side_expression(self, token_stream):
-        # TODO lefthand_side_expression
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id == 'id' and peek_value == 'new':
+            return self._new_expression(token_stream)
+        return self._call_expression(token_stream)
+
+    def _new_expression(self, token_stream):
+        # even though this is referenced solly by lefthand_side_expression
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id == 'id' and peek_value == 'new':
+            token_stream.pop()
+            return ('new', self._new_expression(token_stream))
+        return self._member_expression(token_stream)
+
+    def _call_expression(self, token_stream):
+        # even though this is referenced solly by lefthand_side_expression
+        # member args
+        # call args
+        # call '[' expr ']'
+        # call '.' id  # name
         pass
+
+    def _member_expression(self, token_stream):
+        # TODO _member_expression
+        # prime
+        # function
+        # member '[' expr ']'
+        # member '.' id  # name
+        # 'new' member args
+        pass
+
+    def _conditional_expression(self, token_stream):
+        expr = self._operator_expression(token_stream)
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id == 'hook':
+            hook_pos = peek_pos
+            true_expr = self._assign_expression(token_stream)
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id == 'colon':
+                false_expr = self._assign_expression(token_stream)
+            else:
+                raise ExtractorError('Missing : in conditional expression at %d' % hook_pos)
+            return ('cond', expr, true_expr, false_expr)
+        return ('rpn', expr)
+
+    def _operator_expression(self, token_stream):
+        out = []
+        stack = []
+        # 20 grouping
+        # ...  # handled by lefthandside_expression
+        # 17 postfix
+        # 16 unary
+        # 15 exponentiation  # not yet found in grammar
+        # 14 mul
+        # 13 add
+        # 12 shift
+        # 11 rel
+        # 10 eq
+        # 9 band
+        # 8 bxor
+        # 7 bor
+        # 6 land
+        # 5 lor
+        # 4 cond  # handled by conditional_expression
+
+        has_another = True
+        while has_another:
+
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id == 'uop':
+                while stack and stack[-1][0] < 16:
+                    _, stack_op = stack.pop()
+                    out.append(('op', stack_op))
+                _, op = peek_value
+                stack.append((16, op))
+                token_stream.pop()
+
+            left = self._lefthand_side_expression(token_stream)
+            out.append(left)
+
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id == 'uop':
+                name, op = peek_value
+                if name in ('inc', 'dec'):
+                    prec = 16
+                else:
+                    raise ExtractorError('Unexpected operator at %d' % peek_pos)
+            elif peek_id == 'rel':
+                name, op = peek_value
+            elif peek_id == 'op':
+                name, op = peek_value
+                if name in ('mul', 'div', 'mod'):
+                    prec = 14
+                elif name in ('add', 'sub'):
+                    prec = 13
+                elif name.endswith('shift'):
+                    prec = 12
+                elif name == 'band':
+                    prec = 9
+                elif name == 'bxor':
+                    prec = 8
+                elif name == 'bor':
+                    prec = 7
+                else:
+                    raise ExtractorError('Unexpected operator at %d' % peek_pos)
+            elif peek_id == 'lop':
+                name, op = peek_value
+                prec = {'or': 5, 'and': 6}[name]
+            else:
+                has_another = False
+                prec = 21  # empties stack
+
+            while stack and stack[-1][0] <= prec:
+                _, stack_op = stack.pop()
+                out.append(('op', stack_op))
+            if has_another:
+                stack.append((prec, op))
+                token_stream.pop()
+
+        return ('rpn', out)
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
