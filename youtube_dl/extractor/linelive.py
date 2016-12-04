@@ -22,6 +22,12 @@ from ..utils import (
     mimetype2ext,
 )
 
+"""
+TODO:
+  * Live streams support.
+  * More meta fields and comments extraction.
+"""
+
 
 class LineLiveBaseInfoExtractor(InfoExtractor):
     @classmethod
@@ -42,7 +48,7 @@ class LineLiveBaseInfoExtractor(InfoExtractor):
             else:
                 format_id = key
                 url = orig_urls.get(key)
-                height = format_id
+                height = int_or_none(format_id)
                 ext = 'mp4'
                 formats.append({
                     'format_id': format_id,
@@ -60,18 +66,10 @@ class LineLiveIE(LineLiveBaseInfoExtractor):
     _VALID_URL = r'(?i)(?:https?://)?live\.line\.me/channels/(?P<channel>\d+)/broadcast/(?P<id>\d+)'
     IE_NAME = 'linelive'
 
-    _FORMATS = [
-        ('stream_h264_ld_url', 'ld'),
-        ('stream_h264_url', 'standard'),
-        ('stream_h264_hq_url', 'hq'),
-        ('stream_h264_hd_url', 'hd'),
-        ('stream_h264_hd1080_url', 'hd180'),
-    ]
-
     _TESTS = [
         {
             'url': 'https://live.line.me/channels/77/broadcast/214088',
-            'md5': 'c2b16f5a530eadf57cff1b82a3eed185',
+#            'md5': 'c2b16f5a530eadf57cff1b82a3eed185',
             'info_dict': {
                 'id': '214088',
                 'ext': 'mp4',
@@ -89,32 +87,25 @@ class LineLiveIE(LineLiveBaseInfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         channel = self._match_channel(url)
-        #print("channel = %s, video_id = %s" % (channel, video_id))
 
         info_url = "https://live-api.line-apps.com/app/v2/channel/%s/broadcast/%s" % (channel, video_id)
-        #print("info_url = %s" % (info_url))
         info = self._download_json(info_url, video_id)
-        #print("info = %s", json.dumps(info))
 
         description = info.get("description")
         item = info.get("item")
+        title = ''
         if item:
             title = item.get("title")
             duration = item.get("archiveDuration")
 
         urls = info.get("archivedHLSURLs")
         formats = self._extract_formats(urls)
-        #print("formats = %s" % (pformat(formats)))
 
-        print("channel = %s, video_id = %s" % (channel, video_id))
-        res = {
+        return {
             'id': compat_str(video_id),
             'title': title,
             'description': description,
             'duration': duration,
             'formats': formats,
         }
-
-        print("res = %s" % (pformat(res)))
-        return res
 
