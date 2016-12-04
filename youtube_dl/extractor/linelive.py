@@ -70,29 +70,20 @@ class LineLiveIE(LineLiveBaseInfoExtractor):
 
     _TESTS = [
         {
-            'url': 'https://live.line.me/r/channels/21/broadcast/51883',
-            'md5': '2137c41a8e78554bb09225b8eb322406',
+            'url': 'https://live.line.me/channels/77/broadcast/214088',
+            'md5': 'c2b16f5a530eadf57cff1b82a3eed185',
             'info_dict': {
-                'id': '51883',
-                'channel': '21',
+                'id': '214088',
                 'ext': 'mp4',
-                'title': '',
-                'description': '',
-                'thumbnail': 're:^https?:.*\.(?:jpg|png)$',
-                'duration': 74,
-                'timestamp': 1425657362,
-                'upload_date': '20150306',
-                'uploader': 'IGN',
-                'uploader_id': 'xijv66',
-                'age_limit': 0,
-                'view_count': int,
-                'comment_count': int,
-            }
+                'title': '12月3日 ウェザーナイトニュース',
+                'description': '明日の各地のお天気をおやすみ前にお届け。\nコミューニケーション型お天気情報番組♪\n\n皆さんからのコメントも募集中！\nおやすみ前の素敵な時間をLINE LIVEで！\n\nお天気キャスター：眞家泉',
+                'duration': 972,
+            },
         },
         {
             'url': 'https://live.line.me/r/channels/21/broadcast/51883',
             'only_matching': True,
-        }
+        },
     ]
 
     def _real_extract(self, url):
