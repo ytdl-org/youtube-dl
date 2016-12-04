@@ -4,16 +4,13 @@ import json
 import operator
 import re
 
-from .utils import (
-    ExtractorError,
-)
+from .utils import ExtractorError
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
 __OCTAL_RE = r'0[0-7]+'
 __HEXADECIMAL_RE = r'0[xX][0-9a-fA-F]+'
 __ESC_UNICODE_RE = r'u[0-9a-fA-F]{4}'
 __ESC_HEX_RE = r'x[0-9a-fA-F]{2}'
-
 
 _PUNCTUATIONS = {
     'copen': '{',
@@ -38,7 +35,11 @@ _UNARY_OPERATORS = {
     '++': ('inc', lambda cur: cur + 1),
     '--': ('dec', lambda cur: cur - 1),
     '!': ('not', operator.not_),
-    '~': ('bnot', lambda cur: cur ^ -1)
+    '~': ('bnot', lambda cur: cur ^ -1),
+    # XXX define these operators
+    'delete': ('del', None),
+    'void': ('void', None),
+    'typeof': ('type', lambda cur: type(cur))
 }
 _RELATIONS = {
     '<': ('lt', operator.lt),
@@ -72,15 +73,16 @@ _ASSIGN_OPERATORS['='] = ('set', lambda cur, right: right)
 _logical_operator_order = _LOGICAL_OPERATORS.keys()  # whatever
 _unary_operator_order = _UNARY_OPERATORS.keys()  # evs
 _relation_order = ['===', '!==', '==', '!=', '<=', '>=', '<', '>']
-_bitwise_operator_order = ['|', '^', '&']
-_operator_order = ['>>>', '>>', '<<', '-', '+', '%', '/', '*']
-_assign_operator_order = ['=']
-_assign_operator_order.extend(op + '=' for op in _bitwise_operator_order)
-_assign_operator_order.extend(op + '=' for op in _operator_order)
+_operator_order = ['|', '^', '&', '>>>', '>>', '<<', '-', '+', '%', '/', '*']
+_assign_operator_order = [op + '=' for op in _operator_order]
+_assign_operator_order.append('=')
 
-# TODO flow control and others probably
-_RESERVED_WORDS = ['function', 'var', 'const', 'return']
+# only to check ids
+_RESERVED_WORDS = ('break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'finally',
+                   'for', 'function', 'if', 'in', 'instanceof', 'new', 'return', 'switch', 'this', 'throw',
+                   'try', 'typeof', 'var', 'void', 'while', 'with')
 
+# XXX add support for unicode chars
 _NAME_RE = r'[a-zA-Z_$][a-zA-Z_$0-9]*'
 
 # non-escape char also can be escaped, but line continuation and quotes has to be
@@ -119,7 +121,6 @@ _token_keys = set(name for name, value in _TOKENS)
 _COMMENT_RE = r'(?P<comment>/\*(?:(?!\*/)(?:\n|.))*\*/)'
 _TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
                        for name, value in _TOKENS)
-# _RESERVED_WORDS_RE = r'(?:(?P<rsv>%s)\b)' % r'|'.join(_RESERVED_WORDS)
 _PUNCTUATIONS_RE = r'|'.join(r'(?P<%(id)s>%(value)s)' % {'id': name, 'value': re.escape(value)}
                              for name, value in _PUNCTUATIONS.items())
 _LOGICAL_OPERATORS_RE = r'(?P<lop>%s)' % r'|'.join(re.escape(value) for value in _logical_operator_order)
@@ -143,6 +144,7 @@ input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(punct)s|%(lop)s|%(uop
 class TokenStream(object):
     def __init__(self, code, start=0):
         self.code = code
+        self.ended = False
         self.peeked = []
         self._ts = self._next_token(start)
 
@@ -184,7 +186,12 @@ class TokenStream(object):
 
     def peek(self, count=1):
         for _ in range(count - len(self.peeked)):
-            self.peeked.append(next(self._ts, ('end', ';', len(self.code))))
+            token = next(self._ts, None)
+            if token is None:
+                self.ended = True
+                self.peeked.append(('end', ';', len(self.code)))
+            else:
+                self.peeked.append(token)
         return self.peeked[count - 1]
 
     def pop(self):
@@ -213,189 +220,304 @@ class JSInterpreter(object):
             raise ExtractorError('Recursion limit reached')
         # TODO migrate interpretation
         # ast
-        statement = []
-        while True:
-            token_id, token_value, token_pos = token_stream.peek()
-            if token_id in ('pclose', 'sclose', 'cclose', 'comma', 'end'):
-                # empty statement goes straight here
-                return statement, False
+        statement = None
+
+        token_id, token_value, token_pos = token_stream.peek()
+        if token_id in ('pclose', 'sclose', 'cclose', 'comma', 'end'):
+            # empty statement goes straight here
+            return statement
+        token_stream.pop()
+        if token_id == 'id' and token_value == 'function':
+            # TODO handle funcdecl
+            raise ExtractorError('Function declaration is not yet supported at %d' % token_pos)
+        elif token_id == 'copen':
+            # block
             token_stream.pop()
-            if token_id == 'id' and token_value == 'function':
-                # TODO handle funcdecl
-                pass
-            elif token_id == 'copen':
-                # block
-                statement_list = []
-                for s in self._next_statement(token_stream, stack_top - 1):
-                    statement_list.append(s)
-                    token_id, token_value, token_pos = token_stream.peek()
-                    if token_id == 'cclose':
-                        token_stream.pop()
-                        break
-                statement.append(('block', statement_list))
-            elif token_id == 'id':
-                # TODO handle label
-                if token_value == 'var':
-                    variables = []
-                    init = []
-                    has_another = True
-                    while has_another:
-                        token_id, token_value, token_pos = token_stream.pop()
-                        if token_id != 'id':
-                            raise ExtractorError('Missing variable name at %d' % token_pos)
-                        self._chk_id(token_value, token_pos)
-                        variables.append(token_value)
+            statement_list = []
+            for s in self._next_statement(token_stream, stack_top - 1):
+                statement_list.append(s)
+                token_id, token_value, token_pos = token_stream.peek()
+                if token_id == 'cclose':
+                    token_stream.pop()
+                    break
+            statement = ('block', statement_list)
+        elif token_id == 'id':
+            # TODO handle label
+            if token_value == 'var':
+                variables = []
+                init = []
+                has_another = True
+                while has_another:
+                    token_id, token_value, token_pos = token_stream.pop()
+                    if token_id != 'id':
+                        raise ExtractorError('Missing variable name at %d' % token_pos)
+                    self._chk_id(token_value, token_pos)
+                    variables.append(token_value)
 
-                        peek_id, peek_value, peek_pos = token_stream.peek()
-                        if peek_id == 'assign':
-                            token_stream.pop()
-                            init.append(self._assign_expression(token_stream))
-                            peek_id, peek_value, peek_pos = token_stream.peek()
-                        else:
-                            init.append(JSInterpreter.undefined)
-
-                        if peek_id == 'end':
-                            has_another = False
-                        elif peek_id == 'comma':
-                            pass
-                        else:
-                            # FIXME automatic end insertion
-                            # - token_id == cclose
-                            # - check line terminator
-                            # - restricted token
-                            raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-                    statement.append(('vardecl', self._expression(token_stream)))
-
-                elif (token_value in ('new', 'this', 'function') or
-                        token_id in ('id', 'str', 'int', 'float', 'array', 'object', 'popen')):
-                    # TODO conditional_expr ->> lhs_expr
-                    # TODO func_expr
-                    # lhs_expr -> new_expr | call_expr
-                    # call_expr -> member_expr args | call_expr args | call_expr [ expr ] | call_expr . id_name
-                    # new_expr -> member_expr | new member_expr
-                    # member_expr -> prime_expr | func_expr |
-                    #                member_expr [ expr ] |  member_expr . id_name | new member_expr args
-                    # prime_expr -> 'this' | id | literal | array | object | '(' expr ')'
-                    pass
-                elif token_value == 'if':
-                    pass
-                elif token_value in ('for', 'do', 'while'):
-                    pass
-                elif token_value in ('break', 'continue'):
-                    pass
-                elif token_value == 'return':
-                    pass
-                elif token_value == 'with':
-                    pass
-                elif token_value == 'switch':
-                    pass
-                elif token_value == 'throw':
-                    pass
-                elif token_value == 'try':
-                    pass
-                elif token_value == 'debugger':
-                    pass
-            elif token_id in ('assign', 'popen', 'sopen', 'copen'):
-                # TODO handle prop_name in object literals
-                statement.append((token_id, token_value))
-                while True:
-                    expressions, _ = self._next_statement(token_stream, stack_top - 1)
-                    statement.extend(expressions)
                     peek_id, peek_value, peek_pos = token_stream.peek()
-                    if ((token_id == 'popen' and peek_id == 'pclose') or
-                            (token_id == 'sopen' and peek_id == 'sclose') or
-                            (token_id == 'copen' and peek_id == 'cclose')):
-                        statement.append((peek_id, peek_value))
+                    if peek_id == 'assign':
                         token_stream.pop()
-                        break
+                        init.append(self._assign_expression(token_stream, stack_top - 1))
+                        peek_id, peek_value, peek_pos = token_stream.peek()
+                    else:
+                        init.append(JSInterpreter.undefined)
+
+                    if peek_id == 'end':
+                        has_another = False
                     elif peek_id == 'comma':
-                        statement.append((peek_id, peek_value))
-                        token_stream.pop()
-                    elif peek_id == 'end':
-                        break
+                        pass
                     else:
                         # FIXME automatic end insertion
-                        # TODO detect unmatched parentheses
-                        raise ExtractorError('Unexpected sequence %s at %d' % (
-                            peek_value, peek_pos))
-            else:
-                statement.append((token_id, token_value))
-        return statement, True
+                        # - token_id == cclose
+                        # - check line terminator
+                        # - restricted token
+                        raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                statement = ('vardecl', zip(variables, init))
+            elif token_value == 'if':
+                # TODO ifstatement
+                raise ExtractorError('Conditional statement is not yet supported at %d' % token_pos)
+            elif token_value in ('for', 'do', 'while'):
+                # TODO iterstatement
+                raise ExtractorError('Loops is not yet supported at %d' % token_pos)
+            elif token_value in ('break', 'continue'):
+                raise ExtractorError('Flow control is not yet supported at %d' % token_pos)
+            elif token_value == 'return':
+                token_stream.pop()
+                statement = ('return', self._expression(token_stream, stack_top - 1))
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id != 'end':
+                    # FIXME automatic end insertion
+                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+            elif token_value == 'with':
+                # TODO withstatement
+                raise ExtractorError('With statement is not yet supported at %d' % token_pos)
+            elif token_value == 'switch':
+                # TODO switchstatement
+                raise ExtractorError('Switch statement is not yet supported at %d' % token_pos)
+            elif token_value == 'throw':
+                # TODO throwstatement
+                raise ExtractorError('Throw statement is not yet supported at %d' % token_pos)
+            elif token_value == 'try':
+                # TODO trystatement
+                raise ExtractorError('Try statement is not yet supported at %d' % token_pos)
+            elif token_value == 'debugger':
+                # TODO debuggerstatement
+                raise ExtractorError('Debugger statement is not yet supported at %d' % token_pos)
+        # expr
+        if statement is None:
+            expr_list = []
+            has_another = True
+            while has_another:
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                if not (peek_id == 'copen' and peek_id == 'id' and peek_value == 'function'):
+                    expr_list.append(self._assign_expression(token_stream, stack_top - 1))
+                    peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id == 'end':
+                    has_another = False
+                elif peek_id == 'comma':
+                    pass
+                else:
+                    # FIXME automatic end insertion
+                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+
+            statement = ('expr', expr_list)
+        return statement
 
     def statements(self, code=None, pos=0, stack_size=100):
         if code is None:
             code = self.code
         ts = TokenStream(code, pos)
-        ended = False
 
-        while not ended:
-            stmt, ended = self._next_statement(ts, stack_size)
-            yield stmt
+        while not ts.ended:
+            yield self._next_statement(ts, stack_size)
             ts.pop()
         raise StopIteration
 
-    def _expression(self, token_stream):
-        # TODO expression
-        pass
+    def _expression(self, token_stream, stack_top):
+        exprs = []
+        has_another = True
+        while has_another:
+            exprs.append(self._assign_expression(token_stream, stack_top - 1))
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id == 'comma':
+                token_stream.pop()
+            elif peek_id == 'id' and peek_value == 'yield':
+                # TODO yield
+                raise ExtractorError('Yield statement is not yet supported at %d' % peek_pos)
+            else:
+                has_another = False
+        return ('expr', exprs)
 
-    def _assign_expression(self, token_stream):
-        left = self._conditional_expression(token_stream)
+    def _assign_expression(self, token_stream, stack_top):
+        # TODO track stack depth/height
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
+        left = self._conditional_expression(token_stream, stack_top - 1)
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id in _assign_operator_order:
             token_stream.pop()
-            right = self._assign_expression(token_stream)
+            right = self._assign_expression(token_stream, stack_top - 1)
         else:
             right = None
         return ('assign', left, right)
 
-    def _lefthand_side_expression(self, token_stream):
-        peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id == 'id' and peek_value == 'new':
-            return self._new_expression(token_stream)
-        return self._call_expression(token_stream)
-
-    def _new_expression(self, token_stream):
-        # even though this is referenced solly by lefthand_side_expression
+    def _member_expression(self, token_stream, stack_top):
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id == 'id' and peek_value == 'new':
             token_stream.pop()
-            return ('new', self._new_expression(token_stream))
-        return self._member_expression(token_stream)
+            target = self._member_expression(token_stream, stack_top - 1)
+            args = self._arguments(token_stream, stack_top - 1)
+            # Rhino has check for args length
+            # Rhino has experimental syntax allowing an object literal to follow a new expression
+        else:
+            target = self._primary_expression(token_stream, stack_top)
+            args = None
 
-    def _call_expression(self, token_stream):
-        # even though this is referenced solly by lefthand_side_expression
-        # member args
-        # call args
-        # call '[' expr ']'
-        # call '.' id  # name
-        pass
+        return ('member', target, args, self._member_tail(token_stream, stack_top - 1))
 
-    def _member_expression(self, token_stream):
-        # TODO _member_expression
-        # prime
-        # function
-        # member '[' expr ']'
-        # member '.' id  # name
-        # 'new' member args
-        pass
+    def _member_tail(self, token_stream, stack_top):
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id == 'dot':
+            token_stream.pop()
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id == 'dot':
+                token_stream.pop()
+                peek_id, peek_value, peek_pos = token_stream.peek()
+            elif peek_id == 'popen':
+                # TODO handle field query
+                raise ExtractorError('Field querry is not yet supported at %d' % peek_pos)
 
-    def _conditional_expression(self, token_stream):
-        expr = self._operator_expression(token_stream)
+            if peek_id == 'id':
+                token_stream.pop()
+                return ('field', peek_value, self._member_tail(token_stream, stack_top - 1))
+            else:
+                raise ExtractorError('Identifier name expected at %d' % peek_pos)
+        elif peek_id == 'sopen':
+            token_stream.pop()
+            index = self._expression(token_stream, stack_top - 1)
+            token_id, token_value, token_pos = token_stream.pop()
+            if token_id == 'sclose':
+                return ('element', index, self._member_tail(token_stream, stack_top - 1))
+            else:
+                raise ExtractorError('Unexpected sequence at %d' % token_pos)
+        elif peek_id == 'popen':
+            args = self._arguments(token_stream, stack_top - 1)
+            return ('call', args, self._member_tail(token_stream, stack_top - 1))
+        else:
+            return None
+
+    def _primary_expression(self, token_stream, stack_top):
+        # TODO support let
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id in _token_keys:
+            token_stream.pop()
+            if peek_id == 'id':
+                # this
+                if peek_value == 'this':
+                    return ('rsv', 'this')
+                # function expr
+                elif peek_value == 'function':
+                    # TODO function expression
+                    raise ExtractorError('Function expression is not yet supported at %d' % peek_pos)
+                # id
+                else:
+                    self._chk_id(peek_value, peek_pos)
+                    return ('id', peek_value)
+            # literals
+            else:
+                return (peek_id, peek_value)
+        # array
+        elif peek_id == 'sopen':
+            return self._array_literal(token_stream, stack_top - 1)
+        # object
+        elif peek_id == 'copen':
+            # TODO object
+            raise ExtractorError('Object literals is not yet supported at %d' % peek_pos)
+        # expr
+        elif peek_id == 'popen':
+            token_stream.pop()
+            open_pos = peek_pos
+            expr = self._expression(token_stream, stack_top - 1)
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id != 'pclose':
+                raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
+            token_stream.pop()
+            return ('expr', expr)
+        # empty (probably)
+        else:
+            return None
+
+    def _arguments(self, token_stream, stack_top):
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id == 'popen':
+            token_stream.pop()
+            open_pos = peek_pos
+        else:
+            return None
+        args = []
+        while True:
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id == 'pcolse':
+                token_stream.pop()
+                return args
+            # FIXME handle infor
+            args.append(self._assign_expression(token_stream, stack_top - 1))
+            # TODO generator expression
+            peek_id, peek_value, peek_pos = token_stream.peek()
+
+            if peek_id not in ('comma', 'pclose'):
+                raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
+
+    def _array_literal(self, token_stream, stack_top):
+        # TODO check no line break
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_pos != 'sopen':
+            raise ExtractorError('Array expected at %d' % peek_pos)
+        token_stream.pop()
+        elements = []
+
+        has_another = True
+        while has_another:
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id == 'comma':
+                token_stream.pop()
+                elements.append(None)
+            elif peek_id == 'sclose':
+                token_stream.pop()
+                has_another = False
+            elif peek_id == 'id' and peek_value == 'for':
+                # TODO array comprehension
+                raise ExtractorError('Array comprehension is not yet supported at %d' % peek_pos)
+            else:
+                elements.append(self._assign_expression(token_stream, stack_top - 1))
+                peek_id, peek_value, peek_pos = token_stream.pop()
+                if peek_id != 'comma':
+                    raise ExtractorError('Expected , after element at %d' % peek_pos)
+        return ('array', elements)
+
+    def _conditional_expression(self, token_stream, stack_top):
+        expr = self._operator_expression(token_stream, stack_top - 1)
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id == 'hook':
             hook_pos = peek_pos
-            true_expr = self._assign_expression(token_stream)
+            true_expr = self._assign_expression(token_stream, stack_top - 1)
             peek_id, peek_value, peek_pos = token_stream.peek()
             if peek_id == 'colon':
-                false_expr = self._assign_expression(token_stream)
+                false_expr = self._assign_expression(token_stream, stack_top - 1)
             else:
                 raise ExtractorError('Missing : in conditional expression at %d' % hook_pos)
             return ('cond', expr, true_expr, false_expr)
         return ('rpn', expr)
 
-    def _operator_expression(self, token_stream):
-        out = []
-        stack = []
+    def _operator_expression(self, token_stream, stack_top):
+        #     --<---------------------------------<-- op --<--------------------------<----
+        #     |                                                                           |
+        #     |  --<-- prefix --<--                                  -->-- postfix -->--  |
+        #     |  |                ^                                  ^                 |  ^
+        #     v  v                |                                  |                 v  |
+        # ->------------>----------->-- lefthand-side expression -->----------->------------>---|
+        #
         # 20 grouping
         # ...  # handled by lefthandside_expression
         # 17 postfix
@@ -413,29 +535,51 @@ class JSInterpreter(object):
         # 5 lor
         # 4 cond  # handled by conditional_expression
 
+        out = []
+        stack = []
+
         has_another = True
         while has_another:
+            had_inc = False
+            has_prefix = True
+            while has_prefix:
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id == 'uop':
+                    had_inc = peek_value in ('inc', 'dec')
+                    while stack and stack[-1][0] < 16:
+                        _, stack_op = stack.pop()
+                        out.append(('op', stack_op))
+                    _, op = peek_value
+                    stack.append((16, op))
+                    token_stream.pop()
+                    peek_id, peek_value, peek_pos = token_stream.peek()
+                    if had_inc and peek_id != 'id':
+                        raise ExtractorError('Prefix operator has to be followed by an identifier at %d' % peek_pos)
+                    has_prefix = peek_id == 'uop'
+                else:
+                    has_prefix = False
 
-            peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id == 'uop':
-                while stack and stack[-1][0] < 16:
-                    _, stack_op = stack.pop()
-                    out.append(('op', stack_op))
-                _, op = peek_value
-                stack.append((16, op))
-                token_stream.pop()
-
-            left = self._lefthand_side_expression(token_stream)
+            left = self._member_expression(token_stream, stack_top - 1)
             out.append(left)
 
             peek_id, peek_value, peek_pos = token_stream.peek()
+            # postfix
             if peek_id == 'uop':
+                if had_inc:
+                    raise ExtractorError('''Can't have prefix and postfix operator at the same time at %d''' % peek_pos)
                 name, op = peek_value
                 if name in ('inc', 'dec'):
-                    prec = 16
+                    prec = 17
                 else:
                     raise ExtractorError('Unexpected operator at %d' % peek_pos)
-            elif peek_id == 'rel':
+                while stack and stack[-1][0] <= 17:
+                    _, stack_op = stack.pop()
+                    out.append(('op', stack_op))
+                stack.append((prec, op))
+                token_stream.pop()
+                peek_id, peek_value, peek_pos = token_stream.peek()
+
+            if peek_id == 'rel':
                 name, op = peek_value
             elif peek_id == 'op':
                 name, op = peek_value
