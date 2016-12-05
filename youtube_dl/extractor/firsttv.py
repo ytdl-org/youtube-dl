@@ -107,7 +107,7 @@ class FirstTVIE(InfoExtractor):
                 'ya:ovs:upload_date', webpage, 'upload date', default=None))
 
             entries.append({
-                'id': item.get('id') or uid,
+                'id': compat_str(item.get('id') or item['uid']),
                 'thumbnail': thumbnail,
                 'title': title,
                 'upload_date': upload_date,
