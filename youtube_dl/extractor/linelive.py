@@ -68,16 +68,27 @@ class LineLiveIE(LineLiveBaseInfoExtractor):
 
     _TESTS = [
         {
-            'url': 'https://live.line.me/channels/77/broadcast/214088',
-#            'md5': 'c2b16f5a530eadf57cff1b82a3eed185',
+            'url': 'https://live.line.me/channels/27121/broadcast/38687',
+            'md5': 'd4f22649557d070fa1d61be2c483819b',
             'info_dict': {
-                'id': '214088',
+                'id': '38687',
                 'ext': 'mp4',
-                'title': '12月3日 ウェザーナイトニュース',
-                'description': '明日の各地のお天気をおやすみ前にお届け。\nコミューニケーション型お天気情報番組♪\n\n皆さんからのコメントも募集中！\nおやすみ前の素敵な時間をLINE LIVEで！\n\nお天気キャスター：眞家泉',
-                'duration': 972,
+                'title': '短時間だよライブ',
+                'description': '',
+                'duration': 17,
             },
         },
+#        {
+#            'url': 'https://live.line.me/channels/77/broadcast/214088',
+#            'md5': 'c2b16f5a530eadf57cff1b82a3eed185',
+#            'info_dict': {
+#                'id': '214088',
+#                'ext': 'mp4',
+#                'title': '12月3日 ウェザーナイトニュース',
+#                'description': '明日の各地のお天気をおやすみ前にお届け。\nコミューニケーション型お天気情報番組♪\n\n皆さんからのコメントも募集中！\nおやすみ前の素敵な時間をLINE LIVEで！\n\nお天気キャスター：眞家泉',
+#                'duration': 972,
+#            },
+#        },
         {
             'url': 'https://live.line.me/r/channels/21/broadcast/51883',
             'only_matching': True,
