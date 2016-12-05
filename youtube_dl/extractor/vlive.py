@@ -48,17 +48,16 @@ class VLiveIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.vlive.tv/video/%s' % video_id, video_id)
 
-        video_params = self._search_regex(
-            r'\bvlive\.video\.init\(([^)]+)\)',
-            webpage, 'video params')
-        status, _, _, live_params, long_video_id, key = re.split(
-            r'"\s*,\s*"', video_params)[2:8]
+        video_params = self._parse_json(self._search_regex(
+            r'\bvlive\.video\.init\(([^)]+)\);',
+            webpage, 'video params'), video_id,
+            transform_source=lambda s: '[' + s + ']')
+
+        status, long_video_id, key = video_params[2], video_params[5], video_params[6]
         status = remove_start(status, 'PRODUCT_')
 
         if status == 'LIVE_ON_AIR' or status == 'BIG_EVENT_ON_AIR':
-            live_params = self._parse_json('"%s"' % live_params, video_id)
-            live_params = self._parse_json(live_params, video_id)
-            return self._live(video_id, webpage, live_params)
+            return self._live(video_id, webpage)
         elif status == 'VOD_ON_AIR' or status == 'BIG_EVENT_INTRO':
             if long_video_id and key:
                 return self._replay(video_id, webpage, long_video_id, key)
@@ -89,7 +88,20 @@ class VLiveIE(InfoExtractor):
             'thumbnail': thumbnail,
         }
 
-    def _live(self, video_id, webpage, live_params):
+    def _live(self, video_id, webpage):
+        init_page = self._download_webpage(
+            'http://www.vlive.tv/video/init/view',
+            video_id, data="videoSeq=%s" % video_id, headers={
+                'Referer': 'http://www.vlive.tv/video/%s' % video_id,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            })
+
+        live_params = self._search_regex(
+            r'"liveStreamInfo"\s*:\s*(".*"),',
+            init_page, 'video params')
+        live_params = self._parse_json(live_params, video_id)
+        live_params = self._parse_json(live_params, video_id)
+
         formats = []
         for vid in live_params.get('resolutions', []):
             formats.extend(self._extract_m3u8_formats(
