@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 
+import base64
 import re
 import json
 import os
+import time
 
 from .common import InfoExtractor
 from ..compat import (
@@ -14,9 +16,11 @@ from ..compat import (
 from ..utils import (
     unified_strdate,
     determine_ext,
+    ExtractorError,
     int_or_none,
     parse_iso8601,
     parse_duration,
+    sanitized_Request,
 )
 
 
@@ -347,5 +351,132 @@ class NHLIE(InfoExtractor):
             'timestamp': parse_iso8601(video_data.get('date')),
             'duration': parse_duration(video_data.get('duration')),
             'thumbnails': thumbnails,
+            'formats': formats,
+        }
+
+
+class NHLTVIE(InfoExtractor):
+    IE_NAME = 'nhl.com:nhltv'
+    _VALID_URL = r'https?://(?:www\.)?nhl.com/tv/(?P<gameId>\d+)/(?:[^/]+/)*(?P<id>\d+)'
+    _OAUTH_URL = 'https://user.svc.nhl.com/oauth/token?grant_type=client_credentials'
+    _LOGIN_URL = 'https://gateway.web.nhl.com/ws/subscription/flow/nhlPurchase.login'
+    _NETRC_MACHINE = 'nhltv'
+    _TEST = {
+        # This is a free video that can be accessed by anyone with an NHL TV login
+        'url': 'https://www.nhl.com/tv/2016020321/221-1003765/46561403',
+        'md5': '34d9518c495ebdad947b9723b5a7c9a9',
+        'info_dict': {
+            'id': '46561403',
+            'ext': 'ts',
+            'title': '2016-11-26: Anaheim Ducks @ San Jose Sharks (AWAY feed)',
+            'timestamp': 1480217427,
+        },
+        'skip': 'requires a login to NHL TV, and takes a long time to run as the video is 3h+',
+        'params': {
+            'usenetrc': True,
+            'format': '[width=400]',
+            'hls_use_mpegts': True,
+        },
+    }
+
+    def _login(self):
+        # TODO cache login to avoid 'Sign-on restriction: Too many usage attempts'
+        (username, password) = self._get_login_info()
+        if username is None:
+            self.raise_login_required()
+
+        authorization = base64.b64encode(
+            'web_nhl-v1.0.0:2d1d846ea3b194a18ef40ac9fbce97e3'.encode('utf-8')).decode('ascii')
+        oauth_request = sanitized_Request(
+            self._OAUTH_URL,
+            data="",
+            headers={
+                'Referer': 'https://www.nhl.com/login',
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Authorization': 'Basic %s' % authorization,
+                'Content-Type': 'application/json',
+            })
+        oauth_response = self._download_json(
+            oauth_request,
+            None,  # video_id
+            'Requesting OAuth access token',
+            'Unable to get OAuth access token')
+        access_token = oauth_response['access_token']
+
+        login_data = {
+            'nhlCredentials': {
+                'email': username,
+                'password': password,
+            }
+        }
+        login_request = sanitized_Request(
+            self._LOGIN_URL,
+            data=json.dumps(login_data, sort_keys=True).encode('utf-8'),
+            headers={
+                'Referer': 'https://www.nhl.com/login',
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Authorization': access_token,
+                'Content-Type': 'application/json'
+            })
+        # sets up the cookies we need to download
+        self._download_webpage(
+            login_request, None, 'Logging in', 'Unable to log in')
+
+    def _real_initialize(self):
+        self._login()
+
+    def extract_stream_info(self, video_id):
+        timestamp = int(time.time())
+        session_key = "abcdefghijklmnop"
+        stream_data_url = 'https://mf.svc.nhl.com/ws/media/mf/v2.4/stream?contentId=%s&playbackScenario=HTTP_CLOUD_WIRED_WEB&sessionKey=%s&auth=response&format=json&platform=WEB_MEDIAPLAYER&_=%s000' % (video_id, session_key, timestamp)
+        stream_data = self._download_json(stream_data_url, video_id, 'Downloading stream data', 'Unable to download stream data')
+        status_code = stream_data.get('status_code')
+        if status_code != 1:
+            # e.g. Media not found, Too many sign ons, etc.
+            status_message = stream_data.get('status_message')
+            raise ExtractorError(status_message, expected=True)
+        media_auth = stream_data.get('session_info').get('sessionAttributes')[0].get('attributeValue')
+        m3u8_url = stream_data.get('user_verified_event')[0].get('user_verified_content')[0].get('user_verified_media_item')[0].get('url')
+        return (media_auth, m3u8_url)
+
+    def extract_game_info(self, video_id, game_id):
+        game_data_url = 'https://statsapi.web.nhl.com/api/v1/schedule?gamePk=%s&expand=schedule.game.content.media.milestones&expand=schedule.game.content.media.epg&expand=schedule.venue' % game_id
+        game_data = self._download_json(game_data_url, video_id, 'Downloading game data', 'Unable to download game data')
+        game_date = game_data.get('dates')[0]
+        date = game_date.get('date')  # yyyy-mm-dd
+        game = game_date.get('games')[0]
+        teams = game.get('teams')
+        away = teams.get('away').get('team').get('name')
+        home = teams.get('home').get('team').get('name')
+        feed_type = "UNKNOWN"
+        media_node = game.get("content").get("media")
+        for epg_item in media_node.get("epg", []):
+            if epg_item.get("title") != "NHLTV":
+                continue
+            for item in epg_item.get('items', []):
+                if item.get('mediaPlaybackId') != video_id:
+                    continue
+                feed_type = item.get('mediaFeedType')
+        timestamp = parse_iso8601(media_node.get('milestones').get('streamStart'))
+        title = "%s: %s @ %s (%s feed)" % (date, away, home, feed_type)
+        return (title, timestamp)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id, game_id = mobj.group('id'), mobj.group('gameId')
+
+        title, timestamp = self.extract_game_info(video_id, game_id)
+        media_auth, m3u8_url = self.extract_stream_info(video_id)
+
+        # media auth cookie is required for the downloader
+        self._set_cookie('nhl.com', 'mediaAuth_v2', media_auth)
+        formats = self._extract_m3u8_formats(m3u8_url, video_id, 'ts', m3u8_id='hls')
+        self._check_formats(formats, video_id)
+        self._sort_formats(formats, ('preference', 'width', 'height', 'tbr', 'format_id'))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'timestamp': timestamp,
             'formats': formats,
         }

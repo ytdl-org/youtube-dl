@@ -597,6 +597,7 @@ from .nhl import (
     NHLNewsIE,
     NHLVideocenterCategoryIE,
     NHLIE,
+    NHLTVIE,
 )
 from .nick import (
     NickIE,
