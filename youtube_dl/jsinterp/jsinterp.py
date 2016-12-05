@@ -7,7 +7,6 @@ from .tstream import TokenStream
 
 _token_keys = 'null', 'bool', 'id', 'str', 'int', 'float', 'regex'
 
-
 # TODO support json
 class JSInterpreter(object):
     undefined = object()
@@ -59,7 +58,7 @@ class JSInterpreter(object):
                     variables.append(token_value)
 
                     peek_id, peek_value, peek_pos = token_stream.peek()
-                    if peek_id == 'assign':
+                    if peek_id == 'aop':
                         token_stream.pop()
                         init.append(self._assign_expression(token_stream, stack_top - 1))
                         peek_id, peek_value, peek_pos = token_stream.peek()
@@ -86,7 +85,6 @@ class JSInterpreter(object):
             elif token_value in ('break', 'continue'):
                 raise ExtractorError('Flow control is not yet supported at %d' % token_pos)
             elif token_value == 'return':
-                token_stream.pop()
                 statement = ('return', self._expression(token_stream, stack_top - 1))
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id != 'end':
@@ -228,7 +226,7 @@ class JSInterpreter(object):
                     raise ExtractorError('Function expression is not yet supported at %d' % peek_pos)
                 # id
                 else:
-                    token_stream.chk_id()
+                    token_stream.chk_id(last=True)
                     return ('id', peek_value)
             # literals
             else:
@@ -314,7 +312,7 @@ class JSInterpreter(object):
             else:
                 raise ExtractorError('Missing : in conditional expression at %d' % hook_pos)
             return ('cond', expr, true_expr, false_expr)
-        return ('rpn', expr)
+        return expr
 
     def _operator_expression(self, token_stream, stack_top):
         #     --<---------------------------------<-- op --<--------------------------<----
@@ -351,12 +349,12 @@ class JSInterpreter(object):
             while has_prefix:
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id == 'uop':
-                    had_inc = peek_value in ('inc', 'dec')
+                    name, op = peek_value
+                    had_inc = name in ('inc', 'dec')
                     while stack and stack[-1][0] < 16:
-                        _, stack_op = stack.pop()
-                        out.append(('op', stack_op))
-                    _, op = peek_value
-                    stack.append((16, op))
+                        _, stack_id, stack_op = stack.pop()
+                        out.append((stack_id, stack_op))
+                    stack.append((16, peek_id, op))
                     token_stream.pop()
                     peek_id, peek_value, peek_pos = token_stream.peek()
                     if had_inc and peek_id != 'id':
@@ -379,9 +377,9 @@ class JSInterpreter(object):
                 else:
                     raise ExtractorError('Unexpected operator at %d' % peek_pos)
                 while stack and stack[-1][0] <= 17:
-                    _, stack_op = stack.pop()
-                    out.append(('op', stack_op))
-                stack.append((prec, op))
+                    _, stack_id, stack_op = stack.pop()
+                    out.append((stack_id, stack_op))
+                stack.append((prec, peek_id, op))
                 token_stream.pop()
                 peek_id, peek_value, peek_pos = token_stream.peek()
 
@@ -411,10 +409,10 @@ class JSInterpreter(object):
                 prec = 21  # empties stack
 
             while stack and stack[-1][0] <= prec:
-                _, stack_op = stack.pop()
-                out.append(('op', stack_op))
+                _, stack_id, stack_op = stack.pop()
+                out.append((stack_id, stack_op))
             if has_another:
-                stack.append((prec, op))
+                stack.append((prec, peek_id, op))
                 token_stream.pop()
 
         return ('rpn', out)
@@ -466,8 +464,9 @@ class JSInterpreter(object):
         def resf(args):
             local_vars = dict(zip(argnames, args))
             for stmt in self.statements(code):
-                res, abort = self.interpret_statement(stmt, local_vars)
-                if abort:
-                    break
-            return res
+                pass
+                # res, abort = self.interpret_statement(stmt, local_vars)
+                # if abort:
+                #    break
+            # return res
         return resf

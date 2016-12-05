@@ -71,12 +71,17 @@ _OPERATORS = {
 _ASSIGN_OPERATORS = dict((op + '=', ('set_%s' % token[0], token[1])) for op, token in _OPERATORS.items())
 _ASSIGN_OPERATORS['='] = ('set', lambda cur, right: right)
 
+_operator_lookup = {
+    'op': _OPERATORS,
+    'aop': _ASSIGN_OPERATORS,
+    'uop': _UNARY_OPERATORS,
+    'lop': _LOGICAL_OPERATORS,
+    'rel': _RELATIONS
+}
 # only to check ids
-_RESERVED_WORDS = ( 'break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'finally',
-                    'for', 'function', 'if', 'in', 'instanceof', 'new', 'return', 'switch', 'this', 'throw', 'try',
-                    'typeof', 'var', 'void', 'while', 'with')
-
-
+_reserved_words = ('break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'finally',
+                   'for', 'function', 'if', 'in', 'instanceof', 'new', 'return', 'switch', 'this', 'throw', 'try',
+                   'typeof', 'var', 'void', 'while', 'with')
 _input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(punct)s|%(lop)s|%(uop)s|%(rel)s|%(aop)s|%(op)s)\s*' % {
     'comment': COMMENT_RE,
     'token': TOKENS_RE,
@@ -98,12 +103,13 @@ class TokenStream(object):
         self._last = None
 
     def _next_token(self, pos=0):
-        while pos < len(self.code):
+        while not self.ended:
             feed_m = _input_element.match(self.code, pos)
             if feed_m is not None:
                 token_id = feed_m.lastgroup
                 token_value = feed_m.group(token_id)
                 pos = feed_m.start(token_id)
+                self.ended = feed_m.end() >= len(self.code)  # because how yield works
                 if token_id == 'comment':
                     pass
                 # TODO date
@@ -123,18 +129,10 @@ class TokenStream(object):
                     yield (token_id, {'re': regex, 'flags': feed_m.group('reflags')}, pos)
                 elif token_id == 'id':
                     yield (token_id, token_value, pos)
-                elif token_id == 'op':
-                    yield (token_id, _OPERATORS[token_value])
-                elif token_id == 'aop':
-                    yield (token_id, _ASSIGN_OPERATORS[token_value])
-                elif token_id == 'rel':
-                    yield (token_id, _RELATIONS[token_value])
-                elif token_id == 'uop':
-                    yield (token_id, _UNARY_OPERATORS[token_value])
-                elif token_id == 'lop':
-                    yield (token_id, _LOGICAL_OPERATORS[token_value])
+                elif token_id in _operator_lookup:
+                    yield (token_id, _operator_lookup[token_id][token_value], pos)
                 elif token_id == 'punc':
-                    yield (token_id, _PUNCTUATIONS[token_value], pos)
+                    yield (_PUNCTUATIONS[token_value], token_value, pos)
                 else:
                     raise ExtractorError('Unexpected token at %d' % pos)
                 pos = feed_m.end()
@@ -147,14 +145,13 @@ class TokenStream(object):
             name, value, pos = self._last
         else:
             name, value, pos = self.peek()
-        if name in _RESERVED_WORDS:
+        if name != 'id' or value in _reserved_words:
             raise ExtractorError('Invalid identifier at %d' % pos)
 
     def peek(self, count=1):
         for _ in range(count - len(self.peeked)):
             token = next(self._ts, None)
             if token is None:
-                self.ended = True
                 self.peeked.append(('end', ';', len(self.code)))
             else:
                 self.peeked.append(token)
