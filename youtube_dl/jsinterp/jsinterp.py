@@ -7,8 +7,9 @@ from .tstream import TokenStream
 
 _token_keys = 'null', 'bool', 'id', 'str', 'int', 'float', 'regex'
 
-# TODO support json
+
 class JSInterpreter(object):
+    # TODO support json
     undefined = object()
 
     def __init__(self, code, objects=None):
@@ -21,17 +22,15 @@ class JSInterpreter(object):
     def _next_statement(self, token_stream, stack_top):
         if stack_top < 0:
             raise ExtractorError('Recursion limit reached')
-        # TODO migrate interpretation
         # ast
         statement = None
 
         token_id, token_value, token_pos = token_stream.peek()
-        if token_id in ('pclose', 'sclose', 'cclose', 'comma', 'end'):
+        if token_id in ('cclose', 'end'):
             # empty statement goes straight here
             return statement
-        token_stream.pop()
         if token_id == 'id' and token_value == 'function':
-            # TODO handle funcdecl
+            # TODO parse funcdecl
             raise ExtractorError('Function declaration is not yet supported at %d' % token_pos)
         elif token_id == 'copen':
             # block
@@ -45,8 +44,9 @@ class JSInterpreter(object):
                     break
             statement = ('block', statement_list)
         elif token_id == 'id':
-            # TODO handle label
+            # TODO parse label
             if token_value == 'var':
+                token_stream.pop()
                 variables = []
                 init = []
                 has_another = True
@@ -77,33 +77,35 @@ class JSInterpreter(object):
                         raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
                 statement = ('vardecl', zip(variables, init))
             elif token_value == 'if':
-                # TODO ifstatement
+                # TODO parse ifstatement
                 raise ExtractorError('Conditional statement is not yet supported at %d' % token_pos)
             elif token_value in ('for', 'do', 'while'):
-                # TODO iterstatement
+                # TODO parse iterstatement
                 raise ExtractorError('Loops is not yet supported at %d' % token_pos)
             elif token_value in ('break', 'continue'):
+                # TODO parse continue, break
                 raise ExtractorError('Flow control is not yet supported at %d' % token_pos)
             elif token_value == 'return':
+                token_stream.pop()
                 statement = ('return', self._expression(token_stream, stack_top - 1))
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id != 'end':
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
             elif token_value == 'with':
-                # TODO withstatement
+                # TODO parse withstatement
                 raise ExtractorError('With statement is not yet supported at %d' % token_pos)
             elif token_value == 'switch':
-                # TODO switchstatement
+                # TODO parse switchstatement
                 raise ExtractorError('Switch statement is not yet supported at %d' % token_pos)
             elif token_value == 'throw':
-                # TODO throwstatement
+                # TODO parse throwstatement
                 raise ExtractorError('Throw statement is not yet supported at %d' % token_pos)
             elif token_value == 'try':
-                # TODO trystatement
+                # TODO parse trystatement
                 raise ExtractorError('Try statement is not yet supported at %d' % token_pos)
             elif token_value == 'debugger':
-                # TODO debuggerstatement
+                # TODO parse debuggerstatement
                 raise ExtractorError('Debugger statement is not yet supported at %d' % token_pos)
         # expr
         if statement is None:
@@ -114,6 +116,7 @@ class JSInterpreter(object):
                 if not (peek_id == 'copen' and peek_id == 'id' and peek_value == 'function'):
                     expr_list.append(self._assign_expression(token_stream, stack_top - 1))
                     peek_id, peek_value, peek_pos = token_stream.peek()
+
                 if peek_id == 'end':
                     has_another = False
                 elif peek_id == 'comma':
@@ -144,14 +147,13 @@ class JSInterpreter(object):
             if peek_id == 'comma':
                 token_stream.pop()
             elif peek_id == 'id' and peek_value == 'yield':
-                # TODO yield
+                # TODO parse yield
                 raise ExtractorError('Yield statement is not yet supported at %d' % peek_pos)
             else:
                 has_another = False
         return ('expr', exprs)
 
     def _assign_expression(self, token_stream, stack_top):
-        # TODO track stack depth/height
         if stack_top < 0:
             raise ExtractorError('Recursion limit reached')
 
@@ -181,6 +183,9 @@ class JSInterpreter(object):
         return ('member', target, args, self._member_tail(token_stream, stack_top - 1))
 
     def _member_tail(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id == 'dot':
             token_stream.pop()
@@ -212,6 +217,9 @@ class JSInterpreter(object):
             return None
 
     def _primary_expression(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         # TODO support let
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id in _token_keys:
@@ -222,7 +230,7 @@ class JSInterpreter(object):
                     return ('rsv', 'this')
                 # function expr
                 elif peek_value == 'function':
-                    # TODO function expression
+                    # TODO parse function expression
                     raise ExtractorError('Function expression is not yet supported at %d' % peek_pos)
                 # id
                 else:
@@ -236,7 +244,7 @@ class JSInterpreter(object):
             return self._array_literal(token_stream, stack_top - 1)
         # object
         elif peek_id == 'copen':
-            # TODO object
+            # TODO parse object
             raise ExtractorError('Object literals is not yet supported at %d' % peek_pos)
         # expr
         elif peek_id == 'popen':
@@ -253,6 +261,9 @@ class JSInterpreter(object):
             return None
 
     def _arguments(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id == 'popen':
             token_stream.pop()
@@ -262,21 +273,24 @@ class JSInterpreter(object):
         args = []
         while True:
             peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id == 'pcolse':
+            if peek_id == 'pclose':
                 token_stream.pop()
                 return args
             # FIXME handle infor
             args.append(self._assign_expression(token_stream, stack_top - 1))
-            # TODO generator expression
+            # TODO parse generator expression
             peek_id, peek_value, peek_pos = token_stream.peek()
 
             if peek_id not in ('comma', 'pclose'):
                 raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
 
     def _array_literal(self, token_stream, stack_top):
-        # TODO check no line break
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
+        # TODO check no linebreak
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_pos != 'sopen':
+        if peek_id != 'sopen':
             raise ExtractorError('Array expected at %d' % peek_pos)
         token_stream.pop()
         elements = []
@@ -291,16 +305,22 @@ class JSInterpreter(object):
                 token_stream.pop()
                 has_another = False
             elif peek_id == 'id' and peek_value == 'for':
-                # TODO array comprehension
+                # TODO parse array comprehension
                 raise ExtractorError('Array comprehension is not yet supported at %d' % peek_pos)
             else:
                 elements.append(self._assign_expression(token_stream, stack_top - 1))
                 peek_id, peek_value, peek_pos = token_stream.pop()
-                if peek_id != 'comma':
+                if peek_id == 'sclose':
+                    has_another = False
+                elif peek_id != 'comma':
                     raise ExtractorError('Expected , after element at %d' % peek_pos)
+
         return ('array', elements)
 
     def _conditional_expression(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         expr = self._operator_expression(token_stream, stack_top - 1)
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id == 'hook':
@@ -315,6 +335,9 @@ class JSInterpreter(object):
         return expr
 
     def _operator_expression(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         #     --<---------------------------------<-- op --<--------------------------<----
         #     |                                                                           |
         #     |  --<-- prefix --<--                                  -->-- postfix -->--  |
@@ -351,7 +374,7 @@ class JSInterpreter(object):
                 if peek_id == 'uop':
                     name, op = peek_value
                     had_inc = name in ('inc', 'dec')
-                    while stack and stack[-1][0] < 16:
+                    while stack and stack[-1][0] > 16:
                         _, stack_id, stack_op = stack.pop()
                         out.append((stack_id, stack_op))
                     stack.append((16, peek_id, op))
@@ -376,7 +399,7 @@ class JSInterpreter(object):
                     prec = 17
                 else:
                     raise ExtractorError('Unexpected operator at %d' % peek_pos)
-                while stack and stack[-1][0] <= 17:
+                while stack and stack[-1][0] >= 17:
                     _, stack_id, stack_op = stack.pop()
                     out.append((stack_id, stack_op))
                 stack.append((prec, peek_id, op))
@@ -406,9 +429,9 @@ class JSInterpreter(object):
                 prec = {'or': 5, 'and': 6}[name]
             else:
                 has_another = False
-                prec = 21  # empties stack
+                prec = 4  # empties stack
 
-            while stack and stack[-1][0] <= prec:
+            while stack and stack[-1][0] >= prec:
                 _, stack_id, stack_op = stack.pop()
                 out.append((stack_id, stack_op))
             if has_another:
@@ -417,11 +440,133 @@ class JSInterpreter(object):
 
         return ('rpn', out)
 
-    def interpret_statement(self, stmt, local_vars, allow_recursion=100):
-        pass
+    # TODO use context instead local_vars in argument
 
-    def interpret_expression(self, expr, local_vars, allow_recursion):
-        pass
+    def getvalue(self, ref, local_vars):
+        if ref is None:
+            return None
+        ref_id, ref_value = ref
+        if ref_id == 'id':
+            return local_vars[ref_value]
+        elif ref_id in _token_keys:
+            return ref_value
+        elif ref_id == 'expr':
+            ref, abort = self.interpret_statement(ref_value, local_vars)
+            return self.getvalue(ref, local_vars)
+
+    def interpret_statement(self, stmt, local_vars):
+        if stmt is None:
+            return None, False
+
+        name = stmt[0]
+        ref = None
+        abort = False
+        if name == 'funcdecl':
+            # TODO interpret funcdecl
+            raise ExtractorError('''Can't interpret statement called %s''' % name)
+        elif name == 'block':
+            block = stmt[1]
+            for stmt in block:
+                s, abort = self.interpret_statement(stmt, local_vars)
+                if s is not None:
+                    ref = self.getvalue(s, local_vars)
+        elif name == 'vardecl':
+            for name, value in stmt[1]:
+                local_vars[name] = self.getvalue(self.interpret_expression(value, local_vars), local_vars)
+        elif name == 'expr':
+            for expr in stmt[1]:
+                ref = self.interpret_expression(expr, local_vars)
+        # if
+        # continue, break
+        elif name == 'return':
+            # TODO use context instead returning abort
+            ref, abort = self.interpret_statement(stmt[1], local_vars)
+            ref = self.getvalue(ref, local_vars)
+            abort = True
+        # with
+        # label
+        # switch
+        # throw
+        # try
+        # debugger
+        else:
+            raise ExtractorError('''Can't interpret statement called %s''' % name)
+        return ref, abort
+
+    def interpret_expression(self, expr, local_vars):
+        name = expr[0]
+        if name == 'assign':
+            op, left, right = expr[1:]
+            if op is None:
+                return self.interpret_expression(left, local_vars)
+            else:
+                left = self.interpret_expression(left, local_vars)
+                # TODO handle undeclared variables (create propery)
+                leftvalue = self.getvalue(left, local_vars)
+                rightvalue = self.getvalue(self.interpret_expression(right, local_vars), local_vars)
+                local_vars[left[1]] = op(leftvalue, rightvalue)
+                return left
+
+        elif name == 'rpn':
+            stack = []
+            rpn = expr[1]
+            while rpn:
+                token = rpn.pop(0)
+                if token[0] in ('op', 'aop', 'lop', 'rel'):
+                    right = stack.pop()
+                    left = stack.pop()
+                    result = token[1](self.getvalue(left, local_vars), self.getvalue(right, local_vars))
+                    if type(result) == int:
+                        type_id = 'int'
+                    elif type(result) == float:
+                        type_id = 'float'
+                    elif type(result) == str:
+                        type_id = 'str'
+                    else:
+                        type_id = str(type(result))
+                    stack.append((type_id, result))
+                elif token[0] == 'uop':
+                    right = stack.pop()
+                    stack.append(token[1](self.getvalue(right, local_vars)))
+                else:
+                    stack.append(self.interpret_expression(token, local_vars))
+            result = stack.pop()
+            if not stack:
+                return result
+            else:
+                raise ExtractorError('Expression has too many values')
+
+        elif name == 'member':
+            # TODO interpret member
+            target, args, tail = expr[1:]
+            while tail is not None:
+                tail_name, tail_value, tail = tail
+                if tail_name == 'field':
+                    # TODO interpret field
+                    raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
+                elif tail_name == 'element':
+                    # TODO interpret element
+                    raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
+                elif tail_name == 'call':
+                    # TODO interpret call
+                    raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
+            return target
+        elif name == 'id':
+            return local_vars[expr[1]]
+
+        # literal
+        elif name in _token_keys:
+            return expr[1]
+
+        elif name == 'array':
+            array = []
+            elms = expr[1]
+            for expr in elms:
+                array.append(self.interpret_expression(expr, local_vars))
+            return array
+
+        else:
+            raise ExtractorError('''Can't interpret expression called %s''' % name)
 
     def extract_object(self, objname):
         obj = {}
@@ -464,9 +609,8 @@ class JSInterpreter(object):
         def resf(args):
             local_vars = dict(zip(argnames, args))
             for stmt in self.statements(code):
-                pass
-                # res, abort = self.interpret_statement(stmt, local_vars)
-                # if abort:
-                #    break
-            # return res
+                res, abort = self.interpret_statement(stmt, local_vars)
+                if abort:
+                    break
+            return res
         return resf

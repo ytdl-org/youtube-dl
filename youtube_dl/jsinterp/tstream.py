@@ -82,15 +82,15 @@ _operator_lookup = {
 _reserved_words = ('break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'finally',
                    'for', 'function', 'if', 'in', 'instanceof', 'new', 'return', 'switch', 'this', 'throw', 'try',
                    'typeof', 'var', 'void', 'while', 'with')
-_input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(punct)s|%(lop)s|%(uop)s|%(rel)s|%(aop)s|%(op)s)\s*' % {
+_input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(lop)s|%(uop)s|%(aop)s|%(op)s|%(rel)s|%(punct)s)\s*' % {
     'comment': COMMENT_RE,
     'token': TOKENS_RE,
-    'punct': PUNCTUATIONS_RE,
     'lop': LOGICAL_OPERATORS_RE,
     'uop': UNARY_OPERATORS_RE,
-    'rel': RELATIONS_RE,
     'aop': ASSIGN_OPERATORS_RE,
-    'op': OPERATORS_RE
+    'op': OPERATORS_RE,
+    'rel': RELATIONS_RE,
+    'punct': PUNCTUATIONS_RE
 })
 
 
@@ -126,7 +126,7 @@ class TokenStream(object):
                 elif token_id == 'regex':
                     # TODO error handling
                     regex = re.compile(feed_m.group('rebody'))
-                    yield (token_id, {'re': regex, 'flags': feed_m.group('reflags')}, pos)
+                    yield (token_id, (regex, feed_m.group('reflags')), pos)
                 elif token_id == 'id':
                     yield (token_id, token_value, pos)
                 elif token_id in _operator_lookup:

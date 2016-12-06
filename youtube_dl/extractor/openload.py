@@ -12,10 +12,9 @@ from ..utils import (
     determine_ext,
     ExtractorError,
 )
-from ..jsinterp import (
-    JSInterpreter,
-    _NAME_RE
-)
+from ..jsinterp import JSInterpreter
+from ..jsinterp.jsgrammar import _NAME_RE
+
 
 
 class OpenloadIE(InfoExtractor):

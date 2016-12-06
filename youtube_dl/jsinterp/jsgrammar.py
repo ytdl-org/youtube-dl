@@ -10,13 +10,13 @@ __ESC_HEX_RE = r'x[0-9a-fA-F]{2}'
 
 
 # NOTE order is fixed due to regex matching, does not represent any precedence
-_punctuations = ['{', '}', '(', ')', '[', ']', '.', ';', ',', '?', ':']
 _logical_operator = ['||', '&&']
-_unary_operator = ['++', '--', '!', '~', 'delete', 'void', 'typeof']
 _relation = ['===', '!==', '==', '!=', '<=', '>=', '<', '>']
+_unary_operator = ['++', '--', '!', '~', 'delete', 'void', 'typeof']
 _operator = ['|', '^', '&', '>>>', '>>', '<<', '-', '+', '%', '/', '*']
 _assign_operator = [op + '=' for op in _operator]
 _assign_operator.append('=')
+_punctuations = ['{', '}', '(', ')', '[', ']', '.', ';', ',', '?', ':']
 
 # XXX add support for unicode chars
 _NAME_RE = r'[a-zA-Z_$][a-zA-Z_$0-9]*'
@@ -54,9 +54,10 @@ COMMENT_RE = r'(?P<comment>/\*(?:(?!\*/)(?:\n|.))*\*/)'
 TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
                       for name, value in _TOKENS)
 
-PUNCTUATIONS_RE = r'(?P<punc>%s)' % r'|'.join(re.escape(value) for value in _punctuations)
 LOGICAL_OPERATORS_RE = r'(?P<lop>%s)' % r'|'.join(re.escape(value) for value in _logical_operator)
 UNARY_OPERATORS_RE = r'(?P<uop>%s)' % r'|'.join(re.escape(value) for value in _unary_operator)
-RELATIONS_RE = r'(?P<rel>%s)' % r'|'.join(re.escape(value) for value in _relation)
+ASSIGN_OPERATORS_RE = r'(?P<aop>%s)' % r'|'.join(re.escape(value) if value != '=' else re.escape(value) + r'(?!\=)'
+                                                 for value in _assign_operator)
 OPERATORS_RE = r'(?P<op>%s)' % r'|'.join(re.escape(value) for value in _operator)
-ASSIGN_OPERATORS_RE = r'(?P<aop>%s)' % r'|'.join(re.escape(value) for value in _assign_operator)
+RELATIONS_RE = r'(?P<rel>{0:s})'.format(r'|'.join(re.escape(value) for value in _relation))
+PUNCTUATIONS_RE = r'(?P<punc>%s)' % r'|'.join(re.escape(value) for value in _punctuations)
