@@ -12,7 +12,6 @@ from ..utils import (
     float_or_none,
     parse_duration,
     str_to_int,
-    urlencode_postdata,
 )
 
 
@@ -60,11 +59,13 @@ class PandoraTVIE(InfoExtractor):
                 continue
 
             post_data = ('prgid=%s&runtime=%s&vod_url=%s' % (video_id, info.get('runtime'), format_url)).encode()
-            ret = compat_urllib_request.urlopen("http://m.pandora.tv/?c=api&m=play_url", data=post_data).read()
-            encoding = self._guess_encoding_from_content('json', ret)
-            ret = self._parse_json(ret.decode(encoding, errors='ignore'), video_id)
-            format_url = ret['url']
-            
+            data = compat_urllib_request.urlopen("http://m.pandora.tv/?c=api&m=play_url", data=post_data).read()
+            encoding = self._guess_encoding_from_content('json', data)
+            play_url = self._parse_json(data.decode(encoding, errors='ignore'), video_id)
+            format_url = play_url.get('url')
+            if not format_url:
+                continue
+
             formats.append({
                 'format_id': '%sp' % height,
                 'url': format_url,
