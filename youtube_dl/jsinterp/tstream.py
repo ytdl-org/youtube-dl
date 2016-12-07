@@ -12,71 +12,72 @@ from .jsgrammar import (
     UNARY_OPERATORS_RE,
     RELATIONS_RE,
     ASSIGN_OPERATORS_RE,
-    OPERATORS_RE
+    OPERATORS_RE,
+    Token
 )
 
 
 _PUNCTUATIONS = {
-    '{': 'copen',
-    '}': 'cclose',
-    '(': 'popen',
-    ')': 'pclose',
-    '[': 'sopen',
-    ']': 'sclose',
-    '.': 'dot',
-    ';': 'end',
-    ',': 'comma',
-    '?': 'hook',
-    ':': 'colon'
+    '{': Token.COPEN,
+    '}': Token.CCLOSE,
+    '(': Token.POPEN,
+    ')': Token.PCLOSE,
+    '[': Token.SOPEN,
+    ']': Token.SCLOSE,
+    '.': Token.DOT,
+    ';': Token.END,
+    ',': Token.COMMA,
+    '?': Token.HOOK,
+    ':': Token.COLON
 }
 _LOGICAL_OPERATORS = {
-    '&&': ('and', lambda cur, right: cur and right),
-    '||': ('or', lambda cur, right: cur or right)
+    '&&': (Token.AND, lambda cur, right: cur and right),
+    '||': (Token.OR, lambda cur, right: cur or right)
 }
 _UNARY_OPERATORS = {
-    '++': ('inc', lambda cur: cur + 1),
-    '--': ('dec', lambda cur: cur - 1),
-    '!': ('not', operator.not_),
-    '~': ('bnot', lambda cur: cur ^ -1),
+    '++': (Token.INC, lambda cur: cur + 1),
+    '--': (Token.DEC, lambda cur: cur - 1),
+    '!': (Token.NOT, operator.not_),
+    '~': (Token.BNOT, lambda cur: cur ^ -1),
     # XXX define these operators
-    'delete': ('del', None),
-    'void': ('void', None),
-    'typeof': ('type', lambda cur: type(cur))
+    'delete': (Token.DEL, None),
+    'void': (Token.VOID, None),
+    'typeof': (Token.TYPE, lambda cur: type(cur))
 }
 _RELATIONS = {
-    '<': ('lt', operator.lt),
-    '>': ('gt', operator.gt),
-    '<=': ('le', operator.le),
-    '>=': ('ge', operator.ge),
+    '<': (Token.LT, operator.lt),
+    '>': (Token.GT, operator.gt),
+    '<=': (Token.LE, operator.le),
+    '>=': (Token.GE, operator.ge),
     # XXX check python and JavaScript equality difference
-    '==': ('eq', operator.eq),
-    '!=': ('ne', operator.ne),
-    '===': ('seq', lambda cur, right: cur == right and type(cur) == type(right)),
-    '!==': ('sne', lambda cur, right: not cur == right or not type(cur) == type(right))
+    '==': (Token.EQ, operator.eq),
+    '!=': (Token.NE, operator.ne),
+    '===': (Token.SEQ, lambda cur, right: cur == right and type(cur) == type(right)),
+    '!==': (Token.SNE, lambda cur, right: not cur == right or not type(cur) == type(right))
 }
 _OPERATORS = {
-    '|': ('bor', operator.or_),
-    '^': ('bxor', operator.xor),
-    '&': ('band', operator.and_),
+    '|': (Token.BOR, operator.or_),
+    '^': (Token.BXOR, operator.xor),
+    '&': (Token.BAND, operator.and_),
     # NOTE convert to int before shift float
-    '>>': ('rshift', operator.rshift),
-    '<<': ('lshift', operator.lshift),
-    '>>>': ('urshift', lambda cur, right: cur >> right if cur >= 0 else (cur + 0x100000000) >> right),
-    '-': ('sub', operator.sub),
-    '+': ('add', operator.add),
-    '%': ('mod', operator.mod),
-    '/': ('div', operator.truediv),
-    '*': ('mul', operator.mul)
+    '>>': (Token.RSHIFT, operator.rshift),
+    '<<': (Token.LSHIFT, operator.lshift),
+    '>>>': (Token.URSHIFT, lambda cur, right: cur >> right if cur >= 0 else (cur + 0x100000000) >> right),
+    '-': (Token.SUB, operator.sub),
+    '+': (Token.ADD, operator.add),
+    '%': (Token.MOD, operator.mod),
+    '/': (Token.DIV, operator.truediv),
+    '*': (Token.MUL, operator.mul)
 }
 _ASSIGN_OPERATORS = dict((op + '=', ('set_%s' % token[0], token[1])) for op, token in _OPERATORS.items())
 _ASSIGN_OPERATORS['='] = ('set', lambda cur, right: right)
 
 _operator_lookup = {
-    'op': _OPERATORS,
-    'aop': _ASSIGN_OPERATORS,
-    'uop': _UNARY_OPERATORS,
-    'lop': _LOGICAL_OPERATORS,
-    'rel': _RELATIONS
+    Token.OP: _OPERATORS,
+    Token.AOP: _ASSIGN_OPERATORS,
+    Token.UOP: _UNARY_OPERATORS,
+    Token.LOP: _LOGICAL_OPERATORS,
+    Token.REL: _RELATIONS
 }
 # only to check ids
 _reserved_words = ('break', 'case', 'catch', 'continue', 'debugger', 'default', 'delete', 'do', 'else', 'finally',
@@ -109,29 +110,30 @@ class TokenStream(object):
                 token_id = feed_m.lastgroup
                 token_value = feed_m.group(token_id)
                 pos = feed_m.start(token_id)
+                token_id = Token[token_id]
                 self.ended = feed_m.end() >= len(self.code)  # because how yield works
-                if token_id == 'comment':
+                if token_id is Token.COMMENT:
                     pass
                 # TODO date
-                elif token_id == 'null':
+                elif token_id is Token.NULL:
                     yield (token_id, None, pos)
-                elif token_id == 'bool':
+                elif token_id is Token.BOOL:
                     yield (token_id, {'true': True, 'false': False}[token_value], pos)
-                elif token_id == 'str':
+                elif token_id is Token.STR:
                     yield (token_id, token_value, pos)
-                elif token_id == 'int':
+                elif token_id is Token.INT:
                     yield (token_id, int(token_value), pos)
-                elif token_id == 'float':
+                elif token_id is Token.FLOAT:
                     yield (token_id, float(token_value), pos)
-                elif token_id == 'regex':
+                elif token_id is Token.REGEX:
                     # TODO error handling
                     regex = re.compile(feed_m.group('rebody'))
                     yield (token_id, (regex, feed_m.group('reflags')), pos)
-                elif token_id == 'id':
+                elif token_id is Token.ID:
                     yield (token_id, token_value, pos)
                 elif token_id in _operator_lookup:
                     yield (token_id, _operator_lookup[token_id][token_value], pos)
-                elif token_id == 'punc':
+                elif token_id is Token.PUNCT:
                     yield (_PUNCTUATIONS[token_value], token_value, pos)
                 else:
                     raise ExtractorError('Unexpected token at %d' % pos)
@@ -145,14 +147,14 @@ class TokenStream(object):
             name, value, pos = self._last
         else:
             name, value, pos = self.peek()
-        if name != 'id' or value in _reserved_words:
+        if name is not Token.ID or value in _reserved_words:
             raise ExtractorError('Invalid identifier at %d' % pos)
 
     def peek(self, count=1):
         for _ in range(count - len(self.peeked)):
             token = next(self._ts, None)
             if token is None:
-                self.peeked.append(('end', ';', len(self.code)))
+                self.peeked.append((Token.END, ';', len(self.code)))
             else:
                 self.peeked.append(token)
         return self.peeked[count - 1]

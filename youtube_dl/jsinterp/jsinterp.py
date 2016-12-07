@@ -4,8 +4,9 @@ import re
 
 from ..utils import ExtractorError
 from .tstream import TokenStream
+from .jsgrammar import Token
 
-_token_keys = 'null', 'bool', 'id', 'str', 'int', 'float', 'regex'
+_token_keys = Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token.FLOAT, Token.REGEX
 
 
 class JSInterpreter(object):
@@ -26,24 +27,24 @@ class JSInterpreter(object):
         statement = None
 
         token_id, token_value, token_pos = token_stream.peek()
-        if token_id in ('cclose', 'end'):
+        if token_id in (Token.CCLOSE, Token.END):
             # empty statement goes straight here
             return statement
-        if token_id == 'id' and token_value == 'function':
+        if token_id is Token.ID and token_value == 'function':
             # TODO parse funcdecl
             raise ExtractorError('Function declaration is not yet supported at %d' % token_pos)
-        elif token_id == 'copen':
+        elif token_id is Token.COPEN:
             # block
             token_stream.pop()
             statement_list = []
             for s in self.statements(token_stream, stack_top - 1):
                 statement_list.append(s)
                 token_id, token_value, token_pos = token_stream.peek()
-                if token_id == 'cclose':
+                if token_id is Token.CCLOSE:
                     token_stream.pop()
                     break
             statement = ('block', statement_list)
-        elif token_id == 'id':
+        elif token_id is Token.ID:
             # TODO parse label
             if token_value == 'var':
                 token_stream.pop()
@@ -52,26 +53,26 @@ class JSInterpreter(object):
                 has_another = True
                 while has_another:
                     token_id, token_value, token_pos = token_stream.pop()
-                    if token_id != 'id':
+                    if token_id is not Token.ID:
                         raise ExtractorError('Missing variable name at %d' % token_pos)
                     token_stream.chk_id(last=True)
                     variables.append(token_value)
 
                     peek_id, peek_value, peek_pos = token_stream.peek()
-                    if peek_id == 'aop':
+                    if peek_id is Token.AOP:
                         token_stream.pop()
                         init.append(self._assign_expression(token_stream, stack_top - 1))
                         peek_id, peek_value, peek_pos = token_stream.peek()
                     else:
                         init.append(JSInterpreter.undefined)
 
-                    if peek_id == 'end':
+                    if peek_id is Token.END:
                         has_another = False
-                    elif peek_id == 'comma':
+                    elif peek_id is Token.COMMA:
                         pass
                     else:
                         # FIXME automatic end insertion
-                        # - token_id == cclose
+                        # - token_id is Token.CCLOSE
                         # - check line terminator
                         # - restricted token
                         raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
@@ -89,7 +90,7 @@ class JSInterpreter(object):
                 token_stream.pop()
                 statement = ('return', self._expression(token_stream, stack_top - 1))
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id != 'end':
+                if peek_id is not Token.END:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
             elif token_value == 'with':
@@ -113,13 +114,13 @@ class JSInterpreter(object):
             has_another = True
             while has_another:
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if not (peek_id == 'copen' and peek_id == 'id' and peek_value == 'function'):
+                if not (peek_id is Token.COPEN and peek_id is Token.ID and peek_value == 'function'):
                     expr_list.append(self._assign_expression(token_stream, stack_top - 1))
                     peek_id, peek_value, peek_pos = token_stream.peek()
 
-                if peek_id == 'end':
+                if peek_id is Token.END:
                     has_another = False
-                elif peek_id == 'comma':
+                elif peek_id is Token.COMMA:
                     pass
                 else:
                     # FIXME automatic end insertion
@@ -144,9 +145,9 @@ class JSInterpreter(object):
         while has_another:
             exprs.append(self._assign_expression(token_stream, stack_top - 1))
             peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id == 'comma':
+            if peek_id is Token.COMMA:
                 token_stream.pop()
-            elif peek_id == 'id' and peek_value == 'yield':
+            elif peek_id is Token.ID and peek_value == 'yield':
                 # TODO parse yield
                 raise ExtractorError('Yield statement is not yet supported at %d' % peek_pos)
             else:
@@ -159,7 +160,7 @@ class JSInterpreter(object):
 
         left = self._conditional_expression(token_stream, stack_top - 1)
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id == 'aop':
+        if peek_id is Token.AOP:
             token_stream.pop()
             _, op = peek_value
             right = self._assign_expression(token_stream, stack_top - 1)
@@ -170,7 +171,7 @@ class JSInterpreter(object):
 
     def _member_expression(self, token_stream, stack_top):
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id == 'id' and peek_value == 'new':
+        if peek_id is Token.ID and peek_value == 'new':
             token_stream.pop()
             target = self._member_expression(token_stream, stack_top - 1)
             args = self._arguments(token_stream, stack_top - 1)
@@ -187,30 +188,30 @@ class JSInterpreter(object):
             raise ExtractorError('Recursion limit reached')
 
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id == 'dot':
+        if peek_id is Token.DOT:
             token_stream.pop()
             peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id == 'dot':
+            if peek_id is Token.DOT:
                 token_stream.pop()
                 peek_id, peek_value, peek_pos = token_stream.peek()
-            elif peek_id == 'popen':
+            elif peek_id is Token.POPEN:
                 # TODO handle field query
                 raise ExtractorError('Field querry is not yet supported at %d' % peek_pos)
 
-            if peek_id == 'id':
+            if peek_id is Token.ID:
                 token_stream.pop()
                 return ('field', peek_value, self._member_tail(token_stream, stack_top - 1))
             else:
                 raise ExtractorError('Identifier name expected at %d' % peek_pos)
-        elif peek_id == 'sopen':
+        elif peek_id is Token.POPEN:
             token_stream.pop()
             index = self._expression(token_stream, stack_top - 1)
             token_id, token_value, token_pos = token_stream.pop()
-            if token_id == 'sclose':
+            if token_id is Token.SCLOSE:
                 return ('element', index, self._member_tail(token_stream, stack_top - 1))
             else:
                 raise ExtractorError('Unexpected sequence at %d' % token_pos)
-        elif peek_id == 'popen':
+        elif peek_id is Token.POPEN:
             args = self._arguments(token_stream, stack_top - 1)
             return ('call', args, self._member_tail(token_stream, stack_top - 1))
         else:
@@ -224,7 +225,7 @@ class JSInterpreter(object):
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id in _token_keys:
             token_stream.pop()
-            if peek_id == 'id':
+            if peek_id is Token.ID:
                 # this
                 if peek_value == 'this':
                     return ('rsv', 'this')
@@ -235,24 +236,24 @@ class JSInterpreter(object):
                 # id
                 else:
                     token_stream.chk_id(last=True)
-                    return ('id', peek_value)
+                    return (Token.ID, peek_value)
             # literals
             else:
                 return (peek_id, peek_value)
         # array
-        elif peek_id == 'sopen':
+        elif peek_id is Token.SOPEN:
             return self._array_literal(token_stream, stack_top - 1)
         # object
-        elif peek_id == 'copen':
+        elif peek_id is Token.SCLOSE:
             # TODO parse object
             raise ExtractorError('Object literals is not yet supported at %d' % peek_pos)
         # expr
-        elif peek_id == 'popen':
+        elif peek_id is Token.POPEN:
             token_stream.pop()
             open_pos = peek_pos
             expr = self._expression(token_stream, stack_top - 1)
             peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id != 'pclose':
+            if peek_id is not Token.PCLOSE:
                 raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
             token_stream.pop()
             return ('expr', expr)
@@ -265,7 +266,7 @@ class JSInterpreter(object):
             raise ExtractorError('Recursion limit reached')
 
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id == 'popen':
+        if peek_id is Token.POPEN:
             token_stream.pop()
             open_pos = peek_pos
         else:
@@ -273,7 +274,7 @@ class JSInterpreter(object):
         args = []
         while True:
             peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id == 'pclose':
+            if peek_id is Token.PCLOSE:
                 token_stream.pop()
                 return args
             # FIXME handle infor
@@ -281,7 +282,7 @@ class JSInterpreter(object):
             # TODO parse generator expression
             peek_id, peek_value, peek_pos = token_stream.peek()
 
-            if peek_id not in ('comma', 'pclose'):
+            if peek_id not in (Token.COMMA, Token.PCLOSE):
                 raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
 
     def _array_literal(self, token_stream, stack_top):
@@ -290,7 +291,7 @@ class JSInterpreter(object):
 
         # TODO check no linebreak
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id != 'sopen':
+        if peek_id is not Token.SOPEN:
             raise ExtractorError('Array expected at %d' % peek_pos)
         token_stream.pop()
         elements = []
@@ -298,21 +299,21 @@ class JSInterpreter(object):
         has_another = True
         while has_another:
             peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id == 'comma':
+            if peek_id is Token.COMMA:
                 token_stream.pop()
                 elements.append(None)
-            elif peek_id == 'sclose':
+            elif peek_id is Token.SCLOSE:
                 token_stream.pop()
                 has_another = False
-            elif peek_id == 'id' and peek_value == 'for':
+            elif peek_id is Token.ID and peek_value == 'for':
                 # TODO parse array comprehension
                 raise ExtractorError('Array comprehension is not yet supported at %d' % peek_pos)
             else:
                 elements.append(self._assign_expression(token_stream, stack_top - 1))
                 peek_id, peek_value, peek_pos = token_stream.pop()
-                if peek_id == 'sclose':
+                if peek_id is Token.SCLOSE:
                     has_another = False
-                elif peek_id != 'comma':
+                elif peek_id is not Token.COMMA:
                     raise ExtractorError('Expected , after element at %d' % peek_pos)
 
         return ('array', elements)
@@ -323,11 +324,11 @@ class JSInterpreter(object):
 
         expr = self._operator_expression(token_stream, stack_top - 1)
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id == 'hook':
+        if peek_id is Token.HOOK:
             hook_pos = peek_pos
             true_expr = self._assign_expression(token_stream, stack_top - 1)
             peek_id, peek_value, peek_pos = token_stream.peek()
-            if peek_id == 'colon':
+            if peek_id is Token.COLON:
                 false_expr = self._assign_expression(token_stream, stack_top - 1)
             else:
                 raise ExtractorError('Missing : in conditional expression at %d' % hook_pos)
@@ -371,18 +372,18 @@ class JSInterpreter(object):
             has_prefix = True
             while has_prefix:
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id == 'uop':
+                if peek_id is Token.UOP:
                     name, op = peek_value
-                    had_inc = name in ('inc', 'dec')
+                    had_inc = name in (Token.INC, Token.DEC)
                     while stack and stack[-1][0] > 16:
                         _, stack_id, stack_op = stack.pop()
                         out.append((stack_id, stack_op))
                     stack.append((16, peek_id, op))
                     token_stream.pop()
                     peek_id, peek_value, peek_pos = token_stream.peek()
-                    if had_inc and peek_id != 'id':
+                    if had_inc and peek_id is not Token.ID:
                         raise ExtractorError('Prefix operator has to be followed by an identifier at %d' % peek_pos)
-                    has_prefix = peek_id == 'uop'
+                    has_prefix = peek_id is Token.UOP
                 else:
                     has_prefix = False
 
@@ -391,11 +392,11 @@ class JSInterpreter(object):
 
             peek_id, peek_value, peek_pos = token_stream.peek()
             # postfix
-            if peek_id == 'uop':
+            if peek_id is Token.UOP:
                 if had_inc:
                     raise ExtractorError('''Can't have prefix and postfix operator at the same time at %d''' % peek_pos)
                 name, op = peek_value
-                if name in ('inc', 'dec'):
+                if name in (Token.INC, Token.DEC):
                     prec = 17
                 else:
                     raise ExtractorError('Unexpected operator at %d' % peek_pos)
@@ -406,27 +407,27 @@ class JSInterpreter(object):
                 token_stream.pop()
                 peek_id, peek_value, peek_pos = token_stream.peek()
 
-            if peek_id == 'rel':
+            if peek_id is Token.REL:
                 name, op = peek_value
-            elif peek_id == 'op':
+            elif peek_id is Token.OP:
                 name, op = peek_value
-                if name in ('mul', 'div', 'mod'):
+                if name in (Token.MUL, Token.DIV, Token.MOD):
                     prec = 14
-                elif name in ('add', 'sub'):
+                elif name in (Token.ADD, Token.SUB):
                     prec = 13
-                elif name.endswith('shift'):
+                elif name in (Token.RSHIFT, Token.LSHIFT, Token.URSHIFT):
                     prec = 12
-                elif name == 'band':
+                elif name is Token.BAND:
                     prec = 9
-                elif name == 'bxor':
+                elif name is Token.BXOR:
                     prec = 8
-                elif name == 'bor':
+                elif name is Token.BOR:
                     prec = 7
                 else:
                     raise ExtractorError('Unexpected operator at %d' % peek_pos)
-            elif peek_id == 'lop':
+            elif peek_id is Token.LOP:
                 name, op = peek_value
-                prec = {'or': 5, 'and': 6}[name]
+                prec = {Token.OR: 5, Token.AND: 6}[name]
             else:
                 has_another = False
                 prec = 4  # empties stack
@@ -441,12 +442,12 @@ class JSInterpreter(object):
         return ('rpn', out)
 
     # TODO use context instead local_vars in argument
-
+    
     def getvalue(self, ref, local_vars):
-        if ref is None:
-            return None
+        if ref is None or ref is self.undefined or isinstance(ref, (int, float, str)):  # not Token
+            return ref
         ref_id, ref_value = ref
-        if ref_id == 'id':
+        if ref_id is Token.ID:
             return local_vars[ref_value]
         elif ref_id in _token_keys:
             return ref_value
@@ -512,20 +513,11 @@ class JSInterpreter(object):
             rpn = expr[1]
             while rpn:
                 token = rpn.pop(0)
-                if token[0] in ('op', 'aop', 'lop', 'rel'):
+                if token[0] in (Token.OP, Token.AOP, Token.UOP, Token.LOP, Token.REL):
                     right = stack.pop()
                     left = stack.pop()
-                    result = token[1](self.getvalue(left, local_vars), self.getvalue(right, local_vars))
-                    if type(result) == int:
-                        type_id = 'int'
-                    elif type(result) == float:
-                        type_id = 'float'
-                    elif type(result) == str:
-                        type_id = 'str'
-                    else:
-                        type_id = str(type(result))
-                    stack.append((type_id, result))
-                elif token[0] == 'uop':
+                    stack.append(token[1](self.getvalue(left, local_vars), self.getvalue(right, local_vars)))
+                elif token[0] is Token.UOP:
                     right = stack.pop()
                     stack.append(token[1](self.getvalue(right, local_vars)))
                 else:
@@ -551,7 +543,7 @@ class JSInterpreter(object):
                     # TODO interpret call
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
             return target
-        elif name == 'id':
+        elif name is Token.ID:
             return local_vars[expr[1]]
 
         # literal
