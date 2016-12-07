@@ -110,7 +110,7 @@ class TokenStream(object):
                 token_id = feed_m.lastgroup
                 token_value = feed_m.group(token_id)
                 pos = feed_m.start(token_id)
-                token_id = Token[token_id]
+                token_id = Token[Token.index(token_id)]
                 self.ended = feed_m.end() >= len(self.code)  # because how yield works
                 if token_id is Token.COMMENT:
                     pass

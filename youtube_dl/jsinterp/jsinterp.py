@@ -239,7 +239,8 @@ class JSInterpreter(object):
                     return (Token.ID, peek_value)
             # literals
             else:
-                return (peek_id, peek_value)
+                # TODO use tuple if CONST
+                return [peek_id, peek_value]
         # array
         elif peek_id is Token.SOPEN:
             return self._array_literal(token_stream, stack_top - 1)
@@ -462,10 +463,13 @@ class JSInterpreter(object):
         else:
             raise ExtractorError('Unable to get value of reference type %s' % ref_id)
 
-    def putvalue(self, ref, value, local_vars):
+    @staticmethod
+    def putvalue(ref, value, local_vars):
         ref_id, ref_value = ref
         if ref_id is Token.ID:
             local_vars[ref_value] = value
+        elif ref_id in _token_keys:
+            ref[1] = value
 
     def interpret_statement(self, stmt, local_vars):
         if stmt is None:
@@ -515,18 +519,17 @@ class JSInterpreter(object):
         if name is Token.ASSIGN:
             op, left, right = expr[1:]
             if op is None:
-                return self.interpret_expression(left, local_vars)
+                ref = self.interpret_expression(left, local_vars)
             else:
                 # TODO handle undeclared variables (create propery)
                 leftref = self.interpret_expression(left, local_vars)
                 leftvalue = self.getvalue(leftref, local_vars)
                 rightvalue = self.getvalue(self.interpret_expression(right, local_vars), local_vars)
                 # TODO set array element
-                leftref = op(leftvalue, rightvalue)
-                return leftref
+                self.putvalue(leftref, op(leftvalue, rightvalue), local_vars)
+                ref = leftref
         elif name is Token.EXPR:
             ref, _ = self.interpret_statement(expr, local_vars)
-            return ref
         elif name is Token.OPEXPR:
             stack = []
             rpn = expr[1][:]
@@ -543,7 +546,7 @@ class JSInterpreter(object):
                     stack.append(self.interpret_expression(token, local_vars))
             result = stack.pop()
             if not stack:
-                return result
+                ref = result
             else:
                 raise ExtractorError('Expression has too many values')
 
@@ -565,15 +568,17 @@ class JSInterpreter(object):
                 elif tail_name is Token.CALL:
                     # TODO interpret call
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
-            return target
+            ref = target
         elif name in (Token.ID, Token.ARRAY):
-            return self.getvalue(expr, local_vars)
+            ref = self.getvalue(expr, local_vars)
         # literal
         elif name in _token_keys:
-            return expr
+            ref = expr
 
         else:
             raise ExtractorError('''Can't interpret expression called %s''' % name)
+
+        return ref
 
     def extract_object(self, objname):
         obj = {}

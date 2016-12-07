@@ -2,28 +2,23 @@ from __future__ import unicode_literals
 
 import re
 
+from collections import namedtuple
 
-class T(object):
+_token_keys = ('COPEN', 'CCLOSE', 'POPEN', 'PCLOSE', 'SOPEN', 'SCLOSE',
+               'DOT', 'END', 'COMMA', 'HOOK', 'COLON',
+               'AND', 'OR', 'INC', 'DEC', 'NOT', 'BNOT', 'DEL', 'VOID', 'TYPE',
+               'LT', 'GT', 'LE', 'GE', 'EQ', 'NE', 'SEQ', 'SNE',
+               'BOR', 'BXOR', 'BAND', 'RSHIFT', 'LSHIFT', 'URSHIFT', 'SUB', 'ADD', 'MOD', 'DIV', 'MUL',
+               'OP', 'AOP', 'UOP', 'LOP', 'REL',
+               'COMMENT', 'TOKEN', 'PUNCT',
+               'NULL', 'BOOL', 'ID', 'STR', 'INT', 'FLOAT', 'REGEX',
+               'REFLAGS', 'REBODY',
+               'BLOCK', 'VAR', 'EXPR', 'IF', 'ITER', 'CONTINUE', 'BREAK', 'RETURN', 'WITH', 'LABEL', 'SWITCH',
+               'THROW', 'TRY', 'DEBUG',
+               'ASSIGN', 'MEMBER', 'FIELD', 'ELEM', 'CALL', 'ARRAY', 'COND', 'OPEXPR',
+               'RSV')
 
-    COPEN, CCLOSE, POPEN, PCLOSE, SOPEN, SCLOSE = range(0,6)
-    DOT, END, COMMA, HOOK, COLON = range(6, 11)
-    AND, OR, INC, DEC, NOT, BNOT, DEL, VOID, TYPE = range(11, 20)
-    LT, GT, LE, GE, EQ, NE, SEQ, SNE = range(20, 28)
-    BOR, BXOR, BAND, RSHIFT, LSHIFT, URSHIFT, SUB, ADD, MOD, DIV, MUL = range(28, 39)
-
-    OP, AOP, UOP, LOP, REL = range(39, 44)
-    COMMENT, TOKEN, PUNCT = range(44, 47)
-    NULL, BOOL, ID, STR, INT, FLOAT, REGEX = range(47, 54)
-    REFLAGS, REBODY = 54, 55
-
-    BLOCK, VAR, EXPR, IF, ITER, CONTINUE, BREAK, RETURN, WITH, LABEL, SWITCH, THROW, TRY, DEBUG = range(56, 70)
-    ASSIGN, MEMBER, FIELD, ELEM, CALL, ARRAY, COND, OPEXPR = range(70, 78)
-    RSV = 78
-
-    def __getitem__(self, item):
-        return self.__getattribute__(item)
-
-Token = T()
+Token = namedtuple('Token', _token_keys)._make(_token_keys)
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
 __OCTAL_RE = r'0[0-7]+'
@@ -64,24 +59,24 @@ _REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<%s>[gimy]
 _REGEX_RE = r'/(?!\*)(?P<%s>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % ('REBODY', _REGEX_FLAGS_RE)
 
 _TOKENS = [
-    ('NULL', _NULL_RE),
-    ('BOOL', _BOOL_RE),
-    ('ID', _NAME_RE),
-    ('STR', _STRING_RE),
-    ('INT', _INTEGER_RE),
-    ('FLOAT', _FLOAT_RE),
-    ('REGEX', _REGEX_RE)
+    (Token.NULL, _NULL_RE),
+    (Token.BOOL, _BOOL_RE),
+    (Token.ID, _NAME_RE),
+    (Token.STR, _STRING_RE),
+    (Token.INT, _INTEGER_RE),
+    (Token.FLOAT, _FLOAT_RE),
+    (Token.REGEX, _REGEX_RE)
 ]
 
-COMMENT_RE = r'(?P<%s>/\*(?:(?!\*/)(?:\n|.))*\*/)' % 'COMMENT'
+COMMENT_RE = r'(?P<%s>/\*(?:(?!\*/)(?:\n|.))*\*/)' % Token.COMMENT
 TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
                       for name, value in _TOKENS)
 
-LOGICAL_OPERATORS_RE = r'(?P<%s>%s)' % ('LOP', r'|'.join(re.escape(value) for value in _logical_operator))
-UNARY_OPERATORS_RE = r'(?P<%s>%s)' % ('UOP', r'|'.join(re.escape(value) for value in _unary_operator))
-ASSIGN_OPERATORS_RE = r'(?P<%s>%s)' % ('AOP',
+LOGICAL_OPERATORS_RE = r'(?P<%s>%s)' % (Token.LOP, r'|'.join(re.escape(value) for value in _logical_operator))
+UNARY_OPERATORS_RE = r'(?P<%s>%s)' % (Token.UOP, r'|'.join(re.escape(value) for value in _unary_operator))
+ASSIGN_OPERATORS_RE = r'(?P<%s>%s)' % (Token.AOP,
                                        r'|'.join(re.escape(value) if value != '=' else re.escape(value) + r'(?!\=)'
                                                  for value in _assign_operator))
-OPERATORS_RE = r'(?P<%s>%s)' % ('OP', r'|'.join(re.escape(value) for value in _operator))
-RELATIONS_RE = r'(?P<%s>%s)' % ('REL', r'|'.join(re.escape(value) for value in _relation))
-PUNCTUATIONS_RE = r'(?P<%s>%s)' % ('PUNCT', r'|'.join(re.escape(value) for value in _punctuations))
+OPERATORS_RE = r'(?P<%s>%s)' % (Token.OP, r'|'.join(re.escape(value) for value in _operator))
+RELATIONS_RE = r'(?P<%s>%s)' % (Token.REL, r'|'.join(re.escape(value) for value in _relation))
+PUNCTUATIONS_RE = r'(?P<%s>%s)' % (Token.PUNCT, r'|'.join(re.escape(value) for value in _punctuations))
