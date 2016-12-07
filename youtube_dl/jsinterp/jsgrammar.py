@@ -1,12 +1,10 @@
 from __future__ import unicode_literals
 
 import re
-from enum import Enum
-# ALERT enum34 package dependency
-# it's backported
 
 
-class Token(Enum):
+class T(object):
+
     COPEN, CCLOSE, POPEN, PCLOSE, SOPEN, SCLOSE = range(0,6)
     DOT, END, COMMA, HOOK, COLON = range(6, 11)
     AND, OR, INC, DEC, NOT, BNOT, DEL, VOID, TYPE = range(11, 20)
@@ -22,6 +20,10 @@ class Token(Enum):
     ASSIGN, MEMBER, FIELD, ELEM, CALL, ARRAY, COND, OPEXPR = range(70, 78)
     RSV = 78
 
+    def __getitem__(self, item):
+        return self.__getattribute__(item)
+
+Token = T()
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
 __OCTAL_RE = r'0[0-7]+'
@@ -58,28 +60,28 @@ _NULL_RE = r'null'
 # r'''/(?!\*)
 #     (?:(?:\\(?:[tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|[^/\n])*
 #     /(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|$)'''
-_REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<%s>[gimy]{0,4}\b)' % Token.REFLAGS.name
-_REGEX_RE = r'/(?!\*)(?P<%s>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % (Token.REBODY.name, _REGEX_FLAGS_RE)
+_REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<%s>[gimy]{0,4}\b)' % 'REFLAGS'
+_REGEX_RE = r'/(?!\*)(?P<%s>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % ('REBODY', _REGEX_FLAGS_RE)
 
 _TOKENS = [
-    (Token.NULL, _NULL_RE),
-    (Token.BOOL, _BOOL_RE),
-    (Token.ID, _NAME_RE),
-    (Token.STR, _STRING_RE),
-    (Token.INT, _INTEGER_RE),
-    (Token.FLOAT, _FLOAT_RE),
-    (Token.REGEX, _REGEX_RE)
+    ('NULL', _NULL_RE),
+    ('BOOL', _BOOL_RE),
+    ('ID', _NAME_RE),
+    ('STR', _STRING_RE),
+    ('INT', _INTEGER_RE),
+    ('FLOAT', _FLOAT_RE),
+    ('REGEX', _REGEX_RE)
 ]
 
-COMMENT_RE = r'(?P<%s>/\*(?:(?!\*/)(?:\n|.))*\*/)' % Token.COMMENT.name
-TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name.name, 'value': value}
+COMMENT_RE = r'(?P<%s>/\*(?:(?!\*/)(?:\n|.))*\*/)' % 'COMMENT'
+TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
                       for name, value in _TOKENS)
 
-LOGICAL_OPERATORS_RE = r'(?P<%s>%s)' % (Token.LOP.name, r'|'.join(re.escape(value) for value in _logical_operator))
-UNARY_OPERATORS_RE = r'(?P<%s>%s)' % (Token.UOP.name, r'|'.join(re.escape(value) for value in _unary_operator))
-ASSIGN_OPERATORS_RE = r'(?P<%s>%s)' % (Token.AOP.name,
+LOGICAL_OPERATORS_RE = r'(?P<%s>%s)' % ('LOP', r'|'.join(re.escape(value) for value in _logical_operator))
+UNARY_OPERATORS_RE = r'(?P<%s>%s)' % ('UOP', r'|'.join(re.escape(value) for value in _unary_operator))
+ASSIGN_OPERATORS_RE = r'(?P<%s>%s)' % ('AOP',
                                        r'|'.join(re.escape(value) if value != '=' else re.escape(value) + r'(?!\=)'
                                                  for value in _assign_operator))
-OPERATORS_RE = r'(?P<%s>%s)' % (Token.OP.name, r'|'.join(re.escape(value) for value in _operator))
-RELATIONS_RE = r'(?P<%s>%s)' % (Token.REL.name, r'|'.join(re.escape(value) for value in _relation))
-PUNCTUATIONS_RE = r'(?P<%s>%s)' % (Token.PUNCT.name, r'|'.join(re.escape(value) for value in _punctuations))
+OPERATORS_RE = r'(?P<%s>%s)' % ('OP', r'|'.join(re.escape(value) for value in _operator))
+RELATIONS_RE = r'(?P<%s>%s)' % ('REL', r'|'.join(re.escape(value) for value in _relation))
+PUNCTUATIONS_RE = r'(?P<%s>%s)' % ('PUNCT', r'|'.join(re.escape(value) for value in _punctuations))
