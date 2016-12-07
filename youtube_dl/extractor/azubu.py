@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class AzubuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?azubu\.tv/[^/]+#!/play/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?azubu\.(?:tv|uol.com.br)/[^/]+#!/play/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://www.azubu.tv/GSL#!/play/15575/2014-hot6-cup-last-big-match-ro8-day-1',
@@ -103,12 +103,15 @@ class AzubuIE(InfoExtractor):
 
 
 class AzubuLiveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?azubu\.tv/(?P<id>[^/]+)$'
+    _VALID_URL = r'https?://(?:www\.)?azubu\.(?:tv|uol.com.br)/(?P<id>[^/]+)$'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.azubu.tv/MarsTVMDLen',
         'only_matching': True,
-    }
+    }, {
+        'url': 'http://azubu.uol.com.br/adolfz',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         user = self._match_id(url)

@@ -17,7 +17,7 @@ from ..compat import compat_urllib_parse_urlencode
 class VLiveIE(InfoExtractor):
     IE_NAME = 'vlive'
     _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<id>[0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.vlive.tv/video/1326',
         'md5': 'cc7314812855ce56de70a06a27314983',
         'info_dict': {
@@ -27,7 +27,20 @@ class VLiveIE(InfoExtractor):
             'creator': "Girl's Day",
             'view_count': int,
         },
-    }
+    }, {
+        'url': 'http://www.vlive.tv/video/16937',
+        'info_dict': {
+            'id': '16937',
+            'ext': 'mp4',
+            'title': '[V LIVE] 첸백시 걍방',
+            'creator': 'EXO',
+            'view_count': int,
+            'subtitles': 'mincount:12',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -116,7 +129,7 @@ class VLiveIE(InfoExtractor):
 
         subtitles = {}
         for caption in playinfo.get('captions', {}).get('list', []):
-            lang = dict_get(caption, ('language', 'locale', 'country', 'label'))
+            lang = dict_get(caption, ('locale', 'language', 'country', 'label'))
             if lang and caption.get('source'):
                 subtitles[lang] = [{
                     'ext': 'vtt',

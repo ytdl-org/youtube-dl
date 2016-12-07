@@ -1796,7 +1796,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                      |
                         ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
                      )"""
-    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
+    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&disable_polymer=true'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)(?:[^>]+>(?P<title>[^<]+))?'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
@@ -2175,7 +2175,7 @@ class YoutubeUserIE(YoutubeChannelIE):
 
 class YoutubeLiveIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com live streams'
-    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:user|channel|c)/(?P<id>[^/]+))/live'
+    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:(?:user|channel|c)/)?(?P<id>[^/]+))/live'
     IE_NAME = 'youtube:live'
 
     _TESTS = [{
@@ -2203,6 +2203,9 @@ class YoutubeLiveIE(YoutubeBaseInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/c/CommanderVideoHq/live',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/TheYoungTurks/live',
         'only_matching': True,
     }]
 

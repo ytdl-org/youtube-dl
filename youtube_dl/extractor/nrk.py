@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import random
 import re
 
 from .common import InfoExtractor
@@ -14,6 +15,25 @@ from ..utils import (
 
 
 class NRKBaseIE(InfoExtractor):
+    _faked_ip = None
+
+    def _download_webpage_handle(self, *args, **kwargs):
+        # NRK checks X-Forwarded-For HTTP header in order to figure out the
+        # origin of the client behind proxy. This allows to bypass geo
+        # restriction by faking this header's value to some Norway IP.
+        # We will do so once we encounter any geo restriction error.
+        if self._faked_ip:
+            # NB: str is intentional
+            kwargs.setdefault(str('headers'), {})['X-Forwarded-For'] = self._faked_ip
+        return super(NRKBaseIE, self)._download_webpage_handle(*args, **kwargs)
+
+    def _fake_ip(self):
+        # Use fake IP from 37.191.128.0/17 in order to workaround geo
+        # restriction
+        def octet(lb=0, ub=255):
+            return random.randint(lb, ub)
+        self._faked_ip = '37.191.%d.%d' % (octet(128), octet())
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -23,6 +43,8 @@ class NRKBaseIE(InfoExtractor):
 
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
         video_id = data.get('id') or video_id
+
+        http_headers = {'X-Forwarded-For': self._faked_ip} if self._faked_ip else {}
 
         entries = []
 
@@ -54,6 +76,7 @@ class NRKBaseIE(InfoExtractor):
                     'duration': duration,
                     'subtitles': subtitles,
                     'formats': formats,
+                    'http_headers': http_headers,
                 })
 
         if not entries:
@@ -70,10 +93,23 @@ class NRKBaseIE(InfoExtractor):
                 }]
 
         if not entries:
-            if data.get('usageRights', {}).get('isGeoBlocked'):
-                raise ExtractorError(
-                    'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
-                    expected=True)
+            message_type = data.get('messageType', '')
+            # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
+            if 'IsGeoBlocked' in message_type and not self._faked_ip:
+                self.report_warning(
+                    'Video is geo restricted, trying to fake IP')
+                self._fake_ip()
+                return self._real_extract(url)
+
+            MESSAGES = {
+                'ProgramRightsAreNotReady': 'Du kan dessverre ikke se eller høre programmet',
+                'ProgramRightsHasExpired': 'Programmet har gått ut',
+                'ProgramIsGeoBlocked': 'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
+            }
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, MESSAGES.get(
+                    message_type, message_type)),
+                expected=True)
 
         conviva = data.get('convivaStatistics') or {}
         series = conviva.get('seriesName') or data.get('seriesTitle')

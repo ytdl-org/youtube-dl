@@ -293,6 +293,7 @@ class FFmpegFD(ExternalFD):
 class AVconvFD(FFmpegFD):
     pass
 
+
 _BY_NAME = dict(
     (klass.get_basename(), klass)
     for name, klass in globals().items()

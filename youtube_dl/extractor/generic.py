@@ -56,10 +56,10 @@ from .dailymotion import (
 )
 from .onionstudios import OnionStudiosIE
 from .viewlift import ViewLiftEmbedIE
-from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
 from .videomore import VideomoreIE
+from .webcaster import WebcasterFeedIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
@@ -1189,16 +1189,6 @@ class GenericIE(InfoExtractor):
                 'duration': 248.667,
             },
         },
-        # ScreenwaveMedia embed
-        {
-            'url': 'http://www.thecinemasnob.com/the-cinema-snob/a-nightmare-on-elm-street-2-freddys-revenge1',
-            'md5': '24ace5baba0d35d55c6810b51f34e9e0',
-            'info_dict': {
-                'id': 'cinemasnob-55d26273809dd',
-                'ext': 'mp4',
-                'title': 'cinemasnob',
-            },
-        },
         # BrightcoveInPageEmbed embed
         {
             'url': 'http://www.geekandsundry.com/tabletop-bonus-wils-final-thoughts-on-dread/',
@@ -2140,6 +2130,11 @@ class GenericIE(InfoExtractor):
         if videomore_url:
             return self.url_result(videomore_url)
 
+        # Look for Webcaster embeds
+        webcaster_url = WebcasterFeedIE._extract_url(self, webpage)
+        if webcaster_url:
+            return self.url_result(webcaster_url, ie=WebcasterFeedIE.ie_key())
+
         # Look for Playwire embeds
         mobj = re.search(
             r'<script[^>]+data-config=(["\'])(?P<url>(?:https?:)?//config\.playwire\.com/.+?)\1', webpage)
@@ -2206,11 +2201,6 @@ class GenericIE(InfoExtractor):
         if jwplatform_url:
             return self.url_result(jwplatform_url, 'JWPlatform')
 
-        # Look for ScreenwaveMedia embeds
-        mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
-        if mobj is not None:
-            return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
-
         # Look for Digiteka embeds
         digiteka_url = DigitekaIE._extract_url(webpage)
         if digiteka_url:
@@ -2231,6 +2221,16 @@ class GenericIE(InfoExtractor):
             }
             return self.url_result('limelight:%s:%s' % (
                 lm[mobj.group(1)], mobj.group(2)), 'Limelight%s' % mobj.group(1), mobj.group(2))
+
+        mobj = re.search(
+            r'''(?sx)
+                <object[^>]+class=(["\'])LimelightEmbeddedPlayerFlash\1[^>]*>.*?
+                    <param[^>]+
+                        name=(["\'])flashVars\2[^>]+
+                        value=(["\'])(?:(?!\3).)*mediaId=(?P<id>[a-z0-9]{32})
+            ''', webpage)
+        if mobj:
+            return self.url_result('limelight:media:%s' % mobj.group('id'))
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(

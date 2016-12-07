@@ -110,7 +110,7 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done
 
 ROOT=$(pwd)
-python devscripts/create-github-release.py $version "$ROOT/build/$version"
+python devscripts/create-github-release.py ChangeLog $version "$ROOT/build/$version"
 
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
 

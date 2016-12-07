@@ -92,7 +92,7 @@ If you want to create a build of youtube-dl yourself, you'll need
 
 ### Adding support for a new site
 
-If you want to add support for a new site, first of all **make sure** this site is **not dedicated to [copyright infringement](#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. youtube-dl does **not support** such sites thus pull requests adding support for them **will be rejected**.
+If you want to add support for a new site, first of all **make sure** this site is **not dedicated to [copyright infringement](README.md#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. youtube-dl does **not support** such sites thus pull requests adding support for them **will be rejected**.
 
 After you have ensured this site is distributing it's content legally, you can follow this quick list (assuming your service is called `yourextractor`):
 

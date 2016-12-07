@@ -51,7 +51,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'Hurts',
             'genre': 'Pop',
         },
-        'expected_warnings': ['Unable to download SMIL file'],
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'v3 SMIL format',
         'url': 'http://www.vevo.com/watch/cassadee-pope/i-wish-i-could-break-your-heart/USUV71302923',
@@ -67,7 +67,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'Cassadee Pope',
             'genre': 'Country',
         },
-        'expected_warnings': ['Unable to download SMIL file'],
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'Age-limited video',
         'url': 'https://www.vevo.com/watch/justin-timberlake/tunnel-vision-explicit/USRV81300282',
@@ -83,7 +83,7 @@ class VevoIE(VevoBaseIE):
             'artist': 'Justin Timberlake',
             'genre': 'Pop',
         },
-        'expected_warnings': ['Unable to download SMIL file'],
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'No video_info',
         'url': 'http://www.vevo.com/watch/k-camp-1/Till-I-Die/USUV71503000',
@@ -91,15 +91,33 @@ class VevoIE(VevoBaseIE):
         'info_dict': {
             'id': 'USUV71503000',
             'ext': 'mp4',
-            'title': 'K Camp - Till I Die',
+            'title': 'K Camp ft. T.I. - Till I Die',
             'age_limit': 18,
             'timestamp': 1449468000,
             'upload_date': '20151207',
             'uploader': 'K Camp',
             'track': 'Till I Die',
             'artist': 'K Camp',
-            'genre': 'Rap/Hip-Hop',
+            'genre': 'Hip-Hop',
         },
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
+    }, {
+        'note': 'Featured test',
+        'url': 'https://www.vevo.com/watch/lemaitre/Wait/USUV71402190',
+        'md5': 'd28675e5e8805035d949dc5cf161071d',
+        'info_dict': {
+            'id': 'USUV71402190',
+            'ext': 'mp4',
+            'title': 'Lemaitre ft. LoLo - Wait',
+            'age_limit': 0,
+            'timestamp': 1413432000,
+            'upload_date': '20141016',
+            'uploader': 'Lemaitre',
+            'track': 'Wait',
+            'artist': 'Lemaitre',
+            'genre': 'Electronic',
+        },
+        'expected_warnings': ['Unable to download SMIL file', 'Unable to download info'],
     }, {
         'note': 'Only available via webpage',
         'url': 'http://www.vevo.com/watch/GBUV71600656',
@@ -242,8 +260,11 @@ class VevoIE(VevoBaseIE):
 
             timestamp = parse_iso8601(video_info.get('releaseDate'))
             artists = video_info.get('artists')
-            if artists:
-                artist = uploader = artists[0]['name']
+            for curr_artist in artists:
+                if curr_artist.get('role') == 'Featured':
+                    featured_artist = curr_artist['name']
+                else:
+                    artist = uploader = curr_artist['name']
             view_count = int_or_none(video_info.get('views', {}).get('total'))
 
             for video_version in video_versions:

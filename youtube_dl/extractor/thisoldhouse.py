@@ -5,10 +5,10 @@ from .common import InfoExtractor
 
 
 class ThisOldHouseIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?thisoldhouse\.com/(?:watch|how-to)/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?thisoldhouse\.com/(?:watch|how-to|tv-episode)/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'https://www.thisoldhouse.com/how-to/how-to-build-storage-bench',
-        'md5': '568acf9ca25a639f0c4ff905826b662f',
+        'md5': '946f05bbaa12a33f9ae35580d2dfcfe3',
         'info_dict': {
             'id': '2REGtUDQ',
             'ext': 'mp4',
@@ -19,6 +19,9 @@ class ThisOldHouseIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.thisoldhouse.com/watch/arlington-arts-crafts-arts-and-crafts-class-begins',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.thisoldhouse.com/tv-episode/ask-toh-shelf-rough-electric',
         'only_matching': True,
     }]
 

@@ -54,6 +54,22 @@ class LiveLeakIE(InfoExtractor):
             'title': 'Crazy Hungarian tourist films close call waterspout in Croatia',
             'thumbnail': 're:^https?://.*\.jpg$'
         }
+    }, {
+        # Covers https://github.com/rg3/youtube-dl/pull/10664#issuecomment-247439521
+        'url': 'http://m.liveleak.com/view?i=763_1473349649',
+        'add_ie': ['Youtube'],
+        'info_dict': {
+            'id': '763_1473349649',
+            'ext': 'mp4',
+            'title': 'Reporters and public officials ignore epidemic of black on asian violence in Sacramento | Colin Flaherty',
+            'description': 'Colin being the warrior he is and showing the injustice Asians in Sacramento are being subjected to.',
+            'uploader': 'Ziz',
+            'upload_date': '20160908',
+            'uploader_id': 'UCEbta5E_jqlZmEJsriTEtnw'
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     @staticmethod
@@ -87,7 +103,7 @@ class LiveLeakIE(InfoExtractor):
             else:
                 # Maybe an embed?
                 embed_url = self._search_regex(
-                    r'<iframe[^>]+src="(http://www.prochan.com/embed\?[^"]+)"',
+                    r'<iframe[^>]+src="(https?://(?:www\.)?(?:prochan|youtube)\.com/embed[^"]+)"',
                     webpage, 'embed URL')
                 return {
                     '_type': 'url_transparent',
@@ -107,6 +123,7 @@ class LiveLeakIE(InfoExtractor):
             'format_note': s.get('label'),
             'url': s['file'],
         } for i, s in enumerate(sources)]
+
         for i, s in enumerate(sources):
             # Removing '.h264_*.mp4' gives the raw video, which is essentially
             # the same video without the LiveLeak logo at the top (see

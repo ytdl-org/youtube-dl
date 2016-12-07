@@ -51,5 +51,6 @@ class TestAES(unittest.TestCase):
         decrypted = (aes_decrypt_text(encrypted, password, 32))
         self.assertEqual(decrypted, self.secret_msg)
 
+
 if __name__ == '__main__':
     unittest.main()

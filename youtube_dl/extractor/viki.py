@@ -1,11 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-import time
-import hmac
 import hashlib
+import hmac
 import itertools
+import json
+import re
+import time
 
 from .common import InfoExtractor
 from ..utils import (
@@ -276,10 +277,14 @@ class VikiIE(VikiBaseIE):
             height = int_or_none(self._search_regex(
                 r'^(\d+)[pP]$', format_id, 'height', default=None))
             for protocol, format_dict in stream_dict.items():
+                # rtmps URLs does not seem to work
+                if protocol == 'rtmps':
+                    continue
+                format_url = format_dict['url']
                 if format_id == 'm3u8':
                     m3u8_formats = self._extract_m3u8_formats(
-                        format_dict['url'], video_id, 'mp4',
-                        entry_protocol='m3u8_native', preference=-1,
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native',
                         m3u8_id='m3u8-%s' % protocol, fatal=False)
                     # Despite CODECS metadata in m3u8 all video-only formats
                     # are actually video+audio
@@ -287,9 +292,23 @@ class VikiIE(VikiBaseIE):
                         if f.get('acodec') == 'none' and f.get('vcodec') != 'none':
                             f['acodec'] = None
                     formats.extend(m3u8_formats)
+                elif format_url.startswith('rtmp'):
+                    mobj = re.search(
+                        r'^(?P<url>rtmp://[^/]+/(?P<app>.+?))/(?P<playpath>mp4:.+)$',
+                        format_url)
+                    if not mobj:
+                        continue
+                    formats.append({
+                        'format_id': 'rtmp-%s' % format_id,
+                        'ext': 'flv',
+                        'url': mobj.group('url'),
+                        'play_path': mobj.group('playpath'),
+                        'app': mobj.group('app'),
+                        'page_url': url,
+                    })
                 else:
                     formats.append({
-                        'url': format_dict['url'],
+                        'url': format_url,
                         'format_id': '%s-%s' % (format_id, protocol),
                         'height': height,
                     })

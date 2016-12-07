@@ -13,6 +13,7 @@ from ..utils import (
     fix_xml_ampersands,
     float_or_none,
     HEADRequest,
+    NO_DEFAULT,
     RegexNotFoundError,
     sanitized_Request,
     strip_or_none,
@@ -201,7 +202,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             [self._get_video_info(item) for item in idoc.findall('.//item')],
             playlist_title=title, playlist_description=description)
 
-    def _extract_mgid(self, webpage):
+    def _extract_mgid(self, webpage, default=NO_DEFAULT):
         try:
             # the url can be http://media.mtvnservices.com/fb/{mgid}.swf
             # or http://media.mtvnservices.com/{mgid}
@@ -221,7 +222,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             sm4_embed = self._html_search_meta(
                 'sm4:video:embed', webpage, 'sm4 embed', default='')
             mgid = self._search_regex(
-                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid')
+                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid', default=default)
         return mgid
 
     def _real_extract(self, url):

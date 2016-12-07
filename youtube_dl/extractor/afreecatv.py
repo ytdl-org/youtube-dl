@@ -11,6 +11,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    update_url_query,
     xpath_element,
     xpath_text,
 )
@@ -18,12 +19,18 @@ from ..utils import (
 
 class AfreecaTVIE(InfoExtractor):
     IE_DESC = 'afreecatv.com'
-    _VALID_URL = r'''(?x)^
-        https?://(?:(live|afbbs|www)\.)?afreeca(?:tv)?\.com(?::\d+)?
-        (?:
-            /app/(?:index|read_ucc_bbs)\.cgi|
-            /player/[Pp]layer\.(?:swf|html))
-        \?.*?\bnTitleNo=(?P<id>\d+)'''
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:(?:live|afbbs|www)\.)?afreeca(?:tv)?\.com(?::\d+)?
+                            (?:
+                                /app/(?:index|read_ucc_bbs)\.cgi|
+                                /player/[Pp]layer\.(?:swf|html)
+                            )\?.*?\bnTitleNo=|
+                            vod\.afreecatv\.com/PLAYER/STATION/
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [{
         'url': 'http://live.afreecatv.com:8079/app/index.cgi?szType=read_ucc_bbs&szBjId=dailyapril&nStationNo=16711924&nBbsNo=18605867&nTitleNo=36164052&szSkin=',
         'md5': 'f72c89fe7ecc14c1b5ce506c4996046e',
@@ -66,6 +73,9 @@ class AfreecaTVIE(InfoExtractor):
     }, {
         'url': 'http://www.afreecatv.com/player/Player.swf?szType=szBjId=djleegoon&nStationNo=11273158&nBbsNo=13161095&nTitleNo=36327652',
         'only_matching': True,
+    }, {
+        'url': 'http://vod.afreecatv.com/PLAYER/STATION/15055030',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -83,7 +93,9 @@ class AfreecaTVIE(InfoExtractor):
         info_url = compat_urlparse.urlunparse(parsed_url._replace(
             netloc='afbbs.afreecatv.com:8080',
             path='/api/video/get_video_info.php'))
-        video_xml = self._download_xml(info_url, video_id)
+
+        video_xml = self._download_xml(
+            update_url_query(info_url, {'nTitleNo': video_id}), video_id)
 
         if xpath_element(video_xml, './track/video/file') is None:
             raise ExtractorError('Specified AfreecaTV video does not exist',
