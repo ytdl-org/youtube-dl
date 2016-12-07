@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import re
 from enum import Enum
+# ALERT enum34 package dependency
+# it's backported
 
 
 class Token(Enum):
@@ -10,10 +12,15 @@ class Token(Enum):
     AND, OR, INC, DEC, NOT, BNOT, DEL, VOID, TYPE = range(11, 20)
     LT, GT, LE, GE, EQ, NE, SEQ, SNE = range(20, 28)
     BOR, BXOR, BAND, RSHIFT, LSHIFT, URSHIFT, SUB, ADD, MOD, DIV, MUL = range(28, 39)
+
     OP, AOP, UOP, LOP, REL = range(39, 44)
     COMMENT, TOKEN, PUNCT = range(44, 47)
     NULL, BOOL, ID, STR, INT, FLOAT, REGEX = range(47, 54)
-    reflag, rebody = 54, 55
+    REFLAGS, REBODY = 54, 55
+
+    BLOCK, VAR, EXPR, IF, ITER, CONTINUE, BREAK, RETURN, WITH, LABEL, SWITCH, THROW, TRY, DEBUG = range(56, 70)
+    ASSIGN, MEMBER, FIELD, ELEM, CALL, ARRAY, COND, OPEXPR = range(70, 78)
+    RSV = 78
 
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
@@ -51,8 +58,8 @@ _NULL_RE = r'null'
 # r'''/(?!\*)
 #     (?:(?:\\(?:[tnvfr0.\\+*?^$\[\]{}()|/]|[0-7]{3}|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|c[A-Z]|))|[^/\n])*
 #     /(?:(?![gimy]*(?P<flag>[gimy])[gimy]*(?P=flag))[gimy]{0,4}\b|\s|$)'''
-_REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<reflags>[gimy]{0,4}\b)'
-_REGEX_RE = r'/(?!\*)(?P<rebody>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % _REGEX_FLAGS_RE
+_REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<%s>[gimy]{0,4}\b)' % Token.REFLAGS.name
+_REGEX_RE = r'/(?!\*)(?P<%s>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % (Token.REBODY.name, _REGEX_FLAGS_RE)
 
 _TOKENS = [
     (Token.NULL, _NULL_RE),

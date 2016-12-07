@@ -6,7 +6,7 @@ from ..utils import ExtractorError
 from .tstream import TokenStream
 from .jsgrammar import Token
 
-_token_keys = Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token.FLOAT, Token.REGEX
+_token_keys = set((Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token.FLOAT, Token.REGEX))
 
 
 class JSInterpreter(object):
@@ -43,7 +43,7 @@ class JSInterpreter(object):
                 if token_id is Token.CCLOSE:
                     token_stream.pop()
                     break
-            statement = ('block', statement_list)
+            statement = (Token.BLOCK, statement_list)
         elif token_id is Token.ID:
             # TODO parse label
             if token_value == 'var':
@@ -76,7 +76,7 @@ class JSInterpreter(object):
                         # - check line terminator
                         # - restricted token
                         raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-                statement = ('vardecl', zip(variables, init))
+                statement = (Token.VAR, zip(variables, init))
             elif token_value == 'if':
                 # TODO parse ifstatement
                 raise ExtractorError('Conditional statement is not yet supported at %d' % token_pos)
@@ -88,7 +88,7 @@ class JSInterpreter(object):
                 raise ExtractorError('Flow control is not yet supported at %d' % token_pos)
             elif token_value == 'return':
                 token_stream.pop()
-                statement = ('return', self._expression(token_stream, stack_top - 1))
+                statement = (Token.RETURN, self._expression(token_stream, stack_top - 1))
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id is not Token.END:
                     # FIXME automatic end insertion
@@ -126,7 +126,7 @@ class JSInterpreter(object):
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
 
-            statement = ('expr', expr_list)
+            statement = (Token.EXPR, expr_list)
         return statement
 
     def statements(self, code=None, pos=0, stack_size=100):
@@ -152,7 +152,7 @@ class JSInterpreter(object):
                 raise ExtractorError('Yield statement is not yet supported at %d' % peek_pos)
             else:
                 has_another = False
-        return ('expr', exprs)
+        return (Token.EXPR, exprs)
 
     def _assign_expression(self, token_stream, stack_top):
         if stack_top < 0:
@@ -167,7 +167,7 @@ class JSInterpreter(object):
         else:
             op = None
             right = None
-        return ('assign', op, left, right)
+        return (Token.ASSIGN, op, left, right)
 
     def _member_expression(self, token_stream, stack_top):
         peek_id, peek_value, peek_pos = token_stream.peek()
@@ -181,7 +181,7 @@ class JSInterpreter(object):
             target = self._primary_expression(token_stream, stack_top)
             args = None
 
-        return ('member', target, args, self._member_tail(token_stream, stack_top - 1))
+        return (Token.MEMBER, target, args, self._member_tail(token_stream, stack_top - 1))
 
     def _member_tail(self, token_stream, stack_top):
         if stack_top < 0:
@@ -200,20 +200,20 @@ class JSInterpreter(object):
 
             if peek_id is Token.ID:
                 token_stream.pop()
-                return ('field', peek_value, self._member_tail(token_stream, stack_top - 1))
+                return (Token.FIELD, peek_value, self._member_tail(token_stream, stack_top - 1))
             else:
                 raise ExtractorError('Identifier name expected at %d' % peek_pos)
-        elif peek_id is Token.POPEN:
+        elif peek_id is Token.SOPEN:
             token_stream.pop()
             index = self._expression(token_stream, stack_top - 1)
             token_id, token_value, token_pos = token_stream.pop()
             if token_id is Token.SCLOSE:
-                return ('element', index, self._member_tail(token_stream, stack_top - 1))
+                return (Token.ELEM, index, self._member_tail(token_stream, stack_top - 1))
             else:
                 raise ExtractorError('Unexpected sequence at %d' % token_pos)
         elif peek_id is Token.POPEN:
             args = self._arguments(token_stream, stack_top - 1)
-            return ('call', args, self._member_tail(token_stream, stack_top - 1))
+            return (Token.CALL, args, self._member_tail(token_stream, stack_top - 1))
         else:
             return None
 
@@ -228,7 +228,7 @@ class JSInterpreter(object):
             if peek_id is Token.ID:
                 # this
                 if peek_value == 'this':
-                    return ('rsv', 'this')
+                    return (Token.RSV, 'this')
                 # function expr
                 elif peek_value == 'function':
                     # TODO parse function expression
@@ -256,7 +256,7 @@ class JSInterpreter(object):
             if peek_id is not Token.PCLOSE:
                 raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
             token_stream.pop()
-            return ('expr', expr)
+            return (Token.EXPR, expr)
         # empty (probably)
         else:
             return None
@@ -316,7 +316,7 @@ class JSInterpreter(object):
                 elif peek_id is not Token.COMMA:
                     raise ExtractorError('Expected , after element at %d' % peek_pos)
 
-        return ('array', elements)
+        return (Token.ARRAY, elements)
 
     def _conditional_expression(self, token_stream, stack_top):
         if stack_top < 0:
@@ -332,7 +332,7 @@ class JSInterpreter(object):
                 false_expr = self._assign_expression(token_stream, stack_top - 1)
             else:
                 raise ExtractorError('Missing : in conditional expression at %d' % hook_pos)
-            return ('cond', expr, true_expr, false_expr)
+            return (Token.COND, expr, true_expr, false_expr)
         return expr
 
     def _operator_expression(self, token_stream, stack_top):
@@ -439,10 +439,10 @@ class JSInterpreter(object):
                 stack.append((prec, peek_id, op))
                 token_stream.pop()
 
-        return ('rpn', out)
+        return (Token.OPEXPR, out)
 
     # TODO use context instead local_vars in argument
-    
+
     def getvalue(self, ref, local_vars):
         if ref is None or ref is self.undefined or isinstance(ref, (int, float, str)):  # not Token
             return ref
@@ -451,7 +451,7 @@ class JSInterpreter(object):
             return local_vars[ref_value]
         elif ref_id in _token_keys:
             return ref_value
-        elif ref_id == 'expr':
+        elif ref_id is Token.EXPR:
             ref, abort = self.interpret_statement(ref_value, local_vars)
             return self.getvalue(ref, local_vars)
 
@@ -465,21 +465,21 @@ class JSInterpreter(object):
         if name == 'funcdecl':
             # TODO interpret funcdecl
             raise ExtractorError('''Can't interpret statement called %s''' % name)
-        elif name == 'block':
+        elif name is Token.BLOCK:
             block = stmt[1]
             for stmt in block:
                 s, abort = self.interpret_statement(stmt, local_vars)
                 if s is not None:
                     ref = self.getvalue(s, local_vars)
-        elif name == 'vardecl':
+        elif name is Token.VAR:
             for name, value in stmt[1]:
                 local_vars[name] = self.getvalue(self.interpret_expression(value, local_vars), local_vars)
-        elif name == 'expr':
+        elif name is Token.EXPR:
             for expr in stmt[1]:
                 ref = self.interpret_expression(expr, local_vars)
         # if
         # continue, break
-        elif name == 'return':
+        elif name is Token.RETURN:
             # TODO use context instead returning abort
             ref, abort = self.interpret_statement(stmt[1], local_vars)
             ref = self.getvalue(ref, local_vars)
@@ -496,7 +496,7 @@ class JSInterpreter(object):
 
     def interpret_expression(self, expr, local_vars):
         name = expr[0]
-        if name == 'assign':
+        if name is Token.ASSIGN:
             op, left, right = expr[1:]
             if op is None:
                 return self.interpret_expression(left, local_vars)
@@ -508,7 +508,7 @@ class JSInterpreter(object):
                 local_vars[left[1]] = op(leftvalue, rightvalue)
                 return left
 
-        elif name == 'rpn':
+        elif name is Token.OPEXPR:
             stack = []
             rpn = expr[1]
             while rpn:
@@ -528,18 +528,18 @@ class JSInterpreter(object):
             else:
                 raise ExtractorError('Expression has too many values')
 
-        elif name == 'member':
+        elif name is Token.MEMBER:
             # TODO interpret member
             target, args, tail = expr[1:]
             while tail is not None:
                 tail_name, tail_value, tail = tail
-                if tail_name == 'field':
+                if tail_name is Token.FIELD:
                     # TODO interpret field
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
-                elif tail_name == 'element':
+                elif tail_name is Token.ELEM:
                     # TODO interpret element
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
-                elif tail_name == 'call':
+                elif tail_name is Token.CALL:
                     # TODO interpret call
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
             return target
@@ -550,7 +550,7 @@ class JSInterpreter(object):
         elif name in _token_keys:
             return expr[1]
 
-        elif name == 'array':
+        elif name is Token.ARRAY:
             array = []
             elms = expr[1]
             for expr in elms:
