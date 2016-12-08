@@ -104,6 +104,7 @@ class TestJSInterpreter(unittest.TestCase):
         }''')
         self.assertEqual(jsi.call_function('x'), [20, 20, 30, 40, 50])
 
+    @unittest.skip('Interpreting function call not yet implemented')
     def test_call(self):
         jsi = JSInterpreter('''
         function x() { return 2; }
@@ -113,7 +114,9 @@ class TestJSInterpreter(unittest.TestCase):
         self.assertEqual(jsi.call_function('z'), 5)
         jsi = JSInterpreter('function x(a) { return a.split(""); }', objects={'a': 'abc'})
         self.assertEqual(jsi.call_function('x'), ["a", "b", "c"])
-        return
+
+    @unittest.skip('Interpreting function call not yet implemented')
+    def test_complex_call(self):
         jsi = JSInterpreter('''
                 function a(x) { return x; }
                 function b(x) { return x; }

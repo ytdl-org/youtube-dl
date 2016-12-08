@@ -16,7 +16,6 @@ from .jsgrammar import (
     Token
 )
 
-
 _PUNCTUATIONS = {
     '{': Token.COPEN,
     '}': Token.CCLOSE,
