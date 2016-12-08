@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.09
 
 Core
 * [socks] Fix error reporting (#11355)
