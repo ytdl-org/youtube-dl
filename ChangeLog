@@ -1,7 +1,18 @@
 version <unreleased>
 
+Core
+* [socks] Fix error reporting (#11355)
+
 Extractors
 * [openload] Fix extraction (#10408)
+* [pandoratv] Fix extraction (#11023)
++ [telebruxelles] Add support for emission URLs
+* [telebruxelles] Extract all formats
++ [bloomberg] Add another video id regular expression (#11371)
+* [fusion] Update ooyala id regular expression (#11364)
++ [1tv] Add support for playlists (#11335)
+* [1tv] Improve extraction (#11335)
++ [aenetworks] Extract more formats (#11321)
 + [thisoldhouse] Recognize /tv-episode/ URLs (#11271)
 
 version 2016.12.01
