@@ -120,7 +120,7 @@ class TokenStream(object):
                 elif token_id is Token.BOOL:
                     yield (token_id, {'true': True, 'false': False}[token_value], pos)
                 elif token_id is Token.STR:
-                    yield (token_id, token_value, pos)
+                    yield (token_id, token_value[1:-1], pos)
                 elif token_id is Token.INT:
                     yield (token_id, int(token_value), pos)
                 elif token_id is Token.FLOAT:

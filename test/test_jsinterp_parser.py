@@ -124,16 +124,44 @@ class TestJSInterpreterParser(unittest.TestCase):
                 )]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Already have a bunch of these')
     def test_operators(self):
         jsi = JSInterpreter('return 1 << 5;')
-        ast = []
+        ast = [
+            (Token.RETURN,
+             (Token.EXPR, [
+                 (Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.INT, 1), None, None),
+                     (Token.MEMBER, (Token.INT, 5), None, None),
+                     (Token.OP, _OPERATORS['<<'][1])
+                 ]), None)
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
         jsi = JSInterpreter('return 19 & 21;')
+        ast = [
+            (Token.RETURN,
+             (Token.EXPR, [
+                 (Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.INT, 19), None, None),
+                     (Token.MEMBER, (Token.INT, 21), None, None),
+                     (Token.OP, _OPERATORS['&'][1])
+                 ]), None)
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
         jsi = JSInterpreter('return 11 >> 2;')
+        ast = [
+            (Token.RETURN,
+             (Token.EXPR, [
+                 (Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.INT, 11), None, None),
+                     (Token.MEMBER, (Token.INT, 2), None, None),
+                     (Token.OP, _OPERATORS['>>'][1])
+                 ]), None)
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
     def test_array_access(self):
@@ -276,36 +304,194 @@ class TestJSInterpreterParser(unittest.TestCase):
         ]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Incomplete test case')
     def test_assignments(self):
         jsi = JSInterpreter('var x = 20; x = 30 + 1; return x;')
-        ast = []
+        ast = [
+            (Token.VAR, zip(
+                ['x'],
+                [(Token.ASSIGN,
+                  None,
+                  (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 20), None, None)]),
+                  None)]
+            )),
+
+            (Token.EXPR, [
+                (Token.ASSIGN,
+                 _ASSIGN_OPERATORS['='][1],
+                 (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]),
+                 (Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.INT, 30), None, None),
+                     (Token.MEMBER, (Token.INT, 1), None, None),
+                     (Token.OP, _OPERATORS['+'][1])
+                 ]),
+                  None))
+            ]),
+
+            (Token.RETURN, (Token.EXPR, [
+                (Token.ASSIGN, None,
+                 (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'x'), None, None)
+                 ]), None)
+            ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
         jsi = JSInterpreter('var x = 20; x += 30 + 1; return x;')
-        ast = []
+        ast[1] = (Token.EXPR, [
+                (Token.ASSIGN,
+                 _ASSIGN_OPERATORS['+='][1],
+                 (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]),
+                 (Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.INT, 30), None, None),
+                     (Token.MEMBER, (Token.INT, 1), None, None),
+                     (Token.OP, _OPERATORS['+'][1])
+                 ]),
+                  None))
+            ])
         self.assertEqual(list(jsi.statements()), ast)
 
         jsi = JSInterpreter('var x = 20; x -= 30 + 1; return x;')
-        ast = []
+        ast[1] = (Token.EXPR, [
+            (Token.ASSIGN,
+             _ASSIGN_OPERATORS['-='][1],
+             (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]),
+             (Token.ASSIGN, None, (Token.OPEXPR, [
+                 (Token.MEMBER, (Token.INT, 30), None, None),
+                 (Token.MEMBER, (Token.INT, 1), None, None),
+                 (Token.OP, _OPERATORS['+'][1])
+             ]),
+              None))
+        ])
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Incomplete test case')
     def test_comments(self):
         # var x =  2; var y = 50; return x + y;
         jsi = JSInterpreter('var x = /* 1 + */ 2; var y = /* 30 * 40 */ 50; return x + y;')
-        ast = []
+        ast = [
+            (Token.VAR, zip(
+                ['x'],
+                [(Token.ASSIGN,
+                  None,
+                  (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 2), None, None)]),
+                  None)]
+            )),
+
+            (Token.VAR, zip(
+                ['y'],
+                [(Token.ASSIGN,
+                  None,
+                  (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 50), None, None)]),
+                  None)]
+            )),
+
+            (Token.RETURN, (Token.EXPR, [
+                (Token.ASSIGN, None,
+                 (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'x'), None, None),
+                     (Token.MEMBER, (Token.ID, 'y'), None, None),
+                     (Token.OP, _OPERATORS['+'][1])
+                 ]), None)
+            ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
         # var x = "/*"; var y = 1 + 2; return y;
         jsi = JSInterpreter('var x = "/*"; var y = 1 /* comment */ + 2; return y;')
-        ast = []
+        ast = [
+            (Token.VAR, zip(
+                ['x'],
+                [(Token.ASSIGN,
+                  None,
+                  (Token.OPEXPR, [(Token.MEMBER, (Token.STR, '/*'), None, None)]),
+                  None)]
+            )),
+
+            (Token.VAR, zip(
+                ['y'],
+                [(Token.ASSIGN,
+                  None,
+                  (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.INT, 1), None, None),
+                      (Token.MEMBER, (Token.INT, 2), None, None),
+                      (Token.OP, _OPERATORS['+'][1])
+                  ]),
+                  None)]
+            )),
+
+            (Token.RETURN, (Token.EXPR, [
+                (Token.ASSIGN, None,
+                 (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'y'), None, None)]),
+                 None)
+            ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Incomplete test case')
     def test_precedence(self):
         jsi = JSInterpreter(' var a = [10, 20, 30, 40, 50]; var b = 6; a[0]=a[b%a.length]; return a;')
-        ast = []
+        ast = [
+            (Token.VAR,
+             zip(['a'],
+                 [(Token.ASSIGN,
+                   None,
+                   (Token.OPEXPR, [
+                       (Token.MEMBER, (Token.ARRAY, [
+                           (Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.INT, 10), None, None)]), None),
+                           (Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.INT, 20), None, None)]), None),
+                           (Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.INT, 30), None, None)]), None),
+                           (Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.INT, 40), None, None)]), None),
+                           (Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.INT, 50), None, None)]), None)
+                       ]), None, None),
+                   ]),
+                   None)
+                  ])
+             ),
+            (Token.VAR,
+             zip(['b'],
+                 [(Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 6), None, None)]), None)]
+                 )
+             ),
+            (Token.EXPR, [
+                (Token.ASSIGN,
+                 _ASSIGN_OPERATORS['='][1],
+                 (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'a'),
+                      None,
+                      (Token.ELEM,
+                       (Token.EXPR, [
+                           (Token.ASSIGN,
+                            None,
+                            (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]),
+                            None)
+                       ]),
+                       None))
+                 ]),
+                 (Token.ASSIGN,
+                  None,
+                  (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'a'),
+                       None,
+                       (Token.ELEM, (Token.EXPR, [
+                           (Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.ID, 'b'), None, None),
+                               (Token.MEMBER, (Token.ID, 'a'), None, (Token.FIELD, 'length', None)),
+                               (Token.OP, _OPERATORS['%'][1])
+                           ]), None)]),
+                        None))
+                  ]),
+                  None)
+                 )
+            ]),
+            (Token.RETURN,
+             (Token.EXPR, [
+                 (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'a'), None, None)]), None)
+             ])
+             )
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Parsing function declaration not yet implemented')
