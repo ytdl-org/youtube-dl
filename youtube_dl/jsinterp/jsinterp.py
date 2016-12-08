@@ -240,7 +240,7 @@ class JSInterpreter(object):
             # literals
             else:
                 # TODO use tuple if CONST
-                return [peek_id, peek_value]
+                return (peek_id, peek_value)
         # array
         elif peek_id is Token.SOPEN:
             return self._array_literal(token_stream, stack_top - 1)
@@ -445,6 +445,7 @@ class JSInterpreter(object):
     # TODO use context instead local_vars in argument
 
     def getvalue(self, ref, local_vars):
+        ref = ref['get']
         if ref is None or ref is self.undefined or isinstance(ref, (int, float, str)):
             return ref
         ref_id, ref_value = ref
@@ -454,11 +455,11 @@ class JSInterpreter(object):
             return ref_value
         elif ref_id is Token.EXPR:
             ref, _ = self.interpret_statement(ref_value, local_vars)
-            return self.getvalue(ref, local_vars)
+            return self.getvalue(ref['get'], local_vars)
         elif ref_id is Token.ARRAY:
             array = []
             for expr in ref_value:
-                array.append(self.interpret_expression(expr, local_vars))
+                array.append(self.interpret_expression(expr, local_vars)['get'])
             return array
         else:
             raise ExtractorError('Unable to get value of reference type %s' % ref_id)
@@ -486,13 +487,13 @@ class JSInterpreter(object):
             for stmt in block:
                 s, abort = self.interpret_statement(stmt, local_vars)
                 if s is not None:
-                    ref = self.getvalue(s, local_vars)
+                    ref = self.getvalue(s['get'], local_vars)
         elif name is Token.VAR:
             for name, value in stmt[1]:
                 local_vars[name] = self.getvalue(self.interpret_expression(value, local_vars), local_vars)
         elif name is Token.EXPR:
             for expr in stmt[1]:
-                ref = self.interpret_expression(expr, local_vars)
+                ref = self.interpret_expression(expr, local_vars)['get']
         # if
         # continue, break
         elif name is Token.RETURN:
@@ -501,7 +502,7 @@ class JSInterpreter(object):
             ref = self.getvalue(ref, local_vars)
             if isinstance(ref, list):
                 # TODO deal with nested arrays
-                ref = [self.getvalue(elem, local_vars) for elem in ref]
+                ref = [self.getvalue(elem if hasattr(elem, 'get') else {'get': elem}, local_vars) for elem in ref]
 
             abort = True
         # with
@@ -512,24 +513,25 @@ class JSInterpreter(object):
         # debugger
         else:
             raise ExtractorError('''Can't interpret statement called %s''' % name)
-        return ref, abort
+        return {'get': ref}, abort
 
     def interpret_expression(self, expr, local_vars):
         name = expr[0]
         if name is Token.ASSIGN:
             op, left, right = expr[1:]
             if op is None:
-                ref = self.interpret_expression(left, local_vars)
+                ref = {'get': self.interpret_expression(left, local_vars)['get']}
             else:
                 # TODO handle undeclared variables (create propery)
                 leftref = self.interpret_expression(left, local_vars)
                 leftvalue = self.getvalue(leftref, local_vars)
                 rightvalue = self.getvalue(self.interpret_expression(right, local_vars), local_vars)
                 # TODO set array element
-                self.putvalue(leftref, op(leftvalue, rightvalue), local_vars)
-                ref = leftref
+                leftref['set'](op(leftvalue, rightvalue))
+                ref = {'get': left}
         elif name is Token.EXPR:
             ref, _ = self.interpret_statement(expr, local_vars)
+            ref = {'get': ref['get']}
         elif name is Token.OPEXPR:
             stack = []
             rpn = expr[1][:]
@@ -553,6 +555,7 @@ class JSInterpreter(object):
         elif name is Token.MEMBER:
             # TODO interpret member
             target, args, tail = expr[1:]
+            ref = {}
             while tail is not None:
                 tail_name, tail_value, tail = tail
                 if tail_name is Token.FIELD:
@@ -561,19 +564,27 @@ class JSInterpreter(object):
                 elif tail_name is Token.ELEM:
                     # TODO interpret element
                     # raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
-                    ret, _ = self.interpret_statement(tail_value, local_vars)
-                    index = self.getvalue(ret, local_vars)
-                    target = self.getvalue(target, local_vars)
-                    target = self.interpret_expression((Token.MEMBER, target[index], args, tail), local_vars)
+                    index, _ = self.interpret_statement(tail_value, local_vars)
+                    index = self.getvalue(index, local_vars)
+                    target = self.getvalue({'get': target}, local_vars)
+
+                    def make_setter(t):
+                        def setter(v):
+                            t.__setitem__(index, v)
+                        return setter
+
+                    ref['set'] = make_setter(target)
+                    target = self.interpret_expression((Token.MEMBER, target[index], args, tail), local_vars)['get']
                 elif tail_name is Token.CALL:
                     # TODO interpret call
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
-            ref = target
+            ref['get'] = target
         elif name in (Token.ID, Token.ARRAY):
-            ref = self.getvalue(expr, local_vars)
+            ref = {'get': self.getvalue(expr, local_vars),
+                   'set': lambda v: local_vars.__setitem__(name, v)}
         # literal
         elif name in _token_keys:
-            ref = expr
+            ref = {'get': expr}
 
         else:
             raise ExtractorError('''Can't interpret expression called %s''' % name)
@@ -624,5 +635,5 @@ class JSInterpreter(object):
                 res, abort = self.interpret_statement(stmt, local_vars)
                 if abort:
                     break
-            return res
+            return res['get']
         return resf
