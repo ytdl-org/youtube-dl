@@ -257,7 +257,7 @@ class JSInterpreter(object):
             if peek_id is not Token.PCLOSE:
                 raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
             token_stream.pop()
-            return (Token.EXPR, expr)
+            return expr
         # empty (probably)
         else:
             return None
