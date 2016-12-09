@@ -55,12 +55,12 @@ class Socks5AddressType(object):
     ATYP_IPV6 = 0x04
 
 
-class ProxyError(IOError):
+class ProxyError(socket.error):
     ERR_SUCCESS = 0x00
 
     def __init__(self, code=None, msg=None):
         if code is not None and msg is None:
-            msg = self.CODES.get(code) and 'unknown error'
+            msg = self.CODES.get(code) or 'unknown error'
         super(ProxyError, self).__init__(code, msg)
 
 
@@ -123,7 +123,7 @@ class sockssocket(socket.socket):
         while len(data) < cnt:
             cur = self.recv(cnt - len(data))
             if not cur:
-                raise IOError('{0} bytes missing'.format(cnt - len(data)))
+                raise EOFError('{0} bytes missing'.format(cnt - len(data)))
             data += cur
         return data
 

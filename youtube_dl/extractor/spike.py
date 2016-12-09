@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .mtv import MTVServicesInfoExtractor
 
 
@@ -17,6 +19,15 @@ class SpikeIE(MTVServicesInfoExtractor):
             'upload_date': '20131227',
         },
     }, {
+        'url': 'http://www.spike.com/full-episodes/j830qm/lip-sync-battle-joel-mchale-vs-jim-rash-season-2-ep-209',
+        'md5': 'b25c6f16418aefb9ad5a6cae2559321f',
+        'info_dict': {
+            'id': '37ace3a8-1df6-48be-85b8-38df8229e241',
+            'ext': 'mp4',
+            'title': 'Lip Sync Battle|April 28, 2016|2|209|Joel McHale Vs. Jim Rash|Act 1',
+            'description': 'md5:a739ca8f978a7802f67f8016d27ce114',
+        },
+    }, {
         'url': 'http://www.spike.com/video-clips/lhtu8m/',
         'only_matching': True,
     }, {
@@ -32,3 +43,12 @@ class SpikeIE(MTVServicesInfoExtractor):
 
     _FEED_URL = 'http://www.spike.com/feeds/mrss/'
     _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
+    _CUSTOM_URL_REGEX = re.compile(r'spikenetworkapp://([^/]+/[-a-fA-F0-9]+)')
+
+    def _extract_mgid(self, webpage):
+        mgid = super(SpikeIE, self)._extract_mgid(webpage, default=None)
+        if mgid is None:
+            url_parts = self._search_regex(self._CUSTOM_URL_REGEX, webpage, 'episode_id')
+            video_type, episode_id = url_parts.split('/', 1)
+            mgid = 'mgid:arc:{0}:spike.com:{1}'.format(video_type, episode_id)
+        return mgid

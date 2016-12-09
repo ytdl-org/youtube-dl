@@ -1,8 +1,60 @@
-version <unreleased>
+version 2016.12.09
+
+Core
+* [socks] Fix error reporting (#11355)
 
 Extractors
-- [Crunchyroll] ScaledBorderAndShadow are removed from ASS subtitles
-  (#8207, #9028)
+* [openload] Fix extraction (#10408)
+* [pandoratv] Fix extraction (#11023)
++ [telebruxelles] Add support for emission URLs
+* [telebruxelles] Extract all formats
++ [bloomberg] Add another video id regular expression (#11371)
+* [fusion] Update ooyala id regular expression (#11364)
++ [1tv] Add support for playlists (#11335)
+* [1tv] Improve extraction (#11335)
++ [aenetworks] Extract more formats (#11321)
++ [thisoldhouse] Recognize /tv-episode/ URLs (#11271)
+
+version 2016.12.01
+
+Extractors
+* [soundcloud] Update client id (#11327)
+* [ruutu] Detect DRM protected videos
++ [liveleak] Add support for youtube embeds (#10688)
+* [spike] Fix full episodes support (#11312)
+* [comedycentral] Fix full episodes support
+* [normalboots] Rewrite in terms of JWPlatform (#11184)
+* [teamfourstar] Rewrite in terms of JWPlatform (#11184)
+- [screenwavemedia] Remove extractor (#11184)
+
+
+version 2016.11.27
+
+Extractors
++ [webcaster] Add support for webcaster.pro
++ [azubu] Add support for azubu.uol.com.br (#11305)
+* [viki] Prefer hls formats
+* [viki] Fix rtmp formats extraction (#11255)
+* [puls4] Relax URL regular expression (#11267)
+* [vevo] Improve artist extraction (#10911)
+* [mitele] Relax URL regular expression and extract more metadata (#11244)
++ [cbslocal] Recognize New York site (#11285)
++ [youtube:playlist] Pass disable_polymer in URL query (#11193)
+
+
+version 2016.11.22
+
+Extractors
+* [hellporno] Fix video extension extraction (#11247)
++ [hellporno] Add support for hellporno.net (#11247)
++ [amcnetworks] Recognize more BBC America URLs (#11263)
+* [funnyordie] Improve extraction (#11208)
+* [extractor/generic] Improve limelight embeds support
+- [crunchyroll] Remove ScaledBorderAndShadow from ASS subtitles (#8207, #9028)
+* [bandcamp] Fix free downloads extraction and extract all formats (#11067)
+* [twitter:card] Relax URL regular expression (#11225)
++ [tvanouvelles] Add support for tvanouvelles.ca (#10616)
+
 
 version 2016.11.18
 

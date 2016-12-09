@@ -180,6 +180,7 @@ from .cnn import (
 from .coub import CoubIE
 from .collegerama import CollegeRamaIE
 from .comedycentral import (
+    ComedyCentralFullEpisodesIE,
     ComedyCentralIE,
     ComedyCentralShortnameIE,
     ComedyCentralTVIE,
@@ -804,7 +805,6 @@ from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
 from .screenjunkies import ScreenJunkiesIE
-from .screenwavemedia import ScreenwaveMediaIE, TeamFourIE
 from .seeker import SeekerIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
@@ -897,6 +897,7 @@ from .teachertube import (
 )
 from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
+from .teamfourstar import TeamFourStarIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tele13 import Tele13IE
@@ -1120,6 +1121,10 @@ from .watchindianporn import WatchIndianPornIE
 from .wdr import (
     WDRIE,
     WDRMobileIE,
+)
+from .webcaster import (
+    WebcasterIE,
+    WebcasterFeedIE,
 )
 from .webofstories import (
     WebOfStoriesIE,

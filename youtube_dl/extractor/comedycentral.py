@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
-        (video-clips|episodes|cc-studios|video-collections|full-episodes|shows)
+        (video-clips|episodes|cc-studios|video-collections|shows(?=/[^/]+/(?!full-episodes)))
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
@@ -25,6 +25,40 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
         'url': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/interviews/6yx39d/exclusive-rand-paul-extended-interview',
         'only_matching': True,
     }]
+
+
+class ComedyCentralFullEpisodesIE(MTVServicesInfoExtractor):
+    _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
+        (?:full-episodes|shows(?=/[^/]+/full-episodes))
+        /(?P<id>[^?]+)'''
+    _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
+
+    _TESTS = [{
+        'url': 'http://www.cc.com/full-episodes/pv391a/the-daily-show-with-trevor-noah-november-28--2016---ryan-speedo-green-season-22-ep-22028',
+        'info_dict': {
+            'description': 'Donald Trump is accused of exploiting his president-elect status for personal gain, Cuban leader Fidel Castro dies, and Ryan Speedo Green discusses "Sing for Your Life."',
+            'title': 'November 28, 2016 - Ryan Speedo Green',
+        },
+        'playlist_count': 4,
+    }, {
+        'url': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+
+        feed_json = self._search_regex(r'var triforceManifestFeed\s*=\s*(\{.+?\});\n', webpage, 'triforce feeed')
+        feed = self._parse_json(feed_json, playlist_id)
+        zones = feed['manifest']['zones']
+
+        video_zone = zones['t2_lc_promo1']
+        feed = self._download_json(video_zone['feed'], playlist_id)
+        mgid = feed['result']['data']['id']
+
+        videos_info = self._get_videos_info(mgid)
+        return videos_info
 
 
 class ToshIE(MTVServicesInfoExtractor):

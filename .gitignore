@@ -33,6 +33,7 @@ updates_key.pem
 *.wav
 *.ape
 *.mkv
+*.swf
 *.part
 *.swp
 test/testdata

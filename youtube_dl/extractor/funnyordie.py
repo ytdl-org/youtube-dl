@@ -28,6 +28,9 @@ class FunnyOrDieIE(InfoExtractor):
             'description': 'Please use this to sell something.  www.jonlajoie.com',
             'thumbnail': 're:^http:.*\.jpg$',
         },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.funnyordie.com/articles/ebf5e34fc8/10-hours-of-walking-in-nyc-as-a-man',
         'only_matching': True,
@@ -51,19 +54,45 @@ class FunnyOrDieIE(InfoExtractor):
 
         formats = []
 
-        formats.extend(self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+        m3u8_formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', 'm3u8_native',
+            m3u8_id='hls', fatal=False)
+        source_formats = list(filter(
+            lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            m3u8_formats))
 
-        bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)[,/]', m3u8_url)]
+        bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)(?=[,/])', m3u8_url)]
         bitrates.sort()
 
-        for bitrate in bitrates:
-            for link in links:
-                formats.append({
-                    'url': self._proto_relative_url('%s%d.%s' % (link[0], bitrate, link[1])),
-                    'format_id': '%s-%d' % (link[1], bitrate),
-                    'vbr': bitrate,
-                })
+        if source_formats:
+            self._sort_formats(source_formats)
+
+        for bitrate, f in zip(bitrates, source_formats or [{}] * len(bitrates)):
+            for path, ext in links:
+                ff = f.copy()
+                if ff:
+                    if ext != 'mp4':
+                        ff = dict(
+                            [(k, v) for k, v in ff.items()
+                             if k in ('height', 'width', 'format_id')])
+                    ff.update({
+                        'format_id': ff['format_id'].replace('hls', ext),
+                        'ext': ext,
+                        'protocol': 'http',
+                    })
+                else:
+                    ff.update({
+                        'format_id': '%s-%d' % (ext, bitrate),
+                        'vbr': bitrate,
+                    })
+                ff['url'] = self._proto_relative_url(
+                    '%s%d.%s' % (path, bitrate, ext))
+                formats.append(ff)
+        self._check_formats(formats, video_id)
+
+        formats.extend(m3u8_formats)
+        self._sort_formats(
+            formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
         subtitles = {}
         for src, src_lang in re.findall(r'<track kind="captions" src="([^"]+)" srclang="([^"]+)"', webpage):
