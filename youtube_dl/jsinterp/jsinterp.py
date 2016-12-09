@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
+from ..compat import compat_str
 
 import re
+
 
 from ..utils import ExtractorError
 from .tstream import TokenStream
@@ -13,6 +15,7 @@ class Context(object):
     def __init__(self, ended=False, vaiables=None, objects=None, functions=None):
         self.ended = ended
         self.local_vars = {} if vaiables is None else vaiables
+        # XXX There's probably no need for these
         self.objects = {} if objects is None else objects
         self.functions = {} if functions is None else functions
 
@@ -29,6 +32,7 @@ class JSInterpreter(object):
 
     def __init__(self, code, objects=None):
         self.code = code
+        self.global_vars = {}
         self.context = Context(objects=objects)
         self._context_stack = []
 
@@ -459,7 +463,8 @@ class JSInterpreter(object):
     # TODO use context instead local_vars in argument
 
     def getvalue(self, ref, local_vars):
-        if ref.value is None or ref.value is self.undefined or isinstance(ref.value, (int, float, str, list)):
+        if (ref.value is None or ref.value is self.undefined or
+                isinstance(ref.value, (int, float, str, compat_str, list))):
             return ref.value
         ref_id, ref_value = ref.value
         if ref_id is Token.ID:
@@ -643,6 +648,7 @@ class JSInterpreter(object):
 
     def build_function(self, argnames, code):
         def resf(args):
+            # TODO Create context
             local_vars = dict(zip(argnames, args))
             for stmt in self.statements(code):
                 res, abort = self.interpret_statement(stmt, local_vars)
