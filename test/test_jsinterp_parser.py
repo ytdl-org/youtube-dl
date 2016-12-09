@@ -57,13 +57,7 @@ class TestJSInterpreterParser(unittest.TestCase):
 
     def test_empty_return(self):
         jsi = JSInterpreter('return; y()')
-        ast = [(Token.RETURN,
-                (Token.EXPR, [
-                    (Token.ASSIGN,
-                     None,
-                     (Token.OPEXPR, [(Token.MEMBER, None, None, None)]),
-                     None)
-                ])),
+        ast = [(Token.RETURN, None),
                (Token.EXPR, [
                    (Token.ASSIGN,
                     None,
@@ -501,9 +495,13 @@ class TestJSInterpreterParser(unittest.TestCase):
         function y(a) { return x() + a; }
         function z() { return y(3); }
         ''')
-        self.assertEqual(jsi.call_function('z'), 5)
+
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
         jsi = JSInterpreter('function x(a) { return a.split(""); }', objects={'a': 'abc'})
-        self.assertEqual(jsi.call_function('x'), ["a", "b", "c"])
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Parsing function declaration not yet implemented')
     def test_complex_call(self):
@@ -512,7 +510,8 @@ class TestJSInterpreterParser(unittest.TestCase):
                 function b(x) { return x; }
                 function c()  { return [a, b][0](0); }
                 ''')
-        self.assertEqual(jsi.call_function('c'), 0)
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
 
     def test_getfield(self):
         jsi = JSInterpreter('return a.var;', objects={'a': {'var': 3}})

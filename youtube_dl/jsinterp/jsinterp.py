@@ -9,16 +9,28 @@ from .jsgrammar import Token
 _token_keys = set((Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token.FLOAT, Token.REGEX))
 
 
+class Context(object):
+    def __init__(self, ended=False, vaiables=None, objects=None, functions=None):
+        self.ended = ended
+        self.local_vars = {} if vaiables is None else vaiables
+        self.objects = {} if objects is None else objects
+        self.functions = {} if functions is None else functions
+
+
+class Reference(object):
+    def __init__(self, value, parent=None):
+        self.value = value
+        self.parent = parent
+
+
 class JSInterpreter(object):
     # TODO support json
     undefined = object()
 
     def __init__(self, code, objects=None):
-        if objects is None:
-            objects = {}
         self.code = code
-        self._functions = {}
-        self._objects = objects
+        self.context = Context(objects=objects)
+        self._context_stack = []
 
     def _next_statement(self, token_stream, stack_top):
         if stack_top < 0:
@@ -88,7 +100,9 @@ class JSInterpreter(object):
                 raise ExtractorError('Flow control is not yet supported at %d' % token_pos)
             elif token_value == 'return':
                 token_stream.pop()
-                statement = (Token.RETURN, self._expression(token_stream, stack_top - 1))
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                expr = self._expression(token_stream, stack_top - 1) if peek_id is not Token.END else None
+                statement = (Token.RETURN, expr)
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id is not Token.END:
                     # FIXME automatic end insertion
@@ -445,32 +459,36 @@ class JSInterpreter(object):
     # TODO use context instead local_vars in argument
 
     def getvalue(self, ref, local_vars):
-        ref = ref['get']
-        if ref is None or ref is self.undefined or isinstance(ref, (int, float, str)):
-            return ref
-        ref_id, ref_value = ref
+        if ref.value is None or ref.value is self.undefined or isinstance(ref.value, (int, float, str, list)):
+            return ref.value
+        ref_id, ref_value = ref.value
         if ref_id is Token.ID:
-            return local_vars[ref_value]
+            return local_vars[ref_value].value
         elif ref_id in _token_keys:
             return ref_value
         elif ref_id is Token.EXPR:
             ref, _ = self.interpret_statement(ref_value, local_vars)
-            return self.getvalue(ref['get'], local_vars)
+            return self.getvalue(ref, local_vars)
         elif ref_id is Token.ARRAY:
             array = []
-            for expr in ref_value:
-                array.append(self.interpret_expression(expr, local_vars)['get'])
+            for key, expr in enumerate(ref_value):
+                value = self.interpret_expression(expr, local_vars)
+                value.parent = array, key
+                array.append(value)
             return array
         else:
             raise ExtractorError('Unable to get value of reference type %s' % ref_id)
 
     @staticmethod
     def putvalue(ref, value, local_vars):
-        ref_id, ref_value = ref
-        if ref_id is Token.ID:
-            local_vars[ref_value] = value
-        elif ref_id in _token_keys:
-            ref[1] = value
+        if ref.parent is None:
+            raise ExtractorError('Trying to set a read-only reference')
+
+        parent, key = ref.parent
+        if not hasattr(parent, '__setitem__'):
+            raise ExtractorError('Unknown reference')
+
+        parent.__setitem__(key, Reference(value, (parent, key)))
 
     def interpret_statement(self, stmt, local_vars):
         if stmt is None:
@@ -487,22 +505,23 @@ class JSInterpreter(object):
             for stmt in block:
                 s, abort = self.interpret_statement(stmt, local_vars)
                 if s is not None:
-                    ref = self.getvalue(s['get'], local_vars)
+                    ref = self.getvalue(s, local_vars)
         elif name is Token.VAR:
             for name, value in stmt[1]:
-                local_vars[name] = self.getvalue(self.interpret_expression(value, local_vars), local_vars)
+                local_vars[name] = Reference(self.getvalue(self.interpret_expression(value, local_vars), local_vars),
+                                             (local_vars, name))
         elif name is Token.EXPR:
             for expr in stmt[1]:
-                ref = self.interpret_expression(expr, local_vars)['get']
+                ref = self.interpret_expression(expr, local_vars)
         # if
         # continue, break
         elif name is Token.RETURN:
             # TODO use context instead returning abort
             ref, abort = self.interpret_statement(stmt[1], local_vars)
-            ref = self.getvalue(ref, local_vars)
+            ref = None if ref is None else self.getvalue(ref, local_vars)
             if isinstance(ref, list):
-                # TODO deal with nested arrays
-                ref = [self.getvalue(elem if hasattr(elem, 'get') else {'get': elem}, local_vars) for elem in ref]
+                # TODO test nested arrays
+                ref = [self.getvalue(elem, local_vars) for elem in ref]
 
             abort = True
         # with
@@ -513,25 +532,29 @@ class JSInterpreter(object):
         # debugger
         else:
             raise ExtractorError('''Can't interpret statement called %s''' % name)
-        return {'get': ref}, abort
+        return ref, abort
 
     def interpret_expression(self, expr, local_vars):
+        if expr is None:
+            return
         name = expr[0]
+
         if name is Token.ASSIGN:
             op, left, right = expr[1:]
             if op is None:
-                ref = {'get': self.interpret_expression(left, local_vars)['get']}
+                ref = self.interpret_expression(left, local_vars)
             else:
                 # TODO handle undeclared variables (create propery)
                 leftref = self.interpret_expression(left, local_vars)
                 leftvalue = self.getvalue(leftref, local_vars)
                 rightvalue = self.getvalue(self.interpret_expression(right, local_vars), local_vars)
-                # TODO set array element
-                leftref['set'](op(leftvalue, rightvalue))
-                ref = {'get': left}
+                self.putvalue(leftref, op(leftvalue, rightvalue), local_vars)
+                # TODO check specs
+                ref = leftref
+
         elif name is Token.EXPR:
             ref, _ = self.interpret_statement(expr, local_vars)
-            ref = {'get': ref['get']}
+
         elif name is Token.OPEXPR:
             stack = []
             rpn = expr[1][:]
@@ -540,7 +563,7 @@ class JSInterpreter(object):
                 if token[0] in (Token.OP, Token.AOP, Token.UOP, Token.LOP, Token.REL):
                     right = stack.pop()
                     left = stack.pop()
-                    stack.append(token[1](self.getvalue(left, local_vars), self.getvalue(right, local_vars)))
+                    stack.append(Reference(token[1](self.getvalue(left, local_vars), self.getvalue(right, local_vars))))
                 elif token[0] is Token.UOP:
                     right = stack.pop()
                     stack.append(token[1](self.getvalue(right, local_vars)))
@@ -555,37 +578,27 @@ class JSInterpreter(object):
         elif name is Token.MEMBER:
             # TODO interpret member
             target, args, tail = expr[1:]
-            ref = {}
+            target = self.interpret_expression(target, local_vars)
             while tail is not None:
                 tail_name, tail_value, tail = tail
                 if tail_name is Token.FIELD:
                     # TODO interpret field
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
                 elif tail_name is Token.ELEM:
-                    # TODO interpret element
-                    # raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
                     index, _ = self.interpret_statement(tail_value, local_vars)
                     index = self.getvalue(index, local_vars)
-                    target = self.getvalue({'get': target}, local_vars)
-
-                    def make_setter(t):
-                        def setter(v):
-                            t.__setitem__(index, v)
-                        return setter
-
-                    ref['set'] = make_setter(target)
-                    target = self.interpret_expression((Token.MEMBER, target[index], args, tail), local_vars)['get']
+                    target = self.getvalue(target, local_vars)
+                    target = target[index]
                 elif tail_name is Token.CALL:
                     # TODO interpret call
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
-            ref['get'] = target
-        elif name in (Token.ID, Token.ARRAY):
-            ref = {'get': self.getvalue(expr, local_vars),
-                   'set': lambda v: local_vars.__setitem__(name, v)}
-        # literal
-        elif name in _token_keys:
-            ref = {'get': expr}
+            ref = target
 
+        elif name is Token.ID:
+            ref = local_vars[expr[1]]
+        # literal
+        elif name in _token_keys or name is Token.ARRAY:
+            ref = Reference(self.getvalue(Reference(expr), local_vars))
         else:
             raise ExtractorError('''Can't interpret expression called %s''' % name)
 
@@ -635,5 +648,5 @@ class JSInterpreter(object):
                 res, abort = self.interpret_statement(stmt, local_vars)
                 if abort:
                     break
-            return res['get']
+            return res
         return resf
