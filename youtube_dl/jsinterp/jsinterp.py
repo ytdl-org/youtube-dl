@@ -12,12 +12,13 @@ _token_keys = set((Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token
 
 
 class Context(object):
-    def __init__(self, ended=False, vaiables=None, objects=None, functions=None):
+    def __init__(self, variables=None, ended=False):
         self.ended = ended
-        self.local_vars = {} if vaiables is None else vaiables
-        # XXX There's probably no need for these
-        self.objects = {} if objects is None else objects
-        self.functions = {} if functions is None else functions
+        self.local_vars = {}
+        if variables is not None:
+            for k, v in dict(variables).items():
+                # TODO validate identifiers
+                self.local_vars[k] = Reference(v, (self.local_vars, k))
 
 
 class Reference(object):
@@ -25,15 +26,23 @@ class Reference(object):
         self.value = value
         self.parent = parent
 
+    def __repr__(self):
+        parent, key = self.parent
+        return '<Reference> value: %s,  parent: %s -> %s)' % (self.value, parent.__class__.__name__, key)
+
 
 class JSInterpreter(object):
     # TODO support json
     undefined = object()
 
-    def __init__(self, code, objects=None):
+    def __init__(self, code, variables=None):
         self.code = code
         self.global_vars = {}
-        self.context = Context(objects=objects)
+        if variables is not None:
+            for k, v in dict(variables).items():
+                # TODO validate identifiers
+                self.global_vars[k] = Reference(v, (self.global_vars, k))
+        self.context = Context(self.global_vars)
         self._context_stack = []
 
     def _next_statement(self, token_stream, stack_top):
@@ -257,7 +266,6 @@ class JSInterpreter(object):
                     return (Token.ID, peek_value)
             # literals
             else:
-                # TODO use tuple if CONST
                 return (peek_id, peek_value)
         # array
         elif peek_id is Token.SOPEN:
@@ -460,24 +468,25 @@ class JSInterpreter(object):
 
         return (Token.OPEXPR, out)
 
-    # TODO use context instead local_vars in argument
-
-    def getvalue(self, ref, local_vars):
+    def getvalue(self, ref):
         if (ref.value is None or ref.value is self.undefined or
                 isinstance(ref.value, (int, float, str, compat_str, list))):
             return ref.value
         ref_id, ref_value = ref.value
         if ref_id is Token.ID:
-            return local_vars[ref_value].value
+            if ref_value in self.context.local_vars:
+                return self.context.local_vars[ref_value].value
+            # TODO error handling (unknown id)
+            return self.global_vars[ref_value].value
         elif ref_id in _token_keys:
             return ref_value
         elif ref_id is Token.EXPR:
-            ref, _ = self.interpret_statement(ref_value, local_vars)
-            return self.getvalue(ref, local_vars)
+            ref = self.interpret_statement(ref_value)
+            return self.getvalue(ref)
         elif ref_id is Token.ARRAY:
             array = []
             for key, expr in enumerate(ref_value):
-                value = self.interpret_expression(expr, local_vars)
+                value = self.interpret_expression(expr)
                 value.parent = array, key
                 array.append(value)
             return array
@@ -485,7 +494,7 @@ class JSInterpreter(object):
             raise ExtractorError('Unable to get value of reference type %s' % ref_id)
 
     @staticmethod
-    def putvalue(ref, value, local_vars):
+    def putvalue(ref, value):
         if ref.parent is None:
             raise ExtractorError('Trying to set a read-only reference')
 
@@ -495,9 +504,9 @@ class JSInterpreter(object):
 
         parent.__setitem__(key, Reference(value, (parent, key)))
 
-    def interpret_statement(self, stmt, local_vars):
+    def interpret_statement(self, stmt):
         if stmt is None:
-            return None, False
+            return None
 
         name = stmt[0]
         ref = None
@@ -508,27 +517,26 @@ class JSInterpreter(object):
         elif name is Token.BLOCK:
             block = stmt[1]
             for stmt in block:
-                s, abort = self.interpret_statement(stmt, local_vars)
+                s = self.interpret_statement(stmt)
                 if s is not None:
-                    ref = self.getvalue(s, local_vars)
+                    ref = self.getvalue(s)
         elif name is Token.VAR:
             for name, value in stmt[1]:
-                local_vars[name] = Reference(self.getvalue(self.interpret_expression(value, local_vars), local_vars),
-                                             (local_vars, name))
+                self.context.local_vars[name] = Reference(self.getvalue(self.interpret_expression(value)),
+                                             (self.context.local_vars, name))
         elif name is Token.EXPR:
             for expr in stmt[1]:
-                ref = self.interpret_expression(expr, local_vars)
+                ref = self.interpret_expression(expr)
         # if
         # continue, break
         elif name is Token.RETURN:
-            # TODO use context instead returning abort
-            ref, abort = self.interpret_statement(stmt[1], local_vars)
-            ref = None if ref is None else self.getvalue(ref, local_vars)
+            ref = self.interpret_statement(stmt[1])
+            ref = None if ref is None else self.getvalue(ref)
             if isinstance(ref, list):
                 # TODO test nested arrays
-                ref = [self.getvalue(elem, local_vars) for elem in ref]
+                ref = [self.getvalue(elem) for elem in ref]
 
-            abort = True
+            self.context.ended = True
         # with
         # label
         # switch
@@ -537,9 +545,9 @@ class JSInterpreter(object):
         # debugger
         else:
             raise ExtractorError('''Can't interpret statement called %s''' % name)
-        return ref, abort
+        return ref
 
-    def interpret_expression(self, expr, local_vars):
+    def interpret_expression(self, expr):
         if expr is None:
             return
         name = expr[0]
@@ -547,18 +555,18 @@ class JSInterpreter(object):
         if name is Token.ASSIGN:
             op, left, right = expr[1:]
             if op is None:
-                ref = self.interpret_expression(left, local_vars)
+                ref = self.interpret_expression(left)
             else:
                 # TODO handle undeclared variables (create propery)
-                leftref = self.interpret_expression(left, local_vars)
-                leftvalue = self.getvalue(leftref, local_vars)
-                rightvalue = self.getvalue(self.interpret_expression(right, local_vars), local_vars)
-                self.putvalue(leftref, op(leftvalue, rightvalue), local_vars)
+                leftref = self.interpret_expression(left)
+                leftvalue = self.getvalue(leftref)
+                rightvalue = self.getvalue(self.interpret_expression(right))
+                self.putvalue(leftref, op(leftvalue, rightvalue))
                 # TODO check specs
                 ref = leftref
 
         elif name is Token.EXPR:
-            ref, _ = self.interpret_statement(expr, local_vars)
+            ref = self.interpret_statement(expr)
 
         elif name is Token.OPEXPR:
             stack = []
@@ -568,12 +576,12 @@ class JSInterpreter(object):
                 if token[0] in (Token.OP, Token.AOP, Token.UOP, Token.LOP, Token.REL):
                     right = stack.pop()
                     left = stack.pop()
-                    stack.append(Reference(token[1](self.getvalue(left, local_vars), self.getvalue(right, local_vars))))
+                    stack.append(Reference(token[1](self.getvalue(left), self.getvalue(right))))
                 elif token[0] is Token.UOP:
                     right = stack.pop()
-                    stack.append(token[1](self.getvalue(right, local_vars)))
+                    stack.append(token[1](self.getvalue(right)))
                 else:
-                    stack.append(self.interpret_expression(token, local_vars))
+                    stack.append(self.interpret_expression(token))
             result = stack.pop()
             if not stack:
                 ref = result
@@ -583,16 +591,16 @@ class JSInterpreter(object):
         elif name is Token.MEMBER:
             # TODO interpret member
             target, args, tail = expr[1:]
-            target = self.interpret_expression(target, local_vars)
+            target = self.interpret_expression(target)
             while tail is not None:
                 tail_name, tail_value, tail = tail
                 if tail_name is Token.FIELD:
                     # TODO interpret field
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
                 elif tail_name is Token.ELEM:
-                    index, _ = self.interpret_statement(tail_value, local_vars)
-                    index = self.getvalue(index, local_vars)
-                    target = self.getvalue(target, local_vars)
+                    index = self.interpret_statement(tail_value)
+                    index = self.getvalue(index)
+                    target = self.getvalue(target)
                     target = target[index]
                 elif tail_name is Token.CALL:
                     # TODO interpret call
@@ -600,10 +608,12 @@ class JSInterpreter(object):
             ref = target
 
         elif name is Token.ID:
-            ref = local_vars[expr[1]]
+            # TODO error handling (unknown id)
+            ref = self.context.local_vars[expr[1]] if expr[1] in self.context.local_vars else self.global_vars[expr[1]]
+
         # literal
         elif name in _token_keys or name is Token.ARRAY:
-            ref = Reference(self.getvalue(Reference(expr), local_vars))
+            ref = Reference(self.getvalue(Reference(expr)))
         else:
             raise ExtractorError('''Can't interpret expression called %s''' % name)
 
@@ -642,17 +652,25 @@ class JSInterpreter(object):
 
         return self.build_function(argnames, func_m.group('code'))
 
+    def push_context(self, cx):
+        self._context_stack.append(self.context)
+        self.context = cx
+
+    def pop_context(self):
+        # TODO check underflow
+        self.context = self._context_stack.pop()
+
     def call_function(self, funcname, *args):
         f = self.extract_function(funcname)
         return f(args)
 
     def build_function(self, argnames, code):
         def resf(args):
-            # TODO Create context
-            local_vars = dict(zip(argnames, args))
+            self.push_context(Context(dict(zip(argnames, args))))
             for stmt in self.statements(code):
-                res, abort = self.interpret_statement(stmt, local_vars)
-                if abort:
+                res = self.interpret_statement(stmt)
+                if self.context.ended:
+                    self.pop_context()
                     break
             return res
         return resf

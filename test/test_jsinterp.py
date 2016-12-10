@@ -25,7 +25,6 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('var x5 = function(){return 42;}')
         self.assertEqual(jsi.call_function('x5'), 42)
 
-    @unittest.skip('Context creation not yet implemented')
     def test_calc(self):
         jsi = JSInterpreter('function x4(a){return 2*a+1;}')
         self.assertEqual(jsi.call_function('x4', 3), 7)
@@ -34,7 +33,7 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('function f(){return; y()}')
         self.assertEqual(jsi.call_function('f'), None)
 
-    @unittest.skip('Context creation not yet implemented')
+    @unittest.skip('Interpreting set field not yet implemented')
     def test_morespace(self):
         jsi = JSInterpreter('function x (a) { return 2 * a + 1 ; }')
         self.assertEqual(jsi.call_function('x', 3), 7)
@@ -42,7 +41,6 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('function f () { x =  2  ; return x; }')
         self.assertEqual(jsi.call_function('f'), 2)
 
-    @unittest.skip('Context creation not yet implemented')
     def test_strange_chars(self):
         jsi = JSInterpreter('function $_xY1 ($_axY1) { var $_axY2 = $_axY1 + 1; return $_axY2; }')
         self.assertEqual(jsi.call_function('$_xY1', 20), 21)
@@ -79,7 +77,6 @@ class TestJSInterpreter(unittest.TestCase):
         self.assertEqual(jsi.call_function('f'), -11)
 
     def test_comments(self):
-        # TODO debug 2.7!
         jsi = JSInterpreter('''
         function x() {
             var x = /* 1 + */ 2;
@@ -99,7 +96,7 @@ class TestJSInterpreter(unittest.TestCase):
         ''')
         self.assertEqual(jsi.call_function('f'), 3)
 
-    @unittest.skip('Context creation not yet implemented')
+    @unittest.skip('Interpreting get field not yet implemented')
     def test_precedence(self):
         jsi = JSInterpreter('''
         function x() {
@@ -118,7 +115,7 @@ class TestJSInterpreter(unittest.TestCase):
         function z() { return y(3); }
         ''')
         self.assertEqual(jsi.call_function('z'), 5)
-        jsi = JSInterpreter('function x(a) { return a.split(""); }', objects={'a': 'abc'})
+        jsi = JSInterpreter('function x(a) { return a.split(""); }', variables={'a': 'abc'})
         self.assertEqual(jsi.call_function('x'), ["a", "b", "c"])
 
     @unittest.skip('Interpreting function call not yet implemented')
@@ -130,9 +127,9 @@ class TestJSInterpreter(unittest.TestCase):
                 ''')
         self.assertEqual(jsi.call_function('c'), 0)
 
-    @unittest.skip('Context creation not yet implemented')
+    @unittest.skip('Interpreting get field not yet implemented')
     def test_getfield(self):
-        jsi = JSInterpreter('function c() { return a.var; }', objects={'a': {'var': 3}})
+        jsi = JSInterpreter('function c() { return a.var; }', variables={'a': {'var': 3}})
         self.assertEqual(jsi.call_function('c'), 3)
 
 if __name__ == '__main__':
