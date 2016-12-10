@@ -78,11 +78,6 @@ class MSNIE(InfoExtractor):
                 m3u8_formats = self._extract_m3u8_formats(
                     format_url, display_id, 'mp4',
                     m3u8_id='hls', fatal=False)
-                # Despite metadata in m3u8 all video+audio formats are
-                # actually video-only (no audio)
-                for f in m3u8_formats:
-                    if f.get('acodec') != 'none' and f.get('vcodec') != 'none':
-                        f['acodec'] = 'none'
                 formats.extend(m3u8_formats)
             else:
                 formats.append({

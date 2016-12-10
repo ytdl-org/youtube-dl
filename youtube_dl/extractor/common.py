@@ -1224,6 +1224,7 @@ class InfoExtractor(object):
                 'protocol': entry_protocol,
                 'preference': preference,
             }]
+        audio_groups = set()
         last_info = {}
         last_media = {}
         for line in m3u8_doc.splitlines():
@@ -1239,15 +1240,18 @@ class InfoExtractor(object):
                         for v in (media.get('GROUP-ID'), media.get('NAME')):
                             if v:
                                 format_id.append(v)
-                        formats.append({
+                        f = {
                             'format_id': '-'.join(format_id),
                             'url': format_url(media_url),
                             'language': media.get('LANGUAGE'),
-                            'vcodec': 'none' if media_type == 'AUDIO' else None,
                             'ext': ext,
                             'protocol': entry_protocol,
                             'preference': preference,
-                        })
+                        }
+                        if media_type == 'AUDIO':
+                            f['vcodec'] = 'none'
+                            audio_groups.add(media['GROUP-ID'])
+                        formats.append(f)
                     else:
                         # When there is no URI in EXT-X-MEDIA let this tag's
                         # data be used by regular URI lines below
@@ -1295,6 +1299,9 @@ class InfoExtractor(object):
                         'abr': abr,
                     })
                 f.update(parse_codecs(last_info.get('CODECS')))
+                if last_info.get('AUDIO') in audio_groups:
+                    # TODO: update acodec for for audio only formats with the same GROUP-ID
+                    f['acodec'] = 'none'
                 formats.append(f)
                 last_info = {}
                 last_media = {}

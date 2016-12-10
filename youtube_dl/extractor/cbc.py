@@ -283,11 +283,6 @@ class CBCWatchVideoIE(CBCWatchBaseIE):
         formats = self._extract_m3u8_formats(re.sub(r'/([^/]+)/[^/?]+\.m3u8', r'/\1/\1.m3u8', m3u8_url), video_id, 'mp4', fatal=False)
         if len(formats) < 2:
             formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
-        # Despite metadata in m3u8 all video+audio formats are
-        # actually video-only (no audio)
-        for f in formats:
-            if f.get('acodec') != 'none' and f.get('vcodec') != 'none':
-                f['acodec'] = 'none'
         self._sort_formats(formats)
 
         info = {
