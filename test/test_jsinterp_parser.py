@@ -23,6 +23,15 @@ from youtube_dl.jsinterp.tstream import (
 )
 
 
+def traverse(o, tree_types=(list, tuple)):
+    if isinstance(o, tree_types) or type(o) == zip:
+        for value in o:
+            for subvalue in traverse(value, tree_types):
+                yield subvalue
+    else:
+        yield o
+
+
 class TestJSInterpreterParser(unittest.TestCase):
     def test_basic(self):
         jsi = JSInterpreter(';')
@@ -120,7 +129,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                      None)]
                  )
                 )]
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
     def test_operators(self):
         jsi = JSInterpreter('return 1 << 5;')
@@ -233,7 +242,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                 ])
                 )
                ]
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
     def test_parens(self):
         jsi = JSInterpreter('return (1 + 2) * 3;')
@@ -306,13 +315,13 @@ class TestJSInterpreterParser(unittest.TestCase):
     def test_assignments(self):
         jsi = JSInterpreter('var x = 20; x = 30 + 1; return x;')
         ast = [
-            (Token.VAR, zip(
+            (Token.VAR, list(zip(
                 ['x'],
                 [(Token.ASSIGN,
                   None,
                   (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 20), None, None)]),
                   None)]
-            )),
+            ))),
 
             (Token.EXPR, [
                 (Token.ASSIGN,
@@ -333,7 +342,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                  ]), None)
             ]))
         ]
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
         jsi = JSInterpreter('var x = 20; x += 30 + 1; return x;')
         ast[1] = (Token.EXPR, [
@@ -347,7 +356,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                   (Token.OP, _OPERATORS['+'][1])]),
               None))
         ])
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
         jsi = JSInterpreter('var x = 20; x -= 30 + 1; return x;')
         ast[1] = (Token.EXPR, [
@@ -361,7 +370,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                   (Token.OP, _OPERATORS['+'][1])]),
               None))
         ])
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
     def test_comments(self):
         # var x =  2; var y = 50; return x + y;
@@ -392,7 +401,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                  ]), None)
             ]))
         ]
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
         # var x = "/*"; var y = 1 + 2; return y;
         jsi = JSInterpreter('var x = "/*"; var y = 1 /* comment */ + 2; return y;')
@@ -423,7 +432,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                  None)
             ]))
         ]
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
     def test_precedence(self):
         jsi = JSInterpreter(' var a = [10, 20, 30, 40, 50]; var b = 6; a[0]=a[b%a.length]; return a;')
@@ -491,7 +500,7 @@ class TestJSInterpreterParser(unittest.TestCase):
              ])
              )
         ]
-        self.assertEqual(list(jsi.statements()), ast)
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
     @unittest.skip('Parsing function declaration not yet implemented')
     def test_call(self):
