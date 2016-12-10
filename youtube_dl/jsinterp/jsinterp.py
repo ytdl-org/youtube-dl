@@ -22,12 +22,23 @@ class Context(object):
 
 class Reference(object):
     def __init__(self, value, parent=None):
-        self.value = value
-        self.parent = parent
+        self._value = value
+        self._parent = parent
+
+    def getvalue(self):
+        return self._value
+
+    def putvalue(self, value):
+        if self._parent is None:
+            raise ExtractorError('Trying to set a read-only reference')
+        parent, key = self._parent
+        if not hasattr(parent, '__setitem__'):
+            raise ExtractorError('Unknown reference')
+        parent.__setitem__(key, Reference(value, (parent, key)))
 
     def __repr__(self):
-        parent, key = self.parent
-        return '<Reference> value: %s,  parent: %s -> %s)' % (self.value, parent.__class__.__name__, key)
+        parent, key = self._parent
+        return '<Reference> value: %s,  parent: %s -> %s)' % (self._value, parent.__class__.__name__, key)
 
 
 class JSInterpreter(object):
@@ -467,42 +478,6 @@ class JSInterpreter(object):
 
         return (Token.OPEXPR, out)
 
-    def getvalue(self, ref):
-        if (ref.value is None or ref.value is self.undefined or
-                isinstance(ref.value, (int, float, compat_str, list))):
-            return ref.value
-        ref_id, ref_value = ref.value
-        if ref_id is Token.ID:
-            if ref_value in self.context.local_vars:
-                return self.context.local_vars[ref_value].value
-            # TODO error handling (unknown id)
-            return self.global_vars[ref_value].value
-        elif ref_id in _token_keys:
-            return ref_value
-        elif ref_id is Token.EXPR:
-            ref = self.interpret_statement(ref_value)
-            return self.getvalue(ref)
-        elif ref_id is Token.ARRAY:
-            array = []
-            for key, expr in enumerate(ref_value):
-                value = self.interpret_expression(expr)
-                value.parent = array, key
-                array.append(value)
-            return array
-        else:
-            raise ExtractorError('Unable to get value of reference type %s' % ref_id)
-
-    @staticmethod
-    def putvalue(ref, value):
-        if ref.parent is None:
-            raise ExtractorError('Trying to set a read-only reference')
-
-        parent, key = ref.parent
-        if not hasattr(parent, '__setitem__'):
-            raise ExtractorError('Unknown reference')
-
-        parent.__setitem__(key, Reference(value, (parent, key)))
-
     def interpret_statement(self, stmt):
         if stmt is None:
             return None
@@ -517,10 +492,10 @@ class JSInterpreter(object):
             for stmt in block:
                 s = self.interpret_statement(stmt)
                 if s is not None:
-                    ref = self.getvalue(s)
+                    ref = s.getvalue()
         elif name is Token.VAR:
             for name, value in stmt[1]:
-                self.context.local_vars[name] = Reference(self.getvalue(self.interpret_expression(value)),
+                self.context.local_vars[name] = Reference(self.interpret_expression(value).getvalue(),
                                                           (self.context.local_vars, name))
         elif name is Token.EXPR:
             for expr in stmt[1]:
@@ -529,10 +504,10 @@ class JSInterpreter(object):
         # continue, break
         elif name is Token.RETURN:
             ref = self.interpret_statement(stmt[1])
-            ref = None if ref is None else self.getvalue(ref)
+            ref = None if ref is None else ref.getvalue()
             if isinstance(ref, list):
                 # TODO test nested arrays
-                ref = [self.getvalue(elem) for elem in ref]
+                ref = [elem.getvalue() for elem in ref]
 
             self.context.ended = True
         # with
@@ -557,9 +532,9 @@ class JSInterpreter(object):
             else:
                 # TODO handle undeclared variables (create propery)
                 leftref = self.interpret_expression(left)
-                leftvalue = self.getvalue(leftref)
-                rightvalue = self.getvalue(self.interpret_expression(right))
-                self.putvalue(leftref, op(leftvalue, rightvalue))
+                leftvalue = leftref.getvalue()
+                rightvalue = self.interpret_expression(right).getvalue()
+                leftref.putvalue(op(leftvalue, rightvalue))
                 # TODO check specs
                 ref = leftref
 
@@ -574,10 +549,10 @@ class JSInterpreter(object):
                 if token[0] in (Token.OP, Token.AOP, Token.UOP, Token.LOP, Token.REL):
                     right = stack.pop()
                     left = stack.pop()
-                    stack.append(Reference(token[1](self.getvalue(left), self.getvalue(right))))
+                    stack.append(Reference(token[1](left.getvalue(), right.getvalue())))
                 elif token[0] is Token.UOP:
                     right = stack.pop()
-                    stack.append(token[1](self.getvalue(right)))
+                    stack.append(token[1](right.getvalue()))
                 else:
                     stack.append(self.interpret_expression(token))
             result = stack.pop()
@@ -596,10 +571,8 @@ class JSInterpreter(object):
                     # TODO interpret field
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
                 elif tail_name is Token.ELEM:
-                    index = self.interpret_statement(tail_value)
-                    index = self.getvalue(index)
-                    target = self.getvalue(target)
-                    target = target[index]
+                    index = self.interpret_statement(tail_value).getvalue()
+                    target = target.getvalue()[index]
                 elif tail_name is Token.CALL:
                     # TODO interpret call
                     raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
@@ -608,10 +581,19 @@ class JSInterpreter(object):
         elif name is Token.ID:
             # TODO error handling (unknown id)
             ref = self.context.local_vars[expr[1]] if expr[1] in self.context.local_vars else self.global_vars[expr[1]]
-
+        
         # literal
-        elif name in _token_keys or name is Token.ARRAY:
-            ref = Reference(self.getvalue(Reference(expr)))
+        elif name in _token_keys:
+            ref = Reference(expr[1])
+
+        elif name is Token.ARRAY:
+            array = []
+            for key, elem in enumerate(expr[1]):
+                value = self.interpret_expression(elem)
+                value._parent = array, key
+                array.append(value)
+            ref = Reference(array)
+
         else:
             raise ExtractorError('''Can't interpret expression called %s''' % name)
 
