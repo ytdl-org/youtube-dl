@@ -64,7 +64,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                          (Token.MEMBER, (Token.ID, 'a'), None, None),
                          (Token.OP, _OPERATORS['*'][1]),
                          (Token.MEMBER, (Token.INT, 1), None, None),
-                         (Token.OP, _OPERATORS['+'][1]),
+                         (Token.OP, _OPERATORS['+'][1])
                      ]),
                      None)
                 ])
@@ -505,7 +505,6 @@ class TestJSInterpreterParser(unittest.TestCase):
         ]
         self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
-    @unittest.skip('Parsing function declaration not yet implemented')
     def test_call(self):
         jsi = JSInterpreter('''
         function x() { return 2; }
@@ -513,21 +512,107 @@ class TestJSInterpreterParser(unittest.TestCase):
         function z() { return y(3); }
         ''')
 
-        ast = []
+        ast = [
+            (Token.FUNC, 'x',
+             [],
+             (Token.BLOCK, [
+                 (Token.RETURN, (Token.EXPR, [
+                     (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 2), None, None)]), None)
+                 ])
+                  )
+             ])),
+            (Token.FUNC, 'y',
+             ['a'],
+             (Token.BLOCK, [
+                 (Token.RETURN, (Token.EXPR, [
+                     (Token.ASSIGN, None,
+                      (Token.OPEXPR, [
+                          # Not sure about this one
+                          (Token.MEMBER, (Token.ID, 'x'), None, (Token.CALL, [], None)),
+                          (Token.MEMBER, (Token.ID, 'a'), None, None),
+                          (Token.OP, _OPERATORS['+'][1])
+                      ]), None)
+                 ])
+                  )
+             ])),
+            (Token.FUNC, 'z',
+             [],
+             (Token.BLOCK, [
+                 (Token.RETURN, (Token.EXPR, [
+                     (Token.ASSIGN, None, (Token.OPEXPR, [
+                         # Not sure about this one
+                         (Token.MEMBER, (Token.ID, 'y'), None, (Token.CALL, [
+                             (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 3), None, None)]), None)
+                         ], None))
+                     ]), None)
+                 ])
+                  )
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
-
         jsi = JSInterpreter('function x(a) { return a.split(""); }', variables={'a': 'abc'})
-        ast = []
+        ast = [
+            (Token.FUNC, 'x',
+             ['a'],
+             (Token.BLOCK, [
+                 (Token.RETURN, (Token.EXPR, [
+                     (Token.ASSIGN, None, (Token.OPEXPR, [
+                         (Token.MEMBER, (Token.ID, 'a'), None,
+                          (Token.FIELD, 'split',
+                           (Token.CALL, [
+                               (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.STR, ''), None, None)]), None)
+                           ], None))
+                          )]),
+                      None)
+                 ])
+                  )
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Parsing function declaration not yet implemented')
     def test_complex_call(self):
         jsi = JSInterpreter('''
                 function a(x) { return x; }
                 function b(x) { return x; }
                 function c()  { return [a, b][0](0); }
                 ''')
-        ast = []
+        ast = [
+            (Token.FUNC, 'a',
+             ['x'],
+             (Token.BLOCK, [
+                 (Token.RETURN, (Token.EXPR, [
+                     (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]), None)
+                 ])
+                  )
+             ])),
+            (Token.FUNC, 'b',
+             ['x'],
+             (Token.BLOCK, [
+                 (Token.RETURN, (Token.EXPR, [
+                     (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]), None)
+                 ])
+                  )
+             ])),
+            (Token.FUNC, 'c',
+             [],
+             (Token.BLOCK, [
+                 (Token.RETURN, (Token.EXPR, [
+                     (Token.ASSIGN, None, (Token.OPEXPR, [
+                         (Token.MEMBER, (Token.ARRAY, [
+                             (Token.ASSIGN, None, (Token.OPEXPR, [
+                                 (Token.MEMBER, (Token.ID, 'a'), None, None)]), None),
+                             (Token.ASSIGN, None, (Token.OPEXPR, [
+                                 (Token.MEMBER, (Token.ID, 'b'), None, None)]), None)
+                         ]), None, (Token.ELEM, (Token.EXPR, [
+                              (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
+                         ]), (Token.CALL, [
+                             (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
+                         ], None)))
+                     ]), None)
+                 ])
+                  )
+             ])),
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
     def test_getfield(self):
