@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     ExtractorError,
     parse_iso8601,
@@ -22,6 +23,16 @@ class SRGSSRIE(InfoExtractor):
         'LEGAL': 'The video cannot be transmitted for legal reasons.',
         'STARTDATE': 'This video is not yet available. Please try again later.',
     }
+
+    def _get_tokenized_src(self, url, video_id, format_id):
+        sp = compat_urllib_parse_urlparse(url).path.split('/')
+        token = self._download_json(
+            'http://tp.srgssr.ch/akahd/token?acl=/%s/%s/*' % (sp[1], sp[2]),
+            video_id, 'Downloading %s token' % format_id, fatal=False) or {}
+        auth_params = token.get('token', {}).get('authparams')
+        if auth_params:
+            url += '?' + auth_params
+        return url
 
     def get_media_data(self, bu, media_type, media_id):
         media_data = self._download_json(
@@ -61,14 +72,16 @@ class SRGSSRIE(InfoExtractor):
                 asset_url = asset['text']
                 quality = asset['@quality']
                 format_id = '%s-%s' % (protocol, quality)
-                if protocol == 'HTTP-HDS':
-                    formats.extend(self._extract_f4m_formats(
-                        asset_url + '?hdcore=3.4.0', media_id,
-                        f4m_id=format_id, fatal=False))
-                elif protocol == 'HTTP-HLS':
-                    formats.extend(self._extract_m3u8_formats(
-                        asset_url, media_id, 'mp4', 'm3u8_native',
-                        m3u8_id=format_id, fatal=False))
+                if protocol.startswith('HTTP-HDS') or protocol.startswith('HTTP-HLS'):
+                    asset_url = self._get_tokenized_src(asset_url, media_id, format_id)
+                    if protocol.startswith('HTTP-HDS'):
+                        formats.extend(self._extract_f4m_formats(
+                            asset_url + ('?' if '?' not in asset_url else '&') + 'hdcore=3.4.0',
+                            media_id, f4m_id=format_id, fatal=False))
+                    elif protocol.startswith('HTTP-HLS'):
+                        formats.extend(self._extract_m3u8_formats(
+                            asset_url, media_id, 'mp4', 'm3u8_native',
+                            m3u8_id=format_id, fatal=False))
                 else:
                     formats.append({
                         'format_id': format_id,
@@ -94,10 +107,10 @@ class SRGSSRPlayIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
-        'md5': '4cd93523723beff51bb4bee974ee238d',
+        'md5': 'da6b5b3ac9fa4761a942331cef20fcb3',
         'info_dict': {
             'id': '28e1a57d-5b76-4399-8ab3-9097f071e6c5',
-            'ext': 'm4v',
+            'ext': 'mp4',
             'upload_date': '20130701',
             'title': 'Snowden beantragt Asyl in Russland',
             'timestamp': 1372713995,
