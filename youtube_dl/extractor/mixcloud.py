@@ -22,7 +22,7 @@ from ..utils import (
 
 
 class MixcloudIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
+    _VALID_URL = r'https?://(?:(?:www|beta|m)\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
     IE_NAME = 'mixcloud'
 
     _TESTS = [{
@@ -51,6 +51,9 @@ class MixcloudIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
         },
+    }, {
+        'url': 'https://beta.mixcloud.com/RedLightRadio/nosedrip-15-red-light-radio-01-18-2016/',
+        'only_matching': True,
     }]
 
     # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
