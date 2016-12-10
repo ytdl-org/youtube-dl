@@ -257,6 +257,8 @@ class FacebookIE(InfoExtractor):
                 raise ExtractorError(
                     'The video is not available, Facebook said: "%s"' % m_msg.group(1),
                     expected=True)
+            elif '>You must log in to continue' in webpage:
+                self.raise_login_required()
             else:
                 raise ExtractorError('Cannot parse data')
 
