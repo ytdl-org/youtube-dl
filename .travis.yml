@@ -7,7 +7,8 @@ python:
   - "3.4"
   - "3.5"
 sudo: false
-script: nosetests test --verbose
+install: "pip install -r requirements.txt"
+script: nosetests test/test_jsinterp* --verbose
 notifications:
   email:
     - filippo.valsorda@gmail.com
