@@ -3,7 +3,6 @@ from ..compat import compat_str
 
 import re
 
-
 from ..utils import ExtractorError
 from .tstream import TokenStream
 from .jsgrammar import Token
@@ -223,7 +222,7 @@ class JSInterpreter(object):
                 peek_id, peek_value, peek_pos = token_stream.peek()
             elif peek_id is Token.POPEN:
                 # TODO handle field query
-                raise ExtractorError('Field querry is not yet supported at %d' % peek_pos)
+                raise ExtractorError('Field query is not yet supported at %d' % peek_pos)
 
             if peek_id is Token.ID:
                 token_stream.pop()
@@ -470,7 +469,7 @@ class JSInterpreter(object):
 
     def getvalue(self, ref):
         if (ref.value is None or ref.value is self.undefined or
-                isinstance(ref.value, (int, float, str, compat_str, list))):
+                isinstance(ref.value, (int, float, compat_str, list))):
             return ref.value
         ref_id, ref_value = ref.value
         if ref_id is Token.ID:
@@ -510,7 +509,6 @@ class JSInterpreter(object):
 
         name = stmt[0]
         ref = None
-        abort = False
         if name == 'funcdecl':
             # TODO interpret funcdecl
             raise ExtractorError('''Can't interpret statement called %s''' % name)
@@ -523,7 +521,7 @@ class JSInterpreter(object):
         elif name is Token.VAR:
             for name, value in stmt[1]:
                 self.context.local_vars[name] = Reference(self.getvalue(self.interpret_expression(value)),
-                                             (self.context.local_vars, name))
+                                                          (self.context.local_vars, name))
         elif name is Token.EXPR:
             for expr in stmt[1]:
                 ref = self.interpret_expression(expr)
