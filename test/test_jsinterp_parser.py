@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 # Allow direct execution
 import os
 import sys
+import copy
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -23,13 +24,15 @@ from youtube_dl.jsinterp.tstream import (
 )
 
 
-def traverse(o, tree_types=(list, tuple)):
-    if isinstance(o, tree_types) or type(o) == zip:
-        for value in o:
+def traverse(node, tree_types=(list, tuple)):
+    if type(node) == zip:
+        node = list(copy.deepcopy(node))
+    if isinstance(node, tree_types):
+        for value in node:
             for subvalue in traverse(value, tree_types):
                 yield subvalue
     else:
-        yield o
+        yield node
 
 
 class TestJSInterpreterParser(unittest.TestCase):
@@ -315,13 +318,13 @@ class TestJSInterpreterParser(unittest.TestCase):
     def test_assignments(self):
         jsi = JSInterpreter('var x = 20; x = 30 + 1; return x;')
         ast = [
-            (Token.VAR, list(zip(
+            (Token.VAR, zip(
                 ['x'],
                 [(Token.ASSIGN,
                   None,
                   (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 20), None, None)]),
                   None)]
-            ))),
+            )),
 
             (Token.EXPR, [
                 (Token.ASSIGN,
