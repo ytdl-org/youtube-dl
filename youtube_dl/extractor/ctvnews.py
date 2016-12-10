@@ -8,7 +8,7 @@ from ..utils import orderedSet
 
 
 class CTVNewsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ctvnews\.ca/(?:video\?(?:clip|playlist|bin)Id=|.*?)(?P<id>[0-9.]+)'
+    _VALID_URL = r'https?://(?:.+?\.)?ctvnews\.ca/(?:video\?(?:clip|playlist|bin)Id=|.*?)(?P<id>[0-9.]+)'
     _TESTS = [{
         'url': 'http://www.ctvnews.ca/video?clipId=901995',
         'md5': '10deb320dc0ccb8d01d34d12fc2ea672',
@@ -39,6 +39,9 @@ class CTVNewsIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.ctvnews.ca/canadiens-send-p-k-subban-to-nashville-in-blockbuster-trade-1.2967231',
+        'only_matching': True,
+    }, {
+        'url': 'http://vancouverisland.ctvnews.ca/video?clipId=761241',
         'only_matching': True,
     }]
 
