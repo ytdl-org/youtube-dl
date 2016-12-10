@@ -37,8 +37,11 @@ class Reference(object):
         parent.__setitem__(key, Reference(value, (parent, key)))
 
     def __repr__(self):
-        parent, key = self._parent
-        return '<Reference> value: %s,  parent: %s -> %s)' % (self._value, parent.__class__.__name__, key)
+        if self._parent is not None:
+            parent, key = self._parent
+            return '<Reference value: %s, parent: %s@(0x%x), key: %s>' % (
+                str(self._value), parent.__class__.__name__, id(parent), key)
+        return '<Reference value: %s, parent: %s>' % (self._value, None)
 
 
 class JSInterpreter(object):
