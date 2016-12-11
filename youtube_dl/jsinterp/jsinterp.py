@@ -268,8 +268,16 @@ class JSInterpreter(object):
                 statement = (Token.BLOCK, discriminant, block)
 
             elif token_value == 'throw':
-                # TODO parse throwstatement
-                raise ExtractorError('Throw statement is not yet supported at %d' % token_pos)
+                token_stream.pop()
+                # XXX no line break here
+                expr = self._expression(token_stream, stack_top - 1)
+                statement = (Token.RETURN, expr)
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id is not Token.END:
+                    # FIXME automatic end insertion
+                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                else:
+                    token_stream.pop()
 
             elif token_value == 'try':
                 token_stream.pop()
@@ -307,8 +315,14 @@ class JSInterpreter(object):
                 statement = (Token.TRY, try_block, catch_block, finally_block)
 
             elif token_value == 'debugger':
-                # TODO parse debuggerstatement
-                raise ExtractorError('Debugger statement is not yet supported at %d' % token_pos)
+                token_stream.pop()
+                statement = (Token.DEBUG)
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id is not Token.END:
+                    # FIXME automatic end insertion
+                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                else:
+                    token_stream.pop()
 
         # expr
         if statement is None:

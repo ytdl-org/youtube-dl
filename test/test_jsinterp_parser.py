@@ -631,7 +631,6 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     def test_if(self):
-        # TODO if test
         jsi = JSInterpreter(
             '''
             function a(x) {
@@ -760,6 +759,29 @@ class TestJSInterpreterParser(unittest.TestCase):
             }
             '''
         )
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_try(self):
+        # TODO try test
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_throw(self):
+        # TODO throw test
+        # might be combined with another
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_debug(self):
+        # TODO debug test
+        # might be combined with another
+        jsi = JSInterpreter('')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
