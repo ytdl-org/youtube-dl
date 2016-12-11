@@ -1,3 +1,22 @@
+version <unreleased>
+
+Core
++ [utils] Add common user agents map
++ [common] Recognize HLS manifests that contain video only formats (#11394)
+
+Extractors
++ [dplay] Use Safari user agent for HLS (#11418)
++ [facebook] Detect login required error message
+* [facebook] Improve video selection (#11390)
++ [canalplus] Add another video id pattern (#11399)
+* [mixcloud] Relax URL regular expression (#11406)
+* [ctvnews] Relax URL regular expression (#11394)
++ [rte] Capture and output error message (#7746, #10498)
++ [prosiebensat1] Add support for DASH formats
+* [srgssr] Improve extraction for geo restricted videos (#11089)
+* [rts] Improve extraction for geo restricted videos (#4989)
+
+
 version 2016.12.09
 
 Core
@@ -14,6 +33,7 @@ Extractors
 * [1tv] Improve extraction (#11335)
 + [aenetworks] Extract more formats (#11321)
 + [thisoldhouse] Recognize /tv-episode/ URLs (#11271)
+
 
 version 2016.12.01
 
