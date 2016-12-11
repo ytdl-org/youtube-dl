@@ -108,16 +108,17 @@ class JSInterpreter(object):
         elif token_id is Token.COPEN:
             open_pos = token_pos
             token_stream.pop()
-            statement_list = []
+            block = []
             while True:
-                statement_list.append(self._next_statement(token_stream, stack_top - 1))
-                token_stream.pop()
                 token_id, token_value, token_pos = token_stream.peek()
                 if token_id is Token.CCLOSE:
                     break
                 elif token_id is Token.END and token_stream.ended:
                     raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
-            statement = (Token.BLOCK, statement_list)
+                block.append(self._next_statement(token_stream, stack_top - 1))
+                token_stream.pop()
+
+            statement = (Token.BLOCK, block)
 
         elif token_id is Token.ID:
             # TODO parse label
@@ -158,7 +159,7 @@ class JSInterpreter(object):
                 token_id, token_value, token_pos = token_stream.pop()
                 if token_id is not Token.POPEN:
                     raise ExtractorError('Missing condition at %d' % token_pos)
-                cond_expr = self._next_statement(token_stream, stack_top - 1)
+                cond_expr = self._expression(token_stream, stack_top - 1)
                 token_stream.pop()  # Token.PCLOSE
                 true_expr = self._next_statement(token_stream, stack_top - 1)
                 token_id, token_value, token_pos = token_stream.peek()
@@ -166,7 +167,7 @@ class JSInterpreter(object):
                     token_stream.pop()
                     token_id, token_value, token_pos = token_stream.peek()
                 false_expr = None
-                if token_value == 'else':
+                if token_id is Token.ID and token_value == 'else':
                     token_stream.pop()
                     false_expr = self._next_statement(token_stream, stack_top - 1)
                 statement = (Token.IF, cond_expr, true_expr, false_expr)
@@ -180,12 +181,11 @@ class JSInterpreter(object):
                 token = {'break': Token.BREAK, 'continue': Token.CONTINUE}[token_value]
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 # XXX no line break here
+                label = None
                 if peek_id is not Token.END:
                     token_stream.chk_id()
                     label = peek_value
                     token_stream.pop()
-                else:
-                    label = None
                 statement = (token, label)
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id is not Token.END:
@@ -204,12 +204,66 @@ class JSInterpreter(object):
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
 
             elif token_value == 'with':
-                # TODO parse withstatement
-                raise ExtractorError('With statement is not yet supported at %d' % token_pos)
+                token_stream.pop()
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.POPEN:
+                    raise ExtractorError('Missing expression at %d' % token_pos)
+                expr = self._expression(token_stream, stack_top - 1)
+                token_stream.pop()  # Token.PCLOSE
+                statement = (Token.WITH, expr, self._next_statement(token_stream, stack_top - 1))
 
             elif token_value == 'switch':
-                # TODO parse switchstatement
-                raise ExtractorError('Switch statement is not yet supported at %d' % token_pos)
+                token_stream.pop()
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.POPEN:
+                    raise ExtractorError('Missing expression at %d' % token_pos)
+                discriminant = self._expression(token_stream, stack_top - 1)
+                token_stream.pop()  # Token.PCLOSE
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.COPEN:
+                    raise ExtractorError('Missing case block at %d' % token_pos)
+                open_pos = token_pos
+
+                has_default = False
+                block = []
+                while True:
+                    token_id, token_value, token_pos = token_stream.peek()
+                    if token_id is Token.CCLOSE:
+                        break
+                    elif token_id is Token.ID and token_value == 'case':
+                        token_stream.pop()
+                        expr = self._expression(token_stream, stack_top - 1)
+
+                    elif token_id is Token.ID and token_value == 'default':
+                        if has_default:
+                            raise ExtractorError('Multiple default clause')
+                        token_stream.pop()
+                        has_default = True
+                        expr = None
+
+                    elif token_id is Token.END and token_stream.ended:
+                        raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
+                    else:
+                        raise ExtractorError('Unexpected sequence at %d, default or case clause is expected' %
+                                             token_pos)
+
+                    token_id, token_value, token_pos = token_stream.pop()
+                    if token_id is not Token.COLON:
+                        raise ExtractorError('''Unexpected sequence at %d, ':' is expected''' % token_pos)
+
+                    statement_list = []
+                    while True:
+                        token_id, token_value, token_pos = token_stream.peek()
+                        if token_id == Token.CCLOSE or (token_id is Token.ID and (token_value in ('default', 'case'))):
+                            break
+                        elif token_id is Token.END and token_stream.ended:
+                            raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
+                        statement_list.append(self._next_statement(token_id, stack_top - 1))
+                        token_stream.pop()
+
+                    block.append((expr, statement_list))
+                statement = (Token.BLOCK, discriminant, block)
 
             elif token_value == 'throw':
                 # TODO parse throwstatement
