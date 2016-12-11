@@ -292,15 +292,12 @@ class JSInterpreter(object):
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
                 else:
                     token_stream.pop()
-            # label
             else:
-                token_stream.chk_id()
-                token_id, label_name, token_pos = token_stream.pop()
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.COLON:
-                    raise ExtractorError('''Label statement missing ':' at %d''' % token_pos)
-
-                statement = (Token.LABEL, label_name, self._next_statement(token_stream, stack_top - 1))
+                token_id, token_value, token_pos = token_stream.peek(2)
+                if token_id is Token.COLON:
+                    token_id, label_name, token_pos = token_stream.pop(2)
+                    token_stream.chk_id(last=True)
+                    statement = (Token.LABEL, label_name, self._next_statement(token_stream, stack_top - 1))
 
         # expr
         if statement is None:
@@ -520,10 +517,11 @@ class JSInterpreter(object):
         elif not is_expr:
             raise ExtractorError('Function declaration at %d is missing identifier' % token_pos)
 
-        if token_id is Token.POPEN:
-            open_pos = token_pos
-        else:
+        if token_id is not Token.POPEN:
             raise ExtractorError('Expected argument list at %d' % token_pos)
+
+        token_stream.pop()
+        open_pos = token_pos
 
         args = []
         while True:

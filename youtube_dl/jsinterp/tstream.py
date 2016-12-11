@@ -159,10 +159,12 @@ class TokenStream(object):
         return self.peeked[count - 1]
 
     def pop(self, count=1):
-        if not self.peeked:
-            self.peek()
-        for _ in range(count):
-            self._last = self.peeked.pop()
+        if count > len(self.peeked):
+            self.peek(count)
+            self.flush()
+        else:
+            self._last = self.peeked[count - 1]
+            self.peeked = self.peeked[count:]
         return self._last
 
     def flush(self):
