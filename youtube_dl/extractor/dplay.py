@@ -8,6 +8,7 @@ import time
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    USER_AGENTS,
     int_or_none,
     update_url_query,
 )
@@ -102,10 +103,16 @@ class DPlayIE(InfoExtractor):
                     manifest_url, video_id, ext='mp4',
                     entry_protocol='m3u8_native', m3u8_id=protocol, fatal=False)
                 # Sometimes final URLs inside m3u8 are unsigned, let's fix this
-                # ourselves
+                # ourselves. Also fragments' URLs are only served signed for
+                # Safari user agent.
                 query = compat_urlparse.parse_qs(compat_urlparse.urlparse(manifest_url).query)
                 for m3u8_format in m3u8_formats:
-                    m3u8_format['url'] = update_url_query(m3u8_format['url'], query)
+                    m3u8_format.update({
+                        'url': update_url_query(m3u8_format['url'], query),
+                        'http_headers': {
+                            'User-Agent': USER_AGENTS['Safari'],
+                        },
+                    })
                 formats.extend(m3u8_formats)
             elif protocol == 'hds':
                 formats.extend(self._extract_f4m_formats(
