@@ -637,9 +637,9 @@ class TestJSInterpreterParser(unittest.TestCase):
             '''
             function a(x) {
                 if (x > 0)
-                    return true
+                    return true;
                 else
-                    return false
+                    return false;
             }
             '''
         )
@@ -650,8 +650,8 @@ class TestJSInterpreterParser(unittest.TestCase):
             '''
             function a(x) {
                 if (x > 0)
-                    return true
-                return false
+                    return true;
+                return false;
             }
             '''
         )
@@ -681,22 +681,24 @@ class TestJSInterpreterParser(unittest.TestCase):
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing code and ast')
+    @unittest.skip('Test not yet implemented: missing ast')
     def test_switch(self):
         # TODO switch test
         jsi = JSInterpreter(
             '''
             function a(x) {
                 switch (x) {
-                    case x == 6:
+                    case 6:
                         break;
-                    case x > 5:
+                    case 5:
                         x++;
-                    case x == 6:
+                    case 8:
                         x--;
+                        break;
                     default:
                         x = 0;
                 }
+                return x;
             }
             '''
         )
