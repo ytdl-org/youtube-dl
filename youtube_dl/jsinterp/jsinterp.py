@@ -16,7 +16,7 @@ class Context(object):
         self.local_vars = {}
         if variables is not None:
             for k, v in dict(variables).items():
-                # TODO validate identifiers
+                # XXX validate identifiers
                 self.local_vars[k] = Reference(v, (self.local_vars, k))
 
 
@@ -53,7 +53,7 @@ class JSInterpreter(object):
         self.global_vars = {}
         if variables is not None:
             for k, v in dict(variables).items():
-                # TODO validate identifiers
+                # XXX validate identifiers
                 self.global_vars[k] = Reference(v, (self.global_vars, k))
         self.context = Context(self.global_vars)
         self._context_stack = []
@@ -179,7 +179,7 @@ class JSInterpreter(object):
                 token_stream.pop()
                 token = {'break': Token.BREAK, 'continue': Token.CONTINUE}[token_value]
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                # FIXME no line break here
+                # XXX no line break here
                 if peek_id is not Token.END:
                     token_stream.chk_id()
                     label = peek_value
@@ -195,7 +195,7 @@ class JSInterpreter(object):
             elif token_value == 'return':
                 token_stream.pop()
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                # FIXME no line break here
+                # XXX no line break here
                 expr = self._expression(token_stream, stack_top - 1) if peek_id is not Token.END else None
                 statement = (Token.RETURN, expr)
                 peek_id, peek_value, peek_pos = token_stream.peek()
@@ -228,7 +228,7 @@ class JSInterpreter(object):
             expr_list = []
             has_another = True
             while has_another:
-                # TODO check specs is it just the first AssignmentExpression can't be FunctionExpression?
+                # XXX check specs is it just the first AssignmentExpression can't be FunctionExpression?
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if not (peek_id is Token.COPEN and peek_id is Token.ID and peek_value == 'function'):
                     expr_list.append(self._assign_expression(token_stream, stack_top - 1))
@@ -411,7 +411,7 @@ class JSInterpreter(object):
         if stack_top < 0:
             raise ExtractorError('Recursion limit reached')
 
-        # TODO check no linebreak
+        # XXX check no linebreak here
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id is not Token.SOPEN:
             raise ExtractorError('Array expected at %d' % peek_pos)
@@ -620,7 +620,7 @@ class JSInterpreter(object):
                 leftvalue = leftref.getvalue()
                 rightvalue = self.interpret_expression(right).getvalue()
                 leftref.putvalue(op(leftvalue, rightvalue))
-                # TODO check specs
+                # XXX check specs what to return
                 ref = leftref
 
         elif name is Token.EXPR:
@@ -667,7 +667,7 @@ class JSInterpreter(object):
             ref = target
 
         elif name is Token.ID:
-            # TODO error handling (unknown id)
+            # XXX error handling (unknown id)
             ref = self.context.local_vars[expr[1]] if expr[1] in self.context.local_vars else self.global_vars[expr[1]]
         
         # literal
@@ -725,7 +725,7 @@ class JSInterpreter(object):
         self.context = cx
 
     def pop_context(self):
-        # TODO check underflow
+        # XXX check underflow
         self.context = self._context_stack.pop()
 
     def call_function(self, funcname, *args):
