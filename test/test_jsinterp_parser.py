@@ -527,7 +527,6 @@ class TestJSInterpreterParser(unittest.TestCase):
                  (Token.RETURN, (Token.EXPR, [
                      (Token.ASSIGN, None,
                       (Token.OPEXPR, [
-                          # Not sure about this one
                           (Token.MEMBER, (Token.ID, 'x'), None, (Token.CALL, [], None)),
                           (Token.MEMBER, (Token.ID, 'a'), None, None),
                           (Token.OP, _OPERATORS['+'][1])
@@ -540,7 +539,6 @@ class TestJSInterpreterParser(unittest.TestCase):
              (Token.BLOCK, [
                  (Token.RETURN, (Token.EXPR, [
                      (Token.ASSIGN, None, (Token.OPEXPR, [
-                         # Not sure about this one
                          (Token.MEMBER, (Token.ID, 'y'), None, (Token.CALL, [
                              (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 3), None, None)]), None)
                          ], None))
@@ -630,6 +628,13 @@ class TestJSInterpreterParser(unittest.TestCase):
                      None)
                 ]))
                ]
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Incomplete test: missing code and ast')
+    def test_if(self):
+        # TODO if test
+        jsi = JSInterpreter('')
+        ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
     def test_unshift(self):

@@ -68,6 +68,7 @@ class JSInterpreter(object):
         if token_id in (Token.CCLOSE, Token.END):
             # empty statement goes straight here
             return statement
+
         if token_id is Token.ID and token_value == 'function':
             token_stream.pop()
             token_stream.chk_id()
@@ -102,8 +103,9 @@ class JSInterpreter(object):
                 raise ExtractorError('Expected function body at %d' % token_pos)
 
             statement = (Token.FUNC, name, args, self._next_statement(token_stream, stack_top - 1))
+
+        # block
         elif token_id is Token.COPEN:
-            # block
             open_pos = token_pos
             token_stream.pop()
             statement_list = []
@@ -112,11 +114,11 @@ class JSInterpreter(object):
                 token_stream.pop()
                 token_id, token_value, token_pos = token_stream.peek()
                 if token_id is Token.CCLOSE:
-                    # TODO handle unmatched Token.COPEN
                     break
                 elif token_id is Token.END and token_stream.ended:
                     raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
             statement = (Token.BLOCK, statement_list)
+
         elif token_id is Token.ID:
             # TODO parse label
             if token_value == 'var':
@@ -150,44 +152,83 @@ class JSInterpreter(object):
                         # - restricted token
                         raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
                 statement = (Token.VAR, zip(variables, init))
+
             elif token_value == 'if':
-                # TODO parse ifstatement
-                raise ExtractorError('Conditional statement is not yet supported at %d' % token_pos)
+                token_stream.pop()
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.POPEN:
+                    raise ExtractorError('Missing condition at %d' % token_pos)
+                cond_expr = self._next_statement(token_stream, stack_top - 1)
+                token_stream.pop()  # Token.PCLOSE
+                true_expr = self._next_statement(token_stream, stack_top - 1)
+                token_id, token_value, token_pos = token_stream.peek()
+                if token_id is Token.CCLOSE:
+                    token_stream.pop()
+                    token_id, token_value, token_pos = token_stream.peek()
+                false_expr = None
+                if token_value == 'else':
+                    token_stream.pop()
+                    false_expr = self._next_statement(token_stream, stack_top - 1)
+                statement = (Token.IF, cond_expr, true_expr, false_expr)
+
             elif token_value in ('for', 'do', 'while'):
                 # TODO parse iterstatement
                 raise ExtractorError('Loops is not yet supported at %d' % token_pos)
+
             elif token_value in ('break', 'continue'):
-                # TODO parse continue, break
-                raise ExtractorError('Flow control is not yet supported at %d' % token_pos)
+                token_stream.pop()
+                token = {'break': Token.BREAK, 'continue': Token.CONTINUE}[token_value]
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                # FIXME no line break here
+                if peek_id is not Token.END:
+                    token_stream.chk_id()
+                    label = peek_value
+                    token_stream.pop()
+                else:
+                    label = None
+                statement = (token, label)
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id is not Token.END:
+                    # FIXME automatic end insertion
+                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+
             elif token_value == 'return':
                 token_stream.pop()
                 peek_id, peek_value, peek_pos = token_stream.peek()
+                # FIXME no line break here
                 expr = self._expression(token_stream, stack_top - 1) if peek_id is not Token.END else None
                 statement = (Token.RETURN, expr)
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id is not Token.END:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+
             elif token_value == 'with':
                 # TODO parse withstatement
                 raise ExtractorError('With statement is not yet supported at %d' % token_pos)
+
             elif token_value == 'switch':
                 # TODO parse switchstatement
                 raise ExtractorError('Switch statement is not yet supported at %d' % token_pos)
+
             elif token_value == 'throw':
                 # TODO parse throwstatement
                 raise ExtractorError('Throw statement is not yet supported at %d' % token_pos)
+
             elif token_value == 'try':
                 # TODO parse trystatement
                 raise ExtractorError('Try statement is not yet supported at %d' % token_pos)
+
             elif token_value == 'debugger':
                 # TODO parse debuggerstatement
                 raise ExtractorError('Debugger statement is not yet supported at %d' % token_pos)
+
         # expr
         if statement is None:
             expr_list = []
             has_another = True
             while has_another:
+                # TODO check specs is it just the first AssignmentExpression can't be FunctionExpression?
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if not (peek_id is Token.COPEN and peek_id is Token.ID and peek_value == 'function'):
                     expr_list.append(self._assign_expression(token_stream, stack_top - 1))
@@ -215,10 +256,10 @@ class JSInterpreter(object):
         raise StopIteration
 
     def _expression(self, token_stream, stack_top):
-        exprs = []
+        expr_list = []
         has_another = True
         while has_another:
-            exprs.append(self._assign_expression(token_stream, stack_top - 1))
+            expr_list.append(self._assign_expression(token_stream, stack_top - 1))
             peek_id, peek_value, peek_pos = token_stream.peek()
             if peek_id is Token.COMMA:
                 token_stream.pop()
@@ -227,7 +268,7 @@ class JSInterpreter(object):
                 raise ExtractorError('Yield statement is not yet supported at %d' % peek_pos)
             else:
                 has_another = False
-        return (Token.EXPR, exprs)
+        return (Token.EXPR, expr_list)
 
     def _assign_expression(self, token_stream, stack_top):
         if stack_top < 0:
@@ -609,6 +650,9 @@ class JSInterpreter(object):
             # TODO interpret member
             target, args, tail = expr[1:]
             target = self.interpret_expression(target)
+            if args is not None:
+                # TODO interpret NewExpression
+                pass
             while tail is not None:
                 tail_name, tail_value, tail = tail
                 if tail_name is Token.FIELD:
