@@ -732,6 +732,13 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_object(self):
+        # TODO object literal test
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
     def test_with(self):
         # TODO with statement test
         jsi = JSInterpreter('')
