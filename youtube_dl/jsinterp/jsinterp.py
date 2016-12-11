@@ -272,8 +272,39 @@ class JSInterpreter(object):
                 raise ExtractorError('Throw statement is not yet supported at %d' % token_pos)
 
             elif token_value == 'try':
-                # TODO parse trystatement
-                raise ExtractorError('Try statement is not yet supported at %d' % token_pos)
+                token_stream.pop()
+                token_id, token_value, token_pos = token_stream.peek()
+                if token_id is not Token.COPEN:
+                    raise ExtractorError('Block is expected at %d' % token_pos)
+                try_block = self._next_statement(token_stream, stack_top - 1)
+                token_id, token_value, token_pos = token_stream.pop()
+                catch_block = None
+                if token_id is Token.ID and token_value == 'catch':
+                    token_id, token_value, token_pos = token_stream.peek()
+                    if token_id is not Token.POPEN:
+                        raise ExtractorError('Catch clause is missing an identifier at %d' % token_pos)
+                    token_stream.pop()
+                    token_stream.chk_id()
+                    token_id, error_name, token_pos = token_stream.pop()
+                    token_id, token_value, token_pos = token_stream.pop()
+                    if token_id is not Token.PCLOSE:
+                        raise ExtractorError('Catch clause expects a single identifier at %d' % token_pos)
+                    token_id, token_value, token_pos = token_stream.peek()
+                    if token_id is not Token.COPEN:
+                        raise ExtractorError('Block is expected at %d' % token_pos)
+                    catch_block = (error_name, self._next_statement(token_stream, stack_top - 1))
+
+                finally_block = None
+                if token_id is Token.ID and token_value == 'finally':
+                    token_id, token_value, token_pos = token_stream.peek()
+                    if token_id is not Token.COPEN:
+                        raise ExtractorError('Block is expected at %d' % token_pos)
+                    finally_block= self._next_statement(token_stream, stack_top - 1)
+
+                if catch_block is None and finally_block is None:
+                    raise ExtractorError('Try statement is expecting catch or finally at %d' % token_pos)
+
+                statement = (Token.TRY, try_block, catch_block, finally_block)
 
             elif token_value == 'debugger':
                 # TODO parse debuggerstatement
@@ -309,7 +340,6 @@ class JSInterpreter(object):
 
         while not ts.ended:
             yield self._next_statement(ts, stack_size)
-            # ts.pop()
         raise StopIteration
 
     def _expression(self, token_stream, stack_top):
@@ -368,7 +398,7 @@ class JSInterpreter(object):
                 token_stream.pop()
                 peek_id, peek_value, peek_pos = token_stream.peek()
             elif peek_id is Token.POPEN:
-                # TODO handle field query
+                # XXX handle field query
                 raise ExtractorError('Field query is not yet supported at %d' % peek_pos)
 
             if peek_id is Token.ID:
@@ -485,7 +515,7 @@ class JSInterpreter(object):
                 token_stream.pop()
                 has_another = False
             elif peek_id is Token.ID and peek_value == 'for':
-                # TODO parse array comprehension
+                # XXX parse array comprehension
                 raise ExtractorError('Array comprehension is not yet supported at %d' % peek_pos)
             else:
                 elements.append(self._assign_expression(token_stream, stack_top - 1))
