@@ -733,14 +733,14 @@ class TestJSInterpreterParser(unittest.TestCase):
 
     @unittest.skip('Test not yet implemented: missing code and ast')
     def test_with(self):
-        # TODO with test
+        # TODO with statement test
         jsi = JSInterpreter('')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing ast')
     def test_switch(self):
-        # TODO switch test
+        # TODO switch statement test
         jsi = JSInterpreter(
             '''
             function a(x) {
@@ -763,15 +763,31 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_funct_expr(self):
+        # TODO function expression test
+        # might be combined with another
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
     def test_try(self):
-        # TODO try test
+        # TODO try statement test
         jsi = JSInterpreter('')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing code and ast')
     def test_throw(self):
-        # TODO throw test
+        # TODO throw statement test
+        # might be combined with another
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_label(self):
+        # TODO label (break, continue) statement test
         # might be combined with another
         jsi = JSInterpreter('')
         ast = []
@@ -779,7 +795,7 @@ class TestJSInterpreterParser(unittest.TestCase):
 
     @unittest.skip('Test not yet implemented: missing code and ast')
     def test_debug(self):
-        # TODO debug test
+        # TODO debugger statement test
         # might be combined with another
         jsi = JSInterpreter('')
         ast = []
