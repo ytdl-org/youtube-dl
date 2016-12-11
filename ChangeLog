@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.12
 
 Core
 + [utils] Add common user agents map
