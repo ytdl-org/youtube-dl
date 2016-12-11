@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from ..compat import compat_str
 
 import re
 

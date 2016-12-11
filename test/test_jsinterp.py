@@ -45,6 +45,8 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('function $_xY1 ($_axY1) { var $_axY2 = $_axY1 + 1; return $_axY2; }')
         self.assertEqual(jsi.call_function('$_xY1', 20), 21)
 
+    # TODO test prefix and postfix operators
+
     def test_operators(self):
         jsi = JSInterpreter('function f(){return 1 << 5;}')
         self.assertEqual(jsi.call_function('f'), 32)

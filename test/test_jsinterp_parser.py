@@ -630,10 +630,76 @@ class TestJSInterpreterParser(unittest.TestCase):
                ]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Incomplete test: missing code and ast')
+    @unittest.skip('Test not yet implemented: missing ast')
     def test_if(self):
         # TODO if test
+        jsi = JSInterpreter(
+            '''
+            function a(x) {
+                if (x > 0)
+                    return true
+                else
+                    return false
+            }
+            '''
+        )
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+        jsi = JSInterpreter(
+            '''
+            function a(x) {
+                if (x > 0)
+                    return true
+                return false
+            }
+            '''
+        )
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+        jsi = JSInterpreter(
+            '''
+            function a(x) {
+                if (x > 0) {
+                    x--;
+                    return x;
+                } else {
+                    x++;
+                    return false;
+                }
+            }
+            '''
+        )
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_with(self):
+        # TODO with test
         jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_switch(self):
+        # TODO switch test
+        jsi = JSInterpreter(
+            '''
+            function a(x) {
+                switch (x) {
+                    case x == 6:
+                        break;
+                    case x > 5:
+                        x++;
+                    case x == 6:
+                        x--;
+                    default:
+                        x = 0;
+                }
+            }
+            '''
+        )
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
