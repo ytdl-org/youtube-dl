@@ -158,10 +158,17 @@ class TokenStream(object):
                 self.peeked.append(token)
         return self.peeked[count - 1]
 
-    def pop(self):
+    def pop(self, count=1):
         if not self.peeked:
             self.peek()
-        self._last = self.peeked.pop(0)
+        for _ in range(count):
+            self._last = self.peeked.pop()
+        return self._last
+
+    def flush(self):
+        if self.peeked:
+            self._last = self.peeked[-1]
+            self.peeked = []
         return self._last
 
     def last(self):

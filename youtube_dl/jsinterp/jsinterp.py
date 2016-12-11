@@ -66,6 +66,7 @@ class JSInterpreter(object):
         token_id, token_value, token_pos = token_stream.peek()
         if token_id in (Token.CCLOSE, Token.END):
             # empty statement goes straight here
+            token_stream.pop()
             return statement
 
         if token_id is Token.ID and token_value == 'function':
@@ -111,11 +112,11 @@ class JSInterpreter(object):
             while True:
                 token_id, token_value, token_pos = token_stream.peek()
                 if token_id is Token.CCLOSE:
+                    token_stream.pop()
                     break
                 elif token_id is Token.END and token_stream.ended:
                     raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
                 block.append(self._next_statement(token_stream, stack_top - 1))
-                token_stream.pop()
 
             statement = (Token.BLOCK, block)
 
@@ -142,6 +143,7 @@ class JSInterpreter(object):
                         init.append(JSInterpreter.undefined)
 
                     if peek_id is Token.END:
+                        token_stream.pop()
                         has_another = False
                     elif peek_id is Token.COMMA:
                         pass
@@ -161,11 +163,8 @@ class JSInterpreter(object):
                 cond_expr = self._expression(token_stream, stack_top - 1)
                 token_stream.pop()  # Token.PCLOSE
                 true_expr = self._next_statement(token_stream, stack_top - 1)
-                token_id, token_value, token_pos = token_stream.peek()
-                if token_id is Token.CCLOSE:
-                    token_stream.pop()
-                    token_id, token_value, token_pos = token_stream.peek()
                 false_expr = None
+                token_id, token_value, token_pos = token_stream.peek()
                 if token_id is Token.ID and token_value == 'else':
                     token_stream.pop()
                     false_expr = self._next_statement(token_stream, stack_top - 1)
@@ -190,6 +189,8 @@ class JSInterpreter(object):
                 if peek_id is not Token.END:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                else:
+                    token_stream.pop()
 
             elif token_value == 'return':
                 token_stream.pop()
@@ -201,6 +202,8 @@ class JSInterpreter(object):
                 if peek_id is not Token.END:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                else:
+                    token_stream.pop()
 
             elif token_value == 'with':
                 token_stream.pop()
@@ -288,6 +291,7 @@ class JSInterpreter(object):
                     peek_id, peek_value, peek_pos = token_stream.peek()
 
                 if peek_id is Token.END:
+                    token_stream.pop()
                     has_another = False
                 elif peek_id is Token.COMMA:
                     pass
@@ -305,7 +309,7 @@ class JSInterpreter(object):
 
         while not ts.ended:
             yield self._next_statement(ts, stack_size)
-            ts.pop()
+            # ts.pop()
         raise StopIteration
 
     def _expression(self, token_stream, stack_top):
@@ -584,6 +588,7 @@ class JSInterpreter(object):
 
             if peek_id is Token.REL:
                 name, op = peek_value
+                prec = 11
             elif peek_id is Token.OP:
                 name, op = peek_value
                 if name in (Token.MUL, Token.DIV, Token.MOD):

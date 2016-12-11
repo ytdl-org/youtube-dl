@@ -630,7 +630,6 @@ class TestJSInterpreterParser(unittest.TestCase):
                ]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing ast')
     def test_if(self):
         # TODO if test
         jsi = JSInterpreter(
@@ -643,7 +642,23 @@ class TestJSInterpreterParser(unittest.TestCase):
             }
             '''
         )
-        ast = []
+        ast = [
+            (Token.FUNC, 'a',
+             ['x'],
+             (Token.BLOCK, [
+                 (Token.IF,
+                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'x'), None, None),
+                      (Token.MEMBER, (Token.INT, 0), None, None),
+                      (Token.REL, _RELATIONS['>'][1])
+                  ]), None)]),
+                  (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.BOOL, True), None, None)]), None)])),
+                  (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.BOOL, False), None, None)]), None)])))
+
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
         jsi = JSInterpreter(
@@ -655,7 +670,23 @@ class TestJSInterpreterParser(unittest.TestCase):
             }
             '''
         )
-        ast = []
+        ast = [
+            (Token.FUNC, 'a',
+             ['x'],
+             (Token.BLOCK, [
+                 (Token.IF,
+                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'x'), None, None),
+                      (Token.MEMBER, (Token.INT, 0), None, None),
+                      (Token.REL, _RELATIONS['>'][1])
+                  ]), None)]),
+                  (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.BOOL, True), None, None)]), None)])),
+                  None),
+                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.BOOL, False), None, None)]), None)]))
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
         jsi = JSInterpreter(
@@ -666,12 +697,39 @@ class TestJSInterpreterParser(unittest.TestCase):
                     return x;
                 } else {
                     x++;
-                    return false;
+                    return x;
                 }
             }
             '''
         )
-        ast = []
+        ast = [
+            (Token.FUNC, 'a',
+             ['x'],
+             (Token.BLOCK, [
+                 (Token.IF,
+                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'x'), None, None),
+                      (Token.MEMBER, (Token.INT, 0), None, None),
+                      (Token.REL, _RELATIONS['>'][1])
+                  ]), None)]),
+                  (Token.BLOCK, [
+                      (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.ID, 'x'), None, None),
+                          (Token.UOP, _UNARY_OPERATORS['--'][1])
+                      ]), None)]),
+                      (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.ID, 'x'), None, None)]), None)]))
+                  ]),
+                  (Token.BLOCK, [
+                      (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.ID, 'x'), None, None),
+                          (Token.UOP, _UNARY_OPERATORS['++'][1])
+                      ]), None)]),
+                      (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.ID, 'x'), None, None)]), None)]))
+                  ]))
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing code and ast')
