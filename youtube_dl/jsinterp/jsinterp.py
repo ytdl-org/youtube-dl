@@ -314,11 +314,12 @@ class JSInterpreter(object):
                             break
                         elif token_id is Token.END and token_stream.ended:
                             raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
-                        statement_list.append(self._next_statement(token_id, stack_top - 1))
-                        token_stream.pop()
+                        statement_list.append(self._next_statement(token_stream, stack_top - 1))
 
                     block.append((expr, statement_list))
-                statement = (Token.BLOCK, discriminant, block)
+
+                token_stream.pop()
+                statement = (Token.SWITCH, discriminant, block)
 
             elif token_value == 'throw':
                 token_stream.pop()

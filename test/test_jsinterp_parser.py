@@ -731,7 +731,6 @@ class TestJSInterpreterParser(unittest.TestCase):
         ]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing ast')
     def test_switch(self):
         # ASAP switch statement test
         jsi = JSInterpreter(
@@ -752,8 +751,54 @@ class TestJSInterpreterParser(unittest.TestCase):
             }
             '''
         )
-        ast = []
-        self.assertEqual(list(jsi.statements()), ast)
+        ast = [
+            (Token.FUNC, 'a', ['x'],
+             (Token.BLOCK, [
+                 (Token.SWITCH, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'x'), None, None)
+                 ]), None)]),
+                  [
+                      ((Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.INT, 6), None, None)]), None)]),
+                       [
+                           (Token.BREAK, None)
+                       ]),
+                      ((Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.INT, 5), None, None)]), None)]),
+                       [
+                           (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.ID, 'x'), None, None),
+                               (Token.UOP, _UNARY_OPERATORS['++'][1])
+                           ]), None)])
+                       ]),
+                      ((Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.INT, 8), None, None)]), None)]),
+                       [
+                           (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                               (Token.MEMBER, (Token.ID, 'x'), None, None),
+                               (Token.UOP, _UNARY_OPERATORS['--'][1])
+                           ]), None)]),
+                           (Token.BREAK, None)
+                       ]),
+                      (None,
+                       [
+                           (Token.EXPR, [
+                               (Token.ASSIGN,
+                                _ASSIGN_OPERATORS['='][1],
+                                (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]),
+                                (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
+                                )
+                           ])
+                       ])
+
+                  ]
+                  ),
+                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'x'), None, None)]), None)]))
+             ]))
+        ]
+        result = list(jsi.statements())
+        self.assertEqual(result, ast)
 
     @unittest.skip('Test not yet implemented: missing ast')
     def test_for(self):
