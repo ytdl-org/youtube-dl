@@ -307,7 +307,7 @@ class JSInterpreter(object):
         if token_id is not Token.PCLOSE:
             raise ExtractorError('''Expected ')' at %d''' % token_pos)
         body = self._statement(token_stream, stack_top)
-        return (Token.DO, expr, body)
+        return (Token.WHILE, expr, body)
 
     def _return_statement(self, token_stream, stack_top):
         token_stream.pop()
