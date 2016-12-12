@@ -516,64 +516,7 @@ class JSInterpreter(object):
             return self._array_literal(token_stream, stack_top - 1)
         # object
         elif peek_id is Token.COPEN:
-            token_stream.pop()
-            open_pos = peek_pos
-            property_list = []
-            while True:
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is Token.CCLOSE:
-                    break
-                elif token_id is Token.COMMA:
-                    continue
-                # ASAP refactor
-                elif token_value == 'get':
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id not in (Token.ID, Token.STR, Token.INT, Token.FLOAT):
-                        raise ExtractorError('Property name is expected at %d' % token_pos)
-                    property_name = token_value
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.POPEN:
-                        raise ExtractorError('''Expected '(' at %d''' % token_pos)
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.PCLOSE:
-                        raise ExtractorError('''Expected ')' at %d''' % token_pos)
-
-                    desc = (Token.PROPGET, self._next_statement(token_stream, stack_top - 1))
-
-                elif token_value == 'set':
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id not in (Token.ID, Token.STR, Token.INT, Token.FLOAT):
-                        raise ExtractorError('Property name is expected at %d' % token_pos)
-                    property_name = token_value
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.POPEN:
-                        raise ExtractorError('''Expected '(' at %d''' % token_pos)
-
-                    token_stream.chk_id()
-                    token_id, arg, token_pos = token_stream.pop()
-
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.PCLOSE:
-                        raise ExtractorError('''Expected ')' at %d''' % token_pos)
-
-                    desc = (Token.PROPSET, arg, self._next_statement(token_stream, stack_top - 1))
-
-                elif token_id in (Token.ID, Token.STR, Token.INT, Token.FLOAT):
-                    property_name = token_value
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.COLON:
-                        raise ExtractorError('Property name is expected at %d' % token_pos)
-
-                    desc = (Token.PROPVALUE, self._assign_expression(token_stream, stack_top - 1))
-
-                elif token_stream.ended:
-                    raise ExtractorError('Unmatched parenteses at %d' % open_pos)
-                else:
-                    raise ExtractorError('Property assignment is expected at %d' % token_pos)
-
-                property_list.append((property_name, desc))
-
-            return (Token.OBJECT, property_list)
+            return self._object_literal(token_stream, stack_top)
         # expr
         elif peek_id is Token.POPEN:
             token_stream.pop()
@@ -691,6 +634,56 @@ class JSInterpreter(object):
                     raise ExtractorError('Expected , after element at %d' % peek_pos)
 
         return (Token.ARRAY, elements)
+
+    def _object_literal(self, token_stream, stack_top):
+        token_id, token_value, open_pos = token_stream.pop()
+        property_list = []
+        while True:
+            token_id, token_value, token_pos = token_stream.pop()
+            if token_id is Token.CCLOSE:
+                break
+            elif token_id is Token.COMMA:
+                continue
+            elif token_id is Token.ID and token_value in ('get', 'set'):
+                is_set = token_id is Token.ID and token_value == 'set'
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id not in (Token.ID, Token.STR, Token.INT, Token.FLOAT):
+                    raise ExtractorError('Property name is expected at %d' % token_pos)
+                property_name = token_value
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.POPEN:
+                    raise ExtractorError('''Expected '(' at %d''' % token_pos)
+
+                if is_set:
+                    token_stream.chk_id()
+                    token_id, arg, token_pos = token_stream.pop()
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.PCLOSE:
+                    raise ExtractorError('''Expected ')' at %d''' % token_pos)
+
+                if is_set:
+                    desc = (Token.PROPSET, arg, self._next_statement(token_stream, stack_top - 1))
+                else:
+                    desc = (Token.PROPGET, self._next_statement(token_stream, stack_top - 1))
+
+            elif token_id in (Token.ID, Token.STR, Token.INT, Token.FLOAT):
+                property_name = token_value
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.COLON:
+                    raise ExtractorError('Property name is expected at %d' % token_pos)
+
+                desc = (Token.PROPVALUE, self._assign_expression(token_stream, stack_top - 1))
+
+            elif token_stream.ended:
+                raise ExtractorError('Unmatched parenteses at %d' % open_pos)
+            else:
+                raise ExtractorError('Property assignment is expected at %d' % token_pos)
+
+            property_list.append((property_name, desc))
+
+        return (Token.OBJECT, property_list)
 
     def _conditional_expression(self, token_stream, stack_top):
         if stack_top < 0:
