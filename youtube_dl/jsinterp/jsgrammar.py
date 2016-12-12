@@ -7,7 +7,7 @@ from collections import namedtuple
 _token_keys = ('COPEN', 'CCLOSE', 'POPEN', 'PCLOSE', 'SOPEN', 'SCLOSE',
                'DOT', 'END', 'COMMA', 'HOOK', 'COLON',
                'AND', 'OR', 'INC', 'DEC', 'NOT', 'BNOT', 'DEL', 'VOID', 'TYPE',
-               'LT', 'GT', 'LE', 'GE', 'EQ', 'NE', 'SEQ', 'SNE',
+               'LT', 'GT', 'LE', 'GE', 'EQ', 'NE', 'SEQ', 'SNE', 'IN', 'INSTANCEOF',
                'BOR', 'BXOR', 'BAND', 'RSHIFT', 'LSHIFT', 'URSHIFT', 'SUB', 'ADD', 'MOD', 'DIV', 'MUL',
                'OP', 'AOP', 'UOP', 'LOP', 'REL',
                'COMMENT', 'TOKEN', 'PUNCT',

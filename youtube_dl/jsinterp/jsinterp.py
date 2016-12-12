@@ -12,6 +12,7 @@ _token_keys = set((Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token
 class Context(object):
     def __init__(self, variables=None, ended=False):
         self.ended = ended
+        self.no_in = True
         self.local_vars = {}
         if variables is not None:
             for k, v in dict(variables).items():
@@ -54,7 +55,7 @@ class JSInterpreter(object):
             for k, v in dict(variables).items():
                 # XXX validate identifiers
                 self.global_vars[k] = Reference(v, (self.global_vars, k))
-        self.context = Context(self.global_vars)
+        self._context = Context(self.global_vars)
         self._context_stack = []
 
     def statements(self, code=None, pos=0, stack_size=100):
@@ -101,6 +102,7 @@ class JSInterpreter(object):
 
         elif token_id is Token.ID:
             if token_value == 'var':
+                # XXX refactor (create dedicated method for handling variable declaration list)
                 token_stream.pop()
                 variables = []
                 init = []
@@ -121,7 +123,8 @@ class JSInterpreter(object):
                         init.append(JSInterpreter.undefined)
 
                     if peek_id is Token.END:
-                        token_stream.pop()
+                        if self._context.no_in:
+                            token_stream.pop()
                         has_another = False
                     elif peek_id is Token.COMMA:
                         pass
@@ -244,14 +247,16 @@ class JSInterpreter(object):
             raise ExtractorError('''Expected '(' at %d''' % token_pos)
 
         # FIXME set infor True (checked by variable declaration and relation expression)
+        self._context.no_in = False
         token_id, token_value, token_pos = token_stream.peek()
         if token_id is Token.END:
             init = None
-        elif token_id.ID and token_value == 'var':
-            # XXX refactor (create dedicated method for handling variable declaration list)
+        elif token_id is Token.ID and token_value == 'var':
             init = self._statement(token_stream, stack_top - 1)
         else:
             init = self._expression(token_stream, stack_top - 1)
+        self._context.no_in = True
+
         token_id, token_value, token_pos = token_stream.pop()
         if token_id is Token.IN:
             cond = self._expression(token_stream, stack_top - 1)
@@ -263,8 +268,8 @@ class JSInterpreter(object):
             cond = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
 
             token_id, token_value, token_pos = token_stream.pop()
-            if token_id is not Token.PCLOSE:
-                raise ExtractorError('''Expected ')' at %d''' % token_pos)
+            if token_id is not Token.END:
+                raise ExtractorError('''Expected ';' at %d''' % token_pos)
 
             token_id, token_value, token_pos = token_stream.peek()
             incr = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
@@ -825,8 +830,8 @@ class JSInterpreter(object):
                     ref = s.getvalue()
         elif name is Token.VAR:
             for name, value in stmt[1]:
-                self.context.local_vars[name] = Reference(self.interpret_expression(value).getvalue(),
-                                                          (self.context.local_vars, name))
+                self._context.local_vars[name] = Reference(self.interpret_expression(value).getvalue(),
+                                                           (self._context.local_vars, name))
         elif name is Token.EXPR:
             for expr in stmt[1]:
                 ref = self.interpret_expression(expr)
@@ -839,7 +844,7 @@ class JSInterpreter(object):
                 # TODO test nested arrays
                 ref = [elem.getvalue() for elem in ref]
 
-            self.context.ended = True
+            self._context.ended = True
         # with
         # label
         # switch
@@ -913,7 +918,7 @@ class JSInterpreter(object):
 
         elif name is Token.ID:
             # XXX error handling (unknown id)
-            ref = self.context.local_vars[expr[1]] if expr[1] in self.context.local_vars else self.global_vars[expr[1]]
+            ref = self._context.local_vars[expr[1]] if expr[1] in self._context.local_vars else self.global_vars[expr[1]]
         
         # literal
         elif name in _token_keys:
@@ -966,12 +971,12 @@ class JSInterpreter(object):
         return self.build_function(argnames, func_m.group('code'))
 
     def push_context(self, cx):
-        self._context_stack.append(self.context)
-        self.context = cx
+        self._context_stack.append(self._context)
+        self._context = cx
 
     def pop_context(self):
         # XXX check underflow
-        self.context = self._context_stack.pop()
+        self._context = self._context_stack.pop()
 
     def call_function(self, funcname, *args):
         f = self.extract_function(funcname)
@@ -982,7 +987,7 @@ class JSInterpreter(object):
             self.push_context(Context(dict(zip(argnames, args))))
             for stmt in self.statements(code):
                 res = self.interpret_statement(stmt)
-                if self.context.ended:
+                if self._context.ended:
                     self.pop_context()
                     break
             return res
