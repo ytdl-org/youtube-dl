@@ -64,12 +64,12 @@ class JSInterpreter(object):
         statement = None
 
         token_id, token_value, token_pos = token_stream.peek()
-        if token_id in (Token.CCLOSE, Token.END):
+        if token_id is Token.END:
             # empty statement goes straight here
             token_stream.pop()
             return statement
 
-        if token_id is Token.ID and token_value == 'function':
+        elif token_id is Token.ID and token_value == 'function':
             # FIXME allowed only in program and function body
             #  main, function expr, object literal (set, get), function declaration
             statement = self._function(token_stream, stack_top - 1)
@@ -139,9 +139,55 @@ class JSInterpreter(object):
                     false_expr = self._next_statement(token_stream, stack_top - 1)
                 statement = (Token.IF, cond_expr, true_expr, false_expr)
 
-            elif token_value in ('for', 'do', 'while'):
-                # ASAP parse iter statement
-                raise ExtractorError('Loops is not yet supported at %d' % token_pos)
+            elif token_value is 'for':
+                # ASAP parse for loop statement
+
+
+
+                raise ExtractorError('For loop is not yet supported at %d' % token_pos)
+
+            elif token_value is 'do':
+                token_stream.pop()
+                body = self._next_statement(token_stream, stack_top)
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.ID and token_value != 'while':
+                    raise ExtractorError('''Expected 'while' at %d''' % token_pos)
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.POPEN:
+                    raise ExtractorError('''Expected '(' at %d''' % token_pos)
+
+                expr = self._expression(token_stream, stack_top - 1)
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.PCLOSE:
+                    raise ExtractorError('''Expected ')' at %d''' % token_pos)
+
+                statement = (Token.DO, expr, body)
+
+                peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id is not Token.END:
+                    # FIXME automatic end insertion
+                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                else:
+                    token_stream.pop()
+
+            elif token_value is 'while':
+                token_stream.pop()
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.POPEN:
+                    raise ExtractorError('''Expected '(' at %d''' % token_pos)
+
+                expr = self._expression(token_stream, stack_top - 1)
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.PCLOSE:
+                    raise ExtractorError('''Expected ')' at %d''' % token_pos)
+
+                body = self._next_statement(token_stream, stack_top)
+                statement = (Token.DO, expr, body)
 
             elif token_value in ('break', 'continue'):
                 token_stream.pop()
@@ -293,6 +339,7 @@ class JSInterpreter(object):
                 else:
                     token_stream.pop()
             else:
+                # XXX possible refactoring (this is the only branch not poping)
                 token_id, token_value, token_pos = token_stream.peek(2)
                 if token_id is Token.COLON:
                     token_id, label_name, token_pos = token_stream.pop(2)
@@ -304,8 +351,8 @@ class JSInterpreter(object):
             expr_list = []
             has_another = True
             while has_another:
-                # ASAP check specs is it just the first AssignmentExpression can't be FunctionExpression?
                 peek_id, peek_value, peek_pos = token_stream.peek()
+                # XXX this check can be abandoned, it's only here to mirror the grammar
                 if not (peek_id is Token.COPEN and peek_id is Token.ID and peek_value == 'function'):
                     expr_list.append(self._assign_expression(token_stream, stack_top - 1))
                     peek_id, peek_value, peek_pos = token_stream.peek()
@@ -435,7 +482,7 @@ class JSInterpreter(object):
         elif peek_id is Token.SOPEN:
             return self._array_literal(token_stream, stack_top - 1)
         # object
-        elif peek_id is Token.SCLOSE:
+        elif peek_id is Token.COPEN:
             token_stream.pop()
             open_pos = peek_pos
             property_list = []
@@ -444,7 +491,7 @@ class JSInterpreter(object):
                 if token_id.CCLOSE:
                     token_stream.pop()
                     break
-                # XXX consider refactoring
+                # ASAP refactor
                 elif token_value == 'get':
                     token_id, token_value, token_pos = token_stream.pop()
                     if token_id not in (Token.ID, Token.STR, Token.INT, Token.FLOAT):
@@ -467,8 +514,10 @@ class JSInterpreter(object):
                     token_id, token_value, token_pos = token_stream.pop()
                     if token_id is not Token.POPEN:
                         raise ExtractorError('''Expected '(' at %d''' % token_pos)
+
                     token_stream.chk_id()
                     token_id, arg, token_pos = token_stream.pop()
+
                     token_id, token_value, token_pos = token_stream.pop()
                     if token_id is not Token.PCLOSE:
                         raise ExtractorError('''Expected ')' at %d''' % token_pos)
@@ -501,10 +550,8 @@ class JSInterpreter(object):
                 raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
             token_stream.pop()
             return expr
-        # empty (probably)
         else:
-            # XXX check specs what to do here
-            return None
+            raise ExtractorError('Syntax error at %d' % peek_pos)
 
     def _function(self, token_stream, stack_top, is_expr=False):
         token_stream.pop()

@@ -731,20 +731,6 @@ class TestJSInterpreterParser(unittest.TestCase):
         ]
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing code and ast')
-    def test_object(self):
-        # TODO object literal test
-        jsi = JSInterpreter('')
-        ast = []
-        self.assertEqual(list(jsi.statements()), ast)
-
-    @unittest.skip('Test not yet implemented: missing code and ast')
-    def test_with(self):
-        # TODO with statement test
-        jsi = JSInterpreter('')
-        ast = []
-        self.assertEqual(list(jsi.statements()), ast)
-
     @unittest.skip('Test not yet implemented: missing ast')
     def test_switch(self):
         # TODO switch statement test
@@ -770,9 +756,38 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_do(self):
+        # TODO do statement test
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_while(self):
+        # TODO while statement test
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_label(self):
+        # TODO label (break, continue) statement test
+        # might be combined with another
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
     def test_funct_expr(self):
         # TODO function expression test
         # might be combined with another
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_object(self):
+        # TODO object literal test
         jsi = JSInterpreter('')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
@@ -793,9 +808,8 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing code and ast')
-    def test_label(self):
-        # TODO label (break, continue) statement test
-        # might be combined with another
+    def test_with(self):
+        # TODO with statement test
         jsi = JSInterpreter('')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)

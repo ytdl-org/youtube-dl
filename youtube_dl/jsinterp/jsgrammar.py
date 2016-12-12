@@ -17,7 +17,7 @@ _token_keys = ('COPEN', 'CCLOSE', 'POPEN', 'PCLOSE', 'SOPEN', 'SCLOSE',
                'BLOCK', 'VAR', 'EXPR', 'IF', 'ITER', 'CONTINUE', 'BREAK', 'RETURN', 'WITH', 'LABEL', 'SWITCH',
                'THROW', 'TRY', 'DEBUG',
                'ASSIGN', 'MEMBER', 'FIELD', 'ELEM', 'CALL', 'ARRAY', 'COND', 'OPEXPR',
-               'PROPGET', 'PROPSET', 'PROPVALUE'
+               'PROPGET', 'PROPSET', 'PROPVALUE',
                'RSV')
 
 Token = namedtuple('Token', _token_keys)._make(_token_keys)
