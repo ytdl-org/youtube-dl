@@ -48,6 +48,7 @@ _RELATIONS = {
     '>': (Token.GT, operator.gt),
     '<=': (Token.LE, operator.le),
     '>=': (Token.GE, operator.ge),
+    # XXX add instanceof and in operators
     # XXX check python and JavaScript equality difference
     '==': (Token.EQ, operator.eq),
     '!=': (Token.NE, operator.ne),
