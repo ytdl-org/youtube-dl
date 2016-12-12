@@ -773,9 +773,9 @@ class TestJSInterpreterParser(unittest.TestCase):
     def test_for_empty(self):
         # ASAP for empty statement test
         jsi = JSInterpreter('''
-            function f(){
+            function f(x){
                 var h = 0
-                for (; h < 2; ++h) {
+                for (; h <= x; ++h) {
                     a = h;
                 }
                 return a
@@ -798,17 +798,33 @@ class TestJSInterpreterParser(unittest.TestCase):
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing code and ast')
+    @unittest.skip('Test not yet implemented: missing ast')
     def test_do(self):
         # ASAP do statement test
-        jsi = JSInterpreter('')
+        jsi = JSInterpreter('''
+                    function f(x){
+                        i = 1
+                        do{
+                            i++;
+                        } while (i < x)
+                        return i;
+                    }
+                ''')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing code and ast')
+    @unittest.skip('Test not yet implemented: missing ast')
     def test_while(self):
         # ASAP while statement test
-        jsi = JSInterpreter('')
+        jsi = JSInterpreter('''
+            function f(x){
+                i = 1
+                while (i < x) {
+                    i++;
+                }
+                return i;
+            }
+        ''')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
@@ -820,17 +836,36 @@ class TestJSInterpreterParser(unittest.TestCase):
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing code and ast')
+    @unittest.skip('Test not yet implemented: missing ast')
     def test_funct_expr(self):
         # ASAP function expression test
-        jsi = JSInterpreter('')
+        jsi = JSInterpreter('''
+            function f() {
+                var add = (function () {
+                    var counter = 0;
+                    return function () {return counter += 1;}
+                })();
+                add();
+                add();
+                return add();
+            }
+        ''')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing code and ast')
+    @unittest.skip('Test not yet implemented: missing ast')
     def test_object(self):
         # ASAP object literal test
-        jsi = JSInterpreter('')
+        jsi = JSInterpreter('''
+            function f() {
+                var o = {
+                    a: 7,
+                    get b() { return this.a + 1; },
+                    set c(x) { this.a = x / 2; }
+                };
+                return o;
+            }
+        ''')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
