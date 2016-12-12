@@ -140,11 +140,49 @@ class JSInterpreter(object):
                 statement = (Token.IF, cond_expr, true_expr, false_expr)
 
             elif token_value is 'for':
-                # ASAP parse for loop statement
+                token_stream.pop()
 
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.POPEN:
+                    raise ExtractorError('''Expected '(' at %d''' % token_pos)
 
+                # FIXME set infor True (checked by variable declaration and relation expression)
 
-                raise ExtractorError('For loop is not yet supported at %d' % token_pos)
+                token_id, token_value, token_pos = token_stream.peek()
+                if token_id is Token.END:
+                    init = None
+                elif token_id.ID and token_value == 'var':
+                    # XXX refactor (create dedicated method for handling variable declaration list)
+                    init = self._next_statement(token_stream, stack_top - 1)
+                else:
+                    init = self._expression(token_stream, stack_top - 1)
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is Token.IN:
+                    cond = self._expression(token_stream, stack_top - 1)
+                    # FIXME further processing might be needed for interpretation
+                    incr = None
+                # NOTE ES6 has of operator
+                elif token_id is Token.END:
+                    token_id, token_value, token_pos = token_stream.peek()
+                    cond = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
+
+                    token_id, token_value, token_pos = token_stream.pop()
+                    if token_id is not Token.PCLOSE:
+                        raise ExtractorError('''Expected ')' at %d''' % token_pos)
+
+                    token_id, token_value, token_pos = token_stream.peek()
+                    incr = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
+                else:
+                    raise ExtractorError('Invalid condition in for loop initialization at %d' % token_pos)
+
+                token_id, token_value, token_pos = token_stream.pop()
+                if token_id is not Token.PCLOSE:
+                    raise ExtractorError('''Expected ')' at %d''' % token_pos)
+
+                body = self._next_statement(token_stream, stack_top - 1)
+
+                statement = (Token.FOR, init, cond, incr, body)
 
             elif token_value is 'do':
                 token_stream.pop()
@@ -167,11 +205,11 @@ class JSInterpreter(object):
                 statement = (Token.DO, expr, body)
 
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id is not Token.END:
+                if peek_id is Token.END:
+                    token_stream.pop()
+                else:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-                else:
-                    token_stream.pop()
 
             elif token_value is 'while':
                 token_stream.pop()
@@ -201,11 +239,11 @@ class JSInterpreter(object):
                     token_stream.pop()
                 statement = (token, label_name)
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id is not Token.END:
+                if peek_id is Token.END:
+                    token_stream.pop()
+                else:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-                else:
-                    token_stream.pop()
 
             elif token_value == 'return':
                 token_stream.pop()
@@ -214,11 +252,11 @@ class JSInterpreter(object):
                 expr = self._expression(token_stream, stack_top - 1) if peek_id is not Token.END else None
                 statement = (Token.RETURN, expr)
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id is not Token.END:
+                if peek_id is Token.END:
+                    token_stream.pop()
+                else:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-                else:
-                    token_stream.pop()
 
             elif token_value == 'with':
                 token_stream.pop()
@@ -288,11 +326,11 @@ class JSInterpreter(object):
                 expr = self._expression(token_stream, stack_top - 1)
                 statement = (Token.RETURN, expr)
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id is not Token.END:
+                if peek_id is Token.END:
+                    token_stream.pop()
+                else:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-                else:
-                    token_stream.pop()
 
             elif token_value == 'try':
                 token_stream.pop()
@@ -333,11 +371,11 @@ class JSInterpreter(object):
                 token_stream.pop()
                 statement = (Token.DEBUG)
                 peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id is not Token.END:
+                if peek_id is Token.END:
+                    token_stream.pop()
+                else:
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-                else:
-                    token_stream.pop()
             else:
                 # XXX possible refactoring (this is the only branch not poping)
                 token_id, token_value, token_pos = token_stream.peek(2)
@@ -348,25 +386,14 @@ class JSInterpreter(object):
 
         # expr
         if statement is None:
-            expr_list = []
-            has_another = True
-            while has_another:
-                peek_id, peek_value, peek_pos = token_stream.peek()
-                # XXX this check can be abandoned, it's only here to mirror the grammar
-                if not (peek_id is Token.COPEN and peek_id is Token.ID and peek_value == 'function'):
-                    expr_list.append(self._assign_expression(token_stream, stack_top - 1))
-                    peek_id, peek_value, peek_pos = token_stream.peek()
+            statement = self._expression(token_stream, stack_top - 1)
+            peek_id, peek_value, peek_pos = token_stream.peek()
+            if peek_id is Token.END:
+                token_stream.pop()
+            else:
+                # FIXME automatic end insertion
+                raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
 
-                if peek_id is Token.END:
-                    token_stream.pop()
-                    has_another = False
-                elif peek_id is Token.COMMA:
-                    pass
-                else:
-                    # FIXME automatic end insertion
-                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-
-            statement = (Token.EXPR, expr_list)
         return statement
 
     def statements(self, code=None, pos=0, stack_size=100):

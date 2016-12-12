@@ -756,6 +756,14 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing code and ast')
+    def test_for(self):
+        # TODO for statement test
+        # might be split up
+        jsi = JSInterpreter('')
+        ast = []
+        self.assertEqual(list(jsi.statements()), ast)
+
+    @unittest.skip('Test not yet implemented: missing code and ast')
     def test_do(self):
         # TODO do statement test
         jsi = JSInterpreter('')
@@ -780,7 +788,6 @@ class TestJSInterpreterParser(unittest.TestCase):
     @unittest.skip('Test not yet implemented: missing code and ast')
     def test_funct_expr(self):
         # TODO function expression test
-        # might be combined with another
         jsi = JSInterpreter('')
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
