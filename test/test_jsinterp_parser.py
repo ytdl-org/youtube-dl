@@ -842,19 +842,44 @@ class TestJSInterpreterParser(unittest.TestCase):
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing ast')
     def test_do(self):
-        # ASAP do statement test
         jsi = JSInterpreter('''
                     function f(x){
-                        i = 1
+                        i = 1;
                         do{
                             i++;
-                        } while (i < x)
+                        } while (i < x);
                         return i;
                     }
                 ''')
-        ast = []
+        ast = [
+            (Token.FUNC, 'f', ['x'],
+             (Token.BLOCK, [
+                 (Token.EXPR, [
+                     (Token.ASSIGN, _ASSIGN_OPERATORS['='][1],
+                      (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'i'), None, None)]),
+                      (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 1), None, None)]), None))
+                 ]),
+                 (Token.DO,
+                  (Token.EXPR, [
+                      (Token.ASSIGN, None, (Token.OPEXPR, [
+                          (Token.MEMBER, (Token.ID, 'i'), None, None),
+                          (Token.MEMBER, (Token.ID, 'x'), None, None),
+                          (Token.REL, _RELATIONS['<'][1])
+                      ]), None)
+                  ]),
+                  (Token.BLOCK, [
+                      (Token.EXPR, [
+                          (Token.ASSIGN, None, (Token.OPEXPR, [
+                              (Token.MEMBER, (Token.ID, 'i'), None, None),
+                              (Token.UOP, _UNARY_OPERATORS['++'][1])
+                          ]), None)
+                      ])
+                  ])),
+                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'i'), None, None)]), None)]))
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing ast')
