@@ -102,7 +102,6 @@ class JSInterpreter(object):
 
         elif token_id is Token.ID:
             if token_value == 'var':
-                # XXX refactor (create dedicated method for handling variable declaration list)
                 token_stream.pop()
                 variables = []
                 init = []
@@ -252,17 +251,18 @@ class JSInterpreter(object):
         if token_id is Token.END:
             init = None
         elif token_id is Token.ID and token_value == 'var':
+            # XXX change it on refactoring variable declaration list
             init = self._statement(token_stream, stack_top - 1)
         else:
             init = self._expression(token_stream, stack_top - 1)
         self._context.no_in = True
 
         token_id, token_value, token_pos = token_stream.pop()
-        if token_id is Token.IN:
+        if token_id is Token.ID and token_value == 'in':
             cond = self._expression(token_stream, stack_top - 1)
-            # FIXME further processing might be needed for interpretation
+            # FIXME further processing of operator 'in' needed for interpretation
             incr = None
-        # NOTE ES6 has of operator
+        # NOTE ES6 has 'of' operator
         elif token_id is Token.END:
             token_id, token_value, token_pos = token_stream.peek()
             cond = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
@@ -881,6 +881,8 @@ class JSInterpreter(object):
             rpn = expr[1][:]
             while rpn:
                 token = rpn.pop(0)
+                # XXX add unary operator 'delete', 'void', 'instanceof'
+                # XXX relation 'in' 'instanceof'
                 if token[0] in (Token.OP, Token.AOP, Token.UOP, Token.LOP, Token.REL):
                     right = stack.pop()
                     left = stack.pop()

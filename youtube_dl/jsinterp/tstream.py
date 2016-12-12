@@ -48,12 +48,14 @@ _RELATIONS = {
     '>': (Token.GT, operator.gt),
     '<=': (Token.LE, operator.le),
     '>=': (Token.GE, operator.ge),
-    # XXX add instanceof and in operators
     # XXX check python and JavaScript equality difference
     '==': (Token.EQ, operator.eq),
     '!=': (Token.NE, operator.ne),
     '===': (Token.SEQ, lambda cur, right: cur == right and type(cur) == type(right)),
-    '!==': (Token.SNE, lambda cur, right: not cur == right or not type(cur) == type(right))
+    '!==': (Token.SNE, lambda cur, right: not cur == right or not type(cur) == type(right)),
+    # XXX define instanceof and in operators
+    'in': (Token.IN, None),
+    'instanceof': (Token.INSTANCEOF, None)
 }
 _OPERATORS = {
     '|': (Token.BOR, operator.or_),
@@ -132,7 +134,9 @@ class TokenStream(object):
                 elif token_id is Token.ID:
                     yield (token_id, token_value, pos)
                 elif token_id in _operator_lookup:
-                    yield (token_id, _operator_lookup[token_id][token_value], pos)
+                    yield (token_id if token_value != 'in' else Token.IN,
+                           _operator_lookup[token_id][token_value],
+                           pos)
                 elif token_id is Token.PUNCT:
                     yield (_PUNCTUATIONS[token_value], token_value, pos)
                 else:

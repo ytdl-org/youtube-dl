@@ -835,24 +835,47 @@ class TestJSInterpreterParser(unittest.TestCase):
         ]
         self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
-    @unittest.skip('Test not yet implemented: missing ast')
     def test_for_empty(self):
-        # ASAP for empty statement test
         jsi = JSInterpreter('''
             function f(x){
-                var h = 0
+                var h = 0;
                 for (; h <= x; ++h) {
                     a = h;
                 }
                 return a;
             }
         ''')
-        ast = []
+        ast = [
+            (Token.FUNC, 'f', ['x'],
+             (Token.BLOCK, [
+                 (Token.VAR, zip(['h'], [
+                     (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
+                 ])),
+                 (Token.FOR,
+                  None,
+                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'h'), None, None),
+                      (Token.MEMBER, (Token.ID, 'x'), None, None),
+                      (Token.REL, _RELATIONS['<='][1])
+                  ]), None)]),
+                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'h'), None, None),
+                      (Token.UOP, _UNARY_OPERATORS['++'][1])
+                  ]), None)]),
+                  (Token.BLOCK, [
+                      (Token.EXPR, [
+                          (Token.ASSIGN, _ASSIGN_OPERATORS['='][1],
+                           (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'a'), None, None)]),
+                           (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'h'), None, None)]), None))
+                      ])
+                  ])),
+                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'a'), None, None)]), None)]))
+             ]))
+        ]
         self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
-    @unittest.skip('Test not yet implemented: missing ast')
     def test_for_in(self):
-        # ASAP for in statement test
         jsi = JSInterpreter('''
                 function f(z){
                     for (h in z) {
@@ -861,7 +884,28 @@ class TestJSInterpreterParser(unittest.TestCase):
                     return a;
                 }
             ''')
-        ast = []
+        ast = [
+            (Token.FUNC, 'f', ['z'],
+             (Token.BLOCK, [
+                 (Token.FOR,
+                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'h'), None, None)
+                  ]), None)]),
+                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                      (Token.MEMBER, (Token.ID, 'z'), None, None)
+                  ]), None)]),
+                  None,
+                  (Token.BLOCK, [
+                      (Token.EXPR, [
+                          (Token.ASSIGN, _ASSIGN_OPERATORS['='][1],
+                           (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'a'), None, None)]),
+                           (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'h'), None, None)]), None))
+                      ])
+                  ])),
+                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'a'), None, None)]), None)]))
+             ]))
+        ]
         self.assertEqual(list(jsi.statements()), ast)
 
     def test_do(self):

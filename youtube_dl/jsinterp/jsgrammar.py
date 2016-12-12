@@ -30,9 +30,10 @@ __ESC_HEX_RE = r'x[0-9a-fA-F]{2}'
 
 
 # NOTE order is fixed due to regex matching, does not represent any precedence
+# NOTE unary operator 'delete', 'void', 'instanceof' and relation 'in' and 'instanceof' do not handled this way
 _logical_operator = ['||', '&&']
 _relation = ['===', '!==', '==', '!=', '<=', '>=', '<', '>']
-_unary_operator = ['++', '--', '!', '~', 'delete', 'void', 'typeof']
+_unary_operator = ['++', '--', '!', '~']
 _operator = ['|', '^', '&', '>>>', '>>', '<<', '-', '+', '%', '/', '*']
 _assign_operator = [op + '=' for op in _operator]
 _assign_operator.append('=')
