@@ -57,6 +57,15 @@ class JSInterpreter(object):
         self.context = Context(self.global_vars)
         self._context_stack = []
 
+    def statements(self, code=None, pos=0, stack_size=100):
+        if code is None:
+            code = self.code
+        ts = TokenStream(code, pos)
+
+        while not ts.ended:
+            yield self._next_statement(ts, stack_size)
+        raise StopIteration
+
     def _next_statement(self, token_stream, stack_top):
         if stack_top < 0:
             raise ExtractorError('Recursion limit reached')
@@ -76,6 +85,7 @@ class JSInterpreter(object):
 
         # block
         elif token_id is Token.COPEN:
+            # XXX refactor will deprecate some _next_statement calls
             open_pos = token_pos
             token_stream.pop()
             block = []
@@ -121,111 +131,20 @@ class JSInterpreter(object):
                         # - token_id is Token.CCLOSE
                         # - check line terminator
                         # - restricted token
-                        raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                        raise ExtractorError('Unexpected sequence at %d' % peek_pos)
                 statement = (Token.VAR, zip(variables, init))
 
             elif token_value == 'if':
-                token_stream.pop()
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.POPEN:
-                    raise ExtractorError('Missing condition at %d' % token_pos)
-                cond_expr = self._expression(token_stream, stack_top - 1)
-                token_stream.pop()  # Token.PCLOSE
-                true_expr = self._next_statement(token_stream, stack_top - 1)
-                false_expr = None
-                token_id, token_value, token_pos = token_stream.peek()
-                if token_id is Token.ID and token_value == 'else':
-                    token_stream.pop()
-                    false_expr = self._next_statement(token_stream, stack_top - 1)
-                statement = (Token.IF, cond_expr, true_expr, false_expr)
+                statement = self._if_statement(token_stream, stack_top - 1)
 
             elif token_value is 'for':
-                token_stream.pop()
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.POPEN:
-                    raise ExtractorError('''Expected '(' at %d''' % token_pos)
-
-                # FIXME set infor True (checked by variable declaration and relation expression)
-
-                token_id, token_value, token_pos = token_stream.peek()
-                if token_id is Token.END:
-                    init = None
-                elif token_id.ID and token_value == 'var':
-                    # XXX refactor (create dedicated method for handling variable declaration list)
-                    init = self._next_statement(token_stream, stack_top - 1)
-                else:
-                    init = self._expression(token_stream, stack_top - 1)
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is Token.IN:
-                    cond = self._expression(token_stream, stack_top - 1)
-                    # FIXME further processing might be needed for interpretation
-                    incr = None
-                # NOTE ES6 has of operator
-                elif token_id is Token.END:
-                    token_id, token_value, token_pos = token_stream.peek()
-                    cond = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
-
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.PCLOSE:
-                        raise ExtractorError('''Expected ')' at %d''' % token_pos)
-
-                    token_id, token_value, token_pos = token_stream.peek()
-                    incr = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
-                else:
-                    raise ExtractorError('Invalid condition in for loop initialization at %d' % token_pos)
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.PCLOSE:
-                    raise ExtractorError('''Expected ')' at %d''' % token_pos)
-
-                body = self._next_statement(token_stream, stack_top - 1)
-
-                statement = (Token.FOR, init, cond, incr, body)
+                statement = self._for_loop(token_stream, stack_top - 1)
 
             elif token_value is 'do':
-                token_stream.pop()
-                body = self._next_statement(token_stream, stack_top)
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.ID and token_value != 'while':
-                    raise ExtractorError('''Expected 'while' at %d''' % token_pos)
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.POPEN:
-                    raise ExtractorError('''Expected '(' at %d''' % token_pos)
-
-                expr = self._expression(token_stream, stack_top - 1)
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.PCLOSE:
-                    raise ExtractorError('''Expected ')' at %d''' % token_pos)
-
-                statement = (Token.DO, expr, body)
-
-                peek_id, peek_value, peek_pos = token_stream.peek()
-                if peek_id is Token.END:
-                    token_stream.pop()
-                else:
-                    # FIXME automatic end insertion
-                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                statement = self._do_loop(token_stream, stack_top - 1)
 
             elif token_value is 'while':
-                token_stream.pop()
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.POPEN:
-                    raise ExtractorError('''Expected '(' at %d''' % token_pos)
-
-                expr = self._expression(token_stream, stack_top - 1)
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.PCLOSE:
-                    raise ExtractorError('''Expected ')' at %d''' % token_pos)
-
-                body = self._next_statement(token_stream, stack_top)
-                statement = (Token.DO, expr, body)
+                statement = self._while_loop(token_stream, stack_top - 1)
 
             elif token_value in ('break', 'continue'):
                 token_stream.pop()
@@ -243,83 +162,22 @@ class JSInterpreter(object):
                     token_stream.pop()
                 else:
                     # FIXME automatic end insertion
-                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                    raise ExtractorError('Unexpected sequence at %d' % peek_pos)
 
             elif token_value == 'return':
-                token_stream.pop()
-                peek_id, peek_value, peek_pos = token_stream.peek()
-                # XXX no line break here
-                expr = self._expression(token_stream, stack_top - 1) if peek_id is not Token.END else None
-                statement = (Token.RETURN, expr)
+                statement = self._return_statement(token_stream, stack_top - 1)
                 peek_id, peek_value, peek_pos = token_stream.peek()
                 if peek_id is Token.END:
                     token_stream.pop()
                 else:
                     # FIXME automatic end insertion
-                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                    raise ExtractorError('Unexpected sequence at %d' % peek_pos)
 
             elif token_value == 'with':
-                token_stream.pop()
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.POPEN:
-                    raise ExtractorError('Missing expression at %d' % token_pos)
-                expr = self._expression(token_stream, stack_top - 1)
-                token_stream.pop()  # Token.PCLOSE
-                statement = (Token.WITH, expr, self._next_statement(token_stream, stack_top - 1))
+                statement = self._with_statement(token_stream, stack_top - 1)
 
             elif token_value == 'switch':
-                token_stream.pop()
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.POPEN:
-                    raise ExtractorError('Missing expression at %d' % token_pos)
-                discriminant = self._expression(token_stream, stack_top - 1)
-                token_stream.pop()  # Token.PCLOSE
-
-                token_id, token_value, token_pos = token_stream.pop()
-                if token_id is not Token.COPEN:
-                    raise ExtractorError('Missing case block at %d' % token_pos)
-                open_pos = token_pos
-
-                has_default = False
-                block = []
-                while True:
-                    token_id, token_value, token_pos = token_stream.peek()
-                    if token_id is Token.CCLOSE:
-                        break
-                    elif token_id is Token.ID and token_value == 'case':
-                        token_stream.pop()
-                        expr = self._expression(token_stream, stack_top - 1)
-
-                    elif token_id is Token.ID and token_value == 'default':
-                        if has_default:
-                            raise ExtractorError('Multiple default clause')
-                        token_stream.pop()
-                        has_default = True
-                        expr = None
-
-                    elif token_id is Token.END and token_stream.ended:
-                        raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
-                    else:
-                        raise ExtractorError('Unexpected sequence at %d, default or case clause is expected' %
-                                             token_pos)
-
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.COLON:
-                        raise ExtractorError('''Unexpected sequence at %d, ':' is expected''' % token_pos)
-
-                    statement_list = []
-                    while True:
-                        token_id, token_value, token_pos = token_stream.peek()
-                        if token_id == Token.CCLOSE or (token_id is Token.ID and (token_value in ('default', 'case'))):
-                            break
-                        elif token_id is Token.END and token_stream.ended:
-                            raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
-                        statement_list.append(self._next_statement(token_stream, stack_top - 1))
-
-                    block.append((expr, statement_list))
-
-                token_stream.pop()
-                statement = (Token.SWITCH, discriminant, block)
+                statement = self._switch_statement(token_stream, stack_top - 1)
 
             elif token_value == 'throw':
                 token_stream.pop()
@@ -331,42 +189,10 @@ class JSInterpreter(object):
                     token_stream.pop()
                 else:
                     # FIXME automatic end insertion
-                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                    raise ExtractorError('Unexpected sequence at %d' % peek_pos)
 
             elif token_value == 'try':
-                token_stream.pop()
-                token_id, token_value, token_pos = token_stream.peek()
-                if token_id is not Token.COPEN:
-                    raise ExtractorError('Block is expected at %d' % token_pos)
-                try_block = self._next_statement(token_stream, stack_top - 1)
-                token_id, token_value, token_pos = token_stream.pop()
-                catch_block = None
-                if token_id is Token.ID and token_value == 'catch':
-                    token_id, token_value, token_pos = token_stream.peek()
-                    if token_id is not Token.POPEN:
-                        raise ExtractorError('Catch clause is missing an identifier at %d' % token_pos)
-                    token_stream.pop()
-                    token_stream.chk_id()
-                    token_id, error_name, token_pos = token_stream.pop()
-                    token_id, token_value, token_pos = token_stream.pop()
-                    if token_id is not Token.PCLOSE:
-                        raise ExtractorError('Catch clause expects a single identifier at %d' % token_pos)
-                    token_id, token_value, token_pos = token_stream.peek()
-                    if token_id is not Token.COPEN:
-                        raise ExtractorError('Block is expected at %d' % token_pos)
-                    catch_block = (error_name, self._next_statement(token_stream, stack_top - 1))
-
-                finally_block = None
-                if token_id is Token.ID and token_value == 'finally':
-                    token_id, token_value, token_pos = token_stream.peek()
-                    if token_id is not Token.COPEN:
-                        raise ExtractorError('Block is expected at %d' % token_pos)
-                    finally_block= self._next_statement(token_stream, stack_top - 1)
-
-                if catch_block is None and finally_block is None:
-                    raise ExtractorError('Try statement is expecting catch or finally at %d' % token_pos)
-
-                statement = (Token.TRY, try_block, catch_block, finally_block)
+                statement = self._try_statement(token_stream, stack_top - 1)
 
             elif token_value == 'debugger':
                 token_stream.pop()
@@ -376,8 +202,8 @@ class JSInterpreter(object):
                     token_stream.pop()
                 else:
                     # FIXME automatic end insertion
-                    raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
-            else:
+                    raise ExtractorError('Unexpected sequence at %d' % peek_pos)
+            else:  # label
                 # XXX possible refactoring (this is the only branch not poping)
                 token_id, token_value, token_pos = token_stream.peek(2)
                 if token_id is Token.COLON:
@@ -393,18 +219,195 @@ class JSInterpreter(object):
                 token_stream.pop()
             else:
                 # FIXME automatic end insertion
-                raise ExtractorError('Unexpected sequence %s at %d' % (peek_value, peek_pos))
+                raise ExtractorError('Unexpected sequence at %d' % peek_pos)
 
         return statement
 
-    def statements(self, code=None, pos=0, stack_size=100):
-        if code is None:
-            code = self.code
-        ts = TokenStream(code, pos)
+    def _if_statement(self, token_stream, stack_top):
+        token_stream.pop()
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.POPEN:
+            raise ExtractorError('Missing condition at %d' % token_pos)
+        cond_expr = self._expression(token_stream, stack_top - 1)
+        token_stream.pop()  # Token.PCLOSE
+        true_expr = self._next_statement(token_stream, stack_top - 1)
+        false_expr = None
+        token_id, token_value, token_pos = token_stream.peek()
+        if token_id is Token.ID and token_value == 'else':
+            token_stream.pop()
+            false_expr = self._next_statement(token_stream, stack_top - 1)
+        return (Token.IF, cond_expr, true_expr, false_expr)
 
-        while not ts.ended:
-            yield self._next_statement(ts, stack_size)
-        raise StopIteration
+    def _for_loop(self, token_stream, stack_top):
+        token_stream.pop()
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.POPEN:
+            raise ExtractorError('''Expected '(' at %d''' % token_pos)
+
+        # FIXME set infor True (checked by variable declaration and relation expression)
+        token_id, token_value, token_pos = token_stream.peek()
+        if token_id is Token.END:
+            init = None
+        elif token_id.ID and token_value == 'var':
+            # XXX refactor (create dedicated method for handling variable declaration list)
+            init = self._next_statement(token_stream, stack_top - 1)
+        else:
+            init = self._expression(token_stream, stack_top - 1)
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is Token.IN:
+            cond = self._expression(token_stream, stack_top - 1)
+            # FIXME further processing might be needed for interpretation
+            incr = None
+        # NOTE ES6 has of operator
+        elif token_id is Token.END:
+            token_id, token_value, token_pos = token_stream.peek()
+            cond = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
+
+            token_id, token_value, token_pos = token_stream.pop()
+            if token_id is not Token.PCLOSE:
+                raise ExtractorError('''Expected ')' at %d''' % token_pos)
+
+            token_id, token_value, token_pos = token_stream.peek()
+            incr = None if token_id is Token.END else self._expression(token_stream, stack_top - 1)
+        else:
+            raise ExtractorError('Invalid condition in for loop initialization at %d' % token_pos)
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.PCLOSE:
+            raise ExtractorError('''Expected ')' at %d''' % token_pos)
+        body = self._next_statement(token_stream, stack_top - 1)
+        return (Token.FOR, init, cond, incr, body)
+
+    def _do_loop(self, token_stream, stack_top):
+        token_stream.pop()
+        body = self._next_statement(token_stream, stack_top - 1)
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.ID and token_value != 'while':
+            raise ExtractorError('''Expected 'while' at %d''' % token_pos)
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.POPEN:
+            raise ExtractorError('''Expected '(' at %d''' % token_pos)
+        expr = self._expression(token_stream, stack_top - 1)
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.PCLOSE:
+            raise ExtractorError('''Expected ')' at %d''' % token_pos)
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        if peek_id is Token.END:
+            token_stream.pop()
+        else:
+            # FIXME automatic end insertion
+            raise ExtractorError('''Expected ';' at %d''' % peek_pos)
+        return (Token.DO, expr, body)
+
+    def _while_loop(self, token_stream, stack_top):
+        token_stream.pop()
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.POPEN:
+            raise ExtractorError('''Expected '(' at %d''' % token_pos)
+        expr = self._expression(token_stream, stack_top - 1)
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.PCLOSE:
+            raise ExtractorError('''Expected ')' at %d''' % token_pos)
+        body = self._next_statement(token_stream, stack_top)
+        return (Token.DO, expr, body)
+
+    def _return_statement(self, token_stream, stack_top):
+        token_stream.pop()
+        peek_id, peek_value, peek_pos = token_stream.peek()
+        # XXX no line break here
+        expr = self._expression(token_stream, stack_top - 1) if peek_id is not Token.END else None
+        return (Token.RETURN, expr)
+
+    def _with_statement(self, token_stream, stack_top):
+        token_stream.pop()
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.POPEN:
+            raise ExtractorError('Missing expression at %d' % token_pos)
+        expr = self._expression(token_stream, stack_top - 1)
+        token_stream.pop()  # Token.PCLOSE
+        return (Token.WITH, expr, self._next_statement(token_stream, stack_top - 1))
+
+    def _switch_statement(self, token_stream, stack_top):
+        token_stream.pop()
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.POPEN:
+            raise ExtractorError('Missing expression at %d' % token_pos)
+        discriminant = self._expression(token_stream, stack_top - 1)
+        token_stream.pop()  # Token.PCLOSE
+        token_id, token_value, token_pos = token_stream.pop()
+        if token_id is not Token.COPEN:
+            raise ExtractorError('Missing case block at %d' % token_pos)
+        open_pos = token_pos
+        has_default = False
+        block = []
+        while True:
+            token_id, token_value, token_pos = token_stream.peek()
+            if token_id is Token.CCLOSE:
+                break
+            elif token_id is Token.ID and token_value == 'case':
+                token_stream.pop()
+                expr = self._expression(token_stream, stack_top - 1)
+
+            elif token_id is Token.ID and token_value == 'default':
+                if has_default:
+                    raise ExtractorError('Multiple default clause')
+                token_stream.pop()
+                has_default = True
+                expr = None
+
+            elif token_id is Token.END and token_stream.ended:
+                raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
+            else:
+                raise ExtractorError('Unexpected sequence at %d, default or case clause is expected' %
+                                     token_pos)
+
+            token_id, token_value, token_pos = token_stream.pop()
+            if token_id is not Token.COLON:
+                raise ExtractorError('''Unexpected sequence at %d, ':' is expected''' % token_pos)
+
+            statement_list = []
+            while True:
+                token_id, token_value, token_pos = token_stream.peek()
+                if token_id == Token.CCLOSE or (token_id is Token.ID and (token_value in ('default', 'case'))):
+                    break
+                elif token_id is Token.END and token_stream.ended:
+                    raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
+                statement_list.append(self._next_statement(token_stream, stack_top - 1))
+
+            block.append((expr, statement_list))
+        token_stream.pop()
+        return (Token.SWITCH, discriminant, block)
+
+    def _try_statement(self, token_stream, stack_top):
+        token_stream.pop()
+        token_id, token_value, token_pos = token_stream.peek()
+        if token_id is not Token.COPEN:
+            raise ExtractorError('Block is expected at %d' % token_pos)
+        try_block = self._next_statement(token_stream, stack_top - 1)
+        token_id, token_value, token_pos = token_stream.pop()
+        catch_block = None
+        if token_id is Token.ID and token_value == 'catch':
+            token_id, token_value, token_pos = token_stream.peek()
+            if token_id is not Token.POPEN:
+                raise ExtractorError('Catch clause is missing an identifier at %d' % token_pos)
+            token_stream.pop()
+            token_stream.chk_id()
+            token_id, error_name, token_pos = token_stream.pop()
+            token_id, token_value, token_pos = token_stream.pop()
+            if token_id is not Token.PCLOSE:
+                raise ExtractorError('Catch clause expects a single identifier at %d' % token_pos)
+            token_id, token_value, token_pos = token_stream.peek()
+            if token_id is not Token.COPEN:
+                raise ExtractorError('Block is expected at %d' % token_pos)
+            catch_block = (error_name, self._next_statement(token_stream, stack_top - 1))
+        finally_block = None
+        if token_id is Token.ID and token_value == 'finally':
+            token_id, token_value, token_pos = token_stream.peek()
+            if token_id is not Token.COPEN:
+                raise ExtractorError('Block is expected at %d' % token_pos)
+            finally_block = self._next_statement(token_stream, stack_top - 1)
+        if catch_block is None and finally_block is None:
+            raise ExtractorError('Try statement is expecting catch or finally at %d' % token_pos)
+        return (Token.TRY, try_block, catch_block, finally_block)
 
     def _expression(self, token_stream, stack_top):
         expr_list = []

@@ -881,7 +881,7 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     @unittest.skip('Test not yet implemented: missing ast')
-    def test_funct_expr(self):
+    def test_function_expression(self):
         # ASAP function expression test
         jsi = JSInterpreter('''
             function f() {
@@ -898,7 +898,6 @@ class TestJSInterpreterParser(unittest.TestCase):
         self.assertEqual(list(jsi.statements()), ast)
 
     def test_object(self):
-        # ASAP object literal test
         jsi = JSInterpreter('''
             function f() {
                 var o = {
@@ -933,7 +932,6 @@ class TestJSInterpreterParser(unittest.TestCase):
                                        (Token.OPEXPR, [
                                            (Token.MEMBER, (Token.RSV, 'this'), None, (Token.FIELD, 'a', None))
                                        ]),
-
                                        (Token.ASSIGN, None, (Token.OPEXPR, [
                                            (Token.MEMBER, (Token.ID, 'x'), None, None),
                                            (Token.MEMBER, (Token.INT, 2), None, None),
@@ -941,7 +939,6 @@ class TestJSInterpreterParser(unittest.TestCase):
                                        ]), None))
                                   ])
                               ])))
-
                           ]),
                            None, None)
                       ]), None)]
@@ -951,8 +948,7 @@ class TestJSInterpreterParser(unittest.TestCase):
                      (Token.MEMBER, (Token.ID, 'o'), None, None)]), None)]))
              ]))
         ]
-        result = list(jsi.statements())
-        self.assertEqual(list(traverse(result)), list(traverse(ast)))
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
     @unittest.skip('Test not yet implemented: missing code and ast')
     def test_try(self):
