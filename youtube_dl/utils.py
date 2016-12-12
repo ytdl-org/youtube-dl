@@ -1700,6 +1700,16 @@ def base_url(url):
     return re.match(r'https?://[^?#&]+/', url).group()
 
 
+def urljoin(base, path):
+    if not isinstance(path, compat_str) or not path:
+        return None
+    if re.match(r'https?://', path):
+        return path
+    if not isinstance(base, compat_str) or not re.match(r'https?://', base):
+        return None
+    return compat_urlparse.urljoin(base, path)
+
+
 class HEADRequest(compat_urllib_request.Request):
     def get_method(self):
         return 'HEAD'
