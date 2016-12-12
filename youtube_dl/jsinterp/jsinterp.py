@@ -516,9 +516,10 @@ class JSInterpreter(object):
             property_list = []
             while True:
                 token_id, token_value, token_pos = token_stream.pop()
-                if token_id.CCLOSE:
-                    token_stream.pop()
+                if token_id is Token.CCLOSE:
                     break
+                elif token_id is Token.COMMA:
+                    continue
                 # ASAP refactor
                 elif token_value == 'get':
                     token_id, token_value, token_pos = token_stream.pop()
