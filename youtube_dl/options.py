@@ -341,7 +341,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '-2', '--twofactor',
         dest='twofactor', metavar='TWOFACTOR',
-        help='Two-factor auth code')
+        help='Two-factor authentication code')
     authentication.add_option(
         '-n', '--netrc',
         action='store_true', dest='usenetrc', default=False,
@@ -469,7 +469,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',
-        help='Set file xattribute ytdl.filesize with expected filesize (experimental)')
+        help='Set file xattribute ytdl.filesize with expected file size (experimental)')
     downloader.add_option(
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true', default=None,
