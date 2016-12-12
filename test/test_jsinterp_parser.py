@@ -880,22 +880,56 @@ class TestJSInterpreterParser(unittest.TestCase):
         ast = []
         self.assertEqual(list(jsi.statements()), ast)
 
-    @unittest.skip('Test not yet implemented: missing ast')
     def test_function_expression(self):
-        # ASAP function expression test
         jsi = JSInterpreter('''
             function f() {
                 var add = (function () {
                     var counter = 0;
-                    return function () {return counter += 1;}
+                    return function () {return counter += 1;};
                 })();
                 add();
                 add();
                 return add();
             }
         ''')
-        ast = []
-        self.assertEqual(list(jsi.statements()), ast)
+        ast = [
+            (Token.FUNC, 'f', [],
+             (Token.BLOCK, [
+                 (Token.VAR, zip(['add'], [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                         (Token.MEMBER, (Token.FUNC, None, [], (Token.BLOCK, [
+                             (Token.VAR, zip(
+                                 ['counter'],
+                                 [(Token.ASSIGN, None, (Token.OPEXPR, [
+                                     (Token.MEMBER, (Token.INT, 0), None, None)
+                                 ]), None)]
+                             )),
+                             (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                                 (Token.MEMBER, (Token.FUNC, None, [], (Token.BLOCK, [
+                                     (Token.RETURN, (Token.EXPR, [
+                                         (Token.ASSIGN, _ASSIGN_OPERATORS['+='][1], (Token.OPEXPR, [
+                                             (Token.MEMBER, (Token.ID, 'counter'), None, None)
+                                         ]), (Token.ASSIGN, None, (Token.OPEXPR, [
+                                             (Token.MEMBER, (Token.INT, 1), None, None)
+                                         ]), None))
+                                     ]))
+                                 ])), None, None)
+                             ]), None)]))
+                         ])), None, None),
+                     ]), None)]), None, (Token.CALL, [], None))
+                 ]), None)])),
+                 (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'add'), None, (Token.CALL, [], None))
+                 ]), None)]),
+                 (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'add'), None, (Token.CALL, [], None))
+                 ]), None)]),
+                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'add'), None, (Token.CALL, [], None))
+                 ]), None)]))
+             ]))
+        ]
+        self.assertEqual(list(traverse(list(jsi.statements()))), list(traverse(ast)))
 
     def test_object(self):
         jsi = JSInterpreter('''

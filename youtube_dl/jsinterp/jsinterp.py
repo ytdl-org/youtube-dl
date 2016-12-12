@@ -494,20 +494,22 @@ class JSInterpreter(object):
         # TODO support let
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id in _token_keys:
-            token_stream.pop()
             if peek_id is Token.ID:
                 # this
                 if peek_value == 'this':
+                    token_stream.pop()
                     return (Token.RSV, 'this')
                 # function expr
                 elif peek_value == 'function':
                     return self._function(token_stream, stack_top - 1, True)
                 # id
                 else:
-                    token_stream.chk_id(last=True)
+                    token_stream.chk_id()
+                    token_stream.pop()
                     return (Token.ID, peek_value)
             # literals
             else:
+                token_stream.pop()
                 return (peek_id, peek_value)
         # array
         elif peek_id is Token.SOPEN:
