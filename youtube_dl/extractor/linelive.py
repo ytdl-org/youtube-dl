@@ -76,20 +76,21 @@ class LineLiveIE(LineLiveBaseInfoExtractor):
                 'title': '短時間だよライブ',
                 'description': '',
                 'duration': 17,
+                'url': 'http://lss.line-cdn.net/vod/hZHSKDiQtHGd6O3M4DwwNVVVzCAddAxU2AQZCAxs0C1BCAkJlVQdKVE9lXVRKV0cyUlEZCExlWFcTUBV0U1BKBU4wXgA/720.m3u8',
             },
             'params': {
                 'skip_download': True,
             },
         },
         {
-            'url': 'https://live.line.me/channels/77/broadcast/214088',
-            'md5': 'c2b16f5a530eadf57cff1b82a3eed185',
+            'url': 'https://live.line.me/channels/21/broadcast/51883',
             'info_dict': {
-                'id': '214088',
+                'id': '51883',
                 'ext': 'mp4',
-                'title': '12月3日 ウェザーナイトニュース',
-                'description': '明日の各地のお天気をおやすみ前にお届け。\nコミューニケーション型お天気情報番組♪\n\n皆さんからのコメントも募集中！\nおやすみ前の素敵な時間をLINE LIVEで！\n\nお天気キャスター：眞家泉',
-                'duration': 972,
+                'title': '『ジョジョの奇妙な冒険 ダイヤモンドは砕けない 第一章』会見',
+                'description': '2017年夏の公開に向けて、東宝株式会社とワーナー ブラザース ジャパン合同会社が初めて共同製作・配給するビッグプロジェクトが始動！\n映画『ジョジョの奇妙な冒険　ダイヤモンドは砕けない 第一章』会見模様を独占中継。\n会見終了後には、キャストからの生コメントも予定。ベールに包まれた企画内容とは・・・。そして、その企画の出演社は果たして誰だったのか？\n番組レポーター：マフィア梶田',
+                'duration': 4641,
+                'url': 'http://lss.line-cdn.net/vod/hw0VbqtoXMR9_El5PCiUgLVBIJjEVL25BVXlvLkcfdC9GKztOBH4yek8dISpPeTgZVnVlLk0adS5OIypIU35hfh4adg/720.m3u8',
             },
             'params': {
                 'skip_download': True,
