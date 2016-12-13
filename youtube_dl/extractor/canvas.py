@@ -89,6 +89,9 @@ class CanvasIE(InfoExtractor):
             elif format_type == 'HDS':
                 formats.extend(self._extract_f4m_formats(
                     format_url, display_id, f4m_id=format_type, fatal=False))
+            elif format_type == 'MPEG_DASH':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, display_id, mpd_id=format_type, fatal=False))
             else:
                 formats.append({
                     'format_id': format_type,
