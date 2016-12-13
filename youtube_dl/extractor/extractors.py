@@ -878,6 +878,7 @@ from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
 from .streetvoice import StreetVoiceIE
 from .sunporno import SunPornoIE
+from .stuffyoushouldknow import StuffyoushouldknowIE
 from .svt import (
     SVTIE,
     SVTPlayIE,
