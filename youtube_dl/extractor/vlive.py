@@ -120,10 +120,14 @@ class VLiveIE(InfoExtractor):
                 fatal=False, live=True))
         self._sort_formats(formats)
 
-        return dict(self._get_common_fields(webpage),
-                    id=video_id,
-                    formats=formats,
-                    is_live=True)
+        info = self._get_common_fields(webpage)
+        info.update({
+            'title': self._live_title(info['title']),
+            'id': video_id,
+            'formats': formats,
+            'is_live': True,
+        })
+        return info
 
     def _replay(self, video_id, webpage, long_video_id, key):
         playinfo = self._download_json(
@@ -157,8 +161,11 @@ class VLiveIE(InfoExtractor):
                     'ext': 'vtt',
                     'url': caption['source']}]
 
-        return dict(self._get_common_fields(webpage),
-                    id=video_id,
-                    formats=formats,
-                    view_count=view_count,
-                    subtitles=subtitles)
+        info = self._get_common_fields(webpage)
+        info.update({
+            'id': video_id,
+            'formats': formats,
+            'view_count': view_count,
+            'subtitles': subtitles,
+        })
+        return info
