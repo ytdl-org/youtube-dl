@@ -10,6 +10,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     remove_start,
+    urlencode_postdata,
 )
 from ..compat import compat_urllib_parse_urlencode
 
@@ -48,12 +49,19 @@ class VLiveIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.vlive.tv/video/%s' % video_id, video_id)
 
-        video_params = self._parse_json(self._search_regex(
-            r'\bvlive\.video\.init\(([^)]+)\);',
-            webpage, 'video params'), video_id,
-            transform_source=lambda s: '[' + s + ']')
+        VIDEO_PARAMS_RE = r'\bvlive\.video\.init\(([^)]+)'
+        VIDEO_PARAMS_FIELD = 'video params'
 
-        status, long_video_id, key = video_params[2], video_params[5], video_params[6]
+        params = self._parse_json(self._search_regex(
+            VIDEO_PARAMS_RE, webpage, VIDEO_PARAMS_FIELD, default=''), video_id,
+            transform_source=lambda s: '[' + s + ']', fatal=False)
+
+        if not params or len(params) < 7:
+            params = self._search_regex(
+                VIDEO_PARAMS_RE, webpage, VIDEO_PARAMS_FIELD)
+            params = [p.strip(r'"') for p in re.split(r'\s*,\s*', params)]
+
+        status, long_video_id, key = params[2], params[5], params[6]
         status = remove_start(status, 'PRODUCT_')
 
         if status == 'LIVE_ON_AIR' or status == 'BIG_EVENT_ON_AIR':
@@ -91,14 +99,16 @@ class VLiveIE(InfoExtractor):
     def _live(self, video_id, webpage):
         init_page = self._download_webpage(
             'http://www.vlive.tv/video/init/view',
-            video_id, data="videoSeq=%s" % video_id, headers={
+            video_id, note='Downloading live webpage',
+            data=urlencode_postdata({'videoSeq': video_id}),
+            headers={
                 'Referer': 'http://www.vlive.tv/video/%s' % video_id,
                 'Content-Type': 'application/x-www-form-urlencoded'
             })
 
         live_params = self._search_regex(
             r'"liveStreamInfo"\s*:\s*(".*"),',
-            init_page, 'video params')
+            init_page, 'live stream info')
         live_params = self._parse_json(live_params, video_id)
         live_params = self._parse_json(live_params, video_id)
 
