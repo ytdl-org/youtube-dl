@@ -825,6 +825,7 @@ from .shared import (
     VivoIE,
 )
 from .sharesix import ShareSixIE
+from .showroomlive import ShowroomLiveIE
 from .sina import SinaIE
 from .sixplay import SixPlayIE
 from .skynewsarabia import (
