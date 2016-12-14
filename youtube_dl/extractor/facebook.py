@@ -27,7 +27,7 @@ class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                 (?:
                     https?://
-                        (?:[\w-]+\.)?facebook\.com/
+                        (?:[\w-]+\.)?(?:facebook\.com|facebookcorewwwi\.onion)/
                         (?:[^#]*?\#!/)?
                         (?:
                             (?:
@@ -149,6 +149,9 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://zh-hk.facebook.com/peoplespower/videos/1135894589806027/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.facebookcorewwwi.onion/video.php?v=274175099429670',
         'only_matching': True,
     }]
 
