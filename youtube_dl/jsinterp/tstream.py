@@ -124,7 +124,10 @@ class TokenStream(object):
                 elif token_id is Token.STR:
                     yield (token_id, token_value[1:-1], pos)
                 elif token_id is Token.INT:
-                    yield (token_id, int(token_value), pos)
+                    # FIXME signed values
+                    root = ((16 if len(token_value) > 2 and token_value[1] in 'xX' else 8)
+                            if token_value.startswith('0') else 10)
+                    yield (token_id, int(token_value, root), pos)
                 elif token_id is Token.FLOAT:
                     yield (token_id, float(token_value), pos)
                 elif token_id is Token.REGEX:
@@ -142,6 +145,8 @@ class TokenStream(object):
                 else:
                     raise ExtractorError('Unexpected token at %d' % pos)
                 pos = feed_m.end()
+            elif pos >= len(self.code):
+                self.ended = True
             else:
                 raise ExtractorError('Unrecognised sequence at %d' % pos)
         raise StopIteration

@@ -55,7 +55,7 @@ class JSInterpreter(object):
             for k, v in dict(variables).items():
                 # XXX validate identifiers
                 self.global_vars[k] = Reference(v, (self.global_vars, k))
-        self._context = Context(self.global_vars)
+        self._context = Context()
         self._context_stack = []
 
     def statements(self, code=None, pos=0, stack_size=100):
@@ -920,7 +920,8 @@ class JSInterpreter(object):
 
         elif name is Token.ID:
             # XXX error handling (unknown id)
-            ref = self._context.local_vars[expr[1]] if expr[1] in self._context.local_vars else self.global_vars[expr[1]]
+            ref = (self._context.local_vars[expr[1]] if expr[1] in self._context.local_vars else
+                   self.global_vars[expr[1]])
         
         # literal
         elif name in _token_keys:
@@ -938,6 +939,18 @@ class JSInterpreter(object):
             raise ExtractorError('''Can't interpret expression called %s''' % name)
 
         return ref
+
+    def run(self, cx=None):
+        if cx is not None:
+            self.push_context(cx)
+        res = None
+        for stmt in self.statements():
+            res = self.interpret_statement(stmt)
+            if self._context.ended:
+                if cx is not None:
+                    self.pop_context()
+                break
+        return res
 
     def extract_object(self, objname):
         obj = {}

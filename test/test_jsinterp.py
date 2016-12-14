@@ -2,9 +2,9 @@
 
 from __future__ import unicode_literals
 
-# Allow direct execution
 import os
 import sys
+
 if sys.version_info < (2, 7):
     import unittest2 as unittest
 else:
@@ -12,127 +12,44 @@ else:
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.jsinterp import JSInterpreter
+from test.jstests import gettestcases
+
+defs = gettestcases()
 
 
 class TestJSInterpreter(unittest.TestCase):
-    def test_basic(self):
-        jsi = JSInterpreter('function x(){;}')
-        self.assertEqual(jsi.call_function('x'), None)
+    def setUp(self):
+        self.defs = defs
 
-        jsi = JSInterpreter('function x3(){return 42;}')
-        self.assertEqual(jsi.call_function('x3'), 42)
 
-        jsi = JSInterpreter('var x5 = function(){return 42;}')
-        self.assertEqual(jsi.call_function('x5'), 42)
+def generator(test_case):
+    def test_template(self):
+        for test in test_case['subtests']:
+            jsi = JSInterpreter(test['code'], variables=None if 'globals' not in test else test['globals'])
+            if 'asserts' in test:
+                for a in test['asserts']:
+                    if 'call' in a:
+                        self.assertEqual(jsi.call_function(*a['call']), a['value'])
+                    else:
+                        self.assertEqual(jsi.run(), a['value'])
 
-    def test_calc(self):
-        jsi = JSInterpreter('function x4(a){return 2*a+1;}')
-        self.assertEqual(jsi.call_function('x4', 3), 7)
+    if 'skip' not in test_case or 'i' not in test_case['skip']:
+        reason = False
+    else:
+        reason = test_case['skip']['i']
 
-    def test_empty_return(self):
-        jsi = JSInterpreter('function f(){return; y()}')
-        self.assertEqual(jsi.call_function('f'), None)
+    return test_template if not reason else unittest.skip(reason)(test_template)
 
-    @unittest.skip('Interpreting set field not yet implemented')
-    def test_morespace(self):
-        jsi = JSInterpreter('function x (a) { return 2 * a + 1 ; }')
-        self.assertEqual(jsi.call_function('x', 3), 7)
 
-        jsi = JSInterpreter('function f () { x =  2  ; return x; }')
-        self.assertEqual(jsi.call_function('f'), 2)
-
-    def test_strange_chars(self):
-        jsi = JSInterpreter('function $_xY1 ($_axY1) { var $_axY2 = $_axY1 + 1; return $_axY2; }')
-        self.assertEqual(jsi.call_function('$_xY1', 20), 21)
-
-    # TODO test prefix and postfix operators
-
-    def test_operators(self):
-        jsi = JSInterpreter('function f(){return 1 << 5;}')
-        self.assertEqual(jsi.call_function('f'), 32)
-
-        jsi = JSInterpreter('function f(){return 19 & 21;}')
-        self.assertEqual(jsi.call_function('f'), 17)
-
-        jsi = JSInterpreter('function f(){return 11 >> 2;}')
-        self.assertEqual(jsi.call_function('f'), 2)
-
-    def test_array_access(self):
-        jsi = JSInterpreter('function f(){var x = [1,2,3]; x[0] = 4; x[0] = 5; x[2] = 7; return x;}')
-        self.assertEqual(jsi.call_function('f'), [5, 2, 7])
-
-    def test_parens(self):
-        jsi = JSInterpreter('function f(){return (1) + (2) * ((( (( (((((3)))))) )) ));}')
-        self.assertEqual(jsi.call_function('f'), 7)
-
-        jsi = JSInterpreter('function f(){return (1 + 2) * 3;}')
-        self.assertEqual(jsi.call_function('f'), 9)
-
-    def test_assignments(self):
-        jsi = JSInterpreter('function f(){var x = 20; x = 30 + 1; return x;}')
-        self.assertEqual(jsi.call_function('f'), 31)
-
-        jsi = JSInterpreter('function f(){var x = 20; x += 30 + 1; return x;}')
-        self.assertEqual(jsi.call_function('f'), 51)
-
-        jsi = JSInterpreter('function f(){var x = 20; x -= 30 + 1; return x;}')
-        self.assertEqual(jsi.call_function('f'), -11)
-
-    def test_comments(self):
-        jsi = JSInterpreter('''
-        function x() {
-            var x = /* 1 + */ 2;
-            var y = /* 30
-            * 40 */ 50;
-            return x + y;
-        }
-        ''')
-        self.assertEqual(jsi.call_function('x'), 52)
-
-        jsi = JSInterpreter('''
-        function f() {
-            var x = "/*";
-            var y = 1 /* comment */ + 2;
-            return y;
-        }
-        ''')
-        self.assertEqual(jsi.call_function('f'), 3)
-
-    @unittest.skip('Interpreting get field not yet implemented')
-    def test_precedence(self):
-        jsi = JSInterpreter('''
-        function x() {
-            var a = [10, 20, 30, 40, 50];
-            var b = 6;
-            a[0]=a[b%a.length];
-            return a;
-        }''')
-        self.assertEqual(jsi.call_function('x'), [20, 20, 30, 40, 50])
-
-    @unittest.skip('Interpreting function call not yet implemented')
-    def test_call(self):
-        jsi = JSInterpreter('''
-        function x() { return 2; }
-        function y(a) { return x() + a; }
-        function z() { return y(3); }
-        ''')
-        self.assertEqual(jsi.call_function('z'), 5)
-        jsi = JSInterpreter('function x(a) { return a.split(""); }', variables={'a': 'abc'})
-        self.assertEqual(jsi.call_function('x'), ["a", "b", "c"])
-
-    @unittest.skip('Interpreting function call not yet implemented')
-    def test_complex_call(self):
-        jsi = JSInterpreter('''
-                function a(x) { return x; }
-                function b(x) { return x; }
-                function c()  { return [a, b][0](0); }
-                ''')
-        self.assertEqual(jsi.call_function('c'), 0)
-
-    @unittest.skip('Interpreting get field not yet implemented')
-    def test_getfield(self):
-        jsi = JSInterpreter('function c() { return a.var; }', variables={'a': {'var': 3}})
-        self.assertEqual(jsi.call_function('c'), 3)
-
-if __name__ == '__main__':
-    unittest.main()
+# And add them to TestJSInterpreter
+for n, tc in enumerate(defs):
+    if any('asserts' in test for test in tc['subtests']):
+        test_method = generator(tc)
+        tname = 'test_' + str(tc['name'])
+        i = 1
+        while hasattr(TestJSInterpreter, tname):
+            tname = 'test_%s_%d' % (tc['name'], i)
+            i += 1
+        test_method.__name__ = str(tname)
+        setattr(TestJSInterpreter, test_method.__name__, test_method)
+        del test_method
