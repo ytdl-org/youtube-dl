@@ -53,7 +53,7 @@ class JSInterpreter(object):
         if variables is not None:
             for k, v in dict(variables).items():
                 # XXX validate identifiers
-                self.global_vars[k] = Reference(v, (self.global_vars, k))
+                self.global_vars[k] = self.create_reference(v, (self.global_vars, k))
         self._context = Context()
         self._context_stack = []
 
@@ -64,6 +64,20 @@ class JSInterpreter(object):
         while not ts.ended:
             yield self._statement(ts, stack_size)
         raise StopIteration
+
+    def create_reference(self, value, parent_key):
+        if isinstance(value, dict):
+            o = {}
+            for k, v in value.items():
+                o[k] = self.create_reference(v, (o, k))
+        elif isinstance(value, list):
+            o = []
+            for k, v in enumerate(value):
+                o[k] = self.create_reference(v, (o, k))
+        else:
+            o = value
+
+        return Reference(o, parent_key)
 
     def _statement(self, token_stream, stack_top):
         if stack_top < 0:
@@ -923,10 +937,9 @@ class JSInterpreter(object):
             while tail is not None:
                 tail_name, tail_value, tail = tail
                 if tail_name is Token.FIELD:
-                    # TODO interpret field
-                    raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
+                    target = target.getvalue()[tail_value]
                 elif tail_name is Token.ELEM:
-                    index = self.interpret_statement(tail_value).getvalue()
+                    index = self.interpret_expression(tail_value).getvalue()
                     target = target.getvalue()[index]
                 elif tail_name is Token.CALL:
                     # TODO interpret call
@@ -945,9 +958,8 @@ class JSInterpreter(object):
         elif name is Token.ARRAY:
             array = []
             for key, elem in enumerate(expr[1]):
-                value = self.interpret_expression(elem)
-                value._parent = array, key
-                array.append(value)
+                value = self.interpret_expression(elem).getvalue()
+                array.append(Reference(value, (array, key)))
             ref = Reference(array)
 
         else:

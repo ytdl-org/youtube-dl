@@ -1,7 +1,5 @@
 from youtube_dl.jsinterp.jsgrammar import Token
 
-skip = {'i': 'Interpreting get field not yet implemented'}
-
 tests = [
     {
         'code': 'return a.var;',
