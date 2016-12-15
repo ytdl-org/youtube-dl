@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://openload\.(?:co|io)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:openload\.(?:co|io)|oload\.tv)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -50,6 +50,9 @@ class OpenloadIE(InfoExtractor):
         # unavailable via https://openload.co/f/Sxz5sADo82g/, different layout
         # for title and ext
         'url': 'https://openload.co/embed/Sxz5sADo82g/',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.tv/embed/KnG-kKZdcfY/',
         'only_matching': True,
     }]
 

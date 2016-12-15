@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [openload] Recognize oload.tv URLs (#10408)
 + [facebook] Recognize .onion URLs (#11443)
 
 version 2016.12.12
