@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 
 import os
 import sys
-import copy
 import logging
+import copy
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -39,7 +39,7 @@ class TestJSInterpreterParse(unittest.TestCase):
         self.defs = defs
 
 
-def generator(test_case):
+def generator(test_case, name):
     def test_template(self):
         for a in test_case['subtests']:
             jsi = JSInterpreter(a['code'], variables=None if 'globals' not in a else a['globals'])
@@ -49,7 +49,7 @@ def generator(test_case):
             else:
                 log.debug('No AST, trying to parsing only')
 
-    log = logging.getLogger('TestJSInterpreterParse.test_' + str(tc['name']))
+    log = logging.getLogger('TestJSInterpreterParse.%s' + name)
 
     if 'p' not in test_case['skip']:
         reason = False
@@ -59,15 +59,15 @@ def generator(test_case):
     return test_template if not reason else unittest.skip(reason)(test_template)
 
 
-# And add them to TestJSInterpreter
+# And add them to TestJSInterpreterParse
 for n, tc in enumerate(defs):
     if 'p' not in tc['skip'] or tc['skip']['p'] is not True:
-        test_method = generator(tc)
         tname = 'test_' + str(tc['name'])
         i = 1
         while hasattr(TestJSInterpreterParse, tname):
             tname = 'test_%s_%d' % (tc['name'], i)
             i += 1
+        test_method = generator(tc, tname)
         test_method.__name__ = str(tname)
         setattr(TestJSInterpreterParse, test_method.__name__, test_method)
         del test_method
