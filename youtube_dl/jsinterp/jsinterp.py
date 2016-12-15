@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from ..utils import ExtractorError
-from .tstream import TokenStream, _UNARY_OPERATORS
+from .tstream import TokenStream, convert_to_unary
 from .jsgrammar import Token, token_keys
 
 
@@ -744,7 +744,7 @@ class JSInterpreter(object):
                 if peek_id is Token.OP and peek_value[0] in (Token.ADD, Token.SUB):
                     # any binary operators will be consumed later
                     peek_id = Token.UOP
-                    peek_value = {Token.ADD: _UNARY_OPERATORS['+'], Token.SUB: _UNARY_OPERATORS['-']}[peek_value[0]]
+                    peek_value = convert_to_unary(peek_value)
                 if peek_id is Token.UOP:
                     name, op = peek_value
                     had_inc = name in (Token.INC, Token.DEC)
@@ -881,17 +881,18 @@ class JSInterpreter(object):
         elif name is Token.OPEXPR:
             stack = []
             rpn = expr[1][:]
+            # FIXME support pre- and postfix operators
             while rpn:
                 token = rpn.pop(0)
-                # XXX add unary operator 'delete', 'void', 'instanceof'
                 # XXX relation 'in' 'instanceof'
-                if token[0] in (Token.OP, Token.AOP, Token.UOP, Token.LOP, Token.REL):
+                if token[0] in (Token.OP, Token.AOP, Token.LOP, Token.REL):
                     right = stack.pop()
                     left = stack.pop()
                     stack.append(Reference(token[1](left.getvalue(), right.getvalue())))
+                # XXX add unary operator 'delete', 'void', 'instanceof'
                 elif token[0] is Token.UOP:
                     right = stack.pop()
-                    stack.append(token[1](right.getvalue()))
+                    stack.append(Reference(token[1](right.getvalue())))
                 else:
                     stack.append(self.interpret_expression(token))
             result = stack.pop()

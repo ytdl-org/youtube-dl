@@ -13,8 +13,7 @@ from .jsgrammar import (
     RELATIONS_RE,
     ASSIGN_OPERATORS_RE,
     OPERATORS_RE,
-    Token,
-    token_keys
+    Token
 )
 
 _PUNCTUATIONS = {
@@ -40,7 +39,7 @@ _UNARY_OPERATORS = {
     '++': (Token.INC, lambda cur: cur + 1),
     '--': (Token.DEC, lambda cur: cur - 1),
     '!': (Token.NOT, operator.not_),
-    '~': (Token.BNOT, operator.invert),
+    '~': (Token.BNOT, operator.inv),
     # XXX define these operators
     'delete': (Token.DEL, None),
     'void': (Token.VOID, None),
@@ -97,6 +96,10 @@ _input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(lop)s|%(uop)s|%(aop)
     'rel': RELATIONS_RE,
     'punct': PUNCTUATIONS_RE
 })
+
+
+def convert_to_unary(token_value):
+    return {Token.ADD: _UNARY_OPERATORS['+'], Token.SUB: _UNARY_OPERATORS['-']}[token_value[0]]
 
 
 class TokenStream(object):

@@ -39,5 +39,16 @@ tests = [
                      (Token.OP, _OPERATORS['>>'][1])
                  ]), None)
              ]))]
+    }, {
+        'code': 'return -5 + +3;',
+        'asserts': [{'value': -2}]
+    }, {
+        'code': 'return -5 + ++a;',
+        'globals': {'a': -3},
+        'asserts': [{'value': -7}]
+    }, {
+        'code': 'function f() {return -5 + a++;}',
+        'globals': {'a': -3},
+        'asserts': [{'value': -8, 'call': ('f',)}, {'value': -7, 'call': ('f',)}]
     }
 ]
