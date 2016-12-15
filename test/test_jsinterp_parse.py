@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import copy
+import logging
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -13,7 +14,7 @@ else:
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.jsinterp import JSInterpreter
-from test.jstests import gettestcases
+from .jstests import gettestcases
 
 
 def traverse(node, tree_types=(list, tuple)):
@@ -29,6 +30,8 @@ def traverse(node, tree_types=(list, tuple)):
 
 
 defs = gettestcases()
+# set level to logging.DEBUG to see messages about not set ASTs
+logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 
 
 class TestJSInterpreterParse(unittest.TestCase):
@@ -43,6 +46,10 @@ def generator(test_case):
             parsed = list(jsi.statements())
             if 'ast' in a:
                 self.assertEqual(traverse(parsed), traverse(a['ast']))
+            else:
+                log.debug('No AST, trying to parsing only')
+
+    log = logging.getLogger('TestJSInterpreterParse.test_' + str(tc['name']))
 
     if 'p' not in test_case['skip']:
         reason = False
@@ -64,3 +71,6 @@ for n, tc in enumerate(defs):
         test_method.__name__ = str(tname)
         setattr(TestJSInterpreterParse, test_method.__name__, test_method)
         del test_method
+
+if __name__ == '__main__':
+    unittest.main()

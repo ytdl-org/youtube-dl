@@ -53,3 +53,6 @@ for n, tc in enumerate(defs):
         test_method.__name__ = str(tname)
         setattr(TestJSInterpreter, test_method.__name__, test_method)
         del test_method
+
+if __name__ == '__main__':
+    unittest.main()
