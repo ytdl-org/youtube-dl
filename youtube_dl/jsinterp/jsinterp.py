@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 
+from compat import compat_str
 from ..utils import ExtractorError
 from .tstream import TokenStream, convert_to_unary
 from .jsgrammar import Token, token_keys
@@ -70,12 +71,14 @@ class JSInterpreter(object):
             o = {}
             for k, v in value.items():
                 o[k] = self.create_reference(v, (o, k))
-        elif isinstance(value, list):
+        elif isinstance(value, (list, tuple, set)):
             o = []
             for k, v in enumerate(value):
                 o[k] = self.create_reference(v, (o, k))
-        else:
+        elif isinstance(value, (int, float, compat_str, bool, re._pattern_type)) or value is None:
             o = value
+        else:
+            raise ExtractorError('Unsupported type, %s in variables' % type(value))
 
         return Reference(o, parent_key)
 
