@@ -1,8 +1,15 @@
 version <unreleased>
 
+Core
++ [utils] Add convenience urljoin
+
 Extractors
 + [openload] Recognize oload.tv URLs (#10408)
 + [facebook] Recognize .onion URLs (#11443)
+* [vlive] Fix extraction (#11375, #11383)
++ [canvas] Extract DASH formats
++ [melonvod] Add support for vod.melon.com (#11419)
+
 
 version 2016.12.12
 
