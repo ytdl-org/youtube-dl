@@ -6,7 +6,7 @@ from collections import namedtuple
 
 _token_keys = ('COPEN', 'CCLOSE', 'POPEN', 'PCLOSE', 'SOPEN', 'SCLOSE',
                'DOT', 'END', 'COMMA', 'HOOK', 'COLON',
-               'AND', 'OR', 'INC', 'DEC', 'NOT', 'BNOT', 'DEL', 'VOID', 'TYPE',
+               'AND', 'OR', 'PLUS', 'NEG', 'INC', 'DEC', 'NOT', 'BNOT', 'DEL', 'VOID', 'TYPE',
                'LT', 'GT', 'LE', 'GE', 'EQ', 'NE', 'SEQ', 'SNE', 'IN', 'INSTANCEOF',
                'BOR', 'BXOR', 'BAND', 'RSHIFT', 'LSHIFT', 'URSHIFT', 'SUB', 'ADD', 'MOD', 'DIV', 'MUL',
                'OP', 'AOP', 'UOP', 'LOP', 'REL',
@@ -48,7 +48,6 @@ _SINGLE_QUOTED_RE = r"""'(?:(?:\\'|\n)|[^'\n])*'"""
 _DOUBLE_QUOTED_RE = r'''"(?:(?:\\"|\n)|[^"\n])*"'''
 _STRING_RE = r'(?:%s)|(?:%s)' % (_SINGLE_QUOTED_RE, _DOUBLE_QUOTED_RE)
 
-# FIXME signed values
 _INTEGER_RE = r'(?:%(hex)s)|(?:%(dec)s)|(?:%(oct)s)' % {'hex': __HEXADECIMAL_RE, 'dec': __DECIMAL_RE, 'oct': __OCTAL_RE}
 _FLOAT_RE = r'(?:(?:%(dec)s\.[0-9]*)|(?:\.[0-9]+))(?:[eE][+-]?[0-9]+)?' % {'dec': __DECIMAL_RE}
 
@@ -62,15 +61,10 @@ _NULL_RE = r'null'
 _REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<%s>[gimy]{0,4}\b)' % 'REFLAGS'
 _REGEX_RE = r'/(?!\*)(?P<%s>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % ('REBODY', _REGEX_FLAGS_RE)
 
-_TOKENS = [
-    (Token.NULL, _NULL_RE),
-    (Token.BOOL, _BOOL_RE),
-    (Token.ID, _NAME_RE),
-    (Token.STR, _STRING_RE),
-    (Token.INT, _INTEGER_RE),
-    (Token.FLOAT, _FLOAT_RE),
-    (Token.REGEX, _REGEX_RE)
-]
+token_keys = Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token.FLOAT, Token.REGEX
+
+_TOKENS = zip(token_keys, (_NULL_RE, _BOOL_RE, _NAME_RE, _STRING_RE, _INTEGER_RE, _FLOAT_RE, _REGEX_RE))
+
 
 COMMENT_RE = r'(?P<%s>/\*(?:(?!\*/)(?:\n|.))*\*/)' % Token.COMMENT
 TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}

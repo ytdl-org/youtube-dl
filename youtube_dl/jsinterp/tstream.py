@@ -13,7 +13,8 @@ from .jsgrammar import (
     RELATIONS_RE,
     ASSIGN_OPERATORS_RE,
     OPERATORS_RE,
-    Token
+    Token,
+    token_keys
 )
 
 _PUNCTUATIONS = {
@@ -34,10 +35,12 @@ _LOGICAL_OPERATORS = {
     '||': (Token.OR, lambda cur, right: cur or right)
 }
 _UNARY_OPERATORS = {
+    '+': (Token.PLUS, lambda cur: cur),
+    '-': (Token.NEG, lambda cur: cur * -1),
     '++': (Token.INC, lambda cur: cur + 1),
     '--': (Token.DEC, lambda cur: cur - 1),
     '!': (Token.NOT, operator.not_),
-    '~': (Token.BNOT, lambda cur: cur ^ -1),
+    '~': (Token.BNOT, operator.invert),
     # XXX define these operators
     'delete': (Token.DEL, None),
     'void': (Token.VOID, None),
@@ -53,9 +56,8 @@ _RELATIONS = {
     '!=': (Token.NE, operator.ne),
     '===': (Token.SEQ, lambda cur, right: cur == right and type(cur) == type(right)),
     '!==': (Token.SNE, lambda cur, right: not cur == right or not type(cur) == type(right)),
-    # XXX define instanceof and in operators
-    'in': (Token.IN, None),
-    'instanceof': (Token.INSTANCEOF, None)
+    'in': (Token.IN, operator.contains),
+    'instanceof': (Token.INSTANCEOF, lambda cur, right: isinstance(cur, right))
 }
 _OPERATORS = {
     '|': (Token.BOR, operator.or_),
@@ -124,7 +126,6 @@ class TokenStream(object):
                 elif token_id is Token.STR:
                     yield (token_id, token_value[1:-1], pos)
                 elif token_id is Token.INT:
-                    # FIXME signed values
                     root = ((16 if len(token_value) > 2 and token_value[1] in 'xX' else 8)
                             if token_value.startswith('0') else 10)
                     yield (token_id, int(token_value, root), pos)
@@ -137,6 +138,10 @@ class TokenStream(object):
                 elif token_id is Token.ID:
                     yield (token_id, token_value, pos)
                 elif token_id in _operator_lookup:
+                    # FIXME signed values
+                    if (token_id is Token.OP and token_value in ('-', '+') and
+                            self._last[0] not in token_keys and self._last[0] is not Token.PCLOSE):
+                        token_id = Token.UOP
                     yield (token_id if token_value != 'in' else Token.IN,
                            _operator_lookup[token_id][token_value],
                            pos)

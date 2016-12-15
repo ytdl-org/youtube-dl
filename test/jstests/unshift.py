@@ -1,6 +1,4 @@
 
-skip = {'p': 'Signed integers not yet supported'}
-
 tests = [
     {
         'code': '''

@@ -4,9 +4,7 @@ import re
 
 from ..utils import ExtractorError
 from .tstream import TokenStream
-from .jsgrammar import Token
-
-_token_keys = set((Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token.FLOAT, Token.REGEX))
+from .jsgrammar import Token, token_keys
 
 
 class Context(object):
@@ -497,7 +495,7 @@ class JSInterpreter(object):
 
         # TODO support let
         peek_id, peek_value, peek_pos = token_stream.peek()
-        if peek_id in _token_keys:
+        if peek_id in token_keys:
             if peek_id is Token.ID:
                 # this
                 if peek_value == 'this':
@@ -924,7 +922,7 @@ class JSInterpreter(object):
                    self.global_vars[expr[1]])
         
         # literal
-        elif name in _token_keys:
+        elif name in token_keys:
             ref = Reference(expr[1])
 
         elif name is Token.ARRAY:
