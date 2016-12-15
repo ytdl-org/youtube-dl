@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.15
 
 Core
 + [utils] Add convenience urljoin
