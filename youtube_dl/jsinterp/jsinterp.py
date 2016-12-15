@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from ..utils import ExtractorError
-from .tstream import TokenStream
+from .tstream import TokenStream, _UNARY_OPERATORS
 from .jsgrammar import Token, token_keys
 
 
@@ -741,6 +741,10 @@ class JSInterpreter(object):
             has_prefix = True
             while has_prefix:
                 peek_id, peek_value, peek_pos = token_stream.peek()
+                if peek_id is Token.OP and peek_value[0] in (Token.ADD, Token.SUB):
+                    # any binary operators will be consumed later
+                    peek_id = Token.UOP
+                    peek_value = {Token.ADD: _UNARY_OPERATORS['+'], Token.SUB: _UNARY_OPERATORS['-']}[peek_value[0]]
                 if peek_id is Token.UOP:
                     name, op = peek_value
                     had_inc = name in (Token.INC, Token.DEC)

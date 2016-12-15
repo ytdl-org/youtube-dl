@@ -138,10 +138,6 @@ class TokenStream(object):
                 elif token_id is Token.ID:
                     yield (token_id, token_value, pos)
                 elif token_id in _operator_lookup:
-                    # FIXME signed values
-                    if (token_id is Token.OP and token_value in ('-', '+') and
-                            self._last[0] not in token_keys and self._last[0] is not Token.PCLOSE):
-                        token_id = Token.UOP
                     yield (token_id if token_value != 'in' else Token.IN,
                            _operator_lookup[token_id][token_value],
                            pos)
