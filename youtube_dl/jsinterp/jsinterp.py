@@ -33,6 +33,7 @@ class Reference(object):
         if not hasattr(parent, '__setitem__'):
             raise ExtractorError('Unknown reference')
         parent.__setitem__(key, Reference(value, (parent, key)))
+        return value
 
     def __repr__(self):
         if self._parent is not None:
@@ -748,6 +749,8 @@ class JSInterpreter(object):
                 if peek_id is Token.UOP:
                     name, op = peek_value
                     had_inc = name in (Token.INC, Token.DEC)
+                    if had_inc:
+                        peek_id = Token.PREFIX
                     while stack and stack[-1][0] > 16:
                         _, stack_id, stack_op = stack.pop()
                         out.append((stack_id, stack_op))
@@ -770,6 +773,7 @@ class JSInterpreter(object):
                     raise ExtractorError('''Can't have prefix and postfix operator at the same time at %d''' % peek_pos)
                 name, op = peek_value
                 if name in (Token.INC, Token.DEC):
+                    peek_id = Token.POSTFIX
                     prec = 17
                 else:
                     raise ExtractorError('Unexpected operator at %d' % peek_pos)
@@ -880,6 +884,7 @@ class JSInterpreter(object):
 
         elif name is Token.OPEXPR:
             stack = []
+            postfix = []
             rpn = expr[1][:]
             # FIXME support pre- and postfix operators
             while rpn:
@@ -893,10 +898,17 @@ class JSInterpreter(object):
                 elif token[0] is Token.UOP:
                     right = stack.pop()
                     stack.append(Reference(token[1](right.getvalue())))
+                elif token[0] is Token.PREFIX:
+                    right = stack.pop()
+                    stack.append(Reference(right.putvalue(token[1](right.getvalue()))))
+                elif token[0] is Token.POSTFIX:
+                    postfix.append((stack[-1], token[1]))
                 else:
                     stack.append(self.interpret_expression(token))
             result = stack.pop()
             if not stack:
+                for operand, op in postfix:
+                    operand.putvalue(op(operand.getvalue()))
                 ref = result
             else:
                 raise ExtractorError('Expression has too many values')

@@ -35,7 +35,7 @@ tests = [
                       (Token.EXPR, [
                           (Token.ASSIGN, None, (Token.OPEXPR, [
                               (Token.MEMBER, (Token.ID, 'i'), None, None),
-                              (Token.UOP, _UNARY_OPERATORS['++'][1])
+                              (Token.POSTFIX, _UNARY_OPERATORS['++'][1])
                           ]), None)
                       ])
                   ])),

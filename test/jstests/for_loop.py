@@ -28,7 +28,7 @@ tests = [
                   ]), None)]),
                   (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
                       (Token.MEMBER, (Token.ID, 'h'), None, None),
-                      (Token.UOP, _UNARY_OPERATORS['++'][1])
+                      (Token.PREFIX, _UNARY_OPERATORS['++'][1])
                   ]), None)]),
                   (Token.BLOCK, [
                       (Token.EXPR, [

@@ -44,7 +44,7 @@ def generator(test_case):
             if 'ast' in a:
                 self.assertEqual(traverse(parsed), traverse(a['ast']))
 
-    if 'skip' not in test_case or 'p' not in test_case['skip']:
+    if 'p' not in test_case['skip']:
         reason = False
     else:
         reason = test_case['skip']['p']
@@ -54,12 +54,13 @@ def generator(test_case):
 
 # And add them to TestJSInterpreter
 for n, tc in enumerate(defs):
-    test_method = generator(tc)
-    tname = 'test_' + str(tc['name'])
-    i = 1
-    while hasattr(TestJSInterpreterParse, tname):
-        tname = 'test_%s_%d' % (tc['name'], i)
-        i += 1
-    test_method.__name__ = str(tname)
-    setattr(TestJSInterpreterParse, test_method.__name__, test_method)
-    del test_method
+    if 'p' not in tc['skip'] or tc['skip']['p'] is not True:
+        test_method = generator(tc)
+        tname = 'test_' + str(tc['name'])
+        i = 1
+        while hasattr(TestJSInterpreterParse, tname):
+            tname = 'test_%s_%d' % (tc['name'], i)
+            i += 1
+        test_method.__name__ = str(tname)
+        setattr(TestJSInterpreterParse, test_method.__name__, test_method)
+        del test_method

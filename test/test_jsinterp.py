@@ -33,7 +33,7 @@ def generator(test_case):
                     else:
                         self.assertEqual(jsi.run(), a['value'])
 
-    if 'skip' not in test_case or 'i' not in test_case['skip']:
+    if 'i' not in test_case['skip']:
         reason = False
     else:
         reason = test_case['skip']['i']
