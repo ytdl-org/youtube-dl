@@ -22,15 +22,26 @@ import re
 class TistoryIE(InfoExtractor):
     _VALID_URL = r'https?://cfile[0-9]*.uf.tistory.com/(?:media|attach|attachment|original)/(?P<id>[A-Za-z0-9]*)'
 
-    _TEST = {
-        'url': 'http://cfile23.uf.tistory.com/media/111ED14A4FAEBC3C23AAE1',
-        'md5': '55c32cda7b1a091d75c32aeaaea47595',
-        'info_dict': {
-            'id': '207B594C4FAEBBC118096B',
-            'title': '함친.wmv-muxed',
-            'ext': 'mp4'
+    _TESTS = [
+        {
+            'url': 'http://cfile23.uf.tistory.com/media/111ED14A4FAEBC3C23AAE1',
+            'md5': '55c32cda7b1a091d75c32aeaaea47595',
+            'info_dict': {
+                'id': '207B594C4FAEBBC118096B',
+                'title': '함친.wmv-muxed',
+                'ext': 'mp4'
+            },
+        },
+        {
+            'url': 'http://cfile24.uf.tistory.com/original/1870B0374FBD97A80980D2',
+            'md5': 'dad089588a30447c0e51c78f29a9183e',
+            'info_dict': {
+                'id': '1870B0374FBD97A80980D2',
+                'title': '무제-1',
+                'ext': 'flv'
+            }
         }
-    }
+    ]
 
     def unquote(self, url):
         return compat_urlparse.unquote(url)
@@ -49,6 +60,12 @@ class TistoryIE(InfoExtractor):
 
         return retval
 
+    def get_ext(self, mime):
+        ext = mimetype2ext(mime)
+        if ext == "x-shockwave-flash":
+            ext = "flv"
+        return ext
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -57,6 +74,7 @@ class TistoryIE(InfoExtractor):
 
         head = compat_urllib_request.urlopen(req)
         content_type = head.info().get("content-type")
+        content_length = int(head.info().get("content-length"))
 
         ret = {
             "id": compat_str(video_id),
@@ -64,7 +82,7 @@ class TistoryIE(InfoExtractor):
             "title": self.get_title(url, head)
         }
 
-        if content_type == "application/x-shockwave-flash":
+        if content_type == "application/x-shockwave-flash" and content_length < 200000:
             swfreq = self._request_webpage(url, video_id, "Downloading SWF")
             data = swfreq.read()
 
@@ -110,5 +128,5 @@ class TistoryIE(InfoExtractor):
             ret["url"] = "http://" + cfile + ".tistory.com/attach/" + url
             return self._real_extract(ret["url"])
         else:
-            ret["ext"] = mimetype2ext(content_type)
+            ret["ext"] = self.get_ext(content_type)
             return ret
