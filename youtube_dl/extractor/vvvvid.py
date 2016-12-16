@@ -35,17 +35,9 @@ class VVVVIDIE(InfoExtractor):
     _conn_id = None
 
     def _real_initialize(self):
-        if not self._conn_id:
-            user = self._downloader.cache.load('vvvvid', 'user') or {}
-            self._conn_id = user.get('conn_id')
-            if not self._conn_id:
-                self._conn_id = self._download_json(
-                    'https://www.vvvvid.it/user/login',
-                    None, headers=self.geo_verification_headers())['data']['conn_id']
-                self._downloader.cache.store(
-                    'vvvvid', 'user', {
-                        'conn_id': self._conn_id,
-                    })
+        self._conn_id = self._download_json(
+            'https://www.vvvvid.it/user/login',
+            None, headers=self.geo_verification_headers())['data']['conn_id']
 
     def _real_extract(self, url):
         show_id, season_id, video_id = re.match(self._VALID_URL, url).groups()
