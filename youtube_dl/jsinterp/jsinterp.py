@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import re
 
-from compat import compat_str
+from ..compat import compat_str
 from ..utils import ExtractorError
 from .tstream import TokenStream, convert_to_unary
 from .jsgrammar import Token, token_keys
