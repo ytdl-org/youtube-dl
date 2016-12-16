@@ -12,7 +12,7 @@ class Context(object):
     def __init__(self, variables=None, ended=False):
         self.ended = ended
         self.no_in = True
-        self.local_vars = {}
+        self.local_vars = {'this': {}}
         if variables is not None:
             for k, v in dict(variables).items():
                 # XXX validate identifiers
@@ -57,6 +57,10 @@ class JSInterpreter(object):
                 self.global_vars[k] = self.create_reference(v, (self.global_vars, k))
         self._context = Context()
         self._context_stack = []
+
+    @property
+    def this(self):
+        return self._context.local_vars['this']
 
     def statements(self, code=None, pos=0, stack_size=100):
         if code is None:
@@ -889,7 +893,22 @@ class JSInterpreter(object):
                 ref = self.interpret_expression(left)
             else:
                 # TODO handle undeclared variables (create propery)
-                leftref = self.interpret_expression(left)
+                try:
+                    leftref = self.interpret_expression(left)
+                except KeyError:
+                    lname = left[0]
+                    key = None
+                    if lname is Token.OPEXPR and len(left[1]) == 1:
+                        lname = left[1][0][0]
+                        if lname is Token.MEMBER:
+                            lid, args, tail = left[1][0][1:]
+                            if lid[0] is Token.ID and args is None and tail is None:
+                                key = lid[1]
+                    if key is not None:
+                        u = Reference(self.undefined, (self.this, key))
+                        leftref = self.this[key] = u
+                    else:
+                        raise ExtractorError('''Invalid left-hand side in assignment''')
                 leftvalue = leftref.getvalue()
                 rightvalue = self.interpret_expression(right).getvalue()
                 leftref.putvalue(op(leftvalue, rightvalue))
@@ -952,7 +971,7 @@ class JSInterpreter(object):
         elif name is Token.ID:
             # XXX error handling (unknown id)
             ref = (self._context.local_vars[expr[1]] if expr[1] in self._context.local_vars else
-                   self.global_vars[expr[1]])
+                   self.this[expr[1]] if expr[1] in self.this else self.global_vars[expr[1]])
         
         # literal
         elif name in token_keys:

@@ -1,8 +1,6 @@
 from youtube_dl.jsinterp.jsgrammar import Token
 from youtube_dl.jsinterp.tstream import _ASSIGN_OPERATORS
 
-skip = {'i': 'Interpreting set field not yet implemented'}
-
 tests = [
     {
         'code': 'x =  2  ; return x;',
