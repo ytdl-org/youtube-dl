@@ -20,7 +20,7 @@ import re
 
 
 class TistoryIE(InfoExtractor):
-    _VALID_URL = r'https?://cfile[0-9]*.uf.tistory.com/(?:media|attach|attachment)/(?P<id>[A-Za-z0-9]*)'
+    _VALID_URL = r'https?://cfile[0-9]*.uf.tistory.com/(?:media|attach|attachment|original)/(?P<id>[A-Za-z0-9]*)'
 
     _TEST = {
         'url': 'http://cfile23.uf.tistory.com/media/111ED14A4FAEBC3C23AAE1',
