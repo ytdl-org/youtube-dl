@@ -1,4 +1,5 @@
 # coding: utf-8
+from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
@@ -26,7 +27,7 @@ class TistoryIE(InfoExtractor):
         'md5': '55c32cda7b1a091d75c32aeaaea47595',
         'info_dict': {
             'id': '207B594C4FAEBBC118096B',
-            'title': compat_str('함친.wmv-muxed', encoding="UTF-8"),
+            'title': '함친.wmv-muxed',
             'ext': 'mp4'
         }
     }
