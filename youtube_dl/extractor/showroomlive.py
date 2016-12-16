@@ -40,7 +40,7 @@ class ShowroomLiveIE(InfoExtractor):
 
         return {
             'is_live': is_live,
-            'id': room.get('live_id'),
+            'id': str(room.get('live_id')),
             'timestamp': room.get('current_live_started_at'),
             'uploader': uploader,
             'uploader_id': broadcaster_id,
@@ -62,7 +62,8 @@ class ShowroomLiveIE(InfoExtractor):
                     broadcaster_id,
                     ext='mp4',
                     m3u8_id='hls',
-                    preference=stream.get('quality', 100) - 10
+                    preference=stream.get('quality', 100),
+                    live=True
                 ))
             elif stream.get('type') == 'rtmp':
                 url = stream.get('url') + '/' + stream.get('stream_name')
@@ -71,7 +72,8 @@ class ShowroomLiveIE(InfoExtractor):
                     'format_id': 'rtmp',
                     'protocol': 'rtmp',
                     'ext': 'flv',
-                    'preference': stream.get('quality', 100)
+                    'preference': stream.get('quality', 100),
+                    'format_note': stream.get('label')
                 })
 
         self._sort_formats(formats)
