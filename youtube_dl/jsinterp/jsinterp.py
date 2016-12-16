@@ -12,7 +12,7 @@ class Context(object):
     def __init__(self, variables=None, ended=False):
         self.ended = ended
         self.no_in = True
-        self.local_vars = {'this': {}}
+        self.local_vars = {}
         if variables is not None:
             for k, v in dict(variables).items():
                 # XXX validate identifiers
@@ -60,7 +60,7 @@ class JSInterpreter(object):
 
     @property
     def this(self):
-        return self._context.local_vars['this']
+        return self._context.local_vars
 
     def statements(self, code=None, pos=0, stack_size=100):
         if code is None:
@@ -971,7 +971,7 @@ class JSInterpreter(object):
         elif name is Token.ID:
             # XXX error handling (unknown id)
             ref = (self._context.local_vars[expr[1]] if expr[1] in self._context.local_vars else
-                   self.this[expr[1]] if expr[1] in self.this else self.global_vars[expr[1]])
+                   self.global_vars[expr[1]])
         
         # literal
         elif name in token_keys:
