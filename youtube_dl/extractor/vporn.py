@@ -7,6 +7,7 @@ from ..utils import (
     ExtractorError,
     parse_duration,
     str_to_int,
+    urljoin,
 )
 
 
@@ -66,10 +67,9 @@ class VpornIE(InfoExtractor):
         description = self._html_search_regex(
             r'class="(?:descr|description_txt)">(.*?)</div>',
             webpage, 'description', fatal=False)
-        thumbnail = self._html_search_regex(
-            r'flashvars\.imageUrl\s*=\s*"([^"]+)"', webpage, 'description', fatal=False, default=None)
-        if thumbnail:
-            thumbnail = 'http://www.vporn.com' + thumbnail
+        thumbnail = urljoin('http://www.vporn.com', self._html_search_regex(
+            r'flashvars\.imageUrl\s*=\s*"([^"]+)"', webpage, 'description',
+            default=None))
 
         uploader = self._html_search_regex(
             r'(?s)Uploaded by:.*?<a href="/user/[^"]+"[^>]*>(.+?)</a>',
