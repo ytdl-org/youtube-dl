@@ -1110,6 +1110,7 @@ from .vporn import VpornIE
 from .vrt import VRTIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
+from .vvvvid import VVVVIDIE
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE
 from .walla import WallaIE
