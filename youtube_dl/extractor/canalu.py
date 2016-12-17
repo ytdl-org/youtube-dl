@@ -51,12 +51,9 @@ class CanalUIE(InfoExtractor):
         video['url'] = self._html_search_regex(r'file: "(.*?\.mp4)",', webpage, 'url')
         video['ext'] = 'mp4'
 
-        # Thumbnail
         video['thumbnail'] = self._og_search_thumbnail(webpage, default=None)
-        # Description
         description_regex = r'<div class="description fleft">.*?<p>\s*(.*?)\s*</p>.*?</div>'
         video['description'] = self._html_search_regex(description_regex, webpage, 'description', flags=DOTALL, default=None)
-        # Other fields
         for field in [
                 ['duration', 'Durée du programme', '(\d+) min'],
                 ['creator', 'Auteur\(s\)', '(.*?)'],
@@ -64,9 +61,7 @@ class CanalUIE(InfoExtractor):
         ]:
             regex = r'<dd><span style="font-weight:bold;" >{0}</span> : {1} </dd>'.format(field[1], field[2])
             video[field[0]] = self._html_search_regex(regex, webpage, field[0], flags=DOTALL, default=None)
-        # Duration
         video['duration'] = int_or_none(video['duration'], invscale=60)
-        # Release date
         date = video['release_date'].split(' ')
         video["release_date"] = "{0}{1}{2}".format(date[2], month_by_name(unescapeHTML(date[1]).lower(), 'fr'), date[0])
 
