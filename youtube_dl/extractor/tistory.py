@@ -18,11 +18,10 @@ from ..compat import (
 import os.path
 import cgi
 import re
-import xml.etree.ElementTree as ET
 
 
 class TistoryBaseIE(InfoExtractor):
-    _TI_MEDIA_URL = r'https?://cfile[0-9]*.uf.tistory.com/(?:media|attach|attachment|original)/(?P<id>[A-Za-z0-9]*)'
+    _TI_MEDIA_URL = r'https?://cfile[0-9]*.uf.(tistory.com|daum.net)/(?:media|attach|attachment|original)/(?P<id>[A-Za-z0-9]*)'
 
     def _ti_unquote(self, url):
         return compat_urlparse.unquote(url)
@@ -48,18 +47,19 @@ class TistoryBaseIE(InfoExtractor):
         return ext
 
     def _ti_get_real_from_check(self, check):
-        checkmatch = re.search("(cfile[0-9]*.uf)@([A-Z0-9]*)(?:\.([A-Za-z0-9]*))?", check)
+        checkmatch = re.search("(?P<host>(tistory.com|daum.net)).*(?P<server>cfile[0-9]*.uf)@(?P<id>[A-Z0-9]*)(?:\.(?P<ext>[A-Za-z0-9]*))?", check)
         if not checkmatch:
             return None
 
-        cfile = checkmatch.group(1)
-        url = checkmatch.group(2)
+        host = checkmatch.group("host")
+        cfile = checkmatch.group("server")
+        url = checkmatch.group("id")
         ext = None
 
-        if len(checkmatch.groups()) > 2:
-            ext = checkmatch.group(3)
+        if len(checkmatch.groups()) > 3:
+            ext = checkmatch.group("ext")
 
-        return ("http://" + cfile + ".tistory.com/attach/" + url, ext)
+        return ("http://" + cfile + "." + host + "/attach/" + url, ext)
 
     def _ti_get_video_id(self, url):
         if '_TI_MEDIA_URL_RE' not in self.__dict__:
@@ -79,6 +79,14 @@ class TistoryBaseIE(InfoExtractor):
         content_length = int(head.info().get("content-length"))
 
         if content_type == "application/x-shockwave-flash" and content_length < 200000:
+            return True
+
+        return False
+
+    def _ti_detect_xml(self, head):
+        content_type = head.info().get("content-type")
+
+        if "xml" in content_type or content_type == "text/html":
             return True
 
         return False
@@ -141,8 +149,29 @@ class TistoryBaseIE(InfoExtractor):
 
         return (real_url, ext)
 
-    def _ti_dl(self, url, ext=None, title=None):
-        video_id = self._ti_get_video_id(url)
+    def _ti_read_xml(self, url, video_id):
+        xml = self._download_xml(url, video_id)
+        entries = []
+
+        for tracklist in xml:
+            for track in tracklist:
+                for tag in track:
+                    if "location" not in tag.tag:
+                        continue
+
+                    loc = tag.text
+
+                    newloc, ext = self._ti_get_real_from_check(loc)
+                    if newloc:
+                        loc = newloc
+
+                    entries.append(self._ti_dl(loc, ext))
+
+        return self.playlist_result(entries)
+
+    def _ti_dl(self, url, ext=None, title=None, video_id=None):
+        if not video_id:
+            video_id = self._ti_get_video_id(url)
 
         head = None
 
@@ -155,6 +184,8 @@ class TistoryBaseIE(InfoExtractor):
 
         if head and self._ti_detect_swf(head):
             return self._ti_dl(*self._ti_read_swf(url, video_id, head))
+        elif head and self._ti_detect_xml(head):
+            return self._ti_read_xml(url, video_id)
         else:
             return self._ti_get_media(url, video_id, head, ext, title)
 
@@ -188,29 +219,10 @@ class TistoryIE(TistoryBaseIE):
 
 
 class TistoryPlaylistIE(TistoryBaseIE):
-    _VALID_URL = r'(?:https?://cfs.tistory.com/custom/blog/.*/skin/images/po.swf?.*file=)?(?P<rurl>https?://cfs.tistory.com/custom/blog/.*/skin/images/(?P<id>.*)\.xml).*'
+    _VALID_URL = r'.*(?P<rurl>https?://cfs.tistory.com/custom/blog/.*/skin/images/(?P<id>.*)\.xml).*'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         rurl = self._VALID_URL_RE.match(url).group("rurl")
 
-        xml = self._download_xml(rurl, video_id)
-        entries = []
-
-        for tracklist in xml:
-            for track in tracklist:
-                for tag in track:
-                    print(ET.tostring(tag))
-                    if "location" not in tag.tag:
-                        continue
-
-                    loc = tag.text
-
-                    newloc, ext = self._ti_get_real_from_check(loc)
-                    if newloc:
-                        loc = newloc
-
-                    entries.append(self._ti_dl(loc, ext))
-
-
-        return self.playlist_result(entries)
+        return self._ti_dl(rurl, video_id=video_id)
