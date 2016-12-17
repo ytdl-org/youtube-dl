@@ -1703,9 +1703,9 @@ def base_url(url):
 def urljoin(base, path):
     if not isinstance(path, compat_str) or not path:
         return None
-    if re.match(r'https?://', path):
+    if re.match(r'^(?:https?:)?//', path):
         return path
-    if not isinstance(base, compat_str) or not re.match(r'https?://', base):
+    if not isinstance(base, compat_str) or not re.match(r'^(?:https?:)?//', base):
         return None
     return compat_urlparse.urljoin(base, path)
 
