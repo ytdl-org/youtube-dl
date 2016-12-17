@@ -24,8 +24,18 @@ class Reference(object):
         self._value = value
         self._parent = parent
 
-    def getvalue(self):
-        return self._value
+    def getvalue(self, deep=False):
+        value = self._value
+        if deep:
+            if isinstance(self._value, (list, tuple)):
+                # TODO test nested arrays
+                value = [elem.getvalue() for elem in self._value]
+            elif isinstance(self._value, dict):
+                value = {}
+                for key, prop in self._value.items():
+                    value[key] = prop.getvalue()
+
+        return value
 
     def putvalue(self, value):
         if self._parent is None:
@@ -34,6 +44,7 @@ class Reference(object):
         if not hasattr(parent, '__setitem__'):
             raise ExtractorError('Unknown reference')
         parent.__setitem__(key, Reference(value, (parent, key)))
+        self._value = value
         return value
 
     def __repr__(self):
@@ -62,12 +73,12 @@ class JSInterpreter(object):
     def this(self):
         return self._context.local_vars
 
-    def statements(self, code=None, pos=0, stack_size=100):
+    def parse(self, code=None, pos=0, stack_size=100):
         if code is None:
             code = self.code
         ts = TokenStream(code, pos)
         while not ts.ended:
-            yield self._statement(ts, stack_size)
+            yield self._source_element(ts, stack_size)
         raise StopIteration
 
     def create_reference(self, value, parent_key):
@@ -86,22 +97,28 @@ class JSInterpreter(object):
 
         return Reference(o, parent_key)
 
+    def _source_element(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
+        token_id, token_value, token_pos = token_stream.peek()
+        if token_id is Token.ID and token_value == 'function':
+            source_element = self._function(token_stream, stack_top - 1)
+        else:
+            source_element = self._statement(token_stream, stack_top - 1)
+
+        return source_element
+
     def _statement(self, token_stream, stack_top):
         if stack_top < 0:
             raise ExtractorError('Recursion limit reached')
-        # ast
-        statement = None
 
+        statement = None
         token_id, token_value, token_pos = token_stream.peek()
         if token_id is Token.END:
             # empty statement goes straight here
             token_stream.pop()
             return statement
-
-        elif token_id is Token.ID and token_value == 'function':
-            # FIXME allowed only in program and function body
-            #  main, function expr, object literal (set, get), function declaration
-            statement = self._function(token_stream, stack_top - 1)
 
         # block
         elif token_id is Token.COPEN:
@@ -245,21 +262,27 @@ class JSInterpreter(object):
         return statement
 
     def _if_statement(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         token_id, token_value, token_pos = token_stream.pop()
         if token_id is not Token.POPEN:
             raise ExtractorError('Missing condition at %d' % token_pos)
         cond_expr = self._expression(token_stream, stack_top - 1)
         token_stream.pop()  # Token.PCLOSE
-        true_expr = self._statement(token_stream, stack_top - 1)
-        false_expr = None
+        true_stmt = self._statement(token_stream, stack_top - 1)
+        false_stmt = None
         token_id, token_value, token_pos = token_stream.peek()
         if token_id is Token.ID and token_value == 'else':
             token_stream.pop()
-            false_expr = self._statement(token_stream, stack_top - 1)
-        return (Token.IF, cond_expr, true_expr, false_expr)
+            false_stmt = self._statement(token_stream, stack_top - 1)
+        return (Token.IF, cond_expr, true_stmt, false_stmt)
 
     def _for_loop(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         token_id, token_value, token_pos = token_stream.pop()
         if token_id is not Token.POPEN:
@@ -302,6 +325,9 @@ class JSInterpreter(object):
         return (Token.FOR, init, cond, incr, body)
 
     def _do_loop(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         body = self._statement(token_stream, stack_top - 1)
         token_id, token_value, token_pos = token_stream.pop()
@@ -323,6 +349,9 @@ class JSInterpreter(object):
         return (Token.DO, expr, body)
 
     def _while_loop(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         token_id, token_value, token_pos = token_stream.pop()
         if token_id is not Token.POPEN:
@@ -335,6 +364,9 @@ class JSInterpreter(object):
         return (Token.WHILE, expr, body)
 
     def _return_statement(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         peek_id, peek_value, peek_pos = token_stream.peek()
         # XXX no line break here
@@ -342,6 +374,9 @@ class JSInterpreter(object):
         return (Token.RETURN, expr)
 
     def _with_statement(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         token_id, token_value, token_pos = token_stream.pop()
         if token_id is not Token.POPEN:
@@ -351,6 +386,9 @@ class JSInterpreter(object):
         return (Token.WITH, expr, self._statement(token_stream, stack_top - 1))
 
     def _switch_statement(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         token_id, token_value, token_pos = token_stream.pop()
         if token_id is not Token.POPEN:
@@ -402,6 +440,9 @@ class JSInterpreter(object):
         return (Token.SWITCH, discriminant, block)
 
     def _try_statement(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         token_id, token_value, token_pos = token_stream.peek()
         if token_id is not Token.COPEN:
@@ -434,6 +475,9 @@ class JSInterpreter(object):
         return (Token.TRY, try_block, catch_block, finally_block)
 
     def _expression(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         expr_list = []
         has_another = True
         while has_another:
@@ -464,6 +508,9 @@ class JSInterpreter(object):
         return (Token.ASSIGN, op, left, right)
 
     def _member_expression(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         peek_id, peek_value, peek_pos = token_stream.peek()
         if peek_id is Token.ID and peek_value == 'new':
             token_stream.pop()
@@ -555,8 +602,12 @@ class JSInterpreter(object):
             raise ExtractorError('Syntax error at %d' % peek_pos)
 
     def _function(self, token_stream, stack_top, is_expr=False):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_stream.pop()
         token_id, token_value, token_pos = token_stream.peek()
+
         name = None
         if token_id is Token.ID:
             token_stream.chk_id()
@@ -568,9 +619,9 @@ class JSInterpreter(object):
         if token_id is not Token.POPEN:
             raise ExtractorError('Expected argument list at %d' % token_pos)
 
+        # args
         token_stream.pop()
         open_pos = token_pos
-
         args = []
         while True:
             token_id, token_value, token_pos = token_stream.peek()
@@ -594,7 +645,24 @@ class JSInterpreter(object):
         if token_id is not Token.COPEN:
             raise ExtractorError('Expected function body at %d' % token_pos)
 
-        return (Token.FUNC, name, args, self._statement(token_stream, stack_top - 1))
+        return (Token.FUNC, name, args, (self._function_body(token_stream, stack_top - 1)))
+
+    def _function_body(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
+        token_id, token_value, open_pos = token_stream.pop()
+        body = []
+        while True:
+            token_id, token_value, token_pos = token_stream.peek()
+            if token_id is Token.CCLOSE:
+                token_stream.pop()
+                break
+            elif token_id is Token.END and token_stream.ended:
+                raise ExtractorError('Unbalanced parentheses at %d' % open_pos)
+            body.append(self._source_element(token_stream, stack_top - 1))
+
+        return body
 
     def _arguments(self, token_stream, stack_top):
         if stack_top < 0:
@@ -660,6 +728,9 @@ class JSInterpreter(object):
         return (Token.ARRAY, elements)
 
     def _object_literal(self, token_stream, stack_top):
+        if stack_top < 0:
+            raise ExtractorError('Recursion limit reached')
+
         token_id, token_value, open_pos = token_stream.pop()
         property_list = []
         while True:
@@ -688,9 +759,9 @@ class JSInterpreter(object):
                     raise ExtractorError('''Expected ')' at %d''' % token_pos)
 
                 if is_set:
-                    desc = (Token.PROPSET, arg, self._statement(token_stream, stack_top - 1))
+                    desc = (Token.PROPSET, arg, self._function_body(token_stream, stack_top - 1))
                 else:
-                    desc = (Token.PROPGET, self._statement(token_stream, stack_top - 1))
+                    desc = (Token.PROPGET, self._function_body(token_stream, stack_top - 1))
 
             elif token_id in (Token.ID, Token.STR, Token.INT, Token.FLOAT):
                 property_name = token_value
@@ -757,8 +828,7 @@ class JSInterpreter(object):
         out = []
         stack = []
 
-        has_another = True
-        while has_another:
+        while True:
             had_inc = False
             has_prefix = True
             while has_prefix:
@@ -828,13 +898,15 @@ class JSInterpreter(object):
                 name, op = peek_value
                 prec = {Token.OR: 5, Token.AND: 6}[name]
             else:
-                has_another = False
+                op = None
                 prec = 4  # empties stack
 
             while stack and stack[-1][0] >= prec:
                 _, stack_id, stack_op = stack.pop()
                 out.append((stack_id, stack_op))
-            if has_another:
+            if op is None:
+                break
+            else:
                 stack.append((prec, peek_id, op))
                 token_stream.pop()
 
@@ -846,9 +918,15 @@ class JSInterpreter(object):
 
         name = stmt[0]
         ref = None
-        if name == 'funcdecl':
-            # TODO interpret funcdecl
-            raise ExtractorError('''Can't interpret statement called %s''' % name)
+        if name == Token.FUNC:
+            name, args, body = stmt[1:]
+            if name is not None:
+                if self._context_stack:
+                    self.this[name] = Reference(self.build_function(args, body), (self.this, name))
+                else:
+                    self.global_vars[name] = Reference(self.build_function(args, body), (self.this, name))
+            else:
+                raise ExtractorError('Function expression is not yet implemented')
         elif name is Token.BLOCK:
             block = stmt[1]
             for stmt in block:
@@ -857,8 +935,8 @@ class JSInterpreter(object):
                     ref = s.getvalue()
         elif name is Token.VAR:
             for name, value in stmt[1]:
-                self._context.local_vars[name] = Reference(self.interpret_expression(value).getvalue(),
-                                                           (self._context.local_vars, name))
+                self.this[name] = Reference(self.interpret_expression(value).getvalue(),
+                                            (self.this, name))
         elif name is Token.EXPR:
             for expr in stmt[1]:
                 ref = self.interpret_expression(expr)
@@ -866,11 +944,6 @@ class JSInterpreter(object):
         # continue, break
         elif name is Token.RETURN:
             ref = self.interpret_statement(stmt[1])
-            ref = None if ref is None else ref.getvalue()
-            if isinstance(ref, list):
-                # TODO test nested arrays
-                ref = [elem.getvalue() for elem in ref]
-
             self._context.ended = True
         # with
         # label
@@ -892,7 +965,6 @@ class JSInterpreter(object):
             if op is None:
                 ref = self.interpret_expression(left)
             else:
-                # TODO handle undeclared variables (create propery)
                 try:
                     leftref = self.interpret_expression(left)
                 except KeyError:
@@ -908,7 +980,7 @@ class JSInterpreter(object):
                         u = Reference(self.undefined, (self.this, key))
                         leftref = self.this[key] = u
                     else:
-                        raise ExtractorError('''Invalid left-hand side in assignment''')
+                        raise ExtractorError('Invalid left-hand side in assignment')
                 leftvalue = leftref.getvalue()
                 rightvalue = self.interpret_expression(right).getvalue()
                 leftref.putvalue(op(leftvalue, rightvalue))
@@ -964,13 +1036,13 @@ class JSInterpreter(object):
                     index = self.interpret_expression(tail_value).getvalue()
                     target = target.getvalue()[index]
                 elif tail_name is Token.CALL:
-                    # TODO interpret call
-                    raise ExtractorError('''Can't interpret expression called %s''' % tail_name)
+                    args = (self.interpret_expression(arg).getvalue() for arg in tail_value)
+                    target = Reference(target.getvalue()(*args))
             ref = target
 
         elif name is Token.ID:
             # XXX error handling (unknown id)
-            ref = (self._context.local_vars[expr[1]] if expr[1] in self._context.local_vars else
+            ref = (self.this[expr[1]] if expr[1] in self.this else
                    self.global_vars[expr[1]])
         
         # literal
@@ -989,18 +1061,6 @@ class JSInterpreter(object):
 
         return ref
 
-    def run(self, cx=None):
-        if cx is not None:
-            self.push_context(cx)
-        res = None
-        for stmt in self.statements():
-            res = self.interpret_statement(stmt)
-            if self._context.ended:
-                if cx is not None:
-                    self.pop_context()
-                break
-        return res
-
     def extract_object(self, objname):
         obj = {}
         obj_m = re.search(
@@ -1016,7 +1076,7 @@ class JSInterpreter(object):
             fields)
         for f in fields_m:
             argnames = f.group('args').split(',')
-            obj[f.group('key')] = self.build_function(argnames, f.group('code'))
+            obj[f.group('key')] = self.build_function(argnames, self.parse(f.group('code')))
 
         return obj
 
@@ -1032,7 +1092,7 @@ class JSInterpreter(object):
             raise ExtractorError('Could not find JS function %r' % funcname)
         argnames = func_m.group('args').split(',')
 
-        return self.build_function(argnames, func_m.group('code'))
+        return self.build_function(argnames, self.parse(func_m.group('code')))
 
     def push_context(self, cx):
         self._context_stack.append(self._context)
@@ -1043,16 +1103,33 @@ class JSInterpreter(object):
         self._context = self._context_stack.pop()
 
     def call_function(self, funcname, *args):
-        f = self.extract_function(funcname)
-        return f(args)
+        f = (self.this[funcname] if funcname in self.this else
+             self.global_vars[funcname] if funcname in self.global_vars else
+             self.extract_function(funcname))
+        return f(*args)
 
-    def build_function(self, argnames, code):
-        def resf(args):
+    def build_function(self, argnames, ast):
+        def resf(*args):
             self.push_context(Context(dict(zip(argnames, args))))
-            for stmt in self.statements(code):
+            res = None
+            for stmt in ast:
                 res = self.interpret_statement(stmt)
+                res = None if res is None else res.getvalue(deep=True)
                 if self._context.ended:
                     self.pop_context()
                     break
             return res
         return resf
+
+    def run(self, cx=None):
+        if cx is not None:
+            self.push_context(cx)
+        res = None
+        for stmt in self.parse():
+            res = self.interpret_statement(stmt)
+            res = None if res is None else res.getvalue(deep=True)
+            if self._context.ended:
+                if cx is not None:
+                    self.pop_context()
+                break
+        return res

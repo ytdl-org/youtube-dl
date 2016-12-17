@@ -15,26 +15,25 @@ tests = [
                 ''',
         'asserts': [{'value': 'c', 'call': ('f', ['a', 'b', 'c'])}],
         'ast': [
-            (Token.FUNC, 'f', ['z'],
-             (Token.BLOCK, [
-                 (Token.FOR,
-                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                      (Token.MEMBER, (Token.ID, 'h'), None, None)
-                  ]), None)]),
-                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                      (Token.MEMBER, (Token.ID, 'z'), None, None)
-                  ]), None)]),
-                  None,
-                  (Token.BLOCK, [
-                      (Token.EXPR, [
-                          (Token.ASSIGN, _ASSIGN_OPERATORS['='][1],
-                           (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'a'), None, None)]),
-                           (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'h'), None, None)]), None))
-                      ])
-                  ])),
-                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                     (Token.MEMBER, (Token.ID, 'a'), None, None)]), None)]))
-             ]))
+            (Token.FUNC, 'f', ['z'], [
+                (Token.FOR,
+                 (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'h'), None, None)
+                 ]), None)]),
+                 (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                     (Token.MEMBER, (Token.ID, 'z'), None, None)
+                 ]), None)]),
+                 None,
+                 (Token.BLOCK, [
+                     (Token.EXPR, [
+                         (Token.ASSIGN, _ASSIGN_OPERATORS['='][1],
+                          (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'a'), None, None)]),
+                          (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'h'), None, None)]), None))
+                     ])
+                 ])),
+                (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                    (Token.MEMBER, (Token.ID, 'a'), None, None)]), None)]))
+            ])
         ]
     }
 ]

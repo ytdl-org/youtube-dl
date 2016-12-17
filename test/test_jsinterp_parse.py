@@ -43,7 +43,7 @@ def generator(test_case, name):
     def test_template(self):
         for a in test_case['subtests']:
             jsi = JSInterpreter(a['code'], variables=None if 'globals' not in a else a['globals'])
-            parsed = list(jsi.statements())
+            parsed = list(jsi.parse())
             if 'ast' in a:
                 self.assertEqual(traverse(parsed), traverse(a['ast']))
             else:
