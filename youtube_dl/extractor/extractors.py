@@ -912,7 +912,10 @@ from .telewebion import TelewebionIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .tfo import TFOIE
-from .tistory import TistoryIE
+from .tistory import (
+    TistoryIE,
+    TistoryPlaylistIE
+)
 from .theintercept import TheInterceptIE
 from .theplatform import (
     ThePlatformIE,
