@@ -126,7 +126,7 @@ class JWPlatformBaseIE(InfoExtractor):
                 'description': video_data.get('description'),
                 'thumbnail': self._proto_relative_url(video_data.get('image')),
                 'timestamp': int_or_none(video_data.get('pubdate')),
-                'duration': float_or_none(jwplayer_data.get('duration')),
+                'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
                 'subtitles': subtitles,
                 'formats': formats,
             })
