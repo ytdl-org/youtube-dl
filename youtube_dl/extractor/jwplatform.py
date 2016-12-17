@@ -11,6 +11,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     mimetype2ext,
+    urljoin,
 )
 
 
@@ -110,10 +111,14 @@ class JWPlatformBaseIE(InfoExtractor):
             tracks = video_data.get('tracks')
             if tracks and isinstance(tracks, list):
                 for track in tracks:
-                    if track.get('file') and track.get('kind') == 'captions':
-                        subtitles.setdefault(track.get('label') or 'en', []).append({
-                            'url': self._proto_relative_url(track['file'])
-                        })
+                    if track.get('kind') != 'captions':
+                        continue
+                    track_url = urljoin(base_url, track.get('file'))
+                    if not track_url:
+                        continue
+                    subtitles.setdefault(track.get('label') or 'en', []).append({
+                        'url': self._proto_relative_url(track_url)
+                    })
 
             entries.append({
                 'id': this_video_id,
