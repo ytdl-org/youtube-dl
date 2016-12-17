@@ -1,14 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-import re
+from .jwplatform import JWPlatformBaseIE
+from ..utils import (
+    ExtractorError,
+    js_to_json,
+)
 
-from .common import InfoExtractor
-from ..utils import ExtractorError
 
-
-class OnDemandKoreaIE(InfoExtractor):
+class OnDemandKoreaIE(JWPlatformBaseIE):
     _VALID_URL = r'https?://(?:www\.)?ondemandkorea\.com/(?P<id>[^/]+)\.html'
     _TEST = {
         'url': 'http://www.ondemandkorea.com/ask-us-anything-e43.html',
@@ -29,30 +29,32 @@ class OnDemandKoreaIE(InfoExtractor):
 
         if not webpage:
             # Page sometimes returns captcha page with HTTP 403
-            raise ExtractorError('Unable to access page. You may have been blocked.', expected=True)
+            raise ExtractorError(
+                'Unable to access page. You may have been blocked.',
+                expected=True)
 
         if 'msg_block_01.png' in webpage:
-            raise ExtractorError('This content is not available in your region.', expected=True)
-        
+            self.raise_geo_restricted(
+                'This content is not available in your region')
+
         if 'This video is only available to ODK PLUS members.' in webpage:
-            raise ExtractorError('This video is only available to ODK PLUS members.', expected=True)
+            raise ExtractorError(
+                'This video is only available to ODK PLUS members.',
+                expected=True)
 
         title = self._og_search_title(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
 
-        manifest_url = self._search_regex(r'file:\s"(https?://[\S].+?/manifest\.m3u8)', webpage, 'manifest')
-        formats = self._extract_m3u8_formats(manifest_url, video_id, 'mp4', m3u8_id='hls')
-        self._sort_formats(formats)
+        jw_config = self._parse_json(
+            self._search_regex(
+                r'(?s)jwplayer\(([\'"])(?:(?!\1).)+\1\)\.setup\s*\((?P<options>.+?)\);',
+                webpage, 'jw config', group='options'),
+            video_id, transform_source=js_to_json)
+        info = self._parse_jwplayer_data(
+            jw_config, video_id, require_title=False, m3u8_id='hls',
+            base_url=url)
 
-        subs = re.findall(r'file:\s\'(?P<file>[^\']+\.vtt)\',\s+label:\s+\'(?P<lang>[^\']+)\'', webpage)
-        subtitles = {}
-        for sub in subs:
-            subtitles[sub[1]] = [{'url': 'http://www.ondemandkorea.com' + sub[0], 'ext': sub[0][-3:]}]
-
-        return {
-            'id': video_id,
+        info.update({
             'title': title,
-            'thumbnail': thumbnail,
-            'formats': formats,
-            'subtitles': subtitles,
-        }
+            'thumbnail': self._og_search_thumbnail(webpage),
+        })
+        return info
