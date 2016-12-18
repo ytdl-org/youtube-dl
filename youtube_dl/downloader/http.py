@@ -31,6 +31,7 @@ class HttpFD(FileDownloader):
         # HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop.
         # errors after serveral reconnections on some websites (e.g. vk.com is fine with reusing the same
         # request, but pornhub.com is not)
+        throttled = False
         if block_rate < peak_rate * threshold:
             if self.params.get('verbose', False):
                 last_range = request.headers.get('Range')
@@ -42,6 +43,7 @@ class HttpFD(FileDownloader):
             request = sanitized_Request(request.full_url, None, request.headers)
             try:
                 new_data = self.ydl.urlopen(request)
+                throttled = True
             except Exception as e:
                 self.report_warning("\r[download] Error when making a new request to avoid throttling, keeping previous connection and disabling this feature.")
                 self.report_warning("\r[download] %s" % e)
@@ -51,7 +53,7 @@ class HttpFD(FileDownloader):
                 data.close()        # just to be safe
         else:
             new_data = data
-        return new_data
+        return new_data, throttled
 
     def real_download(self, filename, info_dict):
         url = info_dict['url']
@@ -225,7 +227,7 @@ class HttpFD(FileDownloader):
         now = None  # needed for slow_down() in the first loop run
         before = start  # start measuring
         peak_rate = 0
-        throttling_start = None
+        throttling_start = time.time()
         throttling_threshold = None
         throttling_start_size = 0
         while True:
@@ -327,8 +329,11 @@ class HttpFD(FileDownloader):
                                 throttling_rate / 1024, throttling_threshold, block_size_limit / 1024), True)
 
             # We need max speed!
-            if self.avoid_throttling and throttling_threshold and peak_rate and byte_counter != data_len:
-                data = self.speed_up(data, request, peak_rate, block_rate, byte_counter, throttling_threshold)
+            if (self.avoid_throttling and throttling_threshold and peak_rate and 
+                    byte_counter != data_len and time.time() - throttling_start > 1):
+                data, throttled = self.speed_up(data, request, peak_rate, block_rate, byte_counter, throttling_threshold)
+                if throttled:
+                    throttling_start = block_start
 
             self._hook_progress({
                 'status': 'downloading',
