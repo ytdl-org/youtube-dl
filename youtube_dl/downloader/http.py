@@ -233,7 +233,11 @@ class HttpFD(FileDownloader):
             block_start = time.time()
             data_block = data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
             byte_counter += len(data_block)
-            block_rate = block_size / (time.time() - block_start)
+            block_time = time.time() - block_start
+            if block_time != 0:
+                block_rate = block_size / block_time
+            else:
+                block_rate = float('+inf')
 
             # exit loop when download is finished
             if len(data_block) == 0:
