@@ -86,13 +86,17 @@ class ViuIE(ViuBaseIE):
         m3u8_url = None
         url_path = video_data.get('urlpathd') or video_data.get('urlpath')
         tdirforwhole = video_data.get('tdirforwhole')
-        hls_file = video_data.get('hlsfile')
+        # #EXT-X-BYTERANGE is not supported by native hls downloader
+        # and ffmpeg (#10955)
+        # hls_file = video_data.get('hlsfile')
+        hls_file = video_data.get('jwhlsfile')
         if url_path and tdirforwhole and hls_file:
             m3u8_url = '%s/%s/%s' % (url_path, tdirforwhole, hls_file)
         else:
-            m3u8_url = re.sub(
-                r'(/hlsc_)[a-z]+(\d+\.m3u8)',
-                r'\1whe\2', video_data['href'])
+            # m3u8_url = re.sub(
+            #     r'(/hlsc_)[a-z]+(\d+\.m3u8)',
+            #     r'\1whe\2', video_data['href'])
+            m3u8_url = video_data['href']
         formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
         self._sort_formats(formats)
 
