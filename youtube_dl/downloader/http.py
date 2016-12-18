@@ -227,7 +227,7 @@ class HttpFD(FileDownloader):
         now = None  # needed for slow_down() in the first loop run
         before = start  # start measuring
         peak_rate = 0
-        throttling_start = time.time()
+        throttling_start = None
         throttling_threshold = None
         throttling_start_size = 0
         while True:
