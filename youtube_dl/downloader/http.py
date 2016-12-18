@@ -35,8 +35,8 @@ class HttpFD(FileDownloader):
                 last_range = request.headers.get('Range')
                 last_range_start = last_range and int(re.search(r'bytes=(\d+)-', last_range).group(1)) or 0
                 self.to_screen(("\n[throttling] Bandwidth throttling detected, making a new request. "
-                    "(block rate = %.2fKiB/s, downloaded %.0fKiB before throttling)") % (
-                    block_rate / 1024, (byte_counter - last_range_start) / 1024))
+                    "(peak rate = %.2fKiB/s, block rate = %.2fKiB/s, downloaded %.0fKiB before throttling)") % (
+                    peak_rate / 1024, block_rate / 1024, (byte_counter - last_range_start) / 1024))
             request.add_header('Range', 'bytes=%d-' % byte_counter)
             request = sanitized_Request(request.full_url, None, request.headers)
             try:
@@ -226,7 +226,7 @@ class HttpFD(FileDownloader):
         peak_rate = 0
         throttling_start = None
         throttling_threshold = None
-        throttling_size = 0
+        throttling_start_size = 0
         while True:
             # Download and write
             block_start = time.time()
@@ -284,7 +284,7 @@ class HttpFD(FileDownloader):
             else:
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
             
-            if speed and speed > peak_rate and time.time() - start > 1:
+            if self.avoid_throttling and speed and speed > peak_rate and time.time() - start > 1:
                 peak_rate = speed
 
             # Initial throttling detection mechanism.
@@ -295,20 +295,20 @@ class HttpFD(FileDownloader):
             # threshold is set to twice the throttled data rate
             # max block size is set to the power of two closest to the throttled data rate
             if self.avoid_throttling and not throttling_threshold and peak_rate and block_rate <= peak_rate * 0.7:
-                throttling_size += block_size
                 if self.params.get('verbose', False):
                     self.to_screen(("\n[throttling] Throttling started or is continuing, block rate = %.2fKiB/s, "
                         "peak rate = %.2fKiB/s") % (block_rate / 1024, peak_rate / 1024))
                 if not throttling_start:
                     throttling_start = block_start
+                    throttling_start_size = byte_counter - block_size
                 if time.time() - throttling_start >= 3:
-                    throttling_rate = throttling_size / (time.time() - throttling_start)
+                    throttling_rate = (byte_counter - throttling_start_size) / (time.time() - throttling_start)
                     if throttling_rate > peak_rate * 0.7:
                         if self.params.get('verbose', False):
                             self.to_screen(("[throttling] Wasn't a throttle, temporary network hiccup "
                                 "(current rate = %.3f, peak rate = %.3f.") % (throttling_rate, peak_rate))
                         throttling_start = None
-                        throttling_size = 0
+                        throttling_start_size = 0
                     else:
                         block_size_limit = 1
                         while block_size_limit < int(throttling_rate / 1.5):
