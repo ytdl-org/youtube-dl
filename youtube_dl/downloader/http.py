@@ -285,7 +285,7 @@ class HttpFD(FileDownloader):
             else:
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
             
-            if self.avoid_throttling and speed and speed > peak_rate and time.time() - start > 1:
+            if self.avoid_throttling and speed and speed > peak_rate and time.time() - start > 1 and block_size >= 65536:
                 peak_rate = speed
 
             # Initial throttling detection mechanism.
@@ -307,7 +307,8 @@ class HttpFD(FileDownloader):
                     if throttling_rate > peak_rate * 0.7:
                         if self.params.get('verbose', False):
                             self.to_screen(("[throttling] Wasn't a throttle, temporary network hiccup "
-                                "(current rate = %.3f, peak rate = %.3f.") % (throttling_rate, peak_rate))
+                                "(current rate = %.2fKiB/s, peak rate = %.2fKiB/s.") % (
+                                throttling_rate / 1024, peak_rate / 1024))
                         throttling_start = None
                         throttling_start_size = 0
                     else:
