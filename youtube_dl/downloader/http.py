@@ -18,6 +18,7 @@ from ..utils import (
     XAttrUnavailableError,
 )
 
+
 class HttpFD(FileDownloader):
     def report_will_throttle(self):
         self.report_warning(("\r[download] This website does not support Content-Range header, "
