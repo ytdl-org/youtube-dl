@@ -548,7 +548,7 @@ class BrightcoveNewIE(InfoExtractor):
             container = source.get('container')
             ext = mimetype2ext(source.get('type'))
             src = source.get('src')
-            if ext == 'ism':
+            if ext == 'ism' or container == 'WVM':
                 continue
             elif ext == 'm3u8' or container == 'M2TS':
                 if not src:
