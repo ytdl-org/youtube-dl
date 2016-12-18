@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.18
 
 Core
 + [extractor/common] Recognize DASH formats in html5 media entries

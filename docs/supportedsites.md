@@ -131,6 +131,7 @@
  - **cbsnews**: CBS News
  - **cbsnews:livevideo**: CBS News Live Videos
  - **CBSSports**
+ - **CCMA**
  - **CCTV**
  - **CDA**
  - **CeskaTelevize**
@@ -365,6 +366,7 @@
  - **kuwo:song**: 酷我音乐
  - **la7.it**
  - **Laola1Tv**
+ - **Laola1TvEmbed**
  - **LCI**
  - **Lcp**
  - **LcpPlay**
@@ -402,6 +404,7 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **Meipai**: 美拍
  - **MelonVOD**
  - **META**
  - **metacafe**
@@ -524,6 +527,7 @@
  - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
+ - **OnDemandKorea**
  - **onet.tv**
  - **onet.tv:channel**
  - **OnionStudios**
@@ -785,10 +789,13 @@
  - **Tweakers**
  - **twitch:chapter**
  - **twitch:clips**
- - **twitch:past_broadcasts**
  - **twitch:profile**
  - **twitch:stream**
  - **twitch:video**
+ - **twitch:videos:all**
+ - **twitch:videos:highlights**
+ - **twitch:videos:past-broadcasts**
+ - **twitch:videos:uploads**
  - **twitch:vod**
  - **twitter**
  - **twitter:amplify**
@@ -874,6 +881,7 @@
  - **VRT**
  - **vube**: Vube.com
  - **VuClip**
+ - **VVVVID**
  - **VyboryMos**
  - **Vzaar**
  - **Walla**
