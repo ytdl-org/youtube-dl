@@ -435,6 +435,11 @@ def parseOpts(overrideArguments=None):
         dest='ratelimit', metavar='RATE',
         help='Maximum download rate in bytes per second (e.g. 50K or 4.2M)')
     downloader.add_option(
+        '--avoid-throttling',
+        action="store_true", dest='avoid_throttling', 
+        help='Make a new request when bandwidth throttling is detected. Content-Range header must be supported',
+        default=False)
+    downloader.add_option(
         '-R', '--retries',
         dest='retries', metavar='RETRIES', default=10,
         help='Number of retries (default is %default), or "infinite".')

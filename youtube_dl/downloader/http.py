@@ -18,8 +18,37 @@ from ..utils import (
     XAttrUnavailableError,
 )
 
-
 class HttpFD(FileDownloader):
+    def report_will_throttle(self):
+        self.report_warning(("\r[download] This website does not support Content-Range header, "
+            "bandwidth throttling, if present, will not be avoided."))
+
+    def speed_up(self, data, request, peak_rate, block_rate, byte_counter, threshold):
+        # If current block rate is less than threshold, make a new request with new range
+        # header. Simply chaning the range header of an already existing request and 
+        # does not always work and may start giving 
+        # HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop.
+        # errors after serveral reconnections on some websites (e.g. vk.com is fine with reusing the same
+        # request, but pornhub.com is not)
+        if block_rate < peak_rate * threshold:
+            if self.params.get('verbose', False):
+                self.to_screen(("\n[throttling] Bandwidth throttling detected, making a new request. "
+                    "(block rate = %.3f, peak rate = %.3f, threshold = %.2f") % (block_rate, peak_rate, threshold))
+            request = sanitized_Request(request.full_url, None, request.headers)
+            request.add_header('Range', 'bytes=%d-' % byte_counter)
+            try:
+                new_data = self.ydl.urlopen(request)
+            except Exception as e:
+                self.report_warning("\r[download] Error when making a new request to avoid throttling, keeping previous connection and disabling this feature.")
+                self.report_warning("\r[download] %s" % e)
+                self.avoid_throttling = False
+                new_data = data
+            else:
+                data.close()        # just to be safe
+        else:
+            new_data = data
+        return new_data
+
     def real_download(self, filename, info_dict):
         url = info_dict['url']
         tmpfilename = self.temp_name(filename)
@@ -32,6 +61,8 @@ class HttpFD(FileDownloader):
             headers.update(add_headers)
         basic_request = sanitized_Request(url, None, headers)
         request = sanitized_Request(url, None, headers)
+        range_request = sanitized_Request(url, None, headers)
+        range_request.add_header('Range', 'bytes=10-20')
 
         is_test = self.params.get('test', False)
 
@@ -55,7 +86,31 @@ class HttpFD(FileDownloader):
 
         count = 0
         retries = self.params.get('retries', 0)
+        self.avoid_throttling = self.params.get('avoid_throttling', False)
         while count <= retries:
+            # Verify Content-Range header is accepted and honored.
+            if self.avoid_throttling:
+                try:
+                    data = self.ydl.urlopen(range_request)
+                    content_range = data.headers.get('Content-Range')
+                    if content_range:
+                        content_range_m = re.search(r'bytes (\d+)-', content_range)
+                        test_range = re.search(r'bytes=(\d+)-', range_request.get_header('Range'))
+                        if not content_range_m or test_range.group(1) != content_range_m.group(1):
+                            self.avoid_throttling = False
+                except(compat_urllib_error.HTTPError, ) as err:
+                    if err.code == 416:
+                        self.avoid_throttling = False
+                    elif (err.code < 500 or err.code >= 600):
+                        # Unexpected HTTP error
+                        raise
+                if not self.avoid_throttling:
+                    self.report_will_throttle()
+                    if resume_len > 0:
+                        self.report_unable_to_resume()
+                        resume_len = 0
+                        open_mode = 'wb'
+
             # Establish connection
             try:
                 data = self.ydl.urlopen(request)
@@ -64,7 +119,8 @@ class HttpFD(FileDownloader):
                 # that don't support resuming and serve a whole file with no Content-Range
                 # set in response despite of requested Range (see
                 # https://github.com/rg3/youtube-dl/issues/6057#issuecomment-126129799)
-                if resume_len > 0:
+                # This check is only done if throttling avoidance has not been requested.
+                if resume_len > 0 and not self.avoid_throttling:
                     content_range = data.headers.get('Content-Range')
                     if content_range:
                         content_range_m = re.search(r'bytes (\d+)-', content_range)
@@ -154,20 +210,28 @@ class HttpFD(FileDownloader):
 
         byte_counter = 0 + resume_len
         block_size = self.params.get('buffersize', 1024)
+        # 4Mb is too much in case of bandwith throttling (takes ages to detect)
+        block_size_limit = 512 * 1024
         start = time.time()
 
         # measure time over whole while-loop, so slow_down() and best_block_size() work together properly
         now = None  # needed for slow_down() in the first loop run
         before = start  # start measuring
+        peak_rate = 0
+        throttling_start = None
+        throttling_threshold = None
+        throttling_size = 0
         while True:
-
             # Download and write
+            block_start = time.time()
             data_block = data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
             byte_counter += len(data_block)
 
             # exit loop when download is finished
             if len(data_block) == 0:
                 break
+
+            block_rate = block_size / (time.time() - block_start)
 
             # Open destination file just in time
             if stream is None:
@@ -203,6 +267,8 @@ class HttpFD(FileDownloader):
             # Adjust block size
             if not self.params.get('noresizebuffer', False):
                 block_size = self.best_block_size(after - before, len(data_block))
+            if self.avoid_throttling:
+                block_size = min(block_size, block_size_limit)
 
             before = after
 
@@ -212,6 +278,45 @@ class HttpFD(FileDownloader):
                 eta = None
             else:
                 eta = self.calc_eta(start, time.time(), data_len - resume_len, byte_counter - resume_len)
+            
+            if speed and speed > peak_rate and time.time() - start > 1:
+                peak_rate = speed
+
+            # Initial throttling detection mechanism.
+            # After data rate has dropped significantly starts calculating new 
+            # rate and after a few seconds determines the restart
+            # threshold and max block size to catch subsequent throttles in a reasonable
+            # amount of time (around a second)
+            # threshold is set to twice the throttled data rate
+            # max block size is set to the power of two closest to the throttled data rate
+            if self.avoid_throttling and not throttling_threshold and peak_rate and block_rate <= peak_rate * 0.7:
+                throttling_size += block_size
+                if self.params.get('verbose', False):
+                    self.to_screen(("\n[throttling] Throttling started or is continuing, block rate = %.3f, "
+                        "peak rate = %.3f") % (block_rate, peak_rate))
+                if not throttling_start:
+                    throttling_start =  block_start
+                if time.time() - throttling_start >= 3:
+                    throttling_rate = throttling_size / (time.time() - throttling_start)
+                    if throttling_rate > peak_rate * 0.7:
+                        if self.params.get('verbose', False):
+                            self.to_screen(("[throttling] Wasn't a throttle, temporary network hiccup "
+                                "(current rate = %.3f, peak rate = %.3f.") % (throttling_rate, peak_rate))
+                        throttling_start = None
+                        throttling_size = 0
+                    power = 0
+                    while int(throttling_rate + throttling_rate / 2) >> power != 1:
+                        power += 1
+                    block_size_limit = 1 << power
+                    throttling_threshold = min(5 * throttling_rate / peak_rate, 0.5)
+                    if self.params.get('verbose', False):
+                        self.to_screen(("[throttling] Throttling detected! peak rate = %.3f, current rate = %.3f, "
+                            "setting threshold to %.2f and block size limit to %dKb") % (peak_rate, 
+                            throttling_rate, throttling_threshold, block_size_limit / 1024))
+
+            # We need max speed!
+            if self.avoid_throttling and throttling_threshold and byte_counter != data_len:
+                data = self.speed_up(data, request, peak_rate, block_rate, byte_counter, throttling_threshold)
 
             self._hook_progress({
                 'status': 'downloading',

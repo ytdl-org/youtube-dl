@@ -325,6 +325,7 @@ def _real_main(argv=None):
         'ignoreerrors': opts.ignoreerrors,
         'force_generic_extractor': opts.force_generic_extractor,
         'ratelimit': opts.ratelimit,
+        'avoid_throttling': opts.avoid_throttling,
         'nooverwrites': opts.nooverwrites,
         'retries': opts.retries,
         'fragment_retries': opts.fragment_retries,
