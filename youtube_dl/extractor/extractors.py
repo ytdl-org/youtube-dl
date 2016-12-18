@@ -1108,6 +1108,7 @@ from .viki import (
 from .viu import (
     ViuIE,
     ViuPlaylistIE,
+    ViuOTTIE,
 )
 from .vk import (
     VKIE,
