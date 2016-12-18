@@ -1,3 +1,20 @@
+version <unreleased>
+
+Core
++ [extractor/common] Recognize DASH formats in html5 media entries
+
+Extractors
++ [ccma] Add support for ccma.cat (#11359)
+* [laola1tv] Improve extraction
++ [laola1tv] Add support embed URLs (#11460)
+* [nbc] Fix extraction for MSNBC videos (#11466)
+* [twitch] Adapt to new videos pages URL schema (#11469)
++ [meipai] Add support for meipai.com (#10718)
+* [jwplatform] Improve subtitles and duration extraction
++ [ondemandkorea] Add support for ondemandkorea.com (#10772)
++ [vvvvid] Add support for vvvvid.it (#5915)
+
+
 version 2016.12.15
 
 Core
