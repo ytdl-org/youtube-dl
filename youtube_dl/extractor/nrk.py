@@ -48,6 +48,13 @@ class NRKBaseIE(InfoExtractor):
 
         entries = []
 
+        conviva = data.get('convivaStatistics') or {}
+        live = (data.get('mediaElementType') == 'Live' or
+                data.get('isLive') is True or conviva.get('isLive'))
+
+        def make_title(t):
+            return self._live_title(t) if live else t
+
         media_assets = data.get('mediaAssets')
         if media_assets and isinstance(media_assets, list):
             def video_id_and_title(idx):
@@ -61,6 +68,13 @@ class NRKBaseIE(InfoExtractor):
                 if not formats:
                     continue
                 self._sort_formats(formats)
+
+                # Some f4m streams may not work with hdcore in fragments' URLs
+                for f in formats:
+                    extra_param = f.get('extra_param_to_segment_url')
+                    if extra_param and 'hdcore' in extra_param:
+                        del f['extra_param_to_segment_url']
+
                 entry_id, entry_title = video_id_and_title(num)
                 duration = parse_duration(asset.get('duration'))
                 subtitles = {}
@@ -72,7 +86,7 @@ class NRKBaseIE(InfoExtractor):
                         })
                 entries.append({
                     'id': asset.get('carrierId') or entry_id,
-                    'title': entry_title,
+                    'title': make_title(entry_title),
                     'duration': duration,
                     'subtitles': subtitles,
                     'formats': formats,
@@ -87,7 +101,7 @@ class NRKBaseIE(InfoExtractor):
                 duration = parse_duration(data.get('duration'))
                 entries = [{
                     'id': video_id,
-                    'title': title,
+                    'title': make_title(title),
                     'duration': duration,
                     'formats': formats,
                 }]
@@ -111,7 +125,6 @@ class NRKBaseIE(InfoExtractor):
                     message_type, message_type)),
                 expected=True)
 
-        conviva = data.get('convivaStatistics') or {}
         series = conviva.get('seriesName') or data.get('seriesTitle')
         episode = conviva.get('episodeName') or data.get('episodeNumberOrDate')
 
@@ -256,6 +269,19 @@ class NRKTVIE(NRKBaseIE):
         'skip': 'Only works from Norway',
     }, {
         'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
+        'only_matching': True,
+    }]
+
+
+class NRKTVDirekteIE(NRKTVIE):
+    IE_DESC = 'NRK TV Direkte and NRK Radio Direkte'
+    _VALID_URL = r'https?://(?:tv|radio)\.nrk\.no/direkte/(?P<id>[^/?#&]+)'
+
+    _TESTS = [{
+        'url': 'https://tv.nrk.no/direkte/nrk1',
+        'only_matching': True,
+    }, {
+        'url': 'https://radio.nrk.no/direkte/p1_oslo_akershus',
         'only_matching': True,
     }]
 

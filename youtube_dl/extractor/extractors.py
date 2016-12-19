@@ -655,6 +655,7 @@ from .nrk import (
     NRKPlaylistIE,
     NRKSkoleIE,
     NRKTVIE,
+    NRKTVDirekteIE,
 )
 from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
