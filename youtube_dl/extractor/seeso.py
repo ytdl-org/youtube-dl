@@ -14,10 +14,9 @@ from ..utils import (
 class SeesoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?seeso\.com/view/episode/(?P<id>[0-9]+)'
     _TEST = {
-        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'params': {
-            'username': 'emailhere',
-            'password': 'passwordhere'
+            'username': '',
+            'password': ''
         },
         'url': 'https://www.seeso.com/view/episode/799241283849',
         'info_dict': {
@@ -25,10 +24,9 @@ class SeesoIE(InfoExtractor):
             'ext': 'mp4',
             'series': 'Bajillion Dollar Propertie$',
             'title': 'Farsi Lessons',
+            'description': 'Amir leads Victoria into a trap, the Bros meet a super obnoxious bro, ' \
+                           'and rival brokers Serge and Gio intimidate Glenn.',
             'thumbnail': 'https://chaosic.akamaized.net/NBCOTT_-_Production/360/907/160831_3092487_Farsi_Lessons.jpg',
-            'description': 'Amir leads Victoria into an embarrassing trap, the Bros meet an even more obnoxious bro '
-                           'who’s looking for the ultimate sex pad, while rival brokers Serge and Gio decide to get '
-                           'rough with  Glenn.'
         }
     }
 
@@ -47,12 +45,11 @@ class SeesoIE(InfoExtractor):
             "isRememberMe": True,
             "isWeb": True
         }
-        # TODO Change JSON gets to .get() as referenced in readme
 
         # Send auth POST request and get token from response
         auth_request = sanitized_Request(_API_AUTH_URL, urlencode_postdata(auth_json))
         auth_response = json.loads(self._download_webpage(auth_request, '', note='Getting auth token...'))
-        auth_token = auth_response['user']['token']
+        auth_token = auth_response.get('user').get('token')
 
         # Use the public unauthenticated API to get the video's info
         _VIDEO_INFO_URL = 'https://feed.theplatform.com/f/NZILfC/nbcott-prod-all-media?byAvailabilityState=' \
@@ -80,7 +77,7 @@ class SeesoIE(InfoExtractor):
                    'media/{0}?feed=All%20Media%20Feed&auth={1}&vpaid=script,flash' \
                    '&formats=m3u,mpeg4'.format(public_url_id, auth_token)
         formats = []
-        for entry in self._extract_m3u8_formats(m3u8_url, video_id, m3u8_id='m3u8'):
+        for entry in self._extract_m3u8_formats(m3u8_url, video_id, m3u8_id='m3u8', ext='mp4'):
             formats.append(entry)
 
         self._sort_formats(formats)
