@@ -151,6 +151,10 @@ class YoutubeDL(object):
     simulate:          Do not download the video files.
     format:            Video format code. See options.py for more information.
     outtmpl:           Template for output names.
+    filename_hook:     A function that gets called before creating a filename, 
+                       allowing to change it before the filename is created.
+                       It should accept filename as first positional argument
+                       and return the desired filename (no extensions added)
     restrictfilenames: Do not allow "&" and spaces in file names
     ignoreerrors:      Do not stop on download errors.
     force_generic_extractor: Force downloader to use the generic extractor
@@ -612,7 +616,9 @@ class YoutubeDL(object):
             # to workaround encoding issues with subprocess on python2 @ Windows
             if sys.version_info < (3, 0) and sys.platform == 'win32':
                 filename = encodeFilename(filename, True).decode(preferredencoding())
-            return sanitize_path(filename)
+            filename = sanitize_path(filename)
+            filename = self.params.get('filename_hook', lambda x: x)(filename)
+            return compat_str(filename)
         except ValueError as err:
             self.report_error('Error in output template: ' + str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
             return None
