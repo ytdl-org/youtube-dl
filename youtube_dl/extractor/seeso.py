@@ -15,15 +15,13 @@ class SeesoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?seeso\.com/view/episode/(?P<id>[0-9]+)'
     _TEST = {
         # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
-        # 'params': {
-        #     'username': 'emailhere',
-        #     'password': 'passwordhere'
-        # },
+        'params': {
+            'username': 'emailhere',
+            'password': 'passwordhere'
+        },
         'url': 'https://www.seeso.com/view/episode/799241283849',
         'info_dict': {
-            # 'id': '799241283849',
-            # 'ext': 'mp4',
-            'id': '42',
+            'id': '799241283849',
             'ext': 'mp4',
             'series': 'Bajillion Dollar Propertie$',
             'title': 'Farsi Lessons',
@@ -35,18 +33,16 @@ class SeesoIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        # username, password = self._get_login_info()
-        # username = ''
-        # password = ''
+        username, password = self._get_login_info()
         video_id = self._match_id(url)
 
-        # if username or password is None:
-        #     return
+        if username is None or password is None:
+            return
 
         _API_AUTH_URL = "https://www.seeso.com/api/v3/auth/login"
         auth_json = {
-            "username": 'emailhere',
-            "password": 'passwordhere',
+            "username": username,
+            "password": password,
             "userOnly": True,
             "isRememberMe": True,
             "isWeb": True
