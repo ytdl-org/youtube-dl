@@ -2305,6 +2305,25 @@ class YoutubeSearchDateIE(YoutubeSearchIE):
     IE_DESC = 'YouTube.com searches, newest videos first'
     _EXTRA_QUERY_ARGS = {'search_sort': 'video_date_uploaded'}
 
+class YoutubeSearchCCIE(YoutubeSearchIE):
+    IE_NAME = YoutubeSearchIE.IE_NAME + ':creative_commons'
+    _SEARCH_KEY = 'ytsearchcc'
+    IE_DESC = 'YouTube.com searches by creative commons filter'
+    _EXTRA_QUERY_ARGS = {'filters':'creativecommons'}
+
+
+class YoutubeSearch4kIE(YoutubeSearchIE):
+    IE_NAME = YoutubeSearchIE.IE_NAME + ':4k'
+    _SEARCH_KEY = 'ytsearch4k'
+    IE_DESC = 'YouTube.com searches by 4k filter'
+    _EXTRA_QUERY_ARGS = {'filters':'4k'}
+
+class YoutubeSearchHDIE(YoutubeSearchIE):
+    IE_NAME = YoutubeSearchIE.IE_NAME + ':HD'
+    _SEARCH_KEY = 'ytsearchhd'
+    IE_DESC = 'YouTube.com searches by HD filter'
+    _EXTRA_QUERY_ARGS = {'filters':'hd'}
+
 
 class YoutubeSearchURLIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com search URLs'
