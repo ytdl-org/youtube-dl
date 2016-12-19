@@ -15,8 +15,8 @@ class SeesoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?seeso\.com/view/episode/(?P<id>[0-9]+)'
     _TEST = {
         'params': {
-            'username': '',
-            'password': ''
+            'username': 'emailhere',
+            'password': 'passwordhere'
         },
         'url': 'https://www.seeso.com/view/episode/799241283849',
         'info_dict': {
@@ -24,8 +24,8 @@ class SeesoIE(InfoExtractor):
             'ext': 'mp4',
             'series': 'Bajillion Dollar Propertie$',
             'title': 'Farsi Lessons',
-            'description': 'Amir leads Victoria into a trap, the Bros meet a super obnoxious bro, ' \
-                           'and rival brokers Serge and Gio intimidate Glenn.',
+            'description': ("Amir leads Victoria into a trap, the Bros meet a super obnoxious bro, "
+                            "and rival brokers Serge and Gio intimidate Glenn."),
             'thumbnail': 'https://chaosic.akamaized.net/NBCOTT_-_Production/360/907/160831_3092487_Farsi_Lessons.jpg',
         }
     }
@@ -58,9 +58,6 @@ class SeesoIE(InfoExtractor):
         json_data = self._download_json(request, video_id)
         entry = json_data.get('entries')[0]
 
-        # Custom fields
-        public_url = entry["publicUrl"]
-
         # Template fields
         series = entry["nbc-chaos$show"]                    # Show name
         title = entry["nbc-chaos$shortTitle"]               # Episode Name
@@ -70,12 +67,11 @@ class SeesoIE(InfoExtractor):
         description = entry["nbc-chaos$shortDescription"]
 
         # Got the show's public URL. Now we need to parse out the videoID
-        public_url_id = os.path.split(urlparse.urlparse(public_url).path)[-1]
+        public_url_id = os.path.split(urlparse.urlparse(entry["publicUrl"]).path)[-1]
 
         # Get the master m3u8 which lists formats
-        m3u8_url = 'https://link.theplatform.com/s/NZILfC/' \
-                   'media/{0}?feed=All%20Media%20Feed&auth={1}&vpaid=script,flash' \
-                   '&formats=m3u,mpeg4'.format(public_url_id, auth_token)
+        m3u8_url = 'https://link.theplatform.com/s/NZILfC/media/{0}?feed=All%20Media%20Feed&auth={1}' \
+                   '&vpaid=script,flash&formats=m3u,mpeg4'.format(public_url_id, auth_token)
         formats = []
         for entry in self._extract_m3u8_formats(m3u8_url, video_id, m3u8_id='m3u8', ext='mp4'):
             formats.append(entry)
