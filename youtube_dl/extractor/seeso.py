@@ -91,5 +91,5 @@ class SeesoIE(InfoExtractor):
                 'episode_number': episode_number,
                 'description': description,
                 'url': '',
-                # 'formats': formats
+                'formats': formats
         }
