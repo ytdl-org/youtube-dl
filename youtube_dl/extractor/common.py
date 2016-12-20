@@ -59,6 +59,7 @@ from ..utils import (
     parse_m3u8_attributes,
     extract_attributes,
     parse_codecs,
+    urljoin,
 )
 
 
@@ -1631,11 +1632,6 @@ class InfoExtractor(object):
                         extract_Initialization(segment_template)
             return ms_info
 
-        def combine_url(base_url, target_url):
-            if re.match(r'^https?://', target_url):
-                return target_url
-            return '%s%s%s' % (base_url, '' if base_url.endswith('/') else '/', target_url)
-
         mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
         formats = []
         for period in mpd_doc.findall(_add_ns('Period')):
@@ -1685,12 +1681,11 @@ class InfoExtractor(object):
                             'tbr': int_or_none(representation_attrib.get('bandwidth'), 1000),
                             'asr': int_or_none(representation_attrib.get('audioSamplingRate')),
                             'fps': int_or_none(representation_attrib.get('frameRate')),
-                            'vcodec': 'none' if content_type == 'audio' else representation_attrib.get('codecs'),
-                            'acodec': 'none' if content_type == 'video' else representation_attrib.get('codecs'),
                             'language': lang if lang not in ('mul', 'und', 'zxx', 'mis') else None,
                             'format_note': 'DASH %s' % content_type,
                             'filesize': filesize,
                         }
+                        f.update(parse_codecs(representation_attrib.get('codecs')))
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
                         if 'segment_urls' not in representation_ms_info and 'media_template' in representation_ms_info:
 
@@ -1774,7 +1769,7 @@ class InfoExtractor(object):
                                 f['fragments'].append({'url': initialization_url})
                             f['fragments'].extend(representation_ms_info['fragments'])
                             for fragment in f['fragments']:
-                                fragment['url'] = combine_url(base_url, fragment['url'])
+                                fragment['url'] = urljoin(base_url, fragment['url'])
                         try:
                             existing_format = next(
                                 fo for fo in formats

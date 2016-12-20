@@ -461,6 +461,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(urljoin('http://foo.de/', None), None)
         self.assertEqual(urljoin('http://foo.de/', ''), None)
         self.assertEqual(urljoin('http://foo.de/', ['foobar']), None)
+        self.assertEqual(urljoin('http://foo.de/a/b/c.txt', '.././../d.txt'), 'http://foo.de/d.txt')
 
     def test_parse_age_limit(self):
         self.assertEqual(parse_age_limit(None), None)
