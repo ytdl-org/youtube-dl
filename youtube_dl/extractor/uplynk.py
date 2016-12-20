@@ -30,7 +30,9 @@ class UplynkIE(InfoExtractor):
     def _extract_uplynk_info(self, uplynk_content_url):
         path, external_id, video_id, session_id = re.match(UplynkIE._VALID_URL, uplynk_content_url).groups()
         display_id = video_id or external_id
-        formats = self._extract_m3u8_formats('http://content.uplynk.com/%s.m3u8' % path, display_id, 'mp4')
+        formats = self._extract_m3u8_formats(
+            'http://content.uplynk.com/%s.m3u8' % path,
+            display_id, 'mp4', 'm3u8_native')
         if session_id:
             for f in formats:
                 f['extra_param_to_segment_url'] = 'pbs=' + session_id
