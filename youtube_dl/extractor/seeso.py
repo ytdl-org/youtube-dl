@@ -2,9 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-import urlparse
 import os.path
-import json
 from ..utils import (
     sanitized_Request,
     urlencode_postdata
@@ -16,7 +14,7 @@ class SeesoIE(InfoExtractor):
     _TEST = {
         'params': {
             'username': 'emailhere',
-            'password': 'passwordhere'
+            'password': 'passhere'
         },
         'url': 'https://www.seeso.com/view/episode/799241283849',
         'info_dict': {
@@ -30,9 +28,8 @@ class SeesoIE(InfoExtractor):
         }
     }
 
-    def _real_extract(self, url):
+    def _login(self):
         username, password = self._get_login_info()
-        video_id = self._match_id(url)
 
         if username is None or password is None:
             return
@@ -48,26 +45,33 @@ class SeesoIE(InfoExtractor):
 
         # Send auth POST request and get token from response
         auth_request = sanitized_Request(_API_AUTH_URL, urlencode_postdata(auth_json))
-        auth_response = json.loads(self._download_webpage(auth_request, '', note='Getting auth token...'))
+        auth_response = self._download_json(auth_request, '', note='Getting auth token...')
         auth_token = auth_response.get('user').get('token')
+
+        return auth_token
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        auth_token = self._login()
 
         # Use the public unauthenticated API to get the video's info
         _VIDEO_INFO_URL = 'https://feed.theplatform.com/f/NZILfC/nbcott-prod-all-media?byAvailabilityState=' \
                           'available&byId=%s&form=cjson'
         request = sanitized_Request(_VIDEO_INFO_URL % video_id)
         json_data = self._download_json(request, video_id)
+
         entry = json_data.get('entries')[0]
 
         # Template fields
-        series = entry["nbc-chaos$show"]                    # Show name
-        title = entry["nbc-chaos$shortTitle"]               # Episode Name
-        season_number = entry["nbc-chaos$seasonNumber"]
-        episode_number = entry["nbc-chaos$episodeNumber"]
-        thumbnail = entry["defaultThumbnailUrl"]
-        description = entry["nbc-chaos$shortDescription"]
+        series = entry.get("nbc-chaos$show")                    # Show name
+        title = entry.get("nbc-chaos$shortTitle")               # Episode Name
+        season_number = entry.get("nbc-chaos$seasonNumber")
+        episode_number = entry.get("nbc-chaos$episodeNumber")
+        thumbnail = entry.get("defaultThumbnailUrl")
+        description = entry.get("nbc-chaos$shortDescription")
 
         # Got the show's public URL. Now we need to parse out the videoID
-        public_url_id = os.path.split(urlparse.urlparse(entry["publicUrl"]).path)[-1]
+        public_url_id = os.path.split(entry.get("publicUrl"))[-1]
 
         # Get the master m3u8 which lists formats
         m3u8_url = 'https://link.theplatform.com/s/NZILfC/media/{0}?feed=All%20Media%20Feed&auth={1}' \
@@ -87,5 +91,5 @@ class SeesoIE(InfoExtractor):
                 'episode_number': episode_number,
                 'description': description,
                 'url': '',
-                'formats': formats
+                # 'formats': formats
         }
