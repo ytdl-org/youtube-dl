@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.20
 
 Core
 * [extractor/common] Improve fragment URL construction for DASH media
