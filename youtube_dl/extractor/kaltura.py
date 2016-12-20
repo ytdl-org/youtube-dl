@@ -107,7 +107,7 @@ class KalturaIE(InfoExtractor):
                         (?P<q1>['\"])wid(?P=q1)\s*:\s*
                         (?P<q2>['\"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
                         (?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4),
+                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
                 """, webpage) or
             re.search(
                 r'''(?xs)
@@ -266,6 +266,9 @@ class KalturaIE(InfoExtractor):
             # skip for now.
             if f.get('fileExt') == 'chun':
                 continue
+            if not f.get('fileExt') and f.get('containerFormat') == 'qt':
+                # QT indicates QuickTime; some videos have broken fileExt
+                f['fileExt'] = 'mov'
             video_url = sign_url(
                 '%s/flavorId/%s' % (data_url, f['id']))
             # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g

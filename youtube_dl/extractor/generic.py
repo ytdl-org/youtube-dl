@@ -972,6 +972,20 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
+        {
+            # Kaltura embedded, some fileExt broken (#11480)
+            'url': 'http://www.cornell.edu/video/nima-arkani-hamed-standard-models-of-particle-physics',
+            'info_dict': {
+                'id': '1_sgtvehim',
+                'ext': 'mp4',
+                'title': 'Our "Standard Models" of particle physics and cosmology',
+                'description': 'md5:67ea74807b8c4fea92a6f38d6d323861',
+                'timestamp': 1321158993,
+                'upload_date': '20111113',
+                'uploader_id': 'kps1',
+            },
+            'add_ie': ['Kaltura'],
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
