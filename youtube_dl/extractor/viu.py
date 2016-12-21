@@ -25,7 +25,7 @@ class ViuBaseIE(InfoExtractor):
                 'userid': 'guest',
                 'useridtype': 'guest',
                 'ver': '1.0'
-            })
+            }, headers=self.geo_verification_headers())
         self._auth_token = viu_auth_res.info()['X-VIU-AUTH']
 
     def _call_api(self, path, *args, **kwargs):
