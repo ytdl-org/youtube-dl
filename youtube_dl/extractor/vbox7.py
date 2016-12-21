@@ -89,7 +89,8 @@ class Vbox7IE(InfoExtractor):
 
         if webpage:
             info = self._search_json_ld(
-                webpage.replace('"/*@context"', '"@context"'), video_id)
+                webpage.replace('"/*@context"', '"@context"'), video_id,
+                fatal=False)
 
         info.update({
             'id': video_id,
