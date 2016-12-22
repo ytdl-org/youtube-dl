@@ -1225,7 +1225,7 @@ class InfoExtractor(object):
                 'protocol': entry_protocol,
                 'preference': preference,
             }]
-        audio_groups = set()
+        audio_in_video_stream = {}
         last_info = {}
         last_media = {}
         for line in m3u8_doc.splitlines():
@@ -1235,10 +1235,11 @@ class InfoExtractor(object):
                 media = parse_m3u8_attributes(line)
                 media_type = media.get('TYPE')
                 if media_type in ('VIDEO', 'AUDIO'):
+                    group_id = media.get('GROUP-ID')
                     media_url = media.get('URI')
                     if media_url:
                         format_id = []
-                        for v in (media.get('GROUP-ID'), media.get('NAME')):
+                        for v in (group_id, media.get('NAME')):
                             if v:
                                 format_id.append(v)
                         f = {
@@ -1251,12 +1252,15 @@ class InfoExtractor(object):
                         }
                         if media_type == 'AUDIO':
                             f['vcodec'] = 'none'
-                            audio_groups.add(media['GROUP-ID'])
+                            if group_id and not audio_in_video_stream.get(group_id):
+                                audio_in_video_stream[group_id] = False
                         formats.append(f)
                     else:
                         # When there is no URI in EXT-X-MEDIA let this tag's
                         # data be used by regular URI lines below
                         last_media = media
+                        if media_type == 'AUDIO' and group_id:
+                            audio_in_video_stream[group_id] = True
             elif line.startswith('#') or not line.strip():
                 continue
             else:
@@ -1300,7 +1304,7 @@ class InfoExtractor(object):
                         'abr': abr,
                     })
                 f.update(parse_codecs(last_info.get('CODECS')))
-                if last_info.get('AUDIO') in audio_groups:
+                if audio_in_video_stream.get(last_info.get('AUDIO')) is False:
                     # TODO: update acodec for for audio only formats with the same GROUP-ID
                     f['acodec'] = 'none'
                 formats.append(f)
