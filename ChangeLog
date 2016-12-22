@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.22
 
 Core
 * [extractor/common] Improve detection of video-only formats in m3u8

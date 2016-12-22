@@ -365,8 +365,8 @@
  - **kuwo:singer**: 酷我音乐 - 歌手
  - **kuwo:song**: 酷我音乐
  - **la7.it**
- - **Laola1Tv**
- - **Laola1TvEmbed**
+ - **laola1tv**
+ - **laola1tv:embed**
  - **LCI**
  - **Lcp**
  - **LcpPlay**
