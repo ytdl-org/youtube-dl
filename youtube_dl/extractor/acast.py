@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
+    parse_iso8601,
     OnDemandPagedList,
 )
 
@@ -22,7 +23,8 @@ class ACastIE(InfoExtractor):
             'id': '57de3baa-4bb0-487e-9418-2692c1277a34',
             'ext': 'mp3',
             'title': '"Where Are You?": Taipei 101, Taiwan',
-            'timestamp': 1196172000000,
+            'timestamp': 1196172000,
+            'upload_date': '20071127',
             'description': 'md5:a0b4ef3634e63866b542e5b1199a1a0e',
             'duration': 211,
         }
@@ -35,11 +37,11 @@ class ACastIE(InfoExtractor):
         return {
             'id': compat_str(cast_data['id']),
             'display_id': display_id,
-            'url': cast_data['blings'][0]['audio'],
+            'url': [b['audio'] for b in cast_data['blings'] if b['type'] == 'BlingAudio'][0],
             'title': cast_data['name'],
             'description': cast_data.get('description'),
             'thumbnail': cast_data.get('image'),
-            'timestamp': int_or_none(cast_data.get('publishingDate')),
+            'timestamp': parse_iso8601(cast_data.get('publishingDate')),
             'duration': int_or_none(cast_data.get('duration')),
         }
 
