@@ -27,7 +27,7 @@ class FreeVideoIE(InfoExtractor):
                 expected=True)
 
         video_url = self._search_regex(
-            r'\s+url: "(http://[a-z0-9-]+.cdn.freevideo.cz/stream/.*?/video.mp4)"',
+            r'\s+src="(//cdn[a-z0-9-]+.freevideo.cz/movies/.*?/video.mp4)"',
             webpage, 'video URL')
 
         return {
