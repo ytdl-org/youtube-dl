@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import get_element_by_id
 
 
 class FreesoundIE(InfoExtractor):
@@ -20,20 +21,18 @@ class FreesoundIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        music_id = mobj.group('id')
+        music_id = self._match_id(url)
         webpage = self._download_webpage(url, music_id)
-        title = self._html_search_regex(
-            r'<div id="single_sample_header">.*?<a href="#">(.+?)</a>',
-            webpage, 'music title', flags=re.DOTALL)
-        description = self._html_search_regex(
-            r'<div id="sound_description">(.*?)</div>', webpage, 'description',
-            fatal=False, flags=re.DOTALL)
+
+        title = self._og_search_property('audio:title', webpage)
+        description = re.sub(r'</?p>', '', get_element_by_id('sound_description',
+            webpage).strip())
 
         return {
             'id': music_id,
             'title': title,
             'url': self._og_search_property('audio', webpage, 'music url'),
-            'uploader': self._og_search_property('audio:artist', webpage, 'music uploader'),
+            'uploader': self._og_search_property('audio:artist', webpage,
+                'music uploader', fatal=False),
             'description': description,
         }
