@@ -22,6 +22,7 @@ from ..utils import (
     orderedSet,
     parse_duration,
     parse_iso8601,
+    update_url_query,
     urlencode_postdata,
 )
 
@@ -278,6 +279,18 @@ class TwitchVodIE(TwitchItemBaseIE):
         query = compat_parse_qs(parsed_url.query)
         if 't' in query:
             info['start_time'] = parse_duration(query['t'][0])
+
+        if info.get('timestamp') is not None:
+            info['subtitles'] = {
+                'rechat': [{
+                    'url': update_url_query(
+                        'https://rechat.twitch.tv/rechat-messages', {
+                            'video_id': 'v%s' % item_id,
+                            'start': info['timestamp'],
+                        }),
+                    'ext': 'json',
+                }],
+            }
 
         return info
 
