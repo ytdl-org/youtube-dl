@@ -347,7 +347,10 @@ class FileDownloader(object):
         if min_sleep_interval:
             max_sleep_interval = self.params.get('max_sleep_interval', min_sleep_interval)
             sleep_interval = random.uniform(min_sleep_interval, max_sleep_interval)
-            self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
+            self.to_screen(
+                '[download] Sleeping %s seconds...' % (
+                    int(sleep_interval) if sleep_interval.is_integer()
+                    else '%.2f' % sleep_interval))
             time.sleep(sleep_interval)
 
         return self.real_download(filename, info_dict)
