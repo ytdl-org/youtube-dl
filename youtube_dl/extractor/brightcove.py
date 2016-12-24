@@ -232,13 +232,16 @@ class BrightcoveLegacyIE(InfoExtractor):
         """Return a list of all Brightcove URLs from the webpage """
 
         url_m = re.search(
-            r'<meta\s+property=[\'"]og:video[\'"]\s+content=[\'"](https?://(?:secure|c)\.brightcove.com/[^\'"]+)[\'"]',
-            webpage)
+            r'''(?x)
+                <meta\s+
+                    (?:property|itemprop)=([\'"])(?:og:video|embedURL)\1[^>]+
+                    content=([\'"])(?P<url>https?://(?:secure|c)\.brightcove.com/(?:(?!\2).)+)\2
+            ''', webpage)
         if url_m:
-            url = unescapeHTML(url_m.group(1))
+            url = unescapeHTML(url_m.group('url'))
             # Some sites don't add it, we can't download with this url, for example:
             # http://www.ktvu.com/videos/news/raw-video-caltrain-releases-video-of-man-almost/vCTZdY/
-            if 'playerKey' in url or 'videoId' in url:
+            if 'playerKey' in url or 'videoId' in url or 'idVideo' in url:
                 return [url]
 
         matches = re.findall(
@@ -259,7 +262,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         url, smuggled_data = unsmuggle_url(url, {})
 
         # Change the 'videoId' and others field to '@videoPlayer'
-        url = re.sub(r'(?<=[?&])(videoI(d|D)|bctid)', '%40videoPlayer', url)
+        url = re.sub(r'(?<=[?&])(videoI(d|D)|idVideo|bctid)', '%40videoPlayer', url)
         # Change bckey (used by bcove.me urls) to playerKey
         url = re.sub(r'(?<=[?&])bckey', 'playerKey', url)
         mobj = re.match(self._VALID_URL, url)
