@@ -16,7 +16,8 @@ from ..utils import (
 class ACastIE(InfoExtractor):
     IE_NAME = 'acast'
     _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<channel>[^/]+)/(?P<id>[^/#?]+)'
-    _TEST = {
+    _TESTS = [{
+        # test with one bling
         'url': 'https://www.acast.com/condenasttraveler/-where-are-you-taipei-101-taiwan',
         'md5': 'ada3de5a1e3a2a381327d749854788bb',
         'info_dict': {
@@ -28,7 +29,20 @@ class ACastIE(InfoExtractor):
             'description': 'md5:a0b4ef3634e63866b542e5b1199a1a0e',
             'duration': 211,
         }
-    }
+    }, {
+        # test with multiple blings
+        'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
+        'md5': '55c0097badd7095f494c99a172f86501',
+        'info_dict': {
+            'id': '2a92b283-1a75-4ad8-8396-499c641de0d9',
+            'ext': 'mp3',
+            'title': '2. Raggarmordet - Röster ur det förflutna',
+            'timestamp': 1477346700,
+            'upload_date': '20161024',
+            'description': 'md5:4f81f6d8cf2e12ee21a321d8bca32db4',
+            'duration': 2797,
+        }
+    }]
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
