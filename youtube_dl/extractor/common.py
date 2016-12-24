@@ -189,9 +189,10 @@ class InfoExtractor(object):
     uploader_url:   Full URL to a personal webpage of the video uploader.
     location:       Physical location where the video was filmed.
     subtitles:      The available subtitles as a dictionary in the format
-                    {language: subformats}. "subformats" is a list sorted from
-                    lower to higher preference, each element is a dictionary
-                    with the "ext" entry and one of:
+                    {tag: subformats}. "tag" is usually a language code, and
+                    "subformats" is a list sorted from lower to higher
+                    preference, each element is a dictionary with the "ext"
+                    entry and one of:
                         * "data": The subtitles file contents
                         * "url": A URL pointing to the subtitles file
                     "ext" will be calculated from URL if missing
