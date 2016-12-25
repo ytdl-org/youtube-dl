@@ -206,7 +206,8 @@ class TwitchChapterIE(TwitchItemBaseIE):
 
 class TwitchVodIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:vod'
-    _VALID_URL = r'%s/[^/]+/v/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL_BASE = r'https?://(?:www\.|player\.)?twitch\.tv'
+    _VALID_URL = r'%s/(?:[^/]+/v/|\?video=v)(?P<id>\d+)' % _VALID_URL_BASE
     _ITEM_TYPE = 'vod'
     _ITEM_SHORTCUT = 'v'
 
