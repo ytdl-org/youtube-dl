@@ -10,6 +10,7 @@ from ..utils import (
     ExtractorError,
 )
 
+
 class StreamMeIE(InfoExtractor):
     IE_NAME = 'StreamMe:video'
     _API_CHANNEL = 'https://www.stream.me/api-user/v1/<channel_id>/channel'
@@ -35,7 +36,6 @@ class StreamMeIE(InfoExtractor):
         video_id = self._match_id(url)
         apiurl = self._API_ARCHIVE.replace('<channel_id>', m.group('channel_id'))
 
-        # webpage = self._download_webpage(url, video_id)
         data = json.loads(self._download_webpage(apiurl, video_id))
 
         for vod in data.get('_embedded').get('vod'):
@@ -43,14 +43,13 @@ class StreamMeIE(InfoExtractor):
             if vod.get('urlId') == video_id:
                 vod_info = vod
                 break
-        
+
         manifest_json = self._download_json(vod_info
-                                                .get('_links')
-                                                .get('manifest')
-                                                .get('href'), video_id)
+                                            .get('_links')
+                                            .get('manifest')
+                                            .get('href'), video_id)
 
         formats = self._extract_formats(manifest_json.get('formats'))
-
         self._sort_formats(formats, 'vbr')
         info = self._extract_info(vod_info)
         info['formats'] = formats
@@ -79,22 +78,24 @@ class StreamMeIE(InfoExtractor):
         formats = []
         for fmt_tag, d in fmts.items():
             # skip websocket and mjpeg we can't handle them anyway
-            if fmt_tag in ('mjpeg-lodef', 'mp4-ws',): continue
+            if fmt_tag in ('mjpeg-lodef', 'mp4-ws',):
+                continue
             for fmt_info in d.get('encodings'):
                 formats.append({
-                    'url':      fmt_info.get('location'),
-                    'width':    fmt_info.get('videoWidth'),
-                    'height':   fmt_info.get('videoHeight'),
-                    'vbr':      fmt_info.get('videoKbps'),
-                    'abr':      fmt_info.get('audioKbps'),
-                    'acodec':   d.get('audioCodec'),
-                    'vcodec':   d.get('videoCodec'),
+                    'url': fmt_info.get('location'),
+                    'width': fmt_info.get('videoWidth'),
+                    'height': fmt_info.get('videoHeight'),
+                    'vbr': fmt_info.get('videoKbps'),
+                    'abr': fmt_info.get('audioKbps'),
+                    'acodec': d.get('audioCodec'),
+                    'vcodec': d.get('videoCodec'),
                     'format_id': "%s%sp" % (fmt_tag, fmt_info.get('videoHeight')),
                     'ext': 'flv' if fmt_tag.split('-')[1] == 'rtmp' else 'mp4',
                     # I don't know all the possible protocols yet.
                     # 'protocol': 'm3u8_native' if fmt_tag == 'mp4-hls' else 'http'
-                    })
+                })
         return formats
+
 
 class StreamMeLiveIE(StreamMeIE):
     IE_NAME = 'StreamIE:live'
@@ -106,24 +107,25 @@ class StreamMeLiveIE(StreamMeIE):
 
         data = json.loads(self._download_webpage(apiurl, channel_id))
         stream_info = []
-        # search for a live stream... 
+        # search for a live stream...
         for stream in data.get('_embedded').get('streams'):
             stream_info = stream
-            break # TODO: add to a list (multi-streams?)
-        
+            break   # TODO: add to a list (multi-streams?)
+
         if not stream_info.get('active'):
             raise ExtractorError('%s is offline' % channel_id, expected=True)
- 
-        manifest_json = self._download_json(stream_info
-                                                .get('_links')
-                                                .get('manifest')
-                                                .get('href'), channel_id)
-        formats = self._extract_formats(manifest_json.get('formats'))
 
+        manifest_json = self._download_json(stream_info
+                                            .get('_links')
+                                            .get('manifest')
+                                            .get('href'), channel_id)
+
+        formats = self._extract_formats(manifest_json.get('formats'))
         self._sort_formats(formats, 'vbr')
         info = self._extract_info(stream_info)
         info['formats'] = formats
         return info
+
 
 class StreamMeArchiveIE(StreamMeIE):
     IE_NAME = 'StreamMe:archives'
@@ -131,19 +133,22 @@ class StreamMeArchiveIE(StreamMeIE):
     _PLAYLIST_TYPE = 'past broadcasts'
     _PLAYLIST_LIMIT = 128
     _TEST = {
-            'url': 'https://www.stream.me/kombatcup#archives',
-            'info_dict': {
-                'id': 'kombatcup',
-                'title': 'KombatCup',
-             },
-            'playlist_mincount': 25,
+        'url': 'https://www.stream.me/kombatcup#archives',
+        'info_dict': {
+            'id': 'kombatcup',
+            'title': 'KombatCup',
+        },
+        'playlist_mincount': 25,
+        'params': {
+            'skip_download': True,
+        }
     }
 
     def _real_extract(self, url):
         channel_id = self._match_id(url).split('#')[0]
         apiurl = StreamMeIE._API_ARCHIVE.replace('<channel_id>', channel_id)
         # TODO: implement paginated downloading
-        data = json.loads(self._download_webpage(apiurl+'?limit=%d&offset=0' % self._PLAYLIST_LIMIT, channel_id))
+        data = json.loads(self._download_webpage(apiurl + '?limit=%d&offset=0' % self._PLAYLIST_LIMIT, channel_id))
         playlist = []
 
         for vod in data.get('_embedded').get('vod'):
