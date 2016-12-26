@@ -16,7 +16,7 @@ class StreamMeIE(InfoExtractor):
     _API_CHANNEL = 'https://www.stream.me/api-user/v1/<channel_id>/channel'
     _API_ARCHIVE = 'https://www.stream.me/api-vod/v1/<channel_id>/archives'
     _VALID_URL_BASE = r'https?://(video-cdn|www).stream.me'
-    _VALID_URL = r'%s/archive/(?P<channel_id>[^/]+)/[^/]+/(?P<id>[^/?]+)' % _VALID_URL_BASE
+    _VALID_URL = r'%s\/archive\/(?P<channel_id>[^\#\/]+)\/[^\/]+\/(?P<id>[^\/]+)' % _VALID_URL_BASE
     _TEST = {
         'url': 'https://www.stream.me/archive/kombatcup/kombat-cup-week-8-sunday-open/pDlXAj6mYb',
         'md5': 'b32af6fad972d0bcf5854a416b5b3b01',
@@ -129,11 +129,11 @@ class StreamMeLiveIE(StreamMeIE):
 
 class StreamMeArchiveIE(StreamMeIE):
     IE_NAME = 'StreamMe:archives'
-    _VALID_URL = r'%s/(?P<id>[^\#]+(?P<tag>\#archives)$)' % StreamMeIE._VALID_URL_BASE
+    _VALID_URL = r'%s/(?P<id>[^\#]+)(\#archive)$' % StreamMeIE._VALID_URL_BASE
     _PLAYLIST_TYPE = 'past broadcasts'
     _PLAYLIST_LIMIT = 128
     _TEST = {
-        'url': 'https://www.stream.me/kombatcup#archives',
+        'url': 'https://www.stream.me/kombatcup#archive',
         'info_dict': {
             'id': 'kombatcup',
             'title': 'KombatCup',
