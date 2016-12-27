@@ -75,6 +75,7 @@ from .facebook import FacebookIE
 from .soundcloud import SoundcloudIE
 from .vbox7 import Vbox7IE
 from .dbtv import DBTVIE
+from .piksel import PikselIE
 
 
 class GenericIE(InfoExtractor):
@@ -343,10 +344,10 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'There is a limit of 200 free downloads / month for the test song',
         },
-        # embedded brightcove video
-        # it also tests brightcove videos that need to set the 'Referer' in the
-        # http requests
         {
+            # embedded brightcove video
+            # it also tests brightcove videos that need to set the 'Referer'
+            # in the http requests
             'add_ie': ['BrightcoveLegacy'],
             'url': 'http://www.bfmtv.com/video/bfmbusiness/cours-bourse/cours-bourse-l-analyse-technique-154522/',
             'info_dict': {
@@ -355,6 +356,24 @@ class GenericIE(InfoExtractor):
                 'title': 'Le cours de bourse : l’analyse technique',
                 'description': 'md5:7e9ad046e968cb2d1114004aba466fd9',
                 'uploader': 'BFM BUSINESS',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # embedded with itemprop embedURL and video id spelled as `idVideo`
+            'add_id': ['BrightcoveLegacy'],
+            'url': 'http://bfmbusiness.bfmtv.com/mediaplayer/chroniques/olivier-delamarche/',
+            'info_dict': {
+                'id': '5255628253001',
+                'ext': 'mp4',
+                'title': 'md5:37c519b1128915607601e75a87995fc0',
+                'description': 'md5:37f7f888b434bb8f8cc8dbd4f7a4cf26',
+                'uploader': 'BFM BUSINESS',
+                'uploader_id': '876450612001',
+                'timestamp': 1482255315,
+                'upload_date': '20161220',
             },
             'params': {
                 'skip_download': True,
@@ -971,6 +990,20 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             }
+        },
+        {
+            # Kaltura embedded, some fileExt broken (#11480)
+            'url': 'http://www.cornell.edu/video/nima-arkani-hamed-standard-models-of-particle-physics',
+            'info_dict': {
+                'id': '1_sgtvehim',
+                'ext': 'mp4',
+                'title': 'Our "Standard Models" of particle physics and cosmology',
+                'description': 'md5:67ea74807b8c4fea92a6f38d6d323861',
+                'timestamp': 1321158993,
+                'upload_date': '20111113',
+                'uploader_id': 'kps1',
+            },
+            'add_ie': ['Kaltura'],
         },
         # Eagle.Platform embed (generic URL)
         {
@@ -2210,6 +2243,11 @@ class GenericIE(InfoExtractor):
         arkena_url = ArkenaIE._extract_url(webpage)
         if arkena_url:
             return self.url_result(arkena_url, ArkenaIE.ie_key())
+
+        # Look for Piksel embeds
+        piksel_url = PikselIE._extract_url(webpage)
+        if piksel_url:
+            return self.url_result(piksel_url, PikselIE.ie_key())
 
         # Look for Limelight embeds
         mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)

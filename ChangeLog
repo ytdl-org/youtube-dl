@@ -1,7 +1,104 @@
-version <unreleased>
+version 2016.12.22
+
+Core
+* [extractor/common] Improve detection of video-only formats in m3u8
+  manifests (#11507)
 
 Extractors
++ [theplatform] Pass geo verification headers to SMIL request (#10146)
++ [viu] Pass geo verification headers to auth request
+* [rtl2] Extract more formats and metadata
+* [vbox7] Skip malformed JSON-LD (#11501)
+* [uplynk] Force downloading using native HLS downloader (#11496)
++ [laola1] Add support for another extraction scenario (#11460)
+
+
+version 2016.12.20
+
+Core
+* [extractor/common] Improve fragment URL construction for DASH media
+* [extractor/common] Fix codec information extraction for mixed audio/video
+  DASH media (#11490)
+
+Extractors
+* [vbox7] Fix extraction (#11494)
++ [uktvplay] Add support for uktvplay.uktv.co.uk (#11027)
++ [piksel] Add support for player.piksel.com (#11246)
++ [vimeo] Add support for DASH formats
+* [vimeo] Fix extraction for HLS formats (#11490)
+* [kaltura] Fix wrong widget ID in some cases (#11480)
++ [nrktv:direkte] Add support for live streams (#11488)
+* [pbs] Fix extraction for geo restricted videos (#7095)
+* [brightcove:new] Skip widevine classic videos
++ [viu] Add support for viu.com (#10607, #11329)
+
+
+version 2016.12.18
+
+Core
++ [extractor/common] Recognize DASH formats in html5 media entries
+
+Extractors
++ [ccma] Add support for ccma.cat (#11359)
+* [laola1tv] Improve extraction
++ [laola1tv] Add support embed URLs (#11460)
+* [nbc] Fix extraction for MSNBC videos (#11466)
+* [twitch] Adapt to new videos pages URL schema (#11469)
++ [meipai] Add support for meipai.com (#10718)
+* [jwplatform] Improve subtitles and duration extraction
++ [ondemandkorea] Add support for ondemandkorea.com (#10772)
++ [vvvvid] Add support for vvvvid.it (#5915)
+
+
+version 2016.12.15
+
+Core
++ [utils] Add convenience urljoin
+
+Extractors
++ [openload] Recognize oload.tv URLs (#10408)
++ [facebook] Recognize .onion URLs (#11443)
+* [vlive] Fix extraction (#11375, #11383)
++ [canvas] Extract DASH formats
++ [melonvod] Add support for vod.melon.com (#11419)
+
+
+version 2016.12.12
+
+Core
++ [utils] Add common user agents map
++ [common] Recognize HLS manifests that contain video only formats (#11394)
+
+Extractors
++ [dplay] Use Safari user agent for HLS (#11418)
++ [facebook] Detect login required error message
+* [facebook] Improve video selection (#11390)
++ [canalplus] Add another video id pattern (#11399)
+* [mixcloud] Relax URL regular expression (#11406)
+* [ctvnews] Relax URL regular expression (#11394)
++ [rte] Capture and output error message (#7746, #10498)
++ [prosiebensat1] Add support for DASH formats
+* [srgssr] Improve extraction for geo restricted videos (#11089)
+* [rts] Improve extraction for geo restricted videos (#4989)
+
+
+version 2016.12.09
+
+Core
+* [socks] Fix error reporting (#11355)
+
+Extractors
+* [openload] Fix extraction (#10408)
+* [pandoratv] Fix extraction (#11023)
++ [telebruxelles] Add support for emission URLs
+* [telebruxelles] Extract all formats
++ [bloomberg] Add another video id regular expression (#11371)
+* [fusion] Update ooyala id regular expression (#11364)
++ [1tv] Add support for playlists (#11335)
+* [1tv] Improve extraction (#11335)
++ [aenetworks] Extract more formats (#11321)
 + [thisoldhouse] Recognize /tv-episode/ URLs (#11271)
+
 
 version 2016.12.01
 

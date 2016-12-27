@@ -92,29 +92,30 @@ class VimeoBaseInfoExtractor(InfoExtractor):
     def _vimeo_sort_formats(self, formats):
         # Bitrates are completely broken. Single m3u8 may contain entries in kbps and bps
         # at the same time without actual units specified. This lead to wrong sorting.
-        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'format_id'))
+        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'tbr', 'format_id'))
 
     def _parse_config(self, config, video_id):
+        video_data = config['video']
         # Extract title
-        video_title = config['video']['title']
+        video_title = video_data['title']
 
         # Extract uploader, uploader_url and uploader_id
-        video_uploader = config['video'].get('owner', {}).get('name')
-        video_uploader_url = config['video'].get('owner', {}).get('url')
+        video_uploader = video_data.get('owner', {}).get('name')
+        video_uploader_url = video_data.get('owner', {}).get('url')
         video_uploader_id = video_uploader_url.split('/')[-1] if video_uploader_url else None
 
         # Extract video thumbnail
-        video_thumbnail = config['video'].get('thumbnail')
+        video_thumbnail = video_data.get('thumbnail')
         if video_thumbnail is None:
-            video_thumbs = config['video'].get('thumbs')
+            video_thumbs = video_data.get('thumbs')
             if video_thumbs and isinstance(video_thumbs, dict):
                 _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
 
         # Extract video duration
-        video_duration = int_or_none(config['video'].get('duration'))
+        video_duration = int_or_none(video_data.get('duration'))
 
         formats = []
-        config_files = config['video'].get('files') or config['request'].get('files', {})
+        config_files = video_data.get('files') or config['request'].get('files', {})
         for f in config_files.get('progressive', []):
             video_url = f.get('url')
             if not video_url:
@@ -127,10 +128,24 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                 'fps': int_or_none(f.get('fps')),
                 'tbr': int_or_none(f.get('bitrate')),
             })
-        m3u8_url = config_files.get('hls', {}).get('url')
-        if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+
+        for files_type in ('hls', 'dash'):
+            for cdn_name, cdn_data in config_files.get(files_type, {}).get('cdns', {}).items():
+                manifest_url = cdn_data.get('url')
+                if not manifest_url:
+                    continue
+                format_id = '%s-%s' % (files_type, cdn_name)
+                if files_type == 'hls':
+                    formats.extend(self._extract_m3u8_formats(
+                        manifest_url, video_id, 'mp4',
+                        'm3u8_native', m3u8_id=format_id,
+                        note='Downloading %s m3u8 information' % cdn_name,
+                        fatal=False))
+                elif files_type == 'dash':
+                    formats.extend(self._extract_mpd_formats(
+                        manifest_url.replace('/master.json', '/master.mpd'), video_id, format_id,
+                        'Downloading %s MPD information' % cdn_name,
+                        fatal=False))
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')

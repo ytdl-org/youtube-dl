@@ -85,6 +85,9 @@ class ProSiebenSat1BaseIE(InfoExtractor):
                     formats.extend(self._extract_m3u8_formats(
                         source_url, clip_id, 'mp4', 'm3u8_native',
                         m3u8_id='hls', fatal=False))
+                elif mimetype == 'application/dash+xml':
+                    formats.extend(self._extract_mpd_formats(
+                        source_url, clip_id, mpd_id='dash', fatal=False))
                 else:
                     tbr = fix_bitrate(source['bitrate'])
                     if protocol in ('rtmp', 'rtmpe'):

@@ -105,7 +105,8 @@ class CanalplusIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         video_id = self._search_regex(
             [r'<canal:player[^>]+?videoId=(["\'])(?P<id>\d+)',
-             r'id=["\']canal_video_player(?P<id>\d+)'],
+             r'id=["\']canal_video_player(?P<id>\d+)',
+             r'data-video=["\'](?P<id>\d+)'],
             webpage, 'video id', group='id')
 
         info_url = self._VIDEO_INFO_TEMPLATE % (site_id, video_id)

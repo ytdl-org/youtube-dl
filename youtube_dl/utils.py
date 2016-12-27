@@ -86,6 +86,11 @@ std_headers = {
 }
 
 
+USER_AGENTS = {
+    'Safari': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) AppleWebKit/533.20.25 (KHTML, like Gecko) Version/5.0.4 Safari/533.20.27',
+}
+
+
 NO_DEFAULT = object()
 
 ENGLISH_MONTH_NAMES = [
@@ -1693,6 +1698,16 @@ def url_basename(url):
 
 def base_url(url):
     return re.match(r'https?://[^?#&]+/', url).group()
+
+
+def urljoin(base, path):
+    if not isinstance(path, compat_str) or not path:
+        return None
+    if re.match(r'^(?:https?:)?//', path):
+        return path
+    if not isinstance(base, compat_str) or not re.match(r'^(?:https?:)?//', base):
+        return None
+    return compat_urlparse.urljoin(base, path)
 
 
 class HEADRequest(compat_urllib_request.Request):

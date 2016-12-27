@@ -59,6 +59,7 @@ from ..utils import (
     parse_m3u8_attributes,
     extract_attributes,
     parse_codecs,
+    urljoin,
 )
 
 
@@ -188,9 +189,10 @@ class InfoExtractor(object):
     uploader_url:   Full URL to a personal webpage of the video uploader.
     location:       Physical location where the video was filmed.
     subtitles:      The available subtitles as a dictionary in the format
-                    {language: subformats}. "subformats" is a list sorted from
-                    lower to higher preference, each element is a dictionary
-                    with the "ext" entry and one of:
+                    {tag: subformats}. "tag" is usually a language code, and
+                    "subformats" is a list sorted from lower to higher
+                    preference, each element is a dictionary with the "ext"
+                    entry and one of:
                         * "data": The subtitles file contents
                         * "url": A URL pointing to the subtitles file
                     "ext" will be calculated from URL if missing
@@ -1224,6 +1226,7 @@ class InfoExtractor(object):
                 'protocol': entry_protocol,
                 'preference': preference,
             }]
+        audio_in_video_stream = {}
         last_info = {}
         last_media = {}
         for line in m3u8_doc.splitlines():
@@ -1233,25 +1236,32 @@ class InfoExtractor(object):
                 media = parse_m3u8_attributes(line)
                 media_type = media.get('TYPE')
                 if media_type in ('VIDEO', 'AUDIO'):
+                    group_id = media.get('GROUP-ID')
                     media_url = media.get('URI')
                     if media_url:
                         format_id = []
-                        for v in (media.get('GROUP-ID'), media.get('NAME')):
+                        for v in (group_id, media.get('NAME')):
                             if v:
                                 format_id.append(v)
-                        formats.append({
+                        f = {
                             'format_id': '-'.join(format_id),
                             'url': format_url(media_url),
                             'language': media.get('LANGUAGE'),
-                            'vcodec': 'none' if media_type == 'AUDIO' else None,
                             'ext': ext,
                             'protocol': entry_protocol,
                             'preference': preference,
-                        })
+                        }
+                        if media_type == 'AUDIO':
+                            f['vcodec'] = 'none'
+                            if group_id and not audio_in_video_stream.get(group_id):
+                                audio_in_video_stream[group_id] = False
+                        formats.append(f)
                     else:
                         # When there is no URI in EXT-X-MEDIA let this tag's
                         # data be used by regular URI lines below
                         last_media = media
+                        if media_type == 'AUDIO' and group_id:
+                            audio_in_video_stream[group_id] = True
             elif line.startswith('#') or not line.strip():
                 continue
             else:
@@ -1295,6 +1305,9 @@ class InfoExtractor(object):
                         'abr': abr,
                     })
                 f.update(parse_codecs(last_info.get('CODECS')))
+                if audio_in_video_stream.get(last_info.get('AUDIO')) is False:
+                    # TODO: update acodec for for audio only formats with the same GROUP-ID
+                    f['acodec'] = 'none'
                 formats.append(f)
                 last_info = {}
                 last_media = {}
@@ -1624,11 +1637,6 @@ class InfoExtractor(object):
                         extract_Initialization(segment_template)
             return ms_info
 
-        def combine_url(base_url, target_url):
-            if re.match(r'^https?://', target_url):
-                return target_url
-            return '%s%s%s' % (base_url, '' if base_url.endswith('/') else '/', target_url)
-
         mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
         formats = []
         for period in mpd_doc.findall(_add_ns('Period')):
@@ -1678,12 +1686,11 @@ class InfoExtractor(object):
                             'tbr': int_or_none(representation_attrib.get('bandwidth'), 1000),
                             'asr': int_or_none(representation_attrib.get('audioSamplingRate')),
                             'fps': int_or_none(representation_attrib.get('frameRate')),
-                            'vcodec': 'none' if content_type == 'audio' else representation_attrib.get('codecs'),
-                            'acodec': 'none' if content_type == 'video' else representation_attrib.get('codecs'),
                             'language': lang if lang not in ('mul', 'und', 'zxx', 'mis') else None,
                             'format_note': 'DASH %s' % content_type,
                             'filesize': filesize,
                         }
+                        f.update(parse_codecs(representation_attrib.get('codecs')))
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
                         if 'segment_urls' not in representation_ms_info and 'media_template' in representation_ms_info:
 
@@ -1767,7 +1774,7 @@ class InfoExtractor(object):
                                 f['fragments'].append({'url': initialization_url})
                             f['fragments'].extend(representation_ms_info['fragments'])
                             for fragment in f['fragments']:
-                                fragment['url'] = combine_url(base_url, fragment['url'])
+                                fragment['url'] = urljoin(base_url, fragment['url'])
                         try:
                             existing_format = next(
                                 fo for fo in formats
@@ -1881,7 +1888,7 @@ class InfoExtractor(object):
                 })
         return formats
 
-    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None, m3u8_entry_protocol='m3u8'):
+    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None, m3u8_entry_protocol='m3u8', mpd_id=None):
         def absolute_url(video_url):
             return compat_urlparse.urljoin(base_url, video_url)
 
@@ -1898,11 +1905,16 @@ class InfoExtractor(object):
 
         def _media_formats(src, cur_media_type):
             full_url = absolute_url(src)
-            if determine_ext(full_url) == 'm3u8':
+            ext = determine_ext(full_url)
+            if ext == 'm3u8':
                 is_plain_url = False
                 formats = self._extract_m3u8_formats(
                     full_url, video_id, ext='mp4',
                     entry_protocol=m3u8_entry_protocol, m3u8_id=m3u8_id)
+            elif ext == 'mpd':
+                is_plain_url = False
+                formats = self._extract_mpd_formats(
+                    full_url, video_id, mpd_id=mpd_id)
             else:
                 is_plain_url = True
                 formats = [{

@@ -70,6 +70,7 @@ from youtube_dl.utils import (
     lowercase_escape,
     url_basename,
     base_url,
+    urljoin,
     urlencode_postdata,
     urshift,
     update_url_query,
@@ -444,6 +445,23 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(base_url('http://foo.de/bar/'), 'http://foo.de/bar/')
         self.assertEqual(base_url('http://foo.de/bar/baz'), 'http://foo.de/bar/')
         self.assertEqual(base_url('http://foo.de/bar/baz?x=z/x/c'), 'http://foo.de/bar/')
+
+    def test_urljoin(self):
+        self.assertEqual(urljoin('http://foo.de/', '/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('//foo.de/', '/a/b/c.txt'), '//foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('http://foo.de/', 'a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('http://foo.de', '/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('http://foo.de', 'a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('http://foo.de/', 'http://foo.de/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('http://foo.de/', '//foo.de/a/b/c.txt'), '//foo.de/a/b/c.txt')
+        self.assertEqual(urljoin(None, 'http://foo.de/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin(None, '//foo.de/a/b/c.txt'), '//foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('', 'http://foo.de/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin(['foobar'], 'http://foo.de/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('http://foo.de/', None), None)
+        self.assertEqual(urljoin('http://foo.de/', ''), None)
+        self.assertEqual(urljoin('http://foo.de/', ['foobar']), None)
+        self.assertEqual(urljoin('http://foo.de/a/b/c.txt', '.././../d.txt'), 'http://foo.de/d.txt')
 
     def test_parse_age_limit(self):
         self.assertEqual(parse_age_limit(None), None)

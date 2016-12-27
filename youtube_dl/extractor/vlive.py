@@ -10,6 +10,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     remove_start,
+    urlencode_postdata,
 )
 from ..compat import compat_urllib_parse_urlencode
 
@@ -48,17 +49,23 @@ class VLiveIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.vlive.tv/video/%s' % video_id, video_id)
 
-        video_params = self._search_regex(
-            r'\bvlive\.video\.init\(([^)]+)\)',
-            webpage, 'video params')
-        status, _, _, live_params, long_video_id, key = re.split(
-            r'"\s*,\s*"', video_params)[2:8]
+        VIDEO_PARAMS_RE = r'\bvlive\.video\.init\(([^)]+)'
+        VIDEO_PARAMS_FIELD = 'video params'
+
+        params = self._parse_json(self._search_regex(
+            VIDEO_PARAMS_RE, webpage, VIDEO_PARAMS_FIELD, default=''), video_id,
+            transform_source=lambda s: '[' + s + ']', fatal=False)
+
+        if not params or len(params) < 7:
+            params = self._search_regex(
+                VIDEO_PARAMS_RE, webpage, VIDEO_PARAMS_FIELD)
+            params = [p.strip(r'"') for p in re.split(r'\s*,\s*', params)]
+
+        status, long_video_id, key = params[2], params[5], params[6]
         status = remove_start(status, 'PRODUCT_')
 
         if status == 'LIVE_ON_AIR' or status == 'BIG_EVENT_ON_AIR':
-            live_params = self._parse_json('"%s"' % live_params, video_id)
-            live_params = self._parse_json(live_params, video_id)
-            return self._live(video_id, webpage, live_params)
+            return self._live(video_id, webpage)
         elif status == 'VOD_ON_AIR' or status == 'BIG_EVENT_INTRO':
             if long_video_id and key:
                 return self._replay(video_id, webpage, long_video_id, key)
@@ -89,7 +96,22 @@ class VLiveIE(InfoExtractor):
             'thumbnail': thumbnail,
         }
 
-    def _live(self, video_id, webpage, live_params):
+    def _live(self, video_id, webpage):
+        init_page = self._download_webpage(
+            'http://www.vlive.tv/video/init/view',
+            video_id, note='Downloading live webpage',
+            data=urlencode_postdata({'videoSeq': video_id}),
+            headers={
+                'Referer': 'http://www.vlive.tv/video/%s' % video_id,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            })
+
+        live_params = self._search_regex(
+            r'"liveStreamInfo"\s*:\s*(".*"),',
+            init_page, 'live stream info')
+        live_params = self._parse_json(live_params, video_id)
+        live_params = self._parse_json(live_params, video_id)
+
         formats = []
         for vid in live_params.get('resolutions', []):
             formats.extend(self._extract_m3u8_formats(
@@ -98,10 +120,14 @@ class VLiveIE(InfoExtractor):
                 fatal=False, live=True))
         self._sort_formats(formats)
 
-        return dict(self._get_common_fields(webpage),
-                    id=video_id,
-                    formats=formats,
-                    is_live=True)
+        info = self._get_common_fields(webpage)
+        info.update({
+            'title': self._live_title(info['title']),
+            'id': video_id,
+            'formats': formats,
+            'is_live': True,
+        })
+        return info
 
     def _replay(self, video_id, webpage, long_video_id, key):
         playinfo = self._download_json(
@@ -135,8 +161,11 @@ class VLiveIE(InfoExtractor):
                     'ext': 'vtt',
                     'url': caption['source']}]
 
-        return dict(self._get_common_fields(webpage),
-                    id=video_id,
-                    formats=formats,
-                    view_count=view_count,
-                    subtitles=subtitles)
+        info = self._get_common_fields(webpage)
+        info.update({
+            'id': video_id,
+            'formats': formats,
+            'view_count': view_count,
+            'subtitles': subtitles,
+        })
+        return info

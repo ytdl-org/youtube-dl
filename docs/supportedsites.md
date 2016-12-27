@@ -131,6 +131,7 @@
  - **cbsnews**: CBS News
  - **cbsnews:livevideo**: CBS News Live Videos
  - **CBSSports**
+ - **CCMA**
  - **CCTV**
  - **CDA**
  - **CeskaTelevize**
@@ -364,7 +365,8 @@
  - **kuwo:singer**: 酷我音乐 - 歌手
  - **kuwo:song**: 酷我音乐
  - **la7.it**
- - **Laola1Tv**
+ - **laola1tv**
+ - **laola1tv:embed**
  - **LCI**
  - **Lcp**
  - **LcpPlay**
@@ -402,6 +404,8 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **Meipai**: 美拍
+ - **MelonVOD**
  - **META**
  - **metacafe**
  - **Metacritic**
@@ -513,6 +517,7 @@
  - **NRKPlaylist**
  - **NRKSkole**: NRK Skole
  - **NRKTV**: NRK TV and NRK Radio
+ - **NRKTVDirekte**: NRK TV Direkte and NRK Radio Direkte
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
@@ -523,6 +528,7 @@
  - **Odnoklassniki**
  - **OktoberfestTV**
  - **on.aol.com**
+ - **OnDemandKorea**
  - **onet.tv**
  - **onet.tv:channel**
  - **OnionStudios**
@@ -546,6 +552,7 @@
  - **PhilharmonieDeParis**: Philharmonie de Paris
  - **phoenix.de**
  - **Photobucket**
+ - **Piksel**
  - **Pinkbike**
  - **Pladform**
  - **play.fm**
@@ -784,10 +791,13 @@
  - **Tweakers**
  - **twitch:chapter**
  - **twitch:clips**
- - **twitch:past_broadcasts**
  - **twitch:profile**
  - **twitch:stream**
  - **twitch:video**
+ - **twitch:videos:all**
+ - **twitch:videos:highlights**
+ - **twitch:videos:past-broadcasts**
+ - **twitch:videos:uploads**
  - **twitch:vod**
  - **twitter**
  - **twitter:amplify**
@@ -795,6 +805,7 @@
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
+ - **UKTVPlay**
  - **Unistra**
  - **uol.com.br**
  - **uplynk**
@@ -859,6 +870,9 @@
  - **Vimple**: Vimple - one-click video hosting
  - **Vine**
  - **vine:user**
+ - **Viu**
+ - **viu:ott**
+ - **viu:playlist**
  - **Vivo**: vivo.sx
  - **vk**: VK
  - **vk:uservideos**: VK - User's Videos
@@ -873,6 +887,7 @@
  - **VRT**
  - **vube**: Vube.com
  - **VuClip**
+ - **VVVVID**
  - **VyboryMos**
  - **Vzaar**
  - **Walla**

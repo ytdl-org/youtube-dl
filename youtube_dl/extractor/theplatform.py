@@ -33,7 +33,9 @@ _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 class ThePlatformBaseIE(OnceIE):
     def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
-        meta = self._download_xml(smil_url, video_id, note=note, query={'format': 'SMIL'})
+        meta = self._download_xml(
+            smil_url, video_id, note=note, query={'format': 'SMIL'},
+            headers=self.geo_verification_headers())
         error_element = find_xpath_attr(meta, _x('.//smil:ref'), 'src')
         if error_element is not None and error_element.attrib['src'].startswith(
                 'http://link.theplatform.com/s/errorFiles/Unavailable.'):

@@ -638,7 +638,7 @@ Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begin
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
  - `container`: Name of the container format
- - `protocol`: The protocol that will be used for the actual download, lower-case. `http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `m3u8`, or `m3u8_native`
+ - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `m3u8`, or `m3u8_native`)
  - `format_id`: A short description of the format
 
 Note that none of the aforementioned meta fields are guaranteed to be present since this solely depends on the metadata obtained by particular extractor, i.e. the metadata offered by the video hoster.
@@ -932,7 +932,7 @@ If you want to create a build of youtube-dl yourself, you'll need
 
 If you want to add support for a new site, first of all **make sure** this site is **not dedicated to [copyright infringement](README.md#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. youtube-dl does **not support** such sites thus pull requests adding support for them **will be rejected**.
 
-After you have ensured this site is distributing it's content legally, you can follow this quick list (assuming your service is called `yourextractor`):
+After you have ensured this site is distributing its content legally, you can follow this quick list (assuming your service is called `yourextractor`):
 
 1. [Fork this repository](https://github.com/rg3/youtube-dl/fork)
 2. Check out the source code with:
