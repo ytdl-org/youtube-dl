@@ -1,7 +1,7 @@
 from youtube_dl.jsinterp.jsgrammar import Token
 from youtube_dl.jsinterp.tstream import _RELATIONS
 
-skip = {'i': 'Interpreting if statement not yet implemented'}
+skip = {'interpret': 'Interpreting if statement not yet implemented'}
 
 tests = [
     {

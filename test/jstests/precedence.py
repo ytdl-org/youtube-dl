@@ -1,7 +1,7 @@
 from youtube_dl.jsinterp.jsgrammar import Token
 from youtube_dl.jsinterp.tstream import _ASSIGN_OPERATORS, _OPERATORS
 
-skip = {'i': 'Interpreting built-in fields not yet implemented'}
+skip = {'interpret': 'Interpreting built-in fields not yet implemented'}
 
 tests = [
     {

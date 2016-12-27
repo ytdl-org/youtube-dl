@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+# Allow direct execution
 import os
 import sys
 import logging
@@ -28,7 +29,7 @@ class TestJSInterpreter(unittest.TestCase):
 def generator(test_case, name):
     def test_template(self):
         for test in test_case['subtests']:
-            jsi = JSInterpreter(test['code'], variables=None if 'globals' not in test else test['globals'])
+            jsi = JSInterpreter(test['code'], variables=test.get('globals'))
             if 'asserts' in test:
                 for a in test['asserts']:
                     if 'call' in a:
@@ -36,34 +37,39 @@ def generator(test_case, name):
                     else:
                         self.assertEqual(jsi.run(), a['value'])
             else:
-                log.debug('No asserts, skipping subtest')
+                log.debug('No assertion for subtest, skipping')
 
     log = logging.getLogger('TestJSInterpreter.%s' % name)
-
-    if 'i' not in test_case['skip']:
-        reason = False
-    else:
-        reason = test_case['skip']['i']
-
-    return test_template if not reason else unittest.skip(reason)(test_template)
+    return test_template
 
 
 # And add them to TestJSInterpreter
 for n, tc in enumerate(defs):
-    if 'i' not in tc['skip'] or tc['skip']['i'] is not True:
-        tname = 'test_' + str(tc['name'])
-        i = 1
-        while hasattr(TestJSInterpreter, tname):
-            tname = 'test_%s_%d' % (tc['name'], i)
-            i += 1
-        if any('asserts' in test for test in tc['subtests']):
-            test_method = generator(tc, tname)
-            test_method.__name__ = str(tname)
-            setattr(TestJSInterpreter, test_method.__name__, test_method)
-            del test_method
-        else:
-            log = logging.getLogger('TestJSInterpreter')
-            log.debug('''Skipping %s:There isn't any assertion''' % tname)
+    reason = tc['skip'].get('interpret', False)
+    tname = 'test_' + str(tc['name'])
+    i = 1
+    while hasattr(TestJSInterpreter, tname):
+        tname = 'test_%s_%d' % (tc['name'], i)
+        i += 1
+
+    if reason is not True:
+        log_reason = 'Entirely'
+    elif not any('asserts' in test for test in tc['subtests']):
+        log_reason = '''There isn't any assertion'''
+    else:
+        log_reason = None
+
+    if log_reason is not None:
+        test_method = generator(tc, tname)
+        test_method.__name__ = str(tname)
+        if reason is not False:
+            test_method.__unittest_skip__ = True
+            test_method.__unittest_skip_why__ = reason
+        setattr(TestJSInterpreter, test_method.__name__, test_method)
+        del test_method
+    else:
+        log = logging.getLogger('TestJSInterpreter')
+        log.debug('Skipping %s:%s' % (tname, log_reason))
 
 if __name__ == '__main__':
     unittest.main()

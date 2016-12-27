@@ -1,7 +1,7 @@
 from youtube_dl.jsinterp.jsgrammar import Token
 
-skip = {'i': 'Interpreting with statement not yet implemented',
-        'p': 'Test not yet implemented: missing code and ast'}
+skip = {'interpret': 'Interpreting with statement not yet implemented',
+        'parse': 'Test not yet implemented: missing code and ast'}
 
 tests = [
     {

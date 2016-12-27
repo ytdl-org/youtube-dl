@@ -1,7 +1,7 @@
 from youtube_dl.jsinterp.jsgrammar import Token
 from youtube_dl.jsinterp.tstream import _ASSIGN_OPERATORS
 
-skip = {'i': 'Interpreting for in loop not yet implemented'}
+skip = {'interpret': 'Interpreting for in loop not yet implemented'}
 
 tests = [
     {

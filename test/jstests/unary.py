@@ -1,5 +1,5 @@
 
-skip = {'p': True}
+skip = {'parse': True}
 
 tests = [
     {
