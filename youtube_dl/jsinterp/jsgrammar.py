@@ -4,23 +4,23 @@ import re
 
 from collections import namedtuple
 
-_token_keys = ('COPEN', 'CCLOSE', 'POPEN', 'PCLOSE', 'SOPEN', 'SCLOSE',
-               'DOT', 'END', 'COMMA', 'HOOK', 'COLON',
-               'AND', 'OR', 'PLUS', 'NEG', 'INC', 'DEC', 'NOT', 'BNOT', 'DEL', 'VOID', 'TYPE',
-               'LT', 'GT', 'LE', 'GE', 'EQ', 'NE', 'SEQ', 'SNE', 'IN', 'INSTANCEOF',
-               'BOR', 'BXOR', 'BAND', 'RSHIFT', 'LSHIFT', 'URSHIFT', 'SUB', 'ADD', 'MOD', 'DIV', 'MUL',
-               'OP', 'AOP', 'UOP', 'LOP', 'REL', 'PREFIX', 'POSTFIX',
-               'COMMENT', 'TOKEN', 'PUNCT',
-               'NULL', 'BOOL', 'ID', 'STR', 'INT', 'FLOAT', 'REGEX', 'OBJECT',
-               'REFLAGS', 'REBODY',
-               'FUNC',
-               'BLOCK', 'VAR', 'EXPR', 'IF', 'FOR', 'DO', 'WHILE', 'CONTINUE', 'BREAK', 'RETURN',
-               'WITH', 'LABEL', 'SWITCH', 'THROW', 'TRY', 'DEBUG',
-               'ASSIGN', 'MEMBER', 'FIELD', 'ELEM', 'CALL', 'ARRAY', 'COND', 'OPEXPR',
-               'PROPGET', 'PROPSET', 'PROPVALUE',
-               'RSV')
+_token_names = ('COPEN', 'CCLOSE', 'POPEN', 'PCLOSE', 'SOPEN', 'SCLOSE',
+                'DOT', 'END', 'COMMA', 'HOOK', 'COLON',
+                'AND', 'OR', 'PLUS', 'NEG', 'INC', 'DEC', 'NOT', 'BNOT', 'DEL', 'VOID', 'TYPE',
+                'LT', 'GT', 'LE', 'GE', 'EQ', 'NE', 'SEQ', 'SNE', 'IN', 'INSTANCEOF',
+                'BOR', 'BXOR', 'BAND', 'RSHIFT', 'LSHIFT', 'URSHIFT', 'SUB', 'ADD', 'MOD', 'DIV', 'MUL',
+                'OP', 'AOP', 'UOP', 'LOP', 'REL', 'PREFIX', 'POSTFIX',
+                'COMMENT', 'TOKEN', 'PUNCT',
+                'NULL', 'BOOL', 'ID', 'STR', 'INT', 'FLOAT', 'REGEX', 'OBJECT',
+                'REFLAGS', 'REBODY',
+                'FUNC',
+                'BLOCK', 'VAR', 'EXPR', 'IF', 'FOR', 'DO', 'WHILE', 'CONTINUE', 'BREAK', 'RETURN',
+                'WITH', 'LABEL', 'SWITCH', 'THROW', 'TRY', 'DEBUG',
+                'ASSIGN', 'MEMBER', 'FIELD', 'ELEM', 'CALL', 'ARRAY', 'COND', 'OPEXPR',
+                'PROPGET', 'PROPSET', 'PROPVALUE',
+                'RSV')
 
-Token = namedtuple('Token', _token_keys)._make(_token_keys)
+Token = namedtuple('Token', _token_names)._make(_token_names)
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
 __OCTAL_RE = r'0[0-7]+'

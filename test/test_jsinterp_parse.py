@@ -14,7 +14,7 @@ else:
     import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.jsinterp import JSInterpreter
+from youtube_dl.jsinterp.jsparser import Parser
 from .jstests import gettestcases
 
 
@@ -43,8 +43,8 @@ class TestJSInterpreterParse(unittest.TestCase):
 def generator(test_case, name):
     def test_template(self):
         for a in test_case['subtests']:
-            jsi = JSInterpreter(a['code'], variables=a.get('globals'))
-            parsed = list(jsi.parse())
+            jsp = Parser(a['code'])
+            parsed = list(jsp.parse())
             if 'ast' in a:
                 self.assertEqual(traverse(parsed), traverse(a['ast']))
             else:
