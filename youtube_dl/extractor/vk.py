@@ -378,12 +378,22 @@ class VKIE(VKBaseIE):
         if not data:
             data = self._parse_json(
                 self._search_regex(
-                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json'),
-                video_id)['player']['params'][0]
+                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json', default='{}'),
+                video_id)
+            if data:
+                data = data['player']['params'][0]
+
+        if not data:
+            data = self._parse_json(
+                self._search_regex(
+                    r'var\s+playerParams\s*=\s*({.+?})\s*;\s*\n', info_page,
+                    'player params'),
+                video_id)['params'][0]
 
         title = unescapeHTML(data['md_title'])
 
-        if data.get('live') == 2:
+        is_live = data.get('live') == 2
+        if is_live:
             title = self._live_title(title)
 
         timestamp = unified_timestamp(self._html_search_regex(
@@ -408,8 +418,9 @@ class VKIE(VKBaseIE):
                 })
             elif format_id == 'hls':
                 formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', m3u8_id=format_id,
-                    fatal=False, live=True))
+                    format_url, video_id, 'mp4',
+                    entry_protocol='m3u8' if is_live else 'm3u8_native',
+                    m3u8_id=format_id, fatal=False, live=is_live))
             elif format_id == 'rtmp':
                 formats.append({
                     'format_id': format_id,
@@ -427,6 +438,7 @@ class VKIE(VKBaseIE):
             'duration': data.get('duration'),
             'timestamp': timestamp,
             'view_count': view_count,
+            'is_live': is_live,
         }
 
 
