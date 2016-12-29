@@ -245,7 +245,7 @@ class VKIE(VKBaseIE):
             },
         },
         {
-            # finished live stream, live_mp4
+            # finished live stream, postlive_mp4
             'url': 'https://vk.com/videos-387766?z=video-387766_456242764%2Fpl_-387766_-2',
             'md5': '90d22d051fccbbe9becfccc615be6791',
             'info_dict': {
@@ -258,7 +258,7 @@ class VKIE(VKBaseIE):
             },
         },
         {
-            # live stream, hls and rtmp links,most likely already finished live
+            # live stream, hls and rtmp links, most likely already finished live
             # stream by the time you are reading this comment
             'url': 'https://vk.com/video-140332_456239111',
             'only_matching': True,
@@ -392,6 +392,8 @@ class VKIE(VKBaseIE):
 
         title = unescapeHTML(data['md_title'])
 
+        # 2 = live
+        # 3 = post live (finished live)
         is_live = data.get('live') == 2
         if is_live:
             title = self._live_title(title)
@@ -408,7 +410,8 @@ class VKIE(VKBaseIE):
         for format_id, format_url in data.items():
             if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
-            if format_id.startswith(('url', 'cache')) or format_id in ('extra_data', 'live_mp4'):
+            if (format_id.startswith(('url', 'cache')) or
+                    format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):
                 height = int_or_none(self._search_regex(
                     r'^(?:url|cache)(\d+)', format_id, 'height', default=None))
                 formats.append({
