@@ -320,7 +320,6 @@ from .francetv import (
 )
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
-from .freevideo import FreeVideoIE
 from .funimation import FunimationIE
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
@@ -825,7 +824,7 @@ from .shared import (
     VivoIE,
 )
 from .sharesix import ShareSixIE
-from .showroomlive import ShowroomLiveIE
+from .showroomlive import ShowRoomLiveIE
 from .sina import SinaIE
 from .sixplay import SixPlayIE
 from .skynewsarabia import (
