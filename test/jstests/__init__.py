@@ -1,38 +1,38 @@
 from . import (
-    basic,
-    calc,
-    empty_return,
-    morespace,
-    strange_chars,
-    operators,
-    unary,
     array_access,
-    parens,
     assignments,
-    comments,
-    precedence,
-    call,
-    getfield,
+    basic,
     branch,
-    switch,
-    for_loop,
+    calc,
+    call,
+    comments,
+    debug,
+    do_loop,
+    empty_return,
     for_empty,
     for_in,
-    do_loop,
-    while_loop,
-    label,
+    for_loop,
     func_expr,
+    getfield,
+    label,
+    morespace,
     object_literal,
+    operators,
+    parens,
+    precedence,
+    strange_chars,
+    switch,
     try_statement,
-    with_statement,
-    debug,
-    unshift
+    unary,
+    unshift,
+    while_loop,
+    with_statement
 )
 
 
-modules = [basic, calc, empty_return, morespace, strange_chars, operators, unary, array_access, parens, assignments,
-           comments, precedence, call, getfield, branch, switch, for_loop, for_empty, for_in, do_loop, while_loop,
-           label, func_expr, object_literal, try_statement, with_statement, debug, unshift]
+modules = [array_access, assignments, basic, branch, calc, call, comments, debug, do_loop, empty_return, for_empty,
+           for_in, for_loop, func_expr, getfield, label, morespace, object_literal, operators, parens, precedence,
+           strange_chars, switch, try_statement, unary, unshift, while_loop, with_statement]
 
 
 def gettestcases():
