@@ -99,7 +99,25 @@ class StreamMeIE(InfoExtractor):
 
 class StreamMeLiveIE(StreamMeIE):
     IE_NAME = 'StreamIE:live'
-    _VALID_URL = r'%s/(?P<id>[^\#]+$)' % StreamMeIE._VALID_URL_BASE
+    _VALID_URL = r'%s\/(?P<id>[^\#\/]+$)' % StreamMeIE._VALID_URL_BASE
+    _TEST = {
+        'url': 'https://www.stream.me/kombatcup',
+        'info_dict': {
+            'id': 'live',  # see: StreamMeIE._extract_info()
+            'ext': 'mp4',
+            'title': 'KombatCup\'s Live Stream',
+            'age_limit': 13,
+            'uploader_id': 'kombatcup',
+            'uploader': 'KombatCup',
+            'like_count': int,
+            'dislike_count': int,
+            'is_live': True,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
