@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+see: `jstests`
+"""
+
 from __future__ import unicode_literals
 
 # Allow direct execution
@@ -14,7 +18,7 @@ else:
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.jsinterp import JSInterpreter
-from test.jstests import gettestcases
+from .jstests import gettestcases
 
 defs = gettestcases()
 # set level to logging.DEBUG to see messages about missing assertions
@@ -29,15 +33,25 @@ class TestJSInterpreter(unittest.TestCase):
 def generator(test_case, name):
     def test_template(self):
         for test in test_case['subtests']:
-            jsi = JSInterpreter(test['code'], variables=test.get('globals'))
-            if 'asserts' in test:
-                for a in test['asserts']:
-                    if 'call' in a:
-                        self.assertEqual(jsi.call_function(*a['call']), a['value'])
-                    else:
-                        self.assertEqual(jsi.run(), a['value'])
+            if 'code' not in test:
+                log_reason = 'No code in subtest, skipping'
+            elif 'asserts' not in test:
+                log_reason = 'No assertion in subtest, skipping'
             else:
-                log.debug('No assertion for subtest, skipping')
+                log_reason = None
+
+            if log_reason is None:
+                jsi = JSInterpreter(test['code'], variables=test.get('globals'))
+                for a in test['asserts']:
+                    if 'value' in a:
+                        if 'call' in a:
+                            self.assertEqual(jsi.call_function(*a['call']), a['value'])
+                        else:
+                            self.assertEqual(jsi.run(), a['value'])
+                    else:
+                        log.debug('No value in assertion, skipping')
+            else:
+                log.debug(log_reason)
 
     log = logging.getLogger('TestJSInterpreter.%s' % name)
     return test_template

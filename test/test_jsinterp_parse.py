@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
+"""
+see: `jstests`
+"""
+
 from __future__ import unicode_literals
 
 # Allow direct execution
 import os
 import sys
-import logging
 import copy
+import logging
 
 if sys.version_info < (2, 7):
     import unittest2 as unittest
@@ -20,7 +24,7 @@ from .jstests import gettestcases
 
 def traverse(node, tree_types=(list, tuple)):
     if sys.version_info > (3,) and isinstance(node, zip):
-        node = list(copy.deepcopy(node))
+        node = list(copy.copy(node))
     if isinstance(node, tree_types):
         tree = []
         for value in node:
@@ -42,13 +46,16 @@ class TestJSInterpreterParse(unittest.TestCase):
 
 def generator(test_case, name):
     def test_template(self):
-        for a in test_case['subtests']:
-            jsp = Parser(a['code'])
-            parsed = list(jsp.parse())
-            if 'ast' in a:
-                self.assertEqual(traverse(parsed), traverse(a['ast']))
+        for test in test_case['subtests']:
+            if 'code' in test:
+                jsp = Parser(test['code'])
+                parsed = list(jsp.parse())
+                if 'ast' in test:
+                    self.assertEqual(traverse(parsed), traverse(test['ast']))
+                else:
+                    log.debug('No AST for subtest, trying to parse only')
             else:
-                log.debug('No AST for subtest, trying to parse only')
+                log.debug('No code in subtest, skipping')
 
     log = logging.getLogger('TestJSInterpreterParse.%s' % name)
     return test_template
