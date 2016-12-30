@@ -94,6 +94,16 @@ class StreamMeIE(InfoExtractor):
                     # I don't know all the possible protocols yet.
                     # 'protocol': 'm3u8_native' if fmt_tag == 'mp4-hls' else 'http'
                 })
+            if d.get('origin') is not None:
+                fmt_tag = d.get('origin').get('location').split(':')[0]
+                formats.append({
+                    'url': d.get('origin').get('location'),
+                    'acodec': d.get('origin').get('audioCodec'),
+                    'vcodec': d.get('origin').get('videoCodec'),
+                    'format_id': 'Source-' + fmt_tag,
+                    'ext': 'flv' if fmt_tag == 'rtmp' else 'mp4',
+                    'source_preference': 1,
+                })
         return formats
 
 
