@@ -76,6 +76,7 @@ from .soundcloud import SoundcloudIE
 from .vbox7 import Vbox7IE
 from .dbtv import DBTVIE
 from .piksel import PikselIE
+from .videa import VideaIE
 
 
 class GenericIE(InfoExtractor):
@@ -1422,6 +1423,15 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 3,
         },
+        {
+            # Videa embeds
+            'url': 'http://forum.dvdtalk.com/movie-talk/623756-deleted-magic-star-wars-ot-deleted-alt-scenes-docu-style.html',
+            'info_dict': {
+                'id': '623756-deleted-magic-star-wars-ot-deleted-alt-scenes-docu-style',
+                'title': 'Deleted Magic - Star Wars: OT Deleted / Alt. Scenes Docu. Style - DVD Talk Forum',
+            },
+            'playlist_mincount': 2,
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2357,6 +2367,11 @@ class GenericIE(InfoExtractor):
         dbtv_urls = DBTVIE._extract_urls(webpage)
         if dbtv_urls:
             return _playlist_from_matches(dbtv_urls, ie=DBTVIE.ie_key())
+
+        # Look for Videa embeds
+        videa_urls = VideaIE._extract_urls(webpage)
+        if videa_urls:
+            return _playlist_from_matches(videa_urls, ie=VideaIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
