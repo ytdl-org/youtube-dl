@@ -80,6 +80,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      configuration in ~/.config/youtube-
                                      dl/config (%APPDATA%/youtube-dl/config.txt
                                      on Windows)
+    --config-location PATH           Location of the configuration file; either
+                                     the path to the config or its containing
+                                     directory.
     --flat-playlist                  Do not extract the videos of a playlist,
                                      only list them.
     --mark-watched                   Mark videos watched (YouTube only)
@@ -183,7 +186,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      of SIZE.
     --playlist-reverse               Download playlist videos in reverse order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
-                                     expected filesize (experimental)
+                                     expected file size (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of
                                      ffmpeg
     --hls-prefer-ffmpeg              Use ffmpeg instead of the native HLS
@@ -350,7 +353,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -u, --username USERNAME          Login with this account ID
     -p, --password PASSWORD          Account password. If this option is left
                                      out, youtube-dl will ask interactively.
-    -2, --twofactor TWOFACTOR        Two-factor auth code
+    -2, --twofactor TWOFACTOR        Two-factor authentication code
     -n, --netrc                      Use .netrc authentication data
     --video-password PASSWORD        Video password (vimeo, smotri, youku)
 

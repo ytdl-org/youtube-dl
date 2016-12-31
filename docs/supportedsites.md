@@ -263,7 +263,6 @@
  - **francetvinfo.fr**
  - **Freesound**
  - **freespeech.org**
- - **FreeVideo**
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
@@ -659,6 +658,7 @@
  - **Shahid**
  - **Shared**: shared.sx
  - **ShareSix**
+ - **ShowRoomLive**
  - **Sina**
  - **SixPlay**
  - **skynewsarabia:article**
@@ -834,6 +834,7 @@
  - **ViceShow**
  - **Vidbit**
  - **Viddler**
+ - **Videa**
  - **video.google:search**: Google Video search
  - **video.mit.edu**
  - **VideoDetective**

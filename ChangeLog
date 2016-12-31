@@ -1,4 +1,4 @@
-version <unreleased>
+version 2016.12.31
 
 Core
 + Introduce --config-location option for custom configuration files (#6745,
