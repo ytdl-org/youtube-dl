@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 
 import base64
 
-from ..compat import compat_urllib_parse_unquote
+from ..compat import (
+    compat_urllib_parse_unquote,
+    compat_urlparse,
+)
 from ..utils import determine_ext
 from .bokecc import BokeCCBaseIE
 
@@ -35,7 +38,7 @@ class InfoQIE(BokeCCBaseIE):
         },
     }]
 
-    def _extract_rtmp_videos(self, webpage):
+    def _extract_rtmp_video(self, webpage):
         # The server URL is hardcoded
         video_url = 'rtmpe://video.infoq.com/cfx/st/'
 
@@ -47,25 +50,43 @@ class InfoQIE(BokeCCBaseIE):
         playpath = 'mp4:' + real_id
 
         return [{
-            'format_id': 'rtmp',
+            'format_id': 'rtmp_video',
             'url': video_url,
             'ext': determine_ext(playpath),
             'play_path': playpath,
         }]
 
-    def _extract_http_videos(self, webpage):
-        http_video_url = self._search_regex(r'P\.s\s*=\s*\'([^\']+)\'', webpage, 'video URL')
-
+    def _extract_cookie(self, webpage):
         policy = self._search_regex(r'InfoQConstants.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
         signature = self._search_regex(r'InfoQConstants.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
         key_pair_id = self._search_regex(r'InfoQConstants.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
+        return 'CloudFront-Policy=%s; CloudFront-Signature=%s; CloudFront-Key-Pair-Id=%s' % (
+            policy, signature, key_pair_id)
+
+    def _extract_http_video(self, webpage):
+        http_video_url = self._search_regex(r'P\.s\s*=\s*\'([^\']+)\'', webpage, 'video URL')
+        return [{
+            'format_id': 'http_video',
+            'url': http_video_url,
+            'ext': determine_ext(http_video_url),
+            'http_headers': {
+                'Cookie': self._extract_cookie(webpage)
+            },
+        }]
+
+    def _extract_http_audio(self, webpage):
+        http_audio_url = self._search_regex(r'<input[^>]*?name="filename"[^>]*?value="([^\"]+)"[^>]*?>', webpage, 'audio URL', fatal=False)
+        if http_audio_url is None:
+            return []
+        http_audio_url = compat_urlparse.urljoin('http://res.infoq.com/downloads/mp3downloads/', http_audio_url)
 
         return [{
-            'format_id': 'http',
-            'url': http_video_url,
+            'format_id': 'http_audio',
+            'url': http_audio_url,
+            'ext': determine_ext(http_audio_url, ""),
+            'vcodec': 'none',
             'http_headers': {
-                'Cookie': 'CloudFront-Policy=%s; CloudFront-Signature=%s; CloudFront-Key-Pair-Id=%s' % (
-                    policy, signature, key_pair_id),
+                'Cookie': self._extract_cookie(webpage)
             },
         }]
 
@@ -80,7 +101,10 @@ class InfoQIE(BokeCCBaseIE):
             # for China videos, HTTP video URL exists but always fails with 403
             formats = self._extract_bokecc_formats(webpage, video_id)
         else:
-            formats = self._extract_rtmp_videos(webpage) + self._extract_http_videos(webpage)
+            formats = (
+                self._extract_rtmp_video(webpage) +
+                self._extract_http_video(webpage) +
+                self._extract_http_audio(webpage))
 
         self._sort_formats(formats)
 
