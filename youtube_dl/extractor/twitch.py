@@ -206,33 +206,19 @@ class TwitchChapterIE(TwitchItemBaseIE):
 
 class TwitchVodIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:vod'
-    _VALID_URL_BASE = r'https?://(?:www\.|player\.)?twitch\.tv'
-    _VALID_URL = r'%s/(?:[^/]+/v/|\?video=v)(?P<id>\d+)' % _VALID_URL_BASE
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?twitch\.tv/[^/]+/v/|
+                            player\.twitch\.tv/\?.*?\bvideo=v
+                        )
+                        (?P<id>\d+)
+                    '''
     _ITEM_TYPE = 'vod'
     _ITEM_SHORTCUT = 'v'
 
     _TESTS = [{
         'url': 'http://www.twitch.tv/riotgames/v/6528877?t=5m10s',
-        'info_dict': {
-            'id': 'v6528877',
-            'ext': 'mp4',
-            'title': 'LCK Summer Split - Week 6 Day 1',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'duration': 17208,
-            'timestamp': 1435131709,
-            'upload_date': '20150624',
-            'uploader': 'Riot Games',
-            'uploader_id': 'riotgames',
-            'view_count': int,
-            'start_time': 310,
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }, {
-        # player.twitch.tv URL
-        'url': 'http://player.twitch.tv/?video=v6528877&t=5m10s',
         'info_dict': {
             'id': 'v6528877',
             'ext': 'mp4',
@@ -270,6 +256,9 @@ class TwitchVodIE(TwitchItemBaseIE):
             'skip_download': True,
         },
         'skip': 'HTTP Error 404: Not Found',
+    }, {
+        'url': 'http://player.twitch.tv/?t=5m10s&video=v6528877',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
