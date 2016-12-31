@@ -16,7 +16,7 @@ class StreamMeIE(InfoExtractor):
     _API_CHANNEL = 'https://www.stream.me/api-user/v1/%s/channel'
     _API_ARCHIVE = 'https://www.stream.me/api-vod/v1/%s/archives'
     _VALID_URL_BASE = r'https?://(video-cdn|www).stream.me'
-    _VALID_URL = r'%s/archive\/(?P<channel_id>[^\#/]+)/[^\/]+/(?P<id>[^/]+)' % _VALID_URL_BASE
+    _VALID_URL = r'%s/archive/(?P<channel_id>[^\#/]+)/[^/]+/(?P<id>[^/]+)' % _VALID_URL_BASE
     _TEST = {
         'url': 'https://www.stream.me/archive/kombatcup/kombat-cup-week-8-sunday-open/pDlXAj6mYb',
         'md5': 'b32af6fad972d0bcf5854a416b5b3b01',
@@ -107,7 +107,7 @@ class StreamMeIE(InfoExtractor):
 
 class StreamMeLiveIE(StreamMeIE):
     IE_NAME = 'StreamIE:live'
-    _VALID_URL = r'%s\/(?P<id>[^\#\/]+$)' % StreamMeIE._VALID_URL_BASE
+    _VALID_URL = r'%s/(?P<id>[^\#/]+$)' % StreamMeIE._VALID_URL_BASE
     _TEST = {
         'url': 'https://www.stream.me/kombatcup',
         'info_dict': {
@@ -121,6 +121,7 @@ class StreamMeLiveIE(StreamMeIE):
             'dislike_count': int,
             'is_live': True,
         },
+        'skip': 'kombatcup is offline',
         'params': {
             # m3u8 download
             'skip_download': True,
