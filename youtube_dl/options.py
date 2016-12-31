@@ -179,9 +179,9 @@ def parseOpts(overrideArguments=None):
         'Do not read the user configuration in ~/.config/youtube-dl/config '
         '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
-        '--config-file',
-        dest='configfile', metavar='FILE',
-        help='File to read configuration from.')
+        '--config-location',
+        dest='config_location', metavar='PATH',
+        help='Location of the configuration file; either the path to the config or its containing directory.')
     general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
@@ -851,30 +851,30 @@ def parseOpts(overrideArguments=None):
         command_line_conf = compat_conf(sys.argv[1:])
         opts, args = parser.parse_args(command_line_conf)
 
-        if '--ignore-config' in command_line_conf:
-            system_conf = []
-            user_conf = []
-        elif '--config-file' in command_line_conf:
-            if not os.path.isfile(opts.configfile):
-                parser.error('Config file {0} not found.'.format(opts.configfile))
-            else:
-                user_conf = _readOptions(opts.configfile)
-                system_conf = []
+        system_conf = user_conf = custom_conf = []
 
+        if '--config-location' in command_line_conf:
+            location = compat_expanduser(opts.config_location)
+            if os.path.isdir(location):
+                location = os.path.join(location, 'youtube-dl.conf')
+            if not os.path.exists(location):
+                parser.error('config-location %s does not exist.' % location)
+            custom_conf = _readOptions(location)
+        elif '--ignore-config' in command_line_conf:
+            pass
         else:
             system_conf = _readOptions('/etc/youtube-dl.conf')
-            if '--ignore-config' in system_conf:
-                user_conf = []
-            else:
+            if '--ignore-config' not in system_conf:
                 user_conf = _readUserConf()
 
         argv = system_conf + user_conf + command_line_conf
-
         opts, args = parser.parse_args(argv)
-
         if opts.verbose:
-            write_string('[debug] System config: ' + repr(_hide_login_info(system_conf)) + '\n')
-            write_string('[debug] User config: ' + repr(_hide_login_info(user_conf)) + '\n')
-            write_string('[debug] Command-line args: ' + repr(_hide_login_info(command_line_conf)) + '\n')
+            for conf_label, conf in (
+                    ('System config', system_conf),
+                    ('User config', user_conf),
+                    ('Custom config', custom_conf),
+                    ('Command-line args', command_line_conf)):
+                write_string('[debug] %s: %s\n' % (conf_label, repr(_hide_login_info(conf))))
 
     return parser, opts, args
