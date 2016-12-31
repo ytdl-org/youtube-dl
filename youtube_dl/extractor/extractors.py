@@ -1064,10 +1064,7 @@ from .vice import (
 from .viceland import VicelandIE
 from .vidbit import VidbitIE
 from .viddler import ViddlerIE
-from .videa import (
-    VideaIE,
-    VideaEmbedIE,
-)
+from .videa import VideaIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .videomega import VideoMegaIE
