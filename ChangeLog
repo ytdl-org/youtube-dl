@@ -1,3 +1,23 @@
+version <unreleased>
+
+Core
++ Introduce --config-location option for custom configuration files (#6745,
+  #10648)
+
+Extractors
++ [twitch] Add support for player.twitch.tv (#11535, #11537)
++ [videa] Add support for videa.hu (#8181, #11133)
+* [vk] Fix postlive videos extraction
+* [vk] Extract from playerParams (#11555)
+- [freevideo] Remove extractor (#11515)
++ [showroomlive] Add support for showroom-live.com (#11458)
+* [xhamster] Fix duration extraction (#11549)
+* [rtve:live] Fix extraction (#11529)
+* [brightcove:legacy] Improve embeds detection (#11523)
++ [twitch] Add support for rechat messages (#11524)
+* [acast] Fix audio and timestamp extraction (#11521)
+
+
 version 2016.12.22
 
 Core
