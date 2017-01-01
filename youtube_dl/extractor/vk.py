@@ -87,7 +87,7 @@ class VKIE(VKBaseIE):
                                 (?:(?:m|new)\.)?vk\.com/video_|
                                 (?:www\.)?daxab.com/
                             )
-                            ext\.php\?(?P<embed_query>.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+).*)|
+                            (?:ext\.php|player/)\?(?P<embed_query>.*?\boid=(?P<oid>-?\d+).*?\bid=(?P<id>\d+).*)|
                             (?:
                                 (?:(?:m|new)\.)?vk\.com/(?:.+?\?.*?z=)?video|
                                 (?:www\.)?daxab.com/embed/
@@ -293,15 +293,14 @@ class VKIE(VKBaseIE):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('videoid')
 
-        if video_id:
-            info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
-            # Some videos (removed?) can only be downloaded with list id specified
-            list_id = mobj.group('list_id')
-            if list_id:
-                info_url += '&list=%s' % list_id
-        else:
-            info_url = 'http://vk.com/video_ext.php?' + mobj.group('embed_query')
+        if not video_id:
             video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
+
+        info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
+        # Some videos (removed?) can only be downloaded with list id specified
+        list_id = mobj.group('list_id')
+        if list_id:
+            info_url += '&list=%s' % list_id
 
         info_page = self._download_webpage(info_url, video_id)
 
@@ -389,7 +388,7 @@ class VKIE(VKBaseIE):
         if not data:
             data = self._parse_json(
                 self._search_regex(
-                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json', default='{}'),
+                    r'<!json>({(?:(?!<!>).)*})(?:<!>|$)', info_page, 'json', default='{}'),
                 video_id)
             if data:
                 data = data['player']['params'][0]
