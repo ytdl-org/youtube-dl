@@ -290,6 +290,16 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         try:
             self._downloader.to_screen('[ffmpeg] Destination: ' + new_path)
+
+            if information.get('artist') is not None:
+                more_opts += ['-metadata', 'artist={}'.format(information['artist'])]
+
+            if information.get('title') is not None:
+                more_opts += ['-metadata', 'title={}'.format(information['title'])]
+
+            if information.get('album') is not None:
+                more_opts += ['-metadata', 'album={}'.format(information['album'])]
+
             self.run_ffmpeg(path, new_path, acodec, more_opts)
         except AudioConversionError as e:
             raise PostProcessingError(
