@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
@@ -47,7 +46,7 @@ class StreamMeIE(InfoExtractor):
         manifest_json = self._download_json(vod_info['_links']['manifest']['href'],
                                             video_id, note='Downloading video manifest')
 
-        formats = self._extract_formats(manifest_json.get('formats'))
+        formats = self._extract_formats(manifest_json['formats'])
         self._sort_formats(formats, 'vbr')
         info = self._extract_info(vod_info)
         info['formats'] = formats
@@ -78,7 +77,7 @@ class StreamMeIE(InfoExtractor):
             # skip websocket and mjpeg we can't handle them anyway
             if fmt_tag in ('mjpeg-lodef', 'mp4-ws',):
                 continue
-            for fmt_info in d.get('encodings'):
+            for fmt_info in d['encodings']:
                 formats.append({
                     'url': fmt_info.get('location'),
                     'width': int_or_none(fmt_info.get('videoWidth')),
@@ -93,7 +92,7 @@ class StreamMeIE(InfoExtractor):
                     # 'protocol': 'm3u8_native' if fmt_tag == 'mp4-hls' else 'http'
                 })
             if d.get('origin') is not None:
-                fmt_tag = d.get('origin').get('location').split(':')[0]
+                fmt_tag = d['origin']['location'].split(':')[0]
                 formats.append({
                     'url': d.get('origin').get('location'),
                     'acodec': d.get('origin').get('audioCodec'),
@@ -132,10 +131,10 @@ class StreamMeLiveIE(StreamMeIE):
         channel_id = self._match_id(url)
         apiurl = StreamMeIE._API_CHANNEL % channel_id
 
-        data = json.loads(self._download_webpage(apiurl, channel_id))
+        data = self._download_json(apiurl, channel_id)
         stream_info = []
         # search for a live stream...
-        for stream in data.get('_embedded').get('streams'):
+        for stream in data['_embedded']['streams']:
             stream_info = stream
             break   # TODO: add to a list (multi-streams?)
 
@@ -143,9 +142,9 @@ class StreamMeLiveIE(StreamMeIE):
             raise ExtractorError('%s is offline' % channel_id, expected=True)
 
         manifest_json = self._download_json(stream_info['_links']['manifest']['href'],
-                                            channel_id, 'Download video manifest')
+                                            channel_id, 'Downloading video manifest')
 
-        formats = self._extract_formats(manifest_json.get('formats'))
+        formats = self._extract_formats(manifest_json['formats'])
         self._sort_formats(formats, 'vbr')
         info = self._extract_info(stream_info)
         info['formats'] = formats
@@ -177,8 +176,9 @@ class StreamMeArchiveIE(StreamMeIE):
         playlist = []
 
         for vod in data['_embedded']['vod']:
-            manifest_json = self._download_json(vod['_links']['manifest']['href'], vod.get('urlId'))
-            formats = self._extract_formats(manifest_json.get('formats'))
+            manifest_json = self._download_json(vod['_links']['manifest']['href'],
+                                                vod['urlId'], note='Downloading video manifest')
+            formats = self._extract_formats(manifest_json['formats'])
             self._sort_formats(formats, 'vbr')
             info = self._extract_info(vod)
             info['formats'] = formats
