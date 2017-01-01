@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -14,8 +12,9 @@ class StreamMeIE(InfoExtractor):
     IE_NAME = 'StreamMe:video'
     _API_CHANNEL = 'https://www.stream.me/api-user/v1/%s/channel'
     _API_ARCHIVE = 'https://www.stream.me/api-vod/v1/%s/archives'
-    _VALID_URL_BASE = r'https?://(video-cdn|www).stream.me'
-    _VALID_URL = r'%s/archive/(?P<channel_id>[^\#/]+)/[^/]+/(?P<id>[^/]+)' % _VALID_URL_BASE
+    _API_VOD = 'https://www.stream.me/api-vod/v1/vod/%s'
+    _VALID_URL_BASE = r'https?://www.stream.me'
+    _VALID_URL = r'%s/archive/(?P<channel_id>[^#/]+)/[^/]+/(?P<id>[^/]+)' % _VALID_URL_BASE
     _TEST = {
         'url': 'https://www.stream.me/archive/kombatcup/kombat-cup-week-8-sunday-open/pDlXAj6mYb',
         'md5': 'b32af6fad972d0bcf5854a416b5b3b01',
@@ -31,17 +30,13 @@ class StreamMeIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        m = re.match(self._VALID_URL, url)
         video_id = self._match_id(url)
-        apiurl = self._API_ARCHIVE % m.group('channel_id')
+        data = self._download_json(self._API_VOD % video_id, video_id)
 
-        data = self._download_json(apiurl, video_id)
-
-        for vod in data['_embedded']['vod']:
-            vod_info = []
-            if vod.get('urlId') == video_id:
-                vod_info = vod
-                break
+        if len(data['_embedded']['streams']) > 0:
+            vod_info = data['_embedded']['streams'][0]
+        else:
+            raise ExtractorError('Video "%s" not found' % video_id, expected=True)
 
         manifest_json = self._download_json(vod_info['_links']['manifest']['href'],
                                             video_id, note='Downloading video manifest')
@@ -64,7 +59,7 @@ class StreamMeIE(InfoExtractor):
             'duration': int_or_none(info.get('duration')),
             'like_count': int_or_none(info.get('stats').get('raw').get('likes')),
             'thumbnail': info.get('_links').get('thumbnail').get('href'),
-            'timestamp': info.get('whenCreated'),
+            'timestamp': int_or_none(info.get('whenCreated')),
             'uploader': info.get('username'),
             'uploader_id': info.get('userSlug'),
             'view_count': int_or_none(info.get('stats').get('raw').get('views')),
@@ -91,7 +86,7 @@ class StreamMeIE(InfoExtractor):
                     # I don't know all the possible protocols yet.
                     # 'protocol': 'm3u8_native' if fmt_tag == 'mp4-hls' else 'http'
                 })
-            if d.get('origin') is not None:
+            if d.get('origin') is not None and d.get('origin').get('location') is not None:
                 fmt_tag = d['origin']['location'].split(':')[0]
                 formats.append({
                     'url': d.get('origin').get('location'),
@@ -106,7 +101,7 @@ class StreamMeIE(InfoExtractor):
 
 class StreamMeLiveIE(StreamMeIE):
     IE_NAME = 'StreamIE:live'
-    _VALID_URL = r'%s/(?P<id>[^\#/]+$)' % StreamMeIE._VALID_URL_BASE
+    _VALID_URL = r'%s/(?P<id>[^#/]+$)' % StreamMeIE._VALID_URL_BASE
     _TEST = {
         'url': 'https://www.stream.me/kombatcup',
         'info_dict': {
@@ -153,7 +148,7 @@ class StreamMeLiveIE(StreamMeIE):
 
 class StreamMeArchiveIE(StreamMeIE):
     IE_NAME = 'StreamMe:archives'
-    _VALID_URL = r'%s/(?P<id>[^\#]+)(\#archive)$' % StreamMeIE._VALID_URL_BASE
+    _VALID_URL = r'%s/(?P<id>[^#]+)#archive$' % StreamMeIE._VALID_URL_BASE
     _PLAYLIST_TYPE = 'past broadcasts'
     _PLAYLIST_LIMIT = 128
     _TEST = {
