@@ -1787,8 +1787,11 @@ class YoutubeDL(object):
         for url in url_list:
             try:
                 # It also downloads the videos
+                try:
                 res = self.extract_info(
                     url, force_generic_extractor=self.params.get('force_generic_extractor', False))
+                except:
+                    pass
             except UnavailableVideoError:
                 self.report_error('unable to download video')
             except MaxDownloadsReached:
