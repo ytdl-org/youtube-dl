@@ -196,6 +196,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='no_color',
         default=False,
         help='Do not emit color codes in output')
+    general.add_option(
+        '--read-file', '--read-file',
+        metavar='FILE', dest='read_file',
+        help='Read a File containing the links')
 
     network = optparse.OptionGroup(parser, 'Network Options')
     network.add_option(
