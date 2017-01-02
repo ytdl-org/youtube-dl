@@ -24,7 +24,7 @@ class ZapiksIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'EP2S3 - Bon Appétit - Eh bé viva les pyrénées con!',
                 'description': 'md5:7054d6f6f620c6519be1fe710d4da847',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 528,
                 'timestamp': 1359044972,
                 'upload_date': '20130124',

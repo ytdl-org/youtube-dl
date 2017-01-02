@@ -19,7 +19,7 @@ class OpenloadIE(InfoExtractor):
             'id': 'kUEfGclsU9o',
             'ext': 'mp4',
             'title': 'skyrim_no-audio_1080.mp4',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'https://openload.co/embed/rjC09fkPLYs',
@@ -27,7 +27,7 @@ class OpenloadIE(InfoExtractor):
             'id': 'rjC09fkPLYs',
             'ext': 'mp4',
             'title': 'movie.mp4',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'subtitles': {
                 'en': [{
                     'ext': 'vtt',

@@ -79,7 +79,7 @@ class ToshIE(MTVServicesInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Tosh.0|June 9, 2077|2|211|Twitter Users Share Summer Plans',
                 'description': 'Tosh asked fans to share their summer plans.',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 # It's really reported to be published on year 2077
                 'upload_date': '20770610',
                 'timestamp': 3390510600,

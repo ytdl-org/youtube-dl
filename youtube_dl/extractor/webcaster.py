@@ -20,7 +20,7 @@ class WebcasterIE(InfoExtractor):
             'id': 'c8cefd240aa593681c8d068cff59f407_hd',
             'ext': 'mp4',
             'title': 'Сибирь - Нефтехимик. Лучшие моменты первого периода',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://bl.webcaster.pro/media/start/free_6246c7a4453ac4c42b4398f840d13100_hd/2_2991109016/e8d0d82587ef435480118f9f9c41db41/4635726126',

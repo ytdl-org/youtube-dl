@@ -302,7 +302,7 @@ class NDREmbedIE(NDREmbedBaseIE):
         'info_dict': {
             'id': 'livestream217',
             'ext': 'flv',
-            'title': 're:^NDR Fernsehen Niedersachsen \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
+            'title': r're:^NDR Fernsehen Niedersachsen \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
             'is_live': True,
             'upload_date': '20150910',
         },
@@ -367,7 +367,7 @@ class NJoyEmbedIE(NDREmbedBaseIE):
         'info_dict': {
             'id': 'webradioweltweit100',
             'ext': 'mp3',
-            'title': 're:^N-JOY Weltweit \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
+            'title': r're:^N-JOY Weltweit \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
             'is_live': True,
             'uploader': 'njoy',
             'upload_date': '20150810',

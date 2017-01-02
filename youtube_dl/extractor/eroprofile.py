@@ -22,7 +22,7 @@ class EroProfileIE(InfoExtractor):
             'display_id': 'sexy-babe-softcore',
             'ext': 'm4v',
             'title': 'sexy babe softcore',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
         }
     }, {
@@ -32,7 +32,7 @@ class EroProfileIE(InfoExtractor):
             'id': '1133519',
             'ext': 'm4v',
             'title': 'Try It On Pee_cut_2.wmv - 4shared.com - file sharing - download movie file',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
         },
         'skip': 'Requires login',

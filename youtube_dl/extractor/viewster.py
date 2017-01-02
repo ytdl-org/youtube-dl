@@ -157,7 +157,7 @@ class ViewsterIE(InfoExtractor):
                         formats.extend(m3u8_formats)
                 else:
                     qualities_basename = self._search_regex(
-                        '/([^/]+)\.csmil/',
+                        r'/([^/]+)\.csmil/',
                         manifest_url, 'qualities basename', default=None)
                     if not qualities_basename:
                         continue

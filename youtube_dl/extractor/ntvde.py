@@ -22,7 +22,7 @@ class NTVDeIE(InfoExtractor):
         'info_dict': {
             'id': '14438086',
             'ext': 'mp4',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'title': 'Schnee und Glätte führen zu zahlreichen Unfällen und Staus',
             'alt_title': 'Winterchaos auf deutschen Straßen',
             'description': 'Schnee und Glätte sorgen deutschlandweit für einen chaotischen Start in die Woche: Auf den Straßen kommt es zu kilometerlangen Staus und Dutzenden Glätteunfällen. In Düsseldorf und München wirbelt der Schnee zudem den Flugplan durcheinander. Dutzende Flüge landen zu spät, einige fallen ganz aus.',

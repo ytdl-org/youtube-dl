@@ -19,7 +19,7 @@ class MinhatecaIE(InfoExtractor):
             'id': '125848331',
             'ext': 'mp4',
             'title': 'youtube-dl test video',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'filesize_approx': 1530000,
             'duration': 9,
             'view_count': int,

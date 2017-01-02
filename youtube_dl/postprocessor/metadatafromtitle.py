@@ -12,7 +12,7 @@ class MetadataFromTitlePP(PostProcessor):
         self._titleregex = self.format_to_regex(titleformat)
 
     def format_to_regex(self, fmt):
-        """
+        r"""
         Converts a string like
            '%(title)s - %(artist)s'
         to a regex like

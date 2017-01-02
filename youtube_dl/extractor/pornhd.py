@@ -21,7 +21,7 @@ class PornHdIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Restroom selfie masturbation',
             'description': 'md5:3748420395e03e31ac96857a8f125b2b',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
             'age_limit': 18,
         }
@@ -35,7 +35,7 @@ class PornHdIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sierra loves doing laundry',
             'description': 'md5:8ff0523848ac2b8f9b065ba781ccf294',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
             'age_limit': 18,
         },

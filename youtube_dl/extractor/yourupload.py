@@ -19,7 +19,7 @@ class YourUploadIE(InfoExtractor):
                 'id': '14i14h',
                 'ext': 'mp4',
                 'title': 'BigBuckBunny_320x180.mp4',
-                'thumbnail': 're:^https?://.*\.jpe?g',
+                'thumbnail': r're:^https?://.*\.jpe?g',
             }
         },
         {

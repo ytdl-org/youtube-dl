@@ -24,7 +24,7 @@ class GigaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Anime Awesome: Chihiros Reise ins Zauberland – Das Beste kommt zum Schluss',
             'description': 'md5:afdf5862241aded4718a30dff6a57baf',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 578,
             'timestamp': 1414749706,
             'upload_date': '20141031',

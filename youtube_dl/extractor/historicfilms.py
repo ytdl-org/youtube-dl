@@ -14,7 +14,7 @@ class HistoricFilmsIE(InfoExtractor):
             'ext': 'mov',
             'title': 'Historic Films: GP-7',
             'description': 'md5:1a86a0f3ac54024e419aba97210d959a',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 2096,
         },
     }

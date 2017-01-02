@@ -153,7 +153,7 @@ class SRGSSRPlayIE(InfoExtractor):
             'uploader': '19h30',
             'upload_date': '20141201',
             'timestamp': 1417458600,
-            'thumbnail': 're:^https?://.*\.image',
+            'thumbnail': r're:^https?://.*\.image',
             'view_count': int,
         },
         'params': {

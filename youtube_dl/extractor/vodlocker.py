@@ -20,7 +20,7 @@ class VodlockerIE(InfoExtractor):
             'id': 'e8wvyzz4sl42',
             'ext': 'mp4',
             'title': 'Germany vs Brazil',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }]
 

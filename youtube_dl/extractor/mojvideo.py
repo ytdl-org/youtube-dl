@@ -20,7 +20,7 @@ class MojvideoIE(InfoExtractor):
             'display_id': 'v-avtu-pred-mano-rdecelaska-alfi-nipic',
             'ext': 'mp4',
             'title': 'V avtu pred mano rdečelaska - Alfi Nipič',
-            'thumbnail': 're:^http://.*\.jpg$',
+            'thumbnail': r're:^http://.*\.jpg$',
             'duration': 242,
         }
     }

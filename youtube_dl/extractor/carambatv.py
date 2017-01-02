@@ -21,7 +21,7 @@ class CarambaTVIE(InfoExtractor):
             'id': '191910501',
             'ext': 'mp4',
             'title': '[BadComedian] - Разборка в Маниле (Абсолютный обзор)',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 2678.31,
         },
     }, {
@@ -69,7 +69,7 @@ class CarambaTVPageIE(InfoExtractor):
             'id': '475222',
             'ext': 'flv',
             'title': '[BadComedian] - Разборка в Маниле (Абсолютный обзор)',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             # duration reported by videomore is incorrect
             'duration': int,
         },

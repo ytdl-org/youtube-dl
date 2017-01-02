@@ -21,7 +21,7 @@ class SportBoxIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Гонка 2  заезд ««Объединенный 2000»: классы Туринг и Супер-продакшн',
             'description': 'md5:3d72dc4a006ab6805d82f037fdc637ad',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140928',
         },
         'params': {
@@ -73,7 +73,7 @@ class SportBoxEmbedIE(InfoExtractor):
             'id': '211355',
             'ext': 'mp4',
             'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             # m3u8 download

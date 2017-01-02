@@ -22,7 +22,7 @@ class Varzesh3IE(InfoExtractor):
             'ext': 'mp4',
             'title': '۵ واکنش برتر دروازه‌بانان؛هفته ۲۶ بوندسلیگا',
             'description': 'فصل ۲۰۱۵-۲۰۱۴',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'skip': 'HTTP 404 Error',
     }, {
@@ -67,7 +67,7 @@ class Varzesh3IE(InfoExtractor):
             webpage, display_id, default=None)
         if video_id is None:
             video_id = self._search_regex(
-                'var\s+VideoId\s*=\s*(\d+);', webpage, 'video id',
+                r'var\s+VideoId\s*=\s*(\d+);', webpage, 'video id',
                 default=display_id)
 
         return {

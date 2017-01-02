@@ -22,7 +22,7 @@ class LnkGoIE(InfoExtractor):
             'description': 'md5:d82a5e36b775b7048617f263a0e3475e',
             'age_limit': 7,
             'duration': 3019,
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         },
         'params': {
             'skip_download': True,  # HLS download
@@ -37,7 +37,7 @@ class LnkGoIE(InfoExtractor):
             'description': 'md5:7352d113a242a808676ff17e69db6a69',
             'age_limit': 18,
             'duration': 346,
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         },
         'params': {
             'skip_download': True,  # HLS download

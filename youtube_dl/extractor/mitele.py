@@ -90,7 +90,7 @@ class MiTeleIE(InfoExtractor):
             'season_id': 'diario_de_t14_11981',
             'episode': 'Programa 144',
             'episode_number': 3,
-            'thumbnail': 're:(?i)^https?://.*\.jpg$',
+            'thumbnail': r're:(?i)^https?://.*\.jpg$',
             'duration': 2913,
         },
         'add_ie': ['Ooyala'],
@@ -108,7 +108,7 @@ class MiTeleIE(InfoExtractor):
             'season_id': 'cuarto_milenio_t06_12715',
             'episode': 'Programa 226',
             'episode_number': 24,
-            'thumbnail': 're:(?i)^https?://.*\.jpg$',
+            'thumbnail': r're:(?i)^https?://.*\.jpg$',
             'duration': 7313,
         },
         'params': {

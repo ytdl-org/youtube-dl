@@ -91,7 +91,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         formats = []
 
         def extract_video_url(vl):
-            return re.sub('speed=\d+', 'speed=', unescapeHTML(vl.text))
+            return re.sub(r'speed=\d+', 'speed=', unescapeHTML(vl.text))
 
         video_link = cfg_xml.find('./videoLink')
         if video_link is not None:
@@ -174,7 +174,7 @@ class TNAFlixNetworkEmbedIE(TNAFlixNetworkBaseIE):
             'display_id': '6538',
             'ext': 'mp4',
             'title': 'Educational xxx video',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         },
         'params': {
@@ -209,7 +209,7 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
             'display_id': 'Carmella-Decesare-striptease',
             'ext': 'mp4',
             'title': 'Carmella Decesare - striptease',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 91,
             'age_limit': 18,
             'categories': ['Porn Stars'],
@@ -224,7 +224,7 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
             'ext': 'mp4',
             'title': 'Educational xxx video',
             'description': 'md5:b4fab8f88a8621c8fabd361a173fe5b8',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 164,
             'age_limit': 18,
             'uploader': 'bobwhite39',
@@ -250,7 +250,7 @@ class EMPFlixIE(TNAFlixNetworkBaseIE):
             'ext': 'mp4',
             'title': 'Amateur Finger Fuck',
             'description': 'Amateur solo finger fucking.',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 83,
             'age_limit': 18,
             'uploader': 'cwbike',
@@ -280,7 +280,7 @@ class MovieFapIE(TNAFlixNetworkBaseIE):
             'ext': 'mp4',
             'title': 'Experienced MILF Amazing Handjob',
             'description': 'Experienced MILF giving an Amazing Handjob',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
             'uploader': 'darvinfred06',
             'view_count': int,
@@ -298,7 +298,7 @@ class MovieFapIE(TNAFlixNetworkBaseIE):
             'ext': 'flv',
             'title': 'Jeune Couple Russe',
             'description': 'Amateur',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
             'uploader': 'whiskeyjar',
             'view_count': int,

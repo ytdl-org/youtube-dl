@@ -27,7 +27,7 @@ class MyviIE(SprutoBaseIE):
             'id': 'f16b2bbd-cde8-481c-a981-7cd48605df43',
             'ext': 'mp4',
             'title': 'хозяин жизни',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 25,
         },
     }, {

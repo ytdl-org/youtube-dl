@@ -23,7 +23,7 @@ class EuropaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'TRADE - Wikileaks on TTIP',
             'description': 'NEW  LIVE EC Midday press briefing of 11/08/2015',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20150811',
             'duration': 34,
             'view_count': int,

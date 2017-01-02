@@ -37,7 +37,7 @@ class LivestreamIE(InfoExtractor):
             'duration': 5968.0,
             'like_count': int,
             'view_count': int,
-            'thumbnail': 're:^http://.*\.jpg$'
+            'thumbnail': r're:^http://.*\.jpg$'
         }
     }, {
         'url': 'http://new.livestream.com/tedx/cityenglish',

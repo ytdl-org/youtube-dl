@@ -205,7 +205,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'title': "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
                 'description': 'md5:2d3305bad981a06ff79f027f19865021',
                 'upload_date': '20121220',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user7108434',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user7108434',
                 'uploader_id': 'user7108434',
                 'uploader': 'Filippo Valsorda',
                 'duration': 10,
@@ -218,7 +218,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'info_dict': {
                 'id': '68093876',
                 'ext': 'mp4',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/openstreetmapus',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/openstreetmapus',
                 'uploader_id': 'openstreetmapus',
                 'uploader': 'OpenStreetMap US',
                 'title': 'Andy Allan - Putting the Carto into OpenStreetMap Cartography',
@@ -235,7 +235,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Kathy Sierra: Building the minimum Badass User, Business of Software 2012',
                 'uploader': 'The BLN & Business of Software',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/theblnbusinessofsoftware',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/theblnbusinessofsoftware',
                 'uploader_id': 'theblnbusinessofsoftware',
                 'duration': 3610,
                 'description': None,
@@ -250,7 +250,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'youtube-dl password protected test video',
                 'upload_date': '20130614',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user18948128',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user18948128',
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
                 'duration': 10,
@@ -268,7 +268,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Key & Peele: Terrorist Interrogation',
                 'description': 'md5:8678b246399b070816b12313e8b4eb5c',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/atencio',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/atencio',
                 'uploader_id': 'atencio',
                 'uploader': 'Peter Atencio',
                 'upload_date': '20130927',
@@ -284,7 +284,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'title': 'The New Vimeo Player (You Know, For Videos)',
                 'description': 'md5:2ec900bf97c3f389378a96aee11260ea',
                 'upload_date': '20131015',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/staff',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/staff',
                 'uploader_id': 'staff',
                 'uploader': 'Vimeo Staff',
                 'duration': 62,
@@ -299,7 +299,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Pier Solar OUYA Official Trailer',
                 'uploader': 'Tulio Gonçalves',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user28849593',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user28849593',
                 'uploader_id': 'user28849593',
             },
         },
@@ -312,7 +312,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'FOX CLASSICS - Forever Classic ID - A Full Minute',
                 'uploader': 'The DMCI',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/dmci',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/dmci',
                 'uploader_id': 'dmci',
                 'upload_date': '20111220',
                 'description': 'md5:ae23671e82d05415868f7ad1aec21147',
@@ -327,7 +327,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Vimeo Tribute: The Shining',
                 'uploader': 'Casey Donahue',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/caseydonahue',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/caseydonahue',
                 'uploader_id': 'caseydonahue',
                 'upload_date': '20090821',
                 'description': 'md5:bdbf314014e58713e6e5b66eb252f4a6',
@@ -346,7 +346,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'The Reluctant Revolutionary',
                 'uploader': '10Ft Films',
-                'uploader_url': 're:https?://(?:www\.)?vimeo\.com/tenfootfilms',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/tenfootfilms',
                 'uploader_id': 'tenfootfilms',
             },
             'params': {
@@ -497,7 +497,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             except RegexNotFoundError:
                 # For pro videos or player.vimeo.com urls
                 # We try to find out to which variable is assigned the config dic
-                m_variable_name = re.search('(\w)\.video\.id', webpage)
+                m_variable_name = re.search(r'(\w)\.video\.id', webpage)
                 if m_variable_name is not None:
                     config_re = r'%s=({[^}].+?});' % re.escape(m_variable_name.group(1))
                 else:
@@ -626,7 +626,7 @@ class VimeoOndemandIE(VimeoBaseInfoExtractor):
             'ext': 'mp4',
             'title': 'המעבדה - במאי יותם פלדמן',
             'uploader': 'גם סרטים',
-            'uploader_url': 're:https?://(?:www\.)?vimeo\.com/gumfilms',
+            'uploader_url': r're:https?://(?:www\.)?vimeo\.com/gumfilms',
             'uploader_id': 'gumfilms',
         },
     }, {
@@ -637,7 +637,7 @@ class VimeoOndemandIE(VimeoBaseInfoExtractor):
             'ext': 'mp4',
             'title': 'Rävlock, rätt läte på rätt plats',
             'uploader': 'Lindroth & Norin',
-            'uploader_url': 're:https?://(?:www\.)?vimeo\.com/user14430847',
+            'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user14430847',
             'uploader_id': 'user14430847',
         },
         'params': {
@@ -857,7 +857,7 @@ class VimeoReviewIE(VimeoBaseInfoExtractor):
             'title': 're:(?i)^Death by dogma versus assembling agile . Sander Hoogendoorn',
             'uploader': 'DevWeek Events',
             'duration': 2773,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader_id': 'user22258446',
         }
     }, {

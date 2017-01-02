@@ -72,7 +72,7 @@ class MDRIE(InfoExtractor):
 
         data_url = self._search_regex(
             r'(?:dataURL|playerXml(?:["\'])?)\s*:\s*(["\'])(?P<url>.+/(?:video|audio)-?[0-9]+-avCustom\.xml)\1',
-            webpage, 'data url', group='url').replace('\/', '/')
+            webpage, 'data url', group='url').replace(r'\/', '/')
 
         doc = self._download_xml(
             compat_urlparse.urljoin(url, data_url), video_id)

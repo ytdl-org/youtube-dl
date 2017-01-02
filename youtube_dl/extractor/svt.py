@@ -129,7 +129,7 @@ class SVTPlayIE(SVTBaseIE):
             'ext': 'mp4',
             'title': 'Flygplan till Haile Selassie',
             'duration': 3527,
-            'thumbnail': 're:^https?://.*[\.-]jpg$',
+            'thumbnail': r're:^https?://.*[\.-]jpg$',
             'age_limit': 0,
             'subtitles': {
                 'sv': [{

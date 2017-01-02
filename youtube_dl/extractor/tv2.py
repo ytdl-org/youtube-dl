@@ -126,7 +126,7 @@ class TV2ArticleIE(InfoExtractor):
 
         if not assets:
             # New embed pattern
-            for v in re.findall('TV2ContentboxVideo\(({.+?})\)', webpage):
+            for v in re.findall(r'TV2ContentboxVideo\(({.+?})\)', webpage):
                 video = self._parse_json(
                     v, playlist_id, transform_source=js_to_json, fatal=False)
                 if not video:

@@ -16,7 +16,7 @@ class MoviezineIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Oculus - Trailer 1',
             'description': 'md5:40cc6790fc81d931850ca9249b40e8a4',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }
 

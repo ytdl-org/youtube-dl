@@ -17,7 +17,7 @@ class TelegraafIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Tikibad ontruimd wegens brand',
             'description': 'md5:05ca046ff47b931f9b04855015e163a4',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 33,
         },
         'params': {
