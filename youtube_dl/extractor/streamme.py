@@ -25,6 +25,7 @@ class StreamMeIE(InfoExtractor):
             'uploader': 'KombatCup',
             'uploader_id': 'kombatcup',
             'timestamp': 1481512102000,
+            'thumbnail': 're:https?://.*.jpg$',
             'age_limit': 13,
         }
     }
@@ -48,23 +49,30 @@ class StreamMeIE(InfoExtractor):
         return info
 
     def _extract_info(self, info):
-        return {
-            'id': info.get('urlId') or info.get('publicId'),
+        data = {
+            'id': info.get('urlId') or info['publicId'],
             # 'formats': self.formats,
             'title': info.get('title') or 'Untitled Broadcast',
             'age_limit': int_or_none(info.get('ageRating')),
             'description': info.get('description'),
-            'dislike_count': int_or_none(info.get('stats').get('raw').get('dislikes')),
             'display_id': info.get('titleSlug'),
             'duration': int_or_none(info.get('duration')),
-            'like_count': int_or_none(info.get('stats').get('raw').get('likes')),
-            'thumbnail': info.get('_links').get('thumbnail').get('href'),
             'timestamp': int_or_none(info.get('whenCreated')),
             'uploader': info.get('username'),
             'uploader_id': info.get('userSlug'),
-            'view_count': int_or_none(info.get('stats').get('raw').get('views')),
             'is_live': True if info.get('active') else False,
         }
+        if info.get('stats') and info['stats'].get('raw'):
+            stats = info['stats']['raw']
+            data.update({
+                'like_count': int_or_none(stats.get('likes')),
+                'dislike_count': int_or_none(stats.get('dislikes')),
+                'view_count': int_or_none(stats.get('views')),
+            })
+        if info.get('_links') and info['_links'].get('thumbnail'):
+            if info['_links']['thumbnail'].get('href'):
+                data['thumbnail'] = info['_links']['thumbnail']['href']
+        return data
 
     def _extract_formats(self, fmts):
         formats = []
@@ -86,12 +94,12 @@ class StreamMeIE(InfoExtractor):
                     # I don't know all the possible protocols yet.
                     # 'protocol': 'm3u8_native' if fmt_tag == 'mp4-hls' else 'http'
                 })
-            if d.get('origin') is not None and d.get('origin').get('location') is not None:
+            if d.get('origin') and d['origin'].get('location'):
                 fmt_tag = d['origin']['location'].split(':')[0]
                 formats.append({
-                    'url': d.get('origin').get('location'),
-                    'acodec': d.get('origin').get('audioCodec'),
-                    'vcodec': d.get('origin').get('videoCodec'),
+                    'url': d['origin']['location'],
+                    'acodec': d['origin'].get('audioCodec'),
+                    'vcodec': d['origin'].get('videoCodec'),
                     'format_id': 'Source-' + fmt_tag,
                     'ext': 'flv' if fmt_tag == 'rtmp' else 'mp4',
                     'source_preference': 1,
@@ -113,6 +121,7 @@ class StreamMeLiveIE(StreamMeIE):
             'uploader': 'KombatCup',
             'like_count': int,
             'dislike_count': int,
+            'thumbnail': 're:https?://.*.jpg$',
             'is_live': True,
         },
         'skip': 'kombatcup is offline',
