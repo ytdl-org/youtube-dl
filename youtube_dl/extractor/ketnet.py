@@ -13,7 +13,7 @@ class KetnetIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Gluur mee op de filmset en op Pennenzakkenrock',
             'description': 'Gluur mee met Ghost Rockers op de filmset',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'url': 'https://www.ketnet.be/kijken/karrewiet/uitzending-8-september-2016',

@@ -21,7 +21,7 @@ class HowStuffWorksIE(InfoExtractor):
                 'title': 'Cool Jobs - Iditarod Musher',
                 'description': 'Cold sleds, freezing temps and warm dog breath... an Iditarod musher\'s dream. Kasey-Dee Gardner jumps on a sled to find out what the big deal is.',
                 'display_id': 'cool-jobs-iditarod-musher',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 161,
             },
             'skip': 'Video broken',
@@ -34,7 +34,7 @@ class HowStuffWorksIE(InfoExtractor):
                 'title': 'Survival Zone: Food and Water In the Savanna',
                 'description': 'Learn how to find both food and water while trekking in the African savannah. In this video from the Discovery Channel.',
                 'display_id': 'survival-zone-food-and-water-in-the-savanna',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -45,7 +45,7 @@ class HowStuffWorksIE(InfoExtractor):
                 'title': 'Sword Swallowing #1 by Dan Meyer',
                 'description': 'Video footage (1 of 3) used by permission of the owner Dan Meyer through Sword Swallowers Association International <www.swordswallow.org>',
                 'display_id': 'sword-swallowing-1-by-dan-meyer',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {

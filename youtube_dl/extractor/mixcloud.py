@@ -34,7 +34,7 @@ class MixcloudIE(InfoExtractor):
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
             'uploader': 'Daniel Holbach',
             'uploader_id': 'dholbach',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'view_count': int,
             'like_count': int,
         },

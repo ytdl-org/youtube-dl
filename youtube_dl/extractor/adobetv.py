@@ -30,7 +30,7 @@ class AdobeTVIE(AdobeTVBaseIE):
             'ext': 'mp4',
             'title': 'Quick Tip - How to Draw a Circle Around an Object in Photoshop',
             'description': 'md5:99ec318dc909d7ba2a1f2b038f7d2311',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'upload_date': '20110914',
             'duration': 60,
             'view_count': int,

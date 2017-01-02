@@ -18,7 +18,7 @@ class RadioJavanIE(InfoExtractor):
             'id': 'chaartaar-ashoobam',
             'ext': 'mp4',
             'title': 'Chaartaar - Ashoobam',
-            'thumbnail': 're:^https?://.*\.jpe?g$',
+            'thumbnail': r're:^https?://.*\.jpe?g$',
             'upload_date': '20150215',
             'view_count': int,
             'like_count': int,

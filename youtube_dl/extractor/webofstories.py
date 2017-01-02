@@ -19,7 +19,7 @@ class WebOfStoriesIE(InfoExtractor):
             'id': '4536',
             'ext': 'mp4',
             'title': 'The temperature of the sun',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'Hans Bethe talks about calculating the temperature of the sun',
             'duration': 238,
         }
@@ -30,7 +30,7 @@ class WebOfStoriesIE(InfoExtractor):
             'id': '55908',
             'ext': 'mp4',
             'title': 'The story of Gemmata obscuriglobus',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'Planctomycete talks about The story of Gemmata obscuriglobus',
             'duration': 169,
         },
@@ -42,7 +42,7 @@ class WebOfStoriesIE(InfoExtractor):
             'id': '54215',
             'ext': 'mp4',
             'title': '"A Leg to Stand On"',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'Oliver Sacks talks about the death and resurrection of a limb',
             'duration': 97,
         },
@@ -134,7 +134,7 @@ class WebOfStoriesPlaylistIE(InfoExtractor):
 
         entries = [
             self.url_result('http://www.webofstories.com/play/%s' % video_number, 'WebOfStories')
-            for video_number in set(re.findall('href="/playAll/%s\?sId=(\d+)"' % playlist_id, webpage))
+            for video_number in set(re.findall(r'href="/playAll/%s\?sId=(\d+)"' % playlist_id, webpage))
         ]
 
         title = self._search_regex(

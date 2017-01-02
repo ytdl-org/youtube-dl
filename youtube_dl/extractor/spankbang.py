@@ -15,7 +15,7 @@ class SpankBangIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'fantasy solo',
             'description': 'Watch fantasy solo free HD porn video - 05 minutes - dillion harper masturbates on a bed free adult movies.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'silly2587',
             'age_limit': 18,
         }

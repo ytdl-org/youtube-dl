@@ -27,7 +27,7 @@ class KeezMoviesIE(InfoExtractor):
             'display_id': 'petite-asian-lady-mai-playing-in-bathtub',
             'ext': 'mp4',
             'title': 'Petite Asian Lady Mai Playing In Bathtub',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'view_count': int,
             'age_limit': 18,
         }

@@ -81,7 +81,7 @@ class SmotriIE(InfoExtractor):
                 'uploader': 'psavari1',
                 'uploader_id': 'psavari1',
                 'upload_date': '20081103',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 'videopassword': '223322',
@@ -117,7 +117,7 @@ class SmotriIE(InfoExtractor):
                 'uploader': 'вАся',
                 'uploader_id': 'asya_prosto',
                 'upload_date': '20081218',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'age_limit': 18,
             },
             'params': {

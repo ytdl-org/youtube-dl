@@ -73,7 +73,7 @@ class LyndaBaseIE(InfoExtractor):
 
         # Already logged in
         if any(re.search(p, signin_page) for p in (
-                'isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
+                r'isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
             return
 
         # Step 2: submit email

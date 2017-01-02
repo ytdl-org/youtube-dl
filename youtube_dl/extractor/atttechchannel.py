@@ -14,7 +14,7 @@ class ATTTechChannelIE(InfoExtractor):
             'ext': 'flv',
             'title': 'AT&T Archives : The UNIX System: Making Computers Easier to Use',
             'description': 'A 1982 film about UNIX is the foundation for software in use around Bell Labs and AT&T.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140127',
         },
         'params': {

@@ -19,7 +19,7 @@ class VideoMegaIE(InfoExtractor):
             'id': 'AOSQBJYKIDDIKYJBQSOA',
             'ext': 'mp4',
             'title': '1254207',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'url': 'http://videomega.tv/cdn.php?ref=AOSQBJYKIDDIKYJBQSOA&width=1070&height=600',

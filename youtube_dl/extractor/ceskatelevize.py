@@ -25,7 +25,7 @@ class CeskaTelevizeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Hyde Park Civilizace',
             'description': 'md5:fe93f6eda372d150759d11644ebbfb4a',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 3350,
         },
         'params': {
@@ -39,7 +39,7 @@ class CeskaTelevizeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Hyde Park Civilizace: Bonus 01 - En',
             'description': 'English Subtittles',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 81.3,
         },
         'params': {
@@ -52,7 +52,7 @@ class CeskaTelevizeIE(InfoExtractor):
         'info_dict': {
             'id': 402,
             'ext': 'mp4',
-            'title': 're:^ČT Sport \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
+            'title': r're:^ČT Sport \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
             'is_live': True,
         },
         'params': {
@@ -80,7 +80,7 @@ class CeskaTelevizeIE(InfoExtractor):
                 'id': '61924494877068022',
                 'ext': 'mp4',
                 'title': 'Queer: Bogotart (Queer)',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 1558.3,
             },
         }],

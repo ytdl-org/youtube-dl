@@ -28,7 +28,7 @@ class RudoIE(JWPlatformBaseIE):
     @classmethod
     def _extract_url(self, webpage):
         mobj = re.search(
-            '<iframe[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//rudo\.video/vod/[0-9a-zA-Z]+)(?P=q1)',
+            r'<iframe[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//rudo\.video/vod/[0-9a-zA-Z]+)(?P=q1)',
             webpage)
         if mobj:
             return mobj.group('url')

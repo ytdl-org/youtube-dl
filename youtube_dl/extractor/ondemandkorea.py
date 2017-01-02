@@ -16,7 +16,7 @@ class OnDemandKoreaIE(JWPlatformBaseIE):
             'id': 'ask-us-anything-e43',
             'ext': 'mp4',
             'title': 'Ask Us Anything : E43',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             'skip_download': 'm3u8 download'

@@ -19,7 +19,7 @@ class CCCIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Introduction to Processor Design',
             'description': 'md5:df55f6d073d4ceae55aae6f2fd98a0ac',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20131228',
             'timestamp': 1388188800,
             'duration': 3710,
@@ -32,7 +32,7 @@ class CCCIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        event_id = self._search_regex("data-id='(\d+)'", webpage, 'event id')
+        event_id = self._search_regex(r"data-id='(\d+)'", webpage, 'event id')
         event_data = self._download_json('https://media.ccc.de/public/events/%s' % event_id, event_id)
 
         formats = []

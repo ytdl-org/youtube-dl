@@ -24,7 +24,7 @@ class VesselIE(InfoExtractor):
             'id': 'HDN7G5UMs',
             'ext': 'mp4',
             'title': 'Nvidia GeForce GTX Titan X - The Best Video Card on the Market?',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20150317',
             'description': 'Did Nvidia pull out all the stops on the Titan X, or does its performance leave something to be desired?',
             'timestamp': int,

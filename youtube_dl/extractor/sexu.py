@@ -14,7 +14,7 @@ class SexuIE(InfoExtractor):
             'title': 'md5:4d05a19a5fc049a63dbbaf05fb71d91b',
             'description': 'md5:2b75327061310a3afb3fbd7d09e2e403',
             'categories': list,  # NSFW
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
     }

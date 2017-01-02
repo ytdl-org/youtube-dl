@@ -31,7 +31,7 @@ class Channel9IE(InfoExtractor):
             'title': 'Developer Kick-Off Session: Stuff We Love',
             'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
             'duration': 4576,
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'session_code': 'KOS002',
             'session_day': 'Day 1',
             'session_room': 'Arena 1A',
@@ -47,7 +47,7 @@ class Channel9IE(InfoExtractor):
             'title': 'Self-service BI with Power BI - nuclear testing',
             'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
             'duration': 1540,
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'authors': ['Mike Wilmot'],
         },
     }, {
@@ -59,7 +59,7 @@ class Channel9IE(InfoExtractor):
             'title': 'Ranges for the Standard Library',
             'description': 'md5:2e6b4917677af3728c5f6d63784c4c5d',
             'duration': 5646,
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
         'params': {
             'skip_download': True,

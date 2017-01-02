@@ -14,7 +14,7 @@ class CrackleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Everybody Respects A Bloody Nose',
             'description': 'Jerry is kaffeeklatsching in L.A. with funnyman J.B. Smoove (Saturday Night Live, Real Husbands of Hollywood). They’re headed for brew at 10 Speed Coffee in a 1964 Studebaker Avanti.',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 906,
             'series': 'Comedians In Cars Getting Coffee',
             'season_number': 8,

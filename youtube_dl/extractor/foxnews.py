@@ -22,7 +22,7 @@ class FoxNewsIE(AMPIE):
                 'duration': 265,
                 'timestamp': 1304411491,
                 'upload_date': '20110503',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -36,7 +36,7 @@ class FoxNewsIE(AMPIE):
                 'duration': 292,
                 'timestamp': 1417662047,
                 'upload_date': '20141204',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 # m3u8 download
@@ -111,7 +111,7 @@ class FoxNewsInsiderIE(InfoExtractor):
             'description': 'Is campus censorship getting out of control?',
             'timestamp': 1472168725,
             'upload_date': '20160825',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             # m3u8 download

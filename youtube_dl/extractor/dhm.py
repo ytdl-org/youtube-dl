@@ -17,7 +17,7 @@ class DHMIE(InfoExtractor):
             'title': 'MARSHALL PLAN AT WORK IN WESTERN GERMANY, THE',
             'description': 'md5:1fabd480c153f97b07add61c44407c82',
             'duration': 660,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://www.dhm.de/filmarchiv/02-mapping-the-wall/peter-g/rolle-1/',
@@ -26,7 +26,7 @@ class DHMIE(InfoExtractor):
             'id': 'rolle-1',
             'ext': 'flv',
             'title': 'ROLLE 1',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }]
 

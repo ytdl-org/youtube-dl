@@ -85,7 +85,7 @@ class SpankwireIE(InfoExtractor):
             r'playerData\.cdnPath([0-9]{3,})\s*=\s*(?:encodeURIComponent\()?["\']([^"\']+)["\']', webpage)
         heights = [int(video[0]) for video in videos]
         video_urls = list(map(compat_urllib_parse_unquote, [video[1] for video in videos]))
-        if webpage.find('flashvars\.encrypted = "true"') != -1:
+        if webpage.find(r'flashvars\.encrypted = "true"') != -1:
             password = self._search_regex(
                 r'flashvars\.video_title = "([^"]+)',
                 webpage, 'password').replace('+', ' ')

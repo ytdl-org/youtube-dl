@@ -17,7 +17,7 @@ class JamendoIE(InfoExtractor):
             'display_id': 'stories-from-emona-i',
             'ext': 'flac',
             'title': 'Stories from Emona I',
-            'thumbnail': 're:^https?://.*\.jpg'
+            'thumbnail': r're:^https?://.*\.jpg'
         }
     }
 

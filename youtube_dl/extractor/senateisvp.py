@@ -55,7 +55,7 @@ class SenateISVPIE(InfoExtractor):
             'id': 'judiciary031715',
             'ext': 'mp4',
             'title': 'Integrated Senate Video Player',
-            'thumbnail': 're:^https?://.*\.(?:jpg|png)$',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
         },
         'params': {
             # m3u8 download

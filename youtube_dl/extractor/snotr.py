@@ -22,7 +22,7 @@ class SnotrIE(InfoExtractor):
             'duration': 248,
             'filesize_approx': 40700000,
             'description': 'A drone flying through Fourth of July Fireworks',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'expected_warnings': ['description'],
     }, {
@@ -34,7 +34,7 @@ class SnotrIE(InfoExtractor):
             'duration': 126,
             'filesize_approx': 8500000,
             'description': 'The top 10 George W. Bush moments, brought to you by David Letterman!',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }]
 

@@ -19,7 +19,7 @@ class PressTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Organic mattresses used to clean waste water',
             'upload_date': '20160409',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:20002e654bbafb6908395a5c0cfcd125'
         }
     }

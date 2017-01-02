@@ -13,7 +13,7 @@ class ThisAmericanLifeIE(InfoExtractor):
             'ext': 'm4a',
             'title': '487: Harper High School, Part One',
             'description': 'md5:ee40bdf3fb96174a9027f76dbecea655',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://www.thisamericanlife.org/play_full.php?play=487',

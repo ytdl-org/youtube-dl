@@ -21,7 +21,7 @@ class CultureUnpluggedIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The Next, Best West',
             'description': 'md5:0423cd00833dea1519cf014e9d0903b1',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'creator': 'Coldstream Creative',
             'duration': 2203,
             'view_count': int,

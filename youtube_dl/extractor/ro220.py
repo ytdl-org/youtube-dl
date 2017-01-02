@@ -14,7 +14,7 @@ class Ro220IE(InfoExtractor):
             'id': 'LYV6doKo7f',
             'ext': 'mp4',
             'title': 'Luati-le Banii sez 4 ep 1',
-            'description': 're:^Iata-ne reveniti dupa o binemeritata vacanta\. +Va astept si pe Facebook cu pareri si comentarii.$',
+            'description': r're:^Iata-ne reveniti dupa o binemeritata vacanta\. +Va astept si pe Facebook cu pareri si comentarii.$',
         }
     }
 

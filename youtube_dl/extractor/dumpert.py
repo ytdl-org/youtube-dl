@@ -21,7 +21,7 @@ class DumpertIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ik heb nieuws voor je',
             'description': 'Niet schrikken hoor',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'url': 'http://www.dumpert.nl/embed/6675421/dc440fe7/',

@@ -22,7 +22,7 @@ class EsriVideoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'ArcGIS Online - Developing Applications',
             'description': 'Jeremy Bartley demonstrates how to develop applications with ArcGIS Online.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 185,
             'upload_date': '20120419',
         }

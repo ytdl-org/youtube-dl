@@ -58,7 +58,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Steam Machine Models, Pricing Listed on Steam Store - IGN News',
                 'description': 'Several come bundled with the Steam Controller.',
-                'thumbnail': 're:^https?:.*\.(?:jpg|png)$',
+                'thumbnail': r're:^https?:.*\.(?:jpg|png)$',
                 'duration': 74,
                 'timestamp': 1425657362,
                 'upload_date': '20150306',

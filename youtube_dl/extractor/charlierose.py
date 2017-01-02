@@ -13,7 +13,7 @@ class CharlieRoseIE(InfoExtractor):
             'id': '27996',
             'ext': 'mp4',
             'title': 'Remembering Zaha Hadid',
-            'thumbnail': 're:^https?://.*\.jpg\?\d+',
+            'thumbnail': r're:^https?://.*\.jpg\?\d+',
             'description': 'We revisit past conversations with Zaha Hadid, in memory of the world renowned Iraqi architect.',
             'subtitles': {
                 'en': [{

@@ -20,7 +20,7 @@ class PornoXOIE(JWPlatformBaseIE):
             'display_id': 'striptease-from-sexy-secretary',
             'description': 'md5:0ee35252b685b3883f4a1d38332f9980',
             'categories': list,  # NSFW
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
     }
