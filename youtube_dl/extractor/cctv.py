@@ -99,7 +99,7 @@ class CCTVIE(InfoExtractor):
              r'videoCenterId["\']\s*,\s*["\']([\da-fA-F]+)',
              r'"changePlayer\s*\(\s*["\']([\da-fA-F]+)',
              r'"load[Vv]ideo\s*\(\s*["\']([\da-fA-F]+)'],
-            webpage, 'video id', default=video_id)
+            webpage, 'video id')
 
         data = self._download_json(
             'http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do', video_id,
