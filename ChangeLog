@@ -1,3 +1,11 @@
+version <unreleased>
+
+Extractors
+* [cctv] Improve extraction (#879, #6753, #8541)
++ [nrktv:episodes] Add support for episodes (#11571)
++ [arkena] Add support for video.arkena.com (#11568)
+
+
 version 2016.12.31
 
 Core
