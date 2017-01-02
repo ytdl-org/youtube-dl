@@ -14,7 +14,7 @@ from ..utils import (
 
 class CCTVIE(InfoExtractor):
     IE_DESC = '央视网'
-    _VALID_URL = r'https?://(?:[^/]+)\.(?:cntv|cctv)\.(?:com|cn)/(?:[^/]+/)*?(?P<id>[^/?#&]+?)(?:/index)?\.s?html'
+    _VALID_URL = r'https?://(?:[^/]+)\.(?:cntv|cctv)\.(?:com|cn)/(?:[^/]+/)*?(?P<id>[^/?#&]+?)(?:/index)?(?:\.s?html|[?#&]|$)'
     _TESTS = [{
         'url': 'http://sports.cntv.cn/2016/02/12/ARTIaBRxv4rTT1yWf1frW2wi160212.shtml',
         'md5': 'd61ec00a493e09da810bf406a078f691',
