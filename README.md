@@ -29,7 +29,7 @@ Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.ex
 
 You can also use pip:
 
-    sudo pip install --upgrade youtube-dl
+    sudo -H pip install --upgrade youtube-dl
     
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
