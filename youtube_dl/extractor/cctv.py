@@ -97,8 +97,8 @@ class CCTVIE(InfoExtractor):
         video_id = self._search_regex(
             [r'var\s+guid\s*=\s*["\']([\da-fA-F]+)',
              r'videoCenterId["\']\s*,\s*["\']([\da-fA-F]+)',
-             r'"changePlayer\s*\(\s*["\']([\da-fA-F]+)',
-             r'"load[Vv]ideo\s*\(\s*["\']([\da-fA-F]+)'],
+             r'changePlayer\s*\(\s*["\']([\da-fA-F]+)',
+             r'load[Vv]ideo\s*\(\s*["\']([\da-fA-F]+)'],
             webpage, 'video id')
 
         data = self._download_json(
