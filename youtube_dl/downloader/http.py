@@ -40,7 +40,7 @@ class HttpFD(FileDownloader):
                     "(peak rate = %.2fKiB/s, block rate = %.2fKiB/s, downloaded %.0fKiB before throttling)") % (
                     peak_rate / 1024, block_rate / 1024, (byte_counter - last_range_start) / 1024))
             request.add_header('Range', 'bytes=%d-' % byte_counter)
-            request = sanitized_Request(request.full_url, None, request.headers)
+            request = sanitized_Request(request.get_full_url(), None, request.headers)
             try:
                 new_data = self.ydl.urlopen(request)
                 throttled = True
