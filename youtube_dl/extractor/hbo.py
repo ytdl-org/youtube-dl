@@ -120,7 +120,7 @@ class HBOIE(HBOBaseIE):
             'id': '1437839',
             'ext': 'mp4',
             'title': 'Ep. 64 Clip: Encryption',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 1072,
         }
     }
@@ -141,7 +141,7 @@ class HBOEpisodeIE(HBOBaseIE):
             'display_id': 'ep-52-inside-the-episode',
             'ext': 'mp4',
             'title': 'Ep. 52: Inside the Episode',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 240,
         },
     }, {

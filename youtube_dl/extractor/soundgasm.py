@@ -27,7 +27,7 @@ class SoundgasmIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         audio_url = self._html_search_regex(
             r'(?s)m4a\:\s"([^"]+)"', webpage, 'audio URL')
-        audio_id = re.split('\/|\.', audio_url)[-2]
+        audio_id = re.split(r'\/|\.', audio_url)[-2]
         description = self._html_search_regex(
             r'(?s)<li>Description:\s(.*?)<\/li>', webpage, 'description',
             fatal=False)

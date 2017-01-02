@@ -266,7 +266,7 @@ class ZDFChannelIE(ZDFBaseIE):
         return self.playlist_result(
             entries, channel_id, self._og_search_title(webpage, fatal=False))
 
-        """
+        r"""
         player = self._extract_player(webpage, channel_id)
 
         channel_id = self._search_regex(

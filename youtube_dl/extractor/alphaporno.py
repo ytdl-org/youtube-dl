@@ -19,7 +19,7 @@ class AlphaPornoIE(InfoExtractor):
             'display_id': 'sensual-striptease-porn-with-samantha-alexandra',
             'ext': 'mp4',
             'title': 'Sensual striptease porn with Samantha Alexandra',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'timestamp': 1418694611,
             'upload_date': '20141216',
             'duration': 387,

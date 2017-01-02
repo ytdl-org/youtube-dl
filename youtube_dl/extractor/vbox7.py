@@ -28,7 +28,7 @@ class Vbox7IE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Борисов: Притеснен съм за бъдещето на България',
             'description': 'По думите му е опасно страната ни да бъде обявена за "сигурна"',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1470982814,
             'upload_date': '20160812',
             'uploader': 'zdraveibulgaria',
@@ -56,7 +56,7 @@ class Vbox7IE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            '<iframe[^>]+src=(?P<q>["\'])(?P<url>(?:https?:)?//vbox7\.com/emb/external\.php.+?)(?P=q)',
+            r'<iframe[^>]+src=(?P<q>["\'])(?P<url>(?:https?:)?//vbox7\.com/emb/external\.php.+?)(?P=q)',
             webpage)
         if mobj:
             return mobj.group('url')

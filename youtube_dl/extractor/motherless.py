@@ -23,7 +23,7 @@ class MotherlessIE(InfoExtractor):
             'categories': ['Gaming', 'anal', 'reluctant', 'rough', 'Wife'],
             'upload_date': '20100913',
             'uploader_id': 'famouslyfuckedup',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'age_limit': 18,
         }
     }, {
@@ -37,7 +37,7 @@ class MotherlessIE(InfoExtractor):
                            'game', 'hairy'],
             'upload_date': '20140622',
             'uploader_id': 'Sulivana7x',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'age_limit': 18,
         },
         'skip': '404',
@@ -51,7 +51,7 @@ class MotherlessIE(InfoExtractor):
             'categories': ['superheroine heroine  superher'],
             'upload_date': '20140827',
             'uploader_id': 'shade0230',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'age_limit': 18,
         }
     }, {

@@ -45,7 +45,7 @@ class EscapistIE(InfoExtractor):
             'ext': 'mp4',
             'description': "Baldur's Gate: Original, Modded or Enhanced Edition? I'll break down what you can expect from the new Baldur's Gate: Enhanced Edition.",
             'title': "Breaking Down Baldur's Gate",
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 264,
             'uploader': 'The Escapist',
         }
@@ -57,7 +57,7 @@ class EscapistIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'This week, Zero Punctuation reviews Evolve.',
             'title': 'Evolve - One vs Multiplayer',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 304,
             'uploader': 'The Escapist',
         }

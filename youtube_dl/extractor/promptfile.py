@@ -20,7 +20,7 @@ class PromptFileIE(InfoExtractor):
             'id': '86D1CE8462-576CAAE416',
             'ext': 'mp4',
             'title': 'oceans.mp4',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 

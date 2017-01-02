@@ -24,7 +24,7 @@ class TeacherTubeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Measures of dispersion from a frequency table',
             'description': 'Measures of dispersion from a frequency table',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }, {
         'url': 'http://www.teachertube.com/viewVideo.php?video_id=340064',
@@ -34,7 +34,7 @@ class TeacherTubeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'How to Make Paper Dolls _ Paper Art Projects',
             'description': 'Learn how to make paper dolls in this simple',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }, {
         'url': 'http://www.teachertube.com/music.php?music_id=8805',

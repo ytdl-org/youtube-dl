@@ -29,7 +29,7 @@ class SendtoNewsIE(JWPlatformBaseIE):
                 'title': 'Recap: CLE 5, LAA 4',
                 'description': '8/14/16: Naquin, Almonte lead Indians in 5-4 win',
                 'duration': 57.343,
-                'thumbnail': 're:https?://.*\.jpg$',
+                'thumbnail': r're:https?://.*\.jpg$',
                 'upload_date': '20160815',
                 'timestamp': 1471221961,
             },

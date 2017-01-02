@@ -44,7 +44,7 @@ class XFileShareIE(InfoExtractor):
             'id': '06y9juieqpmi',
             'ext': 'mp4',
             'title': 'Rebecca Black My Moment Official Music Video Reaction-6GK87Rc8bzQ',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }, {
         'url': 'http://gorillavid.in/embed-z08zf8le23c6-960x480.html',
@@ -56,7 +56,7 @@ class XFileShareIE(InfoExtractor):
             'id': '3rso4kdn6f9m',
             'ext': 'mp4',
             'title': 'Micro Pig piglets ready on 16th July 2009-bG0PdrCdxUc',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         'url': 'http://movpod.in/0wguyyxi1yca',
@@ -67,7 +67,7 @@ class XFileShareIE(InfoExtractor):
             'id': '3ivfabn7573c',
             'ext': 'mp4',
             'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
         'skip': 'Video removed',
     }, {

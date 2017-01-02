@@ -20,7 +20,7 @@ class AirMozillaIE(InfoExtractor):
             'id': '6x4q2w',
             'ext': 'mp4',
             'title': 'Privacy Lab - a meetup for privacy minded people in San Francisco',
-            'thumbnail': 're:https?://vid\.ly/(?P<id>[0-9a-z-]+)/poster',
+            'thumbnail': r're:https?://vid\.ly/(?P<id>[0-9a-z-]+)/poster',
             'description': 'Brings together privacy professionals and others interested in privacy at for-profits, non-profits, and NGOs in an effort to contribute to the state of the ecosystem...',
             'timestamp': 1422487800,
             'upload_date': '20150128',

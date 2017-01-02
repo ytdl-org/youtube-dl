@@ -22,7 +22,7 @@ class PornComIE(InfoExtractor):
             'display_id': 'teen-grabs-a-dildo-and-fucks-her-pussy-live-on-1hottie-i-rec',
             'ext': 'mp4',
             'title': 'Teen grabs a dildo and fucks her pussy live on 1hottie, I rec',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 551,
             'view_count': int,
             'age_limit': 18,

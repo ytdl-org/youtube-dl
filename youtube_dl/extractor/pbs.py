@@ -236,7 +236,7 @@ class PBSIE(InfoExtractor):
                 'title': 'Great Performances - Dudamel Conducts Verdi Requiem at the Hollywood Bowl - Full',
                 'description': 'md5:657897370e09e2bc6bf0f8d2cd313c6b',
                 'duration': 6559,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -249,7 +249,7 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:c741d14e979fc53228c575894094f157',
                 'title': 'NOVA - Killer Typhoon',
                 'duration': 3172,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
                 'age_limit': 10,
             },
@@ -270,7 +270,7 @@ class PBSIE(InfoExtractor):
                 'title': 'American Experience - Death and the Civil War, Chapter 1',
                 'description': 'md5:67fa89a9402e2ee7d08f53b920674c18',
                 'duration': 682,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 'skip_download': True,  # requires ffmpeg
@@ -286,7 +286,7 @@ class PBSIE(InfoExtractor):
                 'title': 'FRONTLINE - United States of Secrets (Part One)',
                 'description': 'md5:55756bd5c551519cc4b7703e373e217e',
                 'duration': 6851,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -302,7 +302,7 @@ class PBSIE(InfoExtractor):
                 'title': "A Chef's Life - Season 3, Ep. 5: Prickly Business",
                 'description': 'md5:c0ff7475a4b70261c7e58f493c2792a5',
                 'duration': 1480,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -315,7 +315,7 @@ class PBSIE(InfoExtractor):
                 'title': 'FRONTLINE - The Atomic Artists',
                 'description': 'md5:f677e4520cfacb4a5ce1471e31b57800',
                 'duration': 723,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 'skip_download': True,  # requires ffmpeg
@@ -330,7 +330,7 @@ class PBSIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'FRONTLINE - Netanyahu at War',
                 'duration': 6852,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'formats': 'mincount:8',
             },
         },
@@ -568,7 +568,7 @@ class PBSIE(InfoExtractor):
         # Try turning it to 'program - title' naming scheme if possible
         alt_title = info.get('program', {}).get('title')
         if alt_title:
-            info['title'] = alt_title + ' - ' + re.sub(r'^' + alt_title + '[\s\-:]+', '', info['title'])
+            info['title'] = alt_title + ' - ' + re.sub(r'^' + alt_title + r'[\s\-:]+', '', info['title'])
 
         description = info.get('description') or info.get(
             'program', {}).get('description') or description

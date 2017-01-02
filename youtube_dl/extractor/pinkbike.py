@@ -23,7 +23,7 @@ class PinkbikeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Brandon Semenuk - RAW 100',
             'description': 'Official release: www.redbull.ca/rupertwalker',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 100,
             'upload_date': '20150406',
             'uploader': 'revelco',

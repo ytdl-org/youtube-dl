@@ -276,7 +276,7 @@ class NBCNewsIE(ThePlatformIE):
                 'ext': 'mp4',
                 'title': 'The chaotic GOP immigration vote',
                 'description': 'The Republican House votes on a border bill that has no chance of getting through the Senate or signed by the President and is drawing criticism from all sides.',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'timestamp': 1406937606,
                 'upload_date': '20140802',
                 'uploader': 'NBCU-NEWS',

@@ -394,7 +394,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             self._PLAYLIST_ID_REGEXES, webpage, 'playlist id')
         playlist = self._parse_json(
             self._search_regex(
-                'var\s+contentResources\s*=\s*(\[.+?\]);\s*</script',
+                r'var\s+contentResources\s*=\s*(\[.+?\]);\s*</script',
                 webpage, 'playlist'),
             playlist_id)
         entries = []

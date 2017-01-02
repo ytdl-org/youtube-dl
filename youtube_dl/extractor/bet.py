@@ -17,7 +17,7 @@ class BetIE(MTVServicesInfoExtractor):
                 'description': 'President Obama urges persistence in confronting racism and bias.',
                 'duration': 1534,
                 'upload_date': '20141208',
-                'thumbnail': 're:(?i)^https?://.*\.jpg$',
+                'thumbnail': r're:(?i)^https?://.*\.jpg$',
                 'subtitles': {
                     'en': 'mincount:2',
                 }
@@ -37,7 +37,7 @@ class BetIE(MTVServicesInfoExtractor):
                 'description': 'A BET News special.',
                 'duration': 1696,
                 'upload_date': '20141125',
-                'thumbnail': 're:(?i)^https?://.*\.jpg$',
+                'thumbnail': r're:(?i)^https?://.*\.jpg$',
                 'subtitles': {
                     'en': 'mincount:2',
                 }

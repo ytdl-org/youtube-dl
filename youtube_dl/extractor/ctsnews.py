@@ -28,7 +28,7 @@ class CtsNewsIE(InfoExtractor):
             'ext': 'mp4',
             'title': '韓國31歲童顏男 貌如十多歲小孩',
             'description': '越有年紀的人，越希望看起來年輕一點，而南韓卻有一位31歲的男子，看起來像是11、12歲的小孩，身...',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1378205880,
             'upload_date': '20130903',
         }
@@ -41,7 +41,7 @@ class CtsNewsIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'iPhone6熱銷 蘋果財報亮眼',
             'description': 'md5:f395d4f485487bb0f992ed2c4b07aa7d',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20150128',
             'uploader_id': 'TBSCTS',
             'uploader': '中華電視公司',

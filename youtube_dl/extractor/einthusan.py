@@ -19,7 +19,7 @@ class EinthusanIE(InfoExtractor):
                 'id': '2447',
                 'ext': 'mp4',
                 'title': 'Ek Villain',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'description': 'md5:9d29fc91a7abadd4591fb862fa560d93',
             }
         },
@@ -30,7 +30,7 @@ class EinthusanIE(InfoExtractor):
                 'id': '1671',
                 'ext': 'mp4',
                 'title': 'Soodhu Kavvuum',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'description': 'md5:b40f2bf7320b4f9414f3780817b2af8c',
             }
         },

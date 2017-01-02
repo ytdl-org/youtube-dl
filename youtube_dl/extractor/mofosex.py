@@ -18,7 +18,7 @@ class MofosexIE(KeezMoviesIE):
             'display_id': 'amateur-teen-playing-and-masturbating-318131',
             'ext': 'mp4',
             'title': 'amateur teen playing and masturbating',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20121114',
             'view_count': int,
             'like_count': int,
