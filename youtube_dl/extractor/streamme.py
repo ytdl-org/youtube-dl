@@ -25,7 +25,7 @@ class StreamMeIE(InfoExtractor):
             'uploader': 'KombatCup',
             'uploader_id': 'kombatcup',
             'timestamp': 1481512102000,
-            'thumbnail': 're:https?://.*.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 13,
         }
     }
@@ -115,13 +115,13 @@ class StreamMeLiveIE(StreamMeIE):
         'info_dict': {
             'id': '1246a915-eebe-4ffe-b12e-e4f5332abc4d',
             'ext': 'mp4',
-            'title': 'KombatCup\'s Live Stream',
+            'title': "KombatCup's Live Stream",
             'age_limit': 13,
             'uploader_id': 'kombatcup',
             'uploader': 'KombatCup',
             'like_count': int,
             'dislike_count': int,
-            'thumbnail': 're:https?://.*.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'is_live': True,
         },
         'skip': 'kombatcup is offline',
