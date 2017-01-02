@@ -73,6 +73,7 @@ from .kaltura import KalturaIE
 from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
 from .soundcloud import SoundcloudIE
+from .tunein import TuneInBaseIE
 from .vbox7 import Vbox7IE
 from .dbtv import DBTVIE
 from .piksel import PikselIE
@@ -827,6 +828,21 @@ class GenericIE(InfoExtractor):
                 'title': 'Guitar Essentials: Legato Workout—One-Hour to Fluid Performance  | TAB + AUDIO',
             },
             'playlist_mincount': 7,
+        },
+        # TuneIn station embed
+        {
+            'url': 'http://radiocnrv.com/promouvoir-radio-cnrv/',
+            'info_dict': {
+                'id': '204146',
+                'ext': 'mp3',
+                'title': 'CNRV',
+                'location': 'Paris, France',
+                'is_live': True,
+            },
+            'params': {
+                # Live stream
+                'skip_download': True,
+            },
         },
         # Livestream embed
         {
@@ -2087,6 +2103,11 @@ class GenericIE(InfoExtractor):
         soundcloud_urls = SoundcloudIE._extract_urls(webpage)
         if soundcloud_urls:
             return _playlist_from_matches(soundcloud_urls, getter=unescapeHTML, ie=SoundcloudIE.ie_key())
+
+        # Look for tunein player
+        tunein_urls = TuneInBaseIE._extract_urls(webpage)
+        if tunein_urls:
+            return _playlist_from_matches(tunein_urls)
 
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
