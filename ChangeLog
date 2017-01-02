@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.02
 
 Extractors
 * [cctv] Improve extraction (#879, #6753, #8541)
