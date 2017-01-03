@@ -664,6 +664,10 @@ from .nytimes import (
 )
 from .nuvid import NuvidIE
 from .nzz import NZZIE
+from .ncpaclassic import (
+    NcpaClassicVideoIE,
+    NcpaClassicAudioIE
+)
 from .odatv import OdaTVIE
 from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
