@@ -14,14 +14,7 @@ class NcpaClassicVideoIE(InfoExtractor):
             'id': '1369219508996867',
             'title': '小泽征尔音乐塾 音乐梦想无国界_古典音乐频道'
         },
-        'playlist_count': 8,
-    },{
-        'url': 'http://ncpa-classic.cntv.cn/2013/05/22/VIDE1369219508996867.shtml',
-        'info_dict': {
-            'id': '1369219508996867',
-            'title': '小泽征尔音乐塾 音乐梦想无国界_古典音乐频道'
-        },
-        'playlist_count': 8,
+        'playlist_count': 8
     }]
 
     def _real_extract(self, url):
@@ -74,14 +67,7 @@ class NcpaClassicAudioIE(InfoExtractor):
             'id': '416',
             'title': '来自维也纳的新年贺礼'
         },
-        'playlist_count': 1,
-    },{
-        'url': 'http://ncpa-classic.cntv.cn/clt/more/416/index.shtml',
-        'info_dict': {
-            'id': '416',
-            'title': '来自维也纳的新年贺礼'
-        },
-        'playlist_count': 1,
+        'playlist_count': 1
     }]
 
     def _real_extract(self, url):
