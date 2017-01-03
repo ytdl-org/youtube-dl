@@ -91,6 +91,7 @@ from .bbc import (
     BBCCoUkPlaylistIE,
     BBCIE,
 )
+from .beampro import BeamProLiveIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .bellmedia import BellMediaIE
