@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    compat_str,
     ExtractorError,
 )
 
@@ -50,9 +51,9 @@ class StreamMeIE(InfoExtractor):
 
     def _extract_info(self, info):
         data = {
-            'id': info.get('urlId') or info['publicId'],
+            'id': info.get('urlId') or info.get('publicId'),
             # 'formats': self.formats,
-            'title': info.get('title') or 'Untitled Broadcast',
+            'title': info.get('title'),
             'age_limit': int_or_none(info.get('ageRating')),
             'description': info.get('description'),
             'display_id': info.get('titleSlug'),
@@ -152,6 +153,11 @@ class StreamMeLiveIE(StreamMeIE):
         self._sort_formats(formats, 'vbr')
         info = self._extract_info(stream_info)
         info['formats'] = formats
+        if not info.get('title'):
+            info['title'] = self._live_title(data.get('displayName') or channel_id)
+        if not info.get('id'):
+            info['id'] = compat_str(abs(hash('%s/%s' % (channel_id, formats[0]))) % (10 ** 6))
+
         return info
 
 
