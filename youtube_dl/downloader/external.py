@@ -260,7 +260,7 @@ class FFmpegFD(ExternalFD):
                 args += ['-rtmp_live', 'live']
 
         args += ['-i', url, '-c', 'copy']
-        if protocol in ('m3u8', 'm3u8_native'):
+        if protocol in ('m3u8', 'm3u8_native') and info_dict.get('ext') != 'mp3':
             if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
                 args += ['-f', 'mpegts']
             else:
