@@ -1,3 +1,12 @@
+version <unreleased>
+
+Extractors
++ [zdf] Fix extraction (#11055, #11063)
+* [pornhub:playlist] Improve extraction (#11594)
++ [cctv] Add support for ncpa-classic.com (#11591)
++ [tunein] Add support for embeds (#11579)
+
+
 version 2017.01.02
 
 Extractors
