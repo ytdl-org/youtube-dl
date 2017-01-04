@@ -34,7 +34,7 @@ class BeamProLiveIE(InfoExtractor):
             'description': 'md5:0b161ac080f15fe05d18a07adb44a74d',
             'is_live': True,
         },
-        # 'skip': r're:.* is offline$',
+        'skip': 'niterhayven is offline',
         'params': {
             'skip_download': True,
         },
@@ -57,6 +57,10 @@ class BeamProLiveIE(InfoExtractor):
         info['formats'] = formats
         if chan_data:
             info.update(self._extract_info(chan_data))
+        if not info.get('title'):
+            info['title'] = self._live_title(channel_id)
+        if not info.get('id'):  # barely possible but just in case
+            info['id'] = compat_str(abs(hash('{0}/{1}'.format(channel_id, formats[0]))) % (10 ** 8))
 
         return info
 
@@ -66,10 +70,11 @@ class BeamProLiveIE(InfoExtractor):
     def _extract_info(self, info):
         thumbnail = info['thumbnail'].get('url') if info.get('thumbnail') else None
         username = info['user'].get('url') if info.get('username') else None
+        video_id = compat_str(info['id']) if info.get('id') else None
 
         return {
-            'id': compat_str(info['id']),
-            'title': info.get('name') or 'Untitled Broadcast',
+            'id': video_id,
+            'title': info.get('name'),
             'description': clean_html(info.get('description')),
             'age_limit': self._rating_to_age(info.get('audience')),
             'is_live': True if info.get('online') else False,
