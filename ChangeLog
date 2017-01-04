@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.05
 
 Extractors
 + [zdf] Fix extraction (#11055, #11063)
