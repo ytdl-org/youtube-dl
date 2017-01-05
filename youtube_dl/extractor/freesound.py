@@ -3,6 +3,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    determine_ext,
+    get_element_by_class,
+    get_element_by_id,
+    int_or_none,
+    float_or_none,
+    unified_strdate,
+)
 
 
 class FreesoundIE(InfoExtractor):
@@ -23,17 +31,52 @@ class FreesoundIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         music_id = mobj.group('id')
         webpage = self._download_webpage(url, music_id)
-        title = self._html_search_regex(
-            r'<div id="single_sample_header">.*?<a href="#">(.+?)</a>',
-            webpage, 'music title', flags=re.DOTALL)
         description = self._html_search_regex(
             r'<div id="sound_description">(.*?)</div>', webpage, 'description',
             fatal=False, flags=re.DOTALL)
 
+        duration = float_or_none(get_element_by_class('duration', webpage))
+        if duration:
+            duration = duration / 1000
+
+        tags = get_element_by_class('tags', webpage)
+        sound_info = get_element_by_id('sound_information_box', webpage)
+        release_date = get_element_by_id('sound_date', webpage)
+        filesize = float_or_none(self._search_regex(
+            r'Filesize</dt><dd>(\d+.\d+).*</dd>', sound_info, 'file size (approx)', fatal=False))
+        if filesize:
+            filesize = filesize * 1048576
+        if release_date:
+            release_date = unified_strdate(release_date.replace('th', ''))
+
+        channels = self._html_search_regex(
+            r'Channels</dt><dd>(.*)</dd>', sound_info, 'Channels info', fatal=False)
+        bitdepth = self._html_search_regex(
+            r'Bitdepth</dt><dd>(.*)</dd>', sound_info, 'Bitdepth', fatal=False)
+
+        download_count = int_or_none(self._html_search_regex(
+            r'Downloaded.*>(\d+)<', webpage, 'downloaded', fatal=False))
+        audio_url = self._og_search_property('audio', webpage, 'song url')
+        formats = [{
+            'url': audio_url,
+            'id': music_id,
+            'format_id': self._og_search_property('audio:type', webpage, 'audio format'),
+            'format_note': '{0} {1} {2}'.format(determine_ext(audio_url), bitdepth, channels),
+            'filesize_approx': filesize,
+            'asr': int_or_none(self._html_search_regex(
+                r'Samplerate</dt><dd>(\d+).*</dd>',
+                sound_info, 'samplerate', fatal=False)),
+        }]
+
         return {
             'id': music_id,
-            'title': title,
-            'url': self._og_search_property('audio', webpage, 'music url'),
+            'title': self._og_search_property('audio:title', webpage, 'song title'),
             'uploader': self._og_search_property('audio:artist', webpage, 'music uploader'),
             'description': description,
+            'duration': duration,
+            'tags': [self._html_search_regex(r'>(.*)</a>', t, 'tag', fatal=False)
+                     for t in tags.split('\n') if t.strip()],
+            'formats': formats,
+            'release_date': release_date,
+            'likes_count': download_count,
         }
