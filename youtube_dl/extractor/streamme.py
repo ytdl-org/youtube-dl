@@ -35,13 +35,24 @@ class StreamMeIE(InfoExtractor):
         video_id = self._match_id(url)
         data = self._download_json(self._API_VOD % video_id, video_id)
 
-        if len(data['_embedded']['streams']) > 0:
+        if not data and data.get('_embedded'):
+            raise ExtractorError(
+                '{0} returns no data or data is incorrect'.format(video_id), expected=True)
+
+        if len(data['_embedded'].get('streams')) > 0:
             vod_info = data['_embedded']['streams'][0]
         else:
-            raise ExtractorError('Video "%s" not found' % video_id, expected=True)
+            raise ExtractorError('Video "{0}" not found'.format(video_id), expected=True)
 
-        manifest_json = self._download_json(vod_info['_links']['manifest']['href'],
-                                            video_id, note='Downloading video manifest')
+        if vod_info.get('_links') and vod_info['_links'].get('manifest'):
+                if vod_info['_links']['manifest'].get('href'):
+                    manifest_json = self._download_json(
+                        vod_info['_links']['manifest'].get('href'),
+                        video_id, note='Downloading video manifest')
+        else:
+            raise ExtractorError('JSON has unexpected format', expected=True)
+        if not manifest_json or not manifest_json.get('formats'):
+            raise ExtractorError('Video manifest has no formats information', expected=True)
 
         formats = self._extract_formats(manifest_json['formats'])
         self._sort_formats(formats, 'vbr')
@@ -170,7 +181,6 @@ class StreamMeArchiveIE(StreamMeIE):
         'url': 'https://www.stream.me/kombatcup#archive',
         'info_dict': {
             'id': 'kombatcup',
-            'title': 'KombatCup',
         },
         'playlist_mincount': 25,
         'params': {
@@ -183,8 +193,10 @@ class StreamMeArchiveIE(StreamMeIE):
         apiurl = StreamMeIE._API_ARCHIVE % channel_id
         # TODO: implement paginated downloading
         data = self._download_json(apiurl, channel_id, query={'limit': self._PLAYLIST_LIMIT, 'offset': 0})
-        playlist = []
+        if not data:
+            raise ExtractorError('{0} returns empty data. Try again later'.format(channel_id), expected=True)
 
+        playlist = []
         for vod in data['_embedded']['vod']:
             manifest_json = self._download_json(vod['_links']['manifest']['href'],
                                                 vod['urlId'], note='Downloading video manifest')
@@ -194,4 +206,6 @@ class StreamMeArchiveIE(StreamMeIE):
             info['formats'] = formats
             playlist.append(info)
 
-        return self.playlist_result(playlist, channel_id, info.get('uploader'))
+        return self.playlist_result(
+            playlist, channel_id,
+            data.get('displayName') if data else 'Archived Videos')
