@@ -446,6 +446,8 @@ Note that options in configuration file are just the same options aka switches u
 
 You can use `--ignore-config` if you want to disable the configuration file for a particular youtube-dl run.
 
+You can also use `--config-location` if you want to use custom configuration file for a particular youtube-dl run.
+
 ### Authentication with `.netrc` file
 
 You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on a per extractor basis. For that you will need to create a `.netrc` file in your `$HOME` and restrict permissions to read/write by only you:
