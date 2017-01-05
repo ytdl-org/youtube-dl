@@ -1,5 +1,8 @@
 version <unreleased>
 
+Core
+* Fix "invalid escape sequence" errors under Python 3.6 (#11581)
+
 Extractors
 * [discoverygo] Fix JSON data parsing (#11219, #11522)
 
