@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [discoverygo] Fix JSON data parsing (#11219, #11522)
+
+
 version 2017.01.05
 
 Extractors
