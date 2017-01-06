@@ -820,7 +820,6 @@ from .shared import (
     SharedIE,
     VivoIE,
 )
-from .sharesix import ShareSixIE
 from .showroomlive import ShowRoomLiveIE
 from .sina import SinaIE
 from .sixplay import SixPlayIE
