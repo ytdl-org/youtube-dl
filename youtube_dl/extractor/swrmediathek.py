@@ -40,7 +40,7 @@ class SWRMediathekIE(InfoExtractor):
             'uploader': 'SWR Fernsehen',
             'uploader_id': '990030',
         },
-        '_skip': 'redirect to http://swrmediathek.de/index.htm?hinweis=swrlink',
+        'skip': 'redirect to http://swrmediathek.de/index.htm?hinweis=swrlink',
     }, {
         'url': 'http://swrmediathek.de/player.htm?show=bba23e10-cb93-11e3-bf7f-0026b975f2e6',
         'md5': '4382e4ef2c9d7ce6852535fa867a0dd3',
@@ -55,7 +55,7 @@ class SWRMediathekIE(InfoExtractor):
             'uploader': 'SWR 2',
             'uploader_id': '284670',
         },
-        '_skip': 'redirect to http://swrmediathek.de/index.htm?hinweis=swrlink',
+        'skip': 'redirect to http://swrmediathek.de/index.htm?hinweis=swrlink',
     }]
 
     def _real_extract(self, url):
