@@ -5,10 +5,11 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    float_or_none,
     get_element_by_class,
     get_element_by_id,
     int_or_none,
-    float_or_none,
+    parse_filesize,
     unified_strdate,
 )
 
@@ -31,36 +32,37 @@ class FreesoundIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         music_id = mobj.group('id')
         webpage = self._download_webpage(url, music_id)
+
+        audio_url = self._og_search_property('audio', webpage, 'song url')
+        title = self._og_search_property('audio:title', webpage, 'song title')
+        duration = float_or_none(get_element_by_class('duration', webpage), scale=1000)
+        tags = get_element_by_class('tags', webpage)
+        sound_info = get_element_by_id('sound_information_box', webpage)
+        release_date = get_element_by_id('sound_date', webpage)
+
         description = self._html_search_regex(
             r'<div id="sound_description">(.*?)</div>', webpage, 'description',
             fatal=False, flags=re.DOTALL)
 
-        duration = float_or_none(get_element_by_class('duration', webpage))
-        if duration:
-            duration = duration / 1000
+        download_count = int_or_none(self._html_search_regex(
+            r'Downloaded.*>(\d+)<', webpage, 'downloaded', fatal=False))
 
-        tags = get_element_by_class('tags', webpage)
-        sound_info = get_element_by_id('sound_information_box', webpage)
-        release_date = get_element_by_id('sound_date', webpage)
-        filesize = float_or_none(self._search_regex(
-            r'Filesize</dt><dd>(\d+.\d+).*</dd>', sound_info, 'file size (approx)', fatal=False))
-        if filesize:
-            filesize = filesize * 1048576
+        filesize = float_or_none(parse_filesize(self._search_regex(
+            r'Filesize</dt><dd>(.*)</dd>', sound_info, 'file size (approx)', fatal=False)))
+
         if release_date:
             release_date = unified_strdate(release_date.replace('th', ''))
 
-        channels = self._html_search_regex(
-            r'Channels</dt><dd>(.*)</dd>', sound_info, 'Channels info', fatal=False)
         bitdepth = self._html_search_regex(
             r'Bitdepth</dt><dd>(.*)</dd>', sound_info, 'Bitdepth', fatal=False)
 
-        download_count = int_or_none(self._html_search_regex(
-            r'Downloaded.*>(\d+)<', webpage, 'downloaded', fatal=False))
-        audio_url = self._og_search_property('audio', webpage, 'song url')
+        channels = self._html_search_regex(
+            r'Channels</dt><dd>(.*)</dd>', sound_info, 'Channels info', fatal=False)
+
         formats = [{
             'url': audio_url,
             'id': music_id,
-            'format_id': self._og_search_property('audio:type', webpage, 'audio format'),
+            'format_id': self._og_search_property('audio:type', webpage, 'audio format', fatal=False),
             'format_note': '{0} {1} {2}'.format(determine_ext(audio_url), bitdepth, channels),
             'filesize_approx': filesize,
             'asr': int_or_none(self._html_search_regex(
@@ -70,8 +72,8 @@ class FreesoundIE(InfoExtractor):
 
         return {
             'id': music_id,
-            'title': self._og_search_property('audio:title', webpage, 'song title'),
-            'uploader': self._og_search_property('audio:artist', webpage, 'music uploader'),
+            'title': title,
+            'uploader': self._og_search_property('audio:artist', webpage, 'music uploader', fatal=False),
             'description': description,
             'duration': duration,
             'tags': [self._html_search_regex(r'>(.*)</a>', t, 'tag', fatal=False)
