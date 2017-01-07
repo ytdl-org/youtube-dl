@@ -3,11 +3,12 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
     ExtractorError,
-    compat_str,
     clean_html,
+    compat_str,
+    int_or_none,
     parse_iso8601,
+    try_get,
 )
 
 
@@ -15,8 +16,7 @@ class BeamProLiveIE(InfoExtractor):
     IE_NAME = 'Beam:live'
     _VALID_URL = r'https?://(?:\w+.)?beam.pro/(?P<id>[^?]+)$'
     _API_CHANNEL = 'https://beam.pro/api/v1/channels/{0}'
-    _API_MANIFEST = 'https://beam.pro/api/v1/channels/{0}/manifest.{1}'
-    _VALID_MANIFESTS = ('smil', 'm3u8', 'light', 'light2', 'ftl', 'ftlOld')
+    _API_MANIFEST = 'https://beam.pro/api/v1/channels/{0}/manifest.m3u8'
     _RATINGS = {'family': 0, 'teen': 13, '18+': 18}
 
     _TEST = {
@@ -48,11 +48,9 @@ class BeamProLiveIE(InfoExtractor):
             raise ExtractorError('{0} is offline'.format(channel_id), expected=True)
 
         formats = self._extract_m3u8_formats(
-            self._API_MANIFEST.format(
-                chan_data.get('id'),
-                self._VALID_MANIFESTS[1]), channel_id, ext='mp4',
-        )
-        self._sort_formats(formats, 'vbr')
+            self._API_MANIFEST.format(chan_data.get('id')), channel_id, ext='mp4')
+
+        self._sort_formats(formats)
         info = {}
         info['formats'] = formats
         if chan_data:
@@ -60,28 +58,23 @@ class BeamProLiveIE(InfoExtractor):
         if not info.get('title'):
             info['title'] = self._live_title(channel_id)
         if not info.get('id'):  # barely possible but just in case
-            info['id'] = compat_str(abs(hash('{0}/{1}'.format(channel_id, formats[0]))) % (10 ** 8))
+            info['id'] = compat_str(abs(hash(channel_id)) % (10 ** 8))
 
         return info
 
-    def _rating_to_age(self, rating):
-        return self._RATINGS[rating] if rating in self._RATINGS else None
-
     def _extract_info(self, info):
-        thumbnail = info['thumbnail'].get('url') if info.get('thumbnail') else None
-        username = info['user'].get('url') if info.get('username') else None
+        thumbnail = try_get(info, lambda x: x['thumbnail']['url'], compat_str)
+        username = try_get(info, lambda x: x['user']['url'], compat_str)
         video_id = compat_str(info['id']) if info.get('id') else None
+        rating = info.get('audience')
 
         return {
             'id': video_id,
             'title': info.get('name'),
             'description': clean_html(info.get('description')),
-            'age_limit': self._rating_to_age(info.get('audience')),
+            'age_limit': self._RATINGS[rating] if rating in self._RATINGS else None,
             'is_live': True if info.get('online') else False,
             'timestamp': parse_iso8601(info.get('updatedAt')),
-            # 'release_date': info.get('createdAt'),
-            # 'upload_date': info.get('updatedAt'),
-            # 'formats': formats,
             'uploader': info.get('token') or username,
             'uploader_id': int_or_none(info.get('userId')),
             'view_count': int_or_none(info.get('viewersTotal')),
