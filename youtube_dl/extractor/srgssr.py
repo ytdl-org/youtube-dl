@@ -42,8 +42,26 @@ class SRGSSRIE(InfoExtractor):
         if media_data.get('block') and media_data['block'] in self._ERRORS:
             raise ExtractorError('%s said: %s' % (
                 self.IE_NAME, self._ERRORS[media_data['block']]), expected=True)
-
         return media_data
+
+    def _get_subtitles(self, bu, media_data):
+        subtitles = {}
+        langs = {
+            'srf': 'deu',
+            # RTS has its own InfoExtractor in rts.py
+            # 'rts': 'fra',
+            'rsi': 'ita',
+            'rtr': 'roh',
+            'swissinfo': 'eng'  # assume english for swissinfo
+        }
+        subtitle_data = media_data.get('Subtitles')
+        formats = [{'ext': 'ttml', 'urltag': 'TTMLUrl'},
+                   {'ext': 'vtt', 'urltag': 'VTTUrl'}]
+        subformats = [{'ext': form['ext'], 'url': subtitle_data[form['urltag']]}
+                      for form in formats if subtitle_data and subtitle_data.get(form['urltag'])]
+        for subform in subformats:
+            subtitles.setdefault(langs[bu], []).append(subform)
+        return subtitles
 
     def _real_extract(self, url):
         bu, media_type, media_id = re.match(self._VALID_URL, url).groups()
@@ -63,6 +81,8 @@ class SRGSSRIE(InfoExtractor):
             'id': image.get('id'),
             'url': image['url'],
         } for image in media_data.get('Image', {}).get('ImageRepresentations', {}).get('ImageRepresentation', [])]
+
+        subtitles = self._get_subtitles(bu, media_data)
 
         preference = qualities(['LQ', 'MQ', 'SD', 'HQ', 'HD'])
         formats = []
@@ -97,6 +117,7 @@ class SRGSSRIE(InfoExtractor):
             'description': description,
             'timestamp': timestamp,
             'thumbnails': thumbnails,
+            'subtitles': subtitles,
             'formats': formats,
         }
 
@@ -114,19 +135,59 @@ class SRGSSRPlayIE(InfoExtractor):
             'upload_date': '20130701',
             'title': 'Snowden beantragt Asyl in Russland',
             'timestamp': 1372713995,
+            'subtitles': {},
         }
     }, {
         # No Speichern (Save) button
-        'url': 'http://www.srf.ch/play/tv/top-gear/video/jaguar-xk120-shadow-und-tornado-dampflokomotive?id=677f5829-e473-4823-ac83-a1087fe97faa',
-        'md5': '0a274ce38fda48c53c01890651985bc6',
+        'url': 'http://www.srf.ch/play/tv/wort-zum-sonntag/video/vorsaetzlich-gross-denken?id=a2d82e8a-1916-4c29-aade-eec0930ceeeb',
+        'md5': '592bef4eb1e7db6418720c8275231ce0',
         'info_dict': {
-            'id': '677f5829-e473-4823-ac83-a1087fe97faa',
-            'ext': 'flv',
-            'upload_date': '20130710',
-            'title': 'Jaguar XK120, Shadow und Tornado-Dampflokomotive',
-            'description': 'md5:88604432b60d5a38787f152dec89cd56',
-            'timestamp': 1373493600,
+            'id': 'a2d82e8a-1916-4c29-aade-eec0930ceeeb',
+            'ext': 'mp4',
+            'upload_date': '20170107',
+            'title': 'Vorsätzlich gross denken',
+            'description': 'Das Wort zum Sonntag spricht der römisch-katholische Theologe Arnold Landtwing.',
+            'timestamp': 1483815898,
+            'subtitles': {
+                'deu': [{'ext': 'ttml', 'url': 'https://ws.srf.ch/subtitles/urn:srf:ais:video:a2d82e8a-1916-4c29-aade-eec0930ceeeb/subtitle.ttml'},
+                        {'ext': 'vtt', 'url': 'https://ws.srf.ch/subtitles/urn:srf:ais:video:a2d82e8a-1916-4c29-aade-eec0930ceeeb/subtitle.vtt'}]
+            }
+        }
+    }, {
+        'url': 'http://www.srf.ch/play/tv/rundschau/video/wundermittel-olympia-jon-pult-pistole-im-anschlag-eu-zittert-vor-le-pen?id=b664a25c-8ec1-4904-885d-dd9e140ca245',
+        'md5': '734dafee62eb8c03ad7e7969799f55fc',
+        'info_dict': {
+            'id': 'b664a25c-8ec1-4904-885d-dd9e140ca245',
+            'ext': 'mp4',
+            'upload_date': '20170104',
+            'title': 'Wundermittel Olympia, Jon Pult, Pistole im Anschlag, EU zittert vor Le Pen',
+            'description': 'Wundermittel Olympia soll Winter-Tourismus retten/ Jon Pult / Pistole im Anschlag: Schweizer decken sich mit Waffen ein / Europa zittert: Frankreich steht vor radikalem Neuanfang',
+            'timestamp': 1483562845,
+            'subtitles': {
+                'deu': [{'ext': 'ttml', 'url': 'https://ws.srf.ch/subtitles/urn:srf:ais:video:b664a25c-8ec1-4904-885d-dd9e140ca245/subtitle.ttml'},
+                        {'ext': 'vtt', 'url': 'https://ws.srf.ch/subtitles/urn:srf:ais:video:b664a25c-8ec1-4904-885d-dd9e140ca245/subtitle.vtt'}]
+            }
         },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://www.rsi.ch/play/tv/telegiornale/video/telegiornale?id=8500627',
+        'md5': 'cb6c9b6bd3ce667e826ca20c0b8f0390',
+        'info_dict': {
+            'id': '8500627',
+            'ext': 'mp4',
+            'upload_date': '20170108',
+            'title': 'Telegiornale',
+            'description': '',
+            'timestamp': 1483902000,
+            'subtitles': {
+                'ita': [{'ext': 'ttml', 'url': 'https://cdn.rsi.ch/subtitles/subt_web/rsi/production/2017/ts_20170108_i_8550811.xml'}]
+            }
+        },
+        'params': {
+            'skip_download': True,
+        }
     }, {
         'url': 'http://www.rtr.ch/play/radio/actualitad/audio/saira-tujetsch-tuttina-cuntinuar-cun-sedrun-muster-turissem?id=63cb0778-27f8-49af-9284-8c7a8c6d15fc',
         'info_dict': {
