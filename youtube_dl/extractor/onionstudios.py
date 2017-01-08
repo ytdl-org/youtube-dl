@@ -22,7 +22,7 @@ class OnionStudiosIE(InfoExtractor):
             'id': '2937',
             'ext': 'mp4',
             'title': 'Hannibal charges forward, stops for a cocktail',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'The A.V. Club',
             'uploader_id': 'the-av-club',
         },

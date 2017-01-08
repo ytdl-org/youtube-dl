@@ -132,7 +132,7 @@
  - **cbsnews:livevideo**: CBS News Live Videos
  - **CBSSports**
  - **CCMA**
- - **CCTV**
+ - **CCTV**: 央视网
  - **CDA**
  - **CeskaTelevize**
  - **channel9**: Channel 9
@@ -263,7 +263,6 @@
  - **francetvinfo.fr**
  - **Freesound**
  - **freespeech.org**
- - **FreeVideo**
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
@@ -518,6 +517,7 @@
  - **NRKSkole**: NRK Skole
  - **NRKTV**: NRK TV and NRK Radio
  - **NRKTVDirekte**: NRK TV Direkte and NRK Radio Direkte
+ - **NRKTVEpisodes**
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
@@ -659,6 +659,7 @@
  - **Shahid**
  - **Shared**: shared.sx
  - **ShareSix**
+ - **ShowRoomLive**
  - **Sina**
  - **SixPlay**
  - **skynewsarabia:article**
@@ -834,6 +835,7 @@
  - **ViceShow**
  - **Vidbit**
  - **Viddler**
+ - **Videa**
  - **video.google:search**: Google Video search
  - **video.mit.edu**
  - **VideoDetective**

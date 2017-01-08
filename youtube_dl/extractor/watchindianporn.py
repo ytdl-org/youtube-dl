@@ -22,7 +22,7 @@ class WatchIndianPornIE(InfoExtractor):
             'display_id': 'hot-milf-from-kerala-shows-off-her-gorgeous-large-breasts-on-camera',
             'ext': 'mp4',
             'title': 'Hot milf from kerala shows off her gorgeous large breasts on camera',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'LoveJay',
             'upload_date': '20160428',
             'duration': 226,

@@ -22,7 +22,7 @@ class TwentyFourVideoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Эротика каменного века',
             'description': 'Как смотрели порно в каменном веке.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'SUPERTELO',
             'duration': 31,
             'timestamp': 1275937857,

@@ -50,6 +50,8 @@ $ youtube-dl -v <your command line>
 - Single video: https://youtu.be/BaW_jenozKc
 - Playlist: https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc
 
+Note that **youtube-dl does not support sites dedicated to [copyright infringement](https://github.com/rg3/youtube-dl#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. In order for site support request to be accepted all provided example URLs should not violate any copyrights.
+
 ---
 
 ### Description of your *issue*, suggested solution and other information

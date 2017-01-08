@@ -22,7 +22,7 @@ class DrTuberIE(InfoExtractor):
             'like_count': int,
             'comment_count': int,
             'categories': ['Babe', 'Blonde', 'Erotic', 'Outdoor', 'Softcore', 'Solo'],
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
     }, {

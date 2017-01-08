@@ -14,7 +14,7 @@ class RottenTomatoesIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Toy Story 3',
             'description': 'From the creators of the beloved TOY STORY films, comes a story that will reunite the gang in a whole new way.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }
 

@@ -17,7 +17,7 @@ class YnetIE(InfoExtractor):
                 'id': 'L-11659-99244',
                 'ext': 'flv',
                 'title': 'איש לא יודע מאיפה באנו',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
             }
         }, {
             'url': 'http://hot.ynet.co.il/home/0,7340,L-8859-84418,00.html',
@@ -25,7 +25,7 @@ class YnetIE(InfoExtractor):
                 'id': 'L-8859-84418',
                 'ext': 'flv',
                 'title': "צפו: הנשיקה הלוהטת של תורגי' ויוליה פלוטקין",
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
             }
         }
     ]

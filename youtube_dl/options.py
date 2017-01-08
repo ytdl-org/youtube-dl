@@ -179,6 +179,10 @@ def parseOpts(overrideArguments=None):
         'Do not read the user configuration in ~/.config/youtube-dl/config '
         '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
+        '--config-location',
+        dest='config_location', metavar='PATH',
+        help='Location of the configuration file; either the path to the config or its containing directory.')
+    general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
         default=False,
@@ -341,7 +345,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '-2', '--twofactor',
         dest='twofactor', metavar='TWOFACTOR',
-        help='Two-factor auth code')
+        help='Two-factor authentication code')
     authentication.add_option(
         '-n', '--netrc',
         action='store_true', dest='usenetrc', default=False,
@@ -469,7 +473,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',
-        help='Set file xattribute ytdl.filesize with expected filesize (experimental)')
+        help='Set file xattribute ytdl.filesize with expected file size (experimental)')
     downloader.add_option(
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true', default=None,
@@ -845,22 +849,32 @@ def parseOpts(overrideArguments=None):
             return conf
 
         command_line_conf = compat_conf(sys.argv[1:])
+        opts, args = parser.parse_args(command_line_conf)
 
-        if '--ignore-config' in command_line_conf:
-            system_conf = []
-            user_conf = []
+        system_conf = user_conf = custom_conf = []
+
+        if '--config-location' in command_line_conf:
+            location = compat_expanduser(opts.config_location)
+            if os.path.isdir(location):
+                location = os.path.join(location, 'youtube-dl.conf')
+            if not os.path.exists(location):
+                parser.error('config-location %s does not exist.' % location)
+            custom_conf = _readOptions(location)
+        elif '--ignore-config' in command_line_conf:
+            pass
         else:
             system_conf = _readOptions('/etc/youtube-dl.conf')
-            if '--ignore-config' in system_conf:
-                user_conf = []
-            else:
+            if '--ignore-config' not in system_conf:
                 user_conf = _readUserConf()
-        argv = system_conf + user_conf + command_line_conf
 
+        argv = system_conf + user_conf + command_line_conf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            write_string('[debug] System config: ' + repr(_hide_login_info(system_conf)) + '\n')
-            write_string('[debug] User config: ' + repr(_hide_login_info(user_conf)) + '\n')
-            write_string('[debug] Command-line args: ' + repr(_hide_login_info(command_line_conf)) + '\n')
+            for conf_label, conf in (
+                    ('System config', system_conf),
+                    ('User config', user_conf),
+                    ('Custom config', custom_conf),
+                    ('Command-line args', command_line_conf)):
+                write_string('[debug] %s: %s\n' % (conf_label, repr(_hide_login_info(conf))))
 
     return parser, opts, args

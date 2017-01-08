@@ -247,7 +247,7 @@ class ORFIPTVIE(InfoExtractor):
             'title': 'Weitere Evakuierungen um Vulkan Calbuco',
             'description': 'md5:d689c959bdbcf04efeddedbf2299d633',
             'duration': 68.197,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20150425',
         },
     }

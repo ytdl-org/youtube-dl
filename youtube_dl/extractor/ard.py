@@ -253,7 +253,7 @@ class ARDIE(InfoExtractor):
             'duration': 2600,
             'title': 'Die Story im Ersten: Mission unter falscher Flagge',
             'upload_date': '20140804',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'skip': 'HTTP Error 404: Not Found',
     }

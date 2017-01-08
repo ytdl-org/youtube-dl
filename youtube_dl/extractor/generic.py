@@ -73,9 +73,11 @@ from .kaltura import KalturaIE
 from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
 from .soundcloud import SoundcloudIE
+from .tunein import TuneInBaseIE
 from .vbox7 import Vbox7IE
 from .dbtv import DBTVIE
 from .piksel import PikselIE
+from .videa import VideaIE
 
 
 class GenericIE(InfoExtractor):
@@ -237,7 +239,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Tikibad ontruimd wegens brand',
                 'description': 'md5:05ca046ff47b931f9b04855015e163a4',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 33,
             },
             'params': {
@@ -298,7 +300,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20130224',
                 'uploader_id': 'TheVerge',
-                'description': 're:^Chris Ziegler takes a look at the\.*',
+                'description': r're:^Chris Ziegler takes a look at the\.*',
                 'uploader': 'The Verge',
                 'title': 'First Firefox OS phones side-by-side',
             },
@@ -537,7 +539,7 @@ class GenericIE(InfoExtractor):
                 'id': 'f4dafcad-ff21-423d-89b5-146cfd89fa1e',
                 'ext': 'mp4',
                 'title': 'Ужастики, русский трейлер (2015)',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 153,
             }
         },
@@ -757,7 +759,7 @@ class GenericIE(InfoExtractor):
                 'duration': 48,
                 'timestamp': 1401537900,
                 'upload_date': '20140531',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         # Wistia embed
@@ -826,6 +828,21 @@ class GenericIE(InfoExtractor):
                 'title': 'Guitar Essentials: Legato Workout—One-Hour to Fluid Performance  | TAB + AUDIO',
             },
             'playlist_mincount': 7,
+        },
+        # TuneIn station embed
+        {
+            'url': 'http://radiocnrv.com/promouvoir-radio-cnrv/',
+            'info_dict': {
+                'id': '204146',
+                'ext': 'mp3',
+                'title': 'CNRV',
+                'location': 'Paris, France',
+                'is_live': True,
+            },
+            'params': {
+                # Live stream
+                'skip_download': True,
+            },
         },
         # Livestream embed
         {
@@ -1014,7 +1031,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Навальный вышел на свободу',
                 'description': 'md5:d97861ac9ae77377f3f20eaf9d04b4f5',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 87,
                 'view_count': int,
                 'age_limit': 0,
@@ -1028,7 +1045,7 @@ class GenericIE(InfoExtractor):
                 'id': '12820',
                 'ext': 'mp4',
                 'title': "'O Sole Mio",
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 216,
                 'view_count': int,
             },
@@ -1041,7 +1058,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Тайны перевала Дятлова • 1 серия 2 часть',
                 'description': 'Документальный сериал-расследование одной из самых жутких тайн ХХ века',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 694,
                 'age_limit': 0,
             },
@@ -1053,7 +1070,7 @@ class GenericIE(InfoExtractor):
                 'id': '3519514',
                 'ext': 'mp4',
                 'title': 'Joe Dirt 2 Beautiful Loser Teaser Trailer',
-                'thumbnail': 're:^https?://.*\.png$',
+                'thumbnail': r're:^https?://.*\.png$',
                 'duration': 45.115,
             },
         },
@@ -1136,7 +1153,7 @@ class GenericIE(InfoExtractor):
                 'id': '300346',
                 'ext': 'mp4',
                 'title': '中一中男師變性 全校師生力挺',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 # m3u8 download
@@ -1182,7 +1199,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Sauvons les abeilles ! - Le débat',
                 'description': 'md5:d9082128b1c5277987825d684939ca26',
-                'thumbnail': 're:^https?://.*\.jpe?g$',
+                'thumbnail': r're:^https?://.*\.jpe?g$',
                 'timestamp': 1434970506,
                 'upload_date': '20150622',
                 'uploader': 'Public Sénat',
@@ -1196,7 +1213,7 @@ class GenericIE(InfoExtractor):
                 'id': '2855',
                 'ext': 'mp4',
                 'title': 'Don’t Understand Bitcoin? This Man Will Mumble An Explanation At You',
-                'thumbnail': 're:^https?://.*\.jpe?g$',
+                'thumbnail': r're:^https?://.*\.jpe?g$',
                 'uploader': 'ClickHole',
                 'uploader_id': 'clickhole',
             }
@@ -1421,6 +1438,15 @@ class GenericIE(InfoExtractor):
                 'title': 'Etter ett års planlegging, klaffet endelig alt: - Jeg måtte ta en liten dans',
             },
             'playlist_mincount': 3,
+        },
+        {
+            # Videa embeds
+            'url': 'http://forum.dvdtalk.com/movie-talk/623756-deleted-magic-star-wars-ot-deleted-alt-scenes-docu-style.html',
+            'info_dict': {
+                'id': '623756-deleted-magic-star-wars-ot-deleted-alt-scenes-docu-style',
+                'title': 'Deleted Magic - Star Wars: OT Deleted / Alt. Scenes Docu. Style - DVD Talk Forum',
+            },
+            'playlist_mincount': 2,
         },
         # {
         #     # TODO: find another test
@@ -2078,6 +2104,11 @@ class GenericIE(InfoExtractor):
         if soundcloud_urls:
             return _playlist_from_matches(soundcloud_urls, getter=unescapeHTML, ie=SoundcloudIE.ie_key())
 
+        # Look for tunein player
+        tunein_urls = TuneInBaseIE._extract_urls(webpage)
+        if tunein_urls:
+            return _playlist_from_matches(tunein_urls)
+
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
         if mtvservices_url:
@@ -2357,6 +2388,11 @@ class GenericIE(InfoExtractor):
         dbtv_urls = DBTVIE._extract_urls(webpage)
         if dbtv_urls:
             return _playlist_from_matches(dbtv_urls, ie=DBTVIE.ie_key())
+
+        # Look for Videa embeds
+        videa_urls = VideaIE._extract_urls(webpage)
+        if videa_urls:
+            return _playlist_from_matches(videa_urls, ie=VideaIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(

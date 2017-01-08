@@ -31,7 +31,7 @@ class LiTVIE(InfoExtractor):
             'id': 'VOD00041610',
             'ext': 'mp4',
             'title': '花千骨第1集',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'description': 'md5:c7017aa144c87467c4fb2909c4b05d6f',
             'episode_number': 1,
         },
@@ -80,7 +80,7 @@ class LiTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         program_info = self._parse_json(self._search_regex(
-            'var\s+programInfo\s*=\s*([^;]+)', webpage, 'VOD data', default='{}'),
+            r'var\s+programInfo\s*=\s*([^;]+)', webpage, 'VOD data', default='{}'),
             video_id)
 
         season_list = list(program_info.get('seasonList', {}).values())

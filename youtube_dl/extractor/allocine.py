@@ -21,7 +21,7 @@ class AllocineIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Astérix - Le Domaine des Dieux Teaser VF',
             'description': 'md5:4a754271d9c6f16c72629a8a993ee884',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }, {
         'url': 'http://www.allocine.fr/video/player_gen_cmedia=19540403&cfilm=222257.html',
@@ -32,7 +32,7 @@ class AllocineIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Planes 2 Bande-annonce VF',
             'description': 'Regardez la bande annonce du film Planes 2 (Planes 2 Bande-annonce VF). Planes 2, un film de Roberts Gannaway',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }, {
         'url': 'http://www.allocine.fr/video/player_gen_cmedia=19544709&cfilm=181290.html',
@@ -43,7 +43,7 @@ class AllocineIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Dragons 2 - Bande annonce finale VF',
             'description': 'md5:6cdd2d7c2687d4c6aafe80a35e17267a',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }, {
         'url': 'http://www.allocine.fr/video/video-19550147/',
@@ -53,7 +53,7 @@ class AllocineIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Faux Raccord N°123 - Les gaffes de Cliffhanger',
             'description': 'md5:bc734b83ffa2d8a12188d9eb48bb6354',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }]
 

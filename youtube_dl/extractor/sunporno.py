@@ -21,7 +21,7 @@ class SunPornoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'md5:0a400058e8105d39e35c35e7c5184164',
             'description': 'md5:a31241990e1bd3a64e72ae99afb325fb',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 302,
             'age_limit': 18,
         }

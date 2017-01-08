@@ -6,7 +6,6 @@ from ..utils import (
     extract_attributes,
     int_or_none,
     parse_age_limit,
-    unescapeHTML,
     ExtractorError,
 )
 
@@ -49,7 +48,7 @@ class DiscoveryGoIE(InfoExtractor):
                 webpage, 'video container'))
 
         video = self._parse_json(
-            unescapeHTML(container.get('data-video') or container.get('data-json')),
+            container.get('data-video') or container.get('data-json'),
             display_id)
 
         title = video['name']

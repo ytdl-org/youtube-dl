@@ -57,7 +57,8 @@ class ComedyCentralFullEpisodesIE(MTVServicesInfoExtractor):
         feed = self._download_json(video_zone['feed'], playlist_id)
         mgid = feed['result']['data']['id']
 
-        videos_info = self._get_videos_info(mgid)
+        videos_info = self._get_videos_info(mgid, use_hls=True)
+
         return videos_info
 
 
@@ -79,7 +80,7 @@ class ToshIE(MTVServicesInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Tosh.0|June 9, 2077|2|211|Twitter Users Share Summer Plans',
                 'description': 'Tosh asked fans to share their summer plans.',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 # It's really reported to be published on year 2077
                 'upload_date': '20770610',
                 'timestamp': 3390510600,

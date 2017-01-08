@@ -24,7 +24,7 @@ class NovaMovIE(InfoExtractor):
                                 )
                                 (?P<id>[a-z\d]{13})
                             '''
-    _VALID_URL = _VALID_URL_TEMPLATE % {'host': 'novamov\.com'}
+    _VALID_URL = _VALID_URL_TEMPLATE % {'host': r'novamov\.com'}
 
     _HOST = 'www.novamov.com'
 
@@ -104,7 +104,7 @@ class WholeCloudIE(NovaMovIE):
     IE_NAME = 'wholecloud'
     IE_DESC = 'WholeCloud'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': '(?:wholecloud\.net|movshare\.(?:net|sx|ag))'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': r'(?:wholecloud\.net|movshare\.(?:net|sx|ag))'}
 
     _HOST = 'www.wholecloud.net'
 
@@ -128,7 +128,7 @@ class NowVideoIE(NovaMovIE):
     IE_NAME = 'nowvideo'
     IE_DESC = 'NowVideo'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'nowvideo\.(?:to|ch|ec|sx|eu|at|ag|co|li)'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': r'nowvideo\.(?:to|ch|ec|sx|eu|at|ag|co|li)'}
 
     _HOST = 'www.nowvideo.to'
 
@@ -152,7 +152,7 @@ class VideoWeedIE(NovaMovIE):
     IE_NAME = 'videoweed'
     IE_DESC = 'VideoWeed'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'videoweed\.(?:es|com)'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': r'videoweed\.(?:es|com)'}
 
     _HOST = 'www.videoweed.es'
 
@@ -176,7 +176,7 @@ class CloudTimeIE(NovaMovIE):
     IE_NAME = 'cloudtime'
     IE_DESC = 'CloudTime'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'cloudtime\.to'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': r'cloudtime\.to'}
 
     _HOST = 'www.cloudtime.to'
 
@@ -190,7 +190,7 @@ class AuroraVidIE(NovaMovIE):
     IE_NAME = 'auroravid'
     IE_DESC = 'AuroraVid'
 
-    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': 'auroravid\.to'}
+    _VALID_URL = NovaMovIE._VALID_URL_TEMPLATE % {'host': r'auroravid\.to'}
 
     _HOST = 'www.auroravid.to'
 

@@ -34,7 +34,7 @@ class PladformIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Тайны перевала Дятлова • 1 серия 2 часть',
             'description': 'Документальный сериал-расследование одной из самых жутких тайн ХХ века',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 694,
             'age_limit': 0,
         },

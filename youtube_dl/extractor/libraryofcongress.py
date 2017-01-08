@@ -25,7 +25,7 @@ class LibraryOfCongressIE(InfoExtractor):
             'id': '90716351',
             'ext': 'mp4',
             'title': "Pa's trip to Mars",
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 0,
             'view_count': int,
         },

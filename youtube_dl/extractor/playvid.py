@@ -34,7 +34,7 @@ class PlayvidIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ellen Euro Cutie Blond Takes a Sexy Survey Get Facial in The Park',
             'age_limit': 18,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }]
 

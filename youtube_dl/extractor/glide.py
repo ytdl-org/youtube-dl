@@ -14,7 +14,7 @@ class GlideIE(InfoExtractor):
             'id': 'UZF8zlmuQbe4mr+7dCiQ0w==',
             'ext': 'mp4',
             'title': "Damon's Glide message",
-            'thumbnail': 're:^https?://.*?\.cloudfront\.net/.*\.jpg$',
+            'thumbnail': r're:^https?://.*?\.cloudfront\.net/.*\.jpg$',
         }
     }
 

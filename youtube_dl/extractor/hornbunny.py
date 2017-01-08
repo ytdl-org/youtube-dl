@@ -20,7 +20,7 @@ class HornBunnyIE(InfoExtractor):
             'duration': 550,
             'age_limit': 18,
             'view_count': int,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 

@@ -19,7 +19,7 @@ class BioBioChileTVIE(InfoExtractor):
             'id': 'sobre-camaras-y-camarillas-parlamentarias',
             'ext': 'mp4',
             'title': 'Sobre Cámaras y camarillas parlamentarias',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Fernando Atria',
         },
         'skip': 'URL expired and redirected to http://www.biobiochile.cl/portada/bbtv/index.html',
@@ -31,7 +31,7 @@ class BioBioChileTVIE(InfoExtractor):
             'id': 'natalia-valdebenito-repasa-a-diputado-hasbun-paso-a-la-categoria-de-hablar-brutalidades',
             'ext': 'mp4',
             'title': 'Natalia Valdebenito repasa a diputado Hasbún: Pasó a la categoría de hablar brutalidades',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Piangella Obrador',
         },
         'params': {

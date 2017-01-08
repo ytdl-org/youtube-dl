@@ -386,8 +386,8 @@ class LetvCloudIE(InfoExtractor):
         return formats
 
     def _real_extract(self, url):
-        uu_mobj = re.search('uu=([\w]+)', url)
-        vu_mobj = re.search('vu=([\w]+)', url)
+        uu_mobj = re.search(r'uu=([\w]+)', url)
+        vu_mobj = re.search(r'vu=([\w]+)', url)
 
         if not uu_mobj or not vu_mobj:
             raise ExtractorError('Invalid URL: %s' % url, expected=True)

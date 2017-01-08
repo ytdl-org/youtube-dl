@@ -207,7 +207,15 @@ class NRKIE(NRKBaseIE):
 
 class NRKTVIE(NRKBaseIE):
     IE_DESC = 'NRK TV and NRK Radio'
-    _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/(?:serie/[^/]+|program)/(?P<id>[a-zA-Z]{4}\d{8})(?:/\d{2}-\d{2}-\d{4})?(?:#del=(?P<part_id>\d+))?'
+    _EPISODE_RE = r'(?P<id>[a-zA-Z]{4}\d{8})'
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:tv|radio)\.nrk(?:super)?\.no/
+                            (?:serie/[^/]+|program)/
+                            (?![Ee]pisodes)%s
+                            (?:/\d{2}-\d{2}-\d{4})?
+                            (?:\#del=(?P<part_id>\d+))?
+                    ''' % _EPISODE_RE
     _API_HOST = 'psapi-we.nrk.no'
 
     _TESTS = [{
@@ -286,9 +294,30 @@ class NRKTVDirekteIE(NRKTVIE):
     }]
 
 
-class NRKPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nrk\.no/(?!video|skole)(?:[^/]+/)+(?P<id>[^/]+)'
+class NRKPlaylistBaseIE(InfoExtractor):
+    def _extract_description(self, webpage):
+        pass
 
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result('nrk:%s' % video_id, NRKIE.ie_key())
+            for video_id in re.findall(self._ITEM_RE, webpage)
+        ]
+
+        playlist_title = self. _extract_title(webpage)
+        playlist_description = self._extract_description(webpage)
+
+        return self.playlist_result(
+            entries, playlist_id, playlist_title, playlist_description)
+
+
+class NRKPlaylistIE(NRKPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?nrk\.no/(?!video|skole)(?:[^/]+/)+(?P<id>[^/]+)'
+    _ITEM_RE = r'class="[^"]*\brich\b[^"]*"[^>]+data-video-id="([^"]+)"'
     _TESTS = [{
         'url': 'http://www.nrk.no/troms/gjenopplev-den-historiske-solformorkelsen-1.12270763',
         'info_dict': {
@@ -307,23 +336,28 @@ class NRKPlaylistIE(InfoExtractor):
         'playlist_count': 5,
     }]
 
-    def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+    def _extract_title(self, webpage):
+        return self._og_search_title(webpage, fatal=False)
 
-        webpage = self._download_webpage(url, playlist_id)
+    def _extract_description(self, webpage):
+        return self._og_search_description(webpage)
 
-        entries = [
-            self.url_result('nrk:%s' % video_id, 'NRK')
-            for video_id in re.findall(
-                r'class="[^"]*\brich\b[^"]*"[^>]+data-video-id="([^"]+)"',
-                webpage)
-        ]
 
-        playlist_title = self._og_search_title(webpage)
-        playlist_description = self._og_search_description(webpage)
+class NRKTVEpisodesIE(NRKPlaylistBaseIE):
+    _VALID_URL = r'https?://tv\.nrk\.no/program/[Ee]pisodes/[^/]+/(?P<id>\d+)'
+    _ITEM_RE = r'data-episode=["\']%s' % NRKTVIE._EPISODE_RE
+    _TESTS = [{
+        'url': 'https://tv.nrk.no/program/episodes/nytt-paa-nytt/69031',
+        'info_dict': {
+            'id': '69031',
+            'title': 'Nytt på nytt, sesong: 201210',
+        },
+        'playlist_count': 4,
+    }]
 
-        return self.playlist_result(
-            entries, playlist_id, playlist_title, playlist_description)
+    def _extract_title(self, webpage):
+        return self._html_search_regex(
+            r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
 
 
 class NRKSkoleIE(InfoExtractor):

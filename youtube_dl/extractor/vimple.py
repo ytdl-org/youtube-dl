@@ -37,7 +37,7 @@ class VimpleIE(SprutoBaseIE):
             'ext': 'mp4',
             'title': 'Sunset',
             'duration': 20,
-            'thumbnail': 're:https?://.*?\.jpg',
+            'thumbnail': r're:https?://.*?\.jpg',
         },
     }, {
         'url': 'http://player.vimple.ru/iframe/52e1beec-1314-4a83-aeac-c61562eadbf9',

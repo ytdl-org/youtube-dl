@@ -1,3 +1,49 @@
+version <unreleased>
+
+Core
+* Fix "invalid escape sequence" errors under Python 3.6 (#11581)
+
+Extractors
+* [discoverygo] Fix JSON data parsing (#11219, #11522)
+
+
+version 2017.01.05
+
+Extractors
++ [zdf] Fix extraction (#11055, #11063)
+* [pornhub:playlist] Improve extraction (#11594)
++ [cctv] Add support for ncpa-classic.com (#11591)
++ [tunein] Add support for embeds (#11579)
+
+
+version 2017.01.02
+
+Extractors
+* [cctv] Improve extraction (#879, #6753, #8541)
++ [nrktv:episodes] Add support for episodes (#11571)
++ [arkena] Add support for video.arkena.com (#11568)
+
+
+version 2016.12.31
+
+Core
++ Introduce --config-location option for custom configuration files (#6745,
+  #10648)
+
+Extractors
++ [twitch] Add support for player.twitch.tv (#11535, #11537)
++ [videa] Add support for videa.hu (#8181, #11133)
+* [vk] Fix postlive videos extraction
+* [vk] Extract from playerParams (#11555)
+- [freevideo] Remove extractor (#11515)
++ [showroomlive] Add support for showroom-live.com (#11458)
+* [xhamster] Fix duration extraction (#11549)
+* [rtve:live] Fix extraction (#11529)
+* [brightcove:legacy] Improve embeds detection (#11523)
++ [twitch] Add support for rechat messages (#11524)
+* [acast] Fix audio and timestamp extraction (#11521)
+
+
 version 2016.12.22
 
 Core

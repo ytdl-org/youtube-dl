@@ -18,7 +18,7 @@ class MGTVIE(InfoExtractor):
             'title': '我是歌手第四季双年巅峰会：韩红李玟“双王”领军对抗',
             'description': '我是歌手第四季双年巅峰会',
             'duration': 7461,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         # no tbr extracted from stream_url

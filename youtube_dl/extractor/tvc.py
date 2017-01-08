@@ -19,7 +19,7 @@ class TVCIE(InfoExtractor):
             'id': '74622',
             'ext': 'mp4',
             'title': 'События. "События". Эфир от 22.05.2015 14:30',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 1122,
         },
     }
@@ -72,7 +72,7 @@ class TVCArticleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'События. "События". Эфир от 22.05.2015 14:30',
             'description': 'md5:ad7aa7db22903f983e687b8a3e98c6dd',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 1122,
         },
     }, {
@@ -82,7 +82,7 @@ class TVCArticleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Эксперты: в столице встал вопрос о максимально безопасных остановках',
             'description': 'md5:f2098f71e21f309e89f69b525fd9846e',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 278,
         },
     }, {
@@ -92,7 +92,7 @@ class TVCArticleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ещё не поздно. Эфир от 03.08.2013',
             'description': 'md5:51fae9f3f8cfe67abce014e428e5b027',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 3316,
         },
     }]

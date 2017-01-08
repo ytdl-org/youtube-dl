@@ -28,7 +28,7 @@ class BiliBiliIE(InfoExtractor):
             'duration': 308.315,
             'timestamp': 1398012660,
             'upload_date': '20140420',
-            'thumbnail': 're:^https?://.+\.jpg',
+            'thumbnail': r're:^https?://.+\.jpg',
             'uploader': '菊子桑',
             'uploader_id': '156160',
         },
