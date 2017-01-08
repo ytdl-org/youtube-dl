@@ -680,8 +680,7 @@ from .openload import OpenloadIE
 from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
-    ORFOE1IE,
-    ORFFM4IE,
+    ORFRadioIE,
     ORFIPTVIE,
 )
 from .pandatv import PandaTVIE
