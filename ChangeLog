@@ -4,6 +4,14 @@ Core
 * Fix "invalid escape sequence" errors under Python 3.6 (#11581)
 
 Extractors
++ [hitrecord] Add support for hitrecord.org (#10867, #11626)
+- [videott] Remove extractor
+* [swrmediathek] Improve extraction
+- [sharesix] Remove extractor
+- [aol:features] Remove extractor
+* [sendtonews] Improve info extraction
+* [3sat,phoenix] Fix extraction (#11619)
+* [comedycentral/mtv] Add support for HLS videos (#11600)
 * [discoverygo] Fix JSON data parsing (#11219, #11522)
 
 
