@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.08
 
 Core
 * Fix "invalid escape sequence" errors under Python 3.6 (#11581)
