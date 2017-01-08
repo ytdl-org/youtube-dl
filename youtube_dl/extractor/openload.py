@@ -64,7 +64,7 @@ class OpenloadIE(InfoExtractor):
             raise ExtractorError('File not found', expected=True)
 
         ol_id = self._search_regex(
-            '<span[^>]+?id="[^"]*?"[^>]*?>([^<]+?)<\/span>',
+            '<span[^>]+id="[^"]*"[^>]*>([^<]+?)</span>',
             webpage, 'openload ID')
 
         first_three_chars = int(float(ol_id[0:][:3]))
