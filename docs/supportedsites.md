@@ -240,7 +240,6 @@
  - **fc2**
  - **fc2:embed**
  - **Fczenit**
- - **features.aol.com**
  - **fernsehkritik.tv**
  - **Firstpost**
  - **FiveTV**
@@ -304,6 +303,7 @@
  - **history:topic**: History.com Topic
  - **hitbox**
  - **hitbox:live**
+ - **HitRecord**
  - **HornBunny**
  - **HotNewHipHop**
  - **HotStar**
@@ -650,7 +650,6 @@
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
- - **ScreenJunkies**
  - **Seeker**
  - **SenateISVP**
  - **SendtoNews**
@@ -658,7 +657,6 @@
  - **Sexu**
  - **Shahid**
  - **Shared**: shared.sx
- - **ShareSix**
  - **ShowRoomLive**
  - **Sina**
  - **SixPlay**
@@ -845,7 +843,6 @@
  - **videomore:season**
  - **videomore:video**
  - **VideoPremium**
- - **VideoTt**: video.tt - Your True Tube (Currently broken)
  - **videoweed**: VideoWeed
  - **Vidio**
  - **vidme**
