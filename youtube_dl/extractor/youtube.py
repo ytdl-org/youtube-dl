@@ -1955,7 +1955,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
 
-        for match in re.findall(r'<div class="yt-alert-message">([^<]+)</div>', page):
+        # the yt-alert-message now has tabindex attribute (see https://github.com/rg3/youtube-dl/issues/11604)
+        for match in re.findall(r'<div class="yt-alert-message"[^>]+?>([^<]+)</div>', page):
             match = match.strip()
             # Check if the playlist exists or is private
             if re.match(r'[^<]*(The|This) playlist (does not exist|is private)[^<]*', match):
