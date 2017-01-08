@@ -397,6 +397,7 @@ from .imgur import (
     ImgurAlbumIE,
 )
 from .ina import InaIE
+from .inc import IncIE
 from .indavideo import (
     IndavideoIE,
     IndavideoEmbedIE,
