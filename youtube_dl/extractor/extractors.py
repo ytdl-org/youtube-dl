@@ -106,6 +106,7 @@ from .bleacherreport import (
     BleacherReportCMSIE,
 )
 from .blinkx import BlinkxIE
+from .blogtalkradio import BlogTalkRadioIE
 from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
 from .bpb import BpbIE
