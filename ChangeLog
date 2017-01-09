@@ -1,3 +1,7 @@
+version <unreleased>
+
++ [egghead:course] Add support for egghead.io courses
+
 version 2017.01.08
 
 Core
@@ -13,7 +17,6 @@ Extractors
 * [3sat,phoenix] Fix extraction (#11619)
 * [comedycentral/mtv] Add support for HLS videos (#11600)
 * [discoverygo] Fix JSON data parsing (#11219, #11522)
-
 
 version 2017.01.05
 
