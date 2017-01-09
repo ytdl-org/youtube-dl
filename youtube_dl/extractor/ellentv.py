@@ -1,9 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-
 from .common import InfoExtractor
+from .kaltura import KalturaIE
 from ..utils import (
     ExtractorError,
     NO_DEFAULT,
@@ -65,7 +64,7 @@ class EllenTVIE(InfoExtractor):
             if partner_id and kaltura_id:
                 break
 
-        return self.url_result('kaltura:%s:%s' % (partner_id, kaltura_id), 'Kaltura')
+        return self.url_result('kaltura:%s:%s' % (partner_id, kaltura_id), KalturaIE.ie_key())
 
 
 class EllenTVClipsIE(InfoExtractor):
@@ -77,7 +76,7 @@ class EllenTVClipsIE(InfoExtractor):
             'id': 'meryl-streep-vanessa-hudgens',
             'title': 'Meryl Streep, Vanessa Hudgens',
         },
-        'playlist_mincount': 7,
+        'playlist_mincount': 5,
     }
 
     def _real_extract(self, url):
@@ -96,7 +95,7 @@ class EllenTVClipsIE(InfoExtractor):
     def _extract_playlist(self, webpage):
         json_string = self._search_regex(r'playerView.addClips\(\[\{(.*?)\}\]\);', webpage, 'json')
         try:
-            return json.loads('[{' + json_string + '}]')
+            return self._parse_json('[{' + json_string + '}]', 'playlist')
         except ValueError as ve:
             raise ExtractorError('Failed to download JSON', cause=ve)
 
@@ -104,5 +103,5 @@ class EllenTVClipsIE(InfoExtractor):
         return [
             self.url_result(
                 'kaltura:%s:%s' % (item['kaltura_partner_id'], item['kaltura_entry_id']),
-                'Kaltura')
+                KalturaIE.ie_key())
             for item in playlist]
