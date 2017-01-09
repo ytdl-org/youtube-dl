@@ -60,6 +60,7 @@ class TwentyMinutenIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         display_id = mobj.group('display_id') or video_id
+        print('DISPLAY_ID: {}'.format(display_id))
 
         webpage = self._download_webpage(url, display_id)
 
@@ -75,13 +76,23 @@ class TwentyMinutenIE(InfoExtractor):
         if not title:
             title = remove_end(re.sub(
                 r'^20 [Mm]inuten.*? -', '', self._og_search_title(webpage)), ' - News')
+        print('TITLE: {}'.format(title))
 
+        # if not video_id:
+        #     video_id = self._search_regex(
+        #         r'"file\d?"\s*,\s*\"(\d+)', webpage, 'video id')
         if not video_id:
-            video_id = self._search_regex(
-                r'"file\d?"\s*,\s*\"(\d+)', webpage, 'video id')
+            videoplayer_url = self._html_search_regex(
+                r'<iframe[^>]+src="((?:https?:)?//www\.20min\.ch/videoplayer/videoplayer\.html\?params=*?[^"]+)"',
+                webpage, '20min embed URL', default=None)
+            vid = re.match(r'videoID@\d+', videoplayer_url)
+            print(vid)
+
+
 
         description = self._html_search_meta(
             'description', webpage, 'description')
+        print('DESCRIPTION: {}'.format(description))
         thumbnail = self._og_search_thumbnail(webpage)
 
         return {
