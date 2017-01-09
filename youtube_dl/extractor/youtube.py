@@ -863,6 +863,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            # itag 212
+            'url': '1t24XAntNCY',
+            'only_matching': True,
         }
     ]
 
