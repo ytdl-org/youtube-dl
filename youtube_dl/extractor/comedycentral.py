@@ -57,7 +57,7 @@ class ComedyCentralFullEpisodesIE(MTVServicesInfoExtractor):
         feed = self._download_json(video_zone['feed'], playlist_id)
         mgid = feed['result']['data']['id']
 
-        videos_info = self._get_videos_info(mgid, use_hls=True)
+        videos_info = self._get_videos_info(mgid)
 
         return videos_info
 
