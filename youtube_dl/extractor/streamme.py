@@ -25,7 +25,8 @@ class StreamMeIE(InfoExtractor):
             'title': 'Kombat Cup Week #8 - Sunday Open',
             'uploader': 'KombatCup',
             'uploader_id': 'kombatcup',
-            'timestamp': 1481512102000,
+            'timestamp': 1481512102,
+            'upload_date': '20161212',
             'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 13,
         }
@@ -69,7 +70,7 @@ class StreamMeIE(InfoExtractor):
             'description': info.get('description'),
             'display_id': info.get('titleSlug'),
             'duration': int_or_none(info.get('duration')),
-            'timestamp': int_or_none(info.get('whenCreated')),
+            'timestamp': int_or_none(info.get('whenCreated'), scale=1000),
             'uploader': info.get('username'),
             'uploader_id': info.get('userSlug'),
             'is_live': True if info.get('active') else False,
