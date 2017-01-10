@@ -13,7 +13,7 @@ class TwentyMinutenIE(InfoExtractor):
     _TESTS = [{
         # regular video
         'url': 'http://www.20min.ch/videotv/?vid=469148&cid=2',
-        'md5': 'b52d6bc6ea6398e6a38f12cfd418149c',
+        'md5': 'e7264320db31eed8c38364150c12496e',
         'info_dict': {
             'id': '469148',
             'ext': 'flv',
@@ -34,6 +34,18 @@ class TwentyMinutenIE(InfoExtractor):
             'thumbnail': 'http://www.20min.ch/images/content/2/2/0/22050469/10/teaserbreit.jpg'
         },
         'skip': '"This video is no longer available" is shown both on the web page and in the downloaded file.',
+    }, {
+        # news article with video
+        'url': 'http://www.20min.ch/schweiz/news/story/So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
+        'md5': '807f9e1e06a69b77440a9b315e52e580',
+        'info_dict': {
+            'id': '523629',
+            'display_id': 'So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
+            'ext': 'mp4',
+            'title': 'So kommen Sie bei Eis und Schnee sicher an',
+            'description': 'Schneegestöber und Glatteis führten in den letzten Tagen zu zahlreichen Strassenunfällen. Ein Experte erklärt, worauf man nun beim Autofahren achten muss.',
+            'thumbnail': 'http://www.20min.ch/images/content/2/7/0/27032552/81/teaserbreit.jpg',
+        }
     }, {
         # YouTube embed
         'url': 'http://www.20min.ch/ro/sports/football/story/Il-marque-une-bicyclette-de-plus-de-30-metres--21115184',
@@ -78,27 +90,27 @@ class TwentyMinutenIE(InfoExtractor):
                 r'^20 [Mm]inuten.*? -', '', self._og_search_title(webpage)), ' - News')
         print('TITLE: {}'.format(title))
 
-        # if not video_id:
-        #     video_id = self._search_regex(
-        #         r'"file\d?"\s*,\s*\"(\d+)', webpage, 'video id')
         if not video_id:
-            videoplayer_url = self._html_search_regex(
-                r'<iframe[^>]+src="((?:https?:)?//www\.20min\.ch/videoplayer/videoplayer\.html\?params=*?[^"]+)"',
+            params = self._html_search_regex(
+                r'<iframe[^>]+src="(?:https?:)?//www\.20min\.ch/videoplayer/videoplayer\.html\?params=(.+?[^"])"',
                 webpage, '20min embed URL', default=None)
-            vid = re.match(r'videoID@\d+', videoplayer_url)
-            print(vid)
-
+            print('PARMAS: {}'.format(params))
+            video_id = self._search_regex(
+                r'.*videoId@(\d+)',
+                params, 'Video Id', default=None) if params is not None else ''
+            print('VIDEO ID: {}'.format(video_id))
 
 
         description = self._html_search_meta(
             'description', webpage, 'description')
         print('DESCRIPTION: {}'.format(description))
         thumbnail = self._og_search_thumbnail(webpage)
+        print('THUMBNAIL: {}'.format(thumbnail))
 
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': 'http://speed.20min-tv.ch/%sm.flv' % video_id,
+            'url': 'http://podcast.20min-tv.ch/podcast/20min/%sh.mp4' % video_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
