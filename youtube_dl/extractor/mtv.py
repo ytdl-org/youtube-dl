@@ -88,7 +88,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
-            if rendition.attrib['method'] == 'hls':
+            if rendition.get('method') == 'hls':
                 hls_url = rendition.find('./src').text
                 formats.extend(self._extract_m3u8_formats(hls_url, video_id, ext='mp4'))
             else:
