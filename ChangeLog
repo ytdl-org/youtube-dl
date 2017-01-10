@@ -1,6 +1,9 @@
 version <unreleased>
 
 Extractors
+* [youtube] Fix extraction (#11663, #11664)
++ [inc] Add support for inc.com (#11277, #11647)
++ [youtube] Add itag 212 (#11575)
 + [egghead:course] Add support for egghead.io courses
 
 
