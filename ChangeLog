@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.10
 
 Extractors
 * [youtube] Fix extraction (#11663, #11664)

@@ -214,6 +214,7 @@
  - **EaglePlatform**
  - **EbaumsWorld**
  - **EchoMsk**
+ - **egghead:course**: egghead.io course
  - **eHow**
  - **Einthusan**
  - **eitb.tv**
@@ -321,6 +322,7 @@
  - **Imgur**
  - **ImgurAlbum**
  - **Ina**
+ - **Inc**
  - **Indavideo**
  - **IndavideoEmbed**
  - **InfoQ**
