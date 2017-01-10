@@ -123,7 +123,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             } for typographic in transcript.findall('./typographic')]
         return subtitles
 
-    def _get_video_info(self, itemdoc, use_hls=False):
+    def _get_video_info(self, itemdoc, use_hls=True):
         uri = itemdoc.find('guid').text
         video_id = self._id_from_uri(uri)
         self.report_extraction(video_id)
@@ -193,13 +193,13 @@ class MTVServicesInfoExtractor(InfoExtractor):
             data['lang'] = self._LANG
         return data
 
-    def _get_videos_info(self, uri, use_hls=False):
+    def _get_videos_info(self, uri, use_hls=True):
         video_id = self._id_from_uri(uri)
         feed_url = self._get_feed_url(uri)
         info_url = update_url_query(feed_url, self._get_feed_query(uri))
         return self._get_videos_info_from_url(info_url, video_id, use_hls)
 
-    def _get_videos_info_from_url(self, url, video_id, use_hls=False):
+    def _get_videos_info_from_url(self, url, video_id, use_hls=True):
         idoc = self._download_xml(
             url, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
