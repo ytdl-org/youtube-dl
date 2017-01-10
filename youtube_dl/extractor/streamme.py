@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    compat_str,
     ExtractorError,
+    compat_str,
+    int_or_none,
+    str_or_none,
+    try_get,
 )
 
 
@@ -68,23 +70,17 @@ class StreamMeIE(InfoExtractor):
             'title': info.get('title'),
             'age_limit': int_or_none(info.get('ageRating')),
             'description': info.get('description'),
+            'dislike_count': int_or_none(info.get('stats', {}).get('raw', {}).get('dislikes')),
             'display_id': info.get('titleSlug'),
             'duration': int_or_none(info.get('duration')),
+            'is_live': True if info.get('active') else False,
+            'like_count': int_or_none(info.get('stats', {}).get('raw', {}).get('likes')),
+            'thumbnail': info.get('_links', {}).get('thumbnail', {}).get('href'),
             'timestamp': int_or_none(info.get('whenCreated'), scale=1000),
             'uploader': info.get('username'),
             'uploader_id': info.get('userSlug'),
-            'is_live': True if info.get('active') else False,
+            'view_count': int_or_none(info.get('stats', {}).get('raw', {}).get('views')),
         }
-        if info.get('stats') and info['stats'].get('raw'):
-            stats = info['stats']['raw']
-            data.update({
-                'like_count': int_or_none(stats.get('likes')),
-                'dislike_count': int_or_none(stats.get('dislikes')),
-                'view_count': int_or_none(stats.get('views')),
-            })
-        if info.get('_links') and info['_links'].get('thumbnail'):
-            if info['_links']['thumbnail'].get('href'):
-                data['thumbnail'] = info['_links']['thumbnail']['href']
         return data
 
     def _extract_formats(self, fmts):
@@ -107,10 +103,12 @@ class StreamMeIE(InfoExtractor):
                     # I don't know all the possible protocols yet.
                     # 'protocol': 'm3u8_native' if fmt_tag == 'mp4-hls' else 'http'
                 })
-            if d.get('origin') and d['origin'].get('location'):
-                fmt_tag = d['origin']['location'].split(':')[0]
+
+            video_url = str_or_none(try_get(d, lambda x: x['origin']['location'], compat_str), '')
+            if ':' in video_url:
+                fmt_tag = video_url.split(':')[0]
                 formats.append({
-                    'url': d['origin']['location'],
+                    'url': video_url,
                     'acodec': d['origin'].get('audioCodec'),
                     'vcodec': d['origin'].get('videoCodec'),
                     'format_id': 'Source-' + fmt_tag,
