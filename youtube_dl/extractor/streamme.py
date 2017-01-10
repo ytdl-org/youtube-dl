@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -175,7 +176,6 @@ class StreamMeArchiveIE(StreamMeIE):
     IE_NAME = 'StreamMe:archives'
     _VALID_URL = r'%s/(?P<id>[^#]+)#archive$' % StreamMeIE._VALID_URL_BASE
     _PLAYLIST_TYPE = 'past broadcasts'
-    _PLAYLIST_LIMIT = 128
     _TEST = {
         'url': 'https://www.stream.me/kombatcup#archive',
         'info_dict': {
@@ -190,21 +190,29 @@ class StreamMeArchiveIE(StreamMeIE):
     def _real_extract(self, url):
         channel_id = self._match_id(url).split('#')[0]
         apiurl = StreamMeIE._API_ARCHIVE % channel_id
-        # TODO: implement paginated downloading
-        data = self._download_json(apiurl, channel_id, query={'limit': self._PLAYLIST_LIMIT, 'offset': 0})
-        if not data:
+        page = self._download_json(apiurl, channel_id)
+        if not page:
             raise ExtractorError('{0} returns empty data. Try again later'.format(channel_id), expected=True)
-
+        total = int_or_none(page.get('total'), default=0)
         playlist = []
-        for vod in data['_embedded']['vod']:
-            manifest_json = self._download_json(vod['_links']['manifest']['href'],
-                                                vod['urlId'], note='Downloading video manifest')
-            formats = self._extract_formats(manifest_json['formats'])
-            self._sort_formats(formats, 'vbr')
-            info = self._extract_info(vod)
-            info['formats'] = formats
-            playlist.append(info)
+        count = 0
+        for page_count in itertools.count(1):
+            if count >= total or apiurl is None:
+                break
+            for vod in page['_embedded']['vod']:
+                manifest_json = self._download_json(vod['_links']['manifest']['href'],
+                                                    vod['urlId'], note='Downloading video manifest')
+                formats = self._extract_formats(manifest_json['formats'])
+                self._sort_formats(formats, 'vbr')
+                info = self._extract_info(vod)
+                info['formats'] = formats
+                playlist.append(info)
+                count += 1
 
+            apiurl = try_get(page, lambda x: x['_links']['next'], compat_str)
+            if apiurl is not None:
+                page = self._download_json(apiurl, channel_id,
+                                           note='Downloading JSON page {0}'.format(page_count + 1))
         return self.playlist_result(
             playlist, channel_id,
-            data.get('displayName') if data else 'Archived Videos')
+            page.get('displayName') if page else 'Archived Videos')
