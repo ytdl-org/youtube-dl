@@ -254,7 +254,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
                 'duration': 10,
-                'description': 'This is "youtube-dl password protected test video" by  on Vimeo, the home for high quality videos and the people who love them.',
+                'description': 'md5:dca3ea23adb29ee387127bc4ddfce63f',
             },
             'params': {
                 'videopassword': 'youtube-dl',
@@ -306,7 +306,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         {
             # contains original format
             'url': 'https://vimeo.com/33951933',
-            'md5': '2d9f5475e0537f013d0073e812ab89e6',
+            'md5': '53c688fa95a55bf4b7293d37a89c5c53',
             'info_dict': {
                 'id': '33951933',
                 'ext': 'mp4',
@@ -324,7 +324,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/channels/tributes/6213729',
             'info_dict': {
                 'id': '6213729',
-                'ext': 'mp4',
+                'ext': 'mov',
                 'title': 'Vimeo Tribute: The Shining',
                 'uploader': 'Casey Donahue',
                 'uploader_url': r're:https?://(?:www\.)?vimeo\.com/caseydonahue',
