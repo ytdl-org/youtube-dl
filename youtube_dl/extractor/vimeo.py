@@ -629,6 +629,9 @@ class VimeoOndemandIE(VimeoBaseInfoExtractor):
             'uploader_url': r're:https?://(?:www\.)?vimeo\.com/gumfilms',
             'uploader_id': 'gumfilms',
         },
+        'params': {
+            'format': 'best[protocol=https]',
+        },
     }, {
         # requires Referer to be passed along with og:video:url
         'url': 'https://vimeo.com/ondemand/36938/126682985',
