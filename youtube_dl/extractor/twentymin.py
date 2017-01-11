@@ -6,9 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     remove_end,
-    ExtractorError,
-    clean_html,
-    get_element_by_class
+    ExtractorError
 )
 
 
@@ -21,7 +19,7 @@ class TwentyMinutenIE(InfoExtractor):
         'md5': 'e7264320db31eed8c38364150c12496e',
         'info_dict': {
             'id': '469148',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '85 000 Franken für 15 perfekte Minuten',
             'description': 'Was die Besucher vom Silvesterzauber erwarten können. (Video: Alice Grosjean/Murat Temel)',
             'thumbnail': 'http://thumbnails.20min-tv.ch/server063/469148/frame-72-469148.jpg'
@@ -49,19 +47,19 @@ class TwentyMinutenIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'So kommen Sie bei Eis und Schnee sicher an',
             'description': 'Schneegestöber und Glatteis führten in den letzten Tagen zu zahlreichen Strassenunfällen. Ein Experte erklärt, worauf man nun beim Autofahren achten muss.',
-            'thumbnail': 'http://www.20min.ch/images/content/2/7/0/27032552/81/teaserbreit.jpg',
+            'thumbnail': 'http://www.20min.ch/images/content/2/7/0/27032552/83/teaserbreit.jpg',
         }
     }, {
         # YouTube embed
         'url': 'http://www.20min.ch/ro/sports/football/story/Il-marque-une-bicyclette-de-plus-de-30-metres--21115184',
-        'md5': 'cec64d59aa01c0ed9dbba9cf639dd82f',
+        'md5': 'e7e237fd98da2a3cc1422ce683df234d',
         'info_dict': {
             'id': 'ivM7A7SpDOs',
             'ext': 'mp4',
             'title': 'GOLAZO DE CHILENA DE JAVI GÓMEZ, FINALISTA AL BALÓN DE CLM 2016',
             'description': 'md5:903c92fbf2b2f66c09de514bc25e9f5a',
             'upload_date': '20160424',
-            'uploader': 'RTVCM Castilla-La Mancha',
+            'uploader': 'CMM Castilla-La Mancha Media',
             'uploader_id': 'RTVCM',
         },
         'add_ie': ['Youtube'],
@@ -77,7 +75,6 @@ class TwentyMinutenIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         display_id = mobj.group('display_id') or video_id
-        print('DISPLAY_ID: {}'.format(display_id))
 
         webpage = self._download_webpage(url, display_id)
 
@@ -93,30 +90,19 @@ class TwentyMinutenIE(InfoExtractor):
         if not title:
             title = remove_end(re.sub(
                 r'^20 [Mm]inuten.*? -', '', self._og_search_title(webpage)), ' - News')
-        print('TITLE: {}'.format(title))
 
         if not video_id:
             params = self._html_search_regex(
                 r'<iframe[^>]+src="(?:https?:)?//www\.20min\.ch/videoplayer/videoplayer\.html\?params=(.+?[^"])"',
                 webpage, '20min embed URL', default=None)
-            print('PARMAS: {}'.format(params))
             video_id = self._search_regex(
                 r'.*videoId@(\d+)',
                 params, 'Video Id', default=None) if params is not None else ''
-            print('VIDEO ID: {}'.format(video_id))
             if not video_id: # the article does not contain a video
                 raise ExtractorError('No media links found on %s.' % url, expected=True)
 
-        # # Try to use the real video description:
-        # description = clean_html(get_element_by_class('caption', webpage))
-        # # Otherwise, use the lead text of the article as the video description:
-        # if not description:
-        #     description = self._html_search_meta(
-        #         'description', webpage, 'description')
         description = self._html_search_meta('description', webpage, 'description')
-        print('DESCRIPTION: {}'.format(description))
         thumbnail = self._og_search_thumbnail(webpage)
-        print('THUMBNAIL: {}'.format(thumbnail))
 
         return {
             'id': video_id,
