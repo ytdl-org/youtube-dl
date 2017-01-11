@@ -4,7 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import remove_end
+from ..utils import (
+    remove_end,
+    ExtractorError,
+    clean_html,
+    get_element_by_class
+)
 
 
 class TwentyMinutenIE(InfoExtractor):
@@ -99,10 +104,16 @@ class TwentyMinutenIE(InfoExtractor):
                 r'.*videoId@(\d+)',
                 params, 'Video Id', default=None) if params is not None else ''
             print('VIDEO ID: {}'.format(video_id))
+            if not video_id: # the article does not contain a video
+                raise ExtractorError('No media links found on %s.' % url, expected=True)
 
-
-        description = self._html_search_meta(
-            'description', webpage, 'description')
+        # # Try to use the real video description:
+        # description = clean_html(get_element_by_class('caption', webpage))
+        # # Otherwise, use the lead text of the article as the video description:
+        # if not description:
+        #     description = self._html_search_meta(
+        #         'description', webpage, 'description')
+        description = self._html_search_meta('description', webpage, 'description')
         print('DESCRIPTION: {}'.format(description))
         thumbnail = self._og_search_thumbnail(webpage)
         print('THUMBNAIL: {}'.format(thumbnail))
