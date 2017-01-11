@@ -73,7 +73,7 @@ class OpenloadIE(InfoExtractor):
         num = 5
 
         while num < len(ol_id):
-            urlcode += compat_chr(int(float(ol_id[num:][:3])) -
+            urlcode += compat_chr(int(float(ol_id[num:][:3])) +
                                   first_three_chars - fifth_char * int(float(ol_id[num + 3:][:2])))
             num += 5
 
