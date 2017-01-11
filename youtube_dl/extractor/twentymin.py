@@ -98,7 +98,7 @@ class TwentyMinutenIE(InfoExtractor):
             video_id = self._search_regex(
                 r'.*videoId@(\d+)',
                 params, 'Video Id', default=None) if params is not None else ''
-            if not video_id: # the article does not contain a video
+            if not video_id:  # the article does not contain a video
                 raise ExtractorError('No media links found on %s.' % url, expected=True)
 
         description = self._html_search_meta('description', webpage, 'description')
