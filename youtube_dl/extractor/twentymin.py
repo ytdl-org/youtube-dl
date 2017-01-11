@@ -101,7 +101,8 @@ class TwentyMinutenIE(InfoExtractor):
             if not video_id:  # the article does not contain a video
                 raise ExtractorError('No media links found on %s.' % url, expected=True)
 
-        description = self._html_search_meta('description', webpage, 'description')
+        description = self._html_search_meta(
+            'description', webpage, 'description')
         thumbnail = self._og_search_thumbnail(webpage)
 
         return {
