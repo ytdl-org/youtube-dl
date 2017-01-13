@@ -190,7 +190,7 @@ class MiTeleIE(InfoExtractor):
         return {
             '_type': 'url_transparent',
             # for some reason only HLS is supported
-            'url': smuggle_url('ooyala:' + embedCode, {'supportedformats': 'm3u8'}),
+            'url': smuggle_url('ooyala:' + embedCode, {'supportedformats': 'm3u8,dash'}),
             'id': video_id,
             'title': title,
             'description': description,
