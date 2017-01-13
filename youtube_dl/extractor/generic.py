@@ -422,17 +422,16 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,  # m3u8 download
             },
         },
-        # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
-            'md5': '166dd577b433b4d4ebfee10b0824d8ff',
+            'md5': '1cef60edeafd0800b57bf8cbb851ae72',
             'info_dict': {
-                'id': 'BwY2RxaTrTkslxOfcan0UCf0YqyvWysJ',
+                'id': '4404576300001',
                 'ext': 'mp4',
-                'title': '2cc213299525360.mov',  # that's what we get
+                'title': 'Music Video',
                 'duration': 238.231,
             },
-            'add_ie': ['Ooyala'],
+            'add_ie': ['BrightcoveNew'],
         },
         {
             # ooyala video embedded with http://player.ooyala.com/iframe.js
@@ -1937,7 +1936,8 @@ class GenericIE(InfoExtractor):
         mobj = (re.search(r'player\.ooyala\.com/[^"?]+[?#][^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
                 re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
-                re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
+                re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
+                re.search(r'"ooyalaplayer-1",\s*"(?P<ec>.{32})"', webpage))
         if mobj is not None:
             embed_token = self._search_regex(
                 r'embedToken[\'"]?\s*:\s*[\'"]([^\'"]+)',
