@@ -16,21 +16,6 @@ from ..utils import (
 
 
 MSO_INFO = {
-    'DTV': {
-        'name': 'DIRECTV',
-        'username_field': 'username',
-        'password_field': 'password',
-    },
-    'Rogers': {
-        'name': 'Rogers',
-        'username_field': 'UserName',
-        'password_field': 'UserPassword',
-    },
-    'Comcast_SSO': {
-        'name': 'Comcast XFINITY',
-        'username_field': 'user',
-        'password_field': 'passwd',
-    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
@@ -99,6 +84,11 @@ MSO_INFO = {
     },
     'astound': {
         'name': 'Astound (now Wave)'
+    },
+    'ATT': {
+        'name': 'AT\&T U-Verse',
+        'username_field': 'userid',
+        'password_field': 'password',
     },
     'dix030': {
         'name': 'ATC Broadband'
@@ -253,6 +243,11 @@ MSO_INFO = {
     'cha050': {
         'name': 'Chariton Valley Communication Corporation, Inc.'
     },
+    'Charter_Direct': {
+        'name': 'Charter',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
     'cha060': {
         'name': 'Chatmoss Cablevision'
     },
@@ -324,6 +319,11 @@ MSO_INFO = {
     },
     'col080': {
         'name': 'Columbus Telephone'
+    },
+    'Comcast_SSO': {
+        'name': 'Comcast XFINITY',
+        'username_field': 'user',
+        'password_field': 'passwd',
     },
     'nor105': {
         'name': 'Communications 1 Cablevision, Inc.'
@@ -399,6 +399,12 @@ MSO_INFO = {
     },
     'ind060-dc': {
         'name': 'Direct Communications'
+    },
+    'DTV': {
+        'name': 'DIRECTV',
+    },
+    'Dish': {
+        'name': 'Dish'
     },
     'doy010': {
         'name': 'Doylestown Cable TV'
@@ -979,6 +985,11 @@ MSO_INFO = {
     'rockportcable': {
         'name': 'Rock Port Cablevision'
     },
+    'Rogers': {
+        'name': 'Rogers',
+        'username_field': 'UserName',
+        'password_field': 'UserPassword',
+    },
     'rsf010': {
         'name': 'RS Fiber'
     },
@@ -1096,6 +1107,11 @@ MSO_INFO = {
     'thr020': {
         'name': 'Three River'
     },
+    'TWC': {
+        'name': 'Time Warner Cable',
+        'username_field': 'Ecom_User_ID',
+        'password_field': 'Ecom_Password',
+    },
     'cab140': {
         'name': 'Town & Country Technologies'
     },
@@ -1170,6 +1186,11 @@ MSO_INFO = {
     },
     'sul015': {
         'name': 'Venture Communications Cooperative, Inc.'
+    },
+    'verizon': {
+        'name': 'Verizon FiOS',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
     },
     'ver025': {
         'name': 'Vernon Communications Co-op'
@@ -1410,6 +1431,7 @@ class AdobePassIE(InfoExtractor):
                     # Normal, non-Comcast flow
                     provider_login_page_res = post_form(
                         provider_redirect_page_res, 'Downloading Provider Login Page')
+                    
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
                         mso_info.get('username_field', 'username'): username,
                         mso_info.get('password_field', 'password'): password,
