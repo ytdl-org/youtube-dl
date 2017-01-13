@@ -5,7 +5,7 @@ from .mtv import MTVIE
 
 class CMTIE(MTVIE):
     IE_NAME = 'cmt.com'
-    _VALID_URL = r'https?://(?:www\.)?cmt\.com/(?:videos|shows|full-episodes)/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?cmt\.com/(?:videos|shows|full-episodes|video-clips)/(?P<id>[^/]+)'
 
     _TESTS = [{
         'url': 'http://www.cmt.com/videos/garth-brooks/989124/the-call-featuring-trisha-yearwood.jhtml#artist=30061',
@@ -30,6 +30,12 @@ class CMTIE(MTVIE):
         },
     }, {
         'url': 'http://www.cmt.com/shows/party-down-south/party-down-south-ep-407-gone-girl/1738172/playlist/#id=1738172',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.cmt.com/full-episodes/537qb3/nashville-the-wayfaring-stranger-season-5-ep-501',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.cmt.com/video-clips/t9e4ci/nashville-juliette-in-2-minutes',
         'only_matching': True,
     }]
 
