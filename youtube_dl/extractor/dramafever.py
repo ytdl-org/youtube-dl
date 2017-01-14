@@ -66,7 +66,7 @@ class DramaFeverBaseIE(AMPIE):
 
 class DramaFeverIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/(?:[^/]+/)?drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
     _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/1/Cooking_with_Shin/',
         'info_dict': {
@@ -103,6 +103,9 @@ class DramaFeverIE(DramaFeverBaseIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.dramafever.com/zh-cn/drama/4972/15/Doctor_Romantic/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -148,7 +151,7 @@ class DramaFeverIE(DramaFeverBaseIE):
 
 class DramaFeverSeriesIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever:series'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/(?:[^/]+/)?drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
     _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/Cooking_with_Shin/',
         'info_dict': {
