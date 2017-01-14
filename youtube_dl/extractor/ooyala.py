@@ -53,7 +53,7 @@ class OoyalaBaseIE(InfoExtractor):
                 elif delivery_type == 'hds' or ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
                         s_url + '?hdcore=3.7.0', embed_code, f4m_id='hds', fatal=False))
-                elif delivery_type == 'hds' or ext == 'mpd':
+                elif delivery_type == 'dash' or ext == 'mpd':
                     formats.extend(self._extract_mpd_formats(
                         s_url, embed_code, mpd_id='dash', fatal=False))
                 elif delivery_type == 'smooth':
