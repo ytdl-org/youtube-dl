@@ -1363,7 +1363,7 @@ class YoutubeDL(object):
                 format['ext'] = determine_ext(format['url']).lower()
             # Automatically determine protocol if missing (useful for format
             # selection purposes)
-            if 'protocol' not in format:
+            if format.get('protocol') is None:
                 format['protocol'] = determine_protocol(format)
             # Add HTTP headers, so that external programs can use them from the
             # json output
