@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.14
 
 Core
 + [common] Add ability to customize akamai manifest host
