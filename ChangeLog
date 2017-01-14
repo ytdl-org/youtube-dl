@@ -1,3 +1,24 @@
+version <unreleased>
+
+Core
++ [common] Add ability to customize akamai manifest host
++ [utils] Add more date formats
+
+Extractors
+- [mtv] Eliminate _transform_rtmp_url
+* [mtv] Generalize triforce mgid extraction
++ [cmt] Add support for full episodes and video clips (#11623)
++ [mitele] Extract DASH formats
++ [ooyala] Add support for videos with embedToken (#11684)
+* [mixcloud] Fix extraction (#11674)
+* [openload] Fix extraction (#10408)
+* [tv4] Improve extraction (#11698)
+* [freesound] Fix and improve extraction (#11602)
++ [nick] Add support for beta.nick.com (#11655)
+* [mtv,cc] Use HLS by default with native HLS downloader (#11641)
+* [mtv] Fix non-HLS extraction
+
+
 version 2017.01.10
 
 Extractors
