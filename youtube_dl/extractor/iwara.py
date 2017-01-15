@@ -52,26 +52,49 @@ class IwaraIE(InfoExtractor):
         # ecchi is 'sexy' in Japanese
         age_limit = 18 if hostname.split('.')[0] == 'ecchi' else 0
 
-        entries = self._parse_html5_media_entries(url, webpage, video_id)
-
-        if not entries:
-            iframe_url = self._html_search_regex(
-                r'<iframe[^>]+src=([\'"])(?P<url>[^\'"]+)\1',
-                webpage, 'iframe URL', group='url')
-            return {
-                '_type': 'url_transparent',
-                'url': iframe_url,
-                'age_limit': age_limit,
-            }
-
         title = remove_end(self._html_search_regex(
             r'<title>([^<]+)</title>', webpage, 'title'), ' | Iwara')
 
-        info_dict = entries[0]
-        info_dict.update({
+        api_url = 'http://%s/api/video/%s' % (hostname, video_id)
+
+        raw_formats = self._download_json(
+            api_url, video_id,
+            note='Downloading formats')
+
+        formats = []
+
+        for raw_format in raw_formats:
+            new_format = {
+                'url': raw_format['uri'],
+                'resolution': raw_format['resolution'],
+                'format_id': raw_format['resolution'],
+            }
+
+            if raw_format['resolution'] == '1080p':
+                height = 1080
+            elif raw_format['resolution'] == '720p':
+                height = 720
+            elif raw_format['resolution'] == '540p':
+                height = 540
+            elif raw_format['resolution'] == '360p':
+                height = 360
+            else:
+                height = None
+
+            if height is not None:
+                new_format['width'] = int(height / 9.0 * 16.0)
+                new_format['height'] = height
+
+            if raw_format['mime'] == 'video/mp4':
+                new_format['ext'] = 'mp4'
+
+            formats.append(new_format)
+
+        self._sort_formats(formats)
+
+        return {
             'id': video_id,
             'title': title,
             'age_limit': age_limit,
-        })
-
-        return info_dict
+            'formats': formats,
+        }
