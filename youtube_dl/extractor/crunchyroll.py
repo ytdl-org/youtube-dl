@@ -5,7 +5,11 @@ import re
 import json
 import base64
 import zlib
-import cfscrape
+try:
+    import cfscrape
+    install_cfscrape_flag = True
+except ImportError:
+    install_cfscrape_flag = False
 
 from hashlib import sha1
 from math import pow, sqrt, floor
@@ -44,6 +48,10 @@ class CrunchyrollBaseIE(InfoExtractor):
         (username, password) = self._get_login_info()
         if username is None:
             return
+
+        if install_cfscrape_flag == False:
+            print 'cfscrape not found. Please install it if you want use login function for CrunchyRoll.'
+            return False
 
         # Scrape cookie from cloudfront and insert them
         scraper = cfscrape.create_scraper()
