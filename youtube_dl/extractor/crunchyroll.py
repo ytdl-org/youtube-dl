@@ -5,6 +5,7 @@ import re
 import json
 import base64
 import zlib
+import cfscrape
 
 from hashlib import sha1
 from math import pow, sqrt, floor
@@ -42,6 +43,12 @@ class CrunchyrollBaseIE(InfoExtractor):
         (username, password) = self._get_login_info()
         if username is None:
             return
+
+        # Scrape cookie from cloudfront and insert them
+        scraper = cfscrape.create_scraper()
+        tokens = scraper.get_tokens(self._LOGIN_URL, 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/47.0 (Chrome)')
+        self._set_crunchyroll_cookie('cf_clearance', tokens[0]['cf_clearance'])
+        self._set_crunchyroll_cookie('__cfduid', tokens[0]['__cfduid'])
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
@@ -102,6 +109,9 @@ class CrunchyrollBaseIE(InfoExtractor):
         # the locale lang first in header. However allowing any language seems to workaround the issue.
         request.add_header('Accept-Language', '*')
         return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
+
+    def _set_crunchyroll_cookie(self, name, value):
+        self._set_cookie('crunchyroll.com', name, value)
 
     @staticmethod
     def _add_skip_wall(url):
