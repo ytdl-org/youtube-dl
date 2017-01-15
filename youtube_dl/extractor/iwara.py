@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
-from ..utils import remove_end
+from ..utils import (
+    remove_end,
+    mimetype2ext,
+)
 
 
 class IwaraIE(InfoExtractor):
@@ -97,9 +100,9 @@ class IwaraIE(InfoExtractor):
 
         for raw_format in raw_formats:
             new_format = {
-                'url': raw_format['uri'],
-                'resolution': raw_format['resolution'],
-                'format_id': raw_format['resolution'],
+                'url': raw_format.get('uri'),
+                'resolution': raw_format.get('resolution'),
+                'format_id': raw_format.get('resolution'),
             }
 
             if raw_format.get('resolution') == '1080p':
@@ -117,8 +120,8 @@ class IwaraIE(InfoExtractor):
                 new_format['width'] = int(height / 9.0 * 16.0)
                 new_format['height'] = height
 
-            if raw_format.get('mime') == 'video/mp4':
-                new_format['ext'] = 'mp4'
+            if raw_format.get('mime'):
+                new_format['ext'] = mimetype2ext(raw_format.get('mime'))
 
             formats.append(new_format)
 
