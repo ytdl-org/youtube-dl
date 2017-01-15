@@ -102,13 +102,13 @@ class IwaraIE(InfoExtractor):
                 'format_id': raw_format['resolution'],
             }
 
-            if raw_format['resolution'] == '1080p':
+            if raw_format.get('resolution') == '1080p':
                 height = 1080
-            elif raw_format['resolution'] == '720p':
+            elif raw_format.get('resolution') == '720p':
                 height = 720
-            elif raw_format['resolution'] == '540p':
+            elif raw_format.get('resolution') == '540p':
                 height = 540
-            elif raw_format['resolution'] == '360p':
+            elif raw_format.get('resolution') == '360p':
                 height = 360
             else:
                 height = None
@@ -117,7 +117,7 @@ class IwaraIE(InfoExtractor):
                 new_format['width'] = int(height / 9.0 * 16.0)
                 new_format['height'] = height
 
-            if raw_format['mime'] == 'video/mp4':
+            if raw_format.get('mime') == 'video/mp4':
                 new_format['ext'] = 'mp4'
 
             formats.append(new_format)
