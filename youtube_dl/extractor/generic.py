@@ -422,6 +422,26 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,  # m3u8 download
             },
         },
+        {
+            # Brightcove with alternative playerID key
+            'url': 'http://www.nature.com/nmeth/journal/v9/n7/fig_tab/nmeth.2062_SV1.html',
+            'info_dict': {
+                'id': 'nmeth.2062_SV1',
+                'title': 'Simultaneous multiview imaging of the Drosophila syncytial blastoderm : Quantitative high-speed imaging of entire developing embryos with simultaneous multiview light-sheet microscopy : Nature Methods : Nature Research',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'id': '2228375078001',
+                    'ext': 'mp4',
+                    'title': 'nmeth.2062-sv1',
+                    'description': 'nmeth.2062-sv1',
+                    'timestamp': 1363357591,
+                    'upload_date': '20130315',
+                    'uploader': 'Nature Publishing Group',
+                    'uploader_id': '1964492299001',
+                },
+            }],
+        },
         # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',

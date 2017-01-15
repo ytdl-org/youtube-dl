@@ -179,7 +179,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
         params = {}
 
-        playerID = find_param('playerID')
+        playerID = find_param('playerID') or find_param('playerId')
         if playerID is None:
             raise ExtractorError('Cannot find player ID')
         params['playerID'] = playerID

@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [brightcove] Recognize another player ID pattern (#11688)
 + [niconico] Support login via cookies (#7968)
 
 version 2017.01.14
