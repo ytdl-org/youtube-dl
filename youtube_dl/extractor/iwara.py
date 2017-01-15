@@ -10,12 +10,21 @@ class IwaraIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.|ecchi\.)?iwara\.tv/videos/(?P<id>[a-zA-Z0-9]+)'
     _TESTS = [{
         'url': 'http://iwara.tv/videos/amVwUl1EHpAD9RD',
-        'md5': '1d53866b2c514b23ed69e4352fdc9839',
+        'md5': 'c9c35657eff2fda5af7f78e69637d2d6',
         'info_dict': {
             'id': 'amVwUl1EHpAD9RD',
             'ext': 'mp4',
             'title': '【MMD R-18】ガールフレンド carry_me_off',
             'age_limit': 18,
+        },
+    }, {
+        'url': 'http://www.iwara.tv/videos/64zbul0qujvjavm',
+        'md5': '727d0f869035247781469aa7a06e2365',
+        'info_dict': {
+            'id': '64zbul0qujvjavm',
+            'ext': 'mp4',
+            'title': 'レアさん Dark Sea Adventure',
+            'age_limit': 0,
         },
     }, {
         'url': 'http://ecchi.iwara.tv/videos/Vb4yf2yZspkzkBO',
@@ -28,12 +37,12 @@ class IwaraIE(InfoExtractor):
         },
         'add_ie': ['GoogleDrive'],
     }, {
-        'url': 'http://www.iwara.tv/videos/nawkaumd6ilezzgq',
-        'md5': '1d85f1e5217d2791626cff5ec83bb189',
+        'url': 'http://ecchi.iwara.tv/videos/nawkaumd6ilezzgq',
+        'md5': '729a1e0a830469fe2c56d20aed06f852',
         'info_dict': {
             'id': '6liAP9s2Ojc',
             'ext': 'mp4',
-            'age_limit': 0,
+            'age_limit': 18,
             'title': '[MMD] Do It Again Ver.2 [1080p 60FPS] (Motion,Camera,Wav+DL)',
             'description': 'md5:590c12c0df1443d833fbebe05da8c47a',
             'upload_date': '20160910',
@@ -54,6 +63,29 @@ class IwaraIE(InfoExtractor):
 
         title = remove_end(self._html_search_regex(
             r'<title>([^<]+)</title>', webpage, 'title'), ' | Iwara')
+
+        entries = self._parse_html5_media_entries(url, webpage, video_id)
+
+        if entries:
+            info_dict = entries[0]
+            info_dict.update({
+                'id': video_id,
+                'title': title,
+                'age_limit': age_limit,
+            })
+
+            return info_dict
+
+        iframe_url = self._html_search_regex(
+            r'<iframe[^>]+src=([\'"])(?P<url>[^\'"]+)\1',
+            webpage, 'iframe URL', group='url', default=None)
+
+        if iframe_url:
+            return {
+                '_type': 'url_transparent',
+                'url': iframe_url,
+                'age_limit': age_limit,
+            }
 
         api_url = 'http://%s/api/video/%s' % (hostname, video_id)
 
