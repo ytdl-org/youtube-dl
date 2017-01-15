@@ -87,8 +87,6 @@ class NiconicoIE(InfoExtractor):
 
     _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
-    # Determine whether the downloader used authentication to download video
-    _AUTHENTICATED = False
 
     def _real_initialize(self):
         self._login()
@@ -112,8 +110,6 @@ class NiconicoIE(InfoExtractor):
         if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
-        # Successful login
-        self._AUTHENTICATED = True
         return True
 
     def _real_extract(self, url):
@@ -131,18 +127,18 @@ class NiconicoIE(InfoExtractor):
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note='Downloading video info page')
 
-        if self._AUTHENTICATED:
-            # Get flv info
-            flv_info_webpage = self._download_webpage(
-                'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
-                video_id, 'Downloading flv info')
-        else:
-            raise ExtractorError('Niconico videos now require logging in', expected=True)
+        # Get flv info
+        flv_info_webpage = self._download_webpage(
+            'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
+            video_id, 'Downloading flv info')
 
         flv_info = compat_urlparse.parse_qs(flv_info_webpage)
         if 'url' not in flv_info:
             if 'deleted' in flv_info:
                 raise ExtractorError('The video has been deleted.',
+                                     expected=True)
+            elif 'closed' in flv_info:
+                raise ExtractorError('Niconico videos now require logging in',
                                      expected=True)
             else:
                 raise ExtractorError('Unable to find video URL')
