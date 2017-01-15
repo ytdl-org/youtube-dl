@@ -24,6 +24,7 @@ from ..utils import (
     lowercase_escape,
     remove_end,
     sanitized_Request,
+    std_headers,
     unified_strdate,
     urlencode_postdata,
     xpath_text,
@@ -46,7 +47,7 @@ class CrunchyrollBaseIE(InfoExtractor):
 
         # Scrape cookie from cloudfront and insert them
         scraper = cfscrape.create_scraper()
-        tokens = scraper.get_tokens(self._LOGIN_URL, 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/47.0 (Chrome)')
+        tokens = scraper.get_tokens(self._LOGIN_URL, std_headers['User-Agent'])
         self._set_crunchyroll_cookie('cf_clearance', tokens[0]['cf_clearance'])
         self._set_crunchyroll_cookie('__cfduid', tokens[0]['__cfduid'])
 
