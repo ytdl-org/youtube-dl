@@ -53,7 +53,7 @@ class CrunchyrollBaseIE(InfoExtractor):
             print 'cfscrape not found. Please install it if you want use login function for CrunchyRoll.'
             return False
 
-        # Scrape cookie from cloudfront and insert them
+        # Scrape cookie from cloudflare and insert them
         scraper = cfscrape.create_scraper()
         tokens = scraper.get_tokens(self._LOGIN_URL, std_headers['User-Agent'])
         self._set_crunchyroll_cookie('cf_clearance', tokens[0]['cf_clearance'])
