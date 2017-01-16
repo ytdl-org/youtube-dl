@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class NaverIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?tvcast\.naver\.com/v/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:m\.)?tv(?:cast)?\.naver\.com/v/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://tvcast.naver.com/v/81652',
