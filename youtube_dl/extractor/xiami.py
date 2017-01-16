@@ -16,7 +16,7 @@ class XiamiBaseIE(InfoExtractor):
         return webpage
 
     def _extract_track(self, track, track_id=None):
-        title = track['title']
+        title = track['songName']
         track_url = self._decrypt(track['location'])
 
         subtitles = {}
