@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.16
 
 Core
 * [options] Apply custom config to final composite configuration (#11741)
