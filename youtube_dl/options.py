@@ -867,7 +867,7 @@ def parseOpts(overrideArguments=None):
             if '--ignore-config' not in system_conf:
                 user_conf = _readUserConf()
 
-        argv = system_conf + user_conf + command_line_conf
+        argv = system_conf + user_conf + custom_conf + command_line_conf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
             for conf_label, conf in (
