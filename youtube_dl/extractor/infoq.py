@@ -77,6 +77,8 @@ class InfoQIE(BokeCCBaseIE):
         http_audio_url = self._search_regex(r'<input[^>]*?name="filename"[^>]*?value="([^\"]+)"[^>]*?>', webpage, 'audio URL', fatal=False)
         if http_audio_url is None:
             return []
+        # base URL is found in the Location header in the response returned by
+        # GET https://www.infoq.com/mp3download.action?filename=... when logged in.
         http_audio_url = compat_urlparse.urljoin('http://res.infoq.com/downloads/mp3downloads/', http_audio_url)
 
         return [{
