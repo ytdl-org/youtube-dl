@@ -91,14 +91,23 @@ class TwentyMinutenIE(InfoExtractor):
         if not video_id:
             params = self._html_search_regex(
                 r'<iframe[^>]+src="(?:https?:)?//www\.20min\.ch/videoplayer/videoplayer\.html\?params=(.+?[^"])"',
-                webpage, '20min embed URL', default='')
+                webpage, '20min embed URL')
             video_id = self._search_regex(
                 r'.*videoId@(\d+)',
-                params, 'Video Id', default='')
+                params, 'Video Id')
 
         description = self._html_search_meta(
             'description', webpage, 'description')
         thumbnail = self._og_search_thumbnail(webpage)
+
+        formats = []
+        format_preferences = [('sd', ''), ('hd', 'h')]
+        for format_id, url_extension in format_preferences:
+            format_url = 'http://podcast.20min-tv.ch/podcast/20min/%s%s.mp4' % (video_id, url_extension)
+            formats.append({
+                'format_id': format_id,
+                'url': format_url,
+            })
 
         return {
             'id': video_id,
@@ -106,13 +115,5 @@ class TwentyMinutenIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'formats': [{
-                'format_id': 'sd',
-                'url': 'http://podcast.20min-tv.ch/podcast/20min/%s.mp4' % video_id,
-                'preference': -2
-            }, {
-                'format_id': 'hd',
-                'url': 'http://podcast.20min-tv.ch/podcast/20min/%sh.mp4' % video_id,
-                'preference': -1
-            }]
+            'formats': formats,
         }
