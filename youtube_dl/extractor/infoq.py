@@ -68,7 +68,6 @@ class InfoQIE(BokeCCBaseIE):
         return [{
             'format_id': 'http_video',
             'url': http_video_url,
-            'ext': determine_ext(http_video_url),
             'http_headers': {
                 'Cookie': self._extract_cookies(webpage)
             },
@@ -83,7 +82,6 @@ class InfoQIE(BokeCCBaseIE):
         return [{
             'format_id': 'http_audio',
             'url': http_audio_url,
-            'ext': determine_ext(http_audio_url, ""),
             'vcodec': 'none',
             'http_headers': {
                 'Cookie': self._extract_cookies(webpage)
