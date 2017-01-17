@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    remove_end,
-    ExtractorError
-)
+from ..utils import remove_end
 
 
 class TwentyMinutenIE(InfoExtractor):
@@ -40,7 +37,7 @@ class TwentyMinutenIE(InfoExtractor):
     }, {
         # news article with video
         'url': 'http://www.20min.ch/schweiz/news/story/So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
-        'md5': '807f9e1e06a69b77440a9b315e52e580',
+        'md5': '372917ba85ed969e176d287ae54b2f94',
         'info_dict': {
             'id': '523629',
             'display_id': 'So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
@@ -98,8 +95,6 @@ class TwentyMinutenIE(InfoExtractor):
             video_id = self._search_regex(
                 r'.*videoId@(\d+)',
                 params, 'Video Id', default=None) if params is not None else ''
-            if not video_id:  # the article does not contain a video
-                raise ExtractorError('No media links found on %s.' % url, expected=True)
 
         description = self._html_search_meta(
             'description', webpage, 'description')
@@ -108,8 +103,16 @@ class TwentyMinutenIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': 'http://podcast.20min-tv.ch/podcast/20min/%sh.mp4' % video_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
+            'formats': [{
+                'format_id': 'sd',
+                'url': 'http://podcast.20min-tv.ch/podcast/20min/%s.mp4' % video_id,
+                'preference': -2
+            }, {
+                'format_id': 'hd',
+                'url': 'http://podcast.20min-tv.ch/podcast/20min/%sh.mp4' % video_id,
+                'preference': -1
+            }]
         }
