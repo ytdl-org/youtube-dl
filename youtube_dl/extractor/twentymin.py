@@ -13,10 +13,10 @@ class TwentyMinutenIE(InfoExtractor):
     _TESTS = [{
         # regular video
         'url': 'http://www.20min.ch/videotv/?vid=469148&cid=2',
-        'md5': 'b52d6bc6ea6398e6a38f12cfd418149c',
+        'md5': 'e7264320db31eed8c38364150c12496e',
         'info_dict': {
             'id': '469148',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '85 000 Franken für 15 perfekte Minuten',
             'description': 'Was die Besucher vom Silvesterzauber erwarten können. (Video: Alice Grosjean/Murat Temel)',
             'thumbnail': 'http://thumbnails.20min-tv.ch/server063/469148/frame-72-469148.jpg'
@@ -35,16 +35,28 @@ class TwentyMinutenIE(InfoExtractor):
         },
         'skip': '"This video is no longer available" is shown both on the web page and in the downloaded file.',
     }, {
+        # news article with video
+        'url': 'http://www.20min.ch/schweiz/news/story/So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
+        'md5': '372917ba85ed969e176d287ae54b2f94',
+        'info_dict': {
+            'id': '523629',
+            'display_id': 'So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
+            'ext': 'mp4',
+            'title': 'So kommen Sie bei Eis und Schnee sicher an',
+            'description': 'Schneegestöber und Glatteis führten in den letzten Tagen zu zahlreichen Strassenunfällen. Ein Experte erklärt, worauf man nun beim Autofahren achten muss.',
+            'thumbnail': 'http://www.20min.ch/images/content/2/7/0/27032552/83/teaserbreit.jpg',
+        }
+    }, {
         # YouTube embed
         'url': 'http://www.20min.ch/ro/sports/football/story/Il-marque-une-bicyclette-de-plus-de-30-metres--21115184',
-        'md5': 'cec64d59aa01c0ed9dbba9cf639dd82f',
+        'md5': 'e7e237fd98da2a3cc1422ce683df234d',
         'info_dict': {
             'id': 'ivM7A7SpDOs',
             'ext': 'mp4',
             'title': 'GOLAZO DE CHILENA DE JAVI GÓMEZ, FINALISTA AL BALÓN DE CLM 2016',
             'description': 'md5:903c92fbf2b2f66c09de514bc25e9f5a',
             'upload_date': '20160424',
-            'uploader': 'RTVCM Castilla-La Mancha',
+            'uploader': 'CMM Castilla-La Mancha Media',
             'uploader_id': 'RTVCM',
         },
         'add_ie': ['Youtube'],
@@ -77,18 +89,31 @@ class TwentyMinutenIE(InfoExtractor):
                 r'^20 [Mm]inuten.*? -', '', self._og_search_title(webpage)), ' - News')
 
         if not video_id:
+            params = self._html_search_regex(
+                r'<iframe[^>]+src="(?:https?:)?//www\.20min\.ch/videoplayer/videoplayer\.html\?params=(.+?[^"])"',
+                webpage, '20min embed URL')
             video_id = self._search_regex(
-                r'"file\d?"\s*,\s*\"(\d+)', webpage, 'video id')
+                r'.*videoId@(\d+)',
+                params, 'Video Id')
 
         description = self._html_search_meta(
             'description', webpage, 'description')
         thumbnail = self._og_search_thumbnail(webpage)
 
+        formats = []
+        format_preferences = [('sd', ''), ('hd', 'h')]
+        for format_id, url_extension in format_preferences:
+            format_url = 'http://podcast.20min-tv.ch/podcast/20min/%s%s.mp4' % (video_id, url_extension)
+            formats.append({
+                'format_id': format_id,
+                'url': format_url,
+            })
+
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': 'http://speed.20min-tv.ch/%sm.flv' % video_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
+            'formats': formats,
         }
