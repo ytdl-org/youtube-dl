@@ -56,7 +56,7 @@ class InfoQIE(BokeCCBaseIE):
             'play_path': playpath,
         }]
 
-    def _extract_cookie(self, webpage):
+    def _extract_cookies(self, webpage):
         policy = self._search_regex(r'InfoQConstants.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
         signature = self._search_regex(r'InfoQConstants.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
         key_pair_id = self._search_regex(r'InfoQConstants.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
@@ -70,7 +70,7 @@ class InfoQIE(BokeCCBaseIE):
             'url': http_video_url,
             'ext': determine_ext(http_video_url),
             'http_headers': {
-                'Cookie': self._extract_cookie(webpage)
+                'Cookie': self._extract_cookies(webpage)
             },
         }]
 
@@ -86,7 +86,7 @@ class InfoQIE(BokeCCBaseIE):
             'ext': determine_ext(http_audio_url, ""),
             'vcodec': 'none',
             'http_headers': {
-                'Cookie': self._extract_cookie(webpage)
+                'Cookie': self._extract_cookies(webpage)
             },
         }]
 
