@@ -91,10 +91,10 @@ class TwentyMinutenIE(InfoExtractor):
         if not video_id:
             params = self._html_search_regex(
                 r'<iframe[^>]+src="(?:https?:)?//www\.20min\.ch/videoplayer/videoplayer\.html\?params=(.+?[^"])"',
-                webpage, '20min embed URL', default=None)
+                webpage, '20min embed URL', default='')
             video_id = self._search_regex(
                 r'.*videoId@(\d+)',
-                params, 'Video Id', default=None) if params is not None else ''
+                params, 'Video Id', default='')
 
         description = self._html_search_meta(
             'description', webpage, 'description')
