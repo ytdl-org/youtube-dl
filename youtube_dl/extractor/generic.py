@@ -78,6 +78,7 @@ from .vbox7 import Vbox7IE
 from .dbtv import DBTVIE
 from .piksel import PikselIE
 from .videa import VideaIE
+from .twentymin import TwentyMinutenIE
 
 
 class GenericIE(InfoExtractor):
@@ -1468,6 +1469,20 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 2,
         },
+        {
+            # 20 minuten embed
+            'url': 'http://www.20min.ch/schweiz/news/story/So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
+            'info_dict': {
+                'id': '523629',
+                'ext': 'mp4',
+                'title': 'So kommen Sie bei Eis und Schnee sicher an',
+                'description': 'md5:117c212f64b25e3d95747e5276863f7d',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [TwentyMinutenIE.ie_key()],
+        }
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2420,6 +2435,12 @@ class GenericIE(InfoExtractor):
         videa_urls = VideaIE._extract_urls(webpage)
         if videa_urls:
             return _playlist_from_matches(videa_urls, ie=VideaIE.ie_key())
+
+        # Look for 20 minuten embeds
+        twentymin_urls = TwentyMinutenIE._extract_urls(webpage)
+        if twentymin_urls:
+            return _playlist_from_matches(
+                twentymin_urls, ie=TwentyMinutenIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
