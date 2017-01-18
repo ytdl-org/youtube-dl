@@ -1,3 +1,13 @@
+version <unreleased>
+
+Extractors
+* [bilibili] Fix extraction (#11077)
++ [canalplus] Add fallback for video id (#11764)
+* [20min] Fix extraction (#11683, #11751)
+* [imdb] Extend URL regular expression (#11744)
++ [naver] Add support for tv.naver.com links (#11743)
+
+
 version 2017.01.16
 
 Core
