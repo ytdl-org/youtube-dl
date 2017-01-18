@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.18
 
 Extractors
 * [bilibili] Fix extraction (#11077)
