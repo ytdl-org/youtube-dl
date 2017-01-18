@@ -211,7 +211,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
     def _extract_triforce_mgid(self, webpage, data_zone=None, video_id=None):
         triforce_feed = self._parse_json(self._search_regex(
-            r'triforceManifestFeed\s*=\s*(\{.+?\});\n', webpage,
+            r'triforceManifestFeed\s*=\s*({.+?})\s*;\s*\n', webpage,
             'triforce feed', default='{}'), video_id, fatal=False)
 
         data_zone = self._search_regex(
