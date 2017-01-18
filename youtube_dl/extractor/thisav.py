@@ -41,6 +41,11 @@ class ThisAVIE(JWPlatformBaseIE):
             ' - 視頻 - ThisAV.com-世界第一中文成人娛樂網站')
         video_url = self._html_search_regex(
             r"addVariable\('file','([^']+)'\);", webpage, 'video url', default=None)
+        if not video_url:
+            video_url = self._html_search_regex(
+                r"<source type='video/mp4' src=\"([^'<>\"]+)\">" 
+                , webpage, 'video url', default=None)
+
         if video_url:
             info_dict = {
                 'formats': [{
