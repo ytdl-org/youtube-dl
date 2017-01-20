@@ -5,6 +5,7 @@ from re import sub
 from .common import InfoExtractor
 from ..utils import js_to_json
 
+
 class GaskrankIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gaskrank\.tv/tv(?:/[^/]+)+/(?P<id>[^/]+).htm'
     _TEST = {
