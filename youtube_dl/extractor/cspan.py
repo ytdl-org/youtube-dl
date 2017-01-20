@@ -23,14 +23,13 @@ class CSpanIE(InfoExtractor):
         'md5': '94b29a4f131ff03d23471dd6f60b6a1d',
         'info_dict': {
             'id': '315139',
-            'ext': 'mp4',
             'title': 'Attorney General Eric Holder on Voting Rights Act Decision',
-            'description': 'Attorney General Eric Holder speaks to reporters following the Supreme Court decision in [Shelby County v. Holder], in which the court ruled that the preclearance provisions of the Voting Rights Act could not be enforced.',
         },
+        'playlist_mincount': 2,
         'skip': 'Regularly fails on travis, for unknown reasons',
     }, {
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
-        'md5': '8e5fbfabe6ad0f89f3012a7943c1287b',
+        # md5 is unstable
         'info_dict': {
             'id': 'c4486943',
             'ext': 'mp4',
@@ -39,14 +38,11 @@ class CSpanIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.c-span.org/video/?318608-1/gm-ignition-switch-recall',
-        'md5': '2ae5051559169baadba13fc35345ae74',
         'info_dict': {
             'id': '342759',
-            'ext': 'mp4',
             'title': 'General Motors Ignition Switch Recall',
-            'duration': 14848,
-            'description': 'md5:118081aedd24bf1d3b68b3803344e7f3'
         },
+        'playlist_mincount': 6,
     }, {
         # Video from senate.gov
         'url': 'http://www.c-span.org/video/?104517-1/immigration-reforms-needed-protect-skilled-american-workers',
