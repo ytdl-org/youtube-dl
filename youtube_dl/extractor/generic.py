@@ -79,6 +79,7 @@ from .dbtv import DBTVIE
 from .piksel import PikselIE
 from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
+from .ustream import UstreamIE
 
 
 class GenericIE(InfoExtractor):
@@ -2112,10 +2113,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'TED')
 
         # Look for embedded Ustream videos
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://www\.ustream\.tv/embed/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Ustream')
+        ustream_url = UstreamIE._extract_url(webpage)
+        if ustream_url:
+            return self.url_result(ustream_url, UstreamIE.ie_key())
 
         # Look for embedded arte.tv player
         mobj = re.search(
