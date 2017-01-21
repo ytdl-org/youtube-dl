@@ -350,6 +350,10 @@ def parseOpts(overrideArguments=None):
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
         help='Video password (vimeo, smotri, youku)')
+    authentication.add_option(
+        '--auth-provider',
+        dest='auth_provider', metavar='AUTH_PROVIDER',
+        help='Authentication provider (nhl, rogers, ...)')
 
     adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
     adobe_pass.add_option(

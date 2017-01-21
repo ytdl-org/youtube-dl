@@ -359,7 +359,8 @@ class NHLTVIE(InfoExtractor):
     IE_NAME = 'nhl.com:nhltv'
     _VALID_URL = r'https?://(?:www\.)?nhl.com/tv/(?P<gameId>\d+)(/[^/]+)*(/(?P<id>\d+))?'
     _OAUTH_URL = 'https://user.svc.nhl.com/oauth/token?grant_type=client_credentials'
-    _LOGIN_URL = 'https://gateway.web.nhl.com/ws/subscription/flow/nhlPurchase.login'
+    _NHL_LOGIN_URL = 'https://gateway.web.nhl.com/ws/subscription/flow/nhlPurchase.login'
+    _ROGERS_LOGIN_URL = 'https://activation-rogers.svc.nhl.com/ws/subscription/flow/rogers.login-check'
     _NETRC_MACHINE = 'nhltv'
     _TESTS = [{
         # This is a free video that can be accessed by anyone with an NHL TV login
@@ -409,24 +410,52 @@ class NHLTVIE(InfoExtractor):
             'Unable to get OAuth access token')
         access_token = oauth_response['access_token']
 
+        auth_provider = self._get_auth_provider()
+        if auth_provider == 'rogers':
+            login_request = self._create_rogers_login_request(username, password, access_token)
+        elif auth_provider == 'nhl' or auth_provider is None:
+            login_request = self._create_nhl_login_request(username, password, access_token)
+        else:
+            raise ExtractorError('Unknown authentication provider: %s. Valid values are nhl, rogers' % auth_provider)
+
+        # sets up the cookies we need to download
+        self._download_webpage(
+            login_request, None, 'Logging in', 'Unable to log in')
+
+    def _create_nhl_login_request(self, username, password, access_token):
         login_data = {
             'nhlCredentials': {
                 'email': username,
                 'password': password,
             }
         }
-        login_request = sanitized_Request(
-            self._LOGIN_URL,
+        return sanitized_Request(
+            self._NHL_LOGIN_URL,
             data=json.dumps(login_data, sort_keys=True).encode('utf-8'),
             headers={
-                'Referer': 'https://www.nhl.com/login',
+                'Referer': 'https://www.nhl.com/login/nhl',
                 'Accept': 'application/json, text/javascript, */*; q=0.01',
                 'Authorization': access_token,
                 'Content-Type': 'application/json'
             })
-        # sets up the cookies we need to download
-        self._download_webpage(
-            login_request, None, 'Logging in', 'Unable to log in')
+
+
+    def _create_rogers_login_request(self, username, password, access_token):
+        login_data = {
+            'rogerCredentials': {
+                'email': username,
+                'password': password,
+            }
+        }
+        return sanitized_Request(
+            self._ROGERS_LOGIN_URL,
+            data=json.dumps(login_data, sort_keys=True).encode('utf-8'),
+            headers={
+                'Referer': 'https://www.nhl.com/login/rogers',
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Authorization': access_token,
+                'Content-Type': 'application/json'
+            })
 
     def _real_initialize(self):
         self._login()

@@ -131,6 +131,7 @@ class YoutubeDL(object):
     username:          Username for authentication purposes.
     password:          Password for authentication purposes.
     videopassword:     Password for accessing a video.
+    auth_provider:     Authentication provider
     ap_mso:            Adobe Pass multiple-system operator identifier.
     ap_username:       Multiple-system operator account username.
     ap_password:       Multiple-system operator account password.

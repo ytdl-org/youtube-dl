@@ -357,6 +357,7 @@ which means you can modify it, redistribute it or use it however you like.
     -2, --twofactor TWOFACTOR        Two-factor auth code
     -n, --netrc                      Use .netrc authentication data
     --video-password PASSWORD        Video password (vimeo, smotri, youku)
+    --auth-provider PROVIDER         Authentication provider (nhl, rogers)
 
 ## Adobe Pass Options:
     --ap-mso MSO                     Adobe Pass multiple-system operator (TV

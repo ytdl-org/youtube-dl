@@ -715,6 +715,16 @@ class InfoExtractor(object):
 
         return username, password
 
+    def _get_auth_provider(self):
+        """
+        Get the authentication provider (e.g. nhl / rogers)
+        """
+        if self._downloader is None:
+            return None
+
+        downloader_params = self._downloader.params
+        return downloader_params.get('auth_provider')
+
     def _get_tfa_info(self, note='two-factor verification code'):
         """
         Get the two-factor authentication info
