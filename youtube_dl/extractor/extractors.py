@@ -513,6 +513,7 @@ from .leeco import (
     LeIE,
     LePlaylistIE,
     LetvCloudIE,
+    LeLiveLunboIE,
 )
 from .libraryofcongress import LibraryOfCongressIE
 from .libsyn import LibsynIE

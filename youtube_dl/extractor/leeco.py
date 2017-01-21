@@ -21,6 +21,7 @@ from ..utils import (
     orderedSet,
     parse_iso8601,
     str_or_none,
+    try_get,
     url_basename,
     urshift,
 )
@@ -202,8 +203,64 @@ class LeIE(InfoExtractor):
         }
 
 
+class LeLiveLunboIE(InfoExtractor):
+    _VALID_URL = r'https?://live\.le\.com/lunbo/play/index\.shtml\?channel=(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://live.le.com/lunbo/play/index.shtml?channel=225',
+        'info_dict': {
+            'id': '225',
+            'ext': 'm3u8',
+            'title': '电视剧',
+            'is_live': True,
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        json = self._download_json('http://player.pc.le.com/player/startup_by_channel_id/1001/%s' % video_id,
+                                   video_id, query={'host': 'live.le.com'})
+        streams = json['streams']
+        formats = []
+        for stream in streams:
+            surl = try_get(stream, lambda x: x['streamUrl'])
+            if not surl:
+                continue
+            bitrate = int_or_none(stream.get('rate'))
+            query = {'format': '1',
+                     'expect': '2',
+                     'platid': '10',
+                     'splatid': '1001',
+                     'uuid': '28394F488CFCF69F405F55B6B046EA4AAC32713C_0',
+                     'vkit': '20161017'
+                     }
+            if surl:
+                surl = self._download_json(surl, video_id, query=query)
+                surl = try_get(surl, lambda x: x['location'])
+                formats.append({
+                    'url': surl,
+                    'ext': 'mp4',
+                    'bitrate': bitrate
+                })
+
+        self._sort_formats(formats)
+
+        titles = self._download_json('http://static.api.letv.com/live/proxy',
+                                     video_id, query={'belongArea': '100', 'clientId': '1001'})['data']
+        for entry in titles:
+            if entry['channelId'] == video_id:
+                title = entry['channelName']
+                break
+
+        return {
+            'id': video_id,
+            'title': self._live_title(title),
+            'is_live': True,
+            'formats': formats
+        }
+
+
 class LePlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://[a-z]+\.le\.com/(?!video)[a-z]+/(?P<id>[a-z0-9_]+)'
+    _VALID_URL = r'https?://(?!live)[a-z]+\.le\.com/(?!video)[a-z]+/(?P<id>[a-z0-9_]+)'
 
     _TESTS = [{
         'url': 'http://www.le.com/tv/46177.html',
