@@ -35,8 +35,8 @@ class FetLifeIE(JWPlatformBaseIE):
 
     def _real_initialize(self):
         (username, password) = self._get_login_info()
-        if username is None:
-            return
+        if (username is None) or (password is None):
+            raise ExtractorError('No login provided.', expected=True)
         webpage = self._download_webpage(self._LOGIN_URL, 'login')
         authenticity_token = self._search_regex(r'<input[^>]*?authenticity_token[^>]*?value=\"([^\"]*)\"[^>]/>', webpage, 'authenticity_token')
 
