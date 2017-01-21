@@ -33,10 +33,10 @@ class ChaturbateIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        m3u8_urls = re.findall(
-            r'var hlsSource.+? = (["\'])(?P<url>http.+?\.m3u8)', webpage)
+        m3u8_formats = [(m.group('id').lower(), m.group('url')) for m in re.finditer(
+            r'hlsSource(?P<id>.+?)\s*=\s*(?P<q>["\'])(?P<url>http.+?)(?P=q)', webpage)]
 
-        if not m3u8_urls:
+        if not m3u8_formats:
             error = self._search_regex(
                 [r'<span[^>]+class=(["\'])desc_span\1[^>]*>(?P<error>[^<]+)</span>',
                  r'<div[^>]+id=(["\'])defchat\1[^>]*>\s*<p><strong>(?P<error>[^<]+)<'],
@@ -50,9 +50,12 @@ class ChaturbateIE(InfoExtractor):
             raise ExtractorError('Unable to find stream URL')
 
         formats = []
-        for m3u8_url in m3u8_urls:
-            formats.append(self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')[0])
-
+        for m3u8_id, m3u8_url in m3u8_formats:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, ext='mp4',
+                # ffmpeg skips segments for fast m3u8
+                preference=-10 if m3u8_id == 'fast' else None,
+                m3u8_id=m3u8_id, fatal=False, live=True))
         self._sort_formats(formats)
 
         return {
