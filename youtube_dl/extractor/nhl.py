@@ -357,11 +357,11 @@ class NHLIE(InfoExtractor):
 
 class NHLTVIE(InfoExtractor):
     IE_NAME = 'nhl.com:nhltv'
-    _VALID_URL = r'https?://(?:www\.)?nhl.com/tv/(?P<gameId>\d+)/(?:[^/]+/)*(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?nhl.com/tv/(?P<gameId>\d+)(/[^/]+)*(/(?P<id>\d+))?'
     _OAUTH_URL = 'https://user.svc.nhl.com/oauth/token?grant_type=client_credentials'
     _LOGIN_URL = 'https://gateway.web.nhl.com/ws/subscription/flow/nhlPurchase.login'
     _NETRC_MACHINE = 'nhltv'
-    _TEST = {
+    _TESTS = [{
         # This is a free video that can be accessed by anyone with an NHL TV login
         'url': 'https://www.nhl.com/tv/2016020321/221-1003765/46561403',
         'md5': '34d9518c495ebdad947b9723b5a7c9a9',
@@ -376,8 +376,14 @@ class NHLTVIE(InfoExtractor):
             'usenetrc': True,
             'format': '[width=400]',
             'hls_use_mpegts': True,
-        },
-    }
+        }
+    }, {
+        'url': 'https://www.nhl.com/tv/2016020362/221-1003808',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.nhl.com/tv/2016020373',
+        'only_matching': True,
+    }]
 
     def _login(self):
         # TODO cache login to avoid 'Sign-on restriction: Too many usage attempts'
@@ -454,19 +460,25 @@ class NHLTVIE(InfoExtractor):
             if epg_item.get("title") != "NHLTV":
                 continue
             for item in epg_item.get('items', []):
-                if item.get('mediaPlaybackId') != video_id:
-                    continue
-                feed_type = item.get('mediaFeedType')
+                if item.get('mediaPlaybackId') == video_id or video_id == None:
+                    feed_type = item.get('mediaFeedType')
+                    video_id = item.get('mediaPlaybackId')
         timestamp = parse_iso8601(media_node.get('milestones').get('streamStart'))
         title = "%s: %s @ %s (%s feed)" % (date, away, home, feed_type)
-        return (title, timestamp)
+        return (video_id, title, timestamp)
+
+
+    def get_60fps_playlist(self, url):
+        """Returns a modified url that adds a 60 fps broadcast"""
+        return re.sub('_wired_web', '_wired60', url)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id, game_id = mobj.group('id'), mobj.group('gameId')
 
-        title, timestamp = self.extract_game_info(video_id, game_id)
+        video_id, title, timestamp = self.extract_game_info(video_id, game_id)
         media_auth, m3u8_url = self.extract_stream_info(video_id)
+        m3u8_url = self.get_60fps_playlist(m3u8_url)
 
         # media auth cookie is required for the downloader
         self._set_cookie('nhl.com', 'mediaAuth_v2', media_auth)
