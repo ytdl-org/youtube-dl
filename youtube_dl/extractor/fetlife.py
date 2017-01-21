@@ -12,18 +12,24 @@ from ..utils import (
 class FetLifeIE(JWPlatformBaseIE):
     _VALID_URL = r'https?://fetlife\.com/users/[0-9]+/videos/(?P<id>[0-9]+)'
     _LOGIN_URL = 'https://fetlife.com/users/sign_in'
+    _NETRC_MACHINE = 'fetlife'
 
     _TEST = {
         'url': 'https://fetlife.com/users/1537262/videos/660686',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'md5': '83ca9598d9c10afde75a4e730a882560',
         'info_dict': {
             'id': '660686',
-            'thumbnail': r'https://cap[0-9]\.fetlife\.com/thumbnails/660686/thumb_0000_345\.jpg\?token=[^\s]+',
+            'thumbnail': r're:^https?://.*\.jpg\?token=[^\s]+$',
             'timestamp': 1484020451,
             'ext': 'mp4',
             'title': 'Sully Savage and Violet Monroe ',
             'uploader': 'MissBratDom',
             'uploader_id': '1537262',
+            'age_limit': 18,
+            'upload_date': '20170110',
+        },
+        'params': {
+            'usenetrc': True,
         },
     }
 
