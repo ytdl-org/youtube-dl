@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [nextmedia] Support redirected URLs
 + [cspan] Support Ustream embedded videos (#11547)
 
 
