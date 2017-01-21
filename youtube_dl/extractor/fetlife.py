@@ -12,7 +12,6 @@ from ..utils import (
 class FetLifeIE(JWPlatformBaseIE):
     _VALID_URL = r'https?://fetlife\.com/users/[0-9]+/videos/(?P<id>[0-9]+)'
     _LOGIN_URL = 'https://fetlife.com/users/sign_in'
-    _NETRC_MACHINE = 'fetlife'
 
     _TEST = {
         'url': 'https://fetlife.com/users/1537262/videos/660686',
@@ -59,12 +58,14 @@ class FetLifeIE(JWPlatformBaseIE):
         try:
             video_data = self._extract_jwplayer_data(webpage, video_id, require_title=False)
         except TypeError:
-            raise ExtractorError('Unable to extract video data. Not a FetLife Supporter?', expected=True)
+            raise ExtractorError('Unable to extract video data. Not a FetLife Supporter?', expected=True, video_id=video_id)
 
         title = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<p[^>]+class=\"description\">([^<]+)', webpage, 'title')
-        uploader = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+class=\"nickname\"[\s\S]+?>([^<]+)', webpage, 'uploader')
-        uploader_id = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+href=\"/users/([0-9]+)', webpage, 'uploader')
-        timestamp = int(time.mktime(time.strptime(self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<time[^>]+>([^<]+)', webpage, 'timestamp'), "%Y/%m/%d %H:%M:%S +0000")))
+        uploader = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+class=\"nickname\"[\s\S]+?>([^<]+)', webpage, 'uploader', default=None)
+        uploader_id = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+href=\"/users/([0-9]+)', webpage, 'uploader_id', default=None)
+        timestamp = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<time[^>]+>([^<]+)', webpage, 'timestamp', default=None)
+        if timestamp:
+            timestamp = int(time.mktime(time.strptime(timestamp, "%Y/%m/%d %H:%M:%S +0000")))
 
         video_data.update({
             'id': video_id,
