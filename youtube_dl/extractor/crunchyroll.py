@@ -7,9 +7,9 @@ import base64
 import zlib
 try:
     import cfscrape
-    install_cfscrape_flag = True
+    cfscrape_available = True
 except ImportError:
-    install_cfscrape_flag = False
+    cfscrape_available = False
 
 from hashlib import sha1
 from math import pow, sqrt, floor
@@ -45,19 +45,18 @@ class CrunchyrollBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'crunchyroll'
 
     def _login(self):
+        if cfscrape_available:
+            # Scrape cookie from cloudflare and insert them
+            scraper = cfscrape.create_scraper()
+            tokens = scraper.get_tokens(self._LOGIN_URL, std_headers['User-Agent'])
+            self._set_crunchyroll_cookie('cf_clearance', tokens[0]['cf_clearance'])
+            self._set_crunchyroll_cookie('__cfduid', tokens[0]['__cfduid'])
+        else
+            print 'cfscrape not found. Please install it if you want use login function for CrunchyRoll.'
+            
         (username, password) = self._get_login_info()
         if username is None:
             return
-
-        if install_cfscrape_flag == False:
-            print 'cfscrape not found. Please install it if you want use login function for CrunchyRoll.'
-            return False
-
-        # Scrape cookie from cloudflare and insert them
-        scraper = cfscrape.create_scraper()
-        tokens = scraper.get_tokens(self._LOGIN_URL, std_headers['User-Agent'])
-        self._set_crunchyroll_cookie('cf_clearance', tokens[0]['cf_clearance'])
-        self._set_crunchyroll_cookie('__cfduid', tokens[0]['__cfduid'])
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
