@@ -86,6 +86,7 @@
  - **bbc.co.uk:article**: BBC articles
  - **bbc.co.uk:iplayer:playlist**
  - **bbc.co.uk:playlist**
+ - **Beam:live**
  - **Beatport**
  - **Beeg**
  - **BehindKink**

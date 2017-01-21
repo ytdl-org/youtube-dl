@@ -1,7 +1,38 @@
 version <unreleased>
 
 Extractors
++ [cspan] Support Ustream embedded videos (#11547)
+
+
+version 2017.01.18
+
+Extractors
+* [bilibili] Fix extraction (#11077)
++ [canalplus] Add fallback for video id (#11764)
+* [20min] Fix extraction (#11683, #11751)
+* [imdb] Extend URL regular expression (#11744)
++ [naver] Add support for tv.naver.com links (#11743)
+
+
+version 2017.01.16
+
+Core
+* [options] Apply custom config to final composite configuration (#11741)
+* [YoutubeDL] Improve protocol auto determining (#11720)
+
+Extractors
+* [xiami] Relax URL regular expressions
+* [xiami] Improve track metadata extraction (#11699)
++ [limelight] Check hand-make direct HTTP links
++ [limelight] Add support for direct HTTP links at video.llnw.net (#11737)
++ [brightcove] Recognize another player ID pattern (#11688)
 + [niconico] Support login via cookies (#7968)
+* [yourupload] Fix extraction (#11601)
++ [beam:live] Add support for beam.pro live streams (#10702, #11596)
+* [vevo] Improve geo restriction detection
++ [dramafever] Add support for URLs with language code (#11714)
+* [cbc] Improve playlist support (#11704)
+
 
 version 2017.01.14
 

@@ -338,7 +338,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'expected_warnings': ['Unable to download JSON metadata'],
         },
         {
-            # redirects to ondemand extractor and should be passed throught it
+            # redirects to ondemand extractor and should be passed through it
             # for successful extraction
             'url': 'https://vimeo.com/73445910',
             'info_dict': {
