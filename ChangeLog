@@ -1,8 +1,16 @@
 version <unreleased>
 
 Extractors
++ [pornflip] Add support for pornflip.com (#11556, #11795)
+* [chaturbate] Fix extraction (#11797, #11802)
++ [azmedien] Add support for AZ Medien sites (#11784, #11785)
 + [nextmedia] Support redirected URLs
++ [vimeo:channel] Extract videos' titles for playlist entries (#11796)
++ [youtube] Extract episode metadata (#9695, #11774)
 + [cspan] Support Ustream embedded videos (#11547)
++ [1tv] Add support for HLS videos (#11786)
+* [uol] Fix extraction (#11770)
+* [mtv] Relax triforce feed regular expression (#11766)
 
 
 version 2017.01.18
