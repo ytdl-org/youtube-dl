@@ -1,5 +1,5 @@
-from youtube_dl.jsinterp.jsgrammar import Token
-from youtube_dl.jsinterp.tstream import _ASSIGN_OPERATORS
+from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS
 
 tests = [
     {'code': 'var x = [1,2,3]; x[0] = 4; x[0] = 5; x[2] = 7; return x;',

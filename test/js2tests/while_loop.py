@@ -1,20 +1,20 @@
-from youtube_dl.jsinterp.jsgrammar import Token
-from youtube_dl.jsinterp.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _RELATIONS
+from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _RELATIONS
 
-skip = {'interpret': 'Interpreting do loop not yet implemented'}
+skip = {'interpret': 'Interpreting while loop not yet implemented'}
 
 tests = [
     {
         'code': '''
             function f(x){
                 i = 1;
-                do{
+                while (i < x) {
                     i++;
-                } while (i < x);
+                }
                 return i;
             }
             ''',
-        'asserts': [{'value': 5, 'call': 5}],
+        'asserts': [{'value': 5, 'call': ('f', 5)}],
         'ast': [
             (Token.FUNC, 'f', ['x'], [
                 (Token.EXPR, [
@@ -22,7 +22,7 @@ tests = [
                      (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'i'), None, None)]),
                      (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 1), None, None)]), None))
                 ]),
-                (Token.DO,
+                (Token.WHILE,
                  (Token.EXPR, [
                      (Token.ASSIGN, None, (Token.OPEXPR, [
                          (Token.MEMBER, (Token.ID, 'i'), None, None),

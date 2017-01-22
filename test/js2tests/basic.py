@@ -1,4 +1,4 @@
-from youtube_dl.jsinterp.jsgrammar import Token
+from youtube_dl.jsinterp2.jsgrammar import Token
 
 tests = [
     {

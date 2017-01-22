@@ -14,8 +14,8 @@ else:
     import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.jsinterp import JSInterpreter
-from .jstests import gettestcases
+from youtube_dl.jsinterp2 import JSInterpreter
+from .js2tests import gettestcases
 
 
 def traverse(node, tree_types=(list, tuple)):
