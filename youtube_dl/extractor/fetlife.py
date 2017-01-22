@@ -10,6 +10,7 @@ from ..utils import (
 
 
 class FetLifeIE(JWPlatformBaseIE):
+    """InfoExtractor for fetlife.com"""
     _VALID_URL = r'https?://fetlife\.com/users/[0-9]+/videos/(?P<id>[0-9]+)'
     _LOGIN_URL = 'https://fetlife.com/users/sign_in'
     _NETRC_MACHINE = 'fetlife'
@@ -34,6 +35,7 @@ class FetLifeIE(JWPlatformBaseIE):
     }
 
     def _real_initialize(self):
+        """log into fetlife.com"""
         (username, password) = self._get_login_info()
         if (username is None) or (password is None):
             raise ExtractorError('No login provided.', expected=True)
@@ -51,13 +53,14 @@ class FetLifeIE(JWPlatformBaseIE):
 
         request = sanitized_Request(self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Referer', self._LOGIN_URL)
-        response = self._download_webpage(request, None, 'Logging in as %s' % username)
+        response = self._download_webpage(request, None, 'Logging in as {}'.format(username))
 
         login_error = self._html_search_regex(r'Login to FetLife', response, 'login error', default=None)
         if login_error:
             raise ExtractorError('Unable to login.', expected=True)
 
     def _real_extract(self, url):
+        """extract information from fetlife.com"""
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
