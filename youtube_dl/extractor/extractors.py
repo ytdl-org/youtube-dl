@@ -1226,3 +1226,4 @@ from .youtube import (
 from .zapiks import ZapiksIE
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
+from .voot import VootIE
