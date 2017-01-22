@@ -10,7 +10,7 @@ class GaskrankIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gaskrank\.tv/tv(?:/[^/]+)+/(?P<id>[^/]+)\.htm'
     _TEST = {
         'url': 'http://www.gaskrank.tv/tv/motorrad-fun/strike-einparken-durch-anfaenger-crash-mit-groesserem-flurschaden.htm',
-        'md5': '200e28a405f6919b914a83f8adfc5739',
+        'md5': '1ae88dbac97887d85ebd1157a95fc4f9',
         'info_dict': {
             'id': '201601/26955',
             'ext': 'mp4',
