@@ -865,6 +865,30 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
+            # YouTube Red video with episode data
+            'url': 'https://www.youtube.com/watch?v=iqKdEhx-dD4',
+            'info_dict': {
+                'id': 'iqKdEhx-dD4',
+                'ext': 'mp4',
+                'title': 'Isolation - Mind Field (Ep 1)',
+                'description': 'md5:3a72f23c086a1496c9e2c54a25fa0822',
+                'upload_date': '20170118',
+                'uploader': 'Vsauce',
+                'uploader_id': 'Vsauce',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/Vsauce',
+                'license': 'Standard YouTube License',
+                'series': 'Mind Field',
+                'season_number': 1,
+                'episode_number': 1,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': [
+                'Skipping DASH manifest',
+            ],
+        },
+        {
             # itag 212
             'url': '1t24XAntNCY',
             'only_matching': True,
@@ -1454,6 +1478,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             video_alt_title = video_creator = None
 
+        m_episode = re.search(
+            r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
+            video_webpage)
+        if m_episode:
+            series = m_episode.group('series')
+            season_number = int(m_episode.group('season'))
+            episode_number = int(m_episode.group('episode'))
+        else:
+            series = season_number = episode_number = None
+
         m_cat_container = self._search_regex(
             r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
             video_webpage, 'categories', default=None)
@@ -1743,6 +1777,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'is_live': is_live,
             'start_time': start_time,
             'end_time': end_time,
+            'series': series,
+            'season_number': season_number,
+            'episode_number': episode_number,
         }
 
 

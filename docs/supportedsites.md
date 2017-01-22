@@ -74,6 +74,8 @@
  - **awaan:live**
  - **awaan:season**
  - **awaan:video**
+ - **AZMedien**: AZ Medien videos
+ - **AZMedienShow**: AZ Medien shows
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -572,6 +574,7 @@
  - **PolskieRadio**
  - **PolskieRadioCategory**
  - **PornCom**
+ - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
  - **PornHubPlaylist**
