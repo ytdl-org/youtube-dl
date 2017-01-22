@@ -41,7 +41,9 @@ class VootIE(InfoExtractor):
 
         if video_data['Pictures']:
             for picture in video_data['Pictures']:
+                #Get only first available thumbnail
                 thumbnail = picture.get('URL')
+                break
 
         self._sort_formats(formats)
 
