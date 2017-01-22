@@ -8,6 +8,7 @@ from .tstream import TokenStream, convert_to_unary
 class Parser(object):
     
     def __init__(self, code, pos=0, stack_size=100):
+        super(Parser, self).__init__()
         self.token_stream = TokenStream(code, pos)
         self.stack_top = stack_size
         self._no_in = True

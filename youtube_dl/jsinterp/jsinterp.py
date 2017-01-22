@@ -10,6 +10,7 @@ from .jsgrammar import Token, token_keys
 
 class Context(object):
     def __init__(self, variables=None, ended=False):
+        super(Context, self).__init__()
         self.ended = ended
         self.no_in = True
         self.local_vars = {}
@@ -21,6 +22,7 @@ class Context(object):
 
 class Reference(object):
     def __init__(self, value, parent=None):
+        super(Reference, self).__init__()
         self._value = value
         self._parent = parent
 
@@ -61,6 +63,7 @@ class JSInterpreter(object):
     undefined = object()
 
     def __init__(self, code, variables=None):
+        super(JSInterpreter, self).__init__()
         self.code = code
         self.global_vars = {}
         if variables is not None:

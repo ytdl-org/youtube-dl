@@ -104,6 +104,7 @@ def convert_to_unary(token_value):
 
 class TokenStream(object):
     def __init__(self, code, start=0):
+        super(TokenStream, self).__init__()
         self.code = code
         self.ended = False
         self.peeked = []
