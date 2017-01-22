@@ -85,7 +85,20 @@ class AZMedienIE(AZMedienBaseIE):
 
 class AZMedienShowIE(AZMedienBaseIE):
     IE_DESC = 'AZ Medien shows'
-    _VALID_URL = r'https?://(?:www\.)?(?:telezueri\.ch|telebaern\.tv|telem1\.ch)/(?P<id>[0-9]+-show-[^/#]+(?:/[0-9]+-episode-[^/#]+)?)$'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?:
+                            telezueri\.ch|
+                            telebaern\.tv|
+                            telem1\.ch
+                        )/
+                        (?P<id>[0-9]+-show-[^/\#]+
+                            (?:
+                                /[0-9]+-episode-[^/\#]+
+                            )?
+                        )$
+                    '''
 
     _TESTS = [{
         # URL with 'episode'
