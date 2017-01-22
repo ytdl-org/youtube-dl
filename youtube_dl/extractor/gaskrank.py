@@ -7,6 +7,7 @@ from ..utils import js_to_json
 
 
 class GaskrankIE(InfoExtractor):
+    """InfoExtractor for gaskrank.tv"""
     _VALID_URL = r'https?://(?:www\.)?gaskrank\.tv/tv/(?P<categories>[^/]+)/(?P<id>[^/]+)\.html?'
     _TEST = {
         'url': 'http://www.gaskrank.tv/tv/motorrad-fun/strike-einparken-durch-anfaenger-crash-mit-groesserem-flurschaden.htm',
@@ -22,8 +23,10 @@ class GaskrankIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        """extract information from gaskrank.tv"""
         def fix_json(code):
-            return re.sub(r'}[\s]*?,[\s]*?}', r'}}', js_to_json(code))
+            """Removes trailing comma in json: {{},} --> {{}}"""
+            return re.sub(r',[\s]*?}', r'}', js_to_json(code))
 
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
