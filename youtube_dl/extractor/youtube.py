@@ -1856,6 +1856,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'title': 'YDL_Empty_List',
         },
         'playlist_count': 0,
+        'skip': 'This playlist is private',
     }, {
         'note': 'Playlist with deleted videos (#651). As a bonus, the video #51 is also twice in this list.',
         'url': 'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
@@ -1887,6 +1888,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'PLtPgu7CB4gbY9oDN3drwC3cMbJggS7dKl',
         },
         'playlist_count': 2,
+        'skip': 'This playlist is private',
     }, {
         'note': 'embedded',
         'url': 'https://www.youtube.com/embed/videoseries?list=PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
@@ -2002,11 +2004,14 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         for match in re.findall(r'<div class="yt-alert-message"[^>]*>([^<]+)</div>', page):
             match = match.strip()
             # Check if the playlist exists or is private
-            if re.match(r'[^<]*(The|This) playlist (does not exist|is private)[^<]*', match):
-                raise ExtractorError(
-                    'The playlist doesn\'t exist or is private, use --username or '
-                    '--netrc to access it.',
-                    expected=True)
+            mobj = re.match(r'[^<]*(?:The|This) playlist (?P<reason>does not exist|is private)[^<]*', match)
+            if mobj:
+                reason = mobj.group('reason')
+                message = 'This playlist %s' % reason
+                if 'private' in reason:
+                    message += ', use --username or --netrc to access it'
+                message += '.'
+                raise ExtractorError(message, expected=True)
             elif re.match(r'[^<]*Invalid parameters[^<]*', match):
                 raise ExtractorError(
                     'Invalid parameters. Maybe URL is incorrect.',
