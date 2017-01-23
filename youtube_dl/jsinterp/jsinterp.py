@@ -4,6 +4,7 @@ import re
 
 from ..compat import compat_str
 from ..utils import ExtractorError
+from . import jsbuilt_ins
 from .tstream import TokenStream, convert_to_unary
 from .jsgrammar import Token, token_keys
 
@@ -57,7 +58,6 @@ class Reference(object):
 
 class JSInterpreter(object):
     # TODO support json
-    undefined = object()
 
     def __init__(self, code, variables=None):
         self.code = code
@@ -156,7 +156,7 @@ class JSInterpreter(object):
                         init.append(self._assign_expression(token_stream, stack_top - 1))
                         peek_id, peek_value, peek_pos = token_stream.peek()
                     else:
-                        init.append(JSInterpreter.undefined)
+                        init.append(jsbuilt_ins.undefined)
 
                     if peek_id is Token.END:
                         if self._context.no_in:
@@ -977,7 +977,7 @@ class JSInterpreter(object):
                             if lid[0] is Token.ID and args is None and tail is None:
                                 key = lid[1]
                     if key is not None:
-                        u = Reference(self.undefined, (self.this, key))
+                        u = Reference(jsbuilt_ins.undefined, (self.this, key))
                         leftref = self.this[key] = u
                     else:
                         raise ExtractorError('Invalid left-hand side in assignment')

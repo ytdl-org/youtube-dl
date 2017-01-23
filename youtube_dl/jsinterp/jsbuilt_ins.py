@@ -2,6 +2,64 @@ from __future__ import unicode_literals
 
 from types import FunctionType
 
+from ..compat import compat_str
+
+
+def _to_js(o):
+    if isinstance(o, JSProtoBase):
+        return o
+    elif o is None:
+        return undefined
+    elif isinstance(o, _native_bool):
+        return JSBooleanPrototype(o)
+    elif isinstance(o, _native_string):
+        return JSStringPrototype(o)
+    elif isinstance(o, _native_number):
+        return JSNumberPrototype(o)
+    elif isinstance(o, _native_object):
+        return JSObjectPrototype(o)
+    elif isinstance(o, _native_function) or (isinstance(o, JSBase) and hasattr(o, 'call')):
+        return JSFunctionPrototype(o)
+    elif isinstance(o, _native_array):
+        return JSArrayPrototype(o)
+    else:
+        raise Exception('Not allowed conversion %s to js' % type(o))
+
+
+def js(func):
+    def wrapper(*args, **kwargs):
+        return _to_js(func(*args, **kwargs))
+    return wrapper
+
+
+def _type(o):
+    if o is undefined:
+        return _undefined_type
+    elif o is None or o is null:
+        return _null_type
+    elif isinstance(o, _native_bool) or isinstance(o, JSBooleanPrototype):
+        return _boolean_type
+    elif isinstance(o, _native_string) or isinstance(o, JSStringPrototype):
+        return _string_type
+    elif isinstance(o, _native_number) or isinstance(o, JSNumberPrototype):
+        return _number_type
+    elif isinstance(o, _native_object) or isinstance(o, JSObjectPrototype):
+        return _object_type
+    return None
+
+
+def to_object(o):
+    if o is undefined or o is null:
+        raise Exception('TypeError: Cannot convert undefined or null to object')
+    elif isinstance(o, JSBooleanPrototype):
+        return JSBooleanPrototype(o)
+    elif isinstance(o, JSNumberPrototype):
+        return JSNumberPrototype(o)
+    elif isinstance(o, JSStringPrototype):
+        return JSStringPrototype(o)
+    elif isinstance(o, JSObjectPrototype):
+        return o
+
 
 class JSBase(object):
 
@@ -16,23 +74,6 @@ class JSBase(object):
     props = {}
 
 
-def js(func):
-    def py2js(o):
-        if isinstance(o, (FunctionType, JSBase)):
-            return JSFunctionPrototype(o)
-        elif isinstance(o, dict):
-            return JSObjectPrototype(o)
-        elif isinstance(o, (list, tuple)):
-            return JSArrayPrototype(o)
-        else:
-            raise NotImplementedError
-
-    def wrapper(*args, **kwargs):
-        return py2js(func(*args, **kwargs))
-
-    return wrapper
-
-
 class JSProtoBase(JSBase):
 
     def __init__(self):
@@ -42,12 +83,12 @@ class JSProtoBase(JSBase):
             props = cls.props.copy()
             props.update(self.props)
             self.props = props
-        super(JSProtoBase, self).__init__('', self.props)
+        super(JSProtoBase, self).__init__('', {})
 
     def __str__(self):
         return ''
 
-    def _get_prop(self, prop):
+    def __get_prop(self, prop):
         result = self.value.get(prop)
         if result is None:
             result = self.props.get(prop)
@@ -55,11 +96,24 @@ class JSProtoBase(JSBase):
 
     @js
     def get_prop(self, prop):
-        return self._get_prop(prop)
+        return self.__get_prop(prop)
 
     @js
-    def call_prop(self, prop, *args):
-        return self._get_prop(prop)(self, *args)
+    def call_prop(self, prop, *args, **kwargs):
+        func = self.__get_prop(prop)
+        if isinstance(func, FunctionType):
+            return func(self, *args, **kwargs)
+        elif isinstance(func, staticmethod):
+            return func.__func__(*args, **kwargs)
+        elif isinstance(func, classmethod):
+            return func.__func__(self.__class__, *args, **kwargs)
+        elif isinstance(func, JSBase) and hasattr(func, 'call'):
+            return func.call(*args, **kwargs)
+        else:
+            # FIXME instead of prop should return the whole expression
+            # needs to use internal exception
+            # interpreter should raise JSTypeError
+            raise Exception('TypeError: %s is not a function' % prop)
 
 
 class JSObjectPrototype(JSProtoBase):
@@ -68,6 +122,16 @@ class JSObjectPrototype(JSProtoBase):
         super(JSObjectPrototype, self).__init__()
         if value is not None:
             self.value = value
+
+    @staticmethod
+    def _constructor(value=None):
+        value = _to_js(value)
+        if value is undefined or value is null:
+            return JSObjectPrototype()
+        elif isinstance(value, JSObjectPrototype):
+            return value
+        elif isinstance(value, (JSStringPrototype, JSNumberPrototype, JSBooleanPrototype)):
+            return to_object(value)
 
     def _to_string(self):
         return 'object to string'
@@ -88,7 +152,7 @@ class JSObjectPrototype(JSProtoBase):
         return 'object is property enumerable'
 
     props = {
-        'constructor': __init__,
+        'constructor': _constructor,
         'toString': _to_string,
         'toLocaleString': _to_locale_string,
         'valueOf': _value_of,
@@ -102,6 +166,14 @@ class JSObject(JSBase):
 
     def __init__(self):
         super(JSObject, self).__init__(self.name, self.props)
+
+    @staticmethod
+    def construct(value=None):
+        return JSObjectPrototype._constructor(value)
+
+    @staticmethod
+    def call(value=None):
+        return JSObject.construct(value)
 
     def _get_prototype_of(self, o):
         return 'object get prototype of'
@@ -145,7 +217,7 @@ class JSObject(JSBase):
     name = 'Object'
     props = {
         'length': 1,
-        'prototype': JSObjectPrototype.props,
+        'prototype': JSObjectPrototype(),
         'getPrototypeOf': _get_prototype_of,
         'getOwnPropertyDescriptor': _get_own_property_descriptor,
         'getOwnPropertyNames': _get_own_property_names,
@@ -218,7 +290,6 @@ class JSFunctionPrototype(JSObjectPrototype):
 class JSFuction(JSObject):
 
     name = 'Function'
-
     props = {
         'length': 1,
         'prototype': JSFunctionPrototype()
@@ -336,16 +407,59 @@ class JSArrayPrototype(JSObjectPrototype):
 
 class JSArray(JSObject):
 
-    name = 'Array'
-
     def _is_array(self, arg):
         return 'array is array'
 
+    name = 'Array'
     props = {
         'length': 1,
         'prototype': JSArrayPrototype.props,
         'isArray': _is_array
     }
+
+
+class JSStringPrototype(JSObjectPrototype):
+    pass
+
+
+class JSString(JSObject):
+    pass
+
+
+class JSBooleanPrototype(JSObjectPrototype):
+    pass
+
+
+class JSBoolean(JSObject):
+    pass
+
+
+class JSNumberPrototype(JSObjectPrototype):
+    pass
+
+
+class JSNumber(JSObject):
+    pass
+
+
+undefined = object()
+null = object()
+true = JSBooleanPrototype(True)
+false = JSBooleanPrototype(False)
+
+_native_bool = bool
+_native_string = compat_str
+_native_number = (int, float)
+_native_object = dict
+_native_array = (list, tuple)
+_native_function = FunctionType
+
+_undefined_type = object()
+_null_type = object()
+_boolean_type = object()
+_string_type = object()
+_number_type = object()
+_object_type = object()
 
 global_obj = JSObjectPrototype({'Object': JSObject(),
                                 'Array': JSArray(),
