@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.24
 
 Extractors
 * [pluralsight] Fix extraction (#11820)
