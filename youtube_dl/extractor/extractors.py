@@ -598,6 +598,7 @@ from .nextmedia import (
     NextMediaIE,
     NextMediaActionNewsIE,
     AppleDailyIE,
+    NextTVIE,
 )
 from .nfb import NFBIE
 from .nfl import NFLIE
