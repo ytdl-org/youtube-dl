@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import time
+import re
 from .jwplatform import JWPlatformBaseIE
 from ..utils import (
     ExtractorError,
@@ -28,6 +29,8 @@ class FetLifeIE(JWPlatformBaseIE):
             'uploader_id': '1537262',
             'age_limit': 18,
             'upload_date': '20170110',
+            'duration': 91,
+
         },
         'params': {
             'usenetrc': True,
@@ -72,9 +75,20 @@ class FetLifeIE(JWPlatformBaseIE):
         title = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<p[^>]+class=\"description\">([^<]+)', webpage, 'title')
         uploader = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+class=\"nickname\"[\s\S]+?>([^<]+)', webpage, 'uploader', default=None)
         uploader_id = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+href=\"/users/([0-9]+)', webpage, 'uploader_id', default=None)
+
         timestamp = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<time[^>]+>([^<]+)', webpage, 'timestamp', default=None)
         if timestamp:
             timestamp = int(time.mktime(time.strptime(timestamp, "%Y/%m/%d %H:%M:%S +0000")))
+
+        mobj = re.search(r'clock<[^>]*>\s*(?P<duration_minutes>[0-9]+)m\s*(?P<duration_seconds>[0-9]+)s', webpage)
+        duration_minutes = mobj.groupdict().get('duration_minutes')
+        duration_seconds = mobj.groupdict().get('duration_seconds')
+        if (duration_minutes is not None) and (duration_seconds is not None):
+            duration = int(duration_minutes) * 60 + int(duration_seconds)
+
+        like_count = self._search_regex(r'[0-9]+\s*Love\s*it', webpage, 'like_count', default=None)
+        if like_count:
+            like_count = int(like_count)
 
         video_data.update({
             'id': video_id,
@@ -83,6 +97,8 @@ class FetLifeIE(JWPlatformBaseIE):
             'timestamp': timestamp,
             'uploader_id': uploader_id,
             'age_limit': 18,
+            'duration': duration,
+            'like_count': like_count,
         })
 
         return video_data
