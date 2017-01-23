@@ -36,6 +36,18 @@ class InfoQIE(BokeCCBaseIE):
             'ext': 'flv',
             'description': 'md5:308d981fb28fa42f49f9568322c683ff',
         },
+    }, {
+        'url': 'https://www.infoq.com/presentations/Simple-Made-Easy',
+        'md5': '0e34642d4d9ef44bf86f66f6399672db',
+        'info_dict': {
+            'id': 'Simple-Made-Easy',
+            'title': 'Simple Made Easy',
+            'ext': 'mp3',
+            'description': 'md5:3e0e213a8bbd074796ef89ea35ada25b',
+        },
+        'params': {
+            'format': 'bestaudio',
+        },
     }]
 
     def _extract_rtmp_video(self, webpage):
