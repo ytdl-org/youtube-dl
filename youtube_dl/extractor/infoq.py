@@ -74,7 +74,8 @@ class InfoQIE(BokeCCBaseIE):
         }]
 
     def _extract_http_audio(self, webpage):
-        http_audio_url = self._search_regex(r'<input[^>]*?name="filename"[^>]*?value="([^\"]+)"[^>]*?>', webpage, 'audio URL', fatal=False)
+        fields = self._hidden_inputs(webpage)
+        http_audio_url = fields['filename']
         if http_audio_url is None:
             return []
         # base URL is found in the Location header in the response returned by
