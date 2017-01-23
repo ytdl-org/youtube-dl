@@ -107,7 +107,7 @@ class CanalplusIE(InfoExtractor):
             [r'<canal:player[^>]+?videoId=(["\'])(?P<id>\d+)',
              r'id=["\']canal_video_player(?P<id>\d+)',
              r'data-video=["\'](?P<id>\d+)'],
-            webpage, 'video id', group='id')
+            webpage, 'video id', default=mobj.group('vid'), group='id')
 
         info_url = self._VIDEO_INFO_TEMPLATE % (site_id, video_id)
         video_data = self._download_json(info_url, video_id, 'Downloading video JSON')

@@ -206,7 +206,7 @@ class VevoIE(VevoBaseIE):
             note='Retrieving oauth token',
             errnote='Unable to retrieve oauth token')
 
-        if 'THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION' in webpage:
+        if re.search(r'(?i)THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION', webpage):
             self.raise_geo_restricted(
                 '%s said: This page is currently unavailable in your region' % self.IE_NAME)
 

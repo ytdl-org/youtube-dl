@@ -74,6 +74,8 @@
  - **awaan:live**
  - **awaan:season**
  - **awaan:video**
+ - **AZMedien**: AZ Medien videos
+ - **AZMedienShow**: AZ Medien shows
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -86,6 +88,7 @@
  - **bbc.co.uk:article**: BBC articles
  - **bbc.co.uk:iplayer:playlist**
  - **bbc.co.uk:playlist**
+ - **Beam:live**
  - **Beatport**
  - **Beeg**
  - **BehindKink**
@@ -214,6 +217,7 @@
  - **EaglePlatform**
  - **EbaumsWorld**
  - **EchoMsk**
+ - **egghead:course**: egghead.io course
  - **eHow**
  - **Einthusan**
  - **eitb.tv**
@@ -240,7 +244,6 @@
  - **fc2**
  - **fc2:embed**
  - **Fczenit**
- - **features.aol.com**
  - **fernsehkritik.tv**
  - **Firstpost**
  - **FiveTV**
@@ -304,6 +307,7 @@
  - **history:topic**: History.com Topic
  - **hitbox**
  - **hitbox:live**
+ - **HitRecord**
  - **HornBunny**
  - **HotNewHipHop**
  - **HotStar**
@@ -321,6 +325,7 @@
  - **Imgur**
  - **ImgurAlbum**
  - **Ina**
+ - **Inc**
  - **Indavideo**
  - **IndavideoEmbed**
  - **InfoQ**
@@ -569,6 +574,7 @@
  - **PolskieRadio**
  - **PolskieRadioCategory**
  - **PornCom**
+ - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
  - **PornHubPlaylist**
@@ -650,7 +656,6 @@
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
- - **ScreenJunkies**
  - **Seeker**
  - **SenateISVP**
  - **SendtoNews**
@@ -658,7 +663,6 @@
  - **Sexu**
  - **Shahid**
  - **Shared**: shared.sx
- - **ShareSix**
  - **ShowRoomLive**
  - **Sina**
  - **SixPlay**
@@ -845,7 +849,6 @@
  - **videomore:season**
  - **videomore:video**
  - **VideoPremium**
- - **VideoTt**: video.tt - Your True Tube (Currently broken)
  - **videoweed**: VideoWeed
  - **Vidio**
  - **vidme**

@@ -34,8 +34,8 @@ class BiliBiliIE(InfoExtractor):
         },
     }
 
-    _APP_KEY = '6f90a59ac58a4123'
-    _BILIBILI_KEY = '0bfd84cc3940035173f35e6777508326'
+    _APP_KEY = '84956560bc028eb7'
+    _BILIBILI_KEY = '94aba54af9065f71de72f5508f1cd42e'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

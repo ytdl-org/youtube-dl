@@ -295,6 +295,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_strdate('27.02.2016 17:30'), '20160227')
         self.assertEqual(unified_strdate('UNKNOWN DATE FORMAT'), None)
         self.assertEqual(unified_strdate('Feb 7, 2016 at 6:35 pm'), '20160207')
+        self.assertEqual(unified_strdate('July 15th, 2013'), '20130715')
+        self.assertEqual(unified_strdate('September 1st, 2013'), '20130901')
+        self.assertEqual(unified_strdate('Sep 2nd, 2013'), '20130902')
 
     def test_unified_timestamps(self):
         self.assertEqual(unified_timestamp('December 21, 2010'), 1292889600)

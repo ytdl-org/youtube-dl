@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import parse_iso8601
 
 
@@ -30,6 +31,12 @@ class NextMediaIE(InfoExtractor):
         return self._extract_from_nextmedia_page(news_id, url, page)
 
     def _extract_from_nextmedia_page(self, news_id, url, page):
+        redirection_url = self._search_regex(
+            r'window\.location\.href\s*=\s*([\'"])(?P<url>(?!\1).+)\1',
+            page, 'redirection URL', default=None, group='url')
+        if redirection_url:
+            return self.url_result(compat_urlparse.urljoin(url, redirection_url))
+
         title = self._fetch_title(page)
         video_url = self._search_regex(self._URL_PATTERN, page, 'video url')
 
@@ -93,7 +100,7 @@ class NextMediaActionNewsIE(NextMediaIE):
 
 class AppleDailyIE(NextMediaIE):
     IE_DESC = '臺灣蘋果日報'
-    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/(?:animation|appledaily|enews|realtimenews|actionnews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
+    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/[^/]+/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
         'md5': 'a843ab23d150977cc55ef94f1e2c1e4d',
@@ -156,6 +163,10 @@ class AppleDailyIE(NextMediaIE):
         },
     }, {
         'url': 'http://www.appledaily.com.tw/actionnews/appledaily/7/20161003/960588/',
+        'only_matching': True,
+    }, {
+        # Redirected from http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694
+        'url': 'http://ent.appledaily.com.tw/section/article/headline/20150128/36354694',
         'only_matching': True,
     }]
 

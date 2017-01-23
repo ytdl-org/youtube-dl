@@ -124,7 +124,7 @@ After you have ensured this site is distributing its content legally, you can fo
                 'id': '42',
                 'ext': 'mp4',
                 'title': 'Video title goes here',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 # TODO more properties, either as:
                 # * A value
                 # * MD5 checksum; start the string with md5:

@@ -1,9 +1,92 @@
-version <unreleased>
+version 2017.01.22
+
+Extractors
++ [pornflip] Add support for pornflip.com (#11556, #11795)
+* [chaturbate] Fix extraction (#11797, #11802)
++ [azmedien] Add support for AZ Medien sites (#11784, #11785)
++ [nextmedia] Support redirected URLs
++ [vimeo:channel] Extract videos' titles for playlist entries (#11796)
++ [youtube] Extract episode metadata (#9695, #11774)
++ [cspan] Support Ustream embedded videos (#11547)
++ [1tv] Add support for HLS videos (#11786)
+* [uol] Fix extraction (#11770)
+* [mtv] Relax triforce feed regular expression (#11766)
+
+
+version 2017.01.18
+
+Extractors
+* [bilibili] Fix extraction (#11077)
++ [canalplus] Add fallback for video id (#11764)
+* [20min] Fix extraction (#11683, #11751)
+* [imdb] Extend URL regular expression (#11744)
++ [naver] Add support for tv.naver.com links (#11743)
+
+
+version 2017.01.16
+
+Core
+* [options] Apply custom config to final composite configuration (#11741)
+* [YoutubeDL] Improve protocol auto determining (#11720)
+
+Extractors
+* [xiami] Relax URL regular expressions
+* [xiami] Improve track metadata extraction (#11699)
++ [limelight] Check hand-make direct HTTP links
++ [limelight] Add support for direct HTTP links at video.llnw.net (#11737)
++ [brightcove] Recognize another player ID pattern (#11688)
++ [niconico] Support login via cookies (#7968)
+* [yourupload] Fix extraction (#11601)
++ [beam:live] Add support for beam.pro live streams (#10702, #11596)
+* [vevo] Improve geo restriction detection
++ [dramafever] Add support for URLs with language code (#11714)
+* [cbc] Improve playlist support (#11704)
+
+
+version 2017.01.14
+
+Core
++ [common] Add ability to customize akamai manifest host
++ [utils] Add more date formats
+
+Extractors
+- [mtv] Eliminate _transform_rtmp_url
+* [mtv] Generalize triforce mgid extraction
++ [cmt] Add support for full episodes and video clips (#11623)
++ [mitele] Extract DASH formats
++ [ooyala] Add support for videos with embedToken (#11684)
+* [mixcloud] Fix extraction (#11674)
+* [openload] Fix extraction (#10408)
+* [tv4] Improve extraction (#11698)
+* [freesound] Fix and improve extraction (#11602)
++ [nick] Add support for beta.nick.com (#11655)
+* [mtv,cc] Use HLS by default with native HLS downloader (#11641)
+* [mtv] Fix non-HLS extraction
+
+
+version 2017.01.10
+
+Extractors
+* [youtube] Fix extraction (#11663, #11664)
++ [inc] Add support for inc.com (#11277, #11647)
++ [youtube] Add itag 212 (#11575)
++ [egghead:course] Add support for egghead.io courses
+
+
+version 2017.01.08
 
 Core
 * Fix "invalid escape sequence" errors under Python 3.6 (#11581)
 
 Extractors
++ [hitrecord] Add support for hitrecord.org (#10867, #11626)
+- [videott] Remove extractor
+* [swrmediathek] Improve extraction
+- [sharesix] Remove extractor
+- [aol:features] Remove extractor
+* [sendtonews] Improve info extraction
+* [3sat,phoenix] Fix extraction (#11619)
+* [comedycentral/mtv] Add support for HLS videos (#11600)
 * [discoverygo] Fix JSON data parsing (#11219, #11522)
 
 

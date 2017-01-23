@@ -18,7 +18,7 @@ class OoyalaBaseIE(InfoExtractor):
     _CONTENT_TREE_BASE = _PLAYER_BASE + 'player_api/v1/content_tree/'
     _AUTHORIZATION_URL_TEMPLATE = _PLAYER_BASE + 'sas/player_api/v2/authorization/embed_code/%s/%s?'
 
-    def _extract(self, content_tree_url, video_id, domain='example.org', supportedformats=None):
+    def _extract(self, content_tree_url, video_id, domain='example.org', supportedformats=None, embed_token=None):
         content_tree = self._download_json(content_tree_url, video_id)['content_tree']
         metadata = content_tree[list(content_tree)[0]]
         embed_code = metadata['embed_code']
@@ -29,7 +29,8 @@ class OoyalaBaseIE(InfoExtractor):
             self._AUTHORIZATION_URL_TEMPLATE % (pcode, embed_code) +
             compat_urllib_parse_urlencode({
                 'domain': domain,
-                'supportedFormats': supportedformats or 'mp4,rtmp,m3u8,hds',
+                'supportedFormats': supportedformats or 'mp4,rtmp,m3u8,hds,dash,smooth',
+                'embedToken': embed_token,
             }), video_id)
 
         cur_auth_data = auth_data['authorization_data'][embed_code]
@@ -52,6 +53,12 @@ class OoyalaBaseIE(InfoExtractor):
                 elif delivery_type == 'hds' or ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
                         s_url + '?hdcore=3.7.0', embed_code, f4m_id='hds', fatal=False))
+                elif delivery_type == 'dash' or ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        s_url, embed_code, mpd_id='dash', fatal=False))
+                elif delivery_type == 'smooth':
+                    self._extract_ism_formats(
+                        s_url, embed_code, ism_id='mss', fatal=False)
                 elif ext == 'smil':
                     formats.extend(self._extract_smil_formats(
                         s_url, embed_code, fatal=False))
@@ -146,8 +153,9 @@ class OoyalaIE(OoyalaBaseIE):
         embed_code = self._match_id(url)
         domain = smuggled_data.get('domain')
         supportedformats = smuggled_data.get('supportedformats')
+        embed_token = smuggled_data.get('embed_token')
         content_tree_url = self._CONTENT_TREE_BASE + 'embed_code/%s/%s' % (embed_code, embed_code)
-        return self._extract(content_tree_url, embed_code, domain, supportedformats)
+        return self._extract(content_tree_url, embed_code, domain, supportedformats, embed_token)
 
 
 class OoyalaExternalIE(OoyalaBaseIE):
