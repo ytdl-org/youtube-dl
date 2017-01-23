@@ -1,7 +1,11 @@
 version <unreleased>
 
 Extractors
+* [pluralsight] Fix extraction (#11820)
 + [nextmedia] Add support for NextTV (壹電視)
+* [24video] Fix extraction (#11811)
+* [youtube:playlist] Fix nonexistent and private playlist detection (#11604)
++ [chirbit] Extract uploader (#11809)
 
 
 version 2017.01.22
