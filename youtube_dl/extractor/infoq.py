@@ -73,22 +73,28 @@ class InfoQIE(BokeCCBaseIE):
             },
         }]
 
-    def _extract_http_audio(self, webpage):
+    def _extract_http_audio(self, webpage, video_id):
         fields = self._hidden_inputs(webpage)
         http_audio_url = fields['filename']
         if http_audio_url is None:
             return []
+
+        cookies_header = {'Cookie': self._extract_cookies(webpage)}
+
         # base URL is found in the Location header in the response returned by
         # GET https://www.infoq.com/mp3download.action?filename=... when logged in.
         http_audio_url = compat_urlparse.urljoin('http://res.infoq.com/downloads/mp3downloads/', http_audio_url)
+
+        # audio file seem to be missing some times even if there is a download link
+        # so probe URL to make sure
+        if not self._is_valid_url(http_audio_url, video_id, headers=cookies_header):
+            return []
 
         return [{
             'format_id': 'http_audio',
             'url': http_audio_url,
             'vcodec': 'none',
-            'http_headers': {
-                'Cookie': self._extract_cookies(webpage)
-            },
+            'http_headers': cookies_header,
         }]
 
     def _real_extract(self, url):
@@ -105,7 +111,7 @@ class InfoQIE(BokeCCBaseIE):
             formats = (
                 self._extract_rtmp_video(webpage) +
                 self._extract_http_video(webpage) +
-                self._extract_http_audio(webpage))
+                self._extract_http_audio(webpage, video_id))
 
         self._sort_formats(formats)
 

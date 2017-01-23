@@ -1015,13 +1015,13 @@ class InfoExtractor(object):
                 unique_formats.append(f)
         formats[:] = unique_formats
 
-    def _is_valid_url(self, url, video_id, item='video'):
+    def _is_valid_url(self, url, video_id, item='video', headers={}):
         url = self._proto_relative_url(url, scheme='http:')
         # For now assume non HTTP(S) URLs always valid
         if not (url.startswith('http://') or url.startswith('https://')):
             return True
         try:
-            self._request_webpage(url, video_id, 'Checking %s URL' % item)
+            self._request_webpage(url, video_id, 'Checking %s URL' % item, headers=headers)
             return True
         except ExtractorError as e:
             if isinstance(e.cause, compat_urllib_error.URLError):
