@@ -1129,7 +1129,10 @@ from .vk import (
     VKUserVideosIE,
     VKWallPostIE,
 )
-from .vlive import VLiveIE
+from .vlive import (
+    VLiveIE,
+    VLiveChannelIE
+)
 from .vodlocker import VodlockerIE
 from .vodplatform import VODPlatformIE
 from .voicerepublic import VoiceRepublicIE
