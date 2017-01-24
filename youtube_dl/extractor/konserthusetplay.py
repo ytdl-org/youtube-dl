@@ -11,22 +11,22 @@ from ..utils import (
 
 
 class KonserthusetPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?konserthusetplay\.se/\?.*\bm=(?P<id>[^&]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:konserthusetplay|rspoplay)\.se/\?.*\bm=(?P<id>[^&]+)'
+    _TESTS = [{
         'url': 'http://www.konserthusetplay.se/?m=CKDDnlCY-dhWAAqiMERd-A',
+        'md5': 'e3fd47bf44e864bd23c08e487abe1967',
         'info_dict': {
             'id': 'CKDDnlCY-dhWAAqiMERd-A',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Orkesterns instrument: Valthornen',
             'description': 'md5:f10e1f0030202020396a4d712d2fa827',
             'thumbnail': 're:^https?://.*$',
-            'duration': 398.8,
+            'duration': 398.76,
         },
-        'params': {
-            # rtmp download
-            'skip_download': True,
-        },
-    }
+    }, {
+        'url': 'http://rspoplay.se/?m=elWuEH34SMKvaO4wO_cHBw',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
