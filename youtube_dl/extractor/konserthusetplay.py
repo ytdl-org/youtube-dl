@@ -11,22 +11,35 @@ from ..utils import (
 
 
 class KonserthusetPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?konserthusetplay\.se/\?.*\bm=(?P<id>[^&]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:konserthusetplay|rspoplay)\.se/\?.*\bm=(?P<id>[^&]+)'
+    _TESTS = [{
         'url': 'http://www.konserthusetplay.se/?m=CKDDnlCY-dhWAAqiMERd-A',
         'info_dict': {
             'id': 'CKDDnlCY-dhWAAqiMERd-A',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Orkesterns instrument: Valthornen',
             'description': 'md5:f10e1f0030202020396a4d712d2fa827',
             'thumbnail': 're:^https?://.*$',
-            'duration': 398.8,
+            'duration': float,
         },
         'params': {
             # rtmp download
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'http://rspoplay.se/?m=elWuEH34SMKvaO4wO_cHBw',
+        'info_dict': {
+            'id': 'elWuEH34SMKvaO4wO_cHBw',
+            'ext': 'mp4',
+            'title': 'The Seven Wonders of the World',
+            'description': 'md5:18c6ca150b79e77bb6050d7da1e737b8',
+            'thumbnail': 're:^https?://.*$',
+            'duration': float,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
