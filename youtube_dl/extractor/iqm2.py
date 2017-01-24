@@ -78,7 +78,7 @@ class IQM2IE(JWPlatformBaseIE):
 
     def _real_extract(self, url):
         parent_id = self._match_id(url)
-        webpage = self._download_webpage(url, parent_id)
+        parent_page = self._download_webpage(url, parent_id)
 
         # Take, e.g.
         #   http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679
@@ -88,7 +88,7 @@ class IQM2IE(JWPlatformBaseIE):
         # and then parse the canonicalized src element
         inner_url_rel = self._html_search_regex(
             r'<div id="VideoPanelInner".*src="([^"]+)"',
-            webpage, 'url');
+            parent_page, 'url');
 
         inner_url = compat_urlparse.urljoin(url, inner_url_rel)
         mobj = re.match(
