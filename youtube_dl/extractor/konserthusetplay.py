@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     float_or_none,
     int_or_none,
 )
@@ -42,11 +43,17 @@ class KonserthusetPlayIE(InfoExtractor):
         player_config = media['playerconfig']
         playlist = player_config['playlist']
 
-        source = next(f for f in playlist if f.get('bitrates'))
+        source = next(f for f in playlist if f.get('bitrates') or f.get('provider'))
 
         FORMAT_ID_REGEX = r'_([^_]+)_h264m\.mp4'
 
         formats = []
+
+        m3u8_url = source.get('url')
+        if m3u8_url and determine_ext(m3u8_url) == 'm3u8':
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False))
 
         fallback_url = source.get('fallbackUrl')
         fallback_format_id = None
