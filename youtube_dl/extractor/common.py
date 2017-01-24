@@ -1769,6 +1769,7 @@ class InfoExtractor(object):
                             })
                             if 'initialization_url' in representation_ms_info:
                                 initialization_url = representation_ms_info['initialization_url'].replace('$RepresentationID$', representation_id)
+                                initialization_url = initialization_url.replace("$Bandwidth$",str(int_or_none(representation_attrib.get('bandwidth'))))
                                 if not f.get('url'):
                                     f['url'] = initialization_url
                                 f['fragments'].append({'url': initialization_url})
