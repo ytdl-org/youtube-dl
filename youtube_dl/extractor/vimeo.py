@@ -884,10 +884,14 @@ class VimeoReviewIE(VimeoBaseInfoExtractor):
 
     def _get_config_url(self, webpage_url, video_id, video_password_verified=False):
         webpage = self._download_webpage(webpage_url, video_id)
-        data = self._parse_json(self._search_regex(
-            r'window\s*=\s*_extend\(window,\s*({.+?})\);', webpage, 'data',
-            default=NO_DEFAULT if video_password_verified else '{}'), video_id)
-        config_url = data.get('vimeo_esi', {}).get('config', {}).get('configUrl')
+        config_url = self._html_search_regex(
+            r'data-config-url=(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'config URL', default=None, group='url')
+        if not config_url:
+            data = self._parse_json(self._search_regex(
+                r'window\s*=\s*_extend\(window,\s*({.+?})\);', webpage, 'data',
+                default=NO_DEFAULT if video_password_verified else '{}'), video_id)
+            config_url = data.get('vimeo_esi', {}).get('config', {}).get('configUrl')
         if config_url is None:
             self._verify_video_password(webpage_url, video_id, webpage)
             config_url = self._get_config_url(
