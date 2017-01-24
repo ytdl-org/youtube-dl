@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     determine_ext,
     float_or_none,
@@ -104,6 +105,13 @@ class KonserthusetPlayIE(InfoExtractor):
         thumbnail = media.get('image')
         duration = float_or_none(media.get('duration'), 1000)
 
+        subtitles = {}
+        captions = source.get('captionsAvailableLanguages')
+        if isinstance(captions, dict):
+            for lang, subtitle_url in captions.items():
+                if lang != 'none' and isinstance(subtitle_url, compat_str):
+                    subtitles.setdefault(lang, []).append({'url': subtitle_url})
+
         return {
             'id': video_id,
             'title': title,
@@ -111,4 +119,5 @@ class KonserthusetPlayIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }
