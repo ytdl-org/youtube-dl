@@ -8,23 +8,7 @@ from ..compat import compat_urlparse
 from .jwplatform import JWPlatformBaseIE
 from ..utils import js_to_json
 
-# IQM2 aka Accela is a municipal meeting management platform that
-# (among other things) stores livestreamed video from municipal
-# meetings.  In some cases (e.g. cambridgema.iqm2.com), after a hefty
-# (several-hour) processing time, that video is available in easily
-# downloadable form from their web portal, but prior to that, the
-# video can only be watched in realtime through JWPlayer. Other
-# (somervillecityma.iqm2.com) instances don't seem to ever offer a
-# downloadable form. This extractor is designed to download the
-# realtime video without the download links being available. For more
-# info on Accela, see:
-#   http://www.iqm2.com/About/Accela.aspx
-#   http://www.accela.com/
-#   https://github.com/Accela-Inc/leg-man-api-docs
-
-# This processing makes hard to test since there's only a narrow
-# window when it matters. After that the extractor finds links to
-# the processed video intead.
+# IQM2 aka Accela stores livestreamed video from municipal meetings.
 
 # No metadata is retrieved, as that would require finding a metadata
 # URL and retreiving a 3rd HTTP resource.
@@ -36,7 +20,19 @@ class IQM2IE(JWPlatformBaseIE):
     # We commonly see both iqm2.com and IQM2.com.
     _VALID_URL = r'(?i)https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MeetingID=(?P<id>[0-9]+)'
     _TESTS = [
-        {  # This is a "realtime" case
+        # In some cases (e.g. cambridgema.iqm2.com), after a hefty
+        # (several-hour) processing time, that video is available in easily
+        # downloadable form from their web portal, but prior to that, the
+        # video can only be watched in realtime through JWPlayer. Other
+        # (somervillecityma.iqm2.com) instances don't seem to ever offer a
+        # downloadable form. This extractor is designed to download the
+        # realtime video without the download links being available.
+        #
+        # This processing makes it hard to test since there's only a narrow
+        # window when it matters. After that the extractor finds links to the
+        # processed video intead.
+        {
+            # This is a "realtime" case
             'url': 'http://somervillecityma.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=2308',
             'md5': '9ef458ff6c93f8b9323cf79db4ede9cf',
             'info_dict': {
