@@ -16,6 +16,7 @@ from ..utils import (
     int_or_none,
     parse_filesize,
     unescapeHTML,
+    unified_strdate,
     update_url_query,
 )
 
@@ -47,6 +48,18 @@ class BandcampIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
+        release_date = self._search_regex(
+            r'"?(?:album_)?release_date"?\s*?:\s*?"(.*?)"',
+            webpage, 'release date', fatal=False)
+        release_date = unified_strdate(release_date)
+        album = self._search_regex(
+            r'album_title\s*:\s*"((?:\\.|[^"\\])+?)"',
+            webpage, 'album', default=None)
+        artist = self._search_regex(
+            r'artist\s*:\s*"((?:\\.|[^"\\])+?)"',
+            webpage, 'artist', fatal=False)
+        if release_date:
+            release_year = release_date[:4]
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
@@ -76,7 +89,14 @@ class BandcampIE(InfoExtractor):
                     'id': track_id,
                     'title': data['title'],
                     'formats': formats,
+                    'release_date': release_date,
                     'duration': float_or_none(data.get('duration')),
+                    'track': data.get('title'),
+                    'track_number': int_or_none(data.get('track_num')),
+                    'track_id': track_id,
+                    'album': album,
+                    'artist': artist,
+                    'release_year': release_year,
                 }
             else:
                 raise ExtractorError('No free songs found')
@@ -85,6 +105,10 @@ class BandcampIE(InfoExtractor):
         video_id = self._search_regex(
             r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
             webpage, 'video id')
+
+        track_number = self._search_regex(
+            r'"track_num":(?P<track_number>\d+),',
+            webpage, 'track number', fatal=False)
 
         download_webpage = self._download_webpage(
             download_link, video_id, 'Downloading free downloads page')
@@ -145,9 +169,15 @@ class BandcampIE(InfoExtractor):
             'title': title,
             'thumbnail': info.get('thumb_url'),
             'uploader': info.get('artist'),
+            'release_date': release_date,
             'artist': artist,
             'track': track,
             'formats': formats,
+            'track_number': int_or_none(track_number),
+            'track_id': video_id,
+            'album': album,
+            'artist': artist,
+            'release_year': release_year,
         }
 
 
@@ -233,5 +263,6 @@ class BandcampAlbumIE(InfoExtractor):
             'uploader_id': uploader_id,
             'id': playlist_id,
             'title': title,
+            'album': title,
             'entries': entries,
         }
