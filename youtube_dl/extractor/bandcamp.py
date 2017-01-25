@@ -49,13 +49,13 @@ class BandcampIE(InfoExtractor):
         webpage = self._download_webpage(url, title)
         album = self._search_regex(
             r'(?ms).*?title\s*?:\s*?"(?P<album>.*?)",',
-            webpage, 'album')
+            webpage, 'album', fatal=False)
         album_artist = self._search_regex(
             r'(?ms)var EmbedData = .*?[{,]\s*artist:\s*?"(?P<album_artist>.*?)",$',
-            webpage, 'album artist')
+            webpage, 'album artist', fatal=False)
         release_year = self._search_regex(
             r'(?ms).*?release_date"?:\s*?"\d+ \w+ (?P<release_year>\d+)\s*?.*?GMT",',
-            webpage, 'release year')
+            webpage, 'release year', fatal=False)
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
@@ -103,7 +103,7 @@ class BandcampIE(InfoExtractor):
 
         track_number = self._search_regex(
             r'"track_num":(?P<track_number>\d+),',
-            webpage, 'track number')
+            webpage, 'track number', fatal=False)
 
         download_webpage = self._download_webpage(
             download_link, video_id, 'Downloading free downloads page')
