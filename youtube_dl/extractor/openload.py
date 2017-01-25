@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_chr
 from ..utils import (
@@ -55,6 +57,12 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://oload.tv/embed/KnG-kKZdcfY/',
         'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src=["\']((?:https?://)?(?:openload\.(?:co|io)|oload\.tv)/embed/[a-zA-Z0-9-_]+)',
+            webpage)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
