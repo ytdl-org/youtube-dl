@@ -1,3 +1,18 @@
+version <unreleased>
+
+Extractors
++ [openload] Fallback video extension to mp4
++ [extractor/generic] Add support for Openload embeds (#11536, #11812)
+* [srgssr] Fix rts video extraction (#11831)
++ [afreecatv:global] Add support for afreeca.tv (#11807)
++ [crackle] Extract vtt subtitles
++ [crackle] Extract multiple resolutions for thumbnails
++ [crackle] Add support for mobile URLs
++ [konserthusetplay] Extract subtitles (#11823)
++ [konserthusetplay] Add support for HLS videos (#11823)
+* [vimeo:review] Fix config URL extraction (#11821)
+
+
 version 2017.01.24
 
 Extractors
