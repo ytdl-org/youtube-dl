@@ -16,7 +16,7 @@ class JamendoIE(InfoExtractor):
             'id': '196219',
             'display_id': 'stories-from-emona-i',
             'ext': 'flac',
-            'title': 'Stories from Emona I',
+            'title': 'Maya Filipič - Stories from Emona I',
             'thumbnail': r're:^https?://.*\.jpg'
         }
     }
@@ -28,7 +28,7 @@ class JamendoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        title = self._html_search_meta('name', webpage, 'title')
+        title = self._search_regex(r'<title>(.*?)\ \|\ Jamendo\ Music\ .*</title>', webpage, 'title')
 
         formats = [{
             'url': 'https://%s.jamendo.com/?trackid=%s&format=%s&from=app-97dab294'
@@ -62,21 +62,21 @@ class JamendoAlbumIE(InfoExtractor):
         'url': 'https://www.jamendo.com/album/121486/duck-on-cover',
         'info_dict': {
             'id': '121486',
-            'title': 'Duck On Cover'
+            'title': 'Shearer - Duck On Cover'
         },
         'playlist': [{
             'md5': 'e1a2fcb42bda30dfac990212924149a8',
             'info_dict': {
                 'id': '1032333',
                 'ext': 'flac',
-                'title': 'Warmachine'
+                'title': 'Shearer - Warmachine'
             }
         }, {
             'md5': '1f358d7b2f98edfe90fd55dac0799d50',
             'info_dict': {
                 'id': '1032330',
                 'ext': 'flac',
-                'title': 'Without Your Ghost'
+                'title': 'Shearer - Without Your Ghost'
             }
         }],
         'params': {
@@ -90,7 +90,7 @@ class JamendoAlbumIE(InfoExtractor):
 
         webpage = self._download_webpage(url, mobj.group('display_id'))
 
-        title = self._html_search_meta('name', webpage, 'title')
+        title = self._search_regex(r'<title>(.*?)\ \|\ Jamendo\ Music\ .*</title>', webpage, 'title')
 
         entries = [
             self.url_result(
