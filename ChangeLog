@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.25
 
 Extractors
 + [openload] Fallback video extension to mp4
