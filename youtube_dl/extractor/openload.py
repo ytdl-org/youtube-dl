@@ -101,7 +101,7 @@ class OpenloadIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
             # Seems all videos have extensions in their titles
-            'ext': determine_ext(title),
+            'ext': determine_ext(title, 'mp4'),
             'subtitles': subtitles,
         }
         return info_dict
