@@ -33,7 +33,8 @@
  - **AdobeTVVideo**
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
- - **AfreecaTV**: afreecatv.com
+ - **afreecatv**: afreecatv.com
+ - **afreecatv:global**: afreecatv.com
  - **AirMozilla**
  - **AlJazeera**
  - **Allocine**
