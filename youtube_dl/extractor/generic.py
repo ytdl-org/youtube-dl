@@ -80,6 +80,7 @@ from .piksel import PikselIE
 from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
+from .openload import OpenloadIE
 
 
 class GenericIE(InfoExtractor):
@@ -2430,6 +2431,12 @@ class GenericIE(InfoExtractor):
         if twentymin_urls:
             return _playlist_from_matches(
                 twentymin_urls, ie=TwentyMinutenIE.ie_key())
+
+        # Look for Openload embeds
+        openload_urls = OpenloadIE._extract_urls(webpage)
+        if openload_urls:
+            return _playlist_from_matches(
+                openload_urls, ie=OpenloadIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
