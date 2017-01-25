@@ -30,7 +30,10 @@ from .aenetworks import (
     AENetworksIE,
     HistoryTopicIE,
 )
-from .afreecatv import AfreecaTVIE
+from .afreecatv import (
+    AfreecaTVIE,
+    AfreecaTVGlobalIE,
+)
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
