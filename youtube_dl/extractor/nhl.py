@@ -439,7 +439,6 @@ class NHLTVIE(InfoExtractor):
                 'Content-Type': 'application/json'
             })
 
-
     def _create_rogers_login_request(self, username, password, access_token):
         login_data = {
             'rogerCredentials': {
@@ -489,13 +488,12 @@ class NHLTVIE(InfoExtractor):
             if epg_item.get("title") != "NHLTV":
                 continue
             for item in epg_item.get('items', []):
-                if item.get('mediaPlaybackId') == video_id or video_id == None:
+                if item.get('mediaPlaybackId') == video_id or video_id is None:
                     feed_type = item.get('mediaFeedType')
                     video_id = item.get('mediaPlaybackId')
         timestamp = parse_iso8601(media_node.get('milestones').get('streamStart'))
         title = "%s: %s @ %s (%s feed)" % (date, away, home, feed_type)
         return (video_id, title, timestamp)
-
 
     def get_60fps_playlist(self, url):
         """Returns a modified url that adds a 60 fps broadcast"""
