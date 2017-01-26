@@ -987,6 +987,7 @@ from .tv2 import (
 )
 from .tv3 import TV3IE
 from .tv4 import TV4IE
+from .tva import TVAIE
 from .tvanouvelles import (
     TVANouvellesIE,
     TVANouvellesArticleIE,
