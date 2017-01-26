@@ -280,6 +280,7 @@ from .espn import (
     ESPNArticleIE,
 )
 from .esri import EsriVideoIE
+from .euronews import EuronewsIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .expotv import ExpoTVIE
