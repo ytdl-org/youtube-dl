@@ -51,8 +51,8 @@ class CrunchyrollBaseIE(InfoExtractor):
             tokens = scraper.get_tokens(self._LOGIN_URL, std_headers['User-Agent'])
             self._set_crunchyroll_cookie('cf_clearance', tokens[0]['cf_clearance'])
             self._set_crunchyroll_cookie('__cfduid', tokens[0]['__cfduid'])
-        else
-            print 'cfscrape not found. Please install it if you want use login function for CrunchyRoll.'
+        else:
+            self.report_warning('cfscrape not found. Please install it if you want use login function for CrunchyRoll.')
             
         (username, password) = self._get_login_info()
         if username is None:
