@@ -16,26 +16,48 @@ class FetLifeIE(JWPlatformBaseIE):
     _LOGIN_URL = 'https://fetlife.com/users/sign_in'
     _NETRC_MACHINE = 'fetlife'
 
-    _TEST = {
-        'url': 'https://fetlife.com/users/1537262/videos/660686',
-        'md5': '83ca9598d9c10afde75a4e730a882560',
-        'info_dict': {
-            'id': '660686',
-            'thumbnail': r're:^https?://.*\.jpg\?token=[^\s]+$',
-            'timestamp': 1484020451,
-            'ext': 'mp4',
-            'title': 'Sully Savage and Violet Monroe ',
-            'uploader': 'MissBratDom',
-            'uploader_id': '1537262',
-            'age_limit': 18,
-            'upload_date': '20170110',
-            'duration': 91,
+    _TESTS = [
+        {
+            'url': 'https://fetlife.com/users/1537262/videos/660686',
+            'md5': '83ca9598d9c10afde75a4e730a882560',
+            'info_dict': {
+                'id': '660686',
+                'thumbnail': r're:^https?://.*\.jpg\?token=[^\s]+$',
+                'timestamp': 1484020451,
+                'ext': 'mp4',
+                'title': 'Sully Savage and Violet Monroe ',
+                'uploader': 'MissBratDom',
+                'uploader_id': '1537262',
+                'age_limit': 18,
+                'upload_date': '20170110',
+                'duration': 91,
 
+            },
+            'params': {
+                'usenetrc': True,
+            },
         },
-        'params': {
-            'usenetrc': True,
+        {
+            'url': 'https://fetlife.com/users/1972832/videos/672471',
+            'md5': '4c01a6b57d099f82639f507298424073',
+            'info_dict': {
+                'id': '672471',
+                'thumbnail': r're:^https?://.*\.jpg\?token=[^\s]+$',
+                'timestamp': 1485368856,
+                'ext': 'mp4',
+                'title': 'assman69415-2017-01-25T19:27:36Z',
+                'uploader': 'assman69415',
+                'uploader_id': '1972832',
+                'age_limit': 18,
+                'upload_date': '20170125',
+                'duration': 36,
+
+            },
+            'params': {
+                'usenetrc': True,
+            },
         },
-    }
+    ]
 
     def _real_initialize(self):
         """log into fetlife.com"""
@@ -72,13 +94,16 @@ class FetLifeIE(JWPlatformBaseIE):
         except TypeError:
             raise ExtractorError('Unable to extract video data. Not a FetLife Supporter?', expected=True, video_id=video_id)
 
-        title = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<p[^>]+class=\"description\">([^<]+)', webpage, 'title')
         uploader = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+class=\"nickname\"[\s\S]+?>([^<]+)', webpage, 'uploader', default=None)
         uploader_id = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+href=\"/users/([0-9]+)', webpage, 'uploader_id', default=None)
-
-        timestamp = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<time[^>]+>([^<]+)', webpage, 'timestamp', default=None)
-        if timestamp:
-            timestamp = int(time.mktime(time.strptime(timestamp, "%Y/%m/%d %H:%M:%S +0000")))
+        timeiso = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<time[^>]+datetime\s*=\s*\"([^<]+?)\"', webpage, 'timestamp', default=None)
+        if timeiso:
+            titledefault = uploader + '-' + timeiso
+            timestamp = int(time.mktime(time.strptime(timeiso, "%Y-%m-%dT%H:%M:%SZ")))
+        else:
+            titledefault = uploader
+            timestamp = None
+        title = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<p[^>]+class=\"description\">([^<]+)', webpage, 'title', default=titledefault)
 
         mobj = re.search(r'clock<[^>]*>\s*(?P<duration_minutes>[0-9]+)m\s*(?P<duration_seconds>[0-9]+)s', webpage)
         duration_minutes = mobj.groupdict().get('duration_minutes')
