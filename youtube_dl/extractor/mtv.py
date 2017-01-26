@@ -304,7 +304,7 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
 
 class MTVIE(MTVServicesInfoExtractor):
     IE_NAME = 'mtv'
-    _VALID_URL = r'https?://(?:www\.)?mtv\.com/(?:video-clips|full-episodes)/(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?:www\.)?mtv\.com/(?:video-clips|(?:full-)?episodes)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://www.mtv.com/feeds/mrss/'
 
     _TESTS = [{
@@ -320,6 +320,9 @@ class MTVIE(MTVServicesInfoExtractor):
         },
     }, {
         'url': 'http://www.mtv.com/full-episodes/94tujl/unlocking-the-truth-gates-of-hell-season-1-ep-101',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.mtv.com/episodes/g8xu7q/teen-mom-2-breaking-the-wall-season-7-ep-713',
         'only_matching': True,
     }]
 
