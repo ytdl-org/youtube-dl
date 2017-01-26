@@ -5,7 +5,7 @@ from .mtv import MTVIE
 
 class CMTIE(MTVIE):
     IE_NAME = 'cmt.com'
-    _VALID_URL = r'https?://(?:www\.)?cmt\.com/(?:videos|shows|full-episodes|video-clips)/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?cmt\.com/(?:videos|shows|(?:full-)?episodes|video-clips)/(?P<id>[^/]+)'
 
     _TESTS = [{
         'url': 'http://www.cmt.com/videos/garth-brooks/989124/the-call-featuring-trisha-yearwood.jhtml#artist=30061',
