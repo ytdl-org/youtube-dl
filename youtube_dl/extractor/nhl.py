@@ -8,6 +8,7 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_cookies,
     compat_urlparse,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
@@ -355,15 +356,99 @@ class NHLIE(InfoExtractor):
         }
 
 
+class NHLApi:
+    def __init__(self, extractor, auth=None):
+        self.extractor = extractor
+        self.auth = auth
+        if auth:
+            extractor.to_screen("Using cached credentials. Use the --rm-cache-dir option to remove.")
+            cookie = compat_cookies.SimpleCookie(auth.encode('utf8', 'replace'))
+            auth_cookie = cookie['Authorization']
+            # TODO handle cookie expiry
+            extractor._set_cookie('nhl.com', 'Authorization', auth_cookie.value)
+
+    def login(self, username, password, auth_provider='nhl'):
+        if auth_provider not in ['nhl', 'rogers']:
+            raise ExtractorError('Unknown authentication provider: %s. Valid values are nhl, rogers' % auth_provider)
+
+        access_token = self._get_oauth_access_token()
+
+        if auth_provider == 'nhl':
+            url = 'https://gateway.web.nhl.com/ws/subscription/flow/nhlPurchase.login'
+            credentials = {
+                'nhlCredentials': {
+                    'email': username,
+                    'password': password,
+                }
+            }
+            referrer = 'https://www.nhl.com/login/nhl'
+        elif auth_provider == 'rogers':
+            url = 'https://activation-rogers.svc.nhl.com/ws/subscription/flow/rogers.login-check'
+            credentials = {
+                'rogerCredentials': {
+                    'email': username,
+                    'password': password,
+                }
+            }
+            referrer = 'https://www.nhl.com/login/rogers'
+
+        login_request = sanitized_Request(
+            url,
+            data=json.dumps(credentials, sort_keys=True).encode('utf-8'),
+            headers={
+                'Referer': referrer,
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Authorization': access_token,
+                'Content-Type': 'application/json'
+            })
+        self.extractor._download_webpage(
+            login_request, None, 'Logging in', 'Unable to log in')
+        # TODO this doesn't extract the cookie expiry from the cookie correctly
+        self.auth = self.extractor._get_cookies('http://nhl.com').get('Authorization').output()
+
+    def _get_oauth_access_token(self):
+        authorization = base64.b64encode(
+            'web_nhl-v1.0.0:2d1d846ea3b194a18ef40ac9fbce97e3'.encode('utf-8')
+        ).decode('ascii')
+        oauth_request = sanitized_Request(
+            'https://user.svc.nhl.com/oauth/token?grant_type=client_credentials',
+            data='',
+            headers={
+                'Referer': 'https://www.nhl.com/login',
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Authorization': 'Basic %s' % authorization,
+                'Content-Type': 'application/json',
+            })
+        oauth_response = self.extractor._download_json(
+            oauth_request,
+            None,  # video_id
+            'Requesting OAuth access token',
+            'Unable to get OAuth access token')
+        return oauth_response['access_token']
+
+    def get_game_data(self, video_id, game_id):
+        game_data_url = 'https://statsapi.web.nhl.com/api/v1/schedule?gamePk=%s&expand=schedule.game.content.media.milestones&expand=schedule.game.content.media.epg&expand=schedule.venue' % game_id
+        return self.extractor._download_json(
+            game_data_url,
+            video_id,
+            'Downloading game data',
+            'Unable to download game data')
+
+    def get_stream_data(self, video_id):
+        stream_data_url = 'https://mf.svc.nhl.com/ws/media/mf/v2.4/stream?contentId=%s&playbackScenario=HTTP_CLOUD_WIRED_WEB&sessionKey=%s&auth=response&format=json&platform=WEB_MEDIAPLAYER&_=%s000'
+        session_key = 'abcdefghijklmnop'
+        timestamp = int(time.time())
+        url = stream_data_url % (video_id, session_key, timestamp)
+        return self.extractor._download_json(url, video_id, 'Downloading stream data', 'Unable to download stream data')
+
+
 class NHLTVIE(InfoExtractor):
     IE_NAME = 'nhl.com:nhltv'
     _VALID_URL = r'https?://(?:www\.)?nhl.com/tv/(?P<gameId>\d+)(/[^/]+)*(/(?P<id>\d+))?'
-    _OAUTH_URL = 'https://user.svc.nhl.com/oauth/token?grant_type=client_credentials'
-    _NHL_LOGIN_URL = 'https://gateway.web.nhl.com/ws/subscription/flow/nhlPurchase.login'
-    _ROGERS_LOGIN_URL = 'https://activation-rogers.svc.nhl.com/ws/subscription/flow/rogers.login-check'
     _NETRC_MACHINE = 'nhltv'
+    _NHLTV_CACHE = 'nhltv'
     _TESTS = [{
-        # This is a free video that can be accessed by anyone with an NHL TV login
+        # This is a free video that anyone with an NHL TV login can access
         'url': 'https://www.nhl.com/tv/2016020321/221-1003765/46561403',
         'md5': '34d9518c495ebdad947b9723b5a7c9a9',
         'info_dict': {
@@ -386,128 +471,31 @@ class NHLTVIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    def _real_initialize(self):
+        auth = self._downloader.cache.load(self._NHLTV_CACHE, 'auth')
+        self.api = NHLApi(self, auth)
+        if auth is None:
+            self._login()
+
     def _login(self):
-        # TODO cache login to avoid 'Sign-on restriction: Too many usage attempts'
         (username, password) = self._get_login_info()
         if username is None:
             self.raise_login_required()
-
-        authorization = base64.b64encode(
-            'web_nhl-v1.0.0:2d1d846ea3b194a18ef40ac9fbce97e3'.encode('utf-8')).decode('ascii')
-        oauth_request = sanitized_Request(
-            self._OAUTH_URL,
-            data="",
-            headers={
-                'Referer': 'https://www.nhl.com/login',
-                'Accept': 'application/json, text/javascript, */*; q=0.01',
-                'Authorization': 'Basic %s' % authorization,
-                'Content-Type': 'application/json',
-            })
-        oauth_response = self._download_json(
-            oauth_request,
-            None,  # video_id
-            'Requesting OAuth access token',
-            'Unable to get OAuth access token')
-        access_token = oauth_response['access_token']
-
-        auth_provider = self._get_auth_provider()
-        if auth_provider == 'rogers':
-            login_request = self._create_rogers_login_request(username, password, access_token)
-        elif auth_provider == 'nhl' or auth_provider is None:
-            login_request = self._create_nhl_login_request(username, password, access_token)
-        else:
-            raise ExtractorError('Unknown authentication provider: %s. Valid values are nhl, rogers' % auth_provider)
-
-        # sets up the cookies we need to download
-        self._download_webpage(
-            login_request, None, 'Logging in', 'Unable to log in')
-
-    def _create_nhl_login_request(self, username, password, access_token):
-        login_data = {
-            'nhlCredentials': {
-                'email': username,
-                'password': password,
-            }
-        }
-        return sanitized_Request(
-            self._NHL_LOGIN_URL,
-            data=json.dumps(login_data, sort_keys=True).encode('utf-8'),
-            headers={
-                'Referer': 'https://www.nhl.com/login/nhl',
-                'Accept': 'application/json, text/javascript, */*; q=0.01',
-                'Authorization': access_token,
-                'Content-Type': 'application/json'
-            })
-
-    def _create_rogers_login_request(self, username, password, access_token):
-        login_data = {
-            'rogerCredentials': {
-                'email': username,
-                'password': password,
-            }
-        }
-        return sanitized_Request(
-            self._ROGERS_LOGIN_URL,
-            data=json.dumps(login_data, sort_keys=True).encode('utf-8'),
-            headers={
-                'Referer': 'https://www.nhl.com/login/rogers',
-                'Accept': 'application/json, text/javascript, */*; q=0.01',
-                'Authorization': access_token,
-                'Content-Type': 'application/json'
-            })
-
-    def _real_initialize(self):
-        self._login()
-
-    def extract_stream_info(self, video_id):
-        timestamp = int(time.time())
-        session_key = "abcdefghijklmnop"
-        stream_data_url = 'https://mf.svc.nhl.com/ws/media/mf/v2.4/stream?contentId=%s&playbackScenario=HTTP_CLOUD_WIRED_WEB&sessionKey=%s&auth=response&format=json&platform=WEB_MEDIAPLAYER&_=%s000' % (video_id, session_key, timestamp)
-        stream_data = self._download_json(stream_data_url, video_id, 'Downloading stream data', 'Unable to download stream data')
-        status_code = stream_data.get('status_code')
-        if status_code != 1:
-            # e.g. Media not found, Too many sign ons, etc.
-            status_message = stream_data.get('status_message')
-            raise ExtractorError(status_message, expected=True)
-        media_auth = stream_data.get('session_info').get('sessionAttributes')[0].get('attributeValue')
-        m3u8_url = stream_data.get('user_verified_event')[0].get('user_verified_content')[0].get('user_verified_media_item')[0].get('url')
-        return (media_auth, m3u8_url)
-
-    def extract_game_info(self, video_id, game_id):
-        game_data_url = 'https://statsapi.web.nhl.com/api/v1/schedule?gamePk=%s&expand=schedule.game.content.media.milestones&expand=schedule.game.content.media.epg&expand=schedule.venue' % game_id
-        game_data = self._download_json(game_data_url, video_id, 'Downloading game data', 'Unable to download game data')
-        game_date = game_data.get('dates')[0]
-        date = game_date.get('date')  # yyyy-mm-dd
-        game = game_date.get('games')[0]
-        teams = game.get('teams')
-        away = teams.get('away').get('team').get('name')
-        home = teams.get('home').get('team').get('name')
-        feed_type = "UNKNOWN"
-        media_node = game.get("content").get("media")
-        for epg_item in media_node.get("epg", []):
-            if epg_item.get("title") != "NHLTV":
-                continue
-            for item in epg_item.get('items', []):
-                if item.get('mediaPlaybackId') == video_id or video_id is None:
-                    feed_type = item.get('mediaFeedType')
-                    video_id = item.get('mediaPlaybackId')
-        timestamp = parse_iso8601(media_node.get('milestones').get('streamStart'))
-        title = "%s: %s @ %s (%s feed)" % (date, away, home, feed_type)
-        return (video_id, title, timestamp)
-
-    def get_60fps_playlist(self, url):
-        """Returns a modified url that adds a 60 fps broadcast"""
-        return re.sub('_wired_web', '_wired60', url)
+        auth_provider = self._get_auth_provider() or 'nhl'
+        self.report_login()
+        self.api.login(username, password, auth_provider)
+        self._downloader.cache.store(self._NHLTV_CACHE, 'auth', self.api.auth)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id, game_id = mobj.group('id'), mobj.group('gameId')
-
+        # At this point we may have a game_id without a video_id. The next call
+        # ensures that we get a video_id for the desired game.
         video_id, title, timestamp = self.extract_game_info(video_id, game_id)
-        media_auth, m3u8_url = self.extract_stream_info(video_id)
+        m3u8_url, media_auth = self.extract_playlist_url_and_auth(video_id)
         m3u8_url = self.get_60fps_playlist(m3u8_url)
 
-        # media auth cookie is required for the downloader
+        # media auth cookie authenticates the specific download url
         self._set_cookie('nhl.com', 'mediaAuth_v2', media_auth)
         formats = self._extract_m3u8_formats(m3u8_url, video_id, 'ts', m3u8_id='hls')
         self._check_formats(formats, video_id)
@@ -519,3 +507,48 @@ class NHLTVIE(InfoExtractor):
             'timestamp': timestamp,
             'formats': formats,
         }
+
+    def extract_game_info(self, video_id, game_id):
+        """calls the nhl api to get the video_id, title, and optionally the timestamp of the start of the game"""
+        game_data = self.api.get_game_data(video_id, game_id)
+        game_date = game_data['dates'][0]
+        date = game_date['date']  # yyyy-mm-dd
+        game = game_date['games'][0]
+        teams = game['teams']
+        away = teams['away']['team']['name']
+        home = teams['home']['team']['name']
+        feed_type = "UNKNOWN"
+        media = game['content']['media']
+        for epg_item in media['epg']:
+            # ignore audio feeds and highlights
+            if epg_item.get('title') != 'NHLTV':
+                continue
+            for item in epg_item.get('items', []):
+                # get the specified video feed based on the video id or the
+                # first video if there no video id is specified
+                if item.get('mediaPlaybackId') == video_id or video_id is None:
+                    video_id = item.get('mediaPlaybackId')
+                    feed_type = item.get('mediaFeedType')  # HOME / AWAY
+        title = "%s: %s @ %s (%s feed)" % (date, away, home, feed_type)
+
+        streamStart = media.get('milestones', {}).get('streamStart')
+        if streamStart:
+            timestamp = parse_iso8601(streamStart)
+
+        return (video_id, title, timestamp)
+
+    def extract_playlist_url_and_auth(self, video_id):
+        """Calls the nhl api to get the url of the video and an authorization key"""
+        stream_data = self.api.get_stream_data(video_id)
+        status_code = stream_data['status_code']
+        if status_code != 1:
+            # e.g. Media not found, Too many sign ons, etc.
+            status_message = stream_data['status_message']
+            raise ExtractorError(status_message, expected=True)
+        m3u8_url = stream_data['user_verified_event'][0]['user_verified_content'][0]['user_verified_media_item'][0]['url']
+        media_auth = stream_data['session_info']['sessionAttributes'][0]['attributeValue']
+        return (m3u8_url, media_auth)
+
+    def get_60fps_playlist(self, url):
+        """Returns a modified url that adds a 720p 60fps broadcast"""
+        return re.sub('_wired_web', '_wired60', url)
