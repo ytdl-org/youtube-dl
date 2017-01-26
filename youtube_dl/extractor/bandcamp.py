@@ -62,7 +62,8 @@ class BandcampIE(InfoExtractor):
             if m_trackinfo:
                 json_code = m_trackinfo.group(1)
                 data = json.loads(json_code)[0]
-                
+                track_id = compat_str(data['id'])
+
                 if not data.get('file'):
                     raise ExtractorError('Not streamable', video_id=track_id, expected=True)
 
@@ -87,7 +88,7 @@ class BandcampIE(InfoExtractor):
                     'duration': float_or_none(data.get('duration')),
                     'track': data.get('title'),
                     'track_number': data.get('track_num'),
-                    'track_id': data.get('id'),
+                    'track_id': track_id,
                     'album': album,
                     'album_artist': album_artist,
                     'release_year': release_year,
