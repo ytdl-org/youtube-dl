@@ -168,7 +168,7 @@ class BandcampIE(InfoExtractor):
             'track': track,
             'formats': formats,
             'track_number': track_number,
-			'track_id': video_id,
+            'track_id': video_id,
             'album': album,
             'album_artist': album_artist,
             'release_year': release_year,
