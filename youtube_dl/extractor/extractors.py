@@ -823,6 +823,7 @@ from .shared import (
     SharedIE,
     VivoIE,
 )
+from .shoutfactorytv import ShoutFactoryTVIE
 from .showroomlive import ShowRoomLiveIE
 from .sina import SinaIE
 from .sixplay import SixPlayIE
