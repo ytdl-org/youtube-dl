@@ -81,6 +81,7 @@ from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
 from .openload import OpenloadIE
+from .visir import VisirMediaIE
 
 
 class GenericIE(InfoExtractor):
@@ -1473,6 +1474,20 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'add_ie': [TwentyMinutenIE.ie_key()],
+        },
+        {
+            # Visir embed
+            'url': 'http://www.visir.is/-viljum-hjalpa-theim-ad-hjalpa-sjalfum-ser-/article/2017170129096',
+            'info_dict': {
+                'id': 'VTV8CE25BB4-9132-48AD-A2EE-00AF0BAA02A0',
+                'ext': 'mp4',
+                'title': 'H\u00f3pur nemenda s\u00f6fnu\u00f0u pening fyrir Ge\u00f0hj\u00e1lp',
+                'description': None,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [VisirMediaIE.ie_key()],
         }
         # {
         #     # TODO: find another test
@@ -2437,6 +2452,12 @@ class GenericIE(InfoExtractor):
         if openload_urls:
             return _playlist_from_matches(
                 openload_urls, ie=OpenloadIE.ie_key())
+
+        # Look for Visir embeds
+        visir_urls = VisirMediaIE._extract_urls(webpage)
+        if visir_urls:
+            return _playlist_from_matches(
+                visir_urls, ie=VisirMediaIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
