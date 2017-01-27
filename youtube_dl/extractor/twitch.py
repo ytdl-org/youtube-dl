@@ -209,7 +209,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?twitch\.tv/[^/]+/v/|
+                            (?:www\.)?twitch\.tv/(?:[^/]+/v|videos)/|
                             player\.twitch\.tv/\?.*?\bvideo=v
                         )
                         (?P<id>\d+)
@@ -258,6 +258,9 @@ class TwitchVodIE(TwitchItemBaseIE):
         'skip': 'HTTP Error 404: Not Found',
     }, {
         'url': 'http://player.twitch.tv/?t=5m10s&video=v6528877',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/videos/6528877',
         'only_matching': True,
     }]
 
