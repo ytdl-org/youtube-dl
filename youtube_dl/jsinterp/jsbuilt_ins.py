@@ -65,25 +65,21 @@ def to_object(o):
 
 class JSBase(object):
 
-    def __init__(self, name, own):
+    def __init__(self, name):
         self.name = name
-        self.own = own
         self.props = {}
 
-    def __str__(self):
-        return '[native code]'
-
-    props = {}
+    own = {}
 
 
 class JSProtoBase(JSBase):
 
     def __init__(self):
-        super(JSProtoBase, self).__init__('', self.props)
+        super(JSProtoBase, self).__init__('')
         cls = self.__class__
         while cls is not JSProtoBase:
             cls = cls.__base__
-            props = cls.props.copy()
+            props = cls.own.copy()
             props.update(self.props)
             self.props = props
         self.value = {}
@@ -155,7 +151,7 @@ class JSObjectPrototype(JSProtoBase):
     def _is_property_enumerable(self, v):
         return 'object is property enumerable'
 
-    props = {
+    own = {
         'constructor': _constructor,
         'toString': _to_string,
         'toLocaleString': _to_locale_string,
@@ -169,7 +165,7 @@ class JSObjectPrototype(JSProtoBase):
 class JSObject(JSBase):
 
     def __init__(self):
-        super(JSObject, self).__init__(self.name, self.props)
+        super(JSObject, self).__init__(self.name)
 
     @staticmethod
     def construct(value=None):
@@ -219,7 +215,7 @@ class JSObject(JSBase):
         return 'object keys'
 
     name = 'Object'
-    props = {
+    own = {
         'length': 1,
         'prototype': JSObjectPrototype(),
         'getPrototypeOf': _get_prototype_of,
@@ -301,7 +297,7 @@ class JSFunctionPrototype(JSObjectPrototype):
     def _bind(self, this_arg, *args):
         return 'function bind'
 
-    props = {
+    own = {
         'length': 0,
         'constructor': _constructor,
         'toString': _to_string,
@@ -322,7 +318,7 @@ class JSFunction(JSObject):
         return JSFunction.construct(*args, **kwargs)
 
     name = 'Function'
-    props = {
+    own = {
         'length': 1,
         'prototype': JSFunctionPrototype(None, None, None)
     }
@@ -415,7 +411,7 @@ class JSArrayPrototype(JSObjectPrototype):
     def _reduce_right(self, callback, init=None):
         return 'array reduce right'
 
-    props = {
+    own = {
         'length': 0,
         'constructor': _constructor,
         'toString': _to_string,
@@ -448,7 +444,7 @@ class JSArray(JSObject):
         return 'array is array'
 
     name = 'Array'
-    props = {
+    own = {
         'length': 1,
         'prototype': JSArrayPrototype(),
         'isArray': _is_array
