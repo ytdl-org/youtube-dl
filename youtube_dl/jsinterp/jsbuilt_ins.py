@@ -66,9 +66,9 @@ def to_object(o):
 class JSBase(object):
 
     def __init__(self, name, own):
-        self.props = self.__class__.props.copy()
         self.name = name
         self.own = own
+        self.props = {}
 
     def __str__(self):
         return '[native code]'
@@ -79,6 +79,7 @@ class JSBase(object):
 class JSProtoBase(JSBase):
 
     def __init__(self):
+        super(JSProtoBase, self).__init__('', self.props)
         cls = self.__class__
         while cls is not JSProtoBase:
             cls = cls.__base__
@@ -86,7 +87,6 @@ class JSProtoBase(JSBase):
             props.update(self.props)
             self.props = props
         self.value = {}
-        super(JSProtoBase, self).__init__('', self.props)
 
     def __str__(self):
         return ''
@@ -248,7 +248,7 @@ class JSFunctionPrototype(JSObjectPrototype):
             self.body = ''
         else:
             if isinstance(body, JSBase):
-                super(JSFunctionPrototype, self).__init__(body.props)
+                super(JSFunctionPrototype, self).__init__(body.own)
                 self.body = '[native code]'
             elif isinstance(body, _native_function):
                 super(JSFunctionPrototype, self).__init__()
