@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.28
 
 Core
 * [utils] Improve parse_duration
