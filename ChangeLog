@@ -1,3 +1,23 @@
+version <unreleased>
+
+Core
+* [utils] Improve parse_duration
+
+Extractors
+* [crunchyroll] Improve series and season metadata extraction (#11832)
+* [soundcloud] Improve formats extraction and extract audio bitrate
++ [soundcloud] Extract HLS formats
+* [soundcloud] Fix track URL extraction (#11852)
++ [twitch:vod] Expand URL regular expressions (#11846)
+* [aenetworks] Fix season episodes extraction (#11669)
++ [tva] Add support for videos.tva.ca (#11842)
+* [jamendo] Improve and extract more metadata (#11836)
++ [disney] Add support for Disney sites (#7409, #11801, #4975, #11000)
+* [vevo] Remove request to old API and catch API v2 errors
++ [cmt,mtv,southpark] Add support for episode URLs (#11837)
++ [youtube] Add fallback for duration extraction (#11841)
+
+
 version 2017.01.25
 
 Extractors
