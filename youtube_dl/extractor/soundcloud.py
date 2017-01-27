@@ -198,6 +198,13 @@ class SoundcloudIE(InfoExtractor):
                     'ext': 'flv',
                     'vcodec': 'none',
                 })
+            elif key.startswith('hls'):
+                m3u8_formats = self._extract_m3u8_formats(
+                    stream_url, track_id, 'mp3', entry_protocol='m3u8_native',
+                    m3u8_id=key, fatal=False)
+                for f in m3u8_formats:
+                    f['vcodec'] = 'none'
+                formats.extend(m3u8_formats)
 
             if not formats:
                 # We fallback to the stream_url in the original info, this
