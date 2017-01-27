@@ -181,46 +181,46 @@ class SoundcloudIE(InfoExtractor):
             })
 
         for key, stream_url in format_dict.items():
+            abr = int_or_none(self._search_regex(
+                r'_(\d+)_url', key, 'audio bitrate', default=None))
             if key.startswith('http'):
-                formats.append({
+                stream_formats = [{
                     'format_id': key,
                     'ext': ext,
                     'url': stream_url,
-                    'vcodec': 'none',
-                })
+                }]
             elif key.startswith('rtmp'):
                 # The url doesn't have an rtmp app, we have to extract the playpath
                 url, path = stream_url.split('mp3:', 1)
-                formats.append({
+                stream_formats = [{
                     'format_id': key,
                     'url': url,
                     'play_path': 'mp3:' + path,
                     'ext': 'flv',
-                    'vcodec': 'none',
-                })
+                }]
             elif key.startswith('hls'):
-                m3u8_formats = self._extract_m3u8_formats(
+                stream_formats = self._extract_m3u8_formats(
                     stream_url, track_id, 'mp3', entry_protocol='m3u8_native',
                     m3u8_id=key, fatal=False)
-                for f in m3u8_formats:
-                    f['vcodec'] = 'none'
-                formats.extend(m3u8_formats)
+            else:
+                continue
 
-            if not formats:
-                # We fallback to the stream_url in the original info, this
-                # cannot be always used, sometimes it can give an HTTP 404 error
-                formats.append({
-                    'format_id': 'fallback',
-                    'url': info['stream_url'] + '?client_id=' + self._CLIENT_ID,
-                    'ext': ext,
-                    'vcodec': 'none',
-                })
+            for f in stream_formats:
+                f['abr'] = abr
 
-            for f in formats:
-                if f['format_id'].startswith('http'):
-                    f['protocol'] = 'http'
-                if f['format_id'].startswith('rtmp'):
-                    f['protocol'] = 'rtmp'
+            formats.extend(stream_formats)
+
+        if not formats:
+            # We fallback to the stream_url in the original info, this
+            # cannot be always used, sometimes it can give an HTTP 404 error
+            formats.append({
+                'format_id': 'fallback',
+                'url': info['stream_url'] + '?client_id=' + self._CLIENT_ID,
+                'ext': ext,
+            })
+
+        for f in formats:
+            f['vcodec'] = 'none'
 
         self._check_formats(formats, track_id)
         self._sort_formats(formats)
