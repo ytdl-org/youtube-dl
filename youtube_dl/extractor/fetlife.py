@@ -12,7 +12,8 @@ from ..utils import (
 
 class FetLifeIE(JWPlatformBaseIE):
     """InfoExtractor for fetlife.com"""
-    _VALID_URL = r'https?://fetlife\.com/users/[0-9]+/videos/(?P<id>[0-9]+)'
+
+    _VALID_URL = r'https?://fetlife\.com/.*users/[0-9]+/videos/(?P<id>[0-9]+)'
     _LOGIN_URL = 'https://fetlife.com/users/sign_in'
     _NETRC_MACHINE = 'fetlife'
 
@@ -26,12 +27,11 @@ class FetLifeIE(JWPlatformBaseIE):
                 'timestamp': 1484020451,
                 'ext': 'mp4',
                 'title': 'Sully Savage and Violet Monroe ',
-                'uploader': 'MissBratDom',
+                'uploader': 'BratPerversions',
                 'uploader_id': '1537262',
                 'age_limit': 18,
                 'upload_date': '20170110',
                 'duration': 91,
-
             },
             'params': {
                 'usenetrc': True,
@@ -51,7 +51,25 @@ class FetLifeIE(JWPlatformBaseIE):
                 'age_limit': 18,
                 'upload_date': '20170125',
                 'duration': 36,
-
+            },
+            'params': {
+                'usenetrc': True,
+            },
+        },
+        {
+            'url': 'https://fetlife.com/explore/videos/#/users/3834660/videos/673702',
+            'md5': 'b39d3ffa380aa01d8f1a62093bfe5f0d',
+            'info_dict': {
+                'id': '673702',
+                'thumbnail': r're:^https?://.*\.jpg\?token=[^\s]+$',
+                'timestamp': 1485518850,
+                'ext': 'mp4',
+                'title': 'Slap my tits',
+                'uploader': 'Latexkittyxxx',
+                'uploader_id': '3834660',
+                'age_limit': 18,
+                'upload_date': '20170127',
+                'duration': 9,
             },
             'params': {
                 'usenetrc': True,
@@ -87,6 +105,7 @@ class FetLifeIE(JWPlatformBaseIE):
     def _real_extract(self, url):
         """extract information from fetlife.com"""
         video_id = self._match_id(url)
+        url = re.sub('https?://fetlife\.com/.*users/', 'https://fetlife.com/users/', url)
         webpage = self._download_webpage(url, video_id)
 
         try:
@@ -94,16 +113,16 @@ class FetLifeIE(JWPlatformBaseIE):
         except TypeError:
             raise ExtractorError('Unable to extract video data. Not a FetLife Supporter?', expected=True, video_id=video_id)
 
-        uploader = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+class=\"nickname\"[\s\S]+?>([^<]+)', webpage, 'uploader', default=None)
-        uploader_id = self._search_regex(r'<div[^>]+class=\"member-info\">[\s\S]+?<a[^>]+href=\"/users/([0-9]+)', webpage, 'uploader_id', default=None)
-        timeiso = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<time[^>]+datetime\s*=\s*\"([^<]+?)\"', webpage, 'timestamp', default=None)
+        uploader = self._search_regex(r'<div[^>]+class=[\'\"]member-info[\'\"]>[\s\S]+?<a[^>]+class=[\'\"]nickname[\'\"][\s\S]+?>([^<]+)', webpage, 'uploader', default=None)
+        uploader_id = self._search_regex(r'<div[^>]+class=[\'\"]member-info[\'\"]>[\s\S]+?<a[^>]+href=[\'\"]/users/([0-9]+)', webpage, 'uploader_id', default=None)
+        timeiso = self._search_regex(r'<section[^>]+id=[\'\"]video_caption[\'\"]>[\s\S]+?<time[^>]+datetime\s*=\s*[\'\"]([^<]+?)[\'\"]', webpage, 'timestamp', default=None)
         if timeiso:
             titledefault = uploader + '-' + timeiso
             timestamp = int(time.mktime(time.strptime(timeiso, "%Y-%m-%dT%H:%M:%SZ")))
         else:
             titledefault = uploader
             timestamp = None
-        title = self._search_regex(r'<section[^>]+id=\"video_caption\">[\s\S]+?<p[^>]+class=\"description\">([^<]+)', webpage, 'title', default=titledefault)
+        title = self._search_regex(r'<section[^>]+id=[\'\"]video_caption[\'\"]>[^<]*?<div[^>]+id\s*=\s*[\'\"]title_description_credits[\'\"][^>]*>[^<]*(?:(?:<p[^>]+class\s*=\s*[\'\"]description[\'\"][^>]*>)|(?:<h1>))([^<]+)', webpage, 'title', default=titledefault)
 
         mobj = re.search(r'clock<[^>]*>\s*(?P<duration_minutes>[0-9]+)m\s*(?P<duration_seconds>[0-9]+)s', webpage)
         duration_minutes = mobj.groupdict().get('duration_minutes')
