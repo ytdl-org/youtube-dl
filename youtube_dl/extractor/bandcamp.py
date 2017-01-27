@@ -234,4 +234,4 @@ class BandcampAlbumIE(InfoExtractor):
             'id': playlist_id,
             'title': title,
             'entries': entries,
-}
+    }
