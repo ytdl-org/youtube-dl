@@ -47,15 +47,6 @@ class BandcampIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
-        album = self._search_regex(
-            r'(?ms).*?title\s*?:\s*?"(?P<album>.*?)",',
-            webpage, 'album', fatal=False)
-        album_artist = self._search_regex(
-            r'(?ms)var EmbedData = .*?[{,]\s*artist:\s*?"(?P<album_artist>.*?)",$',
-            webpage, 'album artist', fatal=False)
-        release_year = self._search_regex(
-            r'(?ms).*?release_date"?:\s*?"\d+ \w+ (?P<release_year>\d+)\s*?.*?GMT",',
-            webpage, 'release year', fatal=False)
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
@@ -86,12 +77,6 @@ class BandcampIE(InfoExtractor):
                     'title': data['title'],
                     'formats': formats,
                     'duration': float_or_none(data.get('duration')),
-                    'track': data.get('title'),
-                    'track_number': data.get('track_num'),
-                    'track_id': track_id,
-                    'album': album,
-                    'album_artist': album_artist,
-                    'release_year': release_year,
                 }
             else:
                 raise ExtractorError('No free songs found')
@@ -100,10 +85,6 @@ class BandcampIE(InfoExtractor):
         video_id = self._search_regex(
             r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
             webpage, 'video id')
-
-        track_number = self._search_regex(
-            r'"track_num":(?P<track_number>\d+),',
-            webpage, 'track number', fatal=False)
 
         download_webpage = self._download_webpage(
             download_link, video_id, 'Downloading free downloads page')
@@ -167,11 +148,6 @@ class BandcampIE(InfoExtractor):
             'artist': artist,
             'track': track,
             'formats': formats,
-            'track_number': track_number,
-            'track_id': video_id,
-            'album': album,
-            'album_artist': album_artist,
-            'release_year': release_year,
         }
 
 
@@ -257,6 +233,5 @@ class BandcampAlbumIE(InfoExtractor):
             'uploader_id': uploader_id,
             'id': playlist_id,
             'title': title,
-            'album': title,
             'entries': entries,
-        }
+}
