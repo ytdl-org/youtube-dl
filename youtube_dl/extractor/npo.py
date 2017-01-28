@@ -241,7 +241,7 @@ class NPOIE(NPOBaseIE):
         if metadata.get('tt888') == 'ja':
             subtitles['nl'] = [{
                 'ext': 'vtt',
-                'url': 'http://e.omroep.nl/tt888/%s' % video_id,
+                'url': 'http://tt888.omroep.nl/tt888/%s' % video_id,
             }]
 
         return {
