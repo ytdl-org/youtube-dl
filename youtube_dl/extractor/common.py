@@ -1751,14 +1751,16 @@ class InfoExtractor(object):
                             # Example: https://www.youtube.com/watch?v=iXZV5uAYMJI
                             # or any YouTube dashsegments video
                             fragments = []
-                            s_num = 0
-                            for segment_url in representation_ms_info['segment_urls']:
-                                s = representation_ms_info['s'][s_num]
+                            segment_index = 0
+                            timescale = representation_ms_info['timescale']
+                            for s in representation_ms_info['s']:
+                                duration = float_or_none(s['d'], timescale)
                                 for r in range(s.get('r', 0) + 1):
                                     fragments.append({
-                                        'url': segment_url,
-                                        'duration': float_or_none(s['d'], representation_ms_info['timescale']),
+                                        'url': representation_ms_info['segment_urls'][segment_index],
+                                        'duration': duration,
                                     })
+                                    segment_index += 1
                             representation_ms_info['fragments'] = fragments
                         # NB: MPD manifest may contain direct URLs to unfragmented media.
                         # No fragments key is present in this case.
