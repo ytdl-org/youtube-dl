@@ -216,23 +216,23 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--source-address',
         metavar='IP', dest='source_address', default=None,
-        help='Client-side IP address to bind to (experimental)',
+        help='Client-side IP address to bind to',
     )
     network.add_option(
         '-4', '--force-ipv4',
         action='store_const', const='0.0.0.0', dest='source_address',
-        help='Make all connections via IPv4 (experimental)',
+        help='Make all connections via IPv4',
     )
     network.add_option(
         '-6', '--force-ipv6',
         action='store_const', const='::', dest='source_address',
-        help='Make all connections via IPv6 (experimental)',
+        help='Make all connections via IPv6',
     )
     network.add_option(
         '--geo-verification-proxy',
         dest='geo_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some geo-restricted sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.'
     )
     network.add_option(
         '--cn-verification-proxy',
@@ -297,7 +297,7 @@ def parseOpts(overrideArguments=None):
         '--match-filter',
         metavar='FILTER', dest='match_filter', default=None,
         help=(
-            'Generic video filter (experimental). '
+            'Generic video filter. '
             'Specify any key (see help for -o for a list of available keys) to'
             ' match if the key is present, '
             '!key to check if the key is not present,'
