@@ -63,6 +63,10 @@ def to_object(o):
         return o
 
 
+def to_string(value):
+    return value
+
+
 class JSBase(object):
 
     def __init__(self, name):
@@ -87,29 +91,24 @@ class JSProtoBase(JSBase):
     def __str__(self):
         return ''
 
-    def __get_prop(self, prop):
-        result = self.value.get(prop)
+    def get_prop(self, prop):
+        result = self.value.get(prop) if hasattr(self.value, 'get') else None
         if result is None:
             result = self.own.get(prop)
         if result is None:
             result = self.props.get(prop)
         return result
 
-    @js
-    def get_prop(self, prop):
-        return self.__get_prop(prop), prop
-
-    @js
     def call_prop(self, prop, *args, **kwargs):
-        func = self.__get_prop(prop)
-        if isinstance(func, FunctionType):
-            return func(self, *args, **kwargs), prop
+        func = self.get_prop(prop)
+        if isinstance(func, _native_function):
+            return func(self, *args, **kwargs)
         elif isinstance(func, staticmethod):
-            return func.__func__(*args, **kwargs), prop
+            return func.__func__(*args, **kwargs)
         elif isinstance(func, classmethod):
-            return func.__func__(self.__class__, *args, **kwargs), prop
+            return func.__func__(self.__class__, *args, **kwargs)
         elif isinstance(func, JSBase) and hasattr(func, 'call'):
-            return func.call(*args, **kwargs), prop
+            return func.call(*args, **kwargs)
         else:
             # FIXME instead of prop should return the whole expression
             # needs to use internal exception
@@ -125,13 +124,7 @@ class JSObjectPrototype(JSProtoBase):
 
     @staticmethod
     def _constructor(value=None):
-        value = _to_js(value)
-        if value is undefined or value is null:
-            return JSObjectPrototype()
-        elif isinstance(value, JSObjectPrototype):
-            return value
-        elif isinstance(value, (JSStringPrototype, JSNumberPrototype, JSBooleanPrototype)):
-            return to_object(value)
+        return JSObject.construct(value)
 
     def _to_string(self):
         return 'object to string'
@@ -168,12 +161,21 @@ class JSObject(JSBase):
         super(JSObject, self).__init__(self.name)
 
     @staticmethod
-    def construct(value=None):
-        return JSObjectPrototype._constructor(value)
+    def call(value=None):
+        if value is null or value is undefined or value is None:
+            return JSObject.construct(value)
+        return to_object(_to_js(value))
 
     @staticmethod
-    def call(value=None):
-        return JSObject.construct(value)
+    def construct(value=None):
+        value = _to_js(value)
+        # TODO set [[Prototype]], [[Class]], [[Extensible]], internal methods
+        if value is undefined or value is null:
+            return JSObjectPrototype()
+        elif isinstance(value, JSObjectPrototype):
+            return value
+        elif isinstance(value, (JSStringPrototype, JSNumberPrototype, JSBooleanPrototype)):
+            return to_object(value)
 
     def _get_prototype_of(self, o):
         return 'object get prototype of'
@@ -181,6 +183,7 @@ class JSObject(JSBase):
     def _get_own_property_descriptor(self, o, p):
         return 'object desc'
 
+    @js
     def _get_own_property_names(self, o):
         return list(o.own.keys())
 
@@ -236,8 +239,8 @@ class JSObject(JSBase):
 
 class JSFunctionPrototype(JSObjectPrototype):
 
-    def __init__(self, name, body, arguments):
-        if name is None and body is None and arguments is None:
+    def __init__(self, name, body, formal_args):
+        if name is None and body is None and formal_args is None:
             # prototype
             super(JSFunctionPrototype, self).__init__()
             self.f_name = ''
@@ -251,10 +254,10 @@ class JSFunctionPrototype(JSObjectPrototype):
                 self.body = '[native code]'
             else:
                 super(JSFunctionPrototype, self).__init__()
-                body = _to_js(name, body)
+                body = _to_js(body)
                 self.body = body.call_prop('toString') if body is not undefined or body is not null else ''
             self.f_name = name
-            self.arguments = list(arguments)
+            self.arguments = list(formal_args)
             # FIXME: JSProtoBase sets body to '' instead of None
             # TODO check if self._args can be parsed as formal parameter list
             # TODO check if self._body can be parsed as function body
@@ -269,13 +272,7 @@ class JSFunctionPrototype(JSObjectPrototype):
 
     @staticmethod
     def _constructor(arguments=None):
-        if arguments is None:
-            body = ''
-            arguments = []
-        else:
-            body = arguments[-1] if arguments else ''
-            arguments = arguments[:-1]
-        return JSFunctionPrototype('anonymous', body, arguments)
+        return JSFunction.construct(arguments)
 
     def _to_string(self):
         if self.body is not None:
@@ -310,12 +307,18 @@ class JSFunctionPrototype(JSObjectPrototype):
 class JSFunction(JSObject):
 
     @staticmethod
-    def construct(*args, **kwargs):
-        return JSFunctionPrototype._constructor(*args)
+    def call(formal_args=None):
+        return JSFunction.construct(formal_args)
 
     @staticmethod
-    def call(*args, **kwargs):
-        return JSFunction.construct(*args, **kwargs)
+    def construct(formal_args=None):
+        if formal_args is None:
+            body = ''
+            formal_args = []
+        else:
+            body = formal_args[-1] if formal_args else ''
+            formal_args = formal_args[:-1]
+        return JSFunctionPrototype('anonymous', body, formal_args)
 
     name = 'Function'
     own = {
@@ -326,13 +329,10 @@ class JSFunction(JSObject):
 
 class JSArrayPrototype(JSObjectPrototype):
 
-    def __init__(self, value=None, length=0):
+    def __init__(self, value=None):
         super(JSArrayPrototype, self).__init__()
-        self.value = [] if value is None else value
-
-    @property
-    def _length(self):
-        return len(self.value)
+        self.value = [] if value is None else list(value)
+        self.own = {'length': self._length}
 
     def __str__(self):
         return 'JSArrayPrototype: %s' % self.value
@@ -340,11 +340,13 @@ class JSArrayPrototype(JSObjectPrototype):
     def __repr__(self):
         return 'JSArrayPrototype(%s, %s)' % (self.value, self._length)
 
+    @property
+    def _length(self):
+        return len(self.value)
+
     @staticmethod
-    def _constructor(value=None):
-        array = JSArrayPrototype(value)
-        array.own = {'length': array._length}
-        return array
+    def _constructor(*args):
+        return JSArray.construct(*args)
 
     def _to_string(self):
         return 'array to string'
@@ -412,7 +414,7 @@ class JSArrayPrototype(JSObjectPrototype):
         return 'array reduce right'
 
     own = {
-        'length': 0,
+        'length': _length,
         'constructor': _constructor,
         'toString': _to_string,
         'toLocaleString': _to_locale_string,
@@ -440,6 +442,22 @@ class JSArrayPrototype(JSObjectPrototype):
 
 class JSArray(JSObject):
 
+    @staticmethod
+    def call(*args):
+        return JSArray.construct(*args)
+
+    @staticmethod
+    def construct(*args):
+        if len(args) == 1:
+            if isinstance(args[0], _native_number):
+                return JSArrayPrototype([undefined] * args[0])
+            elif isinstance(args[0], JSNumberPrototype):
+                return JSArrayPrototype([undefined] * args[0]._value_of())
+        if args:
+            return JSArrayPrototype(args)
+        else:
+            return JSArrayPrototype()
+
     def _is_array(self, arg):
         return 'array is array'
 
@@ -452,11 +470,123 @@ class JSArray(JSObject):
 
 
 class JSStringPrototype(JSObjectPrototype):
-    pass
+
+    def __init__(self, value=None):
+        if value is None:
+            # prototype
+            value = ''
+        super(JSStringPrototype, self).__init__(value)
+
+    @property
+    def _length(self):
+        return len(self.value)
+
+    @staticmethod
+    def _constructor(value=None):
+        return JSString.construct(value)
+
+    def _to_string(self):
+        return self.value
+
+    def _value_of(self):
+        return self.value
+
+    def _char_at(self, pos):
+        return 'string char at'
+
+    def _char_code_at(self, pos):
+        return 'string char code at'
+
+    def _concat(self, *args):
+        return 'string concat'
+
+    def _index_of(self, search, pos):
+        return 'string index of'
+
+    def _last_index_of(self, search, pos):
+        return 'string last index of'
+
+    def _locale_compare(self, that):
+        return 'string locale compare'
+
+    def _match(self, regexp):
+        return 'string match'
+
+    def _replace(self, search, value):
+        return 'string replace'
+
+    def _search(self, regexp):
+        return 'string search'
+
+    def _slice(self, start, end):
+        return 'string slice'
+
+    def _split(self, sep):
+        return 'string split'
+
+    def _substring(self, start, end):
+        return 'string substring'
+
+    def _to_lower_case(self):
+        return 'string to lower case'
+
+    def _to_local_lower_case(self):
+        return 'string to local lower case'
+
+    def _to_upper_case(self):
+        return 'string to upper case'
+
+    def _to_local_upper_case(self):
+        return 'string to local upper case'
+
+    def _trim(self):
+        return 'string trim'
+
+    own = {
+        'length': _length,
+        'constructor': _constructor,
+        'toString': _to_string,
+        'valueOf': _value_of,
+        'charAt': _char_at,
+        'charCodeAt': _char_code_at,
+        'concat': _concat,
+        'indexOf': _index_of,
+        'lastIndexOf': _last_index_of,
+        'localeCompare': _locale_compare,
+        'match': _match,
+        'replace': _replace,
+        'search': _search,
+        'slice': _slice,
+        'split': _split,
+        'substring': _substring,
+        'toLowerCase': _to_lower_case,
+        'toLocalLowerCase': _to_local_lower_case,
+        'toUpperCase': _to_upper_case,
+        'toLocalUpperCase': _to_local_upper_case,
+        'trim': _trim
+    }
 
 
 class JSString(JSObject):
-    pass
+
+    @staticmethod
+    def call(value=None):
+        return '' if value is None else to_string(value)
+
+    @staticmethod
+    def construct(value=None):
+        return JSStringPrototype('' if value is None else to_string(value))
+
+    def _from_char_code(self, *args):
+        return 'String from char code'
+
+    name = 'String'
+    own = {
+        'length': 1,
+        'prototype': JSStringPrototype(),
+        'fromCharCode': _from_char_code
+    }
+
 
 
 class JSBooleanPrototype(JSObjectPrototype):
@@ -499,4 +629,6 @@ _object_type = object()
 
 global_obj = JSObject.construct({'Object': JSObject(),
                                  'Array': JSArray(),
-                                 'Function': JSFunction()})
+                                 'Function': JSFunction(),
+                                 'String': JSString()
+                                 })
