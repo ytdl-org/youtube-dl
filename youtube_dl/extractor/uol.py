@@ -84,12 +84,27 @@ class UOLIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        if not video_id.isdigit():
-            embed_page = self._download_webpage('https://jsuol.com.br/c/tv/uol/embed/?params=[embed,%s]' % video_id, video_id)
-            video_id = self._search_regex(r'mediaId=(\d+)', embed_page, 'media id')
+        media_id = None
+
+        if video_id.isdigit():
+            media_id = video_id
+
+        if not media_id:
+            embed_page = self._download_webpage(
+                'https://jsuol.com.br/c/tv/uol/embed/?params=[embed,%s]' % video_id,
+                video_id, 'Downloading embed page', fatal=False)
+            if embed_page:
+                media_id = self._search_regex(
+                    (r'uol\.com\.br/(\d+)', r'mediaId=(\d+)'),
+                    embed_page, 'media id', default=None)
+
+        if not media_id:
+            webpage = self._download_webpage(url, video_id)
+            media_id = self._search_regex(r'mediaId=(\d+)', webpage, 'media id')
+
         video_data = self._download_json(
-            'http://mais.uol.com.br/apiuol/v3/player/getMedia/%s.json' % video_id,
-            video_id)['item']
+            'http://mais.uol.com.br/apiuol/v3/player/getMedia/%s.json' % media_id,
+            media_id)['item']
         title = video_data['title']
 
         query = {
@@ -118,7 +133,7 @@ class UOLIE(InfoExtractor):
             tags.append(tag_description)
 
         return {
-            'id': video_id,
+            'id': media_id,
             'title': title,
             'description': clean_html(video_data.get('desMedia')),
             'thumbnail': video_data.get('thumbnail'),

@@ -12,7 +12,7 @@ from ..utils import (
 
 class TwentyFourVideoIE(InfoExtractor):
     IE_NAME = '24video'
-    _VALID_URL = r'https?://(?:www\.)?24video\.(?:net|me|xxx)/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?24video\.(?:net|me|xxx|sex)/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.24video.net/video/view/1044982',
@@ -43,7 +43,7 @@ class TwentyFourVideoIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'http://www.24video.net/video/view/%s' % video_id, video_id)
+            'http://www.24video.sex/video/view/%s' % video_id, video_id)
 
         title = self._og_search_title(webpage)
         description = self._html_search_regex(
@@ -69,11 +69,11 @@ class TwentyFourVideoIE(InfoExtractor):
 
         # Sets some cookies
         self._download_xml(
-            r'http://www.24video.net/video/xml/%s?mode=init' % video_id,
+            r'http://www.24video.sex/video/xml/%s?mode=init' % video_id,
             video_id, 'Downloading init XML')
 
         video_xml = self._download_xml(
-            'http://www.24video.net/video/xml/%s?mode=play' % video_id,
+            'http://www.24video.sex/video/xml/%s?mode=play' % video_id,
             video_id, 'Downloading video XML')
 
         video = xpath_element(video_xml, './/video', 'video', fatal=True)

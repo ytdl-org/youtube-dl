@@ -338,7 +338,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'expected_warnings': ['Unable to download JSON metadata'],
         },
         {
-            # redirects to ondemand extractor and should be passed throught it
+            # redirects to ondemand extractor and should be passed through it
             # for successful extraction
             'url': 'https://vimeo.com/73445910',
             'info_dict': {
@@ -730,12 +730,12 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
             # Try extracting href first since not all videos are available via
             # short https://vimeo.com/id URL (e.g. https://vimeo.com/channels/tributes/6213729)
             clips = re.findall(
-                r'id="clip_(\d+)"[^>]*>\s*<a[^>]+href="(/(?:[^/]+/)*\1)', webpage)
+                r'id="clip_(\d+)"[^>]*>\s*<a[^>]+href="(/(?:[^/]+/)*\1)(?:[^>]+\btitle="([^"]+)")?', webpage)
             if clips:
-                for video_id, video_url in clips:
+                for video_id, video_url, video_title in clips:
                     yield self.url_result(
                         compat_urlparse.urljoin(base_url, video_url),
-                        VimeoIE.ie_key(), video_id=video_id)
+                        VimeoIE.ie_key(), video_id=video_id, video_title=video_title)
             # More relaxed fallback
             else:
                 for video_id in re.findall(r'id=["\']clip_(\d+)', webpage):
@@ -884,10 +884,14 @@ class VimeoReviewIE(VimeoBaseInfoExtractor):
 
     def _get_config_url(self, webpage_url, video_id, video_password_verified=False):
         webpage = self._download_webpage(webpage_url, video_id)
-        data = self._parse_json(self._search_regex(
-            r'window\s*=\s*_extend\(window,\s*({.+?})\);', webpage, 'data',
-            default=NO_DEFAULT if video_password_verified else '{}'), video_id)
-        config_url = data.get('vimeo_esi', {}).get('config', {}).get('configUrl')
+        config_url = self._html_search_regex(
+            r'data-config-url=(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'config URL', default=None, group='url')
+        if not config_url:
+            data = self._parse_json(self._search_regex(
+                r'window\s*=\s*_extend\(window,\s*({.+?})\);', webpage, 'data',
+                default=NO_DEFAULT if video_password_verified else '{}'), video_id)
+            config_url = data.get('vimeo_esi', {}).get('config', {}).get('configUrl')
         if config_url is None:
             self._verify_video_password(webpage_url, video_id, webpage)
             config_url = self._get_config_url(

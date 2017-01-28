@@ -48,9 +48,6 @@ class SRGSSRIE(InfoExtractor):
     def _real_extract(self, url):
         bu, media_type, media_id = re.match(self._VALID_URL, url).groups()
 
-        if bu == 'rts':
-            return self.url_result('rts:%s' % media_id, 'RTS')
-
         media_data = self.get_media_data(bu, media_type, media_id)
 
         metadata = media_data['AssetMetadatas']['AssetMetadata'][0]

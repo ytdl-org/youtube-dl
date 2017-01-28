@@ -13,11 +13,11 @@ from ..utils import (
     fix_xml_ampersands,
     float_or_none,
     HEADRequest,
-    NO_DEFAULT,
     RegexNotFoundError,
     sanitized_Request,
     strip_or_none,
     timeconvert,
+    try_get,
     unescapeHTML,
     update_url_query,
     url_basename,
@@ -41,15 +41,6 @@ class MTVServicesInfoExtractor(InfoExtractor):
     def _remove_template_parameter(url):
         # Remove the templates, like &device={device}
         return re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', url)
-
-    # This was originally implemented for ComedyCentral, but it also works here
-    @classmethod
-    def _transform_rtmp_url(cls, rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\..+?/.*)$', rtmp_video_url)
-        if not m:
-            return {'rtmp': rtmp_video_url}
-        base = 'http://viacommtvstrmfs.fplive.net/'
-        return {'http': base + m.group('finalid')}
 
     def _get_feed_url(self, uri):
         return self._FEED_URL
@@ -91,22 +82,28 @@ class MTVServicesInfoExtractor(InfoExtractor):
             if rendition.get('method') == 'hls':
                 hls_url = rendition.find('./src').text
                 formats.extend(self._extract_m3u8_formats(
-                    hls_url, video_id, ext='mp4', entry_protocol='m3u8_native'))
+                    hls_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls'))
             else:
                 # fms
                 try:
                     _, _, ext = rendition.attrib['type'].partition('/')
                     rtmp_video_url = rendition.find('./src').text
+                    if 'error_not_available.swf' in rtmp_video_url:
+                        raise ExtractorError(
+                            '%s said: video is not available' % self.IE_NAME,
+                            expected=True)
                     if rtmp_video_url.endswith('siteunavail.png'):
                         continue
-                    new_urls = self._transform_rtmp_url(rtmp_video_url)
                     formats.extend([{
-                        'ext': 'flv' if new_url.startswith('rtmp') else ext,
-                        'url': new_url,
-                        'format_id': '-'.join(filter(None, [kind, rendition.get('bitrate')])),
+                        'ext': 'flv' if rtmp_video_url.startswith('rtmp') else ext,
+                        'url': rtmp_video_url,
+                        'format_id': '-'.join(filter(None, [
+                            'rtmp' if rtmp_video_url.startswith('rtmp') else None,
+                            rendition.get('bitrate')])),
                         'width': int(rendition.get('width')),
                         'height': int(rendition.get('height')),
-                    } for kind, new_url in new_urls.items()])
+                    }])
                 except (KeyError, TypeError):
                     raise ExtractorError('Invalid rendition field.')
         self._sort_formats(formats)
@@ -212,7 +209,28 @@ class MTVServicesInfoExtractor(InfoExtractor):
             [self._get_video_info(item, use_hls) for item in idoc.findall('.//item')],
             playlist_title=title, playlist_description=description)
 
-    def _extract_mgid(self, webpage, default=NO_DEFAULT):
+    def _extract_triforce_mgid(self, webpage, data_zone=None, video_id=None):
+        triforce_feed = self._parse_json(self._search_regex(
+            r'triforceManifestFeed\s*=\s*({.+?})\s*;\s*\n', webpage,
+            'triforce feed', default='{}'), video_id, fatal=False)
+
+        data_zone = self._search_regex(
+            r'data-zone=(["\'])(?P<zone>.+?_lc_promo.*?)\1', webpage,
+            'data zone', default=data_zone, group='zone')
+
+        feed_url = try_get(
+            triforce_feed, lambda x: x['manifest']['zones'][data_zone]['feed'],
+            compat_str)
+        if not feed_url:
+            return
+
+        feed = self._download_json(feed_url, video_id, fatal=False)
+        if not feed:
+            return
+
+        return try_get(feed, lambda x: x['result']['data']['id'], compat_str)
+
+    def _extract_mgid(self, webpage):
         try:
             # the url can be http://media.mtvnservices.com/fb/{mgid}.swf
             # or http://media.mtvnservices.com/{mgid}
@@ -232,7 +250,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
             sm4_embed = self._html_search_meta(
                 'sm4:video:embed', webpage, 'sm4 embed', default='')
             mgid = self._search_regex(
-                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid', default=default)
+                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid', default=None)
+
+        if not mgid:
+            mgid = self._extract_triforce_mgid(webpage)
+
         return mgid
 
     def _real_extract(self, url):
@@ -282,7 +304,7 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
 
 class MTVIE(MTVServicesInfoExtractor):
     IE_NAME = 'mtv'
-    _VALID_URL = r'https?://(?:www\.)?mtv\.com/(?:video-clips|full-episodes)/(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?:www\.)?mtv\.com/(?:video-clips|(?:full-)?episodes)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://www.mtv.com/feeds/mrss/'
 
     _TESTS = [{
@@ -298,6 +320,9 @@ class MTVIE(MTVServicesInfoExtractor):
         },
     }, {
         'url': 'http://www.mtv.com/full-episodes/94tujl/unlocking-the-truth-gates-of-hell-season-1-ep-101',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.mtv.com/episodes/g8xu7q/teen-mom-2-breaking-the-wall-season-7-ep-713',
         'only_matching': True,
     }]
 

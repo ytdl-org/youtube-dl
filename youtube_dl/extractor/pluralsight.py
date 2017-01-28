@@ -157,13 +157,10 @@ class PluralsightIE(PluralsightBaseIE):
 
         display_id = '%s-%s' % (name, clip_id)
 
-        parsed_url = compat_urlparse.urlparse(url)
-
-        payload_url = compat_urlparse.urlunparse(parsed_url._replace(
-            netloc='app.pluralsight.com', path='player/api/v1/payload'))
-
         course = self._download_json(
-            payload_url, display_id, headers={'Referer': url})['payload']['course']
+            'https://app.pluralsight.com/player/user/api/v1/player/payload',
+            display_id, data=urlencode_postdata({'courseId': course_name}),
+            headers={'Referer': url})
 
         collection = course['modules']
 
