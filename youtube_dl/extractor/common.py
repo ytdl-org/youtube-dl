@@ -121,9 +121,19 @@ class InfoExtractor(object):
                                  download, lower-case.
                                  "http", "https", "rtsp", "rtmp", "rtmpe",
                                  "m3u8", "m3u8_native" or "http_dash_segments".
-                    * fragments  A list of fragments of the fragmented media,
-                                 with the following entries:
-                                 * "url" (mandatory) - fragment's URL
+                    * fragment_base_url
+                                 Base URL for fragments. Each fragment's path
+                                 value (if present) will be relative to
+                                 this URL.
+                    * fragments  A list of fragments of a fragmented media.
+                                 Each fragment entry must contain either an url
+                                 or a path. If an url is present it should be
+                                 considered by a client. Otherwise both path and
+                                 fragment_base_url must be present. Here is
+                                 the list of all potential fields:
+                                 * "url" - fragment's URL
+                                 * "path" - fragment's path relative to
+                                            fragment_base_url
                                  * "duration" (optional, int or float)
                                  * "filesize" (optional, int)
                     * preference Order number of this format. If this field is
