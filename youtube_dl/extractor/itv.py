@@ -177,7 +177,7 @@ class ITVIE(InfoExtractor):
                 continue
             ext = determine_ext(caption_url.text, 'ttml')
             subtitles.setdefault('en', []).append({
-                'url': caption_url,
+                'url': caption_url.text,
                 'ext': 'ttml' if ext == 'xml' else ext,
             })
 
