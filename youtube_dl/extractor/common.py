@@ -1637,12 +1637,12 @@ class InfoExtractor(object):
                 segment_template = element.find(_add_ns('SegmentTemplate'))
                 if segment_template is not None:
                     extract_common(segment_template)
-                    media_template = segment_template.get('media')
-                    if media_template:
-                        ms_info['media_template'] = media_template
+                    media = segment_template.get('media')
+                    if media:
+                        ms_info['media'] = media
                     initialization = segment_template.get('initialization')
                     if initialization:
-                        ms_info['initialization_url'] = initialization
+                        ms_info['initialization'] = initialization
                     else:
                         extract_Initialization(segment_template)
             return ms_info
@@ -1686,6 +1686,7 @@ class InfoExtractor(object):
                         lang = representation_attrib.get('lang')
                         url_el = representation.find(_add_ns('BaseURL'))
                         filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el is not None else None)
+                        bandwidth = int_or_none(representation_attrib.get('bandwidth'))
                         f = {
                             'format_id': '%s-%s' % (mpd_id, representation_id) if mpd_id else representation_id,
                             'url': base_url,
@@ -1693,7 +1694,7 @@ class InfoExtractor(object):
                             'ext': mimetype2ext(mime_type),
                             'width': int_or_none(representation_attrib.get('width')),
                             'height': int_or_none(representation_attrib.get('height')),
-                            'tbr': int_or_none(representation_attrib.get('bandwidth'), 1000),
+                            'tbr': int_or_none(bandwidth, 1000),
                             'asr': int_or_none(representation_attrib.get('audioSamplingRate')),
                             'fps': int_or_none(representation_attrib.get('frameRate')),
                             'language': lang if lang not in ('mul', 'und', 'zxx', 'mis') else None,
@@ -1702,13 +1703,32 @@ class InfoExtractor(object):
                         }
                         f.update(parse_codecs(representation_attrib.get('codecs')))
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
-                        if 'segment_urls' not in representation_ms_info and 'media_template' in representation_ms_info:
 
-                            media_template = representation_ms_info['media_template']
-                            media_template = media_template.replace('$RepresentationID$', representation_id)
-                            media_template = re.sub(r'\$(Number|Bandwidth|Time)\$', r'%(\1)d', media_template)
-                            media_template = re.sub(r'\$(Number|Bandwidth|Time)%([^$]+)\$', r'%(\1)\2', media_template)
-                            media_template.replace('$$', '$')
+                        def prepare_template(template_name, identifiers):
+                            t = representation_ms_info[template_name]
+                            t = t.replace('$RepresentationID$', representation_id)
+                            t = re.sub(r'\$(%s)\$' % '|'.join(identifiers), r'%(\1)d', t)
+                            t = re.sub(r'\$(%s)%%([^$]+)\$' % '|'.join(identifiers), r'%(\1)\2', t)
+                            t.replace('$$', '$')
+                            return t
+
+                        # @initialization is a regular template like @media one
+                        # so it should be handled just the same way (see
+                        # https://github.com/rg3/youtube-dl/issues/11605)
+                        if 'initialization' in representation_ms_info:
+                            initialization_template = prepare_template(
+                                'initialization',
+                                # As per [1, 5.3.9.4.2, Table 15, page 54] $Number$ and
+                                # $Time$ shall not be included for @initialization thus
+                                # only $Bandwidth$ remains
+                                ('Bandwidth', ))
+                            representation_ms_info['initialization_url'] = initialization_template % {
+                                'Bandwidth': bandwidth,
+                            }
+
+                        if 'segment_urls' not in representation_ms_info and 'media' in representation_ms_info:
+
+                            media_template = prepare_template('media', ('Number', 'Bandwidth', 'Time'))
 
                             # As per [1, 5.3.9.4.4, Table 16, page 55] $Number$ and $Time$
                             # can't be used at the same time
@@ -1720,7 +1740,7 @@ class InfoExtractor(object):
                                 representation_ms_info['fragments'] = [{
                                     'url': media_template % {
                                         'Number': segment_number,
-                                        'Bandwidth': int_or_none(representation_attrib.get('bandwidth')),
+                                        'Bandwidth': bandwidth,
                                     },
                                     'duration': segment_duration,
                                 } for segment_number in range(
@@ -1738,7 +1758,7 @@ class InfoExtractor(object):
                                 def add_segment_url():
                                     segment_url = media_template % {
                                         'Time': segment_time,
-                                        'Bandwidth': int_or_none(representation_attrib.get('bandwidth')),
+                                        'Bandwidth': bandwidth,
                                         'Number': segment_number,
                                     }
                                     representation_ms_info['fragments'].append({
@@ -1780,7 +1800,7 @@ class InfoExtractor(object):
                                 'protocol': 'http_dash_segments',
                             })
                             if 'initialization_url' in representation_ms_info:
-                                initialization_url = representation_ms_info['initialization_url'].replace('$RepresentationID$', representation_id)
+                                initialization_url = representation_ms_info['initialization_url']
                                 if not f.get('url'):
                                     f['url'] = initialization_url
                                 f['fragments'].append({'url': initialization_url})
