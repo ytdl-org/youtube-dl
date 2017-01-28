@@ -20,7 +20,7 @@ from ..utils import (
 
 
 class ITVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?itv\.com/hub/[^/]+/(?P<id>[0-9a-z]+)'
+    _VALID_URL = r'https?://(?:www\.)?itv\.com/hub/[^/]+/(?P<id>[0-9a-zA-Z]+)'
     _TEST = {
         'url': 'http://www.itv.com/hub/mr-bean-animated-series/2a2936a0053',
         'info_dict': {
@@ -98,7 +98,8 @@ class ITVIE(InfoExtractor):
             fault_string = xpath_text(resp_env, './/faultstring')
             raise ExtractorError('%s said: %s' % (self.IE_NAME, fault_string))
         title = xpath_text(playlist, 'EpisodeTitle', fatal=True)
-        media_files = xpath_element(playlist, 'VideoEntries/Video/MediaFiles', fatal=True)
+        video_element = xpath_element(playlist, 'VideoEntries/Video', fatal=True)
+        media_files = xpath_element(video_element, 'MediaFiles', fatal=True)
         rtmp_url = media_files.attrib['base']
 
         formats = []
@@ -170,10 +171,21 @@ class ITVIE(InfoExtractor):
                         })
         self._sort_formats(formats)
 
+        subtitles = {}
+        for caption_url in video_element.findall('ClosedCaptioningURIs/URL'):
+            if not caption_url.text:
+                continue
+            ext = determine_ext(caption_url.text, 'ttml')
+            subtitles.setdefault('en', []).append({
+                'url': caption_url,
+                'ext': 'ttml' if ext == 'xml' else ext,
+            })
+
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
+            'subtitles': subtitles,
             'episode_title': title,
             'episode_number': int_or_none(xpath_text(playlist, 'EpisodeNumber')),
             'series': xpath_text(playlist, 'ProgrammeTitle'),
