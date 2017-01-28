@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, float_or_none, int_or_none, mimetype2ext
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    float_or_none,
-    mimetype2ext,
-)
 
 
 class OnionStudiosIE(InfoExtractor):

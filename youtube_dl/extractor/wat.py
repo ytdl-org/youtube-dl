@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    ExtractorError,
-    unified_strdate,
-    HEADRequest,
-    int_or_none,
-)
+from ..utils import ExtractorError, HEADRequest, int_or_none, unified_strdate
+from .common import InfoExtractor
 
 
 class WatIE(InfoExtractor):

@@ -3,19 +3,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
 from ..utils import (
+    NO_DEFAULT,
     find_xpath_attr,
-    unified_strdate,
     get_element_by_attribute,
     int_or_none,
-    NO_DEFAULT,
     qualities,
+    unified_strdate,
 )
+from .common import InfoExtractor
+
 
 # There are different sources of video in arte.tv, the extraction process
 # is different for each one. The videos usually expire in 7 days, so we can't

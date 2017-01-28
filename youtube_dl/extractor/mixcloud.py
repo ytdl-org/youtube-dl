@@ -5,19 +5,14 @@ import functools
 import itertools
 import re
 
-from .common import InfoExtractor
 from ..compat import (
     compat_chr,
     compat_ord,
     compat_urllib_parse_unquote,
     compat_urlparse,
 )
-from ..utils import (
-    clean_html,
-    ExtractorError,
-    OnDemandPagedList,
-    str_to_int,
-)
+from ..utils import ExtractorError, OnDemandPagedList, clean_html, str_to_int
+from .common import InfoExtractor
 
 
 class MixcloudIE(InfoExtractor):

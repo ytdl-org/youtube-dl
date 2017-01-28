@@ -1,12 +1,8 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlencode
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    qualities,
-)
+from ..utils import ExtractorError, int_or_none, qualities
+from .common import InfoExtractor
 
 
 class FlickrIE(InfoExtractor):

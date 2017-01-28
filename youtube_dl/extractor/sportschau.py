@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .wdr import WDRBaseIE
 from ..utils import get_element_by_attribute
+from .wdr import WDRBaseIE
 
 
 class SportschauIE(WDRBaseIE):

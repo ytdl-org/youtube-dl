@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 import re
 import time
 
+from ..utils import HEADRequest, int_or_none
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    HEADRequest,
-)
 
 
 class CultureUnpluggedIE(InfoExtractor):

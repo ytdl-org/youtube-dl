@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import compat_str, determine_ext, int_or_none, unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    unified_strdate,
-    compat_str,
-    determine_ext,
-)
 
 
 class DisneyIE(InfoExtractor):

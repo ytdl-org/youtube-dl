@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
     get_element_by_attribute,
     int_or_none,
@@ -10,6 +9,7 @@ from ..utils import (
     lowercase_escape,
     try_get,
 )
+from .common import InfoExtractor
 
 
 class InstagramIE(InfoExtractor):

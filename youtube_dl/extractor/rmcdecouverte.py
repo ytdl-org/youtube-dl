@@ -1,12 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+from ..compat import compat_parse_qs, compat_urlparse
 from .brightcove import BrightcoveLegacyIE
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
+from .common import InfoExtractor
 
 
 class RMCDecouverteIE(InfoExtractor):

@@ -1,16 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..compat import compat_parse_qs, compat_str
+from ..utils import int_or_none, try_get, unified_timestamp
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-)
-from ..utils import (
-    int_or_none,
-    try_get,
-    unified_timestamp,
-)
 
 
 class PornFlipIE(InfoExtractor):

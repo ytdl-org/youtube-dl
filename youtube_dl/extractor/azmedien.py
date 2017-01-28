@@ -2,12 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import get_element_by_class, strip_or_none
 from .common import InfoExtractor
 from .kaltura import KalturaIE
-from ..utils import (
-    get_element_by_class,
-    strip_or_none,
-)
 
 
 class AZMedienBaseIE(InfoExtractor):

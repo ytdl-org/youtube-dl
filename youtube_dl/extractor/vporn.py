@@ -2,13 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, parse_duration, str_to_int, urljoin
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    parse_duration,
-    str_to_int,
-    urljoin,
-)
 
 
 class VpornIE(InfoExtractor):

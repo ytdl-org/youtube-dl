@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import (
     clean_html,
     determine_ext,
@@ -9,6 +8,7 @@ from ..utils import (
     urlencode_postdata,
     xpath_text,
 )
+from .common import InfoExtractor
 
 
 class NFBIE(InfoExtractor):

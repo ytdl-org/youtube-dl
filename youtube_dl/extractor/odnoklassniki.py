@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_urllib_parse_unquote,
@@ -9,11 +8,12 @@ from ..compat import (
 )
 from ..utils import (
     ExtractorError,
-    unified_strdate,
     int_or_none,
     qualities,
     unescapeHTML,
+    unified_strdate,
 )
+from .common import InfoExtractor
 
 
 class OdnoklassnikiIE(InfoExtractor):

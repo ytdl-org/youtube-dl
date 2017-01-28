@@ -3,12 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_chr
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-)
+from ..utils import ExtractorError, determine_ext
+from .common import InfoExtractor
 
 
 class OpenloadIE(InfoExtractor):

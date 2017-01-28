@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     dict_get,
     int_or_none,
-    unescapeHTML,
     parse_iso8601,
+    unescapeHTML,
 )
+from .common import InfoExtractor
 
 
 class PikselIE(InfoExtractor):

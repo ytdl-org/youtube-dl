@@ -2,15 +2,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from .adobepass import AdobePassIE
-from .theplatform import ThePlatformIE
 from ..utils import (
-    smuggle_url,
-    url_basename,
-    update_url_query,
     get_element_by_class,
+    smuggle_url,
+    update_url_query,
+    url_basename,
 )
+from .adobepass import AdobePassIE
+from .common import InfoExtractor
+from .theplatform import ThePlatformIE
 
 
 class NationalGeographicVideoIE(InfoExtractor):

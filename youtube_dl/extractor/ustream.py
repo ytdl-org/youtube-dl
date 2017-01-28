@@ -3,19 +3,16 @@ from __future__ import unicode_literals
 import random
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
-    encode_data_uri,
     ExtractorError,
-    int_or_none,
+    encode_data_uri,
     float_or_none,
+    int_or_none,
     mimetype2ext,
     str_or_none,
 )
+from .common import InfoExtractor
 
 
 class UstreamIE(InfoExtractor):

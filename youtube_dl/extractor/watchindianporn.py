@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, parse_duration, unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-    parse_duration,
-    int_or_none,
-)
 
 
 class WatchIndianPornIE(InfoExtractor):

@@ -3,17 +3,16 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    ExtractorError,
     determine_ext,
     float_or_none,
-    xpath_text,
-    remove_end,
     int_or_none,
-    ExtractorError,
+    remove_end,
+    xpath_text,
 )
-
+from .common import InfoExtractor
 from .periscope import PeriscopeIE
 
 

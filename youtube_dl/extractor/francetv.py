@@ -2,22 +2,19 @@
 
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
-    clean_html,
     ExtractorError,
+    clean_html,
+    determine_ext,
     int_or_none,
     parse_duration,
-    determine_ext,
 )
-from .dailymotion import (
-    DailymotionIE,
-    DailymotionCloudIE,
-)
+from .common import InfoExtractor
+from .dailymotion import DailymotionCloudIE, DailymotionIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):

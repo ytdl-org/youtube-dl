@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, int_or_none, parse_duration, remove_end
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    parse_duration,
-    remove_end,
-)
 
 
 class LRTIE(InfoExtractor):

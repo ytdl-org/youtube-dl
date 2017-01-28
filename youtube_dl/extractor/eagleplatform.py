@@ -3,15 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_HTTPError, compat_str
+from ..utils import ExtractorError, int_or_none
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-)
 
 
 class EaglePlatformIE(InfoExtractor):

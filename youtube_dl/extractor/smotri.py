@@ -1,12 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
 import hashlib
+import json
+import re
 import uuid
 
-from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -15,6 +14,7 @@ from ..utils import (
     urlencode_postdata,
     xpath_text,
 )
+from .common import InfoExtractor
 
 
 class SmotriIE(InfoExtractor):

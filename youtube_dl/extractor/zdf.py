@@ -3,12 +3,11 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    NO_DEFAULT,
     determine_ext,
     int_or_none,
-    NO_DEFAULT,
     orderedSet,
     parse_codecs,
     qualities,
@@ -17,6 +16,7 @@ from ..utils import (
     update_url_query,
     urljoin,
 )
+from .common import InfoExtractor
 
 
 class ZDFBaseIE(InfoExtractor):

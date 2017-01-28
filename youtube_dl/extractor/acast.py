@@ -1,16 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import functools
+import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-    OnDemandPagedList,
-)
+from ..utils import OnDemandPagedList, int_or_none, parse_iso8601
+from .common import InfoExtractor
 
 
 class ACastIE(InfoExtractor):

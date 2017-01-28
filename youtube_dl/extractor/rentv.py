@@ -1,9 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..compat import compat_str
 from .common import InfoExtractor
 from .jwplatform import JWPlatformBaseIE
-from ..compat import compat_str
 
 
 class RENTVIE(JWPlatformBaseIE):

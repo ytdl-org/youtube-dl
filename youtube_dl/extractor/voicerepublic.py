@@ -2,17 +2,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
     sanitized_Request,
 )
+from .common import InfoExtractor
 
 
 class VoiceRepublicIE(InfoExtractor):

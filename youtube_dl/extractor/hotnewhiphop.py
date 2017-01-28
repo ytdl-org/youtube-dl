@@ -2,13 +2,13 @@ from __future__ import unicode_literals
 
 import base64
 
-from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     HEADRequest,
     sanitized_Request,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class HotNewHipHopIE(InfoExtractor):

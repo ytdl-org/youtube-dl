@@ -2,17 +2,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .theplatform import ThePlatformIE
+from ..compat import compat_urlparse
 from ..utils import (
-    smuggle_url,
-    update_url_query,
-    unescapeHTML,
     extract_attributes,
     get_element_by_attribute,
+    smuggle_url,
+    unescapeHTML,
+    update_url_query,
 )
-from ..compat import (
-    compat_urlparse,
-)
+from .theplatform import ThePlatformIE
 
 
 class AENetworksBaseIE(ThePlatformIE):

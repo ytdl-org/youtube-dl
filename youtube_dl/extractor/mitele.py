@@ -3,19 +3,15 @@ from __future__ import unicode_literals
 
 import uuid
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urllib_parse_urlencode, compat_urlparse
 from ..utils import (
-    int_or_none,
-    extract_attributes,
     determine_ext,
-    smuggle_url,
+    extract_attributes,
+    int_or_none,
     parse_duration,
+    smuggle_url,
 )
+from .common import InfoExtractor
 
 
 class MiTeleBaseIE(InfoExtractor):

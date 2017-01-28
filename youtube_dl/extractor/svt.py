@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, dict_get, int_or_none, try_get
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    dict_get,
-    int_or_none,
-    try_get,
-)
 
 
 class SVTBaseIE(InfoExtractor):

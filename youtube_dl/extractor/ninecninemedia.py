@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    parse_iso8601,
-    float_or_none,
-    ExtractorError,
-    int_or_none,
-)
+from ..utils import ExtractorError, float_or_none, int_or_none, parse_iso8601
+from .common import InfoExtractor
 
 
 class NineCNineMediaBaseIE(InfoExtractor):

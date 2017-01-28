@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import determine_protocol, int_or_none, unescapeHTML
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    determine_protocol,
-    unescapeHTML,
-)
 
 
 class DailyMailIE(InfoExtractor):

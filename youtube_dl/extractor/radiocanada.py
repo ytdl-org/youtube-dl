@@ -3,18 +3,18 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
-    xpath_text,
-    find_xpath_attr,
+    ExtractorError,
     determine_ext,
+    determine_protocol,
+    find_xpath_attr,
     int_or_none,
     unified_strdate,
-    xpath_element,
-    ExtractorError,
-    determine_protocol,
     unsmuggle_url,
+    xpath_element,
+    xpath_text,
 )
+from .common import InfoExtractor
 
 
 class RadioCanadaIE(InfoExtractor):

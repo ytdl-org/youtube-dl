@@ -2,18 +2,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-    compat_HTTPError,
-)
+from ..compat import compat_HTTPError, compat_str, compat_urlparse
 from ..utils import (
     ExtractorError,
     int_or_none,
-    sanitized_Request,
     parse_iso8601,
+    sanitized_Request,
 )
+from .common import InfoExtractor
 
 
 class VevoBaseIE(InfoExtractor):

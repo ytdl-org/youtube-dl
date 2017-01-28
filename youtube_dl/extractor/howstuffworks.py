@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     find_xpath_attr,
     int_or_none,
     js_to_json,
     unescapeHTML,
-    determine_ext,
 )
+from .common import InfoExtractor
 
 
 class HowStuffWorksIE(InfoExtractor):

@@ -4,12 +4,8 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import ExtractorError, parse_iso8601, sanitized_Request
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    parse_iso8601,
-    sanitized_Request,
-)
 
 
 class VesselIE(InfoExtractor):

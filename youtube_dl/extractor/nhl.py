@@ -1,23 +1,23 @@
 from __future__ import unicode_literals
 
-import re
 import json
 import os
+import re
 
-from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
+    compat_str,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_str,
+    compat_urlparse,
 )
 from ..utils import (
-    unified_strdate,
     determine_ext,
     int_or_none,
-    parse_iso8601,
     parse_duration,
+    parse_iso8601,
+    unified_strdate,
 )
+from .common import InfoExtractor
 
 
 class NHLBaseInfoExtractor(InfoExtractor):

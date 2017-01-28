@@ -2,15 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_urllib_parse_unquote
+from ..utils import dict_get, unescapeHTML, url_basename
 from .once import OnceIE
-from ..compat import (
-    compat_urllib_parse_unquote,
-)
-from ..utils import (
-    unescapeHTML,
-    url_basename,
-    dict_get,
-)
 
 
 class GameSpotIE(OnceIE):

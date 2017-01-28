@@ -3,18 +3,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     int_or_none,
     parse_iso8601,
     remove_end,
 )
+from .common import InfoExtractor
 
 
 class LifeNewsIE(InfoExtractor):

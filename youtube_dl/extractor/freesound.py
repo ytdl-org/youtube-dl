@@ -2,13 +2,13 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     get_element_by_class,
     get_element_by_id,
     unified_strdate,
 )
+from .common import InfoExtractor
 
 
 class FreesoundIE(InfoExtractor):

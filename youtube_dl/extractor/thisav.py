@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
 from ..utils import remove_end
+from .jwplatform import JWPlatformBaseIE
 
 
 class ThisAVIE(JWPlatformBaseIE):

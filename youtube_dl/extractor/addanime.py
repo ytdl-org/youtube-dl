@@ -2,17 +2,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_str,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
-from ..utils import (
-    ExtractorError,
-    qualities,
-)
+from ..utils import ExtractorError, qualities
+from .common import InfoExtractor
 
 
 class AddAnimeIE(InfoExtractor):

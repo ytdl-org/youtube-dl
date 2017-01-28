@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import float_or_none
 from .common import InfoExtractor
-from ..utils import (
-    float_or_none,
-)
 
 
 class VRTIE(InfoExtractor):

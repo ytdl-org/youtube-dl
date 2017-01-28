@@ -3,17 +3,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
-    dict_get,
     ExtractorError,
     HEADRequest,
+    dict_get,
     int_or_none,
     qualities,
     remove_end,
     unified_strdate,
 )
+from .common import InfoExtractor
 
 
 class CanalplusIE(InfoExtractor):

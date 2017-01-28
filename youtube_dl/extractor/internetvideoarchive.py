@@ -1,15 +1,8 @@
 from __future__ import unicode_literals
 
+from ..compat import compat_parse_qs, compat_urlparse
+from ..utils import determine_ext, int_or_none, xpath_text
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    xpath_text,
-)
 
 
 class InternetVideoArchiveIE(InfoExtractor):

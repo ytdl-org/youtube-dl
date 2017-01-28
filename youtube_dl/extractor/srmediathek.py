@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import ExtractorError, get_element_by_attribute
 from .ard import ARDMediathekIE
-from ..utils import (
-    ExtractorError,
-    get_element_by_attribute,
-)
 
 
 class SRMediathekIE(ARDMediathekIE):

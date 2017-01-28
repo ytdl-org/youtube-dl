@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import parse_iso8601, unescapeHTML
 from .common import InfoExtractor
-from ..utils import (
-    parse_iso8601,
-    unescapeHTML,
-)
 
 
 class PeriscopeBaseIE(InfoExtractor):

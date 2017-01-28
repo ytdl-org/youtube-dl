@@ -1,16 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     unified_strdate,
+    update_url_query,
     urlencode_postdata,
+    urljoin,
     xpath_element,
     xpath_text,
-    urljoin,
-    update_url_query,
 )
+from .common import InfoExtractor
 
 
 class Laola1TvEmbedIE(InfoExtractor):

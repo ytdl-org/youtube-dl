@@ -5,9 +5,9 @@ import calendar
 import re
 import time
 
+from ..compat import compat_urlparse
 from .amp import AMPIE
 from .common import InfoExtractor
-from ..compat import compat_urlparse
 
 
 class AbcNewsVideoIE(AMPIE):

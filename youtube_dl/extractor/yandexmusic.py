@@ -1,16 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import hashlib
+import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    float_or_none,
-)
+from ..utils import ExtractorError, float_or_none, int_or_none
+from .common import InfoExtractor
 
 
 class YandexMusicBaseIE(InfoExtractor):

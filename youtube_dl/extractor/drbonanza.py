@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import int_or_none, parse_iso8601
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-)
 
 
 class DRBonanzaIE(InfoExtractor):

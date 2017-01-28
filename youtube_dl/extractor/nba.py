@@ -3,15 +3,9 @@ from __future__ import unicode_literals
 import functools
 import re
 
+from ..compat import compat_urllib_parse_urlencode, compat_urlparse
+from ..utils import OnDemandPagedList, remove_start
 from .turner import TurnerBaseIE
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
-from ..utils import (
-    OnDemandPagedList,
-    remove_start,
-)
 
 
 class NBAIE(TurnerBaseIE):

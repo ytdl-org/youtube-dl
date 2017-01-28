@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import int_or_none, parse_age_limit, update_url_query
 from .theplatform import ThePlatformIE
-from ..utils import (
-    update_url_query,
-    parse_age_limit,
-    int_or_none,
-)
 
 
 class AMCNetworksIE(ThePlatformIE):

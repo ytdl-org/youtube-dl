@@ -3,20 +3,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-    compat_urlparse,
-)
+from ..compat import compat_urllib_parse_urlparse, compat_urlparse
 from ..utils import (
-    orderedSet,
-    remove_end,
-    extract_attributes,
-    mimetype2ext,
     determine_ext,
+    extract_attributes,
     int_or_none,
+    mimetype2ext,
+    orderedSet,
     parse_iso8601,
+    remove_end,
 )
+from .common import InfoExtractor
 
 
 class CondeNastIE(InfoExtractor):

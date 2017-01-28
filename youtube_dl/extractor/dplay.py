@@ -5,13 +5,9 @@ import json
 import re
 import time
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    USER_AGENTS,
-    int_or_none,
-    update_url_query,
-)
+from ..utils import USER_AGENTS, int_or_none, update_url_query
+from .common import InfoExtractor
 
 
 class DPlayIE(InfoExtractor):

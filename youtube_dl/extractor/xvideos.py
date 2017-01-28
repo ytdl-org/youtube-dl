@@ -2,13 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
-from ..utils import (
-    clean_html,
-    ExtractorError,
-    determine_ext,
-)
+from ..utils import ExtractorError, clean_html, determine_ext
+from .common import InfoExtractor
 
 
 class XVideosIE(InfoExtractor):

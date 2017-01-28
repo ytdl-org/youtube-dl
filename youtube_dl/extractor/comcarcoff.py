@@ -1,13 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    parse_duration,
-    parse_iso8601,
-)
+from ..utils import int_or_none, parse_duration, parse_iso8601
+from .common import InfoExtractor
 
 
 class ComCarCoffIE(InfoExtractor):

@@ -1,15 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    extract_attributes,
     int_or_none,
     js_to_json,
-    ExtractorError,
-    urlencode_postdata,
-    extract_attributes,
     smuggle_url,
+    urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class TouTvIE(InfoExtractor):

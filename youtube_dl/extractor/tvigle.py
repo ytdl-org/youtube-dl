@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, float_or_none, int_or_none, parse_age_limit
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    parse_age_limit,
-)
 
 
 class TvigleIE(InfoExtractor):

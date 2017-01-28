@@ -3,10 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     float_or_none,
     get_element_by_class,
     int_or_none,
@@ -16,6 +15,7 @@ from ..utils import (
     strip_or_none,
     url_basename,
 )
+from .common import InfoExtractor
 
 
 class OnetBaseIE(InfoExtractor):

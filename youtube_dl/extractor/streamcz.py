@@ -4,11 +4,8 @@ from __future__ import unicode_literals
 import hashlib
 import time
 
+from ..utils import int_or_none, sanitized_Request
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    sanitized_Request,
-)
 
 
 def _get_api_key(api_path):

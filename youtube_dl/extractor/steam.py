@@ -2,11 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, unescapeHTML
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    unescapeHTML,
-)
 
 
 class SteamIE(InfoExtractor):

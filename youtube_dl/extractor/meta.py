@@ -1,13 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import ExtractorError, int_or_none, unescapeHTML
 from .common import InfoExtractor
 from .pladform import PladformIE
-from ..utils import (
-    unescapeHTML,
-    int_or_none,
-    ExtractorError,
-)
 
 
 class METAIE(InfoExtractor):

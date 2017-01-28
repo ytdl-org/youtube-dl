@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import str_to_int
+from .common import InfoExtractor
 
 
 class NineGagIE(InfoExtractor):

@@ -3,16 +3,12 @@ from __future__ import unicode_literals
 
 import base64
 import binascii
-import re
 import json
+import re
 
-from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    qualities,
-    determine_ext,
-)
 from ..compat import compat_ord
+from ..utils import ExtractorError, determine_ext, qualities
+from .common import InfoExtractor
 
 
 class TeamcocoIE(InfoExtractor):

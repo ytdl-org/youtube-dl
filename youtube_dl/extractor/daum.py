@@ -2,22 +2,17 @@
 
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
 
-from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlencode,
     compat_urlparse,
 )
-from ..utils import (
-    int_or_none,
-    str_to_int,
-    xpath_text,
-    unescapeHTML,
-)
+from ..utils import int_or_none, str_to_int, unescapeHTML, xpath_text
+from .common import InfoExtractor
 
 
 class DaumIE(InfoExtractor):

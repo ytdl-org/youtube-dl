@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import json
 
+from ..utils import ExtractorError, int_or_none, smuggle_url, unsmuggle_url
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    smuggle_url,
-    unsmuggle_url,
-)
 
 
 class LiTVIE(InfoExtractor):

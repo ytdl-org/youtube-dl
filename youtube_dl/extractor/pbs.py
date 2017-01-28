@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
+    US_RATINGS,
     ExtractorError,
     determine_ext,
     int_or_none,
@@ -12,8 +12,8 @@ from ..utils import (
     strip_jsonp,
     strip_or_none,
     unified_strdate,
-    US_RATINGS,
 )
+from .common import InfoExtractor
 
 
 class PBSIE(InfoExtractor):

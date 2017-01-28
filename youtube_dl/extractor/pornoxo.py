@@ -2,10 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import str_to_int
 from .jwplatform import JWPlatformBaseIE
-from ..utils import (
-    str_to_int,
-)
 
 
 class PornoXOIE(JWPlatformBaseIE):

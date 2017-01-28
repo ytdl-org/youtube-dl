@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, int_or_none
 from .turner import TurnerBaseIE
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-)
 
 
 class AdultSwimIE(TurnerBaseIE):

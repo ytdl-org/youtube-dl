@@ -2,17 +2,17 @@
 from __future__ import unicode_literals
 
 import random
-import time
 import re
+import time
 
-from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    clean_html,
     sanitized_Request,
     strip_jsonp,
     unescapeHTML,
-    clean_html,
-    ExtractorError,
 )
+from .common import InfoExtractor
 
 
 class QQMusicIE(InfoExtractor):

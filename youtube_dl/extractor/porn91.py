@@ -1,16 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlencode,
-)
+from ..compat import compat_urllib_parse_unquote, compat_urllib_parse_urlencode
+from ..utils import ExtractorError, int_or_none, parse_duration
 from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    int_or_none,
-    ExtractorError,
-)
 
 
 class Porn91IE(InfoExtractor):

@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import float_or_none, int_or_none
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    float_or_none,
-)
 
 
 class VzaarIE(InfoExtractor):

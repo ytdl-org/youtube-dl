@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import json
 
+from ..utils import int_or_none, mimetype2ext
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    mimetype2ext,
-)
 
 
 class SandiaIE(InfoExtractor):

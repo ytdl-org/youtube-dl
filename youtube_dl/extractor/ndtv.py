@@ -1,11 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import int_or_none, remove_end, unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    remove_end,
-    unified_strdate,
-)
 
 
 class NDTVIE(InfoExtractor):

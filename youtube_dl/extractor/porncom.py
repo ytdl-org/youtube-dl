@@ -2,14 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    int_or_none,
-    js_to_json,
-    parse_filesize,
-    str_to_int,
-)
+from ..utils import int_or_none, js_to_json, parse_filesize, str_to_int
+from .common import InfoExtractor
 
 
 class PornComIE(InfoExtractor):

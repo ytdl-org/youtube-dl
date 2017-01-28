@@ -4,12 +4,8 @@ from __future__ import unicode_literals
 import re
 import time
 
+from ..utils import determine_ext, js_to_json, sanitized_Request
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    js_to_json,
-    sanitized_Request,
-)
 
 
 class IPrimaIE(InfoExtractor):

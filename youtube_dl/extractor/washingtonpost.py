@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, strip_jsonp
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    strip_jsonp,
-)
 
 
 class WashingtonPostIE(InfoExtractor):

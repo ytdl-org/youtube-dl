@@ -1,24 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
 import datetime
+import json
+import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
+    determine_ext,
     int_or_none,
     parse_duration,
     parse_iso8601,
     sanitized_Request,
-    xpath_text,
-    determine_ext,
     urlencode_postdata,
+    xpath_text,
 )
+from .common import InfoExtractor
 
 
 class NiconicoIE(InfoExtractor):

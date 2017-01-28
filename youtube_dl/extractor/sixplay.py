@@ -1,13 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import determine_ext, int_or_none, mimetype2ext, qualities
 from .common import InfoExtractor
-from ..utils import (
-    qualities,
-    int_or_none,
-    mimetype2ext,
-    determine_ext,
-)
 
 
 class SixPlayIE(InfoExtractor):

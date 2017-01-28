@@ -3,20 +3,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_HTTPError, compat_urllib_parse_unquote
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    HEADRequest,
+    determine_ext,
     int_or_none,
     parse_iso8601,
     sanitized_Request,
-    HEADRequest,
     url_basename,
 )
+from .common import InfoExtractor
 
 
 class ViewsterIE(InfoExtractor):

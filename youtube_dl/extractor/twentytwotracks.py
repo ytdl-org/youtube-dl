@@ -2,8 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import int_or_none
+from .common import InfoExtractor
+
 
 # 22Tracks regularly replace the audio tracks that can be streamed on their
 # site. The tracks usually expire after 1 months, so we can't add tests.

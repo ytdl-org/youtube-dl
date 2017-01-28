@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import determine_ext, parse_duration
 from .theplatform import ThePlatformIE
-from ..utils import (
-    determine_ext,
-    parse_duration,
-)
 
 
 class TheWeatherChannelIE(ThePlatformIE):

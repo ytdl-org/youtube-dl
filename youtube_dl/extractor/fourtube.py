@@ -2,13 +2,13 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
     parse_duration,
     parse_iso8601,
     sanitized_Request,
     str_to_int,
 )
+from .common import InfoExtractor
 
 
 class FourTubeIE(InfoExtractor):

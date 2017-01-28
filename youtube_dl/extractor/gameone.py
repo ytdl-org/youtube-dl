@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import float_or_none, int_or_none, parse_iso8601, xpath_with_ns
 from .common import InfoExtractor
-from ..utils import (
-    xpath_with_ns,
-    parse_iso8601,
-    float_or_none,
-    int_or_none,
-)
 
 NAMESPACE_MAP = {
     'media': 'http://search.yahoo.com/mrss/',

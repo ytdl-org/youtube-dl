@@ -4,11 +4,8 @@ from __future__ import unicode_literals
 import base64
 import re
 
+from ..utils import qualities, sanitized_Request
 from .common import InfoExtractor
-from ..utils import (
-    qualities,
-    sanitized_Request,
-)
 
 
 class DumpertIE(InfoExtractor):

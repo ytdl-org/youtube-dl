@@ -1,13 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
 
-from .common import InfoExtractor
+from ..compat import compat_etree_fromstring, compat_HTTPError, compat_urlparse
 from ..utils import (
-    dict_get,
     ExtractorError,
+    dict_get,
     float_or_none,
     int_or_none,
     parse_duration,
@@ -15,11 +15,7 @@ from ..utils import (
     try_get,
     unescapeHTML,
 )
-from ..compat import (
-    compat_etree_fromstring,
-    compat_HTTPError,
-    compat_urlparse,
-)
+from .common import InfoExtractor
 
 
 class BBCCoUkIE(InfoExtractor):

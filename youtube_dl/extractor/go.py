@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
+    ExtractorError,
     determine_ext,
+    int_or_none,
     parse_age_limit,
     urlencode_postdata,
-    ExtractorError,
 )
+from .common import InfoExtractor
 
 
 class GoIE(InfoExtractor):

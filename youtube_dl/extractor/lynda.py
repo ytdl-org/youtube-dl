@@ -2,17 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_HTTPError, compat_str, compat_urlparse
+from ..utils import ExtractorError, int_or_none, urlencode_postdata
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    urlencode_postdata,
-)
 
 
 class LyndaBaseIE(InfoExtractor):

@@ -2,11 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import parse_duration, parse_iso8601
 from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    parse_iso8601,
-)
 
 
 class GodTubeIE(InfoExtractor):

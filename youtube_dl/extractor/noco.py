@@ -1,24 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import hashlib
 import re
 import time
-import hashlib
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
-    clean_html,
     ExtractorError,
-    int_or_none,
+    clean_html,
     float_or_none,
+    int_or_none,
     parse_iso8601,
     sanitized_Request,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class NocoIE(InfoExtractor):

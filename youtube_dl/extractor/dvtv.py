@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, js_to_json, unescapeHTML
 from .common import InfoExtractor
-from ..utils import (
-    js_to_json,
-    unescapeHTML,
-    ExtractorError,
-)
 
 
 class DVTVIE(InfoExtractor):

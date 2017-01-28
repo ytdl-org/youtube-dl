@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import json
 
+from ..utils import NO_DEFAULT, ExtractorError
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    NO_DEFAULT,
-)
 
 
 class EllenTVIE(InfoExtractor):

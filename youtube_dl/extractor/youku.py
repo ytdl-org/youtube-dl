@@ -8,15 +8,9 @@ import re
 import string
 import time
 
+from ..compat import compat_ord, compat_urllib_parse_urlencode
+from ..utils import ExtractorError, get_element_by_attribute
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_ord,
-)
-from ..utils import (
-    ExtractorError,
-    get_element_by_attribute,
-)
 
 
 class YoukuIE(InfoExtractor):

@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, js_to_json, parse_filesize, parse_iso8601
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    js_to_json,
-    parse_iso8601,
-    parse_filesize,
-)
 
 
 class TagesschauPlayerIE(InfoExtractor):
