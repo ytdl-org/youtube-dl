@@ -450,7 +450,7 @@ def parseOpts(overrideArguments=None):
         '--skip-unavailable-fragments',
         action='store_true', dest='skip_unavailable_fragments', default=True,
         help='Skip unavailable fragments (DASH and hlsnative only)')
-    general.add_option(
+    downloader.add_option(
         '--abort-on-unavailable-fragment',
         action='store_false', dest='skip_unavailable_fragments',
         help='Abort downloading when some fragment is not available')
