@@ -661,12 +661,12 @@ def parseOpts(overrideArguments=None):
         help=('Output filename template, see the "OUTPUT TEMPLATE" for all the info'))
     filesystem.add_option(
         '--autonumber-size',
-        dest='autonumber_size', metavar='NUMBER',
-        help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given')
+        dest='autonumber_size', metavar='NUMBER', default=5, type=int,
+        help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given (default is %default)')
     filesystem.add_option(
         '--autonumber-start',
-        dest='autonumber_start', metavar='NUMBER', type="int", default=1,
-        help='Specify the start value for the %(autonumber)s counter. Defaults to 1.')
+        dest='autonumber_start', metavar='NUMBER', default=1, type=int,
+        help='Specify the start value for %(autonumber)s (default is %default)')
     filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
