@@ -88,8 +88,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --mark-watched                   Mark videos watched (YouTube only)
     --no-mark-watched                Do not mark videos watched (YouTube only)
     --no-color                       Do not emit color codes in output
-    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
-                                     available
 
 ## Network Options:
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
@@ -99,16 +97,13 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      string (--proxy "") for direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
     --source-address IP              Client-side IP address to bind to
-                                     (experimental)
     -4, --force-ipv4                 Make all connections via IPv4
-                                     (experimental)
     -6, --force-ipv6                 Make all connections via IPv6
-                                     (experimental)
     --geo-verification-proxy URL     Use this proxy to verify the IP address for
                                      some geo-restricted sites. The default
                                      proxy specified by --proxy (or none, if the
                                      options is not present) is used for the
-                                     actual downloading. (experimental)
+                                     actual downloading.
 
 ## Video Selection:
     --playlist-start NUMBER          Playlist video to start at (default is 1)
@@ -139,23 +134,23 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      COUNT views
     --max-views COUNT                Do not download any videos with more than
                                      COUNT views
-    --match-filter FILTER            Generic video filter (experimental).
-                                     Specify any key (see help for -o for a list
-                                     of available keys) to match if the key is
-                                     present, !key to check if the key is not
-                                     present,key > NUMBER (like "comment_count >
-                                     12", also works with >=, <, <=, !=, =) to
-                                     compare against a number, and & to require
-                                     multiple matches. Values which are not
-                                     known are excluded unless you put a
-                                     question mark (?) after the operator.For
-                                     example, to only match videos that have
-                                     been liked more than 100 times and disliked
-                                     less than 50 times (or the dislike
-                                     functionality is not available at the given
-                                     service), but who also have a description,
-                                     use --match-filter "like_count > 100 &
-                                     dislike_count <? 50 & description" .
+    --match-filter FILTER            Generic video filter. Specify any key (see
+                                     help for -o for a list of available keys)
+                                     to match if the key is present, !key to
+                                     check if the key is not present,key >
+                                     NUMBER (like "comment_count > 12", also
+                                     works with >=, <, <=, !=, =) to compare
+                                     against a number, and & to require multiple
+                                     matches. Values which are not known are
+                                     excluded unless you put a question mark (?)
+                                     after the operator.For example, to only
+                                     match videos that have been liked more than
+                                     100 times and disliked less than 50 times
+                                     (or the dislike functionality is not
+                                     available at the given service), but who
+                                     also have a description, use --match-filter
+                                     "like_count > 100 & dislike_count <? 50 &
+                                     description" .
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to
@@ -178,6 +173,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      only)
     --skip-unavailable-fragments     Skip unavailable fragments (DASH and
                                      hlsnative only)
+    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
+                                     available
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -210,7 +207,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --autonumber-size NUMBER         Specify the number of digits in
                                      %(autonumber)s when it is present in output
                                      filename template or --auto-number option
-                                     is given
+                                     is given (default is 5)
+    --autonumber-start NUMBER        Specify the start value for %(autonumber)s
+                                     (default is 1)
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
