@@ -778,6 +778,7 @@ from .rentv import (
     RENTVIE,
     RENTVArticleIE,
 )
+from .reshet import ReshetIE
 from .restudy import RestudyIE
 from .reuters import ReutersIE
 from .reverbnation import ReverbNationIE
