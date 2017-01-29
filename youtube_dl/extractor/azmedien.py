@@ -5,8 +5,9 @@ import re
 from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
-    get_element_by_class,
+    get_element_by_id,
     strip_or_none,
+    urljoin,
 )
 
 
@@ -93,7 +94,12 @@ class AZMedienShowIE(AZMedienBaseIE):
                             telebaern\.tv|
                             telem1\.ch
                         )/
-                        (?P<id>[0-9]+-show-[^/\#]+
+                        (?P<id>[0-9]+-
+                            (?:
+                                show|
+                                topic|
+                                themen
+                            )-[^/\#]+
                             (?:
                                 /[0-9]+-episode-[^/\#]+
                             )?
@@ -108,6 +114,18 @@ class AZMedienShowIE(AZMedienBaseIE):
             'title': 'News - Donnerstag, 15. Dezember 2016',
         },
         'playlist_count': 9,
+    }, {
+        # URL with 'themen'
+        'url': 'http://www.telem1.ch/258-themen-tele-m1-classics',
+        'info_dict': {
+            'id': '258-themen-tele-m1-classics',
+            'title': 'Tele M1 Classics',
+        },
+        'playlist_mincount': 15,
+    }, {
+        # URL with 'topic'
+        'url': 'http://www.telezueri.ch/219-topic-aera-trump-hat-offiziell-begonnen',
+        'only_matching': True,
     }, {
         # URL with 'show' only
         'url': 'http://www.telezueri.ch/86-show-talktaeglich',
@@ -136,10 +154,16 @@ class AZMedienShowIE(AZMedienBaseIE):
                 for m in re.finditer(
                     r'<a[^>]+data-real=(["\'])(?P<url>http.+?)\1', webpage)]
 
+        if not entries:
+            entries = [
+                self.url_result(urljoin(url, m.group('url')))
+                for m in re.finditer(
+                    r'a[^>]+name=[^>]+href=(["\'])(?P<url>/.+?)\1', webpage)]
+
         title = self._search_regex(
             r'episodeShareTitle\s*=\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
             webpage, 'title',
-            default=strip_or_none(get_element_by_class(
-                'title-block-cell', webpage)), group='title')
+            default=strip_or_none(get_element_by_id(
+                'video-title', webpage)), group='title')
 
         return self.playlist_result(entries, show_id, title)
