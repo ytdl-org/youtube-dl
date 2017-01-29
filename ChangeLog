@@ -1,3 +1,24 @@
+version <unreleased>
+
+Core
+* [extractor/common] Fix initialization template (#11605, #11825)
++ [extractor/common] Document fragment_base_url and fragment's path fields
+* [extractor/common] Fix duration per DASH segment (#11868)
++ Introduce --autonumber-start option for initial value of %(autonumber)s
+  template (#727, #2702, #9362, #10457, #10529, #11862)
+
+Extractors
++ [azmedien:playlist] Add support for topic and themen playlists (#11817)
+* [npo] Fix subtitles extraction
++ [itv] Extract subtitles
++ [itv] Add support for itv.com (#9240)
++ [mtv81] Add support for mtv81.com (#7619)
++ [vlive] Add support for channels (#11826)
++ [kaltura] Add fallback for fileExt
++ [kaltura] Improve uploader_id extraction
++ [konserthusetplay] Add support for rspoplay.se (#11828)
+
+
 version 2017.01.28
 
 Core
