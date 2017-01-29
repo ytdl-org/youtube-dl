@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from math import isnan, isinf, log10
+from sys import float_info
 from types import FunctionType
 
 from ..compat import compat_str
@@ -63,8 +65,62 @@ def to_object(o):
         return o
 
 
-def to_string(value):
-    return value
+def to_primitive(o, hint):
+    return o
+
+
+def to_string(o):
+    if o is undefined:
+        return 'undefined'
+    elif o is null:
+        return 'null'
+    elif isinstance(o, JSBooleanPrototype):
+        if o is true:
+            return 'true'
+        elif o is false:
+            return 'false'
+    elif isinstance(o, JSNumberPrototype):
+        ov = o.value
+        if isnan(ov):
+            return 'NaN'
+        elif ov == 0.0:
+            return '0'
+        elif ov < 0:
+            return '-' + to_string(_to_js(-ov))
+        elif isinf(ov):
+            return 'Infinity'
+        else:
+            n = log10(ov)
+            c = 1 if 0 < n else 0
+            n = int(n)
+            k = 1
+
+            while True:
+                exp = 10 ** (n - k)
+                s = int(ov / exp)
+                if abs(ov - s * exp) < float_info.epsilon:
+                    break
+                k += 1
+
+            if s % 10 == 0:
+                s //= 10
+            n += c
+            m = '%d' % s
+
+            if k <= n <= 21:
+                return m[:k] + '0' * (n - k)
+            elif 0 < n <= 21:
+                return m[:n] + '.' + m[n:k]
+            elif -6 < n <= 0:
+                return '0.' + '0' * -n + m[:k]
+            elif k == 1:
+                return m[0] + 'e%+d' % (n - 1)
+            else:
+                return m[0] + '.' + m[:k] + 'e%+d' % (n - 1)
+
+    elif isinstance(o, JSObjectPrototype):
+        prim_value = to_primitive(o, 'String')
+        return to_string(prim_value)
 
 
 class JSBase(object):
@@ -255,7 +311,7 @@ class JSFunctionPrototype(JSObjectPrototype):
             else:
                 super(JSFunctionPrototype, self).__init__()
                 body = _to_js(body)
-                self.body = body.call_prop('toString') if body is not undefined or body is not null else ''
+                self.body = to_string(body) if body is not undefined or body is not null else ''
             self.f_name = name
             self.arguments = list(formal_args)
             # FIXME: JSProtoBase sets body to '' instead of None
@@ -588,7 +644,6 @@ class JSString(JSObject):
     }
 
 
-
 class JSBooleanPrototype(JSObjectPrototype):
     pass
 
@@ -597,7 +652,6 @@ class JSBoolean(JSObject):
     @staticmethod
     def construct(value=None):
         pass
-
 
 
 class JSNumberPrototype(JSObjectPrototype):
