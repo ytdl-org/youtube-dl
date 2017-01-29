@@ -1,10 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import qualities, str_or_none
 from .common import InfoExtractor
-from ..utils import (
-    qualities,
-    str_or_none,
-)
 
 
 class ReverbNationIE(InfoExtractor):

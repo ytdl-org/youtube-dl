@@ -1,10 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import parse_duration, unescapeHTML
 from .common import InfoExtractor
-from ..utils import (
-    unescapeHTML,
-    parse_duration,
-)
 
 
 class MovingImageIE(InfoExtractor):

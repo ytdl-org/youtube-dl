@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     find_xpath_attr,
     fix_xml_ampersands,
     int_or_none,
@@ -13,6 +12,7 @@ from ..utils import (
     update_url_query,
     xpath_text,
 )
+from .common import InfoExtractor
 
 
 class RaiBaseIE(InfoExtractor):

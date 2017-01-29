@@ -7,24 +7,20 @@ import hashlib
 import re
 import time
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_ord,
-    compat_str,
-    compat_urllib_parse_urlencode,
-)
+from ..compat import compat_ord, compat_str, compat_urllib_parse_urlencode
 from ..utils import (
+    ExtractorError,
     determine_ext,
     encode_data_uri,
-    ExtractorError,
     int_or_none,
     orderedSet,
     parse_iso8601,
     str_or_none,
+    update_url_query,
     url_basename,
     urshift,
-    update_url_query,
 )
+from .common import InfoExtractor
 
 
 class LeIE(InfoExtractor):

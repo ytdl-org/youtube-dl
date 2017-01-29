@@ -2,15 +2,10 @@
 from __future__ import unicode_literals
 
 import re
+
+from ..compat import compat_parse_qs, compat_urlparse
+from ..utils import ExtractorError, unsmuggle_url
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    unsmuggle_url,
-)
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
 
 
 class SenateISVPIE(InfoExtractor):

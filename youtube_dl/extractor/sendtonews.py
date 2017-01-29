@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
 from ..utils import (
-    float_or_none,
-    parse_iso8601,
-    update_url_query,
-    int_or_none,
     determine_protocol,
+    float_or_none,
+    int_or_none,
+    parse_iso8601,
     unescapeHTML,
+    update_url_query,
 )
+from .jwplatform import JWPlatformBaseIE
 
 
 class SendtoNewsIE(JWPlatformBaseIE):

@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import base64
 
+from ..utils import ExtractorError, int_or_none, urlencode_postdata
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    urlencode_postdata,
-)
 
 
 class SharedBaseIE(InfoExtractor):

@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import ExtractorError, js_to_json
 from .jwplatform import JWPlatformBaseIE
-from ..utils import (
-    ExtractorError,
-    js_to_json,
-)
 
 
 class OnDemandKoreaIE(JWPlatformBaseIE):

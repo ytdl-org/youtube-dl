@@ -5,14 +5,10 @@ import json
 import os
 import random
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
-    dict_get,
     ExtractorError,
+    dict_get,
     float_or_none,
     int_or_none,
     parse_duration,
@@ -20,6 +16,7 @@ from ..utils import (
     srt_subtitles_timecode,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class PluralsightBaseIE(InfoExtractor):

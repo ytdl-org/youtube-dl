@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from ..aes import aes_decrypt_text
 from ..utils import (
     int_or_none,
     sanitized_Request,
@@ -10,7 +10,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
 )
-from ..aes import aes_decrypt_text
+from .common import InfoExtractor
 
 
 class YouPornIE(InfoExtractor):

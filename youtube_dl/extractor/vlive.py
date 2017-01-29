@@ -1,24 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 import time
-import itertools
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_str,
-)
+from ..compat import compat_str, compat_urllib_parse_urlencode
 from ..utils import (
-    dict_get,
     ExtractorError,
+    dict_get,
     float_or_none,
     int_or_none,
     remove_start,
     try_get,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class VLiveIE(InfoExtractor):

@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 import base64
 
-from .common import InfoExtractor
 from ..compat import compat_parse_qs
+from .common import InfoExtractor
 
 
 class TutvIE(InfoExtractor):

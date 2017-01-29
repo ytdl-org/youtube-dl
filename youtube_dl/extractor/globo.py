@@ -1,16 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import math
 import random
 import re
-import math
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_chr,
-    compat_ord,
-)
+from ..compat import compat_chr, compat_ord, compat_str
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -18,6 +13,7 @@ from ..utils import (
     orderedSet,
     str_or_none,
 )
+from .common import InfoExtractor
 
 
 class GloboIE(InfoExtractor):

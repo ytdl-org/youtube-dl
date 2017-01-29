@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import get_element_by_class, js_to_json, unified_strdate
 from .jwplatform import JWPlatformBaseIE
-from ..utils import (
-    js_to_json,
-    get_element_by_class,
-    unified_strdate,
-)
 
 
 class RudoIE(JWPlatformBaseIE):

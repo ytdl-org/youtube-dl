@@ -1,13 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    parse_iso8601,
-    js_to_json,
-)
 from ..compat import compat_str
+from ..utils import js_to_json, parse_duration, parse_iso8601
+from .common import InfoExtractor
 
 
 class RDSIE(InfoExtractor):

@@ -1,12 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    unified_strdate,
-)
 from ..compat import compat_urlparse
+from ..utils import int_or_none, unified_strdate
+from .common import InfoExtractor
 
 
 class DWIE(InfoExtractor):

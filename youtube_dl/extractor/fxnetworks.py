@@ -1,13 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .adobepass import AdobePassIE
 from ..utils import (
-    update_url_query,
     extract_attributes,
     parse_age_limit,
     smuggle_url,
+    update_url_query,
 )
+from .adobepass import AdobePassIE
 
 
 class FXNetworksIE(AdobePassIE):

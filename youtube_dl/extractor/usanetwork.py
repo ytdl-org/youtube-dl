@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import extract_attributes, smuggle_url, update_url_query
 from .adobepass import AdobePassIE
-from ..utils import (
-    extract_attributes,
-    smuggle_url,
-    update_url_query,
-)
 
 
 class USANetworkIE(AdobePassIE):

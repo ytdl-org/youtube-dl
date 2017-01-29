@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals
 
-
 import itertools
 import json
 import os.path
@@ -11,23 +10,23 @@ import re
 import time
 import traceback
 
-from .common import InfoExtractor, SearchInfoExtractor
-from ..jsinterp import JSInterpreter
-from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
-    compat_str,
 )
+from ..jsinterp import JSInterpreter
+from ..swfinterp import SWFInterpreter
 from ..utils import (
+    ExtractorError,
+    ISO3166Utils,
     clean_html,
     error_to_compat_str,
-    ExtractorError,
     float_or_none,
     get_element_by_attribute,
     get_element_by_id,
@@ -46,8 +45,8 @@ from ..utils import (
     unsmuggle_url,
     uppercase_escape,
     urlencode_postdata,
-    ISO3166Utils,
 )
+from .common import InfoExtractor, SearchInfoExtractor
 
 
 class YoutubeBaseInfoExtractor(InfoExtractor):

@@ -2,14 +2,9 @@ from __future__ import unicode_literals
 
 import itertools
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    float_or_none,
-    parse_iso8601,
-)
+from ..utils import ExtractorError, float_or_none, int_or_none, parse_iso8601
+from .common import InfoExtractor
 
 
 class VidmeIE(InfoExtractor):

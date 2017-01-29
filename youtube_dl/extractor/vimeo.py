@@ -1,33 +1,29 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import json
 import re
-import itertools
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_HTTPError, compat_str, compat_urlparse
 from ..utils import (
-    determine_ext,
+    NO_DEFAULT,
     ExtractorError,
     InAdvancePagedList,
-    int_or_none,
-    NO_DEFAULT,
     RegexNotFoundError,
+    determine_ext,
+    int_or_none,
+    parse_filesize,
     sanitized_Request,
     smuggle_url,
     std_headers,
+    try_get,
+    unescapeHTML,
     unified_strdate,
     unsmuggle_url,
     urlencode_postdata,
-    unescapeHTML,
-    parse_filesize,
-    try_get,
 )
+from .common import InfoExtractor
 
 
 class VimeoBaseInfoExtractor(InfoExtractor):

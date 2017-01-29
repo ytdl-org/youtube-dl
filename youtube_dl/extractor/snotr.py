@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import parse_duration, parse_filesize, str_to_int
 from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    parse_filesize,
-    str_to_int,
-)
 
 
 class SnotrIE(InfoExtractor):

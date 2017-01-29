@@ -3,12 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-)
+from ..utils import ExtractorError, int_or_none
+from .common import InfoExtractor
 
 
 class ViuBaseIE(InfoExtractor):

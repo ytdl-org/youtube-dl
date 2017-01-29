@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     determine_protocol,
-    parse_duration,
     int_or_none,
+    parse_duration,
 )
+from .common import InfoExtractor
 
 
 class Lecture2GoIE(InfoExtractor):

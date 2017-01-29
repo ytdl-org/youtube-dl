@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
@@ -13,6 +12,7 @@ from ..utils import (
     mimetype2ext,
     urljoin,
 )
+from .common import InfoExtractor
 
 
 class JWPlatformBaseIE(InfoExtractor):

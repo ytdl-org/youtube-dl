@@ -1,14 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import base64
+import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_str,
-)
+from ..compat import compat_str, compat_urllib_parse_urlencode
 from ..utils import (
     int_or_none,
     parse_iso8601,
@@ -16,6 +12,7 @@ from ..utils import (
     unsmuggle_url,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class AWAANIE(InfoExtractor):

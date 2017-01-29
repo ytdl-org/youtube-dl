@@ -1,14 +1,11 @@
 from __future__ import unicode_literals
 
-import re
 import base64
 import json
+import re
 
+from ..utils import ExtractorError, clean_html
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    ExtractorError
-)
 
 
 class ChilloutzoneIE(InfoExtractor):

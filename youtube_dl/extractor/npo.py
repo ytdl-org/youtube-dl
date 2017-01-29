@@ -2,17 +2,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
+    ExtractorError,
     fix_xml_ampersands,
     orderedSet,
     parse_duration,
     qualities,
     strip_jsonp,
     unified_strdate,
-    ExtractorError,
 )
+from .common import InfoExtractor
 
 
 class NPOBaseIE(InfoExtractor):

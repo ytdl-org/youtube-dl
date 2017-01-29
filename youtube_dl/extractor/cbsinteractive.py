@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .theplatform import ThePlatformIE
 from ..utils import int_or_none
+from .theplatform import ThePlatformIE
 
 
 class CBSInteractiveIE(ThePlatformIE):

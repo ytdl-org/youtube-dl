@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from .brightcove import BrightcoveNewIE
+from .common import InfoExtractor
 
 
 class TVANouvellesIE(InfoExtractor):

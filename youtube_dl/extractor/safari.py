@@ -3,15 +3,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-
 from ..utils import (
     ExtractorError,
     sanitized_Request,
     std_headers,
-    urlencode_postdata,
     update_url_query,
+    urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class SafariBaseIE(InfoExtractor):

@@ -2,12 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlencode
-from ..utils import (
-    ExtractorError,
-    unescapeHTML
-)
+from ..utils import ExtractorError, unescapeHTML
+from .common import InfoExtractor
 
 
 class EroProfileIE(InfoExtractor):

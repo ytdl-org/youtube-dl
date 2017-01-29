@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
-    decode_packed_codes,
-    ExtractorError,
-    int_or_none,
     NO_DEFAULT,
+    ExtractorError,
+    decode_packed_codes,
+    int_or_none,
     sanitized_Request,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class XFileShareIE(InfoExtractor):

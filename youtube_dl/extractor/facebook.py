@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 import socket
 
-from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
     compat_http_client,
@@ -12,15 +11,16 @@ from ..compat import (
     compat_urllib_parse_unquote_plus,
 )
 from ..utils import (
-    error_to_compat_str,
     ExtractorError,
+    clean_html,
+    error_to_compat_str,
+    get_element_by_id,
     int_or_none,
     limit_length,
     sanitized_Request,
     urlencode_postdata,
-    get_element_by_id,
-    clean_html,
 )
+from .common import InfoExtractor
 
 
 class FacebookIE(InfoExtractor):

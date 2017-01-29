@@ -3,13 +3,9 @@ from __future__ import unicode_literals
 
 import base64
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
-from ..utils import (
-    ExtractorError,
-    parse_iso8601,
-    parse_duration,
-)
+from ..utils import ExtractorError, parse_duration, parse_iso8601
+from .common import InfoExtractor
 
 
 class XuiteIE(InfoExtractor):

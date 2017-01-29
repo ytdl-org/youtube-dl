@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 import datetime
 import re
 
+from ..utils import ExtractorError, str_to_int, unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    str_to_int,
-    unified_strdate,
-)
 
 
 class MotherlessIE(InfoExtractor):

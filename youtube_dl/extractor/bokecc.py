@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_parse_qs
 from ..utils import ExtractorError
+from .common import InfoExtractor
 
 
 class BokeCCBaseIE(InfoExtractor):

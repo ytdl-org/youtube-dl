@@ -2,13 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import dict_get, int_or_none, parse_duration, unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    dict_get,
-    int_or_none,
-    parse_duration,
-    unified_strdate,
-)
 
 
 class XHamsterIE(InfoExtractor):

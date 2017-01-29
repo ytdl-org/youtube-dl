@@ -2,15 +2,15 @@
 
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     ExtractorError,
-    int_or_none,
     InAdvancePagedList,
     float_or_none,
+    int_or_none,
     unescapeHTML,
 )
+from .common import InfoExtractor
 
 
 class TudouIE(InfoExtractor):

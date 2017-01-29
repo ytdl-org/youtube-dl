@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    float_or_none,
-    parse_iso8601,
-    unescapeHTML,
-    ExtractorError,
-)
+from ..utils import ExtractorError, float_or_none, parse_iso8601, unescapeHTML
+from .common import InfoExtractor
 
 
 class RteBaseIE(InfoExtractor):

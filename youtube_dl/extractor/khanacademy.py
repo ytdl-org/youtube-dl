@@ -2,10 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-)
 
 
 class KhanAcademyIE(InfoExtractor):

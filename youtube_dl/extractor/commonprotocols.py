@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
+from ..compat import compat_urlparse
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-)
 
 
 class RtmpIE(InfoExtractor):

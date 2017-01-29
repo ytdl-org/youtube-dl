@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import ExtractorError, int_or_none, parse_iso8601
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    parse_iso8601,
-)
 
 
 class TriluliluIE(InfoExtractor):

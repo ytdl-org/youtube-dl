@@ -1,16 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..compat import compat_str, compat_urlparse
+from ..utils import int_or_none, qualities, unified_strdate
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    int_or_none,
-    qualities,
-    unified_strdate,
-)
 
 
 class FirstTVIE(InfoExtractor):

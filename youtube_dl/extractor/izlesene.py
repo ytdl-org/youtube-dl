@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     determine_ext,
@@ -13,6 +12,7 @@ from ..utils import (
     parse_iso8601,
     str_to_int,
 )
+from .common import InfoExtractor
 
 
 class IzleseneIE(InfoExtractor):

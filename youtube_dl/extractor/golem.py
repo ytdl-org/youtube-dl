@@ -1,13 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..compat import compat_urlparse
+from ..utils import determine_ext
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-)
-from ..utils import (
-    determine_ext,
-)
 
 
 class GolemIE(InfoExtractor):

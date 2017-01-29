@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
-    clean_html,
-    get_element_by_attribute,
     ExtractorError,
+    clean_html,
+    determine_ext,
+    get_element_by_attribute,
 )
+from .common import InfoExtractor
 
 
 class TVPIE(InfoExtractor):

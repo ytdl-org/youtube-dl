@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import determine_ext, remove_end
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    remove_end,
-)
 
 
 class TelegraafIE(InfoExtractor):

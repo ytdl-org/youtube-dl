@@ -2,13 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, int_or_none, str_to_int, unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    str_to_int,
-    unified_strdate,
-)
 
 
 class RedTubeIE(InfoExtractor):

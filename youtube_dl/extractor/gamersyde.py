@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import js_to_json, parse_duration, remove_start
 from .common import InfoExtractor
-from ..utils import (
-    js_to_json,
-    parse_duration,
-    remove_start,
-)
 
 
 class GamersydeIE(InfoExtractor):

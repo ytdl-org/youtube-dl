@@ -2,16 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str, compat_urlparse
+from ..utils import js_to_json, parse_duration, parse_iso8601
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-    compat_str,
-)
-from ..utils import (
-    parse_duration,
-    js_to_json,
-    parse_iso8601,
-)
 
 
 class ViideaIE(InfoExtractor):

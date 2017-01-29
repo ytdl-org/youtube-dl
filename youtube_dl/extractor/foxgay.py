@@ -2,11 +2,8 @@ from __future__ import unicode_literals
 
 import itertools
 
+from ..utils import get_element_by_id, remove_end
 from .common import InfoExtractor
-from ..utils import (
-    get_element_by_id,
-    remove_end,
-)
 
 
 class FoxgayIE(InfoExtractor):

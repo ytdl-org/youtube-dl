@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import decode_packed_codes, sanitized_Request
 from .common import InfoExtractor
-from ..utils import (
-    decode_packed_codes,
-    sanitized_Request,
-)
 
 
 class VideoMegaIE(InfoExtractor):

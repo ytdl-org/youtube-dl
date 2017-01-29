@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import NO_DEFAULT, ExtractorError, remove_start
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    NO_DEFAULT,
-    remove_start
-)
 
 
 class OdaTVIE(InfoExtractor):

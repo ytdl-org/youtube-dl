@@ -1,11 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import hmac
-import hashlib
 import base64
+import hashlib
+import hmac
 
-from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     float_or_none,
@@ -15,6 +14,7 @@ from ..utils import (
     parse_iso8601,
     remove_start,
 )
+from .common import InfoExtractor
 
 
 class NYTimesBaseIE(InfoExtractor):

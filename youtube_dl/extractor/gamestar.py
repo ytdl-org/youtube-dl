@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import int_or_none, remove_end
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    remove_end,
-)
 
 
 class GameStarIE(InfoExtractor):

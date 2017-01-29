@@ -2,16 +2,16 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    determine_ext,
+    float_or_none,
     int_or_none,
+    qualities,
     unified_strdate,
     xpath_text,
-    determine_ext,
-    qualities,
-    float_or_none,
-    ExtractorError,
 )
+from .common import InfoExtractor
 
 
 class DreiSatIE(InfoExtractor):

@@ -1,21 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from hashlib import md5
+import re
 from base64 import b64encode
 from datetime import datetime
-import re
+from hashlib import md5
 
-from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_str,
     compat_itertools_count,
+    compat_str,
+    compat_urllib_parse_urlencode,
 )
-from ..utils import (
-    sanitized_Request,
-    float_or_none,
-)
+from ..utils import float_or_none, sanitized_Request
+from .common import InfoExtractor
 
 
 class NetEaseMusicBaseIE(InfoExtractor):

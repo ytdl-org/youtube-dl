@@ -1,23 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
 import itertools
-
-from .common import InfoExtractor
+import json
+import re
 
 from ..utils import (
+    ExtractorError,
     determine_ext,
     error_to_compat_str,
-    ExtractorError,
     int_or_none,
+    mimetype2ext,
     parse_iso8601,
     sanitized_Request,
     str_to_int,
     unescapeHTML,
-    mimetype2ext,
 )
+from .common import InfoExtractor
 
 
 class DailymotionBaseInfoExtractor(InfoExtractor):

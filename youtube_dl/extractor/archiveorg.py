@@ -1,10 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import clean_html, unified_strdate
 from .jwplatform import JWPlatformBaseIE
-from ..utils import (
-    unified_strdate,
-    clean_html,
-)
 
 
 class ArchiveOrgIE(JWPlatformBaseIE):

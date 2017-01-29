@@ -3,13 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    unescapeHTML,
-    parse_duration,
-    get_element_by_class,
-)
+from ..utils import get_element_by_class, parse_duration, unescapeHTML
+from .common import InfoExtractor
 
 
 class LEGOIE(InfoExtractor):

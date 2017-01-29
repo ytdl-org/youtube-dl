@@ -5,24 +5,17 @@ import itertools
 import json
 import re
 
-from .common import InfoExtractor, SearchInfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-    compat_urlparse,
-)
+from ..compat import compat_urllib_parse, compat_urlparse
 from ..utils import (
-    clean_html,
-    unescapeHTML,
     ExtractorError,
+    clean_html,
+    determine_ext,
     int_or_none,
     mimetype2ext,
-    determine_ext,
+    unescapeHTML,
 )
-
-from .brightcove import (
-    BrightcoveLegacyIE,
-    BrightcoveNewIE,
-)
+from .brightcove import BrightcoveLegacyIE, BrightcoveNewIE
+from .common import InfoExtractor, SearchInfoExtractor
 from .nbc import NBCSportsVPlayerIE
 
 

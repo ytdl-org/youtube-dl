@@ -2,19 +2,16 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_parse_qs, compat_urllib_parse_unquote
 from ..utils import (
-    determine_ext,
     ExtractorError,
-    int_or_none,
-    urlencode_postdata,
+    determine_ext,
     get_element_by_attribute,
+    int_or_none,
     mimetype2ext,
+    urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class MetacafeIE(InfoExtractor):

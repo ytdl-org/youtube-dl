@@ -4,14 +4,14 @@ from __future__ import unicode_literals
 import hashlib
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_parse_qs
 from ..utils import (
-    int_or_none,
     float_or_none,
+    int_or_none,
     unified_timestamp,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class BiliBiliIE(InfoExtractor):

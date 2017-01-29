@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
     determine_ext,
-    int_or_none,
     float_or_none,
+    int_or_none,
     js_to_json,
     parse_iso8601,
     remove_end,
 )
+from .common import InfoExtractor
 
 
 class TV2IE(InfoExtractor):

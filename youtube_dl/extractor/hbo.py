@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, parse_duration, xpath_element, xpath_text
 from .common import InfoExtractor
-from ..utils import (
-    xpath_text,
-    xpath_element,
-    int_or_none,
-    parse_duration,
-)
 
 
 class HBOBaseIE(InfoExtractor):

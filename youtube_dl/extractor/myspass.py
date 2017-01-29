@@ -1,13 +1,10 @@
 from __future__ import unicode_literals
+
 import os.path
 
+from ..compat import compat_urllib_parse_urlparse
+from ..utils import ExtractorError
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-)
 
 
 class MySpassIE(InfoExtractor):

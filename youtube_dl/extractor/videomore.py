@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, xpath_element, xpath_text
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    xpath_element,
-    xpath_text,
-)
 
 
 class VideomoreIE(InfoExtractor):

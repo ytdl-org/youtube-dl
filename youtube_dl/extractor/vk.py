@@ -5,14 +5,10 @@ import collections
 import re
 import sys
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
-    clean_html,
     ExtractorError,
+    clean_html,
     get_element_by_class,
     int_or_none,
     orderedSet,
@@ -22,6 +18,7 @@ from ..utils import (
     unified_timestamp,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 from .dailymotion import DailymotionIE
 from .pladform import PladformIE
 from .vimeo import VimeoIE

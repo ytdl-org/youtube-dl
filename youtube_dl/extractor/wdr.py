@@ -3,16 +3,16 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     js_to_json,
     strip_jsonp,
     unified_strdate,
     update_url_query,
     urlhandle_detect_ext,
 )
+from .common import InfoExtractor
 
 
 class WDRBaseIE(InfoExtractor):

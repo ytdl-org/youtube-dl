@@ -4,13 +4,13 @@ import base64
 import datetime
 import hashlib
 import json
+import math
 import netrc
 import os
 import re
 import socket
 import sys
 import time
-import math
 
 from ..compat import (
     compat_cookiejar,
@@ -29,37 +29,37 @@ from ..compat import (
 from ..downloader.f4m import remove_encrypted_media
 from ..utils import (
     NO_DEFAULT,
+    ExtractorError,
+    RegexNotFoundError,
     age_restricted,
     base_url,
     bug_reports_message,
     clean_html,
     compiled_regex_type,
     determine_ext,
+    determine_protocol,
     error_to_compat_str,
-    ExtractorError,
+    extract_attributes,
     fix_xml_ampersands,
     float_or_none,
     int_or_none,
+    mimetype2ext,
+    parse_codecs,
+    parse_duration,
     parse_iso8601,
-    RegexNotFoundError,
+    parse_m3u8_attributes,
     sanitize_filename,
     sanitized_Request,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
+    update_Request,
+    update_url_query,
     url_basename,
+    urljoin,
     xpath_element,
     xpath_text,
     xpath_with_ns,
-    determine_protocol,
-    parse_duration,
-    mimetype2ext,
-    update_Request,
-    update_url_query,
-    parse_m3u8_attributes,
-    extract_attributes,
-    parse_codecs,
-    urljoin,
 )
 
 

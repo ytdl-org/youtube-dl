@@ -3,17 +3,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     float_or_none,
     int_or_none,
     mimetype2ext,
     parse_iso8601,
     strip_jsonp,
 )
+from .common import InfoExtractor
 
 
 class ArkenaIE(InfoExtractor):

@@ -3,17 +3,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .adobepass import AdobePassIE
 from ..compat import compat_str
 from ..utils import (
-    xpath_text,
-    int_or_none,
-    determine_ext,
-    parse_duration,
-    xpath_attr,
-    update_url_query,
     ExtractorError,
+    determine_ext,
+    int_or_none,
+    parse_duration,
+    update_url_query,
+    xpath_attr,
+    xpath_text,
 )
+from .adobepass import AdobePassIE
 
 
 class TurnerBaseIE(AdobePassIE):

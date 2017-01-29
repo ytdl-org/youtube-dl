@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .anvato import AnvatoIE
 from ..utils import js_to_json
+from .anvato import AnvatoIE
 
 
 class FOX9IE(AnvatoIE):

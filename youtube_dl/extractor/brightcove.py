@@ -1,34 +1,34 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
-from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
+    compat_HTTPError,
     compat_parse_qs,
     compat_str,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_xml_parse_error,
-    compat_HTTPError,
 )
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    clean_html,
+    determine_ext,
     find_xpath_attr,
     fix_xml_ampersands,
     float_or_none,
-    js_to_json,
     int_or_none,
+    js_to_json,
+    mimetype2ext,
     parse_iso8601,
     unescapeHTML,
     unsmuggle_url,
     update_url_query,
-    clean_html,
-    mimetype2ext,
 )
+from .common import InfoExtractor
 
 
 class BrightcoveLegacyIE(InfoExtractor):

@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import unescapeHTML
 from .common import InfoExtractor
 from .ooyala import OoyalaIE
-from ..utils import unescapeHTML
 
 
 class NintendoIE(InfoExtractor):

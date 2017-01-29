@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from .mtv import MTVServicesInfoExtractor
 from .common import InfoExtractor
+from .mtv import MTVServicesInfoExtractor
 
 
 class ComedyCentralIE(MTVServicesInfoExtractor):

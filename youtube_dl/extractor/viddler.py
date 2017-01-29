@@ -1,15 +1,8 @@
 from __future__ import unicode_literals
 
+from ..compat import compat_urllib_parse_urlencode, compat_urlparse
+from ..utils import float_or_none, int_or_none, sanitized_Request
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
-from ..utils import (
-    float_or_none,
-    int_or_none,
-    sanitized_Request,
-)
 
 
 class ViddlerIE(InfoExtractor):

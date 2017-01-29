@@ -1,14 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
 import base64
+import json
+import re
 import zlib
-
 from hashlib import sha1
-from math import pow, sqrt, floor
-from .common import InfoExtractor
+from math import floor, pow, sqrt
+
+from ..aes import aes_cbc_decrypt
 from ..compat import (
     compat_etree_fromstring,
     compat_urllib_parse_urlencode,
@@ -18,19 +18,17 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     bytes_to_intlist,
-    intlist_to_bytes,
+    extract_attributes,
     int_or_none,
+    intlist_to_bytes,
     lowercase_escape,
     remove_end,
     sanitized_Request,
     unified_strdate,
     urlencode_postdata,
     xpath_text,
-    extract_attributes,
 )
-from ..aes import (
-    aes_cbc_decrypt,
-)
+from .common import InfoExtractor
 
 
 class CrunchyrollBaseIE(InfoExtractor):

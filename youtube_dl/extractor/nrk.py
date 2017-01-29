@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import random
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
@@ -12,6 +11,7 @@ from ..utils import (
     parse_age_limit,
     parse_duration,
 )
+from .common import InfoExtractor
 
 
 class NRKBaseIE(InfoExtractor):

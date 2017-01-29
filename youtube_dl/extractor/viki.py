@@ -8,7 +8,6 @@ import json
 import re
 import time
 
-from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -16,6 +15,7 @@ from ..utils import (
     parse_iso8601,
     sanitized_Request,
 )
+from .common import InfoExtractor
 
 
 class VikiBaseIE(InfoExtractor):

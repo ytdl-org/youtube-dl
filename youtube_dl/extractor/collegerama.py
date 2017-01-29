@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import json
 
+from ..utils import float_or_none, int_or_none, sanitized_Request
 from .common import InfoExtractor
-from ..utils import (
-    float_or_none,
-    int_or_none,
-    sanitized_Request,
-)
 
 
 class CollegeRamaIE(InfoExtractor):

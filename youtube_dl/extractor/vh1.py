@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
-from .mtv import MTVIE
-
 import re
+
 from ..utils import fix_xml_ampersands
+from .mtv import MTVIE
 
 
 class VH1IE(MTVIE):

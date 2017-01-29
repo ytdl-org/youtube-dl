@@ -1,14 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import (
     clean_html,
     int_or_none,
     parse_duration,
-    update_url_query,
     str_or_none,
+    update_url_query,
 )
+from .common import InfoExtractor
 
 
 class UOLIE(InfoExtractor):

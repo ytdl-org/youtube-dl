@@ -5,7 +5,7 @@ import itertools
 import os
 import re
 
-from .common import InfoExtractor
+from ..aes import aes_decrypt_text
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse_unquote,
@@ -20,9 +20,7 @@ from ..utils import (
     sanitized_Request,
     str_to_int,
 )
-from ..aes import (
-    aes_decrypt_text
-)
+from .common import InfoExtractor
 
 
 class PornHubIE(InfoExtractor):

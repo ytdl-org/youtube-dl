@@ -5,11 +5,7 @@ import random
 import re
 import time
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -18,6 +14,7 @@ from ..utils import (
     unescapeHTML,
     update_url_query,
 )
+from .common import InfoExtractor
 
 
 class BandcampIE(InfoExtractor):

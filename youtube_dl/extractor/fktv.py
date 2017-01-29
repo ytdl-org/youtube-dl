@@ -1,11 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import clean_html, determine_ext, js_to_json
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    determine_ext,
-    js_to_json,
-)
 
 
 class FKTVIE(InfoExtractor):

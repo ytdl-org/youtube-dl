@@ -1,12 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    remove_start,
-    sanitized_Request,
-)
+from ..utils import remove_start, sanitized_Request
+from .common import InfoExtractor
 
 
 class EinthusanIE(InfoExtractor):

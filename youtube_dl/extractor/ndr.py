@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, int_or_none, parse_iso8601, qualities
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    parse_iso8601,
-    qualities,
-)
 
 
 class NDRBaseIE(InfoExtractor):

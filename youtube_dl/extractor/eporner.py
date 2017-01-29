@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    encode_base_n,
     ExtractorError,
+    encode_base_n,
     int_or_none,
     parse_duration,
     str_to_int,
 )
+from .common import InfoExtractor
 
 
 class EpornerIE(InfoExtractor):

@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, int_or_none, qualities, xpath_text
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    xpath_text,
-    qualities,
-)
 
 
 class PladformIE(InfoExtractor):

@@ -3,14 +3,14 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from .spiegeltv import SpiegeltvIE
 from ..compat import compat_urlparse
 from ..utils import (
     extract_attributes,
-    unified_strdate,
     get_element_by_attribute,
+    unified_strdate,
 )
+from .common import InfoExtractor
+from .spiegeltv import SpiegeltvIE
 
 
 class SpiegelIE(InfoExtractor):

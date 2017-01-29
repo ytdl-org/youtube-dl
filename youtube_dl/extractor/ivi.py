@@ -1,15 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
+from ..utils import ExtractorError, int_or_none, qualities
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    qualities,
-)
 
 
 class IviIE(InfoExtractor):

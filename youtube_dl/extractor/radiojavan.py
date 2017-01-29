@@ -2,11 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import str_to_int, unified_strdate
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-    str_to_int,
-)
 
 
 class RadioJavanIE(InfoExtractor):

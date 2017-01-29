@@ -2,15 +2,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    unescapeHTML,
-    find_xpath_attr,
-    smuggle_url,
-    determine_ext,
     ExtractorError,
+    determine_ext,
+    find_xpath_attr,
+    int_or_none,
+    smuggle_url,
+    unescapeHTML,
 )
+from .common import InfoExtractor
 from .senateisvp import SenateISVPIE
 from .ustream import UstreamIE
 

@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .turner import TurnerBaseIE
 from ..utils import extract_attributes
+from .turner import TurnerBaseIE
 
 
 class TBSIE(TurnerBaseIE):

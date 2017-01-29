@@ -2,9 +2,8 @@
 from __future__ import unicode_literals
 
 import re
-
 from hashlib import sha1
-from .common import InfoExtractor
+
 from ..compat import compat_str
 from ..utils import (
     ExtractorError,
@@ -13,6 +12,7 @@ from ..utils import (
     int_or_none,
     unified_strdate,
 )
+from .common import InfoExtractor
 
 
 class ProSiebenSat1BaseIE(InfoExtractor):

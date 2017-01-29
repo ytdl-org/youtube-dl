@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
 from ..utils import (
-    decode_packed_codes,
-    js_to_json,
     NO_DEFAULT,
     PACKED_CODES_RE,
+    decode_packed_codes,
+    js_to_json,
 )
+from .jwplatform import JWPlatformBaseIE
 
 
 class VidziIE(JWPlatformBaseIE):

@@ -1,11 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -13,6 +9,7 @@ from ..utils import (
     str_to_int,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class PandoraTVIE(InfoExtractor):

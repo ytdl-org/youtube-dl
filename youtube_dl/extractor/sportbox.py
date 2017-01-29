@@ -3,12 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    js_to_json,
-    unified_strdate,
-)
+from ..utils import js_to_json, unified_strdate
+from .common import InfoExtractor
 
 
 class SportBoxIE(InfoExtractor):

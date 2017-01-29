@@ -2,11 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, sanitized_Request
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    sanitized_Request,
-)
 
 
 class EveryonesMixtapeIE(InfoExtractor):

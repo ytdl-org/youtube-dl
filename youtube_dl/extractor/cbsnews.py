@@ -1,11 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+from ..utils import parse_duration
 from .cbs import CBSIE
-from ..utils import (
-    parse_duration,
-)
+from .common import InfoExtractor
 
 
 class CBSNewsIE(CBSIE):

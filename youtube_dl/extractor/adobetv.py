@@ -2,17 +2,17 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    parse_duration,
-    unified_strdate,
-    str_to_int,
-    int_or_none,
-    float_or_none,
     ISO639Utils,
     determine_ext,
+    float_or_none,
+    int_or_none,
+    parse_duration,
+    str_to_int,
+    unified_strdate,
 )
+from .common import InfoExtractor
 
 
 class AdobeTVBaseIE(InfoExtractor):

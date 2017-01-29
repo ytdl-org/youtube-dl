@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import clean_html, get_element_by_class, js_to_json
 from .jwplatform import JWPlatformBaseIE
-from ..utils import (
-    clean_html,
-    get_element_by_class,
-    js_to_json,
-)
 
 
 class TVNoeIE(JWPlatformBaseIE):

@@ -1,17 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
 
+from ..compat import compat_str
+from ..utils import determine_ext, unified_strdate
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-)
-from ..utils import (
-    determine_ext,
-    unified_strdate,
-)
 
 
 class RutubeIE(InfoExtractor):

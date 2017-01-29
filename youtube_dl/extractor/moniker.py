@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 import os.path
 import re
 
-from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     remove_start,
     sanitized_Request,
     urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class MonikerIE(InfoExtractor):

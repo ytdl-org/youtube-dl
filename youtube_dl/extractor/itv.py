@@ -1,22 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import uuid
 import xml.etree.ElementTree as etree
-import json
 
-from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    extract_attributes,
-    xpath_with_ns,
-    xpath_element,
-    xpath_text,
-    int_or_none,
-    parse_duration,
     ExtractorError,
     determine_ext,
+    extract_attributes,
+    int_or_none,
+    parse_duration,
+    xpath_element,
+    xpath_text,
+    xpath_with_ns,
 )
+from .common import InfoExtractor
 
 
 class ITVIE(InfoExtractor):

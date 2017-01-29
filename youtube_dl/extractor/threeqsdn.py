@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, js_to_json, mimetype2ext
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    js_to_json,
-    mimetype2ext,
-)
 
 
 class ThreeQSDNIE(InfoExtractor):

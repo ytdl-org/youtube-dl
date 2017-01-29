@@ -1,16 +1,17 @@
 from __future__ import unicode_literals
-import re
-import base64
 
-from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    float_or_none,
-    ExtractorError,
-    unsmuggle_url,
-    determine_ext,
-)
+import base64
+import re
+
 from ..compat import compat_urllib_parse_urlencode
+from ..utils import (
+    ExtractorError,
+    determine_ext,
+    float_or_none,
+    int_or_none,
+    unsmuggle_url,
+)
+from .common import InfoExtractor
 
 
 class OoyalaBaseIE(InfoExtractor):

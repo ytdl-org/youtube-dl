@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import clean_html, int_or_none, xpath_text
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    xpath_text,
-    int_or_none,
-)
 
 
 class NTVRuIE(InfoExtractor):

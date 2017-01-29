@@ -3,16 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_HTTPError, compat_parse_qs
+from ..utils import ExtractorError, HEADRequest, remove_end
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_HTTPError,
-)
-from ..utils import (
-    ExtractorError,
-    HEADRequest,
-    remove_end,
-)
 
 
 class CloudyIE(InfoExtractor):

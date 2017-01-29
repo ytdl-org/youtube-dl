@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from .youtube import YoutubeIE
 from .jwplatform import JWPlatformBaseIE
+from .youtube import YoutubeIE
 
 
 class WimpIE(JWPlatformBaseIE):

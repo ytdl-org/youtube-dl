@@ -1,22 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import time
 import hashlib
 import json
+import re
+import time
 
-from .adobepass import AdobePassIE
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
-    int_or_none,
-    parse_age_limit,
-    str_or_none,
-    parse_duration,
     ExtractorError,
     extract_attributes,
+    int_or_none,
+    parse_age_limit,
+    parse_duration,
+    str_or_none,
 )
+from .adobepass import AdobePassIE
+from .common import InfoExtractor
 
 
 class ViceBaseIE(AdobePassIE):

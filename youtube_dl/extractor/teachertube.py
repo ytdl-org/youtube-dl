@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, qualities
 from .common import InfoExtractor
-from ..utils import (
-    qualities,
-    determine_ext,
-)
 
 
 class TeacherTubeIE(InfoExtractor):

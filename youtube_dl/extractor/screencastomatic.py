@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .jwplatform import JWPlatformBaseIE
 from ..utils import js_to_json
+from .jwplatform import JWPlatformBaseIE
 
 
 class ScreencastOMaticIE(JWPlatformBaseIE):

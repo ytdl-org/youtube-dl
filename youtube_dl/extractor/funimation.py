@@ -1,19 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_urllib_parse_unquote_plus,
-)
+from ..compat import compat_HTTPError, compat_urllib_parse_unquote_plus
 from ..utils import (
+    ExtractorError,
     clean_html,
     determine_ext,
     int_or_none,
     sanitized_Request,
-    ExtractorError,
-    urlencode_postdata
+    urlencode_postdata,
 )
+from .common import InfoExtractor
 
 
 class FunimationIE(InfoExtractor):

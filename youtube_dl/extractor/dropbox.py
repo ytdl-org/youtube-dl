@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 import os.path
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import url_basename
+from .common import InfoExtractor
 
 
 class DropboxIE(InfoExtractor):
