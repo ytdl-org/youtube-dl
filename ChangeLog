@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.29
 
 Core
 * [extractor/common] Fix initialization template (#11605, #11825)
