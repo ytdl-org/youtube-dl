@@ -6,7 +6,10 @@ import xml.etree.ElementTree as etree
 import json
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_etree_register_namespace,
+)
 from ..utils import (
     extract_attributes,
     xpath_with_ns,
@@ -47,7 +50,7 @@ class ITVIE(InfoExtractor):
             'com': 'http://schemas.itv.com/2009/05/Common',
         }
         for ns, full_ns in ns_map.items():
-            etree.register_namespace(ns, full_ns)
+            compat_etree_register_namespace(ns, full_ns)
 
         def _add_ns(name):
             return xpath_with_ns(name, ns_map)
