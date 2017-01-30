@@ -13,37 +13,69 @@ from ..utils import (
 
 
 class VisirBaseIE(InfoExtractor):
-    _VALID_URL = r'visir:(?P<id>[^:]+):(?P<type>(?:audio|video)):(?P<category>\d+):(?P<subcategory>\d+)'
-    _BASE_URL = 'http://www.visir.is'
+    _URL_BASE = 'http://www.visir.is'
 
-    def _extract_player_info(self, video_id, webpage, default=NO_DEFAULT):
-        field_names = ('FileId', 'Categoryid', 'Subcategoryid', 'Type', 'File')
+    def _extract_player_info_dict(self, webpage, display_id, default=NO_DEFAULT):
         player_info_regex = r'App\.Player\.Init\s*\(\s*(.+?)\)'
         player_info_script = self._search_regex(
             player_info_regex, webpage, 'player info', default=default)
-        if not player_info_script:
-            return len(field_names) * [None]
-        player_info_dict = self._parse_json(
-            player_info_script, video_id, transform_source=js_to_json)
-        return (player_info_dict.get(name) for name in field_names)
+        if player_info_script:
+            return self._parse_json(
+                player_info_script, display_id, transform_source=js_to_json)
+        return default
 
-    def _extract_fields_from_media_list(self, video_id, category, subcategory, media_type):
-        url = 'http://www.visir.is/section/MEDIA?template=related_json&kat=%s&subkat=%s' % (category, subcategory)
+    def _extract_playlist_dict(self, media_id, category_id, subcategory_id, media_type):
+        url = urljoin(
+            self._URL_BASE, '/section/MEDIA?template=related_json&kat=%s&subkat=%s' % (category_id, subcategory_id))
         if media_type == 'audio':
             url += '&type=audio'
-        media_collection = self._download_json(url, video_id)
-        field_names = ('link', 'file', 'title', 'image')
+        media_collection = self._download_json(url, media_id)
         return next(
-            (e.get(field) for field in field_names) for e in media_collection if e.get('mediaid') == video_id)
+            media_entry for media_entry in media_collection if media_entry.get('mediaid') == media_id)
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id, media_type, category_id, subcategory_id = mobj.group(
-            'id', 'type', 'category', 'subcategory')
-        media_link, _, _, _ = self._extract_fields_from_media_list(
-            video_id, category_id, subcategory_id, media_type)
-        return self.url_result(
-            urljoin(self._BASE_URL, media_link), ie=VisirMediaIE.ie_key())
+    def _extract_formats(self, media_id, playlist_url, filepath):
+        formats = []
+        if playlist_url:
+            formats = self._extract_wowza_formats(
+                playlist_url, media_id, skip_protocols=['dash'])
+        formats.append(
+            {'url': urljoin('http://static.visir.is/', filepath)})
+        self._sort_formats(formats)
+        return formats
+
+    def _extract_media(self, player_info_dict, media_id, description=None):
+        category_id = player_info_dict.get('Categoryid')
+        subcategory_id = player_info_dict.get('Subcategoryid')
+        media_type = player_info_dict.get('Type')
+        filepath = player_info_dict.get('File')
+
+        try:
+            playlist_dict = self._extract_playlist_dict(media_id, category_id, subcategory_id, media_type)
+            title = playlist_dict.get('title')
+            thumbnail = playlist_dict.get('image')
+            playlist_url = playlist_dict.get('file')
+
+        except StopIteration:
+            # Fallback if video is not found in playlist_dict:
+            title = player_info_dict.get('Title')
+            thumbnail = player_info_dict.get('image')
+            if media_type == 'video':
+                geoblock = player_info_dict.get('GeoBlock')
+                host = player_info_dict.get('Host')
+                geo = '-geo/' if geoblock else '/'
+                playlist_url = 'http://' + host + '/hls-vod' + geo + '_definst_/mp4:' + filepath + '/playlist.m3u8'
+            else:
+                playlist_url = None
+
+        formats = self._extract_formats(media_id, playlist_url, filepath)
+
+        return {
+            'id': media_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'formats': formats
+        }
 
 
 class VisirMediaIE(VisirBaseIE):
@@ -71,40 +103,18 @@ class VisirMediaIE(VisirBaseIE):
         },
     }]
 
-    def _extract_formats(self, video_id, playlist_url, filepath):
-        formats = self._extract_wowza_formats(
-            playlist_url, video_id, skip_protocols=['dash'])
-        formats.append(
-            {'url': urljoin('http://static.visir.is/', filepath)})
-        self._sort_formats(formats)
-        return formats
-
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        media_id = self._match_id(url)
+        webpage = self._download_webpage(url, media_id)
+
+        player_info_dict = self._extract_player_info_dict(webpage, media_id)
 
         description = self._og_search_description(webpage, default=None)
+        return self._extract_media(player_info_dict, media_id, description=description)
 
-        _, category_id, subcategory_id, media_type, filepath = self._extract_player_info(
-            video_id, webpage)
-
-        _, playlist_url, title, thumbnail = self._extract_fields_from_media_list(
-            video_id, category_id, subcategory_id, media_type)
-
-        formats = self._extract_formats(
-            video_id, playlist_url, filepath)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'formats': formats,
-        }
 
 class VisirArticleIE(VisirBaseIE):
     _VALID_URL = r'https?://(?:www\.)?visir\.is/.+/article/(?P<id>\d+)$'
-
     _TEST = {
         'url': 'http://www.visir.is/landsmenn-minntust-birnu-brjansdottur/article/2017170128825',
         'info_dict': {
@@ -125,12 +135,10 @@ class VisirArticleIE(VisirBaseIE):
         entries = []
 
         # Try to find the main video of the article:
-        video_id, category_id, subcategory_id, media_type, _= self._extract_player_info(
-            article_id, webpage, default=None) # TODO: default?
-        if video_id and category_id and subcategory_id and media_type in ('video', 'audio'):
-            entries.append(self.url_result(
-                'visir:%s:%s:%s:%s' % (video_id, media_type, category_id, subcategory_id),
-                ie=VisirBaseIE.ie_key()))
+        player_info_dict = self._extract_player_info_dict(webpage, article_id, default=None)
+        if player_info_dict:
+            media_id = player_info_dict.get('FileId')
+            entries.append(self._extract_media(player_info_dict, media_id))
 
         # Try to find embedded visir videos:
         video_urls = [m.group('url') for m in re.finditer(

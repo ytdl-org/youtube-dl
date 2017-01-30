@@ -1120,7 +1120,6 @@ from .viki import (
     VikiChannelIE,
 )
 from .visir import (
-    VisirBaseIE,
     VisirMediaIE,
     VisirArticleIE,
 )
