@@ -575,6 +575,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
             like_count = None
             comment_count = None
 
+        # Extract license
+        license = self._search_regex(r'<link [^>]+rel="license" href="(.*?)">', webpage, 'license', default=None)
+
         formats = []
         download_request = sanitized_Request('https://vimeo.com/%s?action=load_download_config' % video_id, headers={
             'X-Requested-With': 'XMLHttpRequest'})
@@ -609,6 +612,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'view_count': view_count,
             'like_count': like_count,
             'comment_count': comment_count,
+            'license': license,
         })
 
         return info_dict
