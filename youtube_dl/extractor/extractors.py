@@ -1119,7 +1119,11 @@ from .viki import (
     VikiIE,
     VikiChannelIE,
 )
-from .visir import VisirMediaIE
+from .visir import (
+    VisirBaseIE,
+    VisirMediaIE,
+    VisirArticleIE,
+)
 from .viu import (
     ViuIE,
     ViuPlaylistIE,
