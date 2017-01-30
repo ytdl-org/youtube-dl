@@ -81,6 +81,9 @@ class RuutuIE(InfoExtractor):
                     elif ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             video_url, video_id, f4m_id='hds', fatal=False))
+                    elif ext == 'mpd':
+                        formats.extend(self._extract_mpd_formats(
+                            video_url, video_id, mpd_id='dash', fatal=False))
                     else:
                         proto = compat_urllib_parse_urlparse(video_url).scheme
                         if not child.tag.startswith('HTTP') and proto != 'rtmp':
