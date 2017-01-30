@@ -8,11 +8,11 @@ class GaskrankIE(InfoExtractor):
     _VALID_URL = r'(http.?://)www\.gaskrank\.tv/tv/.*?/(?P<id>.*?)\.htm.?'
     _TEST = {
         'url': 'http://www.gaskrank.tv/tv/motorradtreffen/elefantentreffen-2017-mit-suzuki-gsx-r-750-auf-winterreifen.htm',
-        'md5': '23c91b49a5d599430824e586854081dd',
+        'md5': '204b930c74e1fc7d42e424c6de4e4d71',
         'info_dict': {
             'id': 'elefantentreffen-2017-mit-suzuki-gsx-r-750-auf-winterreifen',
             'ext': 'mp4',
-            'title': 'Elefantentreffen 2017 mit Suzuki GSX-R 750 auf Winterreifen '
+            'title': 'Elefantentreffen 2017 mit Suzuki GSX-R 750 auf Winterreifen'
         }
     }
 
