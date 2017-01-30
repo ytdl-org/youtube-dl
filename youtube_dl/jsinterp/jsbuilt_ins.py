@@ -90,21 +90,20 @@ def to_string(o):
         elif isinf(ov):
             return 'Infinity'
         else:
-            n = log10(ov)
-            c = 1 if 0 < n else 0
+            # numerically unstable example: 3333330000000000000.3 or 3.3333300000000000003e+20
+            n = log10(ov) + 1
             n = int(n)
             k = 1
 
             while True:
-                exp = 10 ** (n - k)
-                s = int(ov / exp)
-                if abs(ov - s * exp) < float_info.epsilon:
+                exp = 10 ** (k - n)
+                s = int(ov * exp)
+                if abs(ov * exp - s) < float_info.epsilon:
                     break
                 k += 1
 
             if s % 10 == 0:
                 s //= 10
-            n += c
             m = '%d' % s
 
             if k <= n <= 21:
