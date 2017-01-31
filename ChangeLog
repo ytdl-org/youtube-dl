@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.01.31
 
 Core
 + [compat] Add compat_etree_register_namespace
