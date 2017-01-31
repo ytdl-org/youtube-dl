@@ -1028,8 +1028,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            r'\.sig\|\|([a-zA-Z0-9$]+)\(', jscode,
-            'Initial JS player signature function name')
+            (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
+            jscode, 'Initial JS player signature function name', group='sig')
 
         jsi = JSInterpreter(jscode)
         initial_function = jsi.extract_function(funcname)
@@ -1050,6 +1051,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         if player_url.startswith('//'):
             player_url = 'https:' + player_url
+        elif not re.match(r'https?://', player_url):
+            player_url = compat_urlparse.urljoin(
+                'https://www.youtube.com', player_url)
         try:
             player_id = (player_url, self._signature_cache_id(s))
             if player_id not in self._player_cache:
