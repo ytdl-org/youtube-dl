@@ -37,7 +37,7 @@ class VisirBaseIE(InfoExtractor):
         formats = []
         if playlist_url:
             formats = self._extract_wowza_formats(
-                playlist_url, media_id, skip_protocols=['dash'])
+                playlist_url, media_id, skip_protocols=['dash', 'rtmp', 'rtsp'])
         formats.append(
             {'url': urljoin('http://static.visir.is/', filepath)})
         self._sort_formats(formats)
@@ -74,7 +74,7 @@ class VisirBaseIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'formats': formats
+            'formats': formats,
         }
 
 
