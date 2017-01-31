@@ -791,6 +791,9 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{ 0: /* " \n */ ",]" , }')
         self.assertEqual(json.loads(on), {'0': ',]'})
 
+        on = js_to_json('{ 0: // comment\n1 }')
+        self.assertEqual(json.loads(on), {'0': 1})
+
         on = js_to_json(r'["<p>x<\/p>"]')
         self.assertEqual(json.loads(on), ['<p>x</p>'])
 
