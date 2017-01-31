@@ -1,3 +1,17 @@
+version <unreleased>
+
+Core
++ [compat] Add compat_etree_register_namespace
+
+Extractors
+* [youtube] Fix extraction for domainless player URLs (#11890, #11891, #11892,
+  #11894, #11895, #11897, #11900, #11903, #11904, #11906, #11907, #11909,
+  #11913, #11914, #11915, #11916, #11917, #11918, #11919)
++ [vimeo] Extract both mixed and separated DASH formats
++ [ruutu] Extract DASH formats
+* [itv] Fix extraction for python 2.6
+
+
 version 2017.01.29
 
 Core
