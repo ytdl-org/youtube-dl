@@ -218,6 +218,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader_id': 'user7108434',
                 'uploader': 'Filippo Valsorda',
                 'duration': 10,
+                'license': 'by-sa',
             },
         },
         {
@@ -486,6 +487,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     '%s said: %s' % (self.IE_NAME, seed_status['title']),
                     expected=True)
 
+        cc_license = None
+
         # Extract the config JSON
         try:
             try:
@@ -499,8 +502,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     vimeo_clip_page_config = self._search_regex(
                         r'vimeo\.clip_page_config\s*=\s*({.+?});', webpage,
                         'vimeo clip page config')
-                    config_url = self._parse_json(
-                        vimeo_clip_page_config, video_id)['player']['config_url']
+                    page_config = self._parse_json(vimeo_clip_page_config, video_id)
+                    config_url = page_config['player']['config_url']
+                    cc_license = page_config.get('cc_license')
                 config_json = self._download_webpage(config_url, video_id)
                 config = json.loads(config_json)
             except RegexNotFoundError:
@@ -609,6 +613,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
         info_dict = self._parse_config(config, video_id)
         formats.extend(info_dict['formats'])
         self._vimeo_sort_formats(formats)
+
+        if not cc_license:
+            cc_license = self._search_regex(
+                r'<link[^>]+rel=["\']license["\'][^>]+href=(["\'])(?P<license>(?:(?!\1).)+)\1',
+                webpage, 'license', default=None, group='license')
+
         info_dict.update({
             'id': video_id,
             'formats': formats,
@@ -618,6 +628,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'view_count': view_count,
             'like_count': like_count,
             'comment_count': comment_count,
+            'license': cc_license,
         })
 
         return info_dict
