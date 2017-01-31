@@ -142,10 +142,19 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                         note='Downloading %s m3u8 information' % cdn_name,
                         fatal=False))
                 elif files_type == 'dash':
-                    formats.extend(self._extract_mpd_formats(
-                        manifest_url.replace('/master.json', '/master.mpd'), video_id, format_id,
-                        'Downloading %s MPD information' % cdn_name,
-                        fatal=False))
+                    mpd_pattern = r'/%s/(?:sep/)?video/' % video_id
+                    mpd_manifest_urls = []
+                    if re.search(mpd_pattern, manifest_url):
+                        for suffix, repl in (('', 'video'), ('_sep', 'sep/video')):
+                            mpd_manifest_urls.append((format_id + suffix, re.sub(
+                                mpd_pattern, '/%s/%s/' % (video_id, repl), manifest_url)))
+                    else:
+                        mpd_manifest_urls = [(format_id, manifest_url)]
+                    for f_id, m_url in mpd_manifest_urls:
+                        formats.extend(self._extract_mpd_formats(
+                            m_url.replace('/master.json', '/master.mpd'), video_id, f_id,
+                            'Downloading %s MPD information' % cdn_name,
+                            fatal=False))
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
