@@ -22,13 +22,11 @@ from ..utils import (
     smuggle_url,
     std_headers,
     try_get,
-    unified_strdate,
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
     unescapeHTML,
     parse_filesize,
-    try_get,
 )
 
 
