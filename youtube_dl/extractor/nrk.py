@@ -128,6 +128,18 @@ class NRKBaseIE(InfoExtractor):
         series = conviva.get('seriesName') or data.get('seriesTitle')
         episode = conviva.get('episodeName') or data.get('episodeNumberOrDate')
 
+        season_number = None
+        episode_number = None
+        if data.get('mediaElementType') == 'Episode':
+            _season_episode = data.get('scoresStatistics', {}).get('springStreamStream') or \
+                data.get('relativeOriginUrl', '')
+            EPISODENUM_RE = [
+                r'/s(?P<season>\d+)e(?P<episode>\d+)\.',
+                r'/sesong-(?P<season>\d+)/episode-(?P<episode>\d+)',
+            ]
+            season_number = int_or_none(self._search_regex(EPISODENUM_RE, _season_episode, "S##E##", fatal=False, group='season'))
+            episode_number = int_or_none(self._search_regex(EPISODENUM_RE, _season_episode, "S##E##", fatal=False, group='episode'))
+
         thumbnails = None
         images = data.get('images')
         if images and isinstance(images, dict):
@@ -140,11 +152,15 @@ class NRKBaseIE(InfoExtractor):
                 } for image in web_images if image.get('imageUrl')]
 
         description = data.get('description')
+        category = data.get('mediaAnalytics', {}).get('category')
 
         common_info = {
             'description': description,
             'series': series,
             'episode': episode,
+            'season_number': season_number,
+            'episode_number': episode_number,
+            'categories': [category] if category else None,
             'age_limit': parse_age_limit(data.get('legalAge')),
             'thumbnails': thumbnails,
         }
@@ -358,6 +374,39 @@ class NRKTVEpisodesIE(NRKPlaylistBaseIE):
     def _extract_title(self, webpage):
         return self._html_search_regex(
             r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
+
+
+class NRKTVSeriesIE(InfoExtractor):
+    _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+)/?'
+    _ITEM_RE = r'data-season=["\'](?P<id>\d+)["\']'
+    _TESTS = [{
+        'url': 'https://tv.nrk.no/serie/broedrene-dal-og-spektralsteinene',
+        'playlist_count': 1,
+    }, {
+        'url': 'https://tv.nrk.no/serie/saving-the-human-race',
+        'playlist_count': 1,
+    }, {
+        'url': 'https://tv.nrk.no/serie/postmann-pat',
+        'playlist_count': 3,
+    }, {
+        'url': 'https://tv.nrk.no/serie/groenn-glede',
+        'playlist_count': 9,
+    }]
+
+    def _real_extract(self, url):
+        series_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, series_id)
+
+        entries = [
+            self.url_result('https://tv.nrk.no/program/Episodes/{series}/{season}'.format(
+                series=series_id,
+                season=season_id
+            ))
+            for season_id in re.findall(self._ITEM_RE, webpage)
+        ]
+
+        return self.playlist_result(entries)
 
 
 class NRKSkoleIE(InfoExtractor):
