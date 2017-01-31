@@ -471,6 +471,10 @@ def parseOpts(overrideArguments=None):
         action='store_true',
         help='Download playlist videos in reverse order')
     downloader.add_option(
+        '--playlist-random',
+        action='store_true',
+        help='Download playlist videos in random order')
+    downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',
         help='Set file xattribute ytdl.filesize with expected file size (experimental)')

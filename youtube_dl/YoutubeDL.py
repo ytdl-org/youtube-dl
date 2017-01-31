@@ -24,6 +24,7 @@ import sys
 import time
 import tokenize
 import traceback
+import random
 
 from .compat import (
     compat_basestring,
@@ -159,6 +160,7 @@ class YoutubeDL(object):
     playlistend:       Playlist item to end at.
     playlist_items:    Specific indices of playlist to download.
     playlistreverse:   Download playlist items in reverse order.
+    playlistrandom:    Download playlist items in random order.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -841,6 +843,9 @@ class YoutubeDL(object):
 
             if self.params.get('playlistreverse', False):
                 entries = entries[::-1]
+
+            if self.params.get('playlistrandom', False):
+                random.shuffle(entries)
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
