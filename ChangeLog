@@ -7,6 +7,7 @@ Extractors
 + [vimeo] Extract upload timestamp
 + [vimeo] Extract license (#8726, #11880)
 + [nrk:series] Add support for series (#11571, #11711)
++ [elpais] Fix extraction for some URLs (#11765)
 
 
 version 2017.01.31
