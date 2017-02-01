@@ -342,6 +342,14 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'<h2 class="video-title" itemprop="name">\s*(.+?)</h2>',
         r'<div[^>]+id="veeseoTitle"[^>]*>(.+?)</div>',
     ]
+    _DESCRIPTION_REGEXES = [
+        r'<p itemprop="description">\s*(.+?)</p>',
+        r'<div class="videoDecription">\s*<p><strong>Beschreibung</strong>: (.+?)</p>',
+        r'<div class="g-plusone" data-size="medium"></div>\s*</div>\s*</header>\s*(.+?)\s*<footer>',
+        r'<p class="att-description">\s*(.+?)\s*</p>',
+        r'<p class="video-description" itemprop="description">\s*(.+?)</p>',
+        r'<div[^>]+id="veeseoDescription"[^>]*>(.+?)</div>',
+    ]
     _UPLOAD_DATE_REGEXES = [
         r'<meta property="og:published_time" content="(.+?)">',
         r'<span>\s*(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}) \|\s*<span itemprop="duration"',
@@ -367,6 +375,9 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         title = self._html_search_regex(self._TITLE_REGEXES, webpage, 'title')
         info = self._extract_video_info(url, clip_id)
         description = self._og_search_description(webpage, default=None)
+        if description is None: 
+            description = self._html_search_regex(
+                self._DESCRIPTION_REGEXES, webpage, 'description', fatal=False)
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._html_search_regex(
             self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
