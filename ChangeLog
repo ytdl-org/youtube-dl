@@ -1,3 +1,8 @@
+version <unreleased>
+
+Extractors
+* [prosiebensat1] Fix extraction of descriptions (#11810, #11929)
+
 version 2017.01.31
 
 Core
