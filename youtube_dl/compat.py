@@ -2883,6 +2883,7 @@ __all__ = [
     'compat_cookiejar',
     'compat_cookies',
     'compat_etree_fromstring',
+    'compat_etree_register_namespace',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',
