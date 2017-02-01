@@ -147,15 +147,11 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'url': 'http://www.prosieben.de/tv/circus-halligalli/videos/218-staffel-2-episode-18-jahresrueckblick-ganze-folge',
             'info_dict': {
                 'id': '2104602',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Episode 18 - Staffel 2',
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
                 'duration': 5845.04,
-            },
-            'params': {
-                # rtmp download
-                'skip_download': True,
             },
         },
         {
@@ -258,7 +254,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'url': 'http://www.the-voice-of-germany.de/video/31-andreas-kuemmert-rocket-man-clip',
             'info_dict': {
                 'id': '2572814',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Andreas Kümmert: Rocket Man',
                 'description': 'md5:6ddb02b0781c6adf778afea606652e38',
                 'upload_date': '20131017',
@@ -272,7 +268,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'url': 'http://www.fem.com/wellness/videos/wellness-video-clip-kurztripps-zum-valentinstag.html',
             'info_dict': {
                 'id': '2156342',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Kurztrips zum Valentinstag',
                 'description': 'Romantischer Kurztrip zum Valentinstag? Nina Heinemann verrät, was sich hier wirklich lohnt.',
                 'duration': 307.24,
@@ -289,12 +285,13 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                 'description': 'md5:63b8963e71f481782aeea877658dec84',
             },
             'playlist_count': 2,
+            'skip': 'This video is unavailable',
         },
         {
             'url': 'http://www.7tv.de/circus-halligalli/615-best-of-circus-halligalli-ganze-folge',
             'info_dict': {
                 'id': '4187506',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Best of Circus HalliGalli',
                 'description': 'md5:8849752efd90b9772c9db6fdf87fb9e9',
                 'upload_date': '20151229',
@@ -376,7 +373,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         info = self._extract_video_info(url, clip_id)
         description = self._html_search_regex(
             self._DESCRIPTION_REGEXES, webpage, 'description', default=None)
-        if description is None: 
+        if description is None:
             description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._html_search_regex(
