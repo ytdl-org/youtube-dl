@@ -13,7 +13,7 @@ def _to_js(o, name=None):
     elif o is None:
         return undefined
     elif isinstance(o, _native_bool):
-        return JSBoolean.construct(o)
+        return JSBooleanPrototype(o)
     elif isinstance(o, _native_string):
         return JSStringPrototype(o)
     elif isinstance(o, _native_number):
@@ -36,37 +36,60 @@ def js(func):
     return wrapper
 
 
-def _type(o):
+def jstype(o):
     if o is undefined:
         return _undefined_type
     elif o is None or o is null:
         return _null_type
-    elif isinstance(o, _native_bool) or isinstance(o, JSBooleanPrototype):
+    elif isinstance(o, _native_bool) or o is true or o is false:
         return _boolean_type
-    elif isinstance(o, _native_string) or isinstance(o, JSStringPrototype):
+    elif isinstance(o, _native_string):
         return _string_type
-    elif isinstance(o, _native_number) or isinstance(o, JSNumberPrototype):
+    elif isinstance(o, _native_number):
         return _number_type
-    elif isinstance(o, _native_object) or isinstance(o, JSObjectPrototype):
+    elif isinstance(o, _native_object):
         return _object_type
     return None
 
 
-def to_object(o):
-    if o is undefined or o is null:
-        raise Exception('TypeError: Cannot convert undefined or null to object')
-    elif isinstance(o, JSBooleanPrototype):
-        return JSBooleanPrototype(o)
-    elif isinstance(o, JSNumberPrototype):
-        return JSNumberPrototype(o)
-    elif isinstance(o, JSStringPrototype):
-        return JSStringPrototype(o)
-    elif isinstance(o, JSObjectPrototype):
-        return o
-
-
-def to_primitive(o, hint):
+def to_primitive(o, hint=None):
+    # TODO to_primitive
     return o
+
+
+def to_boolean(o):
+    if o is undefined or o is null:
+        return false
+    elif isinstance(o, JSBooleanPrototype):
+        return o.value
+    elif isinstance(o, JSNumberPrototype):
+        return true if o.value and not isnan(o.value) else false
+    elif isinstance(o, JSStringPrototype):
+        return true if o.value else false
+    elif isinstance(o, JSObjectPrototype):
+        return true
+    else:
+        raise Exception('Failed to convert type %s to boolean (not specified)' % type(o))
+
+
+def to_number(o):
+    # TODO to_number
+    pass
+
+
+def to_integer(o):
+    # TODO to_integer
+    pass
+
+
+def to_int32(o):
+    # TODO to_int32
+    pass
+
+
+def to_int16(o):
+    # TODO to_int16
+    pass
 
 
 def to_string(o):
@@ -122,6 +145,19 @@ def to_string(o):
         return to_string(prim_value)
 
 
+def to_object(o):
+    if o is undefined or o is null:
+        raise Exception('TypeError: Cannot convert undefined or null to object')
+    elif isinstance(o, JSBooleanPrototype):
+        return JSBooleanPrototype(o)
+    elif isinstance(o, JSNumberPrototype):
+        return JSNumberPrototype(o)
+    elif isinstance(o, JSStringPrototype):
+        return JSStringPrototype(o)
+    elif isinstance(o, JSObjectPrototype):
+        return o
+
+
 class JSBase(object):
 
     def __init__(self, name):
@@ -136,15 +172,12 @@ class JSProtoBase(JSBase):
     def __init__(self):
         super(JSProtoBase, self).__init__('')
         cls = self.__class__
-        while cls is not JSProtoBase:
+        while cls.__base__ is not JSProtoBase:
             cls = cls.__base__
             props = cls.own.copy()
             props.update(self.props)
             self.props = props
         self.value = {}
-
-    def __str__(self):
-        return ''
 
     def get_prop(self, prop):
         result = self.value.get(prop) if hasattr(self.value, 'get') else None
@@ -169,6 +202,8 @@ class JSProtoBase(JSBase):
             # needs to use internal exception
             # interpreter should raise JSTypeError
             raise Exception('TypeError: %s is not a function' % prop)
+
+    jsclass = ''
 
 
 class JSObjectPrototype(JSProtoBase):
@@ -199,6 +234,7 @@ class JSObjectPrototype(JSProtoBase):
     def _is_property_enumerable(self, v):
         return 'object is property enumerable'
 
+    jsclass = 'Object'
     own = {
         'constructor': _constructor,
         'toString': _to_string,
@@ -272,7 +308,7 @@ class JSObject(JSBase):
     def _keys(self, o):
         return 'object keys'
 
-    name = 'Object'
+    name = JSObjectPrototype.jsclass
     own = {
         'length': 1,
         'prototype': JSObjectPrototype(),
@@ -349,6 +385,7 @@ class JSFunctionPrototype(JSObjectPrototype):
     def _bind(self, this_arg, *args):
         return 'function bind'
 
+    jsclass = 'Function'
     own = {
         'length': 0,
         'constructor': _constructor,
@@ -375,7 +412,7 @@ class JSFunction(JSObject):
             formal_args = formal_args[:-1]
         return JSFunctionPrototype('anonymous', body, formal_args)
 
-    name = 'Function'
+    name = JSFunctionPrototype.jsclass
     own = {
         'length': 1,
         'prototype': JSFunctionPrototype(None, None, None)
@@ -468,6 +505,7 @@ class JSArrayPrototype(JSObjectPrototype):
     def _reduce_right(self, callback, init=None):
         return 'array reduce right'
 
+    jsclass = 'Array'
     own = {
         'length': _length,
         'constructor': _constructor,
@@ -516,7 +554,7 @@ class JSArray(JSObject):
     def _is_array(self, arg):
         return 'array is array'
 
-    name = 'Array'
+    name = JSArrayPrototype.jsclass
     own = {
         'length': 1,
         'prototype': JSArrayPrototype(),
@@ -597,6 +635,7 @@ class JSStringPrototype(JSObjectPrototype):
     def _trim(self):
         return 'string trim'
 
+    jsclass = 'String'
     own = {
         'length': _length,
         'constructor': _constructor,
@@ -635,7 +674,7 @@ class JSString(JSObject):
     def _from_char_code(self, *args):
         return 'String from char code'
 
-    name = 'String'
+    name = JSStringPrototype.jsclass
     own = {
         'length': 1,
         'prototype': JSStringPrototype(),
@@ -644,13 +683,52 @@ class JSString(JSObject):
 
 
 class JSBooleanPrototype(JSObjectPrototype):
-    pass
+
+    def __init__(self, value=None):
+        if value is None:
+            # prototype
+            value = False
+        super(JSBooleanPrototype, self).__init__(value)
+
+    @staticmethod
+    def _constructor(value=None):
+        return JSBoolean.construct(value)
+
+    def _to_string(self):
+        # TODO find way to test it in other interpreters
+        if jstype(self) is _boolean_type:
+            b = self
+        elif jstype(self) is _object_type and self.jsclass == 'Boolean':
+            b = self.value
+        else:
+            raise Exception('TypeError')
+        return 'true' if b is true else 'false'
+
+    def _value_of(self):
+        return 'boolean value of'
+
+    jsclass = 'Boolean'
+    own = {
+        'constructor': _constructor,
+        'toString': _to_string,
+        'valueOf': _value_of
+    }
 
 
 class JSBoolean(JSObject):
+
+    @staticmethod
+    def call(value=None):
+        return to_boolean(value)
+
     @staticmethod
     def construct(value=None):
-        pass
+        return JSBooleanPrototype(to_boolean(_to_js(value)))
+
+    name = JSBooleanPrototype.jsclass
+    own = {
+        'prototype': JSBooleanPrototype()
+    }
 
 
 class JSNumberPrototype(JSObjectPrototype):
@@ -661,10 +739,10 @@ class JSNumber(JSObject):
     pass
 
 
-undefined = object()
-null = object()
-true = JSBoolean.construct(True)
-false = JSBoolean.construct(False)
+undefined = JSBase('undefined')
+null = JSBase('null')
+true = JSBooleanPrototype(True)
+false = JSBooleanPrototype(False)
 
 _native_bool = bool
 _native_string = compat_str
