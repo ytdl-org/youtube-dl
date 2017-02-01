@@ -1,7 +1,13 @@
 version <unreleased>
 
 Extractors
++ [facebook] Add another fallback extraction scenario (#11926)
 * [prosiebensat1] Fix extraction of descriptions (#11810, #11929)
+- [crunchyroll] Remove ScaledBorderAndShadow settings (#9028)
++ [vimeo] Extract upload timestamp
++ [vimeo] Extract license (#8726, #11880)
++ [nrk:series] Add support for series (#11571, #11711)
+
 
 version 2017.01.31
 
