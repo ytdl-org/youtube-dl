@@ -57,10 +57,11 @@ class GaskrankIE(InfoExtractor):
         thumbnail = self._search_regex(r'poster\s*:\s*\'([^\']*)\'', webpage, 'thumbnail', default=None)
 
         mobj = re.search(r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date_day>[0-9][0-9]).(?P<upload_date_month>[0-9][0-9]).(?P<upload_date_year>[0-9][0-9][0-9][0-9])', webpage)
-        uploader_id = mobj.groupdict().get('uploader_id')
-        upload_date = mobj.groupdict().get('upload_date_year') + mobj.groupdict().get('upload_date_month') + mobj.groupdict().get('upload_date_day')
-        if len(upload_date) != 8:
-            upload_date = None
+        if mobj is not None:
+            uploader_id = mobj.groupdict().get('uploader_id')
+            upload_date = mobj.groupdict().get('upload_date_year') + mobj.groupdict().get('upload_date_month') + mobj.groupdict().get('upload_date_day')
+            if len(upload_date) != 8:
+                upload_date = None
 
         uploader_url = self._search_regex(r'Homepage:\s*<[^>]*?>(?P<uploader_url>[^<]*)', webpage, 'uploader_url', default=None)
         tags = re.findall(r'/tv/tags/[^/]*?/\"\s*>(?P<tag>[^<]*?)<', webpage)
