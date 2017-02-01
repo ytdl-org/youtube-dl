@@ -241,7 +241,49 @@ class JSInterpreter(object):
             raise ExtractorError('Could not find JS function %r' % funcname)
         argnames = func_m.group('args').split(',')
 
-        return self.build_function(argnames, func_m.group('code'))
+        def validate_token(m):
+            if m.group(0).startswith('/*') and m.group(0).endswith('*/'):
+                return ''
+            elif (m.group(0).startswith('"') and m.group(0).endswith('"') or
+                    m.group(0).startswith('\'') and m.group(0).endswith('\'')):
+                return m.group(0)
+            else:
+                # This shouldn't happen
+                return m.group(0)
+
+        # no comment
+        code = re.sub(r'''(?sx)
+            "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
+            '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
+            /\*(?:(?!\*/)(?:\n|.))*\*/''', validate_token, func_m.group('code'))
+
+        return self.build_function(argnames, code)
+
+    def extract_arguments(self, call):
+        pattern = re.escape(call) if call.endswith(')') else r'%s\s*\(' % re.escape(call)
+        call_m = re.search(pattern, self.code)
+
+        if call_m is None:
+            raise ExtractorError('Could not find JS call %r' % call)
+        # XXX: context-free!
+        close_pos = open_pos = call_m.end()
+        counter = 1
+        in_string = ''
+        while counter > 0:
+            if close_pos > len(self.code):
+                raise ExtractorError('Runaway argument found of JS call %r' % call)
+            c = self.code[close_pos]
+            close_pos += 1
+            if c == '(' and not in_string:
+                counter += 1
+            elif c == ')' and not in_string:
+                counter -= 1
+            elif in_string and c == in_string:
+                in_string = ''
+            elif c in ['"', '\'']:
+                in_string = c
+        else:
+            return self.code[open_pos:close_pos - 1]
 
     def call_function(self, funcname, *args):
         f = self.extract_function(funcname)
