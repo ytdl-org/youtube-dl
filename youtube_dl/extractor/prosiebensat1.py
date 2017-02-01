@@ -377,7 +377,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         description = self._html_search_regex(
             self._DESCRIPTION_REGEXES, webpage, 'description', default=None)
         if description is None: 
-            description = self._og_search_description(webpage, default=None)
+            description = self._og_search_description(webpage, fatal=False)
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._html_search_regex(
             self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
