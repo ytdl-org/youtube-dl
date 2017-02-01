@@ -349,6 +349,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'<p class="att-description">\s*(.+?)\s*</p>',
         r'<p class="video-description" itemprop="description">\s*(.+?)</p>',
         r'<div[^>]+id="veeseoDescription"[^>]*>(.+?)</div>',
+        r'<meta property="og:description" content="(.*?)">',
     ]
     _UPLOAD_DATE_REGEXES = [
         r'<meta property="og:published_time" content="(.+?)">',
