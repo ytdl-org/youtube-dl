@@ -243,6 +243,27 @@ class JSInterpreter(object):
 
         return self.build_function(argnames, func_m.group('code'))
 
+    def extract_arguments(self, call):
+        pattern = re.escape(call) if call.endswith(')') else r'%s\s*\(' % re.escape(call)
+        call_m = re.search(pattern, self.code)
+
+        if call_m is None:
+            raise ExtractorError('Could not find JS call %r' % call)
+        # XXX: context-free!
+        close_pos = open_pos = call_m.end()
+        counter = 1
+        while counter > 0:
+            if close_pos > len(self.code):
+                raise ExtractorError('Runaway argument found of JS call %r' % call)
+            c = self.code[close_pos]
+            close_pos += 1
+            if c == '(':
+                counter += 1
+            elif c == ')':
+                counter -= 1
+        else:
+            return self.code[open_pos:close_pos - 1]
+
     def call_function(self, funcname, *args):
         f = self.extract_function(funcname)
         return f(args)
