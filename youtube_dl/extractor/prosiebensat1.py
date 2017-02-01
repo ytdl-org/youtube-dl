@@ -341,7 +341,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'<header class="module_header">\s*<h2>([^<]+)</h2>\s*</header>',
         r'<h2 class="video-title" itemprop="name">\s*(.+?)</h2>',
         r'<div[^>]+id="veeseoTitle"[^>]*>(.+?)</div>',
-        r'<meta property="og:description" content="(.*?)">',
     ]
     _DESCRIPTION_REGEXES = [
         r'<p itemprop="description">\s*(.+?)</p>',
@@ -375,10 +374,10 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             self._CLIPID_REGEXES, webpage, 'clip id')
         title = self._html_search_regex(self._TITLE_REGEXES, webpage, 'title')
         info = self._extract_video_info(url, clip_id)
-        description = self._og_search_description(webpage, default=None)
+        description = self._html_search_regex(
+            self._DESCRIPTION_REGEXES, webpage, 'description', default=None, fatal=False)
         if description is None: 
-            description = self._html_search_regex(
-                self._DESCRIPTION_REGEXES, webpage, 'description', fatal=False)
+            description = self._og_search_description(webpage, default=None)
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._html_search_regex(
             self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
