@@ -73,7 +73,7 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '274175099429670',
             'ext': 'mp4',
-            'title': 'Facebook video #274175099429670',
+            'title': 'Asif Nawab Butt posted a video to his Timeline.',
             'uploader': 'Asif Nawab Butt',
             'upload_date': '20140506',
             'timestamp': 1399398998,
@@ -318,10 +318,16 @@ class FacebookIE(InfoExtractor):
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
-            video_title = limit_length(video_title, 80)
         if not video_title:
+            video_title = self._html_search_meta(
+                'description', webpage, 'title')
+        if video_title:
+            video_title = limit_length(video_title, 80)
+        else:
             video_title = 'Facebook video #%s' % video_id
-        uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
+        uploader = clean_html(get_element_by_id(
+            'fbPhotoPageAuthorName', webpage)) or self._search_regex(
+            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader', fatal=False)
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
