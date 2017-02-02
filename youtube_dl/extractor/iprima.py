@@ -65,7 +65,7 @@ class IPrimaIE(InfoExtractor):
 
         options = self._parse_json(
             self._search_regex(
-                r'(?s)var\s+playerOptions\s*=\s*({.+?});',
+                r'(?s)var\s+TDIPlayerOptions\s*=\s*({.+?});\s*\]\]',
                 playerpage, 'player options', default='{}'),
             video_id, transform_source=js_to_json, fatal=False)
         if options:
