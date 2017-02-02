@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [youtube] Fix ytsearch when cookies are provided (#11924)
 + [bilibili] Support new Bangumi URLs (#11845)
 
 version 2017.02.01
