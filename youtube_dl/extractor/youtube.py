@@ -1857,13 +1857,13 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD|UL)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL|TL)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
                         .*
                      |
-                        ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
+                        ((?:PL|LL|EC|UU|FL|RD|UL|TL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&disable_polymer=true'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)(?:[^>]+>(?P<title>[^<]+))?'
@@ -1984,6 +1984,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         },
     }, {
         'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
+        'only_matching': True,
+    }, {
+        'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
         'only_matching': True,
     }]
 
