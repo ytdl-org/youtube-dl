@@ -82,7 +82,7 @@ class DouyuTVIE(InfoExtractor):
         else:
             page = self._download_webpage(url, video_id)
             room_id = self._html_search_regex(
-                r'"room_id"\s*:\s*(\d+),', page, 'room id')
+                r'"room_id\\*"\s*:\s*(\d+),', page, 'room id')
 
         room = self._download_json(
             'http://m.douyu.com/html5/live?roomId=%s' % room_id, video_id,
