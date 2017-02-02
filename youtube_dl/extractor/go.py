@@ -43,7 +43,10 @@ class GoIE(InfoExtractor):
         sub_domain, video_id, display_id = re.match(self._VALID_URL, url).groups()
         if not video_id:
             webpage = self._download_webpage(url, display_id)
-            video_id = self._search_regex(r'data-video-id=["\']VDKA(\w+)', webpage, 'video id')
+            video_id = self._search_regex(
+                # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
+                # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
+                r'data-video-id=["\']*VDKA(\w+)', webpage, 'video id')
         brand = self._BRANDS[sub_domain]
         video_data = self._download_json(
             'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/-1/-1/%s/-1/-1.json' % (brand, video_id),
