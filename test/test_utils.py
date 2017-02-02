@@ -785,10 +785,22 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('["abc", "def",]')
         self.assertEqual(json.loads(on), ['abc', 'def'])
 
+        on = js_to_json('[/*comment\n*/"abc"/*comment\n*/,/*comment\n*/"def",/*comment\n*/]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
+        on = js_to_json('[//comment\n"abc" //comment\n,//comment\n"def",//comment\n]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
         on = js_to_json('{"abc": "def",}')
         self.assertEqual(json.loads(on), {'abc': 'def'})
 
+        on = js_to_json('{/*comment\n*/"abc"/*comment\n*/:/*comment\n*/"def"/*comment\n*/,/*comment\n*/}')
+        self.assertEqual(json.loads(on), {'abc': 'def'})
+
         on = js_to_json('{ 0: /* " \n */ ",]" , }')
+        self.assertEqual(json.loads(on), {'0': ',]'})
+
+        on = js_to_json('{ /*comment\n*/0/*comment\n*/: /* " \n */ ",]" , }')
         self.assertEqual(json.loads(on), {'0': ',]'})
 
         on = js_to_json('{ 0: // comment\n1 }')
@@ -803,13 +815,25 @@ class TestUtil(unittest.TestCase):
         on = js_to_json("['a\\\nb']")
         self.assertEqual(json.loads(on), ['ab'])
 
+        on = js_to_json("/*comment\n*/[/*comment\n*/'a\\\nb'/*comment\n*/]/*comment\n*/")
+        self.assertEqual(json.loads(on), ['ab'])
+
         on = js_to_json('{0xff:0xff}')
+        self.assertEqual(json.loads(on), {'255': 255})
+
+        on = js_to_json('{/*comment\n*/0xff/*comment\n*/:/*comment\n*/0xff/*comment\n*/}')
         self.assertEqual(json.loads(on), {'255': 255})
 
         on = js_to_json('{077:077}')
         self.assertEqual(json.loads(on), {'63': 63})
 
+        on = js_to_json('{/*comment\n*/077/*comment\n*/:/*comment\n*/077/*comment\n*/}')
+        self.assertEqual(json.loads(on), {'63': 63})
+
         on = js_to_json('{42:42}')
+        self.assertEqual(json.loads(on), {'42': 42})
+
+        on = js_to_json('{/*comment\n*/42/*comment\n*/:/*comment\n*/42/*comment\n*/}')
         self.assertEqual(json.loads(on), {'42': 42})
 
     def test_extract_attributes(self):
