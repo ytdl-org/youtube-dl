@@ -323,10 +323,13 @@ class IqiyiIE(InfoExtractor):
                 errnote='Failed to download playlist page %d' % page_num)
             pagelist = self._parse_json(
                 remove_start(pagelist_page, 'var tvInfoJs='), album_id)
-            vlist = pagelist['data']['vlist']
-            for item in vlist:
-                entries.append(self.url_result(item['vurl']))
-            if len(vlist) < PAGE_SIZE:
+            if 'data' in pagelist:
+                vlist = pagelist['data']['vlist']
+                for item in vlist:
+                    entries.append(self.url_result(item['vurl']))
+                if len(vlist) < PAGE_SIZE:
+                    break
+            else:
                 break
 
         return self.playlist_result(entries, album_id, album_title)
