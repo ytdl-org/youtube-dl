@@ -287,7 +287,10 @@ from .fc2 import (
     FC2EmbedIE,
 )
 from .fczenit import FczenitIE
-from .filmon import FilmOnIE, FilmOnVODIE
+from .filmon import (
+    FilmOnIE,
+    FilmOnChannelIE,
+)
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE

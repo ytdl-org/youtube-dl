@@ -2,74 +2,21 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import qualities
-from ..compat import compat_urllib_request
-
-
-_QUALITY = qualities(('low', 'high'))
+from ..compat import (
+    compat_str,
+    compat_HTTPError,
+)
+from ..utils import (
+    qualities,
+    strip_or_none,
+    int_or_none,
+    ExtractorError,
+)
 
 
 class FilmOnIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?filmon\.com/(?:tv|channel)/(?P<id>[a-z0-9-]+)'
-    _TESTS = [{
-        'url': 'https://www.filmon.com/channel/filmon-sports',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.filmon.com/tv/2894',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        channel_id = self._match_id(url)
-
-        request = compat_urllib_request.Request('https://www.filmon.com/channel/%s' % (channel_id))
-        request.add_header('X-Requested-With', 'XMLHttpRequest')
-        channel_info = self._download_json(request, channel_id)
-        now_playing = channel_info['now_playing']
-
-        thumbnails = []
-        for thumb in now_playing.get('images', ()):
-            if thumb['type'] != '2':
-                continue
-            thumbnails.append({
-                'url': thumb['url'],
-                'width': int(thumb['width']),
-                'height': int(thumb['height']),
-            })
-
-        formats = []
-
-        for stream in channel_info['streams']:
-            formats.append({
-                'format_id': str(stream['id']),
-                # this is an m3u8 stream, but we are deliberately not using _extract_m3u8_formats
-                # because 0) it doesn't have bitrate variants anyway, and 1) the ids generated
-                # by that method are highly unstable (because the bitrate is variable)
-                'url': stream['url'],
-                'resolution': stream['name'],
-                'format_note': 'expires after %u seconds' % int(stream['watch-timeout']),
-                'ext': 'mp4',
-                'quality': _QUALITY(stream['quality']),
-                'preference': int(stream['watch-timeout']),
-            })
-        self._sort_formats(formats)
-
-        return {
-            'id': str(channel_info['id']),
-            'display_id': channel_info['alias'],
-            'formats': formats,
-            # XXX: use the channel description (channel_info['description'])?
-            'uploader_id': channel_info['alias'],
-            'uploader': channel_info['title'], # XXX: kinda stretching it...
-            'title': now_playing.get('programme_name') or channel_info['title'],
-            'description': now_playing.get('programme_description'),
-            'thumbnails': thumbnails,
-            'is_live': True,
-        }
-
-
-class FilmOnVODIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?filmon\.com/vod/view/(?P<id>\d+)'
+    IE_NAME = 'filmon'
+    _VALID_URL = r'(?:https?://(?:www\.)?filmon\.com/vod/view/|filmon:)(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.filmon.com/vod/view/24869-0-plan-9-from-outer-space',
         'info_dict': {
@@ -83,62 +30,149 @@ class FilmOnVODIE(InfoExtractor):
         'info_dict': {
             'id': '2825',
             'title': 'Popeye Series 1',
+            'description': 'The original series of Popeye.',
         },
-        'playlist_count': 8,
+        'playlist_mincount': 8,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        result = self._download_json('https://www.filmon.com/api/vod/movie?id=%s' % (video_id), video_id)
-        if result['code'] != 200:
-            raise ExtractorError('FilmOn said: %s' % (result['reason']), expected=True)
+        try:
+            response = self._download_json(
+                'https://www.filmon.com/api/vod/movie?id=%s' % video_id,
+                video_id)['response']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError):
+                errmsg = self._parse_json(e.cause.read().decode(), video_id)['reason']
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, errmsg), expected=True)
+            raise
 
-        response = result['response']
+        title = response['title']
+        description = strip_or_none(response.get('description'))
 
-        if response.get('episodes'):
-            return {
-                '_type': 'playlist',
-                'id': video_id,
-                'title': response['title'],
-                'entries': [{
-                    '_type': 'url',
-                    'url': 'https://www.filmon.com/vod/view/%s' % (ep),
-                } for ep in response['episodes']]
-            }
+        if response.get('type_id') == 1:
+            entries = [self.url_result('filmon:' + episode_id) for episode_id in response.get('episodes', [])]
+            return self.playlist_result(entries, video_id, title, description)
 
+        QUALITY = qualities(('low', 'high'))
         formats = []
-        for (id, stream) in response['streams'].items():
+        for format_id, stream in response.get('streams', {}).items():
+            stream_url = stream.get('url')
+            if not stream_url:
+                continue
             formats.append({
-                'format_id': id,
-                'url': stream['url'],
-                'resolution': stream['name'],
-                'format_note': 'expires after %u seconds' % int(stream['watch-timeout']),
+                'format_id': format_id,
+                'url': stream_url,
                 'ext': 'mp4',
-                'quality': _QUALITY(stream['quality']),
-                'preference': int(stream['watch-timeout']),
+                'quality': QUALITY(stream.get('quality')),
+                'protocol': 'm3u8_native',
             })
         self._sort_formats(formats)
 
-        poster = response['poster']
-        thumbnails = [{
-            'id': 'poster',
-            'url': poster['url'],
-            'width': poster['width'],
-            'height': poster['height'],
-        }]
-        for (id, thumb) in poster['thumbs'].items():
+        thumbnails = []
+        poster = response.get('poster', {})
+        thumbs = poster.get('thumbs', {})
+        thumbs['poster'] = poster
+        for thumb_id, thumb in thumbs.items():
+            thumb_url = thumb.get('url')
+            if not thumb_url:
+                continue
             thumbnails.append({
-                'id': id,
-                'url': thumb['url'],
-                'width': thumb['width'],
-                'height': thumb['height'],
+                'id': thumb_id,
+                'url': thumb_url,
+                'width': int_or_none(thumb.get('width')),
+                'height': int_or_none(thumb.get('height')),
             })
 
         return {
             'id': video_id,
-            'title': response['title'],
+            'title': title,
             'formats': formats,
-            'description': response['description'],
+            'description': description,
             'thumbnails': thumbnails,
+        }
+
+
+class FilmOnChannelIE(InfoExtractor):
+    IE_NAME = 'filmon:channel'
+    _VALID_URL = r'https?://(?:www\.)?filmon\.com/(?:tv|channel)/(?P<id>[a-z0-9-]+)'
+    _TESTS = [{
+        # VOD
+        'url': 'http://www.filmon.com/tv/sports-haters',
+        'info_dict': {
+            'id': '4190',
+            'ext': 'mp4',
+            'title': 'Sports Haters',
+            'description': 'md5:dabcb4c1d9cfc77085612f1a85f8275d',
+        },
+    }, {
+        # LIVE
+        'url': 'https://www.filmon.com/channel/filmon-sports',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.filmon.com/tv/2894',
+        'only_matching': True,
+    }]
+
+    _THUMBNAIL_RES = [
+        ('logo', 56, 28),
+        ('big_logo', 106, 106),
+        ('extra_big_logo', 300, 300),
+    ]
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+
+        try:
+            channel_data = self._download_json(
+                'http://www.filmon.com/api-v2/channel/' + channel_id, channel_id)['data']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError):
+                errmsg = self._parse_json(e.cause.read().decode(), channel_id)['message']
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, errmsg), expected=True)
+            raise
+
+        channel_id = compat_str(channel_data['id'])
+        is_live = not channel_data.get('is_vod') and not channel_data.get('is_vox')
+        title = channel_data['title']
+
+        QUALITY = qualities(('low', 'high'))
+        formats = []
+        for stream in channel_data.get('streams', []):
+            stream_url = stream.get('url')
+            if not stream_url:
+                continue
+            if not is_live:
+                formats.extend(self._extract_wowza_formats(
+                    stream_url, channel_id, skip_protocols=['dash', 'rtmp', 'rtsp']))
+                continue
+            quality = stream.get('quality')
+            formats.append({
+                'format_id': quality,
+                # this is an m3u8 stream, but we are deliberately not using _extract_m3u8_formats
+                # because it doesn't have bitrate variants anyway
+                'url': stream_url,
+                'ext': 'mp4',
+                'quality': QUALITY(quality),
+            })
+        self._sort_formats(formats)
+
+        thumbnails = []
+        for name, width, height in self._THUMBNAIL_RES:
+            thumbnails.append({
+                'id': name,
+                'url': 'http://static.filmon.com/assets/channels/%s/%s.png' % (channel_id, name),
+                'width': width,
+                'height': height,
+            })
+
+        return {
+            'id': channel_id,
+            'display_id': channel_data.get('alias'),
+            'title': self._live_title(title) if is_live else title,
+            'description': channel_data.get('description'),
+            'thumbnails': thumbnails,
+            'formats': formats,
+            'is_live': is_live,
         }
