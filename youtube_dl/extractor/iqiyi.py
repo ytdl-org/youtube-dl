@@ -302,7 +302,7 @@ class IqiyiIE(InfoExtractor):
         PAGE_SIZE = 50
 
         links = re.findall(
-            r'<a[^>]+?href="(http://www\.iqiyi\.com/.+\.html)"[^>]+?class="site-piclist_pic_link"[^>]+?>',
+            r'<a[^>]+href="(http://www\.iqiyi\.com/.+\.html)"[^>]+class="site-piclist_pic_link".*>',
             webpage)
         if not links:
             return
