@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [infoq] Add audio only formats (#11565)
 * [youtube] Fix ytsearch when cookies are provided (#11924)
 + [bilibili] Support new Bangumi URLs (#11845)
 
