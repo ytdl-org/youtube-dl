@@ -86,7 +86,7 @@ class VisirMediaIE(VisirBaseIE):
         'info_dict': {
             'id': 'CLP51729',
             'ext': 'mp4',
-            'title': u'Guðjón: Mjög jákvæður á framhaldið',
+            'title': 'Guðjón: Mjög jákvæður á framhaldið',
             'description': None,
             'thumbnail': 'http://www.visir.is/apps/pbcsi.dll/urlget?url=/ExternalData/IsBolti_clips/51729_3.jpg'
         },
@@ -95,8 +95,8 @@ class VisirMediaIE(VisirBaseIE):
         'info_dict': {
             'id': 'CLP49923',
             'ext': 'mp3',
-            'title': u'Ósk Gunnars - Sigga Soffía og dansverkið FUBAR',
-            'description': u'Ósk Gunnars alla virka daga á FM957 frá 13-17',
+            'title': 'Ósk Gunnars - Sigga Soffía og dansverkið FUBAR',
+            'description': 'Ósk Gunnars alla virka daga á FM957 frá 13-17',
         },
         'params': {
             'skip_download': True,
@@ -119,8 +119,8 @@ class VisirArticleIE(VisirBaseIE):
         'url': 'http://www.visir.is/landsmenn-minntust-birnu-brjansdottur/article/2017170128825',
         'info_dict': {
             'id': '2017170128825',
-            'title': u'Landsmenn minntust Birnu Brjánsdóttur',
-            'description': u'Hundruð kerta voru tendruð á Arnarhóli í ljósaskiptunum í dag.'
+            'title': 'Landsmenn minntust Birnu Brjánsdóttur',
+            'description': 'Hundruð kerta voru tendruð á Arnarhóli í ljósaskiptunum í dag.'
         },
         'playlist_count': 2,
     }
@@ -129,7 +129,7 @@ class VisirArticleIE(VisirBaseIE):
         article_id = self._match_id(url)
         webpage = self._download_webpage(url, article_id)
 
-        title = remove_start(self._og_search_title(webpage), u'Vísir -').strip()
+        title = remove_start(self._og_search_title(webpage), 'Vísir -').strip()
         description = self._og_search_description(webpage, default=None)
 
         entries = []
