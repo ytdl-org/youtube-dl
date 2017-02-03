@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 
 import re
 from .common import InfoExtractor
+from ..utils import float_or_none
+from ..utils import int_or_none
 from ..utils import js_to_json
+from ..utils import unified_strdate
 
 
 class GaskrankIE(InfoExtractor):
@@ -23,7 +26,6 @@ class GaskrankIE(InfoExtractor):
                 'uploader_id': 'Bikefun',
                 'upload_date': '20170110',
                 'uploader_url': None,
-                'tags': ['honkj', 'strike', 'idiot', 'depp', 'fahrschule', 'einparken', 'parken', 'autounfall', 'unfall', 'flurschaden', 'crash', 'accident', 'fail', 'rueckwaerts', 'umfaller'],
             }
         },
         {
@@ -39,7 +41,6 @@ class GaskrankIE(InfoExtractor):
                 'uploader_id': 'IOM',
                 'upload_date': '20160506',
                 'uploader_url': 'www.iomtt.com',
-                'tags': ['schwindelig', 'iom', 'isle of man', 'guy martin', 'glen helen', 'michael dunlop', 'tt 2011', 'attacke'],
             }
         }
     ]
@@ -48,7 +49,7 @@ class GaskrankIE(InfoExtractor):
         """extract information from gaskrank.tv"""
         def fix_json(code):
             """Removes trailing comma in json: {{},} --> {{}}"""
-            return re.sub(r',[\s]*?}', r'}', js_to_json(code))
+            return re.sub(r',[\s]*}', r'}', js_to_json(code))
 
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
@@ -56,23 +57,21 @@ class GaskrankIE(InfoExtractor):
         title = self._search_regex(r'movieName\s*:\s*\'([^\']*)\'', webpage, 'title')
         thumbnail = self._search_regex(r'poster\s*:\s*\'([^\']*)\'', webpage, 'thumbnail', default=None)
 
-        mobj = re.search(r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date_day>[0-9][0-9]).(?P<upload_date_month>[0-9][0-9]).(?P<upload_date_year>[0-9][0-9][0-9][0-9])', webpage)
+        mobj = re.search(r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date>[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][0-9][0-9])', webpage)
         if mobj is not None:
             uploader_id = mobj.groupdict().get('uploader_id')
-            upload_date = mobj.groupdict().get('upload_date_year') + mobj.groupdict().get('upload_date_month') + mobj.groupdict().get('upload_date_day')
-            if len(upload_date) != 8:
-                upload_date = None
+            upload_date = unified_strdate(mobj.groupdict().get('upload_date'))
 
-        uploader_url = self._search_regex(r'Homepage:\s*<[^>]*?>(?P<uploader_url>[^<]*)', webpage, 'uploader_url', default=None)
-        tags = re.findall(r'/tv/tags/[^/]*?/\"\s*>(?P<tag>[^<]*?)<', webpage)
+        uploader_url = self._search_regex(r'Homepage:\s*<[^>]*>(?P<uploader_url>[^<]*)', webpage, 'uploader_url', default=None)
+        tags = re.findall(r'/tv/tags/[^/]+/"\s*>(?P<tag>[^<]*?)<', webpage)
 
-        view_count = self._search_regex(r'class\s*=\s*\"gkRight\"(?:[^>]*>\s*<[^>]*)*icon-eye-open(?:[^>]*>\s*<[^>]*)*>\s*(?P<view_count>[0-9\.]*)', webpage, 'view_count')
+        view_count = self._search_regex(r'class\s*=\s*"gkRight"(?:[^>]*>\s*<[^>]*)*icon-eye-open(?:[^>]*>\s*<[^>]*)*>\s*(?P<view_count>[0-9\.]*)', webpage, 'view_count', default=None)
         if view_count:
-            view_count = int(view_count.replace('.', ''))
+            view_count = int_or_none(view_count.replace('.', ''))
 
-        average_rating = self._search_regex(r'itemprop\s*=\s*\"ratingValue\"\s*>\s*(?P<average_rating>[0-9,]*)', webpage, 'average_rating')
+        average_rating = self._search_regex(r'itemprop\s*=\s*"ratingValue"[^>]*>\s*(?P<average_rating>[0-9,]+)', webpage, 'average_rating')
         if average_rating:
-            average_rating = float(average_rating.replace(',', '.'))
+            average_rating = float_or_none(average_rating.replace(',', '.'))
 
         playlist = self._parse_json(
             self._search_regex(r'playlist\s*:\s*\[([^\]]*)\]', webpage, 'playlist', default='{}'),
