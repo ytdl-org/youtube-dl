@@ -17,6 +17,8 @@ RewriteRule ^output-template/?$ https://github.com/rg3/youtube-dl#output-templat
 RewriteRule ^latest/version/?$ latest_version [L,T=text/plain]
 RewriteRule ^latest_version/?$ - [T=text/plain]
 RewriteRule ^latest(?:/(.*))?$ /downloads/latest/$1 [R=302,L]
+RewriteRule ^\.git - [F]
 
 ErrorDocument 302 "302"
+
 
