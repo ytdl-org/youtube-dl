@@ -98,7 +98,10 @@ class ITVIE(InfoExtractor):
             headers=headers, data=etree.tostring(req_env))
         playlist = xpath_element(resp_env, './/Playlist')
         if playlist is None:
+            fault_code = xpath_text(resp_env, './/faultcode')
             fault_string = xpath_text(resp_env, './/faultstring')
+            if fault_code == 'InvalidGeoRegion':
+                self.raise_geo_restricted(msg=fault_string, countries=['GB'])
             raise ExtractorError('%s said: %s' % (self.IE_NAME, fault_string))
         title = xpath_text(playlist, 'EpisodeTitle', fatal=True)
         video_element = xpath_element(playlist, 'VideoEntries/Video', fatal=True)
