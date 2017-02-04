@@ -281,6 +281,11 @@ class VKIE(VKBaseIE):
         {
             'url': 'http://new.vk.com/video205387401_165548505',
             'only_matching': True,
+        },
+        {
+            # video blocked following its author
+            'url': 'https://vk.com/search?c%5Bq%5D=%D0%9F%D1%80%D1%8B%D0%B6%D0%BE%D0%BA%20c%20%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%20%D0%B2%20%D1%81%D1%82%D0%B8%D0%BB%D0%B5%20%D0%A7%D0%B5%D0%BB%D0%BE%D0%B2%D0%B5%D0%BA%D0%B0-%D0%BF%D0%B0%D1%83%D0%BA%D0%B0&c%5Bsection%5D=video&c%5Bsort%5D=2&z=video-10639516_456240611',
+            'only_matching': True,
         }
     ]
 
@@ -328,6 +333,12 @@ class VKIE(VKBaseIE):
 
             r'<!>Access denied':
             'Access denied to video %s.',
+
+            r'<!>Видеозапись недоступна, так как её автор был заблокирован.':
+            'Author of video %s has been blocked.',
+
+            r'<!>This video is no longer available, because its author has been blocked.':
+            'Author of video %s has been blocked.',
         }
 
         for error_re, error_msg in ERRORS.items():
