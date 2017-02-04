@@ -14,6 +14,7 @@ from ..utils import (
 
 class VGTVIE(XstreamIE):
     IE_DESC = 'VGTV, BTTV, FTV, Aftenposten and Aftonbladet'
+    _BYPASS_GEO = False
 
     _HOST_TO_APPNAME = {
         'vgtv.no': 'vgtv',
@@ -217,7 +218,7 @@ class VGTVIE(XstreamIE):
             properties = try_get(
                 data, lambda x: x['streamConfiguration']['properties'], list)
             if properties and 'geoblocked' in properties:
-                raise self.raise_geo_restricted()
+                raise self.raise_geo_restricted(countries=['NO'])
 
         self._sort_formats(info['formats'])
 
