@@ -6,6 +6,7 @@ import hashlib
 import json
 import netrc
 import os
+import random
 import re
 import socket
 import sys
@@ -39,6 +40,8 @@ from ..utils import (
     ExtractorError,
     fix_xml_ampersands,
     float_or_none,
+    GeoRestrictedError,
+    GeoUtils,
     int_or_none,
     js_to_json,
     parse_iso8601,
@@ -320,17 +323,25 @@ class InfoExtractor(object):
     _real_extract() methods and define a _VALID_URL regexp.
     Probably, they should also be added to the list of extractors.
 
+    _BYPASS_GEO attribute may be set to False in order to disable
+    geo restriction bypass mechanisms for a particular extractor.
+    Though it won't disable explicit geo restriction bypass based on
+    country code provided with bypass_geo_restriction_as_country.
+
     Finally, the _WORKING attribute should be set to False for broken IEs
     in order to warn the users and skip the tests.
     """
 
     _ready = False
     _downloader = None
+    _x_forwarded_for_ip = None
+    _BYPASS_GEO = True
     _WORKING = True
 
     def __init__(self, downloader=None):
         """Constructor. Receives an optional downloader."""
         self._ready = False
+        self._x_forwarded_for_ip = None
         self.set_downloader(downloader)
 
     @classmethod
@@ -359,6 +370,10 @@ class InfoExtractor(object):
 
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
+        if not self._x_forwarded_for_ip:
+            country_code = self._downloader.params.get('bypass_geo_restriction_as_country', None)
+            if country_code:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
         if not self._ready:
             self._real_initialize()
             self._ready = True
@@ -366,8 +381,22 @@ class InfoExtractor(object):
     def extract(self, url):
         """Extracts URL information and returns it in list of dicts."""
         try:
-            self.initialize()
-            return self._real_extract(url)
+            for _ in range(2):
+                try:
+                    self.initialize()
+                    return self._real_extract(url)
+                except GeoRestrictedError as e:
+                    if (not self._downloader.params.get('bypass_geo_restriction_as_country', None) and
+                            self._BYPASS_GEO and
+                            self._downloader.params.get('bypass_geo_restriction', True) and
+                            not self._x_forwarded_for_ip and
+                            e.countries):
+                        self._x_forwarded_for_ip = GeoUtils.random_ipv4(random.choice(e.countries))
+                        if self._x_forwarded_for_ip:
+                            self.report_warning(
+                                'Video is geo restricted. Retrying extraction with fake %s IP as X-Forwarded-For.' % self._x_forwarded_for_ip)
+                            continue
+                    raise
         except ExtractorError:
             raise
         except compat_http_client.IncompleteRead as e:
@@ -433,6 +462,15 @@ class InfoExtractor(object):
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
+
+        # Some sites check X-Forwarded-For HTTP header in order to figure out
+        # the origin of the client behind proxy. This allows bypassing geo
+        # restriction by faking this header's value to IP that belongs to some
+        # geo unrestricted country. We will do so once we encounter any
+        # geo restriction error.
+        if self._x_forwarded_for_ip:
+            if 'X-Forwarded-For' not in headers:
+                headers['X-Forwarded-For'] = self._x_forwarded_for_ip
 
         urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, data=data, headers=headers, query=query)
         if urlh is False:
@@ -609,10 +647,8 @@ class InfoExtractor(object):
             expected=True)
 
     @staticmethod
-    def raise_geo_restricted(msg='This video is not available from your location due to geo restriction'):
-        raise ExtractorError(
-            '%s. You might want to use --proxy to workaround.' % msg,
-            expected=True)
+    def raise_geo_restricted(msg='This video is not available from your location due to geo restriction', countries=None):
+        raise GeoRestrictedError(msg, countries=countries)
 
     # Methods for following #608
     @staticmethod
