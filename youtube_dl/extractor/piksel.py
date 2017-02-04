@@ -30,7 +30,8 @@ class PikselIE(InfoExtractor):
             }
         },
         {
-            'url': 'http://www.uscourts.gov/cameras-courts/state-washington-vs-donald-j-trump-et-al',
+            # Original source: http://www.uscourts.gov/cameras-courts/state-washington-vs-donald-j-trump-et-al
+            'url': 'https://player.piksel.com/v/v80kqp41',
             'md5': '753ddcd8cc8e4fa2dda4b7be0e77744d',
             'info_dict': {
                 'id': 'v80kqp41',
