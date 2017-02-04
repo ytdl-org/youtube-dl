@@ -9,12 +9,13 @@ from ..utils import (
     mimetype2ext,
     parse_iso8601,
     remove_end,
+    update_url_query,
 )
 
 
 class DRTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
-
+    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder|radio/ondemand)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
+    IE_NAME = 'drtv'
     _TESTS = [{
         'url': 'https://www.dr.dk/tv/se/boern/ultra/klassen-ultra/klassen-darlig-taber-10',
         'md5': '25e659cccc9a2ed956110a299fdf5983',
@@ -79,9 +80,10 @@ class DRTVIE(InfoExtractor):
         subtitles = {}
 
         for asset in data['Assets']:
-            if asset.get('Kind') == 'Image':
+            kind = asset.get('Kind')
+            if kind == 'Image':
                 thumbnail = asset.get('Uri')
-            elif asset.get('Kind') == 'VideoResource':
+            elif kind in ('VideoResource', 'AudioResource'):
                 duration = float_or_none(asset.get('DurationInMilliseconds'), 1000)
                 restricted_to_denmark = asset.get('RestrictedToDenmark')
                 spoken_subtitles = asset.get('Target') == 'SpokenSubtitles'
@@ -96,9 +98,13 @@ class DRTVIE(InfoExtractor):
                         preference = -1
                         format_id += '-spoken-subtitles'
                     if target == 'HDS':
-                        formats.extend(self._extract_f4m_formats(
+                        f4m_formats = self._extract_f4m_formats(
                             uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
-                            video_id, preference, f4m_id=format_id))
+                            video_id, preference, f4m_id=format_id)
+                        if kind == 'AudioResource':
+                            for f in f4m_formats:
+                                f['vcodec'] = 'none'
+                        formats.extend(f4m_formats)
                     elif target == 'HLS':
                         formats.extend(self._extract_m3u8_formats(
                             uri, video_id, 'mp4', entry_protocol='m3u8_native',
@@ -112,6 +118,7 @@ class DRTVIE(InfoExtractor):
                             'format_id': format_id,
                             'tbr': int_or_none(bitrate),
                             'ext': link.get('FileFormat'),
+                            'vcodec': 'none' if kind == 'AudioResource' else None,
                         })
                 subtitles_list = asset.get('SubtitlesList')
                 if isinstance(subtitles_list, list):
@@ -143,4 +150,59 @@ class DRTVIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
             'subtitles': subtitles,
+        }
+
+
+class DRTVLiveIE(InfoExtractor):
+    IE_NAME = 'drtv:live'
+    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv|TV)/live/(?P<id>[\da-z-]+)'
+    _TEST = {
+        'url': 'https://www.dr.dk/tv/live/dr1',
+        'info_dict': {
+            'id': 'dr1',
+            'ext': 'mp4',
+            'title': 're:^DR1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+        channel_data = self._download_json(
+            'https://www.dr.dk/mu-online/api/1.0/channel/' + channel_id,
+            channel_id)
+        title = self._live_title(channel_data['Title'])
+
+        formats = []
+        for streaming_server in channel_data.get('StreamingServers', []):
+            server = streaming_server.get('Server')
+            if not server:
+                continue
+            link_type = streaming_server.get('LinkType')
+            for quality in streaming_server.get('Qualities', []):
+                for stream in quality.get('Streams', []):
+                    stream_path = stream.get('Stream')
+                    if not stream_path:
+                        continue
+                    stream_url = update_url_query(
+                        '%s/%s' % (server, stream_path), {'b': ''})
+                    if link_type == 'HLS':
+                        formats.extend(self._extract_m3u8_formats(
+                            stream_url, channel_id, 'mp4',
+                            m3u8_id=link_type, fatal=False, live=True))
+                    elif link_type == 'HDS':
+                        formats.extend(self._extract_f4m_formats(update_url_query(
+                            '%s/%s' % (server, stream_path), {'hdcore': '3.7.0'}),
+                            channel_id, f4m_id=link_type, fatal=False))
+        self._sort_formats(formats)
+
+        return {
+            'id': channel_id,
+            'title': title,
+            'thumbnail': channel_data.get('PrimaryImageUri'),
+            'formats': formats,
+            'is_live': True,
         }

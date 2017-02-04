@@ -248,7 +248,10 @@ from .dramafever import (
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
-from .drtv import DRTVIE
+from .drtv import (
+    DRTVIE,
+    DRTVLiveIE,
+)
 from .dvtv import DVTVIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
