@@ -3290,8 +3290,8 @@ class GeoUtils(object):
         addr, preflen = block.split('/')
         addr_min = compat_struct_unpack('!L', socket.inet_aton(addr))[0]
         addr_max = addr_min | (0xffffffff >> int(preflen))
-        return socket.inet_ntoa(
-            compat_struct_pack('!I', random.randint(addr_min, addr_max)))
+        return compat_str(socket.inet_ntoa(
+            compat_struct_pack('!I', random.randint(addr_min, addr_max))))
 
 
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
