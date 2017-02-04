@@ -2,6 +2,7 @@ version <unreleased>
 
 Extractors
 + [twitch:stream] Add support for player.twitch.tv (#11971)
+* [radiocanada] Fix extraction for toutv rtmp formats
 
 
 version 2017.02.04
