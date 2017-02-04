@@ -1,12 +1,38 @@
+version <unreleased>
+
+Extractors
++ [twitch:stream] Add support for player.twitch.tv (#11971)
+
+
 version 2017.02.04
 
 Core
 + Add --playlist-random to shuffle playlists (#11889, #11901)
+* [utils] Improve comments processing in js_to_json (#11947)
+* [utils] Handle single-line comments in js_to_json
+* [downloader/external:ffmpeg] Minimize the use of aac_adtstoasc filter
 
 Extractors
++ [piksel] Add another app token pattern (#11969)
++ [vk] Capture and output author blocked error message (#11965)
++ [turner] Fix secure HLS formats downloading with ffmpeg (#11358, #11373,
+  #11800)
++ [drtv] Add support for live and radio sections (#1827, #3427)
+* [myspace] Fix extraction and extract HLS and HTTP formats
++ [youtube] Add format info for itag 325 and 328
+* [vine] Fix extraction (#11955)
+- [sportbox] Remove extractor (#11954)
++ [filmon] Add support for filmon.com (#11187)
 + [infoq] Add audio only formats (#11565)
+* [douyutv] Improve room id regular expression (#11931)
+* [iprima] Fix extraction (#11920, #11896)
 * [youtube] Fix ytsearch when cookies are provided (#11924)
+* [go] Relax video id regular expression (#11937)
+* [facebook] Fix title extraction (#11941)
++ [youtube:playlist] Recognize TL playlists (#11945)
 + [bilibili] Support new Bangumi URLs (#11845)
++ [cbc:watch] Extract audio codec for audio only formats (#11893)
++ [elpais] Fix extraction for some URLs (#11765)
 
 
 version 2017.02.01
@@ -18,7 +44,6 @@ Extractors
 + [vimeo] Extract upload timestamp
 + [vimeo] Extract license (#8726, #11880)
 + [nrk:series] Add support for series (#11571, #11711)
-+ [elpais] Fix extraction for some URLs (#11765)
 
 
 version 2017.01.31
