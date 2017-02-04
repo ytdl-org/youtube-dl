@@ -864,8 +864,14 @@ class YoutubeDL(object):
             if self.params.get('playlistrandom', False):
                 random.shuffle(entries)
 
+            x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
+
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
+                # This __x_forwarded_for_ip thing is a bit ugly but requires
+                # minimal changes
+                if x_forwarded_for:
+                    entry['__x_forwarded_for_ip'] = x_forwarded_for
                 extra = {
                     'n_entries': n_entries,
                     'playlist': playlist,
@@ -1250,6 +1256,11 @@ class YoutubeDL(object):
         if cookies:
             res['Cookie'] = cookies
 
+        if 'X-Forwarded-For' not in res:
+            x_forwarded_for_ip = info_dict.get('__x_forwarded_for_ip')
+            if x_forwarded_for_ip:
+                res['X-Forwarded-For'] = x_forwarded_for_ip
+
         return res
 
     def _calc_cookies(self, info_dict):
@@ -1392,6 +1403,9 @@ class YoutubeDL(object):
             full_format_info = info_dict.copy()
             full_format_info.update(format)
             format['http_headers'] = self._calc_headers(full_format_info)
+        # Remove private housekeeping stuff
+        if '__x_forwarded_for_ip' in info_dict:
+            del info_dict['__x_forwarded_for_ip']
 
         # TODO Central sorting goes here
 
