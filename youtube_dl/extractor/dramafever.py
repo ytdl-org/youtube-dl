@@ -116,8 +116,9 @@ class DramaFeverIE(DramaFeverBaseIE):
                 'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
-                raise ExtractorError(
-                    'Currently unavailable in your country.', expected=True)
+                self.raise_geo_restricted(
+                    msg='Currently unavailable in your country',
+                    countries=['US', 'CA'])
             raise
 
         series_id, episode_number = video_id.split('.')
