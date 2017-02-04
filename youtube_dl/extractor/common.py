@@ -384,7 +384,10 @@ class InfoExtractor(object):
             for _ in range(2):
                 try:
                     self.initialize()
-                    return self._real_extract(url)
+                    ie_result = self._real_extract(url)
+                    if self._x_forwarded_for_ip:
+                        ie_result['__x_forwarded_for_ip'] = self._x_forwarded_for_ip
+                    return ie_result
                 except GeoRestrictedError as e:
                     if (not self._downloader.params.get('bypass_geo_restriction_as_country', None) and
                             self._BYPASS_GEO and
