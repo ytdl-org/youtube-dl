@@ -13,12 +13,27 @@ class GoogleDriveIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)|video\.google\.com/get_player\?.*?docid=)(?P<id>[a-zA-Z0-9_-]{28,})'
     _TESTS = [{
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
-        'md5': '881f7700aec4f538571fa1e0eed4a7b6',
+        'md5': '5c602afbbf2c1db91831f5d82f678554',
+        'params': {
+            'format': "Original"
+        },
         'info_dict': {
             'id': '0ByeS4oOUV-49Zzh4R1J6R09zazQ',
             'ext': 'mp4',
             'title': 'Big Buck Bunny.mp4',
-            'duration': 46,
+            'duration': 45,
+        }
+    }, {
+        'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
+        'md5': 'd109872761f7e7ecf353fa108c0dbe1e',
+        'params': {
+            'format': "37"
+        },
+        'info_dict': {
+            'id': '0ByeS4oOUV-49Zzh4R1J6R09zazQ',
+            'ext': 'mp4',
+            'title': 'Big Buck Bunny.mp4',
+            'duration': 45,
         }
     }, {
         # video id is longer than 28 characters
@@ -82,6 +97,29 @@ class GoogleDriveIE(InfoExtractor):
                 'ext': self._FORMATS_EXT[fmt_id],
             })
         self._sort_formats(formats)
+
+        downloadable = True
+        # DownloadPage will either be the actual file, a "we can't virus-scan this" page with a confirmation button, or a "you don't have permission" page.
+        # The actual file supports range requests, but the confirmation/permission pages don't, so this will download the whole page for either of those.
+        downloadPage = self._download_webpage('https://docs.google.com/uc?export=download&id=%s' % video_id, video_id, headers={'Range': 'bytes=0-15'}, encoding='unicode_escape')
+        if 'html' in downloadPage:
+            confirm = self._search_regex(r'confirm=([^&"]+)', downloadPage, 'confirm', default=None)
+            if confirm:
+                originalURL = 'https://docs.google.com/uc?export=download&confirm=%s&id=%s' % (confirm, video_id)
+            else:
+                downloadable = False
+        else:
+            originalURL = 'https://docs.google.com/uc?export=download&id=%s' % video_id
+        if downloadable:
+            originalExtension = self._search_regex(r'"([^"]+)",[^,]*,[^,]*$', webpage, 'original extension', default=None)
+            originalSize = int_or_none(self._search_regex(r'"([^"]+)"[^"]*\n[^\n]*,[^,]*$', webpage, 'original size', default=None))
+            formats.append({
+                'url': originalURL,
+                'format_id': 'Original',
+                'ext': originalExtension,
+                'filesize': originalSize,
+                'protocol': 'https',
+            })
 
         return {
             'id': video_id,
