@@ -56,6 +56,8 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
+    GeoRestrictedError,
+    ISO3166Utils,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -272,6 +274,13 @@ class YoutubeDL(object):
                        If it returns None, the video is downloaded.
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
+    bypass_geo_restriction:
+                       Bypass geographic restriction via faking X-Forwarded-For
+                       HTTP header (experimental)
+    bypass_geo_restriction_as_country:
+                       Two-letter ISO 3166-2 country code that will be used for
+                       explicit geographic restriction bypassing via faking
+                       X-Forwarded-For HTTP header (experimental)
 
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
@@ -707,6 +716,14 @@ class YoutubeDL(object):
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
+            except GeoRestrictedError as e:
+                msg = e.msg
+                if e.countries:
+                    msg += '\nThis video is available in %s.' % ', '.join(
+                        map(ISO3166Utils.short2full, e.countries))
+                msg += '\nYou might want to use a VPN or a proxy server (with --proxy) to workaround.'
+                self.report_error(msg)
+                break
             except ExtractorError as e:  # An error we somewhat expected
                 self.report_error(compat_str(e), e.format_traceback())
                 break
