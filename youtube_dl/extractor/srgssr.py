@@ -14,6 +14,7 @@ from ..utils import (
 
 class SRGSSRIE(InfoExtractor):
     _VALID_URL = r'(?:https?://tp\.srgssr\.ch/p(?:/[^/]+)+\?urn=urn|srgssr):(?P<bu>srf|rts|rsi|rtr|swi):(?:[^:]+:)?(?P<type>video|audio):(?P<id>[0-9a-f\-]{36}|\d+)'
+    _BYPASS_GEO = False
 
     _ERRORS = {
         'AGERATING12': 'To protect children under the age of 12, this video is only available between 8 p.m. and 6 a.m.',
@@ -40,8 +41,11 @@ class SRGSSRIE(InfoExtractor):
             media_id)[media_type.capitalize()]
 
         if media_data.get('block') and media_data['block'] in self._ERRORS:
-            raise ExtractorError('%s said: %s' % (
-                self.IE_NAME, self._ERRORS[media_data['block']]), expected=True)
+            message = self._ERRORS[media_data['block']]
+            if media_data['block'] == 'GEOBLOCK':
+                self.raise_geo_restricted(msg=message, countries=['CH'])
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, message), expected=True)
 
         return media_data
 
