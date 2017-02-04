@@ -221,10 +221,23 @@ class AfreecaTVGlobalIE(AfreecaTVIE):
                 s_url = s.get('purl')
                 if not s_url:
                     continue
-                # TODO: extract rtmp formats
-                if s.get('stype') == 'HLS':
+                stype = s.get('stype')
+                if stype == 'HLS':
                     formats.extend(self._extract_m3u8_formats(
-                        s_url, channel_id, 'mp4', fatal=False))
+                        s_url, channel_id, 'mp4', m3u8_id=stype, fatal=False))
+                elif stype == 'RTMP':
+                    format_id = [stype]
+                    label = s.get('label')
+                    if label:
+                        format_id.append(label)
+                    formats.append({
+                        'format_id': '-'.join(format_id),
+                        'url': s_url,
+                        'tbr': int_or_none(s.get('bps')),
+                        'height': int_or_none(s.get('brt')),
+                        'ext': 'flv',
+                        'rtmp_live': True,
+                    })
             self._sort_formats(formats)
 
             info.update({
