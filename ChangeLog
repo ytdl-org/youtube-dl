@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.02.04
 
 Core
 + Add --playlist-random to shuffle playlists (#11889, #11901)
