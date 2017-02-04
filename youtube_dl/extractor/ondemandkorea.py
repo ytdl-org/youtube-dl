@@ -35,7 +35,8 @@ class OnDemandKoreaIE(InfoExtractor):
 
         if 'msg_block_01.png' in webpage:
             self.raise_geo_restricted(
-                'This content is not available in your region')
+                msg='This content is not available in your region',
+                countries=['US', 'CA'])
 
         if 'This video is only available to ODK PLUS members.' in webpage:
             raise ExtractorError(
