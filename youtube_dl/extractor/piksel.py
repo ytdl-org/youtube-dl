@@ -16,18 +16,33 @@ from ..utils import (
 
 class PikselIE(InfoExtractor):
     _VALID_URL = r'https?://player\.piksel\.com/v/(?P<id>[a-z0-9]+)'
-    _TEST = {
-        'url': 'http://player.piksel.com/v/nv60p12f',
-        'md5': 'd9c17bbe9c3386344f9cfd32fad8d235',
-        'info_dict': {
-            'id': 'nv60p12f',
-            'ext': 'mp4',
-            'title': 'فن الحياة  - الحلقة 1',
-            'description': 'احدث برامج الداعية الاسلامي " مصطفي حسني " فى رمضان 2016علي النهار نور',
-            'timestamp': 1465231790,
-            'upload_date': '20160606',
+    _TESTS = [
+        {
+            'url': 'http://player.piksel.com/v/nv60p12f',
+            'md5': 'd9c17bbe9c3386344f9cfd32fad8d235',
+            'info_dict': {
+                'id': 'nv60p12f',
+                'ext': 'mp4',
+                'title': 'فن الحياة  - الحلقة 1',
+                'description': 'احدث برامج الداعية الاسلامي " مصطفي حسني " فى رمضان 2016علي النهار نور',
+                'timestamp': 1465231790,
+                'upload_date': '20160606',
+            }
+        },
+        {
+            # Original source: http://www.uscourts.gov/cameras-courts/state-washington-vs-donald-j-trump-et-al
+            'url': 'https://player.piksel.com/v/v80kqp41',
+            'md5': '753ddcd8cc8e4fa2dda4b7be0e77744d',
+            'info_dict': {
+                'id': 'v80kqp41',
+                'ext': 'mp4',
+                'title': 'WAW- State of Washington vs. Donald J. Trump, et al',
+                'description': 'State of Washington vs. Donald J. Trump, et al, Case Number 17-CV-00141-JLR, TRO Hearing, Civil Rights Case, 02/3/2017, 1:00 PM (PST), Seattle Federal Courthouse, Seattle, WA, Judge James L. Robart presiding.',
+                'timestamp': 1486171129,
+                'upload_date': '20170204',
+            }
         }
-    }
+    ]
 
     @staticmethod
     def _extract_url(webpage):
@@ -40,8 +55,10 @@ class PikselIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        app_token = self._search_regex(
-            r'clientAPI\s*:\s*"([^"]+)"', webpage, 'app token')
+        app_token = self._search_regex([
+            r'clientAPI\s*:\s*"([^"]+)"',
+            r'data-de-api-key\s*=\s*"([^"]+)"'
+        ], webpage, 'app token')
         response = self._download_json(
             'http://player.piksel.com/ws/ws_program/api/%s/mode/json/apiv/5' % app_token,
             video_id, query={
