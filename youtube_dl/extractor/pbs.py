@@ -489,11 +489,12 @@ class PBSIE(InfoExtractor):
                 headers=self.geo_verification_headers())
 
             if redirect_info['status'] == 'error':
+                message = self._ERRORS.get(
+                    redirect_info['http_code'], redirect_info['message'])
+                if redirect_info['http_code'] == 403:
+                    self.raise_geo_restricted(msg=message, countries=['US'])
                 raise ExtractorError(
-                    '%s said: %s' % (
-                        self.IE_NAME,
-                        self._ERRORS.get(redirect_info['http_code'], redirect_info['message'])),
-                    expected=True)
+                    '%s said: %s' % (self.IE_NAME, message), expected=True)
 
             format_url = redirect_info.get('url')
             if not format_url:
