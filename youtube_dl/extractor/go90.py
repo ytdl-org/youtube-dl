@@ -1,8 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+from datetime import datetime
+
 from .common import InfoExtractor
-from ..utils import sanitize_url
+from ..utils import (
+    clean_html,
+    get_element_by_id,
+    int_or_none,
+    sanitize_url,
+)
 
 
 class Go90IE(InfoExtractor):
@@ -13,14 +21,10 @@ class Go90IE(InfoExtractor):
         'info_dict': {
             'id': '07d47f43a7b04eb5b693252f2bd1086b',
             'ext': 'mp4',
-            'title': 't@gged | #shotgun | go90',
+            'title': 't@gged S1E1 #shotgun',
             'thumbnail': r're:^https?://.*\.jpg$',
+            'description': 'md5:1ebcc7a686d93456a822d435d2ac7719',
             'uploader_id': '98ac1613c7624a8387596b5d5e441064',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         },
         'params': {
             # m3u8 download
@@ -35,17 +39,45 @@ class Go90IE(InfoExtractor):
 
 
         # scrape data from webpage
-        page_data = {}
         self.to_screen("Scrape data from webpage")
 
-        video_title = self._html_search_regex(
-            r'<title\b[^>]*>\s*(.*)\s*</title>', webpage, 'title')
+        series_title = clean_html(get_element_by_id('series-title', webpage))
+        self.to_screen("Series Title: " + series_title)
+
+        episode_info = clean_html(get_element_by_id('episode-title', webpage))
+
+        season_number = None
+        episode_number = None
+        episode_title = None
+
+        episode_match = re.match(
+            r'S(?P<season_number>\d+):E(?P<episode_number>\d+)\s+(?P<episode_title>.*)',
+            episode_info)
+        if episode_match is not None:
+            season_number, episode_number, episode_title = episode_match.groups()
+            self.to_screen("Season: " + season_number)
+            self.to_screen("Episode Number: " + episode_number)
+            self.to_screen("Episode Title: " + episode_title)
+
+        video_title = series_title
+        if episode_match is not None:
+            video_title = '{} S{}E{} {}'.format(
+                series_title, season_number, episode_number, episode_title)
         self.to_screen("Title: " + video_title)
+
+        video_description = self._og_search_description(webpage)
+
+        release_date = None
+        air_date = clean_html(get_element_by_id('asset-air-date', webpage))
+        if air_date:
+            self.to_screen("Air Date: " + air_date)
+            release_datetime = datetime.strptime(air_date, '%b %d, %Y')
+            release_date = release_datetime.strftime('%Y%m%d')
 
 
         # retrieve upLynk url
         video_api = "https://www.go90.com/api/metadata/video/" + video_id
-        video_api_data = self._download_json(video_api, video_id)  #TODO: overwrite `note=` to output better explanation
+        video_api_data = self._download_json(video_api, video_id)
         uplynk_preplay_url = sanitize_url(video_api_data['url'])
 
 
@@ -54,6 +86,11 @@ class Go90IE(InfoExtractor):
             'url': uplynk_preplay_url,
             'id': video_id,
             'title': video_title,
+            'series': series_title,
+            'episode': episode_title,
+            'season_number': int_or_none(season_number),
+            'episode_number': int_or_none(episode_number),
+            'description': video_description,
+            'release_date': release_date,
             'ie_key': 'UplynkPreplay',
-            # TODO more properties (see youtube_dl/extractor/common.py)
         }
