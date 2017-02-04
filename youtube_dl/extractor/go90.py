@@ -17,11 +17,10 @@ class Go90IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?go90\.com/profiles/va_(?P<id>[a-f0-9]+)'
     _TEST = {
         'url': 'https://www.go90.com/profiles/va_07d47f43a7b04eb5b693252f2bd1086b',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
             'id': '07d47f43a7b04eb5b693252f2bd1086b',
             'ext': 'mp4',
-            'title': 't@gged S1E1 #shotgun',
+            'title': 't@gged S01E01 #shotgun',
             'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:1ebcc7a686d93456a822d435d2ac7719',
             'uploader_id': '98ac1613c7624a8387596b5d5e441064',
@@ -61,8 +60,8 @@ class Go90IE(InfoExtractor):
 
         video_title = series_title
         if episode_match is not None:
-            video_title = '{} S{}E{} {}'.format(
-                series_title, season_number, episode_number, episode_title)
+            video_title = '{} S{:02d}E{:02d} {}'.format(
+                series_title, int_or_none(season_number), int_or_none(episode_number), episode_title)
         self.to_screen("Title: " + video_title)
 
         video_description = self._og_search_description(webpage)
