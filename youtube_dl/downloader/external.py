@@ -199,6 +199,15 @@ class FFmpegFD(ExternalFD):
 
         args = [ffpp.executable, '-y']
 
+        seekable = info_dict.get('_seekable')
+        if seekable is not None:
+            # setting -seekable prevents ffmpeg from guessing if the server
+            # supports seeking(by adding the header `Range: bytes=0-`), which
+            # can cause problems in some cases
+            # https://github.com/rg3/youtube-dl/issues/11800#issuecomment-275037127
+            # http://trac.ffmpeg.org/ticket/6125#comment:10
+            args += ['-seekable', '1' if seekable else '0']
+
         args += self._configuration_args()
 
         # start_time = info_dict.get('start_time') or 0

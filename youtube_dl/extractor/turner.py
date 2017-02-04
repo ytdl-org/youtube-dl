@@ -100,9 +100,13 @@ class TurnerBaseIE(AdobePassIE):
                 formats.extend(self._extract_smil_formats(
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                m3u8_formats = self._extract_m3u8_formats(
                     video_url, video_id, 'mp4',
-                    m3u8_id=format_id or 'hls', fatal=False))
+                    m3u8_id=format_id or 'hls', fatal=False)
+                if '/secure/' in video_url and '?hdnea=' in video_url:
+                    for f in m3u8_formats:
+                        f['_seekable'] = False
+                formats.extend(m3u8_formats)
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     update_url_query(video_url, {'hdcore': '3.7.0'}),
