@@ -78,7 +78,7 @@ class Vbox7IE(InfoExtractor):
         video_url = video['src']
 
         if '/na.mp4' in video_url:
-            self.raise_geo_restricted()
+            self.raise_geo_restricted(countries=['BG'])
 
         uploader = video.get('uploader')
 
