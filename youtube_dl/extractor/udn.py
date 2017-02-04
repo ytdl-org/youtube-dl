@@ -23,7 +23,7 @@ class UDNEmbedIE(InfoExtractor):
             'id': '300040',
             'ext': 'mp4',
             'title': '生物老師男變女 全校挺"做自己"',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             # m3u8 download

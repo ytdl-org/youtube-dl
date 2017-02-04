@@ -60,6 +60,9 @@ if ! type pandoc >/dev/null 2>/dev/null; then echo 'ERROR: pandoc is missing'; e
 if ! python3 -c 'import rsa' 2>/dev/null; then echo 'ERROR: python3-rsa is missing'; exit 1; fi
 if ! python3 -c 'import wheel' 2>/dev/null; then echo 'ERROR: wheel is missing'; exit 1; fi
 
+read -p "Is ChangeLog up to date? (y/n) " -n 1
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then exit 1; fi
+
 /bin/echo -e "\n### First of all, testing..."
 make clean
 if $skip_tests ; then
@@ -107,7 +110,7 @@ RELEASE_FILES="youtube-dl youtube-dl.exe youtube-dl-$version.tar.gz"
 for f in $RELEASE_FILES; do gpg --passphrase-repeat 5 --detach-sig "build/$version/$f"; done
 
 ROOT=$(pwd)
-python devscripts/create-github-release.py $version "$ROOT/build/$version"
+python devscripts/create-github-release.py ChangeLog $version "$ROOT/build/$version"
 
 ssh ytdl@yt-dl.org "sh html/update_latest.sh $version"
 

@@ -1,9 +1,13 @@
 from __future__ import unicode_literals
 
 import re
+import time
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    HEADRequest,
+)
 
 
 class CultureUnpluggedIE(InfoExtractor):
@@ -17,7 +21,7 @@ class CultureUnpluggedIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The Next, Best West',
             'description': 'md5:0423cd00833dea1519cf014e9d0903b1',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'creator': 'Coldstream Creative',
             'duration': 2203,
             'view_count': int,
@@ -32,6 +36,9 @@ class CultureUnpluggedIE(InfoExtractor):
         video_id = mobj.group('id')
         display_id = mobj.group('display_id') or video_id
 
+        # request setClientTimezone.php to get PHPSESSID cookie which is need to get valid json data in the next request
+        self._request_webpage(HEADRequest(
+            'http://www.cultureunplugged.com/setClientTimezone.php?timeOffset=%d' % -(time.timezone / 3600)), display_id)
         movie_data = self._download_json(
             'http://www.cultureunplugged.com/movie-data/cu-%s.json' % video_id, display_id)
 

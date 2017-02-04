@@ -44,7 +44,7 @@ class XFileShareIE(InfoExtractor):
             'id': '06y9juieqpmi',
             'ext': 'mp4',
             'title': 'Rebecca Black My Moment Official Music Video Reaction-6GK87Rc8bzQ',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }, {
         'url': 'http://gorillavid.in/embed-z08zf8le23c6-960x480.html',
@@ -56,7 +56,7 @@ class XFileShareIE(InfoExtractor):
             'id': '3rso4kdn6f9m',
             'ext': 'mp4',
             'title': 'Micro Pig piglets ready on 16th July 2009-bG0PdrCdxUc',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         'url': 'http://movpod.in/0wguyyxi1yca',
@@ -67,7 +67,7 @@ class XFileShareIE(InfoExtractor):
             'id': '3ivfabn7573c',
             'ext': 'mp4',
             'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
         'skip': 'Video removed',
     }, {
@@ -124,12 +124,14 @@ class XFileShareIE(InfoExtractor):
             webpage = self._download_webpage(req, video_id, 'Downloading video page')
 
         title = (self._search_regex(
-            [r'style="z-index: [0-9]+;">([^<]+)</span>',
+            (r'style="z-index: [0-9]+;">([^<]+)</span>',
              r'<td nowrap>([^<]+)</td>',
              r'h4-fine[^>]*>([^<]+)<',
              r'>Watch (.+) ',
-             r'<h2 class="video-page-head">([^<]+)</h2>'],
-            webpage, 'title', default=None) or self._og_search_title(webpage)).strip()
+             r'<h2 class="video-page-head">([^<]+)</h2>',
+             r'<h2 style="[^"]*color:#403f3d[^"]*"[^>]*>([^<]+)<'),  # streamin.to
+            webpage, 'title', default=None) or self._og_search_title(
+            webpage, default=None) or video_id).strip()
 
         def extract_video_url(default=NO_DEFAULT):
             return self._search_regex(

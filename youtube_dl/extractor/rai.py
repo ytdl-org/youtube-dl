@@ -120,7 +120,7 @@ class RaiTVIE(RaiBaseIE):
                 'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
                 'upload_date': '20140407',
                 'duration': 6160,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             }
         },
         {
@@ -133,7 +133,7 @@ class RaiTVIE(RaiBaseIE):
                 'title': 'TG PRIMO TEMPO',
                 'upload_date': '20140612',
                 'duration': 1758,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'skip': 'Geo-restricted to Italy',
         },
@@ -169,7 +169,7 @@ class RaiTVIE(RaiBaseIE):
                 'description': 'md5:364b604f7db50594678f483353164fb8',
                 'upload_date': '20140923',
                 'duration': 386,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             }
         },
     ]

@@ -22,7 +22,7 @@ class MuenchenTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 're:^münchen.tv-Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'is_live': True,
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         },
         'params': {
             'skip_download': True,
@@ -36,7 +36,7 @@ class MuenchenTVIE(InfoExtractor):
         title = self._live_title(self._og_search_title(webpage))
 
         data_js = self._search_regex(
-            r'(?s)\nplaylist:\s*(\[.*?}\]),related:',
+            r'(?s)\nplaylist:\s*(\[.*?}\]),',
             webpage, 'playlist configuration')
         data_json = js_to_json(data_js)
         data = json.loads(data_json)[0]

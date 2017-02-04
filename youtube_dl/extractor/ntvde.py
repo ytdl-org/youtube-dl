@@ -1,5 +1,7 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
+
+import re
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
@@ -20,7 +22,7 @@ class NTVDeIE(InfoExtractor):
         'info_dict': {
             'id': '14438086',
             'ext': 'mp4',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'title': 'Schnee und Glätte führen zu zahlreichen Unfällen und Staus',
             'alt_title': 'Winterchaos auf deutschen Straßen',
             'description': 'Schnee und Glätte sorgen deutschlandweit für einen chaotischen Start in die Woche: Auf den Straßen kommt es zu kilometerlangen Staus und Dutzenden Glätteunfällen. In Düsseldorf und München wirbelt der Schnee zudem den Flugplan durcheinander. Dutzende Flüge landen zu spät, einige fallen ganz aus.',
@@ -40,8 +42,8 @@ class NTVDeIE(InfoExtractor):
         timestamp = int_or_none(info.get('publishedDateAsUnixTimeStamp'))
         vdata = self._parse_json(self._search_regex(
             r'(?s)\$\(\s*"\#player"\s*\)\s*\.data\(\s*"player",\s*(\{.*?\})\);',
-            webpage, 'player data'),
-            video_id, transform_source=js_to_json)
+            webpage, 'player data'), video_id,
+            transform_source=lambda s: js_to_json(re.sub(r'advertising:\s*{[^}]+},', '', s)))
         duration = parse_duration(vdata.get('duration'))
 
         formats = []

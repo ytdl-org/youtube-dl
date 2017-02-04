@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
@@ -6,7 +6,7 @@ from .mtv import MTVServicesInfoExtractor
 
 class SouthParkIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.cc.com'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/(?:clips|(?:full-)?episodes)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
@@ -35,6 +35,7 @@ class SouthParkEsIE(SouthParkIE):
             'description': 'Cartman Consigue Una Sonda Anal',
         },
         'playlist_count': 4,
+        'skip': 'Geo-restricted',
     }]
 
 
@@ -74,7 +75,7 @@ class SouthParkDeIE(SouthParkIE):
 
 class SouthParkNlIE(SouthParkIE):
     IE_NAME = 'southpark.nl'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.nl/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.nl/(?:clips|(?:full-)?episodes)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.nl/feeds/video-player/mrss/'
 
     _TESTS = [{

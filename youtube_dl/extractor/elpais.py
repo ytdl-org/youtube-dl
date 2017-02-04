@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import strip_jsonp, unified_strdate
 
 
 class ElPaisIE(InfoExtractor):
@@ -29,6 +29,16 @@ class ElPaisIE(InfoExtractor):
             'description': 'Que sí, que las cápsulas son cómodas. Pero si le pides algo más a la vida, quizá deberías aprender a usar bien la cafetera italiana. No tienes más que ver este vídeo y seguir sus siete normas básicas.',
             'upload_date': '20160303',
         }
+    }, {
+        'url': 'http://elpais.com/elpais/2017/01/26/ciencia/1485456786_417876.html',
+        'md5': '9c79923a118a067e1a45789e1e0b0f9c',
+        'info_dict': {
+            'id': '1485456786_417876',
+            'ext': 'mp4',
+            'title': 'Hallado un barco de la antigua Roma que naufragó en Baleares hace 1.800 años',
+            'description': 'La nave portaba cientos de ánforas y se hundió cerca de la isla de Cabrera por razones desconocidas',
+            'upload_date': '20170127',
+        },
     }]
 
     def _real_extract(self, url):
@@ -37,8 +47,15 @@ class ElPaisIE(InfoExtractor):
 
         prefix = self._html_search_regex(
             r'var\s+url_cache\s*=\s*"([^"]+)";', webpage, 'URL prefix')
-        video_suffix = self._search_regex(
-            r"(?:URLMediaFile|urlVideo_\d+)\s*=\s*url_cache\s*\+\s*'([^']+)'", webpage, 'video URL')
+        id_multimedia = self._search_regex(
+            r"id_multimedia\s*=\s*'([^']+)'", webpage, 'ID multimedia', default=None)
+        if id_multimedia:
+            url_info = self._download_json(
+                'http://elpais.com/vdpep/1/?pepid=' + id_multimedia, video_id, transform_source=strip_jsonp)
+            video_suffix = url_info['mp4']
+        else:
+            video_suffix = self._search_regex(
+                r"(?:URLMediaFile|urlVideo_\d+)\s*=\s*url_cache\s*\+\s*'([^']+)'", webpage, 'video URL')
         video_url = prefix + video_suffix
         thumbnail_suffix = self._search_regex(
             r"(?:URLMediaStill|urlFotogramaFijo_\d+)\s*=\s*url_cache\s*\+\s*'([^']+)'",

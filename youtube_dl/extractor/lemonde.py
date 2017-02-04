@@ -12,7 +12,7 @@ class LemondeIE(InfoExtractor):
             'id': 'lqm3kl',
             'ext': 'mp4',
             'title': "Comprendre l'affaire Bygmalion en 5 minutes",
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 320,
             'upload_date': '20160119',
             'timestamp': 1453194778,

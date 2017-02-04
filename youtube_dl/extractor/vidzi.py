@@ -1,10 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .jwplatform import JWPlatformBaseIE
 from ..utils import (
     decode_packed_codes,
     js_to_json,
+    NO_DEFAULT,
+    PACKED_CODES_RE,
 )
 
 
@@ -35,10 +39,17 @@ class VidziIE(JWPlatformBaseIE):
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 
-        code = decode_packed_codes(webpage).replace('\\\'', '\'')
-        jwplayer_data = self._parse_json(
-            self._search_regex(r'setup\(([^)]+)\)', code, 'jwplayer data'),
-            video_id, transform_source=js_to_json)
+        packed_codes = [mobj.group(0) for mobj in re.finditer(
+            PACKED_CODES_RE, webpage)]
+        for num, pc in enumerate(packed_codes, 1):
+            code = decode_packed_codes(pc).replace('\\\'', '\'')
+            jwplayer_data = self._parse_json(
+                self._search_regex(
+                    r'setup\(([^)]+)\)', code, 'jwplayer data',
+                    default=NO_DEFAULT if num == len(packed_codes) else '{}'),
+                video_id, transform_source=js_to_json)
+            if jwplayer_data:
+                break
 
         info_dict = self._parse_jwplayer_data(jwplayer_data, video_id, require_title=False)
         info_dict['title'] = title

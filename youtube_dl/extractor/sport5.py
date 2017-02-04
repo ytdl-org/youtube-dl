@@ -41,7 +41,7 @@ class Sport5IE(InfoExtractor):
 
         webpage = self._download_webpage(url, media_id)
 
-        video_id = self._html_search_regex('clipId=([\w-]+)', webpage, 'video id')
+        video_id = self._html_search_regex(r'clipId=([\w-]+)', webpage, 'video id')
 
         metadata = self._download_xml(
             'http://sport5-metadata-rr-d.nsacdn.com/vod/vod/%s/HDS/metadata.xml' % video_id,

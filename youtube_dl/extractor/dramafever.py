@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -66,7 +66,7 @@ class DramaFeverBaseIE(AMPIE):
 
 class DramaFeverIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/(?:[^/]+/)?drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
     _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/1/Cooking_with_Shin/',
         'info_dict': {
@@ -76,7 +76,7 @@ class DramaFeverIE(DramaFeverBaseIE):
             'description': 'md5:a8eec7942e1664a6896fcd5e1287bfd0',
             'episode': 'Episode 1',
             'episode_number': 1,
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1404336058,
             'upload_date': '20140702',
             'duration': 343,
@@ -94,7 +94,7 @@ class DramaFeverIE(DramaFeverBaseIE):
             'description': 'md5:3ff2ee8fedaef86e076791c909cf2e91',
             'episode': 'Mnet Asian Music Awards 2015 - Part 3',
             'episode_number': 4,
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1450213200,
             'upload_date': '20151215',
             'duration': 5602,
@@ -103,6 +103,9 @@ class DramaFeverIE(DramaFeverBaseIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.dramafever.com/zh-cn/drama/4972/15/Doctor_Romantic/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -148,7 +151,7 @@ class DramaFeverIE(DramaFeverBaseIE):
 
 class DramaFeverSeriesIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever:series'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/(?:[^/]+/)?drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
     _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/Cooking_with_Shin/',
         'info_dict': {

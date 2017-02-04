@@ -4,118 +4,31 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     float_or_none,
     parse_iso8601,
     unescapeHTML,
+    ExtractorError,
 )
 
 
-class RteIE(InfoExtractor):
-    IE_NAME = 'rte'
-    IE_DESC = 'Raidió Teilifís Éireann TV'
-    _VALID_URL = r'https?://(?:www\.)?rte\.ie/player/[^/]{2,3}/show/[^/]+/(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://www.rte.ie/player/ie/show/iwitness-862/10478715/',
-        'info_dict': {
-            'id': '10478715',
-            'ext': 'flv',
-            'title': 'Watch iWitness  online',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'description': 'iWitness : The spirit of Ireland, one voice and one minute at a time.',
-            'duration': 60.046,
-        },
-        'params': {
-            'skip_download': 'f4m fails with --test atm'
-        }
-    }
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
-        title = self._og_search_title(webpage)
-        description = self._html_search_meta('description', webpage, 'description')
-        duration = float_or_none(self._html_search_meta(
-            'duration', webpage, 'duration', fatal=False), 1000)
-
-        thumbnail = None
-        thumbnail_meta = self._html_search_meta('thumbnail', webpage)
-        if thumbnail_meta:
-            thumbnail_id = self._search_regex(
-                r'uri:irus:(.+)', thumbnail_meta,
-                'thumbnail id', fatal=False)
-            if thumbnail_id:
-                thumbnail = 'http://img.rasset.ie/%s.jpg' % thumbnail_id
-
-        feeds_url = self._html_search_meta('feeds-prefix', webpage, 'feeds url') + video_id
-        json_string = self._download_json(feeds_url, video_id)
-
-        # f4m_url = server + relative_url
-        f4m_url = json_string['shows'][0]['media:group'][0]['rte:server'] + json_string['shows'][0]['media:group'][0]['url']
-        f4m_formats = self._extract_f4m_formats(f4m_url, video_id)
-        self._sort_formats(f4m_formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'formats': f4m_formats,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-        }
-
-
-class RteRadioIE(InfoExtractor):
-    IE_NAME = 'rte:radio'
-    IE_DESC = 'Raidió Teilifís Éireann radio'
-    # Radioplayer URLs have two distinct specifier formats,
-    # the old format #!rii=<channel_id>:<id>:<playable_item_id>:<date>:
-    # the new format #!rii=b<channel_id>_<id>_<playable_item_id>_<date>_
-    # where the IDs are int/empty, the date is DD-MM-YYYY, and the specifier may be truncated.
-    # An <id> uniquely defines an individual recording, and is the only part we require.
-    _VALID_URL = r'https?://(?:www\.)?rte\.ie/radio/utils/radioplayer/rteradioweb\.html#!rii=(?:b?[0-9]*)(?:%3A|:|%5F|_)(?P<id>[0-9]+)'
-
-    _TESTS = [{
-        # Old-style player URL; HLS and RTMPE formats
-        'url': 'http://www.rte.ie/radio/utils/radioplayer/rteradioweb.html#!rii=16:10507902:2414:27-12-2015:',
-        'info_dict': {
-            'id': '10507902',
-            'ext': 'mp4',
-            'title': 'Gloria',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'description': 'md5:9ce124a7fb41559ec68f06387cabddf0',
-            'timestamp': 1451203200,
-            'upload_date': '20151227',
-            'duration': 7230.0,
-        },
-        'params': {
-            'skip_download': 'f4m fails with --test atm'
-        }
-    }, {
-        # New-style player URL; RTMPE formats only
-        'url': 'http://rte.ie/radio/utils/radioplayer/rteradioweb.html#!rii=b16_3250678_8861_06-04-2012_',
-        'info_dict': {
-            'id': '3250678',
-            'ext': 'flv',
-            'title': 'The Lyric Concert with Paul Herriott',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'description': '',
-            'timestamp': 1333742400,
-            'upload_date': '20120406',
-            'duration': 7199.016,
-        },
-        'params': {
-            'skip_download': 'f4m fails with --test atm'
-        }
-    }]
-
+class RteBaseIE(InfoExtractor):
     def _real_extract(self, url):
         item_id = self._match_id(url)
 
-        json_string = self._download_json(
-            'http://www.rte.ie/rteavgen/getplaylist/?type=web&format=json&id=' + item_id,
-            item_id)
+        try:
+            json_string = self._download_json(
+                'http://www.rte.ie/rteavgen/getplaylist/?type=web&format=json&id=' + item_id,
+                item_id)
+        except ExtractorError as ee:
+            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
+                error_info = self._parse_json(ee.cause.read().decode(), item_id, fatal=False)
+                if error_info:
+                    raise ExtractorError(
+                        '%s said: %s' % (self.IE_NAME, error_info['message']),
+                        expected=True)
+            raise
 
         # NB the string values in the JSON are stored using XML escaping(!)
         show = json_string['shows'][0]
@@ -163,3 +76,67 @@ class RteRadioIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
         }
+
+
+class RteIE(RteBaseIE):
+    IE_NAME = 'rte'
+    IE_DESC = 'Raidió Teilifís Éireann TV'
+    _VALID_URL = r'https?://(?:www\.)?rte\.ie/player/[^/]{2,3}/show/[^/]+/(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://www.rte.ie/player/ie/show/iwitness-862/10478715/',
+        'md5': '4a76eb3396d98f697e6e8110563d2604',
+        'info_dict': {
+            'id': '10478715',
+            'ext': 'mp4',
+            'title': 'iWitness',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': 'The spirit of Ireland, one voice and one minute at a time.',
+            'duration': 60.046,
+            'upload_date': '20151012',
+            'timestamp': 1444694160,
+        },
+    }
+
+
+class RteRadioIE(RteBaseIE):
+    IE_NAME = 'rte:radio'
+    IE_DESC = 'Raidió Teilifís Éireann radio'
+    # Radioplayer URLs have two distinct specifier formats,
+    # the old format #!rii=<channel_id>:<id>:<playable_item_id>:<date>:
+    # the new format #!rii=b<channel_id>_<id>_<playable_item_id>_<date>_
+    # where the IDs are int/empty, the date is DD-MM-YYYY, and the specifier may be truncated.
+    # An <id> uniquely defines an individual recording, and is the only part we require.
+    _VALID_URL = r'https?://(?:www\.)?rte\.ie/radio/utils/radioplayer/rteradioweb\.html#!rii=(?:b?[0-9]*)(?:%3A|:|%5F|_)(?P<id>[0-9]+)'
+
+    _TESTS = [{
+        # Old-style player URL; HLS and RTMPE formats
+        'url': 'http://www.rte.ie/radio/utils/radioplayer/rteradioweb.html#!rii=16:10507902:2414:27-12-2015:',
+        'md5': 'c79ccb2c195998440065456b69760411',
+        'info_dict': {
+            'id': '10507902',
+            'ext': 'mp4',
+            'title': 'Gloria',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': 'md5:9ce124a7fb41559ec68f06387cabddf0',
+            'timestamp': 1451203200,
+            'upload_date': '20151227',
+            'duration': 7230.0,
+        },
+    }, {
+        # New-style player URL; RTMPE formats only
+        'url': 'http://rte.ie/radio/utils/radioplayer/rteradioweb.html#!rii=b16_3250678_8861_06-04-2012_',
+        'info_dict': {
+            'id': '3250678',
+            'ext': 'flv',
+            'title': 'The Lyric Concert with Paul Herriott',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': '',
+            'timestamp': 1333742400,
+            'upload_date': '20120406',
+            'duration': 7199.016,
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+    }]

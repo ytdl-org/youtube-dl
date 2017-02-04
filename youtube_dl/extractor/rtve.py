@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import base64
@@ -64,7 +64,7 @@ def _decrypt_url(png):
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://www\.rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -184,7 +184,7 @@ class RTVEInfantilIE(InfoExtractor):
 class RTVELiveIE(InfoExtractor):
     IE_NAME = 'rtve.es:live'
     IE_DESC = 'RTVE.es live streams'
-    _VALID_URL = r'https?://www\.rtve\.es/directo/(?P<id>[a-zA-Z0-9-]+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/directo/(?P<id>[a-zA-Z0-9-]+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/directo/la-1/',
@@ -209,7 +209,10 @@ class RTVELiveIE(InfoExtractor):
         title += ' ' + time.strftime('%Y-%m-%dZ%H%M%S', start_time)
 
         vidplayer_id = self._search_regex(
-            r'playerId=player([0-9]+)', webpage, 'internal video ID')
+            (r'playerId=player([0-9]+)',
+             r'class=["\'].*?\blive_mod\b.*?["\'][^>]+data-assetid=["\'](\d+)',
+             r'data-id=["\'](\d+)'),
+            webpage, 'internal video ID')
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/amonet/videos/%s.png' % vidplayer_id
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         m3u8_url = _decrypt_url(png)
@@ -226,7 +229,7 @@ class RTVELiveIE(InfoExtractor):
 
 class RTVETelevisionIE(InfoExtractor):
     IE_NAME = 'rtve.es:television'
-    _VALID_URL = r'https?://www\.rtve\.es/television/[^/]+/[^/]+/(?P<id>\d+).shtml'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/television/[^/]+/[^/]+/(?P<id>\d+).shtml'
 
     _TEST = {
         'url': 'http://www.rtve.es/television/20160628/revolucion-del-movil/1364141.shtml',

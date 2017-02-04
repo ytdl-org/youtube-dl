@@ -12,7 +12,7 @@ from ..utils import (
 
 class BpbIE(InfoExtractor):
     IE_DESC = 'Bundeszentrale für politische Bildung'
-    _VALID_URL = r'https?://www\.bpb\.de/mediathek/(?P<id>[0-9]+)/'
+    _VALID_URL = r'https?://(?:www\.)?bpb\.de/mediathek/(?P<id>[0-9]+)/'
 
     _TEST = {
         'url': 'http://www.bpb.de/mediathek/297/joachim-gauck-zu-1989-und-die-erinnerung-an-die-ddr',

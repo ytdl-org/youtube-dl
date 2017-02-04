@@ -143,7 +143,8 @@ class CondeNastIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
-        info = self._search_json_ld(webpage, video_id) if url_type != 'embed' else {}
+        info = self._search_json_ld(
+            webpage, video_id, fatal=False) if url_type != 'embed' else {}
         info.update({
             'id': video_id,
             'formats': formats,

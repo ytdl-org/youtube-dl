@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -131,7 +131,7 @@ class PluzzIE(FranceTVBaseInfoExtractor):
 
 class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/.*/(?P<title>.+)\.html'
+    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/(?:[^/]+/)*(?P<title>[^/?#&.]+)'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
@@ -168,7 +168,7 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'id': 'NI_173343',
             'ext': 'mp4',
             'title': 'Les entreprises familiales : le secret de la réussite',
-            'thumbnail': 're:^https?://.*\.jpe?g$',
+            'thumbnail': r're:^https?://.*\.jpe?g$',
             'timestamp': 1433273139,
             'upload_date': '20150602',
         },
@@ -184,7 +184,7 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'ext': 'mp4',
             'title': 'Olivier Monthus, réalisateur de "Bretagne, le choix de l’Armor"',
             'description': 'md5:a3264114c9d29aeca11ced113c37b16c',
-            'thumbnail': 're:^https?://.*\.jpe?g$',
+            'thumbnail': r're:^https?://.*\.jpe?g$',
             'timestamp': 1458300695,
             'upload_date': '20160318',
         },
@@ -206,6 +206,9 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             'uploader_id': 'x2q2ez',
         },
         'add_ie': ['Dailymotion'],
+    }, {
+        'url': 'http://france3-regions.francetvinfo.fr/limousin/emissions/jt-1213-limousin',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

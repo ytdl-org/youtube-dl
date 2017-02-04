@@ -36,6 +36,12 @@ class KalturaIE(InfoExtractor):
                 '''
     _SERVICE_URL = 'http://cdnapi.kaltura.com'
     _SERVICE_BASE = '/api_v3/index.php'
+    # See https://github.com/kaltura/server/blob/master/plugins/content/caption/base/lib/model/enums/CaptionType.php
+    _CAPTION_TYPES = {
+        1: 'srt',
+        2: 'ttml',
+        3: 'vtt',
+    }
     _TESTS = [
         {
             'url': 'kaltura:269692:1_1jc2y3e4',
@@ -67,6 +73,27 @@ class KalturaIE(InfoExtractor):
             # video with subtitles
             'url': 'kaltura:111032:1_cw786r8q',
             'only_matching': True,
+        },
+        {
+            # video with ttml subtitles (no fileExt)
+            'url': 'kaltura:1926081:0_l5ye1133',
+            'info_dict': {
+                'id': '0_l5ye1133',
+                'ext': 'mp4',
+                'title': 'What Can You Do With Python?',
+                'upload_date': '20160221',
+                'uploader_id': 'stork',
+                'thumbnail': 're:^https?://.*/thumbnail/.*',
+                'timestamp': int,
+                'subtitles': {
+                    'en': [{
+                        'ext': 'ttml',
+                    }],
+                },
+            },
+            'params': {
+                'skip_download': True,
+            },
         }
     ]
 
@@ -78,20 +105,20 @@ class KalturaIE(InfoExtractor):
                     kWidget\.(?:thumb)?[Ee]mbed\(
                     \{.*?
                         (?P<q1>['\"])wid(?P=q1)\s*:\s*
-                        (?P<q2>['\"])_?(?P<partner_id>[^'\"]+)(?P=q2),.*?
+                        (?P<q2>['\"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
                         (?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['\"])(?P<id>[^'\"]+)(?P=q4),
+                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
                 """, webpage) or
             re.search(
                 r'''(?xs)
                     (?P<q1>["\'])
-                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/.*?(?:p|partner_id)/(?P<partner_id>\d+).*?
+                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/(?:(?!(?P=q1)).)*(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
                         entry_?[Ii]d|
                         (?P<q2>["\'])entry_?[Ii]d(?P=q2)
                     )\s*:\s*
-                    (?P<q3>["\'])(?P<id>.+?)(?P=q3)
+                    (?P<q3>["\'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage))
         if mobj:
             embed_info = mobj.groupdict()
@@ -121,18 +148,6 @@ class KalturaIE(InfoExtractor):
                 '%s said: %s' % (self.IE_NAME, status['message']))
 
         return data
-
-    def _get_kaltura_signature(self, video_id, partner_id, service_url=None):
-        actions = [{
-            'apiVersion': '3.1',
-            'expiry': 86400,
-            'format': 1,
-            'service': 'session',
-            'action': 'startWidgetSession',
-            'widgetId': '_%s' % partner_id,
-        }]
-        return self._kaltura_api_call(
-            video_id, actions, service_url, note='Downloading Kaltura signature')['ks']
 
     def _get_video_info(self, video_id, partner_id, service_url=None):
         actions = [
@@ -208,6 +223,17 @@ class KalturaIE(InfoExtractor):
                     reference_id)['entryResult']
                 info, flavor_assets = entry_data['meta'], entry_data['contextData']['flavorAssets']
                 entry_id = info['id']
+                # Unfortunately, data returned in kalturaIframePackageData lacks
+                # captions so we will try requesting the complete data using
+                # regular approach since we now know the entry_id
+                try:
+                    _, info, flavor_assets, captions = self._get_video_info(
+                        entry_id, partner_id)
+                except ExtractorError:
+                    # Regular scenario failed but we already have everything
+                    # extracted apart from captions and can process at least
+                    # with this
+                    pass
             else:
                 raise ExtractorError('Invalid URL', expected=True)
             ks = params.get('flashvars[ks]', [None])[0]
@@ -236,8 +262,22 @@ class KalturaIE(InfoExtractor):
             # Continue if asset is not ready
             if f.get('status') != 2:
                 continue
+            # Original format that's not available (e.g. kaltura:1926081:0_c03e1b5g)
+            # skip for now.
+            if f.get('fileExt') == 'chun':
+                continue
+            if not f.get('fileExt'):
+                # QT indicates QuickTime; some videos have broken fileExt
+                if f.get('containerFormat') == 'qt':
+                    f['fileExt'] = 'mov'
+                else:
+                    f['fileExt'] = 'mp4'
             video_url = sign_url(
                 '%s/flavorId/%s' % (data_url, f['id']))
+            # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
+            # -f mp4-56)
+            vcodec = 'none' if 'videoCodecId' not in f and f.get(
+                'frameRate') == 0 else f.get('videoCodecId')
             formats.append({
                 'format_id': '%(fileExt)s-%(bitrate)s' % f,
                 'ext': f.get('fileExt'),
@@ -245,7 +285,7 @@ class KalturaIE(InfoExtractor):
                 'fps': int_or_none(f.get('frameRate')),
                 'filesize_approx': int_or_none(f.get('size'), invscale=1024),
                 'container': f.get('containerFormat'),
-                'vcodec': f.get('videoCodecId'),
+                'vcodec': vcodec,
                 'height': int_or_none(f.get('height')),
                 'width': int_or_none(f.get('width')),
                 'url': video_url,
@@ -265,9 +305,12 @@ class KalturaIE(InfoExtractor):
                 # Continue if caption is not ready
                 if f.get('status') != 2:
                     continue
+                if not caption.get('id'):
+                    continue
+                caption_format = int_or_none(caption.get('format'))
                 subtitles.setdefault(caption.get('languageCode') or caption.get('language'), []).append({
                     'url': '%s/api_v3/service/caption_captionasset/action/serve/captionAssetId/%s' % (self._SERVICE_URL, caption['id']),
-                    'ext': caption.get('fileExt'),
+                    'ext': caption.get('fileExt') or self._CAPTION_TYPES.get(caption_format) or 'ttml',
                 })
 
         return {
@@ -279,6 +322,6 @@ class KalturaIE(InfoExtractor):
             'thumbnail': info.get('thumbnailUrl'),
             'duration': info.get('duration'),
             'timestamp': info.get('createdAt'),
-            'uploader_id': info.get('userId'),
+            'uploader_id': info.get('userId') if info.get('userId') != 'None' else None,
             'view_count': info.get('plays'),
         }

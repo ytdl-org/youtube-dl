@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
     float_or_none,
@@ -12,6 +13,8 @@ from ..utils import (
     int_or_none,
     ExtractorError,
 )
+
+from .periscope import PeriscopeIE
 
 
 class TwitterBaseIE(InfoExtractor):
@@ -22,7 +25,7 @@ class TwitterBaseIE(InfoExtractor):
 
 class TwitterCardIE(TwitterBaseIE):
     IE_NAME = 'twitter:card'
-    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/(?:cards/tfw/v1|videos/tweet)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/(?:cards/tfw/v1|videos(?:/tweet)?)/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
@@ -31,7 +34,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': '560070183650213889',
                 'ext': 'mp4',
                 'title': 'Twitter Card',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 30.033,
             }
         },
@@ -42,18 +45,18 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': '623160978427936768',
                 'ext': 'mp4',
                 'title': 'Twitter Card',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 80.155,
             },
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
-            'md5': 'd4724ffe6d2437886d004fa5de1043b3',
+            'md5': 'b6d9683dd3f48e340ded81c0e917ad46',
             'info_dict': {
                 'id': 'dq4Oj5quskI',
                 'ext': 'mp4',
                 'title': 'Ubuntu 11.10 Overview',
-                'description': 'Take a quick peek at what\'s new and improved in Ubuntu 11.10.\n\nOnce installed take a look at 10 Things to Do After Installing: http://www.omgubuntu.co.uk/2011/10/10...',
+                'description': 'md5:a831e97fa384863d6e26ce48d1c43376',
                 'upload_date': '20111013',
                 'uploader': 'OMG! Ubuntu!',
                 'uploader_id': 'omgubuntu',
@@ -79,8 +82,11 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': '705235433198714880',
                 'ext': 'mp4',
                 'title': 'Twitter web player',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
             },
+        }, {
+            'url': 'https://twitter.com/i/videos/752274308186120192',
+            'only_matching': True,
         },
     ]
 
@@ -100,11 +106,16 @@ class TwitterCardIE(TwitterBaseIE):
             return self.url_result(iframe_url)
 
         config = self._parse_json(self._html_search_regex(
-            r'data-(?:player-)?config="([^"]+)"', webpage, 'data player config'),
+            r'data-(?:player-)?config="([^"]+)"', webpage,
+            'data player config', default='{}'),
             video_id)
 
         if config.get('source_type') == 'vine':
             return self.url_result(config['player_url'], 'Vine')
+
+        periscope_url = PeriscopeIE._extract_url(webpage)
+        if periscope_url:
+            return self.url_result(periscope_url, PeriscopeIE.ie_key())
 
         def _search_dimensions_in_video_url(a_format, video_url):
             m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
@@ -190,7 +201,7 @@ class TwitterIE(InfoExtractor):
             'id': '643211948184596480',
             'ext': 'mp4',
             'title': 'FREE THE NIPPLE - FTN supporters on Hollywood Blvd today!',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'description': 'FREE THE NIPPLE on Twitter: "FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ"',
             'uploader': 'FREE THE NIPPLE',
             'uploader_id': 'freethenipple',
@@ -206,7 +217,7 @@ class TwitterIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Gifs - tu vai cai tu vai cai tu nao eh capaz disso tu vai cai',
             'description': 'Gifs on Twitter: "tu vai cai tu vai cai tu nao eh capaz disso tu vai cai https://t.co/tM46VHFlO5"',
-            'thumbnail': 're:^https?://.*\.png',
+            'thumbnail': r're:^https?://.*\.png',
             'uploader': 'Gifs',
             'uploader_id': 'giphz',
         },
@@ -244,10 +255,10 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'Donte The Dumbass - BEAT PROD: @suhmeduh #Damndaniel',
-            'description': 'Donte The Dumbass on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
-            'thumbnail': 're:^https?://.*\.jpg',
-            'uploader': 'Donte The Dumbass',
+            'title': 'JG - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'JG on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'uploader': 'JG',
             'uploader_id': 'jaydingeer',
         },
         'params': {
@@ -278,6 +289,18 @@ class TwitterIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires ffmpeg
         },
+    }, {
+        'url': 'https://twitter.com/OPP_HSD/status/779210622571536384',
+        'info_dict': {
+            'id': '1zqKVVlkqLaKB',
+            'ext': 'mp4',
+            'title': 'Sgt Kerry Schmidt - Ontario Provincial Police - Road rage, mischief, assault, rollover and fire in one occurrence',
+            'upload_date': '20160923',
+            'uploader_id': 'OPP_HSD',
+            'uploader': 'Sgt Kerry Schmidt - Ontario Provincial Police',
+            'timestamp': 1474613214,
+        },
+        'add_ie': ['Periscope'],
     }]
 
     def _real_extract(self, url):
@@ -328,13 +351,22 @@ class TwitterIE(InfoExtractor):
             })
             return info
 
+        twitter_card_url = None
         if 'class="PlayableMedia' in webpage:
+            twitter_card_url = '%s//twitter.com/i/videos/tweet/%s' % (self.http_scheme(), twid)
+        else:
+            twitter_card_iframe_url = self._search_regex(
+                r'data-full-card-iframe-url=([\'"])(?P<url>(?:(?!\1).)+)\1',
+                webpage, 'Twitter card iframe URL', default=None, group='url')
+            if twitter_card_iframe_url:
+                twitter_card_url = compat_urlparse.urljoin(url, twitter_card_iframe_url)
+
+        if twitter_card_url:
             info.update({
                 '_type': 'url_transparent',
                 'ie_key': 'TwitterCard',
-                'url': '%s//twitter.com/i/videos/tweet/%s' % (self.http_scheme(), twid),
+                'url': twitter_card_url,
             })
-
             return info
 
         raise ExtractorError('There\'s no video in this tweet.')
@@ -342,7 +374,7 @@ class TwitterIE(InfoExtractor):
 
 class TwitterAmplifyIE(TwitterBaseIE):
     IE_NAME = 'twitter:amplify'
-    _VALID_URL = 'https?://amp\.twimg\.com/v/(?P<id>[0-9a-f\-]{36})'
+    _VALID_URL = r'https?://amp\.twimg\.com/v/(?P<id>[0-9a-f\-]{36})'
 
     _TEST = {
         'url': 'https://amp.twimg.com/v/0ba0c3c7-0af3-4c0a-bed5-7efd1ffa2951',

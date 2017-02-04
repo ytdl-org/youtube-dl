@@ -4,27 +4,24 @@ from __future__ import unicode_literals
 import re
 
 from .srgssr import SRGSSRIE
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlparse,
-)
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
     unescapeHTML,
-    xpath_text,
+    determine_ext,
 )
 
 
 class RTSIE(SRGSSRIE):
     IE_DESC = 'RTS.ch'
-    _VALID_URL = r'rts:(?P<rts_id>\d+)|https?://(?:www\.)?rts\.ch/(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html'
+    _VALID_URL = r'rts:(?P<rts_id>\d+)|https?://(?:.+?\.)?rts\.ch/(?:[^/]+/){2,}(?P<id>[0-9]+)-(?P<display_id>.+?)\.html'
 
     _TESTS = [
         {
             'url': 'http://www.rts.ch/archives/tv/divers/3449373-les-enfants-terribles.html',
-            'md5': 'f254c4b26fb1d3c183793d52bc40d3e7',
+            'md5': 'ff7f8450a90cf58dacb64e29707b4a8e',
             'info_dict': {
                 'id': '3449373',
                 'display_id': 'les-enfants-terribles',
@@ -35,38 +32,20 @@ class RTSIE(SRGSSRIE):
                 'uploader': 'Divers',
                 'upload_date': '19680921',
                 'timestamp': -40280400,
-                'thumbnail': 're:^https?://.*\.image',
+                'thumbnail': r're:^https?://.*\.image',
                 'view_count': int,
             },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            }
         },
         {
             'url': 'http://www.rts.ch/emissions/passe-moi-les-jumelles/5624067-entre-ciel-et-mer.html',
-            'md5': 'f1077ac5af686c76528dc8d7c5df29ba',
             'info_dict': {
-                'id': '5742494',
-                'display_id': '5742494',
-                'ext': 'mp4',
-                'duration': 3720,
-                'title': 'Les yeux dans les cieux - Mon homard au Canada',
-                'description': 'md5:d22ee46f5cc5bac0912e5a0c6d44a9f7',
-                'uploader': 'Passe-moi les jumelles',
-                'upload_date': '20140404',
-                'timestamp': 1396635300,
-                'thumbnail': 're:^https?://.*\.image',
-                'view_count': int,
+                'id': '5624065',
+                'title': 'Passe-moi les jumelles',
             },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            }
+            'playlist_mincount': 4,
         },
         {
             'url': 'http://www.rts.ch/video/sport/hockey/5745975-1-2-kloten-fribourg-5-2-second-but-pour-gotteron-par-kwiatowski.html',
-            'md5': 'b4326fecd3eb64a458ba73c73e91299d',
             'info_dict': {
                 'id': '5745975',
                 'display_id': '1-2-kloten-fribourg-5-2-second-but-pour-gotteron-par-kwiatowski',
@@ -77,14 +56,18 @@ class RTSIE(SRGSSRIE):
                 'uploader': 'Hockey',
                 'upload_date': '20140403',
                 'timestamp': 1396556882,
-                'thumbnail': 're:^https?://.*\.image',
+                'thumbnail': r're:^https?://.*\.image',
                 'view_count': int,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
             'skip': 'Blocked outside Switzerland',
         },
         {
             'url': 'http://www.rts.ch/video/info/journal-continu/5745356-londres-cachee-par-un-epais-smog.html',
-            'md5': '9f713382f15322181bb366cc8c3a4ff0',
+            'md5': '1bae984fe7b1f78e94abc74e802ed99f',
             'info_dict': {
                 'id': '5745356',
                 'display_id': 'londres-cachee-par-un-epais-smog',
@@ -92,16 +75,12 @@ class RTSIE(SRGSSRIE):
                 'duration': 33,
                 'title': 'Londres cachée par un épais smog',
                 'description': 'Un important voile de smog recouvre Londres depuis mercredi, provoqué par la pollution et du sable du Sahara.',
-                'uploader': 'Le Journal en continu',
+                'uploader': 'L\'actu en vidéo',
                 'upload_date': '20140403',
                 'timestamp': 1396537322,
-                'thumbnail': 're:^https?://.*\.image',
+                'thumbnail': r're:^https?://.*\.image',
                 'view_count': int,
             },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            }
         },
         {
             'url': 'http://www.rts.ch/audio/couleur3/programmes/la-belle-video-de-stephane-laurenceau/5706148-urban-hippie-de-damien-krisl-03-04-2014.html',
@@ -125,6 +104,10 @@ class RTSIE(SRGSSRIE):
                 'title': 'Hockey: Davos décroche son 31e titre de champion de Suisse',
             },
             'playlist_mincount': 5,
+        },
+        {
+            'url': 'http://pages.rts.ch/emissions/passe-moi-les-jumelles/5624065-entre-ciel-et-mer.html',
+            'only_matching': True,
         }
     ]
 
@@ -142,19 +125,32 @@ class RTSIE(SRGSSRIE):
 
         # media_id extracted out of URL is not always a real id
         if 'video' not in all_info and 'audio' not in all_info:
-            page = self._download_webpage(url, display_id)
+            entries = []
 
-            # article with videos on rhs
-            videos = re.findall(
-                r'<article[^>]+class="content-item"[^>]*>\s*<a[^>]+data-video-urn="urn:([^"]+)"',
-                page)
-            if not videos:
+            for item in all_info.get('items', []):
+                item_url = item.get('url')
+                if not item_url:
+                    continue
+                entries.append(self.url_result(item_url, 'RTS'))
+
+            if not entries:
+                page, urlh = self._download_webpage_handle(url, display_id)
+                if re.match(self._VALID_URL, urlh.geturl()).group('id') != media_id:
+                    return self.url_result(urlh.geturl(), 'RTS')
+
+                # article with videos on rhs
                 videos = re.findall(
-                    r'(?s)<iframe[^>]+class="srg-player"[^>]+src="[^"]+urn:([^"]+)"',
+                    r'<article[^>]+class="content-item"[^>]*>\s*<a[^>]+data-video-urn="urn:([^"]+)"',
                     page)
-            if videos:
-                entries = [self.url_result('srgssr:%s' % video_urn, 'SRGSSR') for video_urn in videos]
-                return self.playlist_result(entries, media_id, self._og_search_title(page))
+                if not videos:
+                    videos = re.findall(
+                        r'(?s)<iframe[^>]+class="srg-player"[^>]+src="[^"]+urn:([^"]+)"',
+                        page)
+                if videos:
+                    entries = [self.url_result('srgssr:%s' % video_urn, 'SRGSSR') for video_urn in videos]
+
+            if entries:
+                return self.playlist_result(entries, media_id, all_info.get('title'))
 
             internal_id = self._html_search_regex(
                 r'<(?:video|audio) data-id="([0-9]+)"', page,
@@ -168,36 +164,29 @@ class RTSIE(SRGSSRIE):
 
         info = all_info['video']['JSONinfo'] if 'video' in all_info else all_info['audio']
 
-        upload_timestamp = parse_iso8601(info.get('broadcast_date'))
-        duration = info.get('duration') or info.get('cutout') or info.get('cutduration')
-        if isinstance(duration, compat_str):
-            duration = parse_duration(duration)
-        view_count = info.get('plays')
-        thumbnail = unescapeHTML(info.get('preview_image_url'))
+        title = info['title']
 
         def extract_bitrate(url):
             return int_or_none(self._search_regex(
                 r'-([0-9]+)k\.', url, 'bitrate', default=None))
 
         formats = []
-        for format_id, format_url in info['streams'].items():
-            if format_id == 'hds_sd' and 'hds' in info['streams']:
+        streams = info.get('streams', {})
+        for format_id, format_url in streams.items():
+            if format_id == 'hds_sd' and 'hds' in streams:
                 continue
-            if format_id == 'hls_sd' and 'hls' in info['streams']:
+            if format_id == 'hls_sd' and 'hls' in streams:
                 continue
-            if format_url.endswith('.f4m'):
-                token = self._download_xml(
-                    'http://tp.srgssr.ch/token/akahd.xml?stream=%s/*' % compat_urllib_parse_urlparse(format_url).path,
-                    media_id, 'Downloading %s token' % format_id)
-                auth_params = xpath_text(token, './/authparams', 'auth params')
-                if not auth_params:
-                    continue
-                formats.extend(self._extract_f4m_formats(
-                    '%s?%s&hdcore=3.4.0&plugin=aasp-3.4.0.132.66' % (format_url, auth_params),
-                    media_id, f4m_id=format_id, fatal=False))
-            elif format_url.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(
-                    format_url, media_id, 'mp4', 'm3u8_native', m3u8_id=format_id, fatal=False))
+            ext = determine_ext(format_url)
+            if ext in ('m3u8', 'f4m'):
+                format_url = self._get_tokenized_src(format_url, media_id, format_id)
+                if ext == 'f4m':
+                    formats.extend(self._extract_f4m_formats(
+                        format_url + ('?' if '?' not in format_url else '&') + 'hdcore=3.4.0',
+                        media_id, f4m_id=format_id, fatal=False))
+                else:
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, media_id, 'mp4', 'm3u8_native', m3u8_id=format_id, fatal=False))
             else:
                 formats.append({
                     'format_id': format_id,
@@ -205,25 +194,37 @@ class RTSIE(SRGSSRIE):
                     'tbr': extract_bitrate(format_url),
                 })
 
-        if 'media' in info:
-            formats.extend([{
-                'format_id': '%s-%sk' % (media['ext'], media['rate']),
-                'url': 'http://download-video.rts.ch/%s' % media['url'],
-                'tbr': media['rate'] or extract_bitrate(media['url']),
-            } for media in info['media'] if media.get('rate')])
+        for media in info.get('media', []):
+            media_url = media.get('url')
+            if not media_url or re.match(r'https?://', media_url):
+                continue
+            rate = media.get('rate')
+            ext = media.get('ext') or determine_ext(media_url, 'mp4')
+            format_id = ext
+            if rate:
+                format_id += '-%dk' % rate
+            formats.append({
+                'format_id': format_id,
+                'url': 'http://download-video.rts.ch/' + media_url,
+                'tbr': rate or extract_bitrate(media_url),
+            })
 
         self._check_formats(formats, media_id)
         self._sort_formats(formats)
+
+        duration = info.get('duration') or info.get('cutout') or info.get('cutduration')
+        if isinstance(duration, compat_str):
+            duration = parse_duration(duration)
 
         return {
             'id': media_id,
             'display_id': display_id,
             'formats': formats,
-            'title': info['title'],
+            'title': title,
             'description': info.get('intro'),
             'duration': duration,
-            'view_count': view_count,
+            'view_count': int_or_none(info.get('plays')),
             'uploader': info.get('programName'),
-            'timestamp': upload_timestamp,
-            'thumbnail': thumbnail,
+            'timestamp': parse_iso8601(info.get('broadcast_date')),
+            'thumbnail': unescapeHTML(info.get('preview_image_url')),
         }

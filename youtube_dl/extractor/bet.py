@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from .mtv import MTVServicesInfoExtractor
 from ..utils import unified_strdate
-from ..compat import compat_urllib_parse_urlencode
 
 
 class BetIE(MTVServicesInfoExtractor):
@@ -18,7 +17,7 @@ class BetIE(MTVServicesInfoExtractor):
                 'description': 'President Obama urges persistence in confronting racism and bias.',
                 'duration': 1534,
                 'upload_date': '20141208',
-                'thumbnail': 're:(?i)^https?://.*\.jpg$',
+                'thumbnail': r're:(?i)^https?://.*\.jpg$',
                 'subtitles': {
                     'en': 'mincount:2',
                 }
@@ -38,7 +37,7 @@ class BetIE(MTVServicesInfoExtractor):
                 'description': 'A BET News special.',
                 'duration': 1696,
                 'upload_date': '20141125',
-                'thumbnail': 're:(?i)^https?://.*\.jpg$',
+                'thumbnail': r're:(?i)^https?://.*\.jpg$',
                 'subtitles': {
                     'en': 'mincount:2',
                 }
@@ -53,9 +52,9 @@ class BetIE(MTVServicesInfoExtractor):
     _FEED_URL = "http://feeds.mtvnservices.com/od/feed/bet-mrss-player"
 
     def _get_feed_query(self, uri):
-        return compat_urllib_parse_urlencode({
+        return {
             'uuid': uri,
-        })
+        }
 
     def _extract_mgid(self, webpage):
         return self._search_regex(r'data-uri="([^"]+)', webpage, 'mgid')

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class MoviezineIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.moviezine\.se/video/(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?moviezine\.se/video/(?P<id>[^?#]+)'
 
     _TEST = {
         'url': 'http://www.moviezine.se/video/205866',
@@ -16,7 +16,7 @@ class MoviezineIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Oculus - Trailer 1',
             'description': 'md5:40cc6790fc81d931850ca9249b40e8a4',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }
 

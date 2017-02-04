@@ -48,7 +48,7 @@ class FlipagramIE(InfoExtractor):
         flipagram = video_data['flipagram']
         video = flipagram['video']
 
-        json_ld = self._search_json_ld(webpage, video_id, default=False)
+        json_ld = self._search_json_ld(webpage, video_id, default={})
         title = json_ld.get('title') or flipagram['captionText']
         description = json_ld.get('description') or flipagram.get('captionText')
 
@@ -81,7 +81,7 @@ class FlipagramIE(InfoExtractor):
             'filesize': int_or_none(cover.get('size')),
         } for cover in flipagram.get('covers', []) if cover.get('url')]
 
-        # Note that this only retrieves comments that are initally loaded.
+        # Note that this only retrieves comments that are initially loaded.
         # For videos with large amounts of comments, most won't be retrieved.
         comments = []
         for comment in video_data.get('comments', {}).get(video_id, {}).get('items', []):

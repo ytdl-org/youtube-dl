@@ -59,6 +59,7 @@ def build_lazy_ie(ie, name):
         s += make_valid_template.format(valid_url=ie._make_valid_url())
     return s
 
+
 # find the correct sorting and add the required base classes so that sublcasses
 # can be correctly created
 classes = _ALL_CLASSES[:-1]

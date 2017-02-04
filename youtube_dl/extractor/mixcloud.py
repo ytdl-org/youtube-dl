@@ -16,13 +16,12 @@ from ..utils import (
     clean_html,
     ExtractorError,
     OnDemandPagedList,
-    parse_count,
     str_to_int,
 )
 
 
 class MixcloudIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
+    _VALID_URL = r'https?://(?:(?:www|beta|m)\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
     IE_NAME = 'mixcloud'
 
     _TESTS = [{
@@ -34,9 +33,8 @@ class MixcloudIE(InfoExtractor):
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
             'uploader': 'Daniel Holbach',
             'uploader_id': 'dholbach',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'view_count': int,
-            'like_count': int,
         },
     }, {
         'url': 'http://www.mixcloud.com/gillespeterson/caribou-7-inch-vinyl-mix-chat/',
@@ -49,8 +47,10 @@ class MixcloudIE(InfoExtractor):
             'uploader_id': 'gillespeterson',
             'thumbnail': 're:https?://.*',
             'view_count': int,
-            'like_count': int,
         },
+    }, {
+        'url': 'https://beta.mixcloud.com/RedLightRadio/nosedrip-15-red-light-radio-01-18-2016/',
+        'only_matching': True,
     }]
 
     # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
@@ -86,26 +86,18 @@ class MixcloudIE(InfoExtractor):
 
         song_url = play_info['stream_url']
 
-        PREFIX = (
-            r'm-play-on-spacebar[^>]+'
-            r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
-        title = self._html_search_regex(
-            PREFIX + r'm-title="([^"]+)"', webpage, 'title')
+        title = self._html_search_regex(r'm-title="([^"]+)"', webpage, 'title')
         thumbnail = self._proto_relative_url(self._html_search_regex(
-            PREFIX + r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail',
-            fatal=False))
+            r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail', fatal=False))
         uploader = self._html_search_regex(
-            PREFIX + r'm-owner-name="([^"]+)"',
-            webpage, 'uploader', fatal=False)
+            r'm-owner-name="([^"]+)"', webpage, 'uploader', fatal=False)
         uploader_id = self._search_regex(
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
-        like_count = parse_count(self._search_regex(
-            r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
-            webpage, 'like count', default=None))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
-             r'/listeners/?">([0-9,.]+)</a>'],
+             r'/listeners/?">([0-9,.]+)</a>',
+             r'm-tooltip=["\']([\d,.]+) plays'],
             webpage, 'play count', default=None))
 
         return {
@@ -117,7 +109,6 @@ class MixcloudIE(InfoExtractor):
             'uploader': uploader,
             'uploader_id': uploader_id,
             'view_count': view_count,
-            'like_count': like_count,
         }
 
 

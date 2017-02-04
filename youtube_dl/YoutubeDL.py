@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
 from __future__ import absolute_import, unicode_literals
 
@@ -24,6 +24,7 @@ import sys
 import time
 import tokenize
 import traceback
+import random
 
 from .compat import (
     compat_basestring,
@@ -131,6 +132,9 @@ class YoutubeDL(object):
     username:          Username for authentication purposes.
     password:          Password for authentication purposes.
     videopassword:     Password for accessing a video.
+    ap_mso:            Adobe Pass multiple-system operator identifier.
+    ap_username:       Multiple-system operator account username.
+    ap_password:       Multiple-system operator account password.
     usenetrc:          Use netrc for authentication instead.
     verbose:           Print additional info to stdout.
     quiet:             Do not print messages to stdout.
@@ -156,6 +160,7 @@ class YoutubeDL(object):
     playlistend:       Playlist item to end at.
     playlist_items:    Specific indices of playlist to download.
     playlistreverse:   Download playlist items in reverse order.
+    playlistrandom:    Download playlist items in random order.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -249,7 +254,16 @@ class YoutubeDL(object):
     source_address:    (Experimental) Client-side IP address to bind to.
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
-    sleep_interval:    Number of seconds to sleep before each download.
+    sleep_interval:    Number of seconds to sleep before each download when
+                       used alone or a lower bound of a range for randomized
+                       sleep before each download (minimum possible number
+                       of seconds to sleep) when used along with
+                       max_sleep_interval.
+    max_sleep_interval:Upper bound of a range for randomized sleep before each
+                       download (maximum possible number of seconds to sleep).
+                       Must only be used along with sleep_interval.
+                       Actual sleep time will be a random float from range
+                       [sleep_interval; max_sleep_interval].
     listformats:       Print an overview of available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
     match_filter:      A function that gets called with the info_dict of
@@ -572,7 +586,7 @@ class YoutubeDL(object):
             if autonumber_size is None:
                 autonumber_size = 5
             autonumber_templ = '%0' + str(autonumber_size) + 'd'
-            template_dict['autonumber'] = autonumber_templ % self._num_downloads
+            template_dict['autonumber'] = autonumber_templ % (self.params.get('autonumber_start', 1) - 1 + self._num_downloads)
             if template_dict.get('playlist_index') is not None:
                 template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
             if template_dict.get('resolution') is None:
@@ -829,6 +843,9 @@ class YoutubeDL(object):
 
             if self.params.get('playlistreverse', False):
                 entries = entries[::-1]
+
+            if self.params.get('playlistrandom', False):
+                random.shuffle(entries)
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
@@ -1247,8 +1264,10 @@ class YoutubeDL(object):
                 info_dict['thumbnails'] = thumbnails = [{'url': thumbnail}]
         if thumbnails:
             thumbnails.sort(key=lambda t: (
-                t.get('preference'), t.get('width'), t.get('height'),
-                t.get('id'), t.get('url')))
+                t.get('preference') if t.get('preference') is not None else -1,
+                t.get('width') if t.get('width') is not None else -1,
+                t.get('height') if t.get('height') is not None else -1,
+                t.get('id') if t.get('id') is not None else '', t.get('url')))
             for i, t in enumerate(thumbnails):
                 t['url'] = sanitize_url(t['url'])
                 if t.get('width') and t.get('height'):
@@ -1290,7 +1309,7 @@ class YoutubeDL(object):
                 for subtitle_format in subtitle:
                     if subtitle_format.get('url'):
                         subtitle_format['url'] = sanitize_url(subtitle_format['url'])
-                    if 'ext' not in subtitle_format:
+                    if subtitle_format.get('ext') is None:
                         subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
         if self.params.get('listsubtitles', False):
@@ -1325,7 +1344,7 @@ class YoutubeDL(object):
                 format['format_id'] = compat_str(i)
             else:
                 # Sanitize format_id from characters used in format selector expression
-                format['format_id'] = re.sub('[\s,/+\[\]()]', '_', format['format_id'])
+                format['format_id'] = re.sub(r'[\s,/+\[\]()]', '_', format['format_id'])
             format_id = format['format_id']
             if format_id not in formats_dict:
                 formats_dict[format_id] = []
@@ -1345,11 +1364,11 @@ class YoutubeDL(object):
                     note=' ({0})'.format(format['format_note']) if format.get('format_note') is not None else '',
                 )
             # Automatically determine file extension if missing
-            if 'ext' not in format:
+            if format.get('ext') is None:
                 format['ext'] = determine_ext(format['url']).lower()
             # Automatically determine protocol if missing (useful for format
             # selection purposes)
-            if 'protocol' not in format:
+            if format.get('protocol') is None:
                 format['protocol'] = determine_protocol(format)
             # Add HTTP headers, so that external programs can use them from the
             # json output
@@ -1594,7 +1613,9 @@ class YoutubeDL(object):
                         self.to_screen('[info] Video subtitle %s.%s is already_present' % (sub_lang, sub_format))
                     else:
                         self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
-                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8') as subfile:
+                        # Use newline='' to prevent conversion of newline characters
+                        # See https://github.com/rg3/youtube-dl/issues/10268
+                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
                             subfile.write(sub_data)
                 except (OSError, IOError):
                     self.report_error('Cannot write subtitles file ' + sub_filename)
@@ -1642,7 +1663,7 @@ class YoutubeDL(object):
                         video_ext, audio_ext = audio.get('ext'), video.get('ext')
                         if video_ext and audio_ext:
                             COMPATIBLE_EXTS = (
-                                ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v'),
+                                ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'ismv', 'isma'),
                                 ('webm')
                             )
                             for exts in COMPATIBLE_EXTS:

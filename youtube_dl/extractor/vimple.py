@@ -28,23 +28,24 @@ class SprutoBaseIE(InfoExtractor):
 
 class VimpleIE(SprutoBaseIE):
     IE_DESC = 'Vimple - one-click video hosting'
-    _VALID_URL = r'https?://(?:player\.vimple\.ru/iframe|vimple\.ru)/(?P<id>[\da-f-]{32,36})'
-    _TESTS = [
-        {
-            'url': 'http://vimple.ru/c0f6b1687dcd4000a97ebe70068039cf',
-            'md5': '2e750a330ed211d3fd41821c6ad9a279',
-            'info_dict': {
-                'id': 'c0f6b168-7dcd-4000-a97e-be70068039cf',
-                'ext': 'mp4',
-                'title': 'Sunset',
-                'duration': 20,
-                'thumbnail': 're:https?://.*?\.jpg',
-            },
-        }, {
-            'url': 'http://player.vimple.ru/iframe/52e1beec-1314-4a83-aeac-c61562eadbf9',
-            'only_matching': True,
-        }
-    ]
+    _VALID_URL = r'https?://(?:player\.vimple\.(?:ru|co)/iframe|vimple\.(?:ru|co))/(?P<id>[\da-f-]{32,36})'
+    _TESTS = [{
+        'url': 'http://vimple.ru/c0f6b1687dcd4000a97ebe70068039cf',
+        'md5': '2e750a330ed211d3fd41821c6ad9a279',
+        'info_dict': {
+            'id': 'c0f6b168-7dcd-4000-a97e-be70068039cf',
+            'ext': 'mp4',
+            'title': 'Sunset',
+            'duration': 20,
+            'thumbnail': r're:https?://.*?\.jpg',
+        },
+    }, {
+        'url': 'http://player.vimple.ru/iframe/52e1beec-1314-4a83-aeac-c61562eadbf9',
+        'only_matching': True,
+    }, {
+        'url': 'http://vimple.co/04506a053f124483b8fb05ed73899f19',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

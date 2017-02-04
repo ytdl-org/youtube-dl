@@ -6,12 +6,13 @@ from .common import InfoExtractor
 from ..utils import (
     js_to_json,
     remove_end,
+    determine_ext,
 )
 
 
 class HellPornoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?hellporno\.com/videos/(?P<id>[^/]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?hellporno\.(?:com/videos|net/v)/(?P<id>[^/]+)'
+    _TESTS = [{
         'url': 'http://hellporno.com/videos/dixie-is-posing-with-naked-ass-very-erotic/',
         'md5': '1fee339c610d2049699ef2aa699439f1',
         'info_dict': {
@@ -19,10 +20,13 @@ class HellPornoIE(InfoExtractor):
             'display_id': 'dixie-is-posing-with-naked-ass-very-erotic',
             'ext': 'mp4',
             'title': 'Dixie is posing with naked ass very erotic',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
-    }
+    }, {
+        'url': 'http://hellporno.net/v/186271/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -38,7 +42,7 @@ class HellPornoIE(InfoExtractor):
 
         video_id = flashvars.get('video_id')
         thumbnail = flashvars.get('preview_url')
-        ext = flashvars.get('postfix', '.mp4')[1:]
+        ext = determine_ext(flashvars.get('postfix'), 'mp4')
 
         formats = []
         for video_url_key in ['video_url', 'video_alt_url']:

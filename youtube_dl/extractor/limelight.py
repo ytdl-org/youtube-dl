@@ -34,11 +34,12 @@ class LimelightBaseIE(InfoExtractor):
     def _extract_info(self, streams, mobile_urls, properties):
         video_id = properties['media_id']
         formats = []
-
+        urls = []
         for stream in streams:
             stream_url = stream.get('url')
-            if not stream_url or stream.get('drmProtected'):
+            if not stream_url or stream.get('drmProtected') or stream_url in urls:
                 continue
+            urls.append(stream_url)
             ext = determine_ext(stream_url)
             if ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
@@ -58,12 +59,26 @@ class LimelightBaseIE(InfoExtractor):
                     format_id = 'rtmp'
                     if stream.get('videoBitRate'):
                         format_id += '-%d' % int_or_none(stream['videoBitRate'])
-                    http_fmt = fmt.copy()
-                    http_fmt.update({
-                        'url': 'http://%s/%s' % (rtmp.group('host').replace('csl.', 'cpl.'), rtmp.group('playpath')[4:]),
-                        'format_id': format_id.replace('rtmp', 'http'),
-                    })
-                    formats.append(http_fmt)
+                    http_format_id = format_id.replace('rtmp', 'http')
+
+                    CDN_HOSTS = (
+                        ('delvenetworks.com', 'cpl.delvenetworks.com'),
+                        ('video.llnw.net', 's2.content.video.llnw.net'),
+                    )
+                    for cdn_host, http_host in CDN_HOSTS:
+                        if cdn_host not in rtmp.group('host').lower():
+                            continue
+                        http_url = 'http://%s/%s' % (http_host, rtmp.group('playpath')[4:])
+                        urls.append(http_url)
+                        if self._is_valid_url(http_url, video_id, http_format_id):
+                            http_fmt = fmt.copy()
+                            http_fmt.update({
+                                'url': http_url,
+                                'format_id': http_format_id,
+                            })
+                            formats.append(http_fmt)
+                            break
+
                     fmt.update({
                         'url': rtmp.group('url'),
                         'play_path': rtmp.group('playpath'),
@@ -76,8 +91,9 @@ class LimelightBaseIE(InfoExtractor):
         for mobile_url in mobile_urls:
             media_url = mobile_url.get('mobileUrl')
             format_id = mobile_url.get('targetMediaPlatform')
-            if not media_url or format_id == 'Widevine':
+            if not media_url or format_id in ('Widevine', 'SmoothStreaming') or media_url in urls:
                 continue
+            urls.append(media_url)
             ext = determine_ext(media_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
@@ -160,7 +176,7 @@ class LimelightMediaIE(LimelightBaseIE):
             'ext': 'mp4',
             'title': 'HaP and the HB Prince Trailer',
             'description': 'md5:8005b944181778e313d95c1237ddb640',
-            'thumbnail': 're:^https?://.*\.jpeg$',
+            'thumbnail': r're:^https?://.*\.jpeg$',
             'duration': 144.23,
             'timestamp': 1244136834,
             'upload_date': '20090604',
@@ -177,7 +193,7 @@ class LimelightMediaIE(LimelightBaseIE):
             'id': 'a3e00274d4564ec4a9b29b9466432335',
             'ext': 'mp4',
             'title': '3Play Media Overview Video',
-            'thumbnail': 're:^https?://.*\.jpeg$',
+            'thumbnail': r're:^https?://.*\.jpeg$',
             'duration': 78.101,
             'timestamp': 1338929955,
             'upload_date': '20120605',

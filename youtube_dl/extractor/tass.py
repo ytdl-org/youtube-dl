@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import json
@@ -21,7 +21,7 @@ class TassIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Посетителям московского зоопарка показали красную панду',
                 'description': 'Приехавшую из Дублина Зейну можно увидеть в павильоне "Кошки тропиков"',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {

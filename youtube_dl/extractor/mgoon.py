@@ -27,7 +27,7 @@ class MgoonIE(InfoExtractor):
                 'upload_date': '20131220',
                 'ext': 'mp4',
                 'title': 'md5:543aa4c27a4931d371c3f433e8cebebc',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             }
         },
         {

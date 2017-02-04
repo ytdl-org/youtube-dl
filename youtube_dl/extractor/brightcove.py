@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -179,7 +179,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
         params = {}
 
-        playerID = find_param('playerID')
+        playerID = find_param('playerID') or find_param('playerId')
         if playerID is None:
             raise ExtractorError('Cannot find player ID')
         params['playerID'] = playerID
@@ -204,7 +204,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         #   // build Brightcove <object /> XML
         # }
         m = re.search(
-            r'''(?x)customBC.\createVideo\(
+            r'''(?x)customBC\.createVideo\(
                 .*?                                                  # skipping width and height
                 ["\'](?P<playerID>\d+)["\']\s*,\s*                   # playerID
                 ["\'](?P<playerKey>AQ[^"\']{48})[^"\']*["\']\s*,\s*  # playerKey begins with AQ and is 50 characters
@@ -232,13 +232,16 @@ class BrightcoveLegacyIE(InfoExtractor):
         """Return a list of all Brightcove URLs from the webpage """
 
         url_m = re.search(
-            r'<meta\s+property=[\'"]og:video[\'"]\s+content=[\'"](https?://(?:secure|c)\.brightcove.com/[^\'"]+)[\'"]',
-            webpage)
+            r'''(?x)
+                <meta\s+
+                    (?:property|itemprop)=([\'"])(?:og:video|embedURL)\1[^>]+
+                    content=([\'"])(?P<url>https?://(?:secure|c)\.brightcove.com/(?:(?!\2).)+)\2
+            ''', webpage)
         if url_m:
-            url = unescapeHTML(url_m.group(1))
+            url = unescapeHTML(url_m.group('url'))
             # Some sites don't add it, we can't download with this url, for example:
             # http://www.ktvu.com/videos/news/raw-video-caltrain-releases-video-of-man-almost/vCTZdY/
-            if 'playerKey' in url or 'videoId' in url:
+            if 'playerKey' in url or 'videoId' in url or 'idVideo' in url:
                 return [url]
 
         matches = re.findall(
@@ -259,7 +262,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         url, smuggled_data = unsmuggle_url(url, {})
 
         # Change the 'videoId' and others field to '@videoPlayer'
-        url = re.sub(r'(?<=[?&])(videoI(d|D)|bctid)', '%40videoPlayer', url)
+        url = re.sub(r'(?<=[?&])(videoI(d|D)|idVideo|bctid)', '%40videoPlayer', url)
         # Change bckey (used by bcove.me urls) to playerKey
         url = re.sub(r'(?<=[?&])bckey', 'playerKey', url)
         mobj = re.match(self._VALID_URL, url)
@@ -548,7 +551,7 @@ class BrightcoveNewIE(InfoExtractor):
             container = source.get('container')
             ext = mimetype2ext(source.get('type'))
             src = source.get('src')
-            if ext == 'ism':
+            if ext == 'ism' or container == 'WVM':
                 continue
             elif ext == 'm3u8' or container == 'M2TS':
                 if not src:
@@ -621,15 +624,21 @@ class BrightcoveNewIE(InfoExtractor):
                     'url': text_track['src'],
                 })
 
+        is_live = False
+        duration = float_or_none(json_data.get('duration'), 1000)
+        if duration and duration < 0:
+            is_live = True
+
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'description': clean_html(json_data.get('description')),
             'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
-            'duration': float_or_none(json_data.get('duration'), 1000),
+            'duration': duration,
             'timestamp': parse_iso8601(json_data.get('published_at')),
             'uploader_id': account_id,
             'formats': formats,
             'subtitles': subtitles,
             'tags': json_data.get('tags', []),
+            'is_live': is_live,
         }

@@ -32,12 +32,15 @@ class TMZArticleIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tmz\.com/\d{4}/\d{2}/\d{2}/(?P<id>[^/]+)/?'
     _TEST = {
         'url': 'http://www.tmz.com/2015/04/19/bobby-brown-bobbi-kristina-awake-video-concert',
-        'md5': 'e482a414a38db73087450e3a6ce69d00',
+        'md5': '3316ff838ae5bb7f642537825e1e90d2',
         'info_dict': {
             'id': '0_6snoelag',
-            'ext': 'mp4',
+            'ext': 'mov',
             'title': 'Bobby Brown Tells Crowd ... Bobbi Kristina is Awake',
             'description': 'Bobby Brown stunned his audience during a concert Saturday night, when he told the crowd, "Bobbi is awake.  She\'s watching me."',
+            'timestamp': 1429467813,
+            'upload_date': '20150419',
+            'uploader_id': 'batchUser',
         }
     }
 
@@ -45,12 +48,9 @@ class TMZArticleIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        embedded_video_info_str = self._html_search_regex(
-            r'tmzVideoEmbedV2\("([^)]+)"\);', webpage, 'embedded video info')
-
-        embedded_video_info = self._parse_json(
-            embedded_video_info_str, video_id,
-            transform_source=lambda s: s.replace('\\', ''))
+        embedded_video_info = self._parse_json(self._html_search_regex(
+            r'tmzVideoEmbed\(({.+?})\);', webpage, 'embedded video info'),
+            video_id)
 
         return self.url_result(
             'http://www.tmz.com/videos/%s/' % embedded_video_info['id'])

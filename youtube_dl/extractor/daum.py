@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -32,7 +32,7 @@ class DaumIE(InfoExtractor):
             'title': '마크 헌트 vs 안토니오 실바',
             'description': 'Mark Hunt vs Antonio Silva',
             'upload_date': '20131217',
-            'thumbnail': 're:^https?://.*\.(?:jpg|png)',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)',
             'duration': 2117,
             'view_count': int,
             'comment_count': int,
@@ -45,7 +45,7 @@ class DaumIE(InfoExtractor):
             'title': '1297회, \'아빠 아들로 태어나길 잘 했어\' 민수, 감동의 눈물[아빠 어디가] 20150118',
             'description': 'md5:79794514261164ff27e36a21ad229fc5',
             'upload_date': '20150604',
-            'thumbnail': 're:^https?://.*\.(?:jpg|png)',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)',
             'duration': 154,
             'view_count': int,
             'comment_count': int,
@@ -61,7 +61,7 @@ class DaumIE(InfoExtractor):
             'title': '01-Korean War ( Trouble on the horizon )',
             'description': '\nKorean War 01\nTrouble on the horizon\n전쟁의 먹구름',
             'upload_date': '20080223',
-            'thumbnail': 're:^https?://.*\.(?:jpg|png)',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)',
             'duration': 249,
             'view_count': int,
             'comment_count': int,
@@ -139,7 +139,7 @@ class DaumClipIE(InfoExtractor):
             'title': 'DOTA 2GETHER 시즌2 6회 - 2부',
             'description': 'DOTA 2GETHER 시즌2 6회 - 2부',
             'upload_date': '20130831',
-            'thumbnail': 're:^https?://.*\.(?:jpg|png)',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)',
             'duration': 3868,
             'view_count': int,
         },

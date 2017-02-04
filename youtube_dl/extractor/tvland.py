@@ -6,7 +6,7 @@ from .mtv import MTVServicesInfoExtractor
 
 class TVLandIE(MTVServicesInfoExtractor):
     IE_NAME = 'tvland.com'
-    _VALID_URL = r'https?://(?:www\.)?tvland\.com/(?:video-clips|episodes)/(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?:www\.)?tvland\.com/(?:video-clips|(?:full-)?episodes)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://www.tvland.com/feeds/mrss/'
     _TESTS = [{
         # Geo-restricted. Without a proxy metadata are still there. With a
@@ -28,4 +28,7 @@ class TVLandIE(MTVServicesInfoExtractor):
             'upload_date': '20151228',
             'timestamp': 1451289600,
         },
+    }, {
+        'url': 'http://www.tvland.com/full-episodes/iu0hz6/younger-a-kiss-is-just-a-kiss-season-3-ep-301',
+        'only_matching': True,
     }]

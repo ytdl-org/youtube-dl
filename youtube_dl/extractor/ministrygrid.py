@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class MinistryGridIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.ministrygrid.com/([^/?#]*/)*(?P<id>[^/#?]+)/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?ministrygrid\.com/([^/?#]*/)*(?P<id>[^/#?]+)/?(?:$|[?#])'
 
     _TEST = {
         'url': 'http://www.ministrygrid.com/training-viewer/-/training/t4g-2014-conference/the-gospel-by-numbers-4/the-gospel-by-numbers',
@@ -17,7 +17,7 @@ class MinistryGridIE(InfoExtractor):
             'id': '3453494717001',
             'ext': 'mp4',
             'title': 'The Gospel by Numbers',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'upload_date': '20140410',
             'description': 'Coming soon from T4G 2014!',
             'uploader_id': '2034960640001',

@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class PlayvidIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.playvid\.com/watch(\?v=|/)(?P<id>.+?)(?:#|$)'
+    _VALID_URL = r'https?://(?:www\.)?playvid\.com/watch(\?v=|/)(?P<id>.+?)(?:#|$)'
     _TESTS = [{
         'url': 'http://www.playvid.com/watch/RnmBNgtrrJu',
         'md5': 'ffa2f6b2119af359f544388d8c01eb6c',
@@ -34,7 +34,7 @@ class PlayvidIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ellen Euro Cutie Blond Takes a Sexy Survey Get Facial in The Park',
             'age_limit': 18,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }]
 

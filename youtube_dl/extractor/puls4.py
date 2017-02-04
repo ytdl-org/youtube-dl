@@ -1,88 +1,57 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+from .prosiebensat1 import ProSiebenSat1BaseIE
 from ..utils import (
-    ExtractorError,
     unified_strdate,
-    int_or_none,
+    parse_duration,
+    compat_str,
 )
 
 
-class Puls4IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?puls4\.com/video/[^/]+/play/(?P<id>[0-9]+)'
+class Puls4IE(ProSiebenSat1BaseIE):
+    _VALID_URL = r'https?://(?:www\.)?puls4\.com/(?P<id>[^?#&]+)'
     _TESTS = [{
-        'url': 'http://www.puls4.com/video/pro-und-contra/play/2716816',
-        'md5': '49f6a6629747eeec43cef6a46b5df81d',
+        'url': 'http://www.puls4.com/2-minuten-2-millionen/staffel-3/videos/2min2miotalk/Tobias-Homberger-von-myclubs-im-2min2miotalk-118118',
+        'md5': 'fd3c6b0903ac72c9d004f04bc6bb3e03',
         'info_dict': {
-            'id': '2716816',
-            'ext': 'mp4',
-            'title': 'Pro und Contra vom 23.02.2015',
-            'description': 'md5:293e44634d9477a67122489994675db6',
-            'duration': 2989,
-            'upload_date': '20150224',
+            'id': '118118',
+            'ext': 'flv',
+            'title': 'Tobias Homberger von myclubs im #2min2miotalk',
+            'description': 'md5:f9def7c5e8745d6026d8885487d91955',
+            'upload_date': '20160830',
             'uploader': 'PULS_4',
         },
-        'skip': 'Only works from Germany',
     }, {
-        'url': 'http://www.puls4.com/video/kult-spielfilme/play/1298106',
-        'md5': '6a48316c8903ece8dab9b9a7bf7a59ec',
-        'info_dict': {
-            'id': '1298106',
-            'ext': 'mp4',
-            'title': 'Lucky Fritz',
-        },
-        'skip': 'Only works from Germany',
+        'url': 'http://www.puls4.com/pro-und-contra/wer-wird-prasident/Ganze-Folgen/Wer-wird-Praesident.-Norbert-Hofer',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.puls4.com/pro-und-contra/wer-wird-prasident/Ganze-Folgen/Wer-wird-Praesident-Analyse-des-Interviews-mit-Norbert-Hofer-416598',
+        'only_matching': True,
     }]
+    _TOKEN = 'puls4'
+    _SALT = '01!kaNgaiNgah1Ie4AeSha'
+    _CLIENT_NAME = ''
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
-        error_message = self._html_search_regex(
-            r'<div[^>]+class="message-error"[^>]*>(.+?)</div>',
-            webpage, 'error message', default=None)
-        if error_message:
-            raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, error_message), expected=True)
-
-        real_url = self._html_search_regex(
-            r'\"fsk-button\".+?href=\"([^"]+)',
-            webpage, 'fsk_button', default=None)
-        if real_url:
-            webpage = self._download_webpage(real_url, video_id)
-
-        player = self._search_regex(
-            r'p4_video_player(?:_iframe)?\("video_\d+_container"\s*,(.+?)\);\s*\}',
-            webpage, 'player')
-
-        player_json = self._parse_json(
-            '[%s]' % player, video_id,
-            transform_source=lambda s: s.replace('undefined,', ''))
-
-        formats = None
-        result = None
-
-        for v in player_json:
-            if isinstance(v, list) and not formats:
-                formats = [{
-                    'url': f['url'],
-                    'format': 'hd' if f.get('hd') else 'sd',
-                    'width': int_or_none(f.get('size_x')),
-                    'height': int_or_none(f.get('size_y')),
-                    'tbr': int_or_none(f.get('bitrate')),
-                } for f in v]
-                self._sort_formats(formats)
-            elif isinstance(v, dict) and not result:
-                result = {
-                    'id': video_id,
-                    'title': v['videopartname'].strip(),
-                    'description': v.get('videotitle'),
-                    'duration': int_or_none(v.get('videoduration') or v.get('episodeduration')),
-                    'upload_date': unified_strdate(v.get('clipreleasetime')),
-                    'uploader': v.get('channel'),
-                }
-
-        result['formats'] = formats
-
-        return result
+        path = self._match_id(url)
+        content_path = self._download_json(
+            'http://www.puls4.com/api/json-fe/page/' + path, path)['content'][0]['url']
+        media = self._download_json(
+            'http://www.puls4.com' + content_path,
+            content_path)['mediaCurrent']
+        player_content = media['playerContent']
+        info = self._extract_video_info(url, player_content['id'])
+        info.update({
+            'id': compat_str(media['objectId']),
+            'title': player_content['title'],
+            'description': media.get('description'),
+            'thumbnail': media.get('previewLink'),
+            'upload_date': unified_strdate(media.get('date')),
+            'duration': parse_duration(player_content.get('duration')),
+            'episode': player_content.get('episodePartName'),
+            'show': media.get('channel'),
+            'season_id': player_content.get('seasonId'),
+            'uploader': player_content.get('sourceCompany'),
+        })
+        return info

@@ -17,6 +17,7 @@ from ..utils import (
     encodeArgument,
     handle_youtubedl_headers,
     check_executable,
+    is_outdated_version,
 )
 
 
@@ -96,12 +97,28 @@ class CurlFD(ExternalFD):
         cmd = [self.exe, '--location', '-o', tmpfilename]
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += self._bool_option('--continue-at', 'continuedl', '-', '0')
+        cmd += self._valueless_option('--silent', 'noprogress')
+        cmd += self._valueless_option('--verbose', 'verbose')
+        cmd += self._option('--limit-rate', 'ratelimit')
+        cmd += self._option('--retry', 'retries')
+        cmd += self._option('--max-filesize', 'max_filesize')
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--proxy', 'proxy')
         cmd += self._valueless_option('--insecure', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
+
+    def _call_downloader(self, tmpfilename, info_dict):
+        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
+
+        self._debug_cmd(cmd)
+
+        # curl writes the progress to stderr so don't capture it.
+        p = subprocess.Popen(cmd)
+        p.communicate()
+        return p.returncode
 
 
 class AxelFD(ExternalFD):
@@ -204,6 +221,12 @@ class FFmpegFD(ExternalFD):
         if proxy:
             if not re.match(r'^[\da-zA-Z]+://', proxy):
                 proxy = 'http://%s' % proxy
+
+            if proxy.startswith('socks'):
+                self.report_warning(
+                    '%s does not support SOCKS proxies. Downloading is likely to fail. '
+                    'Consider adding --hls-prefer-native to your command.' % self.get_basename())
+
             # Since December 2015 ffmpeg supports -http_proxy option (see
             # http://git.videolan.org/?p=ffmpeg.git;a=commit;h=b4eb1f29ebddd60c41a2eb39f5af701e38e0d3fd)
             # We could switch to the following code if we are able to detect version properly
@@ -242,7 +265,9 @@ class FFmpegFD(ExternalFD):
             if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
                 args += ['-f', 'mpegts']
             else:
-                args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+                args += ['-f', 'mp4']
+                if (ffpp.basename == 'ffmpeg' and is_outdated_version(ffpp._versions['ffmpeg'], '3.2')) and (not info_dict.get('acodec') or info_dict['acodec'].split('.')[0] in ('aac', 'mp4a')):
+                    args += ['-bsf:a', 'aac_adtstoasc']
         elif protocol == 'rtmp':
             args += ['-f', 'flv']
         else:
@@ -270,6 +295,7 @@ class FFmpegFD(ExternalFD):
 
 class AVconvFD(FFmpegFD):
     pass
+
 
 _BY_NAME = dict(
     (klass.get_basename(), klass)

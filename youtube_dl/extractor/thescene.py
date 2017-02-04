@@ -7,7 +7,7 @@ from ..utils import qualities
 
 
 class TheSceneIE(InfoExtractor):
-    _VALID_URL = r'https://thescene\.com/watch/[^/]+/(?P<id>[^/#?]+)'
+    _VALID_URL = r'https?://thescene\.com/watch/[^/]+/(?P<id>[^/#?]+)'
 
     _TEST = {
         'url': 'https://thescene.com/watch/vogue/narciso-rodriguez-spring-2013-ready-to-wear',

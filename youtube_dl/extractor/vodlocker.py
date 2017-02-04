@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -20,7 +20,7 @@ class VodlockerIE(InfoExtractor):
             'id': 'e8wvyzz4sl42',
             'ext': 'mp4',
             'title': 'Germany vs Brazil',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
     }]
 
@@ -31,7 +31,8 @@ class VodlockerIE(InfoExtractor):
         if any(p in webpage for p in (
                 '>THIS FILE WAS DELETED<',
                 '>File Not Found<',
-                'The file you were looking for could not be found, sorry for any inconvenience.<')):
+                'The file you were looking for could not be found, sorry for any inconvenience.<',
+                '>The file was removed')):
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
 
         fields = self._hidden_inputs(webpage)

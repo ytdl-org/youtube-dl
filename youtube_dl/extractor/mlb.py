@@ -37,7 +37,7 @@ class MLBIE(InfoExtractor):
                 'duration': 66,
                 'timestamp': 1405980600,
                 'upload_date': '20140721',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -51,7 +51,7 @@ class MLBIE(InfoExtractor):
                 'duration': 46,
                 'timestamp': 1405105800,
                 'upload_date': '20140711',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -65,7 +65,7 @@ class MLBIE(InfoExtractor):
                 'duration': 488,
                 'timestamp': 1405399936,
                 'upload_date': '20140715',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -79,7 +79,7 @@ class MLBIE(InfoExtractor):
                 'duration': 52,
                 'timestamp': 1405390722,
                 'upload_date': '20140715',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {

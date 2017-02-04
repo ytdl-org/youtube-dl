@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import json
@@ -23,7 +23,7 @@ class KrasViewIE(InfoExtractor):
             'title': 'Снег, лёд, заносы',
             'description': 'Снято в городе Нягань, в Ханты-Мансийском автономном округе.',
             'duration': 27,
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
         },
         'params': {
             'skip_download': 'Not accessible from Travis CI server',

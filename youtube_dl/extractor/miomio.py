@@ -25,10 +25,7 @@ class MioMioIE(InfoExtractor):
             'title': '【SKY】字幕 铠武昭和VS平成 假面骑士大战FEAT战队 魔星字幕组 字幕',
             'duration': 5923,
         },
-        'params': {
-            # The server provides broken file
-            'skip_download': True,
-        }
+        'skip': 'Unable to load videos',
     }, {
         'url': 'http://www.miomio.tv/watch/cc184024/',
         'info_dict': {
@@ -47,16 +44,12 @@ class MioMioIE(InfoExtractor):
         'skip': 'Unable to load videos',
     }, {
         # new 'h5' player
-        'url': 'http://www.miomio.tv/watch/cc273295/',
-        'md5': '',
+        'url': 'http://www.miomio.tv/watch/cc273997/',
+        'md5': '0b27a4b4495055d826813f8c3a6b2070',
         'info_dict': {
-            'id': '273295',
+            'id': '273997',
             'ext': 'mp4',
-            'title': 'アウト×デラックス 20160526',
-        },
-        'params': {
-            # intermittent HTTP 500
-            'skip_download': True,
+            'title': 'マツコの知らない世界【劇的進化SP！ビニール傘＆冷凍食品2016】 1_2 - 16 05 31',
         },
     }]
 
@@ -116,7 +109,7 @@ class MioMioIE(InfoExtractor):
             player_webpage = self._download_webpage(
                 player_url, video_id,
                 note='Downloading player webpage', headers={'Referer': url})
-            entries = self._parse_html5_media_entries(player_url, player_webpage)
+            entries = self._parse_html5_media_entries(player_url, player_webpage, video_id)
             http_headers = {'Referer': player_url}
         else:
             http_headers = {'Referer': 'http://www.miomio.tv%s' % mioplayer_path}

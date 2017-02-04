@@ -28,7 +28,7 @@ class RudoIE(JWPlatformBaseIE):
     @classmethod
     def _extract_url(self, webpage):
         mobj = re.search(
-            '<iframe[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//rudo\.video/vod/[0-9a-zA-Z]+)(?P=q1)',
+            r'<iframe[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//rudo\.video/vod/[0-9a-zA-Z]+)(?P=q1)',
             webpage)
         if mobj:
             return mobj.group('url')
@@ -43,7 +43,7 @@ class RudoIE(JWPlatformBaseIE):
             transform_source=lambda s: js_to_json(re.sub(r'encodeURI\([^)]+\)', '""', s)))
 
         info_dict = self._parse_jwplayer_data(
-            jwplayer_data, video_id, require_title=False, m3u8_id='hls')
+            jwplayer_data, video_id, require_title=False, m3u8_id='hls', mpd_id='dash')
 
         info_dict.update({
             'title': self._og_search_title(webpage),

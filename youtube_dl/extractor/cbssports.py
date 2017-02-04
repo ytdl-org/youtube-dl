@@ -4,7 +4,7 @@ from .cbs import CBSBaseIE
 
 
 class CBSSportsIE(CBSBaseIE):
-    _VALID_URL = r'https?://www\.cbssports\.com/video/player/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?cbssports\.com/video/player/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.cbssports.com/video/player/videos/708337219968/0/ben-simmons-the-next-lebron?-not-so-fast',
@@ -22,6 +22,9 @@ class CBSSportsIE(CBSBaseIE):
             'skip_download': True,
         }
     }]
+
+    def _extract_video_info(self, filter_query, video_id):
+        return self._extract_feed_info('dJ5BDC', 'VxxJg8Ymh8sE', filter_query, video_id)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

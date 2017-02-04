@@ -21,7 +21,7 @@ class NDTVIE(InfoExtractor):
             'description': 'md5:ab2d4b4a6056c5cb4caa6d729deabf02',
             'upload_date': '20131208',
             'duration': 1327,
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
         },
     }
 

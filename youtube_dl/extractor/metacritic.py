@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class MetacriticIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.metacritic\.com/.+?/trailers/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?metacritic\.com/.+?/trailers/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.metacritic.com/game/playstation-4/infamous-second-son/trailers/3698222',

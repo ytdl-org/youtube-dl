@@ -16,7 +16,7 @@ class StreetVoiceIE(InfoExtractor):
             'ext': 'mp3',
             'title': '輸',
             'description': 'Crispy脆樂團 - 輸',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 260,
             'upload_date': '20091018',
             'uploader': 'Crispy脆樂團',

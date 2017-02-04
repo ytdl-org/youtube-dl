@@ -18,7 +18,7 @@ class TweakersIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'New Nintendo 3DS XL - Op alle fronten beter',
             'description': 'md5:3789b21fed9c0219e9bcaacd43fab280',
-            'thumbnail': 're:^https?://.*\.jpe?g$',
+            'thumbnail': r're:^https?://.*\.jpe?g$',
             'duration': 386,
             'uploader_id': 's7JeEm',
         }
