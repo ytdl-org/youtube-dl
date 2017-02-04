@@ -61,7 +61,10 @@ class Go90IE(InfoExtractor):
         video_title = series_title
         if episode_match is not None:
             video_title = '{} S{:02d}E{:02d} {}'.format(
-                series_title, int_or_none(season_number), int_or_none(episode_number), episode_title)
+                series_title, int_or_none(season_number),
+                int_or_none(episode_number), episode_title)
+        elif episode_info:
+            video_title = '{} -- {}'.format(series_title, episode_info)
         self.to_screen("Title: " + video_title)
 
         video_description = self._og_search_description(webpage)
