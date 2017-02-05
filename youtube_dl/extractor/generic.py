@@ -81,6 +81,7 @@ from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
 from .openload import OpenloadIE
+from .videopress import VideoPressIE
 
 
 class GenericIE(InfoExtractor):
@@ -1473,6 +1474,21 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'add_ie': [TwentyMinutenIE.ie_key()],
+        },
+        {
+            # VideoPress embed
+            'url': 'https://en.support.wordpress.com/videopress/',
+            'info_dict': {
+                'id': 'OcobLTqC',
+                'ext': 'm4v',
+                'title': 'IMG_5786',
+                'timestamp': 1435711927,
+                'upload_date': '20150701',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [VideoPressIE.ie_key()],
         }
         # {
         #     # TODO: find another test
@@ -2437,6 +2453,12 @@ class GenericIE(InfoExtractor):
         if openload_urls:
             return _playlist_from_matches(
                 openload_urls, ie=OpenloadIE.ie_key())
+
+        # Look for VideoPress embeds
+        videopress_urls = VideoPressIE._extract_urls(webpage)
+        if videopress_urls:
+            return _playlist_from_matches(
+                videopress_urls, ie=VideoPressIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
