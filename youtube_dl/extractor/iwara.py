@@ -81,6 +81,7 @@ class IwaraIE(InfoExtractor):
                 'format_id': format_id,
                 'ext': mimetype2ext(a_format.get('mime')) or 'mp4',
                 'height': height,
+                'width': int_or_none(height / 9.0 * 16.0 if height else None),
                 'quality': 1 if format_id == 'Source' else 0,
             })
 
