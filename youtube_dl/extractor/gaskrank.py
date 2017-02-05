@@ -49,35 +49,53 @@ class GaskrankIE(InfoExtractor):
         """extract information from gaskrank.tv"""
         def fix_json(code):
             """Removes trailing comma in json: {{},} --> {{}}"""
-            return re.sub(r',[\s]*}', r'}', js_to_json(code))
+            return re.sub(r',\s*}', r'}', js_to_json(code))
 
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         categories = [re.match(self._VALID_URL, url).group('categories')]
-        title = self._search_regex(r'movieName\s*:\s*\'([^\']*)\'', webpage, 'title')
-        thumbnail = self._search_regex(r'poster\s*:\s*\'([^\']*)\'', webpage, 'thumbnail', default=None)
+        title = self._search_regex(
+            r'movieName\s*:\s*\'([^\']*)\'',
+            webpage, 'title')
+        thumbnail = self._search_regex(
+            r'poster\s*:\s*\'([^\']*)\'',
+            webpage, 'thumbnail', default=None)
 
-        mobj = re.search(r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date>[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][0-9][0-9])', webpage)
+        mobj = re.search(
+            r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date>[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][0-9][0-9])',
+            webpage)
         if mobj is not None:
             uploader_id = mobj.groupdict().get('uploader_id')
             upload_date = unified_strdate(mobj.groupdict().get('upload_date'))
 
-        uploader_url = self._search_regex(r'Homepage:\s*<[^>]*>(?P<uploader_url>[^<]*)', webpage, 'uploader_url', default=None)
-        tags = re.findall(r'/tv/tags/[^/]+/"\s*>(?P<tag>[^<]*?)<', webpage)
+        uploader_url = self._search_regex(
+            r'Homepage:\s*<[^>]*>(?P<uploader_url>[^<]*)',
+            webpage, 'uploader_url', default=None)
+        tags = re.findall(
+            r'/tv/tags/[^/]+/"\s*>(?P<tag>[^<]*?)<',
+            webpage)
 
-        view_count = self._search_regex(r'class\s*=\s*"gkRight"(?:[^>]*>\s*<[^>]*)*icon-eye-open(?:[^>]*>\s*<[^>]*)*>\s*(?P<view_count>[0-9\.]*)', webpage, 'view_count', default=None)
+        view_count = self._search_regex(
+            r'class\s*=\s*"gkRight"(?:[^>]*>\s*<[^>]*)*icon-eye-open(?:[^>]*>\s*<[^>]*)*>\s*(?P<view_count>[0-9\.]*)',
+            webpage, 'view_count', default=None)
         if view_count:
             view_count = int_or_none(view_count.replace('.', ''))
 
-        average_rating = self._search_regex(r'itemprop\s*=\s*"ratingValue"[^>]*>\s*(?P<average_rating>[0-9,]+)', webpage, 'average_rating')
+        average_rating = self._search_regex(
+            r'itemprop\s*=\s*"ratingValue"[^>]*>\s*(?P<average_rating>[0-9,]+)',
+            webpage, 'average_rating')
         if average_rating:
             average_rating = float_or_none(average_rating.replace(',', '.'))
 
         playlist = self._parse_json(
-            self._search_regex(r'playlist\s*:\s*\[([^\]]*)\]', webpage, 'playlist', default='{}'),
+            self._search_regex(
+                r'playlist\s*:\s*\[([^\]]*)\]',
+                webpage, 'playlist', default='{}'),
             display_id, transform_source=fix_json, fatal=False)
 
-        video_id = self._search_regex(r'https?://movies\.gaskrank\.tv/([^-]*?)(-[^\.]*)?\.mp4', playlist.get('0').get('src'), 'video id')
+        video_id = self._search_regex(
+            r'https?://movies\.gaskrank\.tv/([^-]*?)(-[^\.]*)?\.mp4',
+            playlist.get('0').get('src'), 'video id')
 
         formats = []
         for key in playlist:
