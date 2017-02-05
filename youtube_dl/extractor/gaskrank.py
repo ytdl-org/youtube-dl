@@ -3,10 +3,12 @@ from __future__ import unicode_literals
 
 import re
 from .common import InfoExtractor
-from ..utils import float_or_none
-from ..utils import int_or_none
-from ..utils import js_to_json
-from ..utils import unified_strdate
+from ..utils import (
+    float_or_none,
+    int_or_none,
+    js_to_json,
+    unified_strdate,
+)
 
 
 class GaskrankIE(InfoExtractor):
