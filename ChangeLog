@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [iwara] Fix extraction (#11781)
 * [googledrive] Fix extraction on Python 3.6
 
 
