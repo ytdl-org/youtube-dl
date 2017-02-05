@@ -4,6 +4,8 @@ import time
 import re
 from .jwplatform import JWPlatformBaseIE
 from ..utils import (
+    int_or_none,
+    js_to_json,
     ExtractorError,
     sanitized_Request,
     urlencode_postdata,
@@ -45,7 +47,7 @@ class FetLifeIE(JWPlatformBaseIE):
                 'thumbnail': r're:^https?://.*\.jpg\?token=[^\s]+$',
                 'timestamp': 1485368856,
                 'ext': 'mp4',
-                'title': 'assman69415-2017-01-25T19:27:36Z',
+                'title': '672471',
                 'uploader': 'assman69415',
                 'uploader_id': '1972832',
                 'age_limit': 18,
@@ -79,11 +81,14 @@ class FetLifeIE(JWPlatformBaseIE):
 
     def _real_initialize(self):
         """log into fetlife.com"""
+
         (username, password) = self._get_login_info()
         if (username is None) or (password is None):
             raise ExtractorError('No login provided.', expected=True)
         webpage = self._download_webpage(self._LOGIN_URL, 'login')
-        authenticity_token = self._search_regex(r'<input[^>]*?authenticity_token[^>]*?value=\"([^\"]*)\"[^>]/>', webpage, 'authenticity_token')
+        authenticity_token = self._search_regex(
+            r'<input[^>]*?authenticity_token[^>]*?value="([^"]*)"[^>]/>',
+            webpage, 'authenticity_token')
 
         login_form = {
             'utf8': '&#x2713;',
@@ -94,45 +99,75 @@ class FetLifeIE(JWPlatformBaseIE):
             'user[password]': password,
         }
 
-        request = sanitized_Request(self._LOGIN_URL, urlencode_postdata(login_form))
+        request = sanitized_Request(
+            self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Referer', self._LOGIN_URL)
-        response = self._download_webpage(request, None, 'Logging in as {}'.format(username))
+        response = self._download_webpage(
+            request, None, 'Logging in as {}'.format(username))
 
-        login_error = self._html_search_regex(r'Login to FetLife', response, 'login error', default=None)
-        if login_error:
-            raise ExtractorError('Unable to login.', expected=True)
+        if self._html_search_regex(r'Login to FetLife', response,
+                                   'login error', default=None) is not None:
+            raise ExtractorError(
+                'Unable to login. Are username and password correct? Passwords are case sensitive.',
+                expected=True)
+
+        current_user = self._parse_json(
+            self._search_regex(
+                r'currentUser\s*=\s*({[^}]*})',
+                response, 'user_info', default='{}'),
+            username, transform_source=js_to_json)
+        if current_user.get('isSupporter') is not None:
+            if current_user.get('isSupporter') is False:
+                raise ExtractorError('You need to be a fetlife supporter to see videos.', expected=True)
 
     def _real_extract(self, url):
         """extract information from fetlife.com"""
+
         video_id = self._match_id(url)
-        url = re.sub('https?://fetlife\.com/.*users/', 'https://fetlife.com/users/', url)
+        url = re.sub(
+            'https?://fetlife\.com/.*users/',
+            'https://fetlife.com/users/', url)
         webpage = self._download_webpage(url, video_id)
 
-        try:
-            video_data = self._extract_jwplayer_data(webpage, video_id, require_title=False)
-        except TypeError:
-            raise ExtractorError('Unable to extract video data. Not a FetLife Supporter?', expected=True, video_id=video_id)
+        video_data = self._extract_jwplayer_data(
+            webpage, video_id, require_title=False)
 
-        uploader = self._search_regex(r'<div[^>]+class=[\'\"]member-info[\'\"]>[\s\S]+?<a[^>]+class=[\'\"]nickname[\'\"][\s\S]+?>([^<]+)', webpage, 'uploader', default=None)
-        uploader_id = self._search_regex(r'<div[^>]+class=[\'\"]member-info[\'\"]>[\s\S]+?<a[^>]+href=[\'\"]/users/([0-9]+)', webpage, 'uploader_id', default=None)
-        timeiso = self._search_regex(r'<section[^>]+id=[\'\"]video_caption[\'\"]>[\s\S]+?<time[^>]+datetime\s*=\s*[\'\"]([^<]+?)[\'\"]', webpage, 'timestamp', default=None)
+        uploader = self._search_regex(
+            r'<div[^>]+class=[\'"]member-info[\'"]>[\s\S]+?<a[^>]+class=[\'"]nickname[\'"][\s\S]+?>([^<]+)',
+            webpage, 'uploader', default=None)
+        uploader_id = self._search_regex(
+            r'<div[^>]+class=[\'"]member-info[\'"]>[\s\S]+?<a[^>]+href=[\'"]/users/([0-9]+)',
+            webpage, 'uploader_id', default=None)
+
+        timeiso = self._search_regex(
+            r'<section[^>]+id=[\'"]video_caption[\'"]>[\s\S]+?<time[^>]+datetime\s*=\s*[\'"]([^<]+?)[\'"]',
+            webpage, 'timestamp', default=None)
         if timeiso:
-            titledefault = uploader + '-' + timeiso
-            timestamp = int(time.mktime(time.strptime(timeiso, "%Y-%m-%dT%H:%M:%SZ")))
+            timestamp = int_or_none(
+                time.mktime(time.strptime(timeiso, "%Y-%m-%dT%H:%M:%SZ")))
         else:
-            titledefault = uploader
             timestamp = None
-        title = self._search_regex(r'<section[^>]+id=[\'\"]video_caption[\'\"]>[^<]*?<div[^>]+id\s*=\s*[\'\"]title_description_credits[\'\"][^>]*>[^<]*(?:(?:<p[^>]+class\s*=\s*[\'\"]description[\'\"][^>]*>)|(?:<h1>))([^<]+)', webpage, 'title', default=titledefault)
 
-        mobj = re.search(r'clock<[^>]*>\s*(?P<duration_minutes>[0-9]+)m\s*(?P<duration_seconds>[0-9]+)s', webpage)
-        duration_minutes = mobj.groupdict().get('duration_minutes')
-        duration_seconds = mobj.groupdict().get('duration_seconds')
-        if (duration_minutes is not None) and (duration_seconds is not None):
-            duration = int(duration_minutes) * 60 + int(duration_seconds)
+        if video_data.get('title') is None:
+            title = self._search_regex(
+                r'<section[^>]+id=[\'"]video_caption[\'"]>[^<]*?<div[^>]+id\s*=\s*[\'"]title_description_credits[\'"][^>]*>[^<]*(?:(?:<p[^>]+class\s*=\s*[\'"]description[\'"][^>]*>)|(?:<h1>))([^<]+)',
+                webpage, 'title', default=video_id)
 
-        like_count = self._search_regex(r'[0-9]+\s*Love\s*it', webpage, 'like_count', default=None)
-        if like_count:
-            like_count = int(like_count)
+        mobj = re.search(
+            r'clock<[^>]*>\s*(?P<duration_minutes>[0-9]+)m\s*(?P<duration_seconds>[0-9]+)s',
+            webpage)
+        if mobj is not None:
+            duration_minutes = int_or_none(
+                mobj.groupdict().get('duration_minutes'))
+            duration_seconds = int_or_none(
+                mobj.groupdict().get('duration_seconds'))
+            if (duration_minutes is not None) and (duration_seconds is not None):
+                duration = duration_minutes * 60 + duration_seconds
+
+        like_count = int_or_none(
+            self._search_regex(
+                r'[0-9]+\s*Love\s*it',
+                webpage, 'like_count', default=None))
 
         video_data.update({
             'id': video_id,
