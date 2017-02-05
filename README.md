@@ -88,8 +88,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --mark-watched                   Mark videos watched (YouTube only)
     --no-mark-watched                Do not mark videos watched (YouTube only)
     --no-color                       Do not emit color codes in output
-    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
-                                     available
 
 ## Network Options:
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
@@ -99,16 +97,13 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      string (--proxy "") for direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
     --source-address IP              Client-side IP address to bind to
-                                     (experimental)
     -4, --force-ipv4                 Make all connections via IPv4
-                                     (experimental)
     -6, --force-ipv6                 Make all connections via IPv6
-                                     (experimental)
     --geo-verification-proxy URL     Use this proxy to verify the IP address for
                                      some geo-restricted sites. The default
                                      proxy specified by --proxy (or none, if the
                                      options is not present) is used for the
-                                     actual downloading. (experimental)
+                                     actual downloading.
 
 ## Video Selection:
     --playlist-start NUMBER          Playlist video to start at (default is 1)
@@ -139,23 +134,23 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      COUNT views
     --max-views COUNT                Do not download any videos with more than
                                      COUNT views
-    --match-filter FILTER            Generic video filter (experimental).
-                                     Specify any key (see help for -o for a list
-                                     of available keys) to match if the key is
-                                     present, !key to check if the key is not
-                                     present,key > NUMBER (like "comment_count >
-                                     12", also works with >=, <, <=, !=, =) to
-                                     compare against a number, and & to require
-                                     multiple matches. Values which are not
-                                     known are excluded unless you put a
-                                     question mark (?) after the operator.For
-                                     example, to only match videos that have
-                                     been liked more than 100 times and disliked
-                                     less than 50 times (or the dislike
-                                     functionality is not available at the given
-                                     service), but who also have a description,
-                                     use --match-filter "like_count > 100 &
-                                     dislike_count <? 50 & description" .
+    --match-filter FILTER            Generic video filter. Specify any key (see
+                                     help for -o for a list of available keys)
+                                     to match if the key is present, !key to
+                                     check if the key is not present,key >
+                                     NUMBER (like "comment_count > 12", also
+                                     works with >=, <, <=, !=, =) to compare
+                                     against a number, and & to require multiple
+                                     matches. Values which are not known are
+                                     excluded unless you put a question mark (?)
+                                     after the operator.For example, to only
+                                     match videos that have been liked more than
+                                     100 times and disliked less than 50 times
+                                     (or the dislike functionality is not
+                                     available at the given service), but who
+                                     also have a description, use --match-filter
+                                     "like_count > 100 & dislike_count <? 50 &
+                                     description" .
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to
@@ -178,6 +173,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      only)
     --skip-unavailable-fragments     Skip unavailable fragments (DASH and
                                      hlsnative only)
+    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
+                                     available
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -185,6 +182,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      automatically resized from an initial value
                                      of SIZE.
     --playlist-reverse               Download playlist videos in reverse order
+    --playlist-random                Download playlist videos in random order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
                                      expected file size (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of
@@ -210,7 +208,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --autonumber-size NUMBER         Specify the number of digits in
                                      %(autonumber)s when it is present in output
                                      filename template or --auto-number option
-                                     is given
+                                     is given (default is 5)
+    --autonumber-start NUMBER        Specify the start value for %(autonumber)s
+                                     (default is 1)
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
@@ -374,7 +374,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      avprobe)
     --audio-format FORMAT            Specify audio format: "best", "aac",
                                      "vorbis", "mp3", "m4a", "opus", or "wav";
-                                     "best" by default
+                                     "best" by default; No effect without -x
     --audio-quality QUALITY          Specify ffmpeg/avconv audio quality, insert
                                      a value between 0 (better) and 9 (worse)
                                      for VBR or a specific bitrate like 128K
@@ -841,7 +841,7 @@ Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`.
 
 In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [cookies.txt](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg) (for Chrome) or [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies/) (for Firefox).
 
-Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows, `LF` (`\n`) for Linux and `CR` (`\r`) for Mac OS. `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
+Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows and `LF` (`\n`) for Unix and Unix-like systems (Linux, Mac OS, etc.). `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
 
 Passing cookies to youtube-dl is a good way to workaround login when a particular extractor does not implement it explicitly. Another use case is working around [CAPTCHA](https://en.wikipedia.org/wiki/CAPTCHA) some websites require you to solve in particular cases in order to get access (e.g. YouTube, CloudFlare).
 

@@ -5,9 +5,27 @@ import re
 
 from ..compat import compat_urlparse
 from .common import InfoExtractor
+from ..utils import parse_duration
 
 
-class JamendoIE(InfoExtractor):
+class JamendoBaseIE(InfoExtractor):
+    def _extract_meta(self, webpage, fatal=True):
+        title = self._og_search_title(
+            webpage, default=None) or self._search_regex(
+            r'<title>([^<]+)', webpage,
+            'title', default=None)
+        if title:
+            title = self._search_regex(
+                r'(.+?)\s*\|\s*Jamendo Music', title, 'title', default=None)
+        if not title:
+            title = self._html_search_meta(
+                'name', webpage, 'title', fatal=fatal)
+        mobj = re.search(r'(.+) - (.+)', title or '')
+        artist, second = mobj.groups() if mobj else [None] * 2
+        return title, artist, second
+
+
+class JamendoIE(JamendoBaseIE):
     _VALID_URL = r'https?://(?:www\.)?jamendo\.com/track/(?P<id>[0-9]+)/(?P<display_id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.jamendo.com/track/196219/stories-from-emona-i',
@@ -16,7 +34,10 @@ class JamendoIE(InfoExtractor):
             'id': '196219',
             'display_id': 'stories-from-emona-i',
             'ext': 'flac',
-            'title': 'Stories from Emona I',
+            'title': 'Maya Filipič - Stories from Emona I',
+            'artist': 'Maya Filipič',
+            'track': 'Stories from Emona I',
+            'duration': 210,
             'thumbnail': r're:^https?://.*\.jpg'
         }
     }
@@ -28,7 +49,7 @@ class JamendoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        title = self._html_search_meta('name', webpage, 'title')
+        title, artist, track = self._extract_meta(webpage)
 
         formats = [{
             'url': 'https://%s.jamendo.com/?trackid=%s&format=%s&from=app-97dab294'
@@ -46,37 +67,47 @@ class JamendoIE(InfoExtractor):
 
         thumbnail = self._html_search_meta(
             'image', webpage, 'thumbnail', fatal=False)
+        duration = parse_duration(self._search_regex(
+            r'<span[^>]+itemprop=["\']duration["\'][^>]+content=["\'](.+?)["\']',
+            webpage, 'duration', fatal=False))
 
         return {
             'id': track_id,
             'display_id': display_id,
             'thumbnail': thumbnail,
             'title': title,
+            'duration': duration,
+            'artist': artist,
+            'track': track,
             'formats': formats
         }
 
 
-class JamendoAlbumIE(InfoExtractor):
+class JamendoAlbumIE(JamendoBaseIE):
     _VALID_URL = r'https?://(?:www\.)?jamendo\.com/album/(?P<id>[0-9]+)/(?P<display_id>[\w-]+)'
     _TEST = {
         'url': 'https://www.jamendo.com/album/121486/duck-on-cover',
         'info_dict': {
             'id': '121486',
-            'title': 'Duck On Cover'
+            'title': 'Shearer - Duck On Cover'
         },
         'playlist': [{
             'md5': 'e1a2fcb42bda30dfac990212924149a8',
             'info_dict': {
                 'id': '1032333',
                 'ext': 'flac',
-                'title': 'Warmachine'
+                'title': 'Shearer - Warmachine',
+                'artist': 'Shearer',
+                'track': 'Warmachine',
             }
         }, {
             'md5': '1f358d7b2f98edfe90fd55dac0799d50',
             'info_dict': {
                 'id': '1032330',
                 'ext': 'flac',
-                'title': 'Without Your Ghost'
+                'title': 'Shearer - Without Your Ghost',
+                'artist': 'Shearer',
+                'track': 'Without Your Ghost',
             }
         }],
         'params': {
@@ -90,18 +121,18 @@ class JamendoAlbumIE(InfoExtractor):
 
         webpage = self._download_webpage(url, mobj.group('display_id'))
 
-        title = self._html_search_meta('name', webpage, 'title')
+        title, artist, album = self._extract_meta(webpage, fatal=False)
 
-        entries = [
-            self.url_result(
-                compat_urlparse.urljoin(url, m.group('path')),
-                ie=JamendoIE.ie_key(),
-                video_id=self._search_regex(
-                    r'/track/(\d+)', m.group('path'),
-                    'track id', default=None))
-            for m in re.finditer(
-                r'<a[^>]+href=(["\'])(?P<path>(?:(?!\1).)+)\1[^>]+class=["\'][^>]*js-trackrow-albumpage-link',
-                webpage)
-        ]
+        entries = [{
+            '_type': 'url_transparent',
+            'url': compat_urlparse.urljoin(url, m.group('path')),
+            'ie_key': JamendoIE.ie_key(),
+            'id': self._search_regex(
+                r'/track/(\d+)', m.group('path'), 'track id', default=None),
+            'artist': artist,
+            'album': album,
+        } for m in re.finditer(
+            r'<a[^>]+href=(["\'])(?P<path>(?:(?!\1).)+)\1[^>]+class=["\'][^>]*js-trackrow-albumpage-link',
+            webpage)]
 
         return self.playlist_result(entries, album_id, title)

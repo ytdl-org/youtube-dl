@@ -179,7 +179,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
         params = {}
 
-        playerID = find_param('playerID')
+        playerID = find_param('playerID') or find_param('playerId')
         if playerID is None:
             raise ExtractorError('Cannot find player ID')
         params['playerID'] = playerID
@@ -204,7 +204,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         #   // build Brightcove <object /> XML
         # }
         m = re.search(
-            r'''(?x)customBC.\createVideo\(
+            r'''(?x)customBC\.createVideo\(
                 .*?                                                  # skipping width and height
                 ["\'](?P<playerID>\d+)["\']\s*,\s*                   # playerID
                 ["\'](?P<playerKey>AQ[^"\']{48})[^"\']*["\']\s*,\s*  # playerKey begins with AQ and is 50 characters

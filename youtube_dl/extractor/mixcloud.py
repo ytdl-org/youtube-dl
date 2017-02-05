@@ -16,7 +16,6 @@ from ..utils import (
     clean_html,
     ExtractorError,
     OnDemandPagedList,
-    parse_count,
     str_to_int,
 )
 
@@ -36,7 +35,6 @@ class MixcloudIE(InfoExtractor):
             'uploader_id': 'dholbach',
             'thumbnail': r're:https?://.*\.jpg',
             'view_count': int,
-            'like_count': int,
         },
     }, {
         'url': 'http://www.mixcloud.com/gillespeterson/caribou-7-inch-vinyl-mix-chat/',
@@ -49,7 +47,6 @@ class MixcloudIE(InfoExtractor):
             'uploader_id': 'gillespeterson',
             'thumbnail': 're:https?://.*',
             'view_count': int,
-            'like_count': int,
         },
     }, {
         'url': 'https://beta.mixcloud.com/RedLightRadio/nosedrip-15-red-light-radio-01-18-2016/',
@@ -89,26 +86,18 @@ class MixcloudIE(InfoExtractor):
 
         song_url = play_info['stream_url']
 
-        PREFIX = (
-            r'm-play-on-spacebar[^>]+'
-            r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
-        title = self._html_search_regex(
-            PREFIX + r'm-title="([^"]+)"', webpage, 'title')
+        title = self._html_search_regex(r'm-title="([^"]+)"', webpage, 'title')
         thumbnail = self._proto_relative_url(self._html_search_regex(
-            PREFIX + r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail',
-            fatal=False))
+            r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail', fatal=False))
         uploader = self._html_search_regex(
-            PREFIX + r'm-owner-name="([^"]+)"',
-            webpage, 'uploader', fatal=False)
+            r'm-owner-name="([^"]+)"', webpage, 'uploader', fatal=False)
         uploader_id = self._search_regex(
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
-        like_count = parse_count(self._search_regex(
-            r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
-            webpage, 'like count', default=None))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
-             r'/listeners/?">([0-9,.]+)</a>'],
+             r'/listeners/?">([0-9,.]+)</a>',
+             r'm-tooltip=["\']([\d,.]+) plays'],
             webpage, 'play count', default=None))
 
         return {
@@ -120,7 +109,6 @@ class MixcloudIE(InfoExtractor):
             'uploader': uploader,
             'uploader_id': uploader_id,
             'view_count': view_count,
-            'like_count': like_count,
         }
 
 
