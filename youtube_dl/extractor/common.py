@@ -1959,7 +1959,12 @@ class InfoExtractor(object):
         media_tags = [(media_tag, media_type, '')
                       for media_tag, media_type
                       in re.findall(r'(?s)(<(video|audio)[^>]*/>)', webpage)]
-        media_tags.extend(re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage))
+        media_tags.extend(re.findall(
+            # We only allow video|audio followed by a whitespace or '>'.
+            # Allowing more characters may end up in significant slow down (see
+            # https://github.com/rg3/youtube-dl/issues/11979, example URL:
+            # http://www.porntrex.com/maps/videositemap.xml).
+            r'(?s)(<(?P<tag>video|audio)(?:\s+[^>]*)?>)(.*?)</(?P=tag)>', webpage))
         for media_tag, media_type, media_content in media_tags:
             media_info = {
                 'formats': [],
