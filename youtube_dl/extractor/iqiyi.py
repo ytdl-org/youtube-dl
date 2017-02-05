@@ -19,6 +19,7 @@ from ..utils import (
     ExtractorError,
     ohdave_rsa_encrypt,
     remove_start,
+    extract_attributes,
 )
 
 
@@ -301,10 +302,14 @@ class IqiyiIE(InfoExtractor):
     def _extract_playlist(self, webpage):
         PAGE_SIZE = 50
 
-        links = re.findall(
-            r'<a[^>]+href="(http://www\.iqiyi\.com/.+\.html)"[^>]+class="site-piclist_pic_link".*>',
-            webpage)
-        if not links:
+        links = []
+        for link in re.findall(r'<a[^>]+class="[^"]*site-piclist_pic_link[^"]*"[^>]*>', webpage):
+            attribs = extract_attributes(link)
+            # It must be a valid url, and links on the playlist page have NO title-Attribute in them
+            # (links to other videos on the video page have, so beware of that!)
+            if attribs['href'].startswith('http') and 'title' not in attribs:
+                links.append(attribs['href'])
+        if len(links) == 0:
             return
 
         album_id = self._search_regex(
@@ -331,7 +336,7 @@ class IqiyiIE(InfoExtractor):
                     break
             else:
                 break
-
+        
         return self.playlist_result(entries, album_id, album_title)
 
     def _real_extract(self, url):
