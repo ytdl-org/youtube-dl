@@ -44,15 +44,14 @@ class SRGSSRIE(InfoExtractor):
                 self.IE_NAME, self._ERRORS[media_data['block']]), expected=True)
         return media_data
 
-    def _get_subtitles(self, bu, media_data):
+    def _extract_subtitles(self, bu, media_data):
         subtitles = {}
         langs = {
             'srf': 'deu',
-            # RTS has its own InfoExtractor in rts.py
-            # 'rts': 'fra',
+            'rts': 'fra',
             'rsi': 'ita',
             'rtr': 'roh',
-            'swissinfo': 'eng'  # assume english for swissinfo
+            'swi': 'eng',
         }
         subtitle_data = media_data.get('Subtitles')
         formats = [{'ext': 'ttml', 'urltag': 'TTMLUrl'},
@@ -79,7 +78,7 @@ class SRGSSRIE(InfoExtractor):
             'url': image['url'],
         } for image in media_data.get('Image', {}).get('ImageRepresentations', {}).get('ImageRepresentation', [])]
 
-        subtitles = self._get_subtitles(bu, media_data)
+        subtitles = self._extract_subtitles(bu, media_data)
 
         preference = qualities(['LQ', 'MQ', 'SD', 'HQ', 'HD'])
         formats = []
@@ -137,7 +136,7 @@ class SRGSSRPlayIE(InfoExtractor):
     }, {
         # No Speichern (Save) button
         'url': 'http://www.srf.ch/play/tv/wort-zum-sonntag/video/vorsaetzlich-gross-denken?id=a2d82e8a-1916-4c29-aade-eec0930ceeeb',
-        'md5': '592bef4eb1e7db6418720c8275231ce0',
+        'md5': '4fd7f008e7cb03f876f50db2fcd7ffcc',
         'info_dict': {
             'id': 'a2d82e8a-1916-4c29-aade-eec0930ceeeb',
             'ext': 'mp4',
