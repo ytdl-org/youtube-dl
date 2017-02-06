@@ -60,9 +60,9 @@ class OpenloadIE(InfoExtractor):
 
     @staticmethod
     def _extract_urls(webpage):
-        return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?(?:openload\.(?:co|io)|oload\.tv)/embed/[a-zA-Z0-9-_]+)',
-            webpage)
+        return [url for _, url in re.findall(
+            r'<iframe[^>]+src=(["\'])(?:[^\?]+\?|[^=]+=|)(?P<url>(?:https?://|//|)(?:openload\.(?:co|io)|oload\.tv)/(?:f|embed)/[^"\']+)\1',
+            webpage)]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
