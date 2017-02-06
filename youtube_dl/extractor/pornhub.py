@@ -156,7 +156,12 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        video_urls = list(map(compat_urllib_parse_unquote, re.findall(r"player_quality_[0-9]{3}p\s*=\s*'([^']+)'", webpage)))
+        video_urls = []
+        for quote, video_url in re.findall(
+                r'player_quality_[0-9]{3,4}p\s*=\s*(["\'])(.+?)\1;', webpage):
+            video_urls.append(compat_urllib_parse_unquote(re.sub(
+                r'{0}\s*\+\s*{0}'.format(quote), '', video_url)))
+
         if webpage.find('"encrypted":true') != -1:
             password = compat_urllib_parse_unquote_plus(
                 self._search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
