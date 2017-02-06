@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.02.07
 
 Core
 * [extractor/common] Fix audio only with audio group in m3u8 (#11995)

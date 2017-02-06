@@ -282,6 +282,7 @@
  - **Gamersyde**
  - **GameSpot**
  - **GameStar**
+ - **Gaskrank**
  - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
@@ -859,6 +860,7 @@
  - **videomore:season**
  - **videomore:video**
  - **VideoPremium**
+ - **VideoPress**
  - **videoweed**: VideoWeed
  - **Vidio**
  - **vidme**
