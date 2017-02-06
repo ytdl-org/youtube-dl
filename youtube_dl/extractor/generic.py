@@ -83,6 +83,7 @@ from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
 from .openload import OpenloadIE
 from .videopress import VideoPressIE
+from .simplex import SimplexIE
 
 
 class GenericIE(InfoExtractor):
@@ -1499,10 +1500,19 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1435711927,
                 'upload_date': '20150701',
             },
+            'add_ie': [VideoPressIE.ie_key()],
+        },
+        {
+            # Simplex embed
+            'url': 'https://telebasel.ch/2017/02/01/report-usr-iii-einfach-erklaert/?channel=105100',
+            'info_dict': {
+                'id': '?channel=105100',
+                'title': 'Report: USR III einfach erklärt - Telebasel',
+            },
             'params': {
                 'skip_download': True,
             },
-            'add_ie': [VideoPressIE.ie_key()],
+            'playlist_count': 3,
         }
         # {
         #     # TODO: find another test
@@ -2473,6 +2483,12 @@ class GenericIE(InfoExtractor):
         if videopress_urls:
             return _playlist_from_matches(
                 videopress_urls, ie=VideoPressIE.ie_key())
+
+        # Look for Simplex embeds
+        simplex_urls = SimplexIE._extract_urls(webpage)
+        if simplex_urls:
+            return _playlist_from_matches(
+                simplex_urls, ie=SimplexIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(

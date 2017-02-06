@@ -30,6 +30,13 @@ class SimplexIE(InfoExtractor):
     }
 
     @staticmethod
+    def _extract_urls(webpage):
+        return ['simplex:%s:%s:%s:%s' % (
+                m.group('server_url'), m.group('customer_id'),
+                m.group('author_id'), m.group('project_id'))
+                for m in re.finditer(r'<iframe[^>]+src=["\']%s.+["\']' % SimplexHostsIE._VALID_URL, webpage)]
+
+    @staticmethod
     def _extract_width_height(resolution):
         try:
             w, h = resolution.split('x')

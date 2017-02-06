@@ -935,10 +935,7 @@ from .teamfourstar import TeamFourStarIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tele13 import Tele13IE
-from .telebasel import (
-    TelebaselMediathekIE,
-    TelebaselArticleIE,
-)
+from .telebasel import TelebaselIE
 from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE

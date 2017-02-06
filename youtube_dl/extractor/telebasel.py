@@ -8,20 +8,12 @@ from .simplex import SimplexIE
 from ..utils import (
     ExtractorError,
     str_or_none,
-    strip_or_none,
-    remove_end,
     try_get,
     urljoin,
 )
 
 
-class TelebaselBaseIE(InfoExtractor):
-    _SERVER_URL = 'https://video.telebasel.ch/'
-    _CUSTOMER_ID = '4062'
-    _AUTHOR_ID = '4063'
-
-
-class TelebaselMediathekIE(TelebaselBaseIE):
+class TelebaselIE(InfoExtractor):
     IE_DESC = 'telebasel.ch Mediathek'
     _VALID_URL = r'''(?x)
                 https?://
@@ -34,6 +26,9 @@ class TelebaselMediathekIE(TelebaselBaseIE):
                         /.*pid=(?P<pid>\d+).*
                     )?
                 '''
+    _SERVER_URL = 'https://video.telebasel.ch/'
+    _CUSTOMER_ID = '4062'
+    _AUTHOR_ID = '4063'
 
     _TESTS = [{
         'url': 'https://telebasel.ch/telebasel-gastro-tipp/?aid=4063&pid=75290&channel=15881',
@@ -82,44 +77,3 @@ class TelebaselMediathekIE(TelebaselBaseIE):
                 self._SERVER_URL, self._CUSTOMER_ID,
                 self._AUTHOR_ID, video_id),
             ie=SimplexIE.ie_key())
-
-
-class TelebaselArticleIE(TelebaselBaseIE):
-    IE_DESC = 'telebasel.ch articles'
-    _VALID_URL = r'https?://(?:www\.)?telebasel\.ch/(?P<id>\d{4}/\d{2}/\d{2}/[^/]+)/?'
-
-    _TEST = {
-        'url': 'https://telebasel.ch/2017/02/01/report-usr-iii-einfach-erklaert/?channel=105100',
-        'info_dict': {
-            'id': '2017/02/01/report-usr-iii-einfach-erklaert',
-            'title': 'Report: USR III einfach erklärt',
-            'description': 'md5:2cb2b94ac023a6a9517cffc58d500c7e',
-        },
-        'playlist_count': 3,
-    }
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-
-        search_url = urljoin(
-            self._SERVER_URL,
-            r'content/%s/%s/(?P<pid>\d+)' % (self._CUSTOMER_ID, self._AUTHOR_ID))
-        embed_regex = r'<iframe[^>]+src=["\']%s.+["\']' % search_url
-        entries = [
-            self.url_result(
-                'simplex:%s:%s:%s:%s' % (
-                    self._SERVER_URL, self._CUSTOMER_ID,
-                    self._AUTHOR_ID, m.group('pid')),
-                ie=SimplexIE.ie_key())
-            for m in re.finditer(embed_regex, webpage)]
-
-        title = strip_or_none(
-            remove_end(self._og_search_title(webpage), '- Telebasel'))
-        description = self._og_search_description(webpage)
-
-        return self.playlist_result(
-            entries,
-            playlist_id=display_id,
-            playlist_title=title,
-            playlist_description=description)
