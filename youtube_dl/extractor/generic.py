@@ -29,6 +29,7 @@ from ..utils import (
     UnsupportedError,
     xpath_text,
 )
+from .commonprotocols import RtmpIE
 from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
@@ -2487,6 +2488,8 @@ class GenericIE(InfoExtractor):
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
                 return True
+            if RtmpIE.suitable(vurl):
+                return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
             return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml', 'js')
@@ -2582,6 +2585,10 @@ class GenericIE(InfoExtractor):
             # Sometimes, jwplayer extraction will result in a YouTube URL
             if YoutubeIE.suitable(video_url):
                 entries.append(self.url_result(video_url, 'Youtube'))
+                continue
+
+            if RtmpIE.suitable(video_url):
+                entries.append(self.url_result(video_url, RtmpIE.ie_key()))
                 continue
 
             # here's a fun little line of code for you:
