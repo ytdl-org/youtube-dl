@@ -1,10 +1,20 @@
 version <unreleased>
 
+Core
+* [extractor/common] Fix audio only with audio group in m3u8 (#11995)
++ [downloader/fragment] Respect --no-part
+* [extractor/common] Speed-up HTML5 media entries extraction (#11979)
+
 Extractors
-+ [gaskrank] Add new extractor (#11685)
+* [pornhub] Fix extraction (#11997)
++ [canalplus] Add support for cstar.fr (#11990)
++ [extractor/generic] Improve RTMP support (#11993)
++ [gaskrank] Add support for gaskrank.tv (#11685)
 * [bandcamp] Fix extraction for incomplete albums (#11727)
 * [iwara] Fix extraction (#11781)
 * [googledrive] Fix extraction on Python 3.6
++ [videopress] Add support for videopress.com
++ [afreecatv] Extract RTMP formats
 
 
 version 2017.02.04.1
