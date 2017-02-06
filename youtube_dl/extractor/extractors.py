@@ -849,6 +849,10 @@ from .shared import (
     VivoIE,
 )
 from .showroomlive import ShowRoomLiveIE
+from .simplex import (
+    SimplexIE,
+    SimplexHostsIE,
+)
 from .sina import SinaIE
 from .sixplay import SixPlayIE
 from .skynewsarabia import (
@@ -931,6 +935,10 @@ from .teamfourstar import TeamFourStarIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tele13 import Tele13IE
+from .telebasel import (
+    TelebaselMediathekIE,
+    TelebaselArticleIE,
+)
 from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
