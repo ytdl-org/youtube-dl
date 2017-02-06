@@ -82,6 +82,7 @@ from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
 from .openload import OpenloadIE
 from .videopress import VideoPressIE
+from .indavideo import IndavideoIE
 
 
 class GenericIE(InfoExtractor):
@@ -1462,6 +1463,24 @@ class GenericIE(InfoExtractor):
             'playlist_mincount': 2,
         },
         {
+            # Indavideo embeds
+            'url': 'http://streetkitchen.hu/2015/03/15/igy_kell_otthon_hamburgert_sutni',
+            'info_dict': {
+                'title': 'Így kell otthon hamburgert sütni',
+                'id': '1693903',
+                'ext': 'mp4',
+                'upload_date': '20150314',
+                'uploader': 'StreetKitchen',
+                'description': 'Hogy készül a tökéletes házi hamburger buci? Mi a titka egy valódi hamburger húsnak? Mitől lesz csodaszép színe a savanyított hagymának? Mi az ultimate hamburger szósz? Megannyi kérdés, amelyekre a válasz a videóban érkezik.',
+                'uploader_id': '546363',
+                'timestamp': 1426330212,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [IndavideoIE.ie_key()],
+        },
+        {
             # 20 minuten embed
             'url': 'http://www.20min.ch/schweiz/news/story/So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
             'info_dict': {
@@ -2472,6 +2491,11 @@ class GenericIE(InfoExtractor):
             })
             info_dict.update(json_ld)
             return info_dict
+
+        # Look for Indavideo embeds
+        indavideo_urls = IndavideoIE._extract_urls(webpage)
+        if indavideo_urls:
+            return _playlist_from_matches(indavideo_urls, ie=IndavideoIE.ie_key())
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
