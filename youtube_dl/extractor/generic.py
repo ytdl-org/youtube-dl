@@ -948,6 +948,19 @@ class GenericIE(InfoExtractor):
                 'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
             },
         },
+        # jwplayer rtmp
+        {
+            'url': 'http://www.suffolk.edu/sjc/',
+            'info_dict': {
+                'id': 'sjclive',
+                'ext': 'flv',
+                'title': 'Massachusetts Supreme Judicial Court Oral Arguments',
+                'uploader': 'www.suffolk.edu',
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # rtl.nl embed
         {
             'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
@@ -2587,10 +2600,6 @@ class GenericIE(InfoExtractor):
                 entries.append(self.url_result(video_url, 'Youtube'))
                 continue
 
-            if RtmpIE.suitable(video_url):
-                entries.append(self.url_result(video_url, RtmpIE.ie_key()))
-                continue
-
             # here's a fun little line of code for you:
             video_id = os.path.splitext(video_id)[0]
 
@@ -2600,6 +2609,15 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'age_limit': age_limit,
             }
+
+            if RtmpIE.suitable(video_url):
+                entry_info_dict.update({
+                    '_type': 'url_transparent',
+                    'ie_key': RtmpIE.ie_key(),
+                    'url': video_url,
+                })
+                entries.append(entry_info_dict)
+                continue
 
             ext = determine_ext(video_url)
             if ext == 'smil':
