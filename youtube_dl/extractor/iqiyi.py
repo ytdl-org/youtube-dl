@@ -336,7 +336,7 @@ class IqiyiIE(InfoExtractor):
                     break
             else:
                 break
-        
+
         return self.playlist_result(entries, album_id, album_title)
 
     def _real_extract(self, url):
