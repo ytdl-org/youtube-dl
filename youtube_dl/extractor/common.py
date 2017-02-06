@@ -1315,8 +1315,8 @@ class InfoExtractor(object):
                         'abr': abr,
                     })
                 f.update(parse_codecs(last_info.get('CODECS')))
-                if audio_in_video_stream.get(last_info.get('AUDIO')) is False:
-                    # TODO: update acodec for for audio only formats with the same GROUP-ID
+                if audio_in_video_stream.get(last_info.get('AUDIO')) is False and f['vcodec'] != 'none':
+                    # TODO: update acodec for audio only formats with the same GROUP-ID
                     f['acodec'] = 'none'
                 formats.append(f)
                 last_info = {}
