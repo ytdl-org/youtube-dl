@@ -48,7 +48,7 @@ class SimplexIE(InfoExtractor):
 
     def _known_simplex_format(self, simplex_formats, fid):
         for sf in simplex_formats:
-            if type(sf['id']) == str and sf['id'] == fid:
+            if sf['id'] == fid:
                 return sf
             elif type(sf['id']) == list and fid in sf['id']:
                 return sf
