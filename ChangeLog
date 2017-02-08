@@ -1,3 +1,151 @@
+version 2017.02.07
+
+Core
+* [extractor/common] Fix audio only with audio group in m3u8 (#11995)
++ [downloader/fragment] Respect --no-part
+* [extractor/common] Speed-up HTML5 media entries extraction (#11979)
+
+Extractors
+* [pornhub] Fix extraction (#11997)
++ [canalplus] Add support for cstar.fr (#11990)
++ [extractor/generic] Improve RTMP support (#11993)
++ [gaskrank] Add support for gaskrank.tv (#11685)
+* [bandcamp] Fix extraction for incomplete albums (#11727)
+* [iwara] Fix extraction (#11781)
+* [googledrive] Fix extraction on Python 3.6
++ [videopress] Add support for videopress.com
++ [afreecatv] Extract RTMP formats
+
+
+version 2017.02.04.1
+
+Extractors
++ [twitch:stream] Add support for player.twitch.tv (#11971)
+* [radiocanada] Fix extraction for toutv rtmp formats
+
+
+version 2017.02.04
+
+Core
++ Add --playlist-random to shuffle playlists (#11889, #11901)
+* [utils] Improve comments processing in js_to_json (#11947)
+* [utils] Handle single-line comments in js_to_json
+* [downloader/external:ffmpeg] Minimize the use of aac_adtstoasc filter
+
+Extractors
++ [piksel] Add another app token pattern (#11969)
++ [vk] Capture and output author blocked error message (#11965)
++ [turner] Fix secure HLS formats downloading with ffmpeg (#11358, #11373,
+  #11800)
++ [drtv] Add support for live and radio sections (#1827, #3427)
+* [myspace] Fix extraction and extract HLS and HTTP formats
++ [youtube] Add format info for itag 325 and 328
+* [vine] Fix extraction (#11955)
+- [sportbox] Remove extractor (#11954)
++ [filmon] Add support for filmon.com (#11187)
++ [infoq] Add audio only formats (#11565)
+* [douyutv] Improve room id regular expression (#11931)
+* [iprima] Fix extraction (#11920, #11896)
+* [youtube] Fix ytsearch when cookies are provided (#11924)
+* [go] Relax video id regular expression (#11937)
+* [facebook] Fix title extraction (#11941)
++ [youtube:playlist] Recognize TL playlists (#11945)
++ [bilibili] Support new Bangumi URLs (#11845)
++ [cbc:watch] Extract audio codec for audio only formats (#11893)
++ [elpais] Fix extraction for some URLs (#11765)
+
+
+version 2017.02.01
+
+Extractors
++ [facebook] Add another fallback extraction scenario (#11926)
+* [prosiebensat1] Fix extraction of descriptions (#11810, #11929)
+- [crunchyroll] Remove ScaledBorderAndShadow settings (#9028)
++ [vimeo] Extract upload timestamp
++ [vimeo] Extract license (#8726, #11880)
++ [nrk:series] Add support for series (#11571, #11711)
+
+
+version 2017.01.31
+
+Core
++ [compat] Add compat_etree_register_namespace
+
+Extractors
+* [youtube] Fix extraction for domainless player URLs (#11890, #11891, #11892,
+  #11894, #11895, #11897, #11900, #11903, #11904, #11906, #11907, #11909,
+  #11913, #11914, #11915, #11916, #11917, #11918, #11919)
++ [vimeo] Extract both mixed and separated DASH formats
++ [ruutu] Extract DASH formats
+* [itv] Fix extraction for python 2.6
+
+
+version 2017.01.29
+
+Core
+* [extractor/common] Fix initialization template (#11605, #11825)
++ [extractor/common] Document fragment_base_url and fragment's path fields
+* [extractor/common] Fix duration per DASH segment (#11868)
++ Introduce --autonumber-start option for initial value of %(autonumber)s
+  template (#727, #2702, #9362, #10457, #10529, #11862)
+
+Extractors
++ [azmedien:playlist] Add support for topic and themen playlists (#11817)
+* [npo] Fix subtitles extraction
++ [itv] Extract subtitles
++ [itv] Add support for itv.com (#9240)
++ [mtv81] Add support for mtv81.com (#7619)
++ [vlive] Add support for channels (#11826)
++ [kaltura] Add fallback for fileExt
++ [kaltura] Improve uploader_id extraction
++ [konserthusetplay] Add support for rspoplay.se (#11828)
+
+
+version 2017.01.28
+
+Core
+* [utils] Improve parse_duration
+
+Extractors
+* [crunchyroll] Improve series and season metadata extraction (#11832)
+* [soundcloud] Improve formats extraction and extract audio bitrate
++ [soundcloud] Extract HLS formats
+* [soundcloud] Fix track URL extraction (#11852)
++ [twitch:vod] Expand URL regular expressions (#11846)
+* [aenetworks] Fix season episodes extraction (#11669)
++ [tva] Add support for videos.tva.ca (#11842)
+* [jamendo] Improve and extract more metadata (#11836)
++ [disney] Add support for Disney sites (#7409, #11801, #4975, #11000)
+* [vevo] Remove request to old API and catch API v2 errors
++ [cmt,mtv,southpark] Add support for episode URLs (#11837)
++ [youtube] Add fallback for duration extraction (#11841)
+
+
+version 2017.01.25
+
+Extractors
++ [openload] Fallback video extension to mp4
++ [extractor/generic] Add support for Openload embeds (#11536, #11812)
+* [srgssr] Fix rts video extraction (#11831)
++ [afreecatv:global] Add support for afreeca.tv (#11807)
++ [crackle] Extract vtt subtitles
++ [crackle] Extract multiple resolutions for thumbnails
++ [crackle] Add support for mobile URLs
++ [konserthusetplay] Extract subtitles (#11823)
++ [konserthusetplay] Add support for HLS videos (#11823)
+* [vimeo:review] Fix config URL extraction (#11821)
+
+
+version 2017.01.24
+
+Extractors
+* [pluralsight] Fix extraction (#11820)
++ [nextmedia] Add support for NextTV (壹電視)
+* [24video] Fix extraction (#11811)
+* [youtube:playlist] Fix nonexistent and private playlist detection (#11604)
++ [chirbit] Extract uploader (#11809)
+
+
 version 2017.01.22
 
 Extractors

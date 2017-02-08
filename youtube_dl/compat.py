@@ -2529,6 +2529,24 @@ else:
                 el.text = el.text.decode('utf-8')
         return doc
 
+if hasattr(etree, 'register_namespace'):
+    compat_etree_register_namespace = etree.register_namespace
+else:
+    def compat_etree_register_namespace(prefix, uri):
+        """Register a namespace prefix.
+        The registry is global, and any existing mapping for either the
+        given prefix or the namespace URI will be removed.
+        *prefix* is the namespace prefix, *uri* is a namespace uri. Tags and
+        attributes in this namespace will be serialized with prefix if possible.
+        ValueError is raised if prefix is reserved or is invalid.
+        """
+        if re.match(r"ns\d+$", prefix):
+            raise ValueError("Prefix format reserved for internal use")
+        for k, v in list(etree._namespace_map.items()):
+            if k == uri or v == prefix:
+                del etree._namespace_map[k]
+        etree._namespace_map[uri] = prefix
+
 if sys.version_info < (2, 7):
     # Here comes the crazy part: In 2.6, if the xpath is a unicode,
     # .//node does not match if a node is a direct child of . !
@@ -2865,6 +2883,7 @@ __all__ = [
     'compat_cookiejar',
     'compat_cookies',
     'compat_etree_fromstring',
+    'compat_etree_register_namespace',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',

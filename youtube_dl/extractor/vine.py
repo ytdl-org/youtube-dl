@@ -6,8 +6,9 @@ import itertools
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     int_or_none,
-    unified_strdate,
+    unified_timestamp,
 )
 
 
@@ -20,9 +21,10 @@ class VineIE(InfoExtractor):
             'id': 'b9KOOWX7HUx',
             'ext': 'mp4',
             'title': 'Chicken.',
-            'alt_title': 'Vine by Jack Dorsey',
+            'alt_title': 'Vine by Jack',
+            'timestamp': 1368997951,
             'upload_date': '20130519',
-            'uploader': 'Jack Dorsey',
+            'uploader': 'Jack',
             'uploader_id': '76',
             'view_count': int,
             'like_count': int,
@@ -30,47 +32,13 @@ class VineIE(InfoExtractor):
             'repost_count': int,
         },
     }, {
-        'url': 'https://vine.co/v/MYxVapFvz2z',
-        'md5': '7b9a7cbc76734424ff942eb52c8f1065',
-        'info_dict': {
-            'id': 'MYxVapFvz2z',
-            'ext': 'mp4',
-            'title': 'Fuck Da Police #Mikebrown #justice #ferguson #prayforferguson #protesting #NMOS14',
-            'alt_title': 'Vine by Mars Ruiz',
-            'upload_date': '20140815',
-            'uploader': 'Mars Ruiz',
-            'uploader_id': '1102363502380728320',
-            'view_count': int,
-            'like_count': int,
-            'comment_count': int,
-            'repost_count': int,
-        },
-    }, {
-        'url': 'https://vine.co/v/bxVjBbZlPUH',
-        'md5': 'ea27decea3fa670625aac92771a96b73',
-        'info_dict': {
-            'id': 'bxVjBbZlPUH',
-            'ext': 'mp4',
-            'title': '#mw3 #ac130 #killcam #angelofdeath',
-            'alt_title': 'Vine by Z3k3',
-            'upload_date': '20130430',
-            'uploader': 'Z3k3',
-            'uploader_id': '936470460173008896',
-            'view_count': int,
-            'like_count': int,
-            'comment_count': int,
-            'repost_count': int,
-        },
-    }, {
-        'url': 'https://vine.co/oembed/MYxVapFvz2z.json',
-        'only_matching': True,
-    }, {
         'url': 'https://vine.co/v/e192BnZnZ9V',
         'info_dict': {
             'id': 'e192BnZnZ9V',
             'ext': 'mp4',
             'title': 'ยิ้ม~ เขิน~ อาย~ น่าร้ากอ้ะ >//< @n_whitewo @orlameena #lovesicktheseries  #lovesickseason2',
             'alt_title': 'Vine by Pimry_zaa',
+            'timestamp': 1436057405,
             'upload_date': '20150705',
             'uploader': 'Pimry_zaa',
             'uploader_id': '1135760698325307392',
@@ -82,43 +50,60 @@ class VineIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://vine.co/v/MYxVapFvz2z',
+        'only_matching': True,
+    }, {
+        'url': 'https://vine.co/v/bxVjBbZlPUH',
+        'only_matching': True,
+    }, {
+        'url': 'https://vine.co/oembed/MYxVapFvz2z.json',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage('https://vine.co/v/' + video_id, video_id)
 
-        data = self._parse_json(
-            self._search_regex(
-                r'window\.POST_DATA\s*=\s*({.+?});\s*</script>',
-                webpage, 'vine data'),
-            video_id)
+        data = self._download_json(
+            'https://archive.vine.co/posts/%s.json' % video_id, video_id)
 
-        data = data[list(data.keys())[0]]
+        def video_url(kind):
+            for url_suffix in ('Url', 'URL'):
+                format_url = data.get('video%s%s' % (kind, url_suffix))
+                if format_url:
+                    return format_url
 
-        formats = [{
-            'format_id': '%(format)s-%(rate)s' % f,
-            'vcodec': f.get('format'),
-            'quality': f.get('rate'),
-            'url': f['videoUrl'],
-        } for f in data['videoUrls'] if f.get('videoUrl')]
-
+        formats = []
+        for quality, format_id in enumerate(('low', '', 'dash')):
+            format_url = video_url(format_id.capitalize())
+            if not format_url:
+                continue
+            # DASH link returns plain mp4
+            if format_id == 'dash' and determine_ext(format_url) == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, video_id, mpd_id='dash', fatal=False))
+            else:
+                formats.append({
+                    'url': format_url,
+                    'format_id': format_id or 'standard',
+                    'quality': quality,
+                })
         self._sort_formats(formats)
 
         username = data.get('username')
 
         return {
             'id': video_id,
-            'title': data.get('description') or self._og_search_title(webpage),
-            'alt_title': 'Vine by %s' % username if username else self._og_search_description(webpage, default=None),
+            'title': data.get('description'),
+            'alt_title': 'Vine by %s' % username if username else None,
             'thumbnail': data.get('thumbnailUrl'),
-            'upload_date': unified_strdate(data.get('created')),
+            'timestamp': unified_timestamp(data.get('created')),
             'uploader': username,
             'uploader_id': data.get('userIdStr'),
-            'view_count': int_or_none(data.get('loops', {}).get('count')),
-            'like_count': int_or_none(data.get('likes', {}).get('count')),
-            'comment_count': int_or_none(data.get('comments', {}).get('count')),
-            'repost_count': int_or_none(data.get('reposts', {}).get('count')),
+            'view_count': int_or_none(data.get('loops')),
+            'like_count': int_or_none(data.get('likes')),
+            'comment_count': int_or_none(data.get('comments')),
+            'repost_count': int_or_none(data.get('reposts')),
             'formats': formats,
         }
 

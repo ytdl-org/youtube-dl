@@ -3,7 +3,14 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import parse_iso8601
+from ..utils import (
+    clean_html,
+    get_element_by_class,
+    int_or_none,
+    parse_iso8601,
+    remove_start,
+    unified_timestamp,
+)
 
 
 class NextMediaIE(InfoExtractor):
@@ -184,3 +191,48 @@ class AppleDailyIE(NextMediaIE):
 
     def _fetch_description(self, page):
         return self._html_search_meta('description', page, 'news description')
+
+
+class NextTVIE(InfoExtractor):
+    IE_DESC = '壹電視'
+    _VALID_URL = r'https?://(?:www\.)?nexttv\.com\.tw/(?:[^/]+/)+(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://www.nexttv.com.tw/news/realtime/politics/11779671',
+        'info_dict': {
+            'id': '11779671',
+            'ext': 'mp4',
+            'title': '「超收稅」近4千億！　藍議員籲發消費券',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1484825400,
+            'upload_date': '20170119',
+            'view_count': int,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        title = self._html_search_regex(
+            r'<h1[^>]*>([^<]+)</h1>', webpage, 'title')
+
+        data = self._hidden_inputs(webpage)
+
+        video_url = data['ntt-vod-src-detailview']
+
+        date_str = get_element_by_class('date', webpage)
+        timestamp = unified_timestamp(date_str + '+0800') if date_str else None
+
+        view_count = int_or_none(remove_start(
+            clean_html(get_element_by_class('click', webpage)), '點閱：'))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'url': video_url,
+            'thumbnail': data.get('ntt-vod-img-src'),
+            'timestamp': timestamp,
+            'view_count': view_count,
+        }
