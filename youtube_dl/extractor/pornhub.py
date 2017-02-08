@@ -6,6 +6,7 @@ import os
 import re
 
 from .common import InfoExtractor
+from ..jsinterp import JSInterpreter
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse_unquote,
@@ -156,16 +157,12 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        video_variables = []
-        video_variablenames = []
+        video_variables = {}
         for video_variablename, quote, video_variable in re.findall(
                 r'(player_quality_[0-9]{3,4}p[0-9a-z]+?)=\s*(["\'])(.*?)\2;', webpage):
-            video_variables.append(video_variable)
-            video_variablenames.append(video_variablename)
-            exestring = str(video_variablename) + ' = "' + str(video_variable) + '"'
-            exec(exestring) in locals()
+            video_variables[video_variablename] = video_variable
 
-	encoded_video_urls = []
+        encoded_video_urls = []
         for encoded_video_url in re.findall(
                 r'player_quality_[0-9]{3,4}p\s*=(.*?);', webpage):
             encoded_video_urls.append(encoded_video_url)
@@ -173,8 +170,11 @@ class PornHubIE(InfoExtractor):
         # Decode the URLs 
         video_urls = []
         for url in encoded_video_urls:
-            exestring = 'video_urls.append(' + str(url) + ')'
-            exec(exestring) in locals()
+            for varname, varval in video_variables.items():
+                url = url.replace(varname, varval)
+            url = url.replace('+', '')
+            url = url.replace(' ', '')
+            video_urls.append(url)
 
         if webpage.find('"encrypted":true') != -1:
             password = compat_urllib_parse_unquote_plus(
