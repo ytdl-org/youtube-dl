@@ -6,7 +6,6 @@ import os
 import re
 
 from .common import InfoExtractor
-from ..jsinterp import JSInterpreter
 from ..compat import (
     compat_HTTPError,
     compat_urllib_parse_unquote,
