@@ -2,17 +2,23 @@
 from __future__ import unicode_literals
 
 import re
+import time
+import itertools
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse_urlencode,
+    compat_str,
+)
 from ..utils import (
     dict_get,
     ExtractorError,
     float_or_none,
     int_or_none,
     remove_start,
+    try_get,
     urlencode_postdata,
 )
-from ..compat import compat_urllib_parse_urlencode
 
 
 class VLiveIE(InfoExtractor):
@@ -169,3 +175,89 @@ class VLiveIE(InfoExtractor):
             'subtitles': subtitles,
         })
         return info
+
+
+class VLiveChannelIE(InfoExtractor):
+    IE_NAME = 'vlive:channel'
+    _VALID_URL = r'https?://channels\.vlive\.tv/(?P<id>[0-9A-Z]+)'
+    _TEST = {
+        'url': 'http://channels.vlive.tv/FCD4B',
+        'info_dict': {
+            'id': 'FCD4B',
+            'title': 'MAMAMOO',
+        },
+        'playlist_mincount': 110
+    }
+    _APP_ID = '8c6cc7b45d2568fb668be6e05b6e5a3b'
+
+    def _real_extract(self, url):
+        channel_code = self._match_id(url)
+
+        webpage = self._download_webpage(
+            'http://channels.vlive.tv/%s/video' % channel_code, channel_code)
+
+        app_id = None
+
+        app_js_url = self._search_regex(
+            r'<script[^>]+src=(["\'])(?P<url>http.+?/app\.js.*?)\1',
+            webpage, 'app js', default=None, group='url')
+
+        if app_js_url:
+            app_js = self._download_webpage(
+                app_js_url, channel_code, 'Downloading app JS', fatal=False)
+            if app_js:
+                app_id = self._search_regex(
+                    r'Global\.VFAN_APP_ID\s*=\s*[\'"]([^\'"]+)[\'"]',
+                    app_js, 'app id', default=None)
+
+        app_id = app_id or self._APP_ID
+
+        channel_info = self._download_json(
+            'http://api.vfan.vlive.tv/vproxy/channelplus/decodeChannelCode',
+            channel_code, note='Downloading decode channel code',
+            query={
+                'app_id': app_id,
+                'channelCode': channel_code,
+                '_': int(time.time())
+            })
+
+        channel_seq = channel_info['result']['channelSeq']
+        channel_name = None
+        entries = []
+
+        for page_num in itertools.count(1):
+            video_list = self._download_json(
+                'http://api.vfan.vlive.tv/vproxy/channelplus/getChannelVideoList',
+                channel_code, note='Downloading channel list page #%d' % page_num,
+                query={
+                    'app_id': app_id,
+                    'channelSeq': channel_seq,
+                    'maxNumOfRows': 1000,
+                    '_': int(time.time()),
+                    'pageNo': page_num
+                }
+            )
+
+            if not channel_name:
+                channel_name = try_get(
+                    video_list,
+                    lambda x: x['result']['channelInfo']['channelName'],
+                    compat_str)
+
+            videos = try_get(
+                video_list, lambda x: x['result']['videoList'], list)
+            if not videos:
+                break
+
+            for video in videos:
+                video_id = video.get('videoSeq')
+                if not video_id:
+                    continue
+                video_id = compat_str(video_id)
+                entries.append(
+                    self.url_result(
+                        'http://www.vlive.tv/video/%s' % video_id,
+                        ie=VLiveIE.ie_key(), video_id=video_id))
+
+        return self.playlist_result(
+            entries, channel_code, channel_name)

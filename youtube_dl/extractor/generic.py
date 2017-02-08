@@ -29,6 +29,7 @@ from ..utils import (
     UnsupportedError,
     xpath_text,
 )
+from .commonprotocols import RtmpIE
 from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
@@ -78,6 +79,10 @@ from .vbox7 import Vbox7IE
 from .dbtv import DBTVIE
 from .piksel import PikselIE
 from .videa import VideaIE
+from .twentymin import TwentyMinutenIE
+from .ustream import UstreamIE
+from .openload import OpenloadIE
+from .videopress import VideoPressIE
 
 
 class GenericIE(InfoExtractor):
@@ -422,6 +427,26 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,  # m3u8 download
             },
         },
+        {
+            # Brightcove with alternative playerID key
+            'url': 'http://www.nature.com/nmeth/journal/v9/n7/fig_tab/nmeth.2062_SV1.html',
+            'info_dict': {
+                'id': 'nmeth.2062_SV1',
+                'title': 'Simultaneous multiview imaging of the Drosophila syncytial blastoderm : Quantitative high-speed imaging of entire developing embryos with simultaneous multiview light-sheet microscopy : Nature Methods : Nature Research',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'id': '2228375078001',
+                    'ext': 'mp4',
+                    'title': 'nmeth.2062-sv1',
+                    'description': 'nmeth.2062-sv1',
+                    'timestamp': 1363357591,
+                    'upload_date': '20130315',
+                    'uploader': 'Nature Publishing Group',
+                    'uploader_id': '1964492299001',
+                },
+            }],
+        },
         # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
@@ -565,17 +590,6 @@ class GenericIE(InfoExtractor):
                 'title': 'Hidden miracles of the natural world',
                 'uploader': 'Louie Schwartzberg',
                 'description': 'md5:8145d19d320ff3e52f28401f4c4283b9',
-            }
-        },
-        # Embedded Ustream video
-        {
-            'url': 'http://www.american.edu/spa/pti/nsa-privacy-janus-2014.cfm',
-            'md5': '27b99cdb639c9b12a79bca876a073417',
-            'info_dict': {
-                'id': '45734260',
-                'ext': 'flv',
-                'uploader': 'AU SPA:  The NSA and Privacy',
-                'title': 'NSA and Privacy Forum Debate featuring General Hayden and Barton Gellman'
             }
         },
         # nowvideo embed hidden behind percent encoding
@@ -933,6 +947,19 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'NationalArchives08',
                 'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
             },
+        },
+        # jwplayer rtmp
+        {
+            'url': 'http://www.suffolk.edu/sjc/',
+            'info_dict': {
+                'id': 'sjclive',
+                'ext': 'flv',
+                'title': 'Massachusetts Supreme Judicial Court Oral Arguments',
+                'uploader': 'www.suffolk.edu',
+            },
+            'params': {
+                'skip_download': True,
+            }
         },
         # rtl.nl embed
         {
@@ -1448,6 +1475,35 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 2,
         },
+        {
+            # 20 minuten embed
+            'url': 'http://www.20min.ch/schweiz/news/story/So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
+            'info_dict': {
+                'id': '523629',
+                'ext': 'mp4',
+                'title': 'So kommen Sie bei Eis und Schnee sicher an',
+                'description': 'md5:117c212f64b25e3d95747e5276863f7d',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [TwentyMinutenIE.ie_key()],
+        },
+        {
+            # VideoPress embed
+            'url': 'https://en.support.wordpress.com/videopress/',
+            'info_dict': {
+                'id': 'OcobLTqC',
+                'ext': 'm4v',
+                'title': 'IMG_5786',
+                'timestamp': 1435711927,
+                'upload_date': '20150701',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [VideoPressIE.ie_key()],
+        }
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -1939,7 +1995,14 @@ class GenericIE(InfoExtractor):
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
                 re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
-            return OoyalaIE._build_url_result(smuggle_url(mobj.group('ec'), {'domain': url}))
+            embed_token = self._search_regex(
+                r'embedToken[\'"]?\s*:\s*[\'"]([^\'"]+)',
+                webpage, 'ooyala embed token', default=None)
+            return OoyalaIE._build_url_result(smuggle_url(
+                mobj.group('ec'), {
+                    'domain': url,
+                    'embed_token': embed_token,
+                }))
 
         # Look for multiple Ooyala embeds on SBN network websites
         mobj = re.search(r'SBN\.VideoLinkset\.entryGroup\((\[.*?\])', webpage)
@@ -2070,10 +2133,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'TED')
 
         # Look for embedded Ustream videos
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://www\.ustream\.tv/embed/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Ustream')
+        ustream_url = UstreamIE._extract_url(webpage)
+        if ustream_url:
+            return self.url_result(ustream_url, UstreamIE.ie_key())
 
         # Look for embedded arte.tv player
         mobj = re.search(
@@ -2394,6 +2456,24 @@ class GenericIE(InfoExtractor):
         if videa_urls:
             return _playlist_from_matches(videa_urls, ie=VideaIE.ie_key())
 
+        # Look for 20 minuten embeds
+        twentymin_urls = TwentyMinutenIE._extract_urls(webpage)
+        if twentymin_urls:
+            return _playlist_from_matches(
+                twentymin_urls, ie=TwentyMinutenIE.ie_key())
+
+        # Look for Openload embeds
+        openload_urls = OpenloadIE._extract_urls(webpage)
+        if openload_urls:
+            return _playlist_from_matches(
+                openload_urls, ie=OpenloadIE.ie_key())
+
+        # Look for VideoPress embeds
+        videopress_urls = VideoPressIE._extract_urls(webpage)
+        if videopress_urls:
+            return _playlist_from_matches(
+                videopress_urls, ie=VideoPressIE.ie_key())
+
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
             webpage, video_id, default={}, expected_type='VideoObject')
@@ -2420,6 +2500,8 @@ class GenericIE(InfoExtractor):
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
+                return True
+            if RtmpIE.suitable(vurl):
                 return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
@@ -2527,6 +2609,15 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'age_limit': age_limit,
             }
+
+            if RtmpIE.suitable(video_url):
+                entry_info_dict.update({
+                    '_type': 'url_transparent',
+                    'ie_key': RtmpIE.ie_key(),
+                    'url': video_url,
+                })
+                entries.append(entry_info_dict)
+                continue
 
             ext = determine_ext(video_url)
             if ext == 'smil':

@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_chr
 from ..utils import (
@@ -56,6 +58,12 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src=["\']((?:https?://)?(?:openload\.(?:co|io)|oload\.tv)/embed/[a-zA-Z0-9-_]+)',
+            webpage)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage('https://openload.co/embed/%s/' % video_id, video_id)
@@ -64,16 +72,17 @@ class OpenloadIE(InfoExtractor):
             raise ExtractorError('File not found', expected=True)
 
         ol_id = self._search_regex(
-            '<span[^>]+id="[a-zA-Z0-9]+x"[^>]*>([0-9]+)</span>',
+            '<span[^>]+id="[^"]+"[^>]*>([0-9]+)</span>',
             webpage, 'openload ID')
 
-        first_two_chars = int(float(ol_id[0:][:2]))
+        first_three_chars = int(float(ol_id[0:][:3]))
+        fifth_char = int(float(ol_id[3:5]))
         urlcode = ''
-        num = 2
+        num = 5
 
         while num < len(ol_id):
-            urlcode += compat_chr(int(float(ol_id[num:][:3])) -
-                                  first_two_chars * int(float(ol_id[num + 3:][:2])))
+            urlcode += compat_chr(int(float(ol_id[num:][:3])) +
+                                  first_three_chars - fifth_char * int(float(ol_id[num + 3:][:2])))
             num += 5
 
         video_url = 'https://openload.co/stream/' + urlcode
@@ -92,7 +101,7 @@ class OpenloadIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
             # Seems all videos have extensions in their titles
-            'ext': determine_ext(title),
+            'ext': determine_ext(title, 'mp4'),
             'subtitles': subtitles,
         }
         return info_dict

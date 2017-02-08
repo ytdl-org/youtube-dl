@@ -33,7 +33,8 @@
  - **AdobeTVVideo**
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
- - **AfreecaTV**: afreecatv.com
+ - **afreecatv**: afreecatv.com
+ - **afreecatv:global**: afreecatv.com
  - **AirMozilla**
  - **AlJazeera**
  - **Allocine**
@@ -74,6 +75,8 @@
  - **awaan:live**
  - **awaan:season**
  - **awaan:video**
+ - **AZMedien**: AZ Medien videos
+ - **AZMedienPlaylist**: AZ Medien playlists
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -81,11 +84,13 @@
  - **bambuser:channel**
  - **Bandcamp**
  - **Bandcamp:album**
+ - **bangumi.bilibili.com**: BiliBili番剧
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
  - **bbc.co.uk:article**: BBC articles
  - **bbc.co.uk:iplayer:playlist**
  - **bbc.co.uk:playlist**
+ - **Beam:live**
  - **Beatport**
  - **Beeg**
  - **BehindKink**
@@ -198,6 +203,7 @@
  - **Digiteka**
  - **Discovery**
  - **DiscoveryGo**
+ - **Disney**
  - **Dotsub**
  - **DouyuTV**: 斗鱼
  - **DPlay**
@@ -206,7 +212,8 @@
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
- - **DRTV**
+ - **drtv**
+ - **drtv:live**
  - **Dumpert**
  - **dvtv**: http://video.aktualne.cz/
  - **dw**
@@ -242,6 +249,8 @@
  - **fc2:embed**
  - **Fczenit**
  - **fernsehkritik.tv**
+ - **filmon**
+ - **filmon:channel**
  - **Firstpost**
  - **FiveTV**
  - **Flickr**
@@ -273,6 +282,7 @@
  - **Gamersyde**
  - **GameSpot**
  - **GameStar**
+ - **Gaskrank**
  - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
@@ -332,6 +342,7 @@
  - **IPrima**
  - **iqiyi**: 爱奇艺
  - **Ir90Tv**
+ - **ITV**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
  - **ivideon**: Ivideon TV
@@ -440,6 +451,7 @@
  - **mtg**: MTG services
  - **mtv**
  - **mtv.de**
+ - **mtv81**
  - **mtv:video**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
@@ -482,6 +494,7 @@
  - **Newstube**
  - **NextMedia**: 蘋果日報
  - **NextMediaActionNews**: 蘋果日報 - 動新聞
+ - **NextTV**: 壹電視
  - **nfb**: National Film Board of Canada
  - **nfl.com**
  - **NhkVod**
@@ -520,6 +533,7 @@
  - **NRKTV**: NRK TV and NRK Radio
  - **NRKTVDirekte**: NRK TV Direkte and NRK Radio Direkte
  - **NRKTVEpisodes**
+ - **NRKTVSeries**
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
@@ -571,6 +585,7 @@
  - **PolskieRadio**
  - **PolskieRadioCategory**
  - **PornCom**
+ - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
  - **PornHubPlaylist**
@@ -693,7 +708,6 @@
  - **Spiegeltv**
  - **Spike**
  - **Sport5**
- - **SportBox**
  - **SportBoxEmbed**
  - **SportDeutschland**
  - **Sportschau**
@@ -779,6 +793,7 @@
  - **TV2Article**
  - **TV3**
  - **TV4**: tv4.se and tv4play.se
+ - **TVA**
  - **TVANouvelles**
  - **TVANouvellesArticle**
  - **TVC**
@@ -845,6 +860,7 @@
  - **videomore:season**
  - **videomore:video**
  - **VideoPremium**
+ - **VideoPress**
  - **videoweed**: VideoWeed
  - **Vidio**
  - **vidme**
@@ -879,6 +895,7 @@
  - **vk:uservideos**: VK - User's Videos
  - **vk:wallpost**
  - **vlive**
+ - **vlive:channel**
  - **Vodlocker**
  - **VODPlatform**
  - **VoiceRepublic**

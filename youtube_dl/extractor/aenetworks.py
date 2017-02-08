@@ -87,7 +87,7 @@ class AENetworksIE(AENetworksBaseIE):
                     self._html_search_meta('aetn:SeriesTitle', webpage))
             elif url_parts_len == 2:
                 entries = []
-                for episode_item in re.findall(r'(?s)<div[^>]+class="[^"]*episode-item[^"]*"[^>]*>', webpage):
+                for episode_item in re.findall(r'(?s)<[^>]+class="[^"]*(?:episode|program)-item[^"]*"[^>]*>', webpage):
                     episode_attributes = extract_attributes(episode_item)
                     episode_url = compat_urlparse.urljoin(
                         url, episode_attributes['data-canonical'])

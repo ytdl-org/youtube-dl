@@ -18,7 +18,7 @@ from ..utils import (
 
 class DouyuTVIE(InfoExtractor):
     IE_DESC = '斗鱼'
-    _VALID_URL = r'https?://(?:www\.)?douyu(?:tv)?\.com/(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?douyu(?:tv)?\.com/(?:[^/]+/)*(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'http://www.douyutv.com/iseven',
         'info_dict': {
@@ -68,6 +68,10 @@ class DouyuTVIE(InfoExtractor):
     }, {
         'url': 'http://www.douyu.com/xiaocang',
         'only_matching': True,
+    }, {
+        # \"room_id\"
+        'url': 'http://www.douyu.com/t/lpl',
+        'only_matching': True,
     }]
 
     # Decompile core.swf in webpage by ffdec "Search SWFs in memory". core.swf
@@ -82,7 +86,7 @@ class DouyuTVIE(InfoExtractor):
         else:
             page = self._download_webpage(url, video_id)
             room_id = self._html_search_regex(
-                r'"room_id"\s*:\s*(\d+),', page, 'room id')
+                r'"room_id\\?"\s*:\s*(\d+),', page, 'room id')
 
         room = self._download_json(
             'http://m.douyu.com/html5/live?roomId=%s' % room_id, video_id,
