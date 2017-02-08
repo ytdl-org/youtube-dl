@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .adobepass import AdobePassIE
 from ..utils import (
     int_or_none,
     determine_ext,
@@ -13,7 +13,7 @@ from ..utils import (
 )
 
 
-class GoIE(InfoExtractor):
+class GoIE(AdobePassIE):
     _BRANDS = {
         'abc': '001',
         'freeform': '002',
@@ -53,6 +53,22 @@ class GoIE(InfoExtractor):
             video_id)['video'][0]
         title = video_data['title']
 
+        authdata = {}
+        if video_data['accesslevel'] == '1':
+            resource = self._get_mvpd_resource(
+                'DisneyXD', title, video_id,
+                video_data.get('tvrating', {}).get('rating'))
+            token = self._extract_mvpd_auth(
+                url, video_id, 'DisneyXD', resource)
+            authdata.update({
+                'adobe_resource_id': resource,
+                'token': token,
+                'auth_flag': 1,
+                'token_type': 'ap',
+                'mvpd': title,
+                'adobe_requestor_id': 'DisneyXD',
+            })
+
         formats = []
         for asset in video_data.get('assets', {}).get('asset', []):
             asset_url = asset.get('value')
@@ -63,14 +79,15 @@ class GoIE(InfoExtractor):
             if ext == 'm3u8':
                 video_type = video_data.get('type')
                 if video_type == 'lf':
+                    authdata.update({
+                        'video_id': video_data['id'],
+                        'video_type': video_type,
+                        'brand': brand,
+                        'device': '001',
+                    })
                     entitlement = self._download_json(
                         'https://api.entitlement.watchabc.go.com/vp2/ws-secure/entitlement/2020/authorize.json',
-                        video_id, data=urlencode_postdata({
-                            'video_id': video_data['id'],
-                            'video_type': video_type,
-                            'brand': brand,
-                            'device': '001',
-                        }))
+                        video_id, data=urlencode_postdata(authdata))
                     errors = entitlement.get('errors', {}).get('errors', [])
                     if errors:
                         error_message = ', '.join([error['message'] for error in errors])
