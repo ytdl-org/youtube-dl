@@ -174,7 +174,6 @@ class PornHubIE(InfoExtractor):
         video_urls = []
         for url in encoded_video_urls:
             exestring = 'video_urls.append(' + str(url) + ')'
-            #print('exe2: ' + exestring)
             exec(exestring) in locals()
 
         if webpage.find('"encrypted":true') != -1:
