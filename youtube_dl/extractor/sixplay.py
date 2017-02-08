@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -12,6 +14,7 @@ from ..utils import (
 
 
 class SixPlayIE(InfoExtractor):
+    IE_NAME = '6play'
     _VALID_URL = r'(?:6play:|https?://(?:www\.)?6play\.fr/.+?-c_)(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.6play.fr/le-meilleur-patissier-p_1807/le-meilleur-patissier-special-fetes-mercredi-a-21-00-sur-m6-c_11638450',
@@ -42,21 +45,36 @@ class SixPlayIE(InfoExtractor):
         clip_data = data['clips'][0]
         title = clip_data['title']
 
+        urls = []
         quality_key = qualities(['lq', 'sd', 'hq', 'hd'])
         formats = []
         for asset in clip_data['assets']:
             asset_url = asset.get('full_physical_path')
-            if not asset_url:
+            protocol = asset.get('protocol')
+            if not asset_url or protocol == 'primetime' or asset_url in urls:
                 continue
+            urls.append(asset_url)
             container = asset.get('video_container')
             ext = determine_ext(asset_url)
             if container == 'm3u8' or ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    asset_url, video_id, 'mp4', 'm3u8_native',
-                    m3u8_id='hls', fatal=False))
-                formats.extend(self._extract_f4m_formats(
-                    asset_url.replace('.m3u8', '.f4m'),
-                    video_id, f4m_id='hds', fatal=False))
+                if protocol == 'usp':
+                    asset_url = re.sub(r'/([^/]+)\.ism/[^/]*\.m3u8', r'/\1.ism/\1.m3u8', asset_url)
+                    formats.extend(self._extract_m3u8_formats(
+                        asset_url, video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
+                    formats.extend(self._extract_f4m_formats(
+                        asset_url.replace('.m3u8', '.f4m'),
+                        video_id, f4m_id='hds', fatal=False))
+                    formats.extend(self._extract_mpd_formats(
+                        asset_url.replace('.m3u8', '.mpd'),
+                        video_id, mpd_id='dash', fatal=False))
+                    formats.extend(self._extract_ism_formats(
+                        re.sub('/[^/]+\.m3u8', '/Manifest', asset_url),
+                        video_id, ism_id='mss', fatal=False))
+                else:
+                    formats.extend(self._extract_m3u8_formats(
+                        asset_url, video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
             elif container == 'mp4' or ext == 'mp4':
                 quality = asset.get('video_quality')
                 formats.append({
