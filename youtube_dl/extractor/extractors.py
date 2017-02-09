@@ -896,6 +896,7 @@ from .sport5 import Sport5IE
 from .sportbox import SportBoxEmbedIE
 from .sportdeutschland import SportDeutschlandIE
 from .sportschau import SportschauIE
+from .sprout import SproutIE
 from .srgssr import (
     SRGSSRIE,
     SRGSSRPlayIE,
