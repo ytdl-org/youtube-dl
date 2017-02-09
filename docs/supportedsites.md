@@ -11,6 +11,7 @@
  - **4tube**
  - **56.com**
  - **5min**
+ - **6play**
  - **8tracks**
  - **91porn**
  - **9c9media**
@@ -667,6 +668,7 @@
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
+ - **scrippsnetworks:watch**
  - **Seeker**
  - **SenateISVP**
  - **SendtoNews**
@@ -676,7 +678,6 @@
  - **Shared**: shared.sx
  - **ShowRoomLive**
  - **Sina**
- - **SixPlay**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
  - **SkySports**
@@ -711,6 +712,7 @@
  - **SportBoxEmbed**
  - **SportDeutschland**
  - **Sportschau**
+ - **Sprout**
  - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**
  - **SRGSSRPlay**: srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites

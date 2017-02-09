@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.02.10
 
 Extractors
 * [xtube] Fix extraction (#12023)
