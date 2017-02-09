@@ -158,22 +158,15 @@ class PornHubIE(InfoExtractor):
 
         video_variables = {}
         for video_variablename, quote, video_variable in re.findall(
-                r'(player_quality_[0-9]{3,4}p[0-9a-z]+?)=\s*(["\'])(.*?)\2;', webpage):
+                r'(player_quality_[0-9]{3,4}p\w+)\s*=\s*(["\'])(.+?)\2;', webpage):
             video_variables[video_variablename] = video_variable
 
-        encoded_video_urls = []
-        for encoded_video_url in re.findall(
-                r'player_quality_[0-9]{3,4}p\s*=(.*?);', webpage):
-            encoded_video_urls.append(encoded_video_url)
-
-        # Decode the URLs 
         video_urls = []
-        for url in encoded_video_urls:
+        for encoded_video_url in re.findall(
+                r'player_quality_[0-9]{3,4}p\s*=(.+?);', webpage):
             for varname, varval in video_variables.items():
-                url = url.replace(varname, varval)
-            url = url.replace('+', '')
-            url = url.replace(' ', '')
-            video_urls.append(url)
+                encoded_video_url = encoded_video_url.replace(varname, varval)
+            video_urls.append(re.sub(r'[\s+]', '', encoded_video_url))
 
         if webpage.find('"encrypted":true') != -1:
             password = compat_urllib_parse_unquote_plus(
