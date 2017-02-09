@@ -1301,7 +1301,61 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Get video info
         embed_webpage = None
         is_live = None
-        if re.search(r'player-age-gate-content">', video_webpage) is not None:
+
+        age_gate = False
+        video_info = None
+        # Try looking directly into the video webpage
+        ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
+        if ytplayer_config:
+            args = ytplayer_config['args']
+            if args.get('url_encoded_fmt_stream_map'):
+                # Convert to the same format returned by compat_parse_qs
+                video_info = dict((k, [v]) for k, v in args.items())
+                add_dash_mpd(video_info)
+            # Rental video is not rented but preview is available (e.g.
+            # https://www.youtube.com/watch?v=yYr8q0y5Jfg,
+            # https://github.com/rg3/youtube-dl/issues/10532)
+            if not video_info and args.get('ypc_vid'):
+                return self.url_result(
+                    args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
+            if args.get('livestream') == '1' or args.get('live_playback') == 1:
+                is_live = True
+        if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+            # We also try looking in get_video_info since it may contain different dashmpd
+            # URL that points to a DASH manifest with possibly different itag set (some itags
+            # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
+            # manifest pointed by get_video_info's dashmpd).
+            # The general idea is to take a union of itags of both DASH manifests (for example
+            # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
+            self.report_video_info_webpage_download(video_id)
+            for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
+                video_info_url = (
+                    '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
+                    % (proto, video_id, el_type))
+                video_info_webpage = self._download_webpage(
+                    video_info_url,
+                    video_id, note=False,
+                    errnote='unable to download video info webpage')
+                get_video_info = compat_parse_qs(video_info_webpage)
+                if get_video_info.get('use_cipher_signature') != ['True']:
+                    add_dash_mpd(get_video_info)
+                if not video_info:
+                    video_info = get_video_info
+                if 'token' in get_video_info:
+                    # Different get_video_info requests may report different results, e.g.
+                    # some may report video unavailability, but some may serve it without
+                    # any complaint (see https://github.com/rg3/youtube-dl/issues/7362,
+                    # the original webpage as well as el=info and el=embedded get_video_info
+                    # requests report video unavailability due to geo restriction while
+                    # el=detailpage succeeds and returns valid data). This is probably
+                    # due to YouTube measures against IP ranges of hosting providers.
+                    # Working around by preferring the first succeeded video_info containing
+                    # the token if no such video_info yet was found.
+                    if 'token' not in video_info:
+                        video_info = get_video_info
+                    break
+
+        if not video_info and re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
@@ -1320,59 +1374,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 errnote='unable to download video info webpage')
             video_info = compat_parse_qs(video_info_webpage)
             add_dash_mpd(video_info)
-        else:
-            age_gate = False
-            video_info = None
-            # Try looking directly into the video webpage
-            ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
-            if ytplayer_config:
-                args = ytplayer_config['args']
-                if args.get('url_encoded_fmt_stream_map'):
-                    # Convert to the same format returned by compat_parse_qs
-                    video_info = dict((k, [v]) for k, v in args.items())
-                    add_dash_mpd(video_info)
-                # Rental video is not rented but preview is available (e.g.
-                # https://www.youtube.com/watch?v=yYr8q0y5Jfg,
-                # https://github.com/rg3/youtube-dl/issues/10532)
-                if not video_info and args.get('ypc_vid'):
-                    return self.url_result(
-                        args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
-                if args.get('livestream') == '1' or args.get('live_playback') == 1:
-                    is_live = True
-            if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
-                # We also try looking in get_video_info since it may contain different dashmpd
-                # URL that points to a DASH manifest with possibly different itag set (some itags
-                # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
-                # manifest pointed by get_video_info's dashmpd).
-                # The general idea is to take a union of itags of both DASH manifests (for example
-                # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
-                self.report_video_info_webpage_download(video_id)
-                for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
-                    video_info_url = (
-                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                        % (proto, video_id, el_type))
-                    video_info_webpage = self._download_webpage(
-                        video_info_url,
-                        video_id, note=False,
-                        errnote='unable to download video info webpage')
-                    get_video_info = compat_parse_qs(video_info_webpage)
-                    if get_video_info.get('use_cipher_signature') != ['True']:
-                        add_dash_mpd(get_video_info)
-                    if not video_info:
-                        video_info = get_video_info
-                    if 'token' in get_video_info:
-                        # Different get_video_info requests may report different results, e.g.
-                        # some may report video unavailability, but some may serve it without
-                        # any complaint (see https://github.com/rg3/youtube-dl/issues/7362,
-                        # the original webpage as well as el=info and el=embedded get_video_info
-                        # requests report video unavailability due to geo restriction while
-                        # el=detailpage succeeds and returns valid data). This is probably
-                        # due to YouTube measures against IP ranges of hosting providers.
-                        # Working around by preferring the first succeeded video_info containing
-                        # the token if no such video_info yet was found.
-                        if 'token' not in video_info:
-                            video_info = get_video_info
-                        break
+
         if 'token' not in video_info:
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
