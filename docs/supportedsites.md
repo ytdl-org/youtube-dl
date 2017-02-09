@@ -84,6 +84,7 @@
  - **bambuser:channel**
  - **Bandcamp**
  - **Bandcamp:album**
+ - **bangumi.bilibili.com**: BiliBili番剧
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
  - **bbc.co.uk:article**: BBC articles
@@ -211,7 +212,8 @@
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
- - **DRTV**
+ - **drtv**
+ - **drtv:live**
  - **Dumpert**
  - **dvtv**: http://video.aktualne.cz/
  - **dw**
@@ -247,6 +249,8 @@
  - **fc2:embed**
  - **Fczenit**
  - **fernsehkritik.tv**
+ - **filmon**
+ - **filmon:channel**
  - **Firstpost**
  - **FiveTV**
  - **Flickr**
@@ -278,6 +282,7 @@
  - **Gamersyde**
  - **GameSpot**
  - **GameStar**
+ - **Gaskrank**
  - **Gazeta**
  - **GDCVault**
  - **generic**: Generic downloader that works on some sites
@@ -528,6 +533,7 @@
  - **NRKTV**: NRK TV and NRK Radio
  - **NRKTVDirekte**: NRK TV Direkte and NRK Radio Direkte
  - **NRKTVEpisodes**
+ - **NRKTVSeries**
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
@@ -702,7 +708,6 @@
  - **Spiegeltv**
  - **Spike**
  - **Sport5**
- - **SportBox**
  - **SportBoxEmbed**
  - **SportDeutschland**
  - **Sportschau**
@@ -855,6 +860,7 @@
  - **videomore:season**
  - **videomore:video**
  - **VideoPremium**
+ - **VideoPress**
  - **videoweed**: VideoWeed
  - **Vidio**
  - **vidme**

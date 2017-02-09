@@ -296,6 +296,12 @@ class CBCWatchVideoIE(CBCWatchBaseIE):
         formats = self._extract_m3u8_formats(re.sub(r'/([^/]+)/[^/?]+\.m3u8', r'/\1/\1.m3u8', m3u8_url), video_id, 'mp4', fatal=False)
         if len(formats) < 2:
             formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+        for f in formats:
+            format_id = f.get('format_id')
+            if format_id.startswith('AAC'):
+                f['acodec'] = 'aac'
+            elif format_id.startswith('AC3'):
+                f['acodec'] = 'ac-3'
         self._sort_formats(formats)
 
         info = {

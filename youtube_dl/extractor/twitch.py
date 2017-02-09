@@ -447,7 +447,14 @@ class TwitchHighlightsIE(TwitchVideosBaseIE):
 
 class TwitchStreamIE(TwitchBaseIE):
     IE_NAME = 'twitch:stream'
-    _VALID_URL = r'%s/(?P<id>[^/#?]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?twitch\.tv/|
+                            player\.twitch\.tv/\?.*?\bchannel=
+                        )
+                        (?P<id>[^/#?]+)
+                    '''
 
     _TESTS = [{
         'url': 'http://www.twitch.tv/shroomztv',
@@ -471,7 +478,24 @@ class TwitchStreamIE(TwitchBaseIE):
     }, {
         'url': 'http://www.twitch.tv/miracle_doto#profile-0',
         'only_matching': True,
+    }, {
+        'url': 'https://player.twitch.tv/?channel=lotsofs',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if any(ie.suitable(url) for ie in (
+                    TwitchVideoIE,
+                    TwitchChapterIE,
+                    TwitchVodIE,
+                    TwitchProfileIE,
+                    TwitchAllVideosIE,
+                    TwitchUploadsIE,
+                    TwitchPastBroadcastsIE,
+                    TwitchHighlightsIE))
+                else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)

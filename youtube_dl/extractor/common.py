@@ -1025,13 +1025,13 @@ class InfoExtractor(object):
                 unique_formats.append(f)
         formats[:] = unique_formats
 
-    def _is_valid_url(self, url, video_id, item='video'):
+    def _is_valid_url(self, url, video_id, item='video', headers={}):
         url = self._proto_relative_url(url, scheme='http:')
         # For now assume non HTTP(S) URLs always valid
         if not (url.startswith('http://') or url.startswith('https://')):
             return True
         try:
-            self._request_webpage(url, video_id, 'Checking %s URL' % item)
+            self._request_webpage(url, video_id, 'Checking %s URL' % item, headers=headers)
             return True
         except ExtractorError as e:
             if isinstance(e.cause, compat_urllib_error.URLError):
@@ -1315,8 +1315,8 @@ class InfoExtractor(object):
                         'abr': abr,
                     })
                 f.update(parse_codecs(last_info.get('CODECS')))
-                if audio_in_video_stream.get(last_info.get('AUDIO')) is False:
-                    # TODO: update acodec for for audio only formats with the same GROUP-ID
+                if audio_in_video_stream.get(last_info.get('AUDIO')) is False and f['vcodec'] != 'none':
+                    # TODO: update acodec for audio only formats with the same GROUP-ID
                     f['acodec'] = 'none'
                 formats.append(f)
                 last_info = {}
@@ -1959,7 +1959,12 @@ class InfoExtractor(object):
         media_tags = [(media_tag, media_type, '')
                       for media_tag, media_type
                       in re.findall(r'(?s)(<(video|audio)[^>]*/>)', webpage)]
-        media_tags.extend(re.findall(r'(?s)(<(?P<tag>video|audio)[^>]*>)(.*?)</(?P=tag)>', webpage))
+        media_tags.extend(re.findall(
+            # We only allow video|audio followed by a whitespace or '>'.
+            # Allowing more characters may end up in significant slow down (see
+            # https://github.com/rg3/youtube-dl/issues/11979, example URL:
+            # http://www.porntrex.com/maps/videositemap.xml).
+            r'(?s)(<(?P<tag>video|audio)(?:\s+[^>]*)?>)(.*?)</(?P=tag)>', webpage))
         for media_tag, media_type, media_content in media_tags:
             media_info = {
                 'formats': [],

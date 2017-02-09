@@ -182,6 +182,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      automatically resized from an initial value
                                      of SIZE.
     --playlist-reverse               Download playlist videos in reverse order
+    --playlist-random                Download playlist videos in random order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
                                      expected file size (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of

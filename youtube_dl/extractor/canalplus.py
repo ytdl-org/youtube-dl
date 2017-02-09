@@ -27,6 +27,7 @@ class CanalplusIE(InfoExtractor):
                                     (?:www\.)?d8\.tv|
                                     (?:www\.)?c8\.fr|
                                     (?:www\.)?d17\.tv|
+                                    (?:(?:football|www)\.)?cstar\.fr|
                                     (?:www\.)?itele\.fr
                                 )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
                                 player\.canalplus\.fr/#/(?P<id>\d+)
@@ -40,6 +41,7 @@ class CanalplusIE(InfoExtractor):
         'd8': 'd8',
         'c8': 'd8',
         'd17': 'd17',
+        'cstar': 'd17',
         'itele': 'itele',
     }
 
@@ -85,6 +87,19 @@ class CanalplusIE(InfoExtractor):
             'title': 'L\'invité de Michaël Darmon du 14/10/2016 - ',
             'description': 'Chaque matin du lundi au vendredi, Michaël Darmon reçoit un invité politique à 8h25.',
             'upload_date': '20161014',
+        },
+    }, {
+        'url': 'http://football.cstar.fr/cstar-minisite-foot/pid7566-feminines-videos.html?vid=1416769',
+        'info_dict': {
+            'id': '1416769',
+            'display_id': 'pid7566-feminines-videos',
+            'ext': 'mp4',
+            'title': 'France - Albanie : les temps forts de la soirée - 20/09/2016',
+            'description': 'md5:c3f30f2aaac294c1c969b3294de6904e',
+            'upload_date': '20160921',
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://m.canalplus.fr/?vid=1398231',

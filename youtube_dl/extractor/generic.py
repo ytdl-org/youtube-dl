@@ -29,6 +29,7 @@ from ..utils import (
     UnsupportedError,
     xpath_text,
 )
+from .commonprotocols import RtmpIE
 from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
@@ -81,6 +82,7 @@ from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
 from .openload import OpenloadIE
+from .videopress import VideoPressIE
 
 
 class GenericIE(InfoExtractor):
@@ -946,6 +948,19 @@ class GenericIE(InfoExtractor):
                 'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
             },
         },
+        # jwplayer rtmp
+        {
+            'url': 'http://www.suffolk.edu/sjc/',
+            'info_dict': {
+                'id': 'sjclive',
+                'ext': 'flv',
+                'title': 'Massachusetts Supreme Judicial Court Oral Arguments',
+                'uploader': 'www.suffolk.edu',
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # rtl.nl embed
         {
             'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
@@ -1473,6 +1488,21 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'add_ie': [TwentyMinutenIE.ie_key()],
+        },
+        {
+            # VideoPress embed
+            'url': 'https://en.support.wordpress.com/videopress/',
+            'info_dict': {
+                'id': 'OcobLTqC',
+                'ext': 'm4v',
+                'title': 'IMG_5786',
+                'timestamp': 1435711927,
+                'upload_date': '20150701',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [VideoPressIE.ie_key()],
         }
         # {
         #     # TODO: find another test
@@ -2438,6 +2468,12 @@ class GenericIE(InfoExtractor):
             return _playlist_from_matches(
                 openload_urls, ie=OpenloadIE.ie_key())
 
+        # Look for VideoPress embeds
+        videopress_urls = VideoPressIE._extract_urls(webpage)
+        if videopress_urls:
+            return _playlist_from_matches(
+                videopress_urls, ie=VideoPressIE.ie_key())
+
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
             webpage, video_id, default={}, expected_type='VideoObject')
@@ -2464,6 +2500,8 @@ class GenericIE(InfoExtractor):
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
+                return True
+            if RtmpIE.suitable(vurl):
                 return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
@@ -2571,6 +2609,15 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'age_limit': age_limit,
             }
+
+            if RtmpIE.suitable(video_url):
+                entry_info_dict.update({
+                    '_type': 'url_transparent',
+                    'ie_key': RtmpIE.ie_key(),
+                    'url': video_url,
+                })
+                entries.append(entry_info_dict)
+                continue
 
             ext = determine_ext(video_url)
             if ext == 'smil':

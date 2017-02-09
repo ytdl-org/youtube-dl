@@ -103,7 +103,10 @@ from .beatport import BeatportIE
 from .bet import BetIE
 from .bigflix import BigflixIE
 from .bild import BildIE
-from .bilibili import BiliBiliIE
+from .bilibili import (
+    BiliBiliIE,
+    BiliBiliBangumiIE,
+)
 from .biobiochiletv import BioBioChileTVIE
 from .biqle import BIQLEIE
 from .bleacherreport import (
@@ -245,7 +248,10 @@ from .dramafever import (
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
-from .drtv import DRTVIE
+from .drtv import (
+    DRTVIE,
+    DRTVLiveIE,
+)
 from .dvtv import DVTVIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
@@ -296,6 +302,10 @@ from .fc2 import (
     FC2EmbedIE,
 )
 from .fczenit import FczenitIE
+from .filmon import (
+    FilmOnIE,
+    FilmOnChannelIE,
+)
 from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
@@ -339,6 +349,7 @@ from .gameone import (
 from .gamersyde import GamersydeIE
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
+from .gaskrank import GaskrankIE
 from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
@@ -668,6 +679,7 @@ from .nrk import (
     NRKTVIE,
     NRKTVDirekteIE,
     NRKTVEpisodesIE,
+    NRKTVSeriesIE,
 )
 from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
@@ -826,6 +838,7 @@ from .sbs import SBSIE
 from .scivee import SciVeeIE
 from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
+from .scrippsnetworks import ScrippsNetworksWatchIE
 from .seeker import SeekerIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
@@ -880,12 +893,10 @@ from .spiegeltv import SpiegeltvIE
 from .spike import SpikeIE
 from .stitcher import StitcherIE
 from .sport5 import Sport5IE
-from .sportbox import (
-    SportBoxIE,
-    SportBoxEmbedIE,
-)
+from .sportbox import SportBoxEmbedIE
 from .sportdeutschland import SportDeutschlandIE
 from .sportschau import SportschauIE
+from .sprout import SproutIE
 from .srgssr import (
     SRGSSRIE,
     SRGSSRPlayIE,
@@ -1087,6 +1098,7 @@ from .videomore import (
     VideomoreSeasonIE,
 )
 from .videopremium import VideoPremiumIE
+from .videopress import VideoPressIE
 from .vidio import VidioIE
 from .vidme import (
     VidmeIE,

@@ -2103,11 +2103,18 @@ def strip_jsonp(code):
 
 
 def js_to_json(code):
+    COMMENT_RE = r'/\*(?:(?!\*/).)*?\*/|//[^\n]*'
+    SKIP_RE = r'\s*(?:{comment})?\s*'.format(comment=COMMENT_RE)
+    INTEGER_TABLE = (
+        (r'(?s)^(0[xX][0-9a-fA-F]+){skip}:?$'.format(skip=SKIP_RE), 16),
+        (r'(?s)^(0+[0-7]+){skip}:?$'.format(skip=SKIP_RE), 8),
+    )
+
     def fix_kv(m):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
             return v
-        elif v.startswith('/*') or v == ',':
+        elif v.startswith('/*') or v.startswith('//') or v == ',':
             return ""
 
         if v[0] in ("'", '"'):
@@ -2117,11 +2124,6 @@ def js_to_json(code):
                 '\\\n': '',
                 '\\x': '\\u00',
             }.get(m.group(0), m.group(0)), v[1:-1])
-
-        INTEGER_TABLE = (
-            (r'^(0[xX][0-9a-fA-F]+)\s*:?$', 16),
-            (r'^(0+[0-7]+)\s*:?$', 8),
-        )
 
         for regex, base in INTEGER_TABLE:
             im = re.match(regex, v)
@@ -2134,11 +2136,11 @@ def js_to_json(code):
     return re.sub(r'''(?sx)
         "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
         '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
-        /\*.*?\*/|,(?=\s*[\]}])|
+        {comment}|,(?={skip}[\]}}])|
         [a-zA-Z_][.a-zA-Z_0-9]*|
-        \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:\s*:)?|
-        [0-9]+(?=\s*:)
-        ''', fix_kv, code)
+        \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
+        [0-9]+(?={skip}:)
+        '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
 
 
 def qualities(quality_ids):

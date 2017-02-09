@@ -329,6 +329,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 256, 'preference': -50, 'container': 'm4a_dash'},
         '256': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
         '258': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
+        '325': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'dtse', 'preference': -50, 'container': 'm4a_dash'},
+        '328': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'ec-3', 'preference': -50, 'container': 'm4a_dash'},
 
         # Dash webm
         '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
@@ -1028,8 +1030,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            r'"signature",\s?([a-zA-Z0-9$]+)\(', jscode,
-            'Initial JS player signature function name')
+            (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
+            jscode, 'Initial JS player signature function name', group='sig')
+
 
         jsi = JSInterpreter(jscode)
         initial_function = jsi.extract_function(funcname)
@@ -1050,9 +1054,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         if player_url.startswith('//'):
             player_url = 'https:' + player_url
-        elif player_url.startswith('/'):
-            player_url = 'https://youtube.com' + player_url
-            
+        elif not re.match(r'https?://', player_url):
+            player_url = compat_urlparse.urljoin(
+                'https://www.youtube.com', player_url)
         try:
             player_id = (player_url, self._signature_cache_id(s))
             if player_id not in self._player_cache:
@@ -1856,13 +1860,13 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD|UL)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL|TL)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
                         .*
                      |
-                        ((?:PL|LL|EC|UU|FL|RD|UL)[0-9A-Za-z-_]{10,})
+                        ((?:PL|LL|EC|UU|FL|RD|UL|TL)[0-9A-Za-z-_]{10,})
                      )"""
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&disable_polymer=true'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)(?:[^>]+>(?P<title>[^<]+))?'
@@ -1983,6 +1987,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         },
     }, {
         'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
+        'only_matching': True,
+    }, {
+        'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
         'only_matching': True,
     }]
 
@@ -2344,18 +2351,18 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
         videos = []
         limit = n
 
+        url_query = {
+            'search_query': query.encode('utf-8'),
+        }
+        url_query.update(self._EXTRA_QUERY_ARGS)
+        result_url = 'https://www.youtube.com/results?' + compat_urllib_parse_urlencode(url_query)
+
         for pagenum in itertools.count(1):
-            url_query = {
-                'search_query': query.encode('utf-8'),
-                'page': pagenum,
-                'spf': 'navigate',
-            }
-            url_query.update(self._EXTRA_QUERY_ARGS)
-            result_url = 'https://www.youtube.com/results?' + compat_urllib_parse_urlencode(url_query)
             data = self._download_json(
                 result_url, video_id='query "%s"' % query,
                 note='Downloading page %s' % pagenum,
-                errnote='Unable to download API page')
+                errnote='Unable to download API page',
+                query={'spf': 'navigate'})
             html_content = data[1]['body']['content']
 
             if 'class="search-message' in html_content:
@@ -2367,6 +2374,12 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
             videos += new_videos
             if not new_videos or len(videos) > limit:
                 break
+            next_link = self._html_search_regex(
+                r'href="(/results\?[^"]*\bsp=[^"]+)"[^>]*>\s*<span[^>]+class="[^"]*\byt-uix-button-content\b[^"]*"[^>]*>Next',
+                html_content, 'next link', default=None)
+            if next_link is None:
+                break
+            result_url = compat_urlparse.urljoin('https://www.youtube.com/', next_link)
 
         if len(videos) > n:
             videos = videos[:n]

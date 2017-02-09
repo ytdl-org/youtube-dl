@@ -4,23 +4,26 @@ import re
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
+from .adobepass import AdobePassIE
+from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     find_xpath_attr,
     lowercase_escape,
     smuggle_url,
     unescapeHTML,
     update_url_query,
+    int_or_none,
 )
 
 
-class NBCIE(InfoExtractor):
+class NBCIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
 
     _TESTS = [
         {
-            'url': 'http://www.nbc.com/the-tonight-show/segments/112966',
+            'url': 'http://www.nbc.com/the-tonight-show/video/jimmy-fallon-surprises-fans-at-ben-jerrys/2848237',
             'info_dict': {
-                'id': '112966',
+                'id': '2848237',
                 'ext': 'mp4',
                 'title': 'Jimmy Fallon Surprises Fans at Ben & Jerry\'s',
                 'description': 'Jimmy gives out free scoops of his new "Tonight Dough" ice cream flavor by surprising customers at the Ben & Jerry\'s scoop shop.',
@@ -69,7 +72,7 @@ class NBCIE(InfoExtractor):
             # HLS streams requires the 'hdnea3' cookie
             'url': 'http://www.nbc.com/Kings/video/goliath/n1806',
             'info_dict': {
-                'id': 'n1806',
+                'id': '101528f5a9e8127b107e98c5e6ce4638',
                 'ext': 'mp4',
                 'title': 'Goliath',
                 'description': 'When an unknown soldier saves the life of the King\'s son in battle, he\'s thrust into the limelight and politics of the kingdom.',
@@ -87,21 +90,57 @@ class NBCIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
-            [
-                r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
-                r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
-                r'"embedURL"\s*:\s*"([^"]+)"'
-            ],
-            webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
-        if theplatform_url.startswith('//'):
-            theplatform_url = 'http:' + theplatform_url
-        return {
+        info = {
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
-            'url': smuggle_url(theplatform_url, {'source_url': url}),
             'id': video_id,
         }
+        video_data = None
+        preload = self._search_regex(
+            r'PRELOAD\s*=\s*({.+})', webpage, 'preload data', default=None)
+        if preload:
+            preload_data = self._parse_json(preload, video_id)
+            path = compat_urllib_parse_urlparse(url).path.rstrip('/')
+            entity_id = preload_data.get('xref', {}).get(path)
+            video_data = preload_data.get('entities', {}).get(entity_id)
+        if video_data:
+            query = {
+                'mbr': 'true',
+                'manifest': 'm3u',
+            }
+            video_id = video_data['guid']
+            title = video_data['title']
+            if video_data.get('entitlement') == 'auth':
+                resource = self._get_mvpd_resource(
+                    'nbcentertainment', title, video_id,
+                    video_data.get('vChipRating'))
+                query['auth'] = self._extract_mvpd_auth(
+                    url, video_id, 'nbcentertainment', resource)
+            theplatform_url = smuggle_url(update_url_query(
+                'http://link.theplatform.com/s/NnzsPC/media/guid/2410887629/' + video_id,
+                query), {'force_smil_url': True})
+            info.update({
+                'id': video_id,
+                'title': title,
+                'url': theplatform_url,
+                'description': video_data.get('description'),
+                'keywords': video_data.get('keywords'),
+                'season_number': int_or_none(video_data.get('seasonNumber')),
+                'episode_number': int_or_none(video_data.get('episodeNumber')),
+                'series': video_data.get('showName'),
+            })
+        else:
+            theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
+                [
+                    r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+                    r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
+                    r'"embedURL"\s*:\s*"([^"]+)"'
+                ],
+                webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
+            if theplatform_url.startswith('//'):
+                theplatform_url = 'http:' + theplatform_url
+            info['url'] = smuggle_url(theplatform_url, {'source_url': url})
+        return info
 
 
 class NBCSportsVPlayerIE(InfoExtractor):
