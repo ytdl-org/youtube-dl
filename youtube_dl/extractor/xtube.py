@@ -53,7 +53,7 @@ class XTubeIE(InfoExtractor):
 
         if not display_id:
             display_id = video_id
-            url = 'http://www.xtube.com/watch.php?v=%s' % video_id
+            url = 'http://www.xtube.com/video-watch/-%s' % video_id
 
         req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1; cookiesAccepted=1')
