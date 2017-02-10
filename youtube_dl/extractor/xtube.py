@@ -53,14 +53,15 @@ class XTubeIE(InfoExtractor):
 
         if not display_id:
             display_id = video_id
-            url = 'http://www.xtube.com/watch.php?v=%s' % video_id
+            url = 'http://www.xtube.com/video-watch/-%s' % video_id
 
         req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1; cookiesAccepted=1')
         webpage = self._download_webpage(req, display_id)
 
         sources = self._parse_json(self._search_regex(
-            r'sources\s*:\s*({.+?}),', webpage, 'sources'), video_id)
+            r'(["\'])sources\1\s*:\s*(?P<sources>{.+?}),',
+            webpage, 'sources', group='sources'), video_id)
 
         formats = []
         for format_id, format_url in sources.items():
@@ -81,10 +82,10 @@ class XTubeIE(InfoExtractor):
              r'<span[^>]+class="nickname"[^>]*>([^<]+)'),
             webpage, 'uploader', fatal=False)
         duration = parse_duration(self._search_regex(
-            r'<dt>Runtime:</dt>\s*<dd>([^<]+)</dd>',
+            r'<dt>Runtime:?</dt>\s*<dd>([^<]+)</dd>',
             webpage, 'duration', fatal=False))
         view_count = str_to_int(self._search_regex(
-            r'<dt>Views:</dt>\s*<dd>([\d,\.]+)</dd>',
+            r'<dt>Views:?</dt>\s*<dd>([\d,\.]+)</dd>',
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
             r'>Comments? \(([\d,\.]+)\)<',

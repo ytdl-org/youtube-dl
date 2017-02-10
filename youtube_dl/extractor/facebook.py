@@ -135,6 +135,20 @@ class FacebookIE(InfoExtractor):
             'uploader': 'CNN',
         },
     }, {
+        # bigPipe.onPageletArrive ... onPageletArrive pagelet_group_mall
+        'url': 'https://www.facebook.com/yaroslav.korpan/videos/1417995061575415/',
+        'info_dict': {
+            'id': '1417995061575415',
+            'ext': 'mp4',
+            'title': 'md5:a7b86ca673f51800cd54687b7f4012fe',
+            'timestamp': 1486648217,
+            'upload_date': '20170209',
+            'uploader': 'Yaroslav Korpan',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
     }, {
@@ -262,7 +276,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             server_js_data = self._parse_json(
                 self._search_regex(
-                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+stream_pagelet',
+                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:stream_pagelet|pagelet_group_mall)',
                     webpage, 'js data', default='{}'),
                 video_id, transform_source=js_to_json, fatal=False)
             if server_js_data:

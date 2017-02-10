@@ -1019,6 +1019,7 @@ from .tvplay import (
     TVPlayIE,
     ViafreeIE,
 )
+from .tvplayer import TVPlayerIE
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twentymin import TwentyMinutenIE

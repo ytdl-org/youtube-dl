@@ -1,3 +1,18 @@
+version 2017.02.10
+
+Extractors
+* [xtube] Fix extraction (#12023)
+* [pornhub] Fix extraction (#12007, #12018)
+* [facebook] Improve JS data regular expression (#12042)
+* [kaltura] Improve embed partner id extraction (#12041)
++ [sprout] Add support for sproutonline.com
+* [6play] Improve extraction
++ [scrippsnetworks:watch] Add support for Scripps Networks sites (#10765)
++ [go] Add support for Adobe Pass authentication (#11468, #10831)
+* [6play] Fix extraction (#12011)
++ [nbc] Add support for Adobe Pass authentication (#12006)
+
+
 version 2017.02.07
 
 Core

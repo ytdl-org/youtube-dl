@@ -23,11 +23,11 @@ class KalturaIE(InfoExtractor):
                 (?:
                     kaltura:(?P<partner_id>\d+):(?P<id>[0-9a-z_]+)|
                     https?://
-                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/
+                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com(?::\d+)?/
                         (?:
                             (?:
                                 # flash player
-                                index\.php/kwidget|
+                                index\.php/(?:kwidget|extwidget/preview)|
                                 # html5 player
                                 html5/html5lib/[^/]+/mwEmbedFrame\.php
                             )
@@ -94,6 +94,14 @@ class KalturaIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'https://www.kaltura.com/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://www.kaltura.com:443/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
+            'only_matching': True,
         }
     ]
 
@@ -112,7 +120,7 @@ class KalturaIE(InfoExtractor):
             re.search(
                 r'''(?xs)
                     (?P<q1>["\'])
-                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/(?:(?!(?P=q1)).)*(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
+                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
                         entry_?[Ii]d|
@@ -209,6 +217,8 @@ class KalturaIE(InfoExtractor):
                 partner_id = params['wid'][0][1:]
             elif 'p' in params:
                 partner_id = params['p'][0]
+            elif 'partner_id' in params:
+                partner_id = params['partner_id'][0]
             else:
                 raise ExtractorError('Invalid URL', expected=True)
             if 'entry_id' in params:
