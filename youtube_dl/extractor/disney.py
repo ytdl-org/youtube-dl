@@ -14,7 +14,7 @@ from ..utils import (
 
 class DisneyIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-        https?://(?P<domain>(?:[^/]+\.)?(?:disney\.[a-z]{2,3}(?:\.[a-z]{2})?|disney(?:(?:me|latino)\.com|turkiye\.com\.tr)|starwars\.com))/(?:embed/|(?:[^/]+/)+[\w-]+-)(?P<id>[a-z0-9]{24})'''
+        https?://(?P<domain>(?:[^/]+\.)?(?:disney\.[a-z]{2,3}(?:\.[a-z]{2})?|disney(?:(?:me|latino)\.com|turkiye\.com\.tr)|marvelkids\.com|starwars\.com))/(?:embed/|(?:[^/]+/)+[\w-]+-)(?P<id>[a-z0-9]{24})'''
     _TESTS = [{
         'url': 'http://video.disney.com/watch/moana-trailer-545ed1857afee5a0ec239977',
         'info_dict': {
@@ -113,3 +113,61 @@ class DisneyIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+
+class MarvelKidsIE(InfoExtractor):
+    _VALID_URL = r'https?://.*?\.marvelkids\.com/videos/(?P<title>.*)'
+    _TESTS = [{
+        'url': 'http://spiderman.marvelkids.com/videos/ultimate-spider-man-attack-of-the-synthezoids',
+        'info_dict': {
+            'id': '5220696edfe961d86d9701f0',
+            'ext': 'mp4',
+            'title': 'Attack of the Synthezoids - Full Episode',
+            'description': 'Spidey wakes up to find his fellow classmates have been replaced by synthetic look-alikes! Not sure who he can trust, Spider-Man must put together a team to save the Academy.',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://avengers.marvelkids.com/videos/world-war-hulk',
+        'only_matching': True,
+    }, {
+        'url': 'http://guardiansofthegalaxy.marvelkids.com/videos/asgard-part-one-lightnin-strikes-clip',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        title = mobj.group('title')
+        webpage = self._download_webpage(url, title)
+        embed_url = self._parse_json(self._search_regex(
+            r'this\.Grill\?.*?=({.*})\:\(function',
+            webpage, 'embed url'), title)['stack'][1]['data'][0]['embedURL']
+        return self.url_result(embed_url, 'Disney')
+
+
+class StarWarsIE(InfoExtractor):
+    _VALID_URL = r'https?://www\.starwars\.com/video/(?P<title>.*)'
+    _TEST = {
+        'url': 'http://www.starwars.com/video/the-star-wars-show-episode-36',
+        'info_dict': {
+            'id': '5480b87c3c71c5f09a0fb097',
+            'ext': 'mp4',
+            'title': 'The Star Wars Show Episode 36',
+            'description': 'In this installment of The Star Wars Show, Pablo Hidalgo visits the Rogue One set and talks aliens with head of the creature shop Neal Scanlan, we reveal some major Marvel Star Wars news, talk with Laura Jane Grace, and much more!',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        title = mobj.group('title')
+        webpage = self._download_webpage(url, title)
+        embed_url = re.search(
+            self._meta_regex('embedURL'),
+            webpage).group('content')
+        return self.url_result(embed_url, 'Disney')
