@@ -7,7 +7,7 @@ from ..utils import ExtractorError
 class CommonMistakesIE(InfoExtractor):
     IE_DESC = False  # Do not list
     _VALID_URL = r'''(?x)
-        (?:url|URL)
+        (?:url|URL)$
     '''
 
     _TESTS = [{
