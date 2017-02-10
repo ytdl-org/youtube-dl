@@ -69,7 +69,7 @@ class SixPlayIE(InfoExtractor):
                         asset_url.replace('.m3u8', '.mpd'),
                         video_id, mpd_id='dash', fatal=False))
                     formats.extend(self._extract_ism_formats(
-                        re.sub('/[^/]+\.m3u8', '/Manifest', asset_url),
+                        re.sub(r'/[^/]+\.m3u8', '/Manifest', asset_url),
                         video_id, ism_id='mss', fatal=False))
                 else:
                     formats.extend(self._extract_m3u8_formats(
