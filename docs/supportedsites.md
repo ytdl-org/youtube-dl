@@ -169,6 +169,7 @@
  - **ComedyCentralShortname**
  - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
+ - **Corus**
  - **Coub**
  - **Cracked**
  - **Crackle**
@@ -309,7 +310,6 @@
  - **HellPorno**
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
- - **HGTV**
  - **hgtv.com:show**
  - **HistoricFilms**
  - **history:topic**: History.com Topic
@@ -806,6 +806,7 @@
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
  - **tvp:series**
+ - **TVPlayer**
  - **Tweakers**
  - **twitch:chapter**
  - **twitch:clips**
