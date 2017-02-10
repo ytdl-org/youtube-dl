@@ -92,6 +92,10 @@ class PluralsightIE(PluralsightBaseIE):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         if all(p not in response for p in ('__INITIAL_STATE__', '"currentUser"')):
+            BLOCKED = 'Your account has been blocked due to suspicious activity'
+            if BLOCKED in response:
+                raise ExtractorError(
+                    'Unable to login: %s' % BLOCKED, expected=True)
             raise ExtractorError('Unable to log in')
 
     def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
