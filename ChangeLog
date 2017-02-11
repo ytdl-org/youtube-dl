@@ -1,3 +1,9 @@
+version <unreleased>
+
+Core
+* TypeError is fixed with Python 2.7.13 on Windows (#11540, #12085)
+
+
 version 2017.02.11
 
 Core
