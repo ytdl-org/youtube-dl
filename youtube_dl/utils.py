@@ -337,17 +337,30 @@ def get_element_by_id(id, html):
 
 
 def get_element_by_class(class_name, html):
-    return get_element_by_attribute(
+    """Return the content of the first tag with the specified class in the passed HTML document"""
+    retval = get_elements_by_class(class_name, html)
+    return retval[0] if retval else None
+
+
+def get_element_by_attribute(attribute, value, html, escape_value=True):
+    retval = get_elements_by_attribute(attribute, value, html, escape_value)
+    return retval[0] if retval else None
+
+
+def get_elements_by_class(class_name, html):
+    """Return the content of all tags with the specified class in the passed HTML document as a list"""
+    return get_elements_by_attribute(
         'class', r'[^\'"]*\b%s\b[^\'"]*' % re.escape(class_name),
         html, escape_value=False)
 
 
-def get_element_by_attribute(attribute, value, html, escape_value=True):
+def get_elements_by_attribute(attribute, value, html, escape_value=True):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
 
     value = re.escape(value) if escape_value else value
 
-    m = re.search(r'''(?xs)
+    retlist = []
+    for m in re.finditer(r'''(?xs)
         <([a-zA-Z0-9:._-]+)
          (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'))*?
          \s+%s=['"]?%s['"]?
@@ -355,16 +368,15 @@ def get_element_by_attribute(attribute, value, html, escape_value=True):
         \s*>
         (?P<content>.*?)
         </\1>
-    ''' % (re.escape(attribute), value), html)
+    ''' % (re.escape(attribute), value), html):
+        res = m.group('content')
 
-    if not m:
-        return None
-    res = m.group('content')
+        if res.startswith('"') or res.startswith("'"):
+            res = res[1:-1]
 
-    if res.startswith('"') or res.startswith("'"):
-        res = res[1:-1]
+        retlist.append(unescapeHTML(res))
 
-    return unescapeHTML(res)
+    return retlist
 
 
 class HTMLAttributeParser(compat_HTMLParser):
