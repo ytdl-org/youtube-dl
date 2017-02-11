@@ -18,6 +18,7 @@ from ..utils import (
     parse_duration,
     qualities,
     srt_subtitles_timecode,
+    update_url_query,
     urlencode_postdata,
 )
 
@@ -331,25 +332,44 @@ class PluralsightCourseIE(PluralsightBaseIE):
         # TODO: PSM cookie
 
         course = self._download_json(
-            '%s/data/course/%s' % (self._API_BASE, course_id),
-            course_id, 'Downloading course JSON')
+            '%s/player/functions/rpc' % self._API_BASE, course_id,
+            'Downloading course JSON',
+            data=json.dumps({
+                'fn': 'bootstrapPlayer',
+                'payload': {
+                    'courseId': course_id,
+                }
+            }).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json;charset=utf-8'
+            })['payload']['course']
 
         title = course['title']
+        course_name = course['name']
+        course_data = course['modules']
         description = course.get('description') or course.get('shortDescription')
-
-        course_data = self._download_json(
-            '%s/data/course/content/%s' % (self._API_BASE, course_id),
-            course_id, 'Downloading course data JSON')
 
         entries = []
         for num, module in enumerate(course_data, 1):
+            author = module.get('author')
+            module_name = module.get('name')
+            if not author or not module_name:
+                continue
             for clip in module.get('clips', []):
-                player_parameters = clip.get('playerParameters')
-                if not player_parameters:
+                clip_index = int_or_none(clip.get('index'))
+                if clip_index is None:
                     continue
+                clip_url = update_url_query(
+                    '%s/player' % self._API_BASE, query={
+                        'mode': 'live',
+                        'course': course_name,
+                        'author': author,
+                        'name': module_name,
+                        'clip': clip_index,
+                    })
                 entries.append({
                     '_type': 'url_transparent',
-                    'url': '%s/training/player?%s' % (self._API_BASE, player_parameters),
+                    'url': clip_url,
                     'ie_key': PluralsightIE.ie_key(),
                     'chapter': module.get('title'),
                     'chapter_number': num,
