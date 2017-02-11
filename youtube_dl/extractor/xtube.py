@@ -53,7 +53,7 @@ class XTubeIE(InfoExtractor):
 
         if not display_id:
             display_id = video_id
-            url = 'http://www.xtube.com/video-watch/-%s' % video_id
+            url = 'http://www.xtube.com/watch.php?v=%s' % video_id
 
         req = sanitized_Request(url)
         req.add_header('Cookie', 'age_verified=1; cookiesAccepted=1')
@@ -73,7 +73,7 @@ class XTubeIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._search_regex(
-            (r'<h1>(?P<title>[^<]+)</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
+            (r'<h1>\s*(?P<title>[^<]+?)\s*</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
             webpage, 'title', group='title')
         description = self._search_regex(
             r'</h1>\s*<p>([^<]+)', webpage, 'description', fatal=False)
