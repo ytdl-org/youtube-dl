@@ -1684,6 +1684,11 @@ def setproctitle(title):
         libc = ctypes.cdll.LoadLibrary('libc.so.6')
     except OSError:
         return
+    except TypeError:
+        # LoadLibrary in Windows Python 2.7.13 only expects
+        # a bytestring, but since unicode_literals turns
+        # every string into a unicode string, it fails.
+        return
     title_bytes = title.encode('utf-8')
     buf = ctypes.create_string_buffer(len(title_bytes))
     buf.value = title_bytes
