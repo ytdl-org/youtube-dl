@@ -1,3 +1,21 @@
+version <unreleased>
+
+Core
++ [utils] Introduce get_elements_by_class and get_elements_by_attribute
+  utility functions
++ [extractor/common] Skip m3u8 manifests protected with Adobe Flash Access
+
+Extractor
+* [pluralsight:course] Fix extraction (#12075)
++ [bbc] Extract m3u8 formats with 320k audio
+* [facebook] Relax video id matching (#11017, #12055, #12056)
++ [corus] Add support for Corus Entertainment sites (#12060, #9164)
++ [pluralsight] Detect blocked account error message (#12070)
++ [bloomberg] Add another video id pattern (#12062)
+* [extractor/commonmistakes] Restrict URL regular expression (#12050)
++ [tvplayer] Add support for tvplayer.com
+
+
 version 2017.02.10
 
 Extractors
