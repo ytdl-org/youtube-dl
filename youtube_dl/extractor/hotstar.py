@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -54,16 +52,14 @@ class HotStarIE(InfoExtractor):
             video_id)['contentInfo'][0]
 
         formats = []
+        platforms = video_data['availableAlso'].split('|')
         # PCTV for extracting f4m manifest
-        for f in ('TABLET',):
+        for f in platforms:
             format_data = self._download_json(
                 self._GET_CDN_TEMPLATE % (f, video_id, 'VOD'),
                 video_id, 'Downloading %s JSON metadata' % f, fatal=False)
             if format_data:
                 format_url = format_data['src']
-                format_url_1080p = re.sub(r'(_STAR.mp4)', r'3000,4500,\1', format_url)
-                if self._is_valid_url(format_url_1080p, video_id, '1080p video'):
-                    format_url = format_url_1080p
                 ext = determine_ext(format_url)
                 if ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
@@ -76,6 +72,7 @@ class HotStarIE(InfoExtractor):
                         'width': int_or_none(format_data.get('width')),
                         'height': int_or_none(format_data.get('height')),
                     })
+        self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
         return {
