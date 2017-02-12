@@ -467,7 +467,26 @@ class GenericIE(InfoExtractor):
             }],
             # HEAD requests produce 404 :(
             'expected_warnings': ['404'],
-
+        },
+        {
+            # Alternative brightcove <video> attributes
+            'url': 'http://www.programme-tv.net/videos/extraits/81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche/',
+            'info_dict': {
+                'id': '81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche',
+                'title': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche, Extraits : toutes les vidéos avec Télé-Loisirs",
+            },
+            'playlist': [{
+                'info_dict': {
+                    'id': '5311302538001',
+                    'ext': 'mp4',
+                    'title': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche",
+                    'description': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche (France 2, 5 février 2017)",
+                    'timestamp': 1486321708,
+                    'upload_date': '20170205',
+                    'uploader_id': '800000640001',
+                },
+            'only_matching': True,
+            }],
         },
         # ooyala video
         {
