@@ -72,7 +72,7 @@ class HotStarIE(InfoExtractor):
                         'width': int_or_none(format_data.get('width')),
                         'height': int_or_none(format_data.get('height')),
                     })
-        self._remove_duplicate_formats(formats)
+        self._remove_duplicate_formats_by_id(formats)
         self._sort_formats(formats)
 
         return {
