@@ -508,7 +508,22 @@ class BrightcoveNewIE(InfoExtractor):
                 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
                 % (account_id, player_id, embed, video_id))
 
-        return entries
+# 	<video data-brightcove-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
+        for video_id, account_id, player_id, embed in re.findall(
+                r'''(?sx)
+                    <video[^>]+
+                        data-brightcove-video-id=["\'](\d+|ref:[^"\']+)["\'].*?
+                        data-account=["\'](\d+)["\'].*?
+                        data-player=["\'](\w+)["\'].*?
+                        data-embed=["\'](\w+)["\'].*?
+                    </video>
+                ''', webpage):
+            entries.append(
+                'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
+                % (account_id, player_id, embed, video_id))
+
+
+	return entries
 
     def _real_extract(self, url):
         account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
