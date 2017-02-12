@@ -465,6 +465,59 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # m3u8 download
             },
+            'skip': 'video rotates...weekly?',
+        },
+        {
+            # Brightcove:new type [2].
+            'url': 'http://www.delawaresportszone.com/video-st-thomas-more-earns-first-trip-to-basketball-semis',
+            'md5': '2b35148fcf48da41c9fb4591650784f3',
+            'info_dict': {
+                'id': '5348741021001',
+                'ext': 'mp4',
+                'upload_date': '20170306',
+                'uploader_id': '4191638492001',
+                'timestamp': 1488769918,
+                'title': 'VIDEO:  St. Thomas More earns first trip to basketball semis',
+
+            },
+        },
+        {
+            # Alternative brightcove <video> attributes
+            'url': 'http://www.programme-tv.net/videos/extraits/81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche/',
+            'info_dict': {
+                'id': '81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche',
+                'title': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche, Extraits : toutes les vidéos avec Télé-Loisirs",
+            },
+            'playlist': [{
+                'md5': '732d22ba3d33f2f3fc253c39f8f36523',
+                'info_dict': {
+                    'id': '5311302538001',
+                    'ext': 'mp4',
+                    'title': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche",
+                    'description': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche (France 2, 5 février 2017)",
+                    'timestamp': 1486321708,
+                    'upload_date': '20170205',
+                    'uploader_id': '800000640001',
+                },
+                'only_matching': True,
+            }],
+        },
+        {
+            # Brightcove with UUID in videoPlayer
+            'url': 'http://www8.hp.com/cn/zh/home.html',
+            'info_dict': {
+                'id': '5255815316001',
+                'ext': 'mp4',
+                'title': 'Sprocket Video - China',
+                'description': 'Sprocket Video - China',
+                'uploader': 'HP-Video Gallery',
+                'timestamp': 1482263210,
+                'upload_date': '20161220',
+                'uploader_id': '1107601872001',
+            },
+            'params': {
+                'skip_download': True,  # m3u8 download
+            },
         },
         # ooyala video
         {
@@ -1900,7 +1953,6 @@ class GenericIE(InfoExtractor):
         # Look for Brightcove Legacy Studio embeds
         bc_urls = BrightcoveLegacyIE._extract_brightcove_urls(webpage)
         if bc_urls:
-            self.to_screen('Brightcove video detected.')
             entries = [{
                 '_type': 'url',
                 'url': smuggle_url(bc_url, {'Referer': url}),
