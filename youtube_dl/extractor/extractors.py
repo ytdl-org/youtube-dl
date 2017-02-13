@@ -1147,6 +1147,7 @@ from .vlive import (
     VLiveChannelIE
 )
 from .vodlocker import VodlockerIE
+from .vodpl import VODPlIE
 from .vodplatform import VODPlatformIE
 from .voicerepublic import VoiceRepublicIE
 from .voxmedia import VoxMediaIE
