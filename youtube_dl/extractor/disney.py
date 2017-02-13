@@ -9,13 +9,15 @@ from ..utils import (
     unified_strdate,
     compat_str,
     determine_ext,
+    ExtractorError,
 )
 
 
 class DisneyIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-        https?://(?P<domain>(?:[^/]+\.)?(?:disney\.[a-z]{2,3}(?:\.[a-z]{2})?|disney(?:(?:me|latino)\.com|turkiye\.com\.tr)|starwars\.com))/(?:embed/|(?:[^/]+/)+[\w-]+-)(?P<id>[a-z0-9]{24})'''
+        https?://(?P<domain>(?:[^/]+\.)?(?:disney\.[a-z]{2,3}(?:\.[a-z]{2})?|disney(?:(?:me|latino)\.com|turkiye\.com\.tr)|(?:starwars|marvelkids)\.com))/(?:(?:embed/|(?:[^/]+/)+[\w-]+-)(?P<id>[a-z0-9]{24})|(?:[^/]+/)?(?P<display_id>[^/?#]+))'''
     _TESTS = [{
+        # Disney.EmbedVideo
         'url': 'http://video.disney.com/watch/moana-trailer-545ed1857afee5a0ec239977',
         'info_dict': {
             'id': '545ed1857afee5a0ec239977',
@@ -23,6 +25,20 @@ class DisneyIE(InfoExtractor):
             'title': 'Moana - Trailer',
             'description': 'A fun adventure for the entire Family!  Bring home Moana on Digital HD Feb 21 & Blu-ray March 7',
             'upload_date': '20170112',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }, {
+        # Grill.burger
+        'url': 'http://www.starwars.com/video/rogue-one-a-star-wars-story-intro-featurette',
+        'info_dict': {
+            'id': '5454e9f4e9804a552e3524c8',
+            'ext': 'mp4',
+            'title': '"Intro" Featurette: Rogue One: A Star Wars Story',
+            'upload_date': '20170104',
+            'description': 'Go behind-the-scenes of Rogue One: A Star Wars Story in this featurette with Director Gareth Edwards and the cast of the film.',
         },
         'params': {
             # m3u8 download
@@ -43,31 +59,55 @@ class DisneyIE(InfoExtractor):
     }, {
         'url': 'http://www.starwars.com/embed/54690d1e6c42e5f09a0fb097',
         'only_matching': True,
+    }, {
+        'url': 'http://spiderman.marvelkids.com/embed/522900d2ced3c565e4cc0677',
+        'only_matching': True,
+    }, {
+        'url': 'http://spiderman.marvelkids.com/videos/contest-of-champions-part-four-clip-1',
+        'only_matching': True,
+    }, {
+        'url': 'http://disneyjunior.en.disneyme.com/dj/watch-my-friends-tigger-and-pooh-promo',
+        'only_matching': True,
+    }, {
+        'url': 'http://disneyjunior.disney.com/galactech-the-galactech-grab-galactech-an-admiral-rescue',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        domain, video_id = re.match(self._VALID_URL, url).groups()
-        webpage = self._download_webpage(
-            'http://%s/embed/%s' % (domain, video_id), video_id)
-        video_data = self._parse_json(self._search_regex(
-            r'Disney\.EmbedVideo=({.+});', webpage, 'embed data'), video_id)['video']
+        domain, video_id, display_id = re.match(self._VALID_URL, url).groups()
+        if not video_id:
+            webpage = self._download_webpage(url, display_id)
+            grill = re.sub(r'"\s*\+\s*"', '', self._search_regex(
+                r'Grill\.burger\s*=\s*({.+})\s*:',
+                webpage, 'grill data'))
+            page_data = next(s for s in self._parse_json(grill, display_id)['stack'] if s.get('type') == 'video')
+            video_data = page_data['data'][0]
+        else:
+            webpage = self._download_webpage(
+                'http://%s/embed/%s' % (domain, video_id), video_id)
+            page_data = self._parse_json(self._search_regex(
+                r'Disney\.EmbedVideo\s*=\s*({.+});',
+                webpage, 'embed data'), video_id)
+            video_data = page_data['video']
 
         for external in video_data.get('externals', []):
             if external.get('source') == 'vevo':
                 return self.url_result('vevo:' + external['data_id'], 'Vevo')
 
+        video_id = video_data['id']
         title = video_data['title']
 
         formats = []
         for flavor in video_data.get('flavors', []):
             flavor_format = flavor.get('format')
             flavor_url = flavor.get('url')
-            if not flavor_url or not re.match(r'https?://', flavor_url):
+            if not flavor_url or not re.match(r'https?://', flavor_url) or flavor_format == 'mp4_access':
                 continue
             tbr = int_or_none(flavor.get('bitrate'))
             if tbr == 99999:
                 formats.extend(self._extract_m3u8_formats(
-                    flavor_url, video_id, 'mp4', m3u8_id=flavor_format, fatal=False))
+                    flavor_url, video_id, 'mp4',
+                    m3u8_id=flavor_format, fatal=False))
                 continue
             format_id = []
             if flavor_format:
@@ -88,6 +128,10 @@ class DisneyIE(InfoExtractor):
                 'ext': ext,
                 'vcodec': 'none' if (width == 0 and height == 0) else None,
             })
+        if not formats and video_data.get('expired'):
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, page_data['translations']['video_expired']),
+                expected=True)
         self._sort_formats(formats)
 
         subtitles = {}
