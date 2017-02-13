@@ -2,11 +2,14 @@
 from __future__ import unicode_literals
 
 import re
+from datetime import datetime
 
 from .turner import TurnerBaseIE
 from ..utils import (
     ExtractorError,
+    float_or_none,
     int_or_none,
+    determine_ext,
 )
 
 
@@ -14,219 +17,259 @@ class AdultSwimIE(TurnerBaseIE):
     _VALID_URL = r'https?://(?:www\.)?adultswim\.com/videos/(?P<is_playlist>playlists/)?(?P<show_path>[^/]+)/(?P<episode_path>[^/?#]+)/?'
 
     _TESTS = [{
-        'url': 'http://adultswim.com/videos/rick-and-morty/pilot',
-        'playlist': [
-            {
-                'md5': '247572debc75c7652f253c8daa51a14d',
-                'info_dict': {
-                    'id': 'rQxZvXQ4ROaSOqq-or2Mow-0',
-                    'ext': 'flv',
-                    'title': 'Rick and Morty - Pilot Part 1',
-                    'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
-                },
-            },
-            {
-                'md5': '77b0e037a4b20ec6b98671c4c379f48d',
-                'info_dict': {
-                    'id': 'rQxZvXQ4ROaSOqq-or2Mow-3',
-                    'ext': 'flv',
-                    'title': 'Rick and Morty - Pilot Part 4',
-                    'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
-                },
-            },
+        'url': 'http://www.adultswim.com/videos/toonami/intruder-ii-episode-1/',
+        'info_dict': {
+            'id': 'RWFLm_htTKOW-7ZuCfzluQ',
+            'ext': 'mp4',
+            'title': 'Intruder II - Episode 1',
+            'description': 'Watch the first epic episode of Intruder II. This is just the beginning.',
+            'duration': 148,
+            'series': 'Toonami',
+            'season_number': 7,
+            'episode_number': 1,
+            'episode': 'Intruder II - Episode 1',
+            'timestamp': 1448372637,
+            'upload_date': '20151124',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'expected_warnings': [
+            'Failed to download m3u8 information: HTTP Error 403: Forbidden',
+            'Unable to download f4m manifest'
         ],
+    }, {
+        'url': 'http://www.adultswim.com/videos/playlists/tina-belcher-butt-toucher?b=bobs_burgers',
+        'info_dict': {
+            'id': 'TUBMfnpdTYG_NdBueJX-Hg',
+            'ext': 'flv',
+            'title': 'Up My Butt',
+            'description': 'A talking manatee makes Gene\'s pants tight.',
+            'duration': 83.43,
+            'series': 'Bob\'s Burgers',
+            'season_number': None,
+            'episode_number': None,
+            'episode': 'Up My Butt',
+            'timestamp': 1410559714,
+            'upload_date': '20140912',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    },{
+        'url': 'http://adultswim.com/videos/rick-and-morty/pilot',
         'info_dict': {
             'id': 'rQxZvXQ4ROaSOqq-or2Mow',
-            'title': 'Rick and Morty - Pilot',
-            'description': "Rick moves in with his daughter's family and establishes himself as a bad influence on his grandson, Morty. "
-        },
-        'skip': 'This video is only available for registered users',
-    }, {
-        'url': 'http://www.adultswim.com/videos/playlists/american-parenting/putting-francine-out-of-business/',
-        'playlist': [
-            {
-                'md5': '2eb5c06d0f9a1539da3718d897f13ec5',
-                'info_dict': {
-                    'id': '-t8CamQlQ2aYZ49ItZCFog-0',
-                    'ext': 'flv',
-                    'title': 'American Dad - Putting Francine Out of Business',
-                    'description': 'Stan hatches a plan to get Francine out of the real estate business.Watch more American Dad on [adult swim].'
-                },
-            }
-        ],
-        'info_dict': {
-            'id': '-t8CamQlQ2aYZ49ItZCFog',
-            'title': 'American Dad - Putting Francine Out of Business',
-            'description': 'Stan hatches a plan to get Francine out of the real estate business.Watch more American Dad on [adult swim].'
-        },
-    }, {
-        'url': 'http://www.adultswim.com/videos/tim-and-eric-awesome-show-great-job/dr-steve-brule-for-your-wine/',
-        'playlist': [
-            {
-                'md5': '3e346a2ab0087d687a05e1e7f3b3e529',
-                'info_dict': {
-                    'id': 'sY3cMUR_TbuE4YmdjzbIcQ-0',
-                    'ext': 'mp4',
-                    'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
-                    'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
-                },
-            }
-        ],
-        'info_dict': {
-            'id': 'sY3cMUR_TbuE4YmdjzbIcQ',
-            'title': 'Tim and Eric Awesome Show Great Job! - Dr. Steve Brule, For Your Wine',
-            'description': 'Dr. Brule reports live from Wine Country with a special report on wines.  \r\nWatch Tim and Eric Awesome Show Great Job! episode #20, "Embarrassed" on Adult Swim.\r\n\r\n',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        }
-    }, {
-        # heroMetadata.trailer
-        'url': 'http://www.adultswim.com/videos/decker/inside-decker-a-new-hero/',
-        'info_dict': {
-            'id': 'I0LQFQkaSUaFp8PnAWHhoQ',
             'ext': 'mp4',
-            'title': 'Decker - Inside Decker: A New Hero',
-            'description': 'md5:c916df071d425d62d70c86d4399d3ee0',
-            'duration': 249.008,
+            'title': 'Pilot',
+            'description': 'Rick moves in with his daughter\'s family and establishes himself as a bad influence on his grandson, Morty. ',
+            'duration': 1321.004,
+            'series': 'Rick and Morty',
+            'season_number': 1,
+            'episode_number': 1,
+            'episode': 'Pilot',
+            'timestamp': 1486592997,
+            'upload_date': '20170208',
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
-        'expected_warnings': ['Unable to download f4m manifest'],
-    }, {
-        'url': 'http://www.adultswim.com/videos/toonami/friday-october-14th-2016/',
-        'info_dict': {
-            'id': 'eYiLsKVgQ6qTC6agD67Sig',
-            'title': 'Toonami - Friday, October 14th, 2016',
-            'description': 'md5:99892c96ffc85e159a428de85c30acde',
-        },
-        'playlist': [{
-            'md5': '',
-            'info_dict': {
-                'id': 'eYiLsKVgQ6qTC6agD67Sig',
-                'ext': 'mp4',
-                'title': 'Toonami - Friday, October 14th, 2016',
-                'description': 'md5:99892c96ffc85e159a428de85c30acde',
-            },
-        }],
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-        'expected_warnings': ['Unable to download f4m manifest'],
+        'expected_warnings': [
+            'Unable to download JSON metadata: HTTP Error 401'
+        ],
     }]
 
-    @staticmethod
-    def find_video_info(collection, slug):
-        for video in collection.get('videos'):
-            if video.get('slug') == slug:
-                return video
+    # Use the Adult Swim api (v2) for extracting all metadata about a video in a
+    # friendly JSON format. Incudes video information, strea, closed captons, etc
+    #
+    # List of api keys:
+    # Show info: http://www.adultswim.com/videos/app/show/{video_id}
+    # Episode info: http://www.adultswim.com/videos/app/video/{video_id}
+    #
+    # Video api
+    # http://www.adultswim.com/videos/api/v2/videos/{video_id}
+    # http://www.adultswim.com/videos/api/v2/videos/{video_id}?fields=stream
+    # http://www.adultswim.com/videos/api/v2/videos/{video_id}?fields=id,auth,stream,segments,title,collection_title,season_number,episode_number,description,duration,views,published,images
 
-    @staticmethod
-    def find_collection_by_linkURL(collections, linkURL):
-        for collection in collections:
-            if collection.get('linkURL') == linkURL:
-                return collection
-
-    @staticmethod
-    def find_collection_containing_video(collections, slug):
-        for collection in collections:
-            for video in collection.get('videos'):
-                if video.get('slug') == slug:
-                    return collection, video
-        return None, None
+    _API_URL = 'http://www.adultswim.com/videos/api/v2/videos/'
+    _API_FIELDS = 'id,auth,stream,segments,title,collection_title,season_number,episode_number,description,duration,views,published,images'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         show_path = mobj.group('show_path')
         episode_path = mobj.group('episode_path')
-        is_playlist = True if mobj.group('is_playlist') else False
 
-        webpage = self._download_webpage(url, episode_path)
+        webpage = self._download_webpage(url, episode_path, 'Downloading page')
 
-        # Extract the value of `bootstrappedData` from the Javascript in the page.
-        bootstrapped_data = self._parse_json(self._search_regex(
-            r'var bootstrappedData = ({.*});', webpage, 'bootstraped data'), episode_path)
+        # Adut Swim has loads video information onto pages, the original (and outdated)
+        # `bootstrappedData` and the new `__AS_INITIAL_DATA__`. It would seem most
+        # pages use `__AS_INITIAL_DATA__` for single videos, however, for playlist
+        # `bootstrappedData` is used.
 
-        # Downloading videos from a /videos/playlist/ URL needs to be handled differently.
-        # NOTE: We are only downloading one video (the current one) not the playlist
-        if is_playlist:
-            collections = bootstrapped_data['playlists']['collections']
-            collection = self.find_collection_by_linkURL(collections, show_path)
-            video_info = self.find_video_info(collection, episode_path)
+        # Extract the value of `__AS_INITIAL_DATA__` from the Javascript in the page.
+        video_page = re.search(r'(?P<var>__AS_INITIAL_DATA__|bootstrappedData) = (?P<json>{.*});', webpage)
+        video_var = video_page.group('var')
+        video_json = self._parse_json(video_page.group('json'), episode_path)
 
-            show_title = video_info['showTitle']
-            segment_ids = [video_info['videoPlaybackID']]
+        if video_var == '__AS_INITIAL_DATA__':
+            video_page_info = video_json.get('show', {}).get('sluggedVideo')
+            video_id = video_page_info.get('id')
+        elif video_var == 'bootstrappedData':
+            collections = video_json.get('playlists', {}).get('collections')
+
+            for collection in collections:
+                if collection.get('linkURL') == show_path:
+                    break
+
+            for video in collection.get('videos'):
+                if video.get('slug') == episode_path:
+                    break
+
+            # Get steam id, info, & if it needs auth
+            if video.get('id'):
+                video_id = video.get('id')
         else:
-            collections = bootstrapped_data['show']['collections']
-            collection, video_info = self.find_collection_containing_video(collections, episode_path)
-            # Video wasn't found in the collections, let's try `slugged_video`.
-            if video_info is None:
-                if bootstrapped_data.get('slugged_video', {}).get('slug') == episode_path:
-                    video_info = bootstrapped_data['slugged_video']
-            if not video_info:
-                video_info = bootstrapped_data.get(
-                    'heroMetadata', {}).get('trailer', {}).get('video')
-            if not video_info:
-                video_info = bootstrapped_data.get('onlineOriginals', [None])[0]
-            if not video_info:
-                raise ExtractorError('Unable to find video info')
+            # Failed to find any variable, new method or no video download option
+            raise ExtractorError('Neither __AS_INITIAL_DATA__ or bootstrappedData variables found on page, unable to extract data')
 
-            show = bootstrapped_data['show']
-            show_title = show['title']
-            stream = video_info.get('stream')
-            if stream and stream.get('videoPlaybackID'):
-                segment_ids = [stream['videoPlaybackID']]
-            elif video_info.get('clips'):
-                segment_ids = [clip['videoPlaybackID'] for clip in video_info['clips']]
-            elif video_info.get('videoPlaybackID'):
-                segment_ids = [video_info['videoPlaybackID']]
-            elif video_info.get('id'):
-                segment_ids = [video_info['id']]
-            else:
-                if video_info.get('auth') is True:
-                    raise ExtractorError(
-                        'This video is only available via cable service provider subscription that'
-                        ' is not currently supported. You may want to use --cookies.', expected=True)
-                else:
-                    raise ExtractorError('Unable to find stream or clips')
+        # Get video information from api via JSON & parse
+        video_info = self._download_json('%s%s?fields=%s' % (self._API_URL, video_id, self._API_FIELDS), video_id)
 
-        episode_id = video_info['id']
-        episode_title = video_info['title']
-        episode_description = video_info.get('description')
-        episode_duration = int_or_none(video_info.get('duration'))
-        view_count = int_or_none(video_info.get('views'))
+        # Reduce node path
+        video_info = video_info.get('data')
 
-        entries = []
-        for part_num, segment_id in enumerate(segment_ids):
-            segement_info = self._extract_cvp_info(
-                'http://www.adultswim.com/videos/api/v0/assets?id=%s&platform=desktop' % segment_id,
-                segment_id, {
-                    'secure': {
-                        'media_src': 'http://androidhls-secure.cdn.turner.com/adultswim/big',
-                        'tokenizer_src': 'http://www.adultswim.com/astv/mvpd/processors/services/token_ipadAdobe.do',
-                    },
-                })
-            segment_title = '%s - %s' % (show_title, episode_title)
-            if len(segment_ids) > 1:
-                segment_title += ' Part %d' % (part_num + 1)
-            segement_info.update({
-                'id': segment_id,
-                'title': segment_title,
-                'description': episode_description,
+        # Inform user if they need to supply authentication
+        if video_info.get('auth') is True:
+            raise ExtractorError(
+                'This video is only available via cable service provider subscription that'
+                ' is not currently supported. You may want to use --cookies.', expected=True)
+
+        # Video metadata
+        video_title = video_info.get('title')
+        video_description = video_info.get('description')
+        video_duration = float_or_none(video_info.get('duration'))
+        video_series = video_info.get('collection_title')
+        video_season_number = int_or_none(video_info.get('season_number'))
+        video_episode_number = int_or_none(video_info.get('episode_number'))
+        video_episode_title = video_title
+        video_timestamp = int_or_none(video_info.get('published'))
+
+        if video_timestamp is not None:
+            video_upload_date = datetime.fromtimestamp(video_timestamp).strftime('%Y%m%d')
+        else:
+            video_upload_date = None
+
+        video_views = int_or_none(video_info.get('views'))
+
+        # Thumbnails
+        video_thumbnails = []
+        for thumbnail_info in video_info.get('images', []):
+            thumbnail_url = thumbnail_info.get('url')
+            if not thumbnail_url:
+                continue
+            video_thumbnails.append({
+                'url': thumbnail_url,
+                'id': thumbnail_info.get('name'),
+                'height': int_or_none(thumbnail_info.get('height')),
+                'width': int_or_none(thumbnail_info.get('width')),
             })
-            entries.append(segement_info)
+
+        # Extract video and subtitles formats
+        # These can be 'streams' for /video/ pages or 'segments' for /playlist/ pages
+        assets = []
+        if 'stream' in video_info:
+            assets.extend(
+                video_info.get('stream', {}).get('assets', {})
+            )
+        elif 'segments' in video_info:
+            segments = video_info.get('segments', {})
+
+            for segment in segments:
+                assets.extend(
+                    segment.get('assets', {})
+                )
+        else:
+            ExtractorError('No video streams or segments found')
+
+        formats = []
+        subtitles = {}
+        for asset in assets:
+            asset_url = asset.get('url')
+            asset_ext = determine_ext(asset_url)
+            asset_mime = asset.get('mime_type', '')
+
+            if asset_ext == 'm3u8':
+                formats.extend(
+                    self._extract_m3u8_formats(
+                        asset_url,
+                        video_id,
+                        'mp4',
+                        fatal=False
+                    )
+                )
+            elif asset_ext == 'f4m':
+                formats.extend(
+                    self._extract_f4m_formats(
+                        asset_url,
+                        video_id,
+                        'mp4',
+                        fatal=False
+                    )
+                )
+            elif asset_ext == 'flv':
+                formats.append({
+                    'url': asset_url,
+                    'ext': 'flv',
+                    'tbr': int_or_none(asset.get('bitrate')),
+                    'filesize': int_or_none(asset.get('filesize')),
+                })
+            elif asset_ext == 'vtt':
+                subtitles = self._merge_subtitles(
+                    subtitles, {
+                        'en': [{
+                            'url': asset_url,
+                            'ext': 'vtt',
+                        }]
+                    }
+                )
+            elif asset_ext == 'scc':
+                subtitles = self._merge_subtitles(
+                    subtitles, {
+                        'en': [{
+                            'url': asset_url,
+                            'ext': 'scc',
+                        }]
+                    }
+                )
+            elif asset_ext == 'xml' and asset_mime == 'application/ttml+xml':
+                subtitles = self._merge_subtitles(
+                    subtitles, {
+                        'en': [{
+                            'url': asset_url,
+                            'ext': 'ttml',
+                        }]
+                    }
+                )
+
+        self._sort_formats(formats)
 
         return {
-            '_type': 'playlist',
-            'id': episode_id,
+            'id': video_id,
             'display_id': episode_path,
-            'entries': entries,
-            'title': '%s - %s' % (show_title, episode_title),
-            'description': episode_description,
-            'duration': episode_duration,
-            'view_count': view_count,
+            'formats': formats,
+            'title': video_title,
+            'description': video_description,
+            'duration': video_duration,
+            'series': video_series,
+            'season_number': video_season_number,
+            'episode_number': video_episode_number,
+            'episode': video_episode_title,
+            'timestamp': video_timestamp,
+            'upload_date': video_upload_date,
+            'views': video_views,
+            'thumbnails': video_thumbnails,
+            'subtitles': subtitles,
         }
