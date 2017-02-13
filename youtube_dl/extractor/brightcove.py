@@ -524,7 +524,7 @@ class BrightcoveNewIE(InfoExtractor):
                     'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
                     % (account_id, player_id, embed, video_id))
 
-	return entries
+        return entries
 
     def _real_extract(self, url):
         account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
