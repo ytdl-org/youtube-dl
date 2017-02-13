@@ -4,7 +4,17 @@ Core
 * TypeError is fixed with Python 2.7.13 on Windows (#11540, #12085)
 
 Extractor
+* [zdf] Fix extraction (#12117)
+* [xtube] Fix extraction for both kinds of video id (#12088)
+* [xtube] Improve title extraction (#12088)
++ [lemonde] Fallback delegate extraction to generic extractor (#12115, #12116)
+* [bellmedia] Allow video id longer than 6 characters (#12114)
++ [limelight] Add support for referer protected videos
+* [disney] Improve extraction (#4975, #11000, #11882, #11936)
+* [hotstar] Improve extraction (#12096)
 * [einthusan] Fix extraction (#11416)
++ [aenetworks] Add support for lifetimemovieclub.com (#12097)
+* [youtube] Fix parsing codecs (#12091)
 
 
 version 2017.02.11
