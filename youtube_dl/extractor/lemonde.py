@@ -2,6 +2,11 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from ..utils import (
+    get_element_by_class,
+    extract_attributes,
+)
+
 
 class LemondeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?lemonde\.fr/(?:[^/]+/)*(?P<id>[^/]+)\.html'
@@ -28,7 +33,11 @@ class LemondeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        digiteka_url = self._proto_relative_url(self._search_regex(
+        video_url = self._proto_relative_url(self._search_regex(
             r'url\s*:\s*(["\'])(?P<url>(?:https?://)?//(?:www\.)?(?:digiteka\.net|ultimedia\.com)/deliver/.+?)\1',
-            webpage, 'digiteka url', group='url'))
-        return self.url_result(digiteka_url, 'Digiteka')
+            webpage, 'digiteka url', group='url', default=None))
+
+        if not video_url:
+            video_url = extract_attributes(get_element_by_class('video_player', webpage))['src']
+
+        return self.url_result(video_url, 'Digiteka')
