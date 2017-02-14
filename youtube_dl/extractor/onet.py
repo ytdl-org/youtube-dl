@@ -23,7 +23,7 @@ class OnetBaseIE(InfoExtractor):
         return self._search_regex(
             r'id=(["\'])mvp:(?P<id>.+?)\1', webpage, 'mvp id', group='id')
 
-    def _extract_from_id(self, video_id, webpage):
+    def _extract_from_id(self, video_id, webpage=None):
         response = self._download_json(
             'http://qi.ckm.onetapi.pl/', video_id,
             query={
@@ -74,8 +74,10 @@ class OnetBaseIE(InfoExtractor):
 
         meta = video.get('meta', {})
 
-        title = self._og_search_title(webpage, default=None) or meta['title']
-        description = self._og_search_description(webpage, default=None) or meta.get('description')
+        title = (self._og_search_title(
+            webpage, default=None) if webpage else None) or meta['title']
+        description = (self._og_search_description(
+            webpage, default=None) if webpage else None) or meta.get('description')
         duration = meta.get('length') or meta.get('lenght')
         timestamp = parse_iso8601(meta.get('addDate'), ' ')
 
@@ -87,6 +89,18 @@ class OnetBaseIE(InfoExtractor):
             'timestamp': timestamp,
             'formats': formats,
         }
+
+
+class OnetMVPIE(OnetBaseIE):
+    _VALID_URL = r'onetmvp:(?P<id>\d+\.\d+)'
+
+    _TEST = {
+        'url': 'onetmvp:381027.1509591944',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        return self._extract_from_id(self._match_id(url))
 
 
 class OnetIE(OnetBaseIE):

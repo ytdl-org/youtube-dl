@@ -694,6 +694,7 @@ from .ondemandkorea import OnDemandKoreaIE
 from .onet import (
     OnetIE,
     OnetChannelIE,
+    OnetMVPIE,
 )
 from .onionstudios import OnionStudiosIE
 from .ooyala import (
