@@ -695,6 +695,7 @@ from .onet import (
     OnetIE,
     OnetChannelIE,
     OnetMVPIE,
+    OnetPlIE,
 )
 from .onionstudios import OnionStudiosIE
 from .ooyala import (
