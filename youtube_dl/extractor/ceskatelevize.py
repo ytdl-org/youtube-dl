@@ -21,10 +21,10 @@ class CeskaTelevizeIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
         'info_dict': {
-            'id': '61924494876951776',
+            'id': '61924494877246241',
             'ext': 'mp4',
-            'title': 'Hyde Park Civilizace',
-            'description': 'md5:fe93f6eda372d150759d11644ebbfb4a',
+            'title': 'Hyde Park Civilizace: Život v Grónsku',
+            'description': 'md5:3fec8f6bb497be5cdb0c9e8781076626',
             'thumbnail': r're:^https?://.*\.jpg',
             'duration': 3350,
         },
@@ -121,6 +121,7 @@ class CeskaTelevizeIE(InfoExtractor):
         req.add_header('Content-type', 'application/x-www-form-urlencoded')
         req.add_header('x-addr', '127.0.0.1')
         req.add_header('X-Requested-With', 'XMLHttpRequest')
+        req.add_header('User-agent', 'Mozilla/5.0')
         req.add_header('Referer', url)
 
         playlistpage = self._download_json(req, playlist_id)
