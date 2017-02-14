@@ -11,8 +11,6 @@ sudo: false
 env:
   - YTDL_TEST_SET=core
   - YTDL_TEST_SET=download
-before_script:
-  - chmod +x ./devscripts/run_tests.sh
 script: ./devscripts/run_tests.sh
 notifications:
   email:
