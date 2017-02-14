@@ -184,7 +184,7 @@ class OnetChannelIE(OnetBaseIE):
 
 
 class OnetPlIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+\.)?onet\.pl/(?:[^/]+/)+(?P<id>[0-9a-z]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?(?:onet|businessinsider\.com|plejada)\.pl/(?:[^/]+/)+(?P<id>[0-9a-z]+)'
     IE_NAME = 'onet.pl'
 
     _TESTS = [{
@@ -200,6 +200,15 @@ class OnetPlIE(InfoExtractor):
         },
     }, {
         'url': 'http://film.onet.pl/zwiastuny/ghost-in-the-shell-drugi-zwiastun-pl/5q6yl3',
+        'only_matching': True,
+    }, {
+        'url': 'http://moto.onet.pl/jak-wybierane-sa-miejsca-na-fotoradary/6rs04e',
+        'only_matching': True,
+    }, {
+        'url': 'http://businessinsider.com.pl/wideo/scenariusz-na-koniec-swiata-wedlug-nasa/dwnqptk',
+        'only_matching': True,
+    }, {
+        'url': 'http://plejada.pl/weronika-rosati-o-swoim-domniemanym-slubie/n2bq89',
         'only_matching': True,
     }]
 
