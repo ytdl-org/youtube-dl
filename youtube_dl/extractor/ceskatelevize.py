@@ -162,10 +162,10 @@ class CeskaTelevizeIE(InfoExtractor):
                         formats.extend(self._extract_m3u8_formats(
                             stream_url, playlist_id, 'mp4',
                             entry_protocol='m3u8' if is_live else 'm3u8_native',
-                            fatal=False))
+                            m3u8_id='hls', fatal=False))
                     else:
                         formats.extend(self._extract_mpd_formats(
-                            stream_url, playlist_id, fatal=False))
+                            stream_url, playlist_id, mpd_id='dash', fatal=False))
 
                 if user_agent and len(entries) == playlist_len:
                     entries[num]['formats'].extend(formats)
