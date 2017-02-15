@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -149,6 +150,32 @@ class FacebookIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'https://www.facebook.com/LaGuiaDelVaron/posts/1072691702860471',
+        'info_dict': {
+            'id': '1072691702860471',
+            'ext': 'mp4',
+            'title': 'md5:ae2d22a93fbb12dad20dc393a869739d',
+            'timestamp': 1477305000,
+            'upload_date': '20161024',
+            'uploader': 'La Guía Del Varón',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.facebook.com/groups/1024490957622648/permalink/1396382447100162/',
+        'info_dict': {
+            'id': '1396382447100162',
+            'ext': 'mp4',
+            'title': 'md5:e2d2700afdf84e121f5d0f999bad13a3',
+            'timestamp': 1486035494,
+            'upload_date': '20170202',
+            'uploader': 'Elisabeth Ahtn',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
     }, {
@@ -263,7 +290,7 @@ class FacebookIE(InfoExtractor):
             for item in instances:
                 if item[1][0] == 'VideoConfig':
                     video_item = item[2][0]
-                    if video_item.get('video_id') == video_id:
+                    if video_item.get('video_id'):
                         return video_item['videoData']
 
         server_js_data = self._parse_json(self._search_regex(

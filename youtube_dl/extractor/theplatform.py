@@ -306,9 +306,10 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         },
     }]
 
-    def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}):
+    def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}, account_id=None):
         real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, filter_query)
         entry = self._download_json(real_url, video_id)['entries'][0]
+        main_smil_url = 'http://link.theplatform.com/s/%s/media/guid/%d/%s' % (provider_id, account_id, entry['guid']) if account_id else None
 
         formats = []
         subtitles = {}
@@ -333,7 +334,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
                 if asset_type in asset_types_query:
                     query.update(asset_types_query[asset_type])
                 cur_formats, cur_subtitles = self._extract_theplatform_smil(update_url_query(
-                    smil_url, query), video_id, 'Downloading SMIL data for %s' % asset_type)
+                    main_smil_url or smil_url, query), video_id, 'Downloading SMIL data for %s' % asset_type)
                 formats.extend(cur_formats)
                 subtitles = self._merge_subtitles(subtitles, cur_subtitles)
 

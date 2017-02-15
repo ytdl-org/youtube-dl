@@ -34,6 +34,7 @@ from ..utils import (
     int_or_none,
     mimetype2ext,
     orderedSet,
+    parse_codecs,
     parse_duration,
     remove_quotes,
     remove_start,
@@ -1696,15 +1697,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                     codecs = mobj.group('val')
                                     break
                             if codecs:
-                                codecs = codecs.split(',')
-                                if len(codecs) == 2:
-                                    acodec, vcodec = codecs[1], codecs[0]
-                                else:
-                                    acodec, vcodec = (codecs[0], 'none') if kind == 'audio' else ('none', codecs[0])
-                                dct.update({
-                                    'acodec': acodec,
-                                    'vcodec': vcodec,
-                                })
+                                dct.update(parse_codecs(codecs))
                 formats.append(dct)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]

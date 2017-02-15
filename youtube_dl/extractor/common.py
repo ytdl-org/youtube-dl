@@ -1208,6 +1208,9 @@ class InfoExtractor(object):
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
 
+        if '#EXT-X-FAXS-CM:' in m3u8_doc:  # Adobe Flash Access
+            return []
+
         formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
 
         format_url = lambda u: (

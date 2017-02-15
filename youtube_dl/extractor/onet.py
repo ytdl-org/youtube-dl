@@ -23,7 +23,7 @@ class OnetBaseIE(InfoExtractor):
         return self._search_regex(
             r'id=(["\'])mvp:(?P<id>.+?)\1', webpage, 'mvp id', group='id')
 
-    def _extract_from_id(self, video_id, webpage):
+    def _extract_from_id(self, video_id, webpage=None):
         response = self._download_json(
             'http://qi.ckm.onetapi.pl/', video_id,
             query={
@@ -74,8 +74,10 @@ class OnetBaseIE(InfoExtractor):
 
         meta = video.get('meta', {})
 
-        title = self._og_search_title(webpage, default=None) or meta['title']
-        description = self._og_search_description(webpage, default=None) or meta.get('description')
+        title = (self._og_search_title(
+            webpage, default=None) if webpage else None) or meta['title']
+        description = (self._og_search_description(
+            webpage, default=None) if webpage else None) or meta.get('description')
         duration = meta.get('length') or meta.get('lenght')
         timestamp = parse_iso8601(meta.get('addDate'), ' ')
 
@@ -87,6 +89,18 @@ class OnetBaseIE(InfoExtractor):
             'timestamp': timestamp,
             'formats': formats,
         }
+
+
+class OnetMVPIE(OnetBaseIE):
+    _VALID_URL = r'onetmvp:(?P<id>\d+\.\d+)'
+
+    _TEST = {
+        'url': 'onetmvp:381027.1509591944',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        return self._extract_from_id(self._match_id(url))
 
 
 class OnetIE(OnetBaseIE):
@@ -167,3 +181,44 @@ class OnetChannelIE(OnetBaseIE):
         channel_title = strip_or_none(get_element_by_class('o_channelName', webpage))
         channel_description = strip_or_none(get_element_by_class('o_channelDesc', webpage))
         return self.playlist_result(entries, channel_id, channel_title, channel_description)
+
+
+class OnetPlIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:[^/]+\.)?(?:onet|businessinsider\.com|plejada)\.pl/(?:[^/]+/)+(?P<id>[0-9a-z]+)'
+    IE_NAME = 'onet.pl'
+
+    _TESTS = [{
+        'url': 'http://eurosport.onet.pl/zimowe/skoki-narciarskie/ziobro-wygral-kwalifikacje-w-pjongczangu/9ckrly',
+        'md5': 'b94021eb56214c3969380388b6e73cb0',
+        'info_dict': {
+            'id': '1561707.1685479',
+            'ext': 'mp4',
+            'title': 'Ziobro wygrał kwalifikacje w Pjongczangu',
+            'description': 'md5:61fb0740084d2d702ea96512a03585b4',
+            'upload_date': '20170214',
+            'timestamp': 1487078046,
+        },
+    }, {
+        'url': 'http://film.onet.pl/zwiastuny/ghost-in-the-shell-drugi-zwiastun-pl/5q6yl3',
+        'only_matching': True,
+    }, {
+        'url': 'http://moto.onet.pl/jak-wybierane-sa-miejsca-na-fotoradary/6rs04e',
+        'only_matching': True,
+    }, {
+        'url': 'http://businessinsider.com.pl/wideo/scenariusz-na-koniec-swiata-wedlug-nasa/dwnqptk',
+        'only_matching': True,
+    }, {
+        'url': 'http://plejada.pl/weronika-rosati-o-swoim-domniemanym-slubie/n2bq89',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        mvp_id = self._search_regex(
+            r'data-params-mvp=["\'](\d+\.\d+)', webpage, 'mvp id')
+
+        return self.url_result(
+            'onetmvp:%s' % mvp_id, OnetMVPIE.ie_key(), video_id=mvp_id)

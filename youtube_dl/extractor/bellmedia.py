@@ -24,7 +24,7 @@ class BellMediaIE(InfoExtractor):
                 space
             )\.ca|
             much\.com
-        )/.*?(?:\bvid=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6})'''
+        )/.*?(?:\bvid=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6,})'''
     _TESTS = [{
         'url': 'http://www.ctv.ca/video/player?vid=706966',
         'md5': 'ff2ebbeae0aa2dcc32a830c3fd69b7b0',
@@ -54,6 +54,9 @@ class BellMediaIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.much.com/shows/the-almost-impossible-gameshow/928979/episode-6',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.ctv.ca/DCs-Legends-of-Tomorrow/Video/S2E11-Turncoat-vid1051430',
         'only_matching': True,
     }]
     _DOMAINS = {

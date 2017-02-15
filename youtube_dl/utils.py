@@ -337,17 +337,30 @@ def get_element_by_id(id, html):
 
 
 def get_element_by_class(class_name, html):
-    return get_element_by_attribute(
+    """Return the content of the first tag with the specified class in the passed HTML document"""
+    retval = get_elements_by_class(class_name, html)
+    return retval[0] if retval else None
+
+
+def get_element_by_attribute(attribute, value, html, escape_value=True):
+    retval = get_elements_by_attribute(attribute, value, html, escape_value)
+    return retval[0] if retval else None
+
+
+def get_elements_by_class(class_name, html):
+    """Return the content of all tags with the specified class in the passed HTML document as a list"""
+    return get_elements_by_attribute(
         'class', r'[^\'"]*\b%s\b[^\'"]*' % re.escape(class_name),
         html, escape_value=False)
 
 
-def get_element_by_attribute(attribute, value, html, escape_value=True):
+def get_elements_by_attribute(attribute, value, html, escape_value=True):
     """Return the content of the tag with the specified attribute in the passed HTML document"""
 
     value = re.escape(value) if escape_value else value
 
-    m = re.search(r'''(?xs)
+    retlist = []
+    for m in re.finditer(r'''(?xs)
         <([a-zA-Z0-9:._-]+)
          (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'))*?
          \s+%s=['"]?%s['"]?
@@ -355,16 +368,15 @@ def get_element_by_attribute(attribute, value, html, escape_value=True):
         \s*>
         (?P<content>.*?)
         </\1>
-    ''' % (re.escape(attribute), value), html)
+    ''' % (re.escape(attribute), value), html):
+        res = m.group('content')
 
-    if not m:
-        return None
-    res = m.group('content')
+        if res.startswith('"') or res.startswith("'"):
+            res = res[1:-1]
 
-    if res.startswith('"') or res.startswith("'"):
-        res = res[1:-1]
+        retlist.append(unescapeHTML(res))
 
-    return unescapeHTML(res)
+    return retlist
 
 
 class HTMLAttributeParser(compat_HTMLParser):
@@ -1672,6 +1684,11 @@ def setproctitle(title):
         libc = ctypes.cdll.LoadLibrary('libc.so.6')
     except OSError:
         return
+    except TypeError:
+        # LoadLibrary in Windows Python 2.7.13 only expects
+        # a bytestring, but since unicode_literals turns
+        # every string into a unicode string, it fails.
+        return
     title_bytes = title.encode('utf-8')
     buf = ctypes.create_string_buffer(len(title_bytes))
     buf.value = title_bytes
@@ -2366,6 +2383,7 @@ def _match_one(filter_part, dct):
         \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
         (?:
             (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
+            (?P<quote>["\'])(?P<quotedstrval>(?:\\.|(?!(?P=quote)|\\).)+?)(?P=quote)|
             (?P<strval>(?![0-9.])[a-z0-9A-Z]*)
         )
         \s*$
@@ -2374,7 +2392,8 @@ def _match_one(filter_part, dct):
     if m:
         op = COMPARISON_OPERATORS[m.group('op')]
         actual_value = dct.get(m.group('key'))
-        if (m.group('strval') is not None or
+        if (m.group('quotedstrval') is not None or
+            m.group('strval') is not None or
             # If the original field is a string and matching comparisonvalue is
             # a number we should respect the origin of the original field
             # and process comparison value as a string (see
@@ -2384,7 +2403,10 @@ def _match_one(filter_part, dct):
             if m.group('op') not in ('=', '!='):
                 raise ValueError(
                     'Operator %s does not support string values!' % m.group('op'))
-            comparison_value = m.group('strval') or m.group('intval')
+            comparison_value = m.group('quotedstrval') or m.group('strval') or m.group('intval')
+            quote = m.group('quote')
+            if quote is not None:
+                comparison_value = comparison_value.replace(r'\%s' % quote, quote)
         else:
             try:
                 comparison_value = int(m.group('intval'))

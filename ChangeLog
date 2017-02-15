@@ -1,3 +1,58 @@
+version 2017.02.16
+
+Core
++ [utils] Add support for quoted string literals in --match-filter (#8050,
+  #12142, #12144)
+
+Extractors
+* [ceskatelevize] Lower priority for audio description sources (#12119)
+* [amcnetworks] Fix extraction (#12127)
+* [pinkbike] Fix uploader extraction (#12054)
++ [onetpl] Add support for businessinsider.com.pl and plejada.pl
++ [onetpl] Add support for onet.pl (#10507)
++ [onetmvp] Add shortcut extractor
++ [vodpl] Add support for vod.pl (#12122)
++ [pornhub] Extract video URL from tv platform site (#12007, #12129)
++ [ceskatelevize] Extract DASH formats (#12119, #12133)
+
+
+version 2017.02.14
+
+Core
+* TypeError is fixed with Python 2.7.13 on Windows (#11540, #12085)
+
+Extractor
+* [zdf] Fix extraction (#12117)
+* [xtube] Fix extraction for both kinds of video id (#12088)
+* [xtube] Improve title extraction (#12088)
++ [lemonde] Fallback delegate extraction to generic extractor (#12115, #12116)
+* [bellmedia] Allow video id longer than 6 characters (#12114)
++ [limelight] Add support for referer protected videos
+* [disney] Improve extraction (#4975, #11000, #11882, #11936)
+* [hotstar] Improve extraction (#12096)
+* [einthusan] Fix extraction (#11416)
++ [aenetworks] Add support for lifetimemovieclub.com (#12097)
+* [youtube] Fix parsing codecs (#12091)
+
+
+version 2017.02.11
+
+Core
++ [utils] Introduce get_elements_by_class and get_elements_by_attribute
+  utility functions
++ [extractor/common] Skip m3u8 manifests protected with Adobe Flash Access
+
+Extractor
+* [pluralsight:course] Fix extraction (#12075)
++ [bbc] Extract m3u8 formats with 320k audio
+* [facebook] Relax video id matching (#11017, #12055, #12056)
++ [corus] Add support for Corus Entertainment sites (#12060, #9164)
++ [pluralsight] Detect blocked account error message (#12070)
++ [bloomberg] Add another video id pattern (#12062)
+* [extractor/commonmistakes] Restrict URL regular expression (#12050)
++ [tvplayer] Add support for tvplayer.com
+
+
 version 2017.02.10
 
 Extractors

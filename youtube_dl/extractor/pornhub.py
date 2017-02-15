@@ -2,27 +2,27 @@
 from __future__ import unicode_literals
 
 import itertools
-import os
+# import os
 import re
 
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_unquote_plus,
-    compat_urllib_parse_urlparse,
+    # compat_urllib_parse_unquote,
+    # compat_urllib_parse_unquote_plus,
+    # compat_urllib_parse_urlparse,
 )
 from ..utils import (
     ExtractorError,
     int_or_none,
     js_to_json,
     orderedSet,
-    sanitized_Request,
+    # sanitized_Request,
     str_to_int,
 )
-from ..aes import (
-    aes_decrypt_text
-)
+# from ..aes import (
+#     aes_decrypt_text
+# )
 
 
 class PornHubIE(InfoExtractor):
@@ -109,10 +109,14 @@ class PornHubIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = sanitized_Request(
-            'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id)
-        req.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(req, video_id)
+        def dl_webpage(platform):
+            return self._download_webpage(
+                'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id,
+                video_id, headers={
+                    'Cookie': 'age_verified=1; platform=%s' % platform,
+                })
+
+        webpage = dl_webpage('pc')
 
         error_msg = self._html_search_regex(
             r'(?s)<div[^>]+class=(["\'])(?:(?!\1).)*\b(?:removed|userMessageSection)\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</div>',
@@ -123,10 +127,19 @@ class PornHubIE(InfoExtractor):
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
+        tv_webpage = dl_webpage('tv')
+
+        video_url = self._search_regex(
+            r'<video[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//.+?)\1', tv_webpage,
+            'video url', group='url')
+
+        title = self._search_regex(
+            r'<h1>([^>]+)</h1>', tv_webpage, 'title', default=None)
+
         # video_title from flashvars contains whitespace instead of non-ASCII (see
         # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
         # on that anymore.
-        title = self._html_search_meta(
+        title = title or self._html_search_meta(
             'twitter:title', webpage, default=None) or self._search_regex(
             (r'<h1[^>]+class=["\']title["\'][^>]*>(?P<title>[^<]+)',
              r'<div[^>]+data-video-title=(["\'])(?P<title>.+?)\1',
@@ -156,6 +169,7 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
+        """
         video_variables = {}
         for video_variablename, quote, video_variable in re.findall(
                 r'(player_quality_[0-9]{3,4}p\w+)\s*=\s*(["\'])(.+?)\2;', webpage):
@@ -197,6 +211,7 @@ class PornHubIE(InfoExtractor):
                 'height': height,
             })
         self._sort_formats(formats)
+        """
 
         page_params = self._parse_json(self._search_regex(
             r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
@@ -209,6 +224,7 @@ class PornHubIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'url': video_url,
             'uploader': video_uploader,
             'title': title,
             'thumbnail': thumbnail,
@@ -217,7 +233,7 @@ class PornHubIE(InfoExtractor):
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
-            'formats': formats,
+            # 'formats': formats,
             'age_limit': 18,
             'tags': tags,
             'categories': categories,
