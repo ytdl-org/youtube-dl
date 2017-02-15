@@ -2383,6 +2383,7 @@ def _match_one(filter_part, dct):
         \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
         (?:
             (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
+            (?P<quote>["\'])(?P<quotedstrval>(?:\\.|(?!(?P=quote)|\\).)+?)(?P=quote)|
             (?P<strval>(?![0-9.])[a-z0-9A-Z]*)
         )
         \s*$
@@ -2391,7 +2392,8 @@ def _match_one(filter_part, dct):
     if m:
         op = COMPARISON_OPERATORS[m.group('op')]
         actual_value = dct.get(m.group('key'))
-        if (m.group('strval') is not None or
+        if (m.group('quotedstrval') is not None or
+            m.group('strval') is not None or
             # If the original field is a string and matching comparisonvalue is
             # a number we should respect the origin of the original field
             # and process comparison value as a string (see
@@ -2401,7 +2403,10 @@ def _match_one(filter_part, dct):
             if m.group('op') not in ('=', '!='):
                 raise ValueError(
                     'Operator %s does not support string values!' % m.group('op'))
-            comparison_value = m.group('strval') or m.group('intval')
+            comparison_value = m.group('quotedstrval') or m.group('strval') or m.group('intval')
+            quote = m.group('quote')
+            if quote is not None:
+                comparison_value = comparison_value.replace(r'\%s' % quote, quote)
         else:
             try:
                 comparison_value = int(m.group('intval'))
