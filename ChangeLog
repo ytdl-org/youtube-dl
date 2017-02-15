@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.02.16
 
 Core
 + [utils] Add support for quoted string literals in --match-filter (#8050,
