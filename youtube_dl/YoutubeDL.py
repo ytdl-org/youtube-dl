@@ -252,7 +252,7 @@ class YoutubeDL(object):
                        - "detect_or_warn": check whether we can do anything
                                            about it, warn otherwise (default)
     source_address:    (Experimental) Client-side IP address to bind to.
-    call_home:         Boolean, true iff we are allowed to contact the
+    call_home:         Boolean, true if we are allowed to contact the
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download when
                        used alone or a lower bound of a range for randomized
@@ -620,7 +620,7 @@ class YoutubeDL(object):
             return None
 
     def _match_entry(self, info_dict, incomplete):
-        """ Returns None iff the file should be downloaded """
+        """ Returns None if the file should be downloaded """
 
         video_title = info_dict.get('title', info_dict.get('id', 'video'))
         if 'title' in info_dict:
