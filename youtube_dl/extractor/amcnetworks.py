@@ -53,20 +53,30 @@ class AMCNetworksIE(ThePlatformIE):
             'mbr': 'true',
             'manifest': 'm3u',
         }
-        media_url = self._search_regex(r'window\.platformLinkURL\s*=\s*[\'"]([^\'"]+)', webpage, 'media url')
+        media_url = self._search_regex(
+            r'window\.platformLinkURL\s*=\s*[\'"]([^\'"]+)',
+            webpage, 'media url')
         theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
-            r'https?://link.theplatform.com/s/([^?]+)', media_url, 'theplatform_path'), display_id)
+            r'link\.theplatform\.com/s/([^?]+)',
+            media_url, 'theplatform_path'), display_id)
         info = self._parse_theplatform_metadata(theplatform_metadata)
         video_id = theplatform_metadata['pid']
         title = theplatform_metadata['title']
         rating = theplatform_metadata['ratings'][0]['rating']
-        auth_required = self._search_regex(r'window\.authRequired\s*=\s*(true|false);', webpage, 'auth required')
+        auth_required = self._search_regex(
+            r'window\.authRequired\s*=\s*(true|false);',
+            webpage, 'auth required')
         if auth_required == 'true':
-            requestor_id = self._search_regex(r'window\.requestor_id\s*=\s*[\'"]([^\'"]+)', webpage, 'requestor id')
-            resource = self._get_mvpd_resource(requestor_id, title, video_id, rating)
-            query['auth'] = self._extract_mvpd_auth(url, video_id, requestor_id, resource)
+            requestor_id = self._search_regex(
+                r'window\.requestor_id\s*=\s*[\'"]([^\'"]+)',
+                webpage, 'requestor id')
+            resource = self._get_mvpd_resource(
+                requestor_id, title, video_id, rating)
+            query['auth'] = self._extract_mvpd_auth(
+                url, video_id, requestor_id, resource)
         media_url = update_url_query(media_url, query)
-        formats, subtitles = self._extract_theplatform_smil(media_url, video_id)
+        formats, subtitles = self._extract_theplatform_smil(
+            media_url, video_id)
         self._sort_formats(formats)
         info.update({
             'id': video_id,
@@ -78,9 +88,11 @@ class AMCNetworksIE(ThePlatformIE):
         if ns_keys:
             ns = list(ns_keys)[0]
             series = theplatform_metadata.get(ns + '$show')
-            season_number = int_or_none(theplatform_metadata.get(ns + '$season'))
+            season_number = int_or_none(
+                theplatform_metadata.get(ns + '$season'))
             episode = theplatform_metadata.get(ns + '$episodeTitle')
-            episode_number = int_or_none(theplatform_metadata.get(ns + '$episode'))
+            episode_number = int_or_none(
+                theplatform_metadata.get(ns + '$episode'))
             if season_number:
                 title = 'Season %d - %s' % (season_number, title)
             if series:
