@@ -63,10 +63,16 @@ class ElPaisIE(InfoExtractor):
         thumbnail = (
             None if thumbnail_suffix is None
             else prefix + thumbnail_suffix)
+
+        # This method is better for general porpouses than extracting from javascript as before
         title = self._html_search_regex(
-            (r"tituloVideo\s*=\s*'([^']+)'", webpage, 'title',
-             r'<h2 class="entry-header entry-title.*?>(.*?)</h2>'),
-            webpage, 'title')
+            r'<title>\s*(.*)\s*</title>', webpage, 'title')
+
+        # title = self._html_search_regex(
+            # (r"tituloVideo\s*=\s*'([^']+)'", webpage, 'title',
+             # r'<h2 class="entry-header entry-title.*?>(.*?)</h2>'),
+            # webpage, 'title')
+
         upload_date = unified_strdate(self._search_regex(
             r'<p class="date-header date-int updated"\s+title="([^"]+)">',
             webpage, 'upload date', default=None) or self._html_search_meta(
