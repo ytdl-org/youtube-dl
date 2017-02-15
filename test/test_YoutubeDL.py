@@ -541,10 +541,10 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(ydl._format_note({}), '')
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
-        }), '^\s*10k$')
+        }), r'^\s*10k$')
         assertRegexpMatches(self, ydl._format_note({
             'fps': 30,
-        }), '^30fps$')
+        }), r'^30fps$')
 
     def test_postprocessors(self):
         filename = 'post-processor-testfile.mp4'
