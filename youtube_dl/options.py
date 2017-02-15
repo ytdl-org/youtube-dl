@@ -262,6 +262,14 @@ def parseOpts(overrideArguments=None):
         dest='rejecttitle', metavar='REGEX',
         help='Skip download for matching titles (regex or caseless sub-string)')
     selection.add_option(
+        '--match-uploader',
+        dest='matchuploader', metavar='REGEX',
+        help='Download only matching uploader (regex or caseless sub-string)')
+    selection.add_option(
+        '--reject-uploader',
+        dest='rejectuploader', metavar='REGEX',
+        help='Skip download for matching uploader (regex or caseless sub-string)')
+    selection.add_option(
         '--max-downloads',
         dest='max_downloads', metavar='NUMBER', type=int, default=None,
         help='Abort after downloading NUMBER files')

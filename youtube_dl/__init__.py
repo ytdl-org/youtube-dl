@@ -363,6 +363,8 @@ def _real_main(argv=None):
         'subtitleslangs': opts.subtitleslangs,
         'matchtitle': decodeOption(opts.matchtitle),
         'rejecttitle': decodeOption(opts.rejecttitle),
+        'matchuploader': decodeOption(opts.matchuploader),
+        'rejectuploader': decodeOption(opts.rejectuploader),
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
