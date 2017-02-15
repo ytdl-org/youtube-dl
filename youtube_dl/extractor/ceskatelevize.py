@@ -159,13 +159,19 @@ class CeskaTelevizeIE(InfoExtractor):
                 formats = []
                 for format_id, stream_url in item.get('streamUrls', {}).items():
                     if 'playerType=flash' in stream_url:
-                        formats.extend(self._extract_m3u8_formats(
+                        stream_formats = self._extract_m3u8_formats(
                             stream_url, playlist_id, 'mp4',
                             entry_protocol='m3u8' if is_live else 'm3u8_native',
-                            m3u8_id='hls', fatal=False))
+                            m3u8_id='hls-%s' % format_id, fatal=False)
                     else:
-                        formats.extend(self._extract_mpd_formats(
-                            stream_url, playlist_id, mpd_id='dash', fatal=False))
+                        stream_formats = self._extract_mpd_formats(
+                            stream_url, playlist_id,
+                            mpd_id='dash-%s' % format_id, fatal=False)
+                    # See https://github.com/rg3/youtube-dl/issues/12119#issuecomment-280037031
+                    if format_id == 'audioDescription':
+                        for f in stream_formats:
+                            f['source_preference'] = -10
+                    formats.extend(stream_formats)
 
                 if user_agent and len(entries) == playlist_len:
                     entries[num]['formats'].extend(formats)
