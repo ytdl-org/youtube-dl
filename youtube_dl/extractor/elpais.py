@@ -39,6 +39,18 @@ class ElPaisIE(InfoExtractor):
             'description': 'La nave portaba cientos de ánforas y se hundió cerca de la isla de Cabrera por razones desconocidas',
             'upload_date': '20170127',
         },
+    }, {
+        'url': 'http://epv.elpais.com/epv/2017/02/14/programa_la_voz_de_inaki/1487062137_075943.html',
+        'info_dict': {
+            'id': '1487062137_075943',
+            'ext': 'mp4',
+            'title': 'Disyuntivas',
+            'description': 'md5:a0fb1485c4a6a8a917e6f93878e66218',
+            'upload_date': '20170214',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -59,14 +71,15 @@ class ElPaisIE(InfoExtractor):
         video_url = prefix + video_suffix
         thumbnail_suffix = self._search_regex(
             r"(?:URLMediaStill|urlFotogramaFijo_\d+)\s*=\s*url_cache\s*\+\s*'([^']+)'",
-            webpage, 'thumbnail URL', fatal=False)
+            webpage, 'thumbnail URL', default=None)
         thumbnail = (
             None if thumbnail_suffix is None
-            else prefix + thumbnail_suffix)
+            else prefix + thumbnail_suffix) or self._og_search_thumbnail(webpage)
         title = self._html_search_regex(
-            (r"tituloVideo\s*=\s*'([^']+)'", webpage, 'title',
-             r'<h2 class="entry-header entry-title.*?>(.*?)</h2>'),
-            webpage, 'title')
+            (r"tituloVideo\s*=\s*'([^']+)'",
+             r'<h2 class="entry-header entry-title.*?>(.*?)</h2>',
+             r'<h1[^>]+class="titulo"[^>]*>([^<]+)'),
+            webpage, 'title', default=None) or self._og_search_title(webpage)
         upload_date = unified_strdate(self._search_regex(
             r'<p class="date-header date-int updated"\s+title="([^"]+)">',
             webpage, 'upload date', default=None) or self._html_search_meta(
