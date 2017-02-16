@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
 
+from .common import InfoExtractor
 from .youtube import YoutubeIE
-from .jwplatform import JWPlatformBaseIE
 
 
-class WimpIE(JWPlatformBaseIE):
+class WimpIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?wimp\.com/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.wimp.com/maru-is-exhausted/',

@@ -1,11 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import js_to_json
 
 
-class ScreencastOMaticIE(JWPlatformBaseIE):
+class ScreencastOMaticIE(InfoExtractor):
     _VALID_URL = r'https?://screencast-o-matic\.com/watch/(?P<id>[0-9a-zA-Z]+)'
     _TEST = {
         'url': 'http://screencast-o-matic.com/watch/c2lD3BeOPl',
