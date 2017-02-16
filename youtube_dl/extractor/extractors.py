@@ -437,6 +437,7 @@ from .jamendo import (
     JamendoAlbumIE,
 )
 from .jeuxvideo import JeuxVideoIE
+from .jkanime import JkAnimeIE
 from .jove import JoveIE
 from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
