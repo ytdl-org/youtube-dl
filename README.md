@@ -137,13 +137,13 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --match-filter FILTER            Generic video filter. Specify any key (see
                                      help for -o for a list of available keys)
                                      to match if the key is present, !key to
-                                     check if the key is not present,key >
+                                     check if the key is not present, key >
                                      NUMBER (like "comment_count > 12", also
                                      works with >=, <, <=, !=, =) to compare
                                      against a number, and & to require multiple
                                      matches. Values which are not known are
                                      excluded unless you put a question mark (?)
-                                     after the operator.For example, to only
+                                     after the operator. For example, to only
                                      match videos that have been liked more than
                                      100 times and disliked less than 50 times
                                      (or the dislike functionality is not
