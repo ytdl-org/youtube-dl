@@ -76,19 +76,16 @@ class OpenloadIE(InfoExtractor):
             webpage, 'openload ID')
 
         first_two_chars = int(float(ol_id[0:][:2]))
-        urlcode = {}
+        urlcode = []
         num = 2
 
         while num < len(ol_id):
             key = int(float(ol_id[num + 3:][:2]))
-            urlcode[key] = compat_chr(int(float(ol_id[num:][:3])) - first_two_chars)
+            urlcode.append((key, compat_chr(int(float(ol_id[num:][:3])) - first_two_chars)))
             num += 5
-        
-        sorted(urlcode, key=lambda key: urlcode[key])  
 
-        urllink = ''.join(['%s' % (value) for (key, value) in urlcode.items()])
-
-        video_url = 'https://openload.co/stream/' + urllink
+        video_url = 'https://openload.co/stream/' + ''.join(
+            [value for _, value in sorted(urlcode, key=lambda x: x[0])])
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
