@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import remove_end
 
 
-class ThisAVIE(JWPlatformBaseIE):
+class ThisAVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?thisav\.com/video/(?P<id>[0-9]+)/.*'
     _TESTS = [{
         'url': 'http://www.thisav.com/video/47734/%98%26sup1%3B%83%9E%83%82---just-fit.html',

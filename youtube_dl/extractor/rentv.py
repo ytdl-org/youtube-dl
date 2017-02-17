@@ -2,11 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .jwplatform import JWPlatformBaseIE
 from ..compat import compat_str
 
 
-class RENTVIE(JWPlatformBaseIE):
+class RENTVIE(InfoExtractor):
     _VALID_URL = r'(?:rentv:|https?://(?:www\.)?ren\.tv/(?:player|video/epizod)/)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://ren.tv/video/epizod/118577',

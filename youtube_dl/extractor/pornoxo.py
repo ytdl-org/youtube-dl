@@ -2,13 +2,13 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     str_to_int,
 )
 
 
-class PornoXOIE(JWPlatformBaseIE):
+class PornoXOIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pornoxo\.com/videos/(?P<id>\d+)/(?P<display_id>[^/]+)\.html'
     _TEST = {
         'url': 'http://www.pornoxo.com/videos/7564/striptease-from-sexy-secretary.html',

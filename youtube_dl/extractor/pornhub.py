@@ -169,50 +169,6 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        """
-        video_variables = {}
-        for video_variablename, quote, video_variable in re.findall(
-                r'(player_quality_[0-9]{3,4}p\w+)\s*=\s*(["\'])(.+?)\2;', webpage):
-            video_variables[video_variablename] = video_variable
-
-        video_urls = []
-        for encoded_video_url in re.findall(
-                r'player_quality_[0-9]{3,4}p\s*=(.+?);', webpage):
-            for varname, varval in video_variables.items():
-                encoded_video_url = encoded_video_url.replace(varname, varval)
-            video_urls.append(re.sub(r'[\s+]', '', encoded_video_url))
-
-        if webpage.find('"encrypted":true') != -1:
-            password = compat_urllib_parse_unquote_plus(
-                self._search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
-            video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
-
-        formats = []
-        for video_url in video_urls:
-            path = compat_urllib_parse_urlparse(video_url).path
-            extension = os.path.splitext(path)[1][1:]
-            format = path.split('/')[5].split('_')[:2]
-            format = '-'.join(format)
-
-            m = re.match(r'^(?P<height>[0-9]+)[pP]-(?P<tbr>[0-9]+)[kK]$', format)
-            if m is None:
-                height = None
-                tbr = None
-            else:
-                height = int(m.group('height'))
-                tbr = int(m.group('tbr'))
-
-            formats.append({
-                'url': video_url,
-                'ext': extension,
-                'format': format,
-                'format_id': format,
-                'tbr': tbr,
-                'height': height,
-            })
-        self._sort_formats(formats)
-        """
-
         page_params = self._parse_json(self._search_regex(
             r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
             webpage, 'page parameters', group='data', default='{}'),

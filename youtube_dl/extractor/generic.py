@@ -20,6 +20,7 @@ from ..utils import (
     float_or_none,
     HEADRequest,
     is_html,
+    js_to_json,
     orderedSet,
     sanitized_Request,
     smuggle_url,
@@ -960,6 +961,16 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             }
+        },
+        # Complex jwplayer
+        {
+            'url': 'http://www.indiedb.com/games/king-machine/videos',
+            'info_dict': {
+                'id': 'videos',
+                'ext': 'mp4',
+                'title': 'king machine trailer 1',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
         },
         # rtl.nl embed
         {
@@ -2487,6 +2498,15 @@ class GenericIE(InfoExtractor):
                 })
                 self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
+
+        jwplayer_data_str = self._find_jwplayer_data(webpage)
+        if jwplayer_data_str:
+            try:
+                jwplayer_data = self._parse_json(
+                    jwplayer_data_str, video_id, transform_source=js_to_json)
+                return self._parse_jwplayer_data(jwplayer_data, video_id)
+            except ExtractorError:
+                pass
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

@@ -1,14 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     js_to_json,
 )
 
 
-class OnDemandKoreaIE(JWPlatformBaseIE):
+class OnDemandKoreaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ondemandkorea\.com/(?P<id>[^/]+)\.html'
     _TEST = {
         'url': 'http://www.ondemandkorea.com/ask-us-anything-e43.html',
