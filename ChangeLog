@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [theplatform] Recognize URLs with whitespaces (#12044)
 + [generic] Support complex JWPlayer embedded videos (#12030)
 
 

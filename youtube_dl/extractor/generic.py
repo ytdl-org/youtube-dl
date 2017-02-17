@@ -1501,7 +1501,12 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'add_ie': [VideoPressIE.ie_key()],
-        }
+        },
+        {
+            # ThePlatform embedded with whitespaces in URLs
+            'url': 'http://www.golfchannel.com/topics/shows/golftalkcentral.htm',
+            'only_matching': True,
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject

@@ -179,10 +179,12 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
         if m:
             return [m.group('url')]
 
+        # Are whitesapces ignored in URLs?
+        # https://github.com/rg3/youtube-dl/issues/12044
         matches = re.findall(
-            r'<(?:iframe|script)[^>]+src=(["\'])((?:https?:)?//player\.theplatform\.com/p/.+?)\1', webpage)
+            r'(?s)<(?:iframe|script)[^>]+src=(["\'])((?:https?:)?//player\.theplatform\.com/p/.+?)\1', webpage)
         if matches:
-            return list(zip(*matches))[1]
+            return [re.sub(r'\s', '', list(zip(*matches))[1][0])]
 
     @staticmethod
     def _sign_url(url, sig_key, sig_secret, life=600, include_qs=False):
