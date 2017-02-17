@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
+    get_element_by_class,
     get_element_by_id,
     strip_or_none,
     urljoin,
@@ -170,3 +171,51 @@ class AZMedienPlaylistIE(AZMedienBaseIE):
                 'video-title', webpage)), group='title')
 
         return self.playlist_result(entries, show_id, title)
+
+
+class AZMedienShowPlaylistIE(AZMedienBaseIE):
+    IE_DESC = 'AZ Medien Show playlists'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?P<id>
+                        (?:
+                            telezueri\.ch|
+                            telebaern\.tv|
+                            telem1\.ch
+                        )/
+                        (?:
+                            all-episodes|
+                            alle-episoden
+                        )
+                        /[^/]+
+                        )
+                    '''
+
+    _TEST = {
+        'url': 'http://www.telezueri.ch/all-episodes/astrotalk',
+        'info_dict': {
+            'id': 'telezueri.ch/all-episodes/astrotalk',
+            'title': 'TeleZüri: AstroTalk - alle episoden',
+            'description': 'md5:4c0f7e7d741d906004266e295ceb4a26',
+        },
+        'playlist_mincount': 13,
+        'params': {
+            'skip_download': True,
+        }
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+        episodes = get_element_by_class('search-mobile-box', webpage)
+        entries = [self.url_result(
+            urljoin(url, m.group('url'))) for m in re.finditer(
+                r'<a[^>]+href=(["\'])(?P<url>.+?)\1', episodes)]
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
+        return self.playlist_result(
+            entries,
+            playlist_id=playlist_id,
+            playlist_title=title,
+            playlist_description=description)
