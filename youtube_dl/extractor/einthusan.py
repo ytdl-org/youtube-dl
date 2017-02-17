@@ -18,8 +18,8 @@ from ..utils import (
 
 
 class EinthusanIE(InfoExtractor):
-    _VALID_URL = r'https?://einthusan\.tv/movie/watch/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://einthusan\.tv/movie/watch/(?P<id>[^/?#&]+)'
+    _TESTS = [{
         'url': 'https://einthusan.tv/movie/watch/9097/',
         'md5': 'ff0f7f2065031b8a2cf13a933731c035',
         'info_dict': {
@@ -29,7 +29,10 @@ class EinthusanIE(InfoExtractor):
             'description': 'md5:33ef934c82a671a94652a9b4e54d931b',
             'thumbnail': r're:^https?://.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'https://einthusan.tv/movie/watch/51MZ/?lang=hindi',
+        'only_matching': True,
+    }]
 
     # reversed from jsoncrypto.prototype.decrypt() in einthusan-PGMovieWatcher.js
     def _decrypt(self, encrypted_data, video_id):
