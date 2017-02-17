@@ -1,8 +1,13 @@
 version <unreleased>
 
 Extractors
+* [heise] Improve extraction (#9725)
+* [ellentv] Improve (#11653)
+* [openload] Fix extraction (#10408, #12002)
 + [theplatform] Recognize URLs with whitespaces (#12044)
+* [einthusan] Relax URL regular expression (#12141, #12159)
 + [generic] Support complex JWPlayer embedded videos (#12030)
+* [elpais] Improve extraction (#12139)
 
 
 version 2017.02.16
