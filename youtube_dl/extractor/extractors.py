@@ -932,6 +932,11 @@ from .teamcoco import TeamcocoIE
 from .teamfourstar import TeamFourStarIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
+from .tegnamedia import (
+    NineNewsIE,
+    THVElevenIE,
+    TwelveNewsIE,
+)
 from .tele13 import Tele13IE
 from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
