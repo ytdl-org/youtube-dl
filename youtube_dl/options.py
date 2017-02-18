@@ -550,16 +550,16 @@ def parseOpts(overrideArguments=None):
             '(maximum possible number of seconds to sleep). Must only be used '
             'along with --min-sleep-interval.'))
     workarounds.add_option(
-        '--bypass-geo',
-        action='store_true', dest='bypass_geo_restriction', default=True,
+        '--geo-bypass',
+        action='store_true', dest='geo_bypass', default=True,
         help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
     workarounds.add_option(
-        '--no-bypass-geo',
-        action='store_false', dest='bypass_geo_restriction', default=True,
+        '--no-geo-bypass',
+        action='store_false', dest='geo_bypass', default=True,
         help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
     workarounds.add_option(
-        '--bypass-geo-as-country', metavar='CODE',
-        dest='bypass_geo_restriction_as_country', default=None,
+        '--geo-bypass-country', metavar='CODE',
+        dest='geo_bypass_country', default=None,
         help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
