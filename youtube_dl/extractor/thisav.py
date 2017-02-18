@@ -10,6 +10,7 @@ from ..utils import remove_end
 class ThisAVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?thisav\.com/video/(?P<id>[0-9]+)/.*'
     _TESTS = [{
+        # jwplayer
         'url': 'http://www.thisav.com/video/47734/%98%26sup1%3B%83%9E%83%82---just-fit.html',
         'md5': '0480f1ef3932d901f0e0e719f188f19b',
         'info_dict': {
@@ -20,6 +21,7 @@ class ThisAVIE(InfoExtractor):
             'uploader_id': 'dj7970'
         }
     }, {
+        # html5 media
         'url': 'http://www.thisav.com/video/242352/nerdy-18yo-big-ass-tattoos-and-glasses.html',
         'md5': 'ba90c076bd0f80203679e5b60bf523ee',
         'info_dict': {
@@ -48,8 +50,12 @@ class ThisAVIE(InfoExtractor):
                 }],
             }
         else:
-            info_dict = self._extract_jwplayer_data(
-                webpage, video_id, require_title=False)
+            entries = self._parse_html5_media_entries(url, webpage, video_id)
+            if entries:
+                info_dict = entries[0]
+            else:
+                info_dict = self._extract_jwplayer_data(
+                    webpage, video_id, require_title=False)
         uploader = self._html_search_regex(
             r': <a href="http://www.thisav.com/user/[0-9]+/(?:[^"]+)">([^<]+)</a>',
             webpage, 'uploader name', fatal=False)
