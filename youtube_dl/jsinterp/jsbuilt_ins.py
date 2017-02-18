@@ -1,10 +1,13 @@
 from __future__ import unicode_literals
 
+import re
+
 from math import isnan, isinf, log10
 from sys import float_info
 from types import FunctionType
 
 from ..compat import compat_str
+from .jsgrammar import __HEXADECIMAL_RE
 
 
 def _to_js(o, name=None):
@@ -69,27 +72,79 @@ def to_boolean(o):
     elif isinstance(o, JSObjectPrototype):
         return true
     else:
-        raise Exception('Failed to convert type %s to boolean (not specified)' % type(o))
+        raise Exception('Failed to convert type %s to Boolean (not specified)' % type(o))
 
 
 def to_number(o):
-    # TODO to_number
-    pass
+    if o is undefined:
+        return float('nan')
+    elif o is null or isinstance(o, JSBooleanPrototype) and o.value is false:
+        return 0
+    elif isinstance(o, JSBooleanPrototype) and o.value is true:
+        return 1
+    elif isinstance(o, JSStringPrototype):
+        _STR_FLOAT_RE = r'(?:(?:[0-9]+(?:\.[0-9]*)?)|(?:\.[0-9]+))(?:[eE][+-]?[0-9]+)?'
+        m = re.match(r'^[\s\n]*(?P<value>(?:[+-]*(?:Infinity|%(float)s))|%(hex)s)?[\s\n]*$' % {'float': _STR_FLOAT_RE,
+                                                                                               'hex': __HEXADECIMAL_RE},
+                     o.value)
+        if m:
+            v = m.group('value')
+            if v:
+                s = 1 if v.startswith('+') or v.startswith('-') else 0
+                if v[s:] == 'Infinity':
+                    return float(v[:s] + 'inf')  # 10 ** 10000 according to spec
+                elif v[s:].isdigit():
+                    return int(v)
+                elif v.startswith('0x') or v.startswith('0X'):
+                    return int(v, 16)
+                else:
+                    return float(v)
+            else:
+                return 0
+        else:
+            return float('nan')
+
+    elif isinstance(o, JSObjectPrototype):
+        prim_value = to_primitive(o, 'Number')
+        return to_number(prim_value)
+    else:
+        raise Exception('Failed to convert type %s to Number (not specified)' % type(o))
 
 
 def to_integer(o):
-    # TODO to_integer
-    pass
+    number = to_number(o)
+    if isnan(number):
+        return 0
+    elif isinf(number) or number == 0:
+        return number
+    return int(number)  # equivalent to: int(copysign(floor(abs(number)), number))
 
 
 def to_int32(o):
-    # TODO to_int32
-    pass
+    number = to_number(o)
+    if isnan(number) or isinf(number) or number == 0:
+        return 0
+    pos_int = int(number)
+    int32 = pos_int % 2 ** 32
+    return int32 if int32 < 2 ** 31 else int32 - 2 ** 32
 
 
-def to_int16(o):
-    # TODO to_int16
-    pass
+def to_uint32(o):
+    number = to_number(o)
+    if isnan(number) or isinf(number) or number == 0:
+        return 0
+    pos_int = int(number)
+    int32 = pos_int % 2 ** 32
+    return int32
+
+
+def to_uint16(o):
+    number = to_number(o)
+    if isnan(number) or isinf(number) or number == 0:
+        return 0
+    pos_int = int(number)
+    int16 = pos_int % 2 ** 16
+    return int16
 
 
 def to_string(o):
@@ -143,6 +198,8 @@ def to_string(o):
     elif isinstance(o, JSObjectPrototype):
         prim_value = to_primitive(o, 'String')
         return to_string(prim_value)
+    else:
+        raise Exception('Failed to convert type %s to String (not specified)' % type(o))
 
 
 def to_object(o):
@@ -732,10 +789,12 @@ class JSBoolean(JSObject):
 
 
 class JSNumberPrototype(JSObjectPrototype):
+    # TODO Number object
     pass
 
 
 class JSNumber(JSObject):
+    # TODO Number class
     pass
 
 
