@@ -51,12 +51,9 @@ class TegnaMediaIE(InfoExtractor):
                     path, video_id, ext='mp4', entry_protocol='m3u8_native')
                 formats += forms
             elif elem.get('Format') == 'HDS':
-                # I am not sure how to extract this format, I have tried the
-                # following, but this format seems to be only mentioned
-                # in the json, but not really available:
-                # forms = self._extract_akamai_formats(path, video_id)
-                # formats += forms
-                pass
+                path += '/manifest.f4m?hdcode'
+                forms = self._extract_akamai_formats(path, video_id)
+                formats += forms
 
         self._sort_formats(formats)
         return {
