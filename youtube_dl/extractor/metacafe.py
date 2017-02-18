@@ -50,6 +50,18 @@ class MetacafeIE(InfoExtractor):
             },
             'skip': 'Page is temporarily unavailable.',
         },
+        # metacafe video with family filter
+        {
+            'url': 'http://www.metacafe.com/watch/2155630/adult_art_by_david_hart_156/',
+            'md5': 'b06082c5079bbdcde677a6291fbdf376',
+            'info_dict': {
+                'id': '2155630',
+                'ext': 'mp4',
+                'title': 'Adult Art By David Hart #156',
+                'uploader': 'hartistry',
+                'description': 'Adult Art By David Hart.  All the Art Works presented here are not in the possession of the American Artist, David John Hart.  The paintings are in collections worldwide of individuals, countries, art museums, foundations and charities.',
+            }
+        },
         # AnyClip video
         {
             'url': 'http://www.metacafe.com/watch/an-dVVXnuY7Jh77J/the_andromeda_strain_1971_stop_the_bomb_part_3/',
@@ -148,8 +160,9 @@ class MetacafeIE(InfoExtractor):
         # AnyClip videos require the flashversion cookie so that we get the link
         # to the mp4 file
         headers = {}
+        headers['Cookie'] = 'user=%7B%22ffilter%22%3Afalse%7D;';
         if video_id.startswith('an-'):
-            headers['Cookie'] = 'flashVersion=0;'
+            headers['Cookie'] += ' flashVersion=0;'
 
         # Retrieve video webpage to extract further information
         webpage = self._download_webpage(url, video_id, headers=headers)
