@@ -228,17 +228,29 @@ def parseOpts(overrideArguments=None):
         action='store_const', const='::', dest='source_address',
         help='Make all connections via IPv6',
     )
-    network.add_option(
+
+    geo = optparse.OptionGroup(parser, 'Geo Restriction')
+    geo.add_option(
         '--geo-verification-proxy',
         dest='geo_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some geo-restricted sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.'
-    )
-    network.add_option(
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.')
+    geo.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
-        help=optparse.SUPPRESS_HELP,
-    )
+        help=optparse.SUPPRESS_HELP)
+    geo.add_option(
+        '--geo-bypass',
+        action='store_true', dest='geo_bypass', default=True,
+        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--no-geo-bypass',
+        action='store_false', dest='geo_bypass', default=True,
+        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--geo-bypass-country', metavar='CODE',
+        dest='geo_bypass_country', default=None,
+        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
@@ -549,18 +561,6 @@ def parseOpts(overrideArguments=None):
             'Upper bound of a range for randomized sleep before each download '
             '(maximum possible number of seconds to sleep). Must only be used '
             'along with --min-sleep-interval.'))
-    workarounds.add_option(
-        '--geo-bypass',
-        action='store_true', dest='geo_bypass', default=True,
-        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
-    workarounds.add_option(
-        '--no-geo-bypass',
-        action='store_false', dest='geo_bypass', default=True,
-        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
-    workarounds.add_option(
-        '--geo-bypass-country', metavar='CODE',
-        dest='geo_bypass_country', default=None,
-        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
@@ -848,6 +848,7 @@ def parseOpts(overrideArguments=None):
 
     parser.add_option_group(general)
     parser.add_option_group(network)
+    parser.add_option_group(geo)
     parser.add_option_group(selection)
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)
