@@ -39,6 +39,7 @@ from .compat import (
     compat_urllib_error,
     compat_urllib_request,
     compat_urllib_request_DataHandler,
+    compat_input,
 )
 from .utils import (
     age_restricted,
@@ -848,7 +849,6 @@ class YoutubeDL(object):
                 random.shuffle(entries)
 
             for i, entry in enumerate(entries, 1):
-                self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
                 extra = {
                     'n_entries': n_entries,
                     'playlist': playlist,
@@ -861,6 +861,31 @@ class YoutubeDL(object):
                     'extractor_key': ie_result['extractor_key'],
                 }
 
+                if self.params.get('playlistprompt', False):
+                    skipnextvid = False
+                    desc = entry.get('title', entry.get('id', ''))
+                    if not desc:
+                        entry_result = self.process_ie_result(entry,
+                                                              download=False,
+                                                              extra_info=extra)
+                        desc = entry_result.get('title', entry_result.get('id', ''))
+                    if desc:
+                        while True:
+                            self.to_screen('Do you want to download video %s/%s: "%s"? (Y/n) ' %
+                                           (i, n_entries, desc), skip_eol=True)
+                            answer = compat_input().lower()
+                            if answer == 'n':
+                                skipnextvid = True
+                                break
+                            elif answer == 'y' or answer == '':
+                                skipnextvid = False
+                                break
+
+                    if skipnextvid:
+                        continue
+
+                self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
+
                 reason = self._match_entry(entry, incomplete=True)
                 if reason is not None:
                     self.to_screen('[download] ' + reason)
@@ -870,6 +895,7 @@ class YoutubeDL(object):
                                                       download=download,
                                                       extra_info=extra)
                 playlist_results.append(entry_result)
+
             ie_result['entries'] = playlist_results
             self.to_screen('[download] Finished downloading playlist: %s' % playlist)
             return ie_result
