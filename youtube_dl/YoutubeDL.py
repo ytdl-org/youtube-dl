@@ -274,10 +274,9 @@ class YoutubeDL(object):
                        If it returns None, the video is downloaded.
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
-    bypass_geo_restriction:
-                       Bypass geographic restriction via faking X-Forwarded-For
+    geo_bypass:        Bypass geographic restriction via faking X-Forwarded-For
                        HTTP header (experimental)
-    bypass_geo_restriction_as_country:
+    geo_bypass_country:
                        Two-letter ISO 3166-2 country code that will be used for
                        explicit geographic restriction bypassing via faking
                        X-Forwarded-For HTTP header (experimental)

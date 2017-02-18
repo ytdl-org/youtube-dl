@@ -326,7 +326,7 @@ class InfoExtractor(object):
     _BYPASS_GEO attribute may be set to False in order to disable
     geo restriction bypass mechanisms for a particular extractor.
     Though it won't disable explicit geo restriction bypass based on
-    country code provided with bypass_geo_restriction_as_country.
+    country code provided with geo_bypass_country.
 
     Finally, the _WORKING attribute should be set to False for broken IEs
     in order to warn the users and skip the tests.
@@ -371,7 +371,7 @@ class InfoExtractor(object):
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
         if not self._x_forwarded_for_ip:
-            country_code = self._downloader.params.get('bypass_geo_restriction_as_country', None)
+            country_code = self._downloader.params.get('geo_bypass_country', None)
             if country_code:
                 self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
         if not self._ready:
@@ -389,9 +389,9 @@ class InfoExtractor(object):
                         ie_result['__x_forwarded_for_ip'] = self._x_forwarded_for_ip
                     return ie_result
                 except GeoRestrictedError as e:
-                    if (not self._downloader.params.get('bypass_geo_restriction_as_country', None) and
+                    if (not self._downloader.params.get('geo_bypass_country', None) and
                             self._BYPASS_GEO and
-                            self._downloader.params.get('bypass_geo_restriction', True) and
+                            self._downloader.params.get('geo_bypass', True) and
                             not self._x_forwarded_for_ip and
                             e.countries):
                         self._x_forwarded_for_ip = GeoUtils.random_ipv4(random.choice(e.countries))
