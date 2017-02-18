@@ -37,6 +37,7 @@ class GoIE(AdobePassIE):
         }
     }
     _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:[^/]+/)*(?:vdka(?P<id>\w+)|season-\d+/\d+-(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
+    _GEO_COUNTRIES = ['US']
     _TESTS = [{
         'url': 'http://abc.go.com/shows/castle/video/most-recent/vdka0_g86w5onx',
         'info_dict': {
@@ -104,7 +105,7 @@ class GoIE(AdobePassIE):
                         for error in errors:
                             if error.get('code') == 1002:
                                 self.raise_geo_restricted(
-                                    error['message'], countries=['US'])
+                                    error['message'], countries=self._GEO_COUNTRIES)
                         error_message = ', '.join([error['message'] for error in errors])
                         raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message), expected=True)
                     asset_url += '?' + entitlement['uplynkData']['sessionKey']

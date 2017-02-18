@@ -323,10 +323,15 @@ class InfoExtractor(object):
     _real_extract() methods and define a _VALID_URL regexp.
     Probably, they should also be added to the list of extractors.
 
-    _BYPASS_GEO attribute may be set to False in order to disable
+    _GEO_BYPASS attribute may be set to False in order to disable
     geo restriction bypass mechanisms for a particular extractor.
     Though it won't disable explicit geo restriction bypass based on
-    country code provided with geo_bypass_country.
+    country code provided with geo_bypass_country. (experimental)
+
+    _GEO_COUNTRIES attribute may contain a list of presumably geo unrestricted
+    countries for this extractor. One of these countries will be used by
+    geo restriction bypass mechanism right away in order to bypass
+    geo restriction, of course, if the mechanism is not disabled. (experimental)
 
     Finally, the _WORKING attribute should be set to False for broken IEs
     in order to warn the users and skip the tests.
@@ -335,7 +340,8 @@ class InfoExtractor(object):
     _ready = False
     _downloader = None
     _x_forwarded_for_ip = None
-    _BYPASS_GEO = True
+    _GEO_BYPASS = True
+    _GEO_COUNTRIES = None
     _WORKING = True
 
     def __init__(self, downloader=None):
@@ -370,13 +376,27 @@ class InfoExtractor(object):
 
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
-        if not self._x_forwarded_for_ip:
-            country_code = self._downloader.params.get('geo_bypass_country', None)
-            if country_code:
-                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
+        self.__initialize_geo_bypass()
         if not self._ready:
             self._real_initialize()
             self._ready = True
+
+    def __initialize_geo_bypass(self):
+        if not self._x_forwarded_for_ip:
+            country_code = self._downloader.params.get('geo_bypass_country', None)
+            # If there is no explicit country for geo bypass specified and
+            # the extractor is known to be geo restricted let's fake IP
+            # as X-Forwarded-For right away.
+            if (not country_code and
+                    self._GEO_BYPASS and
+                    self._downloader.params.get('geo_bypass', True) and
+                    self._GEO_COUNTRIES):
+                country_code = random.choice(self._GEO_COUNTRIES)
+            if country_code:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
+                if self._downloader.params.get('verbose', False):
+                    self._downloader.to_stdout(
+                        '[debug] Using fake %s IP as X-Forwarded-For.' % self._x_forwarded_for_ip)
 
     def extract(self, url):
         """Extracts URL information and returns it in list of dicts."""
@@ -389,16 +409,8 @@ class InfoExtractor(object):
                         ie_result['__x_forwarded_for_ip'] = self._x_forwarded_for_ip
                     return ie_result
                 except GeoRestrictedError as e:
-                    if (not self._downloader.params.get('geo_bypass_country', None) and
-                            self._BYPASS_GEO and
-                            self._downloader.params.get('geo_bypass', True) and
-                            not self._x_forwarded_for_ip and
-                            e.countries):
-                        self._x_forwarded_for_ip = GeoUtils.random_ipv4(random.choice(e.countries))
-                        if self._x_forwarded_for_ip:
-                            self.report_warning(
-                                'Video is geo restricted. Retrying extraction with fake %s IP as X-Forwarded-For.' % self._x_forwarded_for_ip)
-                            continue
+                    if self.__maybe_fake_ip_and_retry(e.countries):
+                        continue
                     raise
         except ExtractorError:
             raise
@@ -406,6 +418,19 @@ class InfoExtractor(object):
             raise ExtractorError('A network error has occurred.', cause=e, expected=True)
         except (KeyError, StopIteration) as e:
             raise ExtractorError('An extractor error has occurred.', cause=e)
+
+    def __maybe_fake_ip_and_retry(self, countries):
+        if (not self._downloader.params.get('geo_bypass_country', None) and
+                self._GEO_BYPASS and
+                self._downloader.params.get('geo_bypass', True) and
+                not self._x_forwarded_for_ip and
+                countries):
+            self._x_forwarded_for_ip = GeoUtils.random_ipv4(random.choice(countries))
+            if self._x_forwarded_for_ip:
+                self.report_warning(
+                    'Video is geo restricted. Retrying extraction with fake %s IP as X-Forwarded-For.' % self._x_forwarded_for_ip)
+                return True
+        return False
 
     def set_downloader(self, downloader):
         """Sets the downloader for this IE."""

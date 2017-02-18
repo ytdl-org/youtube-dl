@@ -27,7 +27,7 @@ class VikiBaseIE(InfoExtractor):
     _APP_VERSION = '2.2.5.1428709186'
     _APP_SECRET = '-$iJ}@p7!G@SyU/je1bEyWg}upLu-6V6-Lg9VD(]siH,r.,m-r|ulZ,U4LC/SeR)'
 
-    _BYPASS_GEO = False
+    _GEO_BYPASS = False
     _NETRC_MACHINE = 'viki'
 
     _token = None

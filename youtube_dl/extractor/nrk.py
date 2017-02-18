@@ -14,6 +14,7 @@ from ..utils import (
 
 
 class NRKBaseIE(InfoExtractor):
+    _GEO_COUNTRIES = ['NO']
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -93,7 +94,8 @@ class NRKBaseIE(InfoExtractor):
             # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
             if 'IsGeoBlocked' in message_type:
                 self.raise_geo_restricted(
-                    msg=MESSAGES.get('ProgramIsGeoBlocked'), countries=['NO'])
+                    msg=MESSAGES.get('ProgramIsGeoBlocked'),
+                    countries=self._GEO_COUNTRIES)
             raise ExtractorError(
                 '%s said: %s' % (self.IE_NAME, MESSAGES.get(
                     message_type, message_type)),
