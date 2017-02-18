@@ -6,12 +6,12 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
-    urlencode_postdata,
     get_element_by_attribute,
     mimetype2ext,
 )
@@ -57,10 +57,13 @@ class MetacafeIE(InfoExtractor):
             'info_dict': {
                 'id': '2155630',
                 'ext': 'mp4',
-                'title': 'Adult Art By David Hart #156',
-                'uploader': 'hartistry',
-                'description': 'Adult Art By David Hart.  All the Art Works presented here are not in the possession of the American Artist, David John Hart.  The paintings are in collections worldwide of individuals, countries, art museums, foundations and charities.',
-            }
+                'title': 'Adult Art By David Hart 156',
+                'uploader': '63346',
+                'description': 'md5:9afac8fc885252201ad14563694040fc',
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
         # AnyClip video
         {
@@ -124,22 +127,6 @@ class MetacafeIE(InfoExtractor):
     def report_disclaimer(self):
         self.to_screen('Retrieving disclaimer')
 
-    def _confirm_age(self):
-        # Retrieve disclaimer
-        self.report_disclaimer()
-        self._download_webpage(self._DISCLAIMER, None, False, 'Unable to retrieve disclaimer')
-
-        # Confirm age
-        self.report_age_confirmation()
-        self._download_webpage(
-            self._FILTER_POST, None, False, 'Unable to confirm age',
-            data=urlencode_postdata({
-                'filters': '0',
-                'submit': "Continue - I'm over 18",
-            }), headers={
-                'Content-Type': 'application/x-www-form-urlencoded',
-            })
-
     def _real_extract(self, url):
         # Extract id and simplified title from URL
         video_id, display_id = re.match(self._VALID_URL, url).groups()
@@ -155,14 +142,15 @@ class MetacafeIE(InfoExtractor):
             if prefix == 'cb':
                 return self.url_result('theplatform:%s' % ext_id, 'ThePlatform')
 
-        # self._confirm_age()
+        headers = {
+            # Disable family filter
+            'Cookie': 'user=%s; ' % compat_urllib_parse_urlencode({'ffilter': False})
+        }
 
         # AnyClip videos require the flashversion cookie so that we get the link
         # to the mp4 file
-        headers = {}
-        headers['Cookie'] = 'user=%7B%22ffilter%22%3Afalse%7D;';
         if video_id.startswith('an-'):
-            headers['Cookie'] += ' flashVersion=0;'
+            headers['Cookie'] += 'flashVersion=0; '
 
         # Retrieve video webpage to extract further information
         webpage = self._download_webpage(url, video_id, headers=headers)
