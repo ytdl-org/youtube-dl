@@ -80,7 +80,7 @@ class TV4IE(InfoExtractor):
         subtitles = {}
         formats = []
         # http formats are linked with unresolvable host
-        for kind in ('hls', ''):
+        for kind in ('hls3', ''):
             data = self._download_json(
                 'https://prima.tv4play.se/api/web/asset/%s/play.json' % video_id,
                 video_id, 'Downloading sources JSON', query={
