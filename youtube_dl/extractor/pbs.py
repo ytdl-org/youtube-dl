@@ -193,6 +193,8 @@ class PBSIE(InfoExtractor):
         )
     ''' % '|'.join(list(zip(*_STATIONS))[0])
 
+    _GEO_COUNTRIES = ['US']
+
     _TESTS = [
         {
             'url': 'http://www.pbs.org/tpt/constitution-usa-peter-sagal/watch/a-more-perfect-union/',
@@ -492,7 +494,8 @@ class PBSIE(InfoExtractor):
                 message = self._ERRORS.get(
                     redirect_info['http_code'], redirect_info['message'])
                 if redirect_info['http_code'] == 403:
-                    self.raise_geo_restricted(msg=message, countries=['US'])
+                    self.raise_geo_restricted(
+                        msg=message, countries=self._GEO_COUNTRIES)
                 raise ExtractorError(
                     '%s said: %s' % (self.IE_NAME, message), expected=True)
 
