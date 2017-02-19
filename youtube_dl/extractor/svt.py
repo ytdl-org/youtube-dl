@@ -14,6 +14,7 @@ from ..utils import (
 
 class SVTBaseIE(InfoExtractor):
     _GEO_COUNTRIES = ['SE']
+
     def _extract_video(self, video_info, video_id):
         formats = []
         for vr in video_info['videoReferences']:
