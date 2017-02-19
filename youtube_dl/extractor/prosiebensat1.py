@@ -424,3 +424,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             return self._extract_clip(url, webpage)
         elif page_type == 'playlist':
             return self._extract_playlist(url, webpage)
+        else:
+            raise ExtractorError(
+                'Unsupported page type %s' % page_type, expected=True)
