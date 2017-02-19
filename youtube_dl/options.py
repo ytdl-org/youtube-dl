@@ -228,17 +228,29 @@ def parseOpts(overrideArguments=None):
         action='store_const', const='::', dest='source_address',
         help='Make all connections via IPv6',
     )
-    network.add_option(
+
+    geo = optparse.OptionGroup(parser, 'Geo Restriction')
+    geo.add_option(
         '--geo-verification-proxy',
         dest='geo_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some geo-restricted sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.'
-    )
-    network.add_option(
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.')
+    geo.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
-        help=optparse.SUPPRESS_HELP,
-    )
+        help=optparse.SUPPRESS_HELP)
+    geo.add_option(
+        '--geo-bypass',
+        action='store_true', dest='geo_bypass', default=True,
+        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--no-geo-bypass',
+        action='store_false', dest='geo_bypass', default=True,
+        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--geo-bypass-country', metavar='CODE',
+        dest='geo_bypass_country', default=None,
+        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
@@ -298,14 +310,16 @@ def parseOpts(overrideArguments=None):
         metavar='FILTER', dest='match_filter', default=None,
         help=(
             'Generic video filter. '
-            'Specify any key (see help for -o for a list of available keys) to'
-            ' match if the key is present, '
-            '!key to check if the key is not present,'
+            'Specify any key (see help for -o for a list of available keys) to '
+            'match if the key is present, '
+            '!key to check if the key is not present, '
             'key > NUMBER (like "comment_count > 12", also works with '
-            '>=, <, <=, !=, =) to compare against a number, and '
-            '& to require multiple matches. '
-            'Values which are not known are excluded unless you'
-            ' put a question mark (?) after the operator.'
+            '>=, <, <=, !=, =) to compare against a number, '
+            'key = \'LITERAL\' (like "uploader = \'Mike Smith\'", also works with !=) '
+            'to match against a string literal '
+            'and & to require multiple matches. '
+            'Values which are not known are excluded unless you '
+            'put a question mark (?) after the operator. '
             'For example, to only match videos that have been liked more than '
             '100 times and disliked less than 50 times (or the dislike '
             'functionality is not available at the given service), but who '
@@ -834,6 +848,7 @@ def parseOpts(overrideArguments=None):
 
     parser.add_option_group(general)
     parser.add_option_group(network)
+    parser.add_option_group(geo)
     parser.add_option_group(selection)
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)

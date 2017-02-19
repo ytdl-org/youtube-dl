@@ -75,17 +75,17 @@ class OpenloadIE(InfoExtractor):
             '<span[^>]+id="[^"]+"[^>]*>([0-9]+)</span>',
             webpage, 'openload ID')
 
-        first_three_chars = int(float(ol_id[0:][:3]))
-        fifth_char = int(float(ol_id[3:5]))
-        urlcode = ''
-        num = 5
+        first_two_chars = int(float(ol_id[0:][:2]))
+        urlcode = []
+        num = 2
 
         while num < len(ol_id):
-            urlcode += compat_chr(int(float(ol_id[num:][:3])) +
-                                  first_three_chars - fifth_char * int(float(ol_id[num + 3:][:2])))
+            key = int(float(ol_id[num + 3:][:2]))
+            urlcode.append((key, compat_chr(int(float(ol_id[num:][:3])) - first_two_chars)))
             num += 5
 
-        video_url = 'https://openload.co/stream/' + urlcode
+        video_url = 'https://openload.co/stream/' + ''.join(
+            [value for _, value in sorted(urlcode, key=lambda x: x[0])])
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,

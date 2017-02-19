@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     unified_strdate,
     clean_html,
 )
 
 
-class ArchiveOrgIE(JWPlatformBaseIE):
+class ArchiveOrgIE(InfoExtractor):
     IE_NAME = 'archive.org'
     IE_DESC = 'archive.org videos'
     _VALID_URL = r'https?://(?:www\.)?archive\.org/(?:details|embed)/(?P<id>[^/?#]+)(?:[?].*)?$'

@@ -56,6 +56,8 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
+    GeoRestrictedError,
+    ISO3166Utils,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -272,6 +274,12 @@ class YoutubeDL(object):
                        If it returns None, the video is downloaded.
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
+    geo_bypass:        Bypass geographic restriction via faking X-Forwarded-For
+                       HTTP header (experimental)
+    geo_bypass_country:
+                       Two-letter ISO 3166-2 country code that will be used for
+                       explicit geographic restriction bypassing via faking
+                       X-Forwarded-For HTTP header (experimental)
 
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
@@ -707,6 +715,14 @@ class YoutubeDL(object):
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
+            except GeoRestrictedError as e:
+                msg = e.msg
+                if e.countries:
+                    msg += '\nThis video is available in %s.' % ', '.join(
+                        map(ISO3166Utils.short2full, e.countries))
+                msg += '\nYou might want to use a VPN or a proxy server (with --proxy) to workaround.'
+                self.report_error(msg)
+                break
             except ExtractorError as e:  # An error we somewhat expected
                 self.report_error(compat_str(e), e.format_traceback())
                 break
@@ -847,8 +863,14 @@ class YoutubeDL(object):
             if self.params.get('playlistrandom', False):
                 random.shuffle(entries)
 
+            x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
+
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
+                # This __x_forwarded_for_ip thing is a bit ugly but requires
+                # minimal changes
+                if x_forwarded_for:
+                    entry['__x_forwarded_for_ip'] = x_forwarded_for
                 extra = {
                     'n_entries': n_entries,
                     'playlist': playlist,
@@ -1233,6 +1255,11 @@ class YoutubeDL(object):
         if cookies:
             res['Cookie'] = cookies
 
+        if 'X-Forwarded-For' not in res:
+            x_forwarded_for_ip = info_dict.get('__x_forwarded_for_ip')
+            if x_forwarded_for_ip:
+                res['X-Forwarded-For'] = x_forwarded_for_ip
+
         return res
 
     def _calc_cookies(self, info_dict):
@@ -1375,6 +1402,9 @@ class YoutubeDL(object):
             full_format_info = info_dict.copy()
             full_format_info.update(format)
             format['http_headers'] = self._calc_headers(full_format_info)
+        # Remove private housekeeping stuff
+        if '__x_forwarded_for_ip' in info_dict:
+            del info_dict['__x_forwarded_for_ip']
 
         # TODO Central sorting goes here
 

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     decode_packed_codes,
     js_to_json,
@@ -12,7 +12,7 @@ from ..utils import (
 )
 
 
-class VidziIE(JWPlatformBaseIE):
+class VidziIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
     _TESTS = [{
         'url': 'http://vidzi.tv/cghql9yq6emu.html',

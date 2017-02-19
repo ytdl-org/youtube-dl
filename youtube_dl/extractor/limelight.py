@@ -8,6 +8,7 @@ from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    unsmuggle_url,
 )
 
 
@@ -15,20 +16,23 @@ class LimelightBaseIE(InfoExtractor):
     _PLAYLIST_SERVICE_URL = 'http://production-ps.lvp.llnw.net/r/PlaylistService/%s/%s/%s'
     _API_URL = 'http://api.video.limelight.com/rest/organizations/%s/%s/%s/%s.json'
 
-    def _call_playlist_service(self, item_id, method, fatal=True):
+    def _call_playlist_service(self, item_id, method, fatal=True, referer=None):
+        headers = {}
+        if referer:
+            headers['Referer'] = referer
         return self._download_json(
             self._PLAYLIST_SERVICE_URL % (self._PLAYLIST_SERVICE_PATH, item_id, method),
-            item_id, 'Downloading PlaylistService %s JSON' % method, fatal=fatal)
+            item_id, 'Downloading PlaylistService %s JSON' % method, fatal=fatal, headers=headers)
 
     def _call_api(self, organization_id, item_id, method):
         return self._download_json(
             self._API_URL % (organization_id, self._API_PATH, item_id, method),
             item_id, 'Downloading API %s JSON' % method)
 
-    def _extract(self, item_id, pc_method, mobile_method, meta_method):
-        pc = self._call_playlist_service(item_id, pc_method)
+    def _extract(self, item_id, pc_method, mobile_method, meta_method, referer=None):
+        pc = self._call_playlist_service(item_id, pc_method, referer=referer)
         metadata = self._call_api(pc['orgId'], item_id, meta_method)
-        mobile = self._call_playlist_service(item_id, mobile_method, fatal=False)
+        mobile = self._call_playlist_service(item_id, mobile_method, fatal=False, referer=referer)
         return pc, mobile, metadata
 
     def _extract_info(self, streams, mobile_urls, properties):
@@ -207,10 +211,13 @@ class LimelightMediaIE(LimelightBaseIE):
     _API_PATH = 'media'
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         video_id = self._match_id(url)
 
         pc, mobile, metadata = self._extract(
-            video_id, 'getPlaylistByMediaId', 'getMobilePlaylistByMediaId', 'properties')
+            video_id, 'getPlaylistByMediaId',
+            'getMobilePlaylistByMediaId', 'properties',
+            smuggled_data.get('source_url'))
 
         return self._extract_info(
             pc['playlistItems'][0].get('streams', []),
@@ -247,11 +254,13 @@ class LimelightChannelIE(LimelightBaseIE):
     _API_PATH = 'channels'
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         channel_id = self._match_id(url)
 
         pc, mobile, medias = self._extract(
             channel_id, 'getPlaylistByChannelId',
-            'getMobilePlaylistWithNItemsByChannelId?begin=0&count=-1', 'media')
+            'getMobilePlaylistWithNItemsByChannelId?begin=0&count=-1',
+            'media', smuggled_data.get('source_url'))
 
         entries = [
             self._extract_info(

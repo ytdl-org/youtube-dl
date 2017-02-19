@@ -24,6 +24,7 @@ from ..utils import (
 
 class ITVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?itv\.com/hub/[^/]+/(?P<id>[0-9a-zA-Z]+)'
+    _GEO_COUNTRIES = ['GB']
     _TEST = {
         'url': 'http://www.itv.com/hub/mr-bean-animated-series/2a2936a0053',
         'info_dict': {
@@ -98,7 +99,11 @@ class ITVIE(InfoExtractor):
             headers=headers, data=etree.tostring(req_env))
         playlist = xpath_element(resp_env, './/Playlist')
         if playlist is None:
+            fault_code = xpath_text(resp_env, './/faultcode')
             fault_string = xpath_text(resp_env, './/faultstring')
+            if fault_code == 'InvalidGeoRegion':
+                self.raise_geo_restricted(
+                    msg=fault_string, countries=self._GEO_COUNTRIES)
             raise ExtractorError('%s said: %s' % (self.IE_NAME, fault_string))
         title = xpath_text(playlist, 'EpisodeTitle', fatal=True)
         video_element = xpath_element(playlist, 'VideoEntries/Video', fatal=True)

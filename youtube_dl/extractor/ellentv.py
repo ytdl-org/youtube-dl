@@ -1,13 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    NO_DEFAULT,
-)
+from .kaltura import KalturaIE
+from ..utils import NO_DEFAULT
 
 
 class EllenTVIE(InfoExtractor):
@@ -65,7 +61,7 @@ class EllenTVIE(InfoExtractor):
             if partner_id and kaltura_id:
                 break
 
-        return self.url_result('kaltura:%s:%s' % (partner_id, kaltura_id), 'Kaltura')
+        return self.url_result('kaltura:%s:%s' % (partner_id, kaltura_id), KalturaIE.ie_key())
 
 
 class EllenTVClipsIE(InfoExtractor):
@@ -77,14 +73,14 @@ class EllenTVClipsIE(InfoExtractor):
             'id': 'meryl-streep-vanessa-hudgens',
             'title': 'Meryl Streep, Vanessa Hudgens',
         },
-        'playlist_mincount': 7,
+        'playlist_mincount': 5,
     }
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
-        playlist = self._extract_playlist(webpage)
+        playlist = self._extract_playlist(webpage, playlist_id)
 
         return {
             '_type': 'playlist',
@@ -93,16 +89,13 @@ class EllenTVClipsIE(InfoExtractor):
             'entries': self._extract_entries(playlist)
         }
 
-    def _extract_playlist(self, webpage):
+    def _extract_playlist(self, webpage, playlist_id):
         json_string = self._search_regex(r'playerView.addClips\(\[\{(.*?)\}\]\);', webpage, 'json')
-        try:
-            return json.loads('[{' + json_string + '}]')
-        except ValueError as ve:
-            raise ExtractorError('Failed to download JSON', cause=ve)
+        return self._parse_json('[{' + json_string + '}]', playlist_id)
 
     def _extract_entries(self, playlist):
         return [
             self.url_result(
                 'kaltura:%s:%s' % (item['kaltura_partner_id'], item['kaltura_entry_id']),
-                'Kaltura')
+                KalturaIE.ie_key(), video_id=item['kaltura_entry_id'])
             for item in playlist]

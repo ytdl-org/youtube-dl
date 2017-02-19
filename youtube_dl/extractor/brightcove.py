@@ -191,6 +191,10 @@ class BrightcoveLegacyIE(InfoExtractor):
         # These fields hold the id of the video
         videoPlayer = find_param('@videoPlayer') or find_param('videoId') or find_param('videoID') or find_param('@videoList')
         if videoPlayer is not None:
+            if isinstance(videoPlayer, list):
+                videoPlayer = videoPlayer[0]
+            if not (videoPlayer.isdigit() or videoPlayer.startswith('ref:')):
+                return None
             params['@videoPlayer'] = videoPlayer
         linkBase = find_param('linkBaseURL')
         if linkBase is not None:

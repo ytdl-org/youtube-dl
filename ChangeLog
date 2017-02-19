@@ -1,7 +1,50 @@
-version <unreleased>
+version 2017.02.17
+
+Extractors
+* [heise] Improve extraction (#9725)
+* [ellentv] Improve (#11653)
+* [openload] Fix extraction (#10408, #12002)
++ [theplatform] Recognize URLs with whitespaces (#12044)
+* [einthusan] Relax URL regular expression (#12141, #12159)
++ [generic] Support complex JWPlayer embedded videos (#12030)
+* [elpais] Improve extraction (#12139)
+
+
+version 2017.02.16
+
+Core
++ [utils] Add support for quoted string literals in --match-filter (#8050,
+  #12142, #12144)
+
+Extractors
+* [ceskatelevize] Lower priority for audio description sources (#12119)
+* [amcnetworks] Fix extraction (#12127)
+* [pinkbike] Fix uploader extraction (#12054)
++ [onetpl] Add support for businessinsider.com.pl and plejada.pl
++ [onetpl] Add support for onet.pl (#10507)
++ [onetmvp] Add shortcut extractor
++ [vodpl] Add support for vod.pl (#12122)
++ [pornhub] Extract video URL from tv platform site (#12007, #12129)
++ [ceskatelevize] Extract DASH formats (#12119, #12133)
+
+
+version 2017.02.14
 
 Core
 * TypeError is fixed with Python 2.7.13 on Windows (#11540, #12085)
+
+Extractor
+* [zdf] Fix extraction (#12117)
+* [xtube] Fix extraction for both kinds of video id (#12088)
+* [xtube] Improve title extraction (#12088)
++ [lemonde] Fallback delegate extraction to generic extractor (#12115, #12116)
+* [bellmedia] Allow video id longer than 6 characters (#12114)
++ [limelight] Add support for referer protected videos
+* [disney] Improve extraction (#4975, #11000, #11882, #11936)
+* [hotstar] Improve extraction (#12096)
+* [einthusan] Fix extraction (#11416)
++ [aenetworks] Add support for lifetimemovieclub.com (#12097)
+* [youtube] Fix parsing codecs (#12091)
 
 
 version 2017.02.11

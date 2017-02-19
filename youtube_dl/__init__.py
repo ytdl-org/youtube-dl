@@ -414,6 +414,8 @@ def _real_main(argv=None):
         'cn_verification_proxy': opts.cn_verification_proxy,
         'geo_verification_proxy': opts.geo_verification_proxy,
         'config_location': opts.config_location,
+        'geo_bypass': opts.geo_bypass,
+        'geo_bypass_country': opts.geo_bypass_country,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

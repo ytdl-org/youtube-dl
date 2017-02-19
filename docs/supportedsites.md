@@ -546,8 +546,10 @@
  - **OktoberfestTV**
  - **on.aol.com**
  - **OnDemandKorea**
+ - **onet.pl**
  - **onet.tv**
  - **onet.tv:channel**
+ - **OnetMVP**
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
@@ -900,6 +902,7 @@
  - **vlive**
  - **vlive:channel**
  - **Vodlocker**
+ - **VODPl**
  - **VODPlatform**
  - **VoiceRepublic**
  - **VoxMedia**

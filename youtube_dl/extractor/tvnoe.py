@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     clean_html,
     get_element_by_class,
@@ -9,7 +9,7 @@ from ..utils import (
 )
 
 
-class TVNoeIE(JWPlatformBaseIE):
+class TVNoeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tvnoe\.cz/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.tvnoe.cz/video/10362',
