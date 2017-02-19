@@ -164,12 +164,12 @@ class NRKIE(NRKBaseIE):
                             https?://
                                 (?:
                                     (?:www\.)?nrk\.no/video/PS\*|
-                                    v8-psapi\.nrk\.no/mediaelement/
+                                    v8[-.]psapi\.nrk\.no/mediaelement/
                                 )
                             )
-                            (?P<id>[^/?#&]+)
+                            (?P<id>[^?#&]+)
                         '''
-    _API_HOST = 'v8.psapi.nrk.no'
+    _API_HOST = 'v8-psapi.nrk.no'
     _TESTS = [{
         # video
         'url': 'http://www.nrk.no/video/PS*150533',
@@ -194,6 +194,9 @@ class NRKIE(NRKBaseIE):
         }
     }, {
         'url': 'nrk:ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
+    }, {
+        'url': 'nrk:clip/7707d5a3-ebe7-434a-87d5-a3ebe7a34a70',
         'only_matching': True,
     }, {
         'url': 'https://v8-psapi.nrk.no/mediaelement/ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
