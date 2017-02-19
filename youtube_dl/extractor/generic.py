@@ -448,27 +448,6 @@ class GenericIE(InfoExtractor):
             }],
         },
         {
-            # Brightcove with metadata on one line
-            'url': 'http://www.bostonglobe.com/metro/2017/02/11/tree-finally-succumbs-disease-leaving-hole-neighborhood/h1b4lviqzMTIn9sVy8F3gP/story.html?',
-            'info_dict': {
-                'id': 'story',
-                'title': 'A tree finally succumbs to disease, leaving a hole in a neighborhood - The Boston Globe',
-            },
-            'playlist': [{
-                'info_dict': {
-                    'id': '5320421710001',
-                    'ext': 'mp4',
-                    'title': 'A tree finally succumbs to disease, leaving a hole in a neighborhood',
-                    'description': 'It arrived as a sapling when the Back Bay was in its infancy, a spindly American elm tamped down into a square of dirt cut into the brick sidewalk of 1880s Marlborough Street, no higher than the first bay window of the new brownstone behind it.',
-                    'timestamp': 1486877593,
-                    'upload_date': '20170212',
-                    'uploader_id': '245991542',
-                },
-            }],
-            # HEAD requests produce 404 :(
-            'expected_warnings': ['404'],
-        },
-        {
             # Alternative brightcove <video> attributes
             'url': 'http://www.programme-tv.net/videos/extraits/81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche/',
             'info_dict': {

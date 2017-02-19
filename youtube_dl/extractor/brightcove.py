@@ -16,7 +16,6 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
-    dict_get,
     ExtractorError,
     extract_attributes,
     find_xpath_attr,
@@ -514,7 +513,7 @@ class BrightcoveNewIE(InfoExtractor):
         for video in re.findall(r'(?i)(<video[^>]+>)', webpage):
             attrs = extract_attributes(video)
                 
-            video_id    = dict_get(attrs, ['data-brightcove-video-id', 'data-video-id'])
+            video_id    = attrs.get('data-video-id')
             account_id  = attrs.get('data-account')
             player_id   = attrs.get('data-player')
             embed       = attrs.get('data-embed')
