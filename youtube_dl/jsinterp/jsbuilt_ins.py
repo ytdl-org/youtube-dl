@@ -10,7 +10,7 @@ from ..compat import compat_str
 from .jsgrammar import __HEXADECIMAL_RE
 
 
-def _to_js(o, name=None):
+def to_js(o, name=None):
     if isinstance(o, JSProtoBase):
         return o
     elif o is None:
@@ -35,7 +35,7 @@ def _to_js(o, name=None):
 
 def js(func):
     def wrapper(*args, **kwargs):
-        return _to_js(*func(*args, **kwargs))
+        return to_js(*func(*args, **kwargs))
     return wrapper
 
 
@@ -164,7 +164,7 @@ def to_string(o):
         elif ov == 0.0:
             return '0'
         elif ov < 0:
-            return '-' + to_string(_to_js(-ov))
+            return '-' + to_string(to_js(-ov))
         elif isinf(ov):
             return 'Infinity'
         else:
@@ -312,11 +312,11 @@ class JSObject(JSBase):
     def call(value=None):
         if value is null or value is undefined or value is None:
             return JSObject.construct(value)
-        return to_object(_to_js(value))
+        return to_object(to_js(value))
 
     @staticmethod
     def construct(value=None):
-        value = _to_js(value)
+        value = to_js(value)
         # TODO set [[Prototype]], [[Class]], [[Extensible]], internal methods
         if value is undefined or value is null:
             return JSObjectPrototype()
@@ -402,7 +402,7 @@ class JSFunctionPrototype(JSObjectPrototype):
                 self.body = '[native code]'
             else:
                 super(JSFunctionPrototype, self).__init__()
-                body = _to_js(body)
+                body = to_js(body)
                 self.body = to_string(body) if body is not undefined or body is not null else ''
             self.f_name = name
             self.arguments = list(formal_args)
@@ -776,11 +776,11 @@ class JSBoolean(JSObject):
 
     @staticmethod
     def call(value=None):
-        return to_boolean(_to_js(value))
+        return to_boolean(to_js(value))
 
     @staticmethod
     def construct(value=None):
-        return JSBooleanPrototype(to_boolean(_to_js(value)))
+        return JSBooleanPrototype(to_boolean(to_js(value)))
 
     name = JSBooleanPrototype.jsclass
     own = {
@@ -831,11 +831,11 @@ class JSNumberPrototype(JSObjectPrototype):
 class JSNumber(JSObject):
     @staticmethod
     def call(value=None):
-        return to_number(_to_js(value)) if value is not None else 0
+        return to_number(to_js(value)) if value is not None else 0
 
     @staticmethod
     def construct(value=None):
-        return JSNumberPrototype(to_number(_to_js(value)) if value is not None else 0)
+        return JSNumberPrototype(to_number(to_js(value)) if value is not None else 0)
 
     name = JSNumberPrototype.jsclass
     own = {
@@ -847,6 +847,43 @@ class JSNumber(JSObject):
         'NEGATIVE_INFINITY': float('-inf'),
         'POSITIVE_INFINITY': float('inf'),
     }
+
+
+def _eval(code):
+    pass
+
+
+def _parse_int(string, radix):
+    pass
+
+
+def _parse_float(string):
+    pass
+
+
+def _is_nan(number):
+    pass
+
+
+def _is_infinite(number):
+    pass
+
+
+def _decode_uri(encoded_uri):
+    pass
+
+
+def _decode_uri_component (encoded_uri_component):
+    pass
+
+
+def _encode_uri(uri):
+    pass
+
+
+def _encode_uri_component(uri_component):
+    pass
+
 
 undefined = JSBase('undefined')
 null = JSBase('null')
