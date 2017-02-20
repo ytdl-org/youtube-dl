@@ -776,7 +776,7 @@ class JSBoolean(JSObject):
 
     @staticmethod
     def call(value=None):
-        return to_boolean(value)
+        return to_boolean(_to_js(value))
 
     @staticmethod
     def construct(value=None):
@@ -784,19 +784,69 @@ class JSBoolean(JSObject):
 
     name = JSBooleanPrototype.jsclass
     own = {
+        'length': 1,
         'prototype': JSBooleanPrototype()
     }
 
 
 class JSNumberPrototype(JSObjectPrototype):
-    # TODO Number object
-    pass
+
+    @staticmethod
+    def _constructor(value=None):
+        return JSNumber.construct(value)
+
+    def _to_string(self, radix=None):
+        pass
+
+    def _to_locale_string(self):
+        pass
+
+    def _value_of(self):
+        if jstype(self.value) is not _number_type or isinstance(self.value, JSNumberPrototype):
+            # TODO find way to test it in other interpreters
+            raise Exception('TypeError')
+        return self.value
+
+    def _to_fixed(self, frac_digits):
+        return 'Number toFixed'
+
+    def _to_exponential(self, frac_digits):
+        return 'Number toExponential'
+
+    def _to_precision(self, prec):
+        return 'Number toPrecision'
+
+    jsclass = 'Number'
+    own = {
+        'constructor': _constructor,
+        'toString': _to_string,
+        'toLocaleString': _to_locale_string,
+        'valueOf': _value_of,
+        'toFixed': _to_fixed,
+        'toExponential': _to_exponential,
+        'toPrecision': _to_precision
+    }
 
 
 class JSNumber(JSObject):
-    # TODO Number class
-    pass
+    @staticmethod
+    def call(value=None):
+        return to_number(_to_js(value)) if value is not None else 0
 
+    @staticmethod
+    def construct(value=None):
+        return JSNumberPrototype(to_number(_to_js(value)) if value is not None else 0)
+
+    name = JSNumberPrototype.jsclass
+    own = {
+        'length': 1,
+        'prototype': JSNumberPrototype(),
+        'MAX_VALUE': 1.7976931348623157 * 10 ** 308,
+        'MIN_VALUE': 5 * 10 ** (-324),
+        'NAN': float('nan'),
+        'NEGATIVE_INFINITY': float('-inf'),
+        'POSITIVE_INFINITY': float('inf'),
+    }
 
 undefined = JSBase('undefined')
 null = JSBase('null')
