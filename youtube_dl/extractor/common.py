@@ -333,6 +333,9 @@ class InfoExtractor(object):
     geo restriction bypass mechanism right away in order to bypass
     geo restriction, of course, if the mechanism is not disabled. (experimental)
 
+    NB: both these geo attributes are experimental and may change in future
+    or be completely removed.
+
     Finally, the _WORKING attribute should be set to False for broken IEs
     in order to warn the users and skip the tests.
     """
