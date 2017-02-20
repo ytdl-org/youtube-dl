@@ -13,6 +13,7 @@ from ..utils import (
 
 class IPrimaIE(InfoExtractor):
     _VALID_URL = r'https?://play\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
+    _GEO_BYPASS = False
 
     _TESTS = [{
         'url': 'http://play.iprima.cz/gondici-s-r-o-33',
@@ -27,6 +28,10 @@ class IPrimaIE(InfoExtractor):
         },
     }, {
         'url': 'http://play.iprima.cz/particka/particka-92',
+        'only_matching': True,
+    }, {
+        # geo restricted
+        'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady-iv-1',
         'only_matching': True,
     }]
 
@@ -83,7 +88,7 @@ class IPrimaIE(InfoExtractor):
                 extract_formats(src)
 
         if not formats and '>GEO_IP_NOT_ALLOWED<' in playerpage:
-            self.raise_geo_restricted()
+            self.raise_geo_restricted(countries=['CZ'])
 
         self._sort_formats(formats)
 
