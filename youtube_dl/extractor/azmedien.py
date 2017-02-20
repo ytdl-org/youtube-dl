@@ -7,13 +7,21 @@ from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
     get_element_by_class,
+    base_url,
+    ExtractorError,
     get_element_by_id,
+    NO_DEFAULT,
     strip_or_none,
     urljoin,
 )
 
 
 class AZMedienBaseIE(InfoExtractor):
+    def _extract_partner_id(self, video_id, webpage, default=NO_DEFAULT):
+        return self._search_regex(
+            r'<script[^>]+src=["\'](?:https?:)?//(?:[^/]+\.)?kaltura\.com(?:/[^/]+)*/(?:p|partner_id)/([0-9]+)',
+            webpage, 'kaltura partner id', default=default)
+
     def _kaltura_video(self, partner_id, entry_id):
         return self.url_result(
             'kaltura:%s:%s' % (partner_id, entry_id), ie=KalturaIE.ie_key(),
@@ -73,12 +81,8 @@ class AZMedienIE(AZMedienBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
-
-        partner_id = self._search_regex(
-            r'<script[^>]+src=["\'](?:https?:)?//(?:[^/]+\.)?kaltura\.com(?:/[^/]+)*/(?:p|partner_id)/([0-9]+)',
-            webpage, 'kaltura partner id')
+        partner_id = self._extract_partner_id(video_id, webpage)
         entry_id = self._html_search_regex(
             r'<a[^>]+data-id=(["\'])(?P<id>(?:(?!\1).)+)\1[^>]+data-slug=["\']%s'
             % re.escape(video_id), webpage, 'kaltura entry id', group='id')
@@ -211,3 +215,48 @@ class AZMedienShowPlaylistIE(AZMedienBaseIE):
         title = self._og_search_title(webpage, fatal=False)
         description = self._og_search_description(webpage)
         return self.playlist_result(entries, playlist_id, title, description)
+
+
+class AZMedienLiveIE(AZMedienBaseIE):
+    IE_DESC = 'AZ Medien Live TV'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?P<id>
+                            (?:
+                                telezueri\.ch|
+                                telebaern\.tv|
+                                telem1\.ch
+                            )/
+                            live
+                        )
+                    '''
+
+    _TEST = {
+        'url': 'http://www.telezueri.ch/live',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        partner_id = self._extract_partner_id(video_id, webpage)
+        script_urls = [urljoin(
+            base_url(url), m.group('url')) for m in re.finditer(
+                r'<script[^>]+type=["\']text/javascript["\'][^>]+src=["\'](?P<url>.*/[0-9a-f]+\.js)["\']',
+                webpage)]
+        for url in script_urls:
+            js = self._download_webpage(url, video_id, note='Downloading javascript file %s' % url)
+            entry_id = self._search_regex(
+                r'[^/]{2}\s*kalturaLiveVideo\(\s*["\'](.+?)["\'].+\)',
+                js,
+                'partner id',
+                default=None,
+                fatal=False)
+            if entry_id:
+                break
+        else:
+            raise ExtractorError('Cannot extract Kaltura partner id for live broadcast.')
+
+        return self._kaltura_video(partner_id, entry_id)

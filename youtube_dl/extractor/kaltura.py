@@ -102,6 +102,23 @@ class KalturaIE(InfoExtractor):
         {
             'url': 'https://www.kaltura.com:443/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
             'only_matching': True,
+        },
+        {
+            # Kaltura live stream
+            'url': 'kaltura:1719221:1_hoislpiz',
+            'info_dict': {
+                'id': '1_hoislpiz',
+                'ext': 'm3u8',
+                'title': 'TeleZüri LIVE Stream',
+                'upload_date': '20150624',
+                'uploader_id': 'webit',
+                'thumbnail': 're:^https?://.*/thumbnail/.*',
+                'timestamp': 1435129674,
+                'is_live': True,
+            },
+            'params': {
+                'skip_download': True,
+            }
         }
     ]
 
@@ -263,49 +280,62 @@ class KalturaIE(InfoExtractor):
                 unsigned_url += '?referrer=%s' % referrer
             return unsigned_url
 
-        data_url = info['dataUrl']
-        if '/flvclipper/' in data_url:
-            data_url = re.sub(r'/flvclipper/.*', '/serveFlavor', data_url)
-
         formats = []
-        for f in flavor_assets:
-            # Continue if asset is not ready
-            if f.get('status') != 2:
-                continue
-            # Original format that's not available (e.g. kaltura:1926081:0_c03e1b5g)
-            # skip for now.
-            if f.get('fileExt') == 'chun':
-                continue
-            if not f.get('fileExt'):
-                # QT indicates QuickTime; some videos have broken fileExt
-                if f.get('containerFormat') == 'qt':
-                    f['fileExt'] = 'mov'
-                else:
-                    f['fileExt'] = 'mp4'
-            video_url = sign_url(
-                '%s/flavorId/%s' % (data_url, f['id']))
-            # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
-            # -f mp4-56)
-            vcodec = 'none' if 'videoCodecId' not in f and f.get(
-                'frameRate') == 0 else f.get('videoCodecId')
-            formats.append({
-                'format_id': '%(fileExt)s-%(bitrate)s' % f,
-                'ext': f.get('fileExt'),
-                'tbr': int_or_none(f['bitrate']),
-                'fps': int_or_none(f.get('frameRate')),
-                'filesize_approx': int_or_none(f.get('size'), invscale=1024),
-                'container': f.get('containerFormat'),
-                'vcodec': vcodec,
-                'height': int_or_none(f.get('height')),
-                'width': int_or_none(f.get('width')),
-                'url': video_url,
-            })
-        if '/playManifest/' in data_url:
-            m3u8_url = sign_url(data_url.replace(
-                'format/url', 'format/applehttp'))
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, entry_id, 'mp4', 'm3u8_native',
-                m3u8_id='hls', fatal=False))
+        is_live = False
+        if info.get('objectType') == 'KalturaLiveStreamEntry':
+            is_live = True
+            for f in info.get('liveStreamConfigurations'):
+                if f.get('protocol') == 'hds':
+                    formats.extend(self._extract_f4m_formats(f.get('url'), entry_id))
+                elif f.get('protocol') == 'hls' or f.get('protocol') == 'applehttp':
+                    formats.extend(self._extract_m3u8_formats(f.get('url'), entry_id))
+                elif f.get('protocol') == 'sl':
+                    formats.extend(self._extract_ism_formats(f.get('url'), entry_id))
+                elif f.get('protocol') == 'mpegdash':
+                    formats.extend(self._extract_mpd_formats(f.get('url'), entry_id))
+        else:
+            data_url = info['dataUrl']
+            if '/flvclipper/' in data_url:
+                data_url = re.sub(r'/flvclipper/.*', '/serveFlavor', data_url)
+
+            for f in flavor_assets:
+                # Continue if asset is not ready
+                if f.get('status') != 2:
+                    continue
+                # Original format that's not available (e.g. kaltura:1926081:0_c03e1b5g)
+                # skip for now.
+                if f.get('fileExt') == 'chun':
+                    continue
+                if not f.get('fileExt'):
+                    # QT indicates QuickTime; some videos have broken fileExt
+                    if f.get('containerFormat') == 'qt':
+                        f['fileExt'] = 'mov'
+                    else:
+                        f['fileExt'] = 'mp4'
+                video_url = sign_url(
+                    '%s/flavorId/%s' % (data_url, f['id']))
+                # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
+                # -f mp4-56)
+                vcodec = 'none' if 'videoCodecId' not in f and f.get(
+                    'frameRate') == 0 else f.get('videoCodecId')
+                formats.append({
+                    'format_id': '%(fileExt)s-%(bitrate)s' % f,
+                    'ext': f.get('fileExt'),
+                    'tbr': int_or_none(f['bitrate']),
+                    'fps': int_or_none(f.get('frameRate')),
+                    'filesize_approx': int_or_none(f.get('size'), invscale=1024),
+                    'container': f.get('containerFormat'),
+                    'vcodec': vcodec,
+                    'height': int_or_none(f.get('height')),
+                    'width': int_or_none(f.get('width')),
+                    'url': video_url,
+                })
+            if '/playManifest/' in data_url:
+                m3u8_url = sign_url(data_url.replace(
+                    'format/url', 'format/applehttp'))
+                formats.extend(self._extract_m3u8_formats(
+                    m3u8_url, entry_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
 
         self._sort_formats(formats)
 
@@ -334,4 +364,5 @@ class KalturaIE(InfoExtractor):
             'timestamp': info.get('createdAt'),
             'uploader_id': info.get('userId') if info.get('userId') != 'None' else None,
             'view_count': info.get('plays'),
+            'is_live': is_live,
         }

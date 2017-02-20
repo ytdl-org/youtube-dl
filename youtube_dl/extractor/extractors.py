@@ -82,6 +82,7 @@ from .awaan import (
 )
 from .azmedien import (
     AZMedienIE,
+    AZMedienLiveIE,
     AZMedienPlaylistIE,
     AZMedienShowPlaylistIE,
 )
