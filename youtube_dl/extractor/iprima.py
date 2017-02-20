@@ -8,7 +8,6 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     js_to_json,
-    sanitized_Request,
 )
 
 
@@ -38,11 +37,13 @@ class IPrimaIE(InfoExtractor):
 
         video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
 
-        req = sanitized_Request(
-            'http://play.iprima.cz/prehravac/init?_infuse=1'
-            '&_ts=%s&productId=%s' % (round(time.time()), video_id))
-        req.add_header('Referer', url)
-        playerpage = self._download_webpage(req, video_id, note='Downloading player')
+        playerpage = self._download_webpage(
+            'http://play.iprima.cz/prehravac/init',
+            video_id, note='Downloading player', query={
+                '_infuse': 1,
+                '_ts': round(time.time()),
+                'productId': video_id,
+            }, headers={'Referer': url})
 
         formats = []
 
