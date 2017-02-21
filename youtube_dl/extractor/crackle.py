@@ -6,6 +6,7 @@ from ..utils import int_or_none
 
 
 class CrackleIE(InfoExtractor):
+    _GEO_COUNTRIES = ['US']
     _VALID_URL = r'(?:crackle:|https?://(?:(?:www|m)\.)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.crackle.com/comedians-in-cars-getting-coffee/2498934',
