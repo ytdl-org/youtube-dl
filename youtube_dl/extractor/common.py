@@ -415,7 +415,8 @@ class InfoExtractor(object):
                 self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
                 if self._downloader.params.get('verbose', False):
                     self._downloader.to_stdout(
-                        '[debug] Using fake %s IP as X-Forwarded-For.' % self._x_forwarded_for_ip)
+                        '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
+                        % (self._x_forwarded_for_ip, country_code.upper()))
 
     def extract(self, url):
         """Extracts URL information and returns it in list of dicts."""
@@ -444,10 +445,12 @@ class InfoExtractor(object):
                 self._downloader.params.get('geo_bypass', True) and
                 not self._x_forwarded_for_ip and
                 countries):
-            self._x_forwarded_for_ip = GeoUtils.random_ipv4(random.choice(countries))
+            country_code = random.choice(countries)
+            self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
             if self._x_forwarded_for_ip:
                 self.report_warning(
-                    'Video is geo restricted. Retrying extraction with fake %s IP as X-Forwarded-For.' % self._x_forwarded_for_ip)
+                    'Video is geo restricted. Retrying extraction with fake IP %s (%s) as X-Forwarded-For.'
+                    % (self._x_forwarded_for_ip, country_code.upper()))
                 return True
         return False
 
