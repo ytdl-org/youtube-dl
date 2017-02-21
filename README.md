@@ -99,11 +99,21 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --source-address IP              Client-side IP address to bind to
     -4, --force-ipv4                 Make all connections via IPv4
     -6, --force-ipv6                 Make all connections via IPv6
+
+## Geo Restriction:
     --geo-verification-proxy URL     Use this proxy to verify the IP address for
                                      some geo-restricted sites. The default
                                      proxy specified by --proxy (or none, if the
                                      options is not present) is used for the
                                      actual downloading.
+    --geo-bypass                     Bypass geographic restriction via faking
+                                     X-Forwarded-For HTTP header (experimental)
+    --no-geo-bypass                  Do not bypass geographic restriction via
+                                     faking X-Forwarded-For HTTP header
+                                     (experimental)
+    --geo-bypass-country CODE        Force bypass geographic restriction with
+                                     explicitly provided two-letter ISO 3166-2
+                                     country code (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          Playlist video to start at (default is 1)
@@ -140,17 +150,19 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      check if the key is not present, key >
                                      NUMBER (like "comment_count > 12", also
                                      works with >=, <, <=, !=, =) to compare
-                                     against a number, and & to require multiple
-                                     matches. Values which are not known are
-                                     excluded unless you put a question mark (?)
-                                     after the operator. For example, to only
-                                     match videos that have been liked more than
-                                     100 times and disliked less than 50 times
-                                     (or the dislike functionality is not
-                                     available at the given service), but who
-                                     also have a description, use --match-filter
-                                     "like_count > 100 & dislike_count <? 50 &
-                                     description" .
+                                     against a number, key = 'LITERAL' (like
+                                     "uploader = 'Mike Smith'", also works with
+                                     !=) to match against a string literal and &
+                                     to require multiple matches. Values which
+                                     are not known are excluded unless you put a
+                                     question mark (?) after the operator. For
+                                     example, to only match videos that have
+                                     been liked more than 100 times and disliked
+                                     less than 50 times (or the dislike
+                                     functionality is not available at the given
+                                     service), but who also have a description,
+                                     use --match-filter "like_count > 100 &
+                                     dislike_count <? 50 & description" .
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to
