@@ -19,6 +19,7 @@ class NineCNineMediaBaseIE(InfoExtractor):
 
 class NineCNineMediaStackIE(NineCNineMediaBaseIE):
     IE_NAME = '9c9media:stack'
+    _GEO_COUNTRIES = ['CA']
     _VALID_URL = r'9c9media:stack:(?P<destination_code>[^:]+):(?P<content_id>\d+):(?P<content_package>\d+):(?P<id>\d+)'
 
     def _real_extract(self, url):
