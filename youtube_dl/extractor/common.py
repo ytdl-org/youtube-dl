@@ -393,7 +393,6 @@ class InfoExtractor(object):
         is selected and a random IP belonging to this country is generated. This
         IP will be passed as X-Forwarded-For HTTP header in all subsequent
         HTTP requests.
-        Method does nothing if no countries are specified.
 
         This method will be used for initial geo bypass mechanism initialization
         during the instance initialization with _GEO_COUNTRIES.
@@ -402,8 +401,6 @@ class InfoExtractor(object):
         information is not available beforehand (e.g. obtained during
         extraction) or due to some another reason.
         """
-        if not countries:
-            return
         if not self._x_forwarded_for_ip:
             country_code = self._downloader.params.get('geo_bypass_country', None)
             # If there is no explicit country for geo bypass specified and
