@@ -107,8 +107,8 @@ setup(
     url='https://github.com/rg3/youtube-dl',
     author='Ricardo Garcia',
     author_email='ytdl@yt-dl.org',
-    maintainer='Philipp Hagemeister',
-    maintainer_email='phihag@phihag.de',
+    maintainer='Sergey M.',
+    maintainer_email='dstftw@gmail.com',
     packages=[
         'youtube_dl',
         'youtube_dl.extractor', 'youtube_dl.downloader',
