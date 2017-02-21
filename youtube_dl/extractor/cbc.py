@@ -195,7 +195,6 @@ class CBCPlayerIE(InfoExtractor):
 class CBCWatchBaseIE(InfoExtractor):
     _device_id = None
     _device_token = None
-    _GEO_COUNTRIES = ['CA']
     _API_BASE_URL = 'https://api-cbc.cloud.clearleap.com/cloffice/client/'
     _NS_MAP = {
         'media': 'http://search.yahoo.com/mrss/',
