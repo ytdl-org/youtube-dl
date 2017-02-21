@@ -390,7 +390,7 @@ class InfoExtractor(object):
 
         This method is used to initialize geo bypass mechanism based on faking
         X-Forwarded-For HTTP header. A random country from provided country list
-        is selected and a random IP brlonging to this country is generated. This
+        is selected and a random IP belonging to this country is generated. This
         IP will be passed as X-Forwarded-For HTTP header in all subsequent
         HTTP requests.
         Method does nothing if no countries are specified.
