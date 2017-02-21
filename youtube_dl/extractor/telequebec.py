@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    smuggle_url,
+)
 
 
 class TeleQuebecIE(InfoExtractor):
@@ -28,7 +31,7 @@ class TeleQuebecIE(InfoExtractor):
         return {
             '_type': 'url_transparent',
             'id': media_id,
-            'url': 'limelight:media:' + media_data['streamInfo']['sourceId'],
+            'url': smuggle_url('limelight:media:' + media_data['streamInfo']['sourceId'], {'geo_countries': ['CA']}),
             'title': media_data['title'],
             'description': media_data.get('descriptions', [{'text': None}])[0].get('text'),
             'duration': int_or_none(media_data.get('durationInMilliseconds'), 1000),
