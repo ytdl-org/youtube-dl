@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [crunchyroll] Fix descriptions with double quotes (#12124)
+
+
 version 2017.02.21
 
 Core

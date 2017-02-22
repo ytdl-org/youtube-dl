@@ -123,7 +123,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
             'id': '645513',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Wanna be the Strongest in the World Episode 1 – An Idol-Wrestler is Born!',
             'description': 'md5:2d17137920c64f2f49981a7797d275ef',
             'thumbnail': 'http://img1.ak.crunchyroll.com/i/spire1-tmb/20c6b5e10f1a47b10516877d3c039cae1380951166_full.jpg',
@@ -192,6 +192,21 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         # geo-restricted (US), 18+ maturity wall, non-premium available
         'url': 'http://www.crunchyroll.com/cosplay-complex-ova/episode-1-the-birth-of-the-cosplay-club-565617',
         'only_matching': True,
+    }, {
+        # A description with double quotes
+        'url': 'http://www.crunchyroll.com/11eyes/episode-1-piros-jszaka-red-night-535080',
+        'info_dict': {
+            'id': '535080',
+            'ext': 'mp4',
+            'title': '11eyes Episode 1 – Piros éjszaka - Red Night',
+            'description': 'Kakeru and Yuka are thrown into an alternate nightmarish world they call "Red Night".',
+            'uploader': 'Marvelous AQL Inc.',
+            'upload_date': '20091021',
+        },
+        'params': {
+            # Just test metadata extraction
+            'skip_download': True,
+        },
     }]
 
     _FORMAT_IDS = {
@@ -362,9 +377,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
             webpage, 'video_title')
         video_title = re.sub(r' {2,}', ' ', video_title)
-        video_description = self._html_search_regex(
-            r'<script[^>]*>\s*.+?\[media_id=%s\].+?"description"\s*:\s*"([^"]+)' % video_id,
-            webpage, 'description', default=None)
+        video_description = self._parse_json(self._html_search_regex(
+            r'<script[^>]*>\s*.+?\[media_id=%s\].+?({.+?"description"\s*:.+?})\);' % video_id,
+            webpage, 'description', default='{}'), video_id).get('description')
         if video_description:
             video_description = lowercase_escape(video_description.replace(r'\r\n', '\n'))
         video_upload_date = self._html_search_regex(
