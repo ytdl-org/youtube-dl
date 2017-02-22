@@ -124,7 +124,6 @@ class SRGSSRIE(InfoExtractor):
 
         return subtitles
 
-
     def _real_extract(self, url):
         bu, media_type, url_id = re.match(self._VALID_URL, url).groups()
 
@@ -243,18 +242,18 @@ class SRGSSRPlayIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Schwander, Rot-Grüne Stadtpolitik, Min Li Marti, Tamilen-Kirche',
             'description': 'Verbissener Kampf / Vertreibung der Büezer / Theke: Min Li Marti / Geldsegen für den Pastor',
-            'duration':  2630.0,
+            'duration': 2630.0,
             'upload_date': '20170208',
             'timestamp': 1486583589,
             'thumbnail': r're:^https?://.*1486587225\.png$',
             'subtitles': {
                 'de': [{
-                            'ext': 'ttml',
-                            'url': 're:^https://.*\.ttml$',
-                        }, {
-                            'ext': 'vtt',
-                            'url': 're:^https://.*\.vtt$',
-                        }]
+                    'ext': 'ttml',
+                    'url': 're:^https://.*\.ttml$',
+                }, {
+                    'ext': 'vtt',
+                    'url': 're:^https://.*\.vtt$',
+                }]
             },
         },
     }, {
