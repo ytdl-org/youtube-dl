@@ -66,7 +66,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'uploader_id': 'xijv66',
                 'age_limit': 0,
                 'view_count': int,
-                'comment_count': int,
             }
         },
         # Vevo video
@@ -140,7 +139,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         view_count = str_to_int(view_count_str)
         comment_count = int_or_none(self._search_regex(
             r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserComments:(\d+)"',
-            webpage, 'comment count', fatal=False))
+            webpage, 'comment count', default=None))
 
         player_v5 = self._search_regex(
             [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/rg3/youtube-dl/issues/7826
