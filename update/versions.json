@@ -1,6 +1,6 @@
 {
-    "latest": "2017.02.21",
-    "signature": "94fdbe65b472466e6c27f21b13b10aac662de3af01be23ba55d8aec8a885188a556ff0dfe604b3b477167a433f888d92fd98726ad3740c8405617fd98688d8b06e29cf4161e551e4cfd250ab1868d25b63f6c15c63a839a1e635775ff278d4ab8dd88b7ed32253dc616f8be77cfec77fc3685c4bca6c849666c380dc9d92e153",
+    "latest": "2017.02.22",
+    "signature": "5780cb7aec443f31c294aca8cedc988e7c071df2ce355190ffe0dc972ce74b7de3824c3292c01faca48f87c8939921463e7607d75409f24346d573496d3cdc98a8bb32719627c7f16e9ac755e3ad0c8619dba5aa3bbe6b630141928cf2e8928b1fa765f20983bfd60ee20a5dc1dad8c669480c55b36b7f6e7ec05fd555ee6afb",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -10478,6 +10478,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2017.02.21/youtube-dl-2017.02.21.tar.gz",
                 "af68839011c083278dae50652926cc132796aa45e861d7e7719236064ddf1002"
+            ]
+        },
+        "2017.02.22": {
+            "bin": [
+                "https://yt-dl.org/downloads/2017.02.22/youtube-dl",
+                "a9cc1bcf7135fcadeaddf329bbdb2d014ed4a601e67c6cfe0f43f146f56272ac"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2017.02.22/youtube-dl.exe",
+                "3ea9f1a06ae59a113ac48f76dff930d82a8d528d30ad899f445cceb30f0b2644"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2017.02.22/youtube-dl-2017.02.22.tar.gz",
+                "51f45723f1e39eb2c780bf1b490ec9150efdac9db86d3010f8fcc53400c87129"
             ]
         }
     }
