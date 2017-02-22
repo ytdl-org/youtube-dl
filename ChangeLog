@@ -2,6 +2,15 @@ version <unreleased>
 
 Extractors
 * [crunchyroll] Fix descriptions with double quotes (#12124)
+* [dailymotion] Make comment count optional (#12209)
++ [vidzi] Add support for vidzi.cc (#12213)
++ [24video] Add support for 24video.tube (#12217)
++ [crackle] Use geo bypass mechanism
++ [viewster] Use geo verification headers
++ [tfo] Improve geo restriction detection and use geo bypass mechanism
++ [telequebec] Use geo bypass mechanism
++ [limelight] Extract PlaylistService errors and improve geo restriction
+  detection
 
 
 version 2017.02.21
