@@ -680,7 +680,9 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--autonumber-size',
         dest='autonumber_size', metavar='NUMBER', default=5, type=int,
-        help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given (default is %default)')
+        help='[deprecated; use output template with %(autonumber)0Nd, where N in the number of digits] '
+             'Specify the number of digits in %(autonumber)s when it is present '
+             'in output filename template or --auto-number option is given (default is %default)')
     filesystem.add_option(
         '--autonumber-start',
         dest='autonumber_start', metavar='NUMBER', default=1, type=int,
