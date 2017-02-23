@@ -280,7 +280,12 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--min-filesize',
         metavar='SIZE', dest='min_filesize', default=None,
-        help='Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)')
+        help=(
+            'Do not download any videos smaller than SIZE (e.g. 50k or 44.6m).
+            'Use match-filter with the duration key instead of this to filter'
+            'for long videos only as this will often download the video track'
+            'and skip the audio if they are downloaded separately.'
+        ))
     selection.add_option(
         '--max-filesize',
         metavar='SIZE', dest='max_filesize', default=None,
