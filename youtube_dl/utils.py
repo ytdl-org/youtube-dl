@@ -2511,27 +2511,97 @@ def srt_subtitles_timecode(seconds):
 
 
 def dfxp2srt(dfxp_data):
+    LEGACY_NAMESPACES = (
+        ('http://www.w3.org/ns/ttml', [
+            'http://www.w3.org/2004/11/ttaf1',
+            'http://www.w3.org/2006/04/ttaf1',
+            'http://www.w3.org/2006/10/ttaf1',
+        ]),
+        ('http://www.w3.org/ns/ttml#styling', [
+            'http://www.w3.org/ns/ttml#style',
+        ]),
+    )
+
+    SUPPORTED_STYLING = [
+        'color',
+        'fontFamily',
+        'fontSize',
+        'fontStyle',
+        'fontWeight',
+        'textDecoration'
+    ]
+
     _x = functools.partial(xpath_with_ns, ns_map={
         'ttml': 'http://www.w3.org/ns/ttml',
-        'ttaf1': 'http://www.w3.org/2006/10/ttaf1',
-        'ttaf1_0604': 'http://www.w3.org/2006/04/ttaf1',
+        'tts': 'http://www.w3.org/ns/ttml#styling',
     })
 
+    styles = {}
+    default_style = {}
+
     class TTMLPElementParser(object):
-        out = ''
+        _out = ''
+        _unclosed_elements = []
+        _applied_styles = []
 
         def start(self, tag, attrib):
-            if tag in (_x('ttml:br'), _x('ttaf1:br'), 'br'):
-                self.out += '\n'
+            if tag in (_x('ttml:br'), 'br'):
+                self._out += '\n'
+            else:
+                unclosed_elements = []
+                style = {}
+                element_style_id = attrib.get('style')
+                if default_style:
+                    style.update(default_style)
+                if element_style_id:
+                    style.update(styles.get(element_style_id, {}))
+                for prop in SUPPORTED_STYLING:
+                    prop_val = attrib.get(_x('tts:' + prop))
+                    if prop_val:
+                        style[prop] = prop_val
+                if style:
+                    font = ''
+                    for k, v in sorted(style.items()):
+                        if self._applied_styles and self._applied_styles[-1].get(k) == v:
+                            continue
+                        if k == 'color':
+                            font += ' color="%s"' % v
+                        elif k == 'fontSize':
+                            font += ' size="%s"' % v
+                        elif k == 'fontFamily':
+                            font += ' face="%s"' % v
+                        elif k == 'fontWeight' and v == 'bold':
+                            self._out += '<b>'
+                            unclosed_elements.append('b')
+                        elif k == 'fontStyle' and v == 'italic':
+                            self._out += '<i>'
+                            unclosed_elements.append('i')
+                        elif k == 'textDecoration' and v == 'underline':
+                            self._out += '<u>'
+                            unclosed_elements.append('u')
+                    if font:
+                        self._out += '<font' + font + '>'
+                        unclosed_elements.append('font')
+                    applied_style = {}
+                    if self._applied_styles:
+                        applied_style.update(self._applied_styles[-1])
+                    applied_style.update(style)
+                    self._applied_styles.append(applied_style)
+                self._unclosed_elements.append(unclosed_elements)
 
         def end(self, tag):
-            pass
+            if tag not in (_x('ttml:br'), 'br'):
+                unclosed_elements = self._unclosed_elements.pop()
+                for element in reversed(unclosed_elements):
+                    self._out += '</%s>' % element
+                if unclosed_elements and self._applied_styles:
+                    self._applied_styles.pop()
 
         def data(self, data):
-            self.out += data
+            self._out += data
 
         def close(self):
-            return self.out.strip()
+            return self._out.strip()
 
     def parse_node(node):
         target = TTMLPElementParser()
@@ -2539,12 +2609,44 @@ def dfxp2srt(dfxp_data):
         parser.feed(xml.etree.ElementTree.tostring(node))
         return parser.close()
 
+    for k, v in LEGACY_NAMESPACES:
+        for ns in v:
+            dfxp_data = dfxp_data.replace(ns, k)
+
     dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
     out = []
-    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall(_x('.//ttaf1:p')) or dfxp.findall(_x('.//ttaf1_0604:p')) or dfxp.findall('.//p')
+    paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall('.//p')
 
     if not paras:
         raise ValueError('Invalid dfxp/TTML subtitle')
+
+    repeat = False
+    while True:
+        for style in dfxp.findall(_x('.//ttml:style')):
+            style_id = style.get('id')
+            parent_style_id = style.get('style')
+            if parent_style_id:
+                if parent_style_id not in styles:
+                    repeat = True
+                    continue
+                styles[style_id] = styles[parent_style_id].copy()
+            for prop in SUPPORTED_STYLING:
+                prop_val = style.get(_x('tts:' + prop))
+                if prop_val:
+                    styles.setdefault(style_id, {})[prop] = prop_val
+        if repeat:
+            repeat = False
+        else:
+            break
+
+    for p in ('body', 'div'):
+        ele = xpath_element(dfxp, [_x('.//ttml:' + p), './/' + p])
+        if ele is None:
+            continue
+        style = styles.get(ele.get('style'))
+        if not style:
+            continue
+        default_style.update(style)
 
     for para, index in zip(paras, itertools.count(1)):
         begin_time = parse_dfxp_time_expr(para.attrib.get('begin'))
