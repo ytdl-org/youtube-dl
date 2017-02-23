@@ -534,11 +534,11 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
             r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
             webpage, 'title')
         episode_paths = re.findall(
-            r'(?s)<li id="showview_videos_media_[0-9]+"[^>]+>.*?<a href="([^"]+)"',
+            r'(?s)<li id="showview_videos_media_(\d+)"[^>]+>.*?<a href="([^"]+)"',
             webpage)
         entries = [
-            self.url_result('http://www.crunchyroll.com' + ep, 'Crunchyroll')
-            for ep in episode_paths
+            self.url_result('http://www.crunchyroll.com' + ep, 'Crunchyroll', ep_id)
+            for ep_id, ep in episode_paths
         ]
         entries.reverse()
 
