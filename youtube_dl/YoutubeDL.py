@@ -635,6 +635,7 @@ class YoutubeDL(object):
                 'average_rating', 'comment_count', 'age_limit',
                 'start_time', 'end_time',
                 'chapter_number', 'season_number', 'episode_number',
+                'track_number', 'disc_number', 'release_year',
                 'playlist_index',
             ))
 
