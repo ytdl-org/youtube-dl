@@ -594,10 +594,7 @@ class YoutubeDL(object):
             autonumber_size = self.params.get('autonumber_size')
             if autonumber_size is None:
                 autonumber_size = 5
-            autonumber_templ = '%0' + str(autonumber_size) + 'd'
-            template_dict['autonumber'] = autonumber_templ % (self.params.get('autonumber_start', 1) - 1 + self._num_downloads)
-            if template_dict.get('playlist_index') is not None:
-                template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
+            template_dict['autonumber'] = self.params.get('autonumber_start', 1) - 1 + self._num_downloads
             if template_dict.get('resolution') is None:
                 if template_dict.get('width') and template_dict.get('height'):
                     template_dict['resolution'] = '%dx%d' % (template_dict['width'], template_dict['height'])
@@ -617,6 +614,20 @@ class YoutubeDL(object):
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
 
+            # For fields playlist_index and autonumber convert all occurrences
+            # of %(field)s to %(field)0Nd for backward compatibility
+            field_size_compat_map = {
+                'playlist_index': len(str(template_dict['n_entries'])),
+                'autonumber': autonumber_size,
+            }
+            FIELD_SIZE_COMPAT_RE = r'(?<!%)%\((?P<field>autonumber|playlist_index)\)s'
+            mobj = re.search(FIELD_SIZE_COMPAT_RE, outtmpl)
+            if mobj:
+                outtmpl = re.sub(
+                    FIELD_SIZE_COMPAT_RE,
+                    r'%%(\1)0%dd' % field_size_compat_map[mobj.group('field')],
+                    outtmpl)
+
             NUMERIC_FIELDS = set((
                 'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
                 'upload_year', 'upload_month', 'upload_day',
@@ -624,6 +635,7 @@ class YoutubeDL(object):
                 'average_rating', 'comment_count', 'age_limit',
                 'start_time', 'end_time',
                 'chapter_number', 'season_number', 'episode_number',
+                'playlist_index',
             ))
 
             # Missing numeric fields used together with integer presentation types
