@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOWNLOAD_TESTS="age_restriction|download|subtitles|write_annotations|iqiyi_sdk_interpreter"
+DOWNLOAD_TESTS="age_restriction|download|subtitles|write_annotations|iqiyi_sdk_interpreter|youtube_lists"
 
 test_set=""
 multiprocess_args=""
