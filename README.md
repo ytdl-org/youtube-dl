@@ -217,21 +217,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --id                             Use only video ID in file name
     -o, --output TEMPLATE            Output filename template, see the "OUTPUT
                                      TEMPLATE" for all the info
-    --autonumber-size NUMBER         Specify the number of digits in
-                                     %(autonumber)s when it is present in output
-                                     filename template or --auto-number option
-                                     is given (default is 5)
     --autonumber-start NUMBER        Specify the start value for %(autonumber)s
                                      (default is 1)
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
-    -A, --auto-number                [deprecated; use -o
-                                     "%(autonumber)s-%(title)s.%(ext)s" ] Number
-                                     downloaded files starting from 00000
-    -t, --title                      [deprecated] Use title in file name
-                                     (default)
-    -l, --literal                    [deprecated] Alias of --title
     -w, --no-overwrites              Do not overwrite files
     -c, --continue                   Force resume of partially downloaded files.
                                      By default, youtube-dl will resume
