@@ -328,10 +328,20 @@ class YoutubeDL(object):
         self.params.update(params)
         self.cache = Cache(self)
 
-        if self.params.get('cn_verification_proxy') is not None:
-            self.report_warning('--cn-verification-proxy is deprecated. Use --geo-verification-proxy instead.')
+        def check_deprecated(param, option, suggestion):
+            if self.params.get(param) is not None:
+                self.report_warning(
+                    '%s is deprecated. Use %s instead.' % (option, suggestion))
+                return True
+            return False
+
+        if check_deprecated('cn_verification_proxy', '--cn-verification-proxy', '--geo-verification-proxy'):
             if self.params.get('geo_verification_proxy') is None:
                 self.params['geo_verification_proxy'] = self.params['cn_verification_proxy']
+
+        check_deprecated('autonumber_size', '--autonumber-size', 'output template with %(autonumber)0Nd, where N in the number of digits')
+        check_deprecated('autonumber', '--auto-number', '-o "%(autonumber)s-%(title)s.%(ext)s"')
+        check_deprecated('usetitle', '--title', '-o "%(title)s-%(id)s.%(ext)s"')
 
         if params.get('bidi_workaround', False):
             try:

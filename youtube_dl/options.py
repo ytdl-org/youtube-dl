@@ -679,10 +679,8 @@ def parseOpts(overrideArguments=None):
         help=('Output filename template, see the "OUTPUT TEMPLATE" for all the info'))
     filesystem.add_option(
         '--autonumber-size',
-        dest='autonumber_size', metavar='NUMBER', default=5, type=int,
-        help='[deprecated; use output template with %(autonumber)0Nd, where N in the number of digits] '
-             'Specify the number of digits in %(autonumber)s when it is present '
-             'in output filename template or --auto-number option is given (default is %default)')
+        dest='autonumber_size', metavar='NUMBER', type=int,
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '--autonumber-start',
         dest='autonumber_start', metavar='NUMBER', default=1, type=int,
@@ -694,15 +692,15 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
-        help='[deprecated] Use title in file name (default)')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-l', '--literal', default=False,
         action='store_true', dest='usetitle',
-        help='[deprecated] Alias of --title')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-w', '--no-overwrites',
         action='store_true', dest='nooverwrites', default=False,
