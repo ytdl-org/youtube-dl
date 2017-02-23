@@ -536,8 +536,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             ext = sub['ext']
             if ext == new_ext:
                 self._downloader.to_screen(
-                    '[ffmpeg] Subtitle file for %s is already in the requested'
-                    'format' % new_ext)
+                    '[ffmpeg] Subtitle file for %s is already in the requested format' % new_ext)
                 continue
             old_file = subtitles_filename(filename, lang, ext)
             sub_filenames.append(old_file)
