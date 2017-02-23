@@ -1,3 +1,23 @@
+version <unreleased>
+
+Core
+* [options] Hide deprecated options from --help
+* [options] Deprecate --autonumber-size
++ [YoutubeDL] Add support for string formatting operations in output template
+  (#5185, #5748, #6841, #9929, #9966 #9978, #12189)
+
+Extractors
++ [lynda:course] Add webpage extraction fallback (#12238)
+* [go] Sign all uplynk URLs and use geo bypass only for free videos
+  (#12087, #12210)
++ [skylinewebcams] Add support for skylinewebcams.com (#12221)
++ [instagram] Add support for multi video posts (#12226)
++ [crunchyroll] Extract playlist entries ids
+* [mgtv] Fix extraction
++ [sohu] Raise GeoRestrictedError
++ [leeco] Raise GeoRestrictedError and use geo bypass mechanism
+
+
 version 2017.02.22
 
 Extractors
