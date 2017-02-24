@@ -16,6 +16,7 @@ class TubiTvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tubitv\.com/video/(?P<id>[0-9]+)'
     _LOGIN_URL = 'http://tubitv.com/login'
     _NETRC_MACHINE = 'tubitv'
+    _GEO_COUNTRIES = ['US']
     _TEST = {
         'url': 'http://tubitv.com/video/283829/the_comedian_at_the_friday',
         'md5': '43ac06be9326f41912dc64ccf7a80320',
