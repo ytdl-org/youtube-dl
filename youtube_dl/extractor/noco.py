@@ -23,7 +23,7 @@ from ..utils import (
 
 class NocoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www\.)?noco\.tv/emission/|player\.noco\.tv/\?idvideo=)(?P<id>\d+)'
-    _LOGIN_URL = 'http://noco.tv/do.php'
+    _LOGIN_URL = 'https://noco.tv/do.php'
     _API_URL_TEMPLATE = 'https://api.noco.tv/1.1/%s?ts=%s&tk=%s'
     _SUB_LANG_TEMPLATE = '&sub_lang=%s'
     _NETRC_MACHINE = 'noco'
