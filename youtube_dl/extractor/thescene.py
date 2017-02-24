@@ -32,7 +32,7 @@ class TheSceneIE(InfoExtractor):
         player = self._download_webpage(player_url, display_id)
         info = self._parse_json(
             self._search_regex(
-                r'(?m)var\s+video\s+=\s+({.+?});$', player, 'info json'),
+                r'(?m)video\s*:\s*({.+?}),$', player, 'info json'),
             display_id)
 
         qualities_order = qualities(('low', 'high'))
@@ -40,7 +40,7 @@ class TheSceneIE(InfoExtractor):
             'format_id': '{0}-{1}'.format(f['type'].split('/')[0], f['quality']),
             'url': f['src'],
             'quality': qualities_order(f['quality']),
-        } for f in info['sources'][0]]
+        } for f in info['sources']]
         self._sort_formats(formats)
 
         return {
