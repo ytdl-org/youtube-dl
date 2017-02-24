@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class AMCNetworksIE(ThePlatformIE):
-    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies/|shows/[^/]+/(?:full-episodes/)?[^/]+/episode-\d+(?:-(?:[^/]+/)?|/))(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies|shows(?:/[^/]+)+)/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.ifc.com/shows/maron/season-04/episode-01/step-1',
         'md5': '',
@@ -43,6 +43,12 @@ class AMCNetworksIE(ThePlatformIE):
         'only_matching': True,
     }, {
         'url': 'http://www.bbcamerica.com/shows/doctor-who/full-episodes/the-power-of-the-daleks/episode-01-episode-1-color-version',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.wetv.com/shows/mama-june-from-not-to-hot/full-episode/season-01/thin-tervention',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.wetv.com/shows/la-hair/videos/season-05/episode-09-episode-9-2/episode-9-sneak-peek-3',
         'only_matching': True,
     }]
 
