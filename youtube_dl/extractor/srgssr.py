@@ -8,6 +8,7 @@ from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     ExtractorError,
     float_or_none,
+    mimetype2ext,
     parse_iso8601,
     str_or_none,
     qualities,
@@ -21,19 +22,13 @@ class SRGSSRIE(InfoExtractor):
                         srgssr
                     ):
                     (?P<bu>
-                        srf|
-                        rts|
-                        rsi|
-                        rtr|
-                        swi
+                        srf|rts|rsi|rtr|swi
                     ):(?:[^:]+:)?
                     (?P<type>
-                        video|
-                        audio
+                        video|audio
                     ):
                     (?P<id>
-                        [0-9a-f\-]{36}|
-                        \d+
+                        [0-9a-f\-]{36}|\d+
                     )
                     '''
 
@@ -49,35 +44,34 @@ class SRGSSRIE(InfoExtractor):
         'STARTDATE': 'This video is not yet available. Please try again later.',
     }
 
-    def _get_tokenized_src(self, url, video_id, format_id):
+    def _get_tokenized_src(self, url, video_id, format_id, segment_data):
         sp = compat_urllib_parse_urlparse(url).path.split('/')
         token = self._download_json(
             'http://tp.srgssr.ch/akahd/token?acl=/%s/%s/*' % (sp[1], sp[2]),
             video_id, 'Downloading %s token' % format_id, fatal=False) or {}
         auth_params = token.get('token', {}).get('authparams')
+        if segment_data:
+            timestep_string = self._get_timestep_token(segment_data)
+            url += ('?' if '?' not in url else '&') + timestep_string
         if auth_params:
-            url += '?' + auth_params
+            url += ('?' if '?' not in url else '&') + auth_params
         return url
 
-    def get_media_id_and_data(self, bu, media_type, url_id):
-        media_data = self._download_json(
-            'https://il.srgssr.ch/integrationlayer/2.0/%s/mediaComposition/%s/%s.json' % (bu, media_type, url_id), url_id)
-        media_id = self._search_regex(
-            r'urn:%s:%s:([0-9a-f\-]{36}|\d+)' % (bu, media_type),
-            media_data['chapterUrn'],
-            'media id')
+    def _get_timestep_token(self, segment_data):
+        start = str_or_none(float_or_none(segment_data['markIn'], scale=1000))
+        end = str_or_none(float_or_none(segment_data['markOut'], scale=1000))
+        return 'start=%s&end=%s' % (start, end)
 
-        episode_data = media_data.get('episode', {})
+    def _extract_list_item(self, outer_data, key, item_id):
+        data_list = outer_data.get(key, [])
+        items = []
+        if data_list:
+            items.extend([item for item in data_list if item.get('id') == item_id])
+        if not items:
+            raise ExtractorError('%s said: Cannot extract %s' % (self.IE_NAME, key))
 
-        chapter_list = media_data.get('chapterList', [])
-        data = []
-        if chapter_list:
-            data.extend([item for item in chapter_list if item.get('id') == media_id])
-        if not data:
-            raise ExtractorError('%s said: Cannot extract chapter information.' % self.IE_NAME)
-
-        chapter_data = data[0]
-        block_reason = str_or_none(chapter_data.get('blockReason'))
+        item = items[0]
+        block_reason = str_or_none(item.get('blockReason'))
         if block_reason and block_reason in self._ERRORS:
             message = self._ERRORS[block_reason]
             if block_reason == 'GEOBLOCK':
@@ -86,15 +80,31 @@ class SRGSSRIE(InfoExtractor):
             raise ExtractorError(
                 '%s said: %s' % (self.IE_NAME, message), expected=True)
         elif block_reason:
-            message = 'This media is not available. Reason: %s' % block_reason
             raise ExtractorError(
-                '%s said: %s' % (self.IE_NAME, message))
+                '%s said: This media is not available. Reason %s' % (self.IE_NAME, block_reason))
+        return item
 
-        return media_id, episode_data, chapter_data
+    def _get_ids_and_data(self, bu, media_type, url_id):
+        media_data = self._download_json(
+            'https://il.srgssr.ch/integrationlayer/2.0/%s/mediaComposition/%s/%s.json' % (bu, media_type, url_id), url_id)
+        urn_regex = r'urn:%s:%s:([0-9a-f\-]{36}|\d+)' % (bu, media_type)
+        chapter_id = self._search_regex(
+            urn_regex, media_data['chapterUrn'], 'chapter id')
+        segment_urn = str_or_none(media_data.get('segmentUrn'))
+        segment_id = self._search_regex(
+            urn_regex,
+            media_data['segmentUrn'],
+            'segment id') if segment_urn else None
+        return chapter_id, segment_id, media_data
 
-    def _get_subtitles(self, bu, media_data):
+    def _get_subtitles(self, bu, media_type, chapter_data, segment_data):
         subtitles = {}
-        subtitle_data = media_data.get('subtitleList', [])
+        if media_type == 'audio':
+            return subtitles
+
+        subtitle_data = segment_data.get(
+            'subtitleList', []) if segment_data else chapter_data.get(
+            'subtitleList', [])
 
         default_language_codes = {
             'srf': 'de',
@@ -124,19 +134,45 @@ class SRGSSRIE(InfoExtractor):
 
         return subtitles
 
+    def _get_thumbnail(self, chapter_data, segment_data):
+        if segment_data:
+            return segment_data.get('imageUrl')
+        else:
+            return chapter_data.get('imageUrl')
+
     def _real_extract(self, url):
         bu, media_type, url_id = re.match(self._VALID_URL, url).groups()
 
-        media_id, episode_data, chapter_data = self.get_media_id_and_data(bu, media_type, url_id)
+        chapter_id, segment_id, media_data = self._get_ids_and_data(
+            bu, media_type, url_id)
+        media_id = segment_id or chapter_id
+        episode_data = media_data.get('episode', {})
+        chapter_data = self._extract_list_item(
+            media_data, 'chapterList', chapter_id)
+        segment_data = self._extract_list_item(
+            chapter_data, 'segmentList', segment_id) if segment_id else None
 
-        is_episode = True if chapter_data['position'] == 0 else False
-        title = episode_data['title'] if is_episode else chapter_data['title']
-        description = chapter_data.get('description')
-        duration = float_or_none(chapter_data['duration'], scale=1000)
-        created_date = chapter_data.get('date')
+        is_whole_episode = True if chapter_data['position'] == 0 and not segment_id else False
+        if media_type == 'video':
+            title = chapter_data['title'] if is_whole_episode else segment_data['title']
+            description = chapter_data.get(
+                'description') if is_whole_episode else segment_data.get('description')
+        else:
+            # Audio media title and description set in chapter_data only refer to
+            # the content of the first chapter, so we take these informations from
+            # episode_data in case of a multi-chapter audio media.
+            title = episode_data['title'] if is_whole_episode else chapter_data['title']
+            description = episode_data.get(
+                'description') if is_whole_episode else chapter_data.get('description')
+        duration = float_or_none(
+            segment_data['duration'], scale=1000) if segment_id else float_or_none(
+            chapter_data['duration'], scale=1000)
+        created_date = segment_data.get(
+            'date') if segment_id else chapter_data.get('date')
         timestamp = parse_iso8601(created_date)
-        thumbnail = chapter_data.get('imageUrl')
-        subtitles = self._get_subtitles(bu, chapter_data)
+        thumbnail = self._get_thumbnail(chapter_data, segment_data)
+        subtitles = self._get_subtitles(
+            bu, media_type, chapter_data, segment_data)
 
         preference = qualities(['LQ', 'MQ', 'SD', 'HQ', 'HD'])
         formats = []
@@ -144,11 +180,13 @@ class SRGSSRIE(InfoExtractor):
             protocol = str_or_none(source['protocol'])
             quality = str_or_none(source['quality'])
             encoding = str_or_none(source['encoding'])
+            mime_type = str_or_none(source.get('mimeType'))
             format_url = source.get('url')
             format_id = '%s-%s-%s' % (protocol, encoding, quality)
 
             if protocol in ('HDS', 'HLS'):
-                format_url = self._get_tokenized_src(format_url, media_id, format_id)
+                format_url = self._get_tokenized_src(
+                    format_url, media_id, format_id, segment_data)
                 if protocol == 'HDS':
                     formats.extend(self._extract_f4m_formats(
                         format_url + ('?' if '?' not in format_url else '&') + 'hdcore=3.4.0',
@@ -157,17 +195,17 @@ class SRGSSRIE(InfoExtractor):
                     formats.extend(self._extract_m3u8_formats(
                         format_url, media_id, 'mp4', 'm3u8_native',
                         m3u8_id=format_id, fatal=False))
-            elif protocol in ('HTTP', 'HTTPS', 'RTMP'):
+            elif not segment_id and protocol in ('HTTP', 'HTTPS', 'RTMP'):
                 formats.append({
                     'format_id': format_id,
-                    'ext': encoding.lower() if encoding else None,
+                    'ext': mimetype2ext(mime_type) if mime_type else None,
                     'url': format_url,
                     'preference': preference(quality)
                 })
 
         podcast_keys = ('podcastSdUrl', 'podcastHdUrl')
         podcast_qualities = ('SD', 'HD')
-        if chapter_data['position'] == 0:
+        if is_whole_episode:
             for key, quality in zip(podcast_keys, podcast_qualities):
                 if chapter_data.get(key):
                     formats.append({
@@ -195,46 +233,38 @@ class SRGSSRPlayIE(InfoExtractor):
                     https?://
                         (?:
                             (?:
-                                www|
-                                play
+                                www|play
                             )\.
                         )?
                         (?P<bu>
-                            srf|
-                            rts|
-                            rsi|
-                            rtr|
-                            swissinfo
+                            srf|rts|rsi|rtr|swissinfo
                         )\.ch/play/
                         (?:
-                            tv|
-                            radio
+                            tv|radio
                         )/[^/]+/
                         (?P<type>
-                            video|
-                            audio
+                            video|audio
                         )/[^?]+\?id=
                         (?P<id>
-                            [0-9a-f\-]{36}|
-                            \d+
+                            [0-9a-f\-]{36}|\d+
                         )
                     '''
     _TESTS = [{
-        # ID in url not the same as media ID, no Save button, no description
+        # No save button, no description, only segment of a episode
         'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
-        'md5': 'da6b5b3ac9fa4761a942331cef20fcb3',
+        'md5': '37040a6e7caa7bd25e9aad2f2f05e449',
         'info_dict': {
-            'id': '0d181f8f-07ae-46b2-8d3b-7619c0efb0e3',
+            'id': '28e1a57d-5b76-4399-8ab3-9097f071e6c5',
             'ext': 'mp4',
-            'title': '10vor10 vom 01.07.2013',
+            'title': 'Snowden beantragt Asyl in Russland',
             'description': None,
-            'duration': 1489.921,
+            'duration': 113.827,
             'upload_date': '20130701',
             'timestamp': 1372708215,
-            'thumbnail': r're:^https?://.*1436737120\.png$',
+            'thumbnail': r're:^https?://.*1383719781\.png$',
         },
     }, {
-        # ID in url is the same as video ID, with Save button, german TTML and VTT subtitles (default language)
+        # With Save button, whole episode, german TTML and VTT subtitles (default language)
         'url': 'http://www.srf.ch/play/tv/rundschau/video/schwander-rot-gruene-stadtpolitik-min-li-marti-tamilen-kirche?id=2da578e3-dbb4-4657-a539-f01089a67831',
         'md5': 'b32af364dc9821af183da8dc1433da56',
         'info_dict': {
@@ -255,42 +285,6 @@ class SRGSSRPlayIE(InfoExtractor):
                     'url': 're:^https://.*\.vtt$',
                 }]
             },
-        },
-    }, {
-        # Audio media with RTMP stream
-        'url': 'http://www.rtr.ch/play/radio/actualitad/audio/saira-tujetsch-tuttina-cuntinuar-cun-sedrun-muster-turissem?id=63cb0778-27f8-49af-9284-8c7a8c6d15fc',
-        'info_dict': {
-            'id': '63cb0778-27f8-49af-9284-8c7a8c6d15fc',
-            'ext': 'mp3',
-            'title': 'Saira: Tujetsch - tuttina cuntinuar cun Sedrun Mustér Turissem',
-            'upload_date': '20151013',
-            'timestamp': 1444709160,
-            'thumbnail': r're:^https?://.*1453369436\.jpg$',
-        },
-        'params': {
-            'skip_download': True,
-        },
-    }, {
-        # Video with french TTML subtitles (default language)
-        'url': 'http://www.rts.ch/play/tv/-/video/le-19h30?id=6348260',
-        'md5': '67a2a9ae4e8e62a68d0e9820cc9782df',
-        'info_dict': {
-            'id': '6348260',
-            'display_id': '6348260',
-            'ext': 'mp4',
-            'title': 'Le 19h30',
-            'upload_date': '20141201',
-            'timestamp': 1417458600,
-            'thumbnail': r're:^https?://.*image',
-            'subtitles': {
-                'fr': [{
-                    'ext': 'ttml',
-                    'url': 're:^https://.*\.xml$'
-                }]
-            },
-        },
-        'params': {
-            'skip_download': True,
         },
     }, {
         # Video with many subtitles in different languages (explicit language definitions)
@@ -317,14 +311,30 @@ class SRGSSRPlayIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+
     }, {
-        # Audio, whole episode
+        # Audio media with RTMP stream
+        'url': 'http://www.rtr.ch/play/radio/actualitad/audio/saira-tujetsch-tuttina-cuntinuar-cun-sedrun-muster-turissem?id=63cb0778-27f8-49af-9284-8c7a8c6d15fc',
+        'info_dict': {
+            'id': '63cb0778-27f8-49af-9284-8c7a8c6d15fc',
+            'ext': 'mp3',
+            'title': 'Saira: Tujetsch - tuttina cuntinuar cun Sedrun Mustér Turissem',
+            'upload_date': '20151013',
+            'timestamp': 1444709160,
+            'thumbnail': r're:^https?://.*1453369436\.jpg$',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+
+        # Audio, whole episode of a show (i.e. chapter position 0)
         'url': 'http://www.srf.ch/play/radio/echo-der-zeit/audio/annur-moschee---rachezug-gegen-informanten?id=576a1fca-3cbd-48d7-be2f-e6dfc62a39d2',
         'info_dict': {
             'id': '576a1fca-3cbd-48d7-be2f-e6dfc62a39d2',
             'ext': 'mp3',
             'title': 'Echo der Zeit vom 21.02.2017 18:00:00',
-            'description': 'md5:a23d6a67d203083f4b044f88b54020d4',
+            'description': None,
             'duration': 2419.07,
             'upload_date': '20170221',
             'timestamp': 1487696400,
@@ -334,7 +344,7 @@ class SRGSSRPlayIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # Audio story, but not the whole episode
+        # Audio story of the show in the previous test, but not the whole episode
         'url': 'http://www.srf.ch/play/radio/echo-der-zeit/audio/slowenisch-oesterreichischer-nachbarschaftsstreit?id=03f76721-90b8-4d7f-8c14-176e4c4c4308',
         'info_dict': {
             'id': '03f76721-90b8-4d7f-8c14-176e4c4c4308',
@@ -344,7 +354,7 @@ class SRGSSRPlayIE(InfoExtractor):
             'duration': 182.387,
             'upload_date': '20170221',
             'timestamp': 1487696400,
-            'thumbnail': r're:https://.*448788\.170221_echo_slowenien-miro-cerar-624\.jpg',
+            'thumbnail': r're:^https://.*448788\.170221_echo_slowenien-miro-cerar-624\.jpg$',
         },
         'params': {
             'skip_download': True,
