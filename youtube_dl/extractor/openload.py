@@ -72,16 +72,21 @@ class OpenloadIE(InfoExtractor):
             raise ExtractorError('File not found', expected=True)
 
         ol_id = self._search_regex(
-            '<span[^>]+id="[^"]+"[^>]*>([0-9]+)</span>',
+            '<span[^>]+id="[^"]+"[^>]*>([0-9A-Za-z]+)</span>',
             webpage, 'openload ID')
 
-        first_two_chars = int(float(ol_id[0:][:2]))
+        first_char = int(ol_id[0])
         urlcode = []
-        num = 2
+        num = 1
 
         while num < len(ol_id):
-            key = int(float(ol_id[num + 3:][:2]))
-            urlcode.append((key, compat_chr(int(float(ol_id[num:][:3])) - first_two_chars)))
+            i = ord(ol_id[num])
+            key = 0
+            if i <= 90:
+                key = i - 65
+            elif i >= 97:
+                key = 25 + i - 97
+            urlcode.append((key, compat_chr(int(ol_id[num + 2:num + 5]) // int(ol_id[num + 1]) - first_char)))
             num += 5
 
         video_url = 'https://openload.co/stream/' + ''.join(
