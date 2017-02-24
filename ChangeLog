@@ -1,6 +1,8 @@
 version <unreleased>
 
 Extractors
+* [vevo] Fix extraction for videos with the new streams/streamsV3 format
+  (#11719)
 + [njpwworld] Add new extractor (#11561)
 
 
