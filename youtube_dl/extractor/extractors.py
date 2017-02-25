@@ -637,6 +637,7 @@ from .ninecninemedia import (
 from .ninegag import NineGagIE
 from .ninenow import NineNowIE
 from .nintendo import NintendoIE
+from .njpwworld import NJPWWorldIE
 from .nobelprize import NobelPrizeIE
 from .noco import NocoIE
 from .normalboots import NormalbootsIE
