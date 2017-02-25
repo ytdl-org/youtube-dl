@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import codecs
 import re
 
 from .common import InfoExtractor
@@ -46,6 +47,12 @@ class CDAIE(InfoExtractor):
         'url': 'http://ebd.cda.pl/0x0/5749950c',
         'only_matching': True,
     }]
+
+    def _decode_url(self, url):
+        decoded_url = codecs.decode(url, 'rot_13')
+        if decoded_url.endswith('adc.mp4'):
+            decoded_url = decoded_url.replace('adc.mp4', '.mp4')
+        return decoded_url
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -96,6 +103,8 @@ class CDAIE(InfoExtractor):
             if not video or 'file' not in video:
                 self.report_warning('Unable to extract %s version information' % version)
                 return
+            if video['file'].startswith('uggc'):
+                video['file'] = self._decode_url(video['file'])
             f = {
                 'url': video['file'],
             }
