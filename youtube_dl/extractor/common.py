@@ -2010,7 +2010,7 @@ class InfoExtractor(object):
                 })
         return formats
 
-    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None, m3u8_entry_protocol='m3u8', mpd_id=None):
+    def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None, m3u8_entry_protocol='m3u8', mpd_id=None, preference=None):
         def absolute_url(video_url):
             return compat_urlparse.urljoin(base_url, video_url)
 
@@ -2032,7 +2032,8 @@ class InfoExtractor(object):
                 is_plain_url = False
                 formats = self._extract_m3u8_formats(
                     full_url, video_id, ext='mp4',
-                    entry_protocol=m3u8_entry_protocol, m3u8_id=m3u8_id)
+                    entry_protocol=m3u8_entry_protocol, m3u8_id=m3u8_id,
+                    preference=preference)
             elif ext == 'mpd':
                 is_plain_url = False
                 formats = self._extract_mpd_formats(
