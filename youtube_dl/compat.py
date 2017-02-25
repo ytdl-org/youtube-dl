@@ -2760,8 +2760,10 @@ else:
     compat_kwargs = lambda kwargs: kwargs
 
 
-compat_numeric_types = ((int, float, long, complex) if sys.version_info[0] < 3
-                        else (int, float, complex))
+try:
+    compat_numeric_types = (int, float, long, complex)
+except NameError:  # Python 3
+    compat_numeric_types = (int, float, complex)
 
 
 if sys.version_info < (2, 7):
