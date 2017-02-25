@@ -288,6 +288,7 @@ from .espn import (
     ESPNArticleIE,
 )
 from .esri import EsriVideoIE
+from .etonline import ETOnlineIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .expotv import ExpoTVIE
