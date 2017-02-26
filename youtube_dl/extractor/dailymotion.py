@@ -282,9 +282,14 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         }
 
     def _check_error(self, info):
+        error = info.get('error')
         if info.get('error') is not None:
+            title = error['title']
+            # See https://developer.dailymotion.com/api#access-error
+            if error.get('code') == 'DM007':
+                self.raise_geo_restricted(msg=title)
             raise ExtractorError(
-                '%s said: %s' % (self.IE_NAME, info['error']['title']), expected=True)
+                '%s said: %s' % (self.IE_NAME, title), expected=True)
 
     def _get_subtitles(self, video_id, webpage):
         try:
