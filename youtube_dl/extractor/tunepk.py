@@ -23,15 +23,16 @@ class TunepkIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         html = webpage.replace('\n\r', '').replace('\r', '').replace('\n', '').replace('\\', '')
-        sources = re.compile('"sources"\s*:\s*\[(.+?)\]').findall(html)[0]
-        sources = re.compile("{(.+?)}").findall(sources)
+        player = re.compile('"player"\s*:\s*(\{.+?\]\}\})').findall(html)[0]
+        config = self._parse_json(player, video_id)
 
         formats = []
 
-        for source in sources:
-            video_link = str(re.compile('"file":"(.*?)"').findall(source)[0])
-            video_type = str(re.compile('"type":"(.*?)"').findall(source)[0])
-            video_bitrate = str(re.compile('"bitrate":(\d+)').findall(source)[0])
+        for source in config.get('sources'):
+            video_link = source.get('file')
+            video_type = source.get('type')
+            video_bitrate = str(source.get('bitrate'))
+
             formats.append({
                 'url': video_link,
                 'ext': video_type,
