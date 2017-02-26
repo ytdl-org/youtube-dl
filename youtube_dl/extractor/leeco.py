@@ -30,7 +30,7 @@ from ..utils import (
 class LeIE(InfoExtractor):
     IE_DESC = '乐视网'
     _VALID_URL = r'https?://(?:www\.le\.com/ptv/vplay|(?:sports\.le|(?:www\.)?lesports)\.com/(?:match|video))/(?P<id>\d+)\.html'
-
+    _GEO_COUNTRIES = ['CN']
     _URL_TEMPLATE = 'http://www.le.com/ptv/vplay/%s.html'
 
     _TESTS = [{
@@ -126,10 +126,9 @@ class LeIE(InfoExtractor):
         if playstatus['status'] == 0:
             flag = playstatus['flag']
             if flag == 1:
-                msg = 'Country %s auth error' % playstatus['country']
+                self.raise_geo_restricted()
             else:
-                msg = 'Generic error. flag = %d' % flag
-            raise ExtractorError(msg, expected=True)
+                raise ExtractorError('Generic error. flag = %d' % flag, expected=True)
 
     def _real_extract(self, url):
         media_id = self._match_id(url)

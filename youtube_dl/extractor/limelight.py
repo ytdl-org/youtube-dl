@@ -4,11 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
     unsmuggle_url,
+    ExtractorError,
 )
 
 
@@ -20,9 +22,17 @@ class LimelightBaseIE(InfoExtractor):
         headers = {}
         if referer:
             headers['Referer'] = referer
-        return self._download_json(
-            self._PLAYLIST_SERVICE_URL % (self._PLAYLIST_SERVICE_PATH, item_id, method),
-            item_id, 'Downloading PlaylistService %s JSON' % method, fatal=fatal, headers=headers)
+        try:
+            return self._download_json(
+                self._PLAYLIST_SERVICE_URL % (self._PLAYLIST_SERVICE_PATH, item_id, method),
+                item_id, 'Downloading PlaylistService %s JSON' % method, fatal=fatal, headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                error = self._parse_json(e.cause.read().decode(), item_id)['detail']['contentAccessPermission']
+                if error == 'CountryDisabled':
+                    self.raise_geo_restricted()
+                raise ExtractorError(error, expected=True)
+            raise
 
     def _call_api(self, organization_id, item_id, method):
         return self._download_json(
@@ -213,6 +223,7 @@ class LimelightMediaIE(LimelightBaseIE):
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         video_id = self._match_id(url)
+        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
 
         pc, mobile, metadata = self._extract(
             video_id, 'getPlaylistByMediaId',

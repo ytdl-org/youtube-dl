@@ -2,16 +2,17 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import int_or_none
 
 
 class MGTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?mgtv\.com/v/(?:[^/]+/)*(?P<id>\d+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?mgtv\.com/(v|b)/(?:[^/]+/)*(?P<id>\d+)\.html'
     IE_DESC = '芒果TV'
 
     _TESTS = [{
         'url': 'http://www.mgtv.com/v/1/290525/f/3116640.html',
-        'md5': '1bdadcf760a0b90946ca68ee9a2db41a',
+        'md5': 'b1ffc0fc163152acf6beaa81832c9ee7',
         'info_dict': {
             'id': '3116640',
             'ext': 'mp4',
@@ -21,48 +22,45 @@ class MGTVIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
-        # no tbr extracted from stream_url
-        'url': 'http://www.mgtv.com/v/1/1/f/3324755.html',
+        'url': 'http://www.mgtv.com/b/301817/3826653.html',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         api_data = self._download_json(
-            'http://v.api.mgtv.com/player/video', video_id,
+            'http://pcweb.api.mgtv.com/player/video', video_id,
             query={'video_id': video_id},
             headers=self.geo_verification_headers())['data']
         info = api_data['info']
+        title = info['title'].strip()
+        stream_domain = api_data['stream_domain'][0]
 
         formats = []
         for idx, stream in enumerate(api_data['stream']):
-            stream_url = stream.get('url')
-            if not stream_url:
+            stream_path = stream.get('url')
+            if not stream_path:
+                continue
+            format_data = self._download_json(
+                stream_domain + stream_path, video_id,
+                note='Download video info for format #%d' % idx)
+            format_url = format_data.get('info')
+            if not format_url:
                 continue
             tbr = int_or_none(self._search_regex(
-                r'(\d+)\.mp4', stream_url, 'tbr', default=None))
-
-            def extract_format(stream_url, format_id, idx, query={}):
-                format_info = self._download_json(
-                    stream_url, video_id,
-                    note='Download video info for format %s' % (format_id or '#%d' % idx),
-                    query=query)
-                return {
-                    'format_id': format_id,
-                    'url': format_info['info'],
-                    'ext': 'mp4',
-                    'tbr': tbr,
-                }
-
-            formats.append(extract_format(
-                stream_url, 'hls-%d' % tbr if tbr else None, idx * 2))
-            formats.append(extract_format(stream_url.replace(
-                '/playlist.m3u8', ''), 'http-%d' % tbr if tbr else None, idx * 2 + 1, {'pno': 1031}))
+                r'_(\d+)_mp4/', format_url, 'tbr', default=None))
+            formats.append({
+                'format_id': compat_str(tbr or idx),
+                'url': format_url,
+                'ext': 'mp4',
+                'tbr': tbr,
+                'protocol': 'm3u8_native',
+            })
         self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': info['title'].strip(),
+            'title': title,
             'formats': formats,
             'description': info.get('desc'),
             'duration': int_or_none(info.get('duration')),

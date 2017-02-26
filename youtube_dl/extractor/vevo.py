@@ -17,12 +17,12 @@ from ..utils import (
 
 
 class VevoBaseIE(InfoExtractor):
-    def _extract_json(self, webpage, video_id, item):
+    def _extract_json(self, webpage, video_id):
         return self._parse_json(
             self._search_regex(
                 r'window\.__INITIAL_STORE__\s*=\s*({.+?});\s*</script>',
                 webpage, 'initial store'),
-            video_id)['default'][item]
+            video_id)
 
 
 class VevoIE(VevoBaseIE):
@@ -139,6 +139,11 @@ class VevoIE(VevoBaseIE):
         # no genres available
         'url': 'http://www.vevo.com/watch/INS171400764',
         'only_matching': True,
+    }, {
+        # Another case available only via the webpage; using streams/streamsV3 formats
+        # Geo-restricted to Netherlands/Germany
+        'url': 'http://www.vevo.com/watch/boostee/pop-corn-clip-officiel/FR1A91600909',
+        'only_matching': True,
     }]
     _VERSIONS = {
         0: 'youtube',  # only in AuthenticateVideo videoVersions
@@ -193,7 +198,14 @@ class VevoIE(VevoBaseIE):
         # https://github.com/rg3/youtube-dl/issues/9366)
         if not video_versions:
             webpage = self._download_webpage(url, video_id)
-            video_versions = self._extract_json(webpage, video_id, 'streams')[video_id][0]
+            json_data = self._extract_json(webpage, video_id)
+            if 'streams' in json_data.get('default', {}):
+                video_versions = json_data['default']['streams'][video_id][0]
+            else:
+                video_versions = [
+                    value
+                    for key, value in json_data['apollo']['data'].items()
+                    if key.startswith('%s.streams' % video_id)]
 
         uploader = None
         artist = None
@@ -207,7 +219,7 @@ class VevoIE(VevoBaseIE):
 
         formats = []
         for video_version in video_versions:
-            version = self._VERSIONS.get(video_version['version'])
+            version = self._VERSIONS.get(video_version.get('version'), 'generic')
             version_url = video_version.get('url')
             if not version_url:
                 continue
@@ -339,7 +351,7 @@ class VevoPlaylistIE(VevoBaseIE):
             if video_id:
                 return self.url_result('vevo:%s' % video_id, VevoIE.ie_key())
 
-        playlists = self._extract_json(webpage, playlist_id, '%ss' % playlist_kind)
+        playlists = self._extract_json(webpage, playlist_id)['default']['%ss' % playlist_kind]
 
         playlist = (list(playlists.values())[0]
                     if playlist_kind == 'playlist' else playlists[playlist_id])

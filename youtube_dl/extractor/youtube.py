@@ -47,7 +47,6 @@ from ..utils import (
     unsmuggle_url,
     uppercase_escape,
     urlencode_postdata,
-    ISO3166Utils,
 )
 
 
@@ -370,6 +369,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '_rtmp': {'protocol': 'rtmp'},
     }
     _SUBTITLE_FORMATS = ('ttml', 'vtt')
+
+    _GEO_BYPASS = False
 
     IE_NAME = 'youtube'
     _TESTS = [
@@ -917,7 +918,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # itag 212
             'url': '1t24XAntNCY',
             'only_matching': True,
-        }
+        },
+        {
+            # geo restricted to JP
+            'url': 'sJL6WA-aGkQ',
+            'only_matching': True,
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1376,11 +1382,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if 'token' not in video_info:
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta('regionsAllowed', video_webpage, default=None)
-                    if regions_allowed:
-                        raise ExtractorError('YouTube said: This video is available in %s only' % (
-                            ', '.join(map(ISO3166Utils.short2full, regions_allowed.split(',')))),
-                            expected=True)
+                    regions_allowed = self._html_search_meta(
+                        'regionsAllowed', video_webpage, default=None)
+                    countries = regions_allowed.split(',') if regions_allowed else None
+                    self.raise_geo_restricted(
+                        msg=video_info['reason'][0], countries=countries)
                 raise ExtractorError(
                     'YouTube said: %s' % video_info['reason'][0],
                     expected=True, video_id=video_id)
@@ -2126,6 +2132,10 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'UUs0ifCMCm1icqRbqhUINa0w',
             'title': 'Uploads from Deus Ex',
         },
+    }, {
+        # geo restricted to JP
+        'url': 'https://www.youtube.com/user/kananishinoSMEJ',
+        'only_matching': True,
     }]
 
     @classmethod

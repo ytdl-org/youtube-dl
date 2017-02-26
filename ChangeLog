@@ -1,3 +1,105 @@
+version <unreleased>
+
+Extractors
++ [MDR] Recognize more URL patterns (#12169)
+* [vevo] Fix extraction for videos with the new streams/streamsV3 format
+  (#11719)
++ [njpwworld] Add new extractor (#11561)
+
+
+version 2017.02.24.1
+
+Extractors
+* [noco] Modernize
+* [noco] Switch login URL to https (#12246)
++ [thescene] Extract more metadata
+* [thescene] Fix extraction (#12235)
++ [tubitv] Use geo bypass mechanism
+* [openload] Fix extraction (#10408)
++ [ivi] Raise GeoRestrictedError
+
+
+version 2017.02.24
+
+Core
+* [options] Hide deprecated options from --help
+* [options] Deprecate --autonumber-size
++ [YoutubeDL] Add support for string formatting operations in output template
+  (#5185, #5748, #6841, #9929, #9966 #9978, #12189)
+
+Extractors
++ [lynda:course] Add webpage extraction fallback (#12238)
+* [go] Sign all uplynk URLs and use geo bypass only for free videos
+  (#12087, #12210)
++ [skylinewebcams] Add support for skylinewebcams.com (#12221)
++ [instagram] Add support for multi video posts (#12226)
++ [crunchyroll] Extract playlist entries ids
+* [mgtv] Fix extraction
++ [sohu] Raise GeoRestrictedError
++ [leeco] Raise GeoRestrictedError and use geo bypass mechanism
+
+
+version 2017.02.22
+
+Extractors
+* [crunchyroll] Fix descriptions with double quotes (#12124)
+* [dailymotion] Make comment count optional (#12209)
++ [vidzi] Add support for vidzi.cc (#12213)
++ [24video] Add support for 24video.tube (#12217)
++ [crackle] Use geo bypass mechanism
++ [viewster] Use geo verification headers
++ [tfo] Improve geo restriction detection and use geo bypass mechanism
++ [telequebec] Use geo bypass mechanism
++ [limelight] Extract PlaylistService errors and improve geo restriction
+  detection
+
+
+version 2017.02.21
+
+Core
+* [extractor/common] Allow calling _initialize_geo_bypass from extractors
+  (#11970)
++ [adobepass] Add support for Time Warner Cable (#12191)
++ [travis] Run tests in parallel
++ [downloader/ism] Honor HTTP headers when downloading fragments
++ [downloader/dash] Honor HTTP headers when downloading fragments
++ [utils] Add GeoUtils class for working with geo tools and GeoUtils.random_ipv4
++ Add option --geo-bypass-country for explicit geo bypass on behalf of
+  specified country
++ Add options to control geo bypass mechanism --geo-bypass and --no-geo-bypass
++ Add experimental geo restriction bypass mechanism based on faking
+  X-Forwarded-For HTTP header
++ [utils] Introduce GeoRestrictedError for geo restricted videos
++ [utils] Introduce YoutubeDLError base class for all youtube-dl exceptions
+
+Extractors
++ [ninecninemedia] Use geo bypass mechanism
+* [spankbang] Make uploader optional (#12193)
++ [iprima] Improve geo restriction detection and disable geo bypass
+* [iprima] Modernize
+* [commonmistakes] Disable UnicodeBOM extractor test for python 3.2
++ [prosiebensat1] Throw ExtractionError on unsupported page type (#12180)
+* [nrk] Update _API_HOST and relax _VALID_URL
++ [tv4] Bypass geo restriction and improve detection
+* [tv4] Switch to hls3 protocol (#12177)
++ [viki] Improve geo restriction detection
++ [vgtv] Improve geo restriction detection
++ [srgssr] Improve geo restriction detection
++ [vbox7] Improve geo restriction detection and use geo bypass mechanism
++ [svt] Improve geo restriction detection and use geo bypass mechanism
++ [pbs] Improve geo restriction detection and use geo bypass mechanism
++ [ondemandkorea] Improve geo restriction detection and use geo bypass mechanism
++ [nrk] Improve geo restriction detection and use geo bypass mechanism
++ [itv] Improve geo restriction detection and use geo bypass mechanism
++ [go] Improve geo restriction detection and use geo bypass mechanism
++ [dramafever] Improve geo restriction detection and use geo bypass mechanism
+* [brightcove:legacy] Restrict videoPlayer value (#12040)
++ [tvn24] Add support for tvn24.pl and tvn24bis.pl (#11679)
++ [thisav] Add support for HTML5 media (#11771)
+* [metacafe] Bypass family filter (#10371)
+* [viceland] Improve info extraction
+
+
 version 2017.02.17
 
 Extractors

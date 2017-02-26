@@ -12,7 +12,7 @@ from ..utils import (
 
 class TwentyFourVideoIE(InfoExtractor):
     IE_NAME = '24video'
-    _VALID_URL = r'https?://(?:www\.)?24video\.(?:net|me|xxx|sex)/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?24video\.(?:net|me|xxx|sex|tube)/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.24video.net/video/view/1044982',
@@ -36,6 +36,9 @@ class TwentyFourVideoIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.24video.me/video/view/1044982',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.24video.tube/video/view/2363750',
         'only_matching': True,
     }]
 

@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import codecs
 import re
 
 from .common import InfoExtractor
@@ -96,6 +97,10 @@ class CDAIE(InfoExtractor):
             if not video or 'file' not in video:
                 self.report_warning('Unable to extract %s version information' % version)
                 return
+            if video['file'].startswith('uggc'):
+                video['file'] = codecs.decode(video['file'], 'rot_13')
+                if video['file'].endswith('adc.mp4'):
+                    video['file'] = video['file'].replace('adc.mp4', '.mp4')
             f = {
                 'url': video['file'],
             }

@@ -680,6 +680,7 @@
  - **Shared**: shared.sx
  - **ShowRoomLive**
  - **Sina**
+ - **SkylineWebcams**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
  - **SkySports**
@@ -804,6 +805,7 @@
  - **TVCArticle**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
+ - **TVN24**
  - **TVNoe**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
