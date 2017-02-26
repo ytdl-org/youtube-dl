@@ -48,12 +48,6 @@ class CDAIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _decode_url(self, url):
-        decoded_url = codecs.decode(url, 'rot_13')
-        if decoded_url.endswith('adc.mp4'):
-            decoded_url = decoded_url.replace('adc.mp4', '.mp4')
-        return decoded_url
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         self._set_cookie('cda.pl', 'cda.player', 'html5')
@@ -104,7 +98,9 @@ class CDAIE(InfoExtractor):
                 self.report_warning('Unable to extract %s version information' % version)
                 return
             if video['file'].startswith('uggc'):
-                video['file'] = self._decode_url(video['file'])
+                video['file'] = codecs.decode(video['file'], 'rot_13')
+                if video['file'].endswith('adc.mp4'):
+                    video['file'] = video['file'].replace('adc.mp4', '.mp4')
             f = {
                 'url': video['file'],
             }
