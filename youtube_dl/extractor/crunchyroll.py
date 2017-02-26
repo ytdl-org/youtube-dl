@@ -207,6 +207,21 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             # Just test metadata extraction
             'skip_download': True,
         },
+    }, {
+        # make sure we can extract an uploader name that's not a link
+        'url': 'http://www.crunchyroll.com/hakuoki-reimeiroku/episode-1-dawn-of-the-divine-warriors-606899',
+        'info_dict': {
+            'id': '606899',
+            'ext': 'mp4',
+            'title': 'Hakuoki Reimeiroku Episode 1 – Dawn of the Divine Warriors',
+            'description': 'Ryunosuke was left to die, but Serizawa-san asked him a simple question "Do you want to live?"',
+            'uploader': 'Geneon Entertainment',
+            'upload_date': '20120717',
+        },
+        'params': {
+            # just test metadata extraction
+            'skip_download': True,
+        },
     }]
 
     _FORMAT_IDS = {
@@ -388,8 +403,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if video_upload_date:
             video_upload_date = unified_strdate(video_upload_date)
         video_uploader = self._html_search_regex(
-            r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
-            'video_uploader', fatal=False)
+            # try looking for both an uploader that's a link and one that's not
+            [r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', r'<div>\s*Publisher:\s*<span>\s*(.+?)\s*</span>\s*</div>'],
+            webpage, 'video_uploader', fatal=False)
 
         available_fmts = []
         for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
