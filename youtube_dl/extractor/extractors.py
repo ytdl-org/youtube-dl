@@ -1177,6 +1177,7 @@ from .vporn import VpornIE
 from .vrt import VRTIE
 from .vrak import VrakIE
 from .medialaan import MedialaanIE
+from .vshare import VShareIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vvvvid import VVVVIDIE
