@@ -290,6 +290,11 @@ def _real_main(argv=None):
             'key': 'ExecAfterDownload',
             'exec_cmd': opts.exec_cmd,
         })
+    if opts.move:
+        postprocessors.append({
+            'key': 'Move',
+            'destination': opts.move,
+        })
     external_downloader_args = None
     if opts.external_downloader_args:
         external_downloader_args = compat_shlex_split(opts.external_downloader_args)

@@ -845,6 +845,9 @@ def parseOpts(overrideArguments=None):
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
         help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
+    postproc.add_option(
+        '--move', metavar="DESTINATION", dest='move',
+        help="Specify directory to move completed files to")
 
     parser.add_option_group(general)
     parser.add_option_group(network)
