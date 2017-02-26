@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [MDR] Recognize more URL patterns (#12169)
 * [vevo] Fix extraction for videos with the new streams/streamsV3 format
   (#11719)
 + [njpwworld] Add new extractor (#11561)
