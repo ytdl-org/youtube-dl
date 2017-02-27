@@ -2132,10 +2132,6 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'UUs0ifCMCm1icqRbqhUINa0w',
             'title': 'Uploads from Deus Ex',
         },
-    }, {
-        # geo restricted to JP
-        'url': 'https://www.youtube.com/user/kananishinoSMEJ',
-        'only_matching': True,
     }]
 
     @classmethod
@@ -2236,7 +2232,7 @@ class YoutubeUserIE(YoutubeChannelIE):
         'url': 'https://www.youtube.com/gametrailers',
         'only_matching': True,
     }, {
-        # This channel is not available.
+        # This channel is not available, geo restricted to JP
         'url': 'https://www.youtube.com/user/kananishinoSMEJ/videos',
         'only_matching': True,
     }]
