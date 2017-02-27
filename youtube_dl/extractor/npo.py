@@ -416,7 +416,21 @@ class NPORadioFragmentIE(InfoExtractor):
         }
 
 
-class SchoolTVIE(InfoExtractor):
+class NPODataMidEmbedIE(InfoExtractor):
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(
+            r'data-mid=(["\'])(?P<id>(?:(?!\1).)+)\1', webpage, 'video_id', group='id')
+        return {
+            '_type': 'url_transparent',
+            'ie_key': 'NPO',
+            'url': 'npo:%s' % video_id,
+            'display_id': display_id
+        }
+
+
+class SchoolTVIE(NPODataMidEmbedIE):
     IE_NAME = 'schooltv'
     _VALID_URL = r'https?://(?:www\.)?schooltv\.nl/video/(?P<id>[^/?#&]+)'
 
@@ -435,17 +449,25 @@ class SchoolTVIE(InfoExtractor):
         }
     }
 
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-        video_id = self._search_regex(
-            r'data-mid=(["\'])(?P<id>(?:(?!\1).)+)\1', webpage, 'video_id', group='id')
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'NPO',
-            'url': 'npo:%s' % video_id,
-            'display_id': display_id
+
+class HetKlokhuisIE(NPODataMidEmbedIE):
+    IE_NAME = 'schooltv'
+    _VALID_URL = r'https?://(?:www\.)?hetklokhuis.nl/[^/]+/\d+/(?P<id>[^/?#&]+)'
+
+    _TEST = {
+        'url': 'http://hetklokhuis.nl/tv-uitzending/3471/Zwaartekrachtsgolven',
+        'info_dict': {
+            'id': 'VPWON_1260528',
+            'display_id': 'Zwaartekrachtsgolven',
+            'ext': 'm4v',
+            'title': 'Het Klokhuis: Zwaartekrachtsgolven',
+            'description': 'md5:c94f31fb930d76c2efa4a4a71651dd48',
+            'upload_date': '20170223',
+        },
+        'params': {
+            'skip_download': True
         }
+    }
 
 
 class NPOPlaylistBaseIE(NPOIE):
