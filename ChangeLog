@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.02.27
 
 Core
 * [downloader/common] Limit displaying 2 digits after decimal point in sleep

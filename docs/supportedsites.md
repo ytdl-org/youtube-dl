@@ -239,6 +239,7 @@
  - **ESPN**
  - **ESPNArticle**
  - **EsriVideo**
+ - **ETOnline**
  - **Europa**
  - **EveryonesMixtape**
  - **ExpoTV**
@@ -274,6 +275,7 @@
  - **francetvinfo.fr**
  - **Freesound**
  - **freespeech.org**
+ - **FreshLive**
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
@@ -310,6 +312,7 @@
  - **HellPorno**
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
+ - **hetklokhuis**
  - **hgtv.com:show**
  - **HistoricFilms**
  - **history:topic**: History.com Topic
@@ -511,6 +514,7 @@
  - **Nintendo**
  - **njoy**: N-JOY
  - **njoy:embed**
+ - **NJPWWorld**: 新日本プロレスワールド
  - **NobelPrize**
  - **Noco**
  - **Normalboots**
@@ -666,7 +670,6 @@
  - **savefrom.net**
  - **SBS**: sbs.com.au
  - **schooltv**
- - **SciVee**
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
