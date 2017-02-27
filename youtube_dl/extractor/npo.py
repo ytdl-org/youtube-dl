@@ -51,7 +51,8 @@ class NPOIE(NPOBaseIE):
                             (?:
                                 npo\.nl/(?!live|radio)(?:[^/]+/){2}|
                                 ntr\.nl/(?:[^/]+/){2,}|
-                                omroepwnl\.nl/video/fragment/[^/]+__
+                                omroepwnl\.nl/video/fragment/[^/]+__|
+                                zapp\.nl/[^/]+/(?:gemist|filmpjes)/
                             )
                         )
                         (?P<id>[^/?#]+)
@@ -140,6 +141,14 @@ class NPOIE(NPOBaseIE):
                 'upload_date': '20150508',
                 'duration': 462,
             },
+        },
+        {
+            'url': 'http://www.zapp.nl/de-bzt-show/gemist/KN_1687547',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.zapp.nl/de-bzt-show/filmpjes/POMS_KN_7315118',
+            'only_matching': True,
         }
     ]
 
