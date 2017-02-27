@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [daisuki] Add new extractor (#2486, #3186, #4738, #6175, #7776, #10060)
 * [douyu] Fix extraction (#12301)
 
 
