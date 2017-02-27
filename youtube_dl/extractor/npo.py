@@ -52,7 +52,7 @@ class NPOIE(NPOBaseIE):
                                 npo\.nl/(?!live|radio)(?:[^/]+/){2}|
                                 ntr\.nl/(?:[^/]+/){2,}|
                                 omroepwnl\.nl/video/fragment/[^/]+__|
-                                zapp\.nl/[^/]+/(?:gemist|filmpjes)/
+                                zapp\.nl/[^/]+/[^/]+/
                             )
                         )
                         (?P<id>[^/?#]+)
@@ -148,6 +148,10 @@ class NPOIE(NPOBaseIE):
         },
         {
             'url': 'http://www.zapp.nl/de-bzt-show/filmpjes/POMS_KN_7315118',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://www.zapp.nl/beste-vrienden-quiz/extra-video-s/WO_NTR_1067990',
             'only_matching': True,
         }
     ]
