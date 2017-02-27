@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+- [scivee] Remove extractor (#9315)
 + [MDR] Recognize more URL patterns (#12169)
 * [vevo] Fix extraction for videos with the new streams/streamsV3 format
   (#11719)
