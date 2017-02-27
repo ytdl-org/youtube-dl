@@ -52,6 +52,7 @@ from youtube_dl.utils import (
     parse_filesize,
     parse_count,
     parse_iso8601,
+    pkcs1pad,
     read_batch_urls,
     sanitize_filename,
     sanitize_path,
@@ -1103,6 +1104,14 @@ The first line
         self.assertEqual(
             ohdave_rsa_encrypt(b'aa111222', e, N),
             '726664bd9a23fd0c70f9f1b84aab5e3905ce1e45a584e9cbcf9bcc7510338fc1986d6c599ff990d923aa43c51c0d9013cd572e13bc58f4ae48f2ed8c0b0ba881')
+
+    def test_pkcs1pad(self):
+        data = [1, 2, 3]
+        padded_data = pkcs1pad(data, 32)
+        self.assertEqual(padded_data[:2], [0, 2])
+        self.assertEqual(padded_data[28:], [0, 1, 2, 3])
+
+        self.assertRaises(ValueError, pkcs1pad, data, 8)
 
     def test_encode_base_n(self):
         self.assertEqual(encode_base_n(0, 30), '0')

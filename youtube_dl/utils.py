@@ -3336,6 +3336,21 @@ def ohdave_rsa_encrypt(data, exponent, modulus):
     return '%x' % encrypted
 
 
+def pkcs1pad(data, length):
+    """
+    Padding input data with PKCS#1 scheme
+
+    @param {int[]} data        input data
+    @param {int}   length      target length
+    @returns {int[]}           padded data
+    """
+    if len(data) > length - 11:
+        raise ValueError('Input data too long for PKCS#1 padding')
+
+    pseudo_random = [random.randint(0, 254) for _ in range(length - len(data) - 3)]
+    return [0, 2] + pseudo_random + [0] + data
+
+
 def encode_base_n(num, n, table=None):
     FULL_TABLE = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     if not table:
