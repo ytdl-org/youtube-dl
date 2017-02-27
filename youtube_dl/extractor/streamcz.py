@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     sanitized_Request,
+    str_or_none,
 )
 
 
@@ -20,13 +21,21 @@ def _get_api_key(api_path):
     return hashlib.md5(a.encode('ascii')).hexdigest()
 
 
-class StreamCZIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?stream\.cz/.+/(?P<id>[0-9]+)'
+class StreamCZBaseIE(InfoExtractor):
     _API_URL = 'http://www.stream.cz/API'
+
+    def _get_api_request(self, api_path, api_key):
+        req = sanitized_Request(self._API_URL + api_path)
+        req.add_header('Api-Password', _get_api_key(api_path))
+        return req
+
+
+class StreamCZIE(StreamCZBaseIE):
+    _VALID_URL = r'(?:https?://(?:www\.)?stream\.cz/(?!porady|pohadky).+/|streamcz:)(?P<id>[0-9]+)'
 
     _TESTS = [{
         'url': 'http://www.stream.cz/peklonataliri/765767-ecka-pro-deti',
-        'md5': '6d3ca61a8d0633c9c542b92fcb936b0c',
+        'md5': '934bb6a6d220d99c010783c9719960d5',
         'info_dict': {
             'id': '765767',
             'ext': 'mp4',
@@ -37,7 +46,7 @@ class StreamCZIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.stream.cz/blanik/10002447-tri-roky-pro-mazanka',
-        'md5': 'e54a254fb8b871968fd8403255f28589',
+        'md5': '849a88c1e1ca47d41403c2ba5e59e261',
         'info_dict': {
             'id': '10002447',
             'ext': 'mp4',
@@ -52,8 +61,7 @@ class StreamCZIE(InfoExtractor):
         video_id = self._match_id(url)
         api_path = '/episode/%s' % video_id
 
-        req = sanitized_Request(self._API_URL + api_path)
-        req.add_header('Api-Password', _get_api_key(api_path))
+        req = self._get_api_request(api_path, _get_api_key(api_path))
         data = self._download_json(req, video_id)
 
         formats = []
@@ -94,3 +102,85 @@ class StreamCZIE(InfoExtractor):
             'duration': int_or_none(data.get('duration')),
             'view_count': int_or_none(data.get('views')),
         }
+
+
+class StreamCZPlaylistIE(StreamCZBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?stream\.cz/(:?porady|pohadky)/(?P<id>.+)'
+
+    _TESTS = [{
+        'url': 'https://www.stream.cz/pohadky/lego-staveni',
+        'info_dict': {
+            'id': 'lego-staveni',
+            'title': 'LEGO stavění',
+            'description': 'md5:af5a439c7d84de87d3d11f8bc554cb19'
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'playlist_mincount': 34,
+    }, {
+        'url': 'https://www.stream.cz/porady/menudomu/serie/bonusy',
+        'info_dict': {
+            'id': 'menudomu/serie/bonusy',
+            'title': 'MENU domů',
+            'description': 'md5:f28221c0ecdf2553f55a671fb2f61882'
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'playlist_mincount': 14,
+    }]
+
+    def _extract_ids_from_playlist(self, playlist_id):
+        episode_ids = []
+        api_path = '/season/%s' % playlist_id
+
+        while api_path:
+            api_key = _get_api_key(api_path)
+            req = self._get_api_request(api_path, api_key)
+            data = self._download_json(req, api_path.split('/')[-1])
+            items = data['_embedded']['stream:episode']
+            if type(items) == list:
+                for elem in items:
+                    episode_ids.append(str_or_none(elem['id']))
+            else:
+                episode_ids.append(str_or_none(items['id']))
+            next_link = data['_links'].get('next')
+            if next_link:
+                next_link = str_or_none(next_link.get('href'))
+            api_path = next_link
+        return episode_ids
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        api_path = '/show/%s' % display_id.split('/')[0]
+        api_key = _get_api_key(api_path)
+
+        req = self._get_api_request(api_path, api_key)
+        data = self._download_json(req, display_id)
+        title = data.get('name')
+        description = data.get('description')
+
+        url_name = str_or_none(data['url_name'])
+        extract_all = True if url_name == display_id.split('/')[-1] else False
+        playlist_ids = []
+        items = data['_embedded']['stream:season']
+        if type(items) == list:
+            for elem in items:
+                url_name = str_or_none(elem['url_name'])
+                if extract_all or url.endswith(url_name):
+                    playlist_ids.append(str_or_none(elem['id']))
+        else:
+            playlist_ids.append(str_or_none(items['id']))
+
+        episode_ids = []
+        for pid in playlist_ids:
+            episode_ids.extend(self._extract_ids_from_playlist(pid))
+
+        return self.playlist_result(
+            [self.url_result(
+                'streamcz:%s' % eid, ie=StreamCZIE.ie_key()) for eid in episode_ids],
+            playlist_id=display_id,
+            playlist_title=title,
+            playlist_description=description
+        )

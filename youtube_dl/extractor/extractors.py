@@ -909,7 +909,10 @@ from .stanfordoc import StanfordOpenClassroomIE
 from .steam import SteamIE
 from .streamable import StreamableIE
 from .streamcloud import StreamcloudIE
-from .streamcz import StreamCZIE
+from .streamcz import (
+    StreamCZIE,
+    StreamCZPlaylistIE,
+)
 from .streetvoice import StreetVoiceIE
 from .sunporno import SunPornoIE
 from .svt import (
