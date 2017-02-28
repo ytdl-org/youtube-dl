@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [douyu] Fix extraction (#12301)
+
+
 version 2017.02.27
 
 Core
