@@ -31,7 +31,7 @@ class StreamCZBaseIE(InfoExtractor):
 
 
 class StreamCZIE(StreamCZBaseIE):
-    _VALID_URL = r'(?:https?://(?:www\.)?stream\.cz/(?!porady|pohadky).+/|streamcz:)(?P<id>[0-9]+)'
+    _VALID_URL = r'(?:https?://(?:www\.)?stream\.cz/(?:pohadky/)?[^/]+/|streamcz:)(?P<id>[0-9]+)(?:-[^/]+/?)?$'
 
     _TESTS = [{
         'url': 'http://www.stream.cz/peklonataliri/765767-ecka-pro-deti',
@@ -55,6 +55,9 @@ class StreamCZIE(StreamCZBaseIE):
             'thumbnail': 're:^http://im.stream.cz/episode/537f838c50c11f8d21320000',
             'duration': 368,
         },
+    }, {
+        'url': 'https://www.stream.cz/pohadky/lego-staveni/10015386-dalsi-staveni-z-lego-city-starter-set',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -129,6 +132,9 @@ class StreamCZPlaylistIE(StreamCZBaseIE):
             'skip_download': True,
         },
         'playlist_mincount': 14,
+    }, {
+        'url': 'https://www.stream.cz/porady/lego-kratke-filmy/serie/nexo-knights',
+        'only_matching': True,
     }]
 
     def _extract_ids_from_playlist(self, playlist_id):
