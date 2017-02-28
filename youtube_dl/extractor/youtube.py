@@ -1851,7 +1851,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (?:
                             youtube\.com/
                             (?:
-                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
+                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/(?:videoseries|[0-9A-Za-z_-]{11}))
                                \? (?:.*?[&;])*? (?:p|a|list)=
                             |  p/
                             )|
@@ -1923,6 +1923,13 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': 'JODA15',
             'id': 'PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
+        }
+    }, {
+        'url': 'http://www.youtube.com/embed/_xDOZElKyNU?list=PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
+        'playlist_mincount': 485,
+        'info_dict': {
+            'title': '2017 華語最新單曲 (2/24更新)',
+            'id': 'PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
         }
     }, {
         'note': 'Embedded SWF player',
@@ -2072,7 +2079,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         # Check if it's a video-specific URL
         query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         video_id = query_dict.get('v', [None])[0] or self._search_regex(
-            r'(?:^|//)youtu\.be/([0-9A-Za-z_-]{11})', url,
+            r'(?:(?:^|//)youtu\.be/|youtube\.com/embed/(?!videoseries))([0-9A-Za-z_-]{11})', url,
             'video id', default=None)
         if video_id:
             if self._downloader.params.get('noplaylist'):
