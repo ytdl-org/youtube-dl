@@ -83,6 +83,7 @@ from .awaan import (
 from .azmedien import (
     AZMedienIE,
     AZMedienPlaylistIE,
+    AZMedienShowPlaylistIE,
 )
 from .azubu import AzubuIE, AzubuLiveIE
 from .baidu import BaiduVideoIE
