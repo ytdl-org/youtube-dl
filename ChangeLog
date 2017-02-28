@@ -1,7 +1,15 @@
 version <unreleased>
 
+Core
++ [utils] Add bytes_to_long and long_to_bytes
++ [utils] Add pkcs1pad
++ [aes] Add aes_cbc_encrypt
+
 Extractors
-+ [daisuki] Add new extractor (#2486, #3186, #4738, #6175, #7776, #10060)
++ [azmedien:showplaylist] Add support for show playlists (#12160)
++ [youtube:playlist] Recognize another playlist pattern (#11928, #12286)
++ [daisuki] Add support for daisuki.net (#2486, #3186, #4738, #6175, #7776,
+  #10060)
 * [douyu] Fix extraction (#12301)
 
 
