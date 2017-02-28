@@ -17,27 +17,9 @@ from ..utils import (
 
 class NPOBaseIE(InfoExtractor):
     def _get_token(self, video_id):
-        token_page = self._download_webpage(
-            'http://ida.omroep.nl/npoplayer/i.js',
-            video_id, note='Downloading token')
-        token = self._search_regex(
-            r'npoplayer\.token = "(.+?)"', token_page, 'token')
-        # Decryption algorithm extracted from http://npoplayer.omroep.nl/csjs/npoplayer-min.js
-        token_l = list(token)
-        first = second = None
-        for i in range(5, len(token_l) - 4):
-            if token_l[i].isdigit():
-                if first is None:
-                    first = i
-                elif second is None:
-                    second = i
-        if first is None or second is None:
-            first = 12
-            second = 13
-
-        token_l[first], token_l[second] = token_l[second], token_l[first]
-
-        return ''.join(token_l)
+        return self._download_json(
+            'http://ida.omroep.nl/app.php/auth', video_id,
+            note='Downloading token')['token']
 
 
 class NPOIE(NPOBaseIE):
@@ -187,32 +169,41 @@ class NPOIE(NPOBaseIE):
         pubopties = metadata.get('pubopties')
         if pubopties:
             quality = qualities(['adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std'])
-            for format_id in pubopties:
-                format_info = self._download_json(
-                    'http://ida.omroep.nl/odi/?prid=%s&puboptions=%s&adaptive=yes&token=%s'
-                    % (video_id, format_id, token),
-                    video_id, 'Downloading %s JSON' % format_id)
-                if format_info.get('error_code', 0) or format_info.get('errorcode', 0):
+            items = self._download_json(
+                'http://ida.omroep.nl/app.php/%s' % video_id,
+                'Downloading formats JSON', query={
+                    'adaptive': 'yes',
+                    'token': token,
+                })['items'][0]
+            for num, item in enumerate(items):
+                item_url = item.get('url')
+                if not item_url:
                     continue
-                streams = format_info.get('streams')
-                if streams:
-                    try:
-                        video_info = self._download_json(
-                            streams[0] + '&type=json',
-                            video_id, 'Downloading %s stream JSON' % format_id)
-                    except ExtractorError as ee:
-                        if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
-                            error = (self._parse_json(ee.cause.read().decode(), video_id, fatal=False) or {}).get('errorstring')
-                            if error:
-                                raise ExtractorError(error, expected=True)
-                        raise
-                else:
-                    video_info = format_info
-                video_url = video_info.get('url')
+                format_id = self._search_regex(
+                    r'video/ida/([^/]+)', item_url, 'format id',
+                    default=None)
+                try:
+                    stream_info = self._download_json(
+                        item_url + '&type=json', video_id,
+                        'Downloading %s stream JSON' % item.get('label') or format_id or num)
+                except ExtractorError as ee:
+                    if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
+                        error = (self._parse_json(
+                            ee.cause.read().decode(), video_id,
+                            fatal=False) or {}).get('errorstring')
+                        if error:
+                            raise ExtractorError(error, expected=True)
+                    raise
+                if stream_info.get('error_code', 0) or stream_info.get('errorcode', 0):
+                    continue
+                video_url = stream_info.get('url')
                 if not video_url:
                     continue
-                if format_id == 'adaptive':
-                    formats.extend(self._extract_m3u8_formats(video_url, video_id, 'mp4'))
+                if stream_info.get('family') == 'adaptive':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, ext='mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        fatal=False))
                 else:
                     formats.append({
                         'url': video_url,
