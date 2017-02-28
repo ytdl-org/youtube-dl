@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.02.28
 
 Core
 + [utils] Add bytes_to_long and long_to_bytes

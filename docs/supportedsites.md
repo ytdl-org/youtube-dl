@@ -78,6 +78,7 @@
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
  - **AZMedienPlaylist**: AZ Medien playlists
+ - **AZMedienShowPlaylist**: AZ Medien show playlists
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -191,6 +192,8 @@
  - **dailymotion:playlist**
  - **dailymotion:user**
  - **DailymotionCloud**
+ - **Daisuki**
+ - **DaisukiPlaylist**
  - **daum.net**
  - **daum.net:clip**
  - **daum.net:playlist**
