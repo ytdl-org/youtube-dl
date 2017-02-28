@@ -1856,6 +1856,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                             |  p/
                             )|
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
+                             |
+                            youtube\.com/embed/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
                             (?:PL|LL|EC|UU|FL|RD|UL|TL)?[0-9A-Za-z-_]{10,}
@@ -1989,6 +1991,13 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     }, {
         'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
         'only_matching': True,
+    }, {
+        'url': 'http://www.youtube.com/embed/_xDOZElKyNU?list=PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
+        'info_dict': {
+            'id': '_xDOZElKyNU',
+            'title': "BY2【桃花旗袍】HD 高清官方完整版 MV",
+            'ext': 'mp4',
+        },
     }]
 
     def _real_initialize(self):
@@ -2073,6 +2082,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         video_id = query_dict.get('v', [None])[0] or self._search_regex(
             r'(?:^|//)youtu\.be/([0-9A-Za-z_-]{11})', url,
+            'video id', default=None) or self._search_regex(
+            r'.*?www\.youtube\.com/embed/([0-9A-Za-z_-]{11})\?list=.+$', url,
             'video id', default=None)
         if video_id:
             if self._downloader.params.get('noplaylist'):
