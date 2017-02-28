@@ -34,6 +34,11 @@ class DaisukiIE(InfoExtractor):
             'id': '11213',
             'ext': 'mp4',
             'title': '#01 Who is in the pumpkin carriage? - THE IDOLM@STER CINDERELLA GIRLS',
+            'subtitles': {
+                'mul': [{
+                    'ext': 'ttml',
+                }],
+            },
             'creator': 'BANDAI NAMCO Entertainment',
         },
         'params': {
@@ -101,10 +106,20 @@ class DaisukiIE(InfoExtractor):
         creator = self._html_search_regex(
             r'Creator\s*:\s*([^<]+)', webpage, 'creator', fatal=False)
 
+        subtitles = {}
+        caption_url = rtn.get('caption_url')
+        if caption_url:
+            # mul: multiple languages
+            subtitles['mul'] = [{
+                'url': caption_url,
+                'ext': 'ttml',
+            }]
+
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
+            'subtitles': subtitles,
             'creator': creator,
         }
 
