@@ -695,6 +695,7 @@ from .odatv import OdaTVIE
 from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
 from .ondemandkorea import OnDemandKoreaIE
+from .onepiecetube import OnePieceTubeIE
 from .onet import (
     OnetIE,
     OnetChannelIE,
