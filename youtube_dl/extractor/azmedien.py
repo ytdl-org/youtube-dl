@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -174,11 +175,10 @@ class AZMedienPlaylistIE(AZMedienBaseIE):
 
 
 class AZMedienShowPlaylistIE(AZMedienBaseIE):
-    IE_DESC = 'AZ Medien Show playlists'
+    IE_DESC = 'AZ Medien show playlists'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:www\.)?
-                        (?P<id>
                         (?:
                             telezueri\.ch|
                             telebaern\.tv|
@@ -187,22 +187,18 @@ class AZMedienShowPlaylistIE(AZMedienBaseIE):
                         (?:
                             all-episodes|
                             alle-episoden
-                        )
-                        /[^/]+
-                        )
+                        )/
+                        (?P<id>[^/?#&]+)
                     '''
 
     _TEST = {
         'url': 'http://www.telezueri.ch/all-episodes/astrotalk',
         'info_dict': {
-            'id': 'telezueri.ch/all-episodes/astrotalk',
+            'id': 'astrotalk',
             'title': 'TeleZüri: AstroTalk - alle episoden',
             'description': 'md5:4c0f7e7d741d906004266e295ceb4a26',
         },
         'playlist_mincount': 13,
-        'params': {
-            'skip_download': True,
-        }
     }
 
     def _real_extract(self, url):
@@ -211,11 +207,7 @@ class AZMedienShowPlaylistIE(AZMedienBaseIE):
         episodes = get_element_by_class('search-mobile-box', webpage)
         entries = [self.url_result(
             urljoin(url, m.group('url'))) for m in re.finditer(
-                r'<a[^>]+href=(["\'])(?P<url>.+?)\1', episodes)]
-        title = self._og_search_title(webpage)
+                r'<a[^>]+href=(["\'])(?P<url>(?:(?!\1).)+)\1', episodes)]
+        title = self._og_search_title(webpage, fatal=False)
         description = self._og_search_description(webpage)
-        return self.playlist_result(
-            entries,
-            playlist_id=playlist_id,
-            playlist_title=title,
-            playlist_description=description)
+        return self.playlist_result(entries, playlist_id, title, description)
