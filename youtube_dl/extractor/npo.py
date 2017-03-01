@@ -126,6 +126,18 @@ class NPOIE(NPOBaseIE):
             'skip_download': True,
         }
     }, {
+        # audio
+        'url': 'http://www.npo.nl/jouw-stad-rotterdam/29-01-2017/RBX_FUNX_6683215/RBX_FUNX_7601437',
+        'info_dict': {
+            'id': 'RBX_FUNX_6683215',
+            'ext': 'mp3',
+            'title': 'Jouw Stad Rotterdam',
+            'description': 'md5:db251505244f097717ec59fabc372d9f',
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
         'url': 'http://www.zapp.nl/de-bzt-show/gemist/KN_1687547',
         'only_matching': True,
     }, {
@@ -193,7 +205,7 @@ class NPOIE(NPOBaseIE):
                 })
 
             # Example: http://www.npo.nl/de-nieuwe-mens-deel-1/21-07-2010/WO_VPRO_043706
-            if item.get('contentType') == 'url':
+            if item.get('contentType') in ('url', 'audio'):
                 add_format_url(item_url)
                 continue
 
@@ -201,7 +213,7 @@ class NPOIE(NPOBaseIE):
                 stream_info = self._download_json(
                     item_url + '&type=json', video_id,
                     'Downloading %s stream JSON'
-                    % item.get('label') or format_id or num)
+                    % item.get('label') or item.get('format') or format_id or num)
             except ExtractorError as ee:
                 if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
                     error = (self._parse_json(
