@@ -616,7 +616,7 @@ class YoutubeDL(object):
             sanitize = lambda k, v: sanitize_filename(
                 compat_str(v),
                 restricted=self.params.get('restrictfilenames'),
-                is_id=(k == 'id'))
+                is_id=(k == 'id' or k.endswith('_id')))
             template_dict = dict((k, v if isinstance(v, compat_numeric_types) else sanitize(k, v))
                                  for k, v in template_dict.items()
                                  if v is not None and not isinstance(v, (list, tuple, dict)))
