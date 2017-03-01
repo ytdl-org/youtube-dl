@@ -473,7 +473,8 @@ def timeconvert(timestr):
 def sanitize_filename(s, restricted=False, is_id=False):
     """Sanitizes a string so it could be used as part of a filename.
     If restricted is set, use a stricter subset of allowed characters.
-    Set is_id if this is not an arbitrary string, but an ID that should be kept if possible
+    Set is_id if this is not an arbitrary string, but an ID that should be kept
+    if possible.
     """
     def replace_insane(char):
         if restricted and char in ACCENT_CHARS:
