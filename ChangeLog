@@ -1,7 +1,14 @@
 version <unreleased>
 
+Core
++ [adobepass] Add support for Charter Spectrum (#11465)
+* [YoutubeDL] Don't sanitize identifiers in output template (#12317)
+
 Extractors
-* [facebook] Fix extraction (#12323)
+* [facebook] Fix extraction (#12323, #12330)
+* [youtube] Mark errors about rental videos as expected (#12324)
++ [npo] Add support for audio
+* [npo] Adapt to app.php API (#12311, #12320)
 
 
 version 2017.02.28
