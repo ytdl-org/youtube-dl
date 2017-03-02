@@ -82,6 +82,9 @@ class RuutuIE(InfoExtractor):
                         formats.extend(self._extract_f4m_formats(
                             video_url, video_id, f4m_id='hds', fatal=False))
                     elif ext == 'mpd':
+                        # video-only and audio-only streams are of different
+                        # duration resulting in out of sync issue
+                        continue
                         formats.extend(self._extract_mpd_formats(
                             video_url, video_id, mpd_id='dash', fatal=False))
                     else:
