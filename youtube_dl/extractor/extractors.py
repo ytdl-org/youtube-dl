@@ -964,6 +964,10 @@ from .theweatherchannel import TheWeatherChannelIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .thisoldhouse import ThisOldHouseIE
+from .threeplus import (
+    ThreePlusIE,
+    ThreePlusPlaylistIE,
+)
 from .threeqsdn import ThreeQSDNIE
 from .tinypic import TinyPicIE
 from .tlc import TlcDeIE
