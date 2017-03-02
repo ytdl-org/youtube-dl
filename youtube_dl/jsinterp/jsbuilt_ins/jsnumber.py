@@ -7,6 +7,15 @@ from .jsobject import JSObject, JSObjectPrototype
 
 class JSNumberPrototype(JSObjectPrototype):
 
+    def __init__(self, value=None):
+        super(JSNumberPrototype, self).__init__()
+        if value is None:
+            # prototype
+            value = 0
+        else:
+            self.value = value
+            self.own = {}
+
     @staticmethod
     def _constructor(value=None):
         return JSNumber.construct(value)

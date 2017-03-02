@@ -12,7 +12,9 @@ class JSObjectPrototype(JSProtoBase):
 
     def __init__(self, value=None):
         super(JSObjectPrototype, self).__init__()
-        self.value = {} if value is None else value
+        if value is not None:
+            self.props.update(self.own)
+            self.own = self.value = value
 
     @staticmethod
     def _constructor(value=None):
@@ -64,7 +66,7 @@ class JSObject(JSBase):
         value = to_js(value)
         # TODO set [[Prototype]], [[Class]], [[Extensible]], internal methods
         if value is undefined or value is null:
-            return JSObjectPrototype()
+            return JSObjectPrototype({})
         elif isinstance(value, JSObjectPrototype):
             return value
         elif isinstance(value, (JSStringPrototype, JSNumberPrototype, JSBooleanPrototype)):

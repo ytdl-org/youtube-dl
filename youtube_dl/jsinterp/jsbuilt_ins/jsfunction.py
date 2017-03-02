@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from . import undefined, null
-from .internals import to_string
+from .internals import to_string, throw_type_error
 from .base import to_js, native_function, JSBase
 from .jsobject import JSObject, JSObjectPrototype
 
@@ -27,6 +27,17 @@ class JSFunctionPrototype(JSObjectPrototype):
                 self.body = to_string(body) if body is not undefined or body is not null else ''
             self.f_name = name
             self.arguments = list(formal_args)
+            proto = JSObject.construct()
+            proto.own['constructor'] = self
+            self.own = {'length': self._length,
+                        'prototype': proto
+                        }
+            # TODO Handle strict mode
+            strict = True
+            if strict:
+                thrower = throw_type_error
+                self.own['caller'] = thrower
+                self.own['arguments'] = thrower
             # FIXME: JSProtoBase sets body to '' instead of None
             # TODO check if self._args can be parsed as formal parameter list
             # TODO check if self._body can be parsed as function body
@@ -36,8 +47,7 @@ class JSFunctionPrototype(JSObjectPrototype):
 
     @property
     def _length(self):
-        # Yeesh, I dare you to find anything like that in the python specification.
-        return len([arg for arg, init in self.arguments if init is not None])
+        return len(self.arguments)
 
     @staticmethod
     def _constructor(arguments=None):
@@ -51,7 +61,7 @@ class JSFunctionPrototype(JSObjectPrototype):
             body = ''
         return 'function %s(%s) {%s\n}' % (
             self.f_name,
-            ', '.join(arg if init is None else arg + '=' + init for arg, init in self.arguments),
+            ', '.join(self.arguments),
             body)
 
     def _apply(self, this_arg, arg_array):
@@ -82,12 +92,14 @@ class JSFunction(JSObject):
 
     @staticmethod
     def construct(formal_args=None):
-        if formal_args is None:
+        if formal_args is not None and formal_args:
+            body = formal_args[-1]
+            formal_args = []
+            for arg in formal_args[:-1]:
+                formal_args.extend(a.strip() for a in arg.split(','))
+        else:
             body = ''
             formal_args = []
-        else:
-            body = formal_args[-1] if formal_args else ''
-            formal_args = formal_args[:-1]
         return JSFunctionPrototype('anonymous', body, formal_args)
 
     name = JSFunctionPrototype.jsclass

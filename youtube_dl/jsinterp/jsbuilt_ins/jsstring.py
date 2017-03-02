@@ -7,10 +7,13 @@ from .jsobject import JSObject, JSObjectPrototype
 class JSStringPrototype(JSObjectPrototype):
 
     def __init__(self, value=None):
+        super(JSStringPrototype, self).__init__()
         if value is None:
             # prototype
             value = ''
-        super(JSStringPrototype, self).__init__(value)
+        else:
+            self.value = value
+            self.own = {'length': self._length}
 
     @property
     def _length(self):

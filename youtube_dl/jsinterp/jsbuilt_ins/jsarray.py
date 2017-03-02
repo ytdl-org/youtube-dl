@@ -10,8 +10,13 @@ class JSArrayPrototype(JSObjectPrototype):
 
     def __init__(self, value=None):
         super(JSArrayPrototype, self).__init__()
-        self.value = [] if value is None else list(value)
-        self.own = {'length': self._length}
+        if value is None:
+            # prototype
+            self.value = []
+        else:
+            self.value = value
+            self.own = dict((str(i), v) for i, v in enumerate(value))
+            self.own['length'] = self._length
 
     def __str__(self):
         return 'JSArrayPrototype: %s' % self.value
@@ -136,7 +141,7 @@ class JSArray(JSObject):
         if args:
             return JSArrayPrototype(args)
         else:
-            return JSArrayPrototype()
+            return JSArrayPrototype([])
 
     def _is_array(self, arg):
         return 'array is array'

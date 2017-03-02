@@ -9,10 +9,13 @@ from .jsobject import JSObject, JSObjectPrototype
 class JSBooleanPrototype(JSObjectPrototype):
 
     def __init__(self, value=None):
+        super(JSBooleanPrototype, self).__init__()
         if value is None:
             # prototype
             value = False
-        super(JSBooleanPrototype, self).__init__(value)
+        else:
+            self.value = value
+            self.own = {}
 
     @staticmethod
     def _constructor(value=None):

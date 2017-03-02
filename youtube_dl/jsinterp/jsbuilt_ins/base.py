@@ -60,6 +60,10 @@ class JSProtoBase(JSBase):
     jsclass = ''
 
 
+def _get_formal_args(func):
+    return func.__code__.co_varnames[func.__code__.co_argcount - len((func.__defaults__))]
+
+
 def to_js(o, name=None):
     if isinstance(o, JSProtoBase):
         return o
@@ -74,9 +78,9 @@ def to_js(o, name=None):
     elif isinstance(o, native_object):
         return JSObjectPrototype(o)
     elif isinstance(o, native_function):
-        return JSFunctionPrototype(name, o, [])
+        return JSFunctionPrototype(name, o, _get_formal_args(o))
     elif isinstance(o, JSBase) and hasattr(o, 'call'):
-        return JSFunctionPrototype(o.name, o, [])
+        return JSFunctionPrototype(o.name, o, _get_formal_args(o.call))
     elif isinstance(o, native_array):
         return JSArrayPrototype(o)
     else:

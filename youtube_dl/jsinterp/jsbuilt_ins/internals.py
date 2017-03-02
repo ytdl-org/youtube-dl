@@ -12,6 +12,13 @@ from .jsstring import JSStringPrototype
 from .jsnumber import JSNumberPrototype
 from ..jsgrammar import __HEXADECIMAL_RE
 
+undefined_type = object()
+null_type = object()
+boolean_type = object()
+string_type = object()
+number_type = object()
+object_type = object()
+
 
 def jstype(o):
     if o is undefined:
@@ -189,9 +196,6 @@ def to_object(o):
         return o
 
 
-undefined_type = object()
-null_type = object()
-boolean_type = object()
-string_type = object()
-number_type = object()
-object_type = object()
+def throw_type_error():
+    # TODO [[ThrowTypeError]] (13.2.3)
+    pass
