@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [facebook] Fix extraction (#12323)
+
+
 version 2017.02.28
 
 Core
