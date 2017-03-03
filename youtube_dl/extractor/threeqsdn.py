@@ -7,13 +7,15 @@ from ..utils import (
     determine_ext,
     js_to_json,
     mimetype2ext,
+    unsmuggle_url,
 )
 
 
 class ThreeQSDNIE(InfoExtractor):
     IE_NAME = '3qsdn'
     IE_DESC = '3Q SDN'
-    _VALID_URL = r'https?://playout\.3qsdn\.com/(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _VALID_URL = r'(?:https?://playout\.3qsdn\.com/|3qsdn:)(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _API_URL = 'http://playout.3qsdn.com/'
     _TESTS = [{
         # ondemand from http://www.philharmonie.tv/veranstaltung/26/
         'url': 'http://playout.3qsdn.com/0280d6b9-1215-11e6-b427-0cc47a188158?protocol=http',
@@ -21,7 +23,8 @@ class ThreeQSDNIE(InfoExtractor):
         'info_dict': {
             'id': '0280d6b9-1215-11e6-b427-0cc47a188158',
             'ext': 'mp4',
-            'title': '0280d6b9-1215-11e6-b427-0cc47a188158',
+            'title': '160504_sixpianos',
+            'description': '160504_sixpianos',
             'is_live': False,
         },
         'expected_warnings': ['Failed to download MPD manifest', 'Failed to parse JSON'],
@@ -38,6 +41,13 @@ class ThreeQSDNIE(InfoExtractor):
             'skip_download': True,  # m3u8 downloads
         },
         'expected_warnings': ['Failed to download MPD manifest'],
+    }, {
+        # playlist
+        'url': 'http://playout.3qsdn.com/2a70223f-b56f-11e6-a78b-0cc47a188158',
+        'info_dict': {
+            'id': '2a70223f-b56f-11e6-a78b-0cc47a188158',
+        },
+        'playlist_count': 11,
     }, {
         # live audio stream
         'url': 'http://playout.3qsdn.com/9edf36e0-6bf2-11e2-a16a-9acf09e2db48',
@@ -69,10 +79,19 @@ class ThreeQSDNIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        url, smuggled_data = unsmuggle_url(url, {})
 
         js = self._download_webpage(
-            'http://playout.3qsdn.com/%s' % video_id, video_id,
+            self._API_URL + video_id, video_id,
             query={'js': 'true'})
+
+        playout_ids = [m.group('id').replace('\\x2D', '-') for m in re.finditer(
+            r'sdnPlayoutId\s*:\s*["\'](?P<id>.+?)["\']', js)]
+        if playout_ids:
+            if smuggled_data.get('first_video_only'):
+                return self.url_result(self._API_URL + playout_ids[0], self.ie_key())
+            return self.playlist_result(
+                [self.url_result(self._API_URL + vid, self.ie_key()) for vid in playout_ids], video_id)
 
         if any(p in js for p in (
                 '>This content is not available in your country',
@@ -132,11 +151,16 @@ class ThreeQSDNIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        title = self._live_title(video_id) if live else video_id
+        webpage = self._download_webpage(self._API_URL + video_id, video_id)
+        title = self._live_title(video_id) if live else self._og_search_title(webpage, default=None)
+        if not title:
+            title = video_id
+        description = self._og_search_description(webpage, default=None)
 
         return {
             'id': video_id,
             'title': title,
+            'description': description,
             'is_live': live,
             'formats': formats,
         }
