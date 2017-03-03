@@ -44,6 +44,12 @@ class RutubeIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return [mobj.group('url') for mobj in re.finditer(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//rutube\.ru/embed/[\da-z]{32}.*?)\1',
+            webpage)]
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video = self._download_json(

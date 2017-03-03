@@ -84,6 +84,7 @@ from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
 from .openload import OpenloadIE
 from .videopress import VideoPressIE
+from .rutube import RutubeIE
 
 
 class GenericIE(InfoExtractor):
@@ -1503,6 +1504,23 @@ class GenericIE(InfoExtractor):
             'add_ie': [VideoPressIE.ie_key()],
         },
         {
+            # Rutube embed
+            'url': 'http://magazzino.friday.ru/videos/vipuski/kazan-2',
+            'info_dict': {
+                'id': '9b3d5bee0a8740bf70dfd29d3ea43541',
+                'ext': 'flv',
+                'title': 'Магаззино: Казань 2',
+                'description': 'md5:99bccdfac2269f0e8fdbc4bbc9db184a',
+                'uploader': 'Магаззино',
+                'upload_date': '20170228',
+                'uploader_id': '996642',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [RutubeIE.ie_key()],
+        },
+        {
             # ThePlatform embedded with whitespaces in URLs
             'url': 'http://www.golfchannel.com/topics/shows/golftalkcentral.htm',
             'only_matching': True,
@@ -2479,6 +2497,12 @@ class GenericIE(InfoExtractor):
         if videopress_urls:
             return _playlist_from_matches(
                 videopress_urls, ie=VideoPressIE.ie_key())
+
+        # Look for Rutube embeds
+        rutube_urls = RutubeIE._extract_urls(webpage)
+        if rutube_urls:
+            return _playlist_from_matches(
+                rutube_urls, ie=RutubeIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
