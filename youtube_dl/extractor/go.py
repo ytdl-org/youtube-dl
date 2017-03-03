@@ -36,7 +36,7 @@ class GoIE(AdobePassIE):
             'requestor_id': 'DisneyXD',
         }
     }
-    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:[^/]+/)*(?:vdka(?P<id>\w+)|season-\d+/\d+-(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
+    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:[^/]+/)*(?:vdka(?P<id>\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
     _TESTS = [{
         'url': 'http://abc.go.com/shows/castle/video/most-recent/vdka0_g86w5onx',
         'info_dict': {
@@ -51,6 +51,12 @@ class GoIE(AdobePassIE):
         },
     }, {
         'url': 'http://abc.go.com/shows/after-paradise/video/most-recent/vdka3335601',
+        'only_matching': True,
+    }, {
+        'url': 'http://abc.go.com/shows/the-catch/episode-guide/season-01/10-the-wedding',
+        'only_matching': True,
+    }, {
+        'url': 'http://abc.go.com/shows/world-news-tonight/episode-guide/2017-02/17-021717-intense-stand-off-between-man-with-rifle-and-police-in-oakland',
         'only_matching': True,
     }]
 
