@@ -75,7 +75,7 @@ class OpenloadIE(InfoExtractor):
             '<span[^>]+id="[^"]+"[^>]*>([0-9A-Za-z]+)</span>',
             webpage, 'openload ID')
 
-        video_url_chars = []
+        video_url_chars = [];
 
         first_char = compat_ord(ol_id[0]);
         key = first_char - 55;
