@@ -12,7 +12,6 @@ from ..compat import (
     compat_str,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_urlparse,
 )
 from ..utils import (
     clean_html,
@@ -24,6 +23,7 @@ from ..utils import (
     parse_iso8601,
     update_url_query,
     urlencode_postdata,
+    urljoin,
 )
 
 
@@ -32,7 +32,7 @@ class TwitchBaseIE(InfoExtractor):
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
-    _LOGIN_URL = 'http://www.twitch.tv/login'
+    _LOGIN_URL = 'https://www.twitch.tv/login'
     _CLIENT_ID = 'jzkbprff40iqj646a697cyrvl0zt2m6'
     _NETRC_MACHINE = 'twitch'
 
@@ -64,6 +64,36 @@ class TwitchBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Unable to login. Twitch said: %s' % message, expected=True)
 
+        def post_login_form(page, urlh, note, data):
+            form = self._hidden_inputs(page)
+            form.update(data)
+
+            page_url = urlh.geturl()
+            post_url = self._search_regex(
+                r'<form[^>]+action=(["\'])(?P<url>.+?)\1', page,
+                'post url', default=page_url, group='url')
+            post_url = urljoin(page_url, post_url)
+
+            headers = {'Referer': page_url}
+
+            try:
+                response = self._download_json(
+                    post_url, None, note,
+                    data=urlencode_postdata(form),
+                    headers=headers)
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
+                    response = self._parse_json(
+                        e.cause.read().decode('utf-8'), None)
+                    fail(response['message'])
+                raise
+
+            if response.get('redirect'):
+                redirect_url = urljoin(post_url, response['redirect'])
+                return self._download_webpage_handle(
+                    redirect_url, None, 'Downloading login redirect page',
+                    headers=headers)
+
         login_page, handle = self._download_webpage_handle(
             self._LOGIN_URL, None, 'Downloading login page')
 
@@ -71,40 +101,25 @@ class TwitchBaseIE(InfoExtractor):
         if 'blacklist_message' in login_page:
             fail(clean_html(login_page))
 
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
+        login_data = {
             'username': username,
             'password': password,
-        })
+        }
+        redirect_res = post_login_form(
+            login_page, handle, 'Logging in as %s' % username, login_data)
 
-        redirect_url = handle.geturl()
+        if not redirect_res:
+            return
+        redirect_page, handle = redirect_res
 
-        post_url = self._search_regex(
-            r'<form[^>]+action=(["\'])(?P<url>.+?)\1', login_page,
-            'post url', default=redirect_url, group='url')
-
-        if not post_url.startswith('http'):
-            post_url = compat_urlparse.urljoin(redirect_url, post_url)
-
-        headers = {'Referer': redirect_url}
-
-        try:
-            response = self._download_json(
-                post_url, None, 'Logging in as %s' % username,
-                data=urlencode_postdata(login_form),
-                headers=headers)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                response = self._parse_json(
-                    e.cause.read().decode('utf-8'), None)
-                fail(response['message'])
-            raise
-
-        if response.get('redirect'):
-            self._download_webpage(
-                response['redirect'], None, 'Downloading login redirect page',
-                headers=headers)
+        if re.search(r'(?i)<form[^>]+id="two-factor-submit"', redirect_page) is not None:
+            # TODO: Add mechanism to request an SMS or phone call
+            tfa_token = self._get_tfa_info('two-factor authentication token')
+            tfa_data = {
+                'authy_token': tfa_token,
+                'remember_2fa': 'true',
+            }
+            post_login_form(redirect_page, handle, 'Submitting TFA token', tfa_data)
 
     def _prefer_source(self, formats):
         try:
