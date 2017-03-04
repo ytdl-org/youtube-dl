@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.05
 
 Extractors
 + [twitch] Add basic support for two-factor authentication (#11974)
