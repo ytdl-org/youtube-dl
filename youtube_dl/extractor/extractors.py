@@ -793,7 +793,7 @@ from .rai import (
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
-from .redbull import RedBullIE
+from .redbulltv import RedBullTVIE
 from .redtube import RedTubeIE
 from .regiotv import RegioTVIE
 from .rentv import (
