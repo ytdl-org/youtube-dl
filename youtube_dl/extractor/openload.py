@@ -75,34 +75,34 @@ class OpenloadIE(InfoExtractor):
             '<span[^>]+id="[^"]+"[^>]*>([0-9A-Za-z]+)</span>',
             webpage, 'openload ID')
 
-        video_url_chars = [];
+        video_url_chars = []
 
-        first_char = compat_ord(ol_id[0]);
-        key = first_char - 55;
-        maxKey = max(2, key);
-        key = min(maxKey, len(ol_id) - 14);
-        t = ol_id[key:key + 12];
+        first_char = compat_ord(ol_id[0])
+        key = first_char - 55
+        maxKey = max(2, key)
+        key = min(maxKey, len(ol_id) - 14)
+        t = ol_id[key:key + 12]
 
-        hashMap = {};
-        v = ol_id.replace(t, "");
-        h = 0;
+        hashMap = {}
+        v = ol_id.replace(t, "")
+        h = 0
 
         while h < len(t):
-          f = t[h:h + 2];
-          i = int(f, 16);
-          hashMap[h / 2] = i;
-          h += 2;
+          f = t[h:h + 2]
+          i = int(f, 16)
+          hashMap[h / 2] = i
+          h += 2
 
-        h = 0;
+        h = 0
 
         while h < len(v):
-          B = v[h:h + 2];
-          i = int(B, 16);
-          index = (h / 2) % 6;
-          A = hashMap[index];
-          i = i ^ A;
-          video_url_chars.append(compat_chr(i));
-          h += 2;
+          B = v[h:h + 2]
+          i = int(B, 16)
+          index = (h / 2) % 6
+          A = hashMap[index]
+          i = i ^ A
+          video_url_chars.append(compat_chr(i))
+          h += 2
 
         video_url = 'https://openload.co/stream/%s?mime=true'
         video_url = video_url % (''.join(video_url_chars))
