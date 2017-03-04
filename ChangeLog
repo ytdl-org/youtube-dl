@@ -1,7 +1,18 @@
 version <unreleased>
 
 Extractors
++ [twitch] Add basic support for two-factor authentication (#11974)
++ [vier] Add support for vijf.be (#12304)
++ [redbulltv] Add support for redbull.tv (#3919, #11948)
 * [douyutv] Switch to the PC API to escape the 5-min limitation (#12316)
++ [generic] Add support for rutube embeds
++ [rutube] Relax URL regular expression
++ [vrak] Add support for vrak.tv (#11452)
++ [brightcove:new] Add ability to smuggle geo_countries into URL
++ [brightcove:new] Raise GeoRestrictedError
+* [go] Relax URL regular expression (#12341)
+* [24video] Use original host for requests (#12339)
+* [ruutu] Disable DASH formats (#12322)
 
 
 version 2017.03.02
