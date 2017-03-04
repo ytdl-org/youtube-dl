@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [douyutv] Switch to the PC API to escape the 5-min limitation (#12316)
+
+
 version 2017.03.02
 
 Core
