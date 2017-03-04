@@ -77,7 +77,7 @@ class OpenloadIE(InfoExtractor):
 
         video_url_chars = []
 
-        first_char = ord(ol_id[0]);
+        first_char = compat_ord(ol_id[0]);
         key = first_char - 55;
         maxKey = max(2, key);
         key = min(maxKey, len(ol_id) - 14);
@@ -101,7 +101,7 @@ class OpenloadIE(InfoExtractor):
           index = (h / 2) % 6;
           A = hashMap[index];
           i = i ^ A;
-          video_url_chars.append(chr(i));
+          video_url_chars.append(compat_chr(i));
           h += 2;
 
         video_url = 'https://openload.co/stream/%s?mime=true'
