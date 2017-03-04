@@ -77,7 +77,7 @@ class OpenloadIE(InfoExtractor):
 
         video_url_chars = []
 
-        first_char = compat_ord(ol_id[0])
+        first_char = ord(ol_id[0])
         key = first_char - 55
         maxKey = max(2, key)
         key = min(maxKey, len(ol_id) - 14)
