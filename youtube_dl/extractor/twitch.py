@@ -64,7 +64,7 @@ class TwitchBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Unable to login. Twitch said: %s' % message, expected=True)
 
-        def post_login_form(page, urlh, note, data):
+        def login_step(page, urlh, note, data):
             form = self._hidden_inputs(page)
             form.update(data)
 
@@ -88,11 +88,10 @@ class TwitchBaseIE(InfoExtractor):
                     fail(response['message'])
                 raise
 
-            if response.get('redirect'):
-                redirect_url = urljoin(post_url, response['redirect'])
-                return self._download_webpage_handle(
-                    redirect_url, None, 'Downloading login redirect page',
-                    headers=headers)
+            redirect_url = urljoin(post_url, response['redirect'])
+            return self._download_webpage_handle(
+                redirect_url, None, 'Downloading login redirect page',
+                headers=headers)
 
         login_page, handle = self._download_webpage_handle(
             self._LOGIN_URL, None, 'Downloading login page')
@@ -101,25 +100,19 @@ class TwitchBaseIE(InfoExtractor):
         if 'blacklist_message' in login_page:
             fail(clean_html(login_page))
 
-        login_data = {
-            'username': username,
-            'password': password,
-        }
-        redirect_res = post_login_form(
-            login_page, handle, 'Logging in as %s' % username, login_data)
-
-        if not redirect_res:
-            return
-        redirect_page, handle = redirect_res
+        redirect_page, handle = login_step(
+            login_page, handle, 'Logging in as %s' % username, {
+                'username': username,
+                'password': password,
+        })
 
         if re.search(r'(?i)<form[^>]+id="two-factor-submit"', redirect_page) is not None:
             # TODO: Add mechanism to request an SMS or phone call
             tfa_token = self._get_tfa_info('two-factor authentication token')
-            tfa_data = {
+            login_step(redirect_page, handle, 'Submitting TFA token', {
                 'authy_token': tfa_token,
                 'remember_2fa': 'true',
-            }
-            post_login_form(redirect_page, handle, 'Submitting TFA token', tfa_data)
+            })
 
     def _prefer_source(self, formats):
         try:
