@@ -236,7 +236,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 # Lossless, but in another container
                 acodec = 'copy'
                 extension = 'm4a'
-                more_opts = ['-bsf:a', 'aac_adtstoasc']
+                more_opts = ['-bsf:a', 'aac_adtstoasc', '-movflags', 'faststart']
             elif filecodec in ['aac', 'mp3', 'vorbis', 'opus']:
                 # Lossless if possible
                 acodec = 'copy'
@@ -421,7 +421,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
 
         if info['ext'] == 'm4a':
-            options = ['-vn', '-acodec', 'copy']
+            options = ['-vn', '-acodec', 'copy', '-movflags', 'faststart']
         else:
             options = ['-c', 'copy']
 
@@ -490,7 +490,7 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
 
-        options = ['-c', 'copy', '-f', 'mp4']
+        options = ['-c', 'copy', '-f', 'mp4', '-movflags', 'faststart']
         self._downloader.to_screen('[ffmpeg] Correcting container in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
