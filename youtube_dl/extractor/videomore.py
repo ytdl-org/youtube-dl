@@ -23,7 +23,7 @@ class VideomoreIE(InfoExtractor):
             'title': 'Кино в деталях 5 сезон В гостях Алексей Чумаков и Юлия Ковальчук',
             'series': 'Кино в деталях',
             'episode': 'В гостях Алексей Чумаков и Юлия Ковальчук',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 2910,
             'view_count': int,
             'comment_count': int,
@@ -37,7 +37,7 @@ class VideomoreIE(InfoExtractor):
             'title': 'Молодежка 2 сезон 40 серия',
             'series': 'Молодежка',
             'episode': '40 серия',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 2809,
             'view_count': int,
             'comment_count': int,
@@ -53,7 +53,7 @@ class VideomoreIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Промо Команда проиграла из-за Бакина?',
             'episode': 'Команда проиграла из-за Бакина?',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 29,
             'age_limit': 16,
             'view_count': int,
@@ -86,6 +86,11 @@ class VideomoreIE(InfoExtractor):
         mobj = re.search(
             r'<object[^>]+data=(["\'])https?://videomore\.ru/player\.swf\?.*config=(?P<url>https?://videomore\.ru/(?:[^/]+/)+\d+\.xml).*\1',
             webpage)
+        if not mobj:
+            mobj = re.search(
+                r'<iframe[^>]+src=([\'"])(?P<url>https?://videomore\.ru/embed/\d+)',
+                webpage)
+
         if mobj:
             return mobj.group('url')
 
@@ -140,7 +145,7 @@ class VideomoreVideoIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Ёлки 3',
             'description': '',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 5579,
             'age_limit': 6,
             'view_count': int,
@@ -163,7 +168,7 @@ class VideomoreVideoIE(InfoExtractor):
             'ext': 'flv',
             'title': '1 серия. Здравствуй, Аквавилль!',
             'description': 'md5:c6003179538b5d353e7bcd5b1372b2d7',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 754,
             'age_limit': 6,
             'view_count': int,

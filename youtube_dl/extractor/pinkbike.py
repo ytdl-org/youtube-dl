@@ -23,7 +23,7 @@ class PinkbikeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Brandon Semenuk - RAW 100',
             'description': 'Official release: www.redbull.ca/rupertwalker',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 100,
             'upload_date': '20150406',
             'uploader': 'revelco',
@@ -64,7 +64,8 @@ class PinkbikeIE(InfoExtractor):
             'video:duration', webpage, 'duration'))
 
         uploader = self._search_regex(
-            r'un:\s*"([^"]+)"', webpage, 'uploader', fatal=False)
+            r'<a[^>]+\brel=["\']author[^>]+>([^<]+)', webpage,
+            'uploader', fatal=False)
         upload_date = unified_strdate(self._search_regex(
             r'class="fullTime"[^>]+title="([^"]+)"',
             webpage, 'upload date', fatal=False))

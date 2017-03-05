@@ -87,7 +87,7 @@ class TestHTTP(unittest.TestCase):
 
         ydl = YoutubeDL({'logger': FakeLogger()})
         r = ydl.extract_info('http://localhost:%d/302' % self.port)
-        self.assertEqual(r['url'], 'http://localhost:%d/vid.mp4' % self.port)
+        self.assertEqual(r['entries'][0]['url'], 'http://localhost:%d/vid.mp4' % self.port)
 
 
 class TestHTTPS(unittest.TestCase):
@@ -111,7 +111,7 @@ class TestHTTPS(unittest.TestCase):
 
         ydl = YoutubeDL({'logger': FakeLogger(), 'nocheckcertificate': True})
         r = ydl.extract_info('https://localhost:%d/video.html' % self.port)
-        self.assertEqual(r['url'], 'https://localhost:%d/vid.mp4' % self.port)
+        self.assertEqual(r['entries'][0]['url'], 'https://localhost:%d/vid.mp4' % self.port)
 
 
 def _build_proxy_handler(name):
@@ -168,6 +168,7 @@ class TestProxy(unittest.TestCase):
         response = ydl.urlopen(url).read().decode('utf-8')
         # b'xn--fiq228c' is '中文'.encode('idna')
         self.assertEqual(response, 'normal: http://xn--fiq228c.tw/')
+
 
 if __name__ == '__main__':
     unittest.main()

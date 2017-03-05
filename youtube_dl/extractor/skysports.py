@@ -2,18 +2,19 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import strip_or_none
 
 
 class SkySportsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?skysports\.com/watch/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.skysports.com/watch/video/10328419/bale-its-our-time-to-shine',
-        'md5': 'c44a1db29f27daf9a0003e010af82100',
+        'md5': '77d59166cddc8d3cb7b13e35eaf0f5ec',
         'info_dict': {
             'id': '10328419',
-            'ext': 'flv',
-            'title': 'Bale: Its our time to shine',
-            'description': 'md5:9fd1de3614d525f5addda32ac3c482c9',
+            'ext': 'mp4',
+            'title': 'Bale: It\'s our time to shine',
+            'description': 'md5:e88bda94ae15f7720c5cb467e777bb6d',
         },
         'add_ie': ['Ooyala'],
     }
@@ -28,6 +29,6 @@ class SkySportsIE(InfoExtractor):
             'url': 'ooyala:%s' % self._search_regex(
                 r'data-video-id="([^"]+)"', webpage, 'ooyala id'),
             'title': self._og_search_title(webpage),
-            'description': self._og_search_description(webpage),
+            'description': strip_or_none(self._og_search_description(webpage)),
             'ie_key': 'Ooyala',
         }

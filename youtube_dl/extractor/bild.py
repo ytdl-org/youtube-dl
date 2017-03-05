@@ -19,7 +19,7 @@ class BildIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Das können die  neuen iPads',
             'description': 'md5:a4058c4fa2a804ab59c00d7244bbf62f',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 196,
         }
     }

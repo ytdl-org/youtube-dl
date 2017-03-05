@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class MovieClipsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www.)?movieclips\.com/videos/.+-(?P<id>\d+)(?:\?|$)'
+    _VALID_URL = r'https?://(?:www\.)?movieclips\.com/videos/.+-(?P<id>\d+)(?:\?|$)'
     _TEST = {
         'url': 'http://www.movieclips.com/videos/warcraft-trailer-1-561180739597',
         'md5': '42b5a0352d4933a7bd54f2104f481244',
@@ -20,7 +20,7 @@ class MovieClipsIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Warcraft Trailer 1',
             'description': 'Watch Trailer 1 from Warcraft (2016). Legendary’s WARCRAFT is a 3D epic adventure of world-colliding conflict based.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1446843055,
             'upload_date': '20151106',
             'uploader': 'Movieclips',

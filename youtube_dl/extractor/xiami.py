@@ -16,7 +16,9 @@ class XiamiBaseIE(InfoExtractor):
         return webpage
 
     def _extract_track(self, track, track_id=None):
-        title = track['title']
+        track_name = track.get('songName') or track.get('name') or track['subName']
+        artist = track.get('artist') or track.get('artist_name') or track.get('singers')
+        title = '%s - %s' % (artist, track_name) if artist else track_name
         track_url = self._decrypt(track['location'])
 
         subtitles = {}
@@ -31,9 +33,10 @@ class XiamiBaseIE(InfoExtractor):
             'thumbnail': track.get('pic') or track.get('album_pic'),
             'duration': int_or_none(track.get('length')),
             'creator': track.get('artist', '').split(';')[0],
-            'track': title,
-            'album': track.get('album_name'),
-            'artist': track.get('artist'),
+            'track': track_name,
+            'track_number': int_or_none(track.get('track')),
+            'album': track.get('album_name') or track.get('title'),
+            'artist': artist,
             'subtitles': subtitles,
         }
 
@@ -68,14 +71,14 @@ class XiamiBaseIE(InfoExtractor):
 class XiamiSongIE(XiamiBaseIE):
     IE_NAME = 'xiami:song'
     IE_DESC = '虾米音乐'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/song/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/song/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.xiami.com/song/1775610518',
         'md5': '521dd6bea40fd5c9c69f913c232cb57e',
         'info_dict': {
             'id': '1775610518',
             'ext': 'mp3',
-            'title': 'Woman',
+            'title': 'HONNE - Woman',
             'thumbnail': r're:http://img\.xiami\.net/images/album/.*\.jpg',
             'duration': 265,
             'creator': 'HONNE',
@@ -95,7 +98,7 @@ class XiamiSongIE(XiamiBaseIE):
         'info_dict': {
             'id': '1775256504',
             'ext': 'mp3',
-            'title': '悟空',
+            'title': '戴荃 - 悟空',
             'thumbnail': r're:http://img\.xiami\.net/images/album/.*\.jpg',
             'duration': 200,
             'creator': '戴荃',
@@ -109,6 +112,26 @@ class XiamiSongIE(XiamiBaseIE):
             },
         },
         'skip': 'Georestricted',
+    }, {
+        'url': 'http://www.xiami.com/song/1775953850',
+        'info_dict': {
+            'id': '1775953850',
+            'ext': 'mp3',
+            'title': 'До Скону - Чума Пожирает Землю',
+            'thumbnail': r're:http://img\.xiami\.net/images/album/.*\.jpg',
+            'duration': 683,
+            'creator': 'До Скону',
+            'track': 'Чума Пожирает Землю',
+            'track_number': 7,
+            'album': 'Ад',
+            'artist': 'До Скону',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.xiami.com/song/xLHGwgd07a1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -124,7 +147,7 @@ class XiamiPlaylistBaseIE(XiamiBaseIE):
 class XiamiAlbumIE(XiamiPlaylistBaseIE):
     IE_NAME = 'xiami:album'
     IE_DESC = '虾米音乐 - 专辑'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/album/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/album/(?P<id>[^/?#&]+)'
     _TYPE = '1'
     _TESTS = [{
         'url': 'http://www.xiami.com/album/2100300444',
@@ -136,28 +159,34 @@ class XiamiAlbumIE(XiamiPlaylistBaseIE):
     }, {
         'url': 'http://www.xiami.com/album/512288?spm=a1z1s.6843761.1110925389.6.hhE9p9',
         'only_matching': True,
+    }, {
+        'url': 'http://www.xiami.com/album/URVDji2a506',
+        'only_matching': True,
     }]
 
 
 class XiamiArtistIE(XiamiPlaylistBaseIE):
     IE_NAME = 'xiami:artist'
     IE_DESC = '虾米音乐 - 歌手'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/artist/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/artist/(?P<id>[^/?#&]+)'
     _TYPE = '2'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.xiami.com/artist/2132?spm=0.0.0.0.dKaScp',
         'info_dict': {
             'id': '2132',
         },
         'playlist_count': 20,
         'skip': 'Georestricted',
-    }
+    }, {
+        'url': 'http://www.xiami.com/artist/bC5Tk2K6eb99',
+        'only_matching': True,
+    }]
 
 
 class XiamiCollectionIE(XiamiPlaylistBaseIE):
     IE_NAME = 'xiami:collection'
     IE_DESC = '虾米音乐 - 精选集'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/collect/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/collect/(?P<id>[^/?#&]+)'
     _TYPE = '3'
     _TEST = {
         'url': 'http://www.xiami.com/collect/156527391?spm=a1z1s.2943601.6856193.12.4jpBnr',

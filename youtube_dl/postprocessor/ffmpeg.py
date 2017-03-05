@@ -279,6 +279,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         prefix, sep, ext = path.rpartition('.')  # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
 
+        information['filepath'] = new_path
+        information['ext'] = extension
+
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
         if (new_path == path or
                 (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
@@ -299,9 +302,6 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             self.try_utime(
                 new_path, time.time(), information['filetime'],
                 errnote='Cannot update utime of audio file')
-
-        information['filepath'] = new_path
-        information['ext'] = extension
 
         return [path], information
 
@@ -536,8 +536,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             ext = sub['ext']
             if ext == new_ext:
                 self._downloader.to_screen(
-                    '[ffmpeg] Subtitle file for %s is already in the requested'
-                    'format' % new_ext)
+                    '[ffmpeg] Subtitle file for %s is already in the requested format' % new_ext)
                 continue
             old_file = subtitles_filename(filename, lang, ext)
             sub_filenames.append(old_file)

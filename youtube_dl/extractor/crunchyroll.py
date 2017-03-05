@@ -123,7 +123,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
             'id': '645513',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Wanna be the Strongest in the World Episode 1 – An Idol-Wrestler is Born!',
             'description': 'md5:2d17137920c64f2f49981a7797d275ef',
             'thumbnail': 'http://img1.ak.crunchyroll.com/i/spire1-tmb/20c6b5e10f1a47b10516877d3c039cae1380951166_full.jpg',
@@ -142,7 +142,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'ext': 'flv',
             'title': 'Culture Japan Episode 1 – Rebuilding Japan after the 3.11',
             'description': 'md5:2fbc01f90b87e8e9137296f37b461c12',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Danny Choo Network',
             'upload_date': '20120213',
         },
@@ -150,6 +150,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             # rtmp
             'skip_download': True,
         },
+        'skip': 'Video gone',
     }, {
         'url': 'http://www.crunchyroll.com/rezero-starting-life-in-another-world-/episode-5-the-morning-of-our-promise-is-still-distant-702409',
         'info_dict': {
@@ -157,9 +158,28 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'ext': 'mp4',
             'title': 'Re:ZERO -Starting Life in Another World- Episode 5 – The Morning of Our Promise Is Still Distant',
             'description': 'md5:97664de1ab24bbf77a9c01918cb7dca9',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'TV TOKYO',
             'upload_date': '20160508',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.crunchyroll.com/konosuba-gods-blessing-on-this-wonderful-world/episode-1-give-me-deliverance-from-this-judicial-injustice-727589',
+        'info_dict': {
+            'id': '727589',
+            'ext': 'mp4',
+            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance from this Judicial Injustice!",
+            'description': 'md5:cbcf05e528124b0f3a0a419fc805ea7d',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'Kadokawa Pictures Inc.',
+            'upload_date': '20170118',
+            'series': "KONOSUBA -God's blessing on this wonderful world!",
+            'season_number': 2,
+            'episode': 'Give Me Deliverance from this Judicial Injustice!',
+            'episode_number': 1,
         },
         'params': {
             # m3u8 download
@@ -172,6 +192,36 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         # geo-restricted (US), 18+ maturity wall, non-premium available
         'url': 'http://www.crunchyroll.com/cosplay-complex-ova/episode-1-the-birth-of-the-cosplay-club-565617',
         'only_matching': True,
+    }, {
+        # A description with double quotes
+        'url': 'http://www.crunchyroll.com/11eyes/episode-1-piros-jszaka-red-night-535080',
+        'info_dict': {
+            'id': '535080',
+            'ext': 'mp4',
+            'title': '11eyes Episode 1 – Piros éjszaka - Red Night',
+            'description': 'Kakeru and Yuka are thrown into an alternate nightmarish world they call "Red Night".',
+            'uploader': 'Marvelous AQL Inc.',
+            'upload_date': '20091021',
+        },
+        'params': {
+            # Just test metadata extraction
+            'skip_download': True,
+        },
+    }, {
+        # make sure we can extract an uploader name that's not a link
+        'url': 'http://www.crunchyroll.com/hakuoki-reimeiroku/episode-1-dawn-of-the-divine-warriors-606899',
+        'info_dict': {
+            'id': '606899',
+            'ext': 'mp4',
+            'title': 'Hakuoki Reimeiroku Episode 1 – Dawn of the Divine Warriors',
+            'description': 'Ryunosuke was left to die, but Serizawa-san asked him a simple question "Do you want to live?"',
+            'uploader': 'Geneon Entertainment',
+            'upload_date': '20120717',
+        },
+        'params': {
+            # just test metadata extraction
+            'skip_download': True,
+        },
     }]
 
     _FORMAT_IDS = {
@@ -235,8 +285,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         output += 'WrapStyle: %s\n' % sub_root.attrib['wrap_style']
         output += 'PlayResX: %s\n' % sub_root.attrib['play_res_x']
         output += 'PlayResY: %s\n' % sub_root.attrib['play_res_y']
-        output += """ScaledBorderAndShadow: yes
-
+        output += """
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 """
@@ -343,9 +392,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
             webpage, 'video_title')
         video_title = re.sub(r' {2,}', ' ', video_title)
-        video_description = self._html_search_regex(
-            r'<script[^>]*>\s*.+?\[media_id=%s\].+?"description"\s*:\s*"([^"]+)' % video_id,
-            webpage, 'description', default=None)
+        video_description = self._parse_json(self._html_search_regex(
+            r'<script[^>]*>\s*.+?\[media_id=%s\].+?({.+?"description"\s*:.+?})\);' % video_id,
+            webpage, 'description', default='{}'), video_id).get('description')
         if video_description:
             video_description = lowercase_escape(video_description.replace(r'\r\n', '\n'))
         video_upload_date = self._html_search_regex(
@@ -354,8 +403,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if video_upload_date:
             video_upload_date = unified_strdate(video_upload_date)
         video_uploader = self._html_search_regex(
-            r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
-            'video_uploader', fatal=False)
+            # try looking for both an uploader that's a link and one that's not
+            [r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', r'<div>\s*Publisher:\s*<span>\s*(.+?)\s*</span>\s*</div>'],
+            webpage, 'video_uploader', fatal=False)
 
         available_fmts = []
         for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
@@ -438,6 +488,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         subtitles = self.extract_subtitles(video_id, webpage)
 
+        # webpage provide more accurate data than series_title from XML
+        series = self._html_search_regex(
+            r'id=["\']showmedia_about_episode_num[^>]+>\s*<a[^>]+>([^<]+)',
+            webpage, 'series', default=xpath_text(metadata, 'series_title'))
+
+        episode = xpath_text(metadata, 'episode_title')
+        episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
+
+        season_number = int_or_none(self._search_regex(
+            r'(?s)<h4[^>]+id=["\']showmedia_about_episode_num[^>]+>.+?</h4>\s*<h4>\s*Season (\d+)',
+            webpage, 'season number', default=None))
+
         return {
             'id': video_id,
             'title': video_title,
@@ -445,9 +507,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'thumbnail': xpath_text(metadata, 'episode_image_url'),
             'uploader': video_uploader,
             'upload_date': video_upload_date,
-            'series': xpath_text(metadata, 'series_title'),
-            'episode': xpath_text(metadata, 'episode_title'),
-            'episode_number': int_or_none(xpath_text(metadata, 'episode_number')),
+            'series': series,
+            'season_number': season_number,
+            'episode': episode,
+            'episode_number': episode_number,
             'subtitles': subtitles,
             'formats': formats,
         }
@@ -487,11 +550,11 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
             r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
             webpage, 'title')
         episode_paths = re.findall(
-            r'(?s)<li id="showview_videos_media_[0-9]+"[^>]+>.*?<a href="([^"]+)"',
+            r'(?s)<li id="showview_videos_media_(\d+)"[^>]+>.*?<a href="([^"]+)"',
             webpage)
         entries = [
-            self.url_result('http://www.crunchyroll.com' + ep, 'Crunchyroll')
-            for ep in episode_paths
+            self.url_result('http://www.crunchyroll.com' + ep, 'Crunchyroll', ep_id)
+            for ep_id, ep in episode_paths
         ]
         entries.reverse()
 

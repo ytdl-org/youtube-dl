@@ -6,7 +6,8 @@ from ..utils import int_or_none
 
 
 class CrackleIE(InfoExtractor):
-    _VALID_URL = r'(?:crackle:|https?://(?:www\.)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
+    _GEO_COUNTRIES = ['US']
+    _VALID_URL = r'(?:crackle:|https?://(?:(?:www|m)\.)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.crackle.com/comedians-in-cars-getting-coffee/2498934',
         'info_dict': {
@@ -14,7 +15,7 @@ class CrackleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Everybody Respects A Bloody Nose',
             'description': 'Jerry is kaffeeklatsching in L.A. with funnyman J.B. Smoove (Saturday Night Live, Real Husbands of Hollywood). They’re headed for brew at 10 Speed Coffee in a 1964 Studebaker Avanti.',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 906,
             'series': 'Comedians In Cars Getting Coffee',
             'season_number': 8,
@@ -31,8 +32,32 @@ class CrackleIE(InfoExtractor):
         }
     }
 
+    _THUMBNAIL_RES = [
+        (120, 90),
+        (208, 156),
+        (220, 124),
+        (220, 220),
+        (240, 180),
+        (250, 141),
+        (315, 236),
+        (320, 180),
+        (360, 203),
+        (400, 300),
+        (421, 316),
+        (460, 330),
+        (460, 460),
+        (462, 260),
+        (480, 270),
+        (587, 330),
+        (640, 480),
+        (700, 330),
+        (700, 394),
+        (854, 480),
+        (1024, 1024),
+        (1920, 1080),
+    ]
+
     # extracted from http://legacyweb-us.crackle.com/flash/ReferrerRedirect.ashx
-    _THUMBNAIL_TEMPLATE = 'http://images-us-am.crackle.com/%stnl_1920x1080.jpg?ts=20140107233116?c=635333335057637614'
     _MEDIA_FILE_SLOTS = {
         'c544.flv': {
             'width': 544,
@@ -61,17 +86,25 @@ class CrackleIE(InfoExtractor):
 
         item = self._download_xml(
             'http://legacyweb-us.crackle.com/app/revamp/vidwallcache.aspx?flags=-1&fm=%s' % video_id,
-            video_id).find('i')
+            video_id, headers=self.geo_verification_headers()).find('i')
         title = item.attrib['t']
 
         subtitles = {}
         formats = self._extract_m3u8_formats(
             'http://content.uplynk.com/ext/%s/%s.m3u8' % (config_doc.attrib['strUplynkOwnerId'], video_id),
             video_id, 'mp4', m3u8_id='hls', fatal=None)
-        thumbnail = None
+        thumbnails = []
         path = item.attrib.get('p')
         if path:
-            thumbnail = self._THUMBNAIL_TEMPLATE % path
+            for width, height in self._THUMBNAIL_RES:
+                res = '%dx%d' % (width, height)
+                thumbnails.append({
+                    'id': res,
+                    'url': 'http://images-us-am.crackle.com/%stnl_%s.jpg' % (path, res),
+                    'width': width,
+                    'height': height,
+                    'resolution': res,
+                })
             http_base_url = 'http://ahttp.crackle.com/' + path
             for mfs_path, mfs_info in self._MEDIA_FILE_SLOTS.items():
                 formats.append({
@@ -86,10 +119,11 @@ class CrackleIE(InfoExtractor):
                 if locale and v:
                     if locale not in subtitles:
                         subtitles[locale] = []
-                    subtitles[locale] = [{
-                        'url': '%s/%s%s_%s.xml' % (config_doc.attrib['strSubtitleServer'], path, locale, v),
-                        'ext': 'ttml',
-                    }]
+                    for url_ext, ext in (('vtt', 'vtt'), ('xml', 'tt')):
+                        subtitles.setdefault(locale, []).append({
+                            'url': '%s/%s%s_%s.%s' % (config_doc.attrib['strSubtitleServer'], path, locale, v, url_ext),
+                            'ext': ext,
+                        })
         self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))
 
         return {
@@ -100,7 +134,7 @@ class CrackleIE(InfoExtractor):
             'series': item.attrib.get('sn'),
             'season_number': int_or_none(item.attrib.get('se')),
             'episode_number': int_or_none(item.attrib.get('ep')),
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
             'subtitles': subtitles,
             'formats': formats,
         }

@@ -26,6 +26,21 @@ MSO_INFO = {
         'username_field': 'UserName',
         'password_field': 'UserPassword',
     },
+    'Comcast_SSO': {
+        'name': 'Comcast XFINITY',
+        'username_field': 'user',
+        'password_field': 'passwd',
+    },
+    'TWC': {
+        'name': 'Time Warner Cable | Spectrum',
+        'username_field': 'Ecom_User_ID',
+        'password_field': 'Ecom_Password',
+    },
+    'Charter_Direct': {
+        'name': 'Charter Spectrum',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
@@ -1364,14 +1379,53 @@ class AdobePassIE(InfoExtractor):
                         'domain_name': 'adobe.com',
                         'redirect_url': url,
                     })
-                provider_login_page_res = post_form(
-                    provider_redirect_page_res, 'Downloading Provider Login Page')
-                mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
-                    mso_info.get('username_field', 'username'): username,
-                    mso_info.get('password_field', 'password'): password,
-                })
-                if mso_id != 'Rogers':
-                    post_form(mvpd_confirm_page_res, 'Confirming Login')
+
+                if mso_id == 'Comcast_SSO':
+                    # Comcast page flow varies by video site and whether you
+                    # are on Comcast's network.
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    # Check for Comcast auto login
+                    if 'automatically signing you in' in provider_redirect_page:
+                        oauth_redirect_url = self._html_search_regex(
+                            r'window\.location\s*=\s*[\'"]([^\'"]+)',
+                            provider_redirect_page, 'oauth redirect')
+                        # Just need to process the request. No useful data comes back
+                        self._download_webpage(
+                            oauth_redirect_url, video_id, 'Confirming auto login')
+                    else:
+                        if '<form name="signin"' in provider_redirect_page:
+                            # already have the form, just fill it
+                            provider_login_page_res = provider_redirect_page_res
+                        elif 'http-equiv="refresh"' in provider_redirect_page:
+                            # redirects to the login page
+                            oauth_redirect_url = self._html_search_regex(
+                                r'content="0;\s*url=([^\'"]+)',
+                                provider_redirect_page, 'meta refresh redirect')
+                            provider_login_page_res = self._download_webpage_handle(
+                                oauth_redirect_url,
+                                video_id, 'Downloading Provider Login Page')
+                        else:
+                            provider_login_page_res = post_form(
+                                provider_redirect_page_res, 'Downloading Provider Login Page')
+
+                        mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
+                            mso_info.get('username_field', 'username'): username,
+                            mso_info.get('password_field', 'password'): password,
+                        })
+                        mvpd_confirm_page, urlh = mvpd_confirm_page_res
+                        if '<button class="submit" value="Resume">Resume</button>' in mvpd_confirm_page:
+                            post_form(mvpd_confirm_page_res, 'Confirming Login')
+
+                else:
+                    # Normal, non-Comcast flow
+                    provider_login_page_res = post_form(
+                        provider_redirect_page_res, 'Downloading Provider Login Page')
+                    mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
+                        mso_info.get('username_field', 'username'): username,
+                        mso_info.get('password_field', 'password'): password,
+                    })
+                    if mso_id != 'Rogers':
+                        post_form(mvpd_confirm_page_res, 'Confirming Login')
 
                 session = self._download_webpage(
                     self._SERVICE_PROVIDER_TEMPLATE % 'session', video_id,

@@ -11,6 +11,7 @@ from ..utils import (
     float_or_none,
     parse_duration,
     str_to_int,
+    urlencode_postdata,
 )
 
 
@@ -25,7 +26,7 @@ class PandoraTVIE(InfoExtractor):
             'ext': 'flv',
             'title': '頭を撫でてくれる？',
             'description': '頭を撫でてくれる？',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 39,
             'upload_date': '20151218',
             'uploader': 'カワイイ動物まとめ',
@@ -56,6 +57,22 @@ class PandoraTVIE(InfoExtractor):
                 r'^v(\d+)[Uu]rl$', format_id, 'height', default=None)
             if not height:
                 continue
+
+            play_url = self._download_json(
+                'http://m.pandora.tv/?c=api&m=play_url', video_id,
+                data=urlencode_postdata({
+                    'prgid': video_id,
+                    'runtime': info.get('runtime'),
+                    'vod_url': format_url,
+                }),
+                headers={
+                    'Origin': url,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                })
+            format_url = play_url.get('url')
+            if not format_url:
+                continue
+
             formats.append({
                 'format_id': '%sp' % height,
                 'url': format_url,

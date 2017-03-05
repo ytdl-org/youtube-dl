@@ -39,7 +39,7 @@ class CBSNewsIE(CBSIE):
                 'upload_date': '20140404',
                 'timestamp': 1396650660,
                 'uploader': 'CBSI-NEW',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 205,
                 'subtitles': {
                     'en': [{

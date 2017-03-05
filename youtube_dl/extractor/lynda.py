@@ -73,7 +73,7 @@ class LyndaBaseIE(InfoExtractor):
 
         # Already logged in
         if any(re.search(p, signin_page) for p in (
-                'isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
+                r'isLoggedIn\s*:\s*true', r'logout\.aspx', r'>Log out<')):
             return
 
         # Step 2: submit email
@@ -94,12 +94,12 @@ class LyndaBaseIE(InfoExtractor):
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
-    _VALID_URL = r'https?://(?:www\.)?lynda\.com/(?:[^/]+/[^/]+/\d+|player/embed)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?lynda\.com/(?:[^/]+/[^/]+/(?P<course_id>\d+)|player/embed)/(?P<id>\d+)'
 
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
     _TESTS = [{
-        'url': 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
+        'url': 'https://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
         # md5 is unstable
         'info_dict': {
             'id': '114408',
@@ -112,19 +112,71 @@ class LyndaIE(LyndaBaseIE):
         'only_matching': True,
     }]
 
+    def _raise_unavailable(self, video_id):
+        self.raise_login_required(
+            'Video %s is only available for members' % video_id)
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        course_id = mobj.group('course_id')
+
+        query = {
+            'videoId': video_id,
+            'type': 'video',
+        }
 
         video = self._download_json(
-            'http://www.lynda.com/ajax/player?videoId=%s&type=video' % video_id,
-            video_id, 'Downloading video JSON')
+            'https://www.lynda.com/ajax/player', video_id,
+            'Downloading video JSON', fatal=False, query=query)
+
+        # Fallback scenario
+        if not video:
+            query['courseId'] = course_id
+
+            play = self._download_json(
+                'https://www.lynda.com/ajax/course/%s/%s/play'
+                % (course_id, video_id), video_id, 'Downloading play JSON')
+
+            if not play:
+                self._raise_unavailable(video_id)
+
+            formats = []
+            for formats_dict in play:
+                urls = formats_dict.get('urls')
+                if not isinstance(urls, dict):
+                    continue
+                cdn = formats_dict.get('name')
+                for format_id, format_url in urls.items():
+                    if not format_url:
+                        continue
+                    formats.append({
+                        'url': format_url,
+                        'format_id': '%s-%s' % (cdn, format_id) if cdn else format_id,
+                        'height': int_or_none(format_id),
+                    })
+            self._sort_formats(formats)
+
+            conviva = self._download_json(
+                'https://www.lynda.com/ajax/player/conviva', video_id,
+                'Downloading conviva JSON', query=query)
+
+            return {
+                'id': video_id,
+                'title': conviva['VideoTitle'],
+                'description': conviva.get('VideoDescription'),
+                'release_year': int_or_none(conviva.get('ReleaseYear')),
+                'duration': int_or_none(conviva.get('Duration')),
+                'creator': conviva.get('Author'),
+                'formats': formats,
+            }
 
         if 'Status' in video:
             raise ExtractorError(
                 'lynda returned error: %s' % video['Message'], expected=True)
 
         if video.get('HasAccess') is False:
-            self.raise_login_required('Video %s is only available for members' % video_id)
+            self._raise_unavailable(video_id)
 
         video_id = compat_str(video.get('ID') or video_id)
         duration = int_or_none(video.get('DurationInSeconds'))
@@ -148,7 +200,7 @@ class LyndaIE(LyndaBaseIE):
             for prioritized_stream_id, prioritized_stream in prioritized_streams.items():
                 formats.extend([{
                     'url': video_url,
-                    'width': int_or_none(format_id),
+                    'height': int_or_none(format_id),
                     'format_id': '%s-%s' % (prioritized_stream_id, format_id),
                 } for format_id, video_url in prioritized_stream.items()])
 
@@ -187,7 +239,7 @@ class LyndaIE(LyndaBaseIE):
             return srt
 
     def _get_subtitles(self, video_id):
-        url = 'http://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
+        url = 'https://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
         subs = self._download_json(url, None, False)
         if subs:
             return {'en': [{'ext': 'srt', 'data': self._fix_subtitles(subs)}]}
@@ -208,9 +260,24 @@ class LyndaCourseIE(LyndaBaseIE):
         course_path = mobj.group('coursepath')
         course_id = mobj.group('courseid')
 
+        item_template = 'https://www.lynda.com/%s/%%s-4.html' % course_path
+
         course = self._download_json(
-            'http://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
-            course_id, 'Downloading course JSON')
+            'https://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
+            course_id, 'Downloading course JSON', fatal=False)
+
+        if not course:
+            webpage = self._download_webpage(url, course_id)
+            entries = [
+                self.url_result(
+                    item_template % video_id, ie=LyndaIE.ie_key(),
+                    video_id=video_id)
+                for video_id in re.findall(
+                    r'data-video-id=["\'](\d+)', webpage)]
+            return self.playlist_result(
+                entries, course_id,
+                self._og_search_title(webpage, fatal=False),
+                self._og_search_description(webpage))
 
         if course.get('Status') == 'NotFound':
             raise ExtractorError(
@@ -231,7 +298,7 @@ class LyndaCourseIE(LyndaBaseIE):
                 if video_id:
                     entries.append({
                         '_type': 'url_transparent',
-                        'url': 'http://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
+                        'url': item_template % video_id,
                         'ie_key': LyndaIE.ie_key(),
                         'chapter': chapter.get('Title'),
                         'chapter_number': int_or_none(chapter.get('ChapterIndex')),

@@ -23,7 +23,7 @@ class ABCOTVSIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'East Bay museum celebrates vintage synthesizers',
                 'description': 'md5:a4f10fb2f2a02565c1749d4adbab4b10',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'timestamp': 1421123075,
                 'upload_date': '20150113',
                 'uploader': 'Jonathan Bloom',

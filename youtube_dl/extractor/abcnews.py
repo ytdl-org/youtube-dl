@@ -23,7 +23,7 @@ class AbcNewsVideoIE(AMPIE):
             'title': '\'This Week\' Exclusive: Iran\'s Foreign Minister Zarif',
             'description': 'George Stephanopoulos goes one-on-one with Iranian Foreign Minister Dr. Javad Zarif.',
             'duration': 180,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             # m3u8 download
@@ -59,7 +59,7 @@ class AbcNewsIE(InfoExtractor):
             'display_id': 'dramatic-video-rare-death-job-america',
             'title': 'Occupational Hazards',
             'description': 'Nightline investigates the dangers that lurk at various jobs.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20100428',
             'timestamp': 1272412800,
         },

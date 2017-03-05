@@ -26,7 +26,7 @@ class RoosterTeethIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Million Dollars, But...: Million Dollars, But... The Game Announcement',
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
-            'thumbnail': 're:^https?://.*\.png$',
+            'thumbnail': r're:^https?://.*\.png$',
             'series': 'Million Dollars, But...',
             'episode': 'Million Dollars, But... The Game Announcement',
             'comment_count': int,

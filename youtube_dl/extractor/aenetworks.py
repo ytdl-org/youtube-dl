@@ -23,10 +23,10 @@ class AENetworksBaseIE(ThePlatformIE):
 class AENetworksIE(AENetworksBaseIE):
     IE_NAME = 'aenetworks'
     IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)/full-movie)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|aetv|mylifetime|lifetimemovieclub)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?)'
     _TESTS = [{
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
-        'md5': '8ff93eb073449f151d6b90c0ae1ef0c7',
+        'md5': 'a97a65f7e823ae10e9244bc5433d5fe6',
         'info_dict': {
             'id': '22253814',
             'ext': 'mp4',
@@ -62,11 +62,15 @@ class AENetworksIE(AENetworksBaseIE):
     }, {
         'url': 'http://www.mylifetime.com/movies/center-stage-on-pointe/full-movie',
         'only_matching': True
+    }, {
+        'url': 'https://www.lifetimemovieclub.com/movies/a-killer-among-us',
+        'only_matching': True
     }]
     _DOMAIN_TO_REQUESTOR_ID = {
         'history.com': 'HISTORY',
         'aetv.com': 'AETV',
         'mylifetime.com': 'LIFETIME',
+        'lifetimemovieclub.com': 'LIFETIMEMOVIECLUB',
         'fyi.tv': 'FYI',
     }
 
@@ -87,7 +91,7 @@ class AENetworksIE(AENetworksBaseIE):
                     self._html_search_meta('aetn:SeriesTitle', webpage))
             elif url_parts_len == 2:
                 entries = []
-                for episode_item in re.findall(r'(?s)<div[^>]+class="[^"]*episode-item[^"]*"[^>]*>', webpage):
+                for episode_item in re.findall(r'(?s)<[^>]+class="[^"]*(?:episode|program)-item[^"]*"[^>]*>', webpage):
                     episode_attributes = extract_attributes(episode_item)
                     episode_url = compat_urlparse.urljoin(
                         url, episode_attributes['data-canonical'])
@@ -99,7 +103,7 @@ class AENetworksIE(AENetworksBaseIE):
 
         query = {
             'mbr': 'true',
-            'assetTypes': 'medium_video_s3'
+            'assetTypes': 'high_video_s3'
         }
         video_id = self._html_search_meta('aetn:VideoID', webpage)
         media_url = self._search_regex(
@@ -155,7 +159,7 @@ class HistoryTopicIE(AENetworksBaseIE):
             'id': 'world-war-i-history',
             'title': 'World War I History',
         },
-        'playlist_mincount': 24,
+        'playlist_mincount': 23,
     }, {
         'url': 'http://www.history.com/topics/world-war-i-history/videos',
         'only_matching': True,
@@ -193,7 +197,8 @@ class HistoryTopicIE(AENetworksBaseIE):
             return self.theplatform_url_result(
                 release_url, video_id, {
                     'mbr': 'true',
-                    'switch': 'hls'
+                    'switch': 'hls',
+                    'assetTypes': 'high_video_ak',
                 })
         else:
             webpage = self._download_webpage(url, topic_id)
@@ -203,6 +208,7 @@ class HistoryTopicIE(AENetworksBaseIE):
                 entries.append(self.theplatform_url_result(
                     video_attributes['data-release-url'], video_attributes['data-id'], {
                         'mbr': 'true',
-                        'switch': 'hls'
+                        'switch': 'hls',
+                        'assetTypes': 'high_video_ak',
                     }))
             return self.playlist_result(entries, topic_id, get_element_by_attribute('class', 'show-title', webpage))

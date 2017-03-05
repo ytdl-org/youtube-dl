@@ -5,12 +5,11 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
-from .jwplatform import JWPlatformBaseIE
 from ..utils import js_to_json
 
 # Contributed by John Hawkinson <jhawk@mit.edu>, 6 Oct 2016.
 
-class IQM2IE(JWPlatformBaseIE):
+class IQM2IE(InfoExtractor):
     IE_DESC = 'IQM2 (aka Accela) livestreamed video from municipal meetings'
     # We commonly see both iqm2.com and IQM2.com.
     _VALID_URL = r'(?i)https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MeetingID=(?P<id>[0-9]+)'

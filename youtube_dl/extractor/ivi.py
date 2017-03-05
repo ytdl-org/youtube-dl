@@ -16,6 +16,8 @@ class IviIE(InfoExtractor):
     IE_DESC = 'ivi.ru'
     IE_NAME = 'ivi'
     _VALID_URL = r'https?://(?:www\.)?ivi\.ru/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<id>\d+)'
+    _GEO_BYPASS = False
+    _GEO_COUNTRIES = ['RU']
 
     _TESTS = [
         # Single movie
@@ -28,7 +30,7 @@ class IviIE(InfoExtractor):
                 'title': 'Иван Васильевич меняет профессию',
                 'description': 'md5:b924063ea1677c8fe343d8a72ac2195f',
                 'duration': 5498,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'skip': 'Only works from Russia',
         },
@@ -46,7 +48,7 @@ class IviIE(InfoExtractor):
                 'episode': 'Дело Гольдберга (1 часть)',
                 'episode_number': 1,
                 'duration': 2655,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'skip': 'Only works from Russia',
         },
@@ -60,7 +62,7 @@ class IviIE(InfoExtractor):
                 'title': 'Кукла',
                 'description': 'md5:ffca9372399976a2d260a407cc74cce6',
                 'duration': 5599,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'skip': 'Only works from Russia',
         }
@@ -91,7 +93,11 @@ class IviIE(InfoExtractor):
 
         if 'error' in video_json:
             error = video_json['error']
-            if error['origin'] == 'NoRedisValidData':
+            origin = error['origin']
+            if origin == 'NotAllowedForLocation':
+                self.raise_geo_restricted(
+                    msg=error['message'], countries=self._GEO_COUNTRIES)
+            elif origin == 'NoRedisValidData':
                 raise ExtractorError('Video %s does not exist' % video_id, expected=True)
             raise ExtractorError(
                 'Unable to download video %s: %s' % (video_id, error['message']),

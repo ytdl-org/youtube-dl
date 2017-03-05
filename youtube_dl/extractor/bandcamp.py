@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
 import json
+import random
 import re
+import time
 
 from .common import InfoExtractor
 from ..compat import (
@@ -12,6 +14,9 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    parse_filesize,
+    unescapeHTML,
+    update_url_query,
 )
 
 
@@ -81,35 +86,68 @@ class BandcampIE(InfoExtractor):
             r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
             webpage, 'video id')
 
-        download_webpage = self._download_webpage(download_link, video_id, 'Downloading free downloads page')
-        # We get the dictionary of the track from some javascript code
-        all_info = self._parse_json(self._search_regex(
-            r'(?sm)items: (.*?),$', download_webpage, 'items'), video_id)
-        info = all_info[0]
-        # We pick mp3-320 for now, until format selection can be easily implemented.
-        mp3_info = info['downloads']['mp3-320']
-        # If we try to use this url it says the link has expired
-        initial_url = mp3_info['url']
-        m_url = re.match(
-            r'(?P<server>http://(.*?)\.bandcamp\.com)/download/track\?enc=mp3-320&fsig=(?P<fsig>.*?)&id=(?P<id>.*?)&ts=(?P<ts>.*)$',
-            initial_url)
-        # We build the url we will use to get the final track url
-        # This url is build in Bandcamp in the script download_bunde_*.js
-        request_url = '%s/statdownload/track?enc=mp3-320&fsig=%s&id=%s&ts=%s&.rand=665028774616&.vrs=1' % (m_url.group('server'), m_url.group('fsig'), video_id, m_url.group('ts'))
-        final_url_webpage = self._download_webpage(request_url, video_id, 'Requesting download url')
-        # If we could correctly generate the .rand field the url would be
-        # in the "download_url" key
-        final_url = self._proto_relative_url(self._search_regex(
-            r'"retry_url":"(.+?)"', final_url_webpage, 'final video URL'), 'http:')
+        download_webpage = self._download_webpage(
+            download_link, video_id, 'Downloading free downloads page')
+
+        blob = self._parse_json(
+            self._search_regex(
+                r'data-blob=(["\'])(?P<blob>{.+?})\1', download_webpage,
+                'blob', group='blob'),
+            video_id, transform_source=unescapeHTML)
+
+        info = blob['digital_items'][0]
+
+        downloads = info['downloads']
+        track = info['title']
+
+        artist = info.get('artist')
+        title = '%s - %s' % (artist, track) if artist else track
+
+        download_formats = {}
+        for f in blob['download_formats']:
+            name, ext = f.get('name'), f.get('file_extension')
+            if all(isinstance(x, compat_str) for x in (name, ext)):
+                download_formats[name] = ext.strip('.')
+
+        formats = []
+        for format_id, f in downloads.items():
+            format_url = f.get('url')
+            if not format_url:
+                continue
+            # Stat URL generation algorithm is reverse engineered from
+            # download_*_bundle_*.js
+            stat_url = update_url_query(
+                format_url.replace('/download/', '/statdownload/'), {
+                    '.rand': int(time.time() * 1000 * random.random()),
+                })
+            format_id = f.get('encoding_name') or format_id
+            stat = self._download_json(
+                stat_url, video_id, 'Downloading %s JSON' % format_id,
+                transform_source=lambda s: s[s.index('{'):s.rindex('}') + 1],
+                fatal=False)
+            if not stat:
+                continue
+            retry_url = stat.get('retry_url')
+            if not isinstance(retry_url, compat_str):
+                continue
+            formats.append({
+                'url': self._proto_relative_url(retry_url, 'http:'),
+                'ext': download_formats.get(format_id),
+                'format_id': format_id,
+                'format_note': f.get('description'),
+                'filesize': parse_filesize(f.get('size_mb')),
+                'vcodec': 'none',
+            })
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': info['title'],
-            'ext': 'mp3',
-            'vcodec': 'none',
-            'url': final_url,
+            'title': title,
             'thumbnail': info.get('thumb_url'),
             'uploader': info.get('artist'),
+            'artist': artist,
+            'track': track,
+            'formats': formats,
         }
 
 
@@ -171,6 +209,15 @@ class BandcampAlbumIE(InfoExtractor):
             'id': 'entropy-ep',
         },
         'playlist_mincount': 3,
+    }, {
+        # not all tracks have songs
+        'url': 'https://insulters.bandcamp.com/album/we-are-the-plague',
+        'info_dict': {
+            'id': 'we-are-the-plague',
+            'title': 'WE ARE THE PLAGUE',
+            'uploader_id': 'insulters',
+        },
+        'playlist_count': 2,
     }]
 
     def _real_extract(self, url):
@@ -179,12 +226,16 @@ class BandcampAlbumIE(InfoExtractor):
         album_id = mobj.group('album_id')
         playlist_id = album_id or uploader_id
         webpage = self._download_webpage(url, playlist_id)
-        tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
-        if not tracks_paths:
+        track_elements = re.findall(
+            r'(?s)<div[^>]*>(.*?<a[^>]+href="([^"]+?)"[^>]+itemprop="url"[^>]*>.*?)</div>', webpage)
+        if not track_elements:
             raise ExtractorError('The page doesn\'t contain any tracks')
+        # Only tracks with duration info have songs
         entries = [
             self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
-            for t_path in tracks_paths]
+            for elem_content, t_path in track_elements
+            if self._html_search_meta('duration', elem_content, default=None)]
+
         title = self._html_search_regex(
             r'album_title\s*:\s*"((?:\\.|[^"\\])+?)"',
             webpage, 'title', fatal=False)

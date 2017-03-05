@@ -9,6 +9,7 @@ from ..utils import (
     error_to_compat_str,
     encodeFilename,
     sanitize_open,
+    sanitized_Request,
 )
 
 
@@ -37,6 +38,10 @@ class FragmentFD(FileDownloader):
     def report_skip_fragment(self, fragment_name):
         self.to_screen('[download] Skipping fragment %s...' % fragment_name)
 
+    def _prepare_url(self, info_dict, url):
+        headers = info_dict.get('http_headers')
+        return sanitized_Request(url, None, headers) if headers else url
+
     def _prepare_and_start_frag_download(self, ctx):
         self._prepare_frag_download(ctx)
         self._start_frag_download(ctx)
@@ -56,6 +61,7 @@ class FragmentFD(FileDownloader):
                 'noprogress': True,
                 'ratelimit': self.params.get('ratelimit'),
                 'retries': self.params.get('retries', 0),
+                'nopart': self.params.get('nopart', False),
                 'test': self.params.get('test', False),
             }
         )

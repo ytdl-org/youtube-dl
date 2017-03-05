@@ -96,6 +96,27 @@ class AdultSwimIE(TurnerBaseIE):
             'skip_download': True,
         },
         'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
+        'url': 'http://www.adultswim.com/videos/toonami/friday-october-14th-2016/',
+        'info_dict': {
+            'id': 'eYiLsKVgQ6qTC6agD67Sig',
+            'title': 'Toonami - Friday, October 14th, 2016',
+            'description': 'md5:99892c96ffc85e159a428de85c30acde',
+        },
+        'playlist': [{
+            'md5': '',
+            'info_dict': {
+                'id': 'eYiLsKVgQ6qTC6agD67Sig',
+                'ext': 'mp4',
+                'title': 'Toonami - Friday, October 14th, 2016',
+                'description': 'md5:99892c96ffc85e159a428de85c30acde',
+            },
+        }],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }]
 
     @staticmethod
@@ -163,6 +184,8 @@ class AdultSwimIE(TurnerBaseIE):
                 segment_ids = [clip['videoPlaybackID'] for clip in video_info['clips']]
             elif video_info.get('videoPlaybackID'):
                 segment_ids = [video_info['videoPlaybackID']]
+            elif video_info.get('id'):
+                segment_ids = [video_info['id']]
             else:
                 if video_info.get('auth') is True:
                     raise ExtractorError(

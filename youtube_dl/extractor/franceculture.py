@@ -17,7 +17,7 @@ class FranceCultureIE(InfoExtractor):
             'display_id': 'rendez-vous-au-pays-des-geeks',
             'ext': 'mp3',
             'title': 'Rendez-vous au pays des geeks',
-            'thumbnail': 're:^https?://.*\\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140301',
             'vcodec': 'none',
         }
@@ -29,7 +29,7 @@ class FranceCultureIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_url = self._search_regex(
-            r'(?s)<div[^>]+class="[^"]*?title-zone-diffusion[^"]*?"[^>]*>.*?<a[^>]+href="([^"]+)"',
+            r'(?s)<div[^>]+class="[^"]*?title-zone-diffusion[^"]*?"[^>]*>.*?<button[^>]+data-asset-source="([^"]+)"',
             webpage, 'video path')
 
         title = self._og_search_title(webpage)
@@ -38,7 +38,7 @@ class FranceCultureIE(InfoExtractor):
             '(?s)<div[^>]+class="date"[^>]*>.*?<span[^>]+class="inner"[^>]*>([^<]+)<',
             webpage, 'upload date', fatal=False))
         thumbnail = self._search_regex(
-            r'(?s)<figure[^>]+itemtype="https://schema.org/ImageObject"[^>]*>.*?<img[^>]+data-pagespeed-(?:lazy|high-res)-src="([^"]+)"',
+            r'(?s)<figure[^>]+itemtype="https://schema.org/ImageObject"[^>]*>.*?<img[^>]+data-dejavu-src="([^"]+)"',
             webpage, 'thumbnail', fatal=False)
         uploader = self._html_search_regex(
             r'(?s)<div id="emission".*?<span class="author">(.*?)</span>',

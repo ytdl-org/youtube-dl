@@ -23,7 +23,7 @@ class GodTubeIE(InfoExtractor):
                 'timestamp': 1205712000,
                 'uploader': 'beverlybmusic',
                 'upload_date': '20080317',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
     ]

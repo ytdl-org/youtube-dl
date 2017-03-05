@@ -14,7 +14,7 @@ class PeopleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Astronaut Love Triangle Victim Speaks Out: “The Crime in 2007 Hasn’t Defined Us”',
             'description': 'Colleen Shipman speaks to PEOPLE for the first time about life after the attack',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 246.318,
             'timestamp': 1458720585,
             'upload_date': '20160323',

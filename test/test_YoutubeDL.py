@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -525,6 +526,7 @@ class TestYoutubeDL(unittest.TestCase):
             'id': '1234',
             'ext': 'mp4',
             'width': None,
+            'height': 1080,
         }
 
         def fname(templ):
@@ -534,16 +536,29 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(fname('%(id)s-%(width)s.%(ext)s'), '1234-NA.mp4')
         # Replace missing fields with 'NA'
         self.assertEqual(fname('%(uploader_date)s-%(id)s.%(ext)s'), 'NA-1234.mp4')
+        self.assertEqual(fname('%(height)d.%(ext)s'), '1080.mp4')
+        self.assertEqual(fname('%(height)6d.%(ext)s'), '  1080.mp4')
+        self.assertEqual(fname('%(height)-6d.%(ext)s'), '1080  .mp4')
+        self.assertEqual(fname('%(height)06d.%(ext)s'), '001080.mp4')
+        self.assertEqual(fname('%(height) 06d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)   06d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)0 6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)0   6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%(height)   0   6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%%(height)06d.%(ext)s'), '%(height)06d.mp4')
+        self.assertEqual(fname('%(width)06d.%(ext)s'), 'NA.mp4')
+        self.assertEqual(fname('%(width)06d.%%(ext)s'), 'NA.%(ext)s')
+        self.assertEqual(fname('%%(width)06d.%(ext)s'), '%(width)06d.mp4')
 
     def test_format_note(self):
         ydl = YoutubeDL()
         self.assertEqual(ydl._format_note({}), '')
         assertRegexpMatches(self, ydl._format_note({
             'vbr': 10,
-        }), '^\s*10k$')
+        }), r'^\s*10k$')
         assertRegexpMatches(self, ydl._format_note({
             'fps': 30,
-        }), '^30fps$')
+        }), r'^30fps$')
 
     def test_postprocessors(self):
         filename = 'post-processor-testfile.mp4'
@@ -605,6 +620,9 @@ class TestYoutubeDL(unittest.TestCase):
             'extractor': 'TEST',
             'duration': 30,
             'filesize': 10 * 1024,
+            'playlist_id': '42',
+            'uploader': "變態妍字幕版 太妍 тест",
+            'creator': "тест ' 123 ' тест--",
         }
         second = {
             'id': '2',
@@ -614,6 +632,8 @@ class TestYoutubeDL(unittest.TestCase):
             'duration': 10,
             'description': 'foo',
             'filesize': 5 * 1024,
+            'playlist_id': '43',
+            'uploader': "тест 123",
         }
         videos = [first, second]
 
@@ -649,6 +669,30 @@ class TestYoutubeDL(unittest.TestCase):
         f = match_filter_func('filesize > 5KiB')
         res = get_videos(f)
         self.assertEqual(res, ['1'])
+
+        f = match_filter_func('playlist_id = 42')
+        res = get_videos(f)
+        self.assertEqual(res, ['1'])
+
+        f = match_filter_func('uploader = "變態妍字幕版 太妍 тест"')
+        res = get_videos(f)
+        self.assertEqual(res, ['1'])
+
+        f = match_filter_func('uploader != "變態妍字幕版 太妍 тест"')
+        res = get_videos(f)
+        self.assertEqual(res, ['2'])
+
+        f = match_filter_func('creator = "тест \' 123 \' тест--"')
+        res = get_videos(f)
+        self.assertEqual(res, ['1'])
+
+        f = match_filter_func("creator = 'тест \\' 123 \\' тест--'")
+        res = get_videos(f)
+        self.assertEqual(res, ['1'])
+
+        f = match_filter_func(r"creator = 'тест \' 123 \' тест--' & duration > 30")
+        res = get_videos(f)
+        self.assertEqual(res, [])
 
     def test_playlist_items_selection(self):
         entries = [{

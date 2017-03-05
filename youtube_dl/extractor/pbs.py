@@ -193,6 +193,8 @@ class PBSIE(InfoExtractor):
         )
     ''' % '|'.join(list(zip(*_STATIONS))[0])
 
+    _GEO_COUNTRIES = ['US']
+
     _TESTS = [
         {
             'url': 'http://www.pbs.org/tpt/constitution-usa-peter-sagal/watch/a-more-perfect-union/',
@@ -236,7 +238,7 @@ class PBSIE(InfoExtractor):
                 'title': 'Great Performances - Dudamel Conducts Verdi Requiem at the Hollywood Bowl - Full',
                 'description': 'md5:657897370e09e2bc6bf0f8d2cd313c6b',
                 'duration': 6559,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -249,7 +251,7 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:c741d14e979fc53228c575894094f157',
                 'title': 'NOVA - Killer Typhoon',
                 'duration': 3172,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
                 'age_limit': 10,
             },
@@ -270,7 +272,7 @@ class PBSIE(InfoExtractor):
                 'title': 'American Experience - Death and the Civil War, Chapter 1',
                 'description': 'md5:67fa89a9402e2ee7d08f53b920674c18',
                 'duration': 682,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 'skip_download': True,  # requires ffmpeg
@@ -286,7 +288,7 @@ class PBSIE(InfoExtractor):
                 'title': 'FRONTLINE - United States of Secrets (Part One)',
                 'description': 'md5:55756bd5c551519cc4b7703e373e217e',
                 'duration': 6851,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -302,7 +304,7 @@ class PBSIE(InfoExtractor):
                 'title': "A Chef's Life - Season 3, Ep. 5: Prickly Business",
                 'description': 'md5:c0ff7475a4b70261c7e58f493c2792a5',
                 'duration': 1480,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -315,7 +317,7 @@ class PBSIE(InfoExtractor):
                 'title': 'FRONTLINE - The Atomic Artists',
                 'description': 'md5:f677e4520cfacb4a5ce1471e31b57800',
                 'duration': 723,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 'skip_download': True,  # requires ffmpeg
@@ -330,7 +332,7 @@ class PBSIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'FRONTLINE - Netanyahu at War',
                 'duration': 6852,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'formats': 'mincount:8',
             },
         },
@@ -349,6 +351,15 @@ class PBSIE(InfoExtractor):
         404: 'We are experiencing technical difficulties that are preventing us from playing the video at this time. Please check back again soon.',
         410: 'This video has expired and is no longer available for online streaming.',
     }
+
+    def _real_initialize(self):
+        cookie = (self._download_json(
+            'http://localization.services.pbs.org/localize/auto/cookie/',
+            None, headers=self.geo_verification_headers(), fatal=False) or {}).get('cookie')
+        if cookie:
+            station = self._search_regex(r'#?s=\["([^"]+)"', cookie, 'station')
+            if station:
+                self._set_cookie('.pbs.org', 'pbsol.station', station)
 
     def _extract_webpage(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -476,14 +487,17 @@ class PBSIE(InfoExtractor):
 
             redirect_info = self._download_json(
                 '%s?format=json' % redirect['url'], display_id,
-                'Downloading %s video url info' % (redirect_id or num))
+                'Downloading %s video url info' % (redirect_id or num),
+                headers=self.geo_verification_headers())
 
             if redirect_info['status'] == 'error':
+                message = self._ERRORS.get(
+                    redirect_info['http_code'], redirect_info['message'])
+                if redirect_info['http_code'] == 403:
+                    self.raise_geo_restricted(
+                        msg=message, countries=self._GEO_COUNTRIES)
                 raise ExtractorError(
-                    '%s said: %s' % (
-                        self.IE_NAME,
-                        self._ERRORS.get(redirect_info['http_code'], redirect_info['message'])),
-                    expected=True)
+                    '%s said: %s' % (self.IE_NAME, message), expected=True)
 
             format_url = redirect_info.get('url')
             if not format_url:
@@ -558,7 +572,7 @@ class PBSIE(InfoExtractor):
         # Try turning it to 'program - title' naming scheme if possible
         alt_title = info.get('program', {}).get('title')
         if alt_title:
-            info['title'] = alt_title + ' - ' + re.sub(r'^' + alt_title + '[\s\-:]+', '', info['title'])
+            info['title'] = alt_title + ' - ' + re.sub(r'^' + alt_title + r'[\s\-:]+', '', info['title'])
 
         description = info.get('description') or info.get(
             'program', {}).get('description') or description

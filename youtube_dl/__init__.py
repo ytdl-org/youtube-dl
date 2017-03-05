@@ -95,8 +95,7 @@ def _real_main(argv=None):
                 write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
         except IOError:
             sys.exit('ERROR: batch file could not be read')
-    all_urls = batch_urls + args
-    all_urls = [url.strip() for url in all_urls]
+    all_urls = batch_urls + [url.strip() for url in args]  # batch_urls are already striped in read_batch_urls
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
 
@@ -134,6 +133,12 @@ def _real_main(argv=None):
         parser.error('TV Provider account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error('using output template conflicts with using title, video ID or auto number')
+    if opts.autonumber_size is not None:
+        if opts.autonumber_size <= 0:
+            parser.error('auto number size must be positive')
+    if opts.autonumber_start is not None:
+        if opts.autonumber_start < 0:
+            parser.error('auto number start must be positive or 0')
     if opts.usetitle and opts.useid:
         parser.error('using title conflicts with using video ID')
     if opts.username is not None and opts.password is None:
@@ -322,6 +327,7 @@ def _real_main(argv=None):
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
         'autonumber_size': opts.autonumber_size,
+        'autonumber_start': opts.autonumber_start,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
         'force_generic_extractor': opts.force_generic_extractor,
@@ -338,6 +344,7 @@ def _real_main(argv=None):
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
         'playlistreverse': opts.playlist_reverse,
+        'playlistrandom': opts.playlist_random,
         'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
@@ -406,7 +413,12 @@ def _real_main(argv=None):
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
         'geo_verification_proxy': opts.geo_verification_proxy,
-
+        'config_location': opts.config_location,
+        'geo_bypass': opts.geo_bypass,
+        'geo_bypass_country': opts.geo_bypass_country,
+        # just for deprecation check
+        'autonumber': opts.autonumber if opts.autonumber is True else None,
+        'usetitle': opts.usetitle if opts.usetitle is True else None,
     }
 
     with YoutubeDL(ydl_opts) as ydl:
@@ -449,5 +461,6 @@ def main(argv=None):
         sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
         sys.exit('\nERROR: Interrupted by user')
+
 
 __all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']

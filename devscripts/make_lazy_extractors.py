@@ -1,6 +1,7 @@
 from __future__ import unicode_literals, print_function
 
 from inspect import getsource
+import io
 import os
 from os.path import dirname as dirn
 import sys
@@ -59,6 +60,7 @@ def build_lazy_ie(ie, name):
         s += make_valid_template.format(valid_url=ie._make_valid_url())
     return s
 
+
 # find the correct sorting and add the required base classes so that sublcasses
 # can be correctly created
 classes = _ALL_CLASSES[:-1]
@@ -94,5 +96,5 @@ module_contents.append(
 
 module_src = '\n'.join(module_contents) + '\n'
 
-with open(lazy_extractors_filename, 'wt') as f:
+with io.open(lazy_extractors_filename, 'wt', encoding='utf-8') as f:
     f.write(module_src)

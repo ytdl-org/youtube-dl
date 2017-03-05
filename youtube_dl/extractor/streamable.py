@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -19,7 +21,7 @@ class StreamableIE(InfoExtractor):
                 'id': 'dnd1',
                 'ext': 'mp4',
                 'title': 'Mikel Oiarzabal scores to make it 0-3 for La Real against Espanyol',
-                'thumbnail': 're:https?://.*\.jpg$',
+                'thumbnail': r're:https?://.*\.jpg$',
                 'uploader': 'teabaker',
                 'timestamp': 1454964157.35115,
                 'upload_date': '20160208',
@@ -35,7 +37,7 @@ class StreamableIE(InfoExtractor):
                 'id': 'moo',
                 'ext': 'mp4',
                 'title': '"Please don\'t eat me!"',
-                'thumbnail': 're:https?://.*\.jpg$',
+                'thumbnail': r're:https?://.*\.jpg$',
                 'timestamp': 1426115495,
                 'upload_date': '20150311',
                 'duration': 12,
@@ -47,6 +49,14 @@ class StreamableIE(InfoExtractor):
             'only_matching': True,
         }
     ]
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=(?P<q1>[\'"])(?P<src>(?:https?:)?//streamable\.com/(?:(?!\1).+))(?P=q1)',
+            webpage)
+        if mobj:
+            return mobj.group('src')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

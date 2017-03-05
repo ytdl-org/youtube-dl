@@ -20,6 +20,7 @@ from ..utils import (
 class DramaFeverBaseIE(AMPIE):
     _LOGIN_URL = 'https://www.dramafever.com/accounts/login/'
     _NETRC_MACHINE = 'dramafever'
+    _GEO_COUNTRIES = ['US', 'CA']
 
     _CONSUMER_SECRET = 'DA59dtVXYLxajktV'
 
@@ -66,7 +67,7 @@ class DramaFeverBaseIE(AMPIE):
 
 class DramaFeverIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/(?:[^/]+/)?drama/(?P<id>[0-9]+/[0-9]+)(?:/|$)'
     _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/1/Cooking_with_Shin/',
         'info_dict': {
@@ -76,7 +77,7 @@ class DramaFeverIE(DramaFeverBaseIE):
             'description': 'md5:a8eec7942e1664a6896fcd5e1287bfd0',
             'episode': 'Episode 1',
             'episode_number': 1,
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1404336058,
             'upload_date': '20140702',
             'duration': 343,
@@ -94,7 +95,7 @@ class DramaFeverIE(DramaFeverBaseIE):
             'description': 'md5:3ff2ee8fedaef86e076791c909cf2e91',
             'episode': 'Mnet Asian Music Awards 2015 - Part 3',
             'episode_number': 4,
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1450213200,
             'upload_date': '20151215',
             'duration': 5602,
@@ -103,6 +104,9 @@ class DramaFeverIE(DramaFeverBaseIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.dramafever.com/zh-cn/drama/4972/15/Doctor_Romantic/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -113,8 +117,9 @@ class DramaFeverIE(DramaFeverBaseIE):
                 'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
-                raise ExtractorError(
-                    'Currently unavailable in your country.', expected=True)
+                self.raise_geo_restricted(
+                    msg='Currently unavailable in your country',
+                    countries=self._GEO_COUNTRIES)
             raise
 
         series_id, episode_number = video_id.split('.')
@@ -148,7 +153,7 @@ class DramaFeverIE(DramaFeverBaseIE):
 
 class DramaFeverSeriesIE(DramaFeverBaseIE):
     IE_NAME = 'dramafever:series'
-    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
+    _VALID_URL = r'https?://(?:www\.)?dramafever\.com/(?:[^/]+/)?drama/(?P<id>[0-9]+)(?:/(?:(?!\d+(?:/|$)).+)?)?$'
     _TESTS = [{
         'url': 'http://www.dramafever.com/drama/4512/Cooking_with_Shin/',
         'info_dict': {

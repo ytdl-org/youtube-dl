@@ -4,7 +4,6 @@ import collections
 import json
 import os
 import random
-import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -12,23 +11,25 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    dict_get,
     ExtractorError,
     float_or_none,
     int_or_none,
     parse_duration,
     qualities,
     srt_subtitles_timecode,
+    update_url_query,
     urlencode_postdata,
 )
 
 
 class PluralsightBaseIE(InfoExtractor):
-    _API_BASE = 'http://app.pluralsight.com'
+    _API_BASE = 'https://app.pluralsight.com'
 
 
 class PluralsightIE(PluralsightBaseIE):
     IE_NAME = 'pluralsight'
-    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/training/player\?'
+    _VALID_URL = r'https?://(?:(?:www|app)\.)?pluralsight\.com/(?:training/)?player\?'
     _LOGIN_URL = 'https://app.pluralsight.com/id/'
 
     _NETRC_MACHINE = 'pluralsight'
@@ -49,6 +50,9 @@ class PluralsightIE(PluralsightBaseIE):
     }, {
         # available without pluralsight account
         'url': 'http://app.pluralsight.com/training/player?author=scott-allen&name=angularjs-get-started-m1-introduction&mode=live&clip=0&course=angularjs-get-started',
+        'only_matching': True,
+    }, {
+        'url': 'https://app.pluralsight.com/player?course=ccna-intro-networking&author=ross-bagurdes&name=ccna-intro-networking-m06&clip=0',
         'only_matching': True,
     }]
 
@@ -89,6 +93,10 @@ class PluralsightIE(PluralsightBaseIE):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         if all(p not in response for p in ('__INITIAL_STATE__', '"currentUser"')):
+            BLOCKED = 'Your account has been blocked due to suspicious activity'
+            if BLOCKED in response:
+                raise ExtractorError(
+                    'Unable to login: %s' % BLOCKED, expected=True)
             raise ExtractorError('Unable to log in')
 
     def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
@@ -99,7 +107,7 @@ class PluralsightIE(PluralsightBaseIE):
             'm': name,
         }
         captions = self._download_json(
-            '%s/training/Player/Captions' % self._API_BASE, video_id,
+            '%s/player/retrieve-captions' % self._API_BASE, video_id,
             'Downloading captions JSON', 'Unable to download captions JSON',
             fatal=False, data=json.dumps(captions_post).encode('utf-8'),
             headers={'Content-Type': 'application/json;charset=utf-8'})
@@ -117,14 +125,17 @@ class PluralsightIE(PluralsightBaseIE):
     @staticmethod
     def _convert_subtitles(duration, subs):
         srt = ''
+        TIME_OFFSET_KEYS = ('displayTimeOffset', 'DisplayTimeOffset')
+        TEXT_KEYS = ('text', 'Text')
         for num, current in enumerate(subs):
             current = subs[num]
-            start, text = float_or_none(
-                current.get('DisplayTimeOffset')), current.get('Text')
+            start, text = (
+                float_or_none(dict_get(current, TIME_OFFSET_KEYS)),
+                dict_get(current, TEXT_KEYS))
             if start is None or text is None:
                 continue
             end = duration if num == len(subs) - 1 else float_or_none(
-                subs[num + 1].get('DisplayTimeOffset'))
+                dict_get(subs[num + 1], TIME_OFFSET_KEYS))
             if end is None:
                 continue
             srt += os.linesep.join(
@@ -144,28 +155,19 @@ class PluralsightIE(PluralsightBaseIE):
         author = qs.get('author', [None])[0]
         name = qs.get('name', [None])[0]
         clip_id = qs.get('clip', [None])[0]
-        course = qs.get('course', [None])[0]
+        course_name = qs.get('course', [None])[0]
 
-        if any(not f for f in (author, name, clip_id, course,)):
+        if any(not f for f in (author, name, clip_id, course_name,)):
             raise ExtractorError('Invalid URL', expected=True)
 
         display_id = '%s-%s' % (name, clip_id)
 
-        webpage = self._download_webpage(url, display_id)
+        course = self._download_json(
+            'https://app.pluralsight.com/player/user/api/v1/player/payload',
+            display_id, data=urlencode_postdata({'courseId': course_name}),
+            headers={'Referer': url})
 
-        modules = self._search_regex(
-            r'moduleCollection\s*:\s*new\s+ModuleCollection\((\[.+?\])\s*,\s*\$rootScope\)',
-            webpage, 'modules', default=None)
-
-        if modules:
-            collection = self._parse_json(modules, display_id)
-        else:
-            # Webpage may be served in different layout (see
-            # https://github.com/rg3/youtube-dl/issues/7607)
-            collection = self._parse_json(
-                self._search_regex(
-                    r'var\s+initialState\s*=\s*({.+?});\n', webpage, 'initial state'),
-                display_id)['course']['modules']
+        collection = course['modules']
 
         module, clip = None, None
 
@@ -206,8 +208,7 @@ class PluralsightIE(PluralsightBaseIE):
 
         # Some courses also offer widescreen resolution for high quality (see
         # https://github.com/rg3/youtube-dl/issues/7766)
-        widescreen = True if re.search(
-            r'courseSupportsWidescreenVideoFormats\s*:\s*true', webpage) else False
+        widescreen = course.get('supportsWideScreenVideoFormats') is True
         best_quality = 'high-widescreen' if widescreen else 'high'
         if widescreen:
             for allowed_quality in ALLOWED_QUALITIES:
@@ -236,19 +237,19 @@ class PluralsightIE(PluralsightBaseIE):
             for quality in qualities_:
                 f = QUALITIES[quality].copy()
                 clip_post = {
-                    'a': author,
-                    'cap': 'false',
-                    'cn': clip_id,
-                    'course': course,
-                    'lc': 'en',
-                    'm': name,
-                    'mt': ext,
-                    'q': '%dx%d' % (f['width'], f['height']),
+                    'author': author,
+                    'includeCaptions': False,
+                    'clipIndex': int(clip_id),
+                    'courseName': course_name,
+                    'locale': 'en',
+                    'moduleName': name,
+                    'mediaType': ext,
+                    'quality': '%dx%d' % (f['width'], f['height']),
                 }
                 format_id = '%s-%s' % (ext, quality)
-                clip_url = self._download_webpage(
-                    '%s/training/Player/ViewClip' % self._API_BASE, display_id,
-                    'Downloading %s URL' % format_id, fatal=False,
+                viewclip = self._download_json(
+                    '%s/video/clips/viewclip' % self._API_BASE, display_id,
+                    'Downloading %s viewclip JSON' % format_id, fatal=False,
                     data=json.dumps(clip_post).encode('utf-8'),
                     headers={'Content-Type': 'application/json;charset=utf-8'})
 
@@ -262,15 +263,28 @@ class PluralsightIE(PluralsightBaseIE):
                     random.randint(2, 5), display_id,
                     '%(video_id)s: Waiting for %(timeout)s seconds to avoid throttling')
 
-                if not clip_url:
+                if not viewclip:
                     continue
-                f.update({
-                    'url': clip_url,
-                    'ext': ext,
-                    'format_id': format_id,
-                    'quality': quality_key(quality),
-                })
-                formats.append(f)
+
+                clip_urls = viewclip.get('urls')
+                if not isinstance(clip_urls, list):
+                    continue
+
+                for clip_url_data in clip_urls:
+                    clip_url = clip_url_data.get('url')
+                    if not clip_url:
+                        continue
+                    cdn = clip_url_data.get('cdn')
+                    clip_f = f.copy()
+                    clip_f.update({
+                        'url': clip_url,
+                        'ext': ext,
+                        'format_id': '%s-%s' % (format_id, cdn) if cdn else format_id,
+                        'quality': quality_key(quality),
+                        'source_preference': int_or_none(clip_url_data.get('rank')),
+                    })
+                    formats.append(clip_f)
+
         self._sort_formats(formats)
 
         duration = int_or_none(
@@ -318,25 +332,44 @@ class PluralsightCourseIE(PluralsightBaseIE):
         # TODO: PSM cookie
 
         course = self._download_json(
-            '%s/data/course/%s' % (self._API_BASE, course_id),
-            course_id, 'Downloading course JSON')
+            '%s/player/functions/rpc' % self._API_BASE, course_id,
+            'Downloading course JSON',
+            data=json.dumps({
+                'fn': 'bootstrapPlayer',
+                'payload': {
+                    'courseId': course_id,
+                }
+            }).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json;charset=utf-8'
+            })['payload']['course']
 
         title = course['title']
+        course_name = course['name']
+        course_data = course['modules']
         description = course.get('description') or course.get('shortDescription')
-
-        course_data = self._download_json(
-            '%s/data/course/content/%s' % (self._API_BASE, course_id),
-            course_id, 'Downloading course data JSON')
 
         entries = []
         for num, module in enumerate(course_data, 1):
+            author = module.get('author')
+            module_name = module.get('name')
+            if not author or not module_name:
+                continue
             for clip in module.get('clips', []):
-                player_parameters = clip.get('playerParameters')
-                if not player_parameters:
+                clip_index = int_or_none(clip.get('index'))
+                if clip_index is None:
                     continue
+                clip_url = update_url_query(
+                    '%s/player' % self._API_BASE, query={
+                        'mode': 'live',
+                        'course': course_name,
+                        'author': author,
+                        'name': module_name,
+                        'clip': clip_index,
+                    })
                 entries.append({
                     '_type': 'url_transparent',
-                    'url': '%s/training/player?%s' % (self._API_BASE, player_parameters),
+                    'url': clip_url,
                     'ie_key': PluralsightIE.ie_key(),
                     'chapter': module.get('title'),
                     'chapter_number': num,

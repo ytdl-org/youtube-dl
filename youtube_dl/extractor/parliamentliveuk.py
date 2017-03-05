@@ -6,9 +6,9 @@ from .common import InfoExtractor
 class ParliamentLiveUKIE(InfoExtractor):
     IE_NAME = 'parliamentlive.tv'
     IE_DESC = 'UK parliament videos'
-    _VALID_URL = r'https?://(?:www\.)?parliamentlive\.tv/Event/Index/(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _VALID_URL = r'(?i)https?://(?:www\.)?parliamentlive\.tv/Event/Index/(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://parliamentlive.tv/Event/Index/c1e9d44d-fd6c-4263-b50f-97ed26cc998b',
         'info_dict': {
             'id': 'c1e9d44d-fd6c-4263-b50f-97ed26cc998b',
@@ -18,7 +18,10 @@ class ParliamentLiveUKIE(InfoExtractor):
             'timestamp': 1422696664,
             'upload_date': '20150131',
         },
-    }
+    }, {
+        'url': 'http://parliamentlive.tv/event/index/3f24936f-130f-40bf-9a5d-b3d6479da6a4',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

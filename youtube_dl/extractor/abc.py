@@ -102,16 +102,16 @@ class ABCIViewIE(InfoExtractor):
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'http://iview.abc.net.au/programs/gardening-australia/FA1505V024S00',
-        'md5': '979d10b2939101f0d27a06b79edad536',
+        'url': 'http://iview.abc.net.au/programs/diaries-of-a-broken-mind/ZX9735A001S00',
+        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
         'info_dict': {
-            'id': 'FA1505V024S00',
+            'id': 'ZX9735A001S00',
             'ext': 'mp4',
-            'title': 'Series 27 Ep 24',
-            'description': 'md5:b28baeae7504d1148e1d2f0e3ed3c15d',
-            'upload_date': '20160820',
-            'uploader_id': 'abc1',
-            'timestamp': 1471719600,
+            'title': 'Diaries Of A Broken Mind',
+            'description': 'md5:7de3903874b7a1be279fe6b68718fc9e',
+            'upload_date': '20161010',
+            'uploader_id': 'abc2',
+            'timestamp': 1476064920,
         },
         'skip': 'Video gone',
     }]
@@ -121,7 +121,7 @@ class ABCIViewIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         video_params = self._parse_json(self._search_regex(
             r'videoParams\s*=\s*({.+?});', webpage, 'video params'), video_id)
-        title = video_params['title']
+        title = video_params.get('title') or video_params['seriesTitle']
         stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
 
         formats = self._extract_akamai_formats(stream['hds-unmetered'], video_id)
@@ -144,8 +144,8 @@ class ABCIViewIE(InfoExtractor):
             'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
             'series': video_params.get('seriesTitle'),
             'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
-            'episode_number': int_or_none(self._html_search_meta('episodeNumber', webpage)),
-            'episode': self._html_search_meta('episode_title', webpage),
+            'episode_number': int_or_none(self._html_search_meta('episodeNumber', webpage, default=None)),
+            'episode': self._html_search_meta('episode_title', webpage, default=None),
             'uploader_id': video_params.get('channel'),
             'formats': formats,
             'subtitles': subtitles,

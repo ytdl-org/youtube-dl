@@ -17,7 +17,7 @@ class CanvasIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'De afspraak veilt voor de Warmste Week',
             'description': 'md5:24cb860c320dc2be7358e0e5aa317ba6',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 49.02,
         }
     }, {
@@ -29,7 +29,7 @@ class CanvasIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Pieter 0167',
             'description': 'md5:943cd30f48a5d29ba02c3a104dc4ec4e',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 2553.08,
             'subtitles': {
                 'nl': [{
@@ -48,7 +48,7 @@ class CanvasIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Herbekijk Sorry voor alles',
             'description': 'md5:8bb2805df8164e5eb95d6a7a29dc0dd3',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 3788.06,
         },
         'params': {
@@ -89,6 +89,9 @@ class CanvasIE(InfoExtractor):
             elif format_type == 'HDS':
                 formats.extend(self._extract_f4m_formats(
                     format_url, display_id, f4m_id=format_type, fatal=False))
+            elif format_type == 'MPEG_DASH':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, display_id, mpd_id=format_type, fatal=False))
             else:
                 formats.append({
                     'format_id': format_type,

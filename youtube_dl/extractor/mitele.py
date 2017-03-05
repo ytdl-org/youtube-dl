@@ -1,19 +1,20 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
+import uuid
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_str,
     compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
-    get_element_by_attribute,
     int_or_none,
-    remove_start,
     extract_attributes,
     determine_ext,
+    smuggle_url,
+    parse_duration,
 )
 
 
@@ -72,76 +73,133 @@ class MiTeleBaseIE(InfoExtractor):
         }
 
 
-class MiTeleIE(MiTeleBaseIE):
+class MiTeleIE(InfoExtractor):
     IE_DESC = 'mitele.es'
-    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/){3}(?P<id>[^/]+)/'
+    _VALID_URL = r'https?://(?:www\.)?mitele\.es/(?:[^/]+/)+(?P<id>[^/]+)/player'
 
     _TESTS = [{
-        'url': 'http://www.mitele.es/programas-tv/diario-de/la-redaccion/programa-144/',
-        # MD5 is unstable
+        'url': 'http://www.mitele.es/programas-tv/diario-de/57b0dfb9c715da65618b4afa/player',
         'info_dict': {
-            'id': '0NF1jJnxS1Wu3pHrmvFyw2',
-            'display_id': 'programa-144',
+            'id': '57b0dfb9c715da65618b4afa',
             'ext': 'mp4',
             'title': 'Tor, la web invisible',
             'description': 'md5:3b6fce7eaa41b2d97358726378d9369f',
             'series': 'Diario de',
             'season': 'La redacción',
+            'season_number': 14,
+            'season_id': 'diario_de_t14_11981',
             'episode': 'Programa 144',
-            'thumbnail': 're:(?i)^https?://.*\.jpg$',
+            'episode_number': 3,
+            'thumbnail': r're:(?i)^https?://.*\.jpg$',
             'duration': 2913,
         },
+        'add_ie': ['Ooyala'],
     }, {
         # no explicit title
-        'url': 'http://www.mitele.es/programas-tv/cuarto-milenio/temporada-6/programa-226/',
+        'url': 'http://www.mitele.es/programas-tv/cuarto-milenio/57b0de3dc915da14058b4876/player',
         'info_dict': {
-            'id': 'eLZSwoEd1S3pVyUm8lc6F',
-            'display_id': 'programa-226',
+            'id': '57b0de3dc915da14058b4876',
             'ext': 'mp4',
-            'title': 'Cuarto Milenio - Temporada 6 - Programa 226',
-            'description': 'md5:50daf9fadefa4e62d9fc866d0c015701',
+            'title': 'Cuarto Milenio Temporada 6 Programa 226',
+            'description': 'md5:5ff132013f0cd968ffbf1f5f3538a65f',
             'series': 'Cuarto Milenio',
             'season': 'Temporada 6',
+            'season_number': 6,
+            'season_id': 'cuarto_milenio_t06_12715',
             'episode': 'Programa 226',
-            'thumbnail': 're:(?i)^https?://.*\.jpg$',
-            'duration': 7312,
+            'episode_number': 24,
+            'thumbnail': r're:(?i)^https?://.*\.jpg$',
+            'duration': 7313,
         },
         'params': {
             'skip_download': True,
         },
+        'add_ie': ['Ooyala'],
+    }, {
+        'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57aac5c1c915da951a8b45ed/player',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
 
-        webpage = self._download_webpage(url, display_id)
+        gigya_url = self._search_regex(
+            r'<gigya-api>[^>]*</gigya-api>[^>]*<script\s+src="([^"]*)">[^>]*</script>',
+            webpage, 'gigya', default=None)
+        gigya_sc = self._download_webpage(
+            compat_urlparse.urljoin('http://www.mitele.es/', gigya_url),
+            video_id, 'Downloading gigya script')
 
-        info = self._get_player_info(url, webpage)
+        # Get a appKey/uuid for getting the session key
+        appKey_var = self._search_regex(
+            r'value\s*\(\s*["\']appGridApplicationKey["\']\s*,\s*([0-9a-f]+)',
+            gigya_sc, 'appKey variable')
+        appKey = self._search_regex(
+            r'var\s+%s\s*=\s*["\']([0-9a-f]+)' % appKey_var, gigya_sc, 'appKey')
 
-        title = self._search_regex(
-            r'class="Destacado-text"[^>]*>\s*<strong>([^<]+)</strong>',
-            webpage, 'title', default=None)
+        session_json = self._download_json(
+            'https://appgrid-api.cloud.accedo.tv/session',
+            video_id, 'Downloading session keys', query={
+                'appKey': appKey,
+                'uuid': compat_str(uuid.uuid4()),
+            })
 
-        mobj = re.search(r'''(?sx)
-                            class="Destacado-text"[^>]*>.*?<h1>\s*
-                            <span>(?P<series>[^<]+)</span>\s*
-                            <span>(?P<season>[^<]+)</span>\s*
-                            <span>(?P<episode>[^<]+)</span>''', webpage)
-        series, season, episode = mobj.groups() if mobj else [None] * 3
+        paths = self._download_json(
+            'https://appgrid-api.cloud.accedo.tv/metadata/general_configuration,%20web_configuration',
+            video_id, 'Downloading paths JSON',
+            query={'sessionKey': compat_str(session_json['sessionKey'])})
 
-        if not title:
-            if mobj:
-                title = '%s - %s - %s' % (series, season, episode)
-            else:
-                title = remove_start(self._search_regex(
-                    r'<title>([^<]+)</title>', webpage, 'title'), 'Ver online ')
+        ooyala_s = paths['general_configuration']['api_configuration']['ooyala_search']
+        source = self._download_json(
+            'http://%s%s%s/docs/%s' % (
+                ooyala_s['base_url'], ooyala_s['full_path'],
+                ooyala_s['provider_id'], video_id),
+            video_id, 'Downloading data JSON', query={
+                'include_titles': 'Series,Season',
+                'product_name': 'test',
+                'format': 'full',
+            })['hits']['hits'][0]['_source']
 
-        info.update({
-            'display_id': display_id,
+        embedCode = source['offers'][0]['embed_codes'][0]
+        titles = source['localizable_titles'][0]
+
+        title = titles.get('title_medium') or titles['title_long']
+
+        description = titles.get('summary_long') or titles.get('summary_medium')
+
+        def get(key1, key2):
+            value1 = source.get(key1)
+            if not value1 or not isinstance(value1, list):
+                return
+            if not isinstance(value1[0], dict):
+                return
+            return value1[0].get(key2)
+
+        series = get('localizable_titles_series', 'title_medium')
+
+        season = get('localizable_titles_season', 'title_medium')
+        season_number = int_or_none(source.get('season_number'))
+        season_id = source.get('season_id')
+
+        episode = titles.get('title_sort_name')
+        episode_number = int_or_none(source.get('episode_number'))
+
+        duration = parse_duration(get('videos', 'duration'))
+
+        return {
+            '_type': 'url_transparent',
+            # for some reason only HLS is supported
+            'url': smuggle_url('ooyala:' + embedCode, {'supportedformats': 'm3u8,dash'}),
+            'id': video_id,
             'title': title,
-            'description': get_element_by_attribute('class', 'text', webpage),
+            'description': description,
             'series': series,
             'season': season,
+            'season_number': season_number,
+            'season_id': season_id,
             'episode': episode,
-        })
-        return info
+            'episode_number': episode_number,
+            'duration': duration,
+            'thumbnail': get('images', 'url'),
+        }

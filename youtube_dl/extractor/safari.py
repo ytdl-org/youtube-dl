@@ -157,7 +157,14 @@ class SafariCourseIE(SafariBaseIE):
     IE_NAME = 'safari:course'
     IE_DESC = 'safaribooksonline.com online courses'
 
-    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)/(?P<id>[^/]+)/?(?:[#?]|$)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)|
+                            techbus\.safaribooksonline\.com
+                        )
+                        /(?P<id>[^/]+)/?(?:[#?]|$)
+                    '''
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/',
@@ -169,6 +176,9 @@ class SafariCourseIE(SafariBaseIE):
         'skip': 'Requires safaribooksonline account credentials',
     }, {
         'url': 'https://www.safaribooksonline.com/api/v1/book/9781449396459/?override_format=json',
+        'only_matching': True,
+    }, {
+        'url': 'http://techbus.safaribooksonline.com/9780134426365',
         'only_matching': True,
     }]
 

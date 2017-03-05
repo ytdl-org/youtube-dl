@@ -13,7 +13,7 @@ class OktoberfestTVIE(InfoExtractor):
             'id': 'hb-zelt',
             'ext': 'mp4',
             'title': 're:^Live-Kamera: Hofbräuzelt [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'is_live': True,
         },
         'params': {

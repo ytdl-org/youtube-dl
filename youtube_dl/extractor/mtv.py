@@ -17,6 +17,7 @@ from ..utils import (
     sanitized_Request,
     strip_or_none,
     timeconvert,
+    try_get,
     unescapeHTML,
     update_url_query,
     url_basename,
@@ -40,15 +41,6 @@ class MTVServicesInfoExtractor(InfoExtractor):
     def _remove_template_parameter(url):
         # Remove the templates, like &device={device}
         return re.sub(r'&[^=]*?={.*?}(?=(&|$))', '', url)
-
-    # This was originally implemented for ComedyCentral, but it also works here
-    @classmethod
-    def _transform_rtmp_url(cls, rtmp_video_url):
-        m = re.match(r'^rtmpe?://.*?/(?P<finalid>gsp\..+?/.*)$', rtmp_video_url)
-        if not m:
-            return {'rtmp': rtmp_video_url}
-        base = 'http://viacommtvstrmfs.fplive.net/'
-        return {'http': base + m.group('finalid')}
 
     def _get_feed_url(self, uri):
         return self._FEED_URL
@@ -76,7 +68,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         url = re.sub(r'.+pxE=mp4', 'http://mtvnmobile.vo.llnwd.net/kip0/_pxn=0+_pxK=18639+_pxE=mp4', url, 1)
         return [{'url': url, 'ext': 'mp4'}]
 
-    def _extract_video_formats(self, mdoc, mtvn_id):
+    def _extract_video_formats(self, mdoc, mtvn_id, video_id):
         if re.match(r'.*/(error_country_block\.swf|geoblock\.mp4|copyright_error\.flv(?:\?geo\b.+?)?)$', mdoc.find('.//src').text) is not None:
             if mtvn_id is not None and self._MOBILE_TEMPLATE is not None:
                 self.to_screen('The normal version is not available from your '
@@ -87,21 +79,33 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         formats = []
         for rendition in mdoc.findall('.//rendition'):
-            try:
-                _, _, ext = rendition.attrib['type'].partition('/')
-                rtmp_video_url = rendition.find('./src').text
-                if rtmp_video_url.endswith('siteunavail.png'):
-                    continue
-                new_urls = self._transform_rtmp_url(rtmp_video_url)
-                formats.extend([{
-                    'ext': 'flv' if new_url.startswith('rtmp') else ext,
-                    'url': new_url,
-                    'format_id': '-'.join(filter(None, [kind, rendition.get('bitrate')])),
-                    'width': int(rendition.get('width')),
-                    'height': int(rendition.get('height')),
-                } for kind, new_url in new_urls.items()])
-            except (KeyError, TypeError):
-                raise ExtractorError('Invalid rendition field.')
+            if rendition.get('method') == 'hls':
+                hls_url = rendition.find('./src').text
+                formats.extend(self._extract_m3u8_formats(
+                    hls_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls'))
+            else:
+                # fms
+                try:
+                    _, _, ext = rendition.attrib['type'].partition('/')
+                    rtmp_video_url = rendition.find('./src').text
+                    if 'error_not_available.swf' in rtmp_video_url:
+                        raise ExtractorError(
+                            '%s said: video is not available' % self.IE_NAME,
+                            expected=True)
+                    if rtmp_video_url.endswith('siteunavail.png'):
+                        continue
+                    formats.extend([{
+                        'ext': 'flv' if rtmp_video_url.startswith('rtmp') else ext,
+                        'url': rtmp_video_url,
+                        'format_id': '-'.join(filter(None, [
+                            'rtmp' if rtmp_video_url.startswith('rtmp') else None,
+                            rendition.get('bitrate')])),
+                        'width': int(rendition.get('width')),
+                        'height': int(rendition.get('height')),
+                    }])
+                except (KeyError, TypeError):
+                    raise ExtractorError('Invalid rendition field.')
         self._sort_formats(formats)
         return formats
 
@@ -117,15 +121,17 @@ class MTVServicesInfoExtractor(InfoExtractor):
             } for typographic in transcript.findall('./typographic')]
         return subtitles
 
-    def _get_video_info(self, itemdoc):
+    def _get_video_info(self, itemdoc, use_hls=True):
         uri = itemdoc.find('guid').text
         video_id = self._id_from_uri(uri)
         self.report_extraction(video_id)
         content_el = itemdoc.find('%s/%s' % (_media_xml_tag('group'), _media_xml_tag('content')))
         mediagen_url = self._remove_template_parameter(content_el.attrib['url'])
+        mediagen_url = mediagen_url.replace('device={device}', '')
         if 'acceptMethods' not in mediagen_url:
             mediagen_url += '&' if '?' in mediagen_url else '?'
-            mediagen_url += 'acceptMethods=fms'
+            mediagen_url += 'acceptMethods='
+            mediagen_url += 'hls' if use_hls else 'fms'
 
         mediagen_doc = self._download_xml(mediagen_url, video_id,
                                           'Downloading video urls')
@@ -166,9 +172,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
         if mtvn_id_node is not None:
             mtvn_id = mtvn_id_node.text
 
+        formats = self._extract_video_formats(mediagen_doc, mtvn_id, video_id)
+
         return {
             'title': title,
-            'formats': self._extract_video_formats(mediagen_doc, mtvn_id),
+            'formats': formats,
             'subtitles': self._extract_subtitles(mediagen_doc, mtvn_id),
             'id': video_id,
             'thumbnail': self._get_thumbnail_url(uri, itemdoc),
@@ -183,13 +191,13 @@ class MTVServicesInfoExtractor(InfoExtractor):
             data['lang'] = self._LANG
         return data
 
-    def _get_videos_info(self, uri):
+    def _get_videos_info(self, uri, use_hls=True):
         video_id = self._id_from_uri(uri)
         feed_url = self._get_feed_url(uri)
         info_url = update_url_query(feed_url, self._get_feed_query(uri))
-        return self._get_videos_info_from_url(info_url, video_id)
+        return self._get_videos_info_from_url(info_url, video_id, use_hls)
 
-    def _get_videos_info_from_url(self, url, video_id):
+    def _get_videos_info_from_url(self, url, video_id, use_hls=True):
         idoc = self._download_xml(
             url, video_id,
             'Downloading info', transform_source=fix_xml_ampersands)
@@ -198,8 +206,29 @@ class MTVServicesInfoExtractor(InfoExtractor):
         description = xpath_text(idoc, './channel/description')
 
         return self.playlist_result(
-            [self._get_video_info(item) for item in idoc.findall('.//item')],
+            [self._get_video_info(item, use_hls) for item in idoc.findall('.//item')],
             playlist_title=title, playlist_description=description)
+
+    def _extract_triforce_mgid(self, webpage, data_zone=None, video_id=None):
+        triforce_feed = self._parse_json(self._search_regex(
+            r'triforceManifestFeed\s*=\s*({.+?})\s*;\s*\n', webpage,
+            'triforce feed', default='{}'), video_id, fatal=False)
+
+        data_zone = self._search_regex(
+            r'data-zone=(["\'])(?P<zone>.+?_lc_promo.*?)\1', webpage,
+            'data zone', default=data_zone, group='zone')
+
+        feed_url = try_get(
+            triforce_feed, lambda x: x['manifest']['zones'][data_zone]['feed'],
+            compat_str)
+        if not feed_url:
+            return
+
+        feed = self._download_json(feed_url, video_id, fatal=False)
+        if not feed:
+            return
+
+        return try_get(feed, lambda x: x['result']['data']['id'], compat_str)
 
     def _extract_mgid(self, webpage):
         try:
@@ -221,7 +250,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
             sm4_embed = self._html_search_meta(
                 'sm4:video:embed', webpage, 'sm4 embed', default='')
             mgid = self._search_regex(
-                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid')
+                r'embed/(mgid:.+?)["\'&?/]', sm4_embed, 'mgid', default=None)
+
+        if not mgid:
+            mgid = self._extract_triforce_mgid(webpage)
+
         return mgid
 
     def _real_extract(self, url):
@@ -271,7 +304,7 @@ class MTVServicesEmbeddedIE(MTVServicesInfoExtractor):
 
 class MTVIE(MTVServicesInfoExtractor):
     IE_NAME = 'mtv'
-    _VALID_URL = r'https?://(?:www\.)?mtv\.com/(?:video-clips|full-episodes)/(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?:www\.)?mtv\.com/(?:video-clips|(?:full-)?episodes)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://www.mtv.com/feeds/mrss/'
 
     _TESTS = [{
@@ -288,7 +321,39 @@ class MTVIE(MTVServicesInfoExtractor):
     }, {
         'url': 'http://www.mtv.com/full-episodes/94tujl/unlocking-the-truth-gates-of-hell-season-1-ep-101',
         'only_matching': True,
+    }, {
+        'url': 'http://www.mtv.com/episodes/g8xu7q/teen-mom-2-breaking-the-wall-season-7-ep-713',
+        'only_matching': True,
     }]
+
+
+class MTV81IE(InfoExtractor):
+    IE_NAME = 'mtv81'
+    _VALID_URL = r'https?://(?:www\.)?mtv81\.com/videos/(?P<id>[^/?#.]+)'
+
+    _TEST = {
+        'url': 'http://www.mtv81.com/videos/artist-to-watch/the-godfather-of-japanese-hip-hop-segment-1/',
+        'md5': '1edbcdf1e7628e414a8c5dcebca3d32b',
+        'info_dict': {
+            'id': '5e14040d-18a4-47c4-a582-43ff602de88e',
+            'ext': 'mp4',
+            'title': 'Unlocking The Truth|July 18, 2016|1|101|Trailer',
+            'description': '"Unlocking the Truth" premieres August 17th at 11/10c.',
+            'timestamp': 1468846800,
+            'upload_date': '20160718',
+        },
+    }
+
+    def _extract_mgid(self, webpage):
+        return self._search_regex(
+            r'getTheVideo\((["\'])(?P<id>mgid:.+?)\1', webpage,
+            'mgid', group='id')
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        mgid = self._extract_mgid(webpage)
+        return self.url_result('http://media.mtvnservices.com/embed/%s' % mgid)
 
 
 class MTVVideoIE(MTVServicesInfoExtractor):

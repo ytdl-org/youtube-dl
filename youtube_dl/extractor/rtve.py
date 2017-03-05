@@ -209,7 +209,10 @@ class RTVELiveIE(InfoExtractor):
         title += ' ' + time.strftime('%Y-%m-%dZ%H%M%S', start_time)
 
         vidplayer_id = self._search_regex(
-            r'playerId=player([0-9]+)', webpage, 'internal video ID')
+            (r'playerId=player([0-9]+)',
+             r'class=["\'].*?\blive_mod\b.*?["\'][^>]+data-assetid=["\'](\d+)',
+             r'data-id=["\'](\d+)'),
+            webpage, 'internal video ID')
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/amonet/videos/%s.png' % vidplayer_id
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         m3u8_url = _decrypt_url(png)

@@ -20,7 +20,7 @@ class CoubIE(InfoExtractor):
             'id': '5u5n1',
             'ext': 'mp4',
             'title': 'The Matrix Moonwalk',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 4.6,
             'timestamp': 1428527772,
             'upload_date': '20150408',

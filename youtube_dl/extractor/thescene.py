@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 from ..compat import compat_urlparse
-from ..utils import qualities
+from ..utils import (
+    int_or_none,
+    qualities,
+)
 
 
 class TheSceneIE(InfoExtractor):
@@ -16,6 +19,11 @@ class TheSceneIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Narciso Rodriguez: Spring 2013 Ready-to-Wear',
             'display_id': 'narciso-rodriguez-spring-2013-ready-to-wear',
+            'duration': 127,
+            'series': 'Style.com Fashion Shows',
+            'season': 'Ready To Wear Spring 2013',
+            'tags': list,
+            'categories': list,
         },
     }
 
@@ -32,21 +40,29 @@ class TheSceneIE(InfoExtractor):
         player = self._download_webpage(player_url, display_id)
         info = self._parse_json(
             self._search_regex(
-                r'(?m)var\s+video\s+=\s+({.+?});$', player, 'info json'),
+                r'(?m)video\s*:\s*({.+?}),$', player, 'info json'),
             display_id)
+
+        video_id = info['id']
+        title = info['title']
 
         qualities_order = qualities(('low', 'high'))
         formats = [{
             'format_id': '{0}-{1}'.format(f['type'].split('/')[0], f['quality']),
             'url': f['src'],
             'quality': qualities_order(f['quality']),
-        } for f in info['sources'][0]]
+        } for f in info['sources']]
         self._sort_formats(formats)
 
         return {
-            'id': info['id'],
+            'id': video_id,
             'display_id': display_id,
-            'title': info['title'],
+            'title': title,
             'formats': formats,
             'thumbnail': info.get('poster_frame'),
+            'duration': int_or_none(info.get('duration')),
+            'series': info.get('series_title'),
+            'season': info.get('season_title'),
+            'tags': info.get('tags'),
+            'categories': info.get('categories'),
         }

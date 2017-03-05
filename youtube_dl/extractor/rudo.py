@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     js_to_json,
     get_element_by_class,
@@ -11,7 +11,7 @@ from ..utils import (
 )
 
 
-class RudoIE(JWPlatformBaseIE):
+class RudoIE(InfoExtractor):
     _VALID_URL = r'https?://rudo\.video/vod/(?P<id>[0-9a-zA-Z]+)'
 
     _TEST = {
@@ -28,7 +28,7 @@ class RudoIE(JWPlatformBaseIE):
     @classmethod
     def _extract_url(self, webpage):
         mobj = re.search(
-            '<iframe[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//rudo\.video/vod/[0-9a-zA-Z]+)(?P=q1)',
+            r'<iframe[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//rudo\.video/vod/[0-9a-zA-Z]+)(?P=q1)',
             webpage)
         if mobj:
             return mobj.group('url')

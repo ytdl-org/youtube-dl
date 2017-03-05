@@ -19,7 +19,7 @@ class PornotubeIE(InfoExtractor):
             'description': 'md5:a8304bef7ef06cb4ab476ca6029b01b0',
             'categories': ['Adult Humor', 'Blondes'],
             'uploader': 'Alpha Blue Archives',
-            'thumbnail': 're:^https?://.*\\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1417582800,
             'age_limit': 18,
         }

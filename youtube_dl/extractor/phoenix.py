@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
-from .zdf import ZDFIE
+from .dreisat import DreiSatIE
 
 
-class PhoenixIE(ZDFIE):
+class PhoenixIE(DreiSatIE):
     IE_NAME = 'phoenix.de'
     _VALID_URL = r'''(?x)https?://(?:www\.)?phoenix\.de/content/
         (?:

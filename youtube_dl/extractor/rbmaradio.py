@@ -22,7 +22,7 @@ class RBMARadioIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'Main Stage - Ford & Lopatin',
             'description': 'md5:4f340fb48426423530af5a9d87bd7b91',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 2452,
             'timestamp': 1307103164,
             'upload_date': '20110603',

@@ -13,7 +13,7 @@ class TelewebionIE(InfoExtractor):
             'id': '1263668',
             'ext': 'mp4',
             'title': 'قرعه\u200cکشی لیگ قهرمانان اروپا',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
         },
         'params': {

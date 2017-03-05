@@ -39,5 +39,6 @@ class TestExecution(unittest.TestCase):
         _, stderr = p.communicate()
         self.assertFalse(stderr)
 
+
 if __name__ == '__main__':
     unittest.main()

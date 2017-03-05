@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import ExtractorError
 
@@ -31,30 +33,35 @@ class ChaturbateIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        m3u8_url = self._search_regex(
-            r'src=(["\'])(?P<url>http.+?\.m3u8.*?)\1', webpage,
-            'playlist', default=None, group='url')
+        m3u8_formats = [(m.group('id').lower(), m.group('url')) for m in re.finditer(
+            r'hlsSource(?P<id>.+?)\s*=\s*(?P<q>["\'])(?P<url>http.+?)(?P=q)', webpage)]
 
-        if not m3u8_url:
+        if not m3u8_formats:
             error = self._search_regex(
                 [r'<span[^>]+class=(["\'])desc_span\1[^>]*>(?P<error>[^<]+)</span>',
                  r'<div[^>]+id=(["\'])defchat\1[^>]*>\s*<p><strong>(?P<error>[^<]+)<'],
                 webpage, 'error', group='error', default=None)
             if not error:
-                if any(p not in webpage for p in (
+                if any(p in webpage for p in (
                         self._ROOM_OFFLINE, 'offline_tipping', 'tip_offline')):
                     error = self._ROOM_OFFLINE
             if error:
                 raise ExtractorError(error, expected=True)
             raise ExtractorError('Unable to find stream URL')
 
-        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        formats = []
+        for m3u8_id, m3u8_url in m3u8_formats:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, ext='mp4',
+                # ffmpeg skips segments for fast m3u8
+                preference=-10 if m3u8_id == 'fast' else None,
+                m3u8_id=m3u8_id, fatal=False, live=True))
         self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': self._live_title(video_id),
-            'thumbnail': 'https://cdn-s.highwebmedia.com/uHK3McUtGCG3SMFcd4ZJsRv8/roomimage/%s.jpg' % video_id,
+            'thumbnail': 'https://roomimg.stream.highwebmedia.com/ri/%s.jpg' % video_id,
             'age_limit': self._rta_search(webpage),
             'is_live': True,
             'formats': formats,

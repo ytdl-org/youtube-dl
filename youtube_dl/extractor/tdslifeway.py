@@ -13,7 +13,7 @@ class TDSLifewayIE(InfoExtractor):
             'id': '3453494717001',
             'ext': 'mp4',
             'title': 'The Gospel by Numbers',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'upload_date': '20140410',
             'description': 'Coming soon from T4G 2014!',
             'uploader_id': '2034960640001',
