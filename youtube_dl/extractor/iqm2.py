@@ -8,15 +8,10 @@ from ..compat import compat_urlparse
 from .jwplatform import JWPlatformBaseIE
 from ..utils import js_to_json
 
-# IQM2 aka Accela stores livestreamed video from municipal meetings.
-
-# No metadata is retrieved, as that would require finding a metadata
-# URL and retreiving a 3rd HTTP resource.
-
 # Contributed by John Hawkinson <jhawk@mit.edu>, 6 Oct 2016.
 
 class IQM2IE(JWPlatformBaseIE):
-
+    IE_DESC = 'IQM2 (aka Accela) livestreamed video from municipal meetings'
     # We commonly see both iqm2.com and IQM2.com.
     _VALID_URL = r'(?i)https?://(?:\w+\.)?iqm2\.com/Citizens/\w+.aspx\?.*MeetingID=(?P<id>[0-9]+)'
     _TESTS = [
@@ -105,5 +100,8 @@ class IQM2IE(JWPlatformBaseIE):
             r'(?s)<title>(.*?)</title>', webpage, 'video title',
             default='video')
         info_dict['title'] = video_title
-        
+
+        # No metadata is retrieved, as that would require finding a metadata
+        # URL and retrieving a 3rd HTTP resource.
+
         return info_dict
