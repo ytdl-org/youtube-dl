@@ -270,6 +270,10 @@ class FFmpegFD(ExternalFD):
                 args += ['-rtmp_live', 'live']
 
         args += ['-i', url, '-c', 'copy']
+
+        if self.params.get('test', False):
+            args += ['-fs', compat_str(self._TEST_FILE_SIZE)] # -fs limit_size (output), expressed in bytes
+
         if protocol in ('m3u8', 'm3u8_native'):
             if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
                 args += ['-f', 'mpegts']
