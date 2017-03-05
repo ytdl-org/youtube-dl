@@ -1,12 +1,16 @@
 from __future__ import unicode_literals
 
+from .common import InfoExtractor
 from .theplatform import ThePlatformFeedIE
 from ..utils import (
     int_or_none,
+    js_to_json,
     find_xpath_attr,
+    RegexNotFoundError,
     xpath_element,
     xpath_text,
     update_url_query,
+    urljoin,
 )
 
 
@@ -20,6 +24,101 @@ class CBSBaseIE(ThePlatformFeedIE):
             }]
         } if closed_caption_e is not None and closed_caption_e.attrib.get('value') else []
 
+class CBSShowIE(InfoExtractor):
+    IE_DESC = 'CBS show playlists, including full episodes and clips'
+    IE_NAME = 'cbs.com:playlist'
+    _VALID_URL = r'(?i)https?://(?:www\.)cbs.com/shows/(?P<id>[\w-]+)'
+    _TEST = {
+        'url': 'http://www.cbs.com/shows/the-late-show-with-stephen-colbert',
+        'info_dict': {
+            'id': 61456254,
+            'title': 'The Late Show with Stephen Colbert',
+        },
+        'playlist_mincount': 14,
+        # If uncommented, the test harness tries to download all 30 playlist entries.
+        # Even limited to 10KB each, this can take 15 minutes. Not reasonable.
+        # 'playlist': [{
+        #     'info_dict': {
+        #         'id': 'xxx',
+        #         'ext': 'xxx.mp4',
+        #         },
+        # }],
+    }
+
+    def carousel_playlist(self, url, type):
+        carousel = self._download_json(url, 'Downloading %s carousel' % type)
+        episodes = carousel['result']['data']
+        carousel_title = episodes[0]['series_title']
+
+        entries = []
+        for ep in episodes:
+            entries.append(self.url_result(
+                urljoin(url, ep['app_url']),
+                'CBS',
+                ep['content_id'],
+                ep['episode_title']))
+
+        return self.playlist_result(entries, playlist_title=carousel_title)
+
+    def _real_extract(self, url):
+        show_name = self._match_id(url)
+        webpage = self._download_webpage(url, show_name)
+
+        # not-quite JSON, no double-quotes:
+        #  var show = new CBS.Show({id:61456254});
+        show_id_json = self._search_regex(r'new CBS\.Show\(([^)]*)\);', webpage, 'show_id')
+
+        show = self._parse_json(show_id_json, show_name, transform_source=js_to_json)
+
+        # Found in http://www.cbs.com/assets/min/js/min/com.cbs.min.js?20170303-224247
+        # unminified at http://www.cbs.com/assets/js/min/com.cbs.js
+        # http://www.cbs.com/carousels/shows/61456254/offset/0/limit/15/xs/0/
+        # => {id: 240172, title: "Full Episodes",
+        episodes_url = urljoin(url, '/carousels/shows/%d/offset/0/limit/15/xs/0/' % show['id'])
+
+        #  var loader = new CBS.V2.CarouselLoader({
+        #                        'video-preview-carousel': function(element) {
+        #                            element.videoCarousel({
+        #                                id          : 241426,
+        #                                templates   : 'carousels/videoAdaptive',
+        #                                scroll      : 3,
+        #                                layout      : 3,
+        #                                start       : 0,
+        #                                saveState   : false
+        #                            });
+        #                        }
+        try:
+            clipdata = self._parse_json(
+                self._search_regex(r'element\.videoCarousel\(([^)]*)\);', webpage,
+                                   'clip carousel'),
+                show_name, transform_source=js_to_json)
+
+            # http://www.cbs.com/carousels/videosBySection/241426/offset/0/limit/15/xs/0/
+            # => {id: 241426, title: "Clips",
+            clips_url = urljoin(url,
+                    '/carousels/videosBySection/%d/offset/0/limit/15/xs/0' % clipdata['id'])
+            clips = self.carousel_playlist(clips_url, 'clips')
+        except RegexNotFoundError:
+            clips = { 'entries': [] }
+
+        # We separately retrieve a carousel of full episodes, and also one of clips.
+        # Clips are identifiable as such because they lack an "episode_number" field,
+        # unlike full episodes.
+        #
+        # It might be desirable to specify only retrieving a playlist of one or the other,
+        # but there isn't a good way for users to pass such parameters to InfoExtractors
+        # (custom URLs, maybe? With cbs: URLs?).
+        #
+        # But since the playlist is filterable, only full episodes can be returned with:
+        #   youtube_dl --match-filter 'episode_number' http://...
+        # and similarly, only clips can be returned with:
+        #   youtube_dl --match-filter '!episode_number' http://...
+
+        playlist = self.carousel_playlist(episodes_url, 'episodes')
+        playlist['entries'] += clips['entries']
+        playlist['id'] = show['id']
+
+	return playlist
 
 class CBSIE(CBSBaseIE):
     _VALID_URL = r'(?:cbs:|https?://(?:www\.)?(?:cbs\.com/shows/[^/]+/video|colbertlateshow\.com/(?:video|podcasts))/)(?P<id>[\w-]+)'

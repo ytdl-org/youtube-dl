@@ -150,7 +150,10 @@ from .cbc import (
     CBCWatchVideoIE,
     CBCWatchIE,
 )
-from .cbs import CBSIE
+from .cbs import (
+    CBSIE,
+    CBSShowIE,
+    )
 from .cbslocal import CBSLocalIE
 from .cbsinteractive import CBSInteractiveIE
 from .cbsnews import (
