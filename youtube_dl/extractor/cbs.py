@@ -27,7 +27,7 @@ class CBSBaseIE(ThePlatformFeedIE):
 class CBSShowIE(InfoExtractor):
     IE_DESC = 'CBS show playlists, including full episodes and clips'
     IE_NAME = 'cbs.com:playlist'
-    _VALID_URL = r'(?i)https?://(?:www\.)cbs.com/shows/(?P<id>[\w-]+)'
+    _VALID_URL = r'(?i)https?://(?:www\.)cbs.com/shows/(?P<id>[\w-]+)/?$'
     _TEST = {
         'url': 'http://www.cbs.com/shows/the-late-show-with-stephen-colbert',
         'info_dict': {
