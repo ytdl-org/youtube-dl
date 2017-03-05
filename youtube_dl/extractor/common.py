@@ -2198,7 +2198,9 @@ class InfoExtractor(object):
 
             this_video_id = video_id or video_data['mediaid']
 
-            formats = self._parse_jwplayer_formats(video_data['sources'], this_video_id)
+            formats = self._parse_jwplayer_formats(
+                video_data['sources'], video_id=this_video_id, m3u8_id=m3u8_id,
+                mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
             self._sort_formats(formats)
 
             subtitles = {}
@@ -2232,7 +2234,7 @@ class InfoExtractor(object):
     def _parse_jwplayer_formats(self, jwplayer_sources_data, video_id=None,
                                 m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
         formats = []
-        for source in jwplayer_sources_data :
+        for source in jwplayer_sources_data:
             source_url = self._proto_relative_url(source['file'])
             if base_url:
                 source_url = compat_urlparse.urljoin(base_url, source_url)
@@ -2284,7 +2286,6 @@ class InfoExtractor(object):
                         a_format.update(rtmp_params)
                 formats.append(a_format)
         return formats
-
 
     def _live_title(self, name):
         """ Generate the title for a live video """
