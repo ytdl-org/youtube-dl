@@ -2240,12 +2240,14 @@ class InfoExtractor(object):
             ext = mimetype2ext(source_type) or determine_ext(source_url)
             if source_type == 'hls' or ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    source_url, video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
+                    source_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id=m3u8_id, fatal=False))
             elif ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     source_url, video_id, mpd_id=mpd_id, fatal=False))
             # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
-            elif source_type.startswith('audio') or ext in ('oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
+            elif source_type.startswith('audio') or ext in (
+                    'oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
                 formats.append({
                     'url': source_url,
                     'vcodec': 'none',
@@ -2255,19 +2257,19 @@ class InfoExtractor(object):
                 height = int_or_none(source.get('height'))
                 if height is None:
                     # Often no height is provided but there is a label in
-                    # format like 1080p.
+                    # format like "1080p", "720p SD", or 1080.
                     height = int_or_none(self._search_regex(
-                        r'^(\d{3,})[pP]$', source.get('label') or '',
+                        r'^(\d{3,4})[pP]?(?:\b|$)', compat_str(source.get('label') or ''),
                         'height', default=None))
                 a_format = {
                     'url': source_url,
                     'width': int_or_none(source.get('width')),
                     'height': height,
+                    'tbr': int_or_none(source.get('bitrate')),
                     'ext': ext,
                 }
                 if source_url.startswith('rtmp'):
                     a_format['ext'] = 'flv'
-
                     # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
                     # of jwplayer.flash.swf
                     rtmp_url_parts = re.split(
