@@ -1,3 +1,17 @@
+version <unreleased>
+
+Core
++ [utils] Process bytestrings in urljoin (#12369)
+* [extractor/common] Improve height extraction and extract bitrate
+* [extractor/common] Move jwplayer formats extraction in separate method
++ [external:ffmpeg] Limit test download size to 10KiB (#12362)
+
+Extractors
++ [drtv] Add geo countries to GeoRestrictedError
++ [drtv:live] Bypass geo restriction
++ [tunepk] Add extractor (#12197, #12243)
+
+
 version 2017.03.05
 
 Extractors
