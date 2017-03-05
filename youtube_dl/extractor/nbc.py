@@ -5,7 +5,10 @@ import re
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
-from ..compat import compat_urllib_parse_urlparse
+from ..compat import (
+    compat_urllib_parse_urlparse,
+    compat_parse_qs,
+)
 from ..utils import (
     find_xpath_attr,
     lowercase_escape,
@@ -84,7 +87,20 @@ class NBCIE(AdobePassIE):
                 'skip_download': True,
             },
             'skip': 'Only works from US',
-        }
+        },
+        {
+            # Some SNL videos need special ?snl=0 handling
+            'url': 'http://www.nbc.com/saturday-night-live/video/snl-host-octavia-spencer-finds-studio-8h/3477499',
+            'info_dict': {
+                'id': '3477499',
+                'ext': 'mp4',
+                'title': 'SNL Host Octavia Spencer Finds Studio 8H',
+                'upload_date': '20170301',
+                'description': 'Octavia Spencer hosts Saturday Night Live on March 4, 2017, with musical guest Father John Misty.',
+                'uploader': 'NBCU-COM',
+                'timestamp': 1488375900,
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -95,12 +111,28 @@ class NBCIE(AdobePassIE):
             'ie_key': 'ThePlatform',
             'id': video_id,
         }
+        parsed_url = compat_urllib_parse_urlparse(url)
+
+        # http://www.nbc.com/generetic/generated/generetic-responsive.js?v2.31.26
+        # does the following in browers: if the page is Saturday Night
+        # Live (snl), check for the query parameter ?snl=0; If absent,
+        # it load the page with ?snl=1 and then with ?snl=0.
+        # Emulate that, but shortcircuit straight to ?snl=0.
+        urlmeta = self._html_search_meta(
+            ['al:ios:url','al:android:url', 'twitter:app:url:googleplay'],
+            webpage)
+        if urlmeta and urlmeta.startswith('nbcsnl://') and \
+           compat_parse_qs(parsed_url.query).get('snl') != 0:
+               url = update_url_query(url, { 'snl': 0})
+               parsed_url = compat_urllib_parse_urlparse(url)
+               webpage = self._download_webpage(url, video_id)
+            
         video_data = None
         preload = self._search_regex(
             r'PRELOAD\s*=\s*({.+})', webpage, 'preload data', default=None)
         if preload:
             preload_data = self._parse_json(preload, video_id)
-            path = compat_urllib_parse_urlparse(url).path.rstrip('/')
+            path = parsed_url.path.rstrip('/')
             entity_id = preload_data.get('xref', {}).get(path)
             video_data = preload_data.get('entities', {}).get(entity_id)
         if video_data:
