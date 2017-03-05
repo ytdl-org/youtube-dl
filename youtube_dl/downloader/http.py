@@ -106,6 +106,7 @@ class HttpFD(FileDownloader):
                             self.try_rename(tmpfilename, filename)
                             self._hook_progress({
                                 'filename': filename,
+                                'alreadyexists':True,
                                 'status': 'finished',
                                 'downloaded_bytes': resume_len,
                                 'total_bytes': resume_len,
