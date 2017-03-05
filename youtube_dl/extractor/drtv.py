@@ -156,6 +156,7 @@ class DRTVIE(InfoExtractor):
 class DRTVLiveIE(InfoExtractor):
     IE_NAME = 'drtv:live'
     _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv|TV)/live/(?P<id>[\da-z-]+)'
+    _GEO_COUNTRIES = ['DK']
     _TEST = {
         'url': 'https://www.dr.dk/tv/live/dr1',
         'info_dict': {
