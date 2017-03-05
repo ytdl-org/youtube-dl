@@ -1000,6 +1000,7 @@ from .tunein import (
     TuneInTopicIE,
     TuneInShortenerIE,
 )
+from .tunepk import TunePkIE
 from .turbo import TurboIE
 from .tutv import TutvIE
 from .tv2 import (
