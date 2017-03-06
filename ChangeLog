@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.07
 
 Core
 * Metadata are now added after conversion (#5594)
