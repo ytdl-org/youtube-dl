@@ -186,7 +186,7 @@ class WDRIE(WDRBaseIE):
             'info_dict': {
                 'id': 'mdb-869971',
                 'ext': 'flv',
-                'title': 'Funkhaus Europa Livestream',
+                'title': 'COSMO Livestream',
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20160101',
             },
