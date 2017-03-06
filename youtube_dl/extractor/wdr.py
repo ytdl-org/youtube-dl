@@ -19,9 +19,9 @@ class WDRBaseIE(InfoExtractor):
     def _extract_wdr_video(self, webpage, display_id):
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
         # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
-        # for wdrmaus its in a link to the page in a multiline "videoLink"-tag
+        # for wdrmaus it is in a link to the page in a multiline "videoLink"-tag
         json_metadata = self._html_search_regex(
-            r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
+            r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
             webpage, 'media link', default=None, flags=re.MULTILINE)
 
         if not json_metadata:
@@ -161,11 +161,11 @@ class WDRIE(WDRBaseIE):
         {
             'url': 'http://www.wdrmaus.de/aktuelle-sendung/index.php5',
             'info_dict': {
-                'id': 'mdb-1096487',
-                'ext': 'flv',
+                'id': 'mdb-1323501',
+                'ext': 'mp4',
                 'upload_date': 're:^[0-9]{8}$',
                 'title': 're:^Die Sendung mit der Maus vom [0-9.]{10}$',
-                'description': '- Die Sendung mit der Maus -',
+                'description': 'Die Seite mit der Maus -',
             },
             'skip': 'The id changes from week to week because of the new episode'
         },
