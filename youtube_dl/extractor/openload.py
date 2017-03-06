@@ -75,22 +75,37 @@ class OpenloadIE(InfoExtractor):
             '<span[^>]+id="[^"]+"[^>]*>([0-9A-Za-z]+)</span>',
             webpage, 'openload ID')
 
-        first_char = int(ol_id[0])
-        urlcode = []
-        num = 1
+        video_url_chars = []
 
-        while num < len(ol_id):
-            i = ord(ol_id[num])
-            key = 0
-            if i <= 90:
-                key = i - 65
-            elif i >= 97:
-                key = 25 + i - 97
-            urlcode.append((key, compat_chr(int(ol_id[num + 2:num + 5]) // int(ol_id[num + 1]) - first_char)))
-            num += 5
+        first_char = ord(ol_id[0])
+        key = first_char - 55
+        maxKey = max(2, key)
+        key = min(maxKey, len(ol_id) - 14)
+        t = ol_id[key:key + 12]
 
-        video_url = 'https://openload.co/stream/' + ''.join(
-            [value for _, value in sorted(urlcode, key=lambda x: x[0])])
+        hashMap = {}
+        v = ol_id.replace(t, "")
+        h = 0
+
+        while h < len(t):
+            f = t[h:h + 2]
+            i = int(f, 16)
+            hashMap[h / 2] = i
+            h += 2
+
+        h = 0
+
+        while h < len(v):
+            B = v[h:h + 2]
+            i = int(B, 16)
+            index = (h / 2) % 6
+            A = hashMap[index]
+            i = i ^ A
+            video_url_chars.append(compat_chr(i))
+            h += 2
+
+        video_url = 'https://openload.co/stream/%s?mime=true'
+        video_url = video_url % (''.join(video_url_chars))
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
