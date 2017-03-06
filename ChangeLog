@@ -1,10 +1,10 @@
 version <unreleased>
 
 Core
-* [__init__] Metadata are now added after conversion (#5594)
-
+* Metadata are now added after conversion (#5594)
 
 Extractors
+* [soundcloud] Update client id (#12376)
 * [openload] Fix extraction (#10408, #12357)
 
 
