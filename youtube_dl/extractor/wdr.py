@@ -170,14 +170,14 @@ class WDRIE(WDRBaseIE):
             'skip': 'The id changes from week to week because of the new episode'
         },
         {
-            'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/achterbahn.php5',
+            'url': 'http://www.wdrmaus.de/filme/sachgeschichten/achterbahn.php5',
             'md5': '803138901f6368ee497b4d195bb164f2',
             'info_dict': {
                 'id': 'mdb-186083',
                 'ext': 'mp4',
                 'upload_date': '20130919',
                 'title': 'Sachgeschichte - Achterbahn ',
-                'description': '- Die Sendung mit der Maus -',
+                'description': 'Die Seite mit der Maus -',
             },
         },
         {
