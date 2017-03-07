@@ -110,6 +110,7 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'upload_date': '20140827',
                 'uploader_id': '710858724001',
             },
+            'skip': 'Video gone',
         },
         {
             # playlist with 'videoList'
