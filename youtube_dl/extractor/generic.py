@@ -479,7 +479,7 @@ class GenericIE(InfoExtractor):
                     'upload_date': '20170205',
                     'uploader_id': '800000640001',
                 },
-            'only_matching': True,
+                'only_matching': True,
             }],
         },
         # ooyala video
