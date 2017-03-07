@@ -20,6 +20,7 @@ from ..utils import (
     float_or_none,
     HEADRequest,
     is_html,
+    js_to_json,
     orderedSet,
     sanitized_Request,
     smuggle_url,
@@ -83,6 +84,7 @@ from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
 from .openload import OpenloadIE
 from .videopress import VideoPressIE
+from .rutube import RutubeIE
 
 
 class GenericIE(InfoExtractor):
@@ -446,6 +448,23 @@ class GenericIE(InfoExtractor):
                     'uploader_id': '1964492299001',
                 },
             }],
+        },
+        {
+            # Brightcove with UUID in videoPlayer
+            'url': 'http://www8.hp.com/cn/zh/home.html',
+            'info_dict': {
+                'id': '5255815316001',
+                'ext': 'mp4',
+                'title': 'Sprocket Video - China',
+                'description': 'Sprocket Video - China',
+                'uploader': 'HP-Video Gallery',
+                'timestamp': 1482263210,
+                'upload_date': '20161220',
+                'uploader_id': '1107601872001',
+            },
+            'params': {
+                'skip_download': True,  # m3u8 download
+            },
         },
         {
             # Brightcove:new type [2].
@@ -996,6 +1015,16 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
+        # Complex jwplayer
+        {
+            'url': 'http://www.indiedb.com/games/king-machine/videos',
+            'info_dict': {
+                'id': 'videos',
+                'ext': 'mp4',
+                'title': 'king machine trailer 1',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+        },
         # rtl.nl embed
         {
             'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
@@ -1024,19 +1053,6 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'PremierMedia',
                 'timestamp': int,
                 'title': 'Os Guinness // Is It Fools Talk? // Unbelievable? Conference 2014',
-            },
-        },
-        # Kaltura embed protected with referrer
-        {
-            'url': 'http://www.disney.nl/disney-channel/filmpjes/achter-de-schermen#/videoId/violetta-achter-de-schermen-ruggero',
-            'info_dict': {
-                'id': '1_g4fbemnq',
-                'ext': 'mp4',
-                'title': 'Violetta - Achter De Schermen - Ruggero',
-                'description': 'Achter de schermen met Ruggero',
-                'timestamp': 1435133761,
-                'upload_date': '20150624',
-                'uploader_id': 'echojecka',
             },
         },
         # Kaltura embed with single quotes
@@ -1538,7 +1554,29 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'add_ie': [VideoPressIE.ie_key()],
-        }
+        },
+        {
+            # Rutube embed
+            'url': 'http://magazzino.friday.ru/videos/vipuski/kazan-2',
+            'info_dict': {
+                'id': '9b3d5bee0a8740bf70dfd29d3ea43541',
+                'ext': 'flv',
+                'title': 'Магаззино: Казань 2',
+                'description': 'md5:99bccdfac2269f0e8fdbc4bbc9db184a',
+                'uploader': 'Магаззино',
+                'upload_date': '20170228',
+                'uploader_id': '996642',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [RutubeIE.ie_key()],
+        },
+        {
+            # ThePlatform embedded with whitespaces in URLs
+            'url': 'http://www.golfchannel.com/topics/shows/golftalkcentral.htm',
+            'only_matching': True,
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2386,8 +2424,9 @@ class GenericIE(InfoExtractor):
                 'Channel': 'channel',
                 'ChannelList': 'channel_list',
             }
-            return self.url_result('limelight:%s:%s' % (
-                lm[mobj.group(1)], mobj.group(2)), 'Limelight%s' % mobj.group(1), mobj.group(2))
+            return self.url_result(smuggle_url('limelight:%s:%s' % (
+                lm[mobj.group(1)], mobj.group(2)), {'source_url': url}),
+                'Limelight%s' % mobj.group(1), mobj.group(2))
 
         mobj = re.search(
             r'''(?sx)
@@ -2397,7 +2436,9 @@ class GenericIE(InfoExtractor):
                         value=(["\'])(?:(?!\3).)*mediaId=(?P<id>[a-z0-9]{32})
             ''', webpage)
         if mobj:
-            return self.url_result('limelight:media:%s' % mobj.group('id'))
+            return self.url_result(smuggle_url(
+                'limelight:media:%s' % mobj.group('id'),
+                {'source_url': url}), 'LimelightMedia', mobj.group('id'))
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
@@ -2510,6 +2551,12 @@ class GenericIE(InfoExtractor):
             return _playlist_from_matches(
                 videopress_urls, ie=VideoPressIE.ie_key())
 
+        # Look for Rutube embeds
+        rutube_urls = RutubeIE._extract_urls(webpage)
+        if rutube_urls:
+            return _playlist_from_matches(
+                rutube_urls, ie=RutubeIE.ie_key())
+
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
             webpage, video_id, default={}, expected_type='VideoObject')
@@ -2533,6 +2580,15 @@ class GenericIE(InfoExtractor):
                 })
                 self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
+
+        jwplayer_data_str = self._find_jwplayer_data(webpage)
+        if jwplayer_data_str:
+            try:
+                jwplayer_data = self._parse_json(
+                    jwplayer_data_str, video_id, transform_source=js_to_json)
+                return self._parse_jwplayer_data(jwplayer_data, video_id)
+            except ExtractorError:
+                pass
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

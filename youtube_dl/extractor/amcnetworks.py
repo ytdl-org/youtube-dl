@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class AMCNetworksIE(ThePlatformIE):
-    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies/|shows/[^/]+/(?:full-episodes/)?[^/]+/episode-\d+(?:-(?:[^/]+/)?|/))(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies|shows(?:/[^/]+)+)/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.ifc.com/shows/maron/season-04/episode-01/step-1',
         'md5': '',
@@ -44,6 +44,12 @@ class AMCNetworksIE(ThePlatformIE):
     }, {
         'url': 'http://www.bbcamerica.com/shows/doctor-who/full-episodes/the-power-of-the-daleks/episode-01-episode-1-color-version',
         'only_matching': True,
+    }, {
+        'url': 'http://www.wetv.com/shows/mama-june-from-not-to-hot/full-episode/season-01/thin-tervention',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.wetv.com/shows/la-hair/videos/season-05/episode-09-episode-9-2/episode-9-sneak-peek-3',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -53,20 +59,30 @@ class AMCNetworksIE(ThePlatformIE):
             'mbr': 'true',
             'manifest': 'm3u',
         }
-        media_url = self._search_regex(r'window\.platformLinkURL\s*=\s*[\'"]([^\'"]+)', webpage, 'media url')
+        media_url = self._search_regex(
+            r'window\.platformLinkURL\s*=\s*[\'"]([^\'"]+)',
+            webpage, 'media url')
         theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
-            r'https?://link.theplatform.com/s/([^?]+)', media_url, 'theplatform_path'), display_id)
+            r'link\.theplatform\.com/s/([^?]+)',
+            media_url, 'theplatform_path'), display_id)
         info = self._parse_theplatform_metadata(theplatform_metadata)
         video_id = theplatform_metadata['pid']
         title = theplatform_metadata['title']
         rating = theplatform_metadata['ratings'][0]['rating']
-        auth_required = self._search_regex(r'window\.authRequired\s*=\s*(true|false);', webpage, 'auth required')
+        auth_required = self._search_regex(
+            r'window\.authRequired\s*=\s*(true|false);',
+            webpage, 'auth required')
         if auth_required == 'true':
-            requestor_id = self._search_regex(r'window\.requestor_id\s*=\s*[\'"]([^\'"]+)', webpage, 'requestor id')
-            resource = self._get_mvpd_resource(requestor_id, title, video_id, rating)
-            query['auth'] = self._extract_mvpd_auth(url, video_id, requestor_id, resource)
+            requestor_id = self._search_regex(
+                r'window\.requestor_id\s*=\s*[\'"]([^\'"]+)',
+                webpage, 'requestor id')
+            resource = self._get_mvpd_resource(
+                requestor_id, title, video_id, rating)
+            query['auth'] = self._extract_mvpd_auth(
+                url, video_id, requestor_id, resource)
         media_url = update_url_query(media_url, query)
-        formats, subtitles = self._extract_theplatform_smil(media_url, video_id)
+        formats, subtitles = self._extract_theplatform_smil(
+            media_url, video_id)
         self._sort_formats(formats)
         info.update({
             'id': video_id,
@@ -78,9 +94,11 @@ class AMCNetworksIE(ThePlatformIE):
         if ns_keys:
             ns = list(ns_keys)[0]
             series = theplatform_metadata.get(ns + '$show')
-            season_number = int_or_none(theplatform_metadata.get(ns + '$season'))
+            season_number = int_or_none(
+                theplatform_metadata.get(ns + '$season'))
             episode = theplatform_metadata.get(ns + '$episodeTitle')
-            episode_number = int_or_none(theplatform_metadata.get(ns + '$episode'))
+            episode_number = int_or_none(
+                theplatform_metadata.get(ns + '$episode'))
             if season_number:
                 title = 'Season %d - %s' % (season_number, title)
             if series:

@@ -16,6 +16,8 @@ class IviIE(InfoExtractor):
     IE_DESC = 'ivi.ru'
     IE_NAME = 'ivi'
     _VALID_URL = r'https?://(?:www\.)?ivi\.ru/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<id>\d+)'
+    _GEO_BYPASS = False
+    _GEO_COUNTRIES = ['RU']
 
     _TESTS = [
         # Single movie
@@ -91,7 +93,11 @@ class IviIE(InfoExtractor):
 
         if 'error' in video_json:
             error = video_json['error']
-            if error['origin'] == 'NoRedisValidData':
+            origin = error['origin']
+            if origin == 'NotAllowedForLocation':
+                self.raise_geo_restricted(
+                    msg=error['message'], countries=self._GEO_COUNTRIES)
+            elif origin == 'NoRedisValidData':
                 raise ExtractorError('Video %s does not exist' % video_id, expected=True)
             raise ExtractorError(
                 'Unable to download video %s: %s' % (video_id, error['message']),

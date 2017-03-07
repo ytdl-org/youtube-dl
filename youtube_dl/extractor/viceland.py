@@ -7,16 +7,16 @@ from .vice import ViceBaseIE
 class VicelandIE(ViceBaseIE):
     _VALID_URL = r'https?://(?:www\.)?viceland\.com/[^/]+/video/[^/]+/(?P<id>[a-f0-9]+)'
     _TEST = {
-        'url': 'https://www.viceland.com/en_us/video/cyberwar-trailer/57608447973ee7705f6fbd4e',
+        'url': 'https://www.viceland.com/en_us/video/trapped/588a70d0dba8a16007de7316',
         'info_dict': {
-            'id': '57608447973ee7705f6fbd4e',
+            'id': '588a70d0dba8a16007de7316',
             'ext': 'mp4',
-            'title': 'CYBERWAR (Trailer)',
-            'description': 'Tapping into the geopolitics of hacking and surveillance, Ben Makuch travels the world to meet with hackers, government officials, and dissidents to investigate the ecosystem of cyberwarfare.',
+            'title': 'TRAPPED (Series Trailer)',
+            'description': 'md5:7a8e95c2b6cd86461502a2845e581ccf',
             'age_limit': 14,
-            'timestamp': 1466008539,
-            'upload_date': '20160615',
-            'uploader_id': '11',
+            'timestamp': 1485474122,
+            'upload_date': '20170126',
+            'uploader_id': '57a204098cb727dec794c6a3',
             'uploader': 'Viceland',
         },
         'params': {

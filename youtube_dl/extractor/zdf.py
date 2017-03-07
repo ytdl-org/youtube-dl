@@ -20,9 +20,9 @@ from ..utils import (
 
 
 class ZDFBaseIE(InfoExtractor):
-    def _call_api(self, url, player, referrer, video_id):
+    def _call_api(self, url, player, referrer, video_id, item):
         return self._download_json(
-            url, video_id, 'Downloading JSON content',
+            url, video_id, 'Downloading JSON %s' % item,
             headers={
                 'Referer': referrer,
                 'Api-Auth': 'Bearer %s' % player['apiToken'],
@@ -104,7 +104,7 @@ class ZDFIE(ZDFBaseIE):
             })
             formats.append(f)
 
-    def _extract_entry(self, url, content, video_id):
+    def _extract_entry(self, url, player, content, video_id):
         title = content.get('title') or content['teaserHeadline']
 
         t = content['mainVideoContent']['http://zdf.de/rels/target']
@@ -116,7 +116,8 @@ class ZDFIE(ZDFBaseIE):
                 'http://zdf.de/rels/streams/ptmd-template'].replace(
                 '{playerId}', 'portal')
 
-        ptmd = self._download_json(urljoin(url, ptmd_path), video_id)
+        ptmd = self._call_api(
+            urljoin(url, ptmd_path), player, url, video_id, 'metadata')
 
         formats = []
         track_uris = set()
@@ -174,8 +175,9 @@ class ZDFIE(ZDFBaseIE):
         }
 
     def _extract_regular(self, url, player, video_id):
-        content = self._call_api(player['content'], player, url, video_id)
-        return self._extract_entry(player['content'], content, video_id)
+        content = self._call_api(
+            player['content'], player, url, video_id, 'content')
+        return self._extract_entry(player['content'], player, content, video_id)
 
     def _extract_mobile(self, video_id):
         document = self._download_json(

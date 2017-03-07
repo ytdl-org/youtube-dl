@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     js_to_json,
     get_element_by_class,
@@ -11,7 +11,7 @@ from ..utils import (
 )
 
 
-class RudoIE(JWPlatformBaseIE):
+class RudoIE(InfoExtractor):
     _VALID_URL = r'https?://rudo\.video/vod/(?P<id>[0-9a-zA-Z]+)'
 
     _TEST = {

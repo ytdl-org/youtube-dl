@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     dict_get,
+    ExtractorError,
     int_or_none,
     parse_duration,
     unified_strdate,
@@ -57,6 +58,10 @@ class XHamsterIE(InfoExtractor):
     }, {
         'url': 'https://xhamster.com/movies/2272726/amber_slayed_by_the_knight.html',
         'only_matching': True,
+    }, {
+        # This video is visible for marcoalfa123456's friends only
+        'url': 'https://it.xhamster.com/movies/7263980/la_mia_vicina.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -77,6 +82,12 @@ class XHamsterIE(InfoExtractor):
         proto = mobj.group('proto')
         mrss_url = '%s://xhamster.com/movies/%s/%s.html' % (proto, video_id, seo)
         webpage = self._download_webpage(mrss_url, video_id)
+
+        error = self._html_search_regex(
+            r'<div[^>]+id=["\']videoClosed["\'][^>]*>(.+?)</div>',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
 
         title = self._html_search_regex(
             [r'<h1[^>]*>([^<]+)</h1>',

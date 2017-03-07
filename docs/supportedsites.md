@@ -78,6 +78,7 @@
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
  - **AZMedienPlaylist**: AZ Medien playlists
+ - **AZMedienShowPlaylist**: AZ Medien show playlists
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -191,6 +192,8 @@
  - **dailymotion:playlist**
  - **dailymotion:user**
  - **DailymotionCloud**
+ - **Daisuki**
+ - **DaisukiPlaylist**
  - **daum.net**
  - **daum.net:clip**
  - **daum.net:playlist**
@@ -239,6 +242,7 @@
  - **ESPN**
  - **ESPNArticle**
  - **EsriVideo**
+ - **ETOnline**
  - **Europa**
  - **EveryonesMixtape**
  - **ExpoTV**
@@ -274,6 +278,7 @@
  - **francetvinfo.fr**
  - **Freesound**
  - **freespeech.org**
+ - **FreshLive**
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
@@ -310,6 +315,7 @@
  - **HellPorno**
  - **Helsinki**: helsinki.fi
  - **HentaiStigma**
+ - **hetklokhuis**
  - **hgtv.com:show**
  - **HistoricFilms**
  - **history:topic**: History.com Topic
@@ -511,6 +517,7 @@
  - **Nintendo**
  - **njoy**: N-JOY
  - **njoy:embed**
+ - **NJPWWorld**: 新日本プロレスワールド
  - **NobelPrize**
  - **Noco**
  - **Normalboots**
@@ -546,8 +553,10 @@
  - **OktoberfestTV**
  - **on.aol.com**
  - **OnDemandKorea**
+ - **onet.pl**
  - **onet.tv**
  - **onet.tv:channel**
+ - **OnetMVP**
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
@@ -617,6 +626,7 @@
  - **RaiTV**
  - **RBMARadio**
  - **RDS**: RDS.ca
+ - **RedBullTV**
  - **RedTube**
  - **RegioTV**
  - **RENTV**
@@ -664,7 +674,6 @@
  - **savefrom.net**
  - **SBS**: sbs.com.au
  - **schooltv**
- - **SciVee**
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
@@ -678,6 +687,7 @@
  - **Shared**: shared.sx
  - **ShowRoomLive**
  - **Sina**
+ - **SkylineWebcams**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
  - **SkySports**
@@ -788,6 +798,7 @@
  - **tunein:program**
  - **tunein:station**
  - **tunein:topic**
+ - **TunePk**
  - **Turbo**
  - **Tutv**
  - **tv.dfb.de**
@@ -802,6 +813,7 @@
  - **TVCArticle**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
+ - **TVN24**
  - **TVNoe**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
@@ -900,11 +912,13 @@
  - **vlive**
  - **vlive:channel**
  - **Vodlocker**
+ - **VODPl**
  - **VODPlatform**
  - **VoiceRepublic**
  - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl and ntr.nl
+ - **Vrak**
  - **VRT**
  - **vube**: Vube.com
  - **VuClip**

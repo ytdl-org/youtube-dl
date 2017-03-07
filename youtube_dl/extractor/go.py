@@ -36,7 +36,7 @@ class GoIE(AdobePassIE):
             'requestor_id': 'DisneyXD',
         }
     }
-    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:[^/]+/)*(?:vdka(?P<id>\w+)|season-\d+/\d+-(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
+    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:[^/]+/)*(?:vdka(?P<id>\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
     _TESTS = [{
         'url': 'http://abc.go.com/shows/castle/video/most-recent/vdka0_g86w5onx',
         'info_dict': {
@@ -51,6 +51,12 @@ class GoIE(AdobePassIE):
         },
     }, {
         'url': 'http://abc.go.com/shows/after-paradise/video/most-recent/vdka3335601',
+        'only_matching': True,
+    }, {
+        'url': 'http://abc.go.com/shows/the-catch/episode-guide/season-01/10-the-wedding',
+        'only_matching': True,
+    }, {
+        'url': 'http://abc.go.com/shows/world-news-tonight/episode-guide/2017-02/17-021717-intense-stand-off-between-man-with-rifle-and-police-in-oakland',
         'only_matching': True,
     }]
 
@@ -78,40 +84,60 @@ class GoIE(AdobePassIE):
             ext = determine_ext(asset_url)
             if ext == 'm3u8':
                 video_type = video_data.get('type')
-                if video_type == 'lf':
-                    data = {
-                        'video_id': video_data['id'],
-                        'video_type': video_type,
-                        'brand': brand,
-                        'device': '001',
-                    }
-                    if video_data.get('accesslevel') == '1':
-                        requestor_id = site_info['requestor_id']
-                        resource = self._get_mvpd_resource(
-                            requestor_id, title, video_id, None)
-                        auth = self._extract_mvpd_auth(
-                            url, video_id, requestor_id, resource)
-                        data.update({
-                            'token': auth,
-                            'token_type': 'ap',
-                            'adobe_requestor_id': requestor_id,
-                        })
-                    entitlement = self._download_json(
-                        'https://api.entitlement.watchabc.go.com/vp2/ws-secure/entitlement/2020/authorize.json',
-                        video_id, data=urlencode_postdata(data), headers=self.geo_verification_headers())
-                    errors = entitlement.get('errors', {}).get('errors', [])
-                    if errors:
-                        error_message = ', '.join([error['message'] for error in errors])
-                        raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message), expected=True)
-                    asset_url += '?' + entitlement['uplynkData']['sessionKey']
+                data = {
+                    'video_id': video_data['id'],
+                    'video_type': video_type,
+                    'brand': brand,
+                    'device': '001',
+                }
+                if video_data.get('accesslevel') == '1':
+                    requestor_id = site_info['requestor_id']
+                    resource = self._get_mvpd_resource(
+                        requestor_id, title, video_id, None)
+                    auth = self._extract_mvpd_auth(
+                        url, video_id, requestor_id, resource)
+                    data.update({
+                        'token': auth,
+                        'token_type': 'ap',
+                        'adobe_requestor_id': requestor_id,
+                    })
+                else:
+                    self._initialize_geo_bypass(['US'])
+                entitlement = self._download_json(
+                    'https://api.entitlement.watchabc.go.com/vp2/ws-secure/entitlement/2020/authorize.json',
+                    video_id, data=urlencode_postdata(data), headers=self.geo_verification_headers())
+                errors = entitlement.get('errors', {}).get('errors', [])
+                if errors:
+                    for error in errors:
+                        if error.get('code') == 1002:
+                            self.raise_geo_restricted(
+                                error['message'], countries=['US'])
+                    error_message = ', '.join([error['message'] for error in errors])
+                    raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message), expected=True)
+                asset_url += '?' + entitlement['uplynkData']['sessionKey']
                 formats.extend(self._extract_m3u8_formats(
                     asset_url, video_id, 'mp4', m3u8_id=format_id or 'hls', fatal=False))
             else:
-                formats.append({
+                f = {
                     'format_id': format_id,
                     'url': asset_url,
                     'ext': ext,
-                })
+                }
+                if re.search(r'(?:/mp4/source/|_source\.mp4)', asset_url):
+                    f.update({
+                        'format_id': ('%s-' % format_id if format_id else '') + 'SOURCE',
+                        'preference': 1,
+                    })
+                else:
+                    mobj = re.search(r'/(\d+)x(\d+)/', asset_url)
+                    if mobj:
+                        height = int(mobj.group(2))
+                        f.update({
+                            'format_id': ('%s-' % format_id if format_id else '') + '%dP' % height,
+                            'width': int(mobj.group(1)),
+                            'height': height,
+                        })
+                formats.append(f)
         self._sort_formats(formats)
 
         subtitles = {}

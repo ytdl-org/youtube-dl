@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -5,6 +6,7 @@ import re
 from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
+    get_element_by_class,
     get_element_by_id,
     strip_or_none,
     urljoin,
@@ -170,3 +172,42 @@ class AZMedienPlaylistIE(AZMedienBaseIE):
                 'video-title', webpage)), group='title')
 
         return self.playlist_result(entries, show_id, title)
+
+
+class AZMedienShowPlaylistIE(AZMedienBaseIE):
+    IE_DESC = 'AZ Medien show playlists'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?:
+                            telezueri\.ch|
+                            telebaern\.tv|
+                            telem1\.ch
+                        )/
+                        (?:
+                            all-episodes|
+                            alle-episoden
+                        )/
+                        (?P<id>[^/?#&]+)
+                    '''
+
+    _TEST = {
+        'url': 'http://www.telezueri.ch/all-episodes/astrotalk',
+        'info_dict': {
+            'id': 'astrotalk',
+            'title': 'TeleZüri: AstroTalk - alle episoden',
+            'description': 'md5:4c0f7e7d741d906004266e295ceb4a26',
+        },
+        'playlist_mincount': 13,
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+        episodes = get_element_by_class('search-mobile-box', webpage)
+        entries = [self.url_result(
+            urljoin(url, m.group('url'))) for m in re.finditer(
+                r'<a[^>]+href=(["\'])(?P<url>(?:(?!\1).)+)\1', episodes)]
+        title = self._og_search_title(webpage, fatal=False)
+        description = self._og_search_description(webpage)
+        return self.playlist_result(entries, playlist_id, title, description)

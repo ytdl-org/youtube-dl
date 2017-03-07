@@ -1,67 +1,97 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
+import json
+
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_urlparse,
+    compat_str,
+)
 from ..utils import (
-    remove_start,
-    sanitized_Request,
+    extract_attributes,
+    ExtractorError,
+    get_elements_by_class,
+    urlencode_postdata,
 )
 
 
 class EinthusanIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?einthusan\.com/movies/watch.php\?([^#]*?)id=(?P<id>[0-9]+)'
-    _TESTS = [
-        {
-            'url': 'http://www.einthusan.com/movies/watch.php?id=2447',
-            'md5': 'd71379996ff5b7f217eca034c34e3461',
-            'info_dict': {
-                'id': '2447',
-                'ext': 'mp4',
-                'title': 'Ek Villain',
-                'thumbnail': r're:^https?://.*\.jpg$',
-                'description': 'md5:9d29fc91a7abadd4591fb862fa560d93',
-            }
-        },
-        {
-            'url': 'http://www.einthusan.com/movies/watch.php?id=1671',
-            'md5': 'b16a6fd3c67c06eb7c79c8a8615f4213',
-            'info_dict': {
-                'id': '1671',
-                'ext': 'mp4',
-                'title': 'Soodhu Kavvuum',
-                'thumbnail': r're:^https?://.*\.jpg$',
-                'description': 'md5:b40f2bf7320b4f9414f3780817b2af8c',
-            }
-        },
-    ]
+    _VALID_URL = r'https?://einthusan\.tv/movie/watch/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://einthusan.tv/movie/watch/9097/',
+        'md5': 'ff0f7f2065031b8a2cf13a933731c035',
+        'info_dict': {
+            'id': '9097',
+            'ext': 'mp4',
+            'title': 'Ae Dil Hai Mushkil',
+            'description': 'md5:33ef934c82a671a94652a9b4e54d931b',
+            'thumbnail': r're:^https?://.*\.jpg$',
+        }
+    }, {
+        'url': 'https://einthusan.tv/movie/watch/51MZ/?lang=hindi',
+        'only_matching': True,
+    }]
+
+    # reversed from jsoncrypto.prototype.decrypt() in einthusan-PGMovieWatcher.js
+    def _decrypt(self, encrypted_data, video_id):
+        return self._parse_json(base64.b64decode((
+            encrypted_data[:10] + encrypted_data[-1] + encrypted_data[12:-1]
+        ).encode('ascii')).decode('utf-8'), video_id)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        request = sanitized_Request(url)
-        request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0')
-        webpage = self._download_webpage(request, video_id)
+        webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(
-            r'<h1><a[^>]+class=["\']movie-title["\'][^>]*>(.+?)</a></h1>',
-            webpage, 'title')
+        title = self._html_search_regex(r'<h3>([^<]+)</h3>', webpage, 'title')
 
-        video_id = self._search_regex(
-            r'data-movieid=["\'](\d+)', webpage, 'video id', default=video_id)
+        player_params = extract_attributes(self._search_regex(
+            r'(<section[^>]+id="UIVideoPlayer"[^>]+>)', webpage, 'player parameters'))
 
-        m3u8_url = self._download_webpage(
-            'http://cdn.einthusan.com/geturl/%s/hd/London,Washington,Toronto,Dallas,San,Sydney/'
-            % video_id, video_id, headers={'Referer': url})
-        formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native')
+        page_id = self._html_search_regex(
+            '<html[^>]+data-pageid="([^"]+)"', webpage, 'page ID')
+        video_data = self._download_json(
+            'https://einthusan.tv/ajax/movie/watch/%s/' % video_id, video_id,
+            data=urlencode_postdata({
+                'xEvent': 'UIVideoPlayer.PingOutcome',
+                'xJson': json.dumps({
+                    'EJOutcomes': player_params['data-ejpingables'],
+                    'NativeHLS': False
+                }),
+                'arcVersion': 3,
+                'appVersion': 59,
+                'gorilla.csrf.Token': page_id,
+            }))['Data']
 
-        description = self._html_search_meta('description', webpage)
+        if isinstance(video_data, compat_str) and video_data.startswith('/ratelimited/'):
+            raise ExtractorError(
+                'Download rate reached. Please try again later.', expected=True)
+
+        ej_links = self._decrypt(video_data['EJLinks'], video_id)
+
+        formats = []
+
+        m3u8_url = ej_links.get('HLSLink')
+        if m3u8_url:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native'))
+
+        mp4_url = ej_links.get('MP4Link')
+        if mp4_url:
+            formats.append({
+                'url': mp4_url,
+            })
+
+        self._sort_formats(formats)
+
+        description = get_elements_by_class('synopsis', webpage)[0]
         thumbnail = self._html_search_regex(
-            r'''<a class="movie-cover-wrapper".*?><img src=["'](.*?)["'].*?/></a>''',
-            webpage, "thumbnail url", fatal=False)
+            r'''<img[^>]+src=(["'])(?P<url>(?!\1).+?/moviecovers/(?!\1).+?)\1''',
+            webpage, 'thumbnail url', fatal=False, group='url')
         if thumbnail is not None:
-            thumbnail = compat_urlparse.urljoin(url, remove_start(thumbnail, '..'))
+            thumbnail = compat_urlparse.urljoin(url, thumbnail)
 
         return {
             'id': video_id,

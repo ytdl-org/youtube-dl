@@ -242,14 +242,11 @@ def _real_main(argv=None):
 
     # PostProcessors
     postprocessors = []
-    # Add the metadata pp first, the other pps will copy it
     if opts.metafromtitle:
         postprocessors.append({
             'key': 'MetadataFromTitle',
             'titleformat': opts.metafromtitle
         })
-    if opts.addmetadata:
-        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.extractaudio:
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
@@ -279,6 +276,11 @@ def _real_main(argv=None):
         })
         if not already_have_thumbnail:
             opts.writethumbnail = True
+    # FFmpegMetadataPP should be run after FFmpegVideoConvertorPP and
+    # FFmpegExtractAudioPP as containers before conversion may not support
+    # metadata (3gp, webm, etc.)
+    if opts.addmetadata:
+        postprocessors.append({'key': 'FFmpegMetadata'})
     # XAttrMetadataPP should be run after post-processors that may change file
     # contents
     if opts.xattrs:
@@ -414,6 +416,11 @@ def _real_main(argv=None):
         'cn_verification_proxy': opts.cn_verification_proxy,
         'geo_verification_proxy': opts.geo_verification_proxy,
         'config_location': opts.config_location,
+        'geo_bypass': opts.geo_bypass,
+        'geo_bypass_country': opts.geo_bypass_country,
+        # just for deprecation check
+        'autonumber': opts.autonumber if opts.autonumber is True else None,
+        'usetitle': opts.usetitle if opts.usetitle is True else None,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

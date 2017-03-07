@@ -15,6 +15,8 @@ from ..utils import (
 
 class DRTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder|radio/ondemand)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
+    _GEO_BYPASS = False
+    _GEO_COUNTRIES = ['DK']
     IE_NAME = 'drtv'
     _TESTS = [{
         'url': 'https://www.dr.dk/tv/se/boern/ultra/klassen-ultra/klassen-darlig-taber-10',
@@ -137,7 +139,7 @@ class DRTVIE(InfoExtractor):
         if not formats and restricted_to_denmark:
             self.raise_geo_restricted(
                 'Unfortunately, DR is not allowed to show this program outside Denmark.',
-                expected=True)
+                countries=self._GEO_COUNTRIES)
 
         self._sort_formats(formats)
 
@@ -156,6 +158,7 @@ class DRTVIE(InfoExtractor):
 class DRTVLiveIE(InfoExtractor):
     IE_NAME = 'drtv:live'
     _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv|TV)/live/(?P<id>[\da-z-]+)'
+    _GEO_COUNTRIES = ['DK']
     _TEST = {
         'url': 'https://www.dr.dk/tv/live/dr1',
         'info_dict': {

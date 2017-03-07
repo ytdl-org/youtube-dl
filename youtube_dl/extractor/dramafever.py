@@ -20,6 +20,7 @@ from ..utils import (
 class DramaFeverBaseIE(AMPIE):
     _LOGIN_URL = 'https://www.dramafever.com/accounts/login/'
     _NETRC_MACHINE = 'dramafever'
+    _GEO_COUNTRIES = ['US', 'CA']
 
     _CONSUMER_SECRET = 'DA59dtVXYLxajktV'
 
@@ -116,8 +117,9 @@ class DramaFeverIE(DramaFeverBaseIE):
                 'http://www.dramafever.com/amp/episode/feed.json?guid=%s' % video_id)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
-                raise ExtractorError(
-                    'Currently unavailable in your country.', expected=True)
+                self.raise_geo_restricted(
+                    msg='Currently unavailable in your country',
+                    countries=self._GEO_COUNTRIES)
             raise
 
         series_id, episode_number = video_id.split('.')

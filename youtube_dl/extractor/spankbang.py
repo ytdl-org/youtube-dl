@@ -23,6 +23,10 @@ class SpankBangIE(InfoExtractor):
         # 480p only
         'url': 'http://spankbang.com/1vt0/video/solvane+gangbang',
         'only_matching': True,
+    }, {
+        # no uploader
+        'url': 'http://spankbang.com/lklg/video/sex+with+anyone+wedding+edition+2',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -48,7 +52,7 @@ class SpankBangIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         uploader = self._search_regex(
             r'class="user"[^>]*><img[^>]+>([^<]+)',
-            webpage, 'uploader', fatal=False)
+            webpage, 'uploader', default=None)
 
         age_limit = self._rta_search(webpage)
 

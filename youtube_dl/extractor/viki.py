@@ -27,6 +27,7 @@ class VikiBaseIE(InfoExtractor):
     _APP_VERSION = '2.2.5.1428709186'
     _APP_SECRET = '-$iJ}@p7!G@SyU/je1bEyWg}upLu-6V6-Lg9VD(]siH,r.,m-r|ulZ,U4LC/SeR)'
 
+    _GEO_BYPASS = False
     _NETRC_MACHINE = 'viki'
 
     _token = None
@@ -77,8 +78,11 @@ class VikiBaseIE(InfoExtractor):
     def _check_errors(self, data):
         for reason, status in data.get('blocking', {}).items():
             if status and reason in self._ERRORS:
+                message = self._ERRORS[reason]
+                if reason == 'geo':
+                    self.raise_geo_restricted(msg=message)
                 raise ExtractorError('%s said: %s' % (
-                    self.IE_NAME, self._ERRORS[reason]), expected=True)
+                    self.IE_NAME, message), expected=True)
 
     def _real_initialize(self):
         self._login()

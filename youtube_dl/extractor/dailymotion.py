@@ -66,7 +66,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'uploader_id': 'xijv66',
                 'age_limit': 0,
                 'view_count': int,
-                'comment_count': int,
             }
         },
         # Vevo video
@@ -140,7 +139,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         view_count = str_to_int(view_count_str)
         comment_count = int_or_none(self._search_regex(
             r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserComments:(\d+)"',
-            webpage, 'comment count', fatal=False))
+            webpage, 'comment count', default=None))
 
         player_v5 = self._search_regex(
             [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/rg3/youtube-dl/issues/7826
@@ -283,9 +282,14 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         }
 
     def _check_error(self, info):
+        error = info.get('error')
         if info.get('error') is not None:
+            title = error['title']
+            # See https://developer.dailymotion.com/api#access-error
+            if error.get('code') == 'DM007':
+                self.raise_geo_restricted(msg=title)
             raise ExtractorError(
-                '%s said: %s' % (self.IE_NAME, info['error']['title']), expected=True)
+                '%s said: %s' % (self.IE_NAME, title), expected=True)
 
     def _get_subtitles(self, video_id, webpage):
         try:

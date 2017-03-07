@@ -24,6 +24,7 @@ class TV4IE(InfoExtractor):
                 sport/|
             )
         )(?P<id>[0-9]+)'''
+    _GEO_COUNTRIES = ['SE']
     _TESTS = [
         {
             'url': 'http://www.tv4.se/kalla-fakta/klipp/kalla-fakta-5-english-subtitles-2491650',
@@ -71,16 +72,12 @@ class TV4IE(InfoExtractor):
             'http://www.tv4play.se/player/assets/%s.json' % video_id,
             video_id, 'Downloading video info JSON')
 
-        # If is_geo_restricted is true, it doesn't necessarily mean we can't download it
-        if info.get('is_geo_restricted'):
-            self.report_warning('This content might not be available in your country due to licensing restrictions.')
-
         title = info['title']
 
         subtitles = {}
         formats = []
         # http formats are linked with unresolvable host
-        for kind in ('hls', ''):
+        for kind in ('hls3', ''):
             data = self._download_json(
                 'https://prima.tv4play.se/api/web/asset/%s/play.json' % video_id,
                 video_id, 'Downloading sources JSON', query={
@@ -113,6 +110,10 @@ class TV4IE(InfoExtractor):
                                 'url': manifest_url,
                                 'ext': 'vtt',
                             }]})
+
+        if not formats and info.get('is_geo_restricted'):
+            self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
+
         self._sort_formats(formats)
 
         return {

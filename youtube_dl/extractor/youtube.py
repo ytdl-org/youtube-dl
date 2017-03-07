@@ -47,7 +47,6 @@ from ..utils import (
     unsmuggle_url,
     uppercase_escape,
     urlencode_postdata,
-    ISO3166Utils,
 )
 
 
@@ -370,6 +369,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '_rtmp': {'protocol': 'rtmp'},
     }
     _SUBTITLE_FORMATS = ('ttml', 'vtt')
+
+    _GEO_BYPASS = False
 
     IE_NAME = 'youtube'
     _TESTS = [
@@ -917,7 +918,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # itag 212
             'url': '1t24XAntNCY',
             'only_matching': True,
-        }
+        },
+        {
+            # geo restricted to JP
+            'url': 'sJL6WA-aGkQ',
+            'only_matching': True,
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1376,11 +1382,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if 'token' not in video_info:
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta('regionsAllowed', video_webpage, default=None)
-                    if regions_allowed:
-                        raise ExtractorError('YouTube said: This video is available in %s only' % (
-                            ', '.join(map(ISO3166Utils.short2full, regions_allowed.split(',')))),
-                            expected=True)
+                    regions_allowed = self._html_search_meta(
+                        'regionsAllowed', video_webpage, default=None)
+                    countries = regions_allowed.split(',') if regions_allowed else None
+                    self.raise_geo_restricted(
+                        msg=video_info['reason'][0], countries=countries)
                 raise ExtractorError(
                     'YouTube said: %s' % video_info['reason'][0],
                     expected=True, video_id=video_id)
@@ -1448,7 +1454,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
-            raise ExtractorError('"rental" videos not supported')
+            raise ExtractorError('"rental" videos not supported. See https://github.com/rg3/youtube-dl/issues/359 for more information.', expected=True)
 
         # Start extracting information
         self.report_information_extraction(video_id)
@@ -1845,7 +1851,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (?:
                             youtube\.com/
                             (?:
-                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/videoseries)
+                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/(?:videoseries|[0-9A-Za-z_-]{11}))
                                \? (?:.*?[&;])*? (?:p|a|list)=
                             |  p/
                             )|
@@ -1917,6 +1923,13 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': 'JODA15',
             'id': 'PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
+        }
+    }, {
+        'url': 'http://www.youtube.com/embed/_xDOZElKyNU?list=PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
+        'playlist_mincount': 485,
+        'info_dict': {
+            'title': '2017 華語最新單曲 (2/24更新)',
+            'id': 'PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
         }
     }, {
         'note': 'Embedded SWF player',
@@ -2066,7 +2079,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         # Check if it's a video-specific URL
         query_dict = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         video_id = query_dict.get('v', [None])[0] or self._search_regex(
-            r'(?:^|//)youtu\.be/([0-9A-Za-z_-]{11})', url,
+            r'(?:(?:^|//)youtu\.be/|youtube\.com/embed/(?!videoseries))([0-9A-Za-z_-]{11})', url,
             'video id', default=None)
         if video_id:
             if self._downloader.params.get('noplaylist'):
@@ -2226,7 +2239,7 @@ class YoutubeUserIE(YoutubeChannelIE):
         'url': 'https://www.youtube.com/gametrailers',
         'only_matching': True,
     }, {
-        # This channel is not available.
+        # This channel is not available, geo restricted to JP
         'url': 'https://www.youtube.com/user/kananishinoSMEJ/videos',
         'only_matching': True,
     }]

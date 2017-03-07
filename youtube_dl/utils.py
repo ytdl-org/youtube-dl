@@ -23,6 +23,7 @@ import operator
 import os
 import pipes
 import platform
+import random
 import re
 import socket
 import ssl
@@ -472,7 +473,8 @@ def timeconvert(timestr):
 def sanitize_filename(s, restricted=False, is_id=False):
     """Sanitizes a string so it could be used as part of a filename.
     If restricted is set, use a stricter subset of allowed characters.
-    Set is_id if this is not an arbitrary string, but an ID that should be kept if possible
+    Set is_id if this is not an arbitrary string, but an ID that should be kept
+    if possible.
     """
     def replace_insane(char):
         if restricted and char in ACCENT_CHARS:
@@ -701,7 +703,12 @@ def bug_reports_message():
     return msg
 
 
-class ExtractorError(Exception):
+class YoutubeDLError(Exception):
+    """Base exception for YoutubeDL errors."""
+    pass
+
+
+class ExtractorError(YoutubeDLError):
     """Error during info extraction."""
 
     def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
@@ -742,7 +749,19 @@ class RegexNotFoundError(ExtractorError):
     pass
 
 
-class DownloadError(Exception):
+class GeoRestrictedError(ExtractorError):
+    """Geographic restriction Error exception.
+
+    This exception may be thrown when a video is not available from your
+    geographic location due to geographic restrictions imposed by a website.
+    """
+    def __init__(self, msg, countries=None):
+        super(GeoRestrictedError, self).__init__(msg, expected=True)
+        self.msg = msg
+        self.countries = countries
+
+
+class DownloadError(YoutubeDLError):
     """Download Error exception.
 
     This exception may be thrown by FileDownloader objects if they are not
@@ -756,7 +775,7 @@ class DownloadError(Exception):
         self.exc_info = exc_info
 
 
-class SameFileError(Exception):
+class SameFileError(YoutubeDLError):
     """Same File exception.
 
     This exception will be thrown by FileDownloader objects if they detect
@@ -765,7 +784,7 @@ class SameFileError(Exception):
     pass
 
 
-class PostProcessingError(Exception):
+class PostProcessingError(YoutubeDLError):
     """Post Processing exception.
 
     This exception may be raised by PostProcessor's .run() method to
@@ -773,15 +792,16 @@ class PostProcessingError(Exception):
     """
 
     def __init__(self, msg):
+        super(PostProcessingError, self).__init__(msg)
         self.msg = msg
 
 
-class MaxDownloadsReached(Exception):
+class MaxDownloadsReached(YoutubeDLError):
     """ --max-downloads limit has been reached. """
     pass
 
 
-class UnavailableVideoError(Exception):
+class UnavailableVideoError(YoutubeDLError):
     """Unavailable Format exception.
 
     This exception will be thrown when a video is requested
@@ -790,7 +810,7 @@ class UnavailableVideoError(Exception):
     pass
 
 
-class ContentTooShortError(Exception):
+class ContentTooShortError(YoutubeDLError):
     """Content Too Short exception.
 
     This exception may be raised by FileDownloader objects when a file they
@@ -799,12 +819,15 @@ class ContentTooShortError(Exception):
     """
 
     def __init__(self, downloaded, expected):
+        super(ContentTooShortError, self).__init__(
+            'Downloaded {0} bytes, expected {1} bytes'.format(downloaded, expected)
+        )
         # Both in bytes
         self.downloaded = downloaded
         self.expected = expected
 
 
-class XAttrMetadataError(Exception):
+class XAttrMetadataError(YoutubeDLError):
     def __init__(self, code=None, msg='Unknown error'):
         super(XAttrMetadataError, self).__init__(msg)
         self.code = code
@@ -820,7 +843,7 @@ class XAttrMetadataError(Exception):
             self.reason = 'NOT_SUPPORTED'
 
 
-class XAttrUnavailableError(Exception):
+class XAttrUnavailableError(YoutubeDLError):
     pass
 
 
@@ -1725,11 +1748,16 @@ def base_url(url):
 
 
 def urljoin(base, path):
+    if isinstance(path, bytes):
+        path = path.decode('utf-8')
     if not isinstance(path, compat_str) or not path:
         return None
     if re.match(r'^(?:https?:)?//', path):
         return path
-    if not isinstance(base, compat_str) or not re.match(r'^(?:https?:)?//', base):
+    if isinstance(base, bytes):
+        base = base.decode('utf-8')
+    if not isinstance(base, compat_str) or not re.match(
+            r'^(?:https?:)?//', base):
         return None
     return compat_urlparse.urljoin(base, path)
 
@@ -2383,6 +2411,7 @@ def _match_one(filter_part, dct):
         \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
         (?:
             (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
+            (?P<quote>["\'])(?P<quotedstrval>(?:\\.|(?!(?P=quote)|\\).)+?)(?P=quote)|
             (?P<strval>(?![0-9.])[a-z0-9A-Z]*)
         )
         \s*$
@@ -2391,7 +2420,8 @@ def _match_one(filter_part, dct):
     if m:
         op = COMPARISON_OPERATORS[m.group('op')]
         actual_value = dct.get(m.group('key'))
-        if (m.group('strval') is not None or
+        if (m.group('quotedstrval') is not None or
+            m.group('strval') is not None or
             # If the original field is a string and matching comparisonvalue is
             # a number we should respect the origin of the original field
             # and process comparison value as a string (see
@@ -2401,7 +2431,10 @@ def _match_one(filter_part, dct):
             if m.group('op') not in ('=', '!='):
                 raise ValueError(
                     'Operator %s does not support string values!' % m.group('op'))
-            comparison_value = m.group('strval') or m.group('intval')
+            comparison_value = m.group('quotedstrval') or m.group('strval') or m.group('intval')
+            quote = m.group('quote')
+            if quote is not None:
+                comparison_value = comparison_value.replace(r'\%s' % quote, quote)
         else:
             try:
                 comparison_value = int(m.group('intval'))
@@ -3013,6 +3046,260 @@ class ISO3166Utils(object):
         return cls._country_map.get(code.upper())
 
 
+class GeoUtils(object):
+    # Major IPv4 address blocks per country
+    _country_ip_map = {
+        'AD': '85.94.160.0/19',
+        'AE': '94.200.0.0/13',
+        'AF': '149.54.0.0/17',
+        'AG': '209.59.64.0/18',
+        'AI': '204.14.248.0/21',
+        'AL': '46.99.0.0/16',
+        'AM': '46.70.0.0/15',
+        'AO': '105.168.0.0/13',
+        'AP': '159.117.192.0/21',
+        'AR': '181.0.0.0/12',
+        'AS': '202.70.112.0/20',
+        'AT': '84.112.0.0/13',
+        'AU': '1.128.0.0/11',
+        'AW': '181.41.0.0/18',
+        'AZ': '5.191.0.0/16',
+        'BA': '31.176.128.0/17',
+        'BB': '65.48.128.0/17',
+        'BD': '114.130.0.0/16',
+        'BE': '57.0.0.0/8',
+        'BF': '129.45.128.0/17',
+        'BG': '95.42.0.0/15',
+        'BH': '37.131.0.0/17',
+        'BI': '154.117.192.0/18',
+        'BJ': '137.255.0.0/16',
+        'BL': '192.131.134.0/24',
+        'BM': '196.12.64.0/18',
+        'BN': '156.31.0.0/16',
+        'BO': '161.56.0.0/16',
+        'BQ': '161.0.80.0/20',
+        'BR': '152.240.0.0/12',
+        'BS': '24.51.64.0/18',
+        'BT': '119.2.96.0/19',
+        'BW': '168.167.0.0/16',
+        'BY': '178.120.0.0/13',
+        'BZ': '179.42.192.0/18',
+        'CA': '99.224.0.0/11',
+        'CD': '41.243.0.0/16',
+        'CF': '196.32.200.0/21',
+        'CG': '197.214.128.0/17',
+        'CH': '85.0.0.0/13',
+        'CI': '154.232.0.0/14',
+        'CK': '202.65.32.0/19',
+        'CL': '152.172.0.0/14',
+        'CM': '165.210.0.0/15',
+        'CN': '36.128.0.0/10',
+        'CO': '181.240.0.0/12',
+        'CR': '201.192.0.0/12',
+        'CU': '152.206.0.0/15',
+        'CV': '165.90.96.0/19',
+        'CW': '190.88.128.0/17',
+        'CY': '46.198.0.0/15',
+        'CZ': '88.100.0.0/14',
+        'DE': '53.0.0.0/8',
+        'DJ': '197.241.0.0/17',
+        'DK': '87.48.0.0/12',
+        'DM': '192.243.48.0/20',
+        'DO': '152.166.0.0/15',
+        'DZ': '41.96.0.0/12',
+        'EC': '186.68.0.0/15',
+        'EE': '90.190.0.0/15',
+        'EG': '156.160.0.0/11',
+        'ER': '196.200.96.0/20',
+        'ES': '88.0.0.0/11',
+        'ET': '196.188.0.0/14',
+        'EU': '2.16.0.0/13',
+        'FI': '91.152.0.0/13',
+        'FJ': '144.120.0.0/16',
+        'FM': '119.252.112.0/20',
+        'FO': '88.85.32.0/19',
+        'FR': '90.0.0.0/9',
+        'GA': '41.158.0.0/15',
+        'GB': '25.0.0.0/8',
+        'GD': '74.122.88.0/21',
+        'GE': '31.146.0.0/16',
+        'GF': '161.22.64.0/18',
+        'GG': '62.68.160.0/19',
+        'GH': '45.208.0.0/14',
+        'GI': '85.115.128.0/19',
+        'GL': '88.83.0.0/19',
+        'GM': '160.182.0.0/15',
+        'GN': '197.149.192.0/18',
+        'GP': '104.250.0.0/19',
+        'GQ': '105.235.224.0/20',
+        'GR': '94.64.0.0/13',
+        'GT': '168.234.0.0/16',
+        'GU': '168.123.0.0/16',
+        'GW': '197.214.80.0/20',
+        'GY': '181.41.64.0/18',
+        'HK': '113.252.0.0/14',
+        'HN': '181.210.0.0/16',
+        'HR': '93.136.0.0/13',
+        'HT': '148.102.128.0/17',
+        'HU': '84.0.0.0/14',
+        'ID': '39.192.0.0/10',
+        'IE': '87.32.0.0/12',
+        'IL': '79.176.0.0/13',
+        'IM': '5.62.80.0/20',
+        'IN': '117.192.0.0/10',
+        'IO': '203.83.48.0/21',
+        'IQ': '37.236.0.0/14',
+        'IR': '2.176.0.0/12',
+        'IS': '82.221.0.0/16',
+        'IT': '79.0.0.0/10',
+        'JE': '87.244.64.0/18',
+        'JM': '72.27.0.0/17',
+        'JO': '176.29.0.0/16',
+        'JP': '126.0.0.0/8',
+        'KE': '105.48.0.0/12',
+        'KG': '158.181.128.0/17',
+        'KH': '36.37.128.0/17',
+        'KI': '103.25.140.0/22',
+        'KM': '197.255.224.0/20',
+        'KN': '198.32.32.0/19',
+        'KP': '175.45.176.0/22',
+        'KR': '175.192.0.0/10',
+        'KW': '37.36.0.0/14',
+        'KY': '64.96.0.0/15',
+        'KZ': '2.72.0.0/13',
+        'LA': '115.84.64.0/18',
+        'LB': '178.135.0.0/16',
+        'LC': '192.147.231.0/24',
+        'LI': '82.117.0.0/19',
+        'LK': '112.134.0.0/15',
+        'LR': '41.86.0.0/19',
+        'LS': '129.232.0.0/17',
+        'LT': '78.56.0.0/13',
+        'LU': '188.42.0.0/16',
+        'LV': '46.109.0.0/16',
+        'LY': '41.252.0.0/14',
+        'MA': '105.128.0.0/11',
+        'MC': '88.209.64.0/18',
+        'MD': '37.246.0.0/16',
+        'ME': '178.175.0.0/17',
+        'MF': '74.112.232.0/21',
+        'MG': '154.126.0.0/17',
+        'MH': '117.103.88.0/21',
+        'MK': '77.28.0.0/15',
+        'ML': '154.118.128.0/18',
+        'MM': '37.111.0.0/17',
+        'MN': '49.0.128.0/17',
+        'MO': '60.246.0.0/16',
+        'MP': '202.88.64.0/20',
+        'MQ': '109.203.224.0/19',
+        'MR': '41.188.64.0/18',
+        'MS': '208.90.112.0/22',
+        'MT': '46.11.0.0/16',
+        'MU': '105.16.0.0/12',
+        'MV': '27.114.128.0/18',
+        'MW': '105.234.0.0/16',
+        'MX': '187.192.0.0/11',
+        'MY': '175.136.0.0/13',
+        'MZ': '197.218.0.0/15',
+        'NA': '41.182.0.0/16',
+        'NC': '101.101.0.0/18',
+        'NE': '197.214.0.0/18',
+        'NF': '203.17.240.0/22',
+        'NG': '105.112.0.0/12',
+        'NI': '186.76.0.0/15',
+        'NL': '145.96.0.0/11',
+        'NO': '84.208.0.0/13',
+        'NP': '36.252.0.0/15',
+        'NR': '203.98.224.0/19',
+        'NU': '49.156.48.0/22',
+        'NZ': '49.224.0.0/14',
+        'OM': '5.36.0.0/15',
+        'PA': '186.72.0.0/15',
+        'PE': '186.160.0.0/14',
+        'PF': '123.50.64.0/18',
+        'PG': '124.240.192.0/19',
+        'PH': '49.144.0.0/13',
+        'PK': '39.32.0.0/11',
+        'PL': '83.0.0.0/11',
+        'PM': '70.36.0.0/20',
+        'PR': '66.50.0.0/16',
+        'PS': '188.161.0.0/16',
+        'PT': '85.240.0.0/13',
+        'PW': '202.124.224.0/20',
+        'PY': '181.120.0.0/14',
+        'QA': '37.210.0.0/15',
+        'RE': '139.26.0.0/16',
+        'RO': '79.112.0.0/13',
+        'RS': '178.220.0.0/14',
+        'RU': '5.136.0.0/13',
+        'RW': '105.178.0.0/15',
+        'SA': '188.48.0.0/13',
+        'SB': '202.1.160.0/19',
+        'SC': '154.192.0.0/11',
+        'SD': '154.96.0.0/13',
+        'SE': '78.64.0.0/12',
+        'SG': '152.56.0.0/14',
+        'SI': '188.196.0.0/14',
+        'SK': '78.98.0.0/15',
+        'SL': '197.215.0.0/17',
+        'SM': '89.186.32.0/19',
+        'SN': '41.82.0.0/15',
+        'SO': '197.220.64.0/19',
+        'SR': '186.179.128.0/17',
+        'SS': '105.235.208.0/21',
+        'ST': '197.159.160.0/19',
+        'SV': '168.243.0.0/16',
+        'SX': '190.102.0.0/20',
+        'SY': '5.0.0.0/16',
+        'SZ': '41.84.224.0/19',
+        'TC': '65.255.48.0/20',
+        'TD': '154.68.128.0/19',
+        'TG': '196.168.0.0/14',
+        'TH': '171.96.0.0/13',
+        'TJ': '85.9.128.0/18',
+        'TK': '27.96.24.0/21',
+        'TL': '180.189.160.0/20',
+        'TM': '95.85.96.0/19',
+        'TN': '197.0.0.0/11',
+        'TO': '175.176.144.0/21',
+        'TR': '78.160.0.0/11',
+        'TT': '186.44.0.0/15',
+        'TV': '202.2.96.0/19',
+        'TW': '120.96.0.0/11',
+        'TZ': '156.156.0.0/14',
+        'UA': '93.72.0.0/13',
+        'UG': '154.224.0.0/13',
+        'US': '3.0.0.0/8',
+        'UY': '167.56.0.0/13',
+        'UZ': '82.215.64.0/18',
+        'VA': '212.77.0.0/19',
+        'VC': '24.92.144.0/20',
+        'VE': '186.88.0.0/13',
+        'VG': '172.103.64.0/18',
+        'VI': '146.226.0.0/16',
+        'VN': '14.160.0.0/11',
+        'VU': '202.80.32.0/20',
+        'WF': '117.20.32.0/21',
+        'WS': '202.4.32.0/19',
+        'YE': '134.35.0.0/16',
+        'YT': '41.242.116.0/22',
+        'ZA': '41.0.0.0/11',
+        'ZM': '165.56.0.0/13',
+        'ZW': '41.85.192.0/19',
+    }
+
+    @classmethod
+    def random_ipv4(cls, code):
+        block = cls._country_ip_map.get(code.upper())
+        if not block:
+            return None
+        addr, preflen = block.split('/')
+        addr_min = compat_struct_unpack('!L', socket.inet_aton(addr))[0]
+        addr_max = addr_min | (0xffffffff >> int(preflen))
+        return compat_str(socket.inet_ntoa(
+            compat_struct_pack('!L', random.randint(addr_min, addr_max))))
+
+
 class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
     def __init__(self, proxies=None):
         # Set default handlers
@@ -3038,6 +3325,57 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             self, req, proxy, type)
 
 
+# Both long_to_bytes and bytes_to_long are adapted from PyCrypto, which is
+# released into Public Domain
+# https://github.com/dlitz/pycrypto/blob/master/lib/Crypto/Util/number.py#L387
+
+def long_to_bytes(n, blocksize=0):
+    """long_to_bytes(n:long, blocksize:int) : string
+    Convert a long integer to a byte string.
+
+    If optional blocksize is given and greater than zero, pad the front of the
+    byte string with binary zeros so that the length is a multiple of
+    blocksize.
+    """
+    # after much testing, this algorithm was deemed to be the fastest
+    s = b''
+    n = int(n)
+    while n > 0:
+        s = compat_struct_pack('>I', n & 0xffffffff) + s
+        n = n >> 32
+    # strip off leading zeros
+    for i in range(len(s)):
+        if s[i] != b'\000'[0]:
+            break
+    else:
+        # only happens when n == 0
+        s = b'\000'
+        i = 0
+    s = s[i:]
+    # add back some pad bytes.  this could be done more efficiently w.r.t. the
+    # de-padding being done above, but sigh...
+    if blocksize > 0 and len(s) % blocksize:
+        s = (blocksize - len(s) % blocksize) * b'\000' + s
+    return s
+
+
+def bytes_to_long(s):
+    """bytes_to_long(string) : long
+    Convert a byte string to a long integer.
+
+    This is (essentially) the inverse of long_to_bytes().
+    """
+    acc = 0
+    length = len(s)
+    if length % 4:
+        extra = (4 - length % 4)
+        s = b'\000' * extra + s
+        length = length + extra
+    for i in range(0, length, 4):
+        acc = (acc << 32) + compat_struct_unpack('>I', s[i:i + 4])[0]
+    return acc
+
+
 def ohdave_rsa_encrypt(data, exponent, modulus):
     '''
     Implement OHDave's RSA algorithm. See http://www.ohdave.com/rsa/
@@ -3053,6 +3391,21 @@ def ohdave_rsa_encrypt(data, exponent, modulus):
     payload = int(binascii.hexlify(data[::-1]), 16)
     encrypted = pow(payload, exponent, modulus)
     return '%x' % encrypted
+
+
+def pkcs1pad(data, length):
+    """
+    Padding input data with PKCS#1 scheme
+
+    @param {int[]} data        input data
+    @param {int}   length      target length
+    @returns {int[]}           padded data
+    """
+    if len(data) > length - 11:
+        raise ValueError('Input data too long for PKCS#1 padding')
+
+    pseudo_random = [random.randint(0, 254) for _ in range(length - len(data) - 3)]
+    return [0, 2] + pseudo_random + [0] + data
 
 
 def encode_base_n(num, n, table=None):

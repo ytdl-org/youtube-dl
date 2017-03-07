@@ -23,7 +23,7 @@ from ..utils import (
 
 class NocoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www\.)?noco\.tv/emission/|player\.noco\.tv/\?idvideo=)(?P<id>\d+)'
-    _LOGIN_URL = 'http://noco.tv/do.php'
+    _LOGIN_URL = 'https://noco.tv/do.php'
     _API_URL_TEMPLATE = 'https://api.noco.tv/1.1/%s?ts=%s&tk=%s'
     _SUB_LANG_TEMPLATE = '&sub_lang=%s'
     _NETRC_MACHINE = 'noco'
@@ -69,16 +69,17 @@ class NocoIE(InfoExtractor):
         if username is None:
             return
 
-        login_form = {
-            'a': 'login',
-            'cookie': '1',
-            'username': username,
-            'password': password,
-        }
-        request = sanitized_Request(self._LOGIN_URL, urlencode_postdata(login_form))
-        request.add_header('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
-
-        login = self._download_json(request, None, 'Logging in as %s' % username)
+        login = self._download_json(
+            self._LOGIN_URL, None, 'Logging in as %s' % username,
+            data=urlencode_postdata({
+                'a': 'login',
+                'cookie': '1',
+                'username': username,
+                'password': password,
+            }),
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            })
 
         if 'erreur' in login:
             raise ExtractorError('Unable to login: %s' % clean_html(login['erreur']), expected=True)
