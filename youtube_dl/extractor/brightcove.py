@@ -487,7 +487,7 @@ class BrightcoveNewIE(InfoExtractor):
         # 5. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
 
         # [1] looks like:
-        # 	<video data-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
+        # <video data-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
 
         entries = []
 
@@ -498,28 +498,33 @@ class BrightcoveNewIE(InfoExtractor):
 
         # Look for <video> tags [1] and embed_in_page embeds [2]
         for video, script_tag, account_id, player_id, embed in re.findall(
-        r'''(?isx)
-            (<video[^>]+>)
-            (?:.*?
-              (<script[^>]+
-                src=["\'](?:https?:)?//players\.brightcove\.net/
-                (\d+)/([^/]+)_([^/]+)/index(?:\.min)?\.js
-              )
-            )?
-        ''', webpage):
+            r'''(?isx)
+                (<video[^>]+>)
+                (?:.*?
+                  (<script[^>]+
+                    src=["\'](?:https?:)?//players\.brightcove\.net/
+                    (\d+)/([^/]+)_([^/]+)/index(?:\.min)?\.js
+                  )
+                )?
+            ''', webpage
+        ):
             attrs = extract_attributes(video)
 
             # According to examples from [4] it's unclear whether video id
             # may be optional and what to do when it is
-            video_id    = attrs.get('data-video-id')
+            video_id = attrs.get('data-video-id')
             # See PR#12099/bostonglobe.py for 'data-brightcove-video-id' variant
 
-            if not account_id: account_id  = attrs.get('data-account')
-            if not player_id:  player_id   = attrs.get('data-player')
-            if not embed:      embed       = attrs.get('data-embed')
+            if not account_id:
+                account_id = attrs.get('data-account')
+            if not player_id:
+                player_id = attrs.get('data-player')
+            if not embed:
+                embed = attrs.get('data-embed')
 
             # According to [5] data-video-id may be prefixed with 'ref:'
-            if video_id: video_id = video_id.rpartition('ref:')[2]
+            if video_id:
+                video_id = video_id.rpartition('ref:')[2]
 
             if video_id and account_id and player_id and embed:
                 entries.append(
