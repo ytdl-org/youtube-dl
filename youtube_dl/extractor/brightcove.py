@@ -482,7 +482,7 @@ class BrightcoveNewIE(InfoExtractor):
         # Reference:
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
         # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
-        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html 
+        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/in-page-embed-player-implementation.html
         # 4. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
         # 5. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#tag
 
