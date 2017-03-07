@@ -78,10 +78,10 @@ class OpenloadIE(InfoExtractor):
         video_url_chars = []
 
         first_char = ord(ol_id[0])
-        key = first_char - 55
+        key = first_char - 50
         maxKey = max(2, key)
-        key = min(maxKey, len(ol_id) - 14)
-        t = ol_id[key:key + 12]
+        key = min(maxKey, len(ol_id) - 22)
+        t = ol_id[key:key + 20]
 
         hashMap = {}
         v = ol_id.replace(t, "")
@@ -98,8 +98,9 @@ class OpenloadIE(InfoExtractor):
         while h < len(v):
             B = v[h:h + 2]
             i = int(B, 16)
-            index = (h / 2) % 6
+            index = (h / 2) % 10
             A = hashMap[index]
+            i = i ^ 137
             i = i ^ A
             video_url_chars.append(compat_chr(i))
             h += 2
