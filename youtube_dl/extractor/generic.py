@@ -449,6 +449,23 @@ class GenericIE(InfoExtractor):
                 },
             }],
         },
+        {
+            # Brightcove with UUID in videoPlayer
+            'url': 'http://www8.hp.com/cn/zh/home.html',
+            'info_dict': {
+                'id': '5255815316001',
+                'ext': 'mp4',
+                'title': 'Sprocket Video - China',
+                'description': 'Sprocket Video - China',
+                'uploader': 'HP-Video Gallery',
+                'timestamp': 1482263210,
+                'upload_date': '20161220',
+                'uploader_id': '1107601872001',
+            },
+            'params': {
+                'skip_download': True,  # m3u8 download
+            },
+        },
         # ooyala video
         {
             'url': 'http://www.rollingstone.com/music/videos/norwegian-dj-cashmere-cat-goes-spartan-on-with-me-premiere-20131219',
