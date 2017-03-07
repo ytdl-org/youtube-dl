@@ -193,7 +193,13 @@ class BrightcoveLegacyIE(InfoExtractor):
         if videoPlayer is not None:
             if isinstance(videoPlayer, list):
                 videoPlayer = videoPlayer[0]
-            if not (videoPlayer.isdigit() or videoPlayer.startswith('ref:')):
+            videoPlayer = videoPlayer.strip()
+            # UUID is also possible for videoPlayer (e.g.
+            # http://www.popcornflix.com/hoodies-vs-hooligans/7f2d2b87-bbf2-4623-acfb-ea942b4f01dd
+            # or http://www8.hp.com/cn/zh/home.html)
+            if not (re.match(
+                    r'^(?:\d+|[\da-fA-F]{8}-?[\da-fA-F]{4}-?[\da-fA-F]{4}-?[\da-fA-F]{4}-?[\da-fA-F]{12})$',
+                    videoPlayer) or videoPlayer.startswith('ref:')):
                 return None
             params['@videoPlayer'] = videoPlayer
         linkBase = find_param('linkBaseURL')
