@@ -104,7 +104,7 @@ class TwitchBaseIE(InfoExtractor):
             login_page, handle, 'Logging in as %s' % username, {
                 'username': username,
                 'password': password,
-        })
+            })
 
         if re.search(r'(?i)<form[^>]+id="two-factor-submit"', redirect_page) is not None:
             # TODO: Add mechanism to request an SMS or phone call
