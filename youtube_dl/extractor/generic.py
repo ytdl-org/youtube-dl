@@ -448,6 +448,20 @@ class GenericIE(InfoExtractor):
             }],
         },
         {
+            # Brightcove:new type [2].
+            'url': 'http://www.delawaresportszone.com/video-st-thomas-more-earns-first-trip-to-basketball-semis',
+            'md5': '2b35148fcf48da41c9fb4591650784f3',
+            'info_dict': {
+                'id': '5348741021001',
+                'ext': 'mp4',
+                'upload_date': '20170306',
+                'uploader_id': '4191638492001',
+                'timestamp': 1488769918,
+                'title': 'VIDEO:  St. Thomas More earns first trip to basketball semis',
+
+            },
+        },
+        {
             # Alternative brightcove <video> attributes
             'url': 'http://www.programme-tv.net/videos/extraits/81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche/',
             'info_dict': {
