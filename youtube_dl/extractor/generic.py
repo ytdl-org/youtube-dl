@@ -469,6 +469,7 @@ class GenericIE(InfoExtractor):
                 'title': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche, Extraits : toutes les vidéos avec Télé-Loisirs",
             },
             'playlist': [{
+                'md5': '732d22ba3d33f2f3fc253c39f8f36523',
                 'info_dict': {
                     'id': '5311302538001',
                     'ext': 'mp4',
