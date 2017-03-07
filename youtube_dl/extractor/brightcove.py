@@ -482,8 +482,12 @@ class BrightcoveNewIE(InfoExtractor):
         # Reference:
         # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
         # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
-        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html
+        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/embed-in-page.html 
         # 4. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
+        # 5. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#tag
+
+        # [5] looks like:
+        # 	<video data-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
 
         entries = []
 
@@ -492,31 +496,30 @@ class BrightcoveNewIE(InfoExtractor):
                 r'<iframe[^>]+src=(["\'])((?:https?:)?//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
             entries.append(url if url.startswith('http') else 'http:' + url)
 
-        # Look for embed_in_page embeds [2]
-        for video_id, account_id, player_id, embed in re.findall(
-                # According to examples from [3] it's unclear whether video id
-                # may be optional and what to do when it is
-                # According to [4] data-video-id may be prefixed with ref:
-                r'''(?sx)
-                    <video[^>]+
-                        data-video-id=["\'](\d+|ref:[^"\']+)["\'][^>]*>.*?
-                    </video>.*?
-                    <script[^>]+
-                        src=["\'](?:https?:)?//players\.brightcove\.net/
-                        (\d+)/([^/]+)_([^/]+)/index(?:\.min)?\.js
-                ''', webpage):
-            entries.append(
-                'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
-                % (account_id, player_id, embed, video_id))
-
-        # 	<video data-brightcove-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
-        for video in re.findall(r'(?i)(<video[^>]+>)', webpage):
+        # Look for embed_in_page embeds [2] and <video> tags [5]
+        for video, script_tag, account_id, player_id, embed in re.findall(
+        r'''(?isx)
+            (<video[^>]+>)
+            (?:.*?
+              (<script[^>]+
+                src=["\'](?:https?:)?//players\.brightcove\.net/
+                (\d+)/([^/]+)_([^/]+)/index(?:\.min)?\.js
+              )
+            )?
+        ''', webpage):
             attrs = extract_attributes(video)
 
+            # According to examples from [3] it's unclear whether video id
+            # may be optional and what to do when it is
             video_id    = attrs.get('data-video-id')
-            account_id  = attrs.get('data-account')
-            player_id   = attrs.get('data-player')
-            embed       = attrs.get('data-embed')
+            # See PR#12099/bostonglobe.py for 'data-brightcove-video-id' variant
+
+            if not account_id: account_id  = attrs.get('data-account')
+            if not player_id:  player_id   = attrs.get('data-player')
+            if not embed:      embed       = attrs.get('data-embed')
+
+            # According to [4] data-video-id may be prefixed with 'ref:'
+            video_id = video_id.rpartition('ref:')[2]
 
             if video_id and account_id and player_id and embed:
                 entries.append(
