@@ -480,23 +480,23 @@ class BrightcoveNewIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         # Reference:
-        # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
+        # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#tag
         # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
-        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/in-page-embed-player-implementation.html
-        # 4. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
-        # 5. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#tag
+        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
+        # 4. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/in-page-embed-player-implementation.html
+        # 5. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
 
-        # [5] looks like:
+        # [1] looks like:
         # 	<video data-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
 
         entries = []
 
-        # Look for iframe embeds [1]
+        # Look for iframe embeds [3]
         for _, url in re.findall(
                 r'<iframe[^>]+src=(["\'])((?:https?:)?//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
             entries.append(url if url.startswith('http') else 'http:' + url)
 
-        # Look for embed_in_page embeds [2] and <video> tags [5]
+        # Look for <video> tags [1] and embed_in_page embeds [2]
         for video, script_tag, account_id, player_id, embed in re.findall(
         r'''(?isx)
             (<video[^>]+>)
@@ -509,7 +509,7 @@ class BrightcoveNewIE(InfoExtractor):
         ''', webpage):
             attrs = extract_attributes(video)
 
-            # According to examples from [3] it's unclear whether video id
+            # According to examples from [4] it's unclear whether video id
             # may be optional and what to do when it is
             video_id    = attrs.get('data-video-id')
             # See PR#12099/bostonglobe.py for 'data-brightcove-video-id' variant
@@ -518,7 +518,7 @@ class BrightcoveNewIE(InfoExtractor):
             if not player_id:  player_id   = attrs.get('data-player')
             if not embed:      embed       = attrs.get('data-embed')
 
-            # According to [4] data-video-id may be prefixed with 'ref:'
+            # According to [5] data-video-id may be prefixed with 'ref:'
             video_id = video_id.rpartition('ref:')[2]
 
             if video_id and account_id and player_id and embed:
