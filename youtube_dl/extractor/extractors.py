@@ -69,6 +69,7 @@ from .arte import (
     TheOperaPlatformIE,
     ArteTVPlaylistIE,
 )
+from .loubiana import ArretSurImagesIE
 from .atresplayer import AtresPlayerIE
 from .atttechchannel import ATTTechChannelIE
 from .audimedia import AudiMediaIE
