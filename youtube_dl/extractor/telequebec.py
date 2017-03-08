@@ -33,7 +33,7 @@ class TeleQuebecIE(InfoExtractor):
             'id': media_id,
             'url': smuggle_url('limelight:media:' + media_data['streamInfo']['sourceId'], {'geo_countries': ['CA']}),
             'title': media_data['title'],
-            'description': media_data.get('descriptions', [{'text': None}])[0].get('text') if media_data.get('descriptions') else ''
+            'description': media_data.get('descriptions', [{'text': None}])[0].get('text') if media_data.get('descriptions') else '',
             'duration': int_or_none(media_data.get('durationInMilliseconds'), 1000),
             'ie_key': 'LimelightMedia',
         }
