@@ -9,6 +9,7 @@ from ..utils import js_to_json
 
 # Contributed by John Hawkinson <jhawk@mit.edu>, 6 Oct 2016.
 
+
 class IQM2IE(InfoExtractor):
     IE_DESC = 'IQM2 (aka Accela) livestreamed video from municipal meetings'
     # We commonly see both iqm2.com and IQM2.com.
@@ -35,7 +36,7 @@ class IQM2IE(InfoExtractor):
                 'title': 'City of Somerville, Massachusetts',
             }},
         {
-            # This is a "postprocessed" case    
+            # This is a "postprocessed" case
             'url': 'http://cambridgema.iqm2.com/Citizens/SplitView.aspx?Mode=Video&MeetingID=1679#',
             'md5': '478ea30eee1966f7be0d8dd623122148',
             'info_dict': {
@@ -50,23 +51,23 @@ class IQM2IE(InfoExtractor):
         {
             'url': 'https://CambridgeMA.IQM2.com/Citizens/VideoMain.aspx?MeetingID=1594',
             'only_matching': True,
-            }
+        },
     ]
 
     def _find_jwplayer_data(self, webpage):
         mobj = re.search(r'SetupJWPlayer\(eval\(\'(?P<options>.+)\'\)\);', webpage)
         if mobj:
             return mobj.group('options')
-        
+
     def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
         jwplayer_data = self._parse_json(
             self._find_jwplayer_data(webpage), video_id,
             transform_source=js_to_json)
 
         assert(isinstance(jwplayer_data, list))
-        jwplayer_data = {'sources': jwplayer_data }
+        jwplayer_data = {'sources': jwplayer_data}
         jwplayer_data['tracks'] = jwplayer_data['sources'][0].get('tracks')
-        
+
         return self._parse_jwplayer_data(
             jwplayer_data, video_id, *args, **kwargs)
 
@@ -82,7 +83,7 @@ class IQM2IE(InfoExtractor):
         # and then parse the canonicalized src element
         inner_url_rel = self._html_search_regex(
             r'<div id="VideoPanelInner".*src="([^"]+)"',
-            parent_page, 'url');
+            parent_page, 'url')
 
         inner_url = compat_urlparse.urljoin(url, inner_url_rel)
         mobj = re.match(
