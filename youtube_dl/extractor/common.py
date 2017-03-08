@@ -36,34 +36,35 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     determine_ext,
+    determine_protocol,
     error_to_compat_str,
     ExtractorError,
+    extract_attributes,
     fix_xml_ampersands,
     float_or_none,
     GeoRestrictedError,
     GeoUtils,
     int_or_none,
     js_to_json,
+    mimetype2ext,
+    orderedSet,
+    parse_codecs,
+    parse_duration,
     parse_iso8601,
+    parse_m3u8_attributes,
     RegexNotFoundError,
-    sanitize_filename,
     sanitized_Request,
+    sanitize_filename,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
+    update_Request,
+    update_url_query,
+    urljoin,
     url_basename,
     xpath_element,
     xpath_text,
     xpath_with_ns,
-    determine_protocol,
-    parse_duration,
-    mimetype2ext,
-    update_Request,
-    update_url_query,
-    parse_m3u8_attributes,
-    extract_attributes,
-    parse_codecs,
-    urljoin,
 )
 
 
@@ -713,6 +714,13 @@ class InfoExtractor(object):
         if video_title is not None:
             video_info['title'] = video_title
         return video_info
+
+    def playlist_from_matches(self, matches, video_id, video_title, getter=None, ie=None):
+        urlrs = orderedSet(
+            self.url_result(self._proto_relative_url(getter(m) if getter else m), ie)
+            for m in matches)
+        return self.playlist_result(
+            urlrs, playlist_id=video_id, playlist_title=video_title)
 
     @staticmethod
     def playlist_result(entries, playlist_id=None, playlist_title=None, playlist_description=None):
