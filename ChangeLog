@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [miomio] Fix extraction (#12291, #12388, #12402)
+
+
 version 2017.03.07
 
 Core
