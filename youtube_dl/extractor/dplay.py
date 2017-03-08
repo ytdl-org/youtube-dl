@@ -183,16 +183,15 @@ class DPlayItIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_id = self._search_regex(
-            r'url\s*:\s*["\']https://dplay-south-prod\.disco-api\.com/playback/videoPlaybackInfo/(\d+)',
+        info_url = self._search_regex(
+            r'url\s*:\s*["\']((?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)',
             webpage, 'video id')
 
         title = remove_end(self._og_search_title(webpage), ' | Dplay')
 
         try:
             info = self._download_json(
-                'https://dplay-south-prod.disco-api.com/playback/videoPlaybackInfo/%s' % video_id,
-                display_id, headers={
+                info_url, display_id, headers={
                     'Authorization': 'Bearer %s' % self._get_cookies(url).get(
                         'dplayit_token').value,
                     'Referer': url,
@@ -231,7 +230,7 @@ class DPlayItIE(InfoExtractor):
             season_number = episode_number = upload_date = None
 
         return {
-            'id': video_id,
+            'id': info_url.rpartition('/')[-1],
             'display_id': display_id,
             'title': title,
             'description': self._og_search_description(webpage),
