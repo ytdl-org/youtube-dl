@@ -19,9 +19,9 @@ class WDRBaseIE(InfoExtractor):
     def _extract_wdr_video(self, webpage, display_id):
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
         # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
-        # for wdrmaus its in a link to the page in a multiline "videoLink"-tag
+        # for wdrmaus, in a tag with the class "videoButton"
         json_metadata = self._html_search_regex(
-            r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
+            r'class="(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b[^"]*"[^>]+data-extension="([^"]+)"',
             webpage, 'media link', default=None, flags=re.MULTILINE)
 
         if not json_metadata:
@@ -170,14 +170,14 @@ class WDRIE(WDRBaseIE):
             'skip': 'The id changes from week to week because of the new episode'
         },
         {
-            'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/achterbahn.php5',
+            'url': 'http://www.wdrmaus.de/filme/sachgeschichten/achterbahn.php5',
             'md5': '803138901f6368ee497b4d195bb164f2',
             'info_dict': {
                 'id': 'mdb-186083',
                 'ext': 'mp4',
                 'upload_date': '20130919',
                 'title': 'Sachgeschichte - Achterbahn ',
-                'description': '- Die Sendung mit der Maus -',
+                'description': 'Die Seite mit der Maus -',
             },
         },
         {
