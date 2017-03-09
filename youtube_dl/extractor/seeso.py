@@ -10,21 +10,20 @@ from ..utils import (
 
 
 class SeesoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?seeso\.com/view/episode/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?seeso\.com/view/(episode|movie)/(?P<id>[0-9]+)'
     _TEST = {
         'params': {
-            'username': 'emailhere',
-            'password': 'passhere'
+            'username': 'emailaddress',
+            'password': 'password'
         },
-        'url': 'https://www.seeso.com/view/episode/799241283849',
+        'url': 'https://www.seeso.com/view/episode/697446467698',
         'info_dict': {
-            'id': '799241283849',
+            'id': '697446467698',
             'ext': 'mp4',
-            'series': 'Bajillion Dollar Propertie$',
-            'title': 'Farsi Lessons',
-            'description': ("Amir leads Victoria into a trap, the Bros meet a super obnoxious bro, "
-                            "and rival brokers Serge and Gio intimidate Glenn."),
-            'thumbnail': 'https://chaosic.akamaized.net/NBCOTT_-_Production/360/907/160831_3092487_Farsi_Lessons.jpg',
+            'series': 'Hidden America with Jonah Ray',
+            'title': 'CHICAGO: THE SECOND BEST CITY',
+            'description': "They call it the Second City and Jonah’s here to find out why. He digs into Chicago’s vast history of corruption as it relates to politics. It’s historical relevance to the Prohibition Era party scene. As well as taking in the city’s famous improv theaters, bars and nightlife.",
+            # 'thumbnail': 'https://chaosic.akamaized.net/NBCOTT_-_Production/360/907/160831_3092487_Farsi_Lessons.jpg',
         }
     }
 
@@ -48,6 +47,7 @@ class SeesoIE(InfoExtractor):
         auth_response = self._download_json(auth_request, '', note='Getting auth token...')
         auth_token = auth_response.get('user').get('token')
 
+        print("auth_token: ", auth_token)
         return auth_token
 
     def _real_extract(self, url):
@@ -77,7 +77,7 @@ class SeesoIE(InfoExtractor):
         m3u8_url = 'https://link.theplatform.com/s/NZILfC/media/{0}?feed=All%20Media%20Feed&auth={1}' \
                    '&vpaid=script,flash&formats=m3u,mpeg4'.format(public_url_id, auth_token)
         formats = []
-        for entry in self._extract_m3u8_formats(m3u8_url, video_id, m3u8_id='m3u8', ext='mp4'):
+        for entry in self._extract_m3u8_formats(m3u8_url, video_id, m3u8_id='m3u8', ext='ts'):
             formats.append(entry)
 
         self._sort_formats(formats)
