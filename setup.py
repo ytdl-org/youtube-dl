@@ -107,8 +107,8 @@ setup(
     url='https://github.com/rg3/youtube-dl',
     author='Ricardo Garcia',
     author_email='ytdl@yt-dl.org',
-    maintainer='Philipp Hagemeister',
-    maintainer_email='phihag@phihag.de',
+    maintainer='Sergey M.',
+    maintainer_email='dstftw@gmail.com',
     packages=[
         'youtube_dl',
         'youtube_dl.extractor', 'youtube_dl.downloader',
@@ -130,6 +130,7 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 
     cmdclass={'build_lazy_extractors': build_lazy_extractors},

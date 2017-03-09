@@ -22,7 +22,7 @@ class MnetIE(InfoExtractor):
             'timestamp': 1451564040,
             'age_limit': 0,
             'thumbnails': 'mincount:5',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'ext': 'flv',
         },
         'params': {

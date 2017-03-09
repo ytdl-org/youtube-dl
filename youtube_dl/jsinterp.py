@@ -213,7 +213,7 @@ class JSInterpreter(object):
     def extract_object(self, objname):
         obj = {}
         obj_m = re.search(
-            (r'(?:var\s+)?%s\s*=\s*\{' % re.escape(objname)) +
+            (r'(?<!this\.)%s\s*=\s*\{' % re.escape(objname)) +
             r'\s*(?P<fields>([a-zA-Z$0-9]+\s*:\s*function\(.*?\)\s*\{.*?\}(?:,\s*)?)*)' +
             r'\}\s*;',
             self.code)

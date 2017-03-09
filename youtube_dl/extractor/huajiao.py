@@ -20,7 +20,7 @@ class HuajiaoIE(InfoExtractor):
             'title': '#新人求关注#',
             'description': 're:.*',
             'duration': 2424.0,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1475866459,
             'upload_date': '20161007',
             'uploader': 'Penny_余姿昀',

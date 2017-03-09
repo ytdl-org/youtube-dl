@@ -14,7 +14,7 @@ class RTVNHIE(InfoExtractor):
             'id': '131946',
             'ext': 'mp4',
             'title': 'Grote zoektocht in zee bij Zandvoort naar vermiste vrouw',
-            'thumbnail': 're:^https?:.*\.jpg$'
+            'thumbnail': r're:^https?:.*\.jpg$'
         }
     }
 

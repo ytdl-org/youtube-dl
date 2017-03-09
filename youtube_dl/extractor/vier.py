@@ -9,7 +9,7 @@ from .common import InfoExtractor
 
 class VierIE(InfoExtractor):
     IE_NAME = 'vier'
-    _VALID_URL = r'https?://(?:www\.)?vier\.be/(?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))?|video/v3/embed/(?P<embed_id>\d+))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/(?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))?|video/v3/embed/(?P<embed_id>\d+))'
     _TESTS = [{
         'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
         'info_dict': {
@@ -18,6 +18,19 @@ class VierIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Het wordt warm in De Moestuin',
             'description': 'De vele uren werk eisen hun tol. Wim droomt van assistentie...',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.vijf.be/temptationisland/videos/zo-grappig-temptation-island-hosts-moeten-kiezen-tussen-onmogelijke-dilemmas/2561614',
+        'info_dict': {
+            'id': '2561614',
+            'display_id': 'zo-grappig-temptation-island-hosts-moeten-kiezen-tussen-onmogelijke-dilemmas',
+            'ext': 'mp4',
+            'title': 'ZO grappig: Temptation Island hosts moeten kiezen tussen onmogelijke dilemma\'s',
+            'description': 'Het spel is simpel: Annelien Coorevits en Rick Brandsteder krijgen telkens 2 dilemma\'s voorgeschoteld en ze MOETEN een keuze maken.',
         },
         'params': {
             # m3u8 download
@@ -35,6 +48,7 @@ class VierIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         embed_id = mobj.group('embed_id')
         display_id = mobj.group('display_id') or embed_id
+        site = mobj.group('site')
 
         webpage = self._download_webpage(url, display_id)
 
@@ -43,7 +57,7 @@ class VierIE(InfoExtractor):
             webpage, 'video id')
         application = self._search_regex(
             [r'data-application="([^"]+)"', r'"application"\s*:\s*"([^"]+)"'],
-            webpage, 'application', default='vier_vod')
+            webpage, 'application', default=site + '_vod')
         filename = self._search_regex(
             [r'data-filename="([^"]+)"', r'"filename"\s*:\s*"([^"]+)"'],
             webpage, 'filename')
@@ -68,13 +82,19 @@ class VierIE(InfoExtractor):
 
 class VierVideosIE(InfoExtractor):
     IE_NAME = 'vier:videos'
-    _VALID_URL = r'https?://(?:www\.)?vier\.be/(?P<program>[^/]+)/videos(?:\?.*\bpage=(?P<page>\d+)|$)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/(?P<program>[^/]+)/videos(?:\?.*\bpage=(?P<page>\d+)|$)'
     _TESTS = [{
         'url': 'http://www.vier.be/demoestuin/videos',
         'info_dict': {
             'id': 'demoestuin',
         },
         'playlist_mincount': 153,
+    }, {
+        'url': 'http://www.vijf.be/temptationisland/videos',
+        'info_dict': {
+            'id': 'temptationisland',
+        },
+        'playlist_mincount': 159,
     }, {
         'url': 'http://www.vier.be/demoestuin/videos?page=6',
         'info_dict': {
@@ -92,6 +112,7 @@ class VierVideosIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         program = mobj.group('program')
+        site = mobj.group('site')
 
         page_id = mobj.group('page')
         if page_id:
@@ -105,13 +126,13 @@ class VierVideosIE(InfoExtractor):
         entries = []
         for current_page_id in itertools.count(start_page):
             current_page = self._download_webpage(
-                'http://www.vier.be/%s/videos?page=%d' % (program, current_page_id),
+                'http://www.%s.be/%s/videos?page=%d' % (site, program, current_page_id),
                 program,
                 'Downloading page %d' % (current_page_id + 1))
             page_entries = [
-                self.url_result('http://www.vier.be' + video_url, 'Vier')
+                self.url_result('http://www.' + site + '.be' + video_url, 'Vier')
                 for video_url in re.findall(
-                    r'<h3><a href="(/[^/]+/videos/[^/]+(?:/\d+)?)">', current_page)]
+                    r'<h[23]><a href="(/[^/]+/videos/[^/]+(?:/\d+)?)">', current_page)]
             entries.extend(page_entries)
             if page_id or '>Meer<' not in current_page:
                 break

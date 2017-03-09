@@ -6,37 +6,24 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_urlparse,
+    compat_HTTPError,
+)
 from ..utils import (
     USER_AGENTS,
+    ExtractorError,
     int_or_none,
+    unified_strdate,
+    remove_end,
     update_url_query,
 )
 
 
 class DPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?P<domain>it\.dplay\.com|www\.dplay\.(?:dk|se|no))/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?P<domain>www\.dplay\.(?:dk|se|no))/[^/]+/(?P<id>[^/?#]+)'
 
     _TESTS = [{
-        # geo restricted, via direct unsigned hls URL
-        'url': 'http://it.dplay.com/take-me-out/stagione-1-episodio-25/',
-        'info_dict': {
-            'id': '1255600',
-            'display_id': 'stagione-1-episodio-25',
-            'ext': 'mp4',
-            'title': 'Episodio 25',
-            'description': 'md5:cae5f40ad988811b197d2d27a53227eb',
-            'duration': 2761,
-            'timestamp': 1454701800,
-            'upload_date': '20160205',
-            'creator': 'RTIT',
-            'series': 'Take me out',
-            'season_number': 1,
-            'episode_number': 25,
-            'age_limit': 0,
-        },
-        'expected_warnings': ['Unable to download f4m manifest'],
-    }, {
         # non geo restricted, via secure api, unsigned download hls URL
         'url': 'http://www.dplay.se/nugammalt-77-handelser-som-format-sverige/season-1-svensken-lar-sig-njuta-av-livet/',
         'info_dict': {
@@ -167,4 +154,91 @@ class DPlayIE(InfoExtractor):
             'age_limit': int_or_none(info.get('minimum_age')),
             'formats': formats,
             'subtitles': subtitles,
+        }
+
+
+class DPlayItIE(InfoExtractor):
+    _VALID_URL = r'https?://it\.dplay\.com/[^/]+/[^/]+/(?P<id>[^/?#]+)'
+    _GEO_COUNTRIES = ['IT']
+    _TEST = {
+        'url': 'http://it.dplay.com/nove/biografie-imbarazzanti/luigi-di-maio-la-psicosi-di-stanislawskij/',
+        'md5': '2b808ffb00fc47b884a172ca5d13053c',
+        'info_dict': {
+            'id': '6918',
+            'display_id': 'luigi-di-maio-la-psicosi-di-stanislawskij',
+            'ext': 'mp4',
+            'title': 'Biografie imbarazzanti: Luigi Di Maio: la psicosi di Stanislawskij',
+            'description': 'md5:3c7a4303aef85868f867a26f5cc14813',
+            'thumbnail': r're:^https?://.*\.jpe?g',
+            'upload_date': '20160524',
+            'series': 'Biografie imbarazzanti',
+            'season_number': 1,
+            'episode': 'Luigi Di Maio: la psicosi di Stanislawskij',
+            'episode_number': 1,
+        },
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        info_url = self._search_regex(
+            r'url\s*:\s*["\']((?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)',
+            webpage, 'video id')
+
+        title = remove_end(self._og_search_title(webpage), ' | Dplay')
+
+        try:
+            info = self._download_json(
+                info_url, display_id, headers={
+                    'Authorization': 'Bearer %s' % self._get_cookies(url).get(
+                        'dplayit_token').value,
+                    'Referer': url,
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (400, 403):
+                info = self._parse_json(e.cause.read().decode('utf-8'), display_id)
+                error = info['errors'][0]
+                if error.get('code') == 'access.denied.geoblocked':
+                    self.raise_geo_restricted(
+                        msg=error.get('detail'), countries=self._GEO_COUNTRIES)
+                raise ExtractorError(info['errors'][0]['detail'], expected=True)
+            raise
+
+        hls_url = info['data']['attributes']['streaming']['hls']['url']
+
+        formats = self._extract_m3u8_formats(
+            hls_url, display_id, ext='mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls')
+
+        series = self._html_search_regex(
+            r'(?s)<h1[^>]+class=["\'].*?\bshow_title\b.*?["\'][^>]*>(.+?)</h1>',
+            webpage, 'series', fatal=False)
+        episode = self._search_regex(
+            r'<p[^>]+class=["\'].*?\bdesc_ep\b.*?["\'][^>]*>\s*<br/>\s*<b>([^<]+)',
+            webpage, 'episode', fatal=False)
+
+        mobj = re.search(
+            r'(?s)<span[^>]+class=["\']dates["\'][^>]*>.+?\bS\.(?P<season_number>\d+)\s+E\.(?P<episode_number>\d+)\s*-\s*(?P<upload_date>\d{2}/\d{2}/\d{4})',
+            webpage)
+        if mobj:
+            season_number = int(mobj.group('season_number'))
+            episode_number = int(mobj.group('episode_number'))
+            upload_date = unified_strdate(mobj.group('upload_date'))
+        else:
+            season_number = episode_number = upload_date = None
+
+        return {
+            'id': info_url.rpartition('/')[-1],
+            'display_id': display_id,
+            'title': title,
+            'description': self._og_search_description(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'series': series,
+            'season_number': season_number,
+            'episode': episode,
+            'episode_number': episode_number,
+            'upload_date': upload_date,
+            'formats': formats,
         }

@@ -17,7 +17,7 @@ class FunnyOrDieIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Heart-Shaped Box: Literal Video Version',
             'description': 'md5:ea09a01bc9a1c46d9ab696c01747c338',
-            'thumbnail': 're:^http:.*\.jpg$',
+            'thumbnail': r're:^http:.*\.jpg$',
         },
     }, {
         'url': 'http://www.funnyordie.com/embed/e402820827',
@@ -26,7 +26,7 @@ class FunnyOrDieIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Please Use This Song (Jon Lajoie)',
             'description': 'Please use this to sell something.  www.jonlajoie.com',
-            'thumbnail': 're:^http:.*\.jpg$',
+            'thumbnail': r're:^http:.*\.jpg$',
         },
         'params': {
             'skip_download': True,

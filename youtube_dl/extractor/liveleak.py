@@ -18,7 +18,7 @@ class LiveLeakIE(InfoExtractor):
             'description': 'extremely bad day for this guy..!',
             'uploader': 'ljfriel2',
             'title': 'Most unlucky car accident',
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         }
     }, {
         'url': 'http://www.liveleak.com/view?i=f93_1390833151',
@@ -29,7 +29,7 @@ class LiveLeakIE(InfoExtractor):
             'description': 'German Television Channel NDR does an exclusive interview with Edward Snowden.\r\nUploaded on LiveLeak cause German Television thinks the rest of the world isn\'t intereseted in Edward Snowden.',
             'uploader': 'ARD_Stinkt',
             'title': 'German Television does first Edward Snowden Interview (ENGLISH)',
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         }
     }, {
         'url': 'http://www.liveleak.com/view?i=4f7_1392687779',
@@ -52,7 +52,7 @@ class LiveLeakIE(InfoExtractor):
             'description': 'Happened on 27.7.2014. \r\nAt 0:53 you can see people still swimming at near beach.',
             'uploader': 'bony333',
             'title': 'Crazy Hungarian tourist films close call waterspout in Croatia',
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         }
     }, {
         # Covers https://github.com/rg3/youtube-dl/pull/10664#issuecomment-247439521

@@ -26,7 +26,7 @@ class PandoraTVIE(InfoExtractor):
             'ext': 'flv',
             'title': '頭を撫でてくれる？',
             'description': '頭を撫でてくれる？',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 39,
             'upload_date': '20151218',
             'uploader': 'カワイイ動物まとめ',

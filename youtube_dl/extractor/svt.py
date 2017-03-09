@@ -13,6 +13,8 @@ from ..utils import (
 
 
 class SVTBaseIE(InfoExtractor):
+    _GEO_COUNTRIES = ['SE']
+
     def _extract_video(self, video_info, video_id):
         formats = []
         for vr in video_info['videoReferences']:
@@ -38,7 +40,9 @@ class SVTBaseIE(InfoExtractor):
                     'url': vurl,
                 })
         if not formats and video_info.get('rights', {}).get('geoBlockedSweden'):
-            self.raise_geo_restricted('This video is only available in Sweden')
+            self.raise_geo_restricted(
+                'This video is only available in Sweden',
+                countries=self._GEO_COUNTRIES)
         self._sort_formats(formats)
 
         subtitles = {}
@@ -129,7 +133,7 @@ class SVTPlayIE(SVTBaseIE):
             'ext': 'mp4',
             'title': 'Flygplan till Haile Selassie',
             'duration': 3527,
-            'thumbnail': 're:^https?://.*[\.-]jpg$',
+            'thumbnail': r're:^https?://.*[\.-]jpg$',
             'age_limit': 0,
             'subtitles': {
                 'sv': [{

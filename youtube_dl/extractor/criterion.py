@@ -14,7 +14,7 @@ class CriterionIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Le Samouraï',
             'description': 'md5:a2b4b116326558149bef81f76dcbb93f',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 

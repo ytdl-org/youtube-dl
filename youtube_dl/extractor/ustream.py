@@ -69,6 +69,13 @@ class UstreamIE(InfoExtractor):
         },
     }]
 
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>http://www\.ustream\.tv/embed/.+?)\1', webpage)
+        if mobj is not None:
+            return mobj.group('url')
+
     def _get_stream_info(self, url, video_id, app_id_ver, extra_note=None):
         def num_to_hex(n):
             return hex(n)[2:]

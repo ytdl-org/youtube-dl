@@ -23,7 +23,7 @@ class RuutuIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Oletko aina halunnut tietää mitä tapahtuu vain hetki ennen lähetystä? - Nyt se selvisi!',
                 'description': 'md5:cfc6ccf0e57a814360df464a91ff67d6',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 114,
                 'age_limit': 0,
             },
@@ -36,7 +36,7 @@ class RuutuIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Superpesis: katso koko kausi Ruudussa',
                 'description': 'md5:bfb7336df2a12dc21d18fa696c9f8f23',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 40,
                 'age_limit': 0,
             },
@@ -49,7 +49,7 @@ class RuutuIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Osa 1: Mikael Jungner',
                 'description': 'md5:7d90f358c47542e3072ff65d7b1bcffe',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'age_limit': 0,
             },
         },
@@ -81,6 +81,12 @@ class RuutuIE(InfoExtractor):
                     elif ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             video_url, video_id, f4m_id='hds', fatal=False))
+                    elif ext == 'mpd':
+                        # video-only and audio-only streams are of different
+                        # duration resulting in out of sync issue
+                        continue
+                        formats.extend(self._extract_mpd_formats(
+                            video_url, video_id, mpd_id='dash', fatal=False))
                     else:
                         proto = compat_urllib_parse_urlparse(video_url).scheme
                         if not child.tag.startswith('HTTP') and proto != 'rtmp':

@@ -22,7 +22,7 @@ class UstudioIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'San Francisco: Golden Gate Bridge',
             'description': 'md5:23925500697f2c6d4830e387ba51a9be',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20111107',
             'uploader': 'Tony Farley',
         }

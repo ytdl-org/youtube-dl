@@ -16,7 +16,7 @@ class MelonVODIE(InfoExtractor):
             'id': '50158734',
             'ext': 'mp4',
             'title': "Jessica 'Wonderland' MV Making Film",
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'artist': 'Jessica (제시카)',
             'upload_date': '20161212',
             'duration': 203,

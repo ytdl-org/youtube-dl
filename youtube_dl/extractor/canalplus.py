@@ -27,6 +27,7 @@ class CanalplusIE(InfoExtractor):
                                     (?:www\.)?d8\.tv|
                                     (?:www\.)?c8\.fr|
                                     (?:www\.)?d17\.tv|
+                                    (?:(?:football|www)\.)?cstar\.fr|
                                     (?:www\.)?itele\.fr
                                 )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
                                 player\.canalplus\.fr/#/(?P<id>\d+)
@@ -40,6 +41,7 @@ class CanalplusIE(InfoExtractor):
         'd8': 'd8',
         'c8': 'd8',
         'd17': 'd17',
+        'cstar': 'd17',
         'itele': 'itele',
     }
 
@@ -87,6 +89,19 @@ class CanalplusIE(InfoExtractor):
             'upload_date': '20161014',
         },
     }, {
+        'url': 'http://football.cstar.fr/cstar-minisite-foot/pid7566-feminines-videos.html?vid=1416769',
+        'info_dict': {
+            'id': '1416769',
+            'display_id': 'pid7566-feminines-videos',
+            'ext': 'mp4',
+            'title': 'France - Albanie : les temps forts de la soirée - 20/09/2016',
+            'description': 'md5:c3f30f2aaac294c1c969b3294de6904e',
+            'upload_date': '20160921',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://m.canalplus.fr/?vid=1398231',
         'only_matching': True,
     }, {
@@ -107,7 +122,7 @@ class CanalplusIE(InfoExtractor):
             [r'<canal:player[^>]+?videoId=(["\'])(?P<id>\d+)',
              r'id=["\']canal_video_player(?P<id>\d+)',
              r'data-video=["\'](?P<id>\d+)'],
-            webpage, 'video id', group='id')
+            webpage, 'video id', default=mobj.group('vid'), group='id')
 
         info_url = self._VIDEO_INFO_TEMPLATE % (site_id, video_id)
         video_data = self._download_json(info_url, video_id, 'Downloading video JSON')

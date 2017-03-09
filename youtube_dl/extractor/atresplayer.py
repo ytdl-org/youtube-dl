@@ -30,7 +30,7 @@ class AtresPlayerIE(InfoExtractor):
                 'title': 'Especial Solidario de Nochebuena',
                 'description': 'md5:e2d52ff12214fa937107d21064075bf1',
                 'duration': 5527.6,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'skip': 'This video is only available for registered users'
         },
@@ -43,7 +43,7 @@ class AtresPlayerIE(InfoExtractor):
                 'title': 'David Bustamante',
                 'description': 'md5:f33f1c0a05be57f6708d4dd83a3b81c6',
                 'duration': 1439.0,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {

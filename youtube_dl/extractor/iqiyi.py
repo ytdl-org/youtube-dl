@@ -173,11 +173,12 @@ class IqiyiIE(InfoExtractor):
         }
     }, {
         'url': 'http://www.iqiyi.com/v_19rrhnnclk.html',
-        'md5': '667171934041350c5de3f5015f7f1152',
+        'md5': 'b7dc800a4004b1b57749d9abae0472da',
         'info_dict': {
             'id': 'e3f585b550a280af23c98b6cb2be19fb',
             'ext': 'mp4',
-            'title': '名侦探柯南 国语版：第752集 迫近灰原秘密的黑影 下篇',
+            # This can be either Simplified Chinese or Traditional Chinese
+            'title': r're:^(?:名侦探柯南 国语版：第752集 迫近灰原秘密的黑影 下篇|名偵探柯南 國語版：第752集 迫近灰原秘密的黑影 下篇)$',
         },
         'skip': 'Geo-restricted to China',
     }, {

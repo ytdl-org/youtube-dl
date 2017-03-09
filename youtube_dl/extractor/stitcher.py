@@ -22,7 +22,7 @@ class StitcherIE(InfoExtractor):
             'title': 'Machine Learning Mastery and Cancer Clusters',
             'description': 'md5:55163197a44e915a14a1ac3a1de0f2d3',
             'duration': 1604,
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
         },
     }, {
         'url': 'http://www.stitcher.com/podcast/panoply/vulture-tv/e/the-rare-hourlong-comedy-plus-40846275?autoplay=true',
@@ -33,7 +33,7 @@ class StitcherIE(InfoExtractor):
             'title': "The CW's 'Crazy Ex-Girlfriend'",
             'description': 'md5:04f1e2f98eb3f5cbb094cea0f9e19b17',
             'duration': 2235,
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
         },
         'params': {
             'skip_download': True,

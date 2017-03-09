@@ -18,7 +18,7 @@ class PlaywireIE(InfoExtractor):
             'id': '3353705',
             'ext': 'mp4',
             'title': 'S04_RM_UCL_Rus',
-            'thumbnail': 're:^https?://.*\.png$',
+            'thumbnail': r're:^https?://.*\.png$',
             'duration': 145.94,
         },
     }, {

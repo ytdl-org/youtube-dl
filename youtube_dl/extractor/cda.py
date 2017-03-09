@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import codecs
 import re
 
 from .common import InfoExtractor
@@ -24,7 +25,7 @@ class CDAIE(InfoExtractor):
             'height': 720,
             'title': 'Oto dlaczego przed zakrętem należy zwolnić.',
             'description': 'md5:269ccd135d550da90d1662651fcb9772',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'average_rating': float,
             'duration': 39
         }
@@ -36,7 +37,7 @@ class CDAIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Lądowanie na lotnisku na Maderze',
             'description': 'md5:60d76b71186dcce4e0ba6d4bbdb13e1a',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'crash404',
             'view_count': int,
             'average_rating': float,
@@ -96,6 +97,10 @@ class CDAIE(InfoExtractor):
             if not video or 'file' not in video:
                 self.report_warning('Unable to extract %s version information' % version)
                 return
+            if video['file'].startswith('uggc'):
+                video['file'] = codecs.decode(video['file'], 'rot_13')
+                if video['file'].endswith('adc.mp4'):
+                    video['file'] = video['file'].replace('adc.mp4', '.mp4')
             f = {
                 'url': video['file'],
             }

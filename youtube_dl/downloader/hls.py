@@ -65,6 +65,9 @@ class HlsFD(FragmentFD):
         s = manifest.decode('utf-8', 'ignore')
 
         if not self.can_download(s, info_dict):
+            if info_dict.get('extra_param_to_segment_url'):
+                self.report_error('pycrypto not found. Please install it.')
+                return False
             self.report_warning(
                 'hlsnative has detected features it does not support, '
                 'extraction will be delegated to ffmpeg')

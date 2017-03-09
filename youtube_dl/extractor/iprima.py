@@ -8,12 +8,12 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     js_to_json,
-    sanitized_Request,
 )
 
 
 class IPrimaIE(InfoExtractor):
     _VALID_URL = r'https?://play\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
+    _GEO_BYPASS = False
 
     _TESTS = [{
         'url': 'http://play.iprima.cz/gondici-s-r-o-33',
@@ -29,6 +29,10 @@ class IPrimaIE(InfoExtractor):
     }, {
         'url': 'http://play.iprima.cz/particka/particka-92',
         'only_matching': True,
+    }, {
+        # geo restricted
+        'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady-iv-1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -38,11 +42,13 @@ class IPrimaIE(InfoExtractor):
 
         video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
 
-        req = sanitized_Request(
-            'http://play.iprima.cz/prehravac/init?_infuse=1'
-            '&_ts=%s&productId=%s' % (round(time.time()), video_id))
-        req.add_header('Referer', url)
-        playerpage = self._download_webpage(req, video_id, note='Downloading player')
+        playerpage = self._download_webpage(
+            'http://play.iprima.cz/prehravac/init',
+            video_id, note='Downloading player', query={
+                '_infuse': 1,
+                '_ts': round(time.time()),
+                'productId': video_id,
+            }, headers={'Referer': url})
 
         formats = []
 
@@ -65,7 +71,7 @@ class IPrimaIE(InfoExtractor):
 
         options = self._parse_json(
             self._search_regex(
-                r'(?s)var\s+playerOptions\s*=\s*({.+?});',
+                r'(?s)(?:TDIPlayerOptions|playerOptions)\s*=\s*({.+?});\s*\]\]',
                 playerpage, 'player options', default='{}'),
             video_id, transform_source=js_to_json, fatal=False)
         if options:
@@ -82,7 +88,7 @@ class IPrimaIE(InfoExtractor):
                 extract_formats(src)
 
         if not formats and '>GEO_IP_NOT_ALLOWED<' in playerpage:
-            self.raise_geo_restricted()
+            self.raise_geo_restricted(countries=['CZ'])
 
         self._sort_formats(formats)
 

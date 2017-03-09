@@ -58,7 +58,7 @@ We are then presented with a very complicated request when the original problem 
 
 Some of our users seem to think there is a limit of issues they can or should open. There is no limit of issues they can or should open. While it may seem appealing to be able to dump all your issues into one ticket, that means that someone who solves one of your issues cannot mark the issue as closed. Typically, reporting a bunch of issues leads to the ticket lingering since nobody wants to attack that behemoth, until someone mercifully splits the issue into multiple ones.
 
-In particular, every site support request issue should only pertain to services at one site (generally under a common domain, but always using the same backend technology). Do not request support for vimeo user videos, Whitehouse podcasts, and Google Plus pages in the same issue. Also, make sure that you don't post bug reports alongside feature requests. As a rule of thumb, a feature request does not include outputs of youtube-dl that are not immediately related to the feature at hand. Do not post reports of a network error alongside the request for a new video service.
+In particular, every site support request issue should only pertain to services at one site (generally under a common domain, but always using the same backend technology). Do not request support for vimeo user videos, White house podcasts, and Google Plus pages in the same issue. Also, make sure that you don't post bug reports alongside feature requests. As a rule of thumb, a feature request does not include outputs of youtube-dl that are not immediately related to the feature at hand. Do not post reports of a network error alongside the request for a new video service.
 
 ###  Is anyone going to need the feature?
 
@@ -94,7 +94,7 @@ If you want to create a build of youtube-dl yourself, you'll need
 
 If you want to add support for a new site, first of all **make sure** this site is **not dedicated to [copyright infringement](README.md#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. youtube-dl does **not support** such sites thus pull requests adding support for them **will be rejected**.
 
-After you have ensured this site is distributing it's content legally, you can follow this quick list (assuming your service is called `yourextractor`):
+After you have ensured this site is distributing its content legally, you can follow this quick list (assuming your service is called `yourextractor`):
 
 1. [Fork this repository](https://github.com/rg3/youtube-dl/fork)
 2. Check out the source code with:
@@ -124,7 +124,7 @@ After you have ensured this site is distributing it's content legally, you can f
                 'id': '42',
                 'ext': 'mp4',
                 'title': 'Video title goes here',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 # TODO more properties, either as:
                 # * A value
                 # * MD5 checksum; start the string with md5:
@@ -199,7 +199,7 @@ Assume at this point `meta`'s layout is:
 }
 ```
 
-Assume you want to extract `summary` and put it into the resulting info dict as `description`. Since `description` is an optional metafield you should be ready that this key may be missing from the `meta` dict, so that you should extract it like:
+Assume you want to extract `summary` and put it into the resulting info dict as `description`. Since `description` is an optional meta field you should be ready that this key may be missing from the `meta` dict, so that you should extract it like:
 
 ```python
 description = meta.get('summary')  # correct

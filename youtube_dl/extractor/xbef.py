@@ -14,7 +14,7 @@ class XBefIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'md5:7358a9faef8b7b57acda7c04816f170e',
             'age_limit': 18,
-            'thumbnail': 're:^http://.*\.jpg',
+            'thumbnail': r're:^http://.*\.jpg',
         }
     }
 

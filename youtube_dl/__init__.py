@@ -133,6 +133,12 @@ def _real_main(argv=None):
         parser.error('TV Provider account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error('using output template conflicts with using title, video ID or auto number')
+    if opts.autonumber_size is not None:
+        if opts.autonumber_size <= 0:
+            parser.error('auto number size must be positive')
+    if opts.autonumber_start is not None:
+        if opts.autonumber_start < 0:
+            parser.error('auto number start must be positive or 0')
     if opts.usetitle and opts.useid:
         parser.error('using title conflicts with using video ID')
     if opts.username is not None and opts.password is None:
@@ -236,14 +242,11 @@ def _real_main(argv=None):
 
     # PostProcessors
     postprocessors = []
-    # Add the metadata pp first, the other pps will copy it
     if opts.metafromtitle:
         postprocessors.append({
             'key': 'MetadataFromTitle',
             'titleformat': opts.metafromtitle
         })
-    if opts.addmetadata:
-        postprocessors.append({'key': 'FFmpegMetadata'})
     if opts.extractaudio:
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
@@ -273,6 +276,11 @@ def _real_main(argv=None):
         })
         if not already_have_thumbnail:
             opts.writethumbnail = True
+    # FFmpegMetadataPP should be run after FFmpegVideoConvertorPP and
+    # FFmpegExtractAudioPP as containers before conversion may not support
+    # metadata (3gp, webm, etc.)
+    if opts.addmetadata:
+        postprocessors.append({'key': 'FFmpegMetadata'})
     # XAttrMetadataPP should be run after post-processors that may change file
     # contents
     if opts.xattrs:
@@ -321,6 +329,7 @@ def _real_main(argv=None):
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
         'autonumber_size': opts.autonumber_size,
+        'autonumber_start': opts.autonumber_start,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
         'force_generic_extractor': opts.force_generic_extractor,
@@ -337,6 +346,7 @@ def _real_main(argv=None):
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
         'playlistreverse': opts.playlist_reverse,
+        'playlistrandom': opts.playlist_random,
         'noplaylist': opts.noplaylist,
         'logtostderr': opts.outtmpl == '-',
         'consoletitle': opts.consoletitle,
@@ -405,7 +415,12 @@ def _real_main(argv=None):
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
         'geo_verification_proxy': opts.geo_verification_proxy,
-
+        'config_location': opts.config_location,
+        'geo_bypass': opts.geo_bypass,
+        'geo_bypass_country': opts.geo_bypass_country,
+        # just for deprecation check
+        'autonumber': opts.autonumber if opts.autonumber is True else None,
+        'usetitle': opts.usetitle if opts.usetitle is True else None,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

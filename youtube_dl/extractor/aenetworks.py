@@ -23,7 +23,7 @@ class AENetworksBaseIE(ThePlatformIE):
 class AENetworksIE(AENetworksBaseIE):
     IE_NAME = 'aenetworks'
     IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|aetv|mylifetime)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)/full-movie)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|aetv|mylifetime|lifetimemovieclub)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?)'
     _TESTS = [{
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
         'md5': 'a97a65f7e823ae10e9244bc5433d5fe6',
@@ -62,11 +62,15 @@ class AENetworksIE(AENetworksBaseIE):
     }, {
         'url': 'http://www.mylifetime.com/movies/center-stage-on-pointe/full-movie',
         'only_matching': True
+    }, {
+        'url': 'https://www.lifetimemovieclub.com/movies/a-killer-among-us',
+        'only_matching': True
     }]
     _DOMAIN_TO_REQUESTOR_ID = {
         'history.com': 'HISTORY',
         'aetv.com': 'AETV',
         'mylifetime.com': 'LIFETIME',
+        'lifetimemovieclub.com': 'LIFETIMEMOVIECLUB',
         'fyi.tv': 'FYI',
     }
 
@@ -87,7 +91,7 @@ class AENetworksIE(AENetworksBaseIE):
                     self._html_search_meta('aetn:SeriesTitle', webpage))
             elif url_parts_len == 2:
                 entries = []
-                for episode_item in re.findall(r'(?s)<div[^>]+class="[^"]*episode-item[^"]*"[^>]*>', webpage):
+                for episode_item in re.findall(r'(?s)<[^>]+class="[^"]*(?:episode|program)-item[^"]*"[^>]*>', webpage):
                     episode_attributes = extract_attributes(episode_item)
                     episode_url = compat_urlparse.urljoin(
                         url, episode_attributes['data-canonical'])

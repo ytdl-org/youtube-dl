@@ -13,7 +13,7 @@ class RadioDeIE(InfoExtractor):
             'ext': 'mp3',
             'title': 're:^NDR 2 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'description': 'md5:591c49c702db1a33751625ebfb67f273',
-            'thumbnail': 're:^https?://.*\.png',
+            'thumbnail': r're:^https?://.*\.png',
             'is_live': True,
         },
         'params': {

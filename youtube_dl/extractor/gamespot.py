@@ -63,7 +63,7 @@ class GameSpotIE(OnceIE):
             streams, ('progressive_hd', 'progressive_high', 'progressive_low'))
         if progressive_url and manifest_url:
             qualities_basename = self._search_regex(
-                '/([^/]+)\.csmil/',
+                r'/([^/]+)\.csmil/',
                 manifest_url, 'qualities basename', default=None)
             if qualities_basename:
                 QUALITIES_RE = r'((,\d+)+,?)'

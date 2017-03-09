@@ -20,7 +20,7 @@ class KarriereVideosIE(InfoExtractor):
             'ext': 'flv',
             'title': 'AltenpflegerIn',
             'description': 'md5:dbadd1259fde2159a9b28667cb664ae2',
-            'thumbnail': 're:^http://.*\.png',
+            'thumbnail': r're:^http://.*\.png',
         },
         'params': {
             # rtmp download
@@ -34,7 +34,7 @@ class KarriereVideosIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Väterkarenz und neue Chancen für Mütter - "Baby - was nun?"',
             'description': 'md5:97092c6ad1fd7d38e9d6a5fdeb2bcc33',
-            'thumbnail': 're:^http://.*\.png',
+            'thumbnail': r're:^http://.*\.png',
         },
         'params': {
             # rtmp download

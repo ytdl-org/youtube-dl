@@ -18,7 +18,7 @@ class MovingImageIE(InfoExtractor):
             'title': 'SHETLAND WOOL',
             'description': 'md5:c5afca6871ad59b4271e7704fe50ab04',
             'duration': 900,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }
 

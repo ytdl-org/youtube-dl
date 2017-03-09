@@ -23,7 +23,7 @@ class PornoVoisinesIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Recherche appartement',
             'description': 'md5:fe10cb92ae2dd3ed94bb4080d11ff493',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140925',
             'duration': 120,
             'view_count': int,

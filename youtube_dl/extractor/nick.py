@@ -10,7 +10,7 @@ from ..utils import update_url_query
 class NickIE(MTVServicesInfoExtractor):
     # None of videos on the website are still alive?
     IE_NAME = 'nick.com'
-    _VALID_URL = r'https?://(?:www\.)?nick(?:jr)?\.com/(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?:(?:www|beta)\.)?nick(?:jr)?\.com/(?:[^/]+/)?(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://udat.mtvnservices.com/service1/dispatch.htm'
     _TESTS = [{
         'url': 'http://www.nick.com/videos/clip/alvinnn-and-the-chipmunks-112-full-episode.html',
@@ -56,6 +56,9 @@ class NickIE(MTVServicesInfoExtractor):
         ],
     }, {
         'url': 'http://www.nickjr.com/paw-patrol/videos/pups-save-a-goldrush-s3-ep302-full-episode/',
+        'only_matching': True,
+    }, {
+        'url': 'http://beta.nick.com/nicky-ricky-dicky-and-dawn/videos/nicky-ricky-dicky-dawn-301-full-episode/',
         'only_matching': True,
     }]
 

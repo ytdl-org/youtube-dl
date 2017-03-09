@@ -31,6 +31,16 @@ MSO_INFO = {
         'username_field': 'user',
         'password_field': 'passwd',
     },
+    'TWC': {
+        'name': 'Time Warner Cable | Spectrum',
+        'username_field': 'Ecom_User_ID',
+        'password_field': 'Ecom_Password',
+    },
+    'Charter_Direct': {
+        'name': 'Charter Spectrum',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },

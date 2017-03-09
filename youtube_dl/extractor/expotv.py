@@ -17,7 +17,7 @@ class ExpoTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'NYX Butter Lipstick Little Susie',
             'description': 'Goes on like butter, but looks better!',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Stephanie S.',
             'upload_date': '20150520',
             'view_count': int,

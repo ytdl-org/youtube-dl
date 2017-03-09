@@ -24,6 +24,7 @@ import sys
 import time
 import tokenize
 import traceback
+import random
 
 from .compat import (
     compat_basestring,
@@ -32,6 +33,7 @@ from .compat import (
     compat_get_terminal_size,
     compat_http_client,
     compat_kwargs,
+    compat_numeric_types,
     compat_os_name,
     compat_str,
     compat_tokenize_tokenize,
@@ -55,6 +57,8 @@ from .utils import (
     ExtractorError,
     format_bytes,
     formatSeconds,
+    GeoRestrictedError,
+    ISO3166Utils,
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
@@ -159,6 +163,7 @@ class YoutubeDL(object):
     playlistend:       Playlist item to end at.
     playlist_items:    Specific indices of playlist to download.
     playlistreverse:   Download playlist items in reverse order.
+    playlistrandom:    Download playlist items in random order.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -270,6 +275,12 @@ class YoutubeDL(object):
                        If it returns None, the video is downloaded.
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
+    geo_bypass:        Bypass geographic restriction via faking X-Forwarded-For
+                       HTTP header (experimental)
+    geo_bypass_country:
+                       Two-letter ISO 3166-2 country code that will be used for
+                       explicit geographic restriction bypassing via faking
+                       X-Forwarded-For HTTP header (experimental)
 
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
@@ -317,10 +328,20 @@ class YoutubeDL(object):
         self.params.update(params)
         self.cache = Cache(self)
 
-        if self.params.get('cn_verification_proxy') is not None:
-            self.report_warning('--cn-verification-proxy is deprecated. Use --geo-verification-proxy instead.')
+        def check_deprecated(param, option, suggestion):
+            if self.params.get(param) is not None:
+                self.report_warning(
+                    '%s is deprecated. Use %s instead.' % (option, suggestion))
+                return True
+            return False
+
+        if check_deprecated('cn_verification_proxy', '--cn-verification-proxy', '--geo-verification-proxy'):
             if self.params.get('geo_verification_proxy') is None:
                 self.params['geo_verification_proxy'] = self.params['cn_verification_proxy']
+
+        check_deprecated('autonumber_size', '--autonumber-size', 'output template with %(autonumber)0Nd, where N in the number of digits')
+        check_deprecated('autonumber', '--auto-number', '-o "%(autonumber)s-%(title)s.%(ext)s"')
+        check_deprecated('usetitle', '--title', '-o "%(title)s-%(id)s.%(ext)s"')
 
         if params.get('bidi_workaround', False):
             try:
@@ -583,10 +604,7 @@ class YoutubeDL(object):
             autonumber_size = self.params.get('autonumber_size')
             if autonumber_size is None:
                 autonumber_size = 5
-            autonumber_templ = '%0' + str(autonumber_size) + 'd'
-            template_dict['autonumber'] = autonumber_templ % self._num_downloads
-            if template_dict.get('playlist_index') is not None:
-                template_dict['playlist_index'] = '%0*d' % (len(str(template_dict['n_entries'])), template_dict['playlist_index'])
+            template_dict['autonumber'] = self.params.get('autonumber_start', 1) - 1 + self._num_downloads
             if template_dict.get('resolution') is None:
                 if template_dict.get('width') and template_dict.get('height'):
                     template_dict['resolution'] = '%dx%d' % (template_dict['width'], template_dict['height'])
@@ -598,13 +616,62 @@ class YoutubeDL(object):
             sanitize = lambda k, v: sanitize_filename(
                 compat_str(v),
                 restricted=self.params.get('restrictfilenames'),
-                is_id=(k == 'id'))
-            template_dict = dict((k, sanitize(k, v))
+                is_id=(k == 'id' or k.endswith('_id')))
+            template_dict = dict((k, v if isinstance(v, compat_numeric_types) else sanitize(k, v))
                                  for k, v in template_dict.items()
                                  if v is not None and not isinstance(v, (list, tuple, dict)))
             template_dict = collections.defaultdict(lambda: 'NA', template_dict)
 
             outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+
+            # For fields playlist_index and autonumber convert all occurrences
+            # of %(field)s to %(field)0Nd for backward compatibility
+            field_size_compat_map = {
+                'playlist_index': len(str(template_dict['n_entries'])),
+                'autonumber': autonumber_size,
+            }
+            FIELD_SIZE_COMPAT_RE = r'(?<!%)%\((?P<field>autonumber|playlist_index)\)s'
+            mobj = re.search(FIELD_SIZE_COMPAT_RE, outtmpl)
+            if mobj:
+                outtmpl = re.sub(
+                    FIELD_SIZE_COMPAT_RE,
+                    r'%%(\1)0%dd' % field_size_compat_map[mobj.group('field')],
+                    outtmpl)
+
+            NUMERIC_FIELDS = set((
+                'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
+                'upload_year', 'upload_month', 'upload_day',
+                'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
+                'average_rating', 'comment_count', 'age_limit',
+                'start_time', 'end_time',
+                'chapter_number', 'season_number', 'episode_number',
+                'track_number', 'disc_number', 'release_year',
+                'playlist_index',
+            ))
+
+            # Missing numeric fields used together with integer presentation types
+            # in format specification will break the argument substitution since
+            # string 'NA' is returned for missing fields. We will patch output
+            # template for missing fields to meet string presentation type.
+            for numeric_field in NUMERIC_FIELDS:
+                if numeric_field not in template_dict:
+                    # As of [1] format syntax is:
+                    #  %[mapping_key][conversion_flags][minimum_width][.precision][length_modifier]type
+                    # 1. https://docs.python.org/2/library/stdtypes.html#string-formatting
+                    FORMAT_RE = r'''(?x)
+                        (?<!%)
+                        %
+                        \({0}\)  # mapping key
+                        (?:[#0\-+ ]+)?  # conversion flags (optional)
+                        (?:\d+)?  # minimum field width (optional)
+                        (?:\.\d+)?  # precision (optional)
+                        [hlL]?  # length modifier (optional)
+                        [diouxXeEfFgGcrs%]  # conversion type
+                    '''
+                    outtmpl = re.sub(
+                        FORMAT_RE.format(numeric_field),
+                        r'%({0})s'.format(numeric_field), outtmpl)
+
             tmpl = compat_expanduser(outtmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787
@@ -705,6 +772,14 @@ class YoutubeDL(object):
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
+            except GeoRestrictedError as e:
+                msg = e.msg
+                if e.countries:
+                    msg += '\nThis video is available in %s.' % ', '.join(
+                        map(ISO3166Utils.short2full, e.countries))
+                msg += '\nYou might want to use a VPN or a proxy server (with --proxy) to workaround.'
+                self.report_error(msg)
+                break
             except ExtractorError as e:  # An error we somewhat expected
                 self.report_error(compat_str(e), e.format_traceback())
                 break
@@ -842,8 +917,17 @@ class YoutubeDL(object):
             if self.params.get('playlistreverse', False):
                 entries = entries[::-1]
 
+            if self.params.get('playlistrandom', False):
+                random.shuffle(entries)
+
+            x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
+
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
+                # This __x_forwarded_for_ip thing is a bit ugly but requires
+                # minimal changes
+                if x_forwarded_for:
+                    entry['__x_forwarded_for_ip'] = x_forwarded_for
                 extra = {
                     'n_entries': n_entries,
                     'playlist': playlist,
@@ -1228,6 +1312,11 @@ class YoutubeDL(object):
         if cookies:
             res['Cookie'] = cookies
 
+        if 'X-Forwarded-For' not in res:
+            x_forwarded_for_ip = info_dict.get('__x_forwarded_for_ip')
+            if x_forwarded_for_ip:
+                res['X-Forwarded-For'] = x_forwarded_for_ip
+
         return res
 
     def _calc_cookies(self, info_dict):
@@ -1339,7 +1428,7 @@ class YoutubeDL(object):
                 format['format_id'] = compat_str(i)
             else:
                 # Sanitize format_id from characters used in format selector expression
-                format['format_id'] = re.sub('[\s,/+\[\]()]', '_', format['format_id'])
+                format['format_id'] = re.sub(r'[\s,/+\[\]()]', '_', format['format_id'])
             format_id = format['format_id']
             if format_id not in formats_dict:
                 formats_dict[format_id] = []
@@ -1363,13 +1452,16 @@ class YoutubeDL(object):
                 format['ext'] = determine_ext(format['url']).lower()
             # Automatically determine protocol if missing (useful for format
             # selection purposes)
-            if 'protocol' not in format:
+            if format.get('protocol') is None:
                 format['protocol'] = determine_protocol(format)
             # Add HTTP headers, so that external programs can use them from the
             # json output
             full_format_info = info_dict.copy()
             full_format_info.update(format)
             format['http_headers'] = self._calc_headers(full_format_info)
+        # Remove private housekeeping stuff
+        if '__x_forwarded_for_ip' in info_dict:
+            del info_dict['__x_forwarded_for_ip']
 
         # TODO Central sorting goes here
 

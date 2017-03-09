@@ -3,15 +3,18 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     parse_iso8601,
     update_url_query,
+    int_or_none,
+    determine_protocol,
+    unescapeHTML,
 )
 
 
-class SendtoNewsIE(JWPlatformBaseIE):
+class SendtoNewsIE(InfoExtractor):
     _VALID_URL = r'https?://embed\.sendtonews\.com/player2/embedplayer\.php\?.*\bSC=(?P<id>[0-9A-Za-z-]+)'
 
     _TEST = {
@@ -20,18 +23,18 @@ class SendtoNewsIE(JWPlatformBaseIE):
         'info_dict': {
             'id': 'GxfCe0Zo7D-175909-5588'
         },
-        'playlist_count': 9,
+        'playlist_count': 8,
         # test the first video only to prevent lengthy tests
         'playlist': [{
             'info_dict': {
-                'id': '198180',
+                'id': '240385',
                 'ext': 'mp4',
-                'title': 'Recap: CLE 5, LAA 4',
-                'description': '8/14/16: Naquin, Almonte lead Indians in 5-4 win',
-                'duration': 57.343,
-                'thumbnail': 're:https?://.*\.jpg$',
-                'upload_date': '20160815',
-                'timestamp': 1471221961,
+                'title': 'Indians introduce Encarnacion',
+                'description': 'Indians president of baseball operations Chris Antonetti and Edwin Encarnacion discuss the slugger\'s three-year contract with Cleveland',
+                'duration': 137.898,
+                'thumbnail': r're:https?://.*\.jpg$',
+                'upload_date': '20170105',
+                'timestamp': 1483649762,
             },
         }],
         'params': {
@@ -64,7 +67,20 @@ class SendtoNewsIE(JWPlatformBaseIE):
         for video in playlist_data['playlistData'][0]:
             info_dict = self._parse_jwplayer_data(
                 video['jwconfiguration'],
-                require_title=False, rtmp_params={'no_resume': True})
+                require_title=False, m3u8_id='hls', rtmp_params={'no_resume': True})
+
+            for f in info_dict['formats']:
+                if f.get('tbr'):
+                    continue
+                tbr = int_or_none(self._search_regex(
+                    r'/(\d+)k/', f['url'], 'bitrate', default=None))
+                if not tbr:
+                    continue
+                f.update({
+                    'format_id': '%s-%d' % (determine_protocol(f), tbr),
+                    'tbr': tbr,
+                })
+            self._sort_formats(info_dict['formats'], ('tbr', 'height', 'width', 'format_id'))
 
             thumbnails = []
             if video.get('thumbnailUrl'):
@@ -78,8 +94,8 @@ class SendtoNewsIE(JWPlatformBaseIE):
                     'url': video['smThumbnailUrl'],
                 })
             info_dict.update({
-                'title': video['S_headLine'],
-                'description': video.get('S_fullStory'),
+                'title': video['S_headLine'].strip(),
+                'description': unescapeHTML(video.get('S_fullStory')),
                 'thumbnails': thumbnails,
                 'duration': float_or_none(video.get('SM_length')),
                 'timestamp': parse_iso8601(video.get('S_sysDate'), delimiter=' '),
