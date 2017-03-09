@@ -80,6 +80,7 @@ class AdultSwimIE(TurnerBaseIE):
         'expected_warnings': [
             'Unable to download JSON metadata: HTTP Error 401'
         ],
+        'skip': 'Requires a cable provider login',
     }]
 
     # Use the Adult Swim api (v2) for extracting all metadata about a video in a
