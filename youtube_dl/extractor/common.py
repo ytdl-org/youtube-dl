@@ -2218,7 +2218,7 @@ class InfoExtractor(object):
 
             entries.append({
                 'id': this_video_id,
-                'title': video_data['title'] if require_title else video_data.get('title'),
+                'title': video_data.get('title', '') if require_title else '',
                 'description': video_data.get('description'),
                 'thumbnail': self._proto_relative_url(video_data.get('image')),
                 'timestamp': int_or_none(video_data.get('pubdate')),
