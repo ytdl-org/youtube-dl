@@ -2550,7 +2550,10 @@ class GenericIE(InfoExtractor):
             try:
                 jwplayer_data = self._parse_json(
                     jwplayer_data_str, video_id, transform_source=js_to_json)
-                return self._parse_jwplayer_data(jwplayer_data, video_id)
+                info = self._parse_jwplayer_data(
+                    jwplayer_data, video_id, require_title=False)
+                if not info.get('title'):
+                    info['title'] = video_title
             except ExtractorError:
                 pass
 
