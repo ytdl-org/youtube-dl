@@ -928,6 +928,7 @@ from .svt import (
 )
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
+from .szenikeu import SzenikEUIE
 from .sztvhu import SztvHuIE
 from .tagesschau import (
     TagesschauPlayerIE,
