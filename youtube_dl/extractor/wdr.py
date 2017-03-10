@@ -19,7 +19,8 @@ class WDRBaseIE(InfoExtractor):
     def _extract_wdr_video(self, webpage, display_id):
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
         # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
-        # for wdrmaus it is in a link to the page in a multiline "videoLink"-tag
+        # for wdrmaus, in a tag with the class "videoButton" (previously a link
+        # to the page in a multiline "videoLink"-tag)
         json_metadata = self._html_search_regex(
             r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
             webpage, 'media link', default=None, flags=re.MULTILINE)
@@ -32,7 +33,7 @@ class WDRBaseIE(InfoExtractor):
         jsonp_url = media_link_obj['mediaObj']['url']
 
         metadata = self._download_json(
-            jsonp_url, 'metadata', transform_source=strip_jsonp)
+            jsonp_url, display_id, transform_source=strip_jsonp)
 
         metadata_tracker_data = metadata['trackerData']
         metadata_media_resource = metadata['mediaResource']
