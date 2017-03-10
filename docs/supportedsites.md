@@ -212,6 +212,7 @@
  - **Dotsub**
  - **DouyuTV**: 斗鱼
  - **DPlay**
+ - **DPlayIt**
  - **dramafever**
  - **dramafever:series**
  - **DRBonanza**

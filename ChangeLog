@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.10
 
 Extractors
 * [generic] Make title optional for jwplayer embeds (#12410)
