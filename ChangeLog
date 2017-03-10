@@ -1,7 +1,14 @@
 version <unreleased>
 
 Extractors
+* [generic] Make title optional for jwplayer embeds (#12410)
+* [wdr:maus] Fix extraction (#12373)
+* [prosiebensat1] Improve title extraction (#12318, #12327)
+* [dplayit] Separate and rewrite extractor and bypass geo restriction (#12393)
 * [miomio] Fix extraction (#12291, #12388, #12402)
+* [telequebec] Fix description extraction (#12399)
+* [openload] Fix extraction (#12357)
+* [brightcove:legacy] Relax videoPlayer validation check (#12381)
 
 
 version 2017.03.07
