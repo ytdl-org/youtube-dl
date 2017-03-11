@@ -32,16 +32,16 @@ class DiscoveryGoIE(DiscoveryGoBaseIE):
     _VALID_URL = DiscoveryGoBaseIE._VALID_URL_TEMPLATE % r'(?:[^/]+/)+'
     _GEO_COUNTRIES = ['US']
     _TEST = {
-        'url': 'https://www.discoverygo.com/love-at-first-kiss/kiss-first-ask-questions-later/',
+        'url': 'https://www.discoverygo.com/bering-sea-gold/reaper-madness/',
         'info_dict': {
-            'id': '57a33c536b66d1cd0345eeb1',
+            'id': '58c167d86b66d12f2addeb01',
             'ext': 'mp4',
-            'title': 'Kiss First, Ask Questions Later!',
-            'description': 'md5:fe923ba34050eae468bffae10831cb22',
-            'duration': 2579,
-            'series': 'Love at First Kiss',
-            'season_number': 1,
-            'episode_number': 1,
+            'title': 'Reaper Madness',
+            'description': 'md5:09f2c625c99afb8946ed4fb7865f6e78',
+            'duration': 2519,
+            'series': 'Bering Sea Gold',
+            'season_number': 8,
+            'episode_number': 6,
             'age_limit': 14,
         },
     }
