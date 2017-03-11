@@ -265,7 +265,10 @@ from .dvtv import DVTVIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
-from .discoverygo import DiscoveryGoIE
+from .discoverygo import (
+    DiscoveryGoIE,
+    DiscoveryGoPlaylistIE,
+)
 from .disney import DisneyIE
 from .dispeak import DigitallySpeakingIE
 from .dropbox import DropboxIE
