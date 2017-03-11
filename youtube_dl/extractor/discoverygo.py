@@ -30,6 +30,7 @@ class DiscoveryGoBaseIE(InfoExtractor):
 
 class DiscoveryGoIE(DiscoveryGoBaseIE):
     _VALID_URL = DiscoveryGoBaseIE._VALID_URL_TEMPLATE % r'(?:[^/]+/)+'
+    _GEO_COUNTRIES = ['US']
     _TEST = {
         'url': 'https://www.discoverygo.com/love-at-first-kiss/kiss-first-ask-questions-later/',
         'info_dict': {
