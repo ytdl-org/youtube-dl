@@ -24,7 +24,6 @@ class VTMIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://vtm.be/video/volledige-afleveringen/id/vtm_20170219_VM0678361_vtmwatch',
-            'md5': '9357926318cdfcb10079d85d56f4e04e',
             'info_dict': {
                 'id': 'vtm_20170219_VM0678361_vtmwatch',
                 'ext': 'mp4',
@@ -32,7 +31,27 @@ class VTMIE(InfoExtractor):
                 'description': 'md5:4be86427521e7b07e0adb0c9c554ddb2',
             },
             'skip_download': True,
-        }
+        },
+        {
+            'url': 'http://vtm.be/video/volledige-afleveringen/id/257107153551000',
+            'info_dict': {
+                'id': '257107153551000',
+                'ext': 'mp4',
+                'title': 'Blind Getrouwd afl.6',
+                'description': 'md5:9ed26e8486ad0c1ddade4b066d83100f',
+            },
+            'skip_download': True,
+        },
+        {
+            'url': 'http://vtm.be/video?aid=163157',
+            'info_dict': {
+                'id': '257068686507000',
+                'ext': 'mp4',
+                'title': 'Amigo\'s afl.8',
+                'description': 'md5:1db8963594a1829839dabd55ef4f6a0b',
+            },
+            'skip_download': True,
+        },
     ]
 
     def _login(self):
@@ -68,24 +87,8 @@ class VTMIE(InfoExtractor):
 
         webpage = self._download_webpage(url, None)
 
-        # There are two known types of URLs both pointing to the same video.
-        # The type of URL you get depends on how you navigate to the video.
-        # Unfortunately, only one type of URL contains the actual video id:
-        #
-        # http://vtm.be/video/volledige-afleveringen/id/257059160170000
-        #
-        # The video id can also be something like:
-        # "vtm_20170213_VM0678492_vtmwatch"
-        #
-        # The other type of URL looks like:
-        #
-        # http://vtm.be/video?aid=166380
-        #
-        # The 'aid' is not the video id we are looking for. There can also be
-        # a lot of very long parameters in addition to the 'aid' parameter.
-        #
-        # So to work in all cases, we extract the video_id from the webpage
-        # instead of the URL.
+        # The URL sometimes contains the video id, but not always, e.g., test
+        # case 3. Fortunately, all webpages contain the video id.
         video_id = self._search_regex(
             r'\\"vodId\\":\\"(.+?)\\"', webpage, 'video_id', default=None)
 
