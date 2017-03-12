@@ -2,27 +2,27 @@
 from __future__ import unicode_literals
 
 import itertools
-import os
+# import os
 import re
 
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_unquote_plus,
-    compat_urllib_parse_urlparse,
+    # compat_urllib_parse_unquote,
+    # compat_urllib_parse_unquote_plus,
+    # compat_urllib_parse_urlparse,
 )
 from ..utils import (
     ExtractorError,
     int_or_none,
     js_to_json,
     orderedSet,
-    sanitized_Request,
+    # sanitized_Request,
     str_to_int,
 )
-from ..aes import (
-    aes_decrypt_text
-)
+# from ..aes import (
+#     aes_decrypt_text
+# )
 
 
 class PornHubIE(InfoExtractor):
@@ -109,10 +109,14 @@ class PornHubIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        req = sanitized_Request(
-            'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id)
-        req.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(req, video_id)
+        def dl_webpage(platform):
+            return self._download_webpage(
+                'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id,
+                video_id, headers={
+                    'Cookie': 'age_verified=1; platform=%s' % platform,
+                })
+
+        webpage = dl_webpage('pc')
 
         error_msg = self._html_search_regex(
             r'(?s)<div[^>]+class=(["\'])(?:(?!\1).)*\b(?:removed|userMessageSection)\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</div>',
@@ -123,10 +127,19 @@ class PornHubIE(InfoExtractor):
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
+        tv_webpage = dl_webpage('tv')
+
+        video_url = self._search_regex(
+            r'<video[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//.+?)\1', tv_webpage,
+            'video url', group='url')
+
+        title = self._search_regex(
+            r'<h1>([^>]+)</h1>', tv_webpage, 'title', default=None)
+
         # video_title from flashvars contains whitespace instead of non-ASCII (see
         # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
         # on that anymore.
-        title = self._html_search_meta(
+        title = title or self._html_search_meta(
             'twitter:title', webpage, default=None) or self._search_regex(
             (r'<h1[^>]+class=["\']title["\'][^>]*>(?P<title>[^<]+)',
              r'<div[^>]+data-video-title=(["\'])(?P<title>.+?)\1',
@@ -156,37 +169,6 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        video_urls = list(map(compat_urllib_parse_unquote, re.findall(r"player_quality_[0-9]{3}p\s*=\s*'([^']+)'", webpage)))
-        if webpage.find('"encrypted":true') != -1:
-            password = compat_urllib_parse_unquote_plus(
-                self._search_regex(r'"video_title":"([^"]+)', webpage, 'password'))
-            video_urls = list(map(lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'), video_urls))
-
-        formats = []
-        for video_url in video_urls:
-            path = compat_urllib_parse_urlparse(video_url).path
-            extension = os.path.splitext(path)[1][1:]
-            format = path.split('/')[5].split('_')[:2]
-            format = '-'.join(format)
-
-            m = re.match(r'^(?P<height>[0-9]+)[pP]-(?P<tbr>[0-9]+)[kK]$', format)
-            if m is None:
-                height = None
-                tbr = None
-            else:
-                height = int(m.group('height'))
-                tbr = int(m.group('tbr'))
-
-            formats.append({
-                'url': video_url,
-                'ext': extension,
-                'format': format,
-                'format_id': format,
-                'tbr': tbr,
-                'height': height,
-            })
-        self._sort_formats(formats)
-
         page_params = self._parse_json(self._search_regex(
             r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
             webpage, 'page parameters', group='data', default='{}'),
@@ -198,6 +180,7 @@ class PornHubIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'url': video_url,
             'uploader': video_uploader,
             'title': title,
             'thumbnail': thumbnail,
@@ -206,7 +189,7 @@ class PornHubIE(InfoExtractor):
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
-            'formats': formats,
+            # 'formats': formats,
             'age_limit': 18,
             'tags': tags,
             'categories': categories,
@@ -229,7 +212,14 @@ class PornHubPlaylistBaseIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        entries = self._extract_entries(webpage)
+        # Only process container div with main playlist content skipping
+        # drop-down menu that uses similar pattern for videos (see
+        # https://github.com/rg3/youtube-dl/issues/11594).
+        container = self._search_regex(
+            r'(?s)(<div[^>]+class=["\']container.+)', webpage,
+            'container', default=webpage)
+
+        entries = self._extract_entries(container)
 
         playlist = self._parse_json(
             self._search_regex(
@@ -243,12 +233,12 @@ class PornHubPlaylistBaseIE(InfoExtractor):
 class PornHubPlaylistIE(PornHubPlaylistBaseIE):
     _VALID_URL = r'https?://(?:www\.)?pornhub\.com/playlist/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://www.pornhub.com/playlist/6201671',
+        'url': 'http://www.pornhub.com/playlist/4667351',
         'info_dict': {
-            'id': '6201671',
-            'title': 'P0p4',
+            'id': '4667351',
+            'title': 'Nataly Hot',
         },
-        'playlist_mincount': 35,
+        'playlist_mincount': 2,
     }]
 
 

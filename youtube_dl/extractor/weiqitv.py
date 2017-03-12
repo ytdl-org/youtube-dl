@@ -37,11 +37,11 @@ class WeiqiTVIE(InfoExtractor):
         page = self._download_webpage(url, media_id)
 
         info_json_str = self._search_regex(
-            'var\s+video\s*=\s*(.+});', page, 'info json str')
+            r'var\s+video\s*=\s*(.+});', page, 'info json str')
         info_json = self._parse_json(info_json_str, media_id)
 
         letvcloud_url = self._search_regex(
-            'var\s+letvurl\s*=\s*"([^"]+)', page, 'letvcloud url')
+            r'var\s+letvurl\s*=\s*"([^"]+)', page, 'letvcloud url')
 
         return {
             '_type': 'url_transparent',

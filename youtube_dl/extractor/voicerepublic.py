@@ -26,7 +26,7 @@ class VoiceRepublicIE(InfoExtractor):
             'ext': 'm4a',
             'title': 'Watching the Watchers: Building a Sousveillance State',
             'description': 'Secret surveillance programs have metadata too. The people and companies that operate secret surveillance programs can be surveilled.',
-            'thumbnail': 're:^https?://.*\.(?:png|jpg)$',
+            'thumbnail': r're:^https?://.*\.(?:png|jpg)$',
             'duration': 1800,
             'view_count': int,
         }

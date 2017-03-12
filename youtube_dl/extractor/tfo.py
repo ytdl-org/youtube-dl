@@ -8,10 +8,12 @@ from ..utils import (
     HEADRequest,
     ExtractorError,
     int_or_none,
+    clean_html,
 )
 
 
 class TFOIE(InfoExtractor):
+    _GEO_COUNTRIES = ['CA']
     _VALID_URL = r'https?://(?:www\.)?tfo\.org/(?:en|fr)/(?:[^/]+/){2}(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.tfo.org/en/universe/tfo-247/100463871/video-game-hackathon',
@@ -36,7 +38,9 @@ class TFOIE(InfoExtractor):
                 'X-tfo-session': self._get_cookies('http://www.tfo.org/')['tfo-session'].value,
             })
         if infos.get('success') == 0:
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, infos['msg']), expected=True)
+            if infos.get('code') == 'ErrGeoBlocked':
+                self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(infos['msg'])), expected=True)
         video_data = infos['data']
 
         return {

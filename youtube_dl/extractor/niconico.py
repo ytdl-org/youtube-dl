@@ -7,7 +7,6 @@ import datetime
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -40,6 +39,7 @@ class NiconicoIE(InfoExtractor):
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
             'duration': 33,
         },
+        'skip': 'Requires an account',
     }, {
         # File downloaded with and without credentials are different, so omit
         # the md5 field
@@ -55,6 +55,7 @@ class NiconicoIE(InfoExtractor):
             'timestamp': 1304065916,
             'duration': 209,
         },
+        'skip': 'Requires an account',
     }, {
         # 'video exists but is marked as "deleted"
         # md5 is unstable
@@ -65,9 +66,10 @@ class NiconicoIE(InfoExtractor):
             'description': 'deleted',
             'title': 'ドラえもんエターナル第3話「決戦第3新東京市」＜前編＞',
             'upload_date': '20071224',
-            'timestamp': 1198527840,  # timestamp field has different value if logged in
+            'timestamp': int,  # timestamp field has different value if logged in
             'duration': 304,
         },
+        'skip': 'Requires an account',
     }, {
         'url': 'http://www.nicovideo.jp/watch/so22543406',
         'info_dict': {
@@ -79,13 +81,12 @@ class NiconicoIE(InfoExtractor):
             'upload_date': '20140104',
             'uploader': 'アニメロチャンネル',
             'uploader_id': '312',
-        }
+        },
+        'skip': 'The viewing period of the video you were searching for has expired.',
     }]
 
     _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
-    # Determine whether the downloader used authentication to download video
-    _AUTHENTICATED = False
 
     def _real_initialize(self):
         self._login()
@@ -109,8 +110,6 @@ class NiconicoIE(InfoExtractor):
         if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
             self._downloader.report_warning('unable to log in: bad username or password')
             return False
-        # Successful login
-        self._AUTHENTICATED = True
         return True
 
     def _real_extract(self, url):
@@ -128,34 +127,18 @@ class NiconicoIE(InfoExtractor):
             'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
             note='Downloading video info page')
 
-        if self._AUTHENTICATED:
-            # Get flv info
-            flv_info_webpage = self._download_webpage(
-                'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
-                video_id, 'Downloading flv info')
-        else:
-            # Get external player info
-            ext_player_info = self._download_webpage(
-                'http://ext.nicovideo.jp/thumb_watch/' + video_id, video_id)
-            thumb_play_key = self._search_regex(
-                r'\'thumbPlayKey\'\s*:\s*\'(.*?)\'', ext_player_info, 'thumbPlayKey')
-
-            # Get flv info
-            flv_info_data = compat_urllib_parse_urlencode({
-                'k': thumb_play_key,
-                'v': video_id
-            })
-            flv_info_request = sanitized_Request(
-                'http://ext.nicovideo.jp/thumb_watch', flv_info_data,
-                {'Content-Type': 'application/x-www-form-urlencoded'})
-            flv_info_webpage = self._download_webpage(
-                flv_info_request, video_id,
-                note='Downloading flv info', errnote='Unable to download flv info')
+        # Get flv info
+        flv_info_webpage = self._download_webpage(
+            'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
+            video_id, 'Downloading flv info')
 
         flv_info = compat_urlparse.parse_qs(flv_info_webpage)
         if 'url' not in flv_info:
             if 'deleted' in flv_info:
                 raise ExtractorError('The video has been deleted.',
+                                     expected=True)
+            elif 'closed' in flv_info:
+                raise ExtractorError('Niconico videos now require logging in',
                                      expected=True)
             else:
                 raise ExtractorError('Unable to find video URL')

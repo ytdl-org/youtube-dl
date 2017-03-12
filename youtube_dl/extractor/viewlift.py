@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class ViewLiftBaseIE(InfoExtractor):
-    _DOMAINS_REGEX = '(?:snagfilms|snagxtreme|funnyforfree|kiddovid|winnersview|monumentalsportsnetwork|vayafilm)\.com|kesari\.tv'
+    _DOMAINS_REGEX = r'(?:snagfilms|snagxtreme|funnyforfree|kiddovid|winnersview|monumentalsportsnetwork|vayafilm)\.com|kesari\.tv'
 
 
 class ViewLiftEmbedIE(ViewLiftBaseIE):
@@ -110,7 +110,7 @@ class ViewLiftIE(ViewLiftBaseIE):
             'ext': 'mp4',
             'title': 'Lost for Life',
             'description': 'md5:fbdacc8bb6b455e464aaf98bc02e1c82',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 4489,
             'categories': ['Documentary', 'Crime', 'Award Winning', 'Festivals']
         }
@@ -123,7 +123,7 @@ class ViewLiftIE(ViewLiftBaseIE):
             'ext': 'mp4',
             'title': 'India',
             'description': 'md5:5c168c5a8f4719c146aad2e0dfac6f5f',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 979,
             'categories': ['Documentary', 'Sports', 'Politics']
         }
@@ -160,7 +160,7 @@ class ViewLiftIE(ViewLiftBaseIE):
 
         snag = self._parse_json(
             self._search_regex(
-                'Snag\.page\.data\s*=\s*(\[.+?\]);', webpage, 'snag'),
+                r'Snag\.page\.data\s*=\s*(\[.+?\]);', webpage, 'snag'),
             display_id)
 
         for item in snag:

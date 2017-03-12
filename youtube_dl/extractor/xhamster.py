@@ -5,8 +5,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     dict_get,
-    float_or_none,
+    ExtractorError,
     int_or_none,
+    parse_duration,
     unified_strdate,
 )
 
@@ -22,7 +23,7 @@ class XHamsterIE(InfoExtractor):
             'title': 'FemaleAgent Shy beauty takes the bait',
             'upload_date': '20121014',
             'uploader': 'Ruseful2011',
-            'duration': 893.52,
+            'duration': 893,
             'age_limit': 18,
         },
     }, {
@@ -33,7 +34,7 @@ class XHamsterIE(InfoExtractor):
             'title': 'Britney Spears  Sexy Booty',
             'upload_date': '20130914',
             'uploader': 'jojo747400',
-            'duration': 200.48,
+            'duration': 200,
             'age_limit': 18,
         },
         'params': {
@@ -48,7 +49,7 @@ class XHamsterIE(InfoExtractor):
             'title': '....',
             'upload_date': '20160208',
             'uploader': 'parejafree',
-            'duration': 72.0,
+            'duration': 72,
             'age_limit': 18,
         },
         'params': {
@@ -56,6 +57,10 @@ class XHamsterIE(InfoExtractor):
         },
     }, {
         'url': 'https://xhamster.com/movies/2272726/amber_slayed_by_the_knight.html',
+        'only_matching': True,
+    }, {
+        # This video is visible for marcoalfa123456's friends only
+        'url': 'https://it.xhamster.com/movies/7263980/la_mia_vicina.html',
         'only_matching': True,
     }]
 
@@ -77,6 +82,12 @@ class XHamsterIE(InfoExtractor):
         proto = mobj.group('proto')
         mrss_url = '%s://xhamster.com/movies/%s/%s.html' % (proto, video_id, seo)
         webpage = self._download_webpage(mrss_url, video_id)
+
+        error = self._html_search_regex(
+            r'<div[^>]+id=["\']videoClosed["\'][^>]*>(.+?)</div>',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
 
         title = self._html_search_regex(
             [r'<h1[^>]*>([^<]+)</h1>',
@@ -101,9 +112,9 @@ class XHamsterIE(InfoExtractor):
              r'''<video[^>]+poster=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
-        duration = float_or_none(self._search_regex(
-            r'(["\'])duration\1\s*:\s*(["\'])(?P<duration>.+?)\2',
-            webpage, 'duration', fatal=False, group='duration'))
+        duration = parse_duration(self._search_regex(
+            r'Runtime:\s*</span>\s*([\d:]+)', webpage,
+            'duration', fatal=False))
 
         view_count = int_or_none(self._search_regex(
             r'content=["\']User(?:View|Play)s:(\d+)',

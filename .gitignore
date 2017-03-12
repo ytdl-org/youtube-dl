@@ -31,6 +31,9 @@ updates_key.pem
 *.mp3
 *.3gp
 *.wav
+*.ape
+*.mkv
+*.swf
 *.part
 *.swp
 test/testdata

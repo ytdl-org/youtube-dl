@@ -18,7 +18,7 @@ class VidioIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'DJ_AMBRED - Booyah (Live 2015)',
             'description': 'md5:27dc15f819b6a78a626490881adbadf8',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 149,
             'like_count': int,
         },

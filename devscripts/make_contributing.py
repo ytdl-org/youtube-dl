@@ -28,5 +28,6 @@ def main():
     with io.open(outfile, 'w', encoding='utf-8') as outf:
         outf.write(out)
 
+
 if __name__ == '__main__':
     main()

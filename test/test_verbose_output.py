@@ -66,5 +66,6 @@ class TestVerboseOutput(unittest.TestCase):
         self.assertTrue(b'-p' in serr)
         self.assertTrue(b'secret' not in serr)
 
+
 if __name__ == '__main__':
     unittest.main()

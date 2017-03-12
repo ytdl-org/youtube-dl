@@ -54,9 +54,8 @@ class RadioCanadaIE(InfoExtractor):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         device_types = ['ipad']
-        if app_code != 'toutv':
-            device_types.append('flash')
         if not smuggled_data:
+            device_types.append('flash')
             device_types.append('android')
 
         formats = []
@@ -103,7 +102,7 @@ class RadioCanadaIE(InfoExtractor):
                         continue
                     f_url = re.sub(r'\d+\.%s' % ext, '%d.%s' % (tbr, ext), v_url)
                     protocol = determine_protocol({'url': f_url})
-                    formats.append({
+                    f = {
                         'format_id': '%s-%d' % (protocol, tbr),
                         'url': f_url,
                         'ext': 'flv' if protocol == 'rtmp' else ext,
@@ -111,7 +110,14 @@ class RadioCanadaIE(InfoExtractor):
                         'width': int_or_none(url_e.get('width')),
                         'height': int_or_none(url_e.get('height')),
                         'tbr': tbr,
-                    })
+                    }
+                    mobj = re.match(r'(?P<url>rtmp://[^/]+/[^/]+)/(?P<playpath>[^?]+)(?P<auth>\?.+)', f_url)
+                    if mobj:
+                        f.update({
+                            'url': mobj.group('url') + mobj.group('auth'),
+                            'play_path': mobj.group('playpath'),
+                        })
+                    formats.append(f)
                     if protocol == 'rtsp':
                         base_url = self._search_regex(
                             r'rtsp://([^?]+)', f_url, 'base url', default=None)

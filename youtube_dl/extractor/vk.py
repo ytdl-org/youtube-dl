@@ -245,7 +245,7 @@ class VKIE(VKBaseIE):
             },
         },
         {
-            # finished live stream, live_mp4
+            # finished live stream, postlive_mp4
             'url': 'https://vk.com/videos-387766?z=video-387766_456242764%2Fpl_-387766_-2',
             'md5': '90d22d051fccbbe9becfccc615be6791',
             'info_dict': {
@@ -258,7 +258,7 @@ class VKIE(VKBaseIE):
             },
         },
         {
-            # live stream, hls and rtmp links,most likely already finished live
+            # live stream, hls and rtmp links, most likely already finished live
             # stream by the time you are reading this comment
             'url': 'https://vk.com/video-140332_456239111',
             'only_matching': True,
@@ -280,6 +280,11 @@ class VKIE(VKBaseIE):
         },
         {
             'url': 'http://new.vk.com/video205387401_165548505',
+            'only_matching': True,
+        },
+        {
+            # This video is no longer available, because its author has been blocked.
+            'url': 'https://vk.com/video-10639516_456240611',
             'only_matching': True,
         }
     ]
@@ -328,6 +333,12 @@ class VKIE(VKBaseIE):
 
             r'<!>Access denied':
             'Access denied to video %s.',
+
+            r'<!>Видеозапись недоступна, так как её автор был заблокирован.':
+            'Video %s is no longer available, because its author has been blocked.',
+
+            r'<!>This video is no longer available, because its author has been blocked.':
+            'Video %s is no longer available, because its author has been blocked.',
         }
 
         for error_re, error_msg in ERRORS.items():
@@ -378,12 +389,24 @@ class VKIE(VKBaseIE):
         if not data:
             data = self._parse_json(
                 self._search_regex(
-                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json'),
-                video_id)['player']['params'][0]
+                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json', default='{}'),
+                video_id)
+            if data:
+                data = data['player']['params'][0]
+
+        if not data:
+            data = self._parse_json(
+                self._search_regex(
+                    r'var\s+playerParams\s*=\s*({.+?})\s*;\s*\n', info_page,
+                    'player params'),
+                video_id)['params'][0]
 
         title = unescapeHTML(data['md_title'])
 
-        if data.get('live') == 2:
+        # 2 = live
+        # 3 = post live (finished live)
+        is_live = data.get('live') == 2
+        if is_live:
             title = self._live_title(title)
 
         timestamp = unified_timestamp(self._html_search_regex(
@@ -398,7 +421,8 @@ class VKIE(VKBaseIE):
         for format_id, format_url in data.items():
             if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
-            if format_id.startswith(('url', 'cache')) or format_id in ('extra_data', 'live_mp4'):
+            if (format_id.startswith(('url', 'cache')) or
+                    format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):
                 height = int_or_none(self._search_regex(
                     r'^(?:url|cache)(\d+)', format_id, 'height', default=None))
                 formats.append({
@@ -408,8 +432,9 @@ class VKIE(VKBaseIE):
                 })
             elif format_id == 'hls':
                 formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', m3u8_id=format_id,
-                    fatal=False, live=True))
+                    format_url, video_id, 'mp4',
+                    entry_protocol='m3u8' if is_live else 'm3u8_native',
+                    m3u8_id=format_id, fatal=False, live=is_live))
             elif format_id == 'rtmp':
                 formats.append({
                     'format_id': format_id,
@@ -427,6 +452,7 @@ class VKIE(VKBaseIE):
             'duration': data.get('duration'),
             'timestamp': timestamp,
             'view_count': view_count,
+            'is_live': is_live,
         }
 
 

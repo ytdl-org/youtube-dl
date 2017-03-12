@@ -16,7 +16,7 @@ class CrooksAndLiarsIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Fox & Friends Says Protecting Atheists From Discrimination Is Anti-Christian!',
             'description': 'md5:e1a46ad1650e3a5ec7196d432799127f',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1428207000,
             'upload_date': '20150405',
             'uploader': 'Heather',

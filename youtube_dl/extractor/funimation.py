@@ -29,7 +29,7 @@ class FunimationIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Air - 1 - Breeze',
             'description': 'md5:1769f43cd5fc130ace8fd87232207892',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
         },
         'skip': 'Access without user interaction is forbidden by CloudFlare, and video removed',
     }, {
@@ -40,7 +40,7 @@ class FunimationIE(InfoExtractor):
             'ext': 'mp4',
             'title': '.hack//SIGN - 1 - Role Play',
             'description': 'md5:b602bdc15eef4c9bbb201bb6e6a4a2dd',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
         },
         'skip': 'Access without user interaction is forbidden by CloudFlare',
     }, {
@@ -51,7 +51,7 @@ class FunimationIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Attack on Titan: Junior High - Broadcast Dub Preview',
             'description': 'md5:f8ec49c0aff702a7832cd81b8a44f803',
-            'thumbnail': 're:https?://.*\.(?:jpg|png)',
+            'thumbnail': r're:https?://.*\.(?:jpg|png)',
         },
         'skip': 'Access without user interaction is forbidden by CloudFlare',
     }]

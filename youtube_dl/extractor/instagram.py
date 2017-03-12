@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     get_element_by_attribute,
     int_or_none,
@@ -22,7 +23,7 @@ class InstagramIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Video by naomipq',
             'description': 'md5:1f17f0ab29bd6fe2bfad705f58de3cb8',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1371748545,
             'upload_date': '20130620',
             'uploader_id': 'naomipq',
@@ -38,7 +39,7 @@ class InstagramIE(InfoExtractor):
             'id': 'BA-pQFBG8HZ',
             'ext': 'mp4',
             'title': 'Video by britneyspears',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1453760977,
             'upload_date': '20160125',
             'uploader_id': 'britneyspears',
@@ -49,6 +50,33 @@ class InstagramIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
+        },
+    }, {
+        # multi video post
+        'url': 'https://www.instagram.com/p/BQ0eAlwhDrw/',
+        'playlist': [{
+            'info_dict': {
+                'id': 'BQ0dSaohpPW',
+                'ext': 'mp4',
+                'title': 'Video 1',
+            },
+        }, {
+            'info_dict': {
+                'id': 'BQ0dTpOhuHT',
+                'ext': 'mp4',
+                'title': 'Video 2',
+            },
+        }, {
+            'info_dict': {
+                'id': 'BQ0dT7RBFeF',
+                'ext': 'mp4',
+                'title': 'Video 3',
+            },
+        }],
+        'info_dict': {
+            'id': 'BQ0eAlwhDrw',
+            'title': 'Post by instagram',
+            'description': 'md5:0f9203fc6a2ce4d228da5754bcf54957',
         },
     }, {
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
@@ -113,6 +141,32 @@ class InstagramIE(InfoExtractor):
                     'timestamp': int_or_none(comment.get('created_at')),
                 } for comment in media.get(
                     'comments', {}).get('nodes', []) if comment.get('text')]
+                if not video_url:
+                    edges = try_get(
+                        media, lambda x: x['edge_sidecar_to_children']['edges'],
+                        list) or []
+                    if edges:
+                        entries = []
+                        for edge_num, edge in enumerate(edges, start=1):
+                            node = try_get(edge, lambda x: x['node'], dict)
+                            if not node:
+                                continue
+                            node_video_url = try_get(node, lambda x: x['video_url'], compat_str)
+                            if not node_video_url:
+                                continue
+                            entries.append({
+                                'id': node.get('shortcode') or node['id'],
+                                'title': 'Video %d' % edge_num,
+                                'url': node_video_url,
+                                'thumbnail': node.get('display_url'),
+                                'width': int_or_none(try_get(node, lambda x: x['dimensions']['width'])),
+                                'height': int_or_none(try_get(node, lambda x: x['dimensions']['height'])),
+                                'view_count': int_or_none(node.get('video_view_count')),
+                            })
+                        return self.playlist_result(
+                            entries, video_id,
+                            'Post by %s' % uploader_id if uploader_id else None,
+                            description)
 
         if not video_url:
             video_url = self._og_search_video_url(webpage, secure=False)
@@ -169,7 +223,7 @@ class InstagramUserIE(InfoExtractor):
                 'id': '614605558512799803_462752227',
                 'ext': 'mp4',
                 'title': '#Porsche Intelligent Performance.',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 'uploader': 'Porsche',
                 'uploader_id': 'porsche',
                 'timestamp': 1387486713,

@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class AzubuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?azubu\.tv/[^/]+#!/play/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?azubu\.(?:tv|uol.com.br)/[^/]+#!/play/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://www.azubu.tv/GSL#!/play/15575/2014-hot6-cup-last-big-match-ro8-day-1',
@@ -21,7 +21,7 @@ class AzubuIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': '2014 HOT6 CUP LAST BIG MATCH Ro8 Day 1',
                 'description': 'md5:d06bdea27b8cc4388a90ad35b5c66c01',
-                'thumbnail': 're:^https?://.*\.jpe?g',
+                'thumbnail': r're:^https?://.*\.jpe?g',
                 'timestamp': 1417523507.334,
                 'upload_date': '20141202',
                 'duration': 9988.7,
@@ -38,7 +38,7 @@ class AzubuIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Fnatic at Worlds 2014: Toyz - "I love Rekkles, he has amazing mechanics"',
                 'description': 'md5:4a649737b5f6c8b5c5be543e88dc62af',
-                'thumbnail': 're:^https?://.*\.jpe?g',
+                'thumbnail': r're:^https?://.*\.jpe?g',
                 'timestamp': 1410530893.320,
                 'upload_date': '20140912',
                 'duration': 172.385,
@@ -103,12 +103,15 @@ class AzubuIE(InfoExtractor):
 
 
 class AzubuLiveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?azubu\.tv/(?P<id>[^/]+)$'
+    _VALID_URL = r'https?://(?:www\.)?azubu\.(?:tv|uol.com.br)/(?P<id>[^/]+)$'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.azubu.tv/MarsTVMDLen',
         'only_matching': True,
-    }
+    }, {
+        'url': 'http://azubu.uol.com.br/adolfz',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         user = self._match_id(url)

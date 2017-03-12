@@ -18,7 +18,7 @@ class RockstarGamesIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Further Adventures in Finance and Felony Trailer',
             'description': 'md5:6d31f55f30cb101b5476c4a379e324a3',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1464876000,
             'upload_date': '20160602',
         }

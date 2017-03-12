@@ -18,7 +18,7 @@ class ReverbNationIE(InfoExtractor):
             'title': 'MONA LISA',
             'uploader': 'ALKILADOS',
             'uploader_id': '216429',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
         },
     }]
 

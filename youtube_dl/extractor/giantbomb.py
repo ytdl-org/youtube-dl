@@ -23,7 +23,7 @@ class GiantBombIE(InfoExtractor):
             'title': 'Quick Look: Destiny: The Dark Below',
             'description': 'md5:0aa3aaf2772a41b91d44c63f30dfad24',
             'duration': 2399,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 

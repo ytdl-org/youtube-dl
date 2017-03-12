@@ -43,5 +43,6 @@ class TestIqiyiSDKInterpreter(unittest.TestCase):
         ie._login()
         self.assertTrue('unable to log in:' in logger.messages[0])
 
+
 if __name__ == '__main__':
     unittest.main()

@@ -26,7 +26,7 @@ class ViddlerIE(InfoExtractor):
             'timestamp': 1335371429,
             'upload_date': '20120425',
             'duration': 100.89,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'view_count': int,
             'comment_count': int,
             'categories': ['video content', 'high quality video', 'video made easy', 'how to produce video with limited resources', 'viddler'],

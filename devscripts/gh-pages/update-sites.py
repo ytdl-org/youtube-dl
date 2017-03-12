@@ -32,5 +32,6 @@ def main():
     with open('supportedsites.html', 'w', encoding='utf-8') as sitesf:
         sitesf.write(template)
 
+
 if __name__ == '__main__':
     main()

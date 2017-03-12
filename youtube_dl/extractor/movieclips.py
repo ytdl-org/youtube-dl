@@ -20,7 +20,7 @@ class MovieClipsIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Warcraft Trailer 1',
             'description': 'Watch Trailer 1 from Warcraft (2016). Legendary’s WARCRAFT is a 3D epic adventure of world-colliding conflict based.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1446843055,
             'upload_date': '20151106',
             'uploader': 'Movieclips',

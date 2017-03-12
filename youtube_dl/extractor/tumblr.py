@@ -17,7 +17,7 @@ class TumblrIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'tatiana maslany news, Orphan Black || DVD extra - behind the scenes ↳...',
             'description': 'md5:37db8211e40b50c7c44e95da14f630b7',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         'url': 'http://5sostrum.tumblr.com/post/90208453769/yall-forgetting-the-greatest-keek-of-them-all',
@@ -27,7 +27,7 @@ class TumblrIE(InfoExtractor):
             'ext': 'mp4',
             'title': '5SOS STRUM ;]',
             'description': 'md5:dba62ac8639482759c8eb10ce474586a',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
@@ -37,7 +37,7 @@ class TumblrIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'HD Video Testing \u2014 Test description for my HD video',
             'description': 'md5:97cc3ab5fcd27ee4af6356701541319c',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
         'params': {
             'format': 'hd',
@@ -92,7 +92,7 @@ class TumblrIE(InfoExtractor):
             'title': 'Video by victoriassecret',
             'description': 'Invisibility or flight…which superpower would YOU choose? #VSFashionShow #ThisOrThat',
             'uploader_id': 'victoriassecret',
-            'thumbnail': 're:^https?://.*\.jpg'
+            'thumbnail': r're:^https?://.*\.jpg'
         },
         'add_ie': ['Instagram'],
     }]

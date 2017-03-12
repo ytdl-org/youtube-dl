@@ -20,6 +20,7 @@ from ..utils import (
     float_or_none,
     HEADRequest,
     is_html,
+    js_to_json,
     orderedSet,
     sanitized_Request,
     smuggle_url,
@@ -29,6 +30,7 @@ from ..utils import (
     UnsupportedError,
     xpath_text,
 )
+from .commonprotocols import RtmpIE
 from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
@@ -56,10 +58,10 @@ from .dailymotion import (
 )
 from .onionstudios import OnionStudiosIE
 from .viewlift import ViewLiftEmbedIE
-from .screenwavemedia import ScreenwaveMediaIE
 from .mtv import MTVServicesEmbeddedIE
 from .pladform import PladformIE
 from .videomore import VideomoreIE
+from .webcaster import WebcasterFeedIE
 from .googledrive import GoogleDriveIE
 from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
@@ -73,8 +75,16 @@ from .kaltura import KalturaIE
 from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
 from .soundcloud import SoundcloudIE
+from .tunein import TuneInBaseIE
 from .vbox7 import Vbox7IE
 from .dbtv import DBTVIE
+from .piksel import PikselIE
+from .videa import VideaIE
+from .twentymin import TwentyMinutenIE
+from .ustream import UstreamIE
+from .openload import OpenloadIE
+from .videopress import VideoPressIE
+from .rutube import RutubeIE
 
 
 class GenericIE(InfoExtractor):
@@ -236,7 +246,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Tikibad ontruimd wegens brand',
                 'description': 'md5:05ca046ff47b931f9b04855015e163a4',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 33,
             },
             'params': {
@@ -297,7 +307,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20130224',
                 'uploader_id': 'TheVerge',
-                'description': 're:^Chris Ziegler takes a look at the\.*',
+                'description': r're:^Chris Ziegler takes a look at the\.*',
                 'uploader': 'The Verge',
                 'title': 'First Firefox OS phones side-by-side',
             },
@@ -343,10 +353,10 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'There is a limit of 200 free downloads / month for the test song',
         },
-        # embedded brightcove video
-        # it also tests brightcove videos that need to set the 'Referer' in the
-        # http requests
         {
+            # embedded brightcove video
+            # it also tests brightcove videos that need to set the 'Referer'
+            # in the http requests
             'add_ie': ['BrightcoveLegacy'],
             'url': 'http://www.bfmtv.com/video/bfmbusiness/cours-bourse/cours-bourse-l-analyse-technique-154522/',
             'info_dict': {
@@ -355,6 +365,24 @@ class GenericIE(InfoExtractor):
                 'title': 'Le cours de bourse : l’analyse technique',
                 'description': 'md5:7e9ad046e968cb2d1114004aba466fd9',
                 'uploader': 'BFM BUSINESS',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # embedded with itemprop embedURL and video id spelled as `idVideo`
+            'add_id': ['BrightcoveLegacy'],
+            'url': 'http://bfmbusiness.bfmtv.com/mediaplayer/chroniques/olivier-delamarche/',
+            'info_dict': {
+                'id': '5255628253001',
+                'ext': 'mp4',
+                'title': 'md5:37c519b1128915607601e75a87995fc0',
+                'description': 'md5:37f7f888b434bb8f8cc8dbd4f7a4cf26',
+                'uploader': 'BFM BUSINESS',
+                'uploader_id': '876450612001',
+                'timestamp': 1482255315,
+                'upload_date': '20161220',
             },
             'params': {
                 'skip_download': True,
@@ -397,6 +425,43 @@ class GenericIE(InfoExtractor):
                 'uploader': 'SBS Broadcasting',
             },
             'skip': 'Restricted to Netherlands',
+            'params': {
+                'skip_download': True,  # m3u8 download
+            },
+        },
+        {
+            # Brightcove with alternative playerID key
+            'url': 'http://www.nature.com/nmeth/journal/v9/n7/fig_tab/nmeth.2062_SV1.html',
+            'info_dict': {
+                'id': 'nmeth.2062_SV1',
+                'title': 'Simultaneous multiview imaging of the Drosophila syncytial blastoderm : Quantitative high-speed imaging of entire developing embryos with simultaneous multiview light-sheet microscopy : Nature Methods : Nature Research',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'id': '2228375078001',
+                    'ext': 'mp4',
+                    'title': 'nmeth.2062-sv1',
+                    'description': 'nmeth.2062-sv1',
+                    'timestamp': 1363357591,
+                    'upload_date': '20130315',
+                    'uploader': 'Nature Publishing Group',
+                    'uploader_id': '1964492299001',
+                },
+            }],
+        },
+        {
+            # Brightcove with UUID in videoPlayer
+            'url': 'http://www8.hp.com/cn/zh/home.html',
+            'info_dict': {
+                'id': '5255815316001',
+                'ext': 'mp4',
+                'title': 'Sprocket Video - China',
+                'description': 'Sprocket Video - China',
+                'uploader': 'HP-Video Gallery',
+                'timestamp': 1482263210,
+                'upload_date': '20161220',
+                'uploader_id': '1107601872001',
+            },
             'params': {
                 'skip_download': True,  # m3u8 download
             },
@@ -518,7 +583,7 @@ class GenericIE(InfoExtractor):
                 'id': 'f4dafcad-ff21-423d-89b5-146cfd89fa1e',
                 'ext': 'mp4',
                 'title': 'Ужастики, русский трейлер (2015)',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 153,
             }
         },
@@ -544,17 +609,6 @@ class GenericIE(InfoExtractor):
                 'title': 'Hidden miracles of the natural world',
                 'uploader': 'Louie Schwartzberg',
                 'description': 'md5:8145d19d320ff3e52f28401f4c4283b9',
-            }
-        },
-        # Embedded Ustream video
-        {
-            'url': 'http://www.american.edu/spa/pti/nsa-privacy-janus-2014.cfm',
-            'md5': '27b99cdb639c9b12a79bca876a073417',
-            'info_dict': {
-                'id': '45734260',
-                'ext': 'flv',
-                'uploader': 'AU SPA:  The NSA and Privacy',
-                'title': 'NSA and Privacy Forum Debate featuring General Hayden and Barton Gellman'
             }
         },
         # nowvideo embed hidden behind percent encoding
@@ -738,7 +792,7 @@ class GenericIE(InfoExtractor):
                 'duration': 48,
                 'timestamp': 1401537900,
                 'upload_date': '20140531',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         # Wistia embed
@@ -807,6 +861,21 @@ class GenericIE(InfoExtractor):
                 'title': 'Guitar Essentials: Legato Workout—One-Hour to Fluid Performance  | TAB + AUDIO',
             },
             'playlist_mincount': 7,
+        },
+        # TuneIn station embed
+        {
+            'url': 'http://radiocnrv.com/promouvoir-radio-cnrv/',
+            'info_dict': {
+                'id': '204146',
+                'ext': 'mp3',
+                'title': 'CNRV',
+                'location': 'Paris, France',
+                'is_live': True,
+            },
+            'params': {
+                # Live stream
+                'skip_download': True,
+            },
         },
         # Livestream embed
         {
@@ -898,6 +967,29 @@ class GenericIE(InfoExtractor):
                 'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
             },
         },
+        # jwplayer rtmp
+        {
+            'url': 'http://www.suffolk.edu/sjc/',
+            'info_dict': {
+                'id': 'sjclive',
+                'ext': 'flv',
+                'title': 'Massachusetts Supreme Judicial Court Oral Arguments',
+                'uploader': 'www.suffolk.edu',
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
+        # Complex jwplayer
+        {
+            'url': 'http://www.indiedb.com/games/king-machine/videos',
+            'info_dict': {
+                'id': 'videos',
+                'ext': 'mp4',
+                'title': 'king machine trailer 1',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+        },
         # rtl.nl embed
         {
             'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
@@ -926,19 +1018,6 @@ class GenericIE(InfoExtractor):
                 'uploader_id': 'PremierMedia',
                 'timestamp': int,
                 'title': 'Os Guinness // Is It Fools Talk? // Unbelievable? Conference 2014',
-            },
-        },
-        # Kaltura embed protected with referrer
-        {
-            'url': 'http://www.disney.nl/disney-channel/filmpjes/achter-de-schermen#/videoId/violetta-achter-de-schermen-ruggero',
-            'info_dict': {
-                'id': '1_g4fbemnq',
-                'ext': 'mp4',
-                'title': 'Violetta - Achter De Schermen - Ruggero',
-                'description': 'Achter de schermen met Ruggero',
-                'timestamp': 1435133761,
-                'upload_date': '20150624',
-                'uploader_id': 'echojecka',
             },
         },
         # Kaltura embed with single quotes
@@ -972,6 +1051,20 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
+        {
+            # Kaltura embedded, some fileExt broken (#11480)
+            'url': 'http://www.cornell.edu/video/nima-arkani-hamed-standard-models-of-particle-physics',
+            'info_dict': {
+                'id': '1_sgtvehim',
+                'ext': 'mp4',
+                'title': 'Our "Standard Models" of particle physics and cosmology',
+                'description': 'md5:67ea74807b8c4fea92a6f38d6d323861',
+                'timestamp': 1321158993,
+                'upload_date': '20111113',
+                'uploader_id': 'kps1',
+            },
+            'add_ie': ['Kaltura'],
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
@@ -981,7 +1074,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Навальный вышел на свободу',
                 'description': 'md5:d97861ac9ae77377f3f20eaf9d04b4f5',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 87,
                 'view_count': int,
                 'age_limit': 0,
@@ -995,7 +1088,7 @@ class GenericIE(InfoExtractor):
                 'id': '12820',
                 'ext': 'mp4',
                 'title': "'O Sole Mio",
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 216,
                 'view_count': int,
             },
@@ -1008,7 +1101,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Тайны перевала Дятлова • 1 серия 2 часть',
                 'description': 'Документальный сериал-расследование одной из самых жутких тайн ХХ века',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 694,
                 'age_limit': 0,
             },
@@ -1020,7 +1113,7 @@ class GenericIE(InfoExtractor):
                 'id': '3519514',
                 'ext': 'mp4',
                 'title': 'Joe Dirt 2 Beautiful Loser Teaser Trailer',
-                'thumbnail': 're:^https?://.*\.png$',
+                'thumbnail': r're:^https?://.*\.png$',
                 'duration': 45.115,
             },
         },
@@ -1103,7 +1196,7 @@ class GenericIE(InfoExtractor):
                 'id': '300346',
                 'ext': 'mp4',
                 'title': '中一中男師變性 全校師生力挺',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'params': {
                 # m3u8 download
@@ -1149,7 +1242,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Sauvons les abeilles ! - Le débat',
                 'description': 'md5:d9082128b1c5277987825d684939ca26',
-                'thumbnail': 're:^https?://.*\.jpe?g$',
+                'thumbnail': r're:^https?://.*\.jpe?g$',
                 'timestamp': 1434970506,
                 'upload_date': '20150622',
                 'uploader': 'Public Sénat',
@@ -1163,7 +1256,7 @@ class GenericIE(InfoExtractor):
                 'id': '2855',
                 'ext': 'mp4',
                 'title': 'Don’t Understand Bitcoin? This Man Will Mumble An Explanation At You',
-                'thumbnail': 're:^https?://.*\.jpe?g$',
+                'thumbnail': r're:^https?://.*\.jpe?g$',
                 'uploader': 'ClickHole',
                 'uploader_id': 'clickhole',
             }
@@ -1187,16 +1280,6 @@ class GenericIE(InfoExtractor):
                 'title': 'New experience with Acrobat DC',
                 'description': 'New experience with Acrobat DC',
                 'duration': 248.667,
-            },
-        },
-        # ScreenwaveMedia embed
-        {
-            'url': 'http://www.thecinemasnob.com/the-cinema-snob/a-nightmare-on-elm-street-2-freddys-revenge1',
-            'md5': '24ace5baba0d35d55c6810b51f34e9e0',
-            'info_dict': {
-                'id': 'cinemasnob-55d26273809dd',
-                'ext': 'mp4',
-                'title': 'cinemasnob',
             },
         },
         # BrightcoveInPageEmbed embed
@@ -1398,6 +1481,66 @@ class GenericIE(InfoExtractor):
                 'title': 'Etter ett års planlegging, klaffet endelig alt: - Jeg måtte ta en liten dans',
             },
             'playlist_mincount': 3,
+        },
+        {
+            # Videa embeds
+            'url': 'http://forum.dvdtalk.com/movie-talk/623756-deleted-magic-star-wars-ot-deleted-alt-scenes-docu-style.html',
+            'info_dict': {
+                'id': '623756-deleted-magic-star-wars-ot-deleted-alt-scenes-docu-style',
+                'title': 'Deleted Magic - Star Wars: OT Deleted / Alt. Scenes Docu. Style - DVD Talk Forum',
+            },
+            'playlist_mincount': 2,
+        },
+        {
+            # 20 minuten embed
+            'url': 'http://www.20min.ch/schweiz/news/story/So-kommen-Sie-bei-Eis-und-Schnee-sicher-an-27032552',
+            'info_dict': {
+                'id': '523629',
+                'ext': 'mp4',
+                'title': 'So kommen Sie bei Eis und Schnee sicher an',
+                'description': 'md5:117c212f64b25e3d95747e5276863f7d',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [TwentyMinutenIE.ie_key()],
+        },
+        {
+            # VideoPress embed
+            'url': 'https://en.support.wordpress.com/videopress/',
+            'info_dict': {
+                'id': 'OcobLTqC',
+                'ext': 'm4v',
+                'title': 'IMG_5786',
+                'timestamp': 1435711927,
+                'upload_date': '20150701',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [VideoPressIE.ie_key()],
+        },
+        {
+            # Rutube embed
+            'url': 'http://magazzino.friday.ru/videos/vipuski/kazan-2',
+            'info_dict': {
+                'id': '9b3d5bee0a8740bf70dfd29d3ea43541',
+                'ext': 'flv',
+                'title': 'Магаззино: Казань 2',
+                'description': 'md5:99bccdfac2269f0e8fdbc4bbc9db184a',
+                'uploader': 'Магаззино',
+                'upload_date': '20170228',
+                'uploader_id': '996642',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [RutubeIE.ie_key()],
+        },
+        {
+            # ThePlatform embedded with whitespaces in URLs
+            'url': 'http://www.golfchannel.com/topics/shows/golftalkcentral.htm',
+            'only_matching': True,
         },
         # {
         #     # TODO: find another test
@@ -1890,7 +2033,14 @@ class GenericIE(InfoExtractor):
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
                 re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
-            return OoyalaIE._build_url_result(smuggle_url(mobj.group('ec'), {'domain': url}))
+            embed_token = self._search_regex(
+                r'embedToken[\'"]?\s*:\s*[\'"]([^\'"]+)',
+                webpage, 'ooyala embed token', default=None)
+            return OoyalaIE._build_url_result(smuggle_url(
+                mobj.group('ec'), {
+                    'domain': url,
+                    'embed_token': embed_token,
+                }))
 
         # Look for multiple Ooyala embeds on SBN network websites
         mobj = re.search(r'SBN\.VideoLinkset\.entryGroup\((\[.*?\])', webpage)
@@ -2021,10 +2171,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'TED')
 
         # Look for embedded Ustream videos
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>http://www\.ustream\.tv/embed/.+?)\1', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Ustream')
+        ustream_url = UstreamIE._extract_url(webpage)
+        if ustream_url:
+            return self.url_result(ustream_url, UstreamIE.ie_key())
 
         # Look for embedded arte.tv player
         mobj = re.search(
@@ -2054,6 +2203,11 @@ class GenericIE(InfoExtractor):
         soundcloud_urls = SoundcloudIE._extract_urls(webpage)
         if soundcloud_urls:
             return _playlist_from_matches(soundcloud_urls, getter=unescapeHTML, ie=SoundcloudIE.ie_key())
+
+        # Look for tunein player
+        tunein_urls = TuneInBaseIE._extract_urls(webpage)
+        if tunein_urls:
+            return _playlist_from_matches(tunein_urls)
 
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
@@ -2140,6 +2294,11 @@ class GenericIE(InfoExtractor):
         if videomore_url:
             return self.url_result(videomore_url)
 
+        # Look for Webcaster embeds
+        webcaster_url = WebcasterFeedIE._extract_url(self, webpage)
+        if webcaster_url:
+            return self.url_result(webcaster_url, ie=WebcasterFeedIE.ie_key())
+
         # Look for Playwire embeds
         mobj = re.search(
             r'<script[^>]+data-config=(["\'])(?P<url>(?:https?:)?//config\.playwire\.com/.+?)\1', webpage)
@@ -2206,11 +2365,6 @@ class GenericIE(InfoExtractor):
         if jwplatform_url:
             return self.url_result(jwplatform_url, 'JWPlatform')
 
-        # Look for ScreenwaveMedia embeds
-        mobj = re.search(ScreenwaveMediaIE.EMBED_PATTERN, webpage)
-        if mobj is not None:
-            return self.url_result(unescapeHTML(mobj.group('url')), 'ScreenwaveMedia')
-
         # Look for Digiteka embeds
         digiteka_url = DigitekaIE._extract_url(webpage)
         if digiteka_url:
@@ -2221,6 +2375,11 @@ class GenericIE(InfoExtractor):
         if arkena_url:
             return self.url_result(arkena_url, ArkenaIE.ie_key())
 
+        # Look for Piksel embeds
+        piksel_url = PikselIE._extract_url(webpage)
+        if piksel_url:
+            return self.url_result(piksel_url, PikselIE.ie_key())
+
         # Look for Limelight embeds
         mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
         if mobj:
@@ -2229,8 +2388,21 @@ class GenericIE(InfoExtractor):
                 'Channel': 'channel',
                 'ChannelList': 'channel_list',
             }
-            return self.url_result('limelight:%s:%s' % (
-                lm[mobj.group(1)], mobj.group(2)), 'Limelight%s' % mobj.group(1), mobj.group(2))
+            return self.url_result(smuggle_url('limelight:%s:%s' % (
+                lm[mobj.group(1)], mobj.group(2)), {'source_url': url}),
+                'Limelight%s' % mobj.group(1), mobj.group(2))
+
+        mobj = re.search(
+            r'''(?sx)
+                <object[^>]+class=(["\'])LimelightEmbeddedPlayerFlash\1[^>]*>.*?
+                    <param[^>]+
+                        name=(["\'])flashVars\2[^>]+
+                        value=(["\'])(?:(?!\3).)*mediaId=(?P<id>[a-z0-9]{32})
+            ''', webpage)
+        if mobj:
+            return self.url_result(smuggle_url(
+                'limelight:media:%s' % mobj.group('id'),
+                {'source_url': url}), 'LimelightMedia', mobj.group('id'))
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
@@ -2320,6 +2492,35 @@ class GenericIE(InfoExtractor):
         if dbtv_urls:
             return _playlist_from_matches(dbtv_urls, ie=DBTVIE.ie_key())
 
+        # Look for Videa embeds
+        videa_urls = VideaIE._extract_urls(webpage)
+        if videa_urls:
+            return _playlist_from_matches(videa_urls, ie=VideaIE.ie_key())
+
+        # Look for 20 minuten embeds
+        twentymin_urls = TwentyMinutenIE._extract_urls(webpage)
+        if twentymin_urls:
+            return _playlist_from_matches(
+                twentymin_urls, ie=TwentyMinutenIE.ie_key())
+
+        # Look for Openload embeds
+        openload_urls = OpenloadIE._extract_urls(webpage)
+        if openload_urls:
+            return _playlist_from_matches(
+                openload_urls, ie=OpenloadIE.ie_key())
+
+        # Look for VideoPress embeds
+        videopress_urls = VideoPressIE._extract_urls(webpage)
+        if videopress_urls:
+            return _playlist_from_matches(
+                videopress_urls, ie=VideoPressIE.ie_key())
+
+        # Look for Rutube embeds
+        rutube_urls = RutubeIE._extract_urls(webpage)
+        if rutube_urls:
+            return _playlist_from_matches(
+                rutube_urls, ie=RutubeIE.ie_key())
+
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
             webpage, video_id, default={}, expected_type='VideoObject')
@@ -2344,8 +2545,22 @@ class GenericIE(InfoExtractor):
                 self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
 
+        jwplayer_data_str = self._find_jwplayer_data(webpage)
+        if jwplayer_data_str:
+            try:
+                jwplayer_data = self._parse_json(
+                    jwplayer_data_str, video_id, transform_source=js_to_json)
+                info = self._parse_jwplayer_data(
+                    jwplayer_data, video_id, require_title=False)
+                if not info.get('title'):
+                    info['title'] = video_title
+            except ExtractorError:
+                pass
+
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
+                return True
+            if RtmpIE.suitable(vurl):
                 return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
@@ -2453,6 +2668,15 @@ class GenericIE(InfoExtractor):
                 'title': video_title,
                 'age_limit': age_limit,
             }
+
+            if RtmpIE.suitable(video_url):
+                entry_info_dict.update({
+                    '_type': 'url_transparent',
+                    'ie_key': RtmpIE.ie_key(),
+                    'url': video_url,
+                })
+                entries.append(entry_info_dict)
+                continue
 
             ext = determine_ext(video_url)
             if ext == 'smil':

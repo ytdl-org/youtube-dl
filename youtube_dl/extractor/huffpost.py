@@ -52,7 +52,7 @@ class HuffPostIE(InfoExtractor):
 
         thumbnails = []
         for url in filter(None, data['images'].values()):
-            m = re.match('.*-([0-9]+x[0-9]+)\.', url)
+            m = re.match(r'.*-([0-9]+x[0-9]+)\.', url)
             if not m:
                 continue
             thumbnails.append({

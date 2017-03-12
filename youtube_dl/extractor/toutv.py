@@ -56,7 +56,7 @@ class TouTvIE(InfoExtractor):
                 'state': state,
             })
         login_form = self._search_regex(
-            r'(?s)(<form[^>]+id="Form-login".+?</form>)', login_webpage, 'login form')
+            r'(?s)(<form[^>]+(?:id|name)="Form-login".+?</form>)', login_webpage, 'login form')
         form_data = self._hidden_inputs(login_form)
         form_data.update({
             'login-email': email,

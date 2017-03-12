@@ -12,7 +12,6 @@ from ..compat import (
     compat_str,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_urlparse,
 )
 from ..utils import (
     clean_html,
@@ -22,7 +21,9 @@ from ..utils import (
     orderedSet,
     parse_duration,
     parse_iso8601,
+    update_url_query,
     urlencode_postdata,
+    urljoin,
 )
 
 
@@ -31,7 +32,7 @@ class TwitchBaseIE(InfoExtractor):
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
-    _LOGIN_URL = 'http://www.twitch.tv/login'
+    _LOGIN_URL = 'https://www.twitch.tv/login'
     _CLIENT_ID = 'jzkbprff40iqj646a697cyrvl0zt2m6'
     _NETRC_MACHINE = 'twitch'
 
@@ -63,6 +64,35 @@ class TwitchBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Unable to login. Twitch said: %s' % message, expected=True)
 
+        def login_step(page, urlh, note, data):
+            form = self._hidden_inputs(page)
+            form.update(data)
+
+            page_url = urlh.geturl()
+            post_url = self._search_regex(
+                r'<form[^>]+action=(["\'])(?P<url>.+?)\1', page,
+                'post url', default=page_url, group='url')
+            post_url = urljoin(page_url, post_url)
+
+            headers = {'Referer': page_url}
+
+            try:
+                response = self._download_json(
+                    post_url, None, note,
+                    data=urlencode_postdata(form),
+                    headers=headers)
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
+                    response = self._parse_json(
+                        e.cause.read().decode('utf-8'), None)
+                    fail(response['message'])
+                raise
+
+            redirect_url = urljoin(post_url, response['redirect'])
+            return self._download_webpage_handle(
+                redirect_url, None, 'Downloading login redirect page',
+                headers=headers)
+
         login_page, handle = self._download_webpage_handle(
             self._LOGIN_URL, None, 'Downloading login page')
 
@@ -70,40 +100,19 @@ class TwitchBaseIE(InfoExtractor):
         if 'blacklist_message' in login_page:
             fail(clean_html(login_page))
 
-        login_form = self._hidden_inputs(login_page)
+        redirect_page, handle = login_step(
+            login_page, handle, 'Logging in as %s' % username, {
+                'username': username,
+                'password': password,
+            })
 
-        login_form.update({
-            'username': username,
-            'password': password,
-        })
-
-        redirect_url = handle.geturl()
-
-        post_url = self._search_regex(
-            r'<form[^>]+action=(["\'])(?P<url>.+?)\1', login_page,
-            'post url', default=redirect_url, group='url')
-
-        if not post_url.startswith('http'):
-            post_url = compat_urlparse.urljoin(redirect_url, post_url)
-
-        headers = {'Referer': redirect_url}
-
-        try:
-            response = self._download_json(
-                post_url, None, 'Logging in as %s' % username,
-                data=urlencode_postdata(login_form),
-                headers=headers)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                response = self._parse_json(
-                    e.cause.read().decode('utf-8'), None)
-                fail(response['message'])
-            raise
-
-        if response.get('redirect'):
-            self._download_webpage(
-                response['redirect'], None, 'Downloading login redirect page',
-                headers=headers)
+        if re.search(r'(?i)<form[^>]+id="two-factor-submit"', redirect_page) is not None:
+            # TODO: Add mechanism to request an SMS or phone call
+            tfa_token = self._get_tfa_info('two-factor authentication token')
+            login_step(redirect_page, handle, 'Submitting TFA token', {
+                'authy_token': tfa_token,
+                'remember_2fa': 'true',
+            })
 
     def _prefer_source(self, formats):
         try:
@@ -205,7 +214,14 @@ class TwitchChapterIE(TwitchItemBaseIE):
 
 class TwitchVodIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:vod'
-    _VALID_URL = r'%s/[^/]+/v/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?twitch\.tv/(?:[^/]+/v|videos)/|
+                            player\.twitch\.tv/\?.*?\bvideo=v
+                        )
+                        (?P<id>\d+)
+                    '''
     _ITEM_TYPE = 'vod'
     _ITEM_SHORTCUT = 'v'
 
@@ -215,7 +231,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             'id': 'v6528877',
             'ext': 'mp4',
             'title': 'LCK Summer Split - Week 6 Day 1',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 17208,
             'timestamp': 1435131709,
             'upload_date': '20150624',
@@ -235,7 +251,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             'id': 'v11230755',
             'ext': 'mp4',
             'title': 'Untitled Broadcast',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 1638,
             'timestamp': 1439746708,
             'upload_date': '20150816',
@@ -248,6 +264,12 @@ class TwitchVodIE(TwitchItemBaseIE):
             'skip_download': True,
         },
         'skip': 'HTTP Error 404: Not Found',
+    }, {
+        'url': 'http://player.twitch.tv/?t=5m10s&video=v6528877',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/videos/6528877',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -279,6 +301,18 @@ class TwitchVodIE(TwitchItemBaseIE):
         if 't' in query:
             info['start_time'] = parse_duration(query['t'][0])
 
+        if info.get('timestamp') is not None:
+            info['subtitles'] = {
+                'rechat': [{
+                    'url': update_url_query(
+                        'https://rechat.twitch.tv/rechat-messages', {
+                            'video_id': 'v%s' % item_id,
+                            'start': info['timestamp'],
+                        }),
+                    'ext': 'json',
+                }],
+            }
+
         return info
 
 
@@ -300,7 +334,7 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
             response = self._call_api(
                 self._PLAYLIST_PATH % (channel_id, offset, limit),
                 channel_id,
-                'Downloading %s videos JSON page %s'
+                'Downloading %s JSON page %s'
                 % (self._PLAYLIST_TYPE, counter_override or counter))
             page_entries = self._extract_playlist_page(response)
             if not page_entries:
@@ -350,25 +384,85 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
     }
 
 
-class TwitchPastBroadcastsIE(TwitchPlaylistBaseIE):
-    IE_NAME = 'twitch:past_broadcasts'
-    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/past_broadcasts/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
-    _PLAYLIST_PATH = TwitchPlaylistBaseIE._PLAYLIST_PATH + '&broadcasts=true'
-    _PLAYLIST_TYPE = 'past broadcasts'
+class TwitchVideosBaseIE(TwitchPlaylistBaseIE):
+    _VALID_URL_VIDEOS_BASE = r'%s/(?P<id>[^/]+)/videos' % TwitchBaseIE._VALID_URL_BASE
+    _PLAYLIST_PATH = TwitchPlaylistBaseIE._PLAYLIST_PATH + '&broadcast_type='
+
+
+class TwitchAllVideosIE(TwitchVideosBaseIE):
+    IE_NAME = 'twitch:videos:all'
+    _VALID_URL = r'%s/all' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive,upload,highlight'
+    _PLAYLIST_TYPE = 'all videos'
 
     _TEST = {
-        'url': 'http://www.twitch.tv/spamfish/profile/past_broadcasts',
+        'url': 'https://www.twitch.tv/spamfish/videos/all',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
-        'playlist_mincount': 54,
+        'playlist_mincount': 869,
+    }
+
+
+class TwitchUploadsIE(TwitchVideosBaseIE):
+    IE_NAME = 'twitch:videos:uploads'
+    _VALID_URL = r'%s/uploads' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'upload'
+    _PLAYLIST_TYPE = 'uploads'
+
+    _TEST = {
+        'url': 'https://www.twitch.tv/spamfish/videos/uploads',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'Spamfish',
+        },
+        'playlist_mincount': 0,
+    }
+
+
+class TwitchPastBroadcastsIE(TwitchVideosBaseIE):
+    IE_NAME = 'twitch:videos:past-broadcasts'
+    _VALID_URL = r'%s/past-broadcasts' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive'
+    _PLAYLIST_TYPE = 'past broadcasts'
+
+    _TEST = {
+        'url': 'https://www.twitch.tv/spamfish/videos/past-broadcasts',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'Spamfish',
+        },
+        'playlist_mincount': 0,
+    }
+
+
+class TwitchHighlightsIE(TwitchVideosBaseIE):
+    IE_NAME = 'twitch:videos:highlights'
+    _VALID_URL = r'%s/highlights' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'highlight'
+    _PLAYLIST_TYPE = 'highlights'
+
+    _TEST = {
+        'url': 'https://www.twitch.tv/spamfish/videos/highlights',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'Spamfish',
+        },
+        'playlist_mincount': 805,
     }
 
 
 class TwitchStreamIE(TwitchBaseIE):
     IE_NAME = 'twitch:stream'
-    _VALID_URL = r'%s/(?P<id>[^/#?]+)/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?twitch\.tv/|
+                            player\.twitch\.tv/\?.*?\bchannel=
+                        )
+                        (?P<id>[^/#?]+)
+                    '''
 
     _TESTS = [{
         'url': 'http://www.twitch.tv/shroomztv',
@@ -392,7 +486,24 @@ class TwitchStreamIE(TwitchBaseIE):
     }, {
         'url': 'http://www.twitch.tv/miracle_doto#profile-0',
         'only_matching': True,
+    }, {
+        'url': 'https://player.twitch.tv/?channel=lotsofs',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if any(ie.suitable(url) for ie in (
+                    TwitchVideoIE,
+                    TwitchChapterIE,
+                    TwitchVodIE,
+                    TwitchProfileIE,
+                    TwitchAllVideosIE,
+                    TwitchUploadsIE,
+                    TwitchPastBroadcastsIE,
+                    TwitchHighlightsIE))
+                else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -474,7 +585,7 @@ class TwitchClipsIE(InfoExtractor):
             'id': 'AggressiveCobraPoooound',
             'ext': 'mp4',
             'title': 'EA Play 2016 Live from the Novo Theatre',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'creator': 'EA',
             'uploader': 'stereotype_',
             'uploader_id': 'stereotype_',

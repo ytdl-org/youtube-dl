@@ -34,6 +34,10 @@ class BloombergIE(InfoExtractor):
             'format': 'best[format_id^=hds]',
         },
     }, {
+        # data-bmmrid=
+        'url': 'https://www.bloomberg.com/politics/articles/2017-02-08/le-pen-aide-briefed-french-central-banker-on-plan-to-print-money',
+        'only_matching': True,
+    }, {
         'url': 'http://www.bloomberg.com/news/articles/2015-11-12/five-strange-things-that-have-been-happening-in-financial-markets',
         'only_matching': True,
     }, {
@@ -45,8 +49,10 @@ class BloombergIE(InfoExtractor):
         name = self._match_id(url)
         webpage = self._download_webpage(url, name)
         video_id = self._search_regex(
-            r'["\']bmmrId["\']\s*:\s*(["\'])(?P<url>.+?)\1',
-            webpage, 'id', group='url', default=None)
+            (r'["\']bmmrId["\']\s*:\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
+             r'videoId\s*:\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
+             r'data-bmmrid=(["\'])(?P<id>(?:(?!\1).)+)\1'),
+            webpage, 'id', group='id', default=None)
         if not video_id:
             bplayer_data = self._parse_json(self._search_regex(
                 r'BPlayer\(null,\s*({[^;]+})\);', webpage, 'id'), name)

@@ -20,7 +20,7 @@ class VidbitIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Intro to VidBit',
             'description': 'md5:5e0d6142eec00b766cbf114bfd3d16b7',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'upload_date': '20160618',
             'view_count': int,
             'comment_count': int,

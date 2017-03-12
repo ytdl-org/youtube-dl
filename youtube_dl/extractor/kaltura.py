@@ -23,11 +23,11 @@ class KalturaIE(InfoExtractor):
                 (?:
                     kaltura:(?P<partner_id>\d+):(?P<id>[0-9a-z_]+)|
                     https?://
-                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/
+                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com(?::\d+)?/
                         (?:
                             (?:
                                 # flash player
-                                index\.php/kwidget|
+                                index\.php/(?:kwidget|extwidget/preview)|
                                 # html5 player
                                 html5/html5lib/[^/]+/mwEmbedFrame\.php
                             )
@@ -94,6 +94,14 @@ class KalturaIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'https://www.kaltura.com/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://www.kaltura.com:443/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
+            'only_matching': True,
         }
     ]
 
@@ -107,12 +115,12 @@ class KalturaIE(InfoExtractor):
                         (?P<q1>['\"])wid(?P=q1)\s*:\s*
                         (?P<q2>['\"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
                         (?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4),
+                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
                 """, webpage) or
             re.search(
                 r'''(?xs)
                     (?P<q1>["\'])
-                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/(?:(?!(?P=q1)).)*(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
+                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
                         entry_?[Ii]d|
@@ -209,6 +217,8 @@ class KalturaIE(InfoExtractor):
                 partner_id = params['wid'][0][1:]
             elif 'p' in params:
                 partner_id = params['p'][0]
+            elif 'partner_id' in params:
+                partner_id = params['partner_id'][0]
             else:
                 raise ExtractorError('Invalid URL', expected=True)
             if 'entry_id' in params:
@@ -266,6 +276,12 @@ class KalturaIE(InfoExtractor):
             # skip for now.
             if f.get('fileExt') == 'chun':
                 continue
+            if not f.get('fileExt'):
+                # QT indicates QuickTime; some videos have broken fileExt
+                if f.get('containerFormat') == 'qt':
+                    f['fileExt'] = 'mov'
+                else:
+                    f['fileExt'] = 'mp4'
             video_url = sign_url(
                 '%s/flavorId/%s' % (data_url, f['id']))
             # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
@@ -316,6 +332,6 @@ class KalturaIE(InfoExtractor):
             'thumbnail': info.get('thumbnailUrl'),
             'duration': info.get('duration'),
             'timestamp': info.get('createdAt'),
-            'uploader_id': info.get('userId'),
+            'uploader_id': info.get('userId') if info.get('userId') != 'None' else None,
             'view_count': info.get('plays'),
         }

@@ -4,11 +4,14 @@ from __future__ import unicode_literals
 from .anvato import AnvatoIE
 from .sendtonews import SendtoNewsIE
 from ..compat import compat_urlparse
-from ..utils import unified_timestamp
+from ..utils import (
+    parse_iso8601,
+    unified_timestamp,
+)
 
 
 class CBSLocalIE(AnvatoIE):
-    _VALID_URL = r'https?://[a-z]+\.cbslocal\.com/\d+/\d+/\d+/(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://[a-z]+\.cbslocal\.com/(?:\d+/\d+/\d+|video)/(?P<id>[0-9a-z-]+)'
 
     _TESTS = [{
         # Anvato backend
@@ -49,6 +52,31 @@ class CBSLocalIE(AnvatoIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://newyork.cbslocal.com/video/3580809-a-very-blue-anniversary/',
+        'info_dict': {
+            'id': '3580809',
+            'ext': 'mp4',
+            'title': 'A Very Blue Anniversary',
+            'description': 'CBS2’s Cindy Hsu has more.',
+            'thumbnail': 're:^https?://.*',
+            'timestamp': 1479962220,
+            'upload_date': '20161124',
+            'uploader': 'CBS',
+            'subtitles': {
+                'en': 'mincount:5',
+            },
+            'categories': [
+                'Stations\\Spoken Word\\WCBSTV',
+                'Syndication\\AOL',
+                'Syndication\\MSN',
+                'Syndication\\NDN',
+                'Syndication\\Yahoo',
+                'Content\\News',
+                'Content\\News\\Local News',
+            ],
+            'tags': ['CBS 2 News Weekends', 'Cindy Hsu', 'Blue Man Group'],
+        },
     }]
 
     def _real_extract(self, url):
@@ -64,8 +92,11 @@ class CBSLocalIE(AnvatoIE):
         info_dict = self._extract_anvato_videos(webpage, display_id)
 
         time_str = self._html_search_regex(
-            r'class="entry-date">([^<]+)<', webpage, 'released date', fatal=False)
-        timestamp = unified_timestamp(time_str)
+            r'class="entry-date">([^<]+)<', webpage, 'released date', default=None)
+        if time_str:
+            timestamp = unified_timestamp(time_str)
+        else:
+            timestamp = parse_iso8601(self._html_search_meta('uploadDate', webpage))
 
         info_dict.update({
             'display_id': display_id,

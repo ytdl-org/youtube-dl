@@ -17,7 +17,7 @@ class FranceCultureIE(InfoExtractor):
             'display_id': 'rendez-vous-au-pays-des-geeks',
             'ext': 'mp3',
             'title': 'Rendez-vous au pays des geeks',
-            'thumbnail': 're:^https?://.*\\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140301',
             'vcodec': 'none',
         }

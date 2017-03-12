@@ -14,7 +14,7 @@ class RUHDIE(InfoExtractor):
             'ext': 'divx',
             'title': 'КОТ бааааам',
             'description': 'классный кот)',
-            'thumbnail': 're:^http://.*\.jpg$',
+            'thumbnail': r're:^http://.*\.jpg$',
         }
     }
 

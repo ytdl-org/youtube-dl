@@ -21,7 +21,7 @@ class ScreencastIE(InfoExtractor):
             'ext': 'm4v',
             'title': 'Color Measurement with Ocean Optics Spectrometers',
             'description': 'md5:240369cde69d8bed61349a199c5fb153',
-            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
+            'thumbnail': r're:^https?://.*\.(?:gif|jpg)$',
         }
     }, {
         'url': 'http://www.screencast.com/t/V2uXehPJa1ZI',
@@ -31,7 +31,7 @@ class ScreencastIE(InfoExtractor):
             'ext': 'mov',
             'title': 'The Amadeus Spectrometer',
             'description': 're:^In this video, our friends at.*To learn more about Amadeus, visit',
-            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
+            'thumbnail': r're:^https?://.*\.(?:gif|jpg)$',
         }
     }, {
         'url': 'http://www.screencast.com/t/aAB3iowa',
@@ -41,7 +41,7 @@ class ScreencastIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Google Earth Export',
             'description': 'Provides a demo of a CommunityViz export to Google Earth, one of the 3D viewing options.',
-            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
+            'thumbnail': r're:^https?://.*\.(?:gif|jpg)$',
         }
     }, {
         'url': 'http://www.screencast.com/t/X3ddTrYh',
@@ -51,7 +51,7 @@ class ScreencastIE(InfoExtractor):
             'ext': 'wmv',
             'title': 'Toolkit 6 User Group Webinar (2014-03-04) - Default Judgment and First Impression',
             'description': 'md5:7b9f393bc92af02326a5c5889639eab0',
-            'thumbnail': 're:^https?://.*\.(?:gif|jpg)$',
+            'thumbnail': r're:^https?://.*\.(?:gif|jpg)$',
         }
     }, {
         'url': 'http://screencast.com/t/aAB3iowa',

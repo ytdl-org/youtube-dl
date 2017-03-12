@@ -25,7 +25,8 @@ class AddAnimeIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'One Piece 606',
             'title': 'One Piece 606',
-        }
+        },
+        'skip': 'Video is gone',
     }, {
         'url': 'http://add-anime.net/video/MDUGWYKNGBD8/One-Piece-687',
         'only_matching': True,

@@ -238,7 +238,10 @@ class IsmFD(FragmentFD):
             count = 0
             while count <= fragment_retries:
                 try:
-                    success = ctx['dl'].download(target_filename, {'url': segment_url})
+                    success = ctx['dl'].download(target_filename, {
+                        'url': segment_url,
+                        'http_headers': info_dict.get('http_headers'),
+                    })
                     if not success:
                         return False
                     down, target_sanitized = sanitize_open(target_filename, 'rb')

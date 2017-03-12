@@ -4,22 +4,26 @@ import re
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
+from .adobepass import AdobePassIE
+from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     find_xpath_attr,
     lowercase_escape,
     smuggle_url,
     unescapeHTML,
+    update_url_query,
+    int_or_none,
 )
 
 
-class NBCIE(InfoExtractor):
+class NBCIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
 
     _TESTS = [
         {
-            'url': 'http://www.nbc.com/the-tonight-show/segments/112966',
+            'url': 'http://www.nbc.com/the-tonight-show/video/jimmy-fallon-surprises-fans-at-ben-jerrys/2848237',
             'info_dict': {
-                'id': '112966',
+                'id': '2848237',
                 'ext': 'mp4',
                 'title': 'Jimmy Fallon Surprises Fans at Ben & Jerry\'s',
                 'description': 'Jimmy gives out free scoops of his new "Tonight Dough" ice cream flavor by surprising customers at the Ben & Jerry\'s scoop shop.',
@@ -68,7 +72,7 @@ class NBCIE(InfoExtractor):
             # HLS streams requires the 'hdnea3' cookie
             'url': 'http://www.nbc.com/Kings/video/goliath/n1806',
             'info_dict': {
-                'id': 'n1806',
+                'id': '101528f5a9e8127b107e98c5e6ce4638',
                 'ext': 'mp4',
                 'title': 'Goliath',
                 'description': 'When an unknown soldier saves the life of the King\'s son in battle, he\'s thrust into the limelight and politics of the kingdom.',
@@ -86,21 +90,57 @@ class NBCIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
-            [
-                r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
-                r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
-                r'"embedURL"\s*:\s*"([^"]+)"'
-            ],
-            webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
-        if theplatform_url.startswith('//'):
-            theplatform_url = 'http:' + theplatform_url
-        return {
+        info = {
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
-            'url': smuggle_url(theplatform_url, {'source_url': url}),
             'id': video_id,
         }
+        video_data = None
+        preload = self._search_regex(
+            r'PRELOAD\s*=\s*({.+})', webpage, 'preload data', default=None)
+        if preload:
+            preload_data = self._parse_json(preload, video_id)
+            path = compat_urllib_parse_urlparse(url).path.rstrip('/')
+            entity_id = preload_data.get('xref', {}).get(path)
+            video_data = preload_data.get('entities', {}).get(entity_id)
+        if video_data:
+            query = {
+                'mbr': 'true',
+                'manifest': 'm3u',
+            }
+            video_id = video_data['guid']
+            title = video_data['title']
+            if video_data.get('entitlement') == 'auth':
+                resource = self._get_mvpd_resource(
+                    'nbcentertainment', title, video_id,
+                    video_data.get('vChipRating'))
+                query['auth'] = self._extract_mvpd_auth(
+                    url, video_id, 'nbcentertainment', resource)
+            theplatform_url = smuggle_url(update_url_query(
+                'http://link.theplatform.com/s/NnzsPC/media/guid/2410887629/' + video_id,
+                query), {'force_smil_url': True})
+            info.update({
+                'id': video_id,
+                'title': title,
+                'url': theplatform_url,
+                'description': video_data.get('description'),
+                'keywords': video_data.get('keywords'),
+                'season_number': int_or_none(video_data.get('seasonNumber')),
+                'episode_number': int_or_none(video_data.get('episodeNumber')),
+                'series': video_data.get('showName'),
+            })
+        else:
+            theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
+                [
+                    r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
+                    r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
+                    r'"embedURL"\s*:\s*"([^"]+)"'
+                ],
+                webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
+            if theplatform_url.startswith('//'):
+                theplatform_url = 'http:' + theplatform_url
+            info['url'] = smuggle_url(theplatform_url, {'source_url': url})
+        return info
 
 
 class NBCSportsVPlayerIE(InfoExtractor):
@@ -208,7 +248,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.nbcnews.com/watch/nbcnews-com/how-twitter-reacted-to-the-snowden-interview-269389891880',
             'md5': 'af1adfa51312291a017720403826bb64',
             'info_dict': {
-                'id': '269389891880',
+                'id': 'p_tweet_snow_140529',
                 'ext': 'mp4',
                 'title': 'How Twitter Reacted To The Snowden Interview',
                 'description': 'md5:65a0bd5d76fe114f3c2727aa3a81fe64',
@@ -232,7 +272,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.nbcnews.com/nightly-news/video/nightly-news-with-brian-williams-full-broadcast-february-4-394064451844',
             'md5': '73135a2e0ef819107bbb55a5a9b2a802',
             'info_dict': {
-                'id': '394064451844',
+                'id': 'nn_netcast_150204',
                 'ext': 'mp4',
                 'title': 'Nightly News with Brian Williams Full Broadcast (February 4)',
                 'description': 'md5:1c10c1eccbe84a26e5debb4381e2d3c5',
@@ -245,7 +285,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.nbcnews.com/business/autos/volkswagen-11-million-vehicles-could-have-suspect-software-emissions-scandal-n431456',
             'md5': 'a49e173825e5fcd15c13fc297fced39d',
             'info_dict': {
-                'id': '529953347624',
+                'id': 'x_lon_vwhorn_150922',
                 'ext': 'mp4',
                 'title': 'Volkswagen U.S. Chief:\xa0 We Have Totally Screwed Up',
                 'description': 'md5:c8be487b2d80ff0594c005add88d8351',
@@ -258,7 +298,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.today.com/video/see-the-aurora-borealis-from-space-in-stunning-new-nasa-video-669831235788',
             'md5': '118d7ca3f0bea6534f119c68ef539f71',
             'info_dict': {
-                'id': '669831235788',
+                'id': 'tdy_al_space_160420',
                 'ext': 'mp4',
                 'title': 'See the aurora borealis from space in stunning new NASA video',
                 'description': 'md5:74752b7358afb99939c5f8bb2d1d04b1',
@@ -271,15 +311,14 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.msnbc.com/all-in-with-chris-hayes/watch/the-chaotic-gop-immigration-vote-314487875924',
             'md5': '6d236bf4f3dddc226633ce6e2c3f814d',
             'info_dict': {
-                'id': '314487875924',
+                'id': 'n_hayes_Aimm_140801_272214',
                 'ext': 'mp4',
                 'title': 'The chaotic GOP immigration vote',
                 'description': 'The Republican House votes on a border bill that has no chance of getting through the Senate or signed by the President and is drawing criticism from all sides.',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'timestamp': 1406937606,
                 'upload_date': '20140802',
                 'uploader': 'NBCU-NEWS',
-                'categories': ['MSNBC/Topics/Franchise/Best of last night', 'MSNBC/Topics/General/Congress'],
             },
         },
         {
@@ -311,28 +350,41 @@ class NBCNewsIE(ThePlatformIE):
         else:
             # "feature" and "nightly-news" pages use theplatform.com
             video_id = mobj.group('mpx_id')
-            if not video_id.isdigit():
-                webpage = self._download_webpage(url, video_id)
-                info = None
-                bootstrap_json = self._search_regex(
-                    [r'(?m)(?:var\s+(?:bootstrapJson|playlistData)|NEWS\.videoObj)\s*=\s*({.+});?\s*$',
-                     r'videoObj\s*:\s*({.+})', r'data-video="([^"]+)"'],
-                    webpage, 'bootstrap json', default=None)
+            webpage = self._download_webpage(url, video_id)
+
+            filter_param = 'byId'
+            bootstrap_json = self._search_regex(
+                [r'(?m)(?:var\s+(?:bootstrapJson|playlistData)|NEWS\.videoObj)\s*=\s*({.+});?\s*$',
+                 r'videoObj\s*:\s*({.+})', r'data-video="([^"]+)"',
+                 r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);'],
+                webpage, 'bootstrap json', default=None)
+            if bootstrap_json:
                 bootstrap = self._parse_json(
                     bootstrap_json, video_id, transform_source=unescapeHTML)
+
+                info = None
                 if 'results' in bootstrap:
                     info = bootstrap['results'][0]['video']
                 elif 'video' in bootstrap:
                     info = bootstrap['video']
+                elif 'msnbcVideoInfo' in bootstrap:
+                    info = bootstrap['msnbcVideoInfo']['meta']
+                elif 'msnbcThePlatform' in bootstrap:
+                    info = bootstrap['msnbcThePlatform']['videoPlayer']['video']
                 else:
                     info = bootstrap
-                video_id = info['mpxId']
+
+                if 'guid' in info:
+                    video_id = info['guid']
+                    filter_param = 'byGuid'
+                elif 'mpxId' in info:
+                    video_id = info['mpxId']
 
             return {
                 '_type': 'url_transparent',
                 'id': video_id,
                 # http://feed.theplatform.com/f/2E2eJC/nbcnews also works
-                'url': 'http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews?byId=%s' % video_id,
+                'url': update_url_query('http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews', {filter_param: video_id}),
                 'ie_key': 'ThePlatformFeed',
             }
 

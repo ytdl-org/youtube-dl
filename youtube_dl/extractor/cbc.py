@@ -90,36 +90,49 @@ class CBCIE(InfoExtractor):
             },
         }],
         'skip': 'Geo-restricted to Canada',
+    }, {
+        # multiple CBC.APP.Caffeine.initInstance(...)
+        'url': 'http://www.cbc.ca/news/canada/calgary/dog-indoor-exercise-winter-1.3928238',
+        'info_dict': {
+            'title': 'Keep Rover active during the deep freeze with doggie pushups and other fun indoor tasks',
+            'id': 'dog-indoor-exercise-winter-1.3928238',
+        },
+        'playlist_mincount': 6,
     }]
 
     @classmethod
     def suitable(cls, url):
         return False if CBCPlayerIE.suitable(url) else super(CBCIE, cls).suitable(url)
 
+    def _extract_player_init(self, player_init, display_id):
+        player_info = self._parse_json(player_init, display_id, js_to_json)
+        media_id = player_info.get('mediaId')
+        if not media_id:
+            clip_id = player_info['clipId']
+            feed = self._download_json(
+                'http://tpfeed.cbc.ca/f/ExhSPC/vms_5akSXx4Ng_Zn?byCustomValue={:mpsReleases}{%s}' % clip_id,
+                clip_id, fatal=False)
+            if feed:
+                media_id = try_get(feed, lambda x: x['entries'][0]['guid'], compat_str)
+            if not media_id:
+                media_id = self._download_json(
+                    'http://feed.theplatform.com/f/h9dtGB/punlNGjMlc1F?fields=id&byContent=byReleases%3DbyId%253D' + clip_id,
+                    clip_id)['entries'][0]['id'].split('/')[-1]
+        return self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
+
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        player_init = self._search_regex(
-            r'CBC\.APP\.Caffeine\.initInstance\(({.+?})\);', webpage, 'player init',
-            default=None)
-        if player_init:
-            player_info = self._parse_json(player_init, display_id, js_to_json)
-            media_id = player_info.get('mediaId')
-            if not media_id:
-                clip_id = player_info['clipId']
-                feed = self._download_json(
-                    'http://tpfeed.cbc.ca/f/ExhSPC/vms_5akSXx4Ng_Zn?byCustomValue={:mpsReleases}{%s}' % clip_id,
-                    clip_id, fatal=False)
-                if feed:
-                    media_id = try_get(feed, lambda x: x['entries'][0]['guid'], compat_str)
-                if not media_id:
-                    media_id = self._download_json(
-                        'http://feed.theplatform.com/f/h9dtGB/punlNGjMlc1F?fields=id&byContent=byReleases%3DbyId%253D' + clip_id,
-                        clip_id)['entries'][0]['id'].split('/')[-1]
-            return self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
-        else:
-            entries = [self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id) for media_id in re.findall(r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"', webpage)]
-            return self.playlist_result(entries)
+        entries = [
+            self._extract_player_init(player_init, display_id)
+            for player_init in re.findall(r'CBC\.APP\.Caffeine\.initInstance\(({.+?})\);', webpage)]
+        entries.extend([
+            self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
+            for media_id in re.findall(r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"', webpage)])
+        return self.playlist_result(
+            entries, display_id,
+            self._og_search_title(webpage, fatal=False),
+            self._og_search_description(webpage))
 
 
 class CBCPlayerIE(InfoExtractor):
@@ -283,11 +296,12 @@ class CBCWatchVideoIE(CBCWatchBaseIE):
         formats = self._extract_m3u8_formats(re.sub(r'/([^/]+)/[^/?]+\.m3u8', r'/\1/\1.m3u8', m3u8_url), video_id, 'mp4', fatal=False)
         if len(formats) < 2:
             formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
-        # Despite metadata in m3u8 all video+audio formats are
-        # actually video-only (no audio)
         for f in formats:
-            if f.get('acodec') != 'none' and f.get('vcodec') != 'none':
-                f['acodec'] = 'none'
+            format_id = f.get('format_id')
+            if format_id.startswith('AAC'):
+                f['acodec'] = 'aac'
+            elif format_id.startswith('AC3'):
+                f['acodec'] = 'ac-3'
         self._sort_formats(formats)
 
         info = {

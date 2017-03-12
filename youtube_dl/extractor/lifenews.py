@@ -176,7 +176,7 @@ class LifeEmbedIE(InfoExtractor):
             'id': 'e50c2dec2867350528e2574c899b8291',
             'ext': 'mp4',
             'title': 'e50c2dec2867350528e2574c899b8291',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         # with 1080p

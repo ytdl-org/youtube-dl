@@ -133,7 +133,7 @@ class FC2EmbedIE(InfoExtractor):
             'id': '201403223kCqB3Ez',
             'ext': 'flv',
             'title': 'プリズン･ブレイク S1-01 マイケル 【吹替】',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }
 

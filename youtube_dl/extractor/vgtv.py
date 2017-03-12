@@ -14,6 +14,7 @@ from ..utils import (
 
 class VGTVIE(XstreamIE):
     IE_DESC = 'VGTV, BTTV, FTV, Aftenposten and Aftonbladet'
+    _GEO_BYPASS = False
 
     _HOST_TO_APPNAME = {
         'vgtv.no': 'vgtv',
@@ -61,7 +62,7 @@ class VGTVIE(XstreamIE):
                 'ext': 'mp4',
                 'title': 'Hevnen er søt: Episode 10 - Abu',
                 'description': 'md5:e25e4badb5f544b04341e14abdc72234',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 648.000,
                 'timestamp': 1404626400,
                 'upload_date': '20140706',
@@ -76,7 +77,7 @@ class VGTVIE(XstreamIE):
                 'ext': 'flv',
                 'title': 'OPPTAK: VGTV følger EM-kvalifiseringen',
                 'description': 'md5:3772d9c0dc2dff92a886b60039a7d4d3',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 9103.0,
                 'timestamp': 1410113864,
                 'upload_date': '20140907',
@@ -96,7 +97,7 @@ class VGTVIE(XstreamIE):
                 'ext': 'mp4',
                 'title': 'V75 fra Solvalla 30.05.15',
                 'description': 'md5:b3743425765355855f88e096acc93231',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 25966,
                 'timestamp': 1432975582,
                 'upload_date': '20150530',
@@ -200,7 +201,7 @@ class VGTVIE(XstreamIE):
             format_info = {
                 'url': mp4_url,
             }
-            mobj = re.search('(\d+)_(\d+)_(\d+)', mp4_url)
+            mobj = re.search(r'(\d+)_(\d+)_(\d+)', mp4_url)
             if mobj:
                 tbr = int(mobj.group(3))
                 format_info.update({
@@ -217,7 +218,8 @@ class VGTVIE(XstreamIE):
             properties = try_get(
                 data, lambda x: x['streamConfiguration']['properties'], list)
             if properties and 'geoblocked' in properties:
-                raise self.raise_geo_restricted()
+                raise self.raise_geo_restricted(
+                    countries=[host.rpartition('.')[-1].partition('/')[0].upper()])
 
         self._sort_formats(info['formats'])
 
@@ -246,7 +248,7 @@ class BTArticleIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Alrekstad internat',
             'description': 'md5:dc81a9056c874fedb62fc48a300dac58',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'duration': 191,
             'timestamp': 1289991323,
             'upload_date': '20101117',

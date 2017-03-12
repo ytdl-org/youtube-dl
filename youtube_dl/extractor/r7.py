@@ -23,7 +23,7 @@ class R7IE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Policiais humilham suspeito à beira da morte: "Morre com dignidade"',
             'description': 'md5:01812008664be76a6479aa58ec865b72',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 98,
             'like_count': int,
             'view_count': int,

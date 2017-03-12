@@ -29,7 +29,7 @@ class FusionIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         ooyala_code = self._search_regex(
-            r'data-video-id=(["\'])(?P<code>.+?)\1',
+            r'data-ooyala-id=(["\'])(?P<code>(?:(?!\1).)+)\1',
             webpage, 'ooyala code', group='code')
 
         return OoyalaIE._build_url_result(ooyala_code)

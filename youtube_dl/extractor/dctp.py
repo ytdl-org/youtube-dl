@@ -17,7 +17,7 @@ class DctpTvIE(InfoExtractor):
             'title': 'Videoinstallation für eine Kaufhausfassade',
             'description': 'Kurzfilm',
             'upload_date': '20110407',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }
 

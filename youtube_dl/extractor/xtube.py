@@ -44,6 +44,9 @@ class XTubeIE(InfoExtractor):
     }, {
         'url': 'xtube:625837',
         'only_matching': True,
+    }, {
+        'url': 'xtube:kVTUy_G222_',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -53,14 +56,20 @@ class XTubeIE(InfoExtractor):
 
         if not display_id:
             display_id = video_id
-            url = 'http://www.xtube.com/watch.php?v=%s' % video_id
 
-        req = sanitized_Request(url)
-        req.add_header('Cookie', 'age_verified=1; cookiesAccepted=1')
-        webpage = self._download_webpage(req, display_id)
+        if video_id.isdigit() and len(video_id) < 11:
+            url_pattern = 'http://www.xtube.com/video-watch/-%s'
+        else:
+            url_pattern = 'http://www.xtube.com/watch.php?v=%s'
+
+        webpage = self._download_webpage(
+            url_pattern % video_id, display_id, headers={
+                'Cookie': 'age_verified=1; cookiesAccepted=1',
+            })
 
         sources = self._parse_json(self._search_regex(
-            r'sources\s*:\s*({.+?}),', webpage, 'sources'), video_id)
+            r'(["\'])sources\1\s*:\s*(?P<sources>{.+?}),',
+            webpage, 'sources', group='sources'), video_id)
 
         formats = []
         for format_id, format_url in sources.items():
@@ -72,7 +81,7 @@ class XTubeIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._search_regex(
-            (r'<h1>(?P<title>[^<]+)</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
+            (r'<h1>\s*(?P<title>[^<]+?)\s*</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
             webpage, 'title', group='title')
         description = self._search_regex(
             r'</h1>\s*<p>([^<]+)', webpage, 'description', fatal=False)
@@ -81,10 +90,10 @@ class XTubeIE(InfoExtractor):
              r'<span[^>]+class="nickname"[^>]*>([^<]+)'),
             webpage, 'uploader', fatal=False)
         duration = parse_duration(self._search_regex(
-            r'<dt>Runtime:</dt>\s*<dd>([^<]+)</dd>',
+            r'<dt>Runtime:?</dt>\s*<dd>([^<]+)</dd>',
             webpage, 'duration', fatal=False))
         view_count = str_to_int(self._search_regex(
-            r'<dt>Views:</dt>\s*<dd>([\d,\.]+)</dd>',
+            r'<dt>Views:?</dt>\s*<dd>([\d,\.]+)</dd>',
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
             r'>Comments? \(([\d,\.]+)\)<',

@@ -1,262 +1,314 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import functools
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    int_or_none,
-    unified_strdate,
-    OnDemandPagedList,
-    xpath_text,
     determine_ext,
+    int_or_none,
+    NO_DEFAULT,
+    orderedSet,
+    parse_codecs,
     qualities,
-    float_or_none,
-    ExtractorError,
+    try_get,
+    unified_timestamp,
+    update_url_query,
+    urljoin,
 )
 
 
-class ZDFIE(InfoExtractor):
-    _VALID_URL = r'(?:zdf:|zdf:video:|https?://www\.zdf\.de/ZDFmediathek(?:#)?/(.*beitrag/(?:video/)?))(?P<id>[0-9]+)(?:/[^/?]+)?(?:\?.*)?'
+class ZDFBaseIE(InfoExtractor):
+    def _call_api(self, url, player, referrer, video_id, item):
+        return self._download_json(
+            url, video_id, 'Downloading JSON %s' % item,
+            headers={
+                'Referer': referrer,
+                'Api-Auth': 'Bearer %s' % player['apiToken'],
+            })
+
+    def _extract_player(self, webpage, video_id, fatal=True):
+        return self._parse_json(
+            self._search_regex(
+                r'(?s)data-zdfplayer-jsb=(["\'])(?P<json>{.+?})\1', webpage,
+                'player JSON', default='{}' if not fatal else NO_DEFAULT,
+                group='json'),
+            video_id)
+
+
+class ZDFIE(ZDFBaseIE):
+    _VALID_URL = r'https?://www\.zdf\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
+    _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
 
     _TESTS = [{
-        'url': 'http://www.zdf.de/ZDFmediathek/beitrag/video/2037704/ZDFspezial---Ende-des-Machtpokers--?bc=sts;stt',
+        'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
         'info_dict': {
-            'id': '2037704',
-            'ext': 'webm',
-            'title': 'ZDFspezial - Ende des Machtpokers',
-            'description': 'Union und SPD haben sich auf einen Koalitionsvertrag geeinigt. Aber was bedeutet das für die Bürger? Sehen Sie hierzu das ZDFspezial "Ende des Machtpokers - Große Koalition für Deutschland".',
-            'duration': 1022,
-            'uploader': 'spezial',
-            'uploader_id': '225948',
-            'upload_date': '20131127',
-        },
-        'skip': 'Videos on ZDF.de are depublicised in short order',
+            'id': 'zdfmediathek-trailer-100',
+            'ext': 'mp4',
+            'title': 'Die neue ZDFmediathek',
+            'description': 'md5:3003d36487fb9a5ea2d1ff60beb55e8d',
+            'duration': 30,
+            'timestamp': 1477627200,
+            'upload_date': '20161028',
+        }
+    }, {
+        'url': 'https://www.zdf.de/filme/taunuskrimi/die-lebenden-und-die-toten-1---ein-taunuskrimi-100.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.zdf.de/dokumentation/planet-e/planet-e-uebersichtsseite-weitere-dokumentationen-von-planet-e-100.html',
+        'only_matching': True,
     }]
 
-    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
-        param_groups = {}
-        for param_group in smil.findall(self._xpath_ns('./head/paramGroup', namespace)):
-            group_id = param_group.attrib.get(self._xpath_ns('id', 'http://www.w3.org/XML/1998/namespace'))
-            params = {}
-            for param in param_group:
-                params[param.get('name')] = param.get('value')
-            param_groups[group_id] = params
+    @staticmethod
+    def _extract_subtitles(src):
+        subtitles = {}
+        for caption in try_get(src, lambda x: x['captions'], list) or []:
+            subtitle_url = caption.get('uri')
+            if subtitle_url and isinstance(subtitle_url, compat_str):
+                lang = caption.get('language', 'deu')
+                subtitles.setdefault(lang, []).append({
+                    'url': subtitle_url,
+                })
+        return subtitles
+
+    def _extract_format(self, video_id, formats, format_urls, meta):
+        format_url = meta.get('url')
+        if not format_url or not isinstance(format_url, compat_str):
+            return
+        if format_url in format_urls:
+            return
+        format_urls.add(format_url)
+        mime_type = meta.get('mimeType')
+        ext = determine_ext(format_url)
+        if mime_type == 'application/x-mpegURL' or ext == 'm3u8':
+            formats.extend(self._extract_m3u8_formats(
+                format_url, video_id, 'mp4', m3u8_id='hls',
+                entry_protocol='m3u8_native', fatal=False))
+        elif mime_type == 'application/f4m+xml' or ext == 'f4m':
+            formats.extend(self._extract_f4m_formats(
+                update_url_query(format_url, {'hdcore': '3.7.0'}), video_id, f4m_id='hds', fatal=False))
+        else:
+            f = parse_codecs(meta.get('mimeCodec'))
+            format_id = ['http']
+            for p in (meta.get('type'), meta.get('quality')):
+                if p and isinstance(p, compat_str):
+                    format_id.append(p)
+            f.update({
+                'url': format_url,
+                'format_id': '-'.join(format_id),
+                'format_note': meta.get('quality'),
+                'language': meta.get('language'),
+                'quality': qualities(self._QUALITIES)(meta.get('quality')),
+                'preference': -10,
+            })
+            formats.append(f)
+
+    def _extract_entry(self, url, player, content, video_id):
+        title = content.get('title') or content['teaserHeadline']
+
+        t = content['mainVideoContent']['http://zdf.de/rels/target']
+
+        ptmd_path = t.get('http://zdf.de/rels/streams/ptmd')
+
+        if not ptmd_path:
+            ptmd_path = t[
+                'http://zdf.de/rels/streams/ptmd-template'].replace(
+                '{playerId}', 'portal')
+
+        ptmd = self._call_api(
+            urljoin(url, ptmd_path), player, url, video_id, 'metadata')
 
         formats = []
-        for video in smil.findall(self._xpath_ns('.//video', namespace)):
-            src = video.get('src')
-            if not src:
+        track_uris = set()
+        for p in ptmd['priorityList']:
+            formitaeten = p.get('formitaeten')
+            if not isinstance(formitaeten, list):
                 continue
-            bitrate = float_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
-            group_id = video.get('paramGroup')
-            param_group = param_groups[group_id]
-            for proto in param_group['protocols'].split(','):
-                formats.append({
-                    'url': '%s://%s' % (proto, param_group['host']),
-                    'app': param_group['app'],
-                    'play_path': src,
-                    'ext': 'flv',
-                    'format_id': '%s-%d' % (proto, bitrate),
-                    'tbr': bitrate,
-                })
+            for f in formitaeten:
+                f_qualities = f.get('qualities')
+                if not isinstance(f_qualities, list):
+                    continue
+                for quality in f_qualities:
+                    tracks = try_get(quality, lambda x: x['audio']['tracks'], list)
+                    if not tracks:
+                        continue
+                    for track in tracks:
+                        self._extract_format(
+                            video_id, formats, track_uris, {
+                                'url': track.get('uri'),
+                                'type': f.get('type'),
+                                'mimeType': f.get('mimeType'),
+                                'quality': quality.get('quality'),
+                                'language': track.get('language'),
+                            })
         self._sort_formats(formats)
-        return formats
 
-    def extract_from_xml_url(self, video_id, xml_url):
-        doc = self._download_xml(
-            xml_url, video_id,
-            note='Downloading video info',
-            errnote='Failed to download video info')
-
-        status_code = doc.find('./status/statuscode')
-        if status_code is not None and status_code.text != 'ok':
-            code = status_code.text
-            if code == 'notVisibleAnymore':
-                message = 'Video %s is not available' % video_id
-            else:
-                message = '%s returned error: %s' % (self.IE_NAME, code)
-            raise ExtractorError(message, expected=True)
-
-        title = doc.find('.//information/title').text
-        description = xpath_text(doc, './/information/detail', 'description')
-        duration = int_or_none(xpath_text(doc, './/details/lengthSec', 'duration'))
-        uploader = xpath_text(doc, './/details/originChannelTitle', 'uploader')
-        uploader_id = xpath_text(doc, './/details/originChannelId', 'uploader id')
-        upload_date = unified_strdate(xpath_text(doc, './/details/airtime', 'upload date'))
-        subtitles = {}
-        captions_url = doc.find('.//caption/url')
-        if captions_url is not None:
-            subtitles['de'] = [{
-                'url': captions_url.text,
-                'ext': 'ttml',
-            }]
-
-        def xml_to_thumbnails(fnode):
-            thumbnails = []
-            for node in fnode:
-                thumbnail_url = node.text
-                if not thumbnail_url:
+        thumbnails = []
+        layouts = try_get(
+            content, lambda x: x['teaserImageRef']['layouts'], dict)
+        if layouts:
+            for layout_key, layout_url in layouts.items():
+                if not isinstance(layout_url, compat_str):
                     continue
                 thumbnail = {
-                    'url': thumbnail_url,
+                    'url': layout_url,
+                    'format_id': layout_key,
                 }
-                if 'key' in node.attrib:
-                    m = re.match('^([0-9]+)x([0-9]+)$', node.attrib['key'])
-                    if m:
-                        thumbnail['width'] = int(m.group(1))
-                        thumbnail['height'] = int(m.group(2))
+                mobj = re.search(r'(?P<width>\d+)x(?P<height>\d+)', layout_key)
+                if mobj:
+                    thumbnail.update({
+                        'width': int(mobj.group('width')),
+                        'height': int(mobj.group('height')),
+                    })
                 thumbnails.append(thumbnail)
-            return thumbnails
-
-        thumbnails = xml_to_thumbnails(doc.findall('.//teaserimages/teaserimage'))
-
-        format_nodes = doc.findall('.//formitaeten/formitaet')
-        quality = qualities(['veryhigh', 'high', 'med', 'low'])
-
-        def get_quality(elem):
-            return quality(xpath_text(elem, 'quality'))
-        format_nodes.sort(key=get_quality)
-        format_ids = []
-        formats = []
-        for fnode in format_nodes:
-            video_url = fnode.find('url').text
-            is_available = 'http://www.metafilegenerator' not in video_url
-            if not is_available:
-                continue
-            format_id = fnode.attrib['basetype']
-            quality = xpath_text(fnode, './quality', 'quality')
-            format_m = re.match(r'''(?x)
-                (?P<vcodec>[^_]+)_(?P<acodec>[^_]+)_(?P<container>[^_]+)_
-                (?P<proto>[^_]+)_(?P<index>[^_]+)_(?P<indexproto>[^_]+)
-            ''', format_id)
-
-            ext = determine_ext(video_url, None) or format_m.group('container')
-            if ext not in ('smil', 'f4m', 'm3u8'):
-                format_id = format_id + '-' + quality
-            if format_id in format_ids:
-                continue
-
-            if ext == 'meta':
-                continue
-            elif ext == 'smil':
-                formats.extend(self._extract_smil_formats(
-                    video_url, video_id, fatal=False))
-            elif ext == 'm3u8':
-                # the certificates are misconfigured (see
-                # https://github.com/rg3/youtube-dl/issues/8665)
-                if video_url.startswith('https://'):
-                    continue
-                formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
-            elif ext == 'f4m':
-                formats.extend(self._extract_f4m_formats(
-                    video_url, video_id, f4m_id=format_id, fatal=False))
-            else:
-                proto = format_m.group('proto').lower()
-
-                abr = int_or_none(xpath_text(fnode, './audioBitrate', 'abr'), 1000)
-                vbr = int_or_none(xpath_text(fnode, './videoBitrate', 'vbr'), 1000)
-
-                width = int_or_none(xpath_text(fnode, './width', 'width'))
-                height = int_or_none(xpath_text(fnode, './height', 'height'))
-
-                filesize = int_or_none(xpath_text(fnode, './filesize', 'filesize'))
-
-                format_note = ''
-                if not format_note:
-                    format_note = None
-
-                formats.append({
-                    'format_id': format_id,
-                    'url': video_url,
-                    'ext': ext,
-                    'acodec': format_m.group('acodec'),
-                    'vcodec': format_m.group('vcodec'),
-                    'abr': abr,
-                    'vbr': vbr,
-                    'width': width,
-                    'height': height,
-                    'filesize': filesize,
-                    'format_note': format_note,
-                    'protocol': proto,
-                    '_available': is_available,
-                })
-            format_ids.append(format_id)
-
-        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
-            'duration': duration,
+            'description': content.get('leadParagraph') or content.get('teasertext'),
+            'duration': int_or_none(t.get('duration')),
+            'timestamp': unified_timestamp(content.get('editorialDate')),
             'thumbnails': thumbnails,
-            'uploader': uploader,
-            'uploader_id': uploader_id,
-            'upload_date': upload_date,
+            'subtitles': self._extract_subtitles(ptmd),
             'formats': formats,
-            'subtitles': subtitles,
+        }
+
+    def _extract_regular(self, url, player, video_id):
+        content = self._call_api(
+            player['content'], player, url, video_id, 'content')
+        return self._extract_entry(player['content'], player, content, video_id)
+
+    def _extract_mobile(self, video_id):
+        document = self._download_json(
+            'https://zdf-cdn.live.cellular.de/mediathekV2/document/%s' % video_id,
+            video_id)['document']
+
+        title = document['titel']
+
+        formats = []
+        format_urls = set()
+        for f in document['formitaeten']:
+            self._extract_format(video_id, formats, format_urls, f)
+        self._sort_formats(formats)
+
+        thumbnails = []
+        teaser_bild = document.get('teaserBild')
+        if isinstance(teaser_bild, dict):
+            for thumbnail_key, thumbnail in teaser_bild.items():
+                thumbnail_url = try_get(
+                    thumbnail, lambda x: x['url'], compat_str)
+                if thumbnail_url:
+                    thumbnails.append({
+                        'url': thumbnail_url,
+                        'id': thumbnail_key,
+                        'width': int_or_none(thumbnail.get('width')),
+                        'height': int_or_none(thumbnail.get('height')),
+                    })
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': document.get('beschreibung'),
+            'duration': int_or_none(document.get('length')),
+            'timestamp': unified_timestamp(try_get(
+                document, lambda x: x['meta']['editorialDate'], compat_str)),
+            'thumbnails': thumbnails,
+            'subtitles': self._extract_subtitles(document),
+            'formats': formats,
         }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        xml_url = 'http://www.zdf.de/ZDFmediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
-        return self.extract_from_xml_url(video_id, xml_url)
+
+        webpage = self._download_webpage(url, video_id, fatal=False)
+        if webpage:
+            player = self._extract_player(webpage, url, fatal=False)
+            if player:
+                return self._extract_regular(url, player, video_id)
+
+        return self._extract_mobile(video_id)
 
 
-class ZDFChannelIE(InfoExtractor):
-    _VALID_URL = r'(?:zdf:topic:|https?://www\.zdf\.de/ZDFmediathek(?:#)?/.*kanaluebersicht/(?:[^/]+/)?)(?P<id>[0-9]+)'
+class ZDFChannelIE(ZDFBaseIE):
+    _VALID_URL = r'https?://www\.zdf\.de/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
-        'url': 'http://www.zdf.de/ZDFmediathek#/kanaluebersicht/1586442/sendung/Titanic',
+        'url': 'https://www.zdf.de/sport/das-aktuelle-sportstudio',
         'info_dict': {
-            'id': '1586442',
+            'id': 'das-aktuelle-sportstudio',
+            'title': 'das aktuelle sportstudio | ZDF',
         },
-        'playlist_count': 3,
+        'playlist_count': 21,
     }, {
-        'url': 'http://www.zdf.de/ZDFmediathek/kanaluebersicht/aktuellste/332',
-        'only_matching': True,
+        'url': 'https://www.zdf.de/dokumentation/planet-e',
+        'info_dict': {
+            'id': 'planet-e',
+            'title': 'planet e.',
+        },
+        'playlist_count': 4,
     }, {
-        'url': 'http://www.zdf.de/ZDFmediathek/kanaluebersicht/meist-gesehen/332',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.zdf.de/ZDFmediathek/kanaluebersicht/_/1798716?bc=nrt;nrm?flash=off',
+        'url': 'https://www.zdf.de/filme/taunuskrimi/',
         'only_matching': True,
     }]
-    _PAGE_SIZE = 50
 
-    def _fetch_page(self, channel_id, page):
-        offset = page * self._PAGE_SIZE
-        xml_url = (
-            'http://www.zdf.de/ZDFmediathek/xmlservice/web/aktuellste?ak=web&offset=%d&maxLength=%d&id=%s'
-            % (offset, self._PAGE_SIZE, channel_id))
-        doc = self._download_xml(
-            xml_url, channel_id,
-            note='Downloading channel info',
-            errnote='Failed to download channel info')
-
-        title = doc.find('.//information/title').text
-        description = doc.find('.//information/detail').text
-        for asset in doc.findall('.//teasers/teaser'):
-            a_type = asset.find('./type').text
-            a_id = asset.find('./details/assetId').text
-            if a_type not in ('video', 'topic'):
-                continue
-            yield {
-                '_type': 'url',
-                'playlist_title': title,
-                'playlist_description': description,
-                'url': 'zdf:%s:%s' % (a_type, a_id),
-            }
+    @classmethod
+    def suitable(cls, url):
+        return False if ZDFIE.suitable(url) else super(ZDFChannelIE, cls).suitable(url)
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
-        entries = OnDemandPagedList(
-            functools.partial(self._fetch_page, channel_id), self._PAGE_SIZE)
 
-        return {
-            '_type': 'playlist',
-            'id': channel_id,
-            'entries': entries,
-        }
+        webpage = self._download_webpage(url, channel_id)
+
+        entries = [
+            self.url_result(item_url, ie=ZDFIE.ie_key())
+            for item_url in orderedSet(re.findall(
+                r'data-plusbar-url=["\'](http.+?\.html)', webpage))]
+
+        return self.playlist_result(
+            entries, channel_id, self._og_search_title(webpage, fatal=False))
+
+        r"""
+        player = self._extract_player(webpage, channel_id)
+
+        channel_id = self._search_regex(
+            r'docId\s*:\s*(["\'])(?P<id>(?!\1).+?)\1', webpage,
+            'channel id', group='id')
+
+        channel = self._call_api(
+            'https://api.zdf.de/content/documents/%s.json' % channel_id,
+            player, url, channel_id)
+
+        items = []
+        for module in channel['module']:
+            for teaser in try_get(module, lambda x: x['teaser'], list) or []:
+                t = try_get(
+                    teaser, lambda x: x['http://zdf.de/rels/target'], dict)
+                if not t:
+                    continue
+                items.extend(try_get(
+                    t,
+                    lambda x: x['resultsWithVideo']['http://zdf.de/rels/search/results'],
+                    list) or [])
+            items.extend(try_get(
+                module,
+                lambda x: x['filterRef']['resultsWithVideo']['http://zdf.de/rels/search/results'],
+                list) or [])
+
+        entries = []
+        entry_urls = set()
+        for item in items:
+            t = try_get(item, lambda x: x['http://zdf.de/rels/target'], dict)
+            if not t:
+                continue
+            sharing_url = t.get('http://zdf.de/rels/sharing-url')
+            if not sharing_url or not isinstance(sharing_url, compat_str):
+                continue
+            if sharing_url in entry_urls:
+                continue
+            entry_urls.add(sharing_url)
+            entries.append(self.url_result(
+                sharing_url, ie=ZDFIE.ie_key(), video_id=t.get('id')))
+
+        return self.playlist_result(entries, channel_id, channel.get('title'))
+        """
