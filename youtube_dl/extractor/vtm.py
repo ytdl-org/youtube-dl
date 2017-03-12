@@ -96,7 +96,8 @@ class VTMIE(InfoExtractor):
 
         self._login()
 
-        title = remove_end(self._og_search_title(webpage), ' - Volledige Afleveringen')
+        title = self._html_search_regex(
+            r'\\"title\\":\\"(.+?)\\"', webpage, 'title', default=None)
 
         description = self._html_search_regex(
             r'<div[^>]+class="field-item\s+even">\s*<p>(.+?)</p>',
