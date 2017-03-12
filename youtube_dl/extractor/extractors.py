@@ -1245,6 +1245,11 @@ from .youku import (
     YoukuIE,
     YoukuShowIE,
 )
+from .younow import (
+    YouNowIE,
+    YouNowChannelIE,
+    YouNowMomentIE,
+)
 from .youporn import YouPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
