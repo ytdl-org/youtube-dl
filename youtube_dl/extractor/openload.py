@@ -100,7 +100,7 @@ class OpenloadIE(InfoExtractor):
             i = int(B, 16)
             index = (h / 2) % 10
             A = hashMap[index]
-            i = i ^ 137
+            i = i ^ 96
             i = i ^ A
             video_url_chars.append(compat_chr(i))
             h += 2
