@@ -52,6 +52,16 @@ class VTMIE(InfoExtractor):
             },
             'skip_download': True,
         },
+        {
+            'url': 'http://www.q2.be/video/volledige-afleveringen/id/2be_20170301_VM0684442_q2',
+            'info_dict': {
+                'id': '2be_20170301_VM0684442_q2',
+                'ext': 'mp4',
+                'title': 'Modern Family afl. 15',
+                'description': 'md5:9866dd440480ee5ad5195382dd33d068',
+            },
+            'skip_download': True,
+        },
     ]
 
     def _login(self):
