@@ -34,33 +34,23 @@ class VTMIE(InfoExtractor):
         },
         {
             'url': 'http://vtm.be/video/volledige-afleveringen/id/257107153551000',
-            'info_dict': {
-                'id': '257107153551000',
-                'ext': 'mp4',
-                'title': 'Blind Getrouwd afl.6',
-                'description': 'md5:9ed26e8486ad0c1ddade4b066d83100f',
-            },
-            'skip_download': True,
+            'only_matching': True,
         },
         {
             'url': 'http://vtm.be/video?aid=163157',
-            'info_dict': {
-                'id': '257068686507000',
-                'ext': 'mp4',
-                'title': 'Amigo\'s afl.8',
-                'description': 'md5:1db8963594a1829839dabd55ef4f6a0b',
-            },
-            'skip_download': True,
+            'only_matching': True,
         },
         {
             'url': 'http://www.q2.be/video/volledige-afleveringen/id/2be_20170301_VM0684442_q2',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://vtm.be/video?aid=168332',
             'info_dict': {
-                'id': '2be_20170301_VM0684442_q2',
+                'id': 'video?aid=168332',
                 'ext': 'mp4',
-                'title': 'Modern Family afl. 15',
-                'description': 'md5:9866dd440480ee5ad5195382dd33d068',
+                'title': 'Videozone',
             },
-            'skip_download': True,
         },
     ]
 
