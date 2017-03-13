@@ -96,14 +96,16 @@ class OpenloadIE(InfoExtractor):
         h = 0
 
         while h < len(v):
-            B = v[h:h + 2]
+            B = v[h:h + 3]
             i = int(B, 16)
-            index = (h / 2) % 10
+            if (h / 3) % 3 == 0:
+                i = int(B, 8)
+            index = (h / 3) % 10
             A = hashMap[index]
-            i = i ^ 96
+            i = i ^ 47
             i = i ^ A
             video_url_chars.append(compat_chr(i))
-            h += 2
+            h += 3
 
         video_url = 'https://openload.co/stream/%s?mime=true'
         video_url = video_url % (''.join(video_url_chars))
