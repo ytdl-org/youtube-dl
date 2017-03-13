@@ -196,6 +196,10 @@ class FacebookIE(InfoExtractor):
     }, {
         'url': 'https://www.facebookcorewwwi.onion/video.php?v=274175099429670',
         'only_matching': True,
+    }, {
+        # no title
+        'url': 'https://www.facebook.com/onlycleverentertainment/videos/1947995502095005/',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -353,15 +357,15 @@ class FacebookIE(InfoExtractor):
         self._sort_formats(formats)
 
         video_title = self._html_search_regex(
-            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage, 'title',
-            default=None)
+            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
+            'title', default=None)
         if not video_title:
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
         if not video_title:
             video_title = self._html_search_meta(
-                'description', webpage, 'title')
+                'description', webpage, 'title', default=None)
         if video_title:
             video_title = limit_length(video_title, 80)
         else:
