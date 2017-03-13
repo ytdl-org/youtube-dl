@@ -64,6 +64,9 @@ class VTMIE(InfoExtractor):
         },
     ]
 
+    def _real_initialize(self):
+        self._logged_in = False
+
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None or password is None:
@@ -91,23 +94,26 @@ class VTMIE(InfoExtractor):
         self._uid_signature = auth_info['UIDSignature']
         self._signature_timestamp = auth_info['signatureTimestamp']
 
+        self._logged_in = True
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         site_id = mobj.group('site_id')
 
-        webpage = self._download_webpage(url, None)
+        webpage = self._download_webpage(url, None, "Downloading webpage")
 
         # The URL sometimes contains the video id, but not always, e.g., test
-        # case 3. Fortunately, all webpages contain the video id.
+        # case 3. Fortunately, all webpages of videos requiring authentication
+        # contain the video id.
         video_id = self._search_regex(
             r'\\"vodId\\":\\"(.+?)\\"', webpage, 'video_id', default=None)
 
-        # When no video_id is found, it was most likely a video not requiring
-        # authentication, so just fall back to the generic extractor
+        # It was most likely a video not requiring authentication.
         if not video_id:
             return self.url_result(url, 'Generic')
 
-        self._login()
+        if not self._logged_in:
+            self._login()
 
         title = self._html_search_regex(
             r'\\"title\\":\\"(.+?)\\"', webpage, 'title', default=None)
