@@ -3,6 +3,15 @@ version <unreleased>
 Core
 * Fix missing subtitles if --add-metadata is used (#12423)
 
+Extractors
+* [facebook] Make title optional (#12443)
++ [mitele] Add support for ooyala videos (#12430)
+* [openload] Fix extraction (#12435, #12446)
+* [streamable] Update API URL (#12433)
++ [crunchyroll] Extract season name (#12428)
+* [discoverygo] Bypass geo restriction
++ [discoverygo:playlist] Add support for playlists (#12424)
+
 
 version 2017.03.10
 
