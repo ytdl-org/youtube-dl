@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     find_xpath_attr,
     fix_xml_ampersands,
     int_or_none,
@@ -55,7 +55,200 @@ class RaiBaseIE(InfoExtractor):
 
         return formats
 
-    def _extract_from_content_id(self, content_id, base_url):
+
+class RaiPlayIE(RaiBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})\.html'
+    _TESTS = [{
+        'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html?source=twitter',
+        'md5': '340aa3b7afb54bfd14a8c11786450d76',
+        'info_dict': {
+            'id': 'e06118bb-59a9-4636-b914-498e4cfd2c66',
+            'ext': 'mp4',
+            'title': 'La Casa Bianca',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': r're:^Rai.+',
+            'description': 're:^[A-Za-z]+'
+        }
+    }, {
+        'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
+        'md5': 'ed4da3d70ccf8129a33ab16b34d20ab8',
+        'info_dict': {
+            'id': 'efebe701-969c-4593-92f3-285f0d1ce750',
+            'ext': 'mp4',
+            'title': 'Gazebo - #gazebotraindesi',
+            'thumbnail': r're:^https?://.*\.png$',
+            'uploader': r're:^Rai.+',
+            'description': r're:^[A-Za-z]+'
+        }
+    }, {
+        'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
+        'md5': '8970abf8caf8aef4696e7b1f2adfc696',
+        'info_dict': {
+            'id': 'cb27157f-9dd0-4aee-b788-b1f67643a391',
+            'ext': 'mp4',
+            'title': 'Report - Report del 07/04/2014',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': r're:^Rai.+',
+            'description': r're:^[A-Za-z]+'
+        }
+    }]
+    _RESOLUTION = '600x400'
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        # remove query and fragment part from url
+        canonical_url = compat_urlparse.urljoin(url, compat_urlparse.urlparse(url).path)
+        webpage = self._download_webpage(canonical_url, video_id)
+
+        media = self._download_json('%s?json' % canonical_url,
+                                    video_id, 'Downloading video JSON')
+
+        thumbnails = []
+        if 'images' in media:
+            for _, value in media.get('images').items():
+                if value:
+                    thumbnails.append({
+                        'url': value.replace('[RESOLUTION]', self._RESOLUTION)
+                    })
+
+        if 'video' not in media:
+            raise ExtractorError('No video found')
+
+        video = media.get('video')
+        duration = parse_duration(video.get('duration')),
+        formats = self._extract_relinker_formats(video.get('contentUrl'), video_id)
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': self._og_search_title(webpage).replace(' - video - RaiPlay', ''),
+            'description': self._og_search_description(webpage),
+            'uploader': media.get('channel'),
+            'duration': duration,
+            'thumbnails': thumbnails,
+            'formats': formats
+        }
+
+
+class RaiIE(RaiBaseIE):
+    _VALID_URL = r'https?://.+\.(?:rai|rainews)\.it/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html'
+    _TESTS = [{
+        # subdomain test case
+        'url': 'http://www.raisport.rai.it/dl/raiSport/media/rassegna-stampa-04a9f4bd-b563-40cf-82a6-aad3529cb4a9.html',
+        'info_dict': {
+            'id': '04a9f4bd-b563-40cf-82a6-aad3529cb4a9',
+            'ext': 'mp4',
+            'title': 'TG PRIMO TEMPO',
+            'upload_date': '20140612',
+            'duration': 1758,
+            'thumbnail': r're:^https?://.*\.jpg$'
+        }
+    }, {
+        # rainews test case
+        'url': 'http://www.rainews.it/dl/rainews/media/Weekend-al-cinema-da-Hollywood-arriva-il-thriller-di-Tate-Taylor-La-ragazza-del-treno-1632c009-c843-4836-bb65-80c33084a64b.html',
+        'info_dict': {
+            'id': '1632c009-c843-4836-bb65-80c33084a64b',
+            'ext': 'mp4',
+            'title': 'Weekend al cinema, da Hollywood arriva il thriller di Tate Taylor \"La ragazza del treno\" ',
+            'upload_date': '20161103',
+            'thumbnail': r're:^https?://.*\.png$',
+            'description': r're:^[A-Za-z]+'
+        }
+    }, {
+        # with media information
+        'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-efb17665-691c-45d5-a60c-5301333cbb0c.html',
+        'md5': '11959b4e44fa74de47011b5799490adf',
+        'info_dict': {
+            'id': 'efb17665-691c-45d5-a60c-5301333cbb0c',
+            'ext': 'mp4',
+            'title': 'TG1 ore 20:00 del 03/11/2016',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'upload_date': '20161103',
+            'description': r're:^[A-Za-z]+'
+        }
+    }, {
+        # drawMediaRaiTV test case
+        'url': 'http://www.report.rai.it/dl/Report/puntata/ContentItem-0c7a664b-d0f4-4b2c-8835-3f82e46f433e.html',
+        'md5': '2dd727e61114e1ee9c47f0da6914e178',
+        'info_dict': {
+            'id': '59d69d28-6bb6-409d-a4b5-ed44096560af',
+            'ext': 'mp4',
+            'title': 'Il pacco',
+            'description': 'md5:4b1afae1364115ce5d78ed83cd2e5b3a',
+            'upload_date': '20141221',
+        },
+    }, {
+        # Direct relinker URL
+        'url': 'http://www.rai.tv/dl/RaiTV/dirette/PublishingBlock-1912dbbf-3f96-44c3-b4cf-523681fbacbc.html?channel=EuroNews',
+        # HDS live stream, MD5 is unstable
+        'info_dict': {
+            'id': '1912dbbf-3f96-44c3-b4cf-523681fbacbc',
+            'ext': 'flv',
+            'title': 'EuroNews',
+        },
+    }, {
+        # Embedded content item ID
+        'url': 'http://www.tg1.rai.it/dl/tg1/2010/edizioni/ContentSet-9b6e0cba-4bef-4aef-8cf0-9f7f665b7dfb-tg1.html?item=undefined',
+        'info_dict': {
+            'id': 'd80d4b70-3812-4501-a888-92edec729f00',
+            'ext': 'mp4',
+            'title': r're:TG1 ore \d{2}:\d{2} del \d{2}/\d{2}/\d{4}',
+            'upload_date': r're:\d{8}',
+            'description': r're:.+',
+        },
+    }, {
+        'url': 'http://www.rainews.it/dl/rainews/live/ContentItem-3156f2f2-dc70-4953-8e2f-70d7489d4ce9.html',
+        # HDS live stream, MD5 is unstable
+        'info_dict': {
+            'id': '3156f2f2-dc70-4953-8e2f-70d7489d4ce9',
+            'ext': 'mp4',
+            'title': 'La diretta di Rainews24',
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        iframe_url = self._search_regex(
+            [r'<iframe[^>]+src="([^"]*/dl/[^"]+\?iframe\b[^"]*)"',
+             r'drawMediaRaiTV\(["\'](.+?)["\']'],
+            webpage, 'iframe', default=None)
+        if iframe_url:
+            if not iframe_url.startswith('http'):
+                iframe_url = compat_urlparse.urljoin(url, iframe_url)
+            return self.url_result(iframe_url)
+
+        content_item_id = self._search_regex(
+            r'initEdizione\((?P<q1>[\'"])ContentItem-(?P<content_id>[^\'"]+)(?P=q1)',
+            webpage, 'content item ID', group='content_id', default=None)
+        if content_item_id:
+            return self._extract_from_content_id(content_item_id, url)
+
+        try:
+            return self._extract_from_content_id(video_id, url)
+        except ExtractorError:
+            # no media data, only direct relinker
+            pass
+
+        relinker_url = compat_urlparse.urljoin(url, self._search_regex(
+            r'(?:var\s+videoURL|mediaInfo\.mediaUri)\s*=\s*(?P<q1>[\'"])(?P<url>(https?:)?//mediapolis\.rai\.it/relinker/relinkerServlet\.htm\?cont=\d+)(?P=q1)',
+            webpage, 'relinker URL', group='url'))
+        formats = self._extract_relinker_formats(relinker_url, video_id)
+        self._sort_formats(formats)
+
+        title = self._search_regex(
+            r'var\s+videoTitolo\s*=\s*([\'"])(?P<title>[^\'"]+)\1',
+            webpage, 'title', group='title', default=None) or self._og_search_title(webpage)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': formats,
+        }
+
+    def _extract_from_content_id(self, content_id, url):
         media = self._download_json(
             'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-%s.html?json' % content_id,
             content_id, 'Downloading video JSON')
@@ -65,7 +258,7 @@ class RaiBaseIE(InfoExtractor):
             thumbnail_url = media.get(image_type)
             if thumbnail_url:
                 thumbnails.append({
-                    'url': compat_urlparse.urljoin(base_url, thumbnail_url),
+                    'url': compat_urlparse.urljoin(url, thumbnail_url),
                 })
 
         formats = []
@@ -104,164 +297,4 @@ class RaiBaseIE(InfoExtractor):
             'duration': parse_duration(media.get('length')),
             'formats': formats,
             'subtitles': subtitles,
-        }
-
-
-class RaiTVIE(RaiBaseIE):
-    _VALID_URL = r'https?://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it)/dl/(?:[^/]+/)+(?:media|ondemand)/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html'
-    _TESTS = [
-        {
-            'url': 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
-            'md5': '8970abf8caf8aef4696e7b1f2adfc696',
-            'info_dict': {
-                'id': 'cb27157f-9dd0-4aee-b788-b1f67643a391',
-                'ext': 'mp4',
-                'title': 'Report del 07/04/2014',
-                'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
-                'upload_date': '20140407',
-                'duration': 6160,
-                'thumbnail': r're:^https?://.*\.jpg$',
-            }
-        },
-        {
-            # no m3u8 stream
-            'url': 'http://www.raisport.rai.it/dl/raiSport/media/rassegna-stampa-04a9f4bd-b563-40cf-82a6-aad3529cb4a9.html',
-            # HDS download, MD5 is unstable
-            'info_dict': {
-                'id': '04a9f4bd-b563-40cf-82a6-aad3529cb4a9',
-                'ext': 'flv',
-                'title': 'TG PRIMO TEMPO',
-                'upload_date': '20140612',
-                'duration': 1758,
-                'thumbnail': r're:^https?://.*\.jpg$',
-            },
-            'skip': 'Geo-restricted to Italy',
-        },
-        {
-            'url': 'http://www.rainews.it/dl/rainews/media/state-of-the-net-Antonella-La-Carpia-regole-virali-7aafdea9-0e5d-49d5-88a6-7e65da67ae13.html',
-            'md5': '35cf7c229f22eeef43e48b5cf923bef0',
-            'info_dict': {
-                'id': '7aafdea9-0e5d-49d5-88a6-7e65da67ae13',
-                'ext': 'mp4',
-                'title': 'State of the Net, Antonella La Carpia: regole virali',
-                'description': 'md5:b0ba04a324126903e3da7763272ae63c',
-                'upload_date': '20140613',
-            },
-            'skip': 'Error 404',
-        },
-        {
-            'url': 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-b4a49761-e0cc-4b14-8736-2729f6f73132-tg2.html',
-            'info_dict': {
-                'id': 'b4a49761-e0cc-4b14-8736-2729f6f73132',
-                'ext': 'mp4',
-                'title': 'Alluvione in Sardegna e dissesto idrogeologico',
-                'description': 'Edizione delle ore 20:30 ',
-            },
-            'skip': 'invalid urls',
-        },
-        {
-            'url': 'http://www.ilcandidato.rai.it/dl/ray/media/Il-Candidato---Primo-episodio-Le-Primarie-28e5525a-b495-45e8-a7c3-bc48ba45d2b6.html',
-            'md5': 'e57493e1cb8bc7c564663f363b171847',
-            'info_dict': {
-                'id': '28e5525a-b495-45e8-a7c3-bc48ba45d2b6',
-                'ext': 'mp4',
-                'title': 'Il Candidato - Primo episodio: "Le Primarie"',
-                'description': 'md5:364b604f7db50594678f483353164fb8',
-                'upload_date': '20140923',
-                'duration': 386,
-                'thumbnail': r're:^https?://.*\.jpg$',
-            }
-        },
-    ]
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        return self._extract_from_content_id(video_id, url)
-
-
-class RaiIE(RaiBaseIE):
-    _VALID_URL = r'https?://(?:.+?\.)?(?:rai\.it|rai\.tv|rainews\.it)/dl/.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html'
-    _TESTS = [
-        {
-            'url': 'http://www.report.rai.it/dl/Report/puntata/ContentItem-0c7a664b-d0f4-4b2c-8835-3f82e46f433e.html',
-            'md5': '2dd727e61114e1ee9c47f0da6914e178',
-            'info_dict': {
-                'id': '59d69d28-6bb6-409d-a4b5-ed44096560af',
-                'ext': 'mp4',
-                'title': 'Il pacco',
-                'description': 'md5:4b1afae1364115ce5d78ed83cd2e5b3a',
-                'upload_date': '20141221',
-            },
-        },
-        {
-            # Direct relinker URL
-            'url': 'http://www.rai.tv/dl/RaiTV/dirette/PublishingBlock-1912dbbf-3f96-44c3-b4cf-523681fbacbc.html?channel=EuroNews',
-            # HDS live stream, MD5 is unstable
-            'info_dict': {
-                'id': '1912dbbf-3f96-44c3-b4cf-523681fbacbc',
-                'ext': 'flv',
-                'title': 'EuroNews',
-            },
-            'skip': 'Geo-restricted to Italy',
-        },
-        {
-            # Embedded content item ID
-            'url': 'http://www.tg1.rai.it/dl/tg1/2010/edizioni/ContentSet-9b6e0cba-4bef-4aef-8cf0-9f7f665b7dfb-tg1.html?item=undefined',
-            'md5': '84c1135ce960e8822ae63cec34441d63',
-            'info_dict': {
-                'id': '0960e765-62c8-474a-ac4b-7eb3e2be39c8',
-                'ext': 'mp4',
-                'title': 'TG1 ore 20:00 del 02/07/2016',
-                'upload_date': '20160702',
-            },
-        },
-        {
-            'url': 'http://www.rainews.it/dl/rainews/live/ContentItem-3156f2f2-dc70-4953-8e2f-70d7489d4ce9.html',
-            # HDS live stream, MD5 is unstable
-            'info_dict': {
-                'id': '3156f2f2-dc70-4953-8e2f-70d7489d4ce9',
-                'ext': 'flv',
-                'title': 'La diretta di Rainews24',
-            },
-        },
-    ]
-
-    @classmethod
-    def suitable(cls, url):
-        return False if RaiTVIE.suitable(url) else super(RaiIE, cls).suitable(url)
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
-        iframe_url = self._search_regex(
-            [r'<iframe[^>]+src="([^"]*/dl/[^"]+\?iframe\b[^"]*)"',
-             r'drawMediaRaiTV\(["\'](.+?)["\']'],
-            webpage, 'iframe', default=None)
-        if iframe_url:
-            if not iframe_url.startswith('http'):
-                iframe_url = compat_urlparse.urljoin(url, iframe_url)
-            return self.url_result(iframe_url)
-
-        content_item_id = self._search_regex(
-            r'initEdizione\((?P<q1>[\'"])ContentItem-(?P<content_id>[^\'"]+)(?P=q1)',
-            webpage, 'content item ID', group='content_id', default=None)
-        if content_item_id:
-            return self._extract_from_content_id(content_item_id, url)
-
-        relinker_url = compat_urlparse.urljoin(url, self._search_regex(
-            r'(?:var\s+videoURL|mediaInfo\.mediaUri)\s*=\s*(?P<q1>[\'"])(?P<url>(https?:)?//mediapolis\.rai\.it/relinker/relinkerServlet\.htm\?cont=\d+)(?P=q1)',
-            webpage, 'relinker URL', group='url'))
-        formats = self._extract_relinker_formats(relinker_url, video_id)
-        self._sort_formats(formats)
-
-        title = self._search_regex(
-            r'var\s+videoTitolo\s*=\s*([\'"])(?P<title>[^\'"]+)\1',
-            webpage, 'title', group='title', default=None) or self._og_search_title(webpage)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'formats': formats,
         }
