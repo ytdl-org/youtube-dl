@@ -208,6 +208,7 @@
  - **Digiteka**
  - **Discovery**
  - **DiscoveryGo**
+ - **DiscoveryGoPlaylist**
  - **Disney**
  - **Dotsub**
  - **DouyuTV**: 斗鱼

@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.15
 
 Core
 * Fix missing subtitles if --add-metadata is used (#12423)
