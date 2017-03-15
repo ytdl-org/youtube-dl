@@ -2554,6 +2554,7 @@ class GenericIE(InfoExtractor):
                     jwplayer_data, video_id, require_title=False)
                 if not info.get('title'):
                     info['title'] = video_title
+                return info
             except ExtractorError:
                 pass
 
