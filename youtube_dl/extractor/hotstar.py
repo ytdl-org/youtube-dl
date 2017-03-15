@@ -7,6 +7,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
 )
+import re
 
 
 class HotStarIE(InfoExtractor):
@@ -16,7 +17,7 @@ class HotStarIE(InfoExtractor):
         'info_dict': {
             'id': '1000076273',
             'ext': 'mp4',
-            'title': 'On Air With AIB - English',
+            'title': 'On Air With AIB',
             'description': 'md5:c957d8868e9bc793ccb813691cc4c434',
             'timestamp': 1447227000,
             'upload_date': '20151111',
@@ -99,3 +100,59 @@ class HotStarIE(InfoExtractor):
             'episode_number': int_or_none(video_data.get('episodeNumber')),
             'series': video_data.get('contentTitle'),
         }
+
+class HotStarBaseIE(InfoExtractor):
+    @classmethod
+    def _extract_url_info(cls, url):
+        mobj = re.match(cls._VALID_URL, url)
+        return mobj.group('series_id'), mobj.group('playlist_id'), mobj.group('playlist_title')
+
+    def _extract_from_json_url(self, series_id, playlist_title, video ):
+
+        picture_url = video.get('urlPictures');
+        thumbnail = 'http://media0-starag.startv.in/r1/thumbs/PCTV/%s/%s/PCTV-%s-hs.jpg' % ( picture_url[-2:], picture_url, picture_url )
+
+        episode_title = video.get('episodeTitle')
+        episode_title = episode_title.lower().replace(' ', '-')
+        url = "http://www.hotstar.com/tv/%s/%s/%s/%s" % (playlist_title, series_id, episode_title, video.get('contentId'))
+
+        info_dict = {
+            'id': video.get('contentId'),
+            'title': video.get('episodeTitle'),
+            'description': video.get('longDescription'),
+            'thumbnail' : thumbnail,
+            'url' : url,
+            '_type' : 'url',
+        }
+        return info_dict
+
+class HotStarPlaylistIE(HotStarBaseIE):
+    IE_NAME = 'hotstar:playlist'
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/tv/(?P<playlist_title>.+)/(?P<series_id>\d+)/episodes/(?P<playlist_id>\d{1,})'
+
+    _TESTS = [{
+        'url': 'http://www.hotstar.com/tv/pow-bandi-yuddh-ke/10999/episodes/10856/9993',
+        'info_dict': {
+            'id': '10856',
+            'title': 'pow-bandi-yuddh-ke',
+        },
+        'playlist_mincount': 0,
+    }, {
+        'url': 'http://www.hotstar.com/tv/pow-bandi-yuddh-ke/10999/episodes/10856/9993',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        series_id, playlist_id, playlist_title = self._extract_url_info(url)
+
+        collection = self._download_json(
+            "http://search.hotstar.com/AVS/besc?action=SearchContents&appVersion=5.0.39&channel=PCTV&moreFilters=series:%s;&query=*&searchOrder=last_broadcast_date+desc,year+asc,title+asc&type=EPISODE" % playlist_id,
+            playlist_id
+        )
+
+        videos = collection['resultObj']['response']['docs']
+
+        entries = [
+            self._extract_from_json_url( series_id, playlist_title, video )
+            for video in videos if video.get('contentId')]
+        return self.playlist_result(entries, playlist_id, playlist_title)
