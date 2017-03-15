@@ -2247,6 +2247,9 @@ class InfoExtractor(object):
             elif ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     source_url, video_id, mpd_id=mpd_id, fatal=False))
+            elif ext == 'smil':
+                formats.extend(self._extract_smil_formats(
+                    source_url, video_id, fatal=False))
             # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
             elif source_type.startswith('audio') or ext in (
                     'oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
