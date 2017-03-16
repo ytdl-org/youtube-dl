@@ -117,10 +117,6 @@ class HotStarPlaylistIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _extract_url_info(cls, url):
-        mobj = re.match(cls._VALID_URL, url)
-        return mobj.group('series_id'), mobj.group('playlist_id'), mobj.group('playlist_title')
-
     def _extract_from_json_url(self, series_id, playlist_title, video ):
 
         picture_url = video.get('urlPictures');
@@ -143,15 +139,17 @@ class HotStarPlaylistIE(InfoExtractor):
         return info_dict
 
     def _real_extract(self, url):
-        series_id, playlist_id, playlist_title = self._extract_url_info(url)
+        mobj = re.match(self._VALID_URL, url)
+        series_id      = mobj.group('series_id')
+        playlist_id    = mobj.group('playlist_id')
+        playlist_title = mobj.group('playlist_title')
 
         collection = self._download_json(
             "http://search.hotstar.com/AVS/besc?action=SearchContents&appVersion=5.0.39&channel=PCTV&moreFilters=series:%s;&query=*&searchOrder=last_broadcast_date+desc,year+asc,title+asc&type=EPISODE" % playlist_id,
             playlist_id
         )
 
-        videos = collection['resultObj']['response']['docs']
-
+        videos = collection.get('resultObj', {}).get('response', {}).get('docs', [])
         entries = [
             self._extract_from_json_url( series_id, playlist_title, video )
             for video in videos if video.get('contentId')]
