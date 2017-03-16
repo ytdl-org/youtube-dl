@@ -1,3 +1,14 @@
+version <unreleased>
+
+Core
++ [postprocessor/ffmpeg] Add support for flac
++ [extractor/common] Extract SMIL formats from jwplayer
+
+Extractors
++ [generic] Add forgotten return for jwplayer formats
+* [redbulltv] Improve extraction
+
+
 version 2017.03.15
 
 Core
