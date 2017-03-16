@@ -101,7 +101,7 @@ class HotStarIE(InfoExtractor):
             'series': video_data.get('contentTitle'),
         }
 
-class HotStarPlaylistIE(HotStarBaseIE):
+class HotStarPlaylistIE(InfoExtractor):
     IE_NAME = 'hotstar:playlist'
     _VALID_URL = r'https?://(?:www\.)?hotstar\.com/tv/(?P<playlist_title>.+)/(?P<series_id>\d+)/episodes/(?P<playlist_id>\d{1,})'
 
