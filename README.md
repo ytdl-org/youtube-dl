@@ -375,8 +375,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      (requires ffmpeg or avconv and ffprobe or
                                      avprobe)
     --audio-format FORMAT            Specify audio format: "best", "aac",
-                                     "vorbis", "mp3", "m4a", "opus", or "wav";
-                                     "best" by default; No effect without -x
+                                     "flac", "mp3", "m4a", "opus", "vorbis", or
+                                     "wav"; "best" by default; No effect without
+                                     -x
     --audio-quality QUALITY          Specify ffmpeg/avconv audio quality, insert
                                      a value between 0 (better) and 9 (worse)
                                      for VBR or a specific bitrate like 128K

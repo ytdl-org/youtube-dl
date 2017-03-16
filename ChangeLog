@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.16
 
 Core
 + [postprocessor/ffmpeg] Add support for flac
