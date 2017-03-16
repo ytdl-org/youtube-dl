@@ -101,31 +101,6 @@ class HotStarIE(InfoExtractor):
             'series': video_data.get('contentTitle'),
         }
 
-class HotStarBaseIE(InfoExtractor):
-    @classmethod
-    def _extract_url_info(cls, url):
-        mobj = re.match(cls._VALID_URL, url)
-        return mobj.group('series_id'), mobj.group('playlist_id'), mobj.group('playlist_title')
-
-    def _extract_from_json_url(self, series_id, playlist_title, video ):
-
-        picture_url = video.get('urlPictures');
-        thumbnail = 'http://media0-starag.startv.in/r1/thumbs/PCTV/%s/%s/PCTV-%s-hs.jpg' % ( picture_url[-2:], picture_url, picture_url )
-
-        episode_title = video.get('episodeTitle')
-        episode_title = episode_title.lower().replace(' ', '-')
-        url = "http://www.hotstar.com/tv/%s/%s/%s/%s" % (playlist_title, series_id, episode_title, video.get('contentId'))
-
-        info_dict = {
-            'id': video.get('contentId'),
-            'title': video.get('episodeTitle'),
-            'description': video.get('longDescription'),
-            'thumbnail' : thumbnail,
-            'url' : url,
-            '_type' : 'url',
-        }
-        return info_dict
-
 class HotStarPlaylistIE(HotStarBaseIE):
     IE_NAME = 'hotstar:playlist'
     _VALID_URL = r'https?://(?:www\.)?hotstar\.com/tv/(?P<playlist_title>.+)/(?P<series_id>\d+)/episodes/(?P<playlist_id>\d{1,})'
@@ -141,6 +116,31 @@ class HotStarPlaylistIE(HotStarBaseIE):
         'url': 'http://www.hotstar.com/tv/pow-bandi-yuddh-ke/10999/episodes/10856/9993',
         'only_matching': True,
     }]
+
+    def _extract_url_info(cls, url):
+        mobj = re.match(cls._VALID_URL, url)
+        return mobj.group('series_id'), mobj.group('playlist_id'), mobj.group('playlist_title')
+
+    def _extract_from_json_url(self, series_id, playlist_title, video ):
+
+        picture_url = video.get('urlPictures');
+        thumbnail = ''
+        if picture_url:
+            thumbnail = 'http://media0-starag.startv.in/r1/thumbs/PCTV/%s/%s/PCTV-%s-hs.jpg' % ( picture_url[-2:], picture_url, picture_url )
+
+        episode_title = video.get('episodeTitle', '')
+        episode_title = episode_title.lower().replace(' ', '-')
+        url = "http://www.hotstar.com/tv/%s/%s/%s/%s" % (playlist_title, series_id, episode_title, video.get('contentId'))
+
+        info_dict = {
+            'id': video.get('contentId'),
+            'title': video.get('episodeTitle'),
+            'description': video.get('longDescription'),
+            'thumbnail' : thumbnail,
+            'url' : url,
+            '_type' : 'url',
+        }
+        return info_dict
 
     def _real_extract(self, url):
         series_id, playlist_id, playlist_title = self._extract_url_info(url)
