@@ -1458,6 +1458,8 @@ class AdobePassIE(InfoExtractor):
                     self._downloader.cache.store(self._MVPD_CACHE, requestor_id, {})
                     count += 1
                     continue
+                if '<error' in authorize:
+                    raise ExtractorError(xml_text(authorize, 'details'), expected=True)
                 authz_token = unescapeHTML(xml_text(authorize, 'authzToken'))
                 requestor_info[guid] = authz_token
                 self._downloader.cache.store(self._MVPD_CACHE, requestor_id, requestor_info)
