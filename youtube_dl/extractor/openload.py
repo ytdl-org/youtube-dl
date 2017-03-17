@@ -80,8 +80,8 @@ class OpenloadIE(InfoExtractor):
         first_char = ord(ol_id[0])
         key = first_char - 55
         maxKey = max(2, key)
-        key = min(maxKey, len(ol_id) - 26)
-        t = ol_id[key:key + 24]
+        key = min(maxKey, len(ol_id) - 38)
+        t = ol_id[key:key + 36]
 
         hashMap = {}
         v = ol_id.replace(t, '')
@@ -110,7 +110,7 @@ class OpenloadIE(InfoExtractor):
             elif H % 2 == 0 and H != 0 and ord(v[H - 1]) < 60:
                 i = int(C, 10)
                 h += 1
-            index = H % 8
+            index = H % 12
 
             A = hashMap[index]
             i ^= 213
