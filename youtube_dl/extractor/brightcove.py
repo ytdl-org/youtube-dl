@@ -533,10 +533,6 @@ class BrightcoveNewIE(InfoExtractor):
             if not embed:
                 embed = attrs.get('data-embed')
 
-            # According to [5] data-video-id may be prefixed with 'ref:'
-            if video_id:
-                video_id = video_id.rpartition('ref:')[2]
-
             if video_id and account_id and player_id and embed:
                 entries.append(
                     'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
