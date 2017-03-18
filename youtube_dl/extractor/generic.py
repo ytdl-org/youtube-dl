@@ -1887,7 +1887,6 @@ class GenericIE(InfoExtractor):
         # Look for Brightcove Legacy Studio embeds
         bc_urls = BrightcoveLegacyIE._extract_brightcove_urls(webpage)
         if bc_urls:
-            self.to_screen('Brightcove (legacy) video detected.')
             entries = [{
                 '_type': 'url',
                 'url': smuggle_url(bc_url, {'Referer': url}),
@@ -1904,7 +1903,6 @@ class GenericIE(InfoExtractor):
         # Look for Brightcove New Studio embeds
         bc_urls = BrightcoveNewIE._extract_urls(webpage)
         if bc_urls:
-            self.to_screen('Brightcove (new) video detected.')
             return _playlist_from_matches(bc_urls, ie='BrightcoveNew')
 
         # Look for ThePlatform embeds
