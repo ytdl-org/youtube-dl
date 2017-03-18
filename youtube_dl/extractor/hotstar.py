@@ -101,6 +101,7 @@ class HotStarIE(InfoExtractor):
             'series': video_data.get('contentTitle'),
         }
 
+
 class HotStarPlaylistIE(InfoExtractor):
     IE_NAME = 'hotstar:playlist'
     _VALID_URL = r'https?://(?:www\.)?hotstar\.com/tv/(?P<playlist_title>.+)/(?P<series_id>\d+)/episodes/(?P<playlist_id>\d{1,})'
@@ -117,12 +118,12 @@ class HotStarPlaylistIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _extract_episode_info(self, series_id, playlist_title, video ):
+    def _extract_episode_info(self, series_id, playlist_title, video):
 
-        picture_url = video.get('urlPictures');
+        picture_url = video.get('urlPictures')
         thumbnail = ''
         if picture_url:
-            thumbnail = 'http://media0-starag.startv.in/r1/thumbs/PCTV/%s/%s/PCTV-%s-hs.jpg' % ( picture_url[-2:], picture_url, picture_url )
+            thumbnail = 'http://media0-starag.startv.in/r1/thumbs/PCTV/%s/%s/PCTV-%s-hs.jpg' % (picture_url[-2:], picture_url, picture_url)
 
         episode_title = video.get('episodeTitle', '')
         episode_title = episode_title.lower().replace(' ', '-')
@@ -132,16 +133,16 @@ class HotStarPlaylistIE(InfoExtractor):
             'id': video.get('contentId'),
             'title': video.get('episodeTitle'),
             'description': video.get('longDescription'),
-            'thumbnail' : thumbnail,
-            'url' : url,
-            '_type' : 'url',
+            'thumbnail': thumbnail,
+            'url': url,
+            '_type': 'url',
         }
         return info_dict
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        series_id      = mobj.group('series_id')
-        playlist_id    = mobj.group('playlist_id')
+        series_id = mobj.group('series_id')
+        playlist_id = mobj.group('playlist_id')
         playlist_title = mobj.group('playlist_title')
 
         collection = self._download_json(
@@ -151,6 +152,6 @@ class HotStarPlaylistIE(InfoExtractor):
 
         videos = collection.get('resultObj', {}).get('response', {}).get('docs', [])
         entries = [
-            self._extract_episode_info( series_id, playlist_title, video )
+            self._extract_episode_info(series_id, playlist_title, video)
             for video in videos if video.get('contentId')]
         return self.playlist_result(entries, playlist_id, playlist_title)
