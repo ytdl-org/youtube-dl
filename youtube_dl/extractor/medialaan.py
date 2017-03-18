@@ -83,10 +83,6 @@ class MedialaanIE(InfoExtractor):
         'only_matching': True,
     }, {
         # clip
-        'url': 'http://vitaya.be/de-jurk/precies-je-hebt-geen-borsten',
-        'only_matching': True,
-    }, {
-        # clip
         'url': 'http://vtmkzoom.be/k3-dansstudio/een-nieuw-seizoen-van-k3-dansstudio',
         'only_matching': True,
     }]
