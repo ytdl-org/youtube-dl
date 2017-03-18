@@ -986,6 +986,7 @@ from .tnaflix import (
 )
 from .toggle import ToggleIE
 from .tonline import TOnlineIE
+from .toongoggles import ToonGogglesIE
 from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
