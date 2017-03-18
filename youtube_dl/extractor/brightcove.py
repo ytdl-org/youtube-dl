@@ -497,9 +497,6 @@ class BrightcoveNewIE(InfoExtractor):
         # 4. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/in-page-embed-player-implementation.html
         # 5. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
 
-        # [1] looks like:
-        # <video data-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
-
         entries = []
 
         # Look for iframe embeds [3]
@@ -508,6 +505,9 @@ class BrightcoveNewIE(InfoExtractor):
             entries.append(url if url.startswith('http') else 'http:' + url)
 
         # Look for <video> tags [1] and embed_in_page embeds [2]
+        # [1] looks like:
+        # <video data-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
+
         for video, script_tag, account_id, player_id, embed in re.findall(
             r'''(?isx)
                 (<video[^>]+>)
