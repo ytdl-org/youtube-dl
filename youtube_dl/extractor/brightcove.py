@@ -491,21 +491,21 @@ class BrightcoveNewIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         # Reference:
-        # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#tag
-        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
-        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
+        # 1. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideoiniframe
+        # 2. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#tag
+        # 3. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/publish-video.html#setvideousingjavascript
         # 4. http://docs.brightcove.com/en/video-cloud/brightcove-player/guides/in-page-embed-player-implementation.html
         # 5. https://support.brightcove.com/en/video-cloud/docs/dynamically-assigning-videos-player
 
         entries = []
 
-        # Look for iframe embeds [3]
+        # Look for iframe embeds [1]
         for _, url in re.findall(
                 r'<iframe[^>]+src=(["\'])((?:https?:)?//players\.brightcove\.net/\d+/[^/]+/index\.html.+?)\1', webpage):
             entries.append(url if url.startswith('http') else 'http:' + url)
 
-        # Look for <video> tags [1] and embed_in_page embeds [2]
-        # [1] looks like:
+        # Look for <video> tags [2] and embed_in_page embeds [3]
+        # [2] looks like:
         # <video data-video-id="5320421710001" data-account="245991542" data-player="SJWAiyYWg" data-embed="default" class="video-js" controls itemscope itemtype="http://schema.org/VideoObject">
 
         for video, script_tag, account_id, player_id, embed in re.findall(
