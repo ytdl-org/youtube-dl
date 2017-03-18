@@ -465,6 +465,7 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # m3u8 download
             },
+            'skip': 'video rotates...weekly?',
         },
         {
             # Brightcove:new type [2].
