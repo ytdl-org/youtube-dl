@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.20
 
 Core
 + [YoutubeDL] Allow multiple input URLs to be used with stdout (-) as

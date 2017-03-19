@@ -108,6 +108,7 @@
  - **blinkx**
  - **Bloomberg**
  - **BokeCC**
+ - **BostonGlobe**
  - **Bpb**: Bundeszentrale für politische Bildung
  - **BR**: Bayerischer Rundfunk Mediathek
  - **BravoTV**
@@ -209,6 +210,7 @@
  - **Discovery**
  - **DiscoveryGo**
  - **DiscoveryGoPlaylist**
+ - **DiscoveryNetworksDe**
  - **Disney**
  - **Dotsub**
  - **DouyuTV**: 斗鱼
@@ -425,6 +427,7 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **Medialaan**
  - **Meipai**: 美拍
  - **MelonVOD**
  - **META**
@@ -777,12 +780,12 @@
  - **ThisAV**
  - **ThisOldHouse**
  - **tinypic**: tinypic.com videos
- - **tlc.de**
  - **TMZ**
  - **TMZArticle**
  - **TNAFlix**
  - **TNAFlixNetworkEmbed**
  - **toggle**
+ - **ToonGoggles**
  - **Tosh**: Tosh.0
  - **tou.tv**
  - **Toypics**: Toypics user profile
