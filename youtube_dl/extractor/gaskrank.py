@@ -55,9 +55,6 @@ class GaskrankIE(InfoExtractor):
         title = self._search_regex(
             r'<meta[^>]+itemprop\s*=\s*"name"[^>]+content\s*=\s*"([^"]+)"',
             webpage, 'title')
-        thumbnail = self._search_regex(
-            r'<meta[^>]+itemprop\s*=\s*"thumbnail"[^>]+content\s*=\s*"([^"]+)"',
-            webpage, 'thumbnail', default=None)
 
         mobj = re.search(
             r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date>[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][0-9][0-9])',
@@ -89,30 +86,21 @@ class GaskrankIE(InfoExtractor):
             r'https?://movies\.gaskrank\.tv/([^-]*?)(-[^\.]*)?\.mp4',
             webpage, 'video id')
 
-        playlist = re.findall(
-            r'<source([^>]+)',
-            webpage)
+        entries = self._parse_html5_media_entries(url, webpage, video_id)
+        if entries:
+            for entry in entries:
+                entry.update({
+                    'id': video_id,
+                    'title': title,
+                    'categories': categories,
+                    'display_id': display_id,
+                    'uploader_id': uploader_id,
+                    'upload_date': upload_date,
+                    'uploader_url': uploader_url,
+                    'tags': tags,
+                    'view_count': view_count,
+                    'average_rating': average_rating,
+                })
+                self._sort_formats(entry['formats'])
 
-        formats = []
-        for entry in playlist:
-            url = self._search_regex(r'src\s*=\s*"([^"]+)"', entry, 'url')
-            label = self._search_regex(r'label\s*=\s*"([^"]+)"', entry, 'label')
-            formats.append({
-                'url': url,
-                'format_id': label,
-                'quality': label})
-
-        return {
-            'id': video_id,
-            'title': title,
-            'formats': formats,
-            'thumbnail': thumbnail,
-            'categories': categories,
-            'display_id': display_id,
-            'uploader_id': uploader_id,
-            'upload_date': upload_date,
-            'uploader_url': uploader_url,
-            'tags': tags,
-            'view_count': view_count,
-            'average_rating': average_rating,
-        }
+        return self.playlist_result(entries)
