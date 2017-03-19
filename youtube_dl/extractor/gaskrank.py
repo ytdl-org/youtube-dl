@@ -6,7 +6,6 @@ from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     int_or_none,
-    js_to_json,
     unified_strdate,
 )
 
@@ -49,18 +48,15 @@ class GaskrankIE(InfoExtractor):
 
     def _real_extract(self, url):
         """extract information from gaskrank.tv"""
-        def fix_json(code):
-            """Removes trailing comma in json: {{},} --> {{}}"""
-            return re.sub(r',\s*}', r'}', js_to_json(code))
 
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         categories = [re.match(self._VALID_URL, url).group('categories')]
         title = self._search_regex(
-            r'movieName\s*:\s*\'([^\']*)\'',
+            r'<meta[^>]+itemprop\s*=\s*"name"[^>]+content\s*=\s*"([^"]+)"',
             webpage, 'title')
         thumbnail = self._search_regex(
-            r'poster\s*:\s*\'([^\']*)\'',
+            r'<meta[^>]+itemprop\s*=\s*"thumbnail"[^>]+content\s*=\s*"([^"]+)"',
             webpage, 'thumbnail', default=None)
 
         mobj = re.search(
@@ -89,23 +85,22 @@ class GaskrankIE(InfoExtractor):
         if average_rating:
             average_rating = float_or_none(average_rating.replace(',', '.'))
 
-        playlist = self._parse_json(
-            self._search_regex(
-                r'playlist\s*:\s*\[([^\]]*)\]',
-                webpage, 'playlist', default='{}'),
-            display_id, transform_source=fix_json, fatal=False)
-
         video_id = self._search_regex(
             r'https?://movies\.gaskrank\.tv/([^-]*?)(-[^\.]*)?\.mp4',
-            playlist.get('0').get('src'), 'video id')
+            webpage, 'video id')
+
+        playlist = re.findall(
+            r'<source([^>]+)',
+            webpage)
 
         formats = []
-        for key in playlist:
+        for entry in playlist:
+            url = self._search_regex(r'src\s*=\s*"([^"]+)"', entry, 'url')
+            label = self._search_regex(r'label\s*=\s*"([^"]+)"', entry, 'label')
             formats.append({
-                'url': playlist[key]['src'],
-                'format_id': key,
-                'quality': playlist[key].get('quality')})
-        self._sort_formats(formats, field_preference=['format_id'])
+                'url': url,
+                'format_id': label,
+                'quality': label})
 
         return {
             'id': video_id,
