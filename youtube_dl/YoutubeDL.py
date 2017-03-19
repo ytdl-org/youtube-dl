@@ -1872,6 +1872,7 @@ class YoutubeDL(object):
         """Download a given list of URLs."""
         outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
         if (len(url_list) > 1 and
+                outtmpl != '-' and
                 '%' not in outtmpl and
                 self.params.get('max_downloads') != 1):
             raise SameFileError(outtmpl)
