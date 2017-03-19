@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [bostonglobe] Add extractor for bostonglobe.com (#12099)
 * [openload] Fix extraction (#10408)
 
 
