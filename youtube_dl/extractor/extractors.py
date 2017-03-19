@@ -1028,6 +1028,11 @@ from .tvigle import TvigleIE
 from .tvland import TVLandIE
 from .tvn24 import TVN24IE
 from .tvnoe import TVNoeIE
+from .tvnplayer import (
+    TVNIE,
+    TVNPlayerIE,
+    TVNPlayerSeriesIE,
+)
 from .tvp import (
     TVPEmbedIE,
     TVPIE,
