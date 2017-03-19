@@ -1,7 +1,15 @@
 version <unreleased>
 
+Core
++ [YoutubeDL] Allow multiple input URLs to be used with stdout (-) as
+  output template
++ [adobepass] Detect and output error on authz token extraction (#12472)
+
 Extractors
 + [bostonglobe] Add extractor for bostonglobe.com (#12099)
++ [toongoggles] Add support for toongoggles.com (#12171)
++ [medialaan] Add support for Medialaan sites (#9974, #11912)
++ [discoverynetworks] Add support for more domains and bypass geo restiction
 * [openload] Fix extraction (#10408)
 
 
