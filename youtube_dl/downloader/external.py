@@ -32,7 +32,7 @@ class ExternalFD(FileDownloader):
         retval = self._call_downloader(tmpfilename, info_dict)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
+            self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_execname(), fsize))
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
@@ -44,12 +44,15 @@ class ExternalFD(FileDownloader):
         else:
             self.to_stderr('\n')
             self.report_error('%s exited with code %d' % (
-                self.get_basename(), retval))
+                self.get_execname(), retval))
             return False
 
     @classmethod
     def get_basename(cls):
         return cls.__name__[:-2].lower()
+
+    def get_execname(self):
+        return self.__class__.get_basename()
 
     @property
     def exe(self):
@@ -192,15 +195,19 @@ class FFmpegFD(ExternalFD):
     def available(cls):
         return FFmpegPostProcessor().available
 
+    def get_execname(self):
+        return self.execname
+
     def _call_downloader(self, tmpfilename, info_dict):
         url = info_dict['url']
         ffpp = FFmpegPostProcessor(downloader=self)
+        self.execname = ffpp.executable
         if not ffpp.available:
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         ffpp.check_version()
 
-        args = [ffpp.executable, '-y']
+        args = [self.execname, '-y']
 
         seekable = info_dict.get('_seekable')
         if seekable is not None:
@@ -237,7 +244,7 @@ class FFmpegFD(ExternalFD):
             if proxy.startswith('socks'):
                 self.report_warning(
                     '%s does not support SOCKS proxies. Downloading is likely to fail. '
-                    'Consider adding --hls-prefer-native to your command.' % self.get_basename())
+                    'Consider adding --hls-prefer-native to your command.' % self.get_execname())
 
             # Since December 2015 ffmpeg supports -http_proxy option (see
             # http://git.videolan.org/?p=ffmpeg.git;a=commit;h=b4eb1f29ebddd60c41a2eb39f5af701e38e0d3fd)
