@@ -89,7 +89,7 @@ class SenateISVPIE(InfoExtractor):
     @staticmethod
     def _search_iframe_url(webpage):
         mobj = re.search(
-            r"<iframe[^>]+src=['\"](?P<url>http://www\.senate\.gov/isvp/?\?[^'\"]+)['\"]",
+            r"<iframe[^>]+src=['\"](?P<url>https?://www\.senate\.gov/isvp/?\?[^'\"]+)['\"]",
             webpage)
         if mobj:
             return mobj.group('url')
