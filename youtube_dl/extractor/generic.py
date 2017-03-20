@@ -1759,9 +1759,12 @@ class GenericIE(InfoExtractor):
             self._sort_formats(info_dict['formats'])
             return info_dict
 
-        # Maybe it's a direct link to a video?
-        # Be careful not to download the whole thing!
-        if not is_html(first_bytes):
+        if re.match(r'^\s+$', first_bytes):
+            self._downloader.report_warning(
+                'First block is just whitespace? Continuing...')
+        elif not is_html(first_bytes):
+            # Maybe it's a direct link to a video?
+            # Be careful not to download the whole thing!
             self._downloader.report_warning(
                 'URL could be a direct video link, returning it as such.')
             info_dict.update({
