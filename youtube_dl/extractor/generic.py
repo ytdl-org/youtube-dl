@@ -902,12 +902,13 @@ class GenericIE(InfoExtractor):
         },
         # LazyYT
         {
-            'url': 'http://discourse.ubuntu.com/t/unity-8-desktop-mode-windows-on-mir/1986',
+            'url': 'https://skiplagged.com/',
             'info_dict': {
-                'id': '1986',
-                'title': 'Unity 8 desktop-mode windows on Mir! - Ubuntu Discourse',
+                'id': 'skiplagged',
+                'title': 'Skiplagged: The smart way to find cheap flights',
             },
-            'playlist_mincount': 2,
+            'playlist_mincount': 1,
+            'add_ie': ['Youtube'],
         },
         # Cinchcast embed
         {
