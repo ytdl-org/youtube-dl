@@ -1759,7 +1759,7 @@ class GenericIE(InfoExtractor):
             self._sort_formats(info_dict['formats'])
             return info_dict
 
-        if re.match(r'^\s+$', first_bytes):
+        if re.match(r'^\s+$', first_bytes.decode('utf-8', 'replace')):
             self._downloader.report_warning(
                 'First block is just whitespace? Continuing...')
         elif not is_html(first_bytes):
