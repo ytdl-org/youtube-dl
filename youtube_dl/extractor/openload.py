@@ -110,7 +110,7 @@ class OpenloadIE(InfoExtractor):
             elif H % 2 == 0 and H != 0 and ord(v[H - 1]) < 60:
                 i = int(C, 10)
                 h += 1
-            index = H % 12
+            index = H % 7
 
             A = hashMap[index]
             i ^= 213
