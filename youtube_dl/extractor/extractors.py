@@ -686,6 +686,7 @@ from .npo import (
     VPROIE,
     WNLIE,
 )
+from .nporecents import NPORecentsIE
 from .npr import NprIE
 from .nrk import (
     NRKIE,
