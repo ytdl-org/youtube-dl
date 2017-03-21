@@ -20,6 +20,7 @@ from ..utils import (
     js_to_json,
     orderedSet,
     # sanitized_Request,
+    remove_quotes,
     str_to_int,
 )
 # from ..aes import (
@@ -131,38 +132,32 @@ class PornHubIE(InfoExtractor):
 
         tv_webpage = dl_webpage('tv')
 
-        encoded_url = self._search_regex(r'(var.*mediastring.*)</script>',
-            tv_webpage, 'encoded url')
-        assignments = encoded_url.split(";")
+        assignments = self._search_regex(
+            r'(var.+?mediastring.+?)</script>', tv_webpage,
+            'encoded url').split(';')
+
         js_vars = {}
 
         def parse_js_value(inp):
-            inp = re.sub(r'/\*[^*]*\*/', "", inp)
-
-            if "+" in inp:
-                inps = inp.split("+")
-                return functools.reduce(operator.concat, map(parse_js_value, inps))
-
+            inp = re.sub(r'/\*(?:(?!\*/).)*?\*/', '', inp)
+            if '+' in inp:
+                inps = inp.split('+')
+                return functools.reduce(
+                    operator.concat, map(parse_js_value, inps))
             inp = inp.strip()
             if inp in js_vars:
                 return js_vars[inp]
-
-            # Hope it's a string!
-            assert inp.startswith('"') and inp.endswith('"')
-            return inp[1:-1]
+            return remove_quotes(inp)
 
         for assn in assignments:
             assn = assn.strip()
-            if len(assn) == 0:
+            if not assn:
                 continue
-
-            assert assn.startswith("var ")
-            assn = assn[4:]
-            vname, value = assn.split("=", 1)
-
+            assn = re.sub(r'var\s+', '', assn)
+            vname, value = assn.split('=', 1)
             js_vars[vname] = parse_js_value(value)
 
-        video_url = js_vars["mediastring"]
+        video_url = js_vars['mediastring']
 
         title = self._search_regex(
             r'<h1>([^>]+)</h1>', tv_webpage, 'title', default=None)
