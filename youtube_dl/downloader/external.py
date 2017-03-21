@@ -51,8 +51,9 @@ class ExternalFD(FileDownloader):
     def get_basename(cls):
         return cls.__name__[:-2].lower()
 
-    def get_execname(self):
-        return self.__class__.get_basename()
+    @classmethod
+    def get_execname(cls):
+        return cls.get_basename()
 
     @property
     def exe(self):
@@ -195,19 +196,19 @@ class FFmpegFD(ExternalFD):
     def available(cls):
         return FFmpegPostProcessor().available
 
+    @classmethod
     def get_execname(self):
-        return self.execname
+        return FFmpegPostProcessor().executable
 
     def _call_downloader(self, tmpfilename, info_dict):
         url = info_dict['url']
         ffpp = FFmpegPostProcessor(downloader=self)
-        self.execname = ffpp.executable
         if not ffpp.available:
             self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
             return False
         ffpp.check_version()
 
-        args = [self.execname, '-y']
+        args = [ffpp.executable, '-y']
 
         seekable = info_dict.get('_seekable')
         if seekable is not None:
