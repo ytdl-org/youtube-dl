@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.22
 
 Extractors
 - [pluralsight] Omit module title from video title (#12506)
