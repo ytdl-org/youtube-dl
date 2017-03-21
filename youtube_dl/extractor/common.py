@@ -2243,7 +2243,12 @@ class InfoExtractor(object):
                                 m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
         formats = []
         for source in jwplayer_sources_data:
-            source_url = self._proto_relative_url(source['file'])
+            try:
+                source_file = source['file']
+            except Exception as e:
+                raise ExtractorError("Could not retreive 'file' from 'source'",
+                                     expected=True, cause=e, video_id=video_id)
+            source_url = self._proto_relative_url(source_file)
             if base_url:
                 source_url = compat_urlparse.urljoin(base_url, source_url)
             source_type = source.get('type') or ''
