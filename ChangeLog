@@ -1,3 +1,11 @@
+version <unreleased>
+
+Extractors
+- [pluralsight] Omit module title from video title (#12506)
+* [pornhub] Decode obfuscated video URL (#12470, #12515)
+* [senateisvp] Allow https URL scheme for embeds (#12512)
+
+
 version 2017.03.20
 
 Core
