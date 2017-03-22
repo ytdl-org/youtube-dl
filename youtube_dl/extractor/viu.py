@@ -44,7 +44,7 @@ class ViuBaseIE(InfoExtractor):
 
 
 class ViuIE(ViuBaseIE):
-    _VALID_URL = r'(?:viu:|https?://www\.viu\.com/[a-z]{2}/media/)(?P<id>\d+)'
+    _VALID_URL = r'(?:viu:|https?://[^/]+\.viu\.com/[a-z]{2}/media/)(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.viu.com/en/media/1116705532?containerId=playlist-22168059',
         'info_dict': {
@@ -69,6 +69,9 @@ class ViuIE(ViuBaseIE):
             'skip_download': 'm3u8 download',
         },
         'skip': 'Geo-restricted to Indonesia',
+    }, {
+        'url': 'https://india.viu.com/en/media/1126286865',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
