@@ -312,8 +312,8 @@
  - **GPUTechConf**
  - **Groupon**
  - **Hark**
- - **HBO**
- - **HBOEpisode**
+ - **hbo**
+ - **hbo:episode**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**

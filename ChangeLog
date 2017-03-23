@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.24
 
 Extractors
 - [9c9media] Remove mp4 URL extraction request
