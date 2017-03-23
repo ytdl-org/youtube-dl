@@ -21,10 +21,11 @@ class BellMediaIE(InfoExtractor):
                 animalplanet|
                 bravo|
                 mtv|
-                space
+                space|
+                etalk
             )\.ca|
             much\.com
-        )/.*?(?:\bvid=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6,})'''
+        )/.*?(?:\bvid(?:eoid)?=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6,})'''
     _TESTS = [{
         'url': 'http://www.ctv.ca/video/player?vid=706966',
         'md5': 'ff2ebbeae0aa2dcc32a830c3fd69b7b0',
@@ -58,6 +59,9 @@ class BellMediaIE(InfoExtractor):
     }, {
         'url': 'http://www.ctv.ca/DCs-Legends-of-Tomorrow/Video/S2E11-Turncoat-vid1051430',
         'only_matching': True,
+    }, {
+        'url': 'http://www.etalk.ca/video?videoid=663455',
+        'only_matching': True,
     }]
     _DOMAINS = {
         'thecomedynetwork': 'comedy',
@@ -65,6 +69,7 @@ class BellMediaIE(InfoExtractor):
         'sciencechannel': 'discsci',
         'investigationdiscovery': 'invdisc',
         'animalplanet': 'aniplan',
+        'etalk': 'ctv',
     }
 
     def _real_extract(self, url):
