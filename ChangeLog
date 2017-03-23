@@ -1,3 +1,15 @@
+version <unreleased>
+
+Extractors
+- [9c9media] Remove mp4 URL extraction request
++ [bellmedia] Add support for etalk.ca and space.ca (#12447)
+* [channel9] Fix extraction (#11323)
+* [cloudy] Fix extraction (#12525)
++ [hbo] Add support for free episode URLs and new formats extraction (#12519)
+* [condenast] Fix extraction and style (#12526)
+* [viu] Relax URL regular expression (#12529)
+
+
 version 2017.03.22
 
 Extractors
