@@ -4,23 +4,16 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     ExtractorError,
-    unescapeHTML,
     int_or_none,
     parse_iso8601,
-    clean_html,
     qualities,
+    unescapeHTML,
 )
 
 
 class Channel9IE(InfoExtractor):
-    '''
-    Common extractor for channel9.msdn.com.
-
-    The type of provided URL (video or playlist) is determined according to
-    meta Search.PageType from web page HTML rather than URL itself, as it is
-    not always possible to do.
-    '''
     IE_DESC = 'Channel 9'
     IE_NAME = 'channel9'
     _VALID_URL = r'https?://(?:www\.)?(?:channel9\.msdn\.com|s\.ch9\.ms)/(?P<contentpath>.+?)(?P<rss>/RSS)?/?(?:[?#&]|$)'
