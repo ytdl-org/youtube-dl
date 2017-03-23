@@ -2635,11 +2635,14 @@ class GenericIE(InfoExtractor):
                     found = re.search(REDIRECT_REGEX, refresh_header)
             if found:
                 new_url = compat_urlparse.urljoin(url, unescapeHTML(found.group(1)))
-                self.report_following_redirect(new_url)
-                return {
-                    '_type': 'url',
-                    'url': new_url,
-                }
+                if new_url != url:
+                    self.report_following_redirect(new_url)
+                    return {
+                        '_type': 'url',
+                        'url': new_url,
+                    }
+                else:
+                    found = None
 
         if not found:
             # twitter:player is a https URL to iframe player that may or may not
