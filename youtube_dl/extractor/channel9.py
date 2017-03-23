@@ -9,6 +9,7 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     clean_html,
+    qualities,
 )
 
 
@@ -120,22 +121,75 @@ class Channel9IE(InfoExtractor):
             content_data = self._download_json(content_url, content_id)
             title = content_data['Title']
 
+            QUALITIES = (
+                'mp3',
+                'wmv', 'mp4',
+                'wmv-low', 'mp4-low',
+                'wmv-mid', 'mp4-mid',
+                'wmv-high', 'mp4-high',
+            )
+
+            quality_key = qualities(QUALITIES)
+
+            def quality(quality_id, format_url):
+                return (len(QUALITIES) if '_Source.' in format_url
+                        else quality_key(quality_id))
+
             formats = []
-            qualities = [
-                'VideoMP4Low',
-                'VideoWMV',
-                'VideoMP4Medium',
-                'VideoMP4High',
-                'VideoWMVHQ',
-            ]
-            for q in qualities:
-                q_url = content_data.get(q)
-                if not q_url:
+            urls = set()
+
+            SITE_QUALITIES = {
+                'MP3': 'mp3',
+                'MP4': 'mp4',
+                'Low Quality WMV': 'wmv-low',
+                'Low Quality MP4': 'mp4-low',
+                'Mid Quality WMV': 'wmv-mid',
+                'Mid Quality MP4': 'mp4-mid',
+                'High Quality WMV': 'wmv-high',
+                'High Quality MP4': 'mp4-high',
+            }
+
+            formats_select = self._search_regex(
+                r'(?s)<select[^>]+name=["\']format[^>]+>(.+?)</select', webpage,
+                'formats select', default=None)
+            if formats_select:
+                for mobj in re.finditer(
+                        r'<option\b[^>]+\bvalue=(["\'])(?P<url>(?:(?!\1).)+)\1[^>]*>\s*(?P<format>[^<]+?)\s*<',
+                        formats_select):
+                    format_url = mobj.group('url')
+                    if format_url in urls:
+                        continue
+                    urls.add(format_url)
+                    format_id = mobj.group('format')
+                    quality_id = SITE_QUALITIES.get(format_id, format_id)
+                    formats.append({
+                        'url': format_url,
+                        'format_id': quality_id,
+                        'quality': quality(quality_id, format_url),
+                        'vcodec': 'none' if quality_id == 'mp3' else None,
+                    })
+
+            API_QUALITIES = {
+                'VideoMP4Low': 'mp4-low',
+                'VideoWMV': 'wmv-mid',
+                'VideoMP4Medium': 'mp4-mid',
+                'VideoMP4High': 'mp4-high',
+                'VideoWMVHQ': 'wmv-hq',
+            }
+
+            for format_id, q in API_QUALITIES.items():
+                q_url = content_data.get(format_id)
+                if not q_url or q_url in urls:
                     continue
+                urls.add(q_url)
                 formats.append({
-                    'format_id': q,
                     'url': q_url,
+                    'format_id': q,
+                    'quality': quality(q, q_url),
                 })
+
+            self._sort_formats(formats)
+
             slides = content_data.get('Slides')
             zip_file = content_data.get('ZipFile')
 
