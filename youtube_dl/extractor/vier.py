@@ -5,7 +5,11 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import urlencode_postdata
+from ..utils import (
+    urlencode_postdata,
+    int_or_none,
+    unified_strdate,
+)
 
 
 class VierIE(InfoExtractor):
@@ -22,6 +26,7 @@ class VierIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Het wordt warm in De Moestuin',
             'description': 'De vele uren werk eisen hun tol. Wim droomt van assistentie...',
+            'upload_date': '20121025',
         },
     }, {
         'url': 'http://www.vijf.be/temptationisland/videos/zo-grappig-temptation-island-hosts-moeten-kiezen-tussen-onmogelijke-dilemmas/2561614',
@@ -31,6 +36,7 @@ class VierIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'md5:84f45fe48b8c1fa296a7f6d208d080a7',
             'description': 'md5:0356d4981e58b8cbee19355cbd51a8fe',
+            'upload_date': '20170228',
         },
         'params': {
             'skip_download': True,
@@ -42,7 +48,9 @@ class VierIE(InfoExtractor):
             'display_id': 'jani-gaat-naar-tokio-aflevering-4',
             'ext': 'mp4',
             'title': 'Jani gaat naar Tokio - Aflevering 4',
-            'description': 'md5:2d169e8186ae4247e50c99aaef97f7b2',
+            'description': 'md5:aa8d611541db6ae9e863125704511f88',
+            'upload_date': '20170501',
+            'episode_number': 4,
         },
         'params': {
             'skip_download': True,
@@ -131,14 +139,28 @@ class VierIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._og_search_title(webpage, default=display_id)
-        description = self._og_search_description(webpage, default=None)
         thumbnail = self._og_search_thumbnail(webpage, default=None)
+        description = self._html_search_regex(
+            r'''(?x)<div\ class="[^"]*field-type-text-with-summary[^"]*">\s*
+                      (?:<div\ class="[^"]+">\s*)*
+                     <p>\s*(?:<span>)?(.+?)</''',
+            webpage, 'description', default=None)
+        episode_number = int_or_none(self._search_regex(
+            r'(?i)aflevering (\d+)', title, 'episode_number', default=None,
+            fatal=False))
+        upload_date = unified_strdate(self._html_search_regex(
+            r'''(?x)<div\ class="[^"]*field-name-post-date[^"]*">\s*
+                    (?:<div\ class="[^"]+">\s*)*
+                      (\d{2}/\d{2}/\d{4})''',
+            webpage, 'upload_date', default=None))
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'description': description,
+            'episode_number': episode_number,
+            'upload_date': upload_date,
             'thumbnail': thumbnail,
             'formats': formats,
         }
