@@ -90,7 +90,7 @@ class AtresPlayerIE(InfoExtractor):
             request, None, 'Logging in as %s' % username)
 
         error = self._html_search_regex(
-            r'(?s)<ul class="list_error">(.+?)</ul>', response, 'error', default=None)
+            r'(?s)<ul class="list_error.*?">(.+?)</ul>', response, 'error', default=None)
         if error:
             raise ExtractorError(
                 'Unable to login: %s' % error, expected=True)
