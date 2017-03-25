@@ -972,6 +972,20 @@ class GenericIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
+        {
+            # JWPlayer config passed as variable
+            'url': 'http://www.txxx.com/videos/3326530/ariele/',
+            'info_dict': {
+                'id': '3326530_hq',
+                'ext': 'mp4',
+                'title': 'ARIELE | Tube Cup',
+                'uploader': 'www.txxx.com',
+                'age_limit': 18,
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # rtl.nl embed
         {
             'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
