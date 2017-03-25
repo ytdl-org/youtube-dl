@@ -96,10 +96,10 @@ class CBSShowIE(InfoExtractor):
         if (clipdata.get('id')):
             # http://www.cbs.com/carousels/videosBySection/241426/offset/0/limit/15/xs/0/
             # => {id: 241426, title: "Clips",
-            clips_url = \
-                urljoin(url,
-                        '/carousels/videosBySection/%d/offset/0/limit/15/xs/0'
-                        % clipdata['id'])
+            clips_url = urljoin(
+                url,
+                '/carousels/videosBySection/%d/offset/0/limit/15/xs/0'
+                % clipdata['id'])
             clips = self.carousel_playlist(clips_url, 'clips')
         else:
             clips = {'entries': []}
