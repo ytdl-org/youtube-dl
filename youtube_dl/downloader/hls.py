@@ -30,15 +30,6 @@ class HlsFD(FragmentFD):
 
     FD_NAME = 'hlsnative'
 
-    def _delegate_to_ffmpeg(self, filename, info_dict):
-        self.report_warning(
-            'hlsnative has detected features it does not support, '
-            'extraction will be delegated to ffmpeg')
-        fd = FFmpegFD(self.ydl, self.params)
-        for ph in self._progress_hooks:
-            fd.add_progress_hook(ph)
-        return fd.real_download(filename, info_dict)
-
     @staticmethod
     def can_download(manifest, info_dict):
         UNSUPPORTED_FEATURES = (
@@ -62,12 +53,10 @@ class HlsFD(FragmentFD):
         )
         check_results = [not re.search(feature, manifest) for feature in UNSUPPORTED_FEATURES]
         check_results.append(can_decrypt_frag or '#EXT-X-KEY:METHOD=AES-128' not in manifest)
+        check_results.append(not info_dict.get('is_live'))
         return all(check_results)
 
     def real_download(self, filename, info_dict):
-        if info_dict.get('is_live'):
-            return self._delegate_to_ffmpeg(filename, info_dict)
-
         man_url = info_dict['url']
         self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
 
@@ -79,7 +68,13 @@ class HlsFD(FragmentFD):
             if info_dict.get('extra_param_to_segment_url'):
                 self.report_error('pycrypto not found. Please install it.')
                 return False
-            return self._delegate_to_ffmpeg(filename, info_dict)
+            self.report_warning(
+                'hlsnative has detected features it does not support, '
+                'extraction will be delegated to ffmpeg')
+            fd = FFmpegFD(self.ydl, self.params)
+            for ph in self._progress_hooks:
+                fd.add_progress_hook(ph)
+            return fd.real_download(filename, info_dict)
 
         total_frags = 0
         for line in s.splitlines():
