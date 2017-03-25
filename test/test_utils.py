@@ -221,12 +221,12 @@ class TestUtil(unittest.TestCase):
         def env(var):
             return '%{0}%'.format(var) if sys.platform == 'win32' else '${0}'.format(var)
 
-        compat_setenv('YOUTUBE-DL-EXPATH-PATH', 'expanded')
-        self.assertEqual(expand_path(env('YOUTUBE-DL-EXPATH-PATH')), 'expanded')
-        self.assertEqual(expand_path(env('HOMEPATH')), compat_getenv('HOMEPATH'))
+        compat_setenv('YOUTUBE_DL_EXPATH_PATH', 'expanded')
+        self.assertEqual(expand_path(env('YOUTUBE_DL_EXPATH_PATH')), 'expanded')
+        self.assertEqual(expand_path(env('HOME')), compat_getenv('HOME'))
         self.assertEqual(expand_path('~'), compat_getenv('HOME'))
         self.assertEqual(
-            expand_path('~/%s' % env('YOUTUBE-DL-EXPATH-PATH')),
+            expand_path('~/%s' % env('YOUTUBE_DL_EXPATH_PATH')),
             '%s/expanded' % compat_getenv('HOME'))
 
     def test_prepend_extension(self):
