@@ -156,8 +156,8 @@ class AtresPlayerIE(InfoExtractor):
             if format_id == 'token' or not video_url.startswith('http'):
                 continue
             if 'geodeswowsmpra3player' in video_url:
-                f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
-                f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
+                # f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
+                # f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
                 # this videos are protected by DRM, the f4m downloader doesn't support them
                 continue
             video_url_hd = video_url.replace('free_es', 'es')
