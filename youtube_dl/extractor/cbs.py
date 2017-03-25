@@ -56,11 +56,10 @@ class CBSShowIE(InfoExtractor):
         show_name = self._match_id(url)
         webpage = self._download_webpage(url, show_name)
 
-        # not-quite JSON, no double-quotes:
-        #  var show = new CBS.Show({id:61456254});
-        show_id_json = self._search_regex(r'new CBS\.Show\(([^)]*)\);', webpage, 'show_id')
-
-        show = self._parse_json(show_id_json, show_name, transform_source=js_to_json)
+        show_id_js = self._search_regex(r'new CBS\.Show\(([^)]*)\);', webpage,
+                                        'show_id')
+        show = self._parse_json(show_id_js, show_name,
+                                transform_source=js_to_json)
 
         # Found in http://www.cbs.com/assets/min/js/min/com.cbs.min.js?20170303-224247
         # unminified at http://www.cbs.com/assets/js/min/com.cbs.js
