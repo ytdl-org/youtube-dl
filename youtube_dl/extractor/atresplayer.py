@@ -167,8 +167,6 @@ class AtresPlayerIE(InfoExtractor):
             formats.extend(self._extract_mpd_formats(
                 video_url_hd[:-9] + '/manifest.mpd', video_id, mpd_id='dash',
                 fatal=False))
-            formats.extend(self._extract_ism_formats(
-                video_url_hd, video_id, ism_id='mss', fatal=False))
         self._sort_formats(formats)
 
         path_data = player.get('pathData')
