@@ -683,10 +683,10 @@ from .npo import (
     NPORadioFragmentIE,
     SchoolTVIE,
     HetKlokhuisIE,
+    NPORecentsIE,
     VPROIE,
     WNLIE,
 )
-from .nporecents import NPORecentsIE
 from .npr import NprIE
 from .nrk import (
     NRKIE,

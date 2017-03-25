@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import re
+import xml.etree.ElementTree as ET
 
 from .common import InfoExtractor
 from ..compat import (
@@ -477,7 +478,89 @@ class HetKlokhuisIE(NPODataMidEmbedIE):
         }
     }
 
+class NPORecentsIE(NPOIE):
+    IE_Name = 'npo:recents'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?npo\.nl/(?P<alt_id>[^/]+)/(?P<program_id>\w+_\d+)'
+    _TESTS = [
+    {
+        # Example of an npo3 program
+        'url': 'https://www.npo.nl/keuringsdienst-van-waarde/KN_1678993',
+        'info_dict': {
+            'title': 'Keuringsdienst van Waarde',
+            'id': 'KN_1678993',
+            'description': u'md5:5ffaf131f175d8a771e7a7884833dad2'
+        },
+        'playlist_mincount': 8
+    },
+    {
+        # Example of an npo1/npo2 program
+        'url': 'https://www.npo.nl/jinek/KN_1676589',
+        'info_dict': {
+            'title': 'Jinek',
+            'id': 'KN_1676589',
+            'description': u'md5:6998986899b4903395f0cdd0670cedaf'
+        },
+        'playlist_mincount': 8
+    },
+    {
+        # Example of a program for which there will be only one available episode (if any)
+        'url': 'https://www.npo.nl/midsomer-murders/POW_00828660',
+        'info_dict': {
+            'title': 'Midsomer murders',
+            'id': 'POW_00828660',
+            'description': u'md5:a8b6e9d3e3bd367be88766e3ce8e8362'
+        },
+        'playlist_maxcount': 1
+    }
+    ]
 
+    def _extract_entries(self, webpage, program_id, program_url):
+        is_npo3 = 'www-assets.npo.nl/uploads/tv_channel/265/logo/smaller_npo3-logo.png' in webpage
+
+        if is_npo3:
+            episodes_url = '%s//search?category=broadcasts&page=1' % program_url
+        else:
+            episodes_url = '%s/search?media_type=broadcast&start=0&rows=8' % program_url
+
+        episodes = self._download_webpage(
+            episodes_url, program_id, note='Retrieving episodes')
+        tree = ET.fromstring(episodes.encode('utf-8'))
+        for element in tree.findall('.//div'):
+            if 'span4' in element.get('class'):
+                hyperlink = element.find('.//a')
+                
+                # Note: ElementTree in Python 2.6+ doesn't support 
+                # the required XPath constructs
+                inactive = False
+                divs = hyperlink.findall('div')
+                for div in divs:
+                    if div.attrib.get('class') == 'program-not-available':
+                        inactive = True
+                
+                if not inactive:
+                    yield self.url_result(
+                        url='http://npo.nl%s' % hyperlink.get('href'),
+                        video_title=self._og_search_title(webpage))
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        alt_id = mobj.group('alt_id')
+        program_id = mobj.group('program_id')
+        webpage = self._download_webpage(url, program_id)
+        title = self._og_search_title(webpage, fatal=False) or alt_id
+        description = self._og_search_description(webpage) or self._html_search_meta('description', webpage, 'description', fatal=False)
+        entries = self._extract_entries(webpage, program_id, url)
+
+        return {
+            '_type': 'playlist',
+            'id': program_id,
+            'display_id': alt_id,
+            'title': title,
+            'description': description,
+            'entries': entries
+        }
+        
+        
 class NPOPlaylistBaseIE(NPOIE):
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
