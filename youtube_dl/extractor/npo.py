@@ -478,11 +478,11 @@ class HetKlokhuisIE(NPODataMidEmbedIE):
         }
     }
 
+
 class NPORecentsIE(NPOIE):
     IE_Name = 'npo:recents'
     _VALID_URL = r'(?:https?://)?(?:www\.)?npo\.nl/(?P<alt_id>[^/]+)/(?P<program_id>\w+_\d+)'
-    _TESTS = [
-    {
+    _TESTS = [{
         # Example of an npo3 program
         'url': 'https://www.npo.nl/keuringsdienst-van-waarde/KN_1678993',
         'info_dict': {
@@ -491,8 +491,7 @@ class NPORecentsIE(NPOIE):
             'description': u'md5:5ffaf131f175d8a771e7a7884833dad2'
         },
         'playlist_mincount': 8
-    },
-    {
+    }, {
         # Example of an npo1/npo2 program
         'url': 'https://www.npo.nl/jinek/KN_1676589',
         'info_dict': {
@@ -501,8 +500,7 @@ class NPORecentsIE(NPOIE):
             'description': u'md5:6998986899b4903395f0cdd0670cedaf'
         },
         'playlist_mincount': 8
-    },
-    {
+    }, {
         # Example of a program for which there will be only one available episode (if any)
         'url': 'https://www.npo.nl/midsomer-murders/POW_00828660',
         'info_dict': {
@@ -511,8 +509,7 @@ class NPORecentsIE(NPOIE):
             'description': u'md5:a8b6e9d3e3bd367be88766e3ce8e8362'
         },
         'playlist_maxcount': 1
-    }
-    ]
+    }]
 
     def _extract_entries(self, webpage, program_id, program_url):
         is_npo3 = 'www-assets.npo.nl/uploads/tv_channel/265/logo/smaller_npo3-logo.png' in webpage
@@ -528,15 +525,15 @@ class NPORecentsIE(NPOIE):
         for element in tree.findall('.//div'):
             if 'span4' in element.get('class'):
                 hyperlink = element.find('.//a')
-                
-                # Note: ElementTree in Python 2.6+ doesn't support 
+
+                # Note: ElementTree in Python 2.6+ doesn't support
                 # the required XPath constructs
                 inactive = False
                 divs = hyperlink.findall('div')
                 for div in divs:
                     if div.attrib.get('class') == 'program-not-available':
                         inactive = True
-                
+
                 if not inactive:
                     yield self.url_result(
                         url='http://npo.nl%s' % hyperlink.get('href'),
@@ -559,8 +556,8 @@ class NPORecentsIE(NPOIE):
             'description': description,
             'entries': entries
         }
-        
-        
+
+
 class NPOPlaylistBaseIE(NPOIE):
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
