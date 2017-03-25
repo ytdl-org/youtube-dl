@@ -161,7 +161,8 @@ class AtresPlayerIE(InfoExtractor):
                 # this videos are protected by DRM, the f4m downloader doesn't support them
                 continue
             else:
-                f4m_url = video_url[:-9] + '/manifest.f4m'
+                video_url_hd = video_url.replace('free_es', 'es')
+                f4m_url = video_url_hd[:-9] + '/manifest.f4m'
             formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
