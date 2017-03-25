@@ -24,6 +24,7 @@ class CBSBaseIE(ThePlatformFeedIE):
             }]
         } if closed_caption_e is not None and closed_caption_e.attrib.get('value') else []
 
+
 class CBSShowIE(InfoExtractor):
     IE_DESC = 'CBS show playlists, including full episodes and clips'
     IE_NAME = 'cbs.com:playlist'
@@ -80,23 +81,26 @@ class CBSShowIE(InfoExtractor):
         #                        }
         try:
             clipdata = self._parse_json(
-                self._search_regex(r'element\.videoCarousel\(([^)]*)\);', webpage,
-                                   'clip carousel'),
+                self._search_regex(r'element\.videoCarousel\(([^)]*)\);',
+                                   webpage, 'carousel'),
                 show_name, transform_source=js_to_json)
 
             # http://www.cbs.com/carousels/videosBySection/241426/offset/0/limit/15/xs/0/
             # => {id: 241426, title: "Clips",
-            clips_url = urljoin(url,
-                    '/carousels/videosBySection/%d/offset/0/limit/15/xs/0' % clipdata['id'])
+            clips_url = \
+                urljoin(url,
+                        '/carousels/videosBySection/%d/offset/0/limit/15/xs/0'
+                        % clipdata['id'])
             clips = self.carousel_playlist(clips_url, 'clips')
         except RegexNotFoundError:
-            clips = { 'entries': [] }
+            clips = {'entries': []}
 
         playlist = self.carousel_playlist(episodes_url, 'episodes')
         playlist['entries'] += clips['entries']
         playlist['id'] = show['id']
 
-	return playlist
+        return playlist
+
 
 class CBSIE(CBSBaseIE):
     _VALID_URL = r'(?:cbs:|https?://(?:www\.)?(?:cbs\.com/shows/[^/]+/video|colbertlateshow\.com/(?:video|podcasts))/)(?P<id>[\w-]+)'
