@@ -1126,6 +1126,7 @@ from .vidme import (
     VidmeUserIE,
     VidmeUserLikesIE,
 )
+from .vidlox import VidloxIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
 from .viewlift import (
