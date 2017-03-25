@@ -169,11 +169,10 @@ class PluralsightIE(PluralsightBaseIE):
 
         collection = course['modules']
 
-        module, clip = None, None
+        clip = None
 
         for module_ in collection:
             if name in (module_.get('moduleName'), module_.get('name')):
-                module = module_
                 for clip_ in module_.get('clips', []):
                     clip_index = clip_.get('clipIndex')
                     if clip_index is None:
