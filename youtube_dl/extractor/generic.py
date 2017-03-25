@@ -2518,14 +2518,10 @@ class GenericIE(InfoExtractor):
                 self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
 
-        jwplayer_data_str = self._find_jwplayer_data(webpage)
-        if jwplayer_data_str:
-            try:
-                jwplayer_data = self._parse_json(
-                    jwplayer_data_str, video_id, transform_source=js_to_json)
-                return self._parse_jwplayer_data(jwplayer_data, video_id)
-            except ExtractorError:
-                pass
+        jwplayer_data = self._find_jwplayer_data(
+            webpage, video_id, transform_source=js_to_json)
+        if jwplayer_data:
+            return self._parse_jwplayer_data(jwplayer_data, video_id)
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
