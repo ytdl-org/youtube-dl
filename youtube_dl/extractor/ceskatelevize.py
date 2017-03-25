@@ -160,8 +160,7 @@ class CeskaTelevizeIE(InfoExtractor):
                 for format_id, stream_url in item.get('streamUrls', {}).items():
                     if 'playerType=flash' in stream_url:
                         stream_formats = self._extract_m3u8_formats(
-                            stream_url, playlist_id, 'mp4',
-                            entry_protocol='m3u8' if is_live else 'm3u8_native',
+                            stream_url, playlist_id, 'mp4', 'm3u8_native',
                             m3u8_id='hls-%s' % format_id, fatal=False)
                     else:
                         stream_formats = self._extract_mpd_formats(
