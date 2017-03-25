@@ -6,7 +6,6 @@ from ..utils import (
     int_or_none,
     js_to_json,
     find_xpath_attr,
-    RegexNotFoundError,
     xpath_element,
     xpath_text,
     update_url_query,
@@ -44,7 +43,7 @@ class CBSShowIE(InfoExtractor):
                 'id': 22927,
                 'title': 'Star Trek - The Original Series',
             },
-            'playlist_count': 15, # No clips, only episodes
+            'playlist_count': 15,  # No clips, only episodes
             'only_matching': True,
         },
     ]
@@ -90,12 +89,11 @@ class CBSShowIE(InfoExtractor):
         #                                saveState   : false
         #                            });
         #                        }
-        try:
-            clipdata = self._parse_json(
-                self._search_regex(r'element\.videoCarousel\(([^)]*)\);',
-                                   webpage, 'carousel'),
-                show_name, transform_source=js_to_json)
-
+        clipdata = self._parse_json(
+            self._search_regex(r'element\.videoCarousel\(([^)]*)\);',
+                               webpage, 'carousel', default='{}'),
+            show_name, transform_source=js_to_json)
+        if (clipdata.get('id')):
             # http://www.cbs.com/carousels/videosBySection/241426/offset/0/limit/15/xs/0/
             # => {id: 241426, title: "Clips",
             clips_url = \
@@ -103,7 +101,7 @@ class CBSShowIE(InfoExtractor):
                         '/carousels/videosBySection/%d/offset/0/limit/15/xs/0'
                         % clipdata['id'])
             clips = self.carousel_playlist(clips_url, 'clips')
-        except RegexNotFoundError:
+        else:
             clips = {'entries': []}
 
         playlist = self.carousel_playlist(episodes_url, 'episodes')
