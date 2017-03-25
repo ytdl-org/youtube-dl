@@ -29,14 +29,25 @@ class CBSShowIE(InfoExtractor):
     IE_DESC = 'CBS show playlists, including full episodes and clips'
     IE_NAME = 'cbs.com:playlist'
     _VALID_URL = r'(?i)https?://(?:www\.)cbs.com/shows/(?P<id>[\w-]+)/?$'
-    _TEST = {
-        'url': 'http://www.cbs.com/shows/the-late-show-with-stephen-colbert',
-        'info_dict': {
-            'id': 61456254,
-            'title': 'The Late Show with Stephen Colbert',
+    _TESTS = [
+        {
+            'url': 'http://www.cbs.com/shows/the-late-show-with-stephen-colbert',
+            'info_dict': {
+                'id': 61456254,
+                'title': 'The Late Show with Stephen Colbert',
+            },
+            'playlist_count': 30,
         },
-        'playlist_mincount': 14,
-    }
+        {
+            'url': 'http://www.cbs.com/shows/star_trek/',
+            'info_dict': {
+                'id': 22927,
+                'title': 'Star Trek - The Original Series',
+            },
+            'playlist_count': 15, # No clips, only episodes
+            'only_matching': True,
+        },
+    ]
 
     def carousel_playlist(self, url, type):
         carousel = self._download_json(url, 'Downloading %s carousel' % type)
