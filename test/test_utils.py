@@ -56,6 +56,7 @@ from youtube_dl.utils import (
     read_batch_urls,
     sanitize_filename,
     sanitize_path,
+    expand_path,
     prepend_extension,
     replace_extension,
     remove_start,
@@ -95,6 +96,8 @@ from youtube_dl.utils import (
 from youtube_dl.compat import (
     compat_chr,
     compat_etree_fromstring,
+    compat_getenv,
+    compat_setenv,
     compat_urlparse,
     compat_parse_qs,
 )
@@ -213,6 +216,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_path('../../abc'), '..\\..\\abc')
         self.assertEqual(sanitize_path('./abc'), 'abc')
         self.assertEqual(sanitize_path('./../abc'), '..\\abc')
+
+    def test_expand_path(self):
+        compat_setenv('YOUTUBE-DL-EXPATH-PATH', 'expanded')
+        self.assertEqual(expand_path('%YOUTUBE-DL-EXPATH-PATH%'), 'expanded')
+        self.assertEqual(expand_path('%HOMEPATH%'), compat_getenv('HOMEPATH'))
+        self.assertEqual(expand_path('~'), compat_getenv('HOME'))
+        self.assertEqual(expand_path('~/%YOUTUBE-DL-EXPATH-PATH%'), '%s/expanded' % compat_getenv('HOME'))
 
     def test_prepend_extension(self):
         self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')

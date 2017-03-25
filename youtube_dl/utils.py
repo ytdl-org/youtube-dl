@@ -39,6 +39,7 @@ from .compat import (
     compat_basestring,
     compat_chr,
     compat_etree_fromstring,
+    compat_expanduser,
     compat_html_entities,
     compat_html_entities_html5,
     compat_http_client,
@@ -537,6 +538,11 @@ def sanitize_url(url):
 
 def sanitized_Request(url, *args, **kwargs):
     return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
+
+
+def expand_path(s):
+    """Expand shell variables and ~"""
+    return os.path.expandvars(compat_expanduser(s))
 
 
 def orderedSet(iterable):
