@@ -39,6 +39,7 @@ from .compat import (
     compat_basestring,
     compat_chr,
     compat_etree_fromstring,
+    compat_expanduser,
     compat_html_entities,
     compat_html_entities_html5,
     compat_http_client,
@@ -473,7 +474,8 @@ def timeconvert(timestr):
 def sanitize_filename(s, restricted=False, is_id=False):
     """Sanitizes a string so it could be used as part of a filename.
     If restricted is set, use a stricter subset of allowed characters.
-    Set is_id if this is not an arbitrary string, but an ID that should be kept if possible
+    Set is_id if this is not an arbitrary string, but an ID that should be kept
+    if possible.
     """
     def replace_insane(char):
         if restricted and char in ACCENT_CHARS:
@@ -536,6 +538,11 @@ def sanitize_url(url):
 
 def sanitized_Request(url, *args, **kwargs):
     return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
+
+
+def expand_path(s):
+    """Expand shell variables and ~"""
+    return os.path.expandvars(compat_expanduser(s))
 
 
 def orderedSet(iterable):
@@ -1747,11 +1754,16 @@ def base_url(url):
 
 
 def urljoin(base, path):
+    if isinstance(path, bytes):
+        path = path.decode('utf-8')
     if not isinstance(path, compat_str) or not path:
         return None
     if re.match(r'^(?:https?:)?//', path):
         return path
-    if not isinstance(base, compat_str) or not re.match(r'^(?:https?:)?//', base):
+    if isinstance(base, bytes):
+        base = base.decode('utf-8')
+    if not isinstance(base, compat_str) or not re.match(
+            r'^(?:https?:)?//', base):
         return None
     return compat_urlparse.urljoin(base, path)
 

@@ -36,34 +36,35 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     determine_ext,
+    determine_protocol,
     error_to_compat_str,
     ExtractorError,
+    extract_attributes,
     fix_xml_ampersands,
     float_or_none,
     GeoRestrictedError,
     GeoUtils,
     int_or_none,
     js_to_json,
+    mimetype2ext,
+    orderedSet,
+    parse_codecs,
+    parse_duration,
     parse_iso8601,
+    parse_m3u8_attributes,
     RegexNotFoundError,
-    sanitize_filename,
     sanitized_Request,
+    sanitize_filename,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
+    update_Request,
+    update_url_query,
+    urljoin,
     url_basename,
     xpath_element,
     xpath_text,
     xpath_with_ns,
-    determine_protocol,
-    parse_duration,
-    mimetype2ext,
-    update_Request,
-    update_url_query,
-    parse_m3u8_attributes,
-    extract_attributes,
-    parse_codecs,
-    urljoin,
 )
 
 
@@ -713,6 +714,13 @@ class InfoExtractor(object):
         if video_title is not None:
             video_info['title'] = video_title
         return video_info
+
+    def playlist_from_matches(self, matches, video_id, video_title, getter=None, ie=None):
+        urlrs = orderedSet(
+            self.url_result(self._proto_relative_url(getter(m) if getter else m), ie)
+            for m in matches)
+        return self.playlist_result(
+            urlrs, playlist_id=video_id, playlist_title=video_title)
 
     @staticmethod
     def playlist_result(entries, playlist_id=None, playlist_title=None, playlist_description=None):
@@ -2204,56 +2212,9 @@ class InfoExtractor(object):
 
             this_video_id = video_id or video_data['mediaid']
 
-            formats = []
-            for source in video_data['sources']:
-                source_url = self._proto_relative_url(source['file'])
-                if base_url:
-                    source_url = compat_urlparse.urljoin(base_url, source_url)
-                source_type = source.get('type') or ''
-                ext = mimetype2ext(source_type) or determine_ext(source_url)
-                if source_type == 'hls' or ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        source_url, this_video_id, 'mp4', 'm3u8_native', m3u8_id=m3u8_id, fatal=False))
-                elif ext == 'mpd':
-                    formats.extend(self._extract_mpd_formats(
-                        source_url, this_video_id, mpd_id=mpd_id, fatal=False))
-                # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
-                elif source_type.startswith('audio') or ext in ('oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
-                    formats.append({
-                        'url': source_url,
-                        'vcodec': 'none',
-                        'ext': ext,
-                    })
-                else:
-                    height = int_or_none(source.get('height'))
-                    if height is None:
-                        # Often no height is provided but there is a label in
-                        # format like 1080p.
-                        height = int_or_none(self._search_regex(
-                            r'^(\d{3,})[pP]$', source.get('label') or '',
-                            'height', default=None))
-                    a_format = {
-                        'url': source_url,
-                        'width': int_or_none(source.get('width')),
-                        'height': height,
-                        'ext': ext,
-                    }
-                    if source_url.startswith('rtmp'):
-                        a_format['ext'] = 'flv'
-
-                        # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
-                        # of jwplayer.flash.swf
-                        rtmp_url_parts = re.split(
-                            r'((?:mp4|mp3|flv):)', source_url, 1)
-                        if len(rtmp_url_parts) == 3:
-                            rtmp_url, prefix, play_path = rtmp_url_parts
-                            a_format.update({
-                                'url': rtmp_url,
-                                'play_path': prefix + play_path,
-                            })
-                        if rtmp_params:
-                            a_format.update(rtmp_params)
-                    formats.append(a_format)
+            formats = self._parse_jwplayer_formats(
+                video_data['sources'], video_id=this_video_id, m3u8_id=m3u8_id,
+                mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
             self._sort_formats(formats)
 
             subtitles = {}
@@ -2283,6 +2244,65 @@ class InfoExtractor(object):
             return entries[0]
         else:
             return self.playlist_result(entries)
+
+    def _parse_jwplayer_formats(self, jwplayer_sources_data, video_id=None,
+                                m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
+        formats = []
+        for source in jwplayer_sources_data:
+            source_url = self._proto_relative_url(source['file'])
+            if base_url:
+                source_url = compat_urlparse.urljoin(base_url, source_url)
+            source_type = source.get('type') or ''
+            ext = mimetype2ext(source_type) or determine_ext(source_url)
+            if source_type == 'hls' or ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    source_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id=m3u8_id, fatal=False))
+            elif ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    source_url, video_id, mpd_id=mpd_id, fatal=False))
+            elif ext == 'smil':
+                formats.extend(self._extract_smil_formats(
+                    source_url, video_id, fatal=False))
+            # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
+            elif source_type.startswith('audio') or ext in (
+                    'oga', 'aac', 'mp3', 'mpeg', 'vorbis'):
+                formats.append({
+                    'url': source_url,
+                    'vcodec': 'none',
+                    'ext': ext,
+                })
+            else:
+                height = int_or_none(source.get('height'))
+                if height is None:
+                    # Often no height is provided but there is a label in
+                    # format like "1080p", "720p SD", or 1080.
+                    height = int_or_none(self._search_regex(
+                        r'^(\d{3,4})[pP]?(?:\b|$)', compat_str(source.get('label') or ''),
+                        'height', default=None))
+                a_format = {
+                    'url': source_url,
+                    'width': int_or_none(source.get('width')),
+                    'height': height,
+                    'tbr': int_or_none(source.get('bitrate')),
+                    'ext': ext,
+                }
+                if source_url.startswith('rtmp'):
+                    a_format['ext'] = 'flv'
+                    # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as
+                    # of jwplayer.flash.swf
+                    rtmp_url_parts = re.split(
+                        r'((?:mp4|mp3|flv):)', source_url, 1)
+                    if len(rtmp_url_parts) == 3:
+                        rtmp_url, prefix, play_path = rtmp_url_parts
+                        a_format.update({
+                            'url': rtmp_url,
+                            'play_path': prefix + play_path,
+                        })
+                    if rtmp_params:
+                        a_format.update(rtmp_params)
+                formats.append(a_format)
+        return formats
 
     def _live_title(self, name):
         """ Generate the title for a live video """

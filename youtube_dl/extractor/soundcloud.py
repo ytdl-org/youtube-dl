@@ -121,7 +121,7 @@ class SoundcloudIE(InfoExtractor):
         },
     ]
 
-    _CLIENT_ID = 'fDoItMDbsbZz8dY16ZzARCZmzgHBPotA'
+    _CLIENT_ID = '2t9loNQH90kzJcsFCODdigxfp325aq4z'
     _IPHONE_CLIENT_ID = '376f225bf427445fc4bfb6b99b72e0bf'
 
     @staticmethod

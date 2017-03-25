@@ -196,6 +196,10 @@ class FacebookIE(InfoExtractor):
     }, {
         'url': 'https://www.facebookcorewwwi.onion/video.php?v=274175099429670',
         'only_matching': True,
+    }, {
+        # no title
+        'url': 'https://www.facebook.com/onlycleverentertainment/videos/1947995502095005/',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -303,7 +307,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             server_js_data = self._parse_json(
                 self._search_regex(
-                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:stream_pagelet|pagelet_group_mall)',
+                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:stream_pagelet|pagelet_group_mall|permalink_video_pagelet)',
                     webpage, 'js data', default='{}'),
                 video_id, transform_source=js_to_json, fatal=False)
             if server_js_data:
@@ -353,15 +357,15 @@ class FacebookIE(InfoExtractor):
         self._sort_formats(formats)
 
         video_title = self._html_search_regex(
-            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage, 'title',
-            default=None)
+            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
+            'title', default=None)
         if not video_title:
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
         if not video_title:
             video_title = self._html_search_meta(
-                'description', webpage, 'title')
+                'description', webpage, 'title', default=None)
         if video_title:
             video_title = limit_length(video_title, 80)
         else:

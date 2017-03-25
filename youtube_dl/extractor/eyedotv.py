@@ -54,7 +54,7 @@ class EyedoTVIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'formats': self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', 'm3u8' if is_live else 'm3u8_native'),
+                m3u8_url, video_id, 'mp4', 'm3u8_native'),
             'description': xpath_text(video_data, _add_ns('Description')),
             'duration': parse_duration(xpath_text(video_data, _add_ns('Duration'))),
             'uploader': xpath_text(video_data, _add_ns('Createur')),

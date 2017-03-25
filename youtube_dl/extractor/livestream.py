@@ -119,7 +119,8 @@ class LivestreamIE(InfoExtractor):
         m3u8_url = video_data.get('m3u8_url')
         if m3u8_url:
             formats.extend(self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+                m3u8_url, video_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=False))
 
         f4m_url = video_data.get('f4m_url')
         if f4m_url:
@@ -158,11 +159,11 @@ class LivestreamIE(InfoExtractor):
         if smil_url:
             formats.extend(self._extract_smil_formats(smil_url, broadcast_id))
 
-        entry_protocol = 'm3u8' if is_live else 'm3u8_native'
         m3u8_url = stream_info.get('m3u8_url')
         if m3u8_url:
             formats.extend(self._extract_m3u8_formats(
-                m3u8_url, broadcast_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=False))
+                m3u8_url, broadcast_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=False))
 
         rtsp_url = stream_info.get('rtsp_url')
         if rtsp_url:
@@ -276,7 +277,7 @@ class LivestreamOriginalIE(InfoExtractor):
             'view_count': view_count,
         }
 
-    def _extract_video_formats(self, video_data, video_id, entry_protocol):
+    def _extract_video_formats(self, video_data, video_id):
         formats = []
 
         progressive_url = video_data.get('progressiveUrl')
@@ -289,7 +290,8 @@ class LivestreamOriginalIE(InfoExtractor):
         m3u8_url = video_data.get('httpUrl')
         if m3u8_url:
             formats.extend(self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', entry_protocol, m3u8_id='hls', fatal=False))
+                m3u8_url, video_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=False))
 
         rtsp_url = video_data.get('rtspUrl')
         if rtsp_url:
@@ -340,11 +342,10 @@ class LivestreamOriginalIE(InfoExtractor):
                 }
             video_data = self._download_json(stream_url, content_id)
             is_live = video_data.get('isLive')
-            entry_protocol = 'm3u8' if is_live else 'm3u8_native'
             info.update({
                 'id': content_id,
                 'title': self._live_title(info['title']) if is_live else info['title'],
-                'formats': self._extract_video_formats(video_data, content_id, entry_protocol),
+                'formats': self._extract_video_formats(video_data, content_id),
                 'is_live': is_live,
             })
             return info

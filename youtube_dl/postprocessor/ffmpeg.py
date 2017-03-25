@@ -26,15 +26,25 @@ from ..utils import (
 
 
 EXT_TO_OUT_FORMATS = {
-    "aac": "adts",
-    "m4a": "ipod",
-    "mka": "matroska",
-    "mkv": "matroska",
-    "mpg": "mpeg",
-    "ogv": "ogg",
-    "ts": "mpegts",
-    "wma": "asf",
-    "wmv": "asf",
+    'aac': 'adts',
+    'flac': 'flac',
+    'm4a': 'ipod',
+    'mka': 'matroska',
+    'mkv': 'matroska',
+    'mpg': 'mpeg',
+    'ogv': 'ogg',
+    'ts': 'mpegts',
+    'wma': 'asf',
+    'wmv': 'asf',
+}
+ACODECS = {
+    'mp3': 'libmp3lame',
+    'aac': 'aac',
+    'flac': 'flac',
+    'm4a': 'aac',
+    'opus': 'opus',
+    'vorbis': 'libvorbis',
+    'wav': None,
 }
 
 
@@ -237,7 +247,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 acodec = 'copy'
                 extension = 'm4a'
                 more_opts = ['-bsf:a', 'aac_adtstoasc']
-            elif filecodec in ['aac', 'mp3', 'vorbis', 'opus']:
+            elif filecodec in ['aac', 'flac', 'mp3', 'vorbis', 'opus']:
                 # Lossless if possible
                 acodec = 'copy'
                 extension = filecodec
@@ -256,8 +266,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                     else:
                         more_opts += ['-b:a', self._preferredquality + 'k']
         else:
-            # We convert the audio (lossy)
-            acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
+            # We convert the audio (lossy if codec is lossy)
+            acodec = ACODECS[self._preferredcodec]
             extension = self._preferredcodec
             more_opts = []
             if self._preferredquality is not None:

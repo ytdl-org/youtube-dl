@@ -4,15 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-    compat_urlparse,
-)
+from ..compat import compat_xpath
 from ..utils import (
     ExtractorError,
     int_or_none,
-    update_url_query,
-    xpath_element,
     xpath_text,
 )
 
@@ -43,7 +38,8 @@ class AfreecaTVIE(InfoExtractor):
             'uploader': 'dailyapril',
             'uploader_id': 'dailyapril',
             'upload_date': '20160503',
-        }
+        },
+        'skip': 'Video is gone',
     }, {
         'url': 'http://afbbs.afreecatv.com:8080/app/read_ucc_bbs.cgi?nStationNo=16711924&nTitleNo=36153164&szBjId=dailyapril&nBbsNo=18605867',
         'info_dict': {
@@ -71,6 +67,19 @@ class AfreecaTVIE(InfoExtractor):
                 'upload_date': '20160502',
             },
         }],
+        'skip': 'Video is gone',
+    }, {
+        'url': 'http://vod.afreecatv.com/PLAYER/STATION/18650793',
+        'info_dict': {
+            'id': '18650793',
+            'ext': 'flv',
+            'uploader': '윈아디',
+            'uploader_id': 'badkids',
+            'title': '오늘은 다르다! 쏘님의 우월한 위아래~ 댄스리액션!',
+        },
+        'params': {
+            'skip_download': True,  # requires rtmpdump
+        },
     }, {
         'url': 'http://www.afreecatv.com/player/Player.swf?szType=szBjId=djleegoon&nStationNo=11273158&nBbsNo=13161095&nTitleNo=36327652',
         'only_matching': True,
@@ -90,60 +99,39 @@ class AfreecaTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        parsed_url = compat_urllib_parse_urlparse(url)
-        info_url = compat_urlparse.urlunparse(parsed_url._replace(
-            netloc='afbbs.afreecatv.com:8080',
-            path='/api/video/get_video_info.php'))
 
         video_xml = self._download_xml(
-            update_url_query(info_url, {'nTitleNo': video_id}), video_id)
+            'http://afbbs.afreecatv.com:8080/api/video/get_video_info.php',
+            video_id, query={'nTitleNo': video_id})
 
-        if xpath_element(video_xml, './track/video/file') is None:
+        video_element = video_xml.findall(compat_xpath('./track/video'))[1]
+        if video_element is None or video_element.text is None:
             raise ExtractorError('Specified AfreecaTV video does not exist',
                                  expected=True)
 
-        title = xpath_text(video_xml, './track/title', 'title')
+        video_url_raw = video_element.text
+
+        app, playpath = video_url_raw.split('mp4:')
+
+        title = xpath_text(video_xml, './track/title', 'title', fatal=True)
         uploader = xpath_text(video_xml, './track/nickname', 'uploader')
         uploader_id = xpath_text(video_xml, './track/bj_id', 'uploader id')
         duration = int_or_none(xpath_text(video_xml, './track/duration',
                                           'duration'))
         thumbnail = xpath_text(video_xml, './track/titleImage', 'thumbnail')
 
-        entries = []
-        for i, video_file in enumerate(video_xml.findall('./track/video/file')):
-            video_key = self.parse_video_key(video_file.get('key', ''))
-            if not video_key:
-                continue
-            entries.append({
-                'id': '%s_%s' % (video_id, video_key.get('part', i + 1)),
-                'title': title,
-                'upload_date': video_key.get('upload_date'),
-                'duration': int_or_none(video_file.get('duration')),
-                'url': video_file.text,
-            })
-
-        info = {
+        return {
             'id': video_id,
+            'url': app,
+            'ext': 'flv',
+            'play_path': 'mp4:' + playpath,
+            'rtmp_live': True,  # downloading won't end without this
             'title': title,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'duration': duration,
             'thumbnail': thumbnail,
         }
-
-        if len(entries) > 1:
-            info['_type'] = 'multi_video'
-            info['entries'] = entries
-        elif len(entries) == 1:
-            info['url'] = entries[0]['url']
-            info['upload_date'] = entries[0].get('upload_date')
-        else:
-            raise ExtractorError(
-                'No files found for the specified AfreecaTV video, either'
-                ' the URL is incorrect or the video has been made private.',
-                expected=True)
-
-        return info
 
 
 class AfreecaTVGlobalIE(AfreecaTVIE):

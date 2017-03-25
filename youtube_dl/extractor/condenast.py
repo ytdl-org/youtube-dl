@@ -9,13 +9,14 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
-    orderedSet,
-    remove_end,
-    extract_attributes,
-    mimetype2ext,
     determine_ext,
+    extract_attributes,
     int_or_none,
+    js_to_json,
+    mimetype2ext,
+    orderedSet,
     parse_iso8601,
+    remove_end,
 )
 
 
@@ -67,6 +68,16 @@ class CondeNastIE(InfoExtractor):
             'timestamp': 1363219200,
         }
     }, {
+        'url': 'http://video.gq.com/watch/the-closer-with-keith-olbermann-the-only-true-surprise-trump-s-an-idiot?c=series',
+        'info_dict': {
+            'id': '58d1865bfd2e6126e2000015',
+            'ext': 'mp4',
+            'title': 'The Only True Surprise? Trump’s an Idiot',
+            'uploader': 'gq',
+            'upload_date': '20170321',
+            'timestamp': 1490126427,
+        },
+    }, {
         # JS embed
         'url': 'http://player.cnevids.com/embedjs/55f9cf8b61646d1acf00000c/5511d76261646d5566020000.js',
         'md5': 'f1a6f9cafb7083bab74a710f65d08999',
@@ -114,26 +125,33 @@ class CondeNastIE(InfoExtractor):
             })
         video_id = query['videoId']
         video_info = None
-        info_page = self._download_webpage(
+        info_page = self._download_json(
             'http://player.cnevids.com/player/video.js',
-            video_id, 'Downloading video info', query=query, fatal=False)
+            video_id, 'Downloading video info', fatal=False, query=query)
         if info_page:
-            video_info = self._parse_json(self._search_regex(
-                r'loadCallback\(({.+})\)', info_page, 'video info'), video_id)['video']
-        else:
+            video_info = info_page.get('video')
+        if not video_info:
             info_page = self._download_webpage(
                 'http://player.cnevids.com/player/loader.js',
                 video_id, 'Downloading loader info', query=query)
-            video_info = self._parse_json(self._search_regex(
-                r'var\s+video\s*=\s*({.+?});', info_page, 'video info'), video_id)
+            video_info = self._parse_json(
+                self._search_regex(
+                    r'(?s)var\s+config\s*=\s*({.+?});', info_page, 'config'),
+                video_id, transform_source=js_to_json)['video']
+
         title = video_info['title']
 
         formats = []
-        for fdata in video_info.get('sources', [{}])[0]:
+        for fdata in video_info['sources']:
             src = fdata.get('src')
             if not src:
                 continue
             ext = mimetype2ext(fdata.get('type')) or determine_ext(src)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    src, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+                continue
             quality = fdata.get('quality')
             formats.append({
                 'format_id': ext + ('-%s' % quality if quality else ''),
@@ -169,7 +187,6 @@ class CondeNastIE(InfoExtractor):
                 path=remove_end(parsed_url.path, '.js').replace('/embedjs/', '/embed/')))
             url_type = 'embed'
 
-        self.to_screen('Extracting from %s with the Condé Nast extractor' % self._SITES[site])
         webpage = self._download_webpage(url, item_id)
 
         if url_type == 'series':

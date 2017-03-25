@@ -78,6 +78,7 @@
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
  - **AZMedienPlaylist**: AZ Medien playlists
+ - **AZMedienShowPlaylist**: AZ Medien show playlists
  - **Azubu**
  - **AzubuLive**
  - **BaiduVideo**: 百度视频
@@ -107,6 +108,7 @@
  - **blinkx**
  - **Bloomberg**
  - **BokeCC**
+ - **BostonGlobe**
  - **Bpb**: Bundeszentrale für politische Bildung
  - **BR**: Bayerischer Rundfunk Mediathek
  - **BravoTV**
@@ -191,6 +193,8 @@
  - **dailymotion:playlist**
  - **dailymotion:user**
  - **DailymotionCloud**
+ - **Daisuki**
+ - **DaisukiPlaylist**
  - **daum.net**
  - **daum.net:clip**
  - **daum.net:playlist**
@@ -205,10 +209,13 @@
  - **Digiteka**
  - **Discovery**
  - **DiscoveryGo**
+ - **DiscoveryGoPlaylist**
+ - **DiscoveryNetworksDe**
  - **Disney**
  - **Dotsub**
  - **DouyuTV**: 斗鱼
  - **DPlay**
+ - **DPlayIt**
  - **dramafever**
  - **dramafever:series**
  - **DRBonanza**
@@ -305,8 +312,8 @@
  - **GPUTechConf**
  - **Groupon**
  - **Hark**
- - **HBO**
- - **HBOEpisode**
+ - **hbo**
+ - **hbo:episode**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**
@@ -420,6 +427,7 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **Medialaan**
  - **Meipai**: 美拍
  - **MelonVOD**
  - **META**
@@ -623,6 +631,7 @@
  - **RaiTV**
  - **RBMARadio**
  - **RDS**: RDS.ca
+ - **RedBullTV**
  - **RedTube**
  - **RegioTV**
  - **RENTV**
@@ -771,12 +780,12 @@
  - **ThisAV**
  - **ThisOldHouse**
  - **tinypic**: tinypic.com videos
- - **tlc.de**
  - **TMZ**
  - **TMZArticle**
  - **TNAFlix**
  - **TNAFlixNetworkEmbed**
  - **toggle**
+ - **ToonGoggles**
  - **Tosh**: Tosh.0
  - **tou.tv**
  - **Toypics**: Toypics user profile
@@ -794,6 +803,7 @@
  - **tunein:program**
  - **tunein:station**
  - **tunein:topic**
+ - **TunePk**
  - **Turbo**
  - **Tutv**
  - **tv.dfb.de**
@@ -913,6 +923,7 @@
  - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl and ntr.nl
+ - **Vrak**
  - **VRT**
  - **vube**: Vube.com
  - **VuClip**

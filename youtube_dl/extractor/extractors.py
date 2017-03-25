@@ -71,6 +71,7 @@ from .arte import (
 )
 from .atresplayer import AtresPlayerIE
 from .atttechchannel import ATTTechChannelIE
+from .atvat import ATVAtIE
 from .audimedia import AudiMediaIE
 from .audioboom import AudioBoomIE
 from .audiomack import AudiomackIE, AudiomackAlbumIE
@@ -117,6 +118,7 @@ from .bleacherreport import (
 from .blinkx import BlinkxIE
 from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
+from .bostonglobe import BostonGlobeIE
 from .bpb import BpbIE
 from .br import BRIE
 from .bravotv import BravoTVIE
@@ -246,7 +248,10 @@ from .dfb import DFBIE
 from .dhm import DHMIE
 from .dotsub import DotsubIE
 from .douyutv import DouyuTVIE
-from .dplay import DPlayIE
+from .dplay import (
+    DPlayIE,
+    DPlayItIE,
+)
 from .dramafever import (
     DramaFeverIE,
     DramaFeverSeriesIE,
@@ -262,7 +267,11 @@ from .dvtv import DVTVIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
-from .discoverygo import DiscoveryGoIE
+from .discoverygo import (
+    DiscoveryGoIE,
+    DiscoveryGoPlaylistIE,
+)
+from .discoverynetworks import DiscoveryNetworksDeIE
 from .disney import DisneyIE
 from .dispeak import DigitallySpeakingIE
 from .dropbox import DropboxIE
@@ -793,6 +802,7 @@ from .rai import (
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
+from .redbulltv import RedBullTVIE
 from .redtube import RedTubeIE
 from .regiotv import RegioTVIE
 from .rentv import (
@@ -966,7 +976,6 @@ from .thisav import ThisAVIE
 from .thisoldhouse import ThisOldHouseIE
 from .threeqsdn import ThreeQSDNIE
 from .tinypic import TinyPicIE
-from .tlc import TlcDeIE
 from .tmz import (
     TMZIE,
     TMZArticleIE,
@@ -979,6 +988,7 @@ from .tnaflix import (
 )
 from .toggle import ToggleIE
 from .tonline import TOnlineIE
+from .toongoggles import ToonGogglesIE
 from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
@@ -999,6 +1009,7 @@ from .tunein import (
     TuneInTopicIE,
     TuneInShortenerIE,
 )
+from .tunepk import TunePkIE
 from .turbo import TurboIE
 from .tutv import TutvIE
 from .tv2 import (
@@ -1165,6 +1176,8 @@ from .voicerepublic import VoiceRepublicIE
 from .voxmedia import VoxMediaIE
 from .vporn import VpornIE
 from .vrt import VRTIE
+from .vrak import VrakIE
+from .medialaan import MedialaanIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vvvvid import VVVVIDIE

@@ -27,11 +27,11 @@ from youtube_dl.compat import (
 class TestCompat(unittest.TestCase):
     def test_compat_getenv(self):
         test_str = 'тест'
-        compat_setenv('YOUTUBE-DL-TEST', test_str)
-        self.assertEqual(compat_getenv('YOUTUBE-DL-TEST'), test_str)
+        compat_setenv('YOUTUBE_DL_COMPAT_GETENV', test_str)
+        self.assertEqual(compat_getenv('YOUTUBE_DL_COMPAT_GETENV'), test_str)
 
     def test_compat_setenv(self):
-        test_var = 'YOUTUBE-DL-TEST'
+        test_var = 'YOUTUBE_DL_COMPAT_SETENV'
         test_str = 'тест'
         compat_setenv(test_var, test_str)
         compat_getenv(test_var)

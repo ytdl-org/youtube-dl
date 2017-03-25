@@ -90,7 +90,8 @@ class AtresPlayerIE(InfoExtractor):
             request, None, 'Logging in as %s' % username)
 
         error = self._html_search_regex(
-            r'(?s)<ul class="list_error">(.+?)</ul>', response, 'error', default=None)
+            r'(?s)<ul[^>]+class="[^"]*\blist_error\b[^"]*">(.+?)</ul>',
+            response, 'error', default=None)
         if error:
             raise ExtractorError(
                 'Unable to login: %s' % error, expected=True)
@@ -155,13 +156,17 @@ class AtresPlayerIE(InfoExtractor):
             if format_id == 'token' or not video_url.startswith('http'):
                 continue
             if 'geodeswowsmpra3player' in video_url:
-                f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
-                f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
+                # f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
+                # f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
                 # this videos are protected by DRM, the f4m downloader doesn't support them
                 continue
-            else:
-                f4m_url = video_url[:-9] + '/manifest.f4m'
-            formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
+            video_url_hd = video_url.replace('free_es', 'es')
+            formats.extend(self._extract_f4m_formats(
+                video_url_hd[:-9] + '/manifest.f4m', video_id, f4m_id='hds',
+                fatal=False))
+            formats.extend(self._extract_mpd_formats(
+                video_url_hd[:-9] + '/manifest.mpd', video_id, mpd_id='dash',
+                fatal=False))
         self._sort_formats(formats)
 
         path_data = player.get('pathData')

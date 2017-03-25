@@ -40,7 +40,7 @@ class PluralsightIE(PluralsightBaseIE):
         'info_dict': {
             'id': 'hosting-sql-server-windows-azure-iaas-m7-mgmt-04',
             'ext': 'mp4',
-            'title': 'Management of SQL Server - Demo Monitoring',
+            'title': 'Demo Monitoring',
             'duration': 338,
         },
         'skip': 'Requires pluralsight account credentials',
@@ -169,11 +169,10 @@ class PluralsightIE(PluralsightBaseIE):
 
         collection = course['modules']
 
-        module, clip = None, None
+        clip = None
 
         for module_ in collection:
             if name in (module_.get('moduleName'), module_.get('name')):
-                module = module_
                 for clip_ in module_.get('clips', []):
                     clip_index = clip_.get('clipIndex')
                     if clip_index is None:
@@ -187,7 +186,7 @@ class PluralsightIE(PluralsightBaseIE):
         if not clip:
             raise ExtractorError('Unable to resolve clip')
 
-        title = '%s - %s' % (module['title'], clip['title'])
+        title = clip['title']
 
         QUALITIES = {
             'low': {'width': 640, 'height': 480},

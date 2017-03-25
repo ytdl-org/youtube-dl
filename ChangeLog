@@ -1,7 +1,149 @@
 version <unreleased>
 
 Extractors
-+ [daisuki] Add new extractor (#2486, #3186, #4738, #6175, #7776, #10060)
+* [afreecatv] Fix extraction (#12179)
+
+
+version 2017.03.24
+
+Extractors
+- [9c9media] Remove mp4 URL extraction request
++ [bellmedia] Add support for etalk.ca and space.ca (#12447)
+* [channel9] Fix extraction (#11323)
+* [cloudy] Fix extraction (#12525)
++ [hbo] Add support for free episode URLs and new formats extraction (#12519)
+* [condenast] Fix extraction and style (#12526)
+* [viu] Relax URL regular expression (#12529)
+
+
+version 2017.03.22
+
+Extractors
+- [pluralsight] Omit module title from video title (#12506)
+* [pornhub] Decode obfuscated video URL (#12470, #12515)
+* [senateisvp] Allow https URL scheme for embeds (#12512)
+
+
+version 2017.03.20
+
+Core
++ [YoutubeDL] Allow multiple input URLs to be used with stdout (-) as
+  output template
++ [adobepass] Detect and output error on authz token extraction (#12472)
+
+Extractors
++ [bostonglobe] Add extractor for bostonglobe.com (#12099)
++ [toongoggles] Add support for toongoggles.com (#12171)
++ [medialaan] Add support for Medialaan sites (#9974, #11912)
++ [discoverynetworks] Add support for more domains and bypass geo restiction
+* [openload] Fix extraction (#10408)
+
+
+version 2017.03.16
+
+Core
++ [postprocessor/ffmpeg] Add support for flac
++ [extractor/common] Extract SMIL formats from jwplayer
+
+Extractors
++ [generic] Add forgotten return for jwplayer formats
+* [redbulltv] Improve extraction
+
+
+version 2017.03.15
+
+Core
+* Fix missing subtitles if --add-metadata is used (#12423)
+
+Extractors
+* [facebook] Make title optional (#12443)
++ [mitele] Add support for ooyala videos (#12430)
+* [openload] Fix extraction (#12435, #12446)
+* [streamable] Update API URL (#12433)
++ [crunchyroll] Extract season name (#12428)
+* [discoverygo] Bypass geo restriction
++ [discoverygo:playlist] Add support for playlists (#12424)
+
+
+version 2017.03.10
+
+Extractors
+* [generic] Make title optional for jwplayer embeds (#12410)
+* [wdr:maus] Fix extraction (#12373)
+* [prosiebensat1] Improve title extraction (#12318, #12327)
+* [dplayit] Separate and rewrite extractor and bypass geo restriction (#12393)
+* [miomio] Fix extraction (#12291, #12388, #12402)
+* [telequebec] Fix description extraction (#12399)
+* [openload] Fix extraction (#12357)
+* [brightcove:legacy] Relax videoPlayer validation check (#12381)
+
+
+version 2017.03.07
+
+Core
+* Metadata are now added after conversion (#5594)
+
+Extractors
+* [soundcloud] Update client id (#12376)
+* [openload] Fix extraction (#10408, #12357)
+
+
+version 2017.03.06
+
+Core
++ [utils] Process bytestrings in urljoin (#12369)
+* [extractor/common] Improve height extraction and extract bitrate
+* [extractor/common] Move jwplayer formats extraction in separate method
++ [external:ffmpeg] Limit test download size to 10KiB (#12362)
+
+Extractors
++ [drtv] Add geo countries to GeoRestrictedError
++ [drtv:live] Bypass geo restriction
++ [tunepk] Add extractor (#12197, #12243)
+
+
+version 2017.03.05
+
+Extractors
++ [twitch] Add basic support for two-factor authentication (#11974)
++ [vier] Add support for vijf.be (#12304)
++ [redbulltv] Add support for redbull.tv (#3919, #11948)
+* [douyutv] Switch to the PC API to escape the 5-min limitation (#12316)
++ [generic] Add support for rutube embeds
++ [rutube] Relax URL regular expression
++ [vrak] Add support for vrak.tv (#11452)
++ [brightcove:new] Add ability to smuggle geo_countries into URL
++ [brightcove:new] Raise GeoRestrictedError
+* [go] Relax URL regular expression (#12341)
+* [24video] Use original host for requests (#12339)
+* [ruutu] Disable DASH formats (#12322)
+
+
+version 2017.03.02
+
+Core
++ [adobepass] Add support for Charter Spectrum (#11465)
+* [YoutubeDL] Don't sanitize identifiers in output template (#12317)
+
+Extractors
+* [facebook] Fix extraction (#12323, #12330)
+* [youtube] Mark errors about rental videos as expected (#12324)
++ [npo] Add support for audio
+* [npo] Adapt to app.php API (#12311, #12320)
+
+
+version 2017.02.28
+
+Core
++ [utils] Add bytes_to_long and long_to_bytes
++ [utils] Add pkcs1pad
++ [aes] Add aes_cbc_encrypt
+
+Extractors
++ [azmedien:showplaylist] Add support for show playlists (#12160)
++ [youtube:playlist] Recognize another playlist pattern (#11928, #12286)
++ [daisuki] Add support for daisuki.net (#2486, #3186, #4738, #6175, #7776,
+  #10060)
 * [douyu] Fix extraction (#12301)
 
 
