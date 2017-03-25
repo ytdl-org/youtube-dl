@@ -90,7 +90,7 @@ class AtresPlayerIE(InfoExtractor):
             request, None, 'Logging in as %s' % username)
 
         error = self._html_search_regex(
-            r'(?s)<ul class="list_error">(.+?)</ul>', response, 'error', default=None)
+            r'(?s)<ul class="list_error.*?">(.+?)</ul>', response, 'error', default=None)
         if error:
             raise ExtractorError(
                 'Unable to login: %s' % error, expected=True)
@@ -160,7 +160,8 @@ class AtresPlayerIE(InfoExtractor):
                 # this videos are protected by DRM, the f4m downloader doesn't support them
                 continue
             else:
-                f4m_url = video_url[:-9] + '/manifest.f4m'
+                video_url_hd = video_url.replace('free_es', 'es')
+                f4m_url = video_url_hd[:-9] + '/manifest.f4m'
             formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
