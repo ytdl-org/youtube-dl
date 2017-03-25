@@ -35,14 +35,6 @@ class CBSShowIE(InfoExtractor):
             'title': 'The Late Show with Stephen Colbert',
         },
         'playlist_mincount': 14,
-        # If uncommented, the test harness tries to download all 30 playlist entries.
-        # Even limited to 10KB each, this can take 15 minutes. Not reasonable.
-        # 'playlist': [{
-        #     'info_dict': {
-        #         'id': 'xxx',
-        #         'ext': 'xxx.mp4',
-        #         },
-        # }],
     }
 
     def carousel_playlist(self, url, type):
