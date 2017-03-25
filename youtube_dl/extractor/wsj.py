@@ -37,7 +37,9 @@ class WSJIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        return self._extract_video(video_id)
 
+    def _extract_video(self, video_id):
         api_url = (
             'http://video-api.wsj.com/api-video/find_all_videos.asp?'
             'type=guid&count=1&query=%s&fields=type,hls,videoMP4List,'
@@ -87,3 +89,24 @@ class WSJIE(InfoExtractor):
             'title': title,
             'categories': info.get('keywords'),
         }
+
+
+class WSJArticleIE(WSJIE):
+    _VALID_URL = r'(?i)https?://(?:www\.)?wsj\.com/articles/(?P<id>\w[^/]+)'
+    _TESTS = [{
+        'url': 'https://www.wsj.com/articles/dont-like-china-no-pandas-for-you-1490366939?',
+        'info_dict': {
+            'id': '4B13FA62-1D8C-45DB-8EA1-4105CB20B362',
+            'ext': 'mp4',
+            'upload_date': '20170221',
+            'uploader_id': 'ralcaraz',
+            'title': 'Bao Bao the Panda Leaves for China',
+        }
+    }]
+
+    def _real_extract(self, url):
+        article_id = self._match_id(url)
+        webpage = self._download_webpage(url, article_id)
+        video_id = self._html_search_regex(r'data-src=["\']([A-Z0-9\-]+)',
+                                           webpage, 'video id')
+        return self._extract_video(video_id)

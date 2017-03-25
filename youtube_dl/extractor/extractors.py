@@ -1210,7 +1210,10 @@ from .wrzuta import (
     WrzutaIE,
     WrzutaPlaylistIE,
 )
-from .wsj import WSJIE
+from .wsj import (
+    WSJIE,
+    WSJArticleIE,
+)
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
 from .xfileshare import XFileShareIE
