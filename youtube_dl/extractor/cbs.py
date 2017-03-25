@@ -93,19 +93,6 @@ class CBSShowIE(InfoExtractor):
         except RegexNotFoundError:
             clips = { 'entries': [] }
 
-        # We separately retrieve a carousel of full episodes, and also one of clips.
-        # Clips are identifiable as such because they lack an "episode_number" field,
-        # unlike full episodes.
-        #
-        # It might be desirable to specify only retrieving a playlist of one or the other,
-        # but there isn't a good way for users to pass such parameters to InfoExtractors
-        # (custom URLs, maybe? With cbs: URLs?).
-        #
-        # But since the playlist is filterable, only full episodes can be returned with:
-        #   youtube_dl --match-filter 'episode_number' http://...
-        # and similarly, only clips can be returned with:
-        #   youtube_dl --match-filter '!episode_number' http://...
-
         playlist = self.carousel_playlist(episodes_url, 'episodes')
         playlist['entries'] += clips['entries']
         playlist['id'] = show['id']
