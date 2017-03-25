@@ -160,10 +160,15 @@ class AtresPlayerIE(InfoExtractor):
                 f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
                 # this videos are protected by DRM, the f4m downloader doesn't support them
                 continue
-            else:
-                video_url_hd = video_url.replace('free_es', 'es')
-                f4m_url = video_url_hd[:-9] + '/manifest.f4m'
-            formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
+            video_url_hd = video_url.replace('free_es', 'es')
+            formats.extend(self._extract_f4m_formats(
+                video_url_hd[:-9] + '/manifest.f4m', video_id, f4m_id='hds',
+                fatal=False))
+            formats.extend(self._extract_mpd_formats(
+                video_url_hd[:-9] + '/manifest.mpd', video_id, mpd_id='dash',
+                fatal=False))
+            formats.extend(self._extract_ism_formats(
+                video_url_hd, video_id, ism_id='mss', fatal=False))
         self._sort_formats(formats)
 
         path_data = player.get('pathData')
