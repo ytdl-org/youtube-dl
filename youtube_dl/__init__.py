@@ -16,7 +16,6 @@ from .options import (
     parseOpts,
 )
 from .compat import (
-    compat_expanduser,
     compat_getpass,
     compat_shlex_split,
     workaround_optparse_bug9161,
@@ -26,6 +25,7 @@ from .utils import (
     decodeOption,
     DEFAULT_OUTTMPL,
     DownloadError,
+    expand_path,
     match_filter_func,
     MaxDownloadsReached,
     preferredencoding,
@@ -88,7 +88,7 @@ def _real_main(argv=None):
                 batchfd = sys.stdin
             else:
                 batchfd = io.open(
-                    compat_expanduser(opts.batchfile),
+                    expand_path(opts.batchfile),
                     'r', encoding='utf-8', errors='ignore')
             batch_urls = read_batch_urls(batchfd)
             if opts.verbose:
@@ -238,7 +238,7 @@ def _real_main(argv=None):
 
     any_getting = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
     any_printing = opts.print_json
-    download_archive_fn = compat_expanduser(opts.download_archive) if opts.download_archive is not None else opts.download_archive
+    download_archive_fn = expand_path(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
     # PostProcessors
     postprocessors = []
@@ -449,7 +449,7 @@ def _real_main(argv=None):
 
         try:
             if opts.load_info_filename is not None:
-                retcode = ydl.download_with_info_file(compat_expanduser(opts.load_info_filename))
+                retcode = ydl.download_with_info_file(expand_path(opts.load_info_filename))
             else:
                 retcode = ydl.download(all_urls)
         except MaxDownloadsReached:

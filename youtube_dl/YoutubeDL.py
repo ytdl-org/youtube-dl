@@ -29,7 +29,6 @@ import random
 from .compat import (
     compat_basestring,
     compat_cookiejar,
-    compat_expanduser,
     compat_get_terminal_size,
     compat_http_client,
     compat_kwargs,
@@ -54,6 +53,7 @@ from .utils import (
     encode_compat_str,
     encodeFilename,
     error_to_compat_str,
+    expand_path,
     ExtractorError,
     format_bytes,
     formatSeconds,
@@ -672,7 +672,7 @@ class YoutubeDL(object):
                         FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
-            tmpl = compat_expanduser(outtmpl)
+            tmpl = expand_path(outtmpl)
             filename = tmpl % template_dict
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
@@ -2170,7 +2170,7 @@ class YoutubeDL(object):
         if opts_cookiefile is None:
             self.cookiejar = compat_cookiejar.CookieJar()
         else:
-            opts_cookiefile = compat_expanduser(opts_cookiefile)
+            opts_cookiefile = expand_path(opts_cookiefile)
             self.cookiejar = compat_cookiejar.MozillaCookieJar(
                 opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):
