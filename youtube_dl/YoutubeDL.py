@@ -951,16 +951,11 @@ class YoutubeDL(object):
                                                       download=download,
                                                       extra_info=extra)
 
-                entry_result_uploaddate = entry_result.get('upload_date')
-                if entry_result_uploaddate:
-                    entry_result_uploaddate_dateobject = datetime.date(
-                        year=int(entry_result_uploaddate[0:4]),
-                        month=int(entry_result_uploaddate[4:6]),
-                        day=int(entry_result_uploaddate[6:8])
-                    )
-
-                    if self.params.get('date_ordered_playlist') and entry_result_uploaddate_dateobject not in self.params.get('daterange'):
+                try:
+                    if self.params.get('date_ordered_playlist') and entry_result.get('upload_date') not in self.params.get('daterange'):
                         break
+                except TypeError:
+                    pass
 
                 playlist_results.append(entry_result)
 
