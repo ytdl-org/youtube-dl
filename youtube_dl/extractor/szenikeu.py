@@ -23,10 +23,10 @@ class SzenikEUIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_meta('og:title', webpage)
+        title = self._og_search_title(webpage)
         title = title.split(' |')[0]
-        thumbnail = self._html_search_meta('og:image', webpage)
-        description = self._html_search_meta('og:description', webpage, fatal=False)
+        thumbnail = self._og_search_thumbnail(webpage)
+        description = self._og_search_description(webpage)
 
         # The folder name is obtained from the image thumbnail
         video_folder = thumbnail.rsplit('/', 1)[1].split('.')[0]
@@ -35,7 +35,7 @@ class SzenikEUIE(InfoExtractor):
         m3u8_url = baseurl + 'index.m3u8'
         formats = self._extract_m3u8_formats(
             m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
-            m3u8_id='hls')
+            m3u8_id='hls', fatal=False)
 
         QUALITIES = ('low', 'med', 'high')
         quality = qualities(QUALITIES)
