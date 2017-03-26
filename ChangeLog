@@ -2,11 +2,21 @@ version <unreleased>
 
 Core
 * Don't raise an error if JWPlayer config data is not a Javascript object
-  literal. _find_jwplayer_data() now returns a dict rather than an str.
-  (#12307)
+  literal. _find_jwplayer_data now returns a dict rather than an str. (#12307)
+* Expand environment variables for options representing paths (#12556)
++ [utils] Introduce expand_path
+* [downloader/hls] Delegate downloading to ffmpeg immediately for live streams
 
 Extractors
 * [afreecatv] Fix extraction (#12179)
++ [atvat] Add support for atv.at (#5325)
++ [fox] Add metadata extraction (#12391)
++ [atresplayer] Extract DASH formats
++ [atresplayer] Extract HD manifest (#12548)
+* [atresplayer] Fix login error detection (#12548)
+* [franceculture] Fix extraction (#12547)
+* [youtube] Improve URL regular expression (#12538)
+* [generic] Do not follow redirects to the same URL
 
 
 version 2017.03.24
