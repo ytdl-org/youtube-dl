@@ -119,14 +119,14 @@ class NBCIE(AdobePassIE):
         # it load the page with ?snl=1 and then with ?snl=0.
         # Emulate that, but shortcircuit straight to ?snl=0.
         urlmeta = self._html_search_meta(
-            ['al:ios:url','al:android:url', 'twitter:app:url:googleplay'],
+            ['al:ios:url', 'al:android:url', 'twitter:app:url:googleplay'],
             webpage)
-        if urlmeta and urlmeta.startswith('nbcsnl://') and \
-           compat_parse_qs(parsed_url.query).get('snl') != 0:
-               url = update_url_query(url, { 'snl': 0})
-               parsed_url = compat_urllib_parse_urlparse(url)
-               webpage = self._download_webpage(url, video_id)
-            
+        if (urlmeta and urlmeta.startswith('nbcsnl://') and
+                compat_parse_qs(parsed_url.query).get('snl') != 0):
+            url = update_url_query(url, {'snl': 0})
+            parsed_url = compat_urllib_parse_urlparse(url)
+            webpage = self._download_webpage(url, video_id)
+
         video_data = None
         preload = self._search_regex(
             r'PRELOAD\s*=\s*({.+})', webpage, 'preload data', default=None)
