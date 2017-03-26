@@ -1,5 +1,10 @@
 version <unreleased>
 
+Core
+* Don't raise an error if JWPlayer config data is not a Javascript object
+  literal. _find_jwplayer_data() now returns a dict rather than an str.
+  (#12307)
+
 Extractors
 * [afreecatv] Fix extraction (#12179)
 
