@@ -991,6 +991,20 @@ class GenericIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
+        {
+            # JWPlayer config passed as variable
+            'url': 'http://www.txxx.com/videos/3326530/ariele/',
+            'info_dict': {
+                'id': '3326530_hq',
+                'ext': 'mp4',
+                'title': 'ARIELE | Tube Cup',
+                'uploader': 'www.txxx.com',
+                'age_limit': 18,
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # rtl.nl embed
         {
             'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
@@ -2550,18 +2564,14 @@ class GenericIE(InfoExtractor):
                 self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
 
-        jwplayer_data_str = self._find_jwplayer_data(webpage)
-        if jwplayer_data_str:
-            try:
-                jwplayer_data = self._parse_json(
-                    jwplayer_data_str, video_id, transform_source=js_to_json)
-                info = self._parse_jwplayer_data(
-                    jwplayer_data, video_id, require_title=False)
-                if not info.get('title'):
-                    info['title'] = video_title
-                return info
-            except ExtractorError:
-                pass
+        jwplayer_data = self._find_jwplayer_data(
+            webpage, video_id, transform_source=js_to_json)
+        if jwplayer_data:
+            info = self._parse_jwplayer_data(
+                jwplayer_data, video_id, require_title=False)
+            if not info.get('title'):
+                info['title'] = video_title
+            return info
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

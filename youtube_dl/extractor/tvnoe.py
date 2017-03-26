@@ -31,9 +31,8 @@ class TVNoeIE(InfoExtractor):
             r'<iframe[^>]+src="([^"]+)"', webpage, 'iframe URL')
 
         ifs_page = self._download_webpage(iframe_url, video_id)
-        jwplayer_data = self._parse_json(
-            self._find_jwplayer_data(ifs_page),
-            video_id, transform_source=js_to_json)
+        jwplayer_data = self._find_jwplayer_data(
+            ifs_page, video_id, transform_source=js_to_json)
         info_dict = self._parse_jwplayer_data(
             jwplayer_data, video_id, require_title=False, base_url=iframe_url)
 

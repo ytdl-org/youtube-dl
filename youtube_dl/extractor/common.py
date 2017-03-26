@@ -2169,18 +2169,24 @@ class InfoExtractor(object):
                     })
         return formats
 
-    @staticmethod
-    def _find_jwplayer_data(webpage):
+    def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
         mobj = re.search(
             r'jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)\.setup\s*\((?P<options>[^)]+)\)',
             webpage)
         if mobj:
-            return mobj.group('options')
+            try:
+                jwplayer_data = self._parse_json(mobj.group('options'),
+                                                 video_id=video_id,
+                                                 transform_source=transform_source)
+            except ExtractorError:
+                pass
+            else:
+                if isinstance(jwplayer_data, dict):
+                    return jwplayer_data
 
     def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
-        jwplayer_data = self._parse_json(
-            self._find_jwplayer_data(webpage), video_id,
-            transform_source=js_to_json)
+        jwplayer_data = self._find_jwplayer_data(
+            webpage, video_id, transform_source=js_to_json)
         return self._parse_jwplayer_data(
             jwplayer_data, video_id, *args, **kwargs)
 
