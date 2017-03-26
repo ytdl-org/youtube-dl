@@ -758,15 +758,6 @@ class YoutubeDL(object):
                                     'and will probably not work.')
 
             try:
-                if self.original_ie:
-                    pass # self.original_ie already exists
-            except AttributeError:
-                try:
-                    self.original_ie = re.search("\.([^\.]+)'>", str(type(ie))).group(1)
-                except:
-                    self.original_ie = None
-
-            try:
                 ie_result = ie.extract(url)
                 if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
@@ -960,19 +951,19 @@ class YoutubeDL(object):
                                                       download=download,
                                                       extra_info=extra)
 
-                try:
-                    entry_result_date = entry_result['upload_date']
-                    entry_result_date_year = int(entry_result_date[0:4])
-                    entry_result_date_month = int(entry_result_date[4:6])
-                    entry_result_date_day = int(entry_result_date[6:8])
-                    entry_result_date = datetime.date(year=entry_result_date_year, month=entry_result_date_month, day=entry_result_date_day)
-                    # if the entries originate with an info extractor known to return date-sorted results, simply break after we meet the first date out of range
-                    if self.original_ie in reliably_date_ordered_IEs and entry_result_date not in self.params['daterange']:
+                # import pudb; pudb.set_trace()
+                entry_result_uploaddate = entry_result.get('upload_date')
+                if entry_result_uploaddate:
+                    entry_result_uploaddate_dateobject = datetime.date(
+                        year=int(entry_result_uploaddate[0:4]),
+                        month=int(entry_result_uploaddate[4:6]),
+                        day=int(entry_result_uploaddate[6:8])
+                    )
+
+                    if self.params.get('date_ordered_playlist') and entry_result_uploaddate_dateobject not in self.params.get('daterange'):
                         break
-                    else:
-                        playlist_results.append(entry_result)
-                except: # I don't really know what to expect, so in case of error just fall back to the previous, default, behavior
-                    playlist_results.append(entry_result)
+
+                playlist_results.append(entry_result)
 
             ie_result['entries'] = playlist_results
             self.to_screen('[download] Finished downloading playlist: %s' % playlist)

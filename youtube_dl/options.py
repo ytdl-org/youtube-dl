@@ -298,6 +298,10 @@ def parseOpts(overrideArguments=None):
         metavar='DATE', dest='dateafter', default=None,
         help='Download only videos uploaded on or after this date (i.e. inclusive)')
     selection.add_option(
+        '--date-ordered-playlist',
+        metavar='DATE', dest='date_ordered_playlist', default=None, action='store_true',
+        help='Playlist is known to be in chronologically descending order')
+    selection.add_option(
         '--min-views',
         metavar='COUNT', dest='min_views', default=None, type=int,
         help='Do not download any videos with less than COUNT views')
