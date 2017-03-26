@@ -966,6 +966,7 @@ class YoutubeDL(object):
                     entry_result_date_month = int(entry_result_date[4:6])
                     entry_result_date_day = int(entry_result_date[6:8])
                     entry_result_date = datetime.date(year=entry_result_date_year, month=entry_result_date_month, day=entry_result_date_day)
+                    # if the entries originate with an info extractor known to return date-sorted results, simply break after we meet the first date out of range
                     if self.original_ie in reliably_date_ordered_IEs and entry_result_date not in self.params['daterange']:
                         break
                     else:
