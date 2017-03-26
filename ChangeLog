@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.03.26
 
 Core
 * Don't raise an error if JWPlayer config data is not a Javascript object

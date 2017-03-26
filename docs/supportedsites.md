@@ -67,6 +67,7 @@
  - **arte.tv:playlist**
  - **AtresPlayer**
  - **ATTTechChannel**
+ - **ATVAt**
  - **AudiMedia**
  - **AudioBoom**
  - **audiomack**
