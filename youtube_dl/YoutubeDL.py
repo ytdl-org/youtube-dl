@@ -758,6 +758,15 @@ class YoutubeDL(object):
                                     'and will probably not work.')
 
             try:
+                if self.original_ie:
+                    pass # self.original_ie already exists
+            except AttributeError:
+                try:
+                    self.original_ie = re.search("\.([^\.]+)'>", str(type(ie))).group(1)
+                except:
+                    self.original_ie = None
+
+            try:
                 ie_result = ie.extract(url)
                 if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
@@ -922,6 +931,8 @@ class YoutubeDL(object):
 
             x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
+            reliably_date_ordered_IEs = ('YoutubeChannelIE, YoutubeUserIE')
+
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
                 # This __x_forwarded_for_ip thing is a bit ugly but requires
@@ -948,7 +959,20 @@ class YoutubeDL(object):
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
                                                       extra_info=extra)
-                playlist_results.append(entry_result)
+
+                try:
+                    entry_result_date = entry_result['upload_date']
+                    entry_result_date_year = int(entry_result_date[0:4])
+                    entry_result_date_month = int(entry_result_date[4:6])
+                    entry_result_date_day = int(entry_result_date[6:8])
+                    entry_result_date = datetime.date(year=entry_result_date_year, month=entry_result_date_month, day=entry_result_date_day)
+                    if self.original_ie in reliably_date_ordered_IEs and entry_result_date not in self.params['daterange']:
+                        break
+                    else:
+                        playlist_results.append(entry_result)
+                except: # I don't really know what to expect, so in case of error just fall back to the previous, default, behavior
+                    playlist_results.append(entry_result)
+
             ie_result['entries'] = playlist_results
             self.to_screen('[download] Finished downloading playlist: %s' % playlist)
             return ie_result
