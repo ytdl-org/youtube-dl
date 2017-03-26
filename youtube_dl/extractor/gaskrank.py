@@ -52,9 +52,8 @@ class GaskrankIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         categories = [re.match(self._VALID_URL, url).group('categories')]
-        title = self._search_regex(
-            r'<meta[^>]+itemprop\s*=\s*"name"[^>]+content\s*=\s*"([^"]+)"',
-            webpage, 'title')
+        title = self._og_search_title(webpage, default=None) or self._html_search_meta(
+            'title', webpage, fatal=True)
 
         mobj = re.search(
             r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date>[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][0-9][0-9])',
@@ -86,21 +85,19 @@ class GaskrankIE(InfoExtractor):
             r'https?://movies\.gaskrank\.tv/([^-]*?)(-[^\.]*)?\.mp4',
             webpage, 'video id')
 
-        entries = self._parse_html5_media_entries(url, webpage, video_id)
-        if entries:
-            for entry in entries:
-                entry.update({
-                    'id': video_id,
-                    'title': title,
-                    'categories': categories,
-                    'display_id': display_id,
-                    'uploader_id': uploader_id,
-                    'upload_date': upload_date,
-                    'uploader_url': uploader_url,
-                    'tags': tags,
-                    'view_count': view_count,
-                    'average_rating': average_rating,
-                })
-                self._sort_formats(entry['formats'])
+        entry = self._parse_html5_media_entries(url, webpage, video_id)[0]
+        entry.update({
+            'id': video_id,
+            'title': title,
+            'categories': categories,
+            'display_id': display_id,
+            'uploader_id': uploader_id,
+            'upload_date': upload_date,
+            'uploader_url': uploader_url,
+            'tags': tags,
+            'view_count': view_count,
+            'average_rating': average_rating,
+        })
+        self._sort_formats(entry['formats'])
 
-        return self.playlist_result(entries)
+        return entry
