@@ -116,8 +116,8 @@ class NBCIE(AdobePassIE):
         # http://www.nbc.com/generetic/generated/generetic-responsive.js?v2.31.26
         # does the following in browers: if the page is Saturday Night
         # Live (snl), check for the query parameter ?snl=0; If absent,
-        # it load the page with ?snl=1 and then with ?snl=0.
-        # Emulate that, but shortcircuit straight to ?snl=0.
+        # it loads the page with ?snl=1 and then with ?snl=0.
+        # Emulate that, but shortcut straight to ?snl=0.
         urlmeta = self._html_search_meta(
             ['al:ios:url', 'al:android:url', 'twitter:app:url:googleplay'],
             webpage)
