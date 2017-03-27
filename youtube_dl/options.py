@@ -298,9 +298,14 @@ def parseOpts(overrideArguments=None):
         metavar='DATE', dest='dateafter', default=None,
         help='Download only videos uploaded on or after this date (i.e. inclusive)')
     selection.add_option(
-        '--date-ordered-playlist',
-        metavar='DATE', dest='date_ordered_playlist', default=None, action='store_true',
-        help='Playlist is known to be in chronologically descending order')
+        '--date-playlist-order',
+        metavar='ORDER', dest='date_playlist_order', default='none',
+        type='choice', choices=['asc', 'desc', 'none'],
+        help='Specify whether a playlist is known to be listed in chronological order. "Asc", "desc" or "none". Descending order is most recent to least, and is the most useful. Default is "none", and is like not using this option at all. Automatically stops after encountering the first video date outside of the date range configured by --date, --datebefore, and --dateafter.')
+    selection.add_option(
+        '--start-from-earliest',
+        metavar='FROM', dest='start_from_earliest',
+        action='store_true', help='In conjunction with --date-playlist-order, specify whether to start from the earliest videos or the latest. The default behavior is to start from the latest.')
     selection.add_option(
         '--min-views',
         metavar='COUNT', dest='min_views', default=None, type=int,

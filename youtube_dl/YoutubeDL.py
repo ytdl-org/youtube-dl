@@ -922,7 +922,10 @@ class YoutubeDL(object):
 
             x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
-            reliably_date_ordered_IEs = ('YoutubeChannelIE, YoutubeUserIE')
+            if self.params.get('date_playlist_order') == 'asc' and not self.params.get('start_from_earliest'):
+                entries.reverse()
+            if self.params.get('date_playlist_order') == 'desc' and self.params.get('start_from_earliest'):
+                entries.reverse()
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
@@ -953,7 +956,7 @@ class YoutubeDL(object):
 
                 entry_result_uploaddate = entry_result.get('upload_date')
                 if entry_result_uploaddate:
-                    if self.params.get('date_ordered_playlist') and entry_result_uploaddate not in self.params.get('daterange'):
+                    if self.params.get('date_playlist_order') in ('desc', 'asc') and entry_result_uploaddate not in self.params.get('daterange'):
                         break
 
                 playlist_results.append(entry_result)
