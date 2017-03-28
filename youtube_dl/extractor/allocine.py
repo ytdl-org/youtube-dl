@@ -70,7 +70,7 @@ class AllocineIE(InfoExtractor):
         if model:
             model_data = self._parse_json(model, display_id)
 
-            for video_url in model_data['sources'].values():
+            for video_url in model_data['videos'][0]['sources'].values():
                 video_id, format_id = url_basename(video_url).split('_')[:2]
                 formats.append({
                     'format_id': format_id,
@@ -78,7 +78,7 @@ class AllocineIE(InfoExtractor):
                     'url': video_url,
                 })
 
-            title = model_data['title']
+            title = model_data['videos'][0]['title']
         else:
             video_id = display_id
             media_data = self._download_json(
