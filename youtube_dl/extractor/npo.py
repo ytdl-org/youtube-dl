@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import xml.etree.ElementTree as ET
 
 from .common import InfoExtractor
 from ..compat import (
@@ -481,6 +480,8 @@ class HetKlokhuisIE(NPODataMidEmbedIE):
 
 class NPORecentsIE(NPOIE):
     IE_Name = 'npo:recents'
+    npo12_regex = r"""<div class='span4'>\s*<div class='image-container'>\s*<a href="(.*?)">\s*(<div class="program-not-available">)?"""
+    npo3_regex = r"""<div class='span4 image'>\s*<a href="(.*?)">\s*<div class="meta-container">\s*<div class="meta first">\s*<div class="md-label"><span class="npo-glyph triangle-right"></span></div>\s*<div class="md-value">.*?</div>\s*</div>\s*</div>\s*(<div class="program-not-available">)?"""
     _VALID_URL = r'(?:https?://)?(?:www\.)?npo\.nl/(?P<alt_id>[^/]+)/(?P<program_id>\w+_\d+)'
     _TESTS = [{
         # Example of an npo3 program
@@ -516,28 +517,21 @@ class NPORecentsIE(NPOIE):
 
         if is_npo3:
             episodes_url = '%s//search?category=broadcasts&page=1' % program_url
+            regex = self.npo3_regex
         else:
             episodes_url = '%s/search?media_type=broadcast&start=0&rows=8' % program_url
+            regex = self.npo12_regex
 
-        episodes = self._download_webpage(
-            episodes_url, program_id, note='Retrieving episodes')
-        tree = ET.fromstring(episodes.encode('utf-8'))
-        for element in tree.findall('.//div'):
-            if 'span4' in element.get('class'):
-                hyperlink = element.find('.//a')
+        episodes = self._download_webpage(episodes_url, program_id, note='Retrieving episodes')
 
-                # Note: ElementTree in Python 2.6+ doesn't support
-                # the required XPath constructs
-                inactive = False
-                divs = hyperlink.findall('div')
-                for div in divs:
-                    if div.attrib.get('class') == 'program-not-available':
-                        inactive = True
+        for match in re.finditer(regex, episodes):
+            url = match.group(1)
+            available = match.group(2) is None
 
-                if not inactive:
-                    yield self.url_result(
-                        url='http://npo.nl%s' % hyperlink.get('href'),
-                        video_title=self._og_search_title(webpage))
+            if available:
+                yield self.url_result(
+                    url='http://npo.nl%s' % url,
+                    video_title=self._og_search_title(webpage))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
