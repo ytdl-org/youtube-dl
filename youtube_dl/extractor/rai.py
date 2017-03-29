@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -265,3 +266,23 @@ class RaiIE(RaiBaseIE):
             'title': title,
             'formats': formats,
         }
+
+class RaiPlayIE(RaiBaseIE):
+    _VALID_URL = r'https?://(?:.+?\.)?raiplay\.it/raiplay/video/(?:[^/]+/)+.+?-(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})(?:-.+?)?\.html'
+    _TEST = {
+            'url': 'http://www.raiplay.it/raiplay/video/2016/06/Paolo-Fresu-Il-tempo-di-un-viaggio-5bdc6f5f-74b7-426e-8192-9a1189123522.html',
+            'info_dict': {
+                'id': '5bdc6f5f-74b7-426e-8192-9a1189123522',
+                'ext': 'mp4',
+                'title': '365 Paolo Fresu, il tempo di un viaggio',
+                'description': 'Incontro con con Paolo Fresu, compositore e trombettista di straordinario e talento. Dall\'attaccamento alla terra della nativa Sardegna alle prime avventure musicali, dalla passione per Miles Davis alle collaborazioni con autori e musicisti di ogni nazionalità e estrazione.',
+                'upload_date': '20160628',
+                'duration': 6014.0,
+                'thumbnail': r're:^https?://.*\.jpg$',
+            }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        return self._extract_from_content_id(video_id, url)

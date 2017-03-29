@@ -799,6 +799,7 @@ from .radiofrance import RadioFranceIE
 from .rai import (
     RaiTVIE,
     RaiIE,
+    RaiPlayIE,
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
