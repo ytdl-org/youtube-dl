@@ -715,7 +715,7 @@ from .onet import (
     OnetMVPIE,
     OnetPlIE,
 )
-from .onetvcrimea import TvCrimeaIE
+from .onetvcrimea import OneTvCrimeaIE
 from .onionstudios import OnionStudiosIE
 from .ooyala import (
     OoyalaIE,

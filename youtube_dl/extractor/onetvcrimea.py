@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class TvCrimeaIE(InfoExtractor):
+class OneTvCrimeaIE(InfoExtractor):
     IE_NAME = '1tvcrimea'
     IE_DESC = '1 TV Crimea'
     _VALID_URL = r'https?://(?:www\.)?1tvcrimea.ru/(?P<id>.*)'
