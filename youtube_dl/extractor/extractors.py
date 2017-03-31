@@ -729,6 +729,10 @@ from .orf import (
     ORFFM4IE,
     ORFIPTVIE,
 )
+from .packtpub import (
+    PacktPubIE,
+    PacktPubCourseIE,
+)
 from .pandatv import PandaTVIE
 from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
