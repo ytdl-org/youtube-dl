@@ -837,6 +837,12 @@ class YoutubeDL(object):
                 ie_result['url'], ie_key=ie_result.get('ie_key'),
                 extra_info=extra_info, download=False, process=False)
 
+            # extract_info may return None when ignoreerrors is enabled and
+            # extraction failed with an error, don't crash and return early
+            # in this case
+            if not info:
+                return info
+
             force_properties = dict(
                 (k, v) for k, v in ie_result.items() if v is not None)
             for f in ('_type', 'url', 'ie_key'):
