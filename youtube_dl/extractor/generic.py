@@ -2568,7 +2568,7 @@ class GenericIE(InfoExtractor):
             webpage, video_id, transform_source=js_to_json)
         if jwplayer_data:
             info = self._parse_jwplayer_data(
-                jwplayer_data, video_id, require_title=False)
+                jwplayer_data, video_id, require_title=False, base_url=url)
             if not info.get('title'):
                 info['title'] = video_title
             return info
