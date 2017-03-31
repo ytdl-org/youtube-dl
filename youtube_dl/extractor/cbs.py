@@ -91,7 +91,7 @@ class CBSShowIE(InfoExtractor):
         #                        }
         clipdata = self._parse_json(
             self._search_regex(r'element\.videoCarousel\(([^)]*)\);',
-                               webpage, 'carousel', default='{}'),
+                               webpage, 'clip carousel', default='{}'),
             show_name, transform_source=js_to_json)
         if (clipdata.get('id')):
             # http://www.cbs.com/carousels/videosBySection/241426/offset/0/limit/15/xs/0/
