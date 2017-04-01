@@ -1,3 +1,27 @@
+version <unreleased>
+
+Core
+[YoutubeDL] Return early when extraction of url_transparent fails
+
+Extractors
+* [rai] Fix and improve extraction (#11790)
++ [vrv] Add support for series pages
+* [limelight] Improve extraction for audio only formats
+* [funimation] Fix extraction (#10696, #11773)
++ [xfileshare] Add support for vidabc.com (#12589)
++ [xfileshare] Improve extraction and extract hls formats
++ [crunchyroll] Pass geo verifcation proxy
++ [cwtv] Extract ISM formats
++ [tvplay] Bypass geo restriction
++ [vrv] Add support for vrv.co
++ [packtpub] Add support for packtpub.com (#12610)
++ [generic] Pass base_url to _parse_jwplayer_data
++ [adn] Add support for animedigitalnetwork.fr (#4866)
++ [allocine] Extract more metadata
+* [allocine] Fix extraction (#12592)
+* [openload] Fix extraction
+
+
 version 2017.03.26
 
 Core
