@@ -802,7 +802,7 @@ from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import (
-    RaiTVIE,
+    RaiPlayIE,
     RaiIE,
 )
 from .rbmaradio import RBMARadioIE
