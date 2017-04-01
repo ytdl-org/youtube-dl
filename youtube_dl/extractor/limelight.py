@@ -62,13 +62,21 @@ class LimelightBaseIE(InfoExtractor):
                 fmt = {
                     'url': stream_url,
                     'abr': float_or_none(stream.get('audioBitRate')),
-                    'vbr': float_or_none(stream.get('videoBitRate')),
                     'fps': float_or_none(stream.get('videoFrameRate')),
-                    'width': int_or_none(stream.get('videoWidthInPixels')),
-                    'height': int_or_none(stream.get('videoHeightInPixels')),
                     'ext': ext,
                 }
-                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp4:.+)$', stream_url)
+                width = int_or_none(stream.get('videoWidthInPixels'))
+                height = int_or_none(stream.get('videoHeightInPixels'))
+                vbr = float_or_none(stream.get('videoBitRate'))
+                if width or height or vbr:
+                    fmt.update({
+                        'width': width,
+                        'height': height,
+                        'vbr': vbr,
+                    })
+                else:
+                    fmt['vcodec'] = 'none'
+                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp[34]:.+)$', stream_url)
                 if rtmp:
                     format_id = 'rtmp'
                     if stream.get('videoBitRate'):
