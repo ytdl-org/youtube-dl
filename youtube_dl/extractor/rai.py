@@ -362,7 +362,8 @@ class RaiIE(RaiBaseIE):
                 webpage, 'content item id', default=None, group='id')
 
         content_item_ids = set()
-        content_item_ids.add(content_item_id)
+        if content_item_id:
+            content_item_ids.add(content_item_id)
         if video_id not in content_item_ids:
             content_item_ids.add(video_id)
 
