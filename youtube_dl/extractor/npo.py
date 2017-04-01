@@ -489,7 +489,7 @@ class NPORecentsIE(NPOIE):
         'info_dict': {
             'title': 'Keuringsdienst van Waarde',
             'id': 'KN_1678993',
-            'description': u'md5:5ffaf131f175d8a771e7a7884833dad2'
+            'description': 'md5:5ffaf131f175d8a771e7a7884833dad2'
         },
         'playlist_mincount': 8
     }, {
@@ -498,7 +498,7 @@ class NPORecentsIE(NPOIE):
         'info_dict': {
             'title': 'Jinek',
             'id': 'KN_1676589',
-            'description': u'md5:6998986899b4903395f0cdd0670cedaf'
+            'description': 'md5:6998986899b4903395f0cdd0670cedaf'
         },
         'playlist_mincount': 8
     }, {
@@ -507,7 +507,7 @@ class NPORecentsIE(NPOIE):
         'info_dict': {
             'title': 'Midsomer murders',
             'id': 'POW_00828660',
-            'description': u'md5:a8b6e9d3e3bd367be88766e3ce8e8362'
+            'description': 'md5:a8b6e9d3e3bd367be88766e3ce8e8362'
         },
         'playlist_maxcount': 1
     }]
