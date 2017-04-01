@@ -1182,7 +1182,10 @@ from .voxmedia import VoxMediaIE
 from .vporn import VpornIE
 from .vrt import VRTIE
 from .vrak import VrakIE
-from .vrv import VRVIE
+from .vrv import (
+    VRVIE,
+    VRVSeriesIE,
+)
 from .medialaan import MedialaanIE
 from .vube import VubeIE
 from .vuclip import VuClipIE

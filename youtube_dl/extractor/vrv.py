@@ -20,22 +20,7 @@ from ..utils import (
 )
 
 
-class VRVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vrv\.co/watch/(?P<id>[A-Z0-9]+)'
-    _TEST = {
-        'url': 'https://vrv.co/watch/GR9PNZ396/Hidden-America-with-Jonah-Ray:BOSTON-WHERE-THE-PAST-IS-THE-PRESENT',
-        'info_dict': {
-            'id': 'GR9PNZ396',
-            'ext': 'mp4',
-            'title': 'BOSTON: WHERE THE PAST IS THE PRESENT',
-            'description': 'md5:4ec8844ac262ca2df9e67c0983c6b83f',
-            'uploader_id': 'seeso',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }
+class VRVBaseIE(InfoExtractor):
     _API_DOMAIN = None
     _API_PARAMS = {}
     _CMS_SIGNING = {}
@@ -64,6 +49,8 @@ class VRVIE(InfoExtractor):
             note='Downloading %s JSON metadata' % note, headers=headers, data=data)
 
     def _call_cms(self, path, video_id, note):
+        if not self._CMS_SIGNING:
+            self._CMS_SIGNING = self._call_api('index', video_id, 'CMS Signing')['cms_signing']
         return self._download_json(
             self._API_DOMAIN + path, video_id, query=self._CMS_SIGNING,
             note='Downloading %s JSON metadata' % note, headers=self.geo_verification_headers())
@@ -75,9 +62,30 @@ class VRVIE(InfoExtractor):
                 webpage, 'api config'), video_id)['cxApiParams']
             self._API_DOMAIN = self._API_PARAMS.get('apiDomain', 'https://api.vrv.co')
 
-    def _set_cms_signing(self, video_id):
-        if not self._CMS_SIGNING:
-            self._CMS_SIGNING = self._call_api('index', video_id, 'CMS Signing')['cms_signing']
+    def _get_cms_resource(self, resource_key, video_id):
+        return self._call_api(
+            'cms_resource', video_id, 'resource path', data={
+                'resource_key': resource_key,
+            })['__links__']['cms_resource']['href']
+
+
+class VRVIE(VRVBaseIE):
+    IE_NAME = 'vrv'
+    _VALID_URL = r'https?://(?:www\.)?vrv\.co/watch/(?P<id>[A-Z0-9]+)'
+    _TEST = {
+        'url': 'https://vrv.co/watch/GR9PNZ396/Hidden-America-with-Jonah-Ray:BOSTON-WHERE-THE-PAST-IS-THE-PRESENT',
+        'info_dict': {
+            'id': 'GR9PNZ396',
+            'ext': 'mp4',
+            'title': 'BOSTON: WHERE THE PAST IS THE PRESENT',
+            'description': 'md5:4ec8844ac262ca2df9e67c0983c6b83f',
+            'uploader_id': 'seeso',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -91,10 +99,8 @@ class VRVIE(InfoExtractor):
         video_data = media_resource.get('json')
         if not video_data:
             self._set_api_params(webpage, video_id)
-            episode_path = self._call_api('cms_resource', video_id, 'episode resource path', data={
-                'resource_key': 'cms:/episodes/' + video_id,
-            })['__links__']['cms_resource']['href']
-            self._set_cms_signing(video_id)
+            episode_path = self._get_cms_resource(
+                'cms:/episodes/' + video_id, video_id)
             video_data = self._call_cms(episode_path, video_id, 'video')
         title = video_data['title']
 
@@ -102,7 +108,6 @@ class VRVIE(InfoExtractor):
         if not streams_json:
             self._set_api_params(webpage, video_id)
             streams_path = video_data['__links__']['streams']['href']
-            self._set_cms_signing(video_id)
             streams_json = self._call_cms(streams_path, video_id, 'streams')
 
         audio_locale = streams_json.get('audio_locale')
@@ -149,3 +154,38 @@ class VRVIE(InfoExtractor):
             'episode_number': int_or_none(video_data.get('episode_number')),
             'episode_id': video_data.get('production_episode_id'),
         }
+
+
+class VRVSeriesIE(VRVBaseIE):
+    IE_NAME = 'vrv:series'
+    _VALID_URL = r'https?://(?:www\.)?vrv\.co/series/(?P<id>[A-Z0-9]+)'
+    _TEST = {
+        'url': 'https://vrv.co/series/G68VXG3G6/The-Perfect-Insider',
+        'info_dict': {
+            'id': 'G68VXG3G6',
+        },
+        'playlist_mincount': 11,
+    }
+
+    def _real_extract(self, url):
+        series_id = self._match_id(url)
+        webpage = self._download_webpage(
+            url, series_id,
+            headers=self.geo_verification_headers())
+
+        self._set_api_params(webpage, series_id)
+        seasons_path = self._get_cms_resource(
+            'cms:/seasons?series_id=' + series_id, series_id)
+        seasons_data = self._call_cms(seasons_path, series_id, 'seasons')
+
+        entries = []
+        for season in seasons_data.get('items', []):
+            episodes_path = season['__links__']['season/episodes']['href']
+            episodes = self._call_cms(episodes_path, series_id, 'episodes')
+            for episode in episodes.get('items', []):
+                episode_id = episode['id']
+                entries.append(self.url_result(
+                    'https://vrv.co/watch/' + episode_id,
+                    'VRV', episode_id, episode.get('title')))
+
+        return self.playlist_result(entries, series_id)
