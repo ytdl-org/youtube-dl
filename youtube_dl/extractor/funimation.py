@@ -7,9 +7,9 @@ from ..compat import (
     compat_urllib_parse_unquote_plus,
 )
 from ..utils import (
-    clean_html,
     determine_ext,
     int_or_none,
+    js_to_json,
     sanitized_Request,
     ExtractorError,
     urlencode_postdata
@@ -17,34 +17,26 @@ from ..utils import (
 
 
 class FunimationIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funimation\.com/shows/[^/]+/videos/(?:official|promotional)/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/shows/[^/]+/(?P<id>[^/?#&]+)'
 
     _NETRC_MACHINE = 'funimation'
 
     _TESTS = [{
-        'url': 'http://www.funimation.com/shows/air/videos/official/breeze',
+        'url': 'https://www.funimation.com/shows/hacksign/role-play/',
         'info_dict': {
-            'id': '658',
-            'display_id': 'breeze',
-            'ext': 'mp4',
-            'title': 'Air - 1 - Breeze',
-            'description': 'md5:1769f43cd5fc130ace8fd87232207892',
-            'thumbnail': r're:https?://.*\.jpg',
-        },
-        'skip': 'Access without user interaction is forbidden by CloudFlare, and video removed',
-    }, {
-        'url': 'http://www.funimation.com/shows/hacksign/videos/official/role-play',
-        'info_dict': {
-            'id': '31128',
+            'id': '91144',
             'display_id': 'role-play',
             'ext': 'mp4',
-            'title': '.hack//SIGN - 1 - Role Play',
+            'title': '.hack//SIGN - Role Play',
             'description': 'md5:b602bdc15eef4c9bbb201bb6e6a4a2dd',
             'thumbnail': r're:https?://.*\.jpg',
         },
-        'skip': 'Access without user interaction is forbidden by CloudFlare',
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
-        'url': 'http://www.funimation.com/shows/attack-on-titan-junior-high/videos/promotional/broadcast-dub-preview',
+        'url': 'https://www.funimation.com/shows/attack-on-titan-junior-high/broadcast-dub-preview/',
         'info_dict': {
             'id': '9635',
             'display_id': 'broadcast-dub-preview',
@@ -54,24 +46,12 @@ class FunimationIE(InfoExtractor):
             'thumbnail': r're:https?://.*\.(?:jpg|png)',
         },
         'skip': 'Access without user interaction is forbidden by CloudFlare',
+    }, {
+        'url': 'https://www.funimationnow.uk/shows/puzzle-dragons-x/drop-impact/simulcast/',
+        'only_matching': True,
     }]
 
     _LOGIN_URL = 'http://www.funimation.com/login'
-
-    def _download_webpage(self, *args, **kwargs):
-        try:
-            return super(FunimationIE, self)._download_webpage(*args, **kwargs)
-        except ExtractorError as ee:
-            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
-                response = ee.cause.read()
-                if b'>Please complete the security check to access<' in response:
-                    raise ExtractorError(
-                        'Access to funimation.com is blocked by CloudFlare. '
-                        'Please browse to http://www.funimation.com/, solve '
-                        'the reCAPTCHA, export browser cookies to a text file,'
-                        ' and then try again with --cookies YOUR_COOKIE_FILE.',
-                        expected=True)
-            raise
 
     def _extract_cloudflare_session_ua(self, url):
         ci_session_cookie = self._get_cookies(url).get('ci_session')
@@ -114,119 +94,74 @@ class FunimationIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
 
-        errors = []
+        def _search_kane(name):
+            return self._search_regex(
+                r"KANE_customdimensions\.%s\s*=\s*'([^']+)';" % name,
+                webpage, name, default=None)
+
+        title_data = self._parse_json(self._search_regex(
+            r'TITLE_DATA\s*=\s*({[^}]+})',
+            webpage, 'title data', default=''),
+            display_id, js_to_json, fatal=False) or {}
+
+        video_id = title_data.get('id') or self._search_regex([
+            r"KANE_customdimensions.videoID\s*=\s*'(\d+)';",
+            r'<iframe[^>]+src="/player/(\d+)"',
+        ], webpage, 'video_id', default=None)
+        if not video_id:
+            player_url = self._html_search_meta([
+                'al:web:url',
+                'og:video:url',
+                'og:video:secure_url',
+            ], webpage, fatal=True)
+            video_id = self._search_regex(r'/player/(\d+)', player_url, 'video id')
+
+        title = episode = title_data.get('title') or _search_kane('videoTitle') or self._og_search_title(webpage)
+        series = _search_kane('showName')
+        if series:
+            title = '%s - %s' % (series, title)
+        description = self._html_search_meta(['description', 'og:description'], webpage, fatal=True)
+
+        try:
+            sources = self._download_json(
+                'https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/video/%s/signed/' % video_id,
+                video_id)['items']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                error = self._parse_json(e.cause.read(), video_id)['errors'][0]
+                raise ExtractorError('%s said: %s' % (
+                    self.IE_NAME, error.get('detail') or error.get('title')), expected=True)
+            raise
+
         formats = []
-
-        ERRORS_MAP = {
-            'ERROR_MATURE_CONTENT_LOGGED_IN': 'matureContentLoggedIn',
-            'ERROR_MATURE_CONTENT_LOGGED_OUT': 'matureContentLoggedOut',
-            'ERROR_SUBSCRIPTION_LOGGED_OUT': 'subscriptionLoggedOut',
-            'ERROR_VIDEO_EXPIRED': 'videoExpired',
-            'ERROR_TERRITORY_UNAVAILABLE': 'territoryUnavailable',
-            'SVODBASIC_SUBSCRIPTION_IN_PLAYER': 'basicSubscription',
-            'SVODNON_SUBSCRIPTION_IN_PLAYER': 'nonSubscription',
-            'ERROR_PLAYER_NOT_RESPONDING': 'playerNotResponding',
-            'ERROR_UNABLE_TO_CONNECT_TO_CDN': 'unableToConnectToCDN',
-            'ERROR_STREAM_NOT_FOUND': 'streamNotFound',
-        }
-
-        USER_AGENTS = (
-            # PC UA is served with m3u8 that provides some bonus lower quality formats
-            ('pc', 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0'),
-            # Mobile UA allows to extract direct links and also does not fail when
-            # PC UA fails with hulu error (e.g.
-            # http://www.funimation.com/shows/hacksign/videos/official/role-play)
-            ('mobile', 'Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36'),
-        )
-
-        user_agent = self._extract_cloudflare_session_ua(url)
-        if user_agent:
-            USER_AGENTS = ((None, user_agent),)
-
-        for kind, user_agent in USER_AGENTS:
-            request = sanitized_Request(url)
-            request.add_header('User-Agent', user_agent)
-            webpage = self._download_webpage(
-                request, display_id,
-                'Downloading %s webpage' % kind if kind else 'Downloading webpage')
-
-            playlist = self._parse_json(
-                self._search_regex(
-                    r'var\s+playersData\s*=\s*(\[.+?\]);\n',
-                    webpage, 'players data'),
-                display_id)[0]['playlist']
-
-            items = next(item['items'] for item in playlist if item.get('items'))
-            item = next(item for item in items if item.get('itemAK') == display_id)
-
-            error_messages = {}
-            video_error_messages = self._search_regex(
-                r'var\s+videoErrorMessages\s*=\s*({.+?});\n',
-                webpage, 'error messages', default=None)
-            if video_error_messages:
-                error_messages_json = self._parse_json(video_error_messages, display_id, fatal=False)
-                if error_messages_json:
-                    for _, error in error_messages_json.items():
-                        type_ = error.get('type')
-                        description = error.get('description')
-                        content = error.get('content')
-                        if type_ == 'text' and description and content:
-                            error_message = ERRORS_MAP.get(description)
-                            if error_message:
-                                error_messages[error_message] = content
-
-            for video in item.get('videoSet', []):
-                auth_token = video.get('authToken')
-                if not auth_token:
-                    continue
-                funimation_id = video.get('FUNImationID') or video.get('videoId')
-                preference = 1 if video.get('languageMode') == 'dub' else 0
-                if not auth_token.startswith('?'):
-                    auth_token = '?%s' % auth_token
-                for quality, height in (('sd', 480), ('hd', 720), ('hd1080', 1080)):
-                    format_url = video.get('%sUrl' % quality)
-                    if not format_url:
-                        continue
-                    if not format_url.startswith(('http', '//')):
-                        errors.append(format_url)
-                        continue
-                    if determine_ext(format_url) == 'm3u8':
-                        formats.extend(self._extract_m3u8_formats(
-                            format_url + auth_token, display_id, 'mp4', entry_protocol='m3u8_native',
-                            preference=preference, m3u8_id='%s-hls' % funimation_id, fatal=False))
-                    else:
-                        tbr = int_or_none(self._search_regex(
-                            r'-(\d+)[Kk]', format_url, 'tbr', default=None))
-                        formats.append({
-                            'url': format_url + auth_token,
-                            'format_id': '%s-http-%dp' % (funimation_id, height),
-                            'height': height,
-                            'tbr': tbr,
-                            'preference': preference,
-                        })
-
-        if not formats and errors:
-            raise ExtractorError(
-                '%s returned error: %s'
-                % (self.IE_NAME, clean_html(error_messages.get(errors[0], errors[0]))),
-                expected=True)
-
+        for source in sources:
+            source_url = source.get('src')
+            if not source_url:
+                continue
+            source_type = source.get('videoType') or determine_ext(source_url)
+            if source_type == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    source_url, video_id, 'mp4',
+                    m3u8_id='hls', fatal=False))
+            else:
+                formats.append({
+                    'format_id': source_type,
+                    'url': source_url,
+                })
         self._sort_formats(formats)
-
-        title = item['title']
-        artist = item.get('artist')
-        if artist:
-            title = '%s - %s' % (artist, title)
-        description = self._og_search_description(webpage) or item.get('description')
-        thumbnail = self._og_search_thumbnail(webpage) or item.get('posterUrl')
-        video_id = item.get('itemId') or display_id
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'series': series,
+            'season_number': int_or_none(title_data.get('seasonNum') or _search_kane('season')),
+            'episode_number': int_or_none(title_data.get('episodeNum')),
+            'episode': episode,
+            'season_id': title_data.get('seriesId'),
             'formats': formats,
         }
