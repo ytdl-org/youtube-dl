@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     determine_ext,
     extract_attributes,
     get_element_by_class,
@@ -19,10 +20,10 @@ class TV5MondePlusIE(InfoExtractor):
         'url': 'http://www.tv5mondeplus.com/toutes-les-videos/documentaire/tdah-mon-amour-tele-quebec-tdah-mon-amour-ep001-enfants',
         'md5': '12130fc199f020673138a83466542ec6',
         'info_dict': {
-            'id': '0a774110-dc60-4037-f769-996439514f1f',
+            'id': 'tdah-mon-amour-tele-quebec-tdah-mon-amour-ep001-enfants',
             'ext': 'mp4',
             'title': 'Tdah, mon amour - Enfants',
-            'description': 'md5:b65f0cc50e46947e62e5d352e9916cc4',
+            'description': 'md5:230e3aca23115afcf8006d1bece6df74',
             'upload_date': '20170401',
             'timestamp': 1491022860,
         }
@@ -65,10 +66,10 @@ class TV5MondePlusIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': vpl_data.get('data-guid') or display_id,
+            'id': display_id,
             'display_id': display_id,
             'title': title,
-            'description': get_element_by_class('video-detail__description', webpage),
+            'description': clean_html(get_element_by_class('video-detail__description', webpage)),
             'thumbnail': vpl_data.get('data-image'),
             'duration': int_or_none(vpl_data.get('data-duration')) or parse_duration(self._html_search_meta('duration', webpage)),
             'timestamp': parse_iso8601(self._html_search_meta('uploadDate', webpage)),
