@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     decode_packed_codes,
+    determine_ext,
     ExtractorError,
     int_or_none,
     NO_DEFAULT,
@@ -95,6 +96,16 @@ class XFileShareIE(InfoExtractor):
         # removed by administrator
         'url': 'http://xvidstage.com/amfy7atlkx25',
         'only_matching': True,
+    }, {
+        'url': 'http://vidabc.com/i8ybqscrphfv',
+        'info_dict': {
+            'id': 'i8ybqscrphfv',
+            'ext': 'mp4',
+            'title': 're:Beauty and the Beast 2017',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -133,30 +144,44 @@ class XFileShareIE(InfoExtractor):
             webpage, 'title', default=None) or self._og_search_title(
             webpage, default=None) or video_id).strip()
 
-        def extract_video_url(default=NO_DEFAULT):
-            return self._search_regex(
-                (r'file\s*:\s*(["\'])(?P<url>http.+?)\1,',
-                 r'file_link\s*=\s*(["\'])(?P<url>http.+?)\1',
-                 r'addVariable\((\\?["\'])file\1\s*,\s*(\\?["\'])(?P<url>http.+?)\2\)',
-                 r'<embed[^>]+src=(["\'])(?P<url>http.+?)\1'),
-                webpage, 'file url', default=default, group='url')
+        def extract_formats(default=NO_DEFAULT):
+            urls = []
+            for regex in (
+                    r'file\s*:\s*(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1',
+                    r'file_link\s*=\s*(["\'])(?P<url>http(?:(?!\1).)+)\1',
+                    r'addVariable\((\\?["\'])file\1\s*,\s*(\\?["\'])(?P<url>http(?:(?!\2).)+)\2\)',
+                    r'<embed[^>]+src=(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1'):
+                for mobj in re.finditer(regex, webpage):
+                    video_url = mobj.group('url')
+                    if video_url not in urls:
+                        urls.append(video_url)
+            formats = []
+            for video_url in urls:
+                if determine_ext(video_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        fatal=False))
+                else:
+                    formats.append({
+                        'url': video_url,
+                        'format_id': 'sd',
+                    })
+            if not formats and default is not NO_DEFAULT:
+                return default
+            self._sort_formats(formats)
+            return formats
 
-        video_url = extract_video_url(default=None)
+        formats = extract_formats(default=None)
 
-        if not video_url:
+        if not formats:
             webpage = decode_packed_codes(self._search_regex(
                 r"(}\('(.+)',(\d+),(\d+),'[^']*\b(?:file|embed)\b[^']*'\.split\('\|'\))",
                 webpage, 'packed code'))
-            video_url = extract_video_url()
+            formats = extract_formats()
 
         thumbnail = self._search_regex(
             r'image\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'thumbnail', default=None)
-
-        formats = [{
-            'format_id': 'sd',
-            'url': video_url,
-            'quality': 1,
-        }]
 
         return {
             'id': video_id,
