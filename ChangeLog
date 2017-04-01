@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.02
 
 Core
 [YoutubeDL] Return early when extraction of url_transparent fails
