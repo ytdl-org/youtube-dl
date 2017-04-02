@@ -1189,6 +1189,7 @@ from .vrv import (
     VRVSeriesIE,
 )
 from .medialaan import MedialaanIE
+from .vshare import VShareIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vvvvid import VVVVIDIE
