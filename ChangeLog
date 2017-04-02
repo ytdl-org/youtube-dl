@@ -1,7 +1,19 @@
+version <unreleased>
+
+Core
++ [extractor/common] Add censorship check for TransTelekom ISP
+* [extractor/common] Move censorship checks to a separate method
+
+Extractors
++ [discoveryvr] Add support for discoveryvr.com (#12578)
++ [tv5mondeplus] Add support for tv5mondeplus.com (#11386)
++ [periscope] Add support for pscp.tv URLs (#12618, #12625)
+
+
 version 2017.04.02
 
 Core
-[YoutubeDL] Return early when extraction of url_transparent fails
+* [YoutubeDL] Return early when extraction of url_transparent fails
 
 Extractors
 * [rai] Fix and improve extraction (#11790)
