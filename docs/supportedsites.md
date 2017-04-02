@@ -213,6 +213,7 @@
  - **DiscoveryGo**
  - **DiscoveryGoPlaylist**
  - **DiscoveryNetworksDe**
+ - **DiscoveryVR**
  - **Disney**
  - **Dotsub**
  - **DouyuTV**: 斗鱼
@@ -815,6 +816,7 @@
  - **TV2Article**
  - **TV3**
  - **TV4**: tv4.se and tv4play.se
+ - **TV5MondePlus**: TV5MONDE+
  - **TVA**
  - **TVANouvelles**
  - **TVANouvellesArticle**

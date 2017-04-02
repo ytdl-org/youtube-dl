@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.03
 
 Core
 + [extractor/common] Add censorship check for TransTelekom ISP
