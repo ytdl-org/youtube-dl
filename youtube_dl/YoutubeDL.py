@@ -922,9 +922,9 @@ class YoutubeDL(object):
 
             x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
-            if self.params.get('date_playlist_order') == 'asc' and not self.params.get('start_from_earliest'):
+            if self.params.get('date_playlist_order') == 'desc' and self.params.get('playlist_reverse'):
                 entries.reverse()
-            if self.params.get('date_playlist_order') == 'desc' and self.params.get('start_from_earliest'):
+            elif self.params.get('date_playlist_order') == 'asc' and not self.params.get('playlist_reverse'):
                 entries.reverse()
 
             for i, entry in enumerate(entries, 1):

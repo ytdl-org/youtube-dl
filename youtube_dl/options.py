@@ -301,11 +301,9 @@ def parseOpts(overrideArguments=None):
         '--date-playlist-order',
         metavar='ORDER', dest='date_playlist_order', default='none',
         type='choice', choices=['asc', 'desc', 'none'],
-        help='Specify whether a playlist is known to be listed in chronological order. "Asc", "desc" or "none". Descending order is most recent to least, and is useful for batch-downloading the new videos from a Youtube channel. Default is "none", and is like not using this option at all. Causes youtube-dl to automatically stop after encountering the first video date outside of the date range configured by --date, --datebefore, and/or --dateafter.')
-    selection.add_option(
-        '--start-from-earliest',
-        metavar='FROM', dest='start_from_earliest', action='store_true',
-        help='Specify to start from the earliest rather than from the latest, the default behavior. This option doesn\'t have any effect without --date-playlist-order.')
+        help='The playlist is known to be sorted in chronological order. '
+        'One of desc (most recent first), asc (least recent first), or none (no effect, the default). '
+        'Causes youtube-dl to stop downloading the playlist after encountering a video outside the specified date restrictions.')
     selection.add_option(
         '--min-views',
         metavar='COUNT', dest='min_views', default=None, type=int,
@@ -491,11 +489,11 @@ def parseOpts(overrideArguments=None):
         help=optparse.SUPPRESS_HELP)
     downloader.add_option(
         '--playlist-reverse',
-        action='store_true',
+        dest='playlist_reverse', action='store_true',
         help='Download playlist videos in reverse order')
     downloader.add_option(
         '--playlist-random',
-        action='store_true',
+        dest='playlist_random', action='store_true',
         help='Download playlist videos in random order')
     downloader.add_option(
         '--xattr-set-filesize',
