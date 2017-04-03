@@ -25,6 +25,19 @@ class SpiegeltvIE(InfoExtractor):
             'skip_download': True,
         }
     }, {
+        'url': 'http://www.spiegel.tv/filme/putins-trollfabriken/embed/?autoplay=true',
+        'info_dict': {
+            'id': 'putins-trollfabriken',
+            'ext': 'm4v',
+            'title': 'Putins Trollfabriken',
+            'description': 'Propagandakrieg in den sozialen Medien',
+            'thumbnail': r're:http://.*\.jpg$',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }, {
         'url': 'http://www.spiegel.tv/#/filme/alleskino-die-wahrheit-ueber-maenner/',
         'only_matching': True,
     }]
@@ -34,7 +47,10 @@ class SpiegeltvIE(InfoExtractor):
             url = url.replace('/#/', '/')
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<h1.*?>(.*?)</h1>', webpage, 'title')
+        if '/embed/' not in url:
+            title = self._html_search_regex(r'<h1.*?>(.*?)</h1>', webpage, 'title')
+        else:
+            title = self._html_search_regex(r'<title.*?>(.*?)(?:\s*\-\s* Embed)?</title>', webpage, 'title')
 
         apihost = 'http://spiegeltv-ivms2-restapi.s3.amazonaws.com'
         version_json = self._download_json(
