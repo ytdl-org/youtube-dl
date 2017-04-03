@@ -834,7 +834,11 @@ from .rozhlas import RozhlasIE
 from .rtbf import RTBFIE
 from .rte import RteIE, RteRadioIE
 from .rtlnl import RtlNlIE
-from .rtl2 import RTL2IE
+from .rtl2 import (
+    RTL2IE,
+    RTL2YouIE,
+    RTL2YouSeriesIE,
+)
 from .rtp import RTPIE
 from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETelevisionIE
