@@ -176,7 +176,7 @@ class OdnoklassnikiIE(InfoExtractor):
             })
             return info
 
-        quality = qualities(('mobile', 'lowest', 'low', 'sd', 'hd'))
+        quality = qualities(('mobile', 'lowest', 'low', 'sd', 'hd', 'full'))
 
         formats = [{
             'url': f['url'],
