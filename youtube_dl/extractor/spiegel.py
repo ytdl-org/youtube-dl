@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class SpiegelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/video/[^/]*-(?P<id>[0-9]+)(?:-embed|-iframe)?(?:\.html)?(?:#.*)?$'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/(?:video|sptv/spiegeltv)/[^/]*-(?P<id>[0-9]+)(?:-embed|-iframe)?(?:\.html)?(?:#.*)?$'
     _TESTS = [{
         'url': 'http://www.spiegel.de/video/vulkan-tungurahua-in-ecuador-ist-wieder-aktiv-video-1259285.html',
         'md5': '2c2754212136f35fb4b19767d242f66e',
@@ -48,6 +48,14 @@ class SpiegelIE(InfoExtractor):
             'upload_date': '20140904',
         }
     }, {
+        'url': 'http://www.spiegel.de/sptv/spiegeltv/spiegel-tv-ueber-russische-propaganda-a-1136559.html',
+        'info_dict': {
+            'id': 'putins-trollfabriken',
+            'ext': 'm4v',
+            'description': 'Propagandakrieg in den sozialen Medien',
+            'title': 'Putins Trollfabriken',
+        }
+    }, {
         'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-iframe.html',
         'only_matching': True,
     }]
@@ -55,10 +63,13 @@ class SpiegelIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage, handle = self._download_webpage_handle(url, video_id)
+        webpage_url = handle.geturl()
+        if 'spiegel.de/sptv/' in webpage_url:
+            webpage_url = self._search_regex(r'<iframe[^>]+src="([^"]+spiegel.tv/[^"]+)"[^>]+></iframe>', webpage, 'embedded iframe')
 
         # 302 to spiegel.tv, like http://www.spiegel.de/video/der-film-zum-wochenende-die-wahrheit-ueber-maenner-video-99003272.html
-        if SpiegeltvIE.suitable(handle.geturl()):
-            return self.url_result(handle.geturl(), 'Spiegeltv')
+        if SpiegeltvIE.suitable(webpage_url):
+            return self.url_result(webpage_url, 'Spiegeltv')
 
         video_data = extract_attributes(self._search_regex(r'(<div[^>]+id="spVideoElements"[^>]+>)', webpage, 'video element', default=''))
 
@@ -103,7 +114,7 @@ class SpiegelIE(InfoExtractor):
 
 
 class SpiegelArticleIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/(?!video/)[^?#]*?-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/(?!(?:video|sptv)/)[^?#]*?-(?P<id>[0-9]+)\.html'
     IE_NAME = 'Spiegel:Article'
     IE_DESC = 'Articles on spiegel.de'
     _TESTS = [{
