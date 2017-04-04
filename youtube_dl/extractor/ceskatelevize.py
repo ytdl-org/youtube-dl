@@ -92,10 +92,11 @@ class CeskaTelevizeIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        url = url.replace('/porady/', '/ivysilani/').replace('/video/', '')
-
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('id')
+        
+        url = url.replace('/porady/', '/ivysilani/', 1)
+        url = url.replace('/video/', '/obsah/', 1)
 
         webpage = self._download_webpage(url, playlist_id)
 
