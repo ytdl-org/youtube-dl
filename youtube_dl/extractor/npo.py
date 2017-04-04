@@ -479,7 +479,7 @@ class HetKlokhuisIE(NPODataMidEmbedIE):
 
 
 class NPORecentsIE(NPOIE):
-    IE_Name = 'npo:recents'
+    IE_Name = 'npo.nl:recents'
     npo12_regex = r"""<div class='span4'>\s*<div class='image-container'>\s*<a href="(.*?)">\s*(<div class="program-not-available">)?"""
     npo3_regex = r"""<div class='span4 image'>\s*<a href="(.*?)">\s*<div class="meta-container">\s*<div class="meta first">\s*<div class="md-label"><span class="npo-glyph triangle-right"></span></div>\s*<div class="md-value">.*?</div>\s*</div>\s*</div>\s*(<div class="program-not-available">)?"""
     _VALID_URL = r'(?:https?://)?(?:www\.)?npo\.nl/(?P<alt_id>[^/]+)/(?P<program_id>\w+_\d+)'
