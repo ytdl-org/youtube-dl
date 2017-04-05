@@ -1268,6 +1268,24 @@ Only post features that you (or an incapacitated friend you can personally talk 
 
 It may sound strange, but some bug reports we receive are completely unrelated to youtube-dl and relate to a different, or even the reporter's own, application. Please make sure that you are actually using youtube-dl. If you are using a UI for youtube-dl, report the bug to the maintainer of the actual application providing the UI. On the other hand, if your UI for youtube-dl fails in some way you believe is related to youtube-dl, by all means, go ahead and report the bug.
 
+# Other FLOSS video downloaders
+
+| Name | Language | Interface(s) | Comment |
+| ---- | -------- | ------------ | ------- |
+| [get_flash_videos](https://github.com/monsieurvideo/get-flash-videos) | Perl | command-line | many sites |
+| [svtplay-dl](https://github.com/spaam/svtplay-dl) | Python | command-line | several sites |
+| [quvi](http://quvi.sourceforge.net) | Lua, C, C++ | library, command-line, [graphical](http://nomnom.sourceforge.net/) | several sites |
+| [webdl](https://bitbucket.org/delx/webdl) | Python | command-line, console | Australian public TV channels |
+| [MediathekView](https://mediathekview.de/) | Java | graphical | German public TV channels |
+| [get_iplayer](https://github.com/get-iplayer/get_iplayer/) | Perl | command-line | BBC iPlayer |
+| [pafy](https://github.com/np1/pafy) | Python | library, command-line | YouTube only |
+| [WWW::YouTube::Download](https://metacpan.org/release/WWW-YouTube-Download) | Perl | library, command-line | YouTube only |
+| [node-ytdl-core](https://github.com/fent/node-ytdl-core) | node.js | library | YouTube only |
+| [TunesViewer](http://tunesviewer.sourceforge.net/) | Python | graphical | iTunesU only |
+| [nicovideo-dl](https://osdn.net/projects/nicovideo-dl/) | Python | command-line | Niconico only |
+| [WWW::NicoVideo::Download](https://metacpan.org/release/WWW-NicoVideo-Download) | Perl | library | Niconico only |
+| [encuentro](http://encuentro.taniquetil.com.ar/) | Python | graphical | Encuentro Argentinian channel only |
+
 # COPYRIGHT
 
 youtube-dl is released into the public domain by the copyright holders.
