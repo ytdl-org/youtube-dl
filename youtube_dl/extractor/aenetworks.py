@@ -107,7 +107,10 @@ class AENetworksIE(AENetworksBaseIE):
         }
         video_id = self._html_search_meta('aetn:VideoID', webpage)
         media_url = self._search_regex(
-            r"media_url\s*=\s*'([^']+)'", webpage, 'video url')
+            [r"media_url\s*=\s*'(?P<url>[^']+)'",
+             r'data-media-url=(?P<url>(?:https?:)?//[^\s>]+)',
+             r'data-media-url=(["\'])(?P<url>(?:(?!\1).)+?)\1'],
+            webpage, 'video url', group='url')
         theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
             r'https?://link.theplatform.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
         info = self._parse_theplatform_metadata(theplatform_metadata)
