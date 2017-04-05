@@ -922,9 +922,9 @@ class YoutubeDL(object):
 
             x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
-            if self.params.get('date_playlist_order') == 'desc' and self.params.get('playlist_reverse'):
+            if self.params.get('date_playlist_order') == 'desc' and self.params.get('playlistreverse'):
                 entries.reverse()
-            elif self.params.get('date_playlist_order') == 'asc' and not self.params.get('playlist_reverse'):
+            elif self.params.get('date_playlist_order') == 'asc' and not self.params.get('playlistreverse'):
                 entries.reverse()
 
             for i, entry in enumerate(entries, 1):
@@ -954,10 +954,11 @@ class YoutubeDL(object):
                                                       download=download,
                                                       extra_info=extra)
 
-                entry_result_uploaddate = entry_result.get('upload_date')
-                if entry_result_uploaddate:
-                    if self.params.get('date_playlist_order') in ('desc', 'asc') and entry_result_uploaddate not in self.params.get('daterange'):
-                        break
+                if entry_result is not None:  # backwards compatibility, lol
+                    entry_result_uploaddate = entry_result.get('upload_date')
+                    if entry_result_uploaddate:
+                        if self.params.get('date_playlist_order') in ('desc', 'asc') and entry_result_uploaddate not in self.params.get('daterange'):
+                            break
 
                 playlist_results.append(entry_result)
 

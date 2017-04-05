@@ -489,11 +489,11 @@ def parseOpts(overrideArguments=None):
         help=optparse.SUPPRESS_HELP)
     downloader.add_option(
         '--playlist-reverse',
-        dest='playlist_reverse', action='store_true',
+        action='store_true',
         help='Download playlist videos in reverse order')
     downloader.add_option(
         '--playlist-random',
-        dest='playlist_random', action='store_true',
+        action='store_true',
         help='Download playlist videos in random order')
     downloader.add_option(
         '--xattr-set-filesize',
