@@ -922,10 +922,11 @@ class YoutubeDL(object):
 
             x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
-            if self.params.get('date_playlist_order') == 'desc' and self.params.get('playlistreverse'):
+            if ((self.params.get('date_playlist_order') == 'desc' and self.params.get('playlistreverse')) or
+                    (self.params.get('date_playlist_order') == 'asc' and not self.params.get('playlistreverse'))):
                 entries.reverse()
-            elif self.params.get('date_playlist_order') == 'asc' and not self.params.get('playlistreverse'):
-                entries.reverse()
+
+            one_vid_within_range = False
 
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
@@ -954,11 +955,17 @@ class YoutubeDL(object):
                                                       download=download,
                                                       extra_info=extra)
 
-                if entry_result is not None:  # backwards compatibility, lol
+                if entry_result is not None:  # backwards compatibility
                     entry_result_uploaddate = entry_result.get('upload_date')
                     if entry_result_uploaddate:
-                        if self.params.get('date_playlist_order') in ('desc', 'asc') and entry_result_uploaddate not in self.params.get('daterange'):
-                            break
+                        if self.params.get('date_playlist_order') in ('desc', 'asc'):
+                            # we've come across at least one video within the specified daterange
+                            if (entry_result_uploaddate in self.params.get('daterange') and
+                                    one_vid_within_range == False):
+                                one_vid_within_range = True
+                            elif (entry_result_uploaddate not in self.params.get('daterange') and
+                                    one_vid_within_range == True):
+                                break
 
                 playlist_results.append(entry_result)
 
