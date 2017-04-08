@@ -152,7 +152,7 @@ def generator(test_case, tname):
             try_num = 1
             while True:
                 try:
-                    # We're not using .download here sine that is just a shim
+                    # We're not using .download here since that is just a shim
                     # for outside error handling, and returns the exit code
                     # instead of the result dict.
                     res_dict = ydl.extract_info(
