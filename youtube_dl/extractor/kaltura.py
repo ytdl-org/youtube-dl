@@ -109,6 +109,7 @@ class KalturaIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         mobj = (
+            # Embed codes: https://knowledge.kaltura.com/embedding-kaltura-media-players-your-site
             re.search(
                 r"""(?xs)
                     kWidget\.(?:thumb)?[Ee]mbed\(
@@ -130,9 +131,8 @@ class KalturaIE(InfoExtractor):
                     (?P<q3>["\'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage) or
             re.search(
-                # <iframe src="http://www.kaltura.com/p/{PARTNER_ID}/sp/{PARTNER_ID}00/embedIframeJs/uiconf_id/{UICONF_ID}/partner_id/{PARTNER_ID}?iframeembed=true&playerId={UNIQUE_OBJ_ID}&entry_id={ENTRY_ID}" width="400" height="330" allowfullscreen webkitallowfullscreen mozAllowFullScreen frameborder="0"></iframe>
                 r'''(?xs)
-                    (?P<q1>["\'])
+                    <iframe[^>]+src=(?P<q1>["\'])
                       (?:https?:)?//(?:www\.)?kaltura\.com/p/(?P<partner_id>\d+)/
                       (?:(?!(?P=q1)).)*
                       [\?&]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
