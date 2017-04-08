@@ -983,6 +983,7 @@ from .theplatform import (
 from .thescene import TheSceneIE
 from .thesixtyone import TheSixtyOneIE
 from .thestar import TheStarIE
+from .thesun import TheSunIE
 from .theweatherchannel import TheWeatherChannelIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
