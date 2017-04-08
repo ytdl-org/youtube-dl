@@ -250,7 +250,7 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
 
         description = self._get_user_description(profile)
         playlist_title = self._html_search_regex(
-            r'<span[^>]+class="[^"]*list-playlist-title[^"]*"[^>]*>(.*?)</span>',
+            r'<a class="parent active" href="[^"]*"><b>\d+</b><span title="[^"]*">([^</]*?)</span></a>',
             profile, 'playlist title')
 
         entries = OnDemandPagedList(
