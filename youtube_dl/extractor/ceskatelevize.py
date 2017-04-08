@@ -12,6 +12,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     sanitized_Request,
+    unescapeHTML,
     urlencode_postdata,
     USER_AGENTS,
 )
@@ -232,3 +233,47 @@ class CeskaTelevizeIE(InfoExtractor):
                     yield line
 
         return '\r\n'.join(_fix_subtitle(subtitles))
+
+
+class CeskaTelevizePoradyIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/porady/(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
+    _TESTS = [{
+        # video with 18+ caution trailer
+        'url': 'http://www.ceskatelevize.cz/porady/10520528904-queer/215562210900007-bogotart/',
+        'info_dict': {
+            'id': '215562210900007-bogotart',
+            'title': 'Queer: Bogotart',
+            'description': 'Alternativní průvodce současným queer světem',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': '61924494876844842',
+                'ext': 'mp4',
+                'title': 'Queer: Bogotart (Varování 18+)',
+                'duration': 10.2,
+            },
+        }, {
+            'info_dict': {
+                'id': '61924494877068022',
+                'ext': 'mp4',
+                'title': 'Queer: Bogotart (Queer)',
+                'thumbnail': r're:^https?://.*\.jpg',
+                'duration': 1558.3,
+            },
+        }],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        data_url = unescapeHTML(self._search_regex(
+            r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+            webpage, 'iframe player url', group='url'))
+
+        return self.url_result(data_url, ie=CeskaTelevizeIE.ie_key())

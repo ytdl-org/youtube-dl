@@ -165,7 +165,10 @@ from .ccc import CCCIE
 from .ccma import CCMAIE
 from .cctv import CCTVIE
 from .cda import CDAIE
-from .ceskatelevize import CeskaTelevizeIE
+from .ceskatelevize import (
+    CeskaTelevizeIE,
+    CeskaTelevizePoradyIE,
+)
 from .channel9 import Channel9IE
 from .charlierose import CharlieRoseIE
 from .chaturbate import ChaturbateIE
