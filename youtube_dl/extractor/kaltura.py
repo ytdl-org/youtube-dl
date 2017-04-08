@@ -139,6 +139,13 @@ class KalturaIE(InfoExtractor):
                 url = smuggle_url(url, {'service_url': service_url.group(1)})
             return url
 
+        # Check for an iframe, which may require redirection.
+        mobj = re.search(
+            r"<iframe[^>]+src=['\"](?P<url>(https?:)?//www\.kaltura\.com/[^'\"]+)['\"]",
+            webpage)
+        if mobj:
+            return mobj.group('url')
+
     def _kaltura_api_call(self, video_id, actions, service_url=None, *args, **kwargs):
         params = actions[0]
         if len(actions) > 1:
