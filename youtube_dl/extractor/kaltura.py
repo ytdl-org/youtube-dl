@@ -91,6 +91,7 @@ class KalturaIE(InfoExtractor):
                     }],
                 },
             },
+            'skip': 'Gone. Maybe https://www.safaribooksonline.com/library/tutorials/introduction-to-python-anon/3469/',
             'params': {
                 'skip_download': True,
             },
