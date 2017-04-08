@@ -108,34 +108,34 @@ class KalturaIE(InfoExtractor):
 
     @staticmethod
     def _extract_url(webpage):
+        # Embed codes: https://knowledge.kaltura.com/embedding-kaltura-media-players-your-site
         mobj = (
-            # Embed codes: https://knowledge.kaltura.com/embedding-kaltura-media-players-your-site
             re.search(
                 r"""(?xs)
                     kWidget\.(?:thumb)?[Ee]mbed\(
                     \{.*?
-                        (?P<q1>['\"])wid(?P=q1)\s*:\s*
-                        (?P<q2>['\"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
-                        (?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
+                        (?P<q1>['"])wid(?P=q1)\s*:\s*
+                        (?P<q2>['"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
+                        (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
+                        (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
                 """, webpage) or
             re.search(
                 r'''(?xs)
-                    (?P<q1>["\'])
+                    (?P<q1>["'])
                         (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
                         entry_?[Ii]d|
-                        (?P<q2>["\'])entry_?[Ii]d(?P=q2)
+                        (?P<q2>["'])entry_?[Ii]d(?P=q2)
                     )\s*:\s*
-                    (?P<q3>["\'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
+                    (?P<q3>["'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage) or
             re.search(
                 r'''(?xs)
-                    <iframe[^>]+src=(?P<q1>["\'])
-                      (?:https?:)?//(?:www\.)?kaltura\.com/p/(?P<partner_id>\d+)/
+                    <iframe[^>]+src=(?P<q1>["'])
+                      (?:https?:)?//(?:www\.)?kaltura\.com/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)
                       (?:(?!(?P=q1)).)*
-                      [\?&]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
+                      [?&]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
                     (?P=q1)
                 ''', webpage)
         )
