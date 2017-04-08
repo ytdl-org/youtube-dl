@@ -127,7 +127,7 @@
  - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
- - **Canvas**
+ - **Canvas**: canvas.be and een.be
  - **CarambaTV**
  - **CarambaTVPage**
  - **CartoonNetwork**
@@ -145,6 +145,7 @@
  - **CCTV**: 央视网
  - **CDA**
  - **CeskaTelevize**
+ - **CeskaTelevizePorady**
  - **channel9**: Channel 9
  - **CharlieRose**
  - **Chaturbate**
@@ -431,6 +432,7 @@
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
  - **Medialaan**
+ - **Medici**
  - **Meipai**: 美拍
  - **MelonVOD**
  - **META**
@@ -658,7 +660,9 @@
  - **rte**: Raidió Teilifís Éireann TV
  - **rte:radio**: Raidió Teilifís Éireann radio
  - **rtl.nl**: rtl.nl and rtlxl.nl
- - **RTL2**
+ - **rtl2**
+ - **rtl2:you**
+ - **rtl2:you:series**
  - **RTP**
  - **RTS**: RTS.ch
  - **rtve.es:alacarta**: RTVE a la carta
@@ -780,6 +784,7 @@
  - **TheScene**
  - **TheSixtyOne**
  - **TheStar**
+ - **TheSun**
  - **TheWeatherChannel**
  - **ThisAmericanLife**
  - **ThisAV**
@@ -893,7 +898,7 @@
  - **vidme:user**
  - **vidme:user:likes**
  - **Vidzi**
- - **vier**
+ - **vier**: vier.be and vijf.be
  - **vier:videos**
  - **ViewLift**
  - **ViewLiftEmbed**
@@ -930,9 +935,10 @@
  - **Vporn**
  - **vpro**: npo.nl and ntr.nl
  - **Vrak**
- - **VRT**
+ - **VRT**: deredactie.be, sporza.be, cobra.be and cobra.canvas.be
  - **vrv**
  - **vrv:series**
+ - **VShare**
  - **vube**: Vube.com
  - **VuClip**
  - **VVVVID**
@@ -960,7 +966,7 @@
  - **WSJ**: Wall Street Journal
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC
+ - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo
  - **XHamster**
  - **XHamsterEmbed**
  - **xiami:album**: 虾米音乐 - 专辑

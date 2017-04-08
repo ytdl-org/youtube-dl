@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.09
 
 Extractors
 + [medici] Add support for medici.tv (#3406)
