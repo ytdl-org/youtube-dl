@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class RBMARadioIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(rbmaradio|redbullradio)\.com/shows/(?P<show_id>[^/]+)/episodes/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:rbmaradio|redbullradio)\.com/shows/(?P<show_id>[^/]+)/episodes/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.rbmaradio.com/shows/main-stage/episodes/ford-lopatin-live-at-primavera-sound-2011',
         'md5': '6bc6f9bcb18994b4c983bc3bf4384d95',
