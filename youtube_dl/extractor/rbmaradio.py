@@ -13,15 +13,15 @@ from ..utils import (
 
 
 class RBMARadioIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rbmaradio\.com/shows/(?P<show_id>[^/]+)/episodes/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:rbmaradio|redbullradio)\.com/shows/(?P<show_id>[^/]+)/episodes/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.rbmaradio.com/shows/main-stage/episodes/ford-lopatin-live-at-primavera-sound-2011',
         'md5': '6bc6f9bcb18994b4c983bc3bf4384d95',
         'info_dict': {
             'id': 'ford-lopatin-live-at-primavera-sound-2011',
             'ext': 'mp3',
-            'title': 'Main Stage - Ford & Lopatin',
-            'description': 'md5:4f340fb48426423530af5a9d87bd7b91',
+            'title': 'Main Stage - Ford & Lopatin at Primavera Sound',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
             'thumbnail': r're:^https?://.*\.jpg',
             'duration': 2452,
             'timestamp': 1307103164,
