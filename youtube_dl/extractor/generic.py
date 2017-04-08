@@ -1080,6 +1080,21 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
+        {
+            # Kaltura iframe embed
+            'url': 'http://www.gsd.harvard.edu/event/i-m-pei-a-centennial-celebration/',
+            'md5': 'ae5ace8eb09dc1a35d03b579a9c2cc44',
+            'info_dict': {
+                'id': '0_f2cfbpwy',
+                'ext': 'mp4',
+                'title': 'I. M. Pei: A Centennial Celebration',
+                'description': 'md5:1db8f40c69edc46ca180ba30c567f37c',
+                'upload_date': '20170403',
+                'uploader_id': 'batchUser',
+                'timestamp': 1491232186,
+            },
+            'add_ie': ['Kaltura'],
+        },
         # Eagle.Platform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
