@@ -35,7 +35,8 @@ class WorldStarHipHopIE(InfoExtractor):
 
         video_url = self._search_regex(
             [r'so\.addVariable\("file","(.*?)"\)',
-             r'<div class="artlist">\s*<a[^>]+href="([^"]+)">'],
+             r'<div class="artlist">\s*<a[^>]+href="([^"]+)">',
+             r'<video id="video-player".*>\s*<source\s*src="(.*?)".*</video>'],
             webpage, 'video URL')
 
         if 'youtube' in video_url:
