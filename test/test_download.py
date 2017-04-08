@@ -11,7 +11,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from test.helper import (
     assertGreaterEqual,
     expect_warnings,
-    expect_value,
     get_params,
     gettestcases,
     expect_info_dict,
