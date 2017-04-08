@@ -2305,7 +2305,7 @@ class GenericIE(InfoExtractor):
         # Look for Kaltura embeds
         kaltura_url = KalturaIE._extract_url(webpage)
         if kaltura_url:
-            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}))
+            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
 
         # Look for Eagle.Platform embeds
         eagleplatform_url = EaglePlatformIE._extract_url(webpage)

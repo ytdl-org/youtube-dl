@@ -128,7 +128,17 @@ class KalturaIE(InfoExtractor):
                         (?P<q2>["\'])entry_?[Ii]d(?P=q2)
                     )\s*:\s*
                     (?P<q3>["\'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
-                ''', webpage))
+                ''', webpage) or
+            re.search(
+                # <iframe src="http://www.kaltura.com/p/{PARTNER_ID}/sp/{PARTNER_ID}00/embedIframeJs/uiconf_id/{UICONF_ID}/partner_id/{PARTNER_ID}?iframeembed=true&playerId={UNIQUE_OBJ_ID}&entry_id={ENTRY_ID}" width="400" height="330" allowfullscreen webkitallowfullscreen mozAllowFullScreen frameborder="0"></iframe>
+                r'''(?xs)
+                    (?P<q1>["\'])
+                      (?:https?:)?//(?:www\.)?kaltura\.com/p/(?P<partner_id>\d+)/
+                      (?:(?!(?P=q1)).)*
+                      [\?&]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
+                    (?P=q1)
+                ''', webpage)
+        )
         if mobj:
             embed_info = mobj.groupdict()
             url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
@@ -139,13 +149,6 @@ class KalturaIE(InfoExtractor):
             if service_url:
                 url = smuggle_url(url, {'service_url': service_url.group(1)})
             return url
-
-        # Check for an iframe, which may require redirection.
-        mobj = re.search(
-            r"<iframe[^>]+src=['\"](?P<url>(https?:)?//www\.kaltura\.com/[^'\"]+)['\"]",
-            webpage)
-        if mobj:
-            return mobj.group('url')
 
     def _kaltura_api_call(self, video_id, actions, service_url=None, *args, **kwargs):
         params = actions[0]
