@@ -97,6 +97,25 @@ class RaiBaseIE(InfoExtractor):
             'formats': formats,
         }.items() if v is not None)
 
+    @staticmethod
+    def _extract_subtitles(url, subtitle_url):
+        subtitles = {}
+        if subtitle_url and isinstance(subtitle_url, compat_str):
+            subtitle_url = urljoin(url, subtitle_url)
+            STL_EXT = '.stl'
+            SRT_EXT = '.srt'
+            subtitles['it'] = [{
+                'ext': 'stl',
+                'url': subtitle_url,
+            }]
+            if subtitle_url.endswith(STL_EXT):
+                srt_url = subtitle_url[:-len(STL_EXT)] + SRT_EXT
+                subtitles['it'].append({
+                    'ext': 'srt',
+                    'url': srt_url,
+                })
+        return subtitles
+
 
 class RaiPlayIE(RaiBaseIE):
     _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s)\.html)' % RaiBaseIE._UUID_RE
@@ -168,6 +187,8 @@ class RaiPlayIE(RaiBaseIE):
         timestamp = unified_timestamp(try_get(
             media, lambda x: x['availabilities'][0]['start'], compat_str))
 
+        subtitles = self._extract_subtitles(url, video.get('subtitles'))
+
         info = {
             'id': video_id,
             'title': title,
@@ -183,6 +204,7 @@ class RaiPlayIE(RaiBaseIE):
             'season_number': int_or_none(try_get(
                 media, lambda x: x['isPartOf']['numeroStagioni'])),
             'season': media.get('stagione') or None,
+            'subtitles': subtitles,
         }
 
         info.update(relinker_info)
@@ -307,17 +329,7 @@ class RaiIE(RaiBaseIE):
                     'url': compat_urlparse.urljoin(url, thumbnail_url),
                 })
 
-        subtitles = {}
-        captions = media.get('subtitlesUrl')
-        if captions:
-            STL_EXT = '.stl'
-            SRT_EXT = '.srt'
-            if captions.endswith(STL_EXT):
-                captions = captions[:-len(STL_EXT)] + SRT_EXT
-            subtitles['it'] = [{
-                'ext': 'srt',
-                'url': captions,
-            }]
+        subtitles = self._extract_subtitles(url, media.get('subtitlesUrl'))
 
         info = {
             'id': content_id,
