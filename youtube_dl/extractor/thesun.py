@@ -1,27 +1,32 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from .ooyala import OoyalaIE
 
 
 class TheSunIE(InfoExtractor):
-    _VALID_URL = r'https://(?:www\.)?thesun\.co\.uk/\w+/(?P<id>\d+)/[\w-]'
+    _VALID_URL = r'https://(?:www\.)?thesun\.co\.uk/[^/]+/(?P<id>\d+)'
     _TEST = {
         'url': 'https://www.thesun.co.uk/tvandshowbiz/2261604/orlando-bloom-and-katy-perry-post-adorable-instagram-video-together-celebrating-thanksgiving-after-split-rumours/',
-        'md5': '5667123b24f25f43f4c4f381ef34c5c2',
         'info_dict': {
-            'id': 'h4OXN0NzE6rv6ObkEifKcNA-gYUw4xFf',
-            'ext': 'mp4',
-            'title': 'Katy Perry and Orlando Bloom shut down split rumours with cute Thanksgiving video',
-            'description': 'Still going strong',
-            'duration': 31.28,
-        }
+            'id': '2261604',
+            'title': 'md5:cba22f48bad9218b64d5bbe0e16afddf',
+        },
+        'playlist_count': 2,
     }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        article_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
-        ooyala_id = self._search_regex(r'id\s*=\s*"thesun-ooyala-player-([^"]+)"', webpage, 'ooyala id')
+        webpage = self._download_webpage(url, article_id)
 
-        return OoyalaIE._build_url_result(ooyala_id)
+        entries = []
+        for ooyala_id in re.findall(
+                r'<[^>]+\b(?:id\s*=\s*"thesun-ooyala-player-|data-content-id\s*=\s*")([^"]+)',
+                webpage):
+            entries.append(OoyalaIE._build_url_result(ooyala_id))
+
+        return self.playlist_result(
+            entries, article_id, self._og_search_title(webpage, fatal=False))
