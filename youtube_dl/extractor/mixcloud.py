@@ -138,7 +138,7 @@ class MixcloudPlaylistBaseIE(InfoExtractor):
 
     def _get_user_description(self, page_content):
         return self._html_search_regex(
-            r'<div[^>]+class="description-text"[^>]*>(.+?)</div>',
+            r'<div[^>]+class="profile-bio"[^>]*>(.+?)</div>',
             page_content, 'user description', fatal=False)
 
 
@@ -151,7 +151,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'playlist_mincount': 11,
     }, {
@@ -159,7 +159,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'playlist_mincount': 11,
     }, {
@@ -167,7 +167,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_favorites',
             'title': 'Daniel Holbach (favorites)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'params': {
             'playlist_items': '1-100',
@@ -178,7 +178,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_listens',
             'title': 'Daniel Holbach (listens)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'params': {
             'playlist_items': '1-100',
@@ -229,12 +229,7 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
         'playlist_mincount': 16,
     }, {
         'url': 'https://www.mixcloud.com/maxvibes/playlists/jazzcat-on-ness-radio/',
-        'info_dict': {
-            'id': 'maxvibes_jazzcat-on-ness-radio',
-            'title': 'Jazzcat on Ness Radio',
-            'description': 'md5:7bbbf0d6359a0b8cda85224be0f8f263',
-        },
-        'playlist_mincount': 23
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -243,15 +238,16 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
         playlist_id = mobj.group('playlist')
         video_id = '%s_%s' % (user_id, playlist_id)
 
-        profile = self._download_webpage(
+        webpage = self._download_webpage(
             url, user_id,
             note='Downloading playlist page',
             errnote='Unable to download playlist page')
 
-        description = self._get_user_description(profile)
-        playlist_title = self._html_search_regex(
-            r'<a class="parent active" href="[^"]*"><b>\d+</b><span title="[^"]*">([^</]*?)</span></a>',
-            profile, 'playlist title')
+        title = self._html_search_regex(
+            r'<a[^>]+class="parent active"[^>]*><b>\d+</b><span[^>]*>([^<]+)',
+            webpage, 'playlist title',
+            default=None) or self._og_search_title(webpage, fatal=False)
+        description = self._get_user_description(webpage)
 
         entries = OnDemandPagedList(
             functools.partial(
@@ -259,7 +255,7 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
                 '%s/playlists/%s' % (user_id, playlist_id), video_id, 'tracklist'),
             self._PAGE_SIZE)
 
-        return self.playlist_result(entries, video_id, playlist_title, description)
+        return self.playlist_result(entries, video_id, title, description)
 
 
 class MixcloudStreamIE(MixcloudPlaylistBaseIE):
