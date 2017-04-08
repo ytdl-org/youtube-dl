@@ -97,7 +97,7 @@ class MixcloudIE(InfoExtractor):
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
              r'/listeners/?">([0-9,.]+)</a>',
-             r'm-tooltip=["\']([\d,.]+) plays'],
+             r'(?:m|data)-tooltip=["\']([\d,.]+) plays'],
             webpage, 'play count', default=None))
 
         return {
@@ -143,7 +143,7 @@ class MixcloudPlaylistBaseIE(InfoExtractor):
 
 
 class MixcloudUserIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/(?P<type>uploads|favorites|listens)?/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/(?P<type>uploads|favorites|listens)?/?$'
     IE_NAME = 'mixcloud:user'
 
     _TESTS = [{
@@ -216,7 +216,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
 
 
 class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/playlists/(?P<playlist>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/playlists/(?P<playlist>[^/]+)/?$'
     IE_NAME = 'mixcloud:playlist'
 
     _TESTS = [{
@@ -259,7 +259,7 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
 
 
 class MixcloudStreamIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<id>[^/]+)/stream/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<id>[^/]+)/stream/?$'
     IE_NAME = 'mixcloud:stream'
 
     _TEST = {
