@@ -10,6 +10,8 @@ from ..utils import (
 
 
 class VRTIE(InfoExtractor):
+    IE_NAME = 'VRT'
+    IE_DESC = 'deredactie.be, sporza.be, cobra.be, cobra.canvas.be'
     _VALID_URL = r'https?://(?:deredactie|sporza|cobra(?:\.canvas)?)\.be/cm/(?:[^/]+/)+(?P<id>[^/]+)/*'
     _TESTS = [
         # deredactie.be
