@@ -10,14 +10,14 @@ from ..utils import (
 
 
 class WSJIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://
+    _VALID_URL = r'''(?x)
         (?:
-            video-api\.wsj\.com/api-video/player/iframe\.html\?guid=|
-            (?:www\.)?wsj\.com/video/[^/]+/
+            https?://video-api\.wsj\.com/api-video/player/iframe\.html\?guid=|
+            https?://(?:www\.)?wsj\.com/video/[^/]+/|
+            wsj:
         )
         (?P<id>[a-zA-Z0-9-]+)'''
     IE_DESC = 'Wall Street Journal'
-    TEMPLATE_URL = 'https://wsj.com/video/./%s'
     _TESTS = [{
         'url': 'http://video-api.wsj.com/api-video/player/iframe.html?guid=1BD01A4C-BFE8-40A5-A42F-8A8AF9898B1A',
         'md5': 'e230a5bb249075e40793b655a54a02e4',
@@ -90,7 +90,7 @@ class WSJIE(InfoExtractor):
         }
 
 
-class WSJArticleIE(WSJIE):
+class WSJArticleIE(InfoExtractor):
     _VALID_URL = r'(?i)https?://(?:www\.)?wsj\.com/articles/(?P<id>\w[^/]+)'
     _TESTS = [{
         'url': 'https://www.wsj.com/articles/dont-like-china-no-pandas-for-you-1490366939?',
@@ -108,4 +108,4 @@ class WSJArticleIE(WSJIE):
         webpage = self._download_webpage(url, article_id)
         video_id = self._search_regex(r'data-src=["\']([A-Z0-9\-]+)',
                                       webpage, 'video id')
-        return self.url_result(self.TEMPLATE_URL % video_id, WSJIE.ie_key())
+        return self.url_result('wsj:%s' % video_id, WSJIE.ie_key(), video_id)
