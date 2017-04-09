@@ -107,6 +107,6 @@ class WSJArticleIE(WSJIE):
     def _real_extract(self, url):
         article_id = self._match_id(url)
         webpage = self._download_webpage(url, article_id)
-        video_id = self._html_search_regex(r'data-src=["\']([A-Z0-9\-]+)',
-                                           webpage, 'video id')
+        video_id = self._search_regex(r'data-src=["\']([A-Z0-9\-]+)',
+                                      webpage, 'video id')
         return self._extract_video(video_id)
