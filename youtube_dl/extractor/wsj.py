@@ -38,9 +38,7 @@ class WSJIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        return self._extract_video(video_id)
 
-    def _extract_video(self, video_id):
         api_url = (
             'http://video-api.wsj.com/api-video/find_all_videos.asp?'
             'type=guid&count=1&query=%s&fields=type,hls,videoMP4List,'
