@@ -17,6 +17,7 @@ class WSJIE(InfoExtractor):
         )
         (?P<id>[a-zA-Z0-9-]+)'''
     IE_DESC = 'Wall Street Journal'
+    TEMPLATE_URL = 'https://wsj.com/video/./%s'
     _TESTS = [{
         'url': 'http://video-api.wsj.com/api-video/player/iframe.html?guid=1BD01A4C-BFE8-40A5-A42F-8A8AF9898B1A',
         'md5': 'e230a5bb249075e40793b655a54a02e4',
@@ -109,4 +110,4 @@ class WSJArticleIE(WSJIE):
         webpage = self._download_webpage(url, article_id)
         video_id = self._search_regex(r'data-src=["\']([A-Z0-9\-]+)',
                                       webpage, 'video id')
-        return self._extract_video(video_id)
+        return self.url_result(self.TEMPLATE_URL % video_id, WSJIE.ie_key())
