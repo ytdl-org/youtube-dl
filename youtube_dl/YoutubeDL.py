@@ -922,12 +922,7 @@ class YoutubeDL(object):
 
             x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
-            if ((self.params.get('date_playlist_order') == 'desc' and self.params.get('playlistreverse')) or
-                    (self.params.get('date_playlist_order') == 'asc' and not self.params.get('playlistreverse'))):
-                entries.reverse()
-
-            one_vid_within_range = False
-
+            has_seen_withinrange_vid = False
             for i, entry in enumerate(entries, 1):
                 self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
                 # This __x_forwarded_for_ip thing is a bit ugly but requires
@@ -955,17 +950,20 @@ class YoutubeDL(object):
                                                       download=download,
                                                       extra_info=extra)
 
-                if entry_result is not None:  # backwards compatibility
-                    entry_result_uploaddate = entry_result.get('upload_date')
-                    if entry_result_uploaddate:
-                        if self.params.get('date_playlist_order') in ('desc', 'asc'):
-                            # we've come across at least one video within the specified daterange
-                            if (entry_result_uploaddate in self.params.get('daterange') and
-                                    one_vid_within_range == False):
-                                one_vid_within_range = True
-                            elif (entry_result_uploaddate not in self.params.get('daterange') and
-                                    one_vid_within_range == True):
-                                break
+                entry_result_uploaddate = date_from_str(entry_result.get('upload_date'))
+                date_playlist_order = self.params.get('date_playlist_order')
+                daterangeobj = self.params.get('daterange')
+                dateafter = daterangeobj.start
+                datebefore = daterangeobj.end
+                if entry_result and entry_result_uploaddate and date_playlist_order in ('desc', 'asc'):
+                    if not has_seen_withinrange_vid:
+                        if entry_result_uploaddate in daterangeobj:
+                            has_seen_withinrange_vid = True
+                        elif ((date_playlist_order == 'desc' and entry_result_uploaddate < dateafter) or
+                                (date_playlist_order == 'asc' and entry_result_uploaddate > datebefore)):
+                            break
+                    elif has_seen_withinrange_vid and entry_result_uploaddate not in daterangeobj:
+                        break
 
                 playlist_results.append(entry_result)
 
