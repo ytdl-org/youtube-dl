@@ -55,8 +55,8 @@ class GameStarIE(InfoExtractor):
 
         view_count = json_ld.get('interactionCount')
         comment_count = int_or_none(self._html_search_regex(
-            r'([0-9]+) Kommentare</span>', webpage, 'comment_count',
-            fatal=False))
+            r'<i class="zmdi zmdi-comment-text seperate"></i><span class="btn-text">([0-9]+)</span>',
+            webpage, 'comment_count', fatal=False))
 
         info_dict.update({
             'id': video_id,
