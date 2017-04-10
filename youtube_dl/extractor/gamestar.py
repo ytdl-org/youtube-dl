@@ -35,7 +35,7 @@ class GameStarIE(InfoExtractor):
         # while _search_json_ld finds only the first one
         json_ld = self._parse_json(self._search_regex(
             r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>[^<]+VideoObject[^<]+)</script>',
-            webpage, 'JSON-LD', group='json_ld'), video_id)
+            webpage, 'JSON-LD', group='json_ld'), video_id, strict=False)
         info_dict = self._json_ld(json_ld, video_id)
         info_dict['title'] = remove_end(info_dict['title'], ' - GameStar')
 

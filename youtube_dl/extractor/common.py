@@ -665,11 +665,11 @@ class InfoExtractor(object):
         return self._parse_json(
             json_string, video_id, transform_source=transform_source, fatal=fatal)
 
-    def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
+    def _parse_json(self, json_string, video_id, transform_source=None, fatal=True, strict=True):
         if transform_source:
             json_string = transform_source(json_string)
         try:
-            return json.loads(json_string)
+            return json.loads(json_string, strict=strict)
         except ValueError as ve:
             errmsg = '%s: Failed to parse JSON ' % video_id
             if fatal:
