@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_xpath
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
     xpath_text,
@@ -72,13 +73,54 @@ class AfreecaTVIE(InfoExtractor):
         'url': 'http://vod.afreecatv.com/PLAYER/STATION/18650793',
         'info_dict': {
             'id': '18650793',
-            'ext': 'flv',
+            'ext': 'mp4',
+            'title': '오늘은 다르다! 쏘님의 우월한 위아래~ 댄스리액션!',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': '윈아디',
             'uploader_id': 'badkids',
-            'title': '오늘은 다르다! 쏘님의 우월한 위아래~ 댄스리액션!',
+            'duration': 107,
         },
         'params': {
-            'skip_download': True,  # requires rtmpdump
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://vod.afreecatv.com/PLAYER/STATION/10481652',
+        'info_dict': {
+            'id': '10481652',
+            'title': "BJ유트루와 함께하는 '팅커벨 메이크업!'",
+            'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
+            'uploader': 'dailyapril',
+            'uploader_id': 'dailyapril',
+            'duration': 6492,
+        },
+        'playlist_count': 2,
+        'playlist': [{
+            'md5': 'd8b7c174568da61d774ef0203159bf97',
+            'info_dict': {
+                'id': '10481652_1',
+                'ext': 'mp4',
+                'title': "BJ유트루와 함께하는 '팅커벨 메이크업!' (part 1)",
+                'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
+                'uploader': 'dailyapril',
+                'uploader_id': 'dailyapril',
+                'upload_date': '20160502',
+                'duration': 3601,
+            },
+        }, {
+            'md5': '58f2ce7f6044e34439ab2d50612ab02b',
+            'info_dict': {
+                'id': '10481652_2',
+                'ext': 'mp4',
+                'title': "BJ유트루와 함께하는 '팅커벨 메이크업!' (part 2)",
+                'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
+                'uploader': 'dailyapril',
+                'uploader_id': 'dailyapril',
+                'upload_date': '20160502',
+                'duration': 2891,
+            },
+        }],
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://www.afreecatv.com/player/Player.swf?szType=szBjId=djleegoon&nStationNo=11273158&nBbsNo=13161095&nTitleNo=36327652',
@@ -94,7 +136,7 @@ class AfreecaTVIE(InfoExtractor):
         m = re.match(r'^(?P<upload_date>\d{8})_\w+_(?P<part>\d+)$', key)
         if m:
             video_key['upload_date'] = m.group('upload_date')
-            video_key['part'] = m.group('part')
+            video_key['part'] = int(m.group('part'))
         return video_key
 
     def _real_extract(self, url):
@@ -109,29 +151,85 @@ class AfreecaTVIE(InfoExtractor):
             raise ExtractorError('Specified AfreecaTV video does not exist',
                                  expected=True)
 
-        video_url_raw = video_element.text
-
-        app, playpath = video_url_raw.split('mp4:')
+        video_url = video_element.text.strip()
 
         title = xpath_text(video_xml, './track/title', 'title', fatal=True)
+
         uploader = xpath_text(video_xml, './track/nickname', 'uploader')
         uploader_id = xpath_text(video_xml, './track/bj_id', 'uploader id')
-        duration = int_or_none(xpath_text(video_xml, './track/duration',
-                                          'duration'))
+        duration = int_or_none(xpath_text(
+            video_xml, './track/duration', 'duration'))
         thumbnail = xpath_text(video_xml, './track/titleImage', 'thumbnail')
 
-        return {
+        common_entry = {
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'thumbnail': thumbnail,
+        }
+
+        info = common_entry.copy()
+        info.update({
             'id': video_id,
-            'url': app,
-            'ext': 'flv',
-            'play_path': 'mp4:' + playpath,
-            'rtmp_live': True,  # downloading won't end without this
+            'title': title,
+            'duration': duration,
+        })
+
+        if not video_url:
+            entries = []
+            for file_num, file_element in enumerate(
+                    video_element.findall(compat_xpath('./file')), start=1):
+                file_url = file_element.text
+                if not file_url:
+                    continue
+                video_key = self.parse_video_key(file_element.get('key', ''))
+                if not video_key:
+                    continue
+                file_duration = int_or_none(file_element.get('duration'))
+                part = video_key.get('part', file_num)
+                format_id = '%s_%s' % (video_id, part)
+                formats = self._extract_m3u8_formats(
+                    file_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls',
+                    note='Downloading part %d m3u8 information' % file_num)
+                file_info = common_entry.copy()
+                file_info.update({
+                    'id': format_id,
+                    'title': '%s (part %d)' % (title, part),
+                    'upload_date': video_key.get('upload_date'),
+                    'duration': file_duration,
+                    'formats': formats,
+                })
+                entries.append(file_info)
+            entries_info = info.copy()
+            entries_info.update({
+                '_type': 'multi_video',
+                'entries': entries,
+            })
+            return entries_info
+
+        info = {
+            'id': video_id,
             'title': title,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'duration': duration,
             'thumbnail': thumbnail,
         }
+
+        if determine_ext(video_url) == 'm3u8':
+            info['formats'] = self._extract_m3u8_formats(
+                video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls')
+        else:
+            app, playpath = video_url.split('mp4:')
+            info.update({
+                'url': app,
+                'ext': 'flv',
+                'play_path': 'mp4:' + playpath,
+                'rtmp_live': True,  # downloading won't end without this
+            })
+
+        return info
 
 
 class AfreecaTVGlobalIE(AfreecaTVIE):
