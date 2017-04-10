@@ -87,6 +87,7 @@ from .videopress import VideoPressIE
 from .rutube import RutubeIE
 from .limelight import LimelightBaseIE
 from .anvato import AnvatoIE
+from .washingtonpost import WashingtonPostIE
 
 
 class GenericIE(InfoExtractor):
@@ -1687,6 +1688,20 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 4,
         },
+        {
+            # WashingtonPost embed
+            'url': 'http://www.vanityfair.com/hollywood/2017/04/donald-trump-tv-pitches',
+            'info_dict': {
+                'id': '8caf6e88-d0ec-11e5-90d3-34c2c42653ac',
+                'ext': 'mp4',
+                'title': "No one has seen the drama series based on Trump's life \u2014 until now",
+                'description': 'Donald Trump wanted a weekly TV drama based on his life. It never aired. But The Washington Post recently obtained a scene from the pilot script — and enlisted actors.',
+                'timestamp': 1455216756,
+                'uploader': 'The Washington Post',
+                'upload_date': '20160211',
+            },
+            'add_ie': [WashingtonPostIE.ie_key()],
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2669,6 +2684,12 @@ class GenericIE(InfoExtractor):
         if rutube_urls:
             return self.playlist_from_matches(
                 rutube_urls, ie=RutubeIE.ie_key())
+
+        # Look for WashingtonPost embeds
+        wapo_urls = WashingtonPostIE._extract_urls(webpage)
+        if wapo_urls:
+            return self.playlist_from_matches(
+                wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
