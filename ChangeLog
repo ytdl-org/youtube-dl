@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.11
 
 Extractors
 * [afreecatv] Fix extraction (#12706)
