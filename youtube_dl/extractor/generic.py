@@ -865,13 +865,14 @@ class GenericIE(InfoExtractor):
             'url': 'http://www.newyorker.com/online/blogs/newsdesk/2014/01/always-never-nuclear-command-and-control.html',
             'info_dict': {
                 'id': 'always-never',
-                'title': 'Always / Never - The New Yorker',
+                'title': 'Always / Never',
             },
             'playlist_count': 3,
             'params': {
                 'extract_flat': False,
                 'skip_download': True,
-            }
+            },
+            'add_ie': ['BrightcoveLegacy'],
         },
         # MLB embed
         {
