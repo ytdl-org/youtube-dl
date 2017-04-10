@@ -361,7 +361,7 @@ class BBCCoUkIE(InfoExtractor):
                             fmt.update({
                                 'width': width,
                                 'height': height,
-                                'vbr': bitrate,
+                                'tbr': bitrate,
                                 'vcodec': encoding,
                             })
                         else:
