@@ -389,6 +389,8 @@ class BBCCoUkIE(InfoExtractor):
                                 'rtmp_live': False,
                                 'ext': 'flv',
                             })
+                        else:
+                            continue
                         formats.append(fmt)
             elif kind == 'captions':
                 subtitles = self.extract_subtitles(media, programme_id)
