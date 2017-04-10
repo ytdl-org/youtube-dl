@@ -16,29 +16,10 @@ class OpenloadIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
-        'md5': 'bf1c059b004ebc7a256f89408e65c36e',
-        'info_dict': {
-            'id': 'kUEfGclsU9o',
-            'ext': 'mp4',
-            'title': 'skyrim_no-audio_1080.mp4',
-            'thumbnail': r're:^https?://.*\.jpg$',
-        },
+        'only_matching': True,
     }, {
         'url': 'https://openload.co/embed/rjC09fkPLYs',
-        'info_dict': {
-            'id': 'rjC09fkPLYs',
-            'ext': 'mp4',
-            'title': 'movie.mp4',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'subtitles': {
-                'en': [{
-                    'ext': 'vtt',
-                }],
-            },
-        },
-        'params': {
-            'skip_download': True,  # test subtitles only
-        },
+        'only_matching': True,
     }, {
         'url': 'https://openload.co/embed/kUEfGclsU9o/skyrim_no-audio_1080.mp4',
         'only_matching': True,
