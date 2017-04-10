@@ -119,7 +119,7 @@ class CondeNastIE(InfoExtractor):
     def _extract_video_params(self, webpage):
         query = {}
         params = self._search_regex(
-            r'(?s)var params = {(.+?)}[;,]', webpage, 'player params', default=None)
+            r'(?s)\bparams = {(.+?)}[;,]', webpage, 'player params', default=None)
         if params:
             query.update({
                 'videoId': self._search_regex(r'videoId: [\'"](.+?)[\'"]', params, 'video id'),
