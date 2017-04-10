@@ -10,7 +10,7 @@ from ..utils import (
 
 class GameStarIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gamestar\.de/videos/.*,(?P<id>[0-9]+)\.html'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.gamestar.de/videos/trailer,3/hobbit-3-die-schlacht-der-fuenf-heere,76110.html',
         'md5': '96974ecbb7fd8d0d20fca5a00810cea7',
         'info_dict': {
@@ -22,8 +22,22 @@ class GameStarIE(InfoExtractor):
             'timestamp': 1406542020,
             'upload_date': '20140728',
             'duration': 17
-        }
-    }
+        },
+    }, {
+        # control characters in JSON-LD (description field)
+        'url': 'http://www.gamestar.de/videos/rain-world-gameplay-trailer-stellt-das-sandbox-spiel-vor,92640.html',
+        'md5': '97e530c2c4e3d0d666e039f675656071',
+        'info_dict': {
+            'id': '92640',
+            'ext': 'mp4',
+            'title': 'Rain World - Gameplay-Trailer stellt das Sandbox-Spiel vor',
+            'description': 'Der Trailer zum Sandbox-Spiel\xa0Rain World stellt anhand von Gameplay-Szenen die wichtigsten Elemente etwas genauer vor.\nDer Spieler...',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1490697540,
+            'upload_date': '20170328',
+            'duration': 72
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
