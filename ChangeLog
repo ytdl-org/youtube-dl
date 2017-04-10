@@ -1,3 +1,16 @@
+version <unreleased>
+
+Extractors
+* [afreecatv] Fix extraction (#12706)
++ [generic] Add support for <object> YouTube embeds (#12637)
+* [bbccouk] Treat bitrate as audio+video bitrate in media selector
++ [bbccouk] Skip unrecognized formats in media selector (#12701)
++ [bbccouk] Add support for https protocol in media selector (#12701)
+* [curiositystream] Fix extraction (#12638)
+* [adn] Update subtitle decryption key
+* [chaturbate] Fix extraction (#12665, #12688, #12690)
+
+
 version 2017.04.09
 
 Extractors
