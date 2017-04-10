@@ -62,18 +62,20 @@ class CondeNastIE(InfoExtractor):
     EMBED_URL = r'(?:https?:)?//player(?:-backend)?\.(?:%s)\.com/(?:embed(?:js)?|(?:script|inline)/video)/.+?' % '|'.join(_SITES.keys())
 
     _TESTS = [{
+        # Now an iframe
         'url': 'http://video.wired.com/watch/3d-printed-speakers-lit-with-led',
         'md5': '1921f713ed48aabd715691f774c451f7',
         'info_dict': {
             'id': '5171b343c2b4c00dd0c1ccb3',
             'ext': 'mp4',
             'title': '3D Printed Speakers Lit With LED',
-            'description': 'Check out these beautiful 3D printed LED speakers.  You can\'t actually buy them, but LumiGeek is working on a board that will let you make you\'re own.',
+            # 'description': 'Check out these beautiful 3D printed LED speakers.  You can\'t actually buy them, but LumiGeek is working on a board that will let you make you\'re own.',
             'uploader': 'wired',
             'upload_date': '20130314',
             'timestamp': 1363219200,
         }
     }, {
+        # older JS embed: var params = { \n videoId:
         'url': 'http://video.gq.com/watch/the-closer-with-keith-olbermann-the-only-true-surprise-trump-s-an-idiot?c=series',
         'info_dict': {
             'id': '58d1865bfd2e6126e2000015',
@@ -84,7 +86,7 @@ class CondeNastIE(InfoExtractor):
             'timestamp': 1490126427,
         },
     }, {
-        # JS embed
+        # new JS embed: var params;\n ... params = { \n videoId:
         'url': 'http://player.cnevids.com/embedjs/55f9cf8b61646d1acf00000c/5511d76261646d5566020000.js',
         'md5': 'f1a6f9cafb7083bab74a710f65d08999',
         'info_dict': {
@@ -126,15 +128,30 @@ class CondeNastIE(InfoExtractor):
                 'playerId': self._search_regex(r'playerId: [\'"](.+?)[\'"]', params, 'player id'),
                 'target': self._search_regex(r'target: [\'"](.+?)[\'"]', params, 'target'),
             })
-        else:
-            params = extract_attributes(self._search_regex(
-                r'(<[^>]+data-js="video-player"[^>]+>)',
-                webpage, 'player params element'))
+            return query
+
+        # No test for this case?
+        # xxx @remitamine in 4f427c4be860c582ca72dd4be64d45b54499232c
+        tag = self._search_regex(
+            r'(<[^>]+data-js="video-player"[^>]+>)',
+            webpage, 'player params element', default=None)
+        if tag:
+            params = extract_attributes(tag)
             query.update({
                 'videoId': params['data-video'],
                 'playerId': params['data-player'],
                 'target': params['id'],
             })
+            return query
+
+        iframe = self._search_regex(
+            r'<iframe[^>]+src="([^"]+)"', webpage, 'iframe player params')
+        query.update({
+            'videoId': self._search_regex(r'videoId=(\w+)', iframe, 'video id'),
+            'playerId': self._search_regex(r'playerId=(\w+)', iframe, 'player id'),
+            # just guessing here:
+            'target': self._search_regex(r'target=(\w+)', iframe, 'target', default=None),
+        })
         return query
 
     def _extract_video(self, params):
