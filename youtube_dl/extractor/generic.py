@@ -732,7 +732,7 @@ class GenericIE(InfoExtractor):
                 'Forbidden'
             ]
         },
-        # Condé Nast embed
+        # Condé Nast iframe embed
         {
             'url': 'http://www.wired.com/2014/04/honda-asimo/',
             'md5': 'ba0dfe966fa007657bd1443ee672db0f',
@@ -743,6 +743,20 @@ class GenericIE(InfoExtractor):
                 'upload_date': '99990101',
                 'uploader': 'wired',
                 'timestamp': 253370764800,
+            },
+            'add_ie': ['CondeNast'],
+        },
+        # Condé Nast embed <div data-url="...">
+        {
+            'url': 'http://www.vanityfair.com/hollywood/2017/04/chris-evans-gifted-movie-captain-america-video',
+            'md5': '07e1618750fa14b573c5d1bf6ff01429',
+            'info_dict': {
+                'id': '58e54e8dfd2e615252000010',
+                'ext': 'mp4',
+                'timestamp': 1491472800,
+                'uploader': 'vanityfair',
+                'title': 'Chris Evans Answers Kids’ Questions About The Universe',
+                'upload_date': '20170406',
             },
             'add_ie': ['CondeNast'],
         },
@@ -2403,7 +2417,7 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'MLB')
 
         mobj = re.search(
-            r'<(?:iframe|script)[^>]+?src=(["\'])(?P<url>%s)\1' % CondeNastIE.EMBED_URL,
+            r'<(?:iframe|script|div)[^>]+?(?:src|data-url)=(["\'])(?P<url>%s)\1' % CondeNastIE.EMBED_URL,
             webpage)
         if mobj is not None:
             return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
