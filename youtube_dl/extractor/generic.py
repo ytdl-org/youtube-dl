@@ -21,6 +21,7 @@ from ..utils import (
     HEADRequest,
     is_html,
     js_to_json,
+    KNOWN_EXTENSIONS,
     orderedSet,
     sanitized_Request,
     smuggle_url,
@@ -1881,6 +1882,14 @@ class GenericIE(InfoExtractor):
 
         video_description = self._og_search_description(webpage, default=None)
         video_thumbnail = self._og_search_thumbnail(webpage, default=None)
+
+        # Maybe the video is actually in an iframe we don't have special knowledge of.
+        # Let's look for direct links in file extensions.
+        matches = re.findall(
+            r'<iframe[^>]+?src="([^"]+\.(?:%s)(?:\?[^"]*)?)"' % '|'.join(KNOWN_EXTENSIONS),
+            webpage)
+        if matches:
+            return self.playlist_from_matches(matches, video_id, video_title)
 
         # Look for Brightcove Legacy Studio embeds
         bc_urls = BrightcoveLegacyIE._extract_brightcove_urls(webpage)
