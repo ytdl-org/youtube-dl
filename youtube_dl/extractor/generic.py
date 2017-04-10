@@ -740,7 +740,11 @@ class GenericIE(InfoExtractor):
                 'id': '53501be369702d3275860000',
                 'ext': 'mp4',
                 'title': 'Honda’s  New Asimo Robot Is More Human Than Ever',
-            }
+                'upload_date': '99990101',
+                'uploader': 'wired',
+                'timestamp': 253370764800,
+            },
+            'add_ie': ['CondeNast'],
         },
         # Dailymotion embed
         {
