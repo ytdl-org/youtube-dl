@@ -370,7 +370,7 @@ class BBCCoUkIE(InfoExtractor):
                                 'acodec': encoding,
                                 'vcodec': 'none',
                             })
-                        if protocol == 'http':
+                        if protocol in ('http', 'https'):
                             # Direct link
                             fmt.update({
                                 'url': href,
