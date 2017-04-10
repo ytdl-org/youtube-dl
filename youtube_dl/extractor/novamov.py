@@ -107,12 +107,12 @@ class WholeCloudIE(NovaMovIE):
     _DESCRIPTION_REGEX = r'<strong>Description:</strong> ([^<]+)</p>'
 
     _TESTS = [{
-        'url': u'http://www.wholecloud.net/video/e1de95371c94a',
+        'url': 'http://www.wholecloud.net/video/e1de95371c94a',
         'info_dict': {
-            'id': u'e1de95371c94a',
+            'id': 'e1de95371c94a',
             'ext': 'mp4',
-            'title': u'Big Buck Bunny UHD 4K 60fps',
-            'description': u'No description',
+            'title': 'Big Buck Bunny UHD 4K 60fps',
+            'description': 'No description',
         },
         'md5': '909304eb0b75ef231ceb72d84fade33d',
     }, {
@@ -134,12 +134,12 @@ class NowVideoIE(NovaMovIE):
     _DESCRIPTION_REGEX = r'</h4>\s*<p>([^<]+)</p>'
 
     _TESTS = [{
-        'url': u'http://www.nowvideo.sx/video/461ebb17e1a83',
+        'url': 'http://www.nowvideo.sx/video/461ebb17e1a83',
         'info_dict': {
-            'id': u'461ebb17e1a83',
+            'id': '461ebb17e1a83',
             'ext': 'mp4',
-            'title': u'Big Buck Bunny UHD 4K 60fps',
-            'description': u'No description',
+            'title': 'Big Buck Bunny UHD 4K 60fps',
+            'description': 'No description',
         },
         'md5': '909304eb0b75ef231ceb72d84fade33d',
     }, {
@@ -162,11 +162,11 @@ class BitVidIE(NovaMovIE):
     _URL_TEMPLATE = 'http://%s/file/%s'
 
     _TESTS = [{
-        'url': u'http://www.bitvid.sx/file/bceedaa7b969c',
+        'url': 'http://www.bitvid.sx/file/bceedaa7b969c',
         'info_dict': {
-            'id': u'bceedaa7b969c',
+            'id': 'bceedaa7b969c',
             'ext': 'mp4',
-            'title': u'Big Buck Bunny UHD 4K 60fps'
+            'title': 'Big Buck Bunny UHD 4K 60fps'
         },
         'md5': '909304eb0b75ef231ceb72d84fade33d',
     }, {
@@ -186,11 +186,11 @@ class CloudTimeIE(NovaMovIE):
     _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
 
     _TESTS = [{
-        'url': u'http://www.cloudtime.to/video/ef47760a7793d',
+        'url': 'http://www.cloudtime.to/video/ef47760a7793d',
         'info_dict': {
-            'id': u'ef47760a7793d',
+            'id': 'ef47760a7793d',
             'ext': 'mp4',
-            'title': u'Big Buck Bunny UHD 4K 60fps'
+            'title': 'Big Buck Bunny UHD 4K 60fps'
         },
         'md5': '909304eb0b75ef231ceb72d84fade33d',
     }, {
@@ -210,11 +210,11 @@ class AuroraVidIE(NovaMovIE):
     _FILE_DELETED_REGEX = r'This file no longer exists on our servers!<'
 
     _TESTS = [{
-        'url': u'http://www.auroravid.to/video/27851f1e57c95',
+        'url': 'http://www.auroravid.to/video/27851f1e57c95',
         'info_dict': {
-            'id': u'27851f1e57c95',
+            'id': '27851f1e57c95',
             'ext': 'mp4',
-            'title': u'Big Buck Bunny UHD 4K 60fps',
+            'title': 'Big Buck Bunny UHD 4K 60fps',
         },
         'md5': '909304eb0b75ef231ceb72d84fade33d',
     }, {
