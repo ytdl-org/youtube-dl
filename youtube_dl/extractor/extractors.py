@@ -246,6 +246,10 @@ from .daum import (
 )
 from .dbtv import DBTVIE
 from .dctp import DctpTvIE
+from .decko import (
+    DeckoVideoIE,
+    DeckoPlaylistIE
+)
 from .deezer import DeezerPlaylistIE
 from .democracynow import DemocracynowIE
 from .dfb import DFBIE
