@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 import re
-import logging
+
 from .common import InfoExtractor
 
 
@@ -27,33 +27,33 @@ class PuhuTvIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('display_id')
 
-        video_data = self._download_json('https://puhutv.com/api/slug/' + str(display_id), display_id)['data']
-        video_id = str(video_data['id'])
-        video_title_name = video_data['title']['name']
-        video_title_display_name = video_data['display_name']
+        video_data = self._download_json('https://puhutv.com/api/slug/' + str(display_id), display_id).get('data')
+        video_id = str(video_data.get('id'))
+        video_title_name = video_data.get('title').get('name')
+        video_title_display_name = video_data.get('display_name')
         video_title = video_title_name + ' ' + video_title_display_name
 
-        dl_data = self._download_json('https://puhutv.com/api/assets/'+video_id+'/videos', video_id)['data']
+        dl_data = self._download_json('https://puhutv.com/api/assets/' + video_id + '/videos', video_id).get('data')
 
         formats = []
         mp_fmts = []
-        for dl in dl_data['videos']:
-            if (dl['url'].__contains__('playlist.m3u8')):
-                formats.extend(self._extract_m3u8_formats(dl['url'], str(dl['id']), 'mp4'))
-            elif (dl['url'].__contains__('/mp4/')):
-                fmt = str(re.match(self._URL_FORMAT, dl['url']).group('vid_format'))
+        for dl in dl_data.get('videos'):
+            if (dl.get('url').__contains__('playlist.m3u8')):
+                formats.extend(self._extract_m3u8_formats(dl.get('url'), str(dl.get('id')), 'mp4'))
+            elif (dl.get('url').__contains__('/mp4/')):
+                fmt = str(re.match(self._URL_FORMAT, dl.get('url')).group('vid_format'))
                 mp_fmts.append({
-                    'url': dl['url'],
+                    'url': dl.get('url'),
                     'format_id': 'mp4-' + fmt,
                     'height': fmt
                 })
-        mp_fmts.sort(key=lambda x: int(x['height'].replace('p','')))
+        mp_fmts.sort(key=lambda x: int(x.get('height').replace('p', '')))
         formats.extend(mp_fmts)
 
         # extract video metadata
-        thumbnail = 'https://' + video_data['content']['images']['wide']['main']
-        description = video_data['description']
-        upload_date = video_data['created_at'].split('T')[0].replace('-','')
+        thumbnail = 'https://' + video_data.get('content').get('images').get('wide').get('main')
+        description = video_data.get('description')
+        upload_date = video_data.get('created_at').split('T')[0].replace('-', '')
 
         return {
             'id': display_id,
