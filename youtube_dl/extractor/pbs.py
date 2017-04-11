@@ -177,6 +177,7 @@ class PBSIE(InfoExtractor):
         (r'video\.wtjx\.org', 'WTJX Channel 12 (WTJX)'),  # http://www.wtjx.org/
         (r'video\.ideastations\.org', 'WCVE PBS (WCVE)'),  # http://ideastations.org/
         (r'video\.kbtc\.org', 'KBTC Public Television (KBTC)'),  # http://kbtc.org
+        (r'video\.pbshawaii\.org', 'PBS Hawai‘i'),  # http://pbshawaii.org
     )
 
     IE_NAME = 'pbs'
