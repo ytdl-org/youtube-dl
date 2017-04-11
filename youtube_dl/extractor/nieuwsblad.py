@@ -10,6 +10,7 @@ from ..utils import (
 
 
 class NieuwsbladIE(InfoExtractor):
+    """ Extractor for www.nieuwsblad.be """
     _VALID_URL = r'https?://(?:www\.)?nieuwsblad\.be/.+?/dmf([0-9]+?)_(?P<id>[0-9]+)'
     _TESTS = [
         # Source: VMMA
@@ -37,10 +38,10 @@ class NieuwsbladIE(InfoExtractor):
         # Source: Mediahuis (using kaltura)
         {
             'url': 'http://www.nieuwsblad.be/cnt/dmf20151225_02037264',
-            'md5': 'a9580438899f6355550fe1d44d4cddb9',
+            'md5': 'd4decdc7f105c26767b928c54c7d5184',
             'info_dict': {
                 'id': '1_z4jndqki',
-                'ext': 'mp4',
+                'ext': 'mov',
                 'title': 'autobrand Peer',
                 'thumbnail': 're:^https?://.*/thumbnail/.*',
                 'timestamp': int,
@@ -51,6 +52,7 @@ class NieuwsbladIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
+        """ Extract the video info from the given 'nieuwsblad' URL """
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
@@ -79,12 +81,13 @@ class NieuwsbladIE(InfoExtractor):
         }
 
     def _extract_kaltura(self, url, web_page):
-        kaltura_id = self._search_regex(r'\'entry_id\': \'(.+?)\'', web_page, 'kaltura_id')
-        kaltura_wid = self._search_regex(r'\'wid\': \'(.+?)\'', web_page, 'kaltura_wid')
-        kaltura_uiconf_id = self._search_regex(r'\'uiconf_id\': \'(.+?)\'', web_page, 'kaltura_uiconf_id')
+        """ Delegate the video extraction to 'Kaltura' extractor """
+        kaltura_id = self._search_regex(r'entry_id\s*:\s*\"(.+?)\"', web_page, 'kaltura_id')
+        kaltura_wid = self._search_regex(r'wid\s*\:\s*\"(.+?)\"', web_page, 'kaltura_wid')
+        kaltura_uiconf_id = self._search_regex(r'uiconf_id\s*:\s*\"(.+?)\"', web_page, 'kaltura_uiconf_id')
         kaltura_url = (
-            'https://cdnapisec.kaltura.com/index.php/kwidget/wid/%s/uiconf_id/%s/entry_id/%s' %
-            (kaltura_wid, kaltura_uiconf_id, kaltura_id)
+            'https://cdnapisec.kaltura.com/index.php/kwidget/wid/{0}/uiconf_id/{1}/entry_id/{2}'
+                .format(kaltura_wid, kaltura_uiconf_id, kaltura_id)
         )
         url_with_source = smuggle_url(kaltura_url, {'source_url': url})
         return self.url_result(url_with_source, 'Kaltura')
