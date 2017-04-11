@@ -785,6 +785,7 @@ from .presstv import PressTVIE
 from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
+from .puhutv import PuhuTvIE
 from .puls4 import Puls4IE
 from .pyvideo import PyvideoIE
 from .qqmusic import (
