@@ -168,6 +168,7 @@ from .cda import CDAIE
 from .ceskatelevize import (
     CeskaTelevizeIE,
     CeskaTelevizePoradyIE,
+    CeskaTelevizeDeckoIE
 )
 from .channel9 import Channel9IE
 from .charlierose import CharlieRoseIE
