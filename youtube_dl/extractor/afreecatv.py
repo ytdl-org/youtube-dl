@@ -97,7 +97,7 @@ class AfreecaTVIE(InfoExtractor):
         'playlist': [{
             'md5': 'd8b7c174568da61d774ef0203159bf97',
             'info_dict': {
-                'id': '10481652_1',
+                'id': '20160502_c4c62b9d_174361386_1',
                 'ext': 'mp4',
                 'title': "BJ유트루와 함께하는 '팅커벨 메이크업!' (part 1)",
                 'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
@@ -109,7 +109,7 @@ class AfreecaTVIE(InfoExtractor):
         }, {
             'md5': '58f2ce7f6044e34439ab2d50612ab02b',
             'info_dict': {
-                'id': '10481652_2',
+                'id': '20160502_39e739bb_174361386_2',
                 'ext': 'mp4',
                 'title': "BJ유트루와 함께하는 '팅커벨 메이크업!' (part 2)",
                 'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
@@ -119,6 +119,22 @@ class AfreecaTVIE(InfoExtractor):
                 'duration': 2891,
             },
         }],
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # non standard key
+        'url': 'http://vod.afreecatv.com/PLAYER/STATION/20515605',
+        'info_dict': {
+            'id': '20170411_BE689A0E_190960999_1_2_h',
+            'ext': 'mp4',
+            'title': '혼자사는여자집',
+            'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
+            'uploader': '♥이슬이',
+            'uploader_id': 'dasl8121',
+            'upload_date': '20170411',
+            'duration': 213,
+        },
         'params': {
             'skip_download': True,
         },
@@ -176,26 +192,27 @@ class AfreecaTVIE(InfoExtractor):
 
         if not video_url:
             entries = []
-            for file_num, file_element in enumerate(
-                    video_element.findall(compat_xpath('./file')), start=1):
+            file_elements = video_element.findall(compat_xpath('./file'))
+            one = len(file_elements) == 1
+            for file_num, file_element in enumerate(file_elements, start=1):
                 file_url = file_element.text
                 if not file_url:
                     continue
-                video_key = self.parse_video_key(file_element.get('key', ''))
-                if not video_key:
-                    continue
+                key = file_element.get('key', '')
+                upload_date = self._search_regex(
+                    r'^(\d{8})_', key, 'upload date', default=None)
                 file_duration = int_or_none(file_element.get('duration'))
-                part = video_key.get('part', file_num)
-                format_id = '%s_%s' % (video_id, part)
+                format_id = key if key else '%s_%s' % (video_id, file_num)
                 formats = self._extract_m3u8_formats(
                     file_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id='hls',
                     note='Downloading part %d m3u8 information' % file_num)
+                title = title if one else '%s (part %d)' % (title, file_num)
                 file_info = common_entry.copy()
                 file_info.update({
                     'id': format_id,
-                    'title': '%s (part %d)' % (title, part),
-                    'upload_date': video_key.get('upload_date'),
+                    'title': title,
+                    'upload_date': upload_date,
                     'duration': file_duration,
                     'formats': formats,
                 })
