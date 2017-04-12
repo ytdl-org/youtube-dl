@@ -865,6 +865,7 @@ from .radiocanada import (
     RadioCanadaIE,
     RadioCanadaAudioVideoIE,
 )
+from .radiocloud import RadioCloudIE
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
