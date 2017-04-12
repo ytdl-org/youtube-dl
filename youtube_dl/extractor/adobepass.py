@@ -41,6 +41,11 @@ MSO_INFO = {
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
     },
+    'Verizon': {
+        'name': 'Verizon FiOS',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
@@ -1415,6 +1420,72 @@ class AdobePassIE(InfoExtractor):
                         mvpd_confirm_page, urlh = mvpd_confirm_page_res
                         if '<button class="submit" value="Resume">Resume</button>' in mvpd_confirm_page:
                             post_form(mvpd_confirm_page_res, 'Confirming Login')
+
+                elif mso_id == 'Verizon':
+                    # In general, if you're connecting from a Verizon-assigned IP,
+                    # you will not actually pass your credentials.
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    # print('provider_redirect_page_url', urlh.geturl())
+                    # https://signin.verizon.com/sso/VOLPortalLogin?SAMLRequest=<snip>
+                    if 'Please wait ...' in provider_redirect_page:
+                        # print('[debug] SAML Auto-Login is TRUE') # GO,
+                        saml_redirect_url = self._html_search_regex(
+                            r'self\.parent\.location=(["\'])(?P<url>.+?)\1',
+                            provider_redirect_page, 'Extracting SAML Redirect URL', group='url'
+                        )
+                        # print('saml_redirect_url', saml_redirect_url)
+                        # https://signin.verizon.com/sso/choice/tvpHandler.jsp?loginType=vzRedirect&partner=<snip>
+                        saml_login_page = self._download_webpage(
+                            saml_redirect_url, video_id, 'Downloading SAML Login Page'
+                        )
+                    else:
+                        if 'Please try again.' in provider_redirect_page:
+                            # print('[debug] SAML Auto-Login is FALSE') # NBC,
+                            provider_login_page_res = provider_redirect_page_res
+                        else:
+                            print('[error] SAML Auto-Login is UNKNOWN')
+                            import sys
+                            sys.exit(1)
+                        provider_login_page, urlh = provider_login_page_res
+                        # print('provider_login_page_url', urlh.geturl())
+                        # https://signin.verizon.com/sso/VOLPortalLogin?SAMLRequest=<snip>
+                        saml_login_page_res = post_form(provider_login_page_res, 'Logging in', {
+                            mso_info.get('username_field', 'username'): username,
+                            mso_info.get('password_field', 'password'): password,
+                        })
+                        saml_login_page, urlh = saml_login_page_res
+                        if 'Please try again.' in saml_login_page:
+                            print("[error] We're sorry, but either the User ID or Password entered is not correct.")
+                            import sys
+                            sys.exit(1)
+                        # elif 'Please wait - we are verifying your account...' in saml_login_page:
+                        # print('saml_login_page_url', urlh.geturl())
+                        # https://signin.verizon.com/sso/choice/tvpHandler.jsp?loginType=vzRedirect&partner=<snip>
+                    saml_login_url = self._html_search_regex(
+                        r'xmlHttp\.open\(\"POST\",\s(["\'])(?P<url>.+?)\1',
+                        saml_login_page, 'Extracting SAML Login URL', group='url')
+                    # print('saml_login_url', saml_login_url)
+                    # https://signin.verizon.com/sso/TVPHandlerServlet?loginType=vzRedirect&partner=<snip>
+                    saml_response_json = self._download_json(
+                        saml_login_url, video_id, 'Downloading SAML Response',
+                        headers={'Content-Type': 'text/xml'}
+                    )
+                    saml_target_url = saml_response_json['targetValue']
+                    saml_response = saml_response_json['SAMLResponse']
+                    saml_relay_state = saml_response_json['RelayState']
+                    # print('saml_target_url', saml_target_url)
+                    # https://sp.auth.adobe.com/sp/saml/SAMLAssertionConsumer
+                    form_data = {
+                        'SAMLResponse': saml_response,
+                        'RelayState': saml_relay_state
+                    }
+                    saml_autologin_res = self._download_webpage_handle(
+                        saml_target_url, video_id,
+                        'Auto-Login', data=urlencode_postdata(form_data),
+                        headers={'Content-Type': 'application/x-www-form-urlencoded'}
+                    )
+                    original_page, urlh = saml_autologin_res
+                    # print('original_page_url', urlh.geturl())
 
                 else:
                     # Normal, non-Comcast flow
