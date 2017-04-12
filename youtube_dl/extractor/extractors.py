@@ -1031,6 +1031,7 @@ from .tv2 import (
     TV2IE,
     TV2ArticleIE,
 )
+from .tv2hu import TV2HUIE
 from .tv3 import TV3IE
 from .tv4 import TV4IE
 from .tv5mondeplus import TV5MondePlusIE
