@@ -5,12 +5,19 @@ import re
 import itertools
 
 from .common import InfoExtractor
+from ..utils import (
+    unsmuggle_url
+)
 
 
 class VierIE(InfoExtractor):
     IE_NAME = 'vier'
     IE_DESC = 'vier.be and vijf.be'
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/(?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))?|video/v3/embed/(?P<embed_id>\d+))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/(' \
+                 r'?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))' \
+                 r'?|video/partner/embed/v2/(?P<partner_embed_id>\d+)/' \
+                 r'?|video/v3/embed/(?P<embed_id>\d+)' \
+                 r')'
     _TESTS = [{
         'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
         'info_dict': {
@@ -30,7 +37,7 @@ class VierIE(InfoExtractor):
             'id': '2561614',
             'display_id': 'zo-grappig-temptation-island-hosts-moeten-kiezen-tussen-onmogelijke-dilemmas',
             'ext': 'mp4',
-            'title': 'ZO grappig: Temptation Island hosts moeten kiezen tussen onmogelijke dilemma\'s',
+            'title': 'EXTRA: Temptation Island hosts moeten kiezen tussen onmogelijke dilemma\'s',
             'description': 'Het spel is simpel: Annelien Coorevits en Rick Brandsteder krijgen telkens 2 dilemma\'s voorgeschoteld en ze MOETEN een keuze maken.',
         },
         'params': {
@@ -43,11 +50,15 @@ class VierIE(InfoExtractor):
     }, {
         'url': 'http://www.vier.be/video/v3/embed/16129',
         'only_matching': True,
+    }, {
+        'url': 'http://www.vier.be/video/partner/embed/v2/2658547/4b5a8c17b5358cb1d1b48e57966721bbef6df328/srnieuwsblad/asmh',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         mobj = re.match(self._VALID_URL, url)
-        embed_id = mobj.group('embed_id')
+        embed_id = mobj.group('embed_id') or mobj.group('partner_embed_id')
         display_id = mobj.group('display_id') or embed_id
         site = mobj.group('site')
 
@@ -66,6 +77,11 @@ class VierIE(InfoExtractor):
         playlist_url = 'http://vod.streamcloud.be/%s/_definst_/mp4:%s.mp4/playlist.m3u8' % (application, filename)
         formats = self._extract_wowza_formats(playlist_url, display_id, skip_protocols=['dash'])
         self._sort_formats(formats)
+
+        video_id = smuggled_data.get('video_id') or video_id
+        source_url = smuggled_data.get('source_url')
+        if source_url:
+            webpage = self._download_webpage(source_url, display_id)
 
         title = self._og_search_title(webpage, default=display_id)
         description = self._og_search_description(webpage, default=None)

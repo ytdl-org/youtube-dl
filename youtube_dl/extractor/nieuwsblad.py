@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .kaltura import KalturaIE
 from ..utils import (
     smuggle_url
 )
@@ -21,6 +22,8 @@ class NieuwsbladIE(InfoExtractor):
                 'id': '02036890',
                 'ext': 'mp4',
                 'title': 'Krijgt zieke Pauline (3) het mooiste kerstcadeau?',
+                'description': 'Er is misschien toch goed nieuws voor de zieke Pauline (3). Het Riziv buigt zich'
+                               ' namelijk over de vraag om de peperdure behandeling van 15.000 euro terug t...',
                 'thumbnail': 're:http.*jpg$',
             }
         },
@@ -32,6 +35,8 @@ class NieuwsbladIE(InfoExtractor):
                 'id': '01986463',
                 'ext': 'mp4',
                 'title': 'Angst voor terreur: fotograaf toont hoe hij de werkelijkheid kan manipuleren',
+                'description': 'De metro rijdt niet, de scholen en crèches zijn dicht, vele winkels zijn gesloten. '
+                               'Fotograaf Jimmy Kets brengt Brussel vandaag in beeld. Maar hij toont ook...',
                 'thumbnail': 're:http.*jpg$',
             }
         },
@@ -49,6 +54,19 @@ class NieuwsbladIE(InfoExtractor):
                 'uploader_id': 'dcc-video-manager-hbvl@mediahuis.be'
             }
         },
+        # Source: Vier.be
+        {
+            'url': 'http://www.nieuwsblad.be/cnt/dmf20170411_02829396',
+            'md5': '35cb487bfd8c61fe38c9838420fd0de6',
+            'info_dict': {
+                'id': '02829396',
+                'ext': 'mp4',
+                'title': 'Dit is het nieuwste speeltje van Michel Van den Brande',
+                'description': 'In de jongste aflevering van \'The Sky is the Limit\' pronkt Michel Van den Brande'
+                               ' met zijn nieuwste speeltje: een glanzende BMW. Een van zijn medewerkers ma...',
+                'thumbnail': 're:^https?://.*\.png$',
+            }
+        },
     ]
 
     def _real_extract(self, url):
@@ -58,10 +76,19 @@ class NieuwsbladIE(InfoExtractor):
 
         iframe_m = re.search(r'<script[^>]+src="(.+?kaltura.com.*?)"', webpage)
         if iframe_m:
-            return self._extract_kaltura(url, webpage)
+            kaltura_url = KalturaIE._extract_url(webpage)
+            url_with_source = smuggle_url(kaltura_url, {'source_url': url})
+            return self.url_result(url_with_source, 'Kaltura')
+
+        iframe_m = re.search(r'<iframe[^>]+src="(.+?vier.be.*?)"', webpage)
+        if iframe_m:
+            vier_url = iframe_m.group(1)
+            url_with_source = smuggle_url(vier_url, {'source_url': url, 'video_id': video_id})
+            return self.url_result(url_with_source, 'Vier')
 
         thumbnail = self._og_search_thumbnail(webpage)
         title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
 
         iframe_m = re.search(r'<iframe[^>]+src="(.+?vrt.be.*?)"', webpage)
         if iframe_m:
@@ -77,17 +104,6 @@ class NieuwsbladIE(InfoExtractor):
             'url': video_url,
             'id': video_id,
             'title': title,
+            'description': description,
             'thumbnail': thumbnail
         }
-
-    def _extract_kaltura(self, url, web_page):
-        """ Delegate the video extraction to 'Kaltura' extractor """
-        kaltura_id = self._search_regex(r'entry_id\s*:\s*\"(.+?)\"', web_page, 'kaltura_id')
-        kaltura_wid = self._search_regex(r'wid\s*\:\s*\"(.+?)\"', web_page, 'kaltura_wid')
-        kaltura_uiconf_id = self._search_regex(r'uiconf_id\s*:\s*\"(.+?)\"', web_page, 'kaltura_uiconf_id')
-        kaltura_url = (
-            'https://cdnapisec.kaltura.com/index.php/kwidget/wid/{0}/uiconf_id/{1}/entry_id/{2}'
-                .format(kaltura_wid, kaltura_uiconf_id, kaltura_id)
-        )
-        url_with_source = smuggle_url(kaltura_url, {'source_url': url})
-        return self.url_result(url_with_source, 'Kaltura')
