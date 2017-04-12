@@ -185,18 +185,7 @@ class CloudTimeIE(NovaMovIE):
 
     _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
 
-    _TESTS = [{
-        'url': 'http://www.cloudtime.to/video/ef47760a7793d',
-        'info_dict': {
-            'id': 'ef47760a7793d',
-            'ext': 'mp4',
-            'title': 'Big Buck Bunny UHD 4K 60fps'
-        },
-        'md5': '909304eb0b75ef231ceb72d84fade33d',
-    }, {
-        'url': 'http://www.cloudtime.to/video/ef47760a7793d',
-        'only_matching': True,
-    }]
+    _TEST = None
 
 
 class AuroraVidIE(NovaMovIE):
