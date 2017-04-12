@@ -2611,7 +2611,7 @@ class GenericIE(InfoExtractor):
                 return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
-            return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml', 'js')
+            return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml', 'js', 'xml')
 
         def filter_video(urls):
             return list(filter(check_video, urls))
