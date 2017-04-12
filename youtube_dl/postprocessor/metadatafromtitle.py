@@ -26,7 +26,7 @@ class MetadataFromTitlePP(PostProcessor):
             regex += r'(?P<' + match.group(1) + '>.+)'
             lastpos = match.end()
         if lastpos < len(fmt):
-            regex += re.escape(fmt[lastpos:len(fmt)])
+            regex += re.escape(fmt[lastpos:])
         return regex
 
     def run(self, info):

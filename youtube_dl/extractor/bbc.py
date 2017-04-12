@@ -409,7 +409,7 @@ class BBCCoUkIE(InfoExtractor):
                 description = smp_config['summary']
                 for item in smp_config['items']:
                     kind = item['kind']
-                    if kind != 'programme' and kind != 'radioProgramme':
+                    if kind not in ('programme', 'radioProgramme'):
                         continue
                     programme_id = item.get('vpid')
                     duration = int_or_none(item.get('duration'))
@@ -450,7 +450,7 @@ class BBCCoUkIE(InfoExtractor):
 
         for item in self._extract_items(playlist):
             kind = item.get('kind')
-            if kind != 'programme' and kind != 'radioProgramme':
+            if kind not in ('programme', 'radioProgramme'):
                 continue
             title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
             description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)

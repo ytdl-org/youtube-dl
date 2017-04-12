@@ -855,7 +855,7 @@ class YoutubeDL(object):
 
             return self.process_ie_result(
                 new_result, download=download, extra_info=extra_info)
-        elif result_type == 'playlist' or result_type == 'multi_video':
+        elif result_type in ('playlist', 'multi_video'):
             # We process each entry in the playlist
             playlist = ie_result.get('title') or ie_result.get('id')
             self.to_screen('[download] Downloading playlist: %s' % playlist)

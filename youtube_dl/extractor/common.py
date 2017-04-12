@@ -1779,7 +1779,7 @@ class InfoExtractor(object):
                     if content_type == 'text':
                         # TODO implement WebVTT downloading
                         pass
-                    elif content_type == 'video' or content_type == 'audio':
+                    elif content_type in ('video', 'audio'):
                         base_url = ''
                         for element in (representation, adaptation_set, period, mpd_doc):
                             base_url_e = element.find(_add_ns('BaseURL'))

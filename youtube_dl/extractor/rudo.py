@@ -26,7 +26,7 @@ class RudoIE(InfoExtractor):
     }
 
     @classmethod
-    def _extract_url(self, webpage):
+    def _extract_url(cls, webpage):
         mobj = re.search(
             r'<iframe[^>]+src=(?P<q1>[\'"])(?P<url>(?:https?:)?//rudo\.video/vod/[0-9a-zA-Z]+)(?P=q1)',
             webpage)

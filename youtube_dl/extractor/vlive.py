@@ -70,9 +70,9 @@ class VLiveIE(InfoExtractor):
         status, long_video_id, key = params[2], params[5], params[6]
         status = remove_start(status, 'PRODUCT_')
 
-        if status == 'LIVE_ON_AIR' or status == 'BIG_EVENT_ON_AIR':
+        if status in ('LIVE_ON_AIR', 'BIG_EVENT_ON_AIR'):
             return self._live(video_id, webpage)
-        elif status == 'VOD_ON_AIR' or status == 'BIG_EVENT_INTRO':
+        elif status in ('VOD_ON_AIR', 'BIG_EVENT_INTRO'):
             if long_video_id and key:
                 return self._replay(video_id, webpage, long_video_id, key)
             else:
