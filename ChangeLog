@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.14
 
 Core
 + [downloader/hls] Add basic support for EXT-X-BYTERANGE tag (#10955)

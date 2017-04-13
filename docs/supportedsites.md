@@ -308,6 +308,7 @@
  - **Globo**
  - **GloboArticle**
  - **Go**
+ - **Go90**
  - **GodTube**
  - **GodTV**
  - **Golem**
@@ -818,6 +819,7 @@
  - **Tutv**
  - **tv.dfb.de**
  - **TV2**
+ - **tv2.hu**
  - **TV2Article**
  - **TV3**
  - **TV4**: tv4.se and tv4play.se
