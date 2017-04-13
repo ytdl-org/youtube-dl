@@ -13,7 +13,7 @@ class StreamangoIE(InfoExtractor):
             'id': 'clapasobsptpkdfe',
             'ext': 'mp4',
             'title': '20170315_150006.mp4',
-            'url': r're:https://streamango\.com/v/d/clapasobsptpkdfe~[0-9]{10}~185\.61\.0\.0~.{8}/720',
+            'url': r're:https://streamango\.com/v/d/clapasobsptpkdfe~[0-9]{10}~(?:[0-9]+\.){3}[0-9]+~.{8}/720',
         }
     }, {
         'url': 'https://streamango.com/embed/clapasobsptpkdfe/20170315_150006_mp4',
@@ -21,18 +21,34 @@ class StreamangoIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        def extract_url(urltype):
+            return self._search_regex(
+                r'type\s*:\s*["\']{}["\']\s*,\s*src\s*:\s*["\'](?P<url>.+?)["\'].*'.format(urltype),
+                webpage, 'video URL', group='url')
+
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         title = self._og_search_title(webpage)
+        url = 'https:' + extract_url('video/mp4')
+        dashurl = extract_url(r'application/dash\+xml')
 
-        url = "https:" + self._search_regex(
-            r'type\s*:\s*["\']video/mp4["\']\s*,\s*src\s*:\s*["\'](?P<url>.+?)["\'].*',
-            webpage, 'video URL', group='url')
+        formats = [{
+            'url': url,
+            'ext': 'mp4',
+            'width': 1280,
+            'height': 720,
+            'format_id': 'mp4',
+        }]
+
+        formats.extend(self._extract_mpd_formats(
+            dashurl, video_id, mpd_id='dash', fatal=False))
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'url': url,
             'title': title,
-            'ext': 'mp4',
+            'formats': formats,
         }
