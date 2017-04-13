@@ -34,7 +34,7 @@ class HlsFD(FragmentFD):
     def can_download(manifest, info_dict):
         UNSUPPORTED_FEATURES = (
             r'#EXT-X-KEY:METHOD=(?!NONE|AES-128)',  # encrypted streams [1]
-            r'#EXT-X-BYTERANGE',  # playlists composed of byte ranges of media files [2]
+            # r'#EXT-X-BYTERANGE',  # playlists composed of byte ranges of media files [2]
 
             # Live streams heuristic does not always work (e.g. geo restricted to Germany
             # http://hls-geo.daserste.de/i/videoportal/Film/c_620000/622873/format,716451,716457,716450,716458,716459,.mp4.csmil/index_4_av.m3u8?null=0)
@@ -52,7 +52,9 @@ class HlsFD(FragmentFD):
             # 4. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.5
         )
         check_results = [not re.search(feature, manifest) for feature in UNSUPPORTED_FEATURES]
-        check_results.append(can_decrypt_frag or '#EXT-X-KEY:METHOD=AES-128' not in manifest)
+        is_aes128_enc = '#EXT-X-KEY:METHOD=AES-128' in manifest
+        check_results.append(can_decrypt_frag or not is_aes128_enc)
+        check_results.append(not (is_aes128_enc and r'#EXT-X-BYTERANGE' in manifest))
         check_results.append(not info_dict.get('is_live'))
         return all(check_results)
 
@@ -100,6 +102,7 @@ class HlsFD(FragmentFD):
         i = 0
         media_sequence = 0
         decrypt_info = {'METHOD': 'NONE'}
+        byte_range = {}
         frags_filenames = []
         for line in s.splitlines():
             line = line.strip()
@@ -114,11 +117,14 @@ class HlsFD(FragmentFD):
                     if extra_query:
                         frag_url = update_url_query(frag_url, extra_query)
                     count = 0
+                    headers = info_dict.get('http_headers', {})
+                    if byte_range:
+                        headers['Range'] = 'bytes=%d-%d' % (byte_range['start'], byte_range['end'])
                     while count <= fragment_retries:
                         try:
                             success = ctx['dl'].download(frag_filename, {
                                 'url': frag_url,
-                                'http_headers': info_dict.get('http_headers'),
+                                'http_headers': headers,
                             })
                             if not success:
                                 return False
@@ -167,6 +173,13 @@ class HlsFD(FragmentFD):
                         decrypt_info['KEY'] = self.ydl.urlopen(decrypt_info['URI']).read()
                 elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
                     media_sequence = int(line[22:])
+                elif line.startswith('#EXT-X-BYTERANGE'):
+                    splitted_byte_range = line[17:].split('@')
+                    sub_range_start = int(splitted_byte_range[1]) if len(splitted_byte_range) == 2 else byte_range['end']
+                    byte_range = {
+                        'start': sub_range_start,
+                        'end': sub_range_start + int(splitted_byte_range[0]),
+                    }
 
         self._finish_frag_download(ctx)
 
