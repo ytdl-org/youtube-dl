@@ -23,7 +23,19 @@ class AENetworksBaseIE(ThePlatformIE):
 class AENetworksIE(AENetworksBaseIE):
     IE_NAME = 'aenetworks'
     IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|aetv|mylifetime|lifetimemovieclub)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?P<domain>
+                            (?:history|aetv|mylifetime|lifetimemovieclub)\.com|
+                            fyi\.tv
+                        )/
+                        (?:
+                            shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|
+                            movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?|
+                            specials/(?P<special_display_id>[^/]+)/full-special
+                        )
+                    '''
     _TESTS = [{
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
         'md5': 'a97a65f7e823ae10e9244bc5433d5fe6',
@@ -65,6 +77,9 @@ class AENetworksIE(AENetworksBaseIE):
     }, {
         'url': 'https://www.lifetimemovieclub.com/movies/a-killer-among-us',
         'only_matching': True
+    }, {
+        'url': 'http://www.history.com/specials/sniper-into-the-kill-zone/full-special',
+        'only_matching': True
     }]
     _DOMAIN_TO_REQUESTOR_ID = {
         'history.com': 'HISTORY',
@@ -75,8 +90,8 @@ class AENetworksIE(AENetworksBaseIE):
     }
 
     def _real_extract(self, url):
-        domain, show_path, movie_display_id = re.match(self._VALID_URL, url).groups()
-        display_id = show_path or movie_display_id
+        domain, show_path, movie_display_id, special_display_id = re.match(self._VALID_URL, url).groups()
+        display_id = show_path or movie_display_id or special_display_id
         webpage = self._download_webpage(url, display_id)
         if show_path:
             url_parts = show_path.split('/')
