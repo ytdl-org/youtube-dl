@@ -16,7 +16,7 @@ class TV2HuIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ezek megőrültek! - 1. adás 1. rész',
             'upload_date': '20160826',
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         }
     }, {
         'url': 'http://tv2.hu/ezek_megorultek/teljes_adasok/217677_ezek-megorultek---1.-adas-2.-resz.html',
