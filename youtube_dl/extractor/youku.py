@@ -105,7 +105,7 @@ class YoukuIE(InfoExtractor):
             if stream.get('channel_type') == 'tail':
                 continue
             format = stream.get('stream_type')
-            fileid = stream['stream_fileid']
+            fileid = stream['segs'][0]['fileid']
             fileid_dict[format] = fileid
 
         def get_fileid(format, n):
