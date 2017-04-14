@@ -48,7 +48,6 @@ class CuriosityStreamBaseIE(InfoExtractor):
 
     def _extract_media_info(self, media):
         video_id = compat_str(media['id'])
-        limelight_media_id = media['limelight_media_id']
         title = media['title']
 
         formats = []
