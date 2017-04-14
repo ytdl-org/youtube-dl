@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.15
 
 Extractors
 * [youku] Fix fileid extraction (#12741, #12743)
