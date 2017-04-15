@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.16
 
 Core
 * [YoutubeDL] Apply expand_path after output template substitution
