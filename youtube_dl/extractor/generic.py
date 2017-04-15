@@ -1967,7 +1967,7 @@ class GenericIE(InfoExtractor):
             }
 
         # Look for Brightcove New Studio embeds
-        bc_urls = BrightcoveNewIE._extract_urls(webpage)
+        bc_urls = BrightcoveNewIE._extract_urls(self, webpage)
         if bc_urls:
             return self.playlist_from_matches(bc_urls, video_id, video_title, ie='BrightcoveNew')
 
