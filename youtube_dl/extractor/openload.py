@@ -1,12 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import os
 import re
+import subprocess
+import tempfile
 
 from .common import InfoExtractor
-from ..compat import compat_chr
 from ..utils import (
+    check_executable,
     determine_ext,
+    encodeArgument,
     ExtractorError,
 )
 
@@ -58,6 +62,39 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    _PHANTOMJS_SCRIPT = r'''
+        phantom.onError = function(msg, trace) {
+          var msgStack = ['PHANTOM ERROR: ' + msg];
+          if(trace && trace.length) {
+            msgStack.push('TRACE:');
+            trace.forEach(function(t) {
+              msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line
+                + (t.function ? ' (in function ' + t.function +')' : ''));
+            });
+          }
+          console.error(msgStack.join('\n'));
+          phantom.exit(1);
+        };
+        var page = require('webpage').create();
+        page.settings.resourceTimeout = 10000;
+        page.onInitialized = function() {
+          page.evaluate(function() {
+            delete window._phantom;
+            delete window.callPhantom;
+          });
+        };
+        page.open('https://openload.co/embed/%s/', function(status) {
+          var info = page.evaluate(function() {
+            return {
+              decoded_id: document.getElementById('streamurl').innerHTML,
+              title: document.querySelector('meta[name="og:title"],'
+                + 'meta[name=description]').content
+            };
+          });
+          console.log(info.decoded_id + ' ' + info.title);
+          phantom.exit();
+        });'''
+
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
@@ -65,61 +102,48 @@ class OpenloadIE(InfoExtractor):
             webpage)
 
     def _real_extract(self, url):
+        exe = check_executable('phantomjs', ['-v'])
+        if not exe:
+            raise ExtractorError('PhantomJS executable not found in PATH, '
+                                 'download it from http://phantomjs.org',
+                                 expected=True)
+
         video_id = self._match_id(url)
-        webpage = self._download_webpage('https://openload.co/embed/%s/' % video_id, video_id)
+        url = 'https://openload.co/embed/%s/' % video_id
+        webpage = self._download_webpage(url, video_id)
 
         if 'File not found' in webpage or 'deleted by the owner' in webpage:
-            raise ExtractorError('File not found', expected=True)
+            raise ExtractorError('File not found', expected=True, video_id=video_id)
 
-        ol_id = self._search_regex(
-            '<span[^>]+id="[^"]+"[^>]*>([0-9A-Za-z]+)</span>',
-            webpage, 'openload ID')
+        script_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
 
-        decoded = ''
-        a = ol_id[0:24]
-        b = []
-        for i in range(0, len(a), 8):
-            b.append(int(a[i:i + 8] or '0', 16))
-        ol_id = ol_id[24:]
-        j = 0
-        k = 0
-        while j < len(ol_id):
-            c = 128
-            d = 0
-            e = 0
-            f = 0
-            _more = True
-            while _more:
-                if j + 1 >= len(ol_id):
-                    c = 143
-                f = int(ol_id[j:j + 2] or '0', 16)
-                j += 2
-                d += (f & 127) << e
-                e += 7
-                _more = f >= c
-            g = d ^ b[k % 3]
-            for i in range(4):
-                char_dec = (g >> 8 * i) & (c + 127)
-                char = compat_chr(char_dec)
-                if char != '#':
-                    decoded += char
-            k += 1
+        # write JS script to file and close it
+        with script_file:
+            script_file.write(self._PHANTOMJS_SCRIPT % video_id)
 
-        video_url = 'https://openload.co/stream/%s?mime=true'
-        video_url = video_url % decoded
+        self.to_screen('%s: Decoding video ID with PhantomJS' % video_id)
 
-        title = self._og_search_title(webpage, default=None) or self._search_regex(
-            r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
-            'title', default=None) or self._html_search_meta(
-            'description', webpage, 'title', fatal=True)
+        p = subprocess.Popen([exe, '--ssl-protocol=any', script_file.name],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, err = p.communicate()
+        if p.returncode != 0:
+            raise ExtractorError('Decoding failed\n:'
+                                 + encodeArgument(err))
+        else:
+            decoded_id, title = encodeArgument(output).strip().split(' ', 1)
+
+        os.remove(script_file.name)
+
+        video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
 
         entries = self._parse_html5_media_entries(url, webpage, video_id)
-        subtitles = entries[0]['subtitles'] if entries else None
+        entry = entries[0] if entries else {}
+        subtitles = entry.get('subtitles')
 
         info_dict = {
             'id': video_id,
             'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage, default=None),
+            'thumbnail': entry.get('thumbnail') or self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
             # Seems all videos have extensions in their titles
             'ext': determine_ext(title, 'mp4'),
