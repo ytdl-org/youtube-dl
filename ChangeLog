@@ -1,3 +1,19 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Apply expand_path after output template substitution
++ [YoutubeDL] Propagate overridden meta fields to extraction results of type
+  url (#11163)
+
+Extractors
++ [generic] Extract RSS entries as url_transparent (#11163)
++ [streamango] Add support for streamango.com (#12643)
++ [wsj:article] Add support for articles (#12558)
+* [brightcove] Relax video tag embeds extraction and validate ambiguous embeds'
+  URLs (#9163, #12005, #12178, #12480)
++ [udemy] Add support for react rendition (#12744)
+
+
 version 2017.04.15
 
 Extractors
