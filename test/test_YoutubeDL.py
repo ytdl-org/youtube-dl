@@ -755,6 +755,7 @@ class TestYoutubeDL(unittest.TestCase):
                     '_type': 'url_transparent',
                     'url': 'foo2:',
                     'ie_key': 'Foo2',
+                    'title': 'foo1 title'
                 }
 
         class Foo2IE(InfoExtractor):
@@ -771,7 +772,7 @@ class TestYoutubeDL(unittest.TestCase):
             _VALID_URL = r'foo3:'
 
             def _real_extract(self, url):
-                return _make_result([{'url': TEST_URL}])
+                return _make_result([{'url': TEST_URL}], title='foo3 title')
 
         ydl.add_info_extractor(Foo1IE(ydl))
         ydl.add_info_extractor(Foo2IE(ydl))
@@ -779,6 +780,7 @@ class TestYoutubeDL(unittest.TestCase):
         ydl.extract_info('foo1:')
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['url'], TEST_URL)
+        self.assertEqual(downloaded['title'], 'foo1 title')
 
 
 if __name__ == '__main__':
