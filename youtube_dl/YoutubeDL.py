@@ -672,8 +672,7 @@ class YoutubeDL(object):
                         FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
-            tmpl = expand_path(outtmpl)
-            filename = tmpl % template_dict
+            filename = expand_path(outtmpl % template_dict)
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
