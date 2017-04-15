@@ -1693,7 +1693,7 @@ class GenericIE(InfoExtractor):
                 continue
 
             entries.append({
-                '_type': 'url',
+                '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
             })
