@@ -653,6 +653,7 @@ from .nick import (
     NickNightIE,
 )
 from .niconico import NiconicoIE, NiconicoPlaylistIE
+from .mediahuis import MediahuisIE
 from .ninecninemedia import (
     NineCNineMediaStackIE,
     NineCNineMediaIE,

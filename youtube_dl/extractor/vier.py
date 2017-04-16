@@ -5,9 +5,6 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import (
-    unsmuggle_url
-)
 
 
 class VierIE(InfoExtractor):
@@ -56,9 +53,8 @@ class VierIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        url, smuggled_data = unsmuggle_url(url, {})
         mobj = re.match(self._VALID_URL, url)
-        embed_id = mobj.group('embed_id') or mobj.group('partner_embed_id')
+        embed_id = mobj.group('embed_id')
         display_id = mobj.group('display_id') or embed_id
         site = mobj.group('site')
 
@@ -77,11 +73,6 @@ class VierIE(InfoExtractor):
         playlist_url = 'http://vod.streamcloud.be/%s/_definst_/mp4:%s.mp4/playlist.m3u8' % (application, filename)
         formats = self._extract_wowza_formats(playlist_url, display_id, skip_protocols=['dash'])
         self._sort_formats(formats)
-
-        video_id = smuggled_data.get('video_id') or video_id
-        source_url = smuggled_data.get('source_url')
-        if source_url:
-            webpage = self._download_webpage(source_url, display_id)
 
         title = self._og_search_title(webpage, default=display_id)
         description = self._og_search_description(webpage, default=None)
