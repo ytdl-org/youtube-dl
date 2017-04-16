@@ -122,6 +122,8 @@ class ITVIE(InfoExtractor):
                 'play_path': play_path,
                 'tbr': tbr,
                 'ext': 'flv',
+                # rtmp formats are now stop downloading at ~72MiB
+                'preference': -10,
             })
 
         ios_playlist_url = params.get('data-video-playlist')
