@@ -1652,6 +1652,15 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': [SenateISVPIE.ie_key()],
         },
+        {
+            # Limelight embeds (1 channel embed + 4 media embeds)
+            'url': 'http://www.sedona.com/FacilitatorTraining2017',
+            'info_dict': {
+                'id': 'FacilitatorTraining2017',
+                'title': 'Facilitator Training 2017',
+            },
+            'playlist_mincount': 5,
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
