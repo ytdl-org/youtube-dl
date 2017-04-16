@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_etree_fromstring,
     compat_parse_qs,
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
@@ -176,14 +177,32 @@ class OdnoklassnikiIE(InfoExtractor):
             })
             return info
 
-        quality = qualities(('mobile', 'lowest', 'low', 'sd', 'hd', 'full'))
+        quality = qualities(('4', '0', '1', '2', '3', '5'))
 
         formats = [{
             'url': f['url'],
             'ext': 'mp4',
             'format_id': f['name'],
-            'quality': quality(f['name']),
         } for f in metadata['videos']]
+
+        m3u8_url = metadata.get('hlsManifestUrl')
+        if m3u8_url:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=False))
+
+        dash_manifest = metadata.get('metadataEmbedded')
+        if dash_manifest:
+            formats.extend(self._parse_mpd_formats(
+                compat_etree_fromstring(dash_manifest), 'mpd'))
+
+        for fmt in formats:
+            fmt_type = self._search_regex(
+                r'\btype[/=](\d)', fmt['url'],
+                'format type', default=None)
+            if fmt_type:
+                fmt['quality'] = quality(fmt_type)
+
         self._sort_formats(formats)
 
         info['formats'] = formats
