@@ -1,3 +1,16 @@
+version <unreleased>
+
+Extractors
+* [limelight] Improve extraction LimelightEmbeddedPlayerFlash media embeds and
+  add support for channel and channelList embeds
+* [generic] Extract multiple Limelight embeds (#12761)
++ [itv] Extract series metadata
+* [itv] Fix RTMP formats downloading (#12759)
+* [itv] Use native HLS downloader by default
++ [go90] Extract subtitles (#12752)
++ [go90] Extract series metadata (#12752)
+
+
 version 2017.04.16
 
 Core
