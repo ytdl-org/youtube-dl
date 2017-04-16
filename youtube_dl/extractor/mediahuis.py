@@ -12,8 +12,8 @@ from ..utils import (
 
 class MediahuisIE(InfoExtractor):
     """ Extractor for Mediahuis news sites """
-    _VALID_URL = r'https?://(?:(?:www\.)?nieuwsblad\.be|(?:www\.)?gva\.be|(?:www\.)?standaard\.be|(?:www\.)?hbvl\.be)/.+?/dmf([0-9]+?)_(?P<id>[0-9]+)'
-    IE_DESC = 'Het Nieuwsblad, de Standaard, Gazet van Antwerpen and Het Belang van Limburg'
+    _VALID_URL = r'https?://(?:(?:www\.)?nieuwsblad\.be|(?:www\.)?gva\.be|(?:www\.)?standaard\.be|(?:www\.)?hbvl\.be|(?:www\.)?limburger\.nl)/.+?/dmf([0-9]+?)_(?P<id>[0-9]+)'
+    IE_DESC = 'Het Nieuwsblad, de Standaard, Gazet van Antwerpen, Het Belang van Limburg, and De Limburger'
     _TESTS = [
         # Source: VMMA
         {
@@ -163,8 +163,9 @@ class MediahuisIE(InfoExtractor):
 
         iframe_m = re.search(r'<iframe[^>]+src="(.+?vmma.be.*?)"', webpage)
         if iframe_m:
-            webpage = self._download_webpage(iframe_m.group(1), "vmma-iframe")
-            video_url = self._search_regex(r'<source src="(.*?)"', webpage, 'vmma-video')
+            video_url = (iframe_m.group(1))
+            url_type = 'url_transparent'
+            # return self.url_result(video_url, 'Medialaan')
 
         info = {
             'url': video_url,
