@@ -116,15 +116,25 @@ class ITVIE(InfoExtractor):
             if not play_path:
                 continue
             tbr = int_or_none(media_file.get('bitrate'), 1000)
-            formats.append({
+            f = {
                 'format_id': 'rtmp' + ('-%d' % tbr if tbr else ''),
-                'url': rtmp_url,
                 'play_path': play_path,
+                # Providing this swfVfy allows to avoid truncated downloads
+                'player_url': 'http://www.itv.com/mercury/Mercury_VideoPlayer.swf',
+                'page_url': url,
                 'tbr': tbr,
                 'ext': 'flv',
-                # rtmp formats are now stop downloading at ~72MiB
-                'preference': -10,
-            })
+            }
+            app = self._search_regex(
+                'rtmpe?://[^/]+/(.+)$', rtmp_url, 'app', default=None)
+            if app:
+                f.update({
+                    'url': rtmp_url.split('?', 1)[0],
+                    'app': app,
+                })
+            else:
+                f['url'] = rtmp_url
+            formats.append(f)
 
         ios_playlist_url = params.get('data-video-playlist')
         hmac = params.get('data-video-hmac')
