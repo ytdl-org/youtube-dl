@@ -43,6 +43,10 @@ Or with [MacPorts](https://www.macports.org/):
 
 Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://rg3.github.io/youtube-dl/download.html).
 
+OS X users can install **youtube-dl** with [Homebrew](http://brew.sh).
+
+    brew install youtube-dl
+
 # DESCRIPTION
 **youtube-dl** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix box, on Windows or on Mac OS X. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
 
