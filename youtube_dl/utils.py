@@ -494,6 +494,8 @@ def sanitize_filename(s, restricted=False, is_id=False):
             return '_'
         return char
 
+    if s.startswith('.'):
+        s = s.lstrip('.')
     # Handle timestamps
     s = re.sub(r'[0-9]+(?::[0-9]+)+', lambda m: m.group(0).replace(':', '_'), s)
     result = ''.join(map(replace_insane, s))
