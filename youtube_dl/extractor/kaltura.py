@@ -137,6 +137,14 @@ class KalturaIE(InfoExtractor):
                       (?:(?!(?P=q1)).)*
                       [?&]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
                     (?P=q1)
+                ''', webpage) or
+            re.search(
+                r'''(?xs)
+                    (?P<q1>["'])
+                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/*\b
+                        (?:p|partner_id)/(?P<partner_id>\d+)*.*
+                        entry_?[Ii]d=(?P<id>[\w_]+).*?
+                    (?P=q1)
                 ''', webpage)
         )
         if mobj:
