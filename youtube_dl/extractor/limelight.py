@@ -30,7 +30,6 @@ class LimelightBaseIE(InfoExtractor):
         for kind, video_id in re.findall(
                 r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})',
                 webpage):
-            print('video_id', video_id)
             entries.append(cls.url_result(
                 smuggle_url(
                     'limelight:%s:%s' % (lm[kind], video_id),
@@ -46,13 +45,14 @@ class LimelightBaseIE(InfoExtractor):
                     <object[^>]+class=(["\'])(?:(?!\1).)*\bLimelightEmbeddedPlayerFlash\b(?:(?!\1).)*\1[^>]*>.*?
                         <param[^>]+
                             name=(["\'])flashVars\2[^>]+
-                            value=(["\'])(?:(?!\3).)*mediaId=(?P<id>[a-z0-9]{32})
+                            value=(["\'])(?:(?!\3).)*(?P<kind>media|channel(?:List)?)Id=(?P<id>[a-z0-9]{32})
                 ''', webpage):
+            kind, video_id = mobj.group('kind'), mobj.group('id')
             entries.append(cls.url_result(
                 smuggle_url(
-                    'limelight:media:%s' % mobj.group('id'),
+                    'limelight:%s:%s' % (kind, video_id),
                     {'source_url': source_url}),
-                'LimelightMedia', mobj.group('id')))
+                'Limelight%s' % kind.capitalize(), video_id))
         return entries
 
     def _call_playlist_service(self, item_id, method, fatal=True, referer=None):
