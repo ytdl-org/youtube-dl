@@ -17,11 +17,11 @@ from ..utils import (
 class MedialaanIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:www\.)?
+                        (?:www\.|syndication\.)?
                         (?:
-                            (?P<site_id>vtm|q2|vtmkzoom)\.be/
+                            (?P<site_id>vtm|q2|vtmkzoom|vmma|medialaan)\.be/
                             (?:
-                                video(?:/[^/]+/id/|/?\?.*?\baid=)|
+                                video(?:/[^/]+/id/|/?\?.*?\baid=)|syndication/\?vID=|
                                 (?:[^/]+/)*
                             )
                         )
@@ -148,6 +148,7 @@ class MedialaanIE(InfoExtractor):
                 video = player[-1]
                 info = {
                     'id': video_id,
+                    # 'id': str_or_none(video['id']) or video_id,
                     'url': video['videoUrl'],
                     'title': video['title'],
                     'thumbnail': video.get('imageUrl'),
