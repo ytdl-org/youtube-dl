@@ -203,7 +203,8 @@ class ITVIE(InfoExtractor):
                 'ext': 'ttml' if ext == 'xml' else ext,
             })
 
-        return {
+        info = self._search_json_ld(webpage, video_id, default={})
+        info.update({
             'id': video_id,
             'title': title,
             'formats': formats,
@@ -212,4 +213,5 @@ class ITVIE(InfoExtractor):
             'episode_number': int_or_none(xpath_text(playlist, 'EpisodeNumber')),
             'series': xpath_text(playlist, 'ProgrammeTitle'),
             'duartion': parse_duration(xpath_text(playlist, 'Duration')),
-        }
+        })
+        return info
