@@ -31,60 +31,62 @@ from ..utils import (
     xpath_text,
 )
 from .commonprotocols import RtmpIE
+
+from .arkena import ArkenaIE
 from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
 )
-from .nbc import NBCSportsVPlayerIE
-from .ooyala import OoyalaIE
-from .rutv import RUTVIE
-from .tvc import TVCIE
-from .sportbox import SportBoxEmbedIE
-from .smotri import SmotriIE
-from .myvi import MyviIE
 from .condenast import CondeNastIE
-from .udn import UDNEmbedIE
-from .senateisvp import SenateISVPIE
-from .svt import SVTIE
-from .pornhub import PornHubIE
-from .xhamster import XHamsterEmbedIE
-from .tnaflix import TNAFlixNetworkEmbedIE
-from .drtuber import DrTuberIE
-from .redtube import RedTubeIE
-from .vimeo import VimeoIE
 from .dailymotion import (
     DailymotionIE,
     DailymotionCloudIE,
 )
-from .onionstudios import OnionStudiosIE
-from .viewlift import ViewLiftEmbedIE
-from .mtv import MTVServicesEmbeddedIE
-from .pladform import PladformIE
-from .videomore import VideomoreIE
-from .webcaster import WebcasterFeedIE
-from .googledrive import GoogleDriveIE
-from .jwplatform import JWPlatformIE
+from .dbtv import DBTVIE
 from .digiteka import DigitekaIE
-from .arkena import ArkenaIE
-from .instagram import InstagramIE
-from .liveleak import LiveLeakIE
-from .threeqsdn import ThreeQSDNIE
-from .theplatform import ThePlatformIE
-from .vessel import VesselIE
-from .kaltura import KalturaIE
+from .drtuber import DrTuberIE
 from .eagleplatform import EaglePlatformIE
 from .facebook import FacebookIE
-from .soundcloud import SoundcloudIE
-from .tunein import TuneInBaseIE
-from .vbox7 import Vbox7IE
-from .dbtv import DBTVIE
-from .piksel import PikselIE
-from .videa import VideaIE
-from .twentymin import TwentyMinutenIE
-from .ustream import UstreamIE
+from .googledrive import GoogleDriveIE
+from .instagram import InstagramIE
+from .jwplatform import JWPlatformIE
+from .kaltura import KalturaIE
+from .liveleak import LiveLeakIE
+from .mtv import MTVServicesEmbeddedIE
+from .myvi import MyviIE
+from .nbc import NBCSportsVPlayerIE
+from .onionstudios import OnionStudiosIE
+from .ooyala import OoyalaIE
 from .openload import OpenloadIE
-from .videopress import VideoPressIE
+from .piksel import PikselIE
+from .pladform import PladformIE
+from .pornhub import PornHubIE
+from .redtube import RedTubeIE
 from .rutube import RutubeIE
+from .rutv import RUTVIE
+from .senateisvp import SenateISVPIE
+from .smotri import SmotriIE
+from .soundcloud import SoundcloudIE
+from .sportbox import SportBoxEmbedIE
+from .svt import SVTIE
+from .theplatform import ThePlatformIE
+from .threeqsdn import ThreeQSDNIE
+from .tnaflix import TNAFlixNetworkEmbedIE
+from .tunein import TuneInBaseIE
+from .tvc import TVCIE
+from .twentymin import TwentyMinutenIE
+from .udn import UDNEmbedIE
+from .ustream import UstreamIE
+from .vbox7 import Vbox7IE
+from .vessel import VesselIE
+from .videa import VideaIE
+from .videomore import VideomoreIE
+from .videopress import VideoPressIE
+from .viewlift import ViewLiftEmbedIE
+from .vimeo import VimeoIE
+from .washingtonpost import WashingtonPostIE
+from .webcaster import WebcasterFeedIE
+from .xhamster import XHamsterEmbedIE
 
 
 class GenericIE(InfoExtractor):
@@ -1636,6 +1638,20 @@ class GenericIE(InfoExtractor):
             'add_ie': [RutubeIE.ie_key()],
         },
         {
+            # WashingtonPost embed
+            'url': 'http://www.vanityfair.com/hollywood/2017/04/donald-trump-tv-pitches',
+            'info_dict': {
+                'id': '8caf6e88-d0ec-11e5-90d3-34c2c42653ac',
+                'ext': 'mp4',
+                'title': "No one has seen the drama series based on Trump's life \u2014 until now",
+                'description': 'Donald Trump wanted a weekly TV drama based on his life. It never aired. But The Washington Post recently obtained a scene from the pilot script — and enlisted actors.',
+                'timestamp': 1455216756,
+                'uploader': 'The Washington Post',
+                'upload_date': '20160211',
+            },
+            'add_ie': [WashingtonPostIE.ie_key()],
+        },
+        {
             # ThePlatform embedded with whitespaces in URLs
             'url': 'http://www.golfchannel.com/topics/shows/golftalkcentral.htm',
             'only_matching': True,
@@ -2622,6 +2638,12 @@ class GenericIE(InfoExtractor):
         if rutube_urls:
             return self.playlist_from_matches(
                 rutube_urls, ie=RutubeIE.ie_key())
+
+        # Look for WashingtonPost embeds
+        wapo_urls = WashingtonPostIE._extract_urls(webpage)
+        if wapo_urls:
+            return self.playlist_from_matches(
+                wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
