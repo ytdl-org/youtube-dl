@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.17
 
 Extractors
 * [limelight] Improve extraction LimelightEmbeddedPlayerFlash media embeds and
