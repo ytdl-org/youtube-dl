@@ -6,6 +6,7 @@ from __future__ import print_function
 import os.path
 import warnings
 import sys
+from youtube_dl.version import __version__
 
 try:
     from setuptools import setup, Command
