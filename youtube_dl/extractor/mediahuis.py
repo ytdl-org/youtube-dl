@@ -26,6 +26,8 @@ class MediahuisIE(InfoExtractor):
                 'description': 'Er is misschien toch goed nieuws voor de zieke Pauline (3). Het Riziv buigt zich'
                                ' namelijk over de vraag om de peperdure behandeling van 15.000 euro terug t...',
                 'thumbnail': 're:http.*jpg$',
+                'upload_date': '20151224',
+                'timestamp': 1450982472,
             }
         },
         # Source: VRT
