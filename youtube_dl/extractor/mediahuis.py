@@ -28,7 +28,8 @@ class MediahuisIE(InfoExtractor):
                 'thumbnail': 're:http.*jpg$',
                 'upload_date': '20151224',
                 'timestamp': 1450982472,
-            }
+            },
+            'skip': 'Georestricted to Belgium',
         },
         # Source: VRT
         {
