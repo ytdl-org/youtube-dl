@@ -8,7 +8,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL
+from test.helper import FakeYDL, expect_dict
 from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.extractor import YoutubeIE, get_info_extractor
 from youtube_dl.utils import encode_data_uri, strip_jsonp, ExtractorError, RegexNotFoundError
@@ -83,6 +83,97 @@ class TestInfoExtractor(unittest.TestCase):
         uri = encode_data_uri(b'{"foo": invalid}', 'application/json')
         self.assertRaises(ExtractorError, self.ie._download_json, uri, None)
         self.assertEqual(self.ie._download_json(uri, None, fatal=False), None)
+
+    def test_extract_jwplayer_data_realworld(self):
+        # from http://www.suffolk.edu/sjc/
+        expect_dict(
+            self,
+            self.ie._extract_jwplayer_data(r'''
+                <script type='text/javascript'>
+                    jwplayer('my-video').setup({
+                        file: 'rtmp://192.138.214.154/live/sjclive',
+                        fallback: 'true',
+                        width: '95%',
+                      aspectratio: '16:9',
+                      primary: 'flash',
+                      mediaid:'XEgvuql4'
+                    });
+                </script>
+                ''', None, require_title=False),
+            {
+                'id': 'XEgvuql4',
+                'formats': [{
+                    'url': 'rtmp://192.138.214.154/live/sjclive',
+                    'ext': 'flv'
+                }]
+            })
+
+        # from https://www.pornoxo.com/videos/7564/striptease-from-sexy-secretary/
+        expect_dict(
+            self,
+            self.ie._extract_jwplayer_data(r'''
+<script type="text/javascript">
+    jwplayer("mediaplayer").setup({
+        'videoid': "7564",
+        'width': "100%",
+        'aspectratio': "16:9",
+        'stretching': "exactfit",
+        'autostart': 'false',
+        'flashplayer': "https://t04.vipstreamservice.com/jwplayer/v5.10/player.swf",
+        'file': "https://cdn.pornoxo.com/key=MF+oEbaxqTKb50P-w9G3nA,end=1489689259,ip=104.199.146.27/ip=104.199.146.27/speed=6573765/buffer=3.0/2009-12/4b2157147afe5efa93ce1978e0265289c193874e02597.flv",
+        'image': "https://t03.vipstreamservice.com/thumbs/pxo-full/2009-12/14/a4b2157147afe5efa93ce1978e0265289c193874e02597.flv-full-13.jpg",
+        'filefallback': "https://cdn.pornoxo.com/key=9ZPsTR5EvPLQrBaak2MUGA,end=1489689259,ip=104.199.146.27/ip=104.199.146.27/speed=6573765/buffer=3.0/2009-12/m_4b2157147afe5efa93ce1978e0265289c193874e02597.mp4",
+        'logo.hide': true,
+        'skin': "https://t04.vipstreamservice.com/jwplayer/skin/modieus-blk.zip",
+        'plugins': "https://t04.vipstreamservice.com/jwplayer/dock/dockableskinnableplugin.swf",
+        'dockableskinnableplugin.piclink': "/index.php?key=ajax-videothumbsn&vid=7564&data=2009-12--14--4b2157147afe5efa93ce1978e0265289c193874e02597.flv--17370",
+        'controlbar': 'bottom',
+        'modes': [
+            {type: 'flash', src: 'https://t04.vipstreamservice.com/jwplayer/v5.10/player.swf'}
+        ],
+        'provider': 'http'
+    });
+    //noinspection JSAnnotator
+    invideo.setup({
+        adsUrl: "/banner-iframe/?zoneId=32",
+        adsUrl2: "",
+        autostart: false
+    });
+</script>
+            ''', 'dummy', require_title=False),
+            {
+                'thumbnail': 'https://t03.vipstreamservice.com/thumbs/pxo-full/2009-12/14/a4b2157147afe5efa93ce1978e0265289c193874e02597.flv-full-13.jpg',
+                'formats': [{
+                    'url': 'https://cdn.pornoxo.com/key=MF+oEbaxqTKb50P-w9G3nA,end=1489689259,ip=104.199.146.27/ip=104.199.146.27/speed=6573765/buffer=3.0/2009-12/4b2157147afe5efa93ce1978e0265289c193874e02597.flv',
+                    'ext': 'flv'
+                }]
+            })
+
+        # from http://www.indiedb.com/games/king-machine/videos
+        expect_dict(
+            self,
+            self.ie._extract_jwplayer_data(r'''
+<script>
+jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/\/www.indiedb.com\/","displaytitle":false,"autostart":false,"repeat":false,"title":"king machine trailer 1","sharing":{"link":"http:\/\/www.indiedb.com\/games\/king-machine\/videos\/king-machine-trailer-1","code":"<iframe width=\"560\" height=\"315\" src=\"http:\/\/www.indiedb.com\/media\/iframe\/1522983\" frameborder=\"0\" allowfullscreen><\/iframe><br><a href=\"http:\/\/www.indiedb.com\/games\/king-machine\/videos\/king-machine-trailer-1\">king machine trailer 1 - Indie DB<\/a>"},"related":{"file":"http:\/\/rss.indiedb.com\/media\/recommended\/1522983\/feed\/rss.xml","dimensions":"160x120","onclick":"link"},"sources":[{"file":"http:\/\/cdn.dbolical.com\/cache\/videos\/games\/1\/50\/49678\/encode_mp4\/king-machine-trailer.mp4","label":"360p SD","default":"true"},{"file":"http:\/\/cdn.dbolical.com\/cache\/videos\/games\/1\/50\/49678\/encode720p_mp4\/king-machine-trailer.mp4","label":"720p HD"}],"image":"http:\/\/media.indiedb.com\/cache\/images\/games\/1\/50\/49678\/thumb_620x2000\/king-machine-trailer.mp4.jpg","advertising":{"client":"vast","tag":"http:\/\/ads.intergi.com\/adrawdata\/3.0\/5205\/4251742\/0\/1013\/ADTECH;cors=yes;width=560;height=315;referring_url=http:\/\/www.indiedb.com\/games\/king-machine\/videos\/king-machine-trailer-1;content_url=http:\/\/www.indiedb.com\/games\/king-machine\/videos\/king-machine-trailer-1;media_id=1522983;title=king+machine+trailer+1;device=__DEVICE__;model=__MODEL__;os=Windows+OS;osversion=__OSVERSION__;ua=__UA__;ip=109.171.17.81;uniqueid=1522983;tags=__TAGS__;number=58cac25928151;time=1489683033"},"width":620,"height":349}).once("play", function(event) {
+            videoAnalytics("play");
+}).once("complete", function(event) {
+    videoAnalytics("completed");
+});
+</script>
+                ''', 'dummy'),
+            {
+                'title': 'king machine trailer 1',
+                'thumbnail': 'http://media.indiedb.com/cache/images/games/1/50/49678/thumb_620x2000/king-machine-trailer.mp4.jpg',
+                'formats': [{
+                    'url': 'http://cdn.dbolical.com/cache/videos/games/1/50/49678/encode_mp4/king-machine-trailer.mp4',
+                    'height': 360,
+                    'ext': 'mp4'
+                }, {
+                    'url': 'http://cdn.dbolical.com/cache/videos/games/1/50/49678/encode720p_mp4/king-machine-trailer.mp4',
+                    'height': 720,
+                    'ext': 'mp4'
+                }]
+            })
 
 
 if __name__ == '__main__':

@@ -41,6 +41,11 @@ MSO_INFO = {
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
     },
+    'Verizon': {
+        'name': 'Verizon FiOS',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
@@ -1384,40 +1389,72 @@ class AdobePassIE(InfoExtractor):
                     # Comcast page flow varies by video site and whether you
                     # are on Comcast's network.
                     provider_redirect_page, urlh = provider_redirect_page_res
-                    # Check for Comcast auto login
                     if 'automatically signing you in' in provider_redirect_page:
                         oauth_redirect_url = self._html_search_regex(
                             r'window\.location\s*=\s*[\'"]([^\'"]+)',
                             provider_redirect_page, 'oauth redirect')
-                        # Just need to process the request. No useful data comes back
                         self._download_webpage(
                             oauth_redirect_url, video_id, 'Confirming auto login')
                     else:
                         if '<form name="signin"' in provider_redirect_page:
-                            # already have the form, just fill it
                             provider_login_page_res = provider_redirect_page_res
                         elif 'http-equiv="refresh"' in provider_redirect_page:
-                            # redirects to the login page
                             oauth_redirect_url = self._html_search_regex(
                                 r'content="0;\s*url=([^\'"]+)',
                                 provider_redirect_page, 'meta refresh redirect')
                             provider_login_page_res = self._download_webpage_handle(
-                                oauth_redirect_url,
-                                video_id, 'Downloading Provider Login Page')
+                                oauth_redirect_url, video_id,
+                                'Downloading Provider Login Page')
                         else:
                             provider_login_page_res = post_form(
-                                provider_redirect_page_res, 'Downloading Provider Login Page')
+                                provider_redirect_page_res,
+                                'Downloading Provider Login Page')
 
-                        mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
-                            mso_info.get('username_field', 'username'): username,
-                            mso_info.get('password_field', 'password'): password,
-                        })
+                        mvpd_confirm_page_res = post_form(
+                            provider_login_page_res, 'Logging in', {
+                                mso_info['username_field']: username,
+                                mso_info['password_field']: password,
+                            })
                         mvpd_confirm_page, urlh = mvpd_confirm_page_res
                         if '<button class="submit" value="Resume">Resume</button>' in mvpd_confirm_page:
                             post_form(mvpd_confirm_page_res, 'Confirming Login')
-
+                elif mso_id == 'Verizon':
+                    # In general, if you're connecting from a Verizon-assigned IP,
+                    # you will not actually pass your credentials.
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    if 'Please wait ...' in provider_redirect_page:
+                        saml_redirect_url = self._html_search_regex(
+                            r'self\.parent\.location=(["\'])(?P<url>.+?)\1',
+                            provider_redirect_page,
+                            'SAML Redirect URL', group='url')
+                        saml_login_page = self._download_webpage(
+                            saml_redirect_url, video_id,
+                            'Downloading SAML Login Page')
+                    else:
+                        saml_login_page_res = post_form(
+                            provider_redirect_page_res, 'Logging in', {
+                                mso_info['username_field']: username,
+                                mso_info['password_field']: password,
+                            })
+                        saml_login_page, urlh = saml_login_page_res
+                        if 'Please try again.' in saml_login_page:
+                            raise ExtractorError(
+                                'We\'re sorry, but either the User ID or Password entered is not correct.')
+                    saml_login_url = self._search_regex(
+                        r'xmlHttp\.open\("POST"\s*,\s*(["\'])(?P<url>.+?)\1',
+                        saml_login_page, 'SAML Login URL', group='url')
+                    saml_response_json = self._download_json(
+                        saml_login_url, video_id, 'Downloading SAML Response',
+                        headers={'Content-Type': 'text/xml'})
+                    self._download_webpage(
+                        saml_response_json['targetValue'], video_id,
+                        'Confirming Login', data=urlencode_postdata({
+                            'SAMLResponse': saml_response_json['SAMLResponse'],
+                            'RelayState': saml_response_json['RelayState']
+                        }), headers={
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        })
                 else:
-                    # Normal, non-Comcast flow
                     provider_login_page_res = post_form(
                         provider_redirect_page_res, 'Downloading Provider Login Page')
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
@@ -1458,6 +1495,8 @@ class AdobePassIE(InfoExtractor):
                     self._downloader.cache.store(self._MVPD_CACHE, requestor_id, {})
                     count += 1
                     continue
+                if '<error' in authorize:
+                    raise ExtractorError(xml_text(authorize, 'details'), expected=True)
                 authz_token = unescapeHTML(xml_text(authorize, 'authzToken'))
                 requestor_info[guid] = authz_token
                 self._downloader.cache.store(self._MVPD_CACHE, requestor_id, requestor_info)

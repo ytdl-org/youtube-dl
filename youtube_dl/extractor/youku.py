@@ -10,12 +10,14 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urllib_parse_urlencode,
     compat_ord,
+    compat_str,
+    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     ExtractorError,
     get_element_by_attribute,
+    try_get,
 )
 
 
@@ -105,7 +107,9 @@ class YoukuIE(InfoExtractor):
             if stream.get('channel_type') == 'tail':
                 continue
             format = stream.get('stream_type')
-            fileid = stream['stream_fileid']
+            fileid = try_get(
+                stream, lambda x: x['segs'][0]['fileid'],
+                compat_str) or stream['stream_fileid']
             fileid_dict[format] = fileid
 
         def get_fileid(format, n):

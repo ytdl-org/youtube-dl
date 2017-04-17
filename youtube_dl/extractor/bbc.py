@@ -361,7 +361,7 @@ class BBCCoUkIE(InfoExtractor):
                             fmt.update({
                                 'width': width,
                                 'height': height,
-                                'vbr': bitrate,
+                                'tbr': bitrate,
                                 'vcodec': encoding,
                             })
                         else:
@@ -370,7 +370,7 @@ class BBCCoUkIE(InfoExtractor):
                                 'acodec': encoding,
                                 'vcodec': 'none',
                             })
-                        if protocol == 'http':
+                        if protocol in ('http', 'https'):
                             # Direct link
                             fmt.update({
                                 'url': href,
@@ -389,6 +389,8 @@ class BBCCoUkIE(InfoExtractor):
                                 'rtmp_live': False,
                                 'ext': 'flv',
                             })
+                        else:
+                            continue
                         formats.append(fmt)
             elif kind == 'captions':
                 subtitles = self.extract_subtitles(media, programme_id)
@@ -407,7 +409,7 @@ class BBCCoUkIE(InfoExtractor):
                 description = smp_config['summary']
                 for item in smp_config['items']:
                     kind = item['kind']
-                    if kind != 'programme' and kind != 'radioProgramme':
+                    if kind not in ('programme', 'radioProgramme'):
                         continue
                     programme_id = item.get('vpid')
                     duration = int_or_none(item.get('duration'))
@@ -448,7 +450,7 @@ class BBCCoUkIE(InfoExtractor):
 
         for item in self._extract_items(playlist):
             kind = item.get('kind')
-            if kind != 'programme' and kind != 'radioProgramme':
+            if kind not in ('programme', 'radioProgramme'):
                 continue
             title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
             description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)

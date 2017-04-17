@@ -75,38 +75,38 @@ class OpenloadIE(InfoExtractor):
             '<span[^>]+id="[^"]+"[^>]*>([0-9A-Za-z]+)</span>',
             webpage, 'openload ID')
 
-        video_url_chars = []
-
-        first_char = ord(ol_id[0])
-        key = first_char - 50
-        maxKey = max(2, key)
-        key = min(maxKey, len(ol_id) - 22)
-        t = ol_id[key:key + 20]
-
-        hashMap = {}
-        v = ol_id.replace(t, "")
-        h = 0
-
-        while h < len(t):
-            f = t[h:h + 2]
-            i = int(f, 16)
-            hashMap[h / 2] = i
-            h += 2
-
-        h = 0
-
-        while h < len(v):
-            B = v[h:h + 2]
-            i = int(B, 16)
-            index = (h / 2) % 10
-            A = hashMap[index]
-            i = i ^ 137
-            i = i ^ A
-            video_url_chars.append(compat_chr(i))
-            h += 2
+        decoded = ''
+        a = ol_id[0:24]
+        b = []
+        for i in range(0, len(a), 8):
+            b.append(int(a[i:i + 8] or '0', 16))
+        ol_id = ol_id[24:]
+        j = 0
+        k = 0
+        while j < len(ol_id):
+            c = 128
+            d = 0
+            e = 0
+            f = 0
+            _more = True
+            while _more:
+                if j + 1 >= len(ol_id):
+                    c = 143
+                f = int(ol_id[j:j + 2] or '0', 16)
+                j += 2
+                d += (f & 127) << e
+                e += 7
+                _more = f >= c
+            g = d ^ b[k % 3]
+            for i in range(4):
+                char_dec = (g >> 8 * i) & (c + 127)
+                char = compat_chr(char_dec)
+                if char != '#':
+                    decoded += char
+            k += 1
 
         video_url = 'https://openload.co/stream/%s?mime=true'
-        video_url = video_url % (''.join(video_url_chars))
+        video_url = video_url % decoded
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,

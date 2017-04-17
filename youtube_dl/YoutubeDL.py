@@ -29,7 +29,6 @@ import random
 from .compat import (
     compat_basestring,
     compat_cookiejar,
-    compat_expanduser,
     compat_get_terminal_size,
     compat_http_client,
     compat_kwargs,
@@ -54,6 +53,7 @@ from .utils import (
     encode_compat_str,
     encodeFilename,
     error_to_compat_str,
+    expand_path,
     ExtractorError,
     format_bytes,
     formatSeconds,
@@ -672,8 +672,7 @@ class YoutubeDL(object):
                         FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
-            tmpl = compat_expanduser(outtmpl)
-            filename = tmpl % template_dict
+            filename = expand_path(outtmpl % template_dict)
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
@@ -837,6 +836,12 @@ class YoutubeDL(object):
                 ie_result['url'], ie_key=ie_result.get('ie_key'),
                 extra_info=extra_info, download=False, process=False)
 
+            # extract_info may return None when ignoreerrors is enabled and
+            # extraction failed with an error, don't crash and return early
+            # in this case
+            if not info:
+                return info
+
             force_properties = dict(
                 (k, v) for k, v in ie_result.items() if v is not None)
             for f in ('_type', 'url', 'ie_key'):
@@ -845,11 +850,18 @@ class YoutubeDL(object):
             new_result = info.copy()
             new_result.update(force_properties)
 
-            assert new_result.get('_type') != 'url_transparent'
+            # Extracted info may not be a video result (i.e.
+            # info.get('_type', 'video') != video) but rather an url or
+            # url_transparent. In such cases outer metadata (from ie_result)
+            # should be propagated to inner one (info). For this to happen
+            # _type of info should be overridden with url_transparent. This
+            # fixes issue from https://github.com/rg3/youtube-dl/pull/11163.
+            if new_result.get('_type') == 'url':
+                new_result['_type'] = 'url_transparent'
 
             return self.process_ie_result(
                 new_result, download=download, extra_info=extra_info)
-        elif result_type == 'playlist' or result_type == 'multi_video':
+        elif result_type in ('playlist', 'multi_video'):
             # We process each entry in the playlist
             playlist = ie_result.get('title') or ie_result.get('id')
             self.to_screen('[download] Downloading playlist: %s' % playlist)
@@ -1872,6 +1884,7 @@ class YoutubeDL(object):
         """Download a given list of URLs."""
         outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
         if (len(url_list) > 1 and
+                outtmpl != '-' and
                 '%' not in outtmpl and
                 self.params.get('max_downloads') != 1):
             raise SameFileError(outtmpl)
@@ -2169,7 +2182,7 @@ class YoutubeDL(object):
         if opts_cookiefile is None:
             self.cookiejar = compat_cookiejar.CookieJar()
         else:
-            opts_cookiefile = compat_expanduser(opts_cookiefile)
+            opts_cookiefile = expand_path(opts_cookiefile)
             self.cookiejar = compat_cookiejar.MozillaCookieJar(
                 opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):

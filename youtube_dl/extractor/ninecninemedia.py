@@ -34,12 +34,6 @@ class NineCNineMediaStackIE(NineCNineMediaBaseIE):
         formats.extend(self._extract_f4m_formats(
             stack_base_url + 'f4m', stack_id,
             f4m_id='hds', fatal=False))
-        mp4_url = self._download_webpage(stack_base_url + 'pd', stack_id, fatal=False)
-        if mp4_url:
-            formats.append({
-                'url': mp4_url,
-                'format_id': 'mp4',
-            })
         self._sort_formats(formats)
 
         return {

@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import base64
@@ -36,34 +37,35 @@ from ..utils import (
     clean_html,
     compiled_regex_type,
     determine_ext,
+    determine_protocol,
     error_to_compat_str,
     ExtractorError,
+    extract_attributes,
     fix_xml_ampersands,
     float_or_none,
     GeoRestrictedError,
     GeoUtils,
     int_or_none,
     js_to_json,
+    mimetype2ext,
+    orderedSet,
+    parse_codecs,
+    parse_duration,
     parse_iso8601,
+    parse_m3u8_attributes,
     RegexNotFoundError,
-    sanitize_filename,
     sanitized_Request,
+    sanitize_filename,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
+    update_Request,
+    update_url_query,
+    urljoin,
     url_basename,
     xpath_element,
     xpath_text,
     xpath_with_ns,
-    determine_protocol,
-    parse_duration,
-    mimetype2ext,
-    update_Request,
-    update_url_query,
-    parse_m3u8_attributes,
-    extract_attributes,
-    parse_codecs,
-    urljoin,
 )
 
 
@@ -546,6 +548,34 @@ class InfoExtractor(object):
 
         return encoding
 
+    def __check_blocked(self, content):
+        first_block = content[:512]
+        if ('<title>Access to this site is blocked</title>' in content and
+                'Websense' in first_block):
+            msg = 'Access to this webpage has been blocked by Websense filtering software in your network.'
+            blocked_iframe = self._html_search_regex(
+                r'<iframe src="([^"]+)"', content,
+                'Websense information URL', default=None)
+            if blocked_iframe:
+                msg += ' Visit %s for more details' % blocked_iframe
+            raise ExtractorError(msg, expected=True)
+        if '<title>The URL you requested has been blocked</title>' in first_block:
+            msg = (
+                'Access to this webpage has been blocked by Indian censorship. '
+                'Use a VPN or proxy server (with --proxy) to route around it.')
+            block_msg = self._html_search_regex(
+                r'</h1><p>(.*?)</p>',
+                content, 'block message', default=None)
+            if block_msg:
+                msg += ' (Message: "%s")' % block_msg.replace('\n', ' ')
+            raise ExtractorError(msg, expected=True)
+        if ('<title>TTK :: Доступ к ресурсу ограничен</title>' in content and
+                'blocklist.rkn.gov.ru' in content):
+            raise ExtractorError(
+                'Access to this webpage has been blocked by decision of the Russian government. '
+                'Visit http://blocklist.rkn.gov.ru/ for a block reason.',
+                expected=True)
+
     def _webpage_read_content(self, urlh, url_or_request, video_id, note=None, errnote=None, fatal=True, prefix=None, encoding=None):
         content_type = urlh.headers.get('Content-Type', '')
         webpage_bytes = urlh.read()
@@ -587,25 +617,7 @@ class InfoExtractor(object):
         except LookupError:
             content = webpage_bytes.decode('utf-8', 'replace')
 
-        if ('<title>Access to this site is blocked</title>' in content and
-                'Websense' in content[:512]):
-            msg = 'Access to this webpage has been blocked by Websense filtering software in your network.'
-            blocked_iframe = self._html_search_regex(
-                r'<iframe src="([^"]+)"', content,
-                'Websense information URL', default=None)
-            if blocked_iframe:
-                msg += ' Visit %s for more details' % blocked_iframe
-            raise ExtractorError(msg, expected=True)
-        if '<title>The URL you requested has been blocked</title>' in content[:512]:
-            msg = (
-                'Access to this webpage has been blocked by Indian censorship. '
-                'Use a VPN or proxy server (with --proxy) to route around it.')
-            block_msg = self._html_search_regex(
-                r'</h1><p>(.*?)</p>',
-                content, 'block message', default=None)
-            if block_msg:
-                msg += ' (Message: "%s")' % block_msg.replace('\n', ' ')
-            raise ExtractorError(msg, expected=True)
+        self.__check_blocked(content)
 
         return content
 
@@ -713,6 +725,13 @@ class InfoExtractor(object):
         if video_title is not None:
             video_info['title'] = video_title
         return video_info
+
+    def playlist_from_matches(self, matches, video_id, video_title, getter=None, ie=None):
+        urlrs = orderedSet(
+            self.url_result(self._proto_relative_url(getter(m) if getter else m), ie)
+            for m in matches)
+        return self.playlist_result(
+            urlrs, playlist_id=video_id, playlist_title=video_title)
 
     @staticmethod
     def playlist_result(entries, playlist_id=None, playlist_title=None, playlist_description=None):
@@ -1760,7 +1779,7 @@ class InfoExtractor(object):
                     if content_type == 'text':
                         # TODO implement WebVTT downloading
                         pass
-                    elif content_type == 'video' or content_type == 'audio':
+                    elif content_type in ('video', 'audio'):
                         base_url = ''
                         for element in (representation, adaptation_set, period, mpd_doc):
                             base_url_e = element.find(_add_ns('BaseURL'))
@@ -2161,18 +2180,24 @@ class InfoExtractor(object):
                     })
         return formats
 
-    @staticmethod
-    def _find_jwplayer_data(webpage):
+    def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
         mobj = re.search(
-            r'jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)\.setup\s*\((?P<options>[^)]+)\)',
+            r'(?s)jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\).*?\.setup\s*\((?P<options>[^)]+)\)',
             webpage)
         if mobj:
-            return mobj.group('options')
+            try:
+                jwplayer_data = self._parse_json(mobj.group('options'),
+                                                 video_id=video_id,
+                                                 transform_source=transform_source)
+            except ExtractorError:
+                pass
+            else:
+                if isinstance(jwplayer_data, dict):
+                    return jwplayer_data
 
     def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
-        jwplayer_data = self._parse_json(
-            self._find_jwplayer_data(webpage), video_id,
-            transform_source=js_to_json)
+        jwplayer_data = self._find_jwplayer_data(
+            webpage, video_id, transform_source=js_to_json)
         return self._parse_jwplayer_data(
             jwplayer_data, video_id, *args, **kwargs)
 
@@ -2233,11 +2258,17 @@ class InfoExtractor(object):
 
     def _parse_jwplayer_formats(self, jwplayer_sources_data, video_id=None,
                                 m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
+        urls = []
         formats = []
         for source in jwplayer_sources_data:
-            source_url = self._proto_relative_url(source['file'])
+            source_url = self._proto_relative_url(source.get('file'))
+            if not source_url:
+                continue
             if base_url:
                 source_url = compat_urlparse.urljoin(base_url, source_url)
+            if source_url in urls:
+                continue
+            urls.append(source_url)
             source_type = source.get('type') or ''
             ext = mimetype2ext(source_type) or determine_ext(source_url)
             if source_type == 'hls' or ext == 'm3u8':
@@ -2247,6 +2278,9 @@ class InfoExtractor(object):
             elif ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     source_url, video_id, mpd_id=mpd_id, fatal=False))
+            elif ext == 'smil':
+                formats.extend(self._extract_smil_formats(
+                    source_url, video_id, fatal=False))
             # https://github.com/jwplayer/jwplayer/blob/master/src/js/providers/default.js#L67
             elif source_type.startswith('audio') or ext in (
                     'oga', 'aac', 'mp3', 'mpeg', 'vorbis'):

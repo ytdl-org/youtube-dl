@@ -12,13 +12,14 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     sanitized_Request,
+    unescapeHTML,
     urlencode_postdata,
     USER_AGENTS,
 )
 
 
 class CeskaTelevizeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/(porady|ivysilani)/(?:[^/]+/)*(?P<id>[^/#?]+)/*(?:[#?].*)?$'
+    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/ivysilani/(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
     _TESTS = [{
         'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
         'info_dict': {
@@ -62,40 +63,12 @@ class CeskaTelevizeIE(InfoExtractor):
         },
         'skip': 'Georestricted to Czech Republic',
     }, {
-        # video with 18+ caution trailer
-        'url': 'http://www.ceskatelevize.cz/porady/10520528904-queer/215562210900007-bogotart/',
-        'info_dict': {
-            'id': '215562210900007-bogotart',
-            'title': 'Queer: Bogotart',
-            'description': 'Alternativní průvodce současným queer světem',
-        },
-        'playlist': [{
-            'info_dict': {
-                'id': '61924494876844842',
-                'ext': 'mp4',
-                'title': 'Queer: Bogotart (Varování 18+)',
-                'duration': 10.2,
-            },
-        }, {
-            'info_dict': {
-                'id': '61924494877068022',
-                'ext': 'mp4',
-                'title': 'Queer: Bogotart (Queer)',
-                'thumbnail': r're:^https?://.*\.jpg',
-                'duration': 1558.3,
-            },
-        }],
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
+        'url': 'http://www.ceskatelevize.cz/ivysilani/embed/iFramePlayer.php?hash=d6a3e1370d2e4fa76296b90bad4dfc19673b641e&IDEC=217 562 22150/0004&channelID=1&width=100%25',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        url = url.replace('/porady/', '/ivysilani/').replace('/video/', '')
-
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
+        playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
 
@@ -103,13 +76,28 @@ class CeskaTelevizeIE(InfoExtractor):
         if '%s</p>' % NOT_AVAILABLE_STRING in webpage:
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
 
-        typ = self._html_search_regex(
-            r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],', webpage, 'type')
-        episode_id = self._html_search_regex(
-            r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],', webpage, 'episode_id')
+        type_ = None
+        episode_id = None
+
+        playlist = self._parse_json(
+            self._search_regex(
+                r'getPlaylistUrl\(\[({.+?})\]', webpage, 'playlist',
+                default='{}'), playlist_id)
+        if playlist:
+            type_ = playlist.get('type')
+            episode_id = playlist.get('id')
+
+        if not type_:
+            type_ = self._html_search_regex(
+                r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],',
+                webpage, 'type')
+        if not episode_id:
+            episode_id = self._html_search_regex(
+                r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],',
+                webpage, 'episode_id')
 
         data = {
-            'playlist[0][type]': typ,
+            'playlist[0][type]': type_,
             'playlist[0][id]': episode_id,
             'requestUrl': compat_urllib_parse_urlparse(url).path,
             'requestSource': 'iVysilani',
@@ -160,8 +148,7 @@ class CeskaTelevizeIE(InfoExtractor):
                 for format_id, stream_url in item.get('streamUrls', {}).items():
                     if 'playerType=flash' in stream_url:
                         stream_formats = self._extract_m3u8_formats(
-                            stream_url, playlist_id, 'mp4',
-                            entry_protocol='m3u8' if is_live else 'm3u8_native',
+                            stream_url, playlist_id, 'mp4', 'm3u8_native',
                             m3u8_id='hls-%s' % format_id, fatal=False)
                     else:
                         stream_formats = self._extract_mpd_formats(
@@ -246,3 +233,47 @@ class CeskaTelevizeIE(InfoExtractor):
                     yield line
 
         return '\r\n'.join(_fix_subtitle(subtitles))
+
+
+class CeskaTelevizePoradyIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/porady/(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
+    _TESTS = [{
+        # video with 18+ caution trailer
+        'url': 'http://www.ceskatelevize.cz/porady/10520528904-queer/215562210900007-bogotart/',
+        'info_dict': {
+            'id': '215562210900007-bogotart',
+            'title': 'Queer: Bogotart',
+            'description': 'Alternativní průvodce současným queer světem',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': '61924494876844842',
+                'ext': 'mp4',
+                'title': 'Queer: Bogotart (Varování 18+)',
+                'duration': 10.2,
+            },
+        }, {
+            'info_dict': {
+                'id': '61924494877068022',
+                'ext': 'mp4',
+                'title': 'Queer: Bogotart (Queer)',
+                'thumbnail': r're:^https?://.*\.jpg',
+                'duration': 1558.3,
+            },
+        }],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        data_url = unescapeHTML(self._search_regex(
+            r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+            webpage, 'iframe player url', group='url'))
+
+        return self.url_result(data_url, ie=CeskaTelevizeIE.ie_key())

@@ -2692,7 +2692,7 @@ else:
                 userhome = pwent.pw_dir
             userhome = userhome.rstrip('/')
             return (userhome + path[i:]) or '/'
-    elif compat_os_name == 'nt' or compat_os_name == 'ce':
+    elif compat_os_name in ('nt', 'ce'):
         def compat_expanduser(path):
             """Expand ~ and ~user constructs.
 

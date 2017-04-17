@@ -9,6 +9,7 @@ from .common import InfoExtractor
 
 class VierIE(InfoExtractor):
     IE_NAME = 'vier'
+    IE_DESC = 'vier.be and vijf.be'
     _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/(?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))?|video/v3/embed/(?P<embed_id>\d+))'
     _TESTS = [{
         'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',

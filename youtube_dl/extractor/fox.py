@@ -47,9 +47,12 @@ class FOXIE(AdobePassIE):
             resource = self._get_mvpd_resource('fbc-fox', None, ap_p['videoGUID'], rating)
             query['auth'] = self._extract_mvpd_auth(url, video_id, 'fbc-fox', resource)
 
-        return {
+        info = self._search_json_ld(webpage, video_id, fatal=False)
+        info.update({
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
             'url': smuggle_url(update_url_query(release_url, query), {'force_smil_url': True}),
             'id': video_id,
-        }
+        })
+
+        return info
