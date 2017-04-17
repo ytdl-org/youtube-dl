@@ -2594,15 +2594,10 @@ except ImportError:  # Python 2
 
     def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
                         encoding='utf-8', errors='replace'):
-        parsed_result = {}
         pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
                            encoding=encoding, errors=errors)
-        for name, value in pairs:
-            if name in parsed_result:
-                parsed_result[name].append(value)
-            else:
-                parsed_result[name] = [value]
-        return parsed_result
+        return {name:(parsed_result[name] + [value] if name in parsed_result 
+                      else [value]) for name, value in pairs}
 
 try:
     from shlex import quote as compat_shlex_quote
@@ -2630,10 +2625,7 @@ except (AssertionError, UnicodeEncodeError):
 
 
 def compat_ord(c):
-    if type(c) is int:
-        return c
-    else:
-        return ord(c)
+    return c if type(c) is int else ord(c)
 
 
 compat_os_name = os._name if os.name == 'java' else os.name
