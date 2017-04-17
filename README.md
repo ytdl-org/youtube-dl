@@ -382,6 +382,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      a value between 0 (better) and 9 (worse)
                                      for VBR or a specific bitrate like 128K
                                      (default 5)
+    --audio-volume VOLUME            Specify ffmpeg/avconv audio volume, insert 
+				     a value in dB to increase audio volume.
+                                     (default 4)
     --recode-video FORMAT            Encode the video to another format if
                                      necessary (currently supported:
                                      mp4|flv|ogg|webm|mkv|avi)

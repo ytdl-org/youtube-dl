@@ -214,12 +214,13 @@ class FFmpegPostProcessor(PostProcessor):
 
 
 class FFmpegExtractAudioPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
+    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, preferredvolume=None, nopostoverwrites=False):
         FFmpegPostProcessor.__init__(self, downloader)
         if preferredcodec is None:
             preferredcodec = 'best'
         self._preferredcodec = preferredcodec
         self._preferredquality = preferredquality
+        self._preferredvolume = preferredvolume
         self._nopostoverwrites = nopostoverwrites
 
     def run_ffmpeg(self, path, out_path, codec, more_opts):
@@ -265,6 +266,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                         more_opts += ['-q:a', self._preferredquality]
                     else:
                         more_opts += ['-b:a', self._preferredquality + 'k']
+                if self._preferredvolume is not None:
+                    more_opts += ['-af', 'volume=volume='+self._preferredvolume+'dB:precision=fixed']
         else:
             # We convert the audio (lossy if codec is lossy)
             acodec = ACODECS[self._preferredcodec]
@@ -276,6 +279,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                     more_opts += ['-q:a', self._preferredquality]
                 else:
                     more_opts += ['-b:a', self._preferredquality + 'k']
+
+            if self._preferredvolume is not None:
+                more_opts += ['-af', 'volume=volume='+self._preferredvolume+'dB:precision=fixed']
+
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
