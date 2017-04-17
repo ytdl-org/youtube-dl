@@ -170,6 +170,11 @@ class MediahuisIE(InfoExtractor):
             url_type = 'url_transparent'
             # return self.url_result(video_url, 'Medialaan')
 
+        # Source: flvpd.vtm.be/video.medialaancdn.be
+        iframe_m = re.search(r'<script.+?[^>]+videoUrl:\'(.+?)\'', webpage)
+        if iframe_m:
+            video_url = (iframe_m.group(1))
+            
         info = {
             'url': video_url,
             'id': video_id,
