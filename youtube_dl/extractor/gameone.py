@@ -60,7 +60,6 @@ class GameOneIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        og_video = self._og_search_video_url(webpage, secure=False)
         description = self._html_search_meta('description', webpage)
         age_limit = int(
             self._search_regex(
@@ -70,7 +69,7 @@ class GameOneIE(InfoExtractor):
                     webpage),
                 'age_limit',
                 '0'))
-        mrss_url = self._search_regex(r'mrss=([^&]+)', og_video, 'mrss')
+        mrss_url = self._search_regex(r'so.addVariable\("mrss", "(.+?)"\)\;', webpage, 'mrss')
 
         mrss = self._download_xml(mrss_url, video_id, 'Downloading mrss')
         title = mrss.find('.//item/title').text
