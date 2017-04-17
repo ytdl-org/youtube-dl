@@ -2182,7 +2182,7 @@ class InfoExtractor(object):
 
     def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
         mobj = re.search(
-            r'jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)\.setup\s*\((?P<options>[^)]+)\)',
+            r'(?s)jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\).*?\.setup\s*\((?P<options>[^)]+)\)',
             webpage)
         if mobj:
             try:
@@ -2258,11 +2258,17 @@ class InfoExtractor(object):
 
     def _parse_jwplayer_formats(self, jwplayer_sources_data, video_id=None,
                                 m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
+        urls = []
         formats = []
         for source in jwplayer_sources_data:
-            source_url = self._proto_relative_url(source['file'])
+            source_url = self._proto_relative_url(source.get('file'))
+            if not source_url:
+                continue
             if base_url:
                 source_url = compat_urlparse.urljoin(base_url, source_url)
+            if source_url in urls:
+                continue
+            urls.append(source_url)
             source_type = source.get('type') or ''
             ext = mimetype2ext(source_type) or determine_ext(source_url)
             if source_type == 'hls' or ext == 'm3u8':
