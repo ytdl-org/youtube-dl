@@ -20,6 +20,7 @@ class XFileShareIE(InfoExtractor):
         ('daclips.in', 'DaClips'),
         ('filehoot.com', 'FileHoot'),
         ('gorillavid.in', 'GorillaVid'),
+        ('gorillavid.com', 'GorillaVid'),
         ('movpod.in', 'MovPod'),
         ('powerwatch.pw', 'PowerWatch'),
         ('rapidvideo.ws', 'Rapidvideo.ws'),
@@ -32,7 +33,7 @@ class XFileShareIE(InfoExtractor):
         ('vidlo.us', 'vidlo'),
     )
 
-    IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
+    IE_DESC = 'XFileShare based sites: %s' % ', '.join(sorted(set(list(zip(*_SITES))[1])))
     _VALID_URL = (r'https?://(?P<host>(?:www\.)?(?:%s))/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
                   % '|'.join(re.escape(site) for site in list(zip(*_SITES))[0]))
 
