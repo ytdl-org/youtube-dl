@@ -38,14 +38,15 @@ class VeeHDIE(InfoExtractor):
             'title': 'Elysian Fields - Channeling',
             'description': 'md5:360e4e95fdab58aefbea0f2a19e5604b',
             'uploader_id': 'spotted',
-        }
+        },
+        'skip': 'Video deleted',
     }, {
         'url': 'http://veehd.com/video/2046729_2012-2009-DivX-Trailer',
         'info_dict': {
             'id': '2046729',
             'ext': 'avi',
             'title': '2012 (2009) DivX Trailer',
-            'description': 'md5:75435ee95255e6a9838ac6f6f3a2396b',
+            'description': 'md5:2e4b0f1b3f4cc98536e25ca2c901b0f7',
             'uploader_id': 'Movie_Trailers',
         }
     }]
