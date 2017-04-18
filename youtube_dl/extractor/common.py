@@ -976,6 +976,22 @@ class InfoExtractor(object):
             return info
         if isinstance(json_ld, dict):
             json_ld = [json_ld]
+
+        def extract_video_object(e):
+            assert e['@type'] == 'VideoObject'
+            info.update({
+                'url': e.get('contentUrl'),
+                'title': unescapeHTML(e.get('name')),
+                'description': unescapeHTML(e.get('description')),
+                'thumbnail': e.get('thumbnailUrl') or e.get('thumbnailURL'),
+                'duration': parse_duration(e.get('duration')),
+                'timestamp': unified_timestamp(e.get('uploadDate')),
+                'filesize': float_or_none(e.get('contentSize')),
+                'tbr': int_or_none(e.get('bitrate')),
+                'width': int_or_none(e.get('width')),
+                'height': int_or_none(e.get('height')),
+            })
+
         for e in json_ld:
             if e.get('@context') == 'http://schema.org':
                 item_type = e.get('@type')
@@ -1000,18 +1016,11 @@ class InfoExtractor(object):
                         'description': unescapeHTML(e.get('articleBody')),
                     })
                 elif item_type == 'VideoObject':
-                    info.update({
-                        'url': e.get('contentUrl'),
-                        'title': unescapeHTML(e.get('name')),
-                        'description': unescapeHTML(e.get('description')),
-                        'thumbnail': e.get('thumbnailUrl') or e.get('thumbnailURL'),
-                        'duration': parse_duration(e.get('duration')),
-                        'timestamp': unified_timestamp(e.get('uploadDate')),
-                        'filesize': float_or_none(e.get('contentSize')),
-                        'tbr': int_or_none(e.get('bitrate')),
-                        'width': int_or_none(e.get('width')),
-                        'height': int_or_none(e.get('height')),
-                    })
+                    extract_video_object(e)
+                elif item_type == 'WebPage':
+                    video = e.get('video')
+                    if isinstance(video, dict) and video.get('@type') == 'VideoObject':
+                        extract_video_object(video)
                 break
         return dict((k, v) for k, v in info.items() if v is not None)
 
