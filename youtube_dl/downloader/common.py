@@ -83,7 +83,7 @@ class FileDownloader(object):
     def format_percent(percent):
         if percent is None:
             return '---.-%'
-        return '%6s' % ('%3.1f%%' % percent)
+        return '%3s.%.1s%%' % tuple(str(float(percent)).split('.'))
 
     @staticmethod
     def calc_eta(start, now, total, current):
