@@ -146,6 +146,8 @@ class MedialaanIE(InfoExtractor):
                 video_id, transform_source=lambda s: '[%s]' % s, fatal=False)
             if player:
                 video = player[-1]
+                if video['videoUrl'] == "https":
+                    return self.url_result(video['url'], 'Medialaan')
                 info = {
                     'id': video_id,
                     'url': video['videoUrl'],
