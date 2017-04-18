@@ -38,7 +38,7 @@ class OdnoklassnikiIE(InfoExtractor):
     }, {
         # metadataUrl
         'url': 'http://ok.ru/video/63567059965189-0?fromTime=5',
-        'md5': '9676cf86eff5391d35dea675d224e131',
+        'md5': '6ff470ea2dd51d5d18c295a355b0b6bc',
         'info_dict': {
             'id': '63567059965189-0',
             'ext': 'mp4',
@@ -54,7 +54,7 @@ class OdnoklassnikiIE(InfoExtractor):
     }, {
         # YouTube embed (metadataUrl, provider == USER_YOUTUBE)
         'url': 'http://ok.ru/video/64211978996595-1',
-        'md5': '5d7475d428845cd2e13bae6f1a992278',
+        'md5': '2f206894ffb5dbfcce2c5a14b909eea5',
         'info_dict': {
             'id': '64211978996595-1',
             'ext': 'mp4',
@@ -62,8 +62,8 @@ class OdnoklassnikiIE(InfoExtractor):
             'description': 'md5:848eb8b85e5e3471a3a803dae1343ed0',
             'duration': 440,
             'upload_date': '20150826',
-            'uploader_id': '750099571',
-            'uploader': 'Алина П',
+            'uploader_id': 'tvroscosmos',
+            'uploader': 'Телестудия Роскосмоса',
             'age_limit': 0,
         },
     }, {
@@ -82,6 +82,7 @@ class OdnoklassnikiIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'skip': 'Video has not been found',
     }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
         'only_matching': True,
