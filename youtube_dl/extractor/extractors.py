@@ -116,6 +116,7 @@ from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
 )
+from .blick import BlickIE
 from .blinkx import BlinkxIE
 from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
