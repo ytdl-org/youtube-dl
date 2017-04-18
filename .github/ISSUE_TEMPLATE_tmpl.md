@@ -29,7 +29,7 @@
 ### If the purpose of this *issue* is a *bug report*, *site support request* or you are not completely sure provide the full verbose output as follows:
 
 Add `-v` flag to **your command line** you run youtube-dl with, copy the **whole** output and insert it here. It should look similar to one below (replace it with **your** log inserted between triple ```):
-```
+```console
 $ youtube-dl -v <your command line>
 [debug] System config: []
 [debug] User config: []
