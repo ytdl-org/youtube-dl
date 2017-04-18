@@ -258,7 +258,7 @@ class YahooIE(InfoExtractor):
             return self.url_result(bc_url, BrightcoveLegacyIE.ie_key())
 
         # Look for Brightcove New Studio embeds
-        bc_url = BrightcoveNewIE._extract_url(webpage)
+        bc_url = BrightcoveNewIE._extract_url(self, webpage)
         if bc_url:
             return self.url_result(bc_url, BrightcoveNewIE.ie_key())
 

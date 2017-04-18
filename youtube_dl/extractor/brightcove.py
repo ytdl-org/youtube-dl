@@ -484,8 +484,8 @@ class BrightcoveNewIE(InfoExtractor):
     }]
 
     @staticmethod
-    def _extract_url(webpage):
-        urls = BrightcoveNewIE._extract_urls(webpage)
+    def _extract_url(ie, webpage):
+        urls = BrightcoveNewIE._extract_urls(ie, webpage)
         return urls[0] if urls else None
 
     @staticmethod
