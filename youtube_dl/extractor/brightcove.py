@@ -131,6 +131,12 @@ class BrightcoveLegacyIE(InfoExtractor):
             },
             'playlist_mincount': 10,
         },
+        {
+            # playerID inferred from bcpid
+            # from http://www.un.org/chinese/News/story.asp?NewsID=27724
+            'url': 'https://link.brightcove.com/services/player/bcpid1722935254001/?bctid=5360463607001&autoStart=false&secureConnections=true&width=650&height=350',
+            'only_matching': True,  # Tested in GenericIE
+        }
     ]
     FLV_VCODECS = {
         1: 'SORENSON',
@@ -266,9 +272,13 @@ class BrightcoveLegacyIE(InfoExtractor):
         if matches:
             return list(filter(None, [cls._build_brighcove_url(m) for m in matches]))
 
-        return list(filter(None, [
-            cls._build_brighcove_url_from_js(custom_bc)
-            for custom_bc in re.findall(r'(customBC\.createVideo\(.+?\);)', webpage)]))
+        matches = re.findall(r'(customBC\.createVideo\(.+?\);)', webpage)
+        if matches:
+            return list(filter(None, [
+                cls._build_brighcove_url_from_js(custom_bc)
+                for custom_bc in matches]))
+        return [url for _, url in re.findall(
+            r'<iframe[^>]+src=([\'"])((?:https?:)?//link\.brightcove\.com/services/player/(?!\1).+)\1', webpage)]
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -285,6 +295,10 @@ class BrightcoveLegacyIE(InfoExtractor):
         if videoPlayer:
             # We set the original url as the default 'Referer' header
             referer = smuggled_data.get('Referer', url)
+            if 'playerID' not in query:
+                mobj = re.search(r'/bcpid(\d+)', url)
+                if mobj is not None:
+                    query['playerID'] = [mobj.group(1)]
             return self._get_video_info(
                 videoPlayer[0], query, referer=referer)
         elif 'playerKey' in query:

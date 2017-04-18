@@ -1,3 +1,10 @@
+version <unreleased>
+
+Extractors
++ [generic] Support Brightcove videos in <iframe> (#12482)
++ [brightcove] Support URLs with bcpid instead of playerID (#12482)
+
+
 version 2017.04.17
 
 Extractors

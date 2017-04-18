@@ -431,6 +431,22 @@ class GenericIE(InfoExtractor):
             },
         },
         {
+            # Brightcove video in <iframe>
+            'url': 'http://www.un.org/chinese/News/story.asp?NewsID=27724',
+            'md5': '36d74ef5e37c8b4a2ce92880d208b968',
+            'info_dict': {
+                'id': '5360463607001',
+                'ext': 'mp4',
+                'title': '叙利亚失明儿童在废墟上演唱《心跳》  呼吁获得正常童年生活',
+                'description': '联合国儿童基金会中东和北非区域大使、作曲家扎德·迪拉尼（Zade Dirani）在3月15日叙利亚冲突爆发7周年纪念日之际发布了为叙利亚谱写的歌曲《心跳》（HEARTBEAT），为受到六年冲突影响的叙利亚儿童发出强烈呐喊，呼吁世界做出共同努力，使叙利亚儿童重新获得享有正常童年生活的权利。',
+                'uploader': 'United Nations',
+                'uploader_id': '1362235914001',
+                'timestamp': 1489593889,
+                'upload_date': '20170315',
+            },
+            'add_ie': ['BrightcoveLegacy'],
+        },
+        {
             # Brightcove with alternative playerID key
             'url': 'http://www.nature.com/nmeth/journal/v9/n7/fig_tab/nmeth.2062_SV1.html',
             'info_dict': {
