@@ -17,7 +17,7 @@ from ..utils import (
 class MedialaanIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:www\.)?
+                        (?:www\.|nieuws\.)?
                         (?:
                             (?P<site_id>vtm|q2|vtmkzoom)\.be/
                             (?:
