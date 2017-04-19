@@ -187,6 +187,9 @@ class FileDownloader(object):
             return filename[:-len('.part')]
         return filename
 
+    def ytdl_filename(self, filename):
+        return filename + '.ytdl'
+
     def try_rename(self, old_filename, new_filename):
         try:
             if old_filename == new_filename:

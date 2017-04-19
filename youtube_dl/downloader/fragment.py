@@ -3,6 +3,7 @@ from __future__ import division, unicode_literals
 import os
 import time
 import io
+import json
 
 from .common import FileDownloader
 from .http import HttpFD
@@ -63,8 +64,10 @@ class FragmentFD(FileDownloader):
     def _append_fragment(self, ctx, frag_content):
         ctx['dest_stream'].write(frag_content)
         if not (ctx.get('live') or ctx['tmpfilename'] == '-'):
-            frag_index_stream, _ = sanitize_open(ctx['tmpfilename'] + '.fragindex', 'w')
-            frag_index_stream.write(compat_str(ctx['frag_index']))
+            frag_index_stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'w')
+            frag_index_stream.write(json.dumps({
+                'frag_index': ctx['frag_index']
+            }))
             frag_index_stream.close()
 
     def _prepare_frag_download(self, ctx):
@@ -94,9 +97,10 @@ class FragmentFD(FileDownloader):
         if os.path.isfile(encodeFilename(tmpfilename)):
             open_mode = 'ab'
             resume_len = os.path.getsize(encodeFilename(tmpfilename))
-            if os.path.isfile(encodeFilename(tmpfilename + '.fragindex')):
-                frag_index_stream, _ = sanitize_open(tmpfilename + '.fragindex', 'r')
-                frag_index = int(frag_index_stream.read())
+            ytdl_filename = encodeFilename(self.ytdl_filename(ctx['filename']))
+            if os.path.isfile(ytdl_filename):
+                frag_index_stream, _ = sanitize_open(ytdl_filename, 'r')
+                frag_index = json.loads(frag_index_stream.read())['frag_index']
                 frag_index_stream.close()
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 
@@ -167,8 +171,9 @@ class FragmentFD(FileDownloader):
 
     def _finish_frag_download(self, ctx):
         ctx['dest_stream'].close()
-        if os.path.isfile(encodeFilename(ctx['tmpfilename'] + '.fragindex')):
-            os.remove(encodeFilename(ctx['tmpfilename'] + '.fragindex'))
+        ytdl_filename = encodeFilename(self.ytdl_filename(ctx['filename']))
+        if os.path.isfile(ytdl_filename):
+            os.remove(ytdl_filename)
         elapsed = time.time() - ctx['started']
         self.try_rename(ctx['tmpfilename'], ctx['filename'])
         fsize = os.path.getsize(encodeFilename(ctx['filename']))
