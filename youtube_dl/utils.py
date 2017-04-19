@@ -1209,7 +1209,7 @@ def determine_ext(url, default_ext='unknown_video'):
     if url is None:
         return default_ext
     guess = url.partition('?')[0].rpartition('.')[2]
-    if re.match(r'^[A-Za-z0-9]+$', guess):
+    if re.match(r'^[A-Za-z0-9]+$', guess) and guess in KNOWN_EXTENSIONS:
         return guess
     # Try extract ext from URLs like http://example.com/foo/bar.mp4/?download
     elif guess.rstrip('/') in KNOWN_EXTENSIONS:
