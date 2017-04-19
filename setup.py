@@ -83,6 +83,7 @@ else:
     else:
         params['scripts'] = ['bin/youtube-dl']
 
+
 class build_lazy_extractors(Command):
     description = 'Build the extractor lazy loading module'
     user_options = []
