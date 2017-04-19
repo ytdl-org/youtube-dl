@@ -277,7 +277,7 @@ class BrightcoveLegacyIE(InfoExtractor):
             return list(filter(None, [
                 cls._build_brighcove_url_from_js(custom_bc)
                 for custom_bc in matches]))
-        return [url for _, url in re.findall(
+        return [src for _, src in re.findall(
             r'<iframe[^>]+src=([\'"])((?:https?:)?//link\.brightcove\.com/services/player/(?!\1).+)\1', webpage)]
 
     def _real_extract(self, url):
