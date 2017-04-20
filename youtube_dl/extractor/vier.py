@@ -49,16 +49,13 @@ class VierIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _real_initialize(self):
-        self._login()
-
-    def _login(self):
+    def _login(self, site):
         username, password = self._get_login_info()
-        if username is None:
-            return
+        if username is None or password is None:
+            self.raise_login_required()
 
         self._request_webpage(
-            'http://www.vier.be/user/login',
+            'http://www.%s.be/user/login' % site,
             None, note='Logging in', errnote='Could not log in',
             data=urlencode_postdata({
                 'form_id': 'user_login',
@@ -74,6 +71,10 @@ class VierIE(InfoExtractor):
         site = mobj.group('site')
 
         webpage = self._download_webpage(url, display_id)
+
+        if re.search(r'id="user-login"', webpage):
+            self._login(site)
+            webpage = self._download_webpage(url, display_id)
 
         video_id = self._search_regex(
             [r'data-nid="(\d+)"', r'"nid"\s*:\s*"(\d+)"'],
