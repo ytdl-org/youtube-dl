@@ -5,12 +5,16 @@ import re
 import itertools
 
 from .common import InfoExtractor
+from ..utils import (
+    urlencode_postdata,
+)
 
 
 class VierIE(InfoExtractor):
     IE_NAME = 'vier'
     IE_DESC = 'vier.be and vijf.be'
     _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/(?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))?|video/v3/embed/(?P<embed_id>\d+))'
+    _NETRC_MACHINE = 'vier'
     _TESTS = [{
         'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
         'info_dict': {
@@ -44,6 +48,24 @@ class VierIE(InfoExtractor):
         'url': 'http://www.vier.be/video/v3/embed/16129',
         'only_matching': True,
     }]
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        self._request_webpage(
+            'http://www.vier.be/user/login',
+            None, note='Logging in', errnote='Could not log in',
+            data=urlencode_postdata({
+                'form_id': 'user_login',
+                'name': username,
+                'pass': password,
+            }),
+            headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
