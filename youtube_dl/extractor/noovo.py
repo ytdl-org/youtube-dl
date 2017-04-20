@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 from .common import InfoExtractor
-from ..utils import ExtractorError
 
 
 class NoovoIE(InfoExtractor):
@@ -62,9 +61,6 @@ class NoovoIE(InfoExtractor):
         if not brightcove_id:
             brightcove_id = api_content.get('data').get('contents')[0].get('brightcoveId')
 
-        if brightcove_id:
-            return self.url_result(
-                self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id
-            )
-        else:
-            raise ExtractorError('Unable to extract brightcove id from api')
+        return self.url_result(
+            self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id
+        )
