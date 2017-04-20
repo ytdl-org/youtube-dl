@@ -32,6 +32,18 @@ class NoovoIE(InfoExtractor):
             'upload_date': '20170413',
             'uploader_id': '618566855001'
         }
+    }, {
+        'url': 'http://noovo.ca/videos/l-amour-est-dans-le-pre/episode-13-8',
+        'md5': '1199e96fbb93f2d42717115f72097b6b',
+        'info_dict': {
+            'id': '5395865725001',
+            'description': 'md5:336d5ebc5436534e61d16e63ddfca327',
+            'ext': 'mp4',
+            'timestamp': 1492019320,
+            'title': 'md5:2895fdc124639be0ef64ea0d06f5e493',
+            'upload_date': '20170412',
+            'uploader_id': '618566855001'
+        }
     }]
 
     TEMPLATE_API_URL = 'http://api.noovo.ca/api/v1/pages/single-episode/%s'
@@ -43,11 +55,12 @@ class NoovoIE(InfoExtractor):
 
         api_url = self.TEMPLATE_API_URL % video_id
 
-        api_content = self._download_webpage(api_url, video_id)
+        api_content = self._download_json(api_url, video_id)
 
-        brightcove_id = self._search_regex(
-            r'"?brightcoveId"?\s*:\s*"?(\d+)', api_content, 'brightcove id'
-        )
+        brightcove_id = api_content.get('data').get('brightcoveId')
+
+        if not brightcove_id:
+            brightcove_id = api_content.get('data').get('contents')[0].get('brightcoveId')
 
         if brightcove_id:
             return self.url_result(
