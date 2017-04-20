@@ -7,15 +7,19 @@ from ..utils import (
     parse_iso8601,
     mimetype2ext,
     determine_ext,
+    ExtractorError,
 )
 
 
 class AMPIE(InfoExtractor):
     # parse Akamai Adaptive Media Player feed
     def _extract_feed_info(self, url):
-        item = self._download_json(
+        feed = self._download_json(
             url, None, 'Downloading Akamai AMP feed',
-            'Unable to download Akamai AMP feed')['channel']['item']
+            'Unable to download Akamai AMP feed')
+        item = feed.get('channel', {}).get('item')
+        if not item:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, feed['error']))
 
         video_id = item['guid']
 
