@@ -12,7 +12,6 @@ from ..utils import (
     encodeFilename,
     sanitize_open,
     sanitized_Request,
-    compat_str,
 )
 
 
