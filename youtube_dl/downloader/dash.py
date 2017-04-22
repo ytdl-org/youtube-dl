@@ -28,7 +28,7 @@ class DashSegmentsFD(FragmentFD):
         frag_index = 0
         for i, segment in enumerate(segments):
             frag_index += 1
-            if frag_index <= ctx['frag_index']:
+            if frag_index <= ctx['fragment_index']:
                 continue
             # In DASH, the first segment contains necessary headers to
             # generate a valid MP4 file, so always abort for the first segment

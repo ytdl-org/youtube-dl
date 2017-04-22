@@ -227,7 +227,7 @@ class IsmFD(FragmentFD):
         frag_index = 0
         for i, segment in enumerate(segments):
             frag_index += 1
-            if frag_index <= ctx['frag_index']:
+            if frag_index <= ctx['fragment_index']:
                 continue
             count = 0
             while count <= fragment_retries:

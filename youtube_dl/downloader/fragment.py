@@ -66,7 +66,9 @@ class FragmentFD(FileDownloader):
         if not (ctx.get('live') or ctx['tmpfilename'] == '-'):
             frag_index_stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'w')
             frag_index_stream.write(json.dumps({
-                'frag_index': ctx['frag_index']
+                'download': {
+                    'last_fragment_index': ctx['fragment_index']
+                },
             }))
             frag_index_stream.close()
 
@@ -100,7 +102,7 @@ class FragmentFD(FileDownloader):
             ytdl_filename = encodeFilename(self.ytdl_filename(ctx['filename']))
             if os.path.isfile(ytdl_filename):
                 frag_index_stream, _ = sanitize_open(ytdl_filename, 'r')
-                frag_index = json.loads(frag_index_stream.read())['frag_index']
+                frag_index = json.loads(frag_index_stream.read())['download']['last_fragment_index']
                 frag_index_stream.close()
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 
@@ -108,7 +110,7 @@ class FragmentFD(FileDownloader):
             'dl': dl,
             'dest_stream': dest_stream,
             'tmpfilename': tmpfilename,
-            'frag_index': frag_index,
+            'fragment_index': frag_index,
             # Total complete fragments downloaded so far in bytes
             'complete_frags_downloaded_bytes': resume_len,
         })
@@ -120,8 +122,8 @@ class FragmentFD(FileDownloader):
         state = {
             'status': 'downloading',
             'downloaded_bytes': ctx['complete_frags_downloaded_bytes'],
-            'frag_index': ctx['frag_index'],
-            'frag_count': total_frags,
+            'fragment_index': ctx['fragment_index'],
+            'fragment_count': total_frags,
             'filename': ctx['filename'],
             'tmpfilename': ctx['tmpfilename'],
         }
@@ -144,12 +146,12 @@ class FragmentFD(FileDownloader):
             if not ctx['live']:
                 estimated_size = (
                     (ctx['complete_frags_downloaded_bytes'] + frag_total_bytes) /
-                    (state['frag_index'] + 1) * total_frags)
+                    (state['fragment_index'] + 1) * total_frags)
                 state['total_bytes_estimate'] = estimated_size
 
             if s['status'] == 'finished':
-                state['frag_index'] += 1
-                ctx['frag_index'] = state['frag_index']
+                state['fragment_index'] += 1
+                ctx['fragment_index'] = state['fragment_index']
                 state['downloaded_bytes'] += frag_total_bytes - ctx['prev_frag_downloaded_bytes']
                 ctx['complete_frags_downloaded_bytes'] = state['downloaded_bytes']
                 ctx['prev_frag_downloaded_bytes'] = 0

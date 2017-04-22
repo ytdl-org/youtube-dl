@@ -376,7 +376,7 @@ class F4mFD(FragmentFD):
         while fragments_list:
             seg_i, frag_i = fragments_list.pop(0)
             frag_index += 1
-            if frag_index <= ctx['frag_index']:
+            if frag_index <= ctx['fragment_index']:
                 continue
             name = 'Seg%d-Frag%d' % (seg_i, frag_i)
             query = []

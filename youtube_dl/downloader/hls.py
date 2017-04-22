@@ -106,7 +106,7 @@ class HlsFD(FragmentFD):
             if line:
                 if not line.startswith('#'):
                     frag_index += 1
-                    if frag_index <= ctx['frag_index']:
+                    if frag_index <= ctx['fragment_index']:
                         continue
                     frag_url = (
                         line
