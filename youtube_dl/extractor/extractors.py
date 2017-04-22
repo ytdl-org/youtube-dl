@@ -87,7 +87,6 @@ from .azmedien import (
     AZMedienPlaylistIE,
     AZMedienShowPlaylistIE,
 )
-from .azubu import AzubuIE, AzubuLiveIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE
