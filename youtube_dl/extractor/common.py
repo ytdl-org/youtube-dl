@@ -1312,17 +1312,25 @@ class InfoExtractor(object):
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
                               fatal=True, live=False):
-
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
             errnote=errnote or 'Failed to download m3u8 information',
             fatal=fatal)
+
         if res is False:
             return []
+
         m3u8_doc, urlh = res
         m3u8_url = urlh.geturl()
 
+        return self._parse_m3u8_formats(
+            m3u8_doc, m3u8_url, ext=ext, entry_protocol=entry_protocol,
+            preference=preference, m3u8_id=m3u8_id, live=live)
+
+    def _parse_m3u8_formats(self, m3u8_doc, m3u8_url, ext=None,
+                            entry_protocol='m3u8', preference=None,
+                            m3u8_id=None, live=False):
         if '#EXT-X-FAXS-CM:' in m3u8_doc:  # Adobe Flash Access
             return []
 
@@ -1333,19 +1341,21 @@ class InfoExtractor(object):
             if re.match(r'^https?://', u)
             else compat_urlparse.urljoin(m3u8_url, u))
 
-        # We should try extracting formats only from master playlists [1], i.e.
-        # playlists that describe available qualities. On the other hand media
-        # playlists [2] should be returned as is since they contain just the media
-        # without qualities renditions.
+        # References:
+        # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-21
+        # 2. https://github.com/rg3/youtube-dl/issues/12211
+
+        # We should try extracting formats only from master playlists [1, 4.3.4],
+        # i.e. playlists that describe available qualities. On the other hand
+        # media playlists [1, 4.3.3] should be returned as is since they contain
+        # just the media without qualities renditions.
         # Fortunately, master playlist can be easily distinguished from media
-        # playlist based on particular tags availability. As of [1, 2] master
-        # playlist tags MUST NOT appear in a media playist and vice versa.
-        # As of [3] #EXT-X-TARGETDURATION tag is REQUIRED for every media playlist
-        # and MUST NOT appear in master playlist thus we can clearly detect media
-        # playlist with this criterion.
-        # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.4
-        # 2. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3
-        # 3. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.1
+        # playlist based on particular tags availability. As of [1, 4.3.3, 4.3.4]
+        # master playlist tags MUST NOT appear in a media playist and vice versa.
+        # As of [1, 4.3.3.1] #EXT-X-TARGETDURATION tag is REQUIRED for every
+        # media playlist and MUST NOT appear in master playlist thus we can
+        # clearly detect media playlist with this criterion.
+
         if '#EXT-X-TARGETDURATION' in m3u8_doc:  # media playlist, return as is
             return [{
                 'url': m3u8_url,
@@ -1354,52 +1364,67 @@ class InfoExtractor(object):
                 'protocol': entry_protocol,
                 'preference': preference,
             }]
-        audio_in_video_stream = {}
-        last_info = {}
-        last_media = {}
+
+        groups = {}
+        last_stream_inf = {}
+
+        def extract_media(x_media_line):
+            media = parse_m3u8_attributes(x_media_line)
+            # As per [1, 4.3.4.1] TYPE, GROUP-ID and NAME are REQUIRED
+            media_type, group_id, name = media.get('TYPE'), media.get('GROUP-ID'), media.get('NAME')
+            if not (media_type and group_id and name):
+                return
+            groups.setdefault(group_id, []).append(media)
+            if media_type not in ('VIDEO', 'AUDIO'):
+                return
+            media_url = media.get('URI')
+            if media_url:
+                format_id = []
+                for v in (group_id, name):
+                    if v:
+                        format_id.append(v)
+                f = {
+                    'format_id': '-'.join(format_id),
+                    'url': format_url(media_url),
+                    'language': media.get('LANGUAGE'),
+                    'ext': ext,
+                    'protocol': entry_protocol,
+                    'preference': preference,
+                }
+                if media_type == 'AUDIO':
+                    f['vcodec'] = 'none'
+                formats.append(f)
+
+        def build_stream_name():
+            # Despite specification does not mention NAME attribute for
+            # EXT-X-STREAM-INF it still sometimes may be present
+            stream_name = last_stream_inf.get('NAME')
+            if stream_name:
+                return stream_name
+            # If there is no NAME in EXT-X-STREAM-INF it will be obtained
+            # from corresponding rendition group
+            stream_group_id = last_stream_inf.get('VIDEO')
+            if not stream_group_id:
+                return
+            stream_group = groups.get(stream_group_id)
+            if not stream_group:
+                return stream_group_id
+            rendition = stream_group[0]
+            return rendition.get('NAME') or stream_group_id
+
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
-                last_info = parse_m3u8_attributes(line)
+                last_stream_inf = parse_m3u8_attributes(line)
             elif line.startswith('#EXT-X-MEDIA:'):
-                media = parse_m3u8_attributes(line)
-                media_type = media.get('TYPE')
-                if media_type in ('VIDEO', 'AUDIO'):
-                    group_id = media.get('GROUP-ID')
-                    media_url = media.get('URI')
-                    if media_url:
-                        format_id = []
-                        for v in (group_id, media.get('NAME')):
-                            if v:
-                                format_id.append(v)
-                        f = {
-                            'format_id': '-'.join(format_id),
-                            'url': format_url(media_url),
-                            'language': media.get('LANGUAGE'),
-                            'ext': ext,
-                            'protocol': entry_protocol,
-                            'preference': preference,
-                        }
-                        if media_type == 'AUDIO':
-                            f['vcodec'] = 'none'
-                            if group_id and not audio_in_video_stream.get(group_id):
-                                audio_in_video_stream[group_id] = False
-                        formats.append(f)
-                    else:
-                        # When there is no URI in EXT-X-MEDIA let this tag's
-                        # data be used by regular URI lines below
-                        last_media = media
-                        if media_type == 'AUDIO' and group_id:
-                            audio_in_video_stream[group_id] = True
+                extract_media(line)
             elif line.startswith('#') or not line.strip():
                 continue
             else:
-                tbr = int_or_none(last_info.get('AVERAGE-BANDWIDTH') or last_info.get('BANDWIDTH'), scale=1000)
+                tbr = int_or_none(last_stream_inf.get('AVERAGE-BANDWIDTH') or last_stream_inf.get('BANDWIDTH'), scale=1000)
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
-                # Despite specification does not mention NAME attribute for
-                # EXT-X-STREAM-INF it still sometimes may be present
-                stream_name = last_info.get('NAME') or last_media.get('NAME')
+                stream_name = build_stream_name()
                 # Bandwidth of live streams may differ over time thus making
                 # format_id unpredictable. So it's better to keep provided
                 # format_id intact.
@@ -1412,11 +1437,11 @@ class InfoExtractor(object):
                     'manifest_url': manifest_url,
                     'tbr': tbr,
                     'ext': ext,
-                    'fps': float_or_none(last_info.get('FRAME-RATE')),
+                    'fps': float_or_none(last_stream_inf.get('FRAME-RATE')),
                     'protocol': entry_protocol,
                     'preference': preference,
                 }
-                resolution = last_info.get('RESOLUTION')
+                resolution = last_stream_inf.get('RESOLUTION')
                 if resolution:
                     mobj = re.search(r'(?P<width>\d+)[xX](?P<height>\d+)', resolution)
                     if mobj:
@@ -1432,13 +1457,26 @@ class InfoExtractor(object):
                         'vbr': vbr,
                         'abr': abr,
                     })
-                f.update(parse_codecs(last_info.get('CODECS')))
-                if audio_in_video_stream.get(last_info.get('AUDIO')) is False and f['vcodec'] != 'none':
-                    # TODO: update acodec for audio only formats with the same GROUP-ID
-                    f['acodec'] = 'none'
+                codecs = parse_codecs(last_stream_inf.get('CODECS'))
+                f.update(codecs)
+                audio_group_id = last_stream_inf.get('AUDIO')
+                # As per [1, 4.3.4.1.1] any EXT-X-STREAM-INF tag which
+                # references a rendition group MUST have a CODECS attribute.
+                # However, this is not always respected, for example, [2]
+                # contains EXT-X-STREAM-INF tag which references AUDIO
+                # rendition group but does not have CODECS and despite
+                # referencing audio group an audio group, it represents
+                # a complete (with audio and video) format. So, for such cases
+                # we will ignore references to rendition groups and treat them
+                # as complete formats.
+                if audio_group_id and codecs and f.get('vcodec') != 'none':
+                    audio_group = groups.get(audio_group_id)
+                    if audio_group and audio_group[0].get('URI'):
+                        # TODO: update acodec for audio only formats with
+                        # the same GROUP-ID
+                        f['acodec'] = 'none'
                 formats.append(f)
-                last_info = {}
-                last_media = {}
+                last_stream_inf = {}
         return formats
 
     @staticmethod
