@@ -522,7 +522,7 @@ class BrightcoveNewIE(InfoExtractor):
         # [2] looks like:
         for video, script_tag, account_id, player_id, embed in re.findall(
                 r'''(?isx)
-                    (<video\s+[^>]+>)
+                    (<video\s+[^>]*data-video-id=['"]?[^>]+>)
                     (?:.*?
                         (<script[^>]+
                             src=["\'](?:https?:)?//players\.brightcove\.net/
