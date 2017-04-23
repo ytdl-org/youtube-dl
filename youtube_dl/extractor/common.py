@@ -1397,7 +1397,9 @@ class InfoExtractor(object):
 
         def build_stream_name():
             # Despite specification does not mention NAME attribute for
-            # EXT-X-STREAM-INF it still sometimes may be present
+            # EXT-X-STREAM-INF tag (see [1] or vidio test in
+            # test_parse_m3u8_formats) it still sometimes may be present
+            # 1. http://www.vidio.com/watch/165683-dj_ambred-booyah-live-2015
             stream_name = last_stream_inf.get('NAME')
             if stream_name:
                 return stream_name

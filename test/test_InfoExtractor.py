@@ -361,7 +361,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'ext': 'mp4',
                     'format_id': '155',
                     'protocol': 'm3u8',
-                    'tbr': 155,
+                    'tbr': 155.648,
                     'width': 320,
                     'height': 180,
                 }, {
@@ -370,7 +370,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'ext': 'mp4',
                     'format_id': '502',
                     'protocol': 'm3u8',
-                    'tbr': 502,
+                    'tbr': 502.784,
                     'width': 480,
                     'height': 270,
                 }, {
@@ -379,7 +379,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'ext': 'mp4',
                     'format_id': '827',
                     'protocol': 'm3u8',
-                    'tbr': 827,
+                    'tbr': 827.392,
                     'width': 640,
                     'height': 360,
                 }, {
@@ -388,7 +388,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'ext': 'mp4',
                     'format_id': '1396',
                     'protocol': 'm3u8',
-                    'tbr': 1396,
+                    'tbr': 1396.736,
                     'width': 854,
                     'height': 480,
                 }]
@@ -413,7 +413,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'protocol': 'm3u8',
                     'acodec': 'mp4a.40.2',
                     'vcodec': 'none',
-                    'tbr': 182,
+                    'tbr': 182.725,
                 }, {
                     'url': 'https://vod.edgecast.hls.ttvnw.net/e5da31ab49_riotgames_15001215120_261543898/mobile/index-muted-HM49I092CC.m3u8',
                     'manifest_url': 'https://vod.edgecast.hls.ttvnw.net/e5da31ab49_riotgames_15001215120_261543898/mobile/index-muted-HM49I092CC.m3u8',
@@ -422,7 +422,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'protocol': 'm3u8',
                     'acodec': 'mp4a.40.2',
                     'vcodec': 'avc1.42C00D',
-                    'tbr': 280,
+                    'tbr': 280.474,
                     'width': 400,
                     'height': 226,
                 }, {
@@ -433,7 +433,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'protocol': 'm3u8',
                     'acodec': 'mp4a.40.2',
                     'vcodec': 'avc1.42C01E',
-                    'tbr': 628,
+                    'tbr': 628.347,
                     'width': 640,
                     'height': 360,
                 }, {
@@ -444,7 +444,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'protocol': 'm3u8',
                     'acodec': 'mp4a.40.2',
                     'vcodec': 'avc1.42C01E',
-                    'tbr': 893,
+                    'tbr': 893.387,
                     'width': 852,
                     'height': 480,
                 }, {
@@ -455,7 +455,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'protocol': 'm3u8',
                     'acodec': 'mp4a.40.2',
                     'vcodec': 'avc1.42C01F',
-                    'tbr': 1603,
+                    'tbr': 1603.789,
                     'width': 1280,
                     'height': 720,
                 }, {
@@ -466,7 +466,50 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'protocol': 'm3u8',
                     'acodec': 'mp4a.40.2',
                     'vcodec': 'avc1.100.31',
-                    'tbr': 3214,
+                    'tbr': 3214.134,
+                    'width': 1280,
+                    'height': 720,
+                }]
+            ),
+            (
+                # http://www.vidio.com/watch/165683-dj_ambred-booyah-live-2015
+                # EXT-X-STREAM-INF tag with NAME attribute that is not defined
+                # in HLS specification
+                'vidio',
+                'https://www.vidio.com/videos/165683/playlist.m3u8',
+                [{
+                    'url': 'https://www.vidio.com/videos/165683/playlist.m3u8',
+                    'ext': 'mp4',
+                    'format_id': 'meta',
+                    'format_note': 'Quality selection URL',
+                    'protocol': 'm3u8',
+                    'preference': -100,
+                    'resolution': 'multiple'
+                }, {
+                    'url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b300.mp4.m3u8',
+                    'manifest_url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b300.mp4.m3u8',
+                    'ext': 'mp4',
+                    'format_id': '270p 3G',
+                    'protocol': 'm3u8',
+                    'tbr': 300,
+                    'width': 480,
+                    'height': 270,
+                }, {
+                    'url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b600.mp4.m3u8',
+                    'manifest_url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b600.mp4.m3u8',
+                    'ext': 'mp4',
+                    'format_id': '360p SD',
+                    'protocol': 'm3u8',
+                    'tbr': 600,
+                    'width': 640,
+                    'height': 360,
+                }, {
+                    'url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b1200.mp4.m3u8',
+                    'manifest_url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b1200.mp4.m3u8',
+                    'ext': 'mp4',
+                    'format_id': '720p HD',
+                    'protocol': 'm3u8',
+                    'tbr': 1200,
                     'width': 1280,
                     'height': 720,
                 }]
