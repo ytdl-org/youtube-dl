@@ -20,14 +20,10 @@ from ..utils import (
 
 
 class HttpFD(FileDownloader):
-    def real_download(self, filename_or_stream, info_dict):
+    def real_download(self, filename, info_dict):
         url = info_dict['url']
-        filename = filename_or_stream
-        stream = None
-        if hasattr(filename_or_stream, 'write'):
-            stream = filename_or_stream
-            filename = '-'
         tmpfilename = self.temp_name(filename)
+        stream = None
 
         # Do not include the Accept-Encoding header
         headers = {'Youtubedl-no-compression': 'True'}

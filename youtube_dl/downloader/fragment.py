@@ -2,7 +2,6 @@ from __future__ import division, unicode_literals
 
 import os
 import time
-import io
 import json
 
 from .common import FileDownloader
@@ -48,28 +47,42 @@ class FragmentFD(FileDownloader):
         self._prepare_frag_download(ctx)
         self._start_frag_download(ctx)
 
+    def _read_ytdl_file(self, ctx):
+        stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'r')
+        ctx['fragment_index'] = json.loads(stream.read())['download']['current_fragment_index']
+        stream.close()
+
+    def _write_ytdl_file(self, ctx):
+        frag_index_stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'w')
+        frag_index_stream.write(json.dumps({
+            'download': {
+                'current_fragment_index': ctx['fragment_index']
+            },
+        }))
+        frag_index_stream.close()
+
     def _download_fragment(self, ctx, frag_url, info_dict, headers=None):
-        down = io.BytesIO()
-        success = ctx['dl'].download(down, {
+        fragment_filename = '%s-Frag%d' % (ctx['tmpfilename'], ctx['fragment_index'])
+        success = ctx['dl'].download(fragment_filename, {
             'url': frag_url,
             'http_headers': headers or info_dict.get('http_headers'),
         })
         if not success:
             return False, None
-        frag_content = down.getvalue()
+        down, frag_sanitized = sanitize_open(fragment_filename, 'rb')
+        ctx['fragment_filename_sanitized'] = frag_sanitized
+        frag_content = down.read()
         down.close()
         return True, frag_content
 
     def _append_fragment(self, ctx, frag_content):
-        ctx['dest_stream'].write(frag_content)
-        if not (ctx.get('live') or ctx['tmpfilename'] == '-'):
-            frag_index_stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'w')
-            frag_index_stream.write(json.dumps({
-                'download': {
-                    'last_fragment_index': ctx['fragment_index']
-                },
-            }))
-            frag_index_stream.close()
+        try:
+            ctx['dest_stream'].write(frag_content)
+        finally:
+            if not (ctx.get('live') or ctx['tmpfilename'] == '-'):
+                self._write_ytdl_file(ctx)
+            os.remove(ctx['fragment_filename_sanitized'])
+            del ctx['fragment_filename_sanitized']
 
     def _prepare_frag_download(self, ctx):
         if 'live' not in ctx:
@@ -93,23 +106,29 @@ class FragmentFD(FileDownloader):
         tmpfilename = self.temp_name(ctx['filename'])
         open_mode = 'wb'
         resume_len = 0
-        frag_index = 0
+
         # Establish possible resume length
         if os.path.isfile(encodeFilename(tmpfilename)):
             open_mode = 'ab'
             resume_len = os.path.getsize(encodeFilename(tmpfilename))
-            ytdl_filename = encodeFilename(self.ytdl_filename(ctx['filename']))
-            if os.path.isfile(ytdl_filename):
-                frag_index_stream, _ = sanitize_open(ytdl_filename, 'r')
-                frag_index = json.loads(frag_index_stream.read())['download']['last_fragment_index']
-                frag_index_stream.close()
+
+        ctx['fragment_index'] = 0
+        if os.path.isfile(encodeFilename(self.ytdl_filename(ctx['filename']))):
+            self._read_ytdl_file(ctx)
+        else:
+            self._write_ytdl_file(ctx)
+
+        if ctx['fragment_index'] > 0:
+            assert resume_len > 0
+        else:
+            assert resume_len == 0
+
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 
         ctx.update({
             'dl': dl,
             'dest_stream': dest_stream,
             'tmpfilename': tmpfilename,
-            'fragment_index': frag_index,
             # Total complete fragments downloaded so far in bytes
             'complete_frags_downloaded_bytes': resume_len,
         })
