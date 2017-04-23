@@ -29,6 +29,8 @@ class FragmentFD(FileDownloader):
                         and hlsnative only)
     skip_unavailable_fragments:
                         Skip unavailable fragments (DASH and hlsnative only)
+    keep_fragments:     Keep downloaded fragments on disk after downloading is
+                        finished
     """
 
     def report_retry_fragment(self, err, frag_index, count, retries):
@@ -81,7 +83,8 @@ class FragmentFD(FileDownloader):
         finally:
             if not (ctx.get('live') or ctx['tmpfilename'] == '-'):
                 self._write_ytdl_file(ctx)
-            os.remove(ctx['fragment_filename_sanitized'])
+            if not self.params.get('keep_fragments', False):
+                os.remove(ctx['fragment_filename_sanitized'])
             del ctx['fragment_filename_sanitized']
 
     def _prepare_frag_download(self, ctx):
