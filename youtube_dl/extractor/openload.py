@@ -1,17 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import os
 import re
-import subprocess
-import tempfile
 
 from .common import InfoExtractor
 from ..utils import (
-    check_executable,
     determine_ext,
-    encodeArgument,
     ExtractorError,
+    get_element_by_id,
+    PhantomJSwrapper,
 )
 
 
@@ -62,38 +59,7 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    _PHANTOMJS_SCRIPT = r'''
-        phantom.onError = function(msg, trace) {
-          var msgStack = ['PHANTOM ERROR: ' + msg];
-          if(trace && trace.length) {
-            msgStack.push('TRACE:');
-            trace.forEach(function(t) {
-              msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line
-                + (t.function ? ' (in function ' + t.function +')' : ''));
-            });
-          }
-          console.error(msgStack.join('\n'));
-          phantom.exit(1);
-        };
-        var page = require('webpage').create();
-        page.settings.resourceTimeout = 10000;
-        page.onInitialized = function() {
-          page.evaluate(function() {
-            delete window._phantom;
-            delete window.callPhantom;
-          });
-        };
-        page.open('https://openload.co/embed/%s/', function(status) {
-          var info = page.evaluate(function() {
-            return {
-              decoded_id: document.getElementById('streamurl').innerHTML,
-              title: document.querySelector('meta[name="og:title"],'
-                + 'meta[name=description]').content
-            };
-          });
-          console.log(info.decoded_id + ' ' + info.title);
-          phantom.exit();
-        });'''
+    _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
 
     @staticmethod
     def _extract_urls(webpage):
@@ -102,39 +68,26 @@ class OpenloadIE(InfoExtractor):
             webpage)
 
     def _real_extract(self, url):
-        exe = check_executable('phantomjs', ['-v'])
-        if not exe:
-            raise ExtractorError('PhantomJS executable not found in PATH, '
-                                 'download it from http://phantomjs.org',
-                                 expected=True)
-
         video_id = self._match_id(url)
         url = 'https://openload.co/embed/%s/' % video_id
-        webpage = self._download_webpage(url, video_id)
+        headers = {
+            'User-Agent': self._USER_AGENT,
+        }
+
+        phantom = PhantomJSwrapper(self)
+        webpage, _ = phantom.get(url, video_id=video_id, headers=headers)
 
         if 'File not found' in webpage or 'deleted by the owner' in webpage:
             raise ExtractorError('File not found', expected=True, video_id=video_id)
 
-        script_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
-
-        # write JS script to file and close it
-        with script_file:
-            script_file.write(self._PHANTOMJS_SCRIPT % video_id)
-
-        self.to_screen('%s: Decoding video ID with PhantomJS' % video_id)
-
-        p = subprocess.Popen([exe, '--ssl-protocol=any', script_file.name],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, err = p.communicate()
-        if p.returncode != 0:
-            raise ExtractorError('Decoding failed\n:'
-                                 + encodeArgument(err))
-        else:
-            decoded_id, title = encodeArgument(output).strip().split(' ', 1)
-
-        os.remove(script_file.name)
+        decoded_id = get_element_by_id('streamurl', webpage)
 
         video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
+
+        title = self._og_search_title(webpage, default=None) or self._search_regex(
+            r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
+            'title', default=None) or self._html_search_meta(
+            'description', webpage, 'title', fatal=True)
 
         entries = self._parse_html5_media_entries(url, webpage, video_id)
         entry = entries[0] if entries else {}
@@ -148,5 +101,6 @@ class OpenloadIE(InfoExtractor):
             # Seems all videos have extensions in their titles
             'ext': determine_ext(title, 'mp4'),
             'subtitles': subtitles,
+            'http_headers': headers,
         }
         return info_dict
