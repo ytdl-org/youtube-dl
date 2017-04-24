@@ -31,6 +31,24 @@ class FragmentFD(FileDownloader):
                         Skip unavailable fragments (DASH and hlsnative only)
     keep_fragments:     Keep downloaded fragments on disk after downloading is
                         finished
+
+    For each incomplete fragment download youtube-dl keeps on disk a special
+    bookkeeping file with download state and metadata (in future such files will
+    be used for any incomplete download handled by youtube-dl). This file is
+    used to properly handle resuming, check download file consistency and detect
+    potential errors. The file has a .ytdl extension and represents a standard
+    JSON file of the following format:
+
+    extractor:
+        Dictionary of extractor related data. TBD.
+
+    downloader:
+        Dictionary of downloader related data. May contain following data:
+            current_fragment:
+                Dictionary with current (being downloaded) fragment data:
+                index:  Index of current fragment among all fragments
+            fragment_count:
+                Total count of fragments
     """
 
     def report_retry_fragment(self, err, frag_index, count, retries):
@@ -55,16 +73,19 @@ class FragmentFD(FileDownloader):
 
     def _read_ytdl_file(self, ctx):
         stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'r')
-        ctx['fragment_index'] = json.loads(stream.read())['download']['current_fragment_index']
+        ctx['fragment_index'] = json.loads(stream.read())['downloader']['current_fragment']['index']
         stream.close()
 
     def _write_ytdl_file(self, ctx):
         frag_index_stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'w')
-        frag_index_stream.write(json.dumps({
-            'download': {
-                'current_fragment_index': ctx['fragment_index']
+        downloader = {
+            'current_fragment': {
+                'index': ctx['fragment_index'],
             },
-        }))
+        }
+        if ctx.get('fragment_count') is not None:
+            downloader['fragment_count'] = ctx['fragment_count']
+        frag_index_stream.write(json.dumps({'downloader': downloader}))
         frag_index_stream.close()
 
     def _download_fragment(self, ctx, frag_url, info_dict, headers=None):
