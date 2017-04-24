@@ -49,6 +49,10 @@ class FragmentFD(FileDownloader):
         self._prepare_frag_download(ctx)
         self._start_frag_download(ctx)
 
+    @staticmethod
+    def __do_ytdl_file(ctx):
+        return not ctx['live'] and not ctx['tmpfilename'] == '-'
+
     def _read_ytdl_file(self, ctx):
         stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'r')
         ctx['fragment_index'] = json.loads(stream.read())['download']['current_fragment_index']
@@ -81,7 +85,7 @@ class FragmentFD(FileDownloader):
         try:
             ctx['dest_stream'].write(frag_content)
         finally:
-            if not (ctx.get('live') or ctx['tmpfilename'] == '-'):
+            if self.__do_ytdl_file(ctx):
                 self._write_ytdl_file(ctx)
             if not self.params.get('keep_fragments', False):
                 os.remove(ctx['fragment_filename_sanitized'])
@@ -115,16 +119,21 @@ class FragmentFD(FileDownloader):
             open_mode = 'ab'
             resume_len = os.path.getsize(encodeFilename(tmpfilename))
 
-        ctx['fragment_index'] = 0
-        if os.path.isfile(encodeFilename(self.ytdl_filename(ctx['filename']))):
-            self._read_ytdl_file(ctx)
-        else:
-            self._write_ytdl_file(ctx)
+        # Should be initialized before ytdl file check
+        ctx.update({
+            'tmpfilename': tmpfilename,
+            'fragment_index': 0,
+        })
 
-        if ctx['fragment_index'] > 0:
-            assert resume_len > 0
-        else:
-            assert resume_len == 0
+        if self.__do_ytdl_file(ctx):
+            if os.path.isfile(encodeFilename(self.ytdl_filename(ctx['filename']))):
+                self._read_ytdl_file(ctx)
+            else:
+                self._write_ytdl_file(ctx)
+            if ctx['fragment_index'] > 0:
+                assert resume_len > 0
+            else:
+                assert resume_len == 0
 
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 
@@ -194,9 +203,10 @@ class FragmentFD(FileDownloader):
 
     def _finish_frag_download(self, ctx):
         ctx['dest_stream'].close()
-        ytdl_filename = encodeFilename(self.ytdl_filename(ctx['filename']))
-        if os.path.isfile(ytdl_filename):
-            os.remove(ytdl_filename)
+        if self.__do_ytdl_file(ctx):
+            ytdl_filename = encodeFilename(self.ytdl_filename(ctx['filename']))
+            if os.path.isfile(ytdl_filename):
+                os.remove(ytdl_filename)
         elapsed = time.time() - ctx['started']
         self.try_rename(ctx['tmpfilename'], ctx['filename'])
         fsize = os.path.getsize(encodeFilename(ctx['filename']))
