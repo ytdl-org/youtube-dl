@@ -149,26 +149,25 @@ class MediahuisIE(InfoExtractor):
         description = self._og_search_description(webpage)
         url_type = None
 
-        iframe_m = re.search(r'<script[^>]+src="(.+?kaltura.com.*?)"', webpage)
+        iframe_m = re.search(r'<script[^>]+src="(.+?kaltura\.com.*?)"', webpage)
         if iframe_m:
             video_url = smuggle_url(KalturaIE._extract_url(webpage), {'source_url': url})
             url_type = 'url_transparent'
 
-        iframe_m = re.search(r'<iframe[^>]+src="(.+?vier.be.*?)"', webpage)
+        iframe_m = re.search(r'<iframe[^>]+src="(.+?vier\.be.*?)"', webpage)
         if iframe_m:
             video_url = (iframe_m.group(1))
             url_type = 'url_transparent'
 
-        iframe_m = re.search(r'<iframe[^>]+src="(.+?vrt.be.*?)"', webpage)
+        iframe_m = re.search(r'<iframe[^>]+src="(.+?vrt\.be.*?)"', webpage)
         if iframe_m:
             webpage = self._download_webpage(iframe_m.group(1), "vrt-iframe")
-            video_url = self._search_regex(r'sources.pdl = "(.*?)";', webpage, 'vrt-video')
+            video_url = self._search_regex(r'sources.pdl\s*=\s*"(.*?)";', webpage, 'vrt-video')
 
-        iframe_m = re.search(r'<iframe[^>]+src="(.+?vmma.be.*?)"', webpage)
+        iframe_m = re.search(r'<iframe[^>]+src="(.+?vmma\.be.*?)"', webpage)
         if iframe_m:
             video_url = (iframe_m.group(1))
             url_type = 'url_transparent'
-            # return self.url_result(video_url, 'Medialaan')
 
         # Source: flvpd.vtm.be/video.medialaancdn.be
         iframe_m = re.search(r'<script.+?[^>]+videoUrl:\'(.+?)\'', webpage)
