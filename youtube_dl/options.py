@@ -726,7 +726,7 @@ def parseOpts(overrideArguments=None):
         action='store_false', dest='updatetime', default=True,
         help='Do not use the Last-modified header to set the file modification time')
     filesystem.add_option(
-        '--write-description',
+        '-d','--write-description',
         action='store_true', dest='writedescription', default=False,
         help='Write video description to a .description file')
     filesystem.add_option(
