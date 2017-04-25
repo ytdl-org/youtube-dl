@@ -46,9 +46,11 @@ class FragmentFD(FileDownloader):
         Dictionary of downloader related data. May contain following data:
             current_fragment:
                 Dictionary with current (being downloaded) fragment data:
-                index:  Index of current fragment among all fragments
+                index:  0-based index of current fragment among all fragments
             fragment_count:
                 Total count of fragments
+                
+    This feature is experimental and file format may change in future.
     """
 
     def report_retry_fragment(self, err, frag_index, count, retries):
