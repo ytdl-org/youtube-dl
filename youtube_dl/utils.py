@@ -3759,6 +3759,37 @@ def write_xattr(path, key, value):
                         "or the 'xattr' binary.")
 
 
+def cookie_to_dict(cookie):
+    cookie_dict = {
+        'name': cookie.name,
+        'value': cookie.value,
+    };
+    if cookie.port_specified:
+        cookie_dict['port'] = cookie.port
+    if cookie.domain_specified:
+        cookie_dict['domain'] = cookie.domain
+    if cookie.path_specified:
+        cookie_dict['path'] = cookie.path
+    if not cookie.expires is None:
+        cookie_dict['expires'] = cookie.expires
+    if not cookie.secure is None:
+        cookie_dict['secure'] = cookie.secure
+    if not cookie.discard is None:
+        cookie_dict['discard'] = cookie.discard
+    try:
+        if (cookie.has_nonstandard_attr('httpOnly') or
+            cookie.has_nonstandard_attr('httponly') or
+            cookie.has_nonstandard_attr('HttpOnly')):
+            cookie_dict['httponly'] = True
+    except TypeError:
+        pass
+    return cookie_dict
+
+
+def cookie_jar_to_list(cookie_jar):
+    return [cookie_to_dict(cookie) for cookie in cookie_jar]
+
+
 class PhantomJSwrapper(object):
     """PhantomJS wrapper class"""
 
@@ -3779,6 +3810,9 @@ class PhantomJSwrapper(object):
         var fs = require('fs');
         var read = {{ mode: 'r', charset: 'utf-8' }};
         var write = {{ mode: 'w', charset: 'utf-8' }};
+        JSON.parse(fs.read("{cookies}", read)).forEach(function(x) {{
+          phantom.addCookie(x);
+        }});
         page.settings.resourceTimeout = {timeout};
         page.settings.userAgent = "{ua}";
         page.onLoadStarted = function() {{
@@ -3789,6 +3823,7 @@ class PhantomJSwrapper(object):
         }};
         var saveAndExit = function() {{
           fs.write("{html}", page.content, write);
+          fs.write("{cookies}", JSON.stringify(phantom.cookies), write);
           phantom.exit();
         }};
         page.onLoadFinished = function(status) {{
@@ -3802,7 +3837,7 @@ class PhantomJSwrapper(object):
         page.open("");
     '''
 
-    _TMP_FILE_NAMES = ['script', 'html']
+    _TMP_FILE_NAMES = ['script', 'html', 'cookies']
 
     def __init__(self, extractor, timeout=10000):
         self.exe = check_executable('phantomjs', ['-v'])
@@ -3826,6 +3861,26 @@ class PhantomJSwrapper(object):
                 os.remove(self._TMP_FILES[name].name)
             except:
                 pass
+
+    def _save_cookies(self, url):
+        cookies = cookie_jar_to_list(self.extractor._downloader.cookiejar)
+        for cookie in cookies:
+            if 'path' not in cookie:
+                cookie['path'] = '/'
+            if 'domain' not in cookie:
+                cookie['domain'] = compat_urlparse.urlparse(url).netloc
+        with open(self._TMP_FILES['cookies'].name, 'wb') as f:
+            f.write(json.dumps(cookies).encode('utf-8'))
+
+    def _load_cookies(self):
+        with open(self._TMP_FILES['cookies'].name, 'rb') as f:
+            cookies = json.loads(f.read().decode('utf-8'))
+        for cookie in cookies:
+            if cookie['httponly'] is True:
+                cookie['rest'] = { 'httpOnly': None }
+            if 'expiry' in cookie:
+                cookie['expire_time'] = cookie['expiry']
+            self.extractor._set_cookie(**cookie)
 
     def get(self, url, html=None, video_id=None, note=None, note2='Executing JS on webpage', headers={}, jscode='saveAndExit();'):
         """
@@ -3870,6 +3925,8 @@ class PhantomJSwrapper(object):
         with open(self._TMP_FILES['html'].name, 'wb') as f:
             f.write(html.encode('utf-8'))
 
+        self._save_cookies(url)
+
         replaces = self.options
         replaces['url'] = url
         user_agent = headers.get('User-Agent') or std_headers['User-Agent']
@@ -3896,5 +3953,8 @@ class PhantomJSwrapper(object):
                                  + encodeArgument(err))
         with open(self._TMP_FILES['html'].name, 'rb') as f:
             html = f.read().decode('utf-8')
+
+        self._load_cookies()
+
         return (html, encodeArgument(out))
 
