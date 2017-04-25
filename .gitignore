@@ -35,6 +35,7 @@ updates_key.pem
 *.mkv
 *.swf
 *.part
+*.ytdl
 *.swp
 test/local_parameters.json
 .tox
