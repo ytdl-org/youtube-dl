@@ -1334,7 +1334,7 @@ class InfoExtractor(object):
         if '#EXT-X-FAXS-CM:' in m3u8_doc:  # Adobe Flash Access
             return []
 
-        formats = [self._m3u8_meta_format(m3u8_url, ext, preference, m3u8_id)]
+        formats = []
 
         format_url = lambda u: (
             u
@@ -1438,7 +1438,7 @@ class InfoExtractor(object):
                 f = {
                     'format_id': '-'.join(format_id),
                     'url': manifest_url,
-                    'manifest_url': manifest_url,
+                    'manifest_url': m3u8_url,
                     'tbr': tbr,
                     'ext': ext,
                     'fps': float_or_none(last_stream_inf.get('FRAME-RATE')),

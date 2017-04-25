@@ -184,14 +184,6 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 'pluzz_francetv_11507',
                 'http://replayftv-vh.akamaihd.net/i/streaming-adaptatif_france-dom-tom/2017/S16/J2/156589847-58f59130c1f52-,standard1,standard2,standard3,standard4,standard5,.mp4.csmil/master.m3u8?caption=2017%2F16%2F156589847-1492488987.m3u8%3Afra%3AFrancais&audiotrack=0%3Afra%3AFrancais',
                 [{
-                    'url': 'http://replayftv-vh.akamaihd.net/i/streaming-adaptatif_france-dom-tom/2017/S16/J2/156589847-58f59130c1f52-,standard1,standard2,standard3,standard4,standard5,.mp4.csmil/master.m3u8?caption=2017%2F16%2F156589847-1492488987.m3u8%3Afra%3AFrancais&audiotrack=0%3Afra%3AFrancais',
-                    'ext': 'mp4',
-                    'format_id': 'meta',
-                    'format_note': 'Quality selection URL',
-                    'protocol': 'm3u8',
-                    'preference': -100,
-                    'resolution': 'multiple'
-                }, {
                     'url': 'http://replayftv-vh.akamaihd.net/i/streaming-adaptatif_france-dom-tom/2017/S16/J2/156589847-58f59130c1f52-,standard1,standard2,standard3,standard4,standard5,.mp4.csmil/index_0_av.m3u8?null=0',
                     'manifest_url': 'http://replayftv-vh.akamaihd.net/i/streaming-adaptatif_france-dom-tom/2017/S16/J2/156589847-58f59130c1f52-,standard1,standard2,standard3,standard4,standard5,.mp4.csmil/index_0_av.m3u8?null=0',
                     'ext': 'mp4',
@@ -254,14 +246,6 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 'teamcoco_11995',
                 'http://ak.storage-w.teamcococdn.com/cdn/2017-02/98599/ed8f/main.m3u8',
                 [{
-                    'url': 'http://ak.storage-w.teamcococdn.com/cdn/2017-02/98599/ed8f/main.m3u8',
-                    'ext': 'mp4',
-                    'format_id': 'meta',
-                    'format_note': 'Quality selection URL',
-                    'protocol': 'm3u8',
-                    'preference': -100,
-                    'resolution': 'multiple',
-                }, {
                     'url': 'http://ak.storage-w.teamcococdn.com/cdn/2017-02/98599/ed8f/hls/CONAN_020217_Highlight_show-audio-160k_v4.m3u8',
                     'ext': 'mp4',
                     'format_id': 'audio-0-Default',
@@ -334,14 +318,6 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 'toggle_mobile_12211',
                 'http://cdnapi.kaltura.com/p/2082311/sp/208231100/playManifest/protocol/http/entryId/0_89q6e8ku/format/applehttp/tags/mobile_sd/f/a.m3u8',
                 [{
-                    'url': 'http://cdnapi.kaltura.com/p/2082311/sp/208231100/playManifest/protocol/http/entryId/0_89q6e8ku/format/applehttp/tags/mobile_sd/f/a.m3u8',
-                    'ext': 'mp4',
-                    'format_id': 'meta',
-                    'format_note': 'Quality selection URL',
-                    'protocol': 'm3u8',
-                    'preference': -100,
-                    'resolution': 'multiple'
-                }, {
                     'url': 'http://k.toggle.sg/fhls/p/2082311/sp/208231100/serveFlavor/entryId/0_89q6e8ku/v/2/pv/1/flavorId/0_sa2ntrdg/name/a.mp4/index.m3u8',
                     'ext': 'mp4',
                     'format_id': 'audio-English',
@@ -398,14 +374,6 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 'twitch_vod',
                 'https://usher.ttvnw.net/vod/6528877?allow_source=true&allow_audio_only=true&allow_spectre=true&player=twitchweb&nauth=%7B%22user_id%22%3Anull%2C%22vod_id%22%3A6528877%2C%22expires%22%3A1492887874%2C%22chansub%22%3A%7B%22restricted_bitrates%22%3A%5B%5D%7D%2C%22privileged%22%3Afalse%2C%22https_required%22%3Afalse%7D&nauthsig=3e29296a6824a0f48f9e731383f77a614fc79bee',
                 [{
-                    'url': 'https://usher.ttvnw.net/vod/6528877?allow_source=true&allow_audio_only=true&allow_spectre=true&player=twitchweb&nauth=%7B%22user_id%22%3Anull%2C%22vod_id%22%3A6528877%2C%22expires%22%3A1492887874%2C%22chansub%22%3A%7B%22restricted_bitrates%22%3A%5B%5D%7D%2C%22privileged%22%3Afalse%2C%22https_required%22%3Afalse%7D&nauthsig=3e29296a6824a0f48f9e731383f77a614fc79bee',
-                    'ext': 'mp4',
-                    'format_id': 'meta',
-                    'format_note': 'Quality selection URL',
-                    'protocol': 'm3u8',
-                    'preference': -100,
-                    'resolution': 'multiple'
-                }, {
                     'url': 'https://vod.edgecast.hls.ttvnw.net/e5da31ab49_riotgames_15001215120_261543898/audio_only/index-muted-HM49I092CC.m3u8',
                     'manifest_url': 'https://vod.edgecast.hls.ttvnw.net/e5da31ab49_riotgames_15001215120_261543898/audio_only/index-muted-HM49I092CC.m3u8',
                     'ext': 'mp4',
@@ -478,14 +446,6 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 'vidio',
                 'https://www.vidio.com/videos/165683/playlist.m3u8',
                 [{
-                    'url': 'https://www.vidio.com/videos/165683/playlist.m3u8',
-                    'ext': 'mp4',
-                    'format_id': 'meta',
-                    'format_note': 'Quality selection URL',
-                    'protocol': 'm3u8',
-                    'preference': -100,
-                    'resolution': 'multiple'
-                }, {
                     'url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b300.mp4.m3u8',
                     'manifest_url': 'https://cdn1-a.production.vidio.static6.com/uploads/165683/dj_ambred-4383-b300.mp4.m3u8',
                     'ext': 'mp4',

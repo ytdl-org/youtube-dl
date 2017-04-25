@@ -515,7 +515,7 @@ class PBSIE(InfoExtractor):
                     http_url = format_url
         self._remove_duplicate_formats(formats)
         m3u8_formats = list(filter(
-            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none',
             formats))
         if http_url:
             for m3u8_format in m3u8_formats:

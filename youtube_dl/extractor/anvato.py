@@ -178,12 +178,7 @@ class AnvatoIE(InfoExtractor):
             }
 
             if ext == 'm3u8' or media_format in ('m3u8', 'm3u8-variant'):
-                # Not using _extract_m3u8_formats here as individual media
-                # playlists are also included in published_urls.
-                if tbr is None:
-                    formats.append(self._m3u8_meta_format(video_url, ext='mp4', m3u8_id='hls'))
-                    continue
-                else:
+                if tbr is not None:
                     a_format.update({
                         'format_id': '-'.join(filter(None, ['hls', compat_str(tbr)])),
                         'ext': 'mp4',

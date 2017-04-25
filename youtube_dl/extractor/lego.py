@@ -86,7 +86,7 @@ class LEGOIE(InfoExtractor):
         formats = self._extract_akamai_formats(
             '%si/s/public/%s_,%s,.mp4.csmil/master.m3u8' % (streaming_base, path, streaming_path), video_id)
         m3u8_formats = list(filter(
-            lambda f: f.get('protocol') == 'm3u8_native' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            lambda f: f.get('protocol') == 'm3u8_native' and f.get('vcodec') != 'none',
             formats))
         if len(m3u8_formats) == len(self._BITRATES):
             self._sort_formats(m3u8_formats)
