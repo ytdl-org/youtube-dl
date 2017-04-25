@@ -58,8 +58,7 @@ class FunnyOrDieIE(InfoExtractor):
             m3u8_url, video_id, 'mp4', 'm3u8_native',
             m3u8_id='hls', fatal=False)
         source_formats = list(filter(
-            lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-            m3u8_formats))
+            lambda f: f.get('vcodec') != 'none', m3u8_formats))
 
         bitrates = [int(bitrate) for bitrate in re.findall(r'[,/]v(\d+)(?=[,/])', m3u8_url)]
         bitrates.sort()
