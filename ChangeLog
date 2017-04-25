@@ -5,6 +5,7 @@ Core
 * [socks] Handle cases where credentials are required but missing
 
 Extractors
+* [iqiyi] Fix extraction of Yule videos
 * [iqiyi] Fix playlist detection (#12504)
 - [azubu] Remove extractor (#12813)
 * [porn91] Fix extraction (#12814)
