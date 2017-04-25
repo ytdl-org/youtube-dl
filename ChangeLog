@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.26
 
 Core
 * Introduce --keep-fragments for keeping fragments of fragmented download

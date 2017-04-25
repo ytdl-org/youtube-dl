@@ -81,8 +81,6 @@
  - **AZMedien**: AZ Medien videos
  - **AZMedienPlaylist**: AZ Medien playlists
  - **AZMedienShowPlaylist**: AZ Medien show playlists
- - **Azubu**
- - **AzubuLive**
  - **BaiduVideo**: 百度视频
  - **bambuser**
  - **bambuser:channel**
