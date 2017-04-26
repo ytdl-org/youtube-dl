@@ -187,6 +187,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      and ISM)
     --abort-on-unavailable-fragment  Abort downloading when some fragment is not
                                      available
+    --keep-fragments                 Keep downloaded fragments on disk after
+                                     downloading is finished; fragments are
+                                     erased by default
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer

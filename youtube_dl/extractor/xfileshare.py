@@ -17,24 +17,24 @@ from ..utils import (
 
 class XFileShareIE(InfoExtractor):
     _SITES = (
-        ('daclips.in', 'DaClips'),
-        ('filehoot.com', 'FileHoot'),
-        ('gorillavid.in', 'GorillaVid'),
-        ('movpod.in', 'MovPod'),
-        ('powerwatch.pw', 'PowerWatch'),
-        ('rapidvideo.ws', 'Rapidvideo.ws'),
-        ('thevideobee.to', 'TheVideoBee'),
-        ('vidto.me', 'Vidto'),
-        ('streamin.to', 'Streamin.To'),
-        ('xvidstage.com', 'XVIDSTAGE'),
-        ('vidabc.com', 'Vid ABC'),
-        ('vidbom.com', 'VidBom'),
-        ('vidlo.us', 'vidlo'),
+        (r'daclips\.(?:in|com)', 'DaClips'),
+        (r'filehoot\.com', 'FileHoot'),
+        (r'gorillavid\.(?:in|com)', 'GorillaVid'),
+        (r'movpod\.in', 'MovPod'),
+        (r'powerwatch\.pw', 'PowerWatch'),
+        (r'rapidvideo\.ws', 'Rapidvideo.ws'),
+        (r'thevideobee\.to', 'TheVideoBee'),
+        (r'vidto\.me', 'Vidto'),
+        (r'streamin\.to', 'Streamin.To'),
+        (r'xvidstage\.com', 'XVIDSTAGE'),
+        (r'vidabc\.com', 'Vid ABC'),
+        (r'vidbom\.com', 'VidBom'),
+        (r'vidlo\.us', 'vidlo'),
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
     _VALID_URL = (r'https?://(?P<host>(?:www\.)?(?:%s))/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
-                  % '|'.join(re.escape(site) for site in list(zip(*_SITES))[0]))
+                  % '|'.join(site for site in list(zip(*_SITES))[0]))
 
     _FILE_NOT_FOUND_REGEXES = (
         r'>(?:404 - )?File Not Found<',

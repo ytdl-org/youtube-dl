@@ -1,3 +1,47 @@
+version 2017.04.26
+
+Core
+* Introduce --keep-fragments for keeping fragments of fragmented download
+  on disk after download is finished
+* [YoutubeDL] Fix output template for missing timestamp (#12796)
+* [socks] Handle cases where credentials are required but missing
+* [extractor/common] Improve HLS extraction (#12211)
+    - Extract m3u8 parsing to separate method
+    - Improve rendition groups extraction
+    - Build stream name according stream GROUP-ID
+    - Ignore reference to AUDIO group without URI when stream has no CODECS
+    - Use float for scaled tbr in _parse_m3u8_formats
+* [utils] Add support for TTML styles in dfxp2srt
+* [downloader/hls] No need to download keys for fragments that have been
+  already downloaded
+* [downloader/fragment] Improve fragment downloading
+    - Resume immediately
+    - Don't concatenate fragments and decrypt them on every resume
+    - Optimize disk storage usage, don't store intermediate fragments on disk
+    - Store bookkeeping download state file
++ [extractor/common] Add support for multiple getters in try_get
++ [extractor/common] Add support for video of WebPage context in _json_ld
+  (#12778)
++ [extractor/common] Relax JWPlayer regular expression and remove
+  duplicate URLs (#12768)
+
+Extractors
+* [iqiyi] Fix extraction of Yule videos
+* [vidio] Improve extraction and sort formats
++ [brightcove] Match only video elements with data-video-id attribute
+* [iqiyi] Fix playlist detection (#12504)
+- [azubu] Remove extractor (#12813)
+* [porn91] Fix extraction (#12814)
+* [vidzi] Fix extraction (#12793)
++ [amp] Extract error message (#12795)
++ [xfileshare] Add support for gorillavid.com and daclips.com (#12776)
+* [instagram] Fix extraction (#12777)
++ [generic] Support Brightcove videos in <iframe> (#12482)
++ [brightcove] Support URLs with bcpid instead of playerID (#12482)
+* [brightcove] Fix _extract_url (#12782)
++ [odnoklassniki] Extract HLS formats
+
+
 version 2017.04.17
 
 Extractors

@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import os
 import time
 import struct
 import binascii
@@ -8,10 +7,6 @@ import io
 
 from .fragment import FragmentFD
 from ..compat import compat_urllib_error
-from ..utils import (
-    sanitize_open,
-    encodeFilename,
-)
 
 
 u8 = struct.Struct(b'>B')
@@ -225,50 +220,39 @@ class IsmFD(FragmentFD):
 
         self._prepare_and_start_frag_download(ctx)
 
-        segments_filenames = []
-
         fragment_retries = self.params.get('fragment_retries', 0)
         skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
 
         track_written = False
+        frag_index = 0
         for i, segment in enumerate(segments):
-            segment_url = segment['url']
-            segment_name = 'Frag%d' % i
-            target_filename = '%s-%s' % (ctx['tmpfilename'], segment_name)
+            frag_index += 1
+            if frag_index <= ctx['fragment_index']:
+                continue
             count = 0
             while count <= fragment_retries:
                 try:
-                    success = ctx['dl'].download(target_filename, {
-                        'url': segment_url,
-                        'http_headers': info_dict.get('http_headers'),
-                    })
+                    success, frag_content = self._download_fragment(ctx, segment['url'], info_dict)
                     if not success:
                         return False
-                    down, target_sanitized = sanitize_open(target_filename, 'rb')
-                    down_data = down.read()
                     if not track_written:
-                        tfhd_data = extract_box_data(down_data, [b'moof', b'traf', b'tfhd'])
+                        tfhd_data = extract_box_data(frag_content, [b'moof', b'traf', b'tfhd'])
                         info_dict['_download_params']['track_id'] = u32.unpack(tfhd_data[4:8])[0]
                         write_piff_header(ctx['dest_stream'], info_dict['_download_params'])
                         track_written = True
-                    ctx['dest_stream'].write(down_data)
-                    down.close()
-                    segments_filenames.append(target_sanitized)
+                    self._append_fragment(ctx, frag_content)
                     break
                 except compat_urllib_error.HTTPError as err:
                     count += 1
                     if count <= fragment_retries:
-                        self.report_retry_fragment(err, segment_name, count, fragment_retries)
+                        self.report_retry_fragment(err, frag_index, count, fragment_retries)
             if count > fragment_retries:
                 if skip_unavailable_fragments:
-                    self.report_skip_fragment(segment_name)
+                    self.report_skip_fragment(frag_index)
                     continue
                 self.report_error('giving up after %s fragment retries' % fragment_retries)
                 return False
 
         self._finish_frag_download(ctx)
-
-        for segment_file in segments_filenames:
-            os.remove(encodeFilename(segment_file))
 
         return True
