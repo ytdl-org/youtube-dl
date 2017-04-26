@@ -158,12 +158,13 @@ class VevoIE(VevoBaseIE):
 
         uploader = None
         artist = None
-        featured_artist = None
+        featured_artists = []
         for curr_artist in artists:
             if curr_artist.get('role') == 'Featured':
-                featured_artist = curr_artist['name'] if featured_artist is None else '%s & %s' % (featured_artist, curr_artist['name'])
+                featured_artists.append(curr_artist['name'])
             else:
                 artist = uploader = curr_artist['name']
+        featured_artists.sort()
 
         formats = []
         for video_version in video_versions:
@@ -212,8 +213,8 @@ class VevoIE(VevoBaseIE):
         self._sort_formats(formats)
 
         track = meta['title']
-        if featured_artist:
-            artist = '%s ft. %s' % (artist, featured_artist)
+        if featured_artists:
+            artist = '%s ft. %s' % (artist, ' & '.join(featured_artists))
         title = '%s - %s' % (artist, track) if artist else track
 
         is_explicit = meta.get('explicit')
