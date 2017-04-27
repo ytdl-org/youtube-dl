@@ -1386,6 +1386,7 @@ class InfoExtractor(object):
                 f = {
                     'format_id': '-'.join(format_id),
                     'url': format_url(media_url),
+                    'manifest_url': m3u8_url,
                     'language': media.get('LANGUAGE'),
                     'ext': ext,
                     'protocol': entry_protocol,
