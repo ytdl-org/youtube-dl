@@ -16,7 +16,7 @@ class AudioBoomIE(InfoExtractor):
             'title': '3/09/2016 Czaban Hour 3',
             'description': 'Guest:   Nate Davis - NFL free agency,   Guest:   Stan Gans',
             'duration': 2245.72,
-            'uploader': 'Steve Czaban',
+            'uploader': 'SB Nation A.M.',
             'uploader_url': r're:https?://(?:www\.)?audioboom\.com/channel/steveczabanyahoosportsradio',
         }
     }, {
