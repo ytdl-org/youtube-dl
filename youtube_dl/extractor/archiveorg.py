@@ -24,7 +24,7 @@ class ArchiveOrgIE(InfoExtractor):
         }
     }, {
         'url': 'https://archive.org/details/Cops1922',
-        'md5': 'bad_md5',
+        'md5': '0869000b4ce265e8ca62738b336b268a',
         'info_dict': {
             'id': 'Cops1922',
             'ext': 'mp4',
