@@ -35,7 +35,7 @@ class BleacherReportIE(InfoExtractor):
             'title': 'Aussie Golfers Get Fright of Their Lives After Being Chased by Angry Kangaroo',
             'timestamp': 1446839961,
             'uploader': 'Sean Fay',
-            'description': 'md5:825e94e0f3521df52fa83b2ed198fa20',
+            'description': 'md5:b1601e2314c4d8eec23b6eafe086a757',
             'uploader_id': 6466954,
             'upload_date': '20151011',
         },
@@ -90,16 +90,12 @@ class BleacherReportCMSIE(AMPIE):
     _VALID_URL = r'https?://(?:www\.)?bleacherreport\.com/video_embed\?id=(?P<id>[0-9a-f-]{36})'
     _TESTS = [{
         'url': 'http://bleacherreport.com/video_embed?id=8fd44c2f-3dc5-4821-9118-2c825a98c0e1',
-        'md5': '8c2c12e3af7805152675446c905d159b',
+        'md5': '2e4b0a997f9228ffa31fada5c53d1ed1',
         'info_dict': {
             'id': '8fd44c2f-3dc5-4821-9118-2c825a98c0e1',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Cena vs. Rollins Would Expose the Heavyweight Division',
             'description': 'md5:984afb4ade2f9c0db35f3267ed88b36e',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
         },
     }]
 
