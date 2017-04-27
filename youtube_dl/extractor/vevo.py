@@ -152,7 +152,7 @@ class VevoIE(VevoBaseIE):
                 artists.append(value)
             elif key.startswith('%s.streamsV3.' % video_id):
                 video_versions.append(value)
-  
+
         if 'streams' in json_data.get('default', {}):
             video_versions = json_data['default']['streams'][video_id][0]
 
@@ -171,6 +171,8 @@ class VevoIE(VevoBaseIE):
             version = self._VERSIONS.get(video_version.get('version'), 'generic')
             version_url = video_version.get('url')
             if not version_url:
+                if video_version.get('errorCode') == 'video-not-viewable-in-country':
+                    raise self.raise_geo_restricted()
                 continue
 
             if '.ism' in version_url:
