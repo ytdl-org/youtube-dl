@@ -34,12 +34,12 @@ class BandcampIE(InfoExtractor):
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '73d0b3171568232574e45652f8720b5c',
+        'md5': '0369ace6b939f0927e62c67a1a8d9fa7',
         'info_dict': {
             'id': '2650410135',
-            'ext': 'mp3',
-            'title': 'Lanius (Battle)',
-            'uploader': 'Ben Prunty Music',
+            'ext': 'aiff',
+            'title': 'Ben Prunty - Lanius (Battle)',
+            'uploader': 'Ben Prunty',
         },
     }]
 
