@@ -12,9 +12,10 @@ class CBSInteractiveIE(ThePlatformIE):
     _VALID_URL = r'https?://(?:www\.)?(?P<site>cnet|zdnet)\.com/(?:videos|video/share)/(?P<id>[^/?]+)'
     _TESTS = [{
         'url': 'http://www.cnet.com/videos/hands-on-with-microsofts-windows-8-1-update/',
+        'md5': '041233212a0d06b179c87cbcca1577b8',
         'info_dict': {
             'id': '56f4ea68-bd21-4852-b08c-4de5b8354c60',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Hands-on with Microsoft Windows 8.1 Update',
             'description': 'The new update to the Windows 8 OS brings improved performance for mouse and keyboard users.',
             'uploader_id': '6085384d-619e-11e3-b231-14feb5ca9861',
@@ -23,11 +24,15 @@ class CBSInteractiveIE(ThePlatformIE):
             'timestamp': 1396479627,
             'upload_date': '20140402',
         },
+        'params': {
+            'format': 'mp4',
+        },
     }, {
         'url': 'http://www.cnet.com/videos/whiny-pothole-tweets-at-local-government-when-hit-by-cars-tomorrow-daily-187/',
+        'md5': 'f2b16d73e08d69591dd9e25564695c0c',
         'info_dict': {
             'id': '56527b93-d25d-44e3-b738-f989ce2e49ba',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Whiny potholes tweet at local government when hit by cars (Tomorrow Daily 187)',
             'description': 'Khail and Ashley wonder what other civic woes can be solved by self-tweeting objects, investigate a new kind of VR camera and watch an origami robot self-assemble, walk, climb, dig and dissolve. #TDPothole',
             'uploader_id': 'b163284d-6b73-44fc-b3e6-3da66c392d40',
@@ -35,6 +40,9 @@ class CBSInteractiveIE(ThePlatformIE):
             'duration': 1482,
             'timestamp': 1433289889,
             'upload_date': '20150603',
+        },
+        'params': {
+            'format': 'mp4',
         },
     }, {
         'url': 'http://www.zdnet.com/video/share/video-keeping-android-smartphones-and-tablets-secure/',
@@ -45,8 +53,8 @@ class CBSInteractiveIE(ThePlatformIE):
             'description': 'Here\'s the best way to keep Android devices secure, and what you do when they\'ve come to the end of their lives.',
             'uploader_id': 'f2d97ea2-8175-11e2-9d12-0018fe8a00b0',
             'uploader': 'Adrian Kingsley-Hughes',
-            'timestamp': 1448961720,
-            'upload_date': '20151201',
+            'timestamp': 1449129925,
+            'upload_date': '20151203',
         },
         'params': {
             # m3u8 download
