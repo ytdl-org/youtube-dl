@@ -61,7 +61,7 @@ class CBSLocalIE(AnvatoIE):
             'description': 'CBS2’s Cindy Hsu has more.',
             'thumbnail': 're:^https?://.*',
             'timestamp': int,
-            'upload_date': 're:^\d{8}$',
+            'upload_date': r're:^\d{8}$',
             'uploader': 'CBS',
             'subtitles': {
                 'en': 'mincount:5',
