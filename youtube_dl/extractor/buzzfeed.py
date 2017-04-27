@@ -80,7 +80,7 @@ class BuzzFeedIE(InfoExtractor):
             self.url_result(match[2])
             for match in re.findall(
                 r'''(?s)<a\s+class\s*=\s*(?P<q>["'])js-placeholder-link'''
-                r'''(?P=q)\s+href\s*=\s*(?P<r>["'])(.*?)(?P=r)''', webpage)
+                r'''(?P=q)\s+href\s*=\s*(?P<r>["'])(.+?)(?P=r)''', webpage)
         ]
 
         all_buckets = re.findall(
