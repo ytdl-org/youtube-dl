@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .theplatform import ThePlatformIE
+from ..compat import compat_urllib_parse
 from ..utils import int_or_none
 
 
@@ -80,7 +81,7 @@ class CBSInteractiveIE(ThePlatformIE):
 
         media_guid_path = 'media/guid/%d/%s' % (self.MPX_ACCOUNTS[site], vdata['mpxRefId'])
         formats, subtitles = [], {}
-        for (fkey, vid) in vdata['files'].items():
+        for (fkey, vid) in vdata.get('files', {}).items():
             if fkey == 'hls_phone' and 'hls_tablet' in vdata['files']:
                 continue
             release_url = self.TP_RELEASE_URL_TEMPLATE % vid
@@ -89,6 +90,23 @@ class CBSInteractiveIE(ThePlatformIE):
             tp_formats, tp_subtitles = self._extract_theplatform_smil(release_url, video_id, 'Downloading %s SMIL data' % fkey)
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+
+        if 'm3u8' in vdata:
+            parsed_url = compat_urllib_parse.urlparse(url)
+            m3u8_url = ('%s://%s%s'
+                % (parsed_url.scheme, parsed_url.netloc, vdata['m3u8']))
+            m3u8_formats = self._extract_m3u8_formats(m3u8_url, video_id)
+            for format in m3u8_formats:
+                format['url'] = format['url'].replace('https://', 'http://')
+            formats.extend(m3u8_formats)
+
+        if 'mp4' in vdata:
+            formats.append({
+                'url': vdata['mp4'],
+                'format_id': 'mp4',
+                'ext': 'mp4',
+            })
+
         self._sort_formats(formats)
 
         info = self._extract_theplatform_metadata('kYEXFC/%s' % media_guid_path, video_id)
