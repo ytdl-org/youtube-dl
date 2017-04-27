@@ -225,7 +225,7 @@ def generator(test_case, tname):
                                 format_bytes(got_fsize)))
                     if 'md5' in tc:
                         md5_for_file = _file_md5(tc_filename)
-                        self.assertEqual(md5_for_file, tc['md5'])
+                        self.assertEqual(tc['md5'], md5_for_file)
                 # Finally, check test cases' data again but this time against
                 # extracted data from info JSON file written during processing
                 info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
