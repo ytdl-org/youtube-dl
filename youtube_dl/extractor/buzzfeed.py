@@ -72,11 +72,17 @@ class BuzzFeedIE(InfoExtractor):
         playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
+        entries = [
+            self.url_result(match[2])
+            for match in re.findall(
+                r'''(?s)<a\s+class\s*=\s*(?P<q>["'])js-placeholder-link'''
+                r'''(?P=q)\s+href\s*=\s*(?P<r>["'])(.*?)(?P=r)''', webpage)
+        ]
+
         all_buckets = re.findall(
             r'(?s)<div class="video-embed[^"]*"..*?rel:bf_bucket_data=\'([^\']+)\'',
             webpage)
 
-        entries = []
         for bd_json in all_buckets:
             bd = json.loads(bd_json)
             video = bd.get('video') or bd.get('progload_video')
