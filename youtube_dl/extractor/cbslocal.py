@@ -60,8 +60,8 @@ class CBSLocalIE(AnvatoIE):
             'title': 'A Very Blue Anniversary',
             'description': 'CBS2’s Cindy Hsu has more.',
             'thumbnail': 're:^https?://.*',
-            'timestamp': 1479962220,
-            'upload_date': '20161124',
+            'timestamp': 1493292540,
+            'upload_date': '20170427',
             'uploader': 'CBS',
             'subtitles': {
                 'en': 'mincount:5',
