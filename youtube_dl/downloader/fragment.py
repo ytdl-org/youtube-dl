@@ -155,8 +155,6 @@ class FragmentFD(FileDownloader):
                 self._write_ytdl_file(ctx)
             if ctx['fragment_index'] > 0:
                 assert resume_len > 0
-            else:
-                assert resume_len == 0
 
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 
