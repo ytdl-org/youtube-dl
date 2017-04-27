@@ -111,7 +111,7 @@ class AfreecaTVIE(InfoExtractor):
             'info_dict': {
                 'id': '20160502_39e739bb_174361386_2',
                 'ext': 'mp4',
-                'title': "BJ유트루와 함께하는 '팅커벨 메이크업!' (part 2)",
+                'title': "BJ유트루와 함께하는 '팅커벨 메이크업!' (part 1) (part 2)",
                 'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
                 'uploader': 'dailyapril',
                 'uploader_id': 'dailyapril',
