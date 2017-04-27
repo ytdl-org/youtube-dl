@@ -22,12 +22,13 @@ class BuzzFeedIE(InfoExtractor):
                 'id': 'aVCR29aE_OQ',
                 'ext': 'mp4',
                 'title': 'Angry Ram destroys a punching bag..',
-                'description': 'md5:c59533190ef23fd4458a5e8c8c872345',
+                'description': 'md5:8b3e34589d9b3e387dcb837098b859d8',
                 'upload_date': '20141024',
                 'uploader_id': 'Buddhanz1',
                 'uploader': 'Angry Ram',
             }
-        }]
+        }],
+        'add_ie': ['Youtube'],
     }, {
         'url': 'http://www.buzzfeed.com/sheridanwatson/look-at-this-cute-dog-omg?utm_term=4ldqpia',
         'params': {
@@ -48,7 +49,8 @@ class BuzzFeedIE(InfoExtractor):
                 'uploader_id': 'CindysMunchkin',
                 'uploader': 're:^Munchkin the',
             },
-        }]
+        }],
+        'add_ie': ['Youtube'],
     }, {
         'url': 'http://www.buzzfeed.com/craigsilverman/the-most-adorable-crash-landing-ever#.eq7pX0BAmK',
         'info_dict': {
@@ -57,12 +59,14 @@ class BuzzFeedIE(InfoExtractor):
             'description': 'This gosling knows how to stick a landing.',
         },
         'playlist': [{
-            'md5': '763ca415512f91ca62e4621086900a23',
+            'md5': '2ca4672b84a6a9ab24561c847c8b82dc',
             'info_dict': {
                 'id': '971793786185728',
                 'ext': 'mp4',
                 'title': 'We set up crash pads so that the goslings on our roof would have a safe landi...',
                 'uploader': 'Calgary Outdoor Centre-University of Calgary',
+                'upload_date': '20150511',
+                'timestamp': 1431380091,
             },
         }],
         'add_ie': ['Facebook'],
