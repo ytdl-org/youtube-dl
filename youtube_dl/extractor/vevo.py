@@ -228,6 +228,8 @@ class VevoIE(VevoBaseIE):
             version = self._VERSIONS.get(video_version.get('version'), 'generic')
             version_url = video_version.get('url')
             if not version_url:
+                if video_version.get('errorCode') == 'video-not-viewable-in-country':
+                    raise self.raise_geo_restricted()
                 continue
 
             if '.ism' in version_url:
