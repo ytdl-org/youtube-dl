@@ -36,22 +36,26 @@ class GoIE(AdobePassIE):
             'requestor_id': 'DisneyXD',
         }
     }
-    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:[^/]+/)*(?:vdka(?P<id>\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
+    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
     _TESTS = [{
-        'url': 'http://abc.go.com/shows/castle/video/most-recent/vdka0_g86w5onx',
+        'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
         'info_dict': {
-            'id': '0_g86w5onx',
+            'id': 'VDKA3807643',
             'ext': 'mp4',
-            'title': 'Sneak Peek: Language Arts',
-            'description': 'md5:7dcdab3b2d17e5217c953256af964e9c',
+            'title': 'The Traitor in the White House',
+            'description': 'md5:05b009d2d145a1e85d25111bd37222e8',
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
     }, {
-        'url': 'http://abc.go.com/shows/after-paradise/video/most-recent/vdka3335601',
-        'only_matching': True,
+        'url': 'http://watchdisneyxd.go.com/doraemon',
+        'info_dict': {
+            'title': 'Doraemon',
+            'id': 'SH55574025',
+        },
+        'playlist_mincount': 51,
     }, {
         'url': 'http://abc.go.com/shows/the-catch/episode-guide/season-01/10-the-wedding',
         'only_matching': True,
@@ -60,19 +64,36 @@ class GoIE(AdobePassIE):
         'only_matching': True,
     }]
 
+    def _extract_videos(self, brand, video_id='-1', show_id='-1'):
+        display_id = video_id if video_id != '-1' else show_id
+        return self._download_json(
+            'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/%s/-1/%s/-1/-1.json' % (brand, show_id, video_id),
+            display_id)['video']
+
     def _real_extract(self, url):
         sub_domain, video_id, display_id = re.match(self._VALID_URL, url).groups()
+        site_info = self._SITE_INFO[sub_domain]
+        brand = site_info['brand']
         if not video_id:
             webpage = self._download_webpage(url, display_id)
             video_id = self._search_regex(
                 # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
                 # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
-                r'data-video-id=["\']*VDKA(\w+)', webpage, 'video id')
-        site_info = self._SITE_INFO[sub_domain]
-        brand = site_info['brand']
-        video_data = self._download_json(
-            'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/-1/-1/%s/-1/-1.json' % (brand, video_id),
-            video_id)['video'][0]
+                r'data-video-id=["\']*(VDKA\w+)', webpage, 'video id', default=None)
+            if not video_id:
+                # show extraction works for Disney, DisneyJunior and DisneyXD
+                # ABC and Freeform has different layout
+                show_id = self._search_regex(r'data-show-id=["\']*(SH\d+)', webpage, 'show id')
+                videos = self._extract_videos(brand, show_id=show_id)
+                show_title = self._search_regex(r'data-show-title="([^"]+)"', webpage, 'show title', fatal=False)
+                entries = []
+                for video in videos:
+                    entries.append(self.url_result(
+                        video['url'], 'Go', video.get('id'), video.get('title')))
+                entries.reverse()
+                return self.playlist_result(entries, show_id, show_title)
+        video_data = self._extract_videos(brand, video_id)[0]
+        video_id = video_data['id']
         title = video_data['title']
 
         formats = []
@@ -105,7 +126,7 @@ class GoIE(AdobePassIE):
                     self._initialize_geo_bypass(['US'])
                 entitlement = self._download_json(
                     'https://api.entitlement.watchabc.go.com/vp2/ws-secure/entitlement/2020/authorize.json',
-                    video_id, data=urlencode_postdata(data), headers=self.geo_verification_headers())
+                    video_id, data=urlencode_postdata(data))
                 errors = entitlement.get('errors', {}).get('errors', [])
                 if errors:
                     for error in errors:
