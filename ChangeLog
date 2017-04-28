@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractor
+* [youtube] Recognize new locale-based player URLs (#12885)
+
+
 version 2017.04.26
 
 Core
