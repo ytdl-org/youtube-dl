@@ -10,7 +10,7 @@ from .common import InfoExtractor
 test_partial = {
     'md5': 'fe63bb94879189bd9ff7420d0b187352',
     'info_dict': {
-        'artist': 'mothy_悪ノＰさん',
+        'artist': 'mothy_悪ノＰ',
         'description': '悪ノ娘のアレンジバージョンです。',
         'ext': 'mp3',
         'id': 'es7uj48x6bvcbtgy',
@@ -18,7 +18,7 @@ test_partial = {
         'timestamp': 1263600322,
         'title': '悪ノ娘～velvet mix～',
         'upload_date': '20100116',
-        'uploader': 'mothy_悪ノＰさん',
+        'uploader': 'mothy_悪ノＰ',
         'uploader_url': r're:https?://piapro\.jp/mothy',
     }
 }
@@ -44,14 +44,18 @@ class PiaproIE(InfoExtractor):
         cls_userbar_name = get_element_by_class("userbar-name", webpage)
 
         uploader = self._search_regex(r'<a.*?>(.+?)</a>', cls_userbar_name, 'uploader', fatal=False)
+        try:
+            uploader_without_honorific = re.match('.+(?=さん)', uploader).group(0)
+        except IndexError:
+            uploader_without_honorific = None
         return {
-            'artist':       uploader,
+            'artist':       uploader_without_honorific or uploader,
             'description':  get_element_by_class("dtl_cap", webpage),
             'id':           content_id,
             'thumbnail':    self._search_regex(r'(https?://c1\.piapro\.jp/timg/.+?_1440\.jpg)', webpage, 'thumbnail', fatal=False),
             'timestamp':    int(datetime.strptime(create_date, '%Y%m%d%H%M%S').strftime("%s")),
             'title':        get_element_by_class("works-title", webpage) or self._html_search_regex(r'<title>[^<]*「(.*?)」<', webpage, 'title', fatal=False),
-            'uploader':     uploader,
+            'uploader':     uploader_without_honorific or uploader,
             'uploader_url': self._search_regex(r'<a\s+.*?href="(https?://piapro\.jp/.+?)"', cls_userbar_name, 'uploader_url', fatal=False),
             'url':          'http://c1.piapro.jp/amp3/{}_{}_audition.mp3'.format(content_id, create_date)
         }
