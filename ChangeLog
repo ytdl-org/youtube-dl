@@ -1,7 +1,19 @@
 version <unreleased>
 
+Core
++ [adobepass] Use geo verification headers for all requests
+- [downloader/fragment] Remove assert for resume_len when no fragments
+  downloaded
++ [extractor/common] Add manifest_url for explicit group rendition formats
+* [extractor/common] Fix manifest_url for m3u8 formats
+- [extractor/common] Don't list master m3u8 playlists in format list (#12832)
+
 Extractor
+* [aenetworks] Fix extraction for shows with single season
++ [go] Add support for Disney, DisneyJunior and DisneyXD show pages
 * [youtube] Recognize new locale-based player URLs (#12885)
++ [streamable] Add support for new embedded URL schema (#12844)
+* [arte:+7] Relax URL regular expression (#12837)
 
 
 version 2017.04.26
