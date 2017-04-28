@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.04.28
 
 Core
 + [adobepass] Use geo verification headers for all requests
