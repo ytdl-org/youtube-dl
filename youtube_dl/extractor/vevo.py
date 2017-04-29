@@ -153,41 +153,58 @@ class VevoIE(VevoBaseIE):
         4: 'amazon',
     }
 
-    def _initialize_api(self, video_id):
-        webpage = self._download_webpage(
-            'https://accounts.vevo.com/token', None,
-            note='Retrieving oauth token',
-            errnote='Unable to retrieve oauth token',
-            data=json.dumps({
-                'client_id': 'SPupX1tvqFEopQ1YS6SS',
-                'grant_type': 'urn:vevo:params:oauth:grant-type:anonymous',
-            }).encode('utf-8'),
-            headers={
-                'Content-Type': 'application/json',
+    def _initialize_api(self, refresh=False):
+        data = {'client_id': 'SPupX1tvqFEopQ1YS6SS'}
+        if refresh:
+            data.update({
+                'grant_type': 'refresh_token',
+                'refresh_token': self._REFRESH_TOKEN,
             })
+        else:
+            data['grant_type'] = 'urn:vevo:params:oauth:grant-type:anonymous'
+        post_data = json.dumps(data).encode('utf-8')
+
+        webpage = self._download_webpage(
+            'https://accounts.vevo.com/token', 'token',
+            data=post_data, headers={'Content-Type': 'application/json'},
+            note='Retrieving oauth token',
+            errnote='Unable to retrieve oauth token')
 
         if re.search(r'(?i)THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION', webpage):
             self.raise_geo_restricted(
                 '%s said: This page is currently unavailable in your region' % self.IE_NAME)
 
-        auth_info = self._parse_json(webpage, video_id)
-        self._api_url_template = self.http_scheme() + '//apiv2.vevo.com/%s?token=' + auth_info['legacy_token']
+        auth_info = self._parse_json(webpage, 'token')
+
+        self._ACCESS_TOKEN = auth_info['legacy_token']
+        self._REFRESH_TOKEN = auth_info['refresh_token']
 
     def _call_api(self, path, *args, **kwargs):
         try:
-            data = self._download_json(self._api_url_template % path, *args, **kwargs)
+            data = self._download_json(
+                'https://apiv2.vevo.com/%s' % path, headers={
+                    'Authorization': 'Bearer %s' % self._ACCESS_TOKEN,
+                }, *args, **kwargs)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
                 errors = self._parse_json(e.cause.read().decode(), None)['errors']
-                error_message = ', '.join([error['message'] for error in errors])
-                raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message), expected=True)
+                error_messages = [error['message'] for error in errors]
+                if 'Token is expired' in error_messages:
+                    self._initialize_api(refresh=True)
+                    return self._call_api(path, *args, **kwargs)
+                else:
+                    error_message = ', '.join(error_messages)
+                    raise ExtractorError(
+                        '%s said: %s' % (self.IE_NAME, error_message),
+                        expected=True)
             raise
         return data
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        self._initialize_api(video_id)
+        if not hasattr(self, '_ACCESS_TOKEN'):
+            self._initialize_api()
 
         video_info = self._call_api(
             'video/%s' % video_id, video_id, 'Downloading api video info',
