@@ -79,7 +79,7 @@ class OpenloadIE(InfoExtractor):
         if 'File not found' in webpage or 'deleted by the owner' in webpage:
             raise ExtractorError('File not found', expected=True, video_id=video_id)
 
-        phantom = PhantomJSwrapper(self)
+        phantom = PhantomJSwrapper(self, required_version='2.0')
         webpage, _ = phantom.get(url, html=webpage, video_id=video_id, headers=headers)
 
         decoded_id = get_element_by_id('streamurl', webpage)
