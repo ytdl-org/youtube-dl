@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    js_to_json,
     orderedSet,
     parse_duration,
     sanitized_Request,
@@ -38,6 +39,22 @@ class XTubeIE(InfoExtractor):
             'age_limit': 18,
         }
     }, {
+        # FLV videos with duplicated formats
+        'url': 'http://www.xtube.com/video-watch/A-Super-Run-Part-1-YT-9299752',
+        'md5': 'a406963eb349dd43692ec54631efd88b',
+        'info_dict': {
+            'id': '9299752',
+            'display_id': 'A-Super-Run-Part-1-YT',
+            'ext': 'flv',
+            'title': 'A Super Run - Part 1 (YT)',
+            'description': 'md5:ca0d47afff4a9b2942e4b41aa970fd93',
+            'uploader': 'tshirtguy59',
+            'duration': 579,
+            'view_count': int,
+            'comment_count': int,
+            'age_limit': 18,
+        },
+    }, {
         # new URL schema
         'url': 'http://www.xtube.com/video-watch/strange-erotica-625837',
         'only_matching': True,
@@ -68,8 +85,9 @@ class XTubeIE(InfoExtractor):
             })
 
         sources = self._parse_json(self._search_regex(
-            r'(["\'])sources\1\s*:\s*(?P<sources>{.+?}),',
-            webpage, 'sources', group='sources'), video_id)
+            r'(["\'])?sources\1?\s*:\s*(?P<sources>{.+?}),',
+            webpage, 'sources', group='sources'), video_id,
+            transform_source=js_to_json)
 
         formats = []
         for format_id, format_url in sources.items():
@@ -78,6 +96,7 @@ class XTubeIE(InfoExtractor):
                 'format_id': format_id,
                 'height': int_or_none(format_id),
             })
+        self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
         title = self._search_regex(

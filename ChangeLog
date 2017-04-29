@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [xtube] Fix extraction for older FLV videos (#12734)
+
+
 version 2017.04.28
 
 Core
