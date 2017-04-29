@@ -74,11 +74,13 @@ class OpenloadIE(InfoExtractor):
             'User-Agent': self._USER_AGENT,
         }
 
-        phantom = PhantomJSwrapper(self)
-        webpage, _ = phantom.get(url, video_id=video_id, headers=headers)
+        webpage = self._download_webpage(url, video_id, headers=headers)
 
         if 'File not found' in webpage or 'deleted by the owner' in webpage:
             raise ExtractorError('File not found', expected=True, video_id=video_id)
+
+        phantom = PhantomJSwrapper(self)
+        webpage, _ = phantom.get(url, html=webpage, video_id=video_id, headers=headers)
 
         decoded_id = get_element_by_id('streamurl', webpage)
 
