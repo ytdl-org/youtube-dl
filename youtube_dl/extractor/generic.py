@@ -86,6 +86,7 @@ from .openload import OpenloadIE
 from .videopress import VideoPressIE
 from .rutube import RutubeIE
 from .limelight import LimelightBaseIE
+from .anvato import AnvatoIE
 
 
 class GenericIE(InfoExtractor):
@@ -1677,6 +1678,15 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 5,
         },
+        {
+            'url': 'http://kron4.com/2017/04/28/standoff-with-walnut-creek-murder-suspect-ends-with-arrest/',
+            'info_dict': {
+                'id': 'standoff-with-walnut-creek-murder-suspect-ends-with-arrest',
+                'title': 'Standoff with Walnut Creek murder suspect ends',
+                'description': 'md5:3ccc48a60fc9441eeccfc9c469ebf788',
+            },
+            'playlist_mincount': 4,
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2536,6 +2546,12 @@ class GenericIE(InfoExtractor):
             return self.url_result(smuggle_url(
                 'limelight:media:%s' % mobj.group('id'),
                 {'source_url': url}), 'LimelightMedia', mobj.group('id'))
+
+        # Look for Anvato embeds
+        anvato_urls = AnvatoIE._extract_urls(self, webpage, video_id)
+        if anvato_urls:
+            return self.playlist_result(
+                anvato_urls, video_id, video_title, video_description)
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
