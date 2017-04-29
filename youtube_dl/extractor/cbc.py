@@ -96,6 +96,7 @@ class CBCIE(InfoExtractor):
         'info_dict': {
             'title': 'Keep Rover active during the deep freeze with doggie pushups and other fun indoor tasks',
             'id': 'dog-indoor-exercise-winter-1.3928238',
+            'description': 'md5:c18552e41726ee95bd75210d1ca9194c',
         },
         'playlist_mincount': 6,
     }]
@@ -165,12 +166,11 @@ class CBCPlayerIE(InfoExtractor):
             'uploader': 'CBCC-NEW',
         },
     }, {
-        # available only when we add `formats=MPEG4,FLV,MP3` to theplatform url
         'url': 'http://www.cbc.ca/player/play/2164402062',
-        'md5': '17a61eb813539abea40618d6323a7f82',
+        'md5': '33fcd8f6719b9dd60a5e73adcb83b9f6',
         'info_dict': {
             'id': '2164402062',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Cancer survivor four times over',
             'description': 'Tim Mayer has beaten three different forms of cancer four times in five years.',
             'timestamp': 1320410746,
