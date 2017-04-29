@@ -3734,13 +3734,22 @@ class PhantomJSwrapper(object):
 
     _TMP_FILE_NAMES = ['script', 'html', 'cookies']
 
-    def __init__(self, extractor, timeout=10000):
+    def __init__(self, extractor, required_version=None, timeout=10000):
         self.exe = check_executable('phantomjs', ['-v'])
         if not self.exe:
             raise ExtractorError('PhantomJS executable not found in PATH, '
                                  'download it from http://phantomjs.org',
                                  expected=True)
+
         self.extractor = extractor
+
+        if required_version:
+            version = get_exe_version(self.exe, version_re=r'([0-9.]+)')
+            if is_outdated_version(version, required_version):
+                self.extractor._downloader.report_warning(
+                    'Your copy of PhantomJS is outdated, update it to version '
+                    '%s or newer if you encounter any errors.' % required_version)
+
         self.options = {
             'timeout': timeout,
         }
