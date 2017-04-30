@@ -49,7 +49,7 @@ class FragmentFD(FileDownloader):
                 index:  0-based index of current fragment among all fragments
             fragment_count:
                 Total count of fragments
-                
+
     This feature is experimental and file format may change in future.
     """
 
