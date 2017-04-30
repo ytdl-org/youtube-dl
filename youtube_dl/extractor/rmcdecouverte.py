@@ -15,13 +15,13 @@ class RMCDecouverteIE(InfoExtractor):
     _TEST = {
         'url': 'http://rmcdecouverte.bfmtv.com/mediaplayer-replay/?id=116548',
         'info_dict': {
-            'id': '5111223049001',
+            'id': '5411254766001',
             'ext': 'mp4',
-            'title': ': LES HEROS DU 88e ETAGE',
-            'description': 'Découvrez comment la bravoure de deux hommes dans la Tour Nord du World Trade Center a sauvé  la vie d\'innombrables personnes le 11 septembre 2001.',
+            'title': '39/45:LE RESEAU DES FAUX BILLETS',
+            'description': 'ic Brunet propose un nouvel \u00e9pisode des Grains de sable de l\'Histoire sur la plus grosse affaire de contrefa\u00e7on de la Seconde Guerre mondiale.',
             'uploader_id': '1969646226001',
-            'upload_date': '20160904',
-            'timestamp': 1472951103,
+            'upload_date': '20170426',
+            'timestamp': 1493166610,
         },
         'params': {
             # rtmp download
@@ -35,5 +35,8 @@ class RMCDecouverteIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         brightcove_legacy_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
-        brightcove_id = compat_parse_qs(compat_urlparse.urlparse(brightcove_legacy_url).query)['@videoPlayer'][0]
+        if brightcove_legacy_url:
+            brightcove_id = compat_parse_qs(compat_urlparse.urlparse(brightcove_legacy_url).query)['@videoPlayer'][0]
+        else:
+            brightcove_id = self._html_search_regex(r'data-video-id="(.*?)"', webpage, 'error message', default=None)
         return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)
