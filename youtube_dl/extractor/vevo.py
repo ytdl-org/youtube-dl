@@ -13,6 +13,8 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_iso8601,
+    smuggle_url,
+    unsmuggle_url,
 )
 
 
@@ -23,6 +25,10 @@ class VevoBaseIE(InfoExtractor):
                 r'window\.__INITIAL_STORE__\s*=\s*({.+?});\s*</script>',
                 webpage, 'initial store'),
             video_id)
+
+    def _store_tokens(self, tokens):
+        self._ACCESS_TOKEN = tokens['legacy_token']
+        self._REFRESH_TOKEN = tokens['refresh_token']
 
     def _initialize_api(self, refresh=False):
         data = {'client_id': 'SPupX1tvqFEopQ1YS6SS'}
@@ -47,8 +53,7 @@ class VevoBaseIE(InfoExtractor):
 
         auth_info = self._parse_json(webpage, 'token')
 
-        self._ACCESS_TOKEN = auth_info['legacy_token']
-        self._REFRESH_TOKEN = auth_info['refresh_token']
+        self._store_tokens(auth_info)
 
     def _call_api(self, path, *args, **kwargs):
         try:
@@ -203,8 +208,16 @@ class VevoIE(VevoBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        url, tokens = unsmuggle_url(url)
+
+        # When downloading a playlist parameters are preserved
+        # so there is no need to get tokens again
         if not hasattr(self, '_ACCESS_TOKEN'):
-            self._initialize_api()
+            # Use tokens smuggled from playlist extractor if found
+            if tokens:
+                self._store_tokens(tokens)
+            else:
+                self._initialize_api()
 
         video_info = self._call_api(
             'video/%s' % video_id, video_id, 'Downloading api video info',
@@ -359,31 +372,41 @@ class VevoPlaylistIE(VevoBaseIE):
         'only_matching': True,
     }]
 
+    def _url_result(self, isrc, index):
+        url = 'http://www.vevo.com/watch/%s' % isrc
+        if index == 0:
+            url = smuggle_url(url, {
+                'legacy_token': self._ACCESS_TOKEN,
+                'refresh_token': self._REFRESH_TOKEN,
+            })
+        return self.url_result(url, VevoIE.ie_key(), isrc)
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('id')
         playlist_kind = mobj.group('kind')
 
-        webpage = self._download_webpage(url, playlist_id)
+        self._initialize_api()
+    
+        if playlist_kind == 'playlist':
+            path = 'playlist/%s'
+        else:
+            path = 'videos?genre=%s&sort=MostViewedLastWeek'
+
+        playlist = self._call_api(
+            path % playlist_id, playlist_id, 'Downloading api playlist info',
+            'Failed to download playlist info')
 
         qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         index = qs.get('index', [None])[0]
 
         if index:
-            video_id = self._search_regex(
-                r'<meta[^>]+content=(["\'])vevo://video/(?P<id>.+?)\1[^>]*>',
-                webpage, 'video id', default=None, group='id')
-            if video_id:
-                return self.url_result('vevo:%s' % video_id, VevoIE.ie_key())
-
-        playlists = self._extract_json(webpage, playlist_id)['default']['%ss' % playlist_kind]
-
-        playlist = (list(playlists.values())[0]
-                    if playlist_kind == 'playlist' else playlists[playlist_id])
+            return self._url_result(playlist['videos'][int(index)]['isrc'], 0)
 
         entries = [
-            self.url_result('vevo:%s' % src, VevoIE.ie_key())
-            for src in playlist['isrcs']]
+            self._url_result(src['isrc'], i)
+            for i, src in enumerate(playlist['videos'])
+        ]
 
         return self.playlist_result(
             entries, playlist.get('playlistId') or playlist_id,
