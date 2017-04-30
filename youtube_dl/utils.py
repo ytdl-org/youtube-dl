@@ -2273,10 +2273,8 @@ def mimetype2ext(mt):
     return {
         '3gpp': '3gp',
         'smptett+xml': 'tt',
-        'srt': 'srt',
         'ttaf+xml': 'dfxp',
         'ttml+xml': 'ttml',
-        'vtt': 'vtt',
         'x-flv': 'flv',
         'x-mp4-fragmented': 'mp4',
         'x-ms-wmv': 'wmv',
@@ -2284,11 +2282,11 @@ def mimetype2ext(mt):
         'x-mpegurl': 'm3u8',
         'vnd.apple.mpegurl': 'm3u8',
         'dash+xml': 'mpd',
-        'f4m': 'f4m',
         'f4m+xml': 'f4m',
         'hds+xml': 'f4m',
         'vnd.ms-sstr+xml': 'ism',
         'quicktime': 'mov',
+        'mp2t': 'ts',
     }.get(res, res)
 
 
