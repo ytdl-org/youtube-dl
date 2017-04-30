@@ -6,8 +6,9 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     clean_html,
-    ExtractorError,
     determine_ext,
+    ExtractorError,
+    int_or_none,
     parse_duration,
 )
 
@@ -21,7 +22,7 @@ class XVideosIE(InfoExtractor):
             'id': '4588838',
             'ext': 'mp4',
             'title': 'Biker Takes his Girl',
-            'duration': 120,
+            'duration': 108,
             'age_limit': 18,
         }
     }
@@ -38,8 +39,11 @@ class XVideosIE(InfoExtractor):
             r'<title>(.*?)\s+-\s+XVID', webpage, 'title')
         video_thumbnail = self._search_regex(
             r'url_bigthumb=(.+?)&amp', webpage, 'thumbnail', fatal=False)
-        video_duration = parse_duration(self._search_regex(
-            r'<span class="duration">.*?(\d[^<]+)', webpage, 'duration', fatal=False))
+        video_duration = int_or_none(self._og_search_property(
+            'duration', webpage, default=None)) or parse_duration(
+            self._search_regex(
+                r'<span[^>]+class=["\']duration["\'][^>]*>.*?(\d[^<]+)',
+                webpage, 'duration', fatal=False))
 
         formats = []
 
