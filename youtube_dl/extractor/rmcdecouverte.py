@@ -13,7 +13,7 @@ class RMCDecouverteIE(InfoExtractor):
     _VALID_URL = r'https?://rmcdecouverte\.bfmtv\.com/mediaplayer-replay.*?\bid=(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://rmcdecouverte.bfmtv.com/mediaplayer-replay/?id=1430&title=LES%20HEROS%20DU%2088e%20ETAGE',
+        'url': 'http://rmcdecouverte.bfmtv.com/mediaplayer-replay/?id=116548',
         'info_dict': {
             'id': '5111223049001',
             'ext': 'mp4',
