@@ -3,35 +3,44 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
-    int_or_none
+    int_or_none,
+    unified_timestamp,
 )
 
 
 class Zaq1IE(InfoExtractor):
-    _VALID_URL = r'http://(?:www\.)?zaq1\.pl/video/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?zaq1\.pl/video/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://zaq1.pl/video/xev0e',
         'md5': '24a5eb3f052e604ae597c4d0d19b351e',
         'info_dict': {
             'id': 'xev0e',
             'title': 'DJ NA WESELE. TANIEC Z FIGURAMI.węgrów/sokołów podlaski/siedlce/mińsk mazowiecki/warszawa',
+            'description': 'www.facebook.com/weseledjKontakt: 728 448 199 / 505 419 147',
             'ext': 'mp4',
             'duration': 511,
+            'timestamp': 1490896361,
             'uploader': 'Anonim',
             'upload_date': '20170330',
+            'view_count': int,
         }
     }, {
-        'url': 'http://zaq1.pl/video/x80nc',
-        'md5': '1245973520adc78139928a820959d9c5',
+        # malformed JSON-LD
+        'url': 'http://zaq1.pl/video/x81vn',
         'info_dict': {
-            'id': 'x80nc',
-            'title': 'DIY Inspiration Challenge #86 | koraliki | gwiazdka na choinkę z koralików i drutu',
+            'id': 'x81vn',
+            'title': 'SEKRETNE ŻYCIE WALTERA MITTY',
             'ext': 'mp4',
-            'duration': 438,
+            'duration': 6234,
+            'timestamp': 1493494860,
             'uploader': 'Anonim',
-            'upload_date': '20170404',
-        }
+            'upload_date': '20170429',
+            'view_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Failed to parse JSON'],
     }]
 
     def _real_extract(self, url):
@@ -39,29 +48,54 @@ class Zaq1IE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(
-            r'(?s)<h1>\s*<span.+class="watch-title".+title="([^"]+)">\1\s*</span>\s*</h1>', webpage, 'title')
+        video_url = self._search_regex(
+            r'data-video-url=(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'video url', group='url')
 
-        div = self._search_regex(r'(?s)(?P<div><div.+id=(["\'])video_player\2.+</div>)', webpage, 'video url', group='div')
-        video_url = self._search_regex(r'data-video-url="(http[^"]+)"', div, 'video url')
+        info = self._search_json_ld(webpage, video_id, fatal=False)
 
-        ext = self._search_regex(r'data-file-extension="([^"]+)"', div, 'ext', None, False)
-        duration = int_or_none(self._search_regex(r'data-duration="([^"]+)"', div, 'duration', None, False))
-        thumbnail = self._search_regex(r'data-photo-url="([^"]+)"', div, 'thumbnail', None, False)
+        def extract_data(field, name, fatal=False):
+            return self._search_regex(
+                r'data-%s=(["\'])(?P<field>(?:(?!\1).)+)\1' % field,
+                webpage, field, fatal=fatal, group='field')
 
-        upload_date = unified_strdate(self._search_regex(r'<strong\s+class="watch-time-text">\s*Opublikowany\s+([0-9]{4}-[0-9]{2}-[0-9]{2})', webpage, 'upload date'))
-        uploader = self._search_regex(r'<div\s+id="watch7-user-header">.*Wideo dodał:\s*<a[^>]*>\s*([^<]+)\s*</a>', webpage, 'uploader')
+        if not info.get('title'):
+            info['title'] = extract_data('file-name', 'title', fatal=True)
 
-        return {
+        if not info.get('duration'):
+            info['duration'] = int_or_none(extract_data('duration', 'duration'))
+
+        if not info.get('thumbnail'):
+            info['thumbnail'] = extract_data('photo-url', 'thumbnail')
+
+        if not info.get('timestamp'):
+            info['timestamp'] = unified_timestamp(self._html_search_meta(
+                'uploadDate', webpage, 'timestamp'))
+
+        if not info.get('interactionCount'):
+            info['view_count'] = int_or_none(self._html_search_meta(
+                'interactionCount', webpage, 'view count'))
+
+        uploader = self._html_search_regex(
+            r'Wideo dodał:\s*<a[^>]*>([^<]+)</a>', webpage, 'uploader',
+            fatal=False)
+
+        width = int_or_none(self._html_search_meta(
+            'width', webpage, fatal=False))
+        height = int_or_none(self._html_search_meta(
+            'height', webpage, fatal=False))
+
+        info.update({
             'id': video_id,
-            'title': title,
             'formats': [{
                 'url': video_url,
-                'ext': ext,
-                'http_headers': {'Referer': url},
+                'width': width,
+                'height': height,
+                'http_headers': {
+                    'Referer': url,
+                },
             }],
-            'thumbnail': thumbnail,
             'uploader': uploader,
-            'upload_date': upload_date,
-            'duration': duration,
-        }
+        })
+
+        return info
