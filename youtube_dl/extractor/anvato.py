@@ -29,7 +29,7 @@ def md5_text(s):
 
 class AnvatoIE(InfoExtractor):
     _VALID_URL = r'anvato:(?P<access_key_or_mcp>[^:]+):(?P<id>\d+)'
-    
+
     # Copied from anvplayer.min.js
     _ANVACK_TABLE = {
         'nbcu_nbcd_desktop_web_prod_93d8ead38ce2024f8f544b78306fbd15895ae5e6': 'NNemUkySjxLyPTKvZRiGntBIjEyK8uqicjMakIaQ',
