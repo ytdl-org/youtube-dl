@@ -367,6 +367,9 @@ class VevoPlaylistIE(VevoBaseIE):
             'genre': 'Hip-Hop',
         },
         'expected_warnings': ['Unable to download SMIL file'],
+        'params': {
+            'noplaylist': True,
+        },
     }, {
         'url': 'http://www.vevo.com/watch/genre/rock?index=0',
         'only_matching': True,
@@ -400,8 +403,15 @@ class VevoPlaylistIE(VevoBaseIE):
         qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         index = qs.get('index', [None])[0]
 
-        if index:
-            return self._url_result(playlist['videos'][int(index)]['isrc'], 0)
+        if self._downloader.params.get('noplaylist') and index:
+            isrc = playlist['videos'][int(index)]['isrc']
+            self.to_screen(
+                'Downloading just video %s because of --no-playlist' % isrc)
+            return self._url_result(isrc, 0)
+
+        self.to_screen(
+            'Downloading playlist %s - add --no-playlist'
+            ' to just download video' % playlist_id)
 
         entries = [
             self._url_result(src['isrc'], i)
