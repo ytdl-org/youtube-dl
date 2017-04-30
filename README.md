@@ -320,10 +320,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      download (minimum possible number of
                                      seconds to sleep) when used along with
                                      --max-sleep-interval.
+    --min-sleep-interval SECONDS     Same as --sleep-interval.
     --max-sleep-interval SECONDS     Upper bound of a range for randomized sleep
                                      before each download (maximum possible
                                      number of seconds to sleep). Must only be
-                                     used along with --min-sleep-interval.
+                                     used along with --sleep-interval or --min-sleep-interval.
 
 ## Video Format Options:
     -f, --format FORMAT              Video format code, see the "FORMAT
