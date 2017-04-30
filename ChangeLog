@@ -1,7 +1,29 @@
 version <unreleased>
 
+Core
++ [extractor/common] Extract view count from JSON-LD
+* [utils] Improve unified_timestamp
++ [utils] Add video/mp2t to mimetype2ext
+* [downloader/external] Properly handle live stream downloading cancellation
+  (#8932)
++ [utils] Add support for unicode whitespace in clean_html on python 2 (#12906)
+
 Extractors
+* [infoq] Make audio format extraction non fatal (#12938)
+* [brightcove] Allow whitespace around attribute names in embedded code
++ [zaq1] Add support for zaq1.pl (#12693)
++ [xvideos] Extract duration (#12828)
+* [vevo] Fix extraction (#12879)
++ [noovo] Add support for noovo.ca (#12792)
++ [washingtonpost] Add support for embeds (#12699)
+* [yandexmusic:playlist] Fix extraction for python 3 (#12888)
+* [anvato] Improve extraction (#12913)
+    * Promote to regular shortcut based extractor
+    * Add mcp to access key mapping table
+    * Add support for embeds extraction
+    * Add support for anvato embeds in generic extractor
 * [xtube] Fix extraction for older FLV videos (#12734)
+* [tvplayer] Fix extraction (#12908)
 
 
 version 2017.04.28
@@ -30,19 +52,19 @@ Core
 * [YoutubeDL] Fix output template for missing timestamp (#12796)
 * [socks] Handle cases where credentials are required but missing
 * [extractor/common] Improve HLS extraction (#12211)
-    - Extract m3u8 parsing to separate method
-    - Improve rendition groups extraction
-    - Build stream name according stream GROUP-ID
-    - Ignore reference to AUDIO group without URI when stream has no CODECS
-    - Use float for scaled tbr in _parse_m3u8_formats
+    * Extract m3u8 parsing to separate method
+    * Improve rendition groups extraction
+    * Build stream name according stream GROUP-ID
+    * Ignore reference to AUDIO group without URI when stream has no CODECS
+    * Use float for scaled tbr in _parse_m3u8_formats
 * [utils] Add support for TTML styles in dfxp2srt
 * [downloader/hls] No need to download keys for fragments that have been
   already downloaded
 * [downloader/fragment] Improve fragment downloading
-    - Resume immediately
-    - Don't concatenate fragments and decrypt them on every resume
-    - Optimize disk storage usage, don't store intermediate fragments on disk
-    - Store bookkeeping download state file
+    * Resume immediately
+    * Don't concatenate fragments and decrypt them on every resume
+    * Optimize disk storage usage, don't store intermediate fragments on disk
+    * Store bookkeeping download state file
 + [extractor/common] Add support for multiple getters in try_get
 + [extractor/common] Add support for video of WebPage context in _json_ld
   (#12778)
