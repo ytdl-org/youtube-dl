@@ -342,29 +342,29 @@ class VevoPlaylistIE(VevoBaseIE):
         'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29',
         'info_dict': {
             'id': 'dadbf4e7-b99f-4184-9670-6f0e547b6a29',
-            'title': 'Best-Of: Birdman',
+            'title': 'Best Of: Birdman',
+            'description': 'Ca$h Money Records\' ballin\' boss turns 48 today.',
         },
-        'playlist_count': 10,
+        'playlist_count': 24,
     }, {
         'url': 'http://www.vevo.com/watch/genre/rock',
         'info_dict': {
             'id': 'rock',
-            'title': 'Rock',
         },
         'playlist_count': 20,
     }, {
-        'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29?index=0',
+        'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29?index=1',
         'md5': '32dcdfddddf9ec6917fc88ca26d36282',
         'info_dict': {
             'id': 'USCMV1100073',
             'ext': 'mp4',
-            'title': 'Birdman - Y.U. MAD',
+            'title': 'Birdman ft. Lil Wayne & Nicki Minaj - Y.U. MAD',
             'timestamp': 1323417600,
             'upload_date': '20111209',
             'uploader': 'Birdman',
             'track': 'Y.U. MAD',
             'artist': 'Birdman',
-            'genre': 'Rap/Hip-Hop',
+            'genre': 'Hip-Hop',
         },
         'expected_warnings': ['Unable to download SMIL file'],
     }, {
