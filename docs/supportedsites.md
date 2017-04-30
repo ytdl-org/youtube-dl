@@ -45,6 +45,7 @@
  - **anderetijden**: npo.nl and ntr.nl
  - **AnimeOnDemand**
  - **anitube.se**
+ - **Anvato**
  - **AnySex**
  - **Aparat**
  - **AppleConnect**
@@ -529,6 +530,7 @@
  - **NJPWWorld**: 新日本プロレスワールド
  - **NobelPrize**
  - **Noco**
+ - **Noovo**
  - **Normalboots**
  - **NosVideo**
  - **Nova**: TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz
@@ -1013,6 +1015,7 @@
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
  - **youtube:watchlater**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
  - **Zapiks**
+ - **Zaq1**
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3**: mp3.zing.vn

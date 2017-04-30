@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.05.01
 
 Core
 + [extractor/common] Extract view count from JSON-LD
