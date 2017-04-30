@@ -990,6 +990,7 @@ class InfoExtractor(object):
                 'tbr': int_or_none(e.get('bitrate')),
                 'width': int_or_none(e.get('width')),
                 'height': int_or_none(e.get('height')),
+                'view_count': int_or_none(e.get('interactionCount')),
             })
 
         for e in json_ld:
