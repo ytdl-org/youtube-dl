@@ -1429,6 +1429,22 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            # Brightcove embed with whitespace around attribute names
+            'url': 'http://www.stack.com/video/3167554373001/learn-to-hit-open-three-pointers-with-damian-lillard-s-baseline-drift-drill',
+            'info_dict': {
+                'id': '3167554373001',
+                'ext': 'mp4',
+                'title': "Learn to Hit Open Three-Pointers With Damian Lillard's Baseline Drift Drill",
+                'description': 'md5:57bacb0e0f29349de4972bfda3191713',
+                'uploader_id': '1079349493',
+                'upload_date': '20140207',
+                'timestamp': 1391810548,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # Another form of arte.tv embed
         {
             'url': 'http://www.tv-replay.fr/redirection/09-04-16/arte-reportage-arte-11508975.html',
