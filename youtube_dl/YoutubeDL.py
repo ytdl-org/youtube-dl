@@ -2186,7 +2186,13 @@ class YoutubeDL(object):
             self.cookiejar = compat_cookiejar.MozillaCookieJar(
                 opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):
-                self.cookiejar.load()
+                self.cookiejar.load(ignore_discard=True, ignore_expires=True)
+                # Force CookieJar to treat 'expires=0' cookies as session/discard cookies
+                # Fixes https://bugs.python.org/issue17164
+                for cookie in self.cookiejar:
+                    if cookie.expires == 0:
+                        cookie.expires = None
+                        cookie.discard = True
 
         cookie_processor = YoutubeDLCookieProcessor(self.cookiejar)
         if opts_proxy is not None:
