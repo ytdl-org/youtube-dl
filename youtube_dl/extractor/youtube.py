@@ -1455,6 +1455,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Start extracting information
         self.report_information_extraction(video_id)
 
+        # channel_id
+        mobj = re.search(r'itemprop="channelId" content="(UC[-_A-Za-z0-9]{21}[AQgw])"', video_webpage)
+        if mobj is not None:
+            video_channel_id = mobj.group(1)
+        else:
+            self._downloader.report_warning('unable to extract channelId')
+            video_channel_id = None
+
         # uploader
         if 'author' not in video_info:
             raise ExtractorError('Unable to extract uploader name')
@@ -1773,6 +1781,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         return {
             'id': video_id,
+            'channel_id': video_channel_id,
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
             'uploader_url': video_uploader_url,
