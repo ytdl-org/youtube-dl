@@ -12,7 +12,6 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
-    sanitized_Request,
     parse_iso8601,
 )
 
@@ -155,19 +154,17 @@ class VevoIE(VevoBaseIE):
     }
 
     def _initialize_api(self, video_id):
-        post_data = json.dumps({
-            'client_id': 'SPupX1tvqFEopQ1YS6SS',
-            'grant_type': 'urn:vevo:params:oauth:grant-type:anonymous',
-        }).encode('utf-8')
-        headers = {
-            'Content-Type': 'application/json',
-        }
-        req = sanitized_Request(
-            'https://accounts.vevo.com/token', post_data, headers)
         webpage = self._download_webpage(
-            req, None,
+            'https://accounts.vevo.com/token', None,
             note='Retrieving oauth token',
-            errnote='Unable to retrieve oauth token')
+            errnote='Unable to retrieve oauth token',
+            data=json.dumps({
+                'client_id': 'SPupX1tvqFEopQ1YS6SS',
+                'grant_type': 'urn:vevo:params:oauth:grant-type:anonymous',
+            }).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json',
+            })
 
         if re.search(r'(?i)THIS PAGE IS CURRENTLY UNAVAILABLE IN YOUR REGION', webpage):
             self.raise_geo_restricted(
