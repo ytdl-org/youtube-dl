@@ -31,15 +31,41 @@ class NovaMovIE(InfoExtractor):
 
     _FILE_DELETED_REGEX = r'This file no longer exists on our servers!</h2>'
     _STEPKEY_REGEX = r'<input type="hidden" name="stepkey" value="(?P<stepkey>"?[^"]+"?)">'
-    _URL_REGEX = r'<source src="(?P<url>"?[^"]+"?)" type=\'video/mp4\'>'
+    _URL_REGEX = r'<source src="(?P<url>"?[^"]+"?)"'
     _TITLE_REGEX = r'<meta name="title" content="Watch (?P<title>"?[^"]+"?) online | [a-zA-Z_] " />'
     _URL_TEMPLATE = 'http://%s/video/%s'
-
     _TEST = None
 
     def _check_existence(self, webpage, video_id):
         if re.search(self._FILE_DELETED_REGEX, webpage) is not None:
             raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+    '''
+    ' Check if the content of the side directly provide the media url.
+    ' If so, this returns the media url, False otherwise
+    '''
+    def _direct_extract(self, content, url):
+        self.to_screen('try direct extraction method')
+
+        match = re.search(r'(?:http|https)://(?:www\.)(\w+\.\w+)/(?:embed/\?v=|video/)([a-z0-9]+)', url)
+        if not match:
+            self.to_screen('direct extraction method failed, using fallback method')
+            return False
+
+        host = match.group(1)
+
+        tokerMatch = re.search(r'toker\.php\?f=([^"]+)', content)
+
+        if not tokerMatch:
+            self.to_screen('direct extraction method failed, using fallback method')
+            return False
+
+        key = tokerMatch.group(1)
+
+        media_url = 'http://www.%s/download.php?file=%s' % (host, key)
+
+        self.to_screen('direct extraction method successful')
+        return media_url
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -51,6 +77,21 @@ class NovaMovIE(InfoExtractor):
             url, video_id, 'Downloading video page')
 
         self._check_existence(webpage, video_id)
+
+        if hasattr(self, '_TITLE_REGEX'):
+            title = self._search_regex(self._TITLE_REGEX, webpage, 'title')
+        else:
+            title = str(id)
+
+        # 1.1 check if media url is available directly through webpage
+        directResult = self._direct_extract(webpage, url)
+        if directResult:
+            return {
+                'id': video_id,
+                'url': directResult,
+                'title': title,
+                'ext': directResult[-3:]
+            }
 
         # 2. extract the 'stepkey' value from form
         def extract_stepkey(default=NO_DEFAULT):
@@ -74,12 +115,7 @@ class NovaMovIE(InfoExtractor):
         webpage = self._download_webpage(request, url)
 
         # 4. extract the real video url from response
-        video_url = self._search_regex(self._URL_REGEX, webpage, 'stepkey')
-
-        if hasattr(self, '_TITLE_REGEX'):
-            title = self._search_regex(self._TITLE_REGEX, webpage, 'title')
-        else:
-            title = str(id)
+        video_url = self._search_regex(self._URL_REGEX, webpage, 'url')
 
         if hasattr(self, '_DESCRIPTION_REGEX'):
             description = self._html_search_regex(self._DESCRIPTION_REGEX, webpage, 'description', default='', fatal=False)
@@ -103,7 +139,6 @@ class WholeCloudIE(NovaMovIE):
     _HOST = 'www.wholecloud.net'
 
     _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
-    _TITLE_REGEX = r'<meta name="title" content="Watch (?P<title>"?[^"]+"?) online | [a-zA-Z_] " />'
     _DESCRIPTION_REGEX = r'<strong>Description:</strong> ([^<]+)</p>'
 
     _TESTS = [{
@@ -112,7 +147,6 @@ class WholeCloudIE(NovaMovIE):
             'id': 'e1de95371c94a',
             'ext': 'mp4',
             'title': 'Big Buck Bunny UHD 4K 60fps',
-            'description': 'No description',
         },
         'md5': '909304eb0b75ef231ceb72d84fade33d',
     }, {
@@ -130,7 +164,6 @@ class NowVideoIE(NovaMovIE):
     _HOST = 'www.nowvideo.to'
 
     _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
-    _TITLE_REGEX = r'<h4>([^<]+)</h4>'
     _DESCRIPTION_REGEX = r'</h4>\s*<p>([^<]+)</p>'
 
     _TESTS = [{
@@ -139,7 +172,6 @@ class NowVideoIE(NovaMovIE):
             'id': '461ebb17e1a83',
             'ext': 'mp4',
             'title': 'Big Buck Bunny UHD 4K 60fps',
-            'description': 'No description',
         },
         'md5': '909304eb0b75ef231ceb72d84fade33d',
     }, {
@@ -158,8 +190,14 @@ class BitVidIE(NovaMovIE):
     _HOST = 'www.bitvid.sx'
 
     _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
-    _TITLE_REGEX = r'<h1 class="text_shadow">([^<]+)</h1>'
+    _TITLE_REGEX = r'<meta name="title" content="(?P<title>"?[^"]+"?)" />'
     _URL_TEMPLATE = 'http://%s/file/%s'
+
+    def _check_existence(self, webpage, video_id):
+        if '<meta name="title" content="" /> ' in webpage:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+        super(BitVidIE, self)._check_existence(webpage, video_id)
 
     _TESTS = [{
         'url': 'http://www.bitvid.sx/file/bceedaa7b969c',
@@ -185,7 +223,24 @@ class CloudTimeIE(NovaMovIE):
 
     _FILE_DELETED_REGEX = r'>This file no longer exists on our servers.<'
 
-    _TEST = None
+    def _check_existence(self, webpage, video_id):
+        if '<title>CloudTime - The stage is yours!</title>' in webpage:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+        super(CloudTimeIE, self)._check_existence(webpage, video_id)
+
+    _TESTS = [{
+        'url': 'http://www.cloudtime.to/video/ef47760a7793d',
+        'info_dict': {
+            'id': 'ef47760a7793d',
+            'ext': 'mp4',
+            'title': 'Big Buck Bunny UHD 4K 60fps'
+        },
+        'md5': '909304eb0b75ef231ceb72d84fade33d',
+    }, {
+        'url': 'http://www.cloudtime.to/video/ef47760a7793d',
+        'only_matching': True,
+    }]
 
 
 class AuroraVidIE(NovaMovIE):
@@ -197,6 +252,12 @@ class AuroraVidIE(NovaMovIE):
     _HOST = 'www.auroravid.to'
 
     _FILE_DELETED_REGEX = r'This file no longer exists on our servers!<'
+
+    def _check_existence(self, webpage, video_id):
+        if '<title>AuroaVid - Free and reliable flash video hosting</title>' in webpage:
+            raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+
+        super(AuroraVidIE, self)._check_existence(webpage, video_id)
 
     _TESTS = [{
         'url': 'http://www.auroravid.to/video/27851f1e57c95',
