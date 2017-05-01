@@ -25,7 +25,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'Krijgt zieke Pauline (3) het mooiste kerstcadeau?',
                 'description': 'Er is misschien toch goed nieuws voor de zieke Pauline (3). Het Riziv buigt zich'
                                ' namelijk over de vraag om de peperdure behandeling van 15.000 euro terug t...',
-                'thumbnail': 're:http.*jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20151224',
                 'timestamp': 1450982472,
             },
@@ -41,7 +41,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'Angst voor terreur: fotograaf toont hoe hij de werkelijkheid kan manipuleren',
                 'description': 'De metro rijdt niet, de scholen en crèches zijn dicht, vele winkels zijn gesloten. '
                                'Fotograaf Jimmy Kets brengt Brussel vandaag in beeld. Maar hij toont ook...',
-                'thumbnail': 're:http.*jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             }
         },
         # Source: Kaltura
@@ -54,7 +54,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'Exclusieve sportwagen brandt uit op weg naar winterberging',
                 'description': 'Een exclusieve TVR Tuscon S is kerstdag op de Burkel helemaal uitgebrand. '
                                'De eigenaar van deze Britse sportauto was rond 11 uur onderweg om het voertuig na...',
-                'thumbnail': 're:http.*jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'timestamp': int,
                 'upload_date': '20151225',
                 'uploader_id': 'dcc-video-manager-hbvl@mediahuis.be'
@@ -70,7 +70,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'Dit is het nieuwste speeltje van Michel Van den Brande',
                 'description': 'In de jongste aflevering van \'The Sky is the Limit\' pronkt Michel Van den Brande'
                                ' met zijn nieuwste speeltje: een glanzende BMW. Een van zijn medewerkers ma...',
-                'thumbnail': 're:^https?://.*\.png$',
+                'thumbnail': r're:^https?://.*\.png$',
             }
         },
         # Gazet van Antwerpen
@@ -83,7 +83,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'Blind meisje met autisme reageert op hartverwarmende wijze wanneer ze straatmuzikant hoort spelen',
                 'description': 'De zevenjarige Lacie is blind en lijdt aan autisme, maar haar liefde voor muziek is ze '
                                'duidelijk niet verloren. Toen het meisje afgelopen vrijdag samen met...',
-                'thumbnail': 're:http.*jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20170412',
                 'uploader_id': 'videoredactie@mediahuis.be',
                 'timestamp': 1492014190,
@@ -100,7 +100,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'VIDEO. Limburger treft ravage aan na oplichting met vastgoed',
                 'description': '“Eén huis is een ware ravage”, zegt Bilzenaar Danny Kwanten, die pas naar Detroit is '
                                'gevlogen waar hij zijn spaarcenten heeft geïnvesteerd in de aankoop va...',
-                'thumbnail': 're:http.*jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20170331',
                 'uploader_id': 'dcc-video-manager-hbvl@mediahuis.be',
                 'timestamp': 1490959817,
@@ -116,7 +116,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'Zo klinkt een gitaar gemaakt van papier',
                 'description': 'Gitaarbouwer Walter Verreydt bouwde een gitaar uit krantenpapier. Kan een papieren '
                                'gitaar zo goed klinken als een gitaar van tropisch hout? Blijkbaar wel. ...',
-                'thumbnail': 're:http.*jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20170412',
                 'uploader_id': 'videoredactie@mediahuis.be',
                 'timestamp': 1492009206,
@@ -132,7 +132,7 @@ class MediahuisIE(InfoExtractor):
                 'title': 'VIDEO. Is bio ons geld waard?',
                 'description': 'Is biologisch eten beter voor de wereld, of een sprookje voor naïeve consumenten? '
                                'Correspondente en voedingsjournaliste Dorien Knockaert neemt de kritiek v...',
-                'thumbnail': 're:http.*jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20170412',
                 'uploader_id': 'batchUser',
                 'timestamp': 1491990547,
