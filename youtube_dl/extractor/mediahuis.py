@@ -176,7 +176,7 @@ class MediahuisIE(InfoExtractor):
         iframe_m = re.search(r'<iframe[^>]+src="(.+?vrt\.be.*?)"', webpage)
         if iframe_m:
             webpage = self._download_webpage(iframe_m.group(1), "vrt-iframe")
-            video_url = self._search_regex(r'sources.pdl\s*=\s*"(.*?)";', webpage, 'vrt-video')
+            video_url = self._search_regex(r'sources\.pdl\s*=\s*"(.*?)";', webpage, 'vrt-video')
 
         iframe_m = re.search(r'<iframe[^>]+src="(.+?vmma\.be.*?)"', webpage)
         if iframe_m:
