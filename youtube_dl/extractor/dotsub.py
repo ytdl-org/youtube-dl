@@ -35,7 +35,7 @@ class DotsubIE(InfoExtractor):
             'thumbnail': 're:^https?://dotsub.com/media/747bcf58-bd59-45b7-8c8c-ac312d084ee6/p',
             'duration': 290,
             'timestamp': 1476767794.2809999,
-            'upload_date': '20160525',
+            'upload_date': '20161018',
             'uploader': 'parthivi001',
             'uploader_id': 'user52596202',
             'view_count': int,
