@@ -137,6 +137,20 @@ class MediahuisIE(InfoExtractor):
                 'uploader_id': 'batchUser',
                 'timestamp': 1491990547,
             }
+        },
+
+        # Gazet van Antwerpen (flvpd.vtm.be/video.medialaancdn.be)
+        {
+            'url': 'http://www.gva.be/cnt/dmf20170105_02660060/nieuwe-vtm-programma-groeten-uit-groeit-uit-tot-nostalgische-hit',
+            'md5': '1ec96a60672a7aab8ae8590c2c03eb27',
+            'info_dict': {
+                'id': '02660060',
+                'ext': 'mp4',
+                'title': 'Nieuw VTM-programma "Groeten uit" groeit uit tot nostalgische hit',
+                'description': 'Bekende Vlamingen worden met hun gezin teruggestuurd naar het jaar waarin ze twaalf waren. '
+                               'Dat is het opzet van de nieuwe VTM-reeks "Groeten uit". Staf Cop...',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            }
         }
     ]
 
