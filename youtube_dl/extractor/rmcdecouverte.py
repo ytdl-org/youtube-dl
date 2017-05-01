@@ -38,5 +38,5 @@ class RMCDecouverteIE(InfoExtractor):
         if brightcove_legacy_url:
             brightcove_id = compat_parse_qs(compat_urlparse.urlparse(brightcove_legacy_url).query)['@videoPlayer'][0]
         else:
-            brightcove_id = self._html_search_regex(r'data-video-id="(.*?)"', webpage, 'error message')
+            brightcove_id = self._html_search_regex(r'data-video-id="(.*?)"', webpage, 'brightcove_id')
         return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)
