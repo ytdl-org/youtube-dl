@@ -75,10 +75,10 @@ class MediahuisIE(InfoExtractor):
         },
         # Gazet van Antwerpen
         {
-            'url': 'http://www.gva.be/cnt/dmf20170412_02832220/blind-meisje-met-autisme-reageert-op-hartverwarmende-wijze-wanneer-ze-straatmuzikant-hoort-spelen',
+            'url': 'http://www.gva.be/cnt/dmf20170412_02831246/blind-meisje-met-autisme-reageert-op-hartverwarmende-wijze-wanneer-ze-straatmuzikant-hoort-spelen',
             'md5': '54fc7fb24dd187adb25ccd698c45ddef',
             'info_dict': {
-                'id': '02832220',
+                'id': '02831246',
                 'ext': 'mp4',
                 'title': 'Blind meisje met autisme reageert op hartverwarmende wijze wanneer ze straatmuzikant hoort spelen',
                 'description': 'De zevenjarige Lacie is blind en lijdt aan autisme, maar haar liefde voor muziek is ze '
@@ -92,18 +92,18 @@ class MediahuisIE(InfoExtractor):
         },
         # Het Belang van Limburg
         {
-            'url': 'http://www.hbvl.be/cnt/dmf20170413_02832693/video-bestuurder-krijgt-appelflauwte-en-rijdt-recht-woonkamer-binnen',
-            'md5': '308f2683c3e22051c9751580607ace3d',
+            'url': 'http://www.hbvl.be/cnt/dmf20170331_02809751/video-limburger-treft-ravage-aan-na-oplichting-met-vastgoed',
+            'md5': 'e3e46234966ed704cc5b07ede18f02af',
             'info_dict': {
-                'id': '02832693',
-                'ext': 'mov',
-                'title': 'VIDEO. Bestuurder krijgt appelflauwte en rijdt recht woonkamer binnen',
-                'description': 'Een BMW is donderdagmiddag in de living van een woning beland langs de Oudenaardse'
-                               'steenweg in het Oost-Vlaamse Erpe-Mere. De BMW kwam van de oprit E40 gere...',
+                'id': '02809751',
+                'ext': 'mp4',
+                'title': 'VIDEO. Limburger treft ravage aan na oplichting met vastgoed',
+                'description': '“Eén huis is een ware ravage”, zegt Bilzenaar Danny Kwanten, die pas naar Detroit is '
+                               'gevlogen waar hij zijn spaarcenten heeft geïnvesteerd in de aankoop va...',
                 'thumbnail': 're:http.*jpg$',
-                'upload_date': '20170413',
-                'uploader_id': 'video',
-                'timestamp': 1492092669,
+                'upload_date': '20170331',
+                'uploader_id': 'dcc-video-manager-hbvl@mediahuis.be',
+                'timestamp': 1490959817,
             }
         },
         # De Standaard (Kaltura, Dynamic Embed)
