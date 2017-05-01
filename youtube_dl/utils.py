@@ -11,6 +11,7 @@ import contextlib
 import ctypes
 import datetime
 import email.utils
+import email.header
 import errno
 import functools
 import gzip
@@ -2097,6 +2098,58 @@ def update_Request(req, url=None, data=None, headers={}, query={}):
     return new_req
 
 
+def try_multipart_encode(data, boundary):
+    content_type = 'multipart/form-data; boundary=%s' % boundary
+
+    out = b''
+    for k, v in data.items():
+        out += b'--' + boundary.encode('ascii') + b'\r\n'
+        if isinstance(k, compat_str):
+            k = k.encode('utf-8')
+        if isinstance(v, compat_str):
+            v = v.encode('utf-8')
+        # RFC 2047 requires non-ASCII field names to be encoded, while RFC 7578
+        # suggests sending UTF-8 directly. Firefox sends UTF-8, too
+        content = b'Content-Disposition: form-data; name="%s"\r\n\r\n' % k + v + b'\r\n'
+        if boundary.encode('ascii') in content:
+            raise ValueError('Boundary overlaps with data')
+        out += content
+
+    out += b'--' + boundary.encode('ascii') + b'--\r\n'
+
+    return out, content_type
+
+
+def multipart_encode(data, boundary=None):
+    '''
+    Encode a dict to RFC 7578-compliant form-data
+
+    data:
+        A dict where keys and values can be either Unicode or bytes-like
+        objects.
+    boundary:
+        If specified a Unicode object, it's used as the boundary. Otherwise
+        a random boundary is generated.
+
+    Reference: https://tools.ietf.org/html/rfc7578
+    '''
+    has_specified_boundary = boundary is not None
+
+    while True:
+        if boundary is None:
+            boundary = '---------------' + str(random.randrange(0x0fffffff, 0xffffffff))
+
+        try:
+            out, content_type = try_multipart_encode(data, boundary)
+            break
+        except ValueError:
+            if has_specified_boundary:
+                raise
+            boundary = None
+
+    return out, content_type
+
+
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
     if isinstance(key_or_keys, (list, tuple)):
         for key in key_or_keys:
@@ -3760,3 +3813,11 @@ def write_xattr(path, key, value):
                         "Couldn't find a tool to set the xattrs. "
                         "Install either the python 'xattr' module, "
                         "or the 'xattr' binary.")
+
+
+def random_birthday(year_field, month_field, day_field):
+    return {
+        year_field: str(random.randint(1950, 1995)),
+        month_field: str(random.randint(1, 12)),
+        day_field: str(random.randint(1, 31)),
+    }

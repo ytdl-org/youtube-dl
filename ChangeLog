@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [cda] Support birthday verification (#12789)
 * [leeco] Fix extraction (#12974)
 
 
