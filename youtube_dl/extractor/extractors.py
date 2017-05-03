@@ -305,6 +305,7 @@ from .espn import (
     ESPNIE,
     ESPNArticleIE,
 )
+from .esquire import EsquireIE
 from .esri import EsriVideoIE
 from .etonline import ETOnlineIE
 from .europa import EuropaIE
