@@ -42,6 +42,19 @@ class VierIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'http://www.vier.be/janigaat/videos/jani-gaat-naar-tokio-aflevering-4/2674839',
+        'info_dict': {
+            'id': '2674839',
+            'display_id': 'jani-gaat-naar-tokio-aflevering-4',
+            'ext': 'mp4',
+            'title': 'Jani gaat naar Tokio - Aflevering 4',
+            'description': 'Bekijk hier de volledige vierde aflevering van het 2de seizoen van Jani gaat...',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }, {
         'url': 'http://www.vier.be/planb/videos/mieren-herders-van-de-bladluizen',
         'only_matching': True,
     }, {
