@@ -2,11 +2,15 @@
 from __future__ import unicode_literals
 
 import re
+import time
 
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
+    compat_urllib_request,
+    compat_urllib_parse,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
@@ -15,6 +19,8 @@ from ..utils import (
     unescapeHTML,
     urlencode_postdata,
     USER_AGENTS,
+    RegexNotFoundError,
+    compat_str,
 )
 
 
@@ -52,7 +58,7 @@ class CeskaTelevizeIE(InfoExtractor):
         # live stream
         'url': 'http://www.ceskatelevize.cz/ivysilani/zive/ct4/',
         'info_dict': {
-            'id': 402,
+            'id': '402',
             'ext': 'mp4',
             'title': r're:^ČT Sport \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
             'is_live': True,
@@ -67,14 +73,31 @@ class CeskaTelevizeIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
+    def _real_extract(self, url, retries=0):
         playlist_id = self._match_id(url)
+
+        if playlist_id == 'iFramePlayer.php':
+            parsed = compat_urlparse.urlparse(url)
+            qs_dict = compat_urlparse.parse_qs(parsed.query)
+            if qs_dict.get('videoID'):
+                playlist_id = qs_dict['videoID'][0]
+            elif qs_dict.get('IDEC'):
+                playlist_id = qs_dict['IDEC'][0]
+            else:
+                self.report_warning("Could not extract ID from iFramePlayer URL %s" % url)
 
         webpage = self._download_webpage(url, playlist_id)
 
         NOT_AVAILABLE_STRING = 'This content is not available at your territory due to limited copyright.'
         if '%s</p>' % NOT_AVAILABLE_STRING in webpage:
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
+        if 'Neplatný kód pro videopřehrávač' in webpage:
+            if retries < 1:
+                self._report_warning('Invalid code on the page, retrying...')
+                time.sleep(15)
+                return self._real_extract(url, retries + 1)
+            else:
+                raise ExtractorError('Invalid code supplied for player')
 
         type_ = None
         episode_id = None
@@ -129,7 +152,7 @@ class CeskaTelevizeIE(InfoExtractor):
             req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
             req.add_header('Referer', url)
 
-            playlist_title = self._og_search_title(webpage, default=None)
+            playlist_title = self._og_search_title(webpage, default=None) or unescapeHTML(self._search_regex(r'<title[^>]*>(.*)</title', webpage, 'webpage title', fatal=False))
             playlist_description = self._og_search_description(webpage, default=None)
 
             playlist = self._download_json(req, playlist_id, fatal=False)
@@ -184,7 +207,7 @@ class CeskaTelevizeIE(InfoExtractor):
                     final_title = '%s (%s)' % (playlist_title, title)
 
                 entries.append({
-                    'id': item_id,
+                    'id': compat_str(item_id),
                     'title': final_title,
                     'description': playlist_description if playlist_len == 1 else None,
                     'thumbnail': thumbnail,
@@ -197,7 +220,10 @@ class CeskaTelevizeIE(InfoExtractor):
         for e in entries:
             self._sort_formats(e['formats'])
 
-        return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
+        if len(entries) > 1:
+            return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
+        else:
+            return entries[0]
 
     def _get_subtitles(self, episode_id, subs):
         original_subtitles = self._download_webpage(
@@ -236,27 +262,26 @@ class CeskaTelevizeIE(InfoExtractor):
 
 
 class CeskaTelevizePoradyIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/porady/(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
+    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/(?!ivysilani)[^?#&]*/(?:(?P<id>\d+)-[^/?#]*|zive-vysilani(?:/[^?#]*)?)/?(?:[?#]|$)'
     _TESTS = [{
         # video with 18+ caution trailer
         'url': 'http://www.ceskatelevize.cz/porady/10520528904-queer/215562210900007-bogotart/',
         'info_dict': {
-            'id': '215562210900007-bogotart',
-            'title': 'Queer: Bogotart',
-            'description': 'Alternativní průvodce současným queer světem',
+            'id': '215 562 21090/0007',
+            'title': r're:Queer: Bogotart.*',
         },
         'playlist': [{
             'info_dict': {
                 'id': '61924494876844842',
                 'ext': 'mp4',
-                'title': 'Queer: Bogotart (Varování 18+)',
+                'title': r're:Queer: Bogotart .*\(Varování 18\+\)',
                 'duration': 10.2,
             },
         }, {
             'info_dict': {
                 'id': '61924494877068022',
                 'ext': 'mp4',
-                'title': 'Queer: Bogotart (Queer)',
+                'title': r're:Queer: Bogotart .*\(Queer\)',
                 'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 1558.3,
             },
@@ -265,6 +290,88 @@ class CeskaTelevizePoradyIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
+        'expected_warnings': [r'.*unable to extract.*OpenGraph description.*|.*retrying.*'],
+    }, {
+        'url': 'http://www.ceskatelevize.cz/sport/zive-vysilani/',
+        'info_dict': {
+            'title': r're:ČT Sport živě.*',
+            'id': '402',
+            'ext': 'mp4',
+            'is_live': True
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'expected_warnings': [r'.*unable to extract.*OpenGraph description.*|.*retrying.*'],
+    }, {
+        'url': 'http://www.ceskatelevize.cz/ct24/domaci/2101064-line-reky-se-plni-na-nekterych-mistech-plati-pohotovost',
+        'info_dict': {
+            'id': '2101064',
+            'title': 'Řeky se plnily. V Teplicích nad Bečvou byl vyhlášen stav ohrožení',
+            'description': 'Kvůli silnému dešti platí v některých regionech Česka výstraha před povodněmi. Na několika místech Moravskoslezského, Zlínského a Olomouckého kraje platí druhý povodňový stupeň, stav pohotovosti. Třetí stupeň povodňové aktivity znamenající ohrožení byl vyhlášen v Teplicích nad Bečvou a na říčce Polančici na Ostravsku. Počasí sledujte zde.',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': "61924494877291243",
+                'ext': 'mp4',
+                'title': r're:Události.*',
+            },
+        }, {
+            'info_dict': {
+                "id": "61924494877291060",
+                'ext': 'mp4',
+                'title': r're:Studio ČT24.*',
+            },
+        }, {
+            'info_dict': {
+                'ext': 'mp4',
+                "id": "61924494877291027",
+                'title': 'startswith:',
+            },
+        }, {
+            'info_dict': {
+                'ext': 'mp4',
+                "id": "61924494877291070",
+                'title': 'startswith:',
+            },
+        }, {
+            'info_dict': {
+                'ext': 'mp4',
+                "id": "61924494877291208",
+                'title': 'startswith:',
+            },
+        },
+        ],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'expected_warnings': [r'.*unable to extract.*OpenGraph description.*|.*retrying.*'],
+    }, {
+        'url': 'http://www.ceskatelevize.cz/sport/nejlepsi-videa/353066-ogier-i-meeke-meli-v-argentine-nehodu-v-cele-je-evans/',
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'info_dict': {
+            'id': "61924494877291497",
+            "ext": "mp4",
+            'title': r're:Ogier i Meeke měli v Argentině nehodu, v čele je Evans.*',
+        },
+        'expected_warnings': [r'.*unable to extract.*OpenGraph description.*|.*retrying.*'],
+    }, {
+        'url': 'http://www.ceskatelevize.cz/sport/fotbal/1-liga/352926-fotbal-extra-jaroslav-starka-s-pribrami-na-vecne-casy-a-nikdy-jinak/',
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'info_dict': {
+            "id": "61924494877290816",
+            'title': r're:Starka: S negativní publicitou jsem se naučil žít.*',
+            "ext": "mp4",
+        },
+        'expected_warnings': [r'.*unable to extract.*OpenGraph description.*|.*retrying.*'],
     }]
 
     def _real_extract(self, url):
@@ -272,8 +379,58 @@ class CeskaTelevizePoradyIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        data_url = unescapeHTML(self._search_regex(
-            r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
-            webpage, 'iframe player url', group='url'))
+        hash_if_any = self._search_regex(
+            r'media_ivysilani:{hash:"(?P<hash>\w+)',
+            webpage, 'hash for iVysilani', group='hash', default=None)
 
-        return self.url_result(data_url, ie=CeskaTelevizeIE.ie_key())
+        def fixup_hash(data_url):
+            if re.search(r'[&?]hash=', data_url) is None and hash_if_any:
+                return data_url + "&hash=" + hash_if_any
+            else:
+                return data_url
+
+        # This would be so much easier with XPath
+        webpage_nolive = re.sub(r'<section\b[^>]*\bid=[\'"]live.*?</section>', '', webpage, flags=re.S)
+
+        matches = [compat_urlparse.urljoin('http://www.ceskatelevize.cz', fixup_hash(unescapeHTML(m.group('url')))) for m in
+                   re.finditer(r'(?:<span[^>]*\bdata-url=|<iframe[^>]*\bsrc=)(["\'])(?P<url>[^"\']*)["\']',
+                               webpage_nolive)
+                   if "/ivysilani/" in m.group('url')
+                   ]
+
+        ajaxUrl = self._search_regex(r'CT_VideoPlayer.config.ajaxUrl\s*=\s*\'([^\']*)\'',
+                                     webpage, 'video player ajax URL', default='/sport/ajax')
+
+        def processMatch(href):
+            match1 = re.search(r'\bq=\'([^\']*)\'', href)
+            if not match1:
+                return ''
+            json = self._download_json(
+                compat_urllib_request.Request(compat_urlparse.urljoin('http://www.ceskatelevize.cz', ajaxUrl),
+                                              compat_urllib_parse.urlencode([('cmd', 'getVideoPlayerUrl'), ('q', match1.group(1)), ('autoStart', 'true')]), headers={'Content-Type': 'application/x-www-form-urlencoded'}),
+                video_id)
+            return compat_urlparse.urljoin('http://www.ceskatelevize.cz', json['videoPlayerUrl'])
+
+        matches2 = [processMatch(unescapeHTML(m.group('href'))) for m in
+                    re.finditer(r'<(?:[^>]*?\b(?:id=["\'](?P<id>[^"\']*)["\']|href=(["\'])(?P<href>(?:(?!\1).)*)["\']))*',
+                                webpage)
+                    if m.group('id') and "videoItem" in m.group('id') and m.group('href')
+                    ]
+
+        matches = matches + [m for m in matches2 if m]
+        if not matches:
+            raise RegexNotFoundError('Unable to extract iframe player URL')
+
+        title = self._og_search_title(webpage)
+        ret = self.playlist_from_matches(matches, video_id=video_id, video_title=title, ie=CeskaTelevizeIE.ie_key())
+        if len(ret['entries']) == 1:
+            ret = ret['entries'][0]
+
+        def set_if_any(info, key, data):
+            if data:
+                info[key] = data
+
+        set_if_any(ret, 'thumbnail', self._og_search_thumbnail(webpage))
+        set_if_any(ret, 'description', self._og_search_description(webpage))
+
+        return ret

@@ -190,6 +190,14 @@ class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
     url = 'http://www.ceskatelevize.cz/ivysilani/10600540290-u6-uzasny-svet-techniky'
     IE = CeskaTelevizeIE
 
+    #get the subtitles from the first video, if need be
+    def getInfoDict(self):
+        idict = super(TestCeskaTelevizeSubtitles, self).getInfoDict()
+        if not idict.get('requested_subtitles') and idict.get('entries') and len(idict['entries']) > 0 and \
+            idict['entries'][0].get('requested_subtitles'):
+            idict['requested_subtitles'] = idict['entries'][0].get('requested_subtitles')
+        return idict
+
     def test_allsubtitles(self):
         self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writesubtitles'] = True
