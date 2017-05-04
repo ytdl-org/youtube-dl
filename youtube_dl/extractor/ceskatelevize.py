@@ -390,7 +390,7 @@ class CeskaTelevizePoradyIE(InfoExtractor):
                 return data_url
 
         # This would be so much easier with XPath
-        webpage_nolive = re.sub(r'<section\b[^>]*\bid=[\'"]live.*?</section>', '', webpage, flags=re.S)
+        webpage_nolive = re.sub(r'(?s)<section\b[^>]*\bid=[\'"]live.*?</section>', '', webpage)
 
         matches = [compat_urlparse.urljoin('http://www.ceskatelevize.cz', fixup_hash(unescapeHTML(m.group('url')))) for m in
                    re.finditer(r'(?:<span[^>]*\bdata-url=|<iframe[^>]*\bsrc=)(["\'])(?P<url>[^"\']*)["\']',
