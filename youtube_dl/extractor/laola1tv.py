@@ -19,7 +19,7 @@ from ..utils import (
 class Laola1TvEmbedIE(InfoExtractor):
     IE_NAME = 'laola1tv:embed'
     _VALID_URL = r'https?://(?:www\.)?laola1\.tv/titanplayer\.php\?.*?\bvideoid=(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         # flashvars.premium = "false";
         'url': 'https://www.laola1.tv/titanplayer.php?videoid=708065&type=V&lang=en&portal=int&customer=1024',
         'info_dict': {
@@ -29,7 +29,7 @@ class Laola1TvEmbedIE(InfoExtractor):
             'uploader': 'ITTF - International Table Tennis Federation',
             'upload_date': '20161211',
         },
-    }
+    }]
 
     def _extract_token_url(self, stream_access_url, video_id, data):
         return self._download_json(
