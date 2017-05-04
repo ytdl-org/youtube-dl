@@ -171,7 +171,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         'info_dict': {
             'id': '727589',
             'ext': 'mp4',
-            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance from this Judicial Injustice!",
+            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance From This Judicial Injustice!",
             'description': 'md5:cbcf05e528124b0f3a0a419fc805ea7d',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Kadokawa Pictures Inc.',
@@ -179,7 +179,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'series': "KONOSUBA -God's blessing on this wonderful world!",
             'season': "KONOSUBA -God's blessing on this wonderful world! 2",
             'season_number': 2,
-            'episode': 'Give Me Deliverance from this Judicial Injustice!',
+            'episode': 'Give Me Deliverance From This Judicial Injustice!',
             'episode_number': 1,
         },
         'params': {

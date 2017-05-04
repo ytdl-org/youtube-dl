@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import random
 import re
 
 from .common import InfoExtractor
@@ -11,6 +10,7 @@ from ..utils import (
     float_or_none,
     parse_age_limit,
     qualities,
+    random_birthday,
     try_get,
     unified_timestamp,
     urljoin,
@@ -47,13 +47,10 @@ class VideoPressIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        query = random_birthday('birth_year', 'birth_month', 'birth_day')
         video = self._download_json(
             'https://public-api.wordpress.com/rest/v1.1/videos/%s' % video_id,
-            video_id, query={
-                'birth_month': random.randint(1, 12),
-                'birth_day': random.randint(1, 31),
-                'birth_year': random.randint(1950, 1995),
-            })
+            video_id, query=query)
 
         title = video['title']
 

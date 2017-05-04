@@ -234,7 +234,8 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
                 'overembed': 'false',
             })['playlist']
 
-        tracks, track_ids = playlist['tracks'], map(compat_str, playlist['trackIds'])
+        tracks = playlist['tracks']
+        track_ids = [compat_str(track_id) for track_id in playlist['trackIds']]
 
         # tracks dictionary shipped with playlist.jsx API is limited to 150 tracks,
         # missing tracks should be retrieved manually.

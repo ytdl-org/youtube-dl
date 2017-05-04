@@ -101,10 +101,14 @@ class AENetworksIE(AENetworksBaseIE):
                 for season_url_path in re.findall(r'(?s)<li[^>]+data-href="(/shows/%s/season-\d+)"' % url_parts[0], webpage):
                     entries.append(self.url_result(
                         compat_urlparse.urljoin(url, season_url_path), 'AENetworks'))
-                return self.playlist_result(
-                    entries, self._html_search_meta('aetn:SeriesId', webpage),
-                    self._html_search_meta('aetn:SeriesTitle', webpage))
-            elif url_parts_len == 2:
+                if entries:
+                    return self.playlist_result(
+                        entries, self._html_search_meta('aetn:SeriesId', webpage),
+                        self._html_search_meta('aetn:SeriesTitle', webpage))
+                else:
+                    # single season
+                    url_parts_len = 2
+            if url_parts_len == 2:
                 entries = []
                 for episode_item in re.findall(r'(?s)<[^>]+class="[^"]*(?:episode|program)-item[^"]*"[^>]*>', webpage):
                     episode_attributes = extract_attributes(episode_item)
@@ -112,7 +116,7 @@ class AENetworksIE(AENetworksBaseIE):
                         url, episode_attributes['data-canonical'])
                     entries.append(self.url_result(
                         episode_url, 'AENetworks',
-                        episode_attributes['data-videoid']))
+                        episode_attributes.get('data-videoid') or episode_attributes.get('data-video-id')))
                 return self.playlist_result(
                     entries, self._html_search_meta('aetn:SeasonId', webpage))
 

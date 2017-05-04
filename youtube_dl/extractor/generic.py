@@ -85,6 +85,9 @@ from .ustream import UstreamIE
 from .openload import OpenloadIE
 from .videopress import VideoPressIE
 from .rutube import RutubeIE
+from .limelight import LimelightBaseIE
+from .anvato import AnvatoIE
+from .washingtonpost import WashingtonPostIE
 
 
 class GenericIE(InfoExtractor):
@@ -428,6 +431,22 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,  # m3u8 download
             },
+        },
+        {
+            # Brightcove video in <iframe>
+            'url': 'http://www.un.org/chinese/News/story.asp?NewsID=27724',
+            'md5': '36d74ef5e37c8b4a2ce92880d208b968',
+            'info_dict': {
+                'id': '5360463607001',
+                'ext': 'mp4',
+                'title': '叙利亚失明儿童在废墟上演唱《心跳》  呼吁获得正常童年生活',
+                'description': '联合国儿童基金会中东和北非区域大使、作曲家扎德·迪拉尼（Zade Dirani）在3月15日叙利亚冲突爆发7周年纪念日之际发布了为叙利亚谱写的歌曲《心跳》（HEARTBEAT），为受到六年冲突影响的叙利亚儿童发出强烈呐喊，呼吁世界做出共同努力，使叙利亚儿童重新获得享有正常童年生活的权利。',
+                'uploader': 'United Nations',
+                'uploader_id': '1362235914001',
+                'timestamp': 1489593889,
+                'upload_date': '20170315',
+            },
+            'add_ie': ['BrightcoveLegacy'],
         },
         {
             # Brightcove with alternative playerID key
@@ -1410,6 +1429,22 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            # Brightcove embed with whitespace around attribute names
+            'url': 'http://www.stack.com/video/3167554373001/learn-to-hit-open-three-pointers-with-damian-lillard-s-baseline-drift-drill',
+            'info_dict': {
+                'id': '3167554373001',
+                'ext': 'mp4',
+                'title': "Learn to Hit Open Three-Pointers With Damian Lillard's Baseline Drift Drill",
+                'description': 'md5:57bacb0e0f29349de4972bfda3191713',
+                'uploader_id': '1079349493',
+                'upload_date': '20140207',
+                'timestamp': 1391810548,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # Another form of arte.tv embed
         {
             'url': 'http://www.tv-replay.fr/redirection/09-04-16/arte-reportage-arte-11508975.html',
@@ -1651,6 +1686,38 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': [SenateISVPIE.ie_key()],
         },
+        {
+            # Limelight embeds (1 channel embed + 4 media embeds)
+            'url': 'http://www.sedona.com/FacilitatorTraining2017',
+            'info_dict': {
+                'id': 'FacilitatorTraining2017',
+                'title': 'Facilitator Training 2017',
+            },
+            'playlist_mincount': 5,
+        },
+        {
+            'url': 'http://kron4.com/2017/04/28/standoff-with-walnut-creek-murder-suspect-ends-with-arrest/',
+            'info_dict': {
+                'id': 'standoff-with-walnut-creek-murder-suspect-ends-with-arrest',
+                'title': 'Standoff with Walnut Creek murder suspect ends',
+                'description': 'md5:3ccc48a60fc9441eeccfc9c469ebf788',
+            },
+            'playlist_mincount': 4,
+        },
+        {
+            # WashingtonPost embed
+            'url': 'http://www.vanityfair.com/hollywood/2017/04/donald-trump-tv-pitches',
+            'info_dict': {
+                'id': '8caf6e88-d0ec-11e5-90d3-34c2c42653ac',
+                'ext': 'mp4',
+                'title': "No one has seen the drama series based on Trump's life \u2014 until now",
+                'description': 'Donald Trump wanted a weekly TV drama based on his life. It never aired. But The Washington Post recently obtained a scene from the pilot script — and enlisted actors.',
+                'timestamp': 1455216756,
+                'uploader': 'The Washington Post',
+                'upload_date': '20160211',
+            },
+            'add_ie': [WashingtonPostIE.ie_key()],
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -1693,7 +1760,7 @@ class GenericIE(InfoExtractor):
                 continue
 
             entries.append({
-                '_type': 'url',
+                '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
             })
@@ -2483,6 +2550,11 @@ class GenericIE(InfoExtractor):
             return self.url_result(piksel_url, PikselIE.ie_key())
 
         # Look for Limelight embeds
+        limelight_urls = LimelightBaseIE._extract_urls(webpage, url)
+        if limelight_urls:
+            return self.playlist_result(
+                limelight_urls, video_id, video_title, video_description)
+
         mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
         if mobj:
             lm = {
@@ -2505,6 +2577,12 @@ class GenericIE(InfoExtractor):
             return self.url_result(smuggle_url(
                 'limelight:media:%s' % mobj.group('id'),
                 {'source_url': url}), 'LimelightMedia', mobj.group('id'))
+
+        # Look for Anvato embeds
+        anvato_urls = AnvatoIE._extract_urls(self, webpage, video_id)
+        if anvato_urls:
+            return self.playlist_result(
+                anvato_urls, video_id, video_title, video_description)
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
@@ -2622,6 +2700,12 @@ class GenericIE(InfoExtractor):
         if rutube_urls:
             return self.playlist_from_matches(
                 rutube_urls, ie=RutubeIE.ie_key())
+
+        # Look for WashingtonPost embeds
+        wapo_urls = WashingtonPostIE._extract_urls(webpage)
+        if wapo_urls:
+            return self.playlist_from_matches(
+                wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(

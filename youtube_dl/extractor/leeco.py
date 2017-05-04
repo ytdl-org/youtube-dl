@@ -23,7 +23,6 @@ from ..utils import (
     str_or_none,
     url_basename,
     urshift,
-    update_url_query,
 )
 
 
@@ -51,7 +50,7 @@ class LeIE(InfoExtractor):
             'id': '1415246',
             'ext': 'mp4',
             'title': '美人天下01',
-            'description': 'md5:f88573d9d7225ada1359eaf0dbf8bcda',
+            'description': 'md5:28942e650e82ed4fcc8e4de919ee854d',
         },
         'params': {
             'hls_prefer_native': True,
@@ -69,7 +68,6 @@ class LeIE(InfoExtractor):
         'params': {
             'hls_prefer_native': True,
         },
-        'skip': 'Only available in China',
     }, {
         'url': 'http://sports.le.com/video/25737697.html',
         'only_matching': True,
@@ -81,7 +79,7 @@ class LeIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    # ror() and calc_time_key() are reversed from a embedded swf file in KLetvPlayer.swf
+    # ror() and calc_time_key() are reversed from a embedded swf file in LetvPlayer.swf
     def ror(self, param1, param2):
         _loc3_ = 0
         while _loc3_ < param2:
@@ -90,15 +88,8 @@ class LeIE(InfoExtractor):
         return param1
 
     def calc_time_key(self, param1):
-        _loc2_ = 773625421
-        _loc3_ = self.ror(param1, _loc2_ % 13)
-        _loc3_ = _loc3_ ^ _loc2_
-        _loc3_ = self.ror(_loc3_, _loc2_ % 17)
-        return _loc3_
-
-    # reversed from http://jstatic.letvcdn.com/sdk/player.js
-    def get_mms_key(self, time):
-        return self.ror(time, 8) ^ 185025305
+        _loc2_ = 185025305
+        return self.ror(param1, _loc2_ % 17) ^ _loc2_
 
     # see M3U8Encryption class in KLetvPlayer.swf
     @staticmethod
@@ -122,7 +113,7 @@ class LeIE(InfoExtractor):
 
     def _check_errors(self, play_json):
         # Check for errors
-        playstatus = play_json['playstatus']
+        playstatus = play_json['msgs']['playstatus']
         if playstatus['status'] == 0:
             flag = playstatus['flag']
             if flag == 1:
@@ -134,58 +125,31 @@ class LeIE(InfoExtractor):
         media_id = self._match_id(url)
         page = self._download_webpage(url, media_id)
 
-        play_json_h5 = self._download_json(
-            'http://api.le.com/mms/out/video/playJsonH5',
-            media_id, 'Downloading html5 playJson data', query={
-                'id': media_id,
-                'platid': 3,
-                'splatid': 304,
-                'format': 1,
-                'tkey': self.get_mms_key(int(time.time())),
-                'domain': 'www.le.com',
-                'tss': 'no',
-            },
-            headers=self.geo_verification_headers())
-        self._check_errors(play_json_h5)
-
         play_json_flash = self._download_json(
-            'http://api.le.com/mms/out/video/playJson',
+            'http://player-pc.le.com/mms/out/video/playJson',
             media_id, 'Downloading flash playJson data', query={
                 'id': media_id,
                 'platid': 1,
                 'splatid': 101,
                 'format': 1,
+                'source': 1000,
                 'tkey': self.calc_time_key(int(time.time())),
                 'domain': 'www.le.com',
+                'region': 'cn',
             },
             headers=self.geo_verification_headers())
         self._check_errors(play_json_flash)
 
-        def get_h5_urls(media_url, format_id):
-            location = self._download_json(
-                media_url, media_id,
-                'Download JSON metadata for format %s' % format_id, query={
-                    'format': 1,
-                    'expect': 3,
-                    'tss': 'no',
-                })['location']
-
-            return {
-                'http': update_url_query(location, {'tss': 'no'}),
-                'hls': update_url_query(location, {'tss': 'ios'}),
-            }
-
         def get_flash_urls(media_url, format_id):
-            media_url += '&' + compat_urllib_parse_urlencode({
-                'm3v': 1,
-                'format': 1,
-                'expect': 3,
-                'rateid': format_id,
-            })
-
             nodes_data = self._download_json(
                 media_url, media_id,
-                'Download JSON metadata for format %s' % format_id)
+                'Download JSON metadata for format %s' % format_id,
+                query={
+                    'm3v': 1,
+                    'format': 1,
+                    'expect': 3,
+                    'tss': 'ios',
+                })
 
             req = self._request_webpage(
                 nodes_data['nodelist'][0]['location'], media_id,
@@ -199,29 +163,28 @@ class LeIE(InfoExtractor):
 
         extracted_formats = []
         formats = []
-        for play_json, get_urls in ((play_json_h5, get_h5_urls), (play_json_flash, get_flash_urls)):
-            playurl = play_json['playurl']
-            play_domain = playurl['domain'][0]
+        playurl = play_json_flash['msgs']['playurl']
+        play_domain = playurl['domain'][0]
 
-            for format_id, format_data in playurl.get('dispatch', []).items():
-                if format_id in extracted_formats:
-                    continue
-                extracted_formats.append(format_id)
+        for format_id, format_data in playurl.get('dispatch', []).items():
+            if format_id in extracted_formats:
+                continue
+            extracted_formats.append(format_id)
 
-                media_url = play_domain + format_data[0]
-                for protocol, format_url in get_urls(media_url, format_id).items():
-                    f = {
-                        'url': format_url,
-                        'ext': determine_ext(format_data[1]),
-                        'format_id': '%s-%s' % (protocol, format_id),
-                        'protocol': 'm3u8_native' if protocol == 'hls' else 'http',
-                        'quality': int_or_none(format_id),
-                    }
+            media_url = play_domain + format_data[0]
+            for protocol, format_url in get_flash_urls(media_url, format_id).items():
+                f = {
+                    'url': format_url,
+                    'ext': determine_ext(format_data[1]),
+                    'format_id': '%s-%s' % (protocol, format_id),
+                    'protocol': 'm3u8_native' if protocol == 'hls' else 'http',
+                    'quality': int_or_none(format_id),
+                }
 
-                    if format_id[-1:] == 'p':
-                        f['height'] = int_or_none(format_id[:-1])
+                if format_id[-1:] == 'p':
+                    f['height'] = int_or_none(format_id[:-1])
 
-                    formats.append(f)
+                formats.append(f)
         self._sort_formats(formats, ('height', 'quality', 'format_id'))
 
         publish_time = parse_iso8601(self._html_search_regex(

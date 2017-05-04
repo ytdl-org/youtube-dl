@@ -51,6 +51,24 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
     _TESTS = [
         {
+            'url': 'http://www.dailymotion.com/video/x5kesuj_office-christmas-party-review-jason-bateman-olivia-munn-t-j-miller_news',
+            'md5': '074b95bdee76b9e3654137aee9c79dfe',
+            'info_dict': {
+                'id': 'x5kesuj',
+                'ext': 'mp4',
+                'title': 'Office Christmas Party Review –  Jason Bateman, Olivia Munn, T.J. Miller',
+                'description': 'Office Christmas Party Review -  Jason Bateman, Olivia Munn, T.J. Miller',
+                'thumbnail': r're:^https?:.*\.(?:jpg|png)$',
+                'duration': 187,
+                'timestamp': 1493651285,
+                'upload_date': '20170501',
+                'uploader': 'Deadline',
+                'uploader_id': 'x1xm8ri',
+                'age_limit': 0,
+                'view_count': int,
+            },
+        },
+        {
             'url': 'https://www.dailymotion.com/video/x2iuewm_steam-machine-models-pricing-listed-on-steam-store-ign-news_videogames',
             'md5': '2137c41a8e78554bb09225b8eb322406',
             'info_dict': {
@@ -66,7 +84,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 'uploader_id': 'xijv66',
                 'age_limit': 0,
                 'view_count': int,
-            }
+            },
+            'skip': 'video gone',
         },
         # Vevo video
         {

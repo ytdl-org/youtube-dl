@@ -469,6 +469,10 @@ def parseOpts(overrideArguments=None):
         action='store_false', dest='skip_unavailable_fragments',
         help='Abort downloading when some fragment is not available')
     downloader.add_option(
+        '--keep-fragments',
+        action='store_true', dest='keep_fragments', default=False,
+        help='Keep downloaded fragments on disk after downloading is finished; fragments are erased by default')
+    downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
         help='Size of download buffer (e.g. 1024 or 16K) (default is %default)')

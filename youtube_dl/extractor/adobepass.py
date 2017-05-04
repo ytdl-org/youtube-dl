@@ -1308,6 +1308,12 @@ class AdobePassIE(InfoExtractor):
     _USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0'
     _MVPD_CACHE = 'ap-mvpd'
 
+    def _download_webpage_handle(self, *args, **kwargs):
+        headers = kwargs.get('headers', {})
+        headers.update(self.geo_verification_headers())
+        kwargs['headers'] = headers
+        return super(AdobePassIE, self)._download_webpage_handle(*args, **kwargs)
+
     @staticmethod
     def _get_mvpd_resource(provider_id, title, guid, rating):
         channel = etree.Element('channel')

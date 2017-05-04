@@ -640,7 +640,7 @@ class YoutubeDL(object):
 
             NUMERIC_FIELDS = set((
                 'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
-                'upload_year', 'upload_month', 'upload_day',
+                'timestamp', 'upload_year', 'upload_month', 'upload_day',
                 'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
                 'average_rating', 'comment_count', 'age_limit',
                 'start_time', 'end_time',
@@ -672,8 +672,7 @@ class YoutubeDL(object):
                         FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
-            tmpl = expand_path(outtmpl)
-            filename = tmpl % template_dict
+            filename = expand_path(outtmpl % template_dict)
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
@@ -851,7 +850,14 @@ class YoutubeDL(object):
             new_result = info.copy()
             new_result.update(force_properties)
 
-            assert new_result.get('_type') != 'url_transparent'
+            # Extracted info may not be a video result (i.e.
+            # info.get('_type', 'video') != video) but rather an url or
+            # url_transparent. In such cases outer metadata (from ie_result)
+            # should be propagated to inner one (info). For this to happen
+            # _type of info should be overridden with url_transparent. This
+            # fixes issue from https://github.com/rg3/youtube-dl/pull/11163.
+            if new_result.get('_type') == 'url':
+                new_result['_type'] = 'url_transparent'
 
             return self.process_ie_result(
                 new_result, download=download, extra_info=extra_info)

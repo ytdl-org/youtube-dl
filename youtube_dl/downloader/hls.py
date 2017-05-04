@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import os.path
 import re
 import binascii
 try:
@@ -18,8 +17,6 @@ from ..compat import (
     compat_struct_pack,
 )
 from ..utils import (
-    encodeFilename,
-    sanitize_open,
     parse_m3u8_attributes,
     update_url_query,
 )
@@ -103,17 +100,18 @@ class HlsFD(FragmentFD):
         media_sequence = 0
         decrypt_info = {'METHOD': 'NONE'}
         byte_range = {}
-        frags_filenames = []
+        frag_index = 0
         for line in s.splitlines():
             line = line.strip()
             if line:
                 if not line.startswith('#'):
+                    frag_index += 1
+                    if frag_index <= ctx['fragment_index']:
+                        continue
                     frag_url = (
                         line
                         if re.match(r'^https?://', line)
                         else compat_urlparse.urljoin(man_url, line))
-                    frag_name = 'Frag%d' % i
-                    frag_filename = '%s-%s' % (ctx['tmpfilename'], frag_name)
                     if extra_query:
                         frag_url = update_url_query(frag_url, extra_query)
                     count = 0
@@ -122,15 +120,10 @@ class HlsFD(FragmentFD):
                         headers['Range'] = 'bytes=%d-%d' % (byte_range['start'], byte_range['end'])
                     while count <= fragment_retries:
                         try:
-                            success = ctx['dl'].download(frag_filename, {
-                                'url': frag_url,
-                                'http_headers': headers,
-                            })
+                            success, frag_content = self._download_fragment(
+                                ctx, frag_url, info_dict, headers)
                             if not success:
                                 return False
-                            down, frag_sanitized = sanitize_open(frag_filename, 'rb')
-                            frag_content = down.read()
-                            down.close()
                             break
                         except compat_urllib_error.HTTPError as err:
                             # Unavailable (possibly temporary) fragments may be served.
@@ -139,28 +132,29 @@ class HlsFD(FragmentFD):
                             # https://github.com/rg3/youtube-dl/issues/10448).
                             count += 1
                             if count <= fragment_retries:
-                                self.report_retry_fragment(err, frag_name, count, fragment_retries)
+                                self.report_retry_fragment(err, frag_index, count, fragment_retries)
                     if count > fragment_retries:
                         if skip_unavailable_fragments:
                             i += 1
                             media_sequence += 1
-                            self.report_skip_fragment(frag_name)
+                            self.report_skip_fragment(frag_index)
                             continue
                         self.report_error(
                             'giving up after %s fragment retries' % fragment_retries)
                         return False
                     if decrypt_info['METHOD'] == 'AES-128':
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
+                        decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(decrypt_info['URI']).read()
                         frag_content = AES.new(
                             decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
-                    ctx['dest_stream'].write(frag_content)
-                    frags_filenames.append(frag_sanitized)
+                    self._append_fragment(ctx, frag_content)
                     # We only download the first fragment during the test
                     if test:
                         break
                     i += 1
                     media_sequence += 1
                 elif line.startswith('#EXT-X-KEY'):
+                    decrypt_url = decrypt_info.get('URI')
                     decrypt_info = parse_m3u8_attributes(line[11:])
                     if decrypt_info['METHOD'] == 'AES-128':
                         if 'IV' in decrypt_info:
@@ -170,7 +164,8 @@ class HlsFD(FragmentFD):
                                 man_url, decrypt_info['URI'])
                         if extra_query:
                             decrypt_info['URI'] = update_url_query(decrypt_info['URI'], extra_query)
-                        decrypt_info['KEY'] = self.ydl.urlopen(decrypt_info['URI']).read()
+                        if decrypt_url != decrypt_info['URI']:
+                            decrypt_info['KEY'] = None
                 elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
                     media_sequence = int(line[22:])
                 elif line.startswith('#EXT-X-BYTERANGE'):
@@ -182,8 +177,5 @@ class HlsFD(FragmentFD):
                     }
 
         self._finish_frag_download(ctx)
-
-        for frag_file in frags_filenames:
-            os.remove(encodeFilename(frag_file))
 
         return True

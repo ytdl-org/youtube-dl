@@ -207,11 +207,10 @@ class AfreecaTVIE(InfoExtractor):
                     file_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id='hls',
                     note='Downloading part %d m3u8 information' % file_num)
-                title = title if one else '%s (part %d)' % (title, file_num)
                 file_info = common_entry.copy()
                 file_info.update({
                     'id': format_id,
-                    'title': title,
+                    'title': title if one else '%s (part %d)' % (title, file_num),
                     'upload_date': upload_date,
                     'duration': file_duration,
                     'formats': formats,

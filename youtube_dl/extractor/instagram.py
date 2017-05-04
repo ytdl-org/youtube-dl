@@ -112,7 +112,8 @@ class InstagramIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         (video_url, description, thumbnail, timestamp, uploader,
-         uploader_id, like_count, comment_count, height, width) = [None] * 10
+         uploader_id, like_count, comment_count, comments, height,
+         width) = [None] * 11
 
         shared_data = self._parse_json(
             self._search_regex(
@@ -121,7 +122,10 @@ class InstagramIE(InfoExtractor):
             video_id, fatal=False)
         if shared_data:
             media = try_get(
-                shared_data, lambda x: x['entry_data']['PostPage'][0]['media'], dict)
+                shared_data,
+                (lambda x: x['entry_data']['PostPage'][0]['graphql']['shortcode_media'],
+                 lambda x: x['entry_data']['PostPage'][0]['media']),
+                dict)
             if media:
                 video_url = media.get('video_url')
                 height = int_or_none(media.get('dimensions', {}).get('height'))

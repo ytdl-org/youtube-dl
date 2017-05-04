@@ -1,3 +1,129 @@
+version <unreleased>
+
+Extractors
++ [cda] Support birthday verification (#12789)
+* [leeco] Fix extraction (#12974)
+
+
+version 2017.05.01
+
+Core
++ [extractor/common] Extract view count from JSON-LD
+* [utils] Improve unified_timestamp
++ [utils] Add video/mp2t to mimetype2ext
+* [downloader/external] Properly handle live stream downloading cancellation
+  (#8932)
++ [utils] Add support for unicode whitespace in clean_html on python 2 (#12906)
+
+Extractors
+* [infoq] Make audio format extraction non fatal (#12938)
+* [brightcove] Allow whitespace around attribute names in embedded code
++ [zaq1] Add support for zaq1.pl (#12693)
++ [xvideos] Extract duration (#12828)
+* [vevo] Fix extraction (#12879)
++ [noovo] Add support for noovo.ca (#12792)
++ [washingtonpost] Add support for embeds (#12699)
+* [yandexmusic:playlist] Fix extraction for python 3 (#12888)
+* [anvato] Improve extraction (#12913)
+    * Promote to regular shortcut based extractor
+    * Add mcp to access key mapping table
+    * Add support for embeds extraction
+    * Add support for anvato embeds in generic extractor
+* [xtube] Fix extraction for older FLV videos (#12734)
+* [tvplayer] Fix extraction (#12908)
+
+
+version 2017.04.28
+
+Core
++ [adobepass] Use geo verification headers for all requests
+- [downloader/fragment] Remove assert for resume_len when no fragments
+  downloaded
++ [extractor/common] Add manifest_url for explicit group rendition formats
+* [extractor/common] Fix manifest_url for m3u8 formats
+- [extractor/common] Don't list master m3u8 playlists in format list (#12832)
+
+Extractor
+* [aenetworks] Fix extraction for shows with single season
++ [go] Add support for Disney, DisneyJunior and DisneyXD show pages
+* [youtube] Recognize new locale-based player URLs (#12885)
++ [streamable] Add support for new embedded URL schema (#12844)
+* [arte:+7] Relax URL regular expression (#12837)
+
+
+version 2017.04.26
+
+Core
+* Introduce --keep-fragments for keeping fragments of fragmented download
+  on disk after download is finished
+* [YoutubeDL] Fix output template for missing timestamp (#12796)
+* [socks] Handle cases where credentials are required but missing
+* [extractor/common] Improve HLS extraction (#12211)
+    * Extract m3u8 parsing to separate method
+    * Improve rendition groups extraction
+    * Build stream name according stream GROUP-ID
+    * Ignore reference to AUDIO group without URI when stream has no CODECS
+    * Use float for scaled tbr in _parse_m3u8_formats
+* [utils] Add support for TTML styles in dfxp2srt
+* [downloader/hls] No need to download keys for fragments that have been
+  already downloaded
+* [downloader/fragment] Improve fragment downloading
+    * Resume immediately
+    * Don't concatenate fragments and decrypt them on every resume
+    * Optimize disk storage usage, don't store intermediate fragments on disk
+    * Store bookkeeping download state file
++ [extractor/common] Add support for multiple getters in try_get
++ [extractor/common] Add support for video of WebPage context in _json_ld
+  (#12778)
++ [extractor/common] Relax JWPlayer regular expression and remove
+  duplicate URLs (#12768)
+
+Extractors
+* [iqiyi] Fix extraction of Yule videos
+* [vidio] Improve extraction and sort formats
++ [brightcove] Match only video elements with data-video-id attribute
+* [iqiyi] Fix playlist detection (#12504)
+- [azubu] Remove extractor (#12813)
+* [porn91] Fix extraction (#12814)
+* [vidzi] Fix extraction (#12793)
++ [amp] Extract error message (#12795)
++ [xfileshare] Add support for gorillavid.com and daclips.com (#12776)
+* [instagram] Fix extraction (#12777)
++ [generic] Support Brightcove videos in <iframe> (#12482)
++ [brightcove] Support URLs with bcpid instead of playerID (#12482)
+* [brightcove] Fix _extract_url (#12782)
++ [odnoklassniki] Extract HLS formats
+
+
+version 2017.04.17
+
+Extractors
+* [limelight] Improve extraction LimelightEmbeddedPlayerFlash media embeds and
+  add support for channel and channelList embeds
+* [generic] Extract multiple Limelight embeds (#12761)
++ [itv] Extract series metadata
+* [itv] Fix RTMP formats downloading (#12759)
+* [itv] Use native HLS downloader by default
++ [go90] Extract subtitles (#12752)
++ [go90] Extract series metadata (#12752)
+
+
+version 2017.04.16
+
+Core
+* [YoutubeDL] Apply expand_path after output template substitution
++ [YoutubeDL] Propagate overridden meta fields to extraction results of type
+  url (#11163)
+
+Extractors
++ [generic] Extract RSS entries as url_transparent (#11163)
++ [streamango] Add support for streamango.com (#12643)
++ [wsj:article] Add support for articles (#12558)
+* [brightcove] Relax video tag embeds extraction and validate ambiguous embeds'
+  URLs (#9163, #12005, #12178, #12480)
++ [udemy] Add support for react rendition (#12744)
+
+
 version 2017.04.15
 
 Extractors

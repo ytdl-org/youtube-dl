@@ -10,12 +10,14 @@ from ..utils import (
 
 
 class WSJIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://
-        (?:
-            video-api\.wsj\.com/api-video/player/iframe\.html\?guid=|
-            (?:www\.)?wsj\.com/video/[^/]+/
-        )
-        (?P<id>[a-zA-Z0-9-]+)'''
+    _VALID_URL = r'''(?x)
+                        (?:
+                            https?://video-api\.wsj\.com/api-video/player/iframe\.html\?.*?\bguid=|
+                            https?://(?:www\.)?wsj\.com/video/[^/]+/|
+                            wsj:
+                        )
+                        (?P<id>[a-fA-F0-9-]{36})
+                    '''
     IE_DESC = 'Wall Street Journal'
     _TESTS = [{
         'url': 'http://video-api.wsj.com/api-video/player/iframe.html?guid=1BD01A4C-BFE8-40A5-A42F-8A8AF9898B1A',
@@ -38,12 +40,17 @@ class WSJIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        api_url = (
-            'http://video-api.wsj.com/api-video/find_all_videos.asp?'
-            'type=guid&count=1&query=%s&fields=type,hls,videoMP4List,'
-            'thumbnailList,author,description,name,duration,videoURL,'
-            'titletag,formattedCreationDate,keywords,editor' % video_id)
-        info = self._download_json(api_url, video_id)['items'][0]
+        info = self._download_json(
+            'http://video-api.wsj.com/api-video/find_all_videos.asp', video_id,
+            query={
+                'type': 'guid',
+                'count': 1,
+                'query': video_id,
+                'fields': ','.join((
+                    'type', 'hls', 'videoMP4List', 'thumbnailList', 'author',
+                    'description', 'name', 'duration', 'videoURL', 'titletag',
+                    'formattedCreationDate', 'keywords', 'editor')),
+            })['items'][0]
         title = info.get('name', info.get('titletag'))
 
         formats = []
@@ -87,3 +94,24 @@ class WSJIE(InfoExtractor):
             'title': title,
             'categories': info.get('keywords'),
         }
+
+
+class WSJArticleIE(InfoExtractor):
+    _VALID_URL = r'(?i)https?://(?:www\.)?wsj\.com/articles/(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'https://www.wsj.com/articles/dont-like-china-no-pandas-for-you-1490366939?',
+        'info_dict': {
+            'id': '4B13FA62-1D8C-45DB-8EA1-4105CB20B362',
+            'ext': 'mp4',
+            'upload_date': '20170221',
+            'uploader_id': 'ralcaraz',
+            'title': 'Bao Bao the Panda Leaves for China',
+        }
+    }
+
+    def _real_extract(self, url):
+        article_id = self._match_id(url)
+        webpage = self._download_webpage(url, article_id)
+        video_id = self._search_regex(
+            r'data-src=["\']([a-fA-F0-9-]{36})', webpage, 'video id')
+        return self.url_result('wsj:%s' % video_id, WSJIE.ie_key(), video_id)

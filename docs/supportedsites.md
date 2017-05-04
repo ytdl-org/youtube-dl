@@ -45,6 +45,7 @@
  - **anderetijden**: npo.nl and ntr.nl
  - **AnimeOnDemand**
  - **anitube.se**
+ - **Anvato**
  - **AnySex**
  - **Aparat**
  - **AppleConnect**
@@ -81,8 +82,6 @@
  - **AZMedien**: AZ Medien videos
  - **AZMedienPlaylist**: AZ Medien playlists
  - **AZMedienShowPlaylist**: AZ Medien show playlists
- - **Azubu**
- - **AzubuLive**
  - **BaiduVideo**: 百度视频
  - **bambuser**
  - **bambuser:channel**
@@ -531,6 +530,7 @@
  - **NJPWWorld**: 新日本プロレスワールド
  - **NobelPrize**
  - **Noco**
+ - **Noovo**
  - **Normalboots**
  - **NosVideo**
  - **Nova**: TN.cz, Prásk.tv, Nova.cz, Novaplus.cz, FANDA.tv, Krásná.cz and Doma.cz
@@ -745,6 +745,7 @@
  - **Steam**
  - **Stitcher**
  - **Streamable**
+ - **Streamango**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
@@ -966,6 +967,7 @@
  - **wrzuta.pl**
  - **wrzuta.pl:playlist**
  - **WSJ**: Wall Street Journal
+ - **WSJArticle**
  - **XBef**
  - **XboxClips**
  - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo
@@ -1013,6 +1015,7 @@
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
  - **youtube:watchlater**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
  - **Zapiks**
+ - **Zaq1**
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3**: mp3.zing.vn

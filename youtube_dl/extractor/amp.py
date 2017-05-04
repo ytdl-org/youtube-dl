@@ -7,15 +7,19 @@ from ..utils import (
     parse_iso8601,
     mimetype2ext,
     determine_ext,
+    ExtractorError,
 )
 
 
 class AMPIE(InfoExtractor):
     # parse Akamai Adaptive Media Player feed
     def _extract_feed_info(self, url):
-        item = self._download_json(
+        feed = self._download_json(
             url, None, 'Downloading Akamai AMP feed',
-            'Unable to download Akamai AMP feed')['channel']['item']
+            'Unable to download Akamai AMP feed')
+        item = feed.get('channel', {}).get('item')
+        if not item:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, feed['error']))
 
         video_id = item['guid']
 
@@ -30,9 +34,12 @@ class AMPIE(InfoExtractor):
             if isinstance(media_thumbnail, dict):
                 media_thumbnail = [media_thumbnail]
             for thumbnail_data in media_thumbnail:
-                thumbnail = thumbnail_data['@attributes']
+                thumbnail = thumbnail_data.get('@attributes', {})
+                thumbnail_url = thumbnail.get('url')
+                if not thumbnail_url:
+                    continue
                 thumbnails.append({
-                    'url': self._proto_relative_url(thumbnail['url'], 'http:'),
+                    'url': self._proto_relative_url(thumbnail_url, 'http:'),
                     'width': int_or_none(thumbnail.get('width')),
                     'height': int_or_none(thumbnail.get('height')),
                 })
@@ -43,9 +50,14 @@ class AMPIE(InfoExtractor):
             if isinstance(media_subtitle, dict):
                 media_subtitle = [media_subtitle]
             for subtitle_data in media_subtitle:
-                subtitle = subtitle_data['@attributes']
-                lang = subtitle.get('lang') or 'en'
-                subtitles[lang] = [{'url': subtitle['href']}]
+                subtitle = subtitle_data.get('@attributes', {})
+                subtitle_href = subtitle.get('href')
+                if not subtitle_href:
+                    continue
+                subtitles.setdefault(subtitle.get('lang') or 'en', []).append({
+                    'url': subtitle_href,
+                    'ext': mimetype2ext(subtitle.get('type')) or determine_ext(subtitle_href),
+                })
 
         formats = []
         media_content = get_media_node('content')

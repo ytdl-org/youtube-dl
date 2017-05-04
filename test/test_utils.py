@@ -44,6 +44,7 @@ from youtube_dl.utils import (
     limit_length,
     mimetype2ext,
     month_by_name,
+    multipart_encode,
     ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
@@ -338,6 +339,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_timestamp('UNKNOWN DATE FORMAT'), None)
         self.assertEqual(unified_timestamp('May 16, 2016 11:15 PM'), 1463440500)
         self.assertEqual(unified_timestamp('Feb 7, 2016 at 6:35 pm'), 1454870100)
+        self.assertEqual(unified_timestamp('2017-03-30T17:52:41Q'), 1490896361)
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
@@ -619,6 +621,16 @@ class TestUtil(unittest.TestCase):
             'http://example.com/path', {'test': '第二行тест'})),
             query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
 
+    def test_multipart_encode(self):
+        self.assertEqual(
+            multipart_encode({b'field': b'value'}, boundary='AAAAAA')[0],
+            b'--AAAAAA\r\nContent-Disposition: form-data; name="field"\r\n\r\nvalue\r\n--AAAAAA--\r\n')
+        self.assertEqual(
+            multipart_encode({'欄位'.encode('utf-8'): '值'.encode('utf-8')}, boundary='AAAAAA')[0],
+            b'--AAAAAA\r\nContent-Disposition: form-data; name="\xe6\xac\x84\xe4\xbd\x8d"\r\n\r\n\xe5\x80\xbc\r\n--AAAAAA--\r\n')
+        self.assertRaises(
+            ValueError, multipart_encode, {b'field': b'value'}, boundary='value')
+
     def test_dict_get(self):
         FALSE_VALUES = {
             'none': None,
@@ -899,6 +911,7 @@ class TestUtil(unittest.TestCase):
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
         self.assertEqual(clean_html('a:\n   "b"'), 'a:    "b"')
+        self.assertEqual(clean_html('a<br>\xa0b'), 'a\nb')
 
     def test_intlist_to_bytes(self):
         self.assertEqual(
@@ -1068,6 +1081,47 @@ The first line
 
 '''
         self.assertEqual(dfxp2srt(dfxp_data_no_default_namespace), srt_data)
+
+        dfxp_data_with_style = '''<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/2006/10/ttaf1" xmlns:ttp="http://www.w3.org/2006/10/ttaf1#parameter" ttp:timeBase="media" xmlns:tts="http://www.w3.org/2006/10/ttaf1#style" xml:lang="en" xmlns:ttm="http://www.w3.org/2006/10/ttaf1#metadata">
+  <head>
+    <styling>
+      <style id="s2" style="s0" tts:color="cyan" tts:fontWeight="bold" />
+      <style id="s1" style="s0" tts:color="yellow" tts:fontStyle="italic" />
+      <style id="s3" style="s0" tts:color="lime" tts:textDecoration="underline" />
+      <style id="s0" tts:backgroundColor="black" tts:fontStyle="normal" tts:fontSize="16" tts:fontFamily="sansSerif" tts:color="white" />
+    </styling>
+  </head>
+  <body tts:textAlign="center" style="s0">
+    <div>
+      <p begin="00:00:02.08" id="p0" end="00:00:05.84">default style<span tts:color="red">custom style</span></p>
+      <p style="s2" begin="00:00:02.08" id="p0" end="00:00:05.84"><span tts:color="lime">part 1<br /></span><span tts:color="cyan">part 2</span></p>
+      <p style="s3" begin="00:00:05.84" id="p1" end="00:00:09.56">line 3<br />part 3</p>
+      <p style="s1" tts:textDecoration="underline" begin="00:00:09.56" id="p2" end="00:00:12.36"><span style="s2" tts:color="lime">inner<br /> </span>style</p>
+    </div>
+  </body>
+</tt>'''
+        srt_data = '''1
+00:00:02,080 --> 00:00:05,839
+<font color="white" face="sansSerif" size="16">default style<font color="red">custom style</font></font>
+
+2
+00:00:02,080 --> 00:00:05,839
+<b><font color="cyan" face="sansSerif" size="16"><font color="lime">part 1
+</font>part 2</font></b>
+
+3
+00:00:05,839 --> 00:00:09,560
+<u><font color="lime">line 3
+part 3</font></u>
+
+4
+00:00:09,560 --> 00:00:12,359
+<i><u><font color="yellow"><font color="lime">inner
+ </font>style</font></u></i>
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_with_style), srt_data)
 
     def test_cli_option(self):
         self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])
