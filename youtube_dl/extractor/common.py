@@ -2174,7 +2174,7 @@ class InfoExtractor(object):
     def _extract_akamai_formats(self, manifest_url, video_id, hosts={}):
         formats = []
         hdcore_sign = 'hdcore=3.7.0'
-        f4m_url = re.sub(r'(https?://[^/+])/i/', r'\1/z/', manifest_url).replace('/master.m3u8', '/manifest.f4m')
+        f4m_url = re.sub(r'(https?://[^/]+)/i/', r'\1/z/', manifest_url).replace('/master.m3u8', '/manifest.f4m')
         hds_host = hosts.get('hds')
         if hds_host:
             f4m_url = re.sub(r'(https?://)[^/]+', r'\1' + hds_host, f4m_url)
