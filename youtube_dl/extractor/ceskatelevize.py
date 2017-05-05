@@ -25,7 +25,7 @@ from ..utils import (
 
 
 class CeskaTelevizeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/ivysilani/(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?ceskatelevize\.cz/ivysilani/|mshokej\.ceskatelevize\.cz/)(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
     _TESTS = [{
         'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
         'info_dict': {
@@ -71,6 +71,30 @@ class CeskaTelevizeIE(InfoExtractor):
     }, {
         'url': 'http://www.ceskatelevize.cz/ivysilani/embed/iFramePlayer.php?hash=d6a3e1370d2e4fa76296b90bad4dfc19673b641e&IDEC=217 562 22150/0004&channelID=1&width=100%25',
         'only_matching': True,
+    }, {
+        'url': 'http://mshokej.ceskatelevize.cz/mshokej/zpravy/353352--pastrnak-jsem-rad-ze-jsem-se-rozhodl-prijet-reprezentovat-je-pro-me-cest',
+        'info_dict': {
+            'id': '61924494877293706',
+            'ext': 'mp4',
+            'title': 'Článek - MS hokej 2017',
+            'duration': 68.8,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://mshokej.ceskatelevize.cz/videoarchiv/rozhovory-a-reportaze/353090--chystany-special-pro-ms-spousta-novinek-a-prime-prenosy-vsech-zapasu',
+        'info_dict': {
+            'id': '61924494877291670',
+            'ext': 'mp4',
+            'title': 'videoarchiv - MS hokej 2017',
+            'duration': 243.4,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url, retries=0):
@@ -101,35 +125,59 @@ class CeskaTelevizeIE(InfoExtractor):
 
         type_ = None
         episode_id = None
+        data = []
 
-        playlist = self._parse_json(
-            self._search_regex(
-                r'getPlaylistUrl\(\[({.+?})\]', webpage, 'playlist',
-                default='{}'), playlist_id)
-        if playlist:
-            type_ = playlist.get('type')
-            episode_id = playlist.get('id')
+        is_mshokej = re.match(r'^https?://mshokej\..*', url)
+        if is_mshokej:
+            ids = [unescapeHTML(m.group('id')) for m in re.finditer(r'<(?:[^>]*?\b(?:class=["\'](?P<class>[^"\']*)["\']|data-(?:videoarchive_autoplay|id)=["\'](?P<id>[^"\']*)["\']|data-type=["\'](?P<dataType>[^"\']*)["\']))*', webpage)
+                   if ((m.group('dataType') and m.group('dataType') == 'media') or
+                       m.group('class') and "video-archive__video" in m.group('class')) and
+                   m.group('id')
+                   ]
+            o = set()
+            for id in ids:
+                if id not in o:
+                    data.append({
+                        'playlist[0][type]': 'ct24',
+                        'playlist[0][id]': id,
+                        'requestUrl': url,
+                        'requestSource': 'sport',
+                        'type': 'dash'
+                    })
+                    o.add(id)
+            if not data:
+                raise ExtractorError('Couldn\'t find any video ids')
+        else:
+            playlist = self._parse_json(
+                self._search_regex(
+                    r'getPlaylistUrl\(\[({.+?})\]', webpage, 'playlist',
+                    default='{}'), playlist_id)
+            if playlist:
+                type_ = playlist.get('type')
+                episode_id = playlist.get('id')
 
-        if not type_:
-            type_ = self._html_search_regex(
-                r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],',
-                webpage, 'type')
-        if not episode_id:
-            episode_id = self._html_search_regex(
-                r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],',
-                webpage, 'episode_id')
+            if not type_:
+                type_ = self._html_search_regex(
+                    r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],',
+                    webpage, 'type')
+            if not episode_id:
+                episode_id = self._html_search_regex(
+                    r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],',
+                    webpage, 'episode_id')
 
-        data = {
-            'playlist[0][type]': type_,
-            'playlist[0][id]': episode_id,
-            'requestUrl': compat_urllib_parse_urlparse(url).path,
-            'requestSource': 'iVysilani',
-        }
+            data = [{
+                'playlist[0][type]': type_,
+                'playlist[0][id]': episode_id,
+                'requestUrl': compat_urllib_parse_urlparse(url).path,
+                'requestSource': 'iVysilani',
+            }]
 
         entries = []
 
-        for user_agent in (None, USER_AGENTS['Safari']):
+        for data in data:
+          for user_agent in (None, USER_AGENTS['Safari']):
             req = sanitized_Request(
+                'http://mshokej.ceskatelevize.cz/get-client-playlist' if is_mshokej else
                 'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
                 data=urlencode_postdata(data))
 
