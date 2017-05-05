@@ -1,11 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .vice import ViceBaseIE
 
 
 class VicelandIE(ViceBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?viceland\.com/[^/]+/video/[^/]+/(?P<id>[a-f0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?viceland\.com/(?P<locale>[^/]+)/video/[^/]+/(?P<id>[a-f0-9]+)'
     _TEST = {
         'url': 'https://www.viceland.com/en_us/video/trapped/588a70d0dba8a16007de7316',
         'info_dict': {
@@ -24,10 +26,13 @@ class VicelandIE(ViceBaseIE):
             'skip_download': True,
         },
         'add_ie': ['UplynkPreplay'],
+        'skip': '404',
     }
     _PREPLAY_HOST = 'www.viceland'
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        locale = mobj.group('locale')
         webpage = self._download_webpage(url, video_id)
-        return self._extract_preplay_video(url, webpage)
+        return self._extract_preplay_video(url, locale, webpage)
