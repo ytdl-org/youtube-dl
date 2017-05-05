@@ -10,7 +10,6 @@ from ..utils import (
     urlencode_postdata,
     xpath_element,
     xpath_text,
-    urljoin,
     update_url_query,
     js_to_json,
 )
