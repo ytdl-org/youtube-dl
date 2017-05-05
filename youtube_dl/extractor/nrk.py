@@ -148,12 +148,33 @@ class NRKBaseIE(InfoExtractor):
 
         vcodec = 'none' if data.get('mediaType') == 'Audio' else None
 
-        # TODO: extract chapters when https://github.com/rg3/youtube-dl/pull/9409 is merged
-
         for entry in entries:
             entry.update(common_info)
             for f in entry['formats']:
                 f['vcodec'] = vcodec
+
+        points = data.get('shortIndexPoints')
+        if isinstance(points, list):
+            chapters = []
+            for next_num, point in enumerate(points, start=1):
+                if not isinstance(point, dict):
+                    continue
+                start_time = parse_duration(point.get('startPoint'))
+                if start_time is None:
+                    continue
+                end_time = parse_duration(
+                    data.get('duration')
+                    if next_num == len(points)
+                    else points[next_num].get('startPoint'))
+                if end_time is None:
+                    continue
+                chapters.append({
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'title': point.get('title'),
+                })
+            if chapters and len(entries) == 1:
+                entries[0]['chapters'] = chapters
 
         return self.playlist_result(entries, video_id, title, description)
 
