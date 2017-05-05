@@ -108,7 +108,7 @@ class CeskaTelevizeIE(InfoExtractor):
             elif qs_dict.get('IDEC'):
                 playlist_id = qs_dict['IDEC'][0]
             else:
-                self.report_warning("Could not extract ID from iFramePlayer URL %s" % url)
+                self._downloader.report_warning("Could not extract ID from iFramePlayer URL %s" % url)
 
         webpage = self._download_webpage(url, playlist_id)
 
@@ -117,7 +117,7 @@ class CeskaTelevizeIE(InfoExtractor):
             raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
         if 'Neplatný kód pro videopřehrávač' in webpage:
             if retries < 1:
-                self._report_warning('Invalid code on the page, retrying...')
+                self._downloader._report_warning('Invalid code on the page, retrying...')
                 time.sleep(15)
                 return self._real_extract(url, retries + 1)
             else:
