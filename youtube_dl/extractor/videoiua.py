@@ -5,14 +5,14 @@ from .common import InfoExtractor
 
 
 class VideoIUAIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?video\.i\.ua/user/(?P<user>[0-9]+)/(?P<folder>[0-9]+)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?video\.i\.ua/(user|channel)/((?P<user>[0-9]+)/(?P<folder>[0-9]+)|(?P<channel>[0-9]+))/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'http://video.i.ua/user/3698736/77516/459718/',
-        'md5': '7a9b4483dece501b69ac772156d85ce6',
+        'url': 'http://video.i.ua/channel/528/405379/',
+        'md5': 'c641d67f0b242f3ef8eebe683dbbce22',
         'info_dict': {
-            'id': '459718',
+            'id': '405379',
             'ext': 'mp4',
-            'title': u'Красавица на качелях...',
+            'title': 'Airbats 801 TTS 03 of 07',
             'thumbnail': r're:^https?://.*\.jpg$'
         }
     }
