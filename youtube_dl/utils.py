@@ -2110,7 +2110,7 @@ def try_multipart_encode(data, boundary):
             v = v.encode('utf-8')
         # RFC 2047 requires non-ASCII field names to be encoded, while RFC 7578
         # suggests sending UTF-8 directly. Firefox sends UTF-8, too
-        content = b'Content-Disposition: form-data; name="%s"\r\n\r\n' % k + v + b'\r\n'
+        content = b'Content-Disposition: form-data; name="' + k + b'"\r\n\r\n' + v + b'\r\n'
         if boundary.encode('ascii') in content:
             raise ValueError('Boundary overlaps with data')
         out += content
