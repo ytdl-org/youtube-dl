@@ -8,10 +8,10 @@ class Full30IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?full30\.com/video/(?P<id>[a-f0-9]+)'
     _TEST = {
         'url': 'http://www.full30.com/video/b2a28b99494164ddd55e91a6c4648cbc',
-        'md5': '88f6812042afaf60f74dbcd84d4491c2',
+        'md5': 'f5aa3862cbe35c2083ce050ac1a5eb06',
         'info_dict': {
             'id': 'b2a28b99494164ddd55e91a6c4648cbc',
-            'ext': 'webm',
+            'ext': 'ogv',
             'title': 'Flamethrower Q&A with Charlie Hobson',
             'thumbnail': r're:^https?://.*52130\.jpg$',
             'uploader' : 'Forgotten Weapons',
@@ -50,6 +50,8 @@ class Full30IE(InfoExtractor):
                     "filesize" : d["size"],
                     "protocol" : "https"
                 })
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
