@@ -1134,6 +1134,7 @@ from .viddler import ViddlerIE
 from .videa import VideaIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
+from .videoiua import VideoIUAIE
 from .videomega import VideoMegaIE
 from .videomore import (
     VideomoreIE,
