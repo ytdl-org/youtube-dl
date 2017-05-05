@@ -145,7 +145,7 @@ class BandcampIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': thumbnail,
+            'thumbnail': info.get('thumb_url') or thumbnail,
             'uploader': info.get('artist'),
             'artist': artist,
             'track': track,
