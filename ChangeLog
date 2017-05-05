@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [gdcvault] Fix extraction for some videos (#12733)
 + [cda] Support birthday verification (#12789)
 * [leeco] Fix extraction (#12974)
 
