@@ -359,6 +359,7 @@ from .francetv import (
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freshlive import FreshLiveIE
+from .full30 import Full30IE
 from .funimation import FunimationIE
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
