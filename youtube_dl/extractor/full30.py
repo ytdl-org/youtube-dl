@@ -11,15 +11,10 @@ class Full30IE(InfoExtractor):
         'md5': 'f5aa3862cbe35c2083ce050ac1a5eb06',
         'info_dict': {
             'id': 'b2a28b99494164ddd55e91a6c4648cbc',
-            'ext': 'ogv',
             'title': 'Flamethrower Q&A with Charlie Hobson',
-            'thumbnail': r're:^https?://.*52130\.jpg$',
             'uploader' : 'Forgotten Weapons',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'thumbnail': r're:^https?://.*52130\.jpg$',
+            'ext': 'ogv',
         }
     }
 
@@ -27,28 +22,32 @@ class Full30IE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        # TODO more code goes here, for example ...
-        title = self._html_search_regex(r'<h1 [^>]*class=.video-title[^>]*>([^<]+?)</h1>', webpage, 'title')
-        uploader =  self._html_search_regex(r'<h1 class=.channel-title[^>]*>([^<]+)<', webpage, 'uploader', fatal=False)
-        description = self._og_search_description(webpage)
-        thumbnail = self._html_search_regex(r'<[^>]*property=.og:image. ?content="([^>]*thumbnails[^">]*)"\/>', webpage, 'thumbnail', fatal=False) or self._og_search_thumbnail(webpage)
+        title = self._html_search_regex(r'<h1 [^>]*class=.video-title[^>]*>([^<]+?)</h1>', webpage, 'title', fatal=False, default=None) or self._og_search_title(webpage)
+        uploader =  self._html_search_regex(r'<h1 class=.channel-title[^>]*>([^<]+)<', webpage, 'uploader', fatal=False, default=None) or None
+        thumbnail = self._html_search_regex(r'<[^>]*property=.og:image. ?content="([^>]*thumbnails[^">]*)"\/>', webpage, 'thumbnail', fatal=False, default=None) or self._og_search_thumbnail(webpage)
 
-        vidpath = self._html_search_regex(r'<input id=.video-path[^>]*value=["\']([^"\']*)["\'][^>]*>', webpage, 'video_path', fatal=False)
-        vidjson = self._download_webpage(vidpath, video_id)
-        # this is robust
-        vidjson = vidjson.rstrip()
-        vidjson = "[" + vidjson + "]"
-        vidjson = vidjson.replace("}", "},").replace(",]","]")
-        parsed = self._parse_json(vidjson, video_id)
+        # looking for a line like the following
+        # <input id="video-path" type="hidden" name="video_path" value="https://videos.full30.com/bitmotive/public/full30/v1.0/videos/forgottenweapons/b2a28b99494164ddd55e91a6c4648cbc/" />
+        # there's also a full30.com/cdn which appears to have the same sort of structure. it's possible that either of these may go away so as a backup I'll build the cdn link out from channel slug
+        vid_path = self._html_search_regex(r'<input id=.video-path[^>]*value=["\']([^"\']*)["\'][^>]*>', webpage, 'video_path', fatal=False, default=None)
+        if not vid_path:
+            channel_slug = self._html_search_regex(r'<input id=.channel-slug[^>]*value=["\']([^"\']*)["\'][^>]*>', webpage, 'channel_slug', fatal=True)
+            vid_path = "https://www.full30.com/cdn/videos/" + channel_slug + "/" + video_id + "/"
+
+        vid_json = self._download_webpage(vid_path, video_id)
+        # turn sequence of json entries into an actual list
+        vid_json = vid_json.rstrip()
+        vid_json = "[" + vid_json + "]"
+        vid_json = vid_json.replace("}", "},").replace(",]","]")
+        parsed = self._parse_json(vid_json, video_id)
 
         formats = []
         for d in parsed:
             if d["type"] == "object":
                 formats.append({
-                    "url" : vidpath + d["name"],
+                    "url" : vid_path + d["name"],
                     "resolution" : d["name"][:d["name"].rfind(".")],
                     "filesize" : d["size"],
-                    "protocol" : "https"
                 })
 
         self._sort_formats(formats)
@@ -56,11 +55,7 @@ class Full30IE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            # 'description': description,
             'uploader': uploader,
-            # 'url' : url,
-            'formats' : formats,
-            # TODO more properties (see youtube_dl/extractor/common.py)
-            'ext': 'mp4',
             'thumbnail' : thumbnail,
+            'formats' : formats,
         }
