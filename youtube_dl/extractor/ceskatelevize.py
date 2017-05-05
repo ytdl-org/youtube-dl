@@ -25,7 +25,7 @@ from ..utils import (
 
 
 class CeskaTelevizeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www\.)?ceskatelevize\.cz/ivysilani/|mshokej\.ceskatelevize\.cz/)(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?ceskatelevize\.cz/ivysilani/|mshokej\.ceskatelevize\.cz/)(?:[^/?#&]+/)*(?P<id>[^/#?]+)|https?://mshokej\.ceskatelevize\.cz/'
     _TESTS = [{
         'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
         'info_dict': {
@@ -129,19 +129,19 @@ class CeskaTelevizeIE(InfoExtractor):
 
         is_mshokej = re.match(r'^https?://mshokej\..*', url)
         if is_mshokej:
-            ids = [unescapeHTML(m.group('id')) for m in re.finditer(r'<(?:[^>]*?\b(?:class=["\'](?P<class>[^"\']*)["\']|data-(?:videoarchive_autoplay|id)=["\'](?P<id>[^"\']*)["\']|data-type=["\'](?P<dataType>[^"\']*)["\']))*', webpage)
+            ids = [(unescapeHTML(m.group('id')), "broadcast" in m.group('class')) for m in re.finditer(r'<(?:[^>]*?\b(?:class=["\'](?P<class>[^"\']*)["\']|data-(?:videoarchive_autoplay|id|live_channel)=["\'](?P<id>[^"\']*)["\']|data-type=["\'](?P<dataType>[^"\']*)["\']))*', webpage)
                    if ((m.group('dataType') and m.group('dataType') == 'media') or
-                       m.group('class') and "video-archive__video" in m.group('class')) and
+                       m.group('class') and re.search(r'\b(?:video-archive__video|broadcast)\b', m.group('class'))) and
                    m.group('id')
                    ]
             o = set()
-            for id in ids:
+            for id, is_broadcast in ids:
                 if id not in o:
                     data.append({
                         'playlist[0][type]': 'ct24',
                         'playlist[0][id]': id,
                         'requestUrl': url,
-                        'requestSource': 'sport',
+                        'requestSource': 'sport' if not is_broadcast else 'mshokej-live',
                         'type': 'dash'
                     })
                     o.add(id)
@@ -176,12 +176,20 @@ class CeskaTelevizeIE(InfoExtractor):
 
         for data in data:
           for user_agent in (None, USER_AGENTS['Safari']):
-            req = sanitized_Request(
-                'http://mshokej.ceskatelevize.cz/get-client-playlist' if is_mshokej else
-                'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
-                data=urlencode_postdata(data))
+            req = None
+            if data['requestSource'] == 'mshokej-live':
+                req = sanitized_Request(
+                    'http://playlist.ceskatelevize.cz/get-live-playlist/flash/%s' % data['playlist[0][id]']
+                )
+            else:
 
-            req.add_header('Content-type', 'application/x-www-form-urlencoded')
+                req = sanitized_Request(
+                    'http://mshokej.ceskatelevize.cz/get-client-playlist' if is_mshokej else
+                    'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
+                    data=urlencode_postdata(data))
+
+                req.add_header('Content-type', 'application/x-www-form-urlencoded')
+
             req.add_header('x-addr', '127.0.0.1')
             req.add_header('X-Requested-With', 'XMLHttpRequest')
             if user_agent:
@@ -193,19 +201,30 @@ class CeskaTelevizeIE(InfoExtractor):
             if not playlistpage:
                 continue
 
-            playlist_url = playlistpage['url']
-            if playlist_url == 'error_region':
-                raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
+            playlist = None
+            playlist_title = None
+            playlist_description = None
 
-            req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
-            req.add_header('Referer', url)
+            if playlistpage.get('url'):
+                playlist_url = playlistpage['url']
+                if playlist_url == 'error_region':
+                    raise ExtractorError(NOT_AVAILABLE_STRING, expected=True)
 
-            playlist_title = self._og_search_title(webpage, default=None) or unescapeHTML(self._search_regex(r'<title[^>]*>(.*)</title', webpage, 'webpage title', fatal=False))
-            playlist_description = self._og_search_description(webpage, default=None)
+                req = sanitized_Request(compat_urllib_parse_unquote(playlist_url))
+                req.add_header('Referer', url)
 
-            playlist = self._download_json(req, playlist_id, fatal=False)
+                playlist_title = self._og_search_title(webpage, default=None) or unescapeHTML(self._search_regex(r'<title[^>]*>(.*)</title', webpage, 'webpage title', fatal=False))
+                playlist_description = self._og_search_description(webpage, default=None)
+
+                playlist = self._download_json(req, playlist_id, fatal=False)
+            else:
+                playlist = playlistpage
+
             if not playlist:
                 continue
+
+            playlist_title = playlist_title or playlist.get('setup').get('title')
+            playlist_description = playlist_description or playlist.get('setup').get('description')
 
             playlist = playlist.get('playlist')
             if not isinstance(playlist, list):
