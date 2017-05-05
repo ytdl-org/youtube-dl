@@ -88,7 +88,7 @@ class ViceBaseIE(AdobePassIE):
 
 
 class ViceIE(ViceBaseIE):
-    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/(?P<locale>[^/]+/)(?:[^/]+/)?videos?/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/(?P<locale>[^/]+)/(?:[^/]+/)?videos?/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://www.vice.com/video/cowboy-capitalists-part-1',
@@ -100,19 +100,6 @@ class ViceIE(ViceBaseIE):
             'duration': 725.983,
         },
         'add_ie': ['Ooyala'],
-    }, {
-        'url': 'http://www.vice.com/video/how-to-hack-a-car',
-        'md5': 'a7ecf64ee4fa19b916c16f4b56184ae2',
-        'info_dict': {
-            'id': '3jstaBeXgAs',
-            'ext': 'mp4',
-            'title': 'How to Hack a Car: Phreaked Out (Episode 2)',
-            'description': 'md5:ee95453f7ff495db8efe14ae8bf56f30',
-            'uploader_id': 'MotherboardTV',
-            'uploader': 'Motherboard',
-            'upload_date': '20140529',
-        },
-        'add_ie': ['Youtube'],
     }, {
         'url': 'https://video.vice.com/en_us/video/the-signal-from-tolva/5816510690b70e6c5fd39a56',
         'info_dict': {
@@ -208,3 +195,67 @@ class ViceShowIE(InfoExtractor):
         description = self._html_search_meta('description', webpage, 'description')
 
         return self.playlist_result(entries, show_id, title, description)
+
+
+class ViceArticleIE(InfoExtractor):
+    _VALID_URL = r'https://www.vice.com/[^/]+/article/(?P<id>[^?#]+)'
+
+    _TESTS = [{
+        'url': 'https://www.vice.com/en_us/article/on-set-with-the-woman-making-mormon-porn-in-utah',
+        'info_dict': {
+            'id': '58dc0a3dee202d2a0ccfcbd8',
+            'ext': 'mp4',
+            'title': 'Mormon War on Porn ',
+            'description': 'md5:ad396a2481e7f8afb5ed486878421090',
+            'uploader': 'VICE',
+            'uploader_id': '57a204088cb727dec794c693',
+            'timestamp': 1489160690,
+            'upload_date': '20170310',
+        },
+        'params': {
+            # AES-encrypted m3u8
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.vice.com/video/how-to-hack-a-car',
+        'md5': 'a7ecf64ee4fa19b916c16f4b56184ae2',
+        'info_dict': {
+            'id': '3jstaBeXgAs',
+            'ext': 'mp4',
+            'title': 'How to Hack a Car: Phreaked Out (Episode 2)',
+            'description': 'md5:ee95453f7ff495db8efe14ae8bf56f30',
+            'uploader_id': 'MotherboardTV',
+            'uploader': 'Motherboard',
+            'upload_date': '20140529',
+        },
+        'add_ie': ['Youtube'],
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        prefetch_data = self._parse_json(self._search_regex(
+            r'window\.__PREFETCH_DATA\s*=\s*({.*});',
+            webpage, 'prefetch data'), display_id)
+        body = prefetch_data['body']
+        youtube_url = self._html_search_regex(
+            r'<iframe[^>]+src="(.*youtube\.com/.*)"', body, 'YouTube URL', default=None)
+        if youtube_url:
+            return {
+                '_type': 'url_transparent',
+                'url': youtube_url,
+                'display_id': display_id,
+                'ie_key': 'Youtube',
+            }
+
+        video_url = self._html_search_regex(
+            r'data-video-url="([^"]+)"', prefetch_data['embed_code'], 'video URL')
+
+        return {
+            '_type': 'url_transparent',
+            'url': video_url,
+            'display_id': display_id,
+            'ie_key': ViceIE.ie_key(),
+        }

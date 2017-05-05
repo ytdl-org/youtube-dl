@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [vice] Support vice articles (#12968)
 * [vice] Fix extraction for non en_us videos (#12967)
 * [gdcvault] Fix extraction for some videos (#12733)
 + [cda] Support birthday verification (#12789)

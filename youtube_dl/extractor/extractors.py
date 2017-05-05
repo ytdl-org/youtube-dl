@@ -1125,6 +1125,7 @@ from .vgtv import (
 from .vh1 import VH1IE
 from .vice import (
     ViceIE,
+    ViceArticleIE,
     ViceShowIE,
 )
 from .viceland import VicelandIE
