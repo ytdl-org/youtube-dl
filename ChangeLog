@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [bilibili] Fix video downloading (#13001)
 + [vice] Support vice articles (#12968)
 * [vice] Fix extraction for non en_us videos (#12967)
 * [gdcvault] Fix extraction for some videos (#12733)
