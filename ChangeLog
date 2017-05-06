@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.05.07
 
 Common
 * [extractor/common] Fix typo in _extract_akamai_formats

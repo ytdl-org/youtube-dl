@@ -879,9 +879,10 @@
  - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
  - **Viafree**
- - **Vice**
+ - **vice**
+ - **vice:article**
+ - **vice:show**
  - **Viceland**
- - **ViceShow**
  - **Vidbit**
  - **Viddler**
  - **Videa**
