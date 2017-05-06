@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class Full30IE(InfoExtractor):
@@ -12,7 +13,7 @@ class Full30IE(InfoExtractor):
         'info_dict': {
             'id': 'b2a28b99494164ddd55e91a6c4648cbc',
             'title': 'Flamethrower Q&A with Charlie Hobson',
-            'uploader' : 'Forgotten Weapons',
+            'uploader': 'Forgotten Weapons',
             'thumbnail': r're:^https?://.*52130\.jpg$',
             'ext': 'ogv',
         }
@@ -22,8 +23,8 @@ class Full30IE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<h1 [^>]*class=.video-title[^>]*>([^<]+?)</h1>', webpage, 'title', fatal=False, default=None) or self._og_search_title(webpage)
-        uploader =  self._html_search_regex(r'<h1 class=.channel-title[^>]*>([^<]+)<', webpage, 'uploader', fatal=False, default=None) or None
+        title = self._html_search_regex(r'<h1 [^>]*class=.video-title[^>]*>([^<]+?)</h1>', webpage, 'title', fatal=False, default=None) or self._og_search_title(webpage) or video_id
+        uploader = self._html_search_regex(r'<h1 class=.channel-title[^>]*>([^<]+)<', webpage, 'uploader', fatal=False, default=None) or None
         thumbnail = self._html_search_regex(r'<[^>]*property=.og:image. ?content="([^>]*thumbnails[^">]*)"\/>', webpage, 'thumbnail', fatal=False, default=None) or self._og_search_thumbnail(webpage)
 
         # looking for a line like the following
@@ -38,17 +39,14 @@ class Full30IE(InfoExtractor):
         # turn sequence of json entries into an actual list
         vid_json = vid_json.rstrip()
         vid_json = "[" + vid_json + "]"
-        vid_json = vid_json.replace("}", "},").replace(",]","]")
+        vid_json = vid_json.replace("}", "},").replace(",]", "]")
         parsed = self._parse_json(vid_json, video_id)
 
-        formats = []
-        for d in parsed:
-            if d["type"] == "object":
-                formats.append({
-                    "url" : vid_path + d["name"],
-                    "resolution" : d["name"][:d["name"].rfind(".")],
-                    "filesize" : d["size"],
-                })
+        formats = [{
+            "url": vid_path + entry["name"],
+            "resolution": entry["name"][:entry["name"].rfind(".")],
+            "filesize": int_or_none(entry["size"]),
+        } for entry in parsed if entry.get("type") == "object"]
 
         self._sort_formats(formats)
 
@@ -56,6 +54,6 @@ class Full30IE(InfoExtractor):
             'id': video_id,
             'title': title,
             'uploader': uploader,
-            'thumbnail' : thumbnail,
-            'formats' : formats,
+            'thumbnail': thumbnail,
+            'formats': formats,
         }
