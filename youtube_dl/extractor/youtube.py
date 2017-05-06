@@ -37,8 +37,7 @@ from ..utils import (
     parse_codecs,
     parse_duration,
     remove_quotes,
-    remove_start,
-    sanitized_Request,
+    # remove_start,
     smuggle_url,
     str_to_int,
     try_get,
@@ -54,7 +53,16 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
-    _PASSWORD_CHALLENGE_URL = 'https://accounts.google.com/signin/challenge/sl/password'
+
+    _LOOKUP_URL = 'https://accounts.google.com/_/signin/sl/lookup'
+    _LOOKUP_REQ_TEMPLATE = '["{0}",null,[],null,"US",null,null,2,false,true,[null,null,[2,1,null,1,"https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn",null,[],4],1,[null,null,[]],null,null,null,true],"{0}"]'
+
+    _PASSWORD_CHALLENGE_URL = 'https://accounts.google.com/_/signin/sl/challenge'
+    _PASSWORD_CHALLENGE_REQ_TEMPLATE = '["{0}",null,1,null,[1,null,null,null,["{1}",null,true]],[null,null,[2,1,null,1,"https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn",null,[],4],1,[null,null,[]],null,null,null,true]]'
+
+    _TFA_URL = 'https://accounts.google.com/_/signin/challenge'
+    _TFA_REQ_TEMPLATE = '["{0}",null,2,null,[9,null,null,null,null,null,null,null,[null,"{1}",false,2]]]'
+
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -96,72 +104,76 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         login_form = self._hidden_inputs(login_page)
 
-        login_form.update({
-            'checkConnection': 'youtube',
-            'Email': username,
-            'Passwd': password,
-        })
-
-        login_results = self._download_webpage(
-            self._PASSWORD_CHALLENGE_URL, None,
-            note='Logging in', errnote='unable to log in', fatal=False,
-            data=urlencode_postdata(login_form))
-        if login_results is False:
-            return False
-
-        error_msg = self._html_search_regex(
-            r'<[^>]+id="errormsg_0_Passwd"[^>]*>([^<]+)<',
-            login_results, 'error message', default=None)
-        if error_msg:
-            raise ExtractorError('Unable to login: %s' % error_msg, expected=True)
-
-        if re.search(r'id="errormsg_0_Passwd"', login_results) is not None:
-            raise ExtractorError('Please use your account password and a two-factor code instead of an application-specific password.', expected=True)
-
-        # Two-Factor
-        # TODO add SMS and phone call support - these require making a request and then prompting the user
-
-        if re.search(r'(?i)<form[^>]+id="challenge"', login_results) is not None:
-            tfa_code = self._get_tfa_info('2-step verification code')
-
-            if not tfa_code:
-                self._downloader.report_warning(
-                    'Two-factor authentication required. Provide it either interactively or with --twofactor <code>'
-                    '(Note that only TOTP (Google Authenticator App) codes work at this time.)')
-                return False
-
-            tfa_code = remove_start(tfa_code, 'G-')
-
-            tfa_form_strs = self._form_hidden_inputs('challenge', login_results)
-
-            tfa_form_strs.update({
-                'Pin': tfa_code,
-                'TrustDevice': 'on',
+        def req(url, f_req, note, errnote):
+            data = login_form.copy()
+            data.update({
+                'pstMsg': 1,
+                'checkConnection': 'youtube',
+                'checkedDomains': 'youtube',
+                'hl': 'en',
+                'deviceinfo': '[null,null,null,[],null,"US",null,null,[],"GlifWebSignIn",null,[null,null,[]]]',
+                'f.req': f_req,
+                'flowName': 'GlifWebSignIn',
+                'flowEntry': 'ServiceLogin',
             })
+            return self._download_json(
+                url, None, note=note, errnote=errnote,
+                transform_source=lambda s: re.sub(r'^[^[]*', '', s),
+                fatal=False,
+                data=urlencode_postdata(data), headers={
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                    'Google-Accounts-XSRF': 1,
+                })
 
-            tfa_data = urlencode_postdata(tfa_form_strs)
+        lookup_results = req(
+            self._LOOKUP_URL, self._LOOKUP_REQ_TEMPLATE.format(username),
+            'Looking up account info', 'Unable to look up account info')
 
-            tfa_req = sanitized_Request(self._TWOFACTOR_URL, tfa_data)
-            tfa_results = self._download_webpage(
-                tfa_req, None,
-                note='Submitting TFA code', errnote='unable to submit tfa', fatal=False)
-
-            if tfa_results is False:
-                return False
-
-            if re.search(r'(?i)<form[^>]+id="challenge"', tfa_results) is not None:
-                self._downloader.report_warning('Two-factor code expired or invalid. Please try again, or use a one-use backup code instead.')
-                return False
-            if re.search(r'(?i)<form[^>]+id="gaia_loginform"', tfa_results) is not None:
-                self._downloader.report_warning('unable to log in - did the page structure change?')
-                return False
-            if re.search(r'smsauth-interstitial-reviewsettings', tfa_results) is not None:
-                self._downloader.report_warning('Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
-                return False
-
-        if re.search(r'(?i)<form[^>]+id="gaia_loginform"', login_results) is not None:
-            self._downloader.report_warning('unable to log in: bad username or password')
+        if lookup_results is False:
             return False
+
+        user_hash = lookup_results[0][2]
+
+        password_challenge_results = req(
+            self._PASSWORD_CHALLENGE_URL,
+            self._PASSWORD_CHALLENGE_REQ_TEMPLATE.format(user_hash, password),
+            'Logging in', 'Unable to log in')[0]
+
+        if password_challenge_results is False:
+            return
+
+        msg = password_challenge_results[5]
+        if msg is not None and isinstance(msg, list):
+            raise ExtractorError('Unable to login: %s' % msg[5], expected=True)
+
+        password_challenge_results = password_challenge_results[-1]
+
+        # tfa = password_challenge_results[0]
+        # if isinstance(tfa, list) and tfa[0][2] == 'TWO_STEP_VERIFICATION':
+        #     tfa_code = self._get_tfa_info('2-step verification code')
+        #
+        #     if not tfa_code:
+        #         self._downloader.report_warning(
+        #             'Two-factor authentication required. Provide it either interactively or with --twofactor <code>'
+        #             '(Note that only TOTP (Google Authenticator App) codes work at this time.)')
+        #         return False
+        #
+        #     tfa_code = remove_start(tfa_code, 'G-')
+        #     print('tfa', tfa_code)
+        #     tfa_results = req(
+        #         self._TFA_URL,
+        #         self._TFA_REQ_TEMPLATE.format(user_hash, tfa_code),
+        #         'Submitting TFA code', 'Unable to submit TFA code')
+        #
+        #     TODO
+
+        check_cookie_results = self._download_webpage(
+            password_challenge_results[2], None, 'Checking cookie')
+
+        if '>Sign out<' not in check_cookie_results:
+            self._downloader.report_warning('Unable to log in')
+            return False
+
         return True
 
     def _real_initialize(self):
