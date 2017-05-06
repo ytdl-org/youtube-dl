@@ -2098,7 +2098,7 @@ def update_Request(req, url=None, data=None, headers={}, query={}):
     return new_req
 
 
-def try_multipart_encode(data, boundary):
+def _multipart_encode_impl(data, boundary):
     content_type = 'multipart/form-data; boundary=%s' % boundary
 
     out = b''
@@ -2140,7 +2140,7 @@ def multipart_encode(data, boundary=None):
             boundary = '---------------' + str(random.randrange(0x0fffffff, 0xffffffff))
 
         try:
-            out, content_type = try_multipart_encode(data, boundary)
+            out, content_type = _multipart_encode_impl(data, boundary)
             break
         except ValueError:
             if has_specified_boundary:
