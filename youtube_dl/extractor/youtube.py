@@ -37,7 +37,7 @@ from ..utils import (
     parse_codecs,
     parse_duration,
     remove_quotes,
-    # remove_start,
+    remove_start,
     smuggle_url,
     str_to_int,
     try_get,
@@ -55,13 +55,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
 
     _LOOKUP_URL = 'https://accounts.google.com/_/signin/sl/lookup'
-    _LOOKUP_REQ_TEMPLATE = '["{0}",null,[],null,"US",null,null,2,false,true,[null,null,[2,1,null,1,"https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn",null,[],4],1,[null,null,[]],null,null,null,true],"{0}"]'
-
-    _PASSWORD_CHALLENGE_URL = 'https://accounts.google.com/_/signin/sl/challenge'
-    _PASSWORD_CHALLENGE_REQ_TEMPLATE = '["{0}",null,1,null,[1,null,null,null,["{1}",null,true]],[null,null,[2,1,null,1,"https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn",null,[],4],1,[null,null,[]],null,null,null,true]]'
-
-    _TFA_URL = 'https://accounts.google.com/_/signin/challenge'
-    _TFA_REQ_TEMPLATE = '["{0}",null,2,null,[9,null,null,null,null,null,null,null,[null,"{1}",false,2]]]'
+    _CHALLENGE_URL = 'https://accounts.google.com/_/signin/sl/challenge'
+    _TFA_URL = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
 
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
@@ -112,7 +107,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'checkedDomains': 'youtube',
                 'hl': 'en',
                 'deviceinfo': '[null,null,null,[],null,"US",null,null,[],"GlifWebSignIn",null,[null,null,[]]]',
-                'f.req': f_req,
+                'f.req': json.dumps(f_req),
                 'flowName': 'GlifWebSignIn',
                 'flowEntry': 'ServiceLogin',
             })
@@ -125,53 +120,127 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                     'Google-Accounts-XSRF': 1,
                 })
 
+        def warn(message):
+            self._downloader.report_warning(message)
+
+        lookup_req = [
+            username,
+            None, [], None, 'US', None, None, 2, False, True,
+            [
+                None, None,
+                [2, 1, None, 1,
+                 'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn',
+                 None, [], 4],
+                1, [None, None, []], None, None, None, True
+            ],
+            username,
+        ]
+
         lookup_results = req(
-            self._LOOKUP_URL, self._LOOKUP_REQ_TEMPLATE.format(username),
+            self._LOOKUP_URL, lookup_req,
             'Looking up account info', 'Unable to look up account info')
 
         if lookup_results is False:
             return False
 
-        user_hash = lookup_results[0][2]
+        user_hash = try_get(lookup_results, lambda x: x[0][2], compat_str)
+        if not user_hash:
+            warn('Unable to extract user hash')
+            return False
 
-        password_challenge_results = req(
-            self._PASSWORD_CHALLENGE_URL,
-            self._PASSWORD_CHALLENGE_REQ_TEMPLATE.format(user_hash, password),
-            'Logging in', 'Unable to log in')[0]
+        challenge_req = [
+            user_hash,
+            None, 1, None, [1, None, None, None, [password, None, True]],
+            [
+                None, None, [2, 1, None, 1, 'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn', None, [], 4],
+                1, [None, None, []], None, None, None, True
+            ]]
 
-        if password_challenge_results is False:
+        challenge_results = req(
+            self._CHALLENGE_URL, challenge_req,
+            'Logging in', 'Unable to log in')
+
+        if challenge_results is False:
             return
 
-        msg = password_challenge_results[5]
-        if msg is not None and isinstance(msg, list):
-            raise ExtractorError('Unable to login: %s' % msg[5], expected=True)
+        login_res = try_get(challenge_results, lambda x: x[0][5], list)
+        if login_res:
+            login_msg = try_get(login_res, lambda x: x[5], compat_str)
+            warn(
+                'Unable to login: %s' % 'Invalid password'
+                if login_msg == 'INCORRECT_ANSWER_ENTERED' else login_msg)
+            return False
 
-        password_challenge_results = password_challenge_results[-1]
+        res = try_get(challenge_results, lambda x: x[0][-1], list)
+        if not res:
+            warn('Unable to extract result entry')
+            return False
 
-        # tfa = password_challenge_results[0]
-        # if isinstance(tfa, list) and tfa[0][2] == 'TWO_STEP_VERIFICATION':
-        #     tfa_code = self._get_tfa_info('2-step verification code')
-        #
-        #     if not tfa_code:
-        #         self._downloader.report_warning(
-        #             'Two-factor authentication required. Provide it either interactively or with --twofactor <code>'
-        #             '(Note that only TOTP (Google Authenticator App) codes work at this time.)')
-        #         return False
-        #
-        #     tfa_code = remove_start(tfa_code, 'G-')
-        #     print('tfa', tfa_code)
-        #     tfa_results = req(
-        #         self._TFA_URL,
-        #         self._TFA_REQ_TEMPLATE.format(user_hash, tfa_code),
-        #         'Submitting TFA code', 'Unable to submit TFA code')
-        #
-        #     TODO
+        tfa = try_get(res, lambda x: x[0][0], list)
+        if tfa:
+            tfa_str = try_get(tfa, lambda x: x[2], compat_str)
+            if tfa_str == 'TWO_STEP_VERIFICATION':
+                # SEND_SUCCESS - TFA code has been successfully sent to phone
+                # QUOTA_EXCEEDED - reached the limit of TFA codes
+                status = try_get(tfa, lambda x: x[5], compat_str)
+                if status == 'QUOTA_EXCEEDED':
+                    warn('Exceeded the limit of TFA codes, try later')
+                    return False
+
+                tl = try_get(challenge_results, lambda x: x[1][2], compat_str)
+                if not tl:
+                    warn('Unable to extract TL')
+                    return False
+
+                tfa_code = self._get_tfa_info('2-step verification code')
+
+                if not tfa_code:
+                    warn(
+                        'Two-factor authentication required. Provide it either interactively or with --twofactor <code>'
+                        '(Note that only TOTP (Google Authenticator App) codes work at this time.)')
+                    return False
+
+                tfa_code = remove_start(tfa_code, 'G-')
+
+                tfa_req = [
+                    user_hash, None, 2, None,
+                    [
+                        9, None, None, None, None, None, None, None,
+                        [None, tfa_code, True, 2]
+                    ]]
+
+                tfa_results = req(
+                    self._TFA_URL.format(tl), tfa_req,
+                    'Submitting TFA code', 'Unable to submit TFA code')
+
+                if tfa_results is False:
+                    return False
+
+                tfa_res = try_get(tfa_results, lambda x: x[0][5], list)
+                if tfa_res:
+                    tfa_msg = try_get(tfa_res, lambda x: x[5], compat_str)
+                    warn(
+                        'Unable to finish TFA: %s' % 'Invalid TFA code'
+                        if tfa_msg == 'INCORRECT_ANSWER_ENTERED' else tfa_msg)
+                    return False
+
+                check_cookie_url = try_get(
+                    tfa_results, lambda x: x[0][-1][2], compat_str)
+        else:
+            check_cookie_url = try_get(res, lambda x: x[2], compat_str)
+
+        if not check_cookie_url:
+            warn('Unable to extract CheckCookie URL')
+            return False
 
         check_cookie_results = self._download_webpage(
-            password_challenge_results[2], None, 'Checking cookie')
+            check_cookie_url, None, 'Checking cookie', fatal=False)
 
-        if '>Sign out<' not in check_cookie_results:
-            self._downloader.report_warning('Unable to log in')
+        if check_cookie_results is False:
+            return False
+
+        if 'https://myaccount.google.com/' not in check_cookie_results:
+            warn('Unable to log in')
             return False
 
         return True
