@@ -1,12 +1,32 @@
 version <unreleased>
 
+Common
+* [extractor/common] Fix typo in _extract_akamai_formats
++ [postprocessor/ffmpeg] Embed chapters into media file with --add-metadata
++ [extractor/common] Introduce chapters meta field
+
 Extractors
+* [youtube] Fix authentication (#12820, #12927, #12973, #12992, #12993, #12995,
+  #13003)
 * [bilibili] Fix video downloading (#13001)
+* [rmcdecouverte] Fix extraction (#12937)
+* [theplatform] Extract chapters
+* [bandcamp] Fix thumbnail extraction (#12980)
+* [pornhub] Extend URL regular expression (#12996)
++ [youtube] Extract chapters
++ [nrk] Extract chapters
++ [vice] Add support for ooyala embeds in article pages
 + [vice] Support vice articles (#12968)
 * [vice] Fix extraction for non en_us videos (#12967)
 * [gdcvault] Fix extraction for some videos (#12733)
+* [pbs] Improve multipart video support (#12981)
+* [laola1tv] Fix extraction (#12880)
 + [cda] Support birthday verification (#12789)
 * [leeco] Fix extraction (#12974)
++ [pbs] Extract chapters
+* [amp] Imporove thumbnail and subtitles extraction
+* [foxsports] Fix extraction (#12945)
+- [coub] Remove comment count extraction (#12941)
 
 
 version 2017.05.01
