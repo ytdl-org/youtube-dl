@@ -33,20 +33,20 @@ class Full30IE(InfoExtractor):
         vid_path = self._html_search_regex(r'<input id=.video-path[^>]*value=["\']([^"\']*)["\'][^>]*>', webpage, 'video_path', fatal=False, default=None)
         if not vid_path:
             channel_slug = self._html_search_regex(r'<input id=.channel-slug[^>]*value=["\']([^"\']*)["\'][^>]*>', webpage, 'channel_slug', fatal=True)
-            vid_path = "https://www.full30.com/cdn/videos/" + channel_slug + "/" + video_id + "/"
+            vid_path = 'https://www.full30.com/cdn/videos/' + channel_slug + '/' + video_id + '/'
 
         vid_json = self._download_webpage(vid_path, video_id)
         # turn sequence of json entries into an actual list
         vid_json = vid_json.rstrip()
-        vid_json = "[" + vid_json + "]"
-        vid_json = vid_json.replace("}", "},").replace(",]", "]")
+        vid_json = '[' + vid_json + ']'
+        vid_json = vid_json.replace('}', '},').replace(',]', ']')
         parsed = self._parse_json(vid_json, video_id)
 
         formats = [{
-            "url": vid_path + entry["name"],
-            "resolution": entry["name"][:entry["name"].rfind(".")],
-            "filesize": int_or_none(entry["size"]),
-        } for entry in parsed if entry.get("type") == "object"]
+            'url': vid_path + entry['name'],
+            'resolution': entry['name'][:entry['name'].rfind('.')],
+            'filesize': int_or_none(entry['size']),
+        } for entry in parsed if entry.get('type') == 'object']
 
         self._sort_formats(formats)
 
