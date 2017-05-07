@@ -3,17 +3,48 @@ from __future__ import unicode_literals
 
 import time
 import hashlib
+import re
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     unescapeHTML,
+    compat_HTMLParser
 )
+
+
+class RoomIDParser(compat_HTMLParser):
+
+    def __init__(self, room_index=None):
+        compat_HTMLParser.__init__(self)
+        self._room_index = room_index
+        self._room_id = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag != 'div' and tag != 'li':
+            return
+
+        attrs_dict = dict(attrs)
+        # process switch button situation firstly
+        if(tag == 'li'
+           and attrs_dict.get('class', '') == 'switchRoom-btn'
+           and attrs_dict.get('data-index', '-1') == self._room_index):
+            self._room_id = attrs_dict.get('data-onlineid')
+
+        if self._room_id is not None:
+            return
+
+        if tag == 'div' and attrs_dict.get('data-component-id', '') == 'room':
+            self._room_id = attrs_dict.get('data-onlineid')
+
+    @property
+    def room_id(self):
+        return self._room_id
 
 
 class DouyuTVIE(InfoExtractor):
     IE_DESC = '斗鱼'
-    _VALID_URL = r'https?://(?:www\.)?douyu(?:tv)?\.com/(?:[^/]+/)*(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?douyu(?:tv)?\.com/(?P<id>(?:[^/]+/)*[A-Za-z0-9]+(?:\?roomIndex=\d+)?)'
     _TESTS = [{
         'url': 'http://www.douyutv.com/iseven',
         'info_dict': {
@@ -67,6 +98,9 @@ class DouyuTVIE(InfoExtractor):
         # \"room_id\"
         'url': 'http://www.douyu.com/t/lpl',
         'only_matching': True,
+    }, {
+        'url': 'http://www.douyu.com/t/douyukpl?roomIndex=1',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
@@ -76,8 +110,18 @@ class DouyuTVIE(InfoExtractor):
             room_id = video_id
         else:
             page = self._download_webpage(url, video_id)
-            room_id = self._html_search_regex(
-                r'"room_id\\?"\s*:\s*(\d+),', page, 'room id')
+            if not video_id.startswith('t/'):
+                room_id = self._html_search_regex(
+                        r'"room_id\\?"\s*:\s*(\d+),', page, 'room id')
+            else:
+                match_obj = re.match(r'.+roomIndex=(\d+)', video_id)
+                # default room index is 0
+                room_index = match_obj.group(1) if match_obj is not None else '0'
+                room_id_parser = RoomIDParser(room_index)
+                room_id_parser.feed(page)
+                room_id = room_id_parser.room_id
+                if room_id is None:
+                    raise ExtractorError('Extracting room id failed.')
 
         # Grab metadata from mobile API
         room = self._download_json(
