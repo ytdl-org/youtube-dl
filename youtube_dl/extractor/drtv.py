@@ -45,6 +45,18 @@ class DRTVIE(InfoExtractor):
             'upload_date': '20160902',
             'duration': 131.4,
         },
+    }, {
+        'url': 'https://www.dr.dk/tv/se/historien-om-danmark/-/historien-om-danmark-stenalder',
+        'md5': '7c8ca12e6c3d3e3edd59ba5a9b7ca10a',
+        'info_dict': {
+            'id': 'historien-om-danmark-stenalder',
+            'ext': 'mp4',
+            'title': 'Historien om Danmark: Stenalder (1)',
+            'description': 'Én fascinerende historie om tusindvis af år, hvor vores land bliver skabt ud af is og vand, og hvor de første danskere ankommer til vores egn. Det bliver en rejse ind i urtiden og det liv, som urtidsjægerne har levet i skovene og ved havet og helt frem til bondestenalderen. Gennem skeletfund afslører eksperter, hvordan vores forfædre har set ud i stenalderen og hvorfor stenaldermennesket byggede de imponerende jættestuer, som ligger overalt i det danske.',
+            'timestamp': 1490401996,
+            'upload_date': '20170325',
+            'duration': 3502.04,
+        },
     }]
 
     def _real_extract(self, url):
@@ -85,7 +97,11 @@ class DRTVIE(InfoExtractor):
             kind = asset.get('Kind')
             if kind == 'Image':
                 thumbnail = asset.get('Uri')
-            elif kind in ('VideoResource', 'AudioResource'):
+            preference = 0
+
+            sign_language = asset.get('Target') == 'SignLanguage'
+
+            if kind in ('VideoResource', 'AudioResource'):
                 duration = float_or_none(asset.get('DurationInMilliseconds'), 1000)
                 restricted_to_denmark = asset.get('RestrictedToDenmark')
                 spoken_subtitles = asset.get('Target') == 'SpokenSubtitles'
@@ -95,10 +111,12 @@ class DRTVIE(InfoExtractor):
                         continue
                     target = link.get('Target')
                     format_id = target or ''
-                    preference = None
                     if spoken_subtitles:
                         preference = -1
                         format_id += '-spoken-subtitles'
+                    if sign_language:
+                        preference = -1
+                        format_id += "-sign-language"
                     if target == 'HDS':
                         f4m_formats = self._extract_f4m_formats(
                             uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
