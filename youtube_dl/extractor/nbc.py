@@ -5,10 +5,8 @@ import re
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
-from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     find_xpath_attr,
-    lowercase_escape,
     smuggle_url,
     unescapeHTML,
     update_url_query,
@@ -17,7 +15,7 @@ from ..utils import (
 
 
 class NBCIE(AdobePassIE):
-    _VALID_URL = r'https?://(?:www\.)?nbc\.com/[^/]+/video/[^/]+/(?P<id>n?\d+)'
+    _VALID_URL = r'(?P<permalink>https?://(?:www\.)?nbc\.com/[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
         {
@@ -73,10 +71,10 @@ class NBCIE(AdobePassIE):
     ]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        permalink, video_id = re.match(self._VALID_URL, url).groups()
         video_data = self._download_json(
             'https://api.nbc.com/v3/videos', video_id, query={
-                'filter[permalink]': url,
+                'filter[permalink]': permalink,
             })['data'][0]['attributes']
         query = {
             'mbr': 'true',
