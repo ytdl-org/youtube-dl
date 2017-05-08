@@ -112,20 +112,40 @@ class VRVIE(VRVBaseIE):
 
         audio_locale = streams_json.get('audio_locale')
         formats = []
-        for stream_id, stream in streams_json.get('streams', {}).get('adaptive_hls', {}).items():
-            stream_url = stream.get('url')
-            if not stream_url:
-                continue
-            stream_id = stream_id or audio_locale
-            m3u8_formats = self._extract_m3u8_formats(
-                stream_url, video_id, 'mp4', m3u8_id=stream_id,
-                note='Downloading %s m3u8 information' % stream_id,
-                fatal=False)
-            if audio_locale:
-                for f in m3u8_formats:
-                    f['language'] = audio_locale
-            formats.extend(m3u8_formats)
+        for stream_type, streams in streams_json.get('streams', {}).items():
+            if stream_type in ('adaptive_hls', 'adaptive_dash'):
+                for stream in streams.values():
+                    stream_url = stream.get('url')
+                    if not stream_url:
+                        continue
+                    stream_id = stream.get('hardsub_locale') or audio_locale
+                    format_id = '%s-%s' % (stream_type.split('_')[1], stream_id)
+                    if stream_type == 'adaptive_hls':
+                        adaptive_formats = self._extract_m3u8_formats(
+                            stream_url, video_id, 'mp4', m3u8_id=format_id,
+                            note='Downloading %s m3u8 information' % stream_id,
+                            fatal=False)
+                    else:
+                        adaptive_formats = self._extract_mpd_formats(
+                            stream_url, video_id, mpd_id=format_id,
+                            note='Downloading %s MPD information' % stream_id,
+                            fatal=False)
+                    if audio_locale:
+                        for f in adaptive_formats:
+                            if f.get('acodec') != 'none':
+                                f['language'] = audio_locale
+                    formats.extend(adaptive_formats)
         self._sort_formats(formats)
+
+        subtitles = {}
+        for subtitle in streams_json.get('subtitles', {}).values():
+            subtitle_url = subtitle.get('url')
+            if not subtitle_url:
+                continue
+            subtitles.setdefault(subtitle.get('locale', 'en-US'), []).append({
+                'url': subtitle_url,
+                'ext': subtitle.get('format', 'ass'),
+            })
 
         thumbnails = []
         for thumbnail in video_data.get('images', {}).get('thumbnails', []):
@@ -142,6 +162,7 @@ class VRVIE(VRVBaseIE):
             'id': video_id,
             'title': title,
             'formats': formats,
+            'subtitles': subtitles,
             'thumbnails': thumbnails,
             'description': video_data.get('description'),
             'duration': float_or_none(video_data.get('duration_ms'), 1000),
