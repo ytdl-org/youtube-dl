@@ -5,6 +5,7 @@ import re
 import json
 
 from .common import InfoExtractor
+from .adobepass import AdobePassIE
 from ..compat import (
     compat_etree_fromstring,
     compat_parse_qs,
@@ -448,7 +449,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         return info
 
 
-class BrightcoveNewIE(InfoExtractor):
+class BrightcoveNewIE(AdobePassIE):
     IE_NAME = 'brightcove:new'
     _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+|ref:[^&]+)'
     _TESTS = [{
@@ -602,6 +603,20 @@ class BrightcoveNewIE(InfoExtractor):
                 raise ExtractorError(message, expected=True)
             raise
 
+        errors = json_data.get('errors')
+        if errors and errors[0].get('error_subcode') == 'TVE_AUTH':
+            custom_fields = json_data['custom_fields']
+            tve_token = self._extract_mvpd_auth(
+                smuggled_data['source_url'], video_id,
+                custom_fields['bcadobepassrequestorid'],
+                custom_fields['bcadobepassresourceid'])
+            json_data = self._download_json(
+                api_url, video_id, headers={
+                    'Accept': 'application/json;pk=%s' % policy_key
+                }, query={
+                    'tveToken': tve_token,
+                })
+
         title = json_data['name'].strip()
 
         formats = []
@@ -667,7 +682,6 @@ class BrightcoveNewIE(InfoExtractor):
                     })
                 formats.append(f)
 
-        errors = json_data.get('errors')
         if not formats and errors:
             error = errors[0]
             raise ExtractorError(
@@ -684,7 +698,7 @@ class BrightcoveNewIE(InfoExtractor):
 
         is_live = False
         duration = float_or_none(json_data.get('duration'), 1000)
-        if duration and duration < 0:
+        if duration is not None and duration <= 0:
             is_live = True
 
         return {
