@@ -20,6 +20,7 @@ class FunimationIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/shows/[^/]+/(?P<id>[^/?#&]+)'
 
     _NETRC_MACHINE = 'funimation'
+    _TOKEN = None
 
     _TESTS = [{
         'url': 'https://www.funimation.com/shows/hacksign/role-play/',
@@ -67,27 +68,19 @@ class FunimationIE(InfoExtractor):
         (username, password) = self._get_login_info()
         if username is None:
             return
-        data = urlencode_postdata({
-            'email_field': username,
-            'password_field': password,
-        })
-        user_agent = self._extract_cloudflare_session_ua(self._LOGIN_URL)
-        if not user_agent:
-            user_agent = 'Mozilla/5.0 (Windows NT 5.2; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0'
-        login_request = sanitized_Request(self._LOGIN_URL, data, headers={
-            'User-Agent': user_agent,
-            'Content-Type': 'application/x-www-form-urlencoded'
-        })
-        login_page = self._download_webpage(
-            login_request, None, 'Logging in as %s' % username)
-        if any(p in login_page for p in ('funimation.com/logout', '>Log Out<')):
-            return
-        error = self._html_search_regex(
-            r'(?s)<div[^>]+id=["\']errorMessages["\'][^>]*>(.+?)</div>',
-            login_page, 'error messages', default=None)
-        if error:
-            raise ExtractorError('Unable to login: %s' % error, expected=True)
-        raise ExtractorError('Unable to log in')
+        try:
+            data = self._download_json(
+                'https://prod-api-funimationnow.dadcdigital.com/api/auth/login/',
+                None, 'Logging in as %s' % username, data=urlencode_postdata({
+                    'username': username,
+                    'password': password,
+                }))
+            self._TOKEN = data['token']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                error = self._parse_json(e.cause.read().decode(), None)['error']
+                raise ExtractorError(error, expected=True)
+            raise
 
     def _real_initialize(self):
         self._login()
@@ -125,9 +118,12 @@ class FunimationIE(InfoExtractor):
         description = self._html_search_meta(['description', 'og:description'], webpage, fatal=True)
 
         try:
+            headers = {}
+            if self._TOKEN:
+                headers['Authorization'] = 'Token %s' % self._TOKEN
             sources = self._download_json(
                 'https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/video/%s/signed/' % video_id,
-                video_id)['items']
+                video_id, headers=headers)['items']
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 error = self._parse_json(e.cause.read(), video_id)['errors'][0]
