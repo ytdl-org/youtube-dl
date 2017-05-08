@@ -2,15 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_urllib_parse_unquote_plus,
-)
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
     int_or_none,
     js_to_json,
-    sanitized_Request,
     ExtractorError,
     urlencode_postdata
 )
@@ -39,30 +35,20 @@ class FunimationIE(InfoExtractor):
     }, {
         'url': 'https://www.funimation.com/shows/attack-on-titan-junior-high/broadcast-dub-preview/',
         'info_dict': {
-            'id': '9635',
+            'id': '210051',
             'display_id': 'broadcast-dub-preview',
             'ext': 'mp4',
             'title': 'Attack on Titan: Junior High - Broadcast Dub Preview',
-            'description': 'md5:f8ec49c0aff702a7832cd81b8a44f803',
             'thumbnail': r're:https?://.*\.(?:jpg|png)',
         },
-        'skip': 'Access without user interaction is forbidden by CloudFlare',
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'https://www.funimationnow.uk/shows/puzzle-dragons-x/drop-impact/simulcast/',
         'only_matching': True,
     }]
-
-    _LOGIN_URL = 'http://www.funimation.com/login'
-
-    def _extract_cloudflare_session_ua(self, url):
-        ci_session_cookie = self._get_cookies(url).get('ci_session')
-        if ci_session_cookie:
-            ci_session = compat_urllib_parse_unquote_plus(ci_session_cookie.value)
-            # ci_session is a string serialized by PHP function serialize()
-            # This case is simple enough to use regular expressions only
-            return self._search_regex(
-                r'"user_agent";s:\d+:"([^"]+)"', ci_session, 'user agent',
-                default=None)
 
     def _login(self):
         (username, password) = self._get_login_info()
