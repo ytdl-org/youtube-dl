@@ -1485,11 +1485,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         if 'token' not in video_info:
                             video_info = get_video_info
                         break
+
+        regions_allowed = self._html_search_meta(
+            'regionsAllowed', video_webpage, default=None)
+        video_info['regionsAllowed'] = regions_allowed if regions_allowed else None
         if 'token' not in video_info:
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta(
-                        'regionsAllowed', video_webpage, default=None)
                     countries = regions_allowed.split(',') if regions_allowed else None
                     self.raise_geo_restricted(
                         msg=video_info['reason'][0], countries=countries)
@@ -1909,6 +1911,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'dislike_count': dislike_count,
             'average_rating': float_or_none(video_info.get('avg_rating', [None])[0]),
             'formats': formats,
+            'regionsAllowed': video_info.get('regionsAllowed', []),
             'is_live': is_live,
             'start_time': start_time,
             'end_time': end_time,
