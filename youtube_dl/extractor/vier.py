@@ -69,7 +69,7 @@ class VierIE(InfoExtractor):
 
         self._request_webpage(
             'http://www.%s.be/user/login' % site,
-            None, note='Logging in', errnote='Could not log in',
+            None, note='Logging in', errnote='Unable to log in',
             data=urlencode_postdata({
                 'form_id': 'user_login',
                 'name': username,
@@ -85,7 +85,7 @@ class VierIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        if re.search(r'id="user-login"', webpage):
+        if r'id="user-login"' in webpage:
             self._login(site)
             webpage = self._download_webpage(url, display_id)
 
