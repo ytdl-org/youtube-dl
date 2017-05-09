@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+
 class PearIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pearvideo\.com/video_(?P<id>[0-9]+)'
     _TEST = {
@@ -20,14 +21,14 @@ class PearIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<h1[^>]+class="video-tt">(.+)</h1>', webpage, 'title')
+        title = self._html_search_regex(r'<h1[^>]+class="video-tt">(.+)</h1>', webpage, 'title', fatal=False)
         description = self._html_search_regex(r'<div[^>]+class="summary"[^>]*>([^<]+)<', webpage, 'description', fatal=False)
-        hdUrl = self._html_search_regex(r'hdUrl="(.*?)"', webpage, 'url')
+        url = self._html_search_regex(r'hdUrl="(.*?)"', webpage, 'url', fatal=False)
 
         return {
             'id': video_id,
             'ext': 'mp4',
             'title': title,
             'description': description,
-            'url': hdUrl
+            'url': url
         }
