@@ -83,7 +83,6 @@ class VierIE(InfoExtractor):
     def _login(self, site):
         username, password = self._get_login_info()
         if username is None or password is None:
-            self.logged_in = False
             return
 
         self._request_webpage(
@@ -95,7 +94,7 @@ class VierIE(InfoExtractor):
                 'pass': password,
             }),
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
-        self.logged_in = True
+        self._logged_in = True
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
