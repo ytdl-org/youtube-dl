@@ -350,9 +350,9 @@ from .foxsports import FoxSportsIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
 from .francetv import (
-    PluzzIE,
-    FranceTvInfoIE,
     FranceTVIE,
+    FranceTVEmbedIE,
+    FranceTVInfoIE,
     GenerationQuoiIE,
     CultureboxIE,
 )
