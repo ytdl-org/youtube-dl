@@ -745,6 +745,7 @@ from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .pear import PearIE
 from .people import PeopleIE
 from .periscope import (
     PeriscopeIE,
