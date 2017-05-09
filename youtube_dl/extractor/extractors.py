@@ -731,6 +731,7 @@ from .ooyala import (
 )
 from .openload import OpenloadIE
 from .ora import OraTVIE
+from .oreilly import OReillyIE
 from .orf import (
     ORFTVthekIE,
     ORFOE1IE,
