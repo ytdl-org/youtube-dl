@@ -20,7 +20,7 @@ class DRTVIE(InfoExtractor):
     IE_NAME = 'drtv'
     _TESTS = [{
         'url': 'https://www.dr.dk/tv/se/boern/ultra/klassen-ultra/klassen-darlig-taber-10',
-        'md5': '25e659cccc9a2ed956110a299fdf5983',
+        'md5': '7ae17b4e18eb5d29212f424a7511c184',
         'info_dict': {
             'id': 'klassen-darlig-taber-10',
             'ext': 'mp4',
@@ -30,32 +30,36 @@ class DRTVIE(InfoExtractor):
             'upload_date': '20160823',
             'duration': 606.84,
         },
-        'params': {
-            'skip_download': True,
-        },
     }, {
+        # embed
         'url': 'https://www.dr.dk/nyheder/indland/live-christianias-rydning-af-pusher-street-er-i-gang',
-        'md5': '2c37175c718155930f939ef59952474a',
         'info_dict': {
             'id': 'christiania-pusher-street-ryddes-drdkrjpo',
             'ext': 'mp4',
             'title': 'LIVE Christianias rydning af Pusher Street er i gang',
-            'description': '- Det er det fedeste, der er sket i 20 år, fortæller christianit til DR Nyheder.',
+            'description': 'md5:2a71898b15057e9b97334f61d04e6eb5',
             'timestamp': 1472800279,
             'upload_date': '20160902',
             'duration': 131.4,
         },
+        'params': {
+            'skip_download': True,
+        },
     }, {
+        # with SignLanguage formats
         'url': 'https://www.dr.dk/tv/se/historien-om-danmark/-/historien-om-danmark-stenalder',
-        'md5': '7c8ca12e6c3d3e3edd59ba5a9b7ca10a',
         'info_dict': {
             'id': 'historien-om-danmark-stenalder',
             'ext': 'mp4',
             'title': 'Historien om Danmark: Stenalder (1)',
-            'description': 'Én fascinerende historie om tusindvis af år, hvor vores land bliver skabt ud af is og vand, og hvor de første danskere ankommer til vores egn. Det bliver en rejse ind i urtiden og det liv, som urtidsjægerne har levet i skovene og ved havet og helt frem til bondestenalderen. Gennem skeletfund afslører eksperter, hvordan vores forfædre har set ud i stenalderen og hvorfor stenaldermennesket byggede de imponerende jættestuer, som ligger overalt i det danske.',
+            'description': 'md5:8c66dcbc1669bbc6f873879880f37f2a',
             'timestamp': 1490401996,
             'upload_date': '20170325',
             'duration': 3502.04,
+            'formats': 'mincount:20',
+        },
+        'params': {
+            'skip_download': True,
         },
     }]
 
@@ -97,26 +101,20 @@ class DRTVIE(InfoExtractor):
             kind = asset.get('Kind')
             if kind == 'Image':
                 thumbnail = asset.get('Uri')
-            preference = 0
-
-            sign_language = asset.get('Target') == 'SignLanguage'
-
-            if kind in ('VideoResource', 'AudioResource'):
+            elif kind in ('VideoResource', 'AudioResource'):
                 duration = float_or_none(asset.get('DurationInMilliseconds'), 1000)
                 restricted_to_denmark = asset.get('RestrictedToDenmark')
-                spoken_subtitles = asset.get('Target') == 'SpokenSubtitles'
+                asset_target = asset.get('Target')
                 for link in asset.get('Links', []):
                     uri = link.get('Uri')
                     if not uri:
                         continue
                     target = link.get('Target')
                     format_id = target or ''
-                    if spoken_subtitles:
+                    preference = None
+                    if asset_target in ('SpokenSubtitles', 'SignLanguage'):
                         preference = -1
-                        format_id += '-spoken-subtitles'
-                    if sign_language:
-                        preference = -1
-                        format_id += "-sign-language"
+                        format_id += '-%s' % asset_target
                     if target == 'HDS':
                         f4m_formats = self._extract_f4m_formats(
                             uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
