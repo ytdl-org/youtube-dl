@@ -143,9 +143,6 @@ class ORFTVthekIE(InfoExtractor):
 
 
 class ORFRadioIE(InfoExtractor):
-    IE_NAME = 'orf:radio'
-    IE_DESC = 'ORF Radio'
-
     _VALID_URL = r'https?://(?P<station>oe1|fm4)\.orf\.at/(?:7tage/?#|player/)(?P<date>[0-9]+)/(?P<show>\w+)'
 
     _TESTS = [
@@ -212,6 +209,16 @@ class ORFRadioIE(InfoExtractor):
             'description': data['subtitle'],
             'entries': entries
         }
+
+
+class ORFFM4IE(ORFRadioIE):
+    IE_NAME = 'orf:fm4'
+    IE_DESC = 'radio FM4'
+
+
+class ORFOE1IE(ORFRadioIE):
+    IE_NAME = 'orf:oe1'
+    IE_DESC = 'Radio Österreich 1'
 
 
 class ORFIPTVIE(InfoExtractor):
