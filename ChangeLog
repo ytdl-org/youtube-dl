@@ -1,3 +1,26 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Force --restrict-filenames when no locale is set on all python
+  versions (#13027)
+
+Extractors
+* [francetv] Adapt to site redesign (#13034)
++ [packtpub] Add support for authentication (#12622)
+* [drtv] Lower preference for SignLanguage formats (#13013, #13016)
++ [cspan] Add support for brightcove live embeds (#13028)
+* [vrv] Extract DASH formats and subtitles
+* [funimation] Fix authentication (#13021)
+* [adultswim] Fix extraction (#8640, #10950, #11042, #12121)
+    + Add support for Adobe Pass authentication
+    + Add support for live streams
+    + Add support for show pages
+* [turner] Extract thumbnail, is_live and strip description
++ [nonktube] Add support for nonktube.com (#8647, #13024)
++ [nuevo] Pass headers to _extract_nuevo
+* [nbc] Improve extraction (#12364)
+
+
 version 2017.05.07
 
 Common
