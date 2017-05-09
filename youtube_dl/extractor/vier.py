@@ -6,6 +6,7 @@ import itertools
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     urlencode_postdata,
 )
 
@@ -85,7 +86,7 @@ class VierIE(InfoExtractor):
         if username is None or password is None:
             return
 
-        self._request_webpage(
+        login_page = self._download_webpage(
             'http://www.%s.be/user/login' % site,
             None, note='Logging in', errnote='Unable to log in',
             data=urlencode_postdata({
@@ -94,6 +95,11 @@ class VierIE(InfoExtractor):
                 'pass': password,
             }),
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+        if 'Gebruikersnaam of wachtwoord is onbekend' in login_page:
+            raise ExtractorError(
+                'Unable to login: incorrect credentials', expected=True)
+
         self._logged_in = True
 
     def _real_extract(self, url):
