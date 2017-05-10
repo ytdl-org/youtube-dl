@@ -16,6 +16,11 @@ from ..utils import (
 
 
 MSO_INFO = {
+    'sony_auth-gateway_net': {
+        'name': 'Playstation Vue',
+        'username_field': 'j_username',
+        'password_field': 'j_password',
+    },
     'DTV': {
         'name': 'DIRECTV',
         'username_field': 'username',
@@ -1350,6 +1355,26 @@ class AdobePassIE(InfoExtractor):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 })
 
+        def process_redirects(page_res, video_id, note, lastbookend=False):
+            page, urlh = page_res
+            while 'Redirecting...' in page:
+                redirect_url = self._html_search_regex(
+                    r'content="0;\s*url=([^\'"]+)',
+                    page, 'meta refresh redirect', default=None)
+                if redirect_url:
+                    page_res = self._download_webpage_handle(
+                        redirect_url, video_id, note)
+                else:
+                    form_data = self._hidden_inputs(page)
+                    url = urlh.geturl()
+                    if lastbookend:
+                        url.replace('firstbookend', 'lastbookend')
+                    page_res = self._download_webpage_handle(
+                        url, video_id, note,
+                        query=form_data)
+                page, urlh = page_res
+            return page_res
+
         def raise_mvpd_required():
             raise ExtractorError(
                 'This video is only available for users of participating TV providers. '
@@ -1461,14 +1486,22 @@ class AdobePassIE(InfoExtractor):
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
                 else:
-                    provider_login_page_res = post_form(
-                        provider_redirect_page_res, 'Downloading Provider Login Page')
+                    provider_login_page_res = process_redirects(
+                        provider_redirect_page_res, video_id, 'Downloading Provider Login Page')
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
                         mso_info.get('username_field', 'username'): username,
                         mso_info.get('password_field', 'password'): password,
                     })
-                    if mso_id != 'Rogers':
-                        post_form(mvpd_confirm_page_res, 'Confirming Login')
+                    mvpd_confirm_page_res = process_redirects(
+                        mvpd_confirm_page_res, video_id, 'Logging in', True)
+                    mvpd_confirm_page, urlh = mvpd_confirm_page_res
+                    if 'method="post"' in mvpd_confirm_page:
+                        mvpd_confirm_page_res = post_form(mvpd_confirm_page_res, 'Confirming Login')
+                        mvpd_confirm_page_res = process_redirects(
+                            mvpd_confirm_page_res, video_id, 'Confirming Login', True)
+                        mvpd_confirm_page, urlh = mvpd_confirm_page_res
+                        if 'method="post"' in mvpd_confirm_page:
+                            post_form(mvpd_confirm_page_res, 'Confirming Login')
 
                 session = self._download_webpage(
                     self._SERVICE_PROVIDER_TEMPLATE % 'session', video_id,
