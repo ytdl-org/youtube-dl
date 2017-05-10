@@ -96,11 +96,13 @@ class VierIE(InfoExtractor):
             }),
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
-        if 'Gebruikersnaam of wachtwoord is onbekend' in login_page:
-            raise ExtractorError(
-                'Unable to login: incorrect credentials', expected=True)
-
-        self._logged_in = True
+        login_error = self._html_search_regex(
+            r'(?s)<div class="messages error">\s*<div>\s*<h2.+?</h2>(.+?)<',
+            login_page, 'login error', default=None, fatal=False)
+        if login_error:
+            self.report_warning('Unable to log in: %s' % login_error)
+        else:
+            self._logged_in = True
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
