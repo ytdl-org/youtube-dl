@@ -126,7 +126,7 @@ class AdultSwimIE(TurnerBaseIE):
             video_id = video_data['id']
 
         info = self._extract_cvp_info(
-            'http://www.adultswim.com/videos/api/v0/assets?id=' + video_id,
+            'http://www.adultswim.com/videos/api/v0/assets?platform=desktop&id=' + video_id,
             video_id, {
                 'secure': {
                     'media_src': 'http://androidhls-secure.cdn.turner.com/adultswim/big',
