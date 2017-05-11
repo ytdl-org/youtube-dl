@@ -350,9 +350,9 @@ from .foxsports import FoxSportsIE
 from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
 from .francetv import (
-    PluzzIE,
-    FranceTvInfoIE,
     FranceTVIE,
+    FranceTVEmbedIE,
+    FranceTVInfoIE,
     GenerationQuoiIE,
     CultureboxIE,
 )
@@ -663,6 +663,7 @@ from .nintendo import NintendoIE
 from .njpwworld import NJPWWorldIE
 from .nobelprize import NobelPrizeIE
 from .noco import NocoIE
+from .nonktube import NonkTubeIE
 from .noovo import NoovoIE
 from .normalboots import NormalbootsIE
 from .nosvideo import NosVideoIE
@@ -1125,6 +1126,7 @@ from .vgtv import (
 from .vh1 import VH1IE
 from .vice import (
     ViceIE,
+    ViceArticleIE,
     ViceShowIE,
 )
 from .viceland import VicelandIE

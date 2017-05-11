@@ -1,7 +1,55 @@
-version <unreleased>
+version 2017.05.09
+
+Core
+* [YoutubeDL] Force --restrict-filenames when no locale is set on all python
+  versions (#13027)
 
 Extractors
+* [francetv] Adapt to site redesign (#13034)
++ [packtpub] Add support for authentication (#12622)
+* [drtv] Lower preference for SignLanguage formats (#13013, #13016)
++ [cspan] Add support for brightcove live embeds (#13028)
+* [vrv] Extract DASH formats and subtitles
+* [funimation] Fix authentication (#13021)
+* [adultswim] Fix extraction (#8640, #10950, #11042, #12121)
+    + Add support for Adobe Pass authentication
+    + Add support for live streams
+    + Add support for show pages
+* [turner] Extract thumbnail, is_live and strip description
++ [nonktube] Add support for nonktube.com (#8647, #13024)
++ [nuevo] Pass headers to _extract_nuevo
+* [nbc] Improve extraction (#12364)
+
+
+version 2017.05.07
+
+Common
+* [extractor/common] Fix typo in _extract_akamai_formats
++ [postprocessor/ffmpeg] Embed chapters into media file with --add-metadata
++ [extractor/common] Introduce chapters meta field
+
+Extractors
+* [youtube] Fix authentication (#12820, #12927, #12973, #12992, #12993, #12995,
+  #13003)
+* [bilibili] Fix video downloading (#13001)
+* [rmcdecouverte] Fix extraction (#12937)
+* [theplatform] Extract chapters
+* [bandcamp] Fix thumbnail extraction (#12980)
+* [pornhub] Extend URL regular expression (#12996)
++ [youtube] Extract chapters
++ [nrk] Extract chapters
++ [vice] Add support for ooyala embeds in article pages
++ [vice] Support vice articles (#12968)
+* [vice] Fix extraction for non en_us videos (#12967)
+* [gdcvault] Fix extraction for some videos (#12733)
+* [pbs] Improve multipart video support (#12981)
+* [laola1tv] Fix extraction (#12880)
++ [cda] Support birthday verification (#12789)
 * [leeco] Fix extraction (#12974)
++ [pbs] Extract chapters
+* [amp] Imporove thumbnail and subtitles extraction
+* [foxsports] Fix extraction (#12945)
+- [coub] Remove comment count extraction (#12941)
 
 
 version 2017.05.01

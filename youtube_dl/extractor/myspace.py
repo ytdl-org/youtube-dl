@@ -12,64 +12,62 @@ from ..utils import (
 
 
 class MySpaceIE(InfoExtractor):
-    _VALID_URL = r'https?://myspace\.com/([^/]+)/(?P<mediatype>video/[^/]+/|music/song/.*?)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        myspace\.com/[^/]+/
+                        (?P<mediatype>
+                            video/[^/]+/(?P<video_id>\d+)|
+                            music/song/[^/?#&]+-(?P<song_id>\d+)-\d+(?:[/?#&]|$)
+                        )
+                    '''
 
-    _TESTS = [
-        {
-            'url': 'https://myspace.com/fiveminutestothestage/video/little-big-town/109594919',
-            'md5': '9c1483c106f4a695c47d2911feed50a7',
-            'info_dict': {
-                'id': '109594919',
-                'ext': 'mp4',
-                'title': 'Little Big Town',
-                'description': 'This country quartet was all smiles while playing a sold out show at the Pacific Amphitheatre in Orange County, California.',
-                'uploader': 'Five Minutes to the Stage',
-                'uploader_id': 'fiveminutestothestage',
-                'timestamp': 1414108751,
-                'upload_date': '20141023',
-            },
+    _TESTS = [{
+        'url': 'https://myspace.com/fiveminutestothestage/video/little-big-town/109594919',
+        'md5': '9c1483c106f4a695c47d2911feed50a7',
+        'info_dict': {
+            'id': '109594919',
+            'ext': 'mp4',
+            'title': 'Little Big Town',
+            'description': 'This country quartet was all smiles while playing a sold out show at the Pacific Amphitheatre in Orange County, California.',
+            'uploader': 'Five Minutes to the Stage',
+            'uploader_id': 'fiveminutestothestage',
+            'timestamp': 1414108751,
+            'upload_date': '20141023',
         },
+    }, {
         # songs
-        {
-            'url': 'https://myspace.com/killsorrow/music/song/of-weakened-soul...-93388656-103880681',
-            'md5': '1d7ee4604a3da226dd69a123f748b262',
-            'info_dict': {
-                'id': '93388656',
-                'ext': 'm4a',
-                'title': 'Of weakened soul...',
-                'uploader': 'Killsorrow',
-                'uploader_id': 'killsorrow',
-            },
-        }, {
-            'add_ie': ['Youtube'],
-            'url': 'https://myspace.com/threedaysgrace/music/song/animal-i-have-become-28400208-28218041',
-            'info_dict': {
-                'id': 'xqds0B_meys',
-                'ext': 'webm',
-                'title': 'Three Days Grace - Animal I Have Become',
-                'description': 'md5:8bd86b3693e72a077cf863a8530c54bb',
-                'uploader': 'ThreeDaysGraceVEVO',
-                'uploader_id': 'ThreeDaysGraceVEVO',
-                'upload_date': '20091002',
-            },
-        }, {
-            'add_ie': ['Youtube'],
-            'url': 'https://myspace.com/starset2/music/song/first-light-95799905-106964426',
-            'info_dict': {
-                'id': 'ypWvQgnJrSU',
-                'ext': 'mp4',
-                'title': 'Starset - First Light',
-                'description': 'md5:2d5db6c9d11d527683bcda818d332414',
-                'uploader': 'Yumi K',
-                'uploader_id': 'SorenPromotions',
-                'upload_date': '20140725',
-            }
+        'url': 'https://myspace.com/killsorrow/music/song/of-weakened-soul...-93388656-103880681',
+        'md5': '1d7ee4604a3da226dd69a123f748b262',
+        'info_dict': {
+            'id': '93388656',
+            'ext': 'm4a',
+            'title': 'Of weakened soul...',
+            'uploader': 'Killsorrow',
+            'uploader_id': 'killsorrow',
         },
-    ]
+    }, {
+        'add_ie': ['Youtube'],
+        'url': 'https://myspace.com/threedaysgrace/music/song/animal-i-have-become-28400208-28218041',
+        'info_dict': {
+            'id': 'xqds0B_meys',
+            'ext': 'webm',
+            'title': 'Three Days Grace - Animal I Have Become',
+            'description': 'md5:8bd86b3693e72a077cf863a8530c54bb',
+            'uploader': 'ThreeDaysGraceVEVO',
+            'uploader_id': 'ThreeDaysGraceVEVO',
+            'upload_date': '20091002',
+        },
+    }, {
+        'url': 'https://myspace.com/starset2/music/song/first-light-95799905-106964426',
+        'only_matching': True,
+    }, {
+        'url': 'https://myspace.com/thelargemouthbassband/music/song/02-pure-eyes.mp3-94422330-105113388',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = mobj.group('video_id') or mobj.group('song_id')
         is_song = mobj.group('mediatype').startswith('music/song')
         webpage = self._download_webpage(url, video_id)
         player_url = self._search_regex(

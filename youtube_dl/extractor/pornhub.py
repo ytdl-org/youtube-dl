@@ -33,7 +33,7 @@ class PornHubIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)|
+                            (?:[a-z]+\.)?pornhub\.com/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -96,6 +96,9 @@ class PornHubIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.thumbzilla.com/video/ph56c6114abd99a/horny-girlfriend-sex',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.pornhub.com/video/show?viewkey=648719015',
         'only_matching': True,
     }]
 

@@ -10,6 +10,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     js_to_json,
+    orderedSet,
     strip_jsonp,
     strip_or_none,
     unified_strdate,
@@ -265,6 +266,13 @@ class PBSIE(InfoExtractor):
             'playlist_count': 2,
         },
         {
+            'url': 'http://www.pbs.org/wgbh/americanexperience/films/great-war/',
+            'info_dict': {
+                'id': 'great-war',
+            },
+            'playlist_count': 3,
+        },
+        {
             'url': 'http://www.pbs.org/wgbh/americanexperience/films/death/player/',
             'info_dict': {
                 'id': '2276541483',
@@ -382,10 +390,10 @@ class PBSIE(InfoExtractor):
             # tabbed frontline videos
             MULTI_PART_REGEXES = (
                 r'<div[^>]+class="videotab[^"]*"[^>]+vid="(\d+)"',
-                r'<a[^>]+href=["\']#video-\d+["\'][^>]+data-coveid=["\'](\d+)',
+                r'<a[^>]+href=["\']#(?:video-|part)\d+["\'][^>]+data-cove[Ii]d=["\'](\d+)',
             )
             for p in MULTI_PART_REGEXES:
-                tabbed_videos = re.findall(p, webpage)
+                tabbed_videos = orderedSet(re.findall(p, webpage))
                 if tabbed_videos:
                     return tabbed_videos, presumptive_id, upload_date, description
 

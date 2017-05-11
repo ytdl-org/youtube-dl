@@ -21,9 +21,10 @@ class CrackleIE(InfoExtractor):
             'season_number': 8,
             'episode_number': 4,
             'subtitles': {
-                'en-US': [{
-                    'ext': 'ttml',
-                }]
+                'en-US': [
+                    {'ext': 'vtt'},
+                    {'ext': 'tt'},
+                ]
             },
         },
         'params': {

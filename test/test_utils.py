@@ -44,6 +44,7 @@ from youtube_dl.utils import (
     limit_length,
     mimetype2ext,
     month_by_name,
+    multipart_encode,
     ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
@@ -619,6 +620,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(query_dict(update_url_query(
             'http://example.com/path', {'test': '第二行тест'})),
             query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
+
+    def test_multipart_encode(self):
+        self.assertEqual(
+            multipart_encode({b'field': b'value'}, boundary='AAAAAA')[0],
+            b'--AAAAAA\r\nContent-Disposition: form-data; name="field"\r\n\r\nvalue\r\n--AAAAAA--\r\n')
+        self.assertEqual(
+            multipart_encode({'欄位'.encode('utf-8'): '值'.encode('utf-8')}, boundary='AAAAAA')[0],
+            b'--AAAAAA\r\nContent-Disposition: form-data; name="\xe6\xac\x84\xe4\xbd\x8d"\r\n\r\n\xe5\x80\xbc\r\n--AAAAAA--\r\n')
+        self.assertRaises(
+            ValueError, multipart_encode, {b'field': b'value'}, boundary='value')
 
     def test_dict_get(self):
         FALSE_VALUES = {

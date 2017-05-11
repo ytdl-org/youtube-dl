@@ -80,14 +80,33 @@ class ThePlatformBaseIE(OnceIE):
                     'url': src,
                 })
 
+        duration = info.get('duration')
+        tp_chapters = info.get('chapters', [])
+        chapters = []
+        if tp_chapters:
+            def _add_chapter(start_time, end_time):
+                start_time = float_or_none(start_time, 1000)
+                end_time = float_or_none(end_time, 1000)
+                if start_time is None or end_time is None:
+                    return
+                chapters.append({
+                    'start_time': start_time,
+                    'end_time': end_time,
+                })
+
+            for chapter in tp_chapters[:-1]:
+                _add_chapter(chapter.get('startTime'), chapter.get('endTime'))
+            _add_chapter(tp_chapters[-1].get('startTime'), tp_chapters[-1].get('endTime') or duration)
+
         return {
             'title': info['title'],
             'subtitles': subtitles,
             'description': info['description'],
             'thumbnail': info['defaultThumbnailUrl'],
-            'duration': int_or_none(info.get('duration'), 1000),
+            'duration': float_or_none(duration, 1000),
             'timestamp': int_or_none(info.get('pubDate'), 1000) or None,
             'uploader': info.get('billingCode'),
+            'chapters': chapters,
         }
 
     def _extract_theplatform_metadata(self, path, video_id):
