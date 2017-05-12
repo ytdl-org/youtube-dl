@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractor
+* [liveleak] Fix extraction (#12053)
 + [douyu] Support Douyu shows (#12228)
 
 
