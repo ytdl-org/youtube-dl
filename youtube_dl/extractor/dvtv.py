@@ -71,6 +71,14 @@ class DVTVIE(InfoExtractor):
     }, {
         'url': 'http://video.aktualne.cz/v-cechach-poprve-zazni-zelenkova-zrestaurovana-mse/r~45b4b00483ec11e4883b002590604f2e/',
         'only_matching': True,
+    }, {
+        'url': 'https://video.aktualne.cz/dvtv/zeman-si-jen-leci-mindraky-sobotku-nenavidi-a-babis-se-mu-te/r~960cdb3a365a11e7a83b0025900fea04/',
+        'md5': 'f8efe9656017da948369aa099788c8ea',
+        'info_dict': {
+            'id': '3c496fec365911e7a6500025900fea04',
+            'ext': 'm3u8',
+            'title': 'Zeman si jen léčí mindráky, Sobotku nenávidí a Babiš se mu teď hodí, tvrdí Kmenta',
+        }
     }]
 
     def _parse_video_metadata(self, js, video_id):
@@ -79,13 +87,22 @@ class DVTVIE(InfoExtractor):
         formats = []
         for video in metadata['sources']:
             ext = video['type'][6:]
-            formats.append({
-                'url': video['file'],
-                'ext': ext,
-                'format_id': '%s-%s' % (ext, video['label']),
-                'height': int(video['label'].rstrip('p')),
-                'fps': 25,
-            })
+            if video['label'] != 'adaptive':
+                formats.append({
+                    'url': video['file'],
+                    'ext': ext,
+                    'format_id': '%s-%s' % (ext, video['label']),
+                    'height': int(video['label'].rstrip('p')),
+                    'fps': 25,
+                })
+            elif video['type'] == 'application/dash+xml':
+                formats.extend(self._extract_mpd_formats(video['file'],
+                                                         video_id,
+                                                         fatal=False))
+            elif video['type'] == 'application/vnd.apple.mpegurl':
+                formats.extend(self._extract_m3u8_formats(video['file'],
+                                                          video_id,
+                                                          fatal=False))
 
         self._sort_formats(formats)
 
