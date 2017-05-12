@@ -2146,22 +2146,6 @@ class GenericIE(InfoExtractor):
         if svt_url:
             return self.url_result(svt_url, 'SVT')
 
-        # Look for embedded condenast player
-        matches = re.findall(
-            r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="(https?://player\.cnevids\.com/embed/[^"]+")',
-            webpage)
-        if matches:
-            return {
-                '_type': 'playlist',
-                'entries': [{
-                    '_type': 'url',
-                    'ie_key': 'CondeNast',
-                    'url': ma,
-                } for ma in matches],
-                'title': video_title,
-                'id': video_id,
-            }
-
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
         if mobj is not None:
