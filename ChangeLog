@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractor
++ [douyu] Support Douyu shows (#12228)
+
+
 version 2017.05.09
 
 Core
