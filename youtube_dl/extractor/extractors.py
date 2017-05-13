@@ -736,8 +736,8 @@ from .openload import OpenloadIE
 from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
-    ORFOE1IE,
     ORFFM4IE,
+    ORFOE1IE,
     ORFIPTVIE,
 )
 from .packtpub import (
