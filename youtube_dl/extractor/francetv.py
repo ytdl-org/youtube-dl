@@ -112,7 +112,7 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
 
 
 class FranceTVIE(FranceTVBaseInfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?france\.tv/(?:[^/]+/)+(?P<id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:(?:www\.)?france\.tv|mobile\.france\.tv)/(?:[^/]+/)+(?P<id>[^/]+)\.html'
 
     _TESTS = [{
         'url': 'https://www.france.tv/france-2/13h15-le-dimanche/140921-les-mysteres-de-jesus.html',
@@ -153,6 +153,9 @@ class FranceTVIE(FranceTVBaseInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.france.tv/jeux-et-divertissements/divertissements/133965-le-web-contre-attaque.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://mobile.france.tv/france-5/c-dans-l-air/137347-emission-du-vendredi-12-mai-2017.html',
         'only_matching': True,
     }]
 
