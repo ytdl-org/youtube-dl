@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -13,12 +15,15 @@ from ..utils import (
 
 class MediasetIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-                    https?://
-                        (?:www\.)?video\.mediaset\.it/
-                        (?:
-                            (?:video|on-demand)/(?:[^/]+/)+[^/]+_|
-                            player/playerIFrame(?:Twitter)?\.shtml\?.*?\bid=
-                        )(?P<id>[0-9]+)
+                    (?:
+                        mediaset:|
+                        https?://
+                            (?:www\.)?video\.mediaset\.it/
+                            (?:
+                                (?:video|on-demand)/(?:[^/]+/)+[^/]+_|
+                                player/playerIFrame(?:Twitter)?\.shtml\?.*?\bid=
+                            )
+                    )(?P<id>[0-9]+)
                     '''
     _TESTS = [{
         # full episode
@@ -48,6 +53,9 @@ class MediasetIE(InfoExtractor):
     }, {
         # iframe twitter (from http://www.wittytv.it/se-prima-mi-fidavo-zero/)
         'url': 'https://www.video.mediaset.it/player/playerIFrameTwitter.shtml?id=665104&playrelated=false&autoplay=false&related=true&hidesocial=true',
+        'only_matching': True,
+    }, {
+        'url': 'mediaset:661824',
         'only_matching': True,
     }]
 
