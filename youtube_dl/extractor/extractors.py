@@ -1102,6 +1102,10 @@ from .uplynk import (
     UplynkIE,
     UplynkPreplayIE,
 )
+from .upskill import (
+    UpskillIE,
+    UpskillCourseIE,
+)
 from .urort import UrortIE
 from .urplay import URPlayIE
 from .usanetwork import USANetworkIE
