@@ -88,6 +88,7 @@ from .rutube import RutubeIE
 from .limelight import LimelightBaseIE
 from .anvato import AnvatoIE
 from .washingtonpost import WashingtonPostIE
+from .wistia import WistiaIE
 
 
 class GenericIE(InfoExtractor):
@@ -2111,35 +2112,14 @@ class GenericIE(InfoExtractor):
                     playlists, video_id, video_title, lambda p: '//dailymotion.com/playlist/%s' % p)
 
         # Look for embedded Wistia player
-        match = re.search(
-            r'<(?:meta[^>]+?content|iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
-        if match:
-            embed_url = self._proto_relative_url(
-                unescapeHTML(match.group('url')))
+        wistia_url = WistiaIE._extract_url(webpage)
+        if wistia_url:
             return {
                 '_type': 'url_transparent',
-                'url': embed_url,
-                'ie_key': 'Wistia',
+                'url': self._proto_relative_url(wistia_url),
+                'ie_key': WistiaIE.ie_key(),
                 'uploader': video_uploader,
             }
-
-        match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
-        if match:
-            return {
-                '_type': 'url_transparent',
-                'url': 'wistia:%s' % match.group('id'),
-                'ie_key': 'Wistia',
-                'uploader': video_uploader,
-            }
-
-        match = re.search(
-            r'''(?sx)
-                <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
-                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
-            ''', webpage)
-        if match:
-            return self.url_result(self._proto_relative_url(
-                'wistia:%s' % match.group('id')), 'Wistia')
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
