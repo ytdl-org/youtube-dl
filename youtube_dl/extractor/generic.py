@@ -2519,29 +2519,6 @@ class GenericIE(InfoExtractor):
             return self.playlist_result(
                 limelight_urls, video_id, video_title, video_description)
 
-        mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
-        if mobj:
-            lm = {
-                'Media': 'media',
-                'Channel': 'channel',
-                'ChannelList': 'channel_list',
-            }
-            return self.url_result(smuggle_url('limelight:%s:%s' % (
-                lm[mobj.group(1)], mobj.group(2)), {'source_url': url}),
-                'Limelight%s' % mobj.group(1), mobj.group(2))
-
-        mobj = re.search(
-            r'''(?sx)
-                <object[^>]+class=(["\'])LimelightEmbeddedPlayerFlash\1[^>]*>.*?
-                    <param[^>]+
-                        name=(["\'])flashVars\2[^>]+
-                        value=(["\'])(?:(?!\3).)*mediaId=(?P<id>[a-z0-9]{32})
-            ''', webpage)
-        if mobj:
-            return self.url_result(smuggle_url(
-                'limelight:media:%s' % mobj.group('id'),
-                {'source_url': url}), 'LimelightMedia', mobj.group('id'))
-
         # Look for Anvato embeds
         anvato_urls = AnvatoIE._extract_urls(self, webpage, video_id)
         if anvato_urls:
