@@ -89,6 +89,7 @@ from .limelight import LimelightBaseIE
 from .anvato import AnvatoIE
 from .washingtonpost import WashingtonPostIE
 from .wistia import WistiaIE
+from .mediaset import MediasetIE
 
 
 class GenericIE(InfoExtractor):
@@ -2647,6 +2648,12 @@ class GenericIE(InfoExtractor):
         if wapo_urls:
             return self.playlist_from_matches(
                 wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key())
+
+        # Look for Mediaset embeds
+        mediaset_urls = MediasetIE._extract_urls(webpage)
+        if mediaset_urls:
+            return self.playlist_from_matches(
+                mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key())
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(

@@ -59,6 +59,14 @@ class MediasetIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return [
+            mobj.group('url')
+            for mobj in re.finditer(
+                r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>https?://(?:www\.)?video\.mediaset\.it/player/playerIFrame(?:Twitter)?\.shtml\?.*?\bid=\d+.*?)\1',
+                webpage)]
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
