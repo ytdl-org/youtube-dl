@@ -9,7 +9,9 @@ class MetadataFromTitlePP(PostProcessor):
     def __init__(self, downloader, titleformat):
         super(MetadataFromTitlePP, self).__init__(downloader)
         self._titleformat = titleformat
-        self._titleregex = self.format_to_regex(titleformat)
+        self._titleregex = (self.format_to_regex(titleformat)
+                            if re.search(r'%\(\w+\)s', titleformat)
+                            else titleformat)
 
     def format_to_regex(self, fmt):
         r"""
