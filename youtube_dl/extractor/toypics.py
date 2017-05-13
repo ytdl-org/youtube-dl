@@ -24,15 +24,16 @@ class ToypicsIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         page = self._download_webpage(url, video_id)
-        video_url = self._html_search_regex(
-            r'src:\s+"(http://static[0-9]+\.toypics\.net/flvideo/[^"]+)"', page, 'video URL')
-        title = self._html_search_regex(
-            r'<title>Toypics - ([^<]+)</title>', page, 'title')
+        formats = self._parse_html5_media_entries(url, page, video_id)[0]['formats']
+        title = self._html_search_regex([
+            r'<h1[^>]+class=["\']view-video-title[^>]+>([^<]+)</h',
+            r'<title>([^<]+) - Toypics</title>',
+        ], page, 'title')
         username = self._html_search_regex(
-            r'toypics.net/([^/"]+)" class="user-name">', page, 'username')
+            r'More videos from <strong>([^<]+)</strong>', page, 'username')
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
             'uploader': username,
             'age_limit': 18,
@@ -71,7 +72,7 @@ class ToypicsUserIE(InfoExtractor):
                 note='Downloading page %d/%d' % (n, page_count))
             urls.extend(
                 re.findall(
-                    r'<p class="video-entry-title">\s+<a href="(https?://videos.toypics.net/view/[^"]+)">',
+                    r'<div[^>]+class=["\']preview[^>]+>\s*<a[^>]+href="(https?://videos.toypics.net/view/[^"]+)"',
                     lpage))
 
         return {
