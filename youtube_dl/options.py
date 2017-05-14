@@ -817,7 +817,7 @@ def parseOpts(overrideArguments=None):
              'The format syntax is the same as --output. Regular expression with '
              'named capture groups may also be used. '
              'The parsed parameters replace existing values. '
-             'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like ' 
+             'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like '
              '"Coldplay - Paradise". '
              'Example (regex): --metadata-from-title "(?P<artist>.+?) - (?P<title>.+)"')
     postproc.add_option(
