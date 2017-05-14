@@ -98,7 +98,7 @@ class VierIE(InfoExtractor):
 
         login_error = self._html_search_regex(
             r'(?s)<div class="messages error">\s*<div>\s*<h2.+?</h2>(.+?)<',
-            login_page, 'login error', default=None, fatal=False)
+            login_page, 'login error', default=None)
         if login_error:
             self.report_warning('Unable to log in: %s' % login_error)
         else:
@@ -117,7 +117,8 @@ class VierIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         if r'id="user-login"' in webpage:
-            self.report_warning('Log in to extract metadata', video_id=video_id)
+            self.report_warning(
+                'Log in to extract metadata', video_id=display_id)
             webpage = self._download_webpage(
                 'http://www.%s.be/video/v3/embed/%s' % (site, video_id),
                 display_id)
