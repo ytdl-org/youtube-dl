@@ -206,8 +206,8 @@ class MySpaceAlbumIE(InfoExtractor):
         return self.playlist_result(entries, playlist_id, self._og_search_title(webpage))
 
 
-class MySpaceArtistSongsIE(InfoExtractor):
-    IE_NAME = 'MySpace:artist:songs'
+class MySpaceArtistIE(InfoExtractor):
+    IE_NAME = 'MySpace:artist'
     _VALID_URL = r'https?://myspace\.com/(?P<artist>[^/]*)/music/songs'
 
     _TEST = {
