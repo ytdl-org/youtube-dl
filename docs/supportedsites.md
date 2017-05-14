@@ -216,6 +216,7 @@
  - **DiscoveryVR**
  - **Disney**
  - **Dotsub**
+ - **DouyuShow**
  - **DouyuTV**: 斗鱼
  - **DPlay**
  - **DPlayIt**
@@ -433,6 +434,7 @@
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
  - **Medialaan**
+ - **Mediaset**
  - **Medici**
  - **Meipai**: 美拍
  - **MelonVOD**
@@ -861,6 +863,8 @@
  - **uol.com.br**
  - **uplynk**
  - **uplynk:preplay**
+ - **Upskill**
+ - **UpskillCourse**
  - **Urort**: NRK P3 Urørt
  - **URPlay**
  - **USANetwork**

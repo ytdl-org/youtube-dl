@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.05.14
 
 Core
 + [extractor/common] Respect Width and Height attributes in ISM manifests
