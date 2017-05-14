@@ -1,8 +1,23 @@
 version <unreleased>
 
+Core
++ [extractor/common] Respect Width and Height attributes in ISM manifests
++ [postprocessor/metadatafromtitle] Add support regular expression syntax for
+  --metadata-from-title (#13065)
+
 Extractor
++ [mediaset] Add support for video.mediaset.it (#12708, #12964)
+* [orf:radio] Fix extraction (#11643, #12926)
+* [aljazeera] Extend URL regular expression (#13053)
+* [imdb] Relax URL regular expression (#13056)
++ [francetv] Add support for mobile.france.tv (#13068)
++ [upskill] Add support for upskillcourses.com (#13043)
+* [thescene] Fix extraction (#13061)
+* [condenast] Improve embed support
 * [liveleak] Fix extraction (#12053)
 + [douyu] Support Douyu shows (#12228)
+* [myspace] Improve URL regular expression (#13040)
+* [adultswim] Use desktop platform in assets URL (#13041)
 
 
 version 2017.05.09
