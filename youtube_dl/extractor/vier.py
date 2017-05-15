@@ -125,7 +125,7 @@ class VierIE(InfoExtractor):
 
         video_id = self._search_regex(
             [r'data-nid="(\d+)"', r'"nid"\s*:\s*"(\d+)"'],
-            webpage, 'video id')
+            webpage, 'video id', default=video_id)
         application = self._search_regex(
             [r'data-application="([^"]+)"', r'"application"\s*:\s*"([^"]+)"'],
             webpage, 'application', default=site + '_vod')
