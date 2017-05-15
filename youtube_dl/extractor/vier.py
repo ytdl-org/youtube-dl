@@ -5,10 +5,7 @@ import re
 import itertools
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    urlencode_postdata,
-)
+from ..utils import urlencode_postdata
 
 
 class VierIE(InfoExtractor):
@@ -18,6 +15,7 @@ class VierIE(InfoExtractor):
     _NETRC_MACHINE = 'vier'
     _TESTS = [{
         'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
+        'md5': 'e4ae2054a6b040ef1e289e20d111b46e',
         'info_dict': {
             'id': '16129',
             'display_id': 'het-wordt-warm-de-moestuin',
@@ -25,22 +23,16 @@ class VierIE(InfoExtractor):
             'title': 'Het wordt warm in De Moestuin',
             'description': 'De vele uren werk eisen hun tol. Wim droomt van assistentie...',
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-        # 'skip': 'Requires account credentials',
     }, {
         'url': 'http://www.vijf.be/temptationisland/videos/zo-grappig-temptation-island-hosts-moeten-kiezen-tussen-onmogelijke-dilemmas/2561614',
         'info_dict': {
             'id': '2561614',
             'display_id': 'zo-grappig-temptation-island-hosts-moeten-kiezen-tussen-onmogelijke-dilemmas',
             'ext': 'mp4',
-            'title': 'EXTRA: Temptation Island hosts moeten kiezen tussen onmogelijke dilemma\'s',
-            'description': 'Het spel is simpel: Annelien Coorevits en Rick Brandsteder krijgen telkens 2 dilemma\'s voorgeschoteld en ze MOETEN een keuze maken.',
+            'title': 'md5:84f45fe48b8c1fa296a7f6d208d080a7',
+            'description': 'md5:0356d4981e58b8cbee19355cbd51a8fe',
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
     }, {
@@ -50,14 +42,15 @@ class VierIE(InfoExtractor):
             'display_id': 'jani-gaat-naar-tokio-aflevering-4',
             'ext': 'mp4',
             'title': 'Jani gaat naar Tokio - Aflevering 4',
-            'description': 'Bekijk hier de volledige vierde aflevering van het 2de seizoen van Jani gaat...',
+            'description': 'md5:2d169e8186ae4247e50c99aaef97f7b2',
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
         'skip': 'Requires account credentials',
     }, {
+        # Requires account credentials but bypassed extraction via v3/embed page
+        # without metadata
         'url': 'http://www.vier.be/janigaat/videos/jani-gaat-naar-tokio-aflevering-4/2674839',
         'info_dict': {
             'id': '2674839',
@@ -66,12 +59,12 @@ class VierIE(InfoExtractor):
             'title': 'jani-gaat-naar-tokio-aflevering-4',
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
         'expected_warnings': ['Log in to extract metadata'],
     }, {
-        'url': 'http://www.vier.be/planb/videos/mieren-herders-van-de-bladluizen',
+        # Without video id in URL
+        'url': 'http://www.vier.be/planb/videos/dit-najaar-plan-b',
         'only_matching': True,
     }, {
         'url': 'http://www.vier.be/video/v3/embed/16129',
@@ -125,7 +118,7 @@ class VierIE(InfoExtractor):
 
         video_id = self._search_regex(
             [r'data-nid="(\d+)"', r'"nid"\s*:\s*"(\d+)"'],
-            webpage, 'video id', default=video_id)
+            webpage, 'video id', default=video_id or display_id)
         application = self._search_regex(
             [r'data-application="([^"]+)"', r'"application"\s*:\s*"([^"]+)"'],
             webpage, 'application', default=site + '_vod')
