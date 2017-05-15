@@ -7,7 +7,7 @@ from .ooyala import OoyalaIE
 
 
 class TeachingChannelIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.teachingchannel\.org/videos/(?P<title>.+)'
+    _VALID_URL = r'https?://(?:www\.)?teachingchannel\.org/videos/(?P<title>.+)'
 
     _TEST = {
         'url': 'https://www.teachingchannel.org/videos/teacher-teaming-evolution',

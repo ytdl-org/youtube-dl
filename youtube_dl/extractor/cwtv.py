@@ -82,6 +82,11 @@ class CWTVIE(InfoExtractor):
                             'url': quality_url,
                             'tbr': tbr,
                         })
+        video_metadata = video_data['assetFields']
+        ism_url = video_metadata.get('smoothStreamingUrl')
+        if ism_url:
+            formats.extend(self._extract_ism_formats(
+                ism_url, video_id, ism_id='mss', fatal=False))
         self._sort_formats(formats)
 
         thumbnails = [{
@@ -89,8 +94,6 @@ class CWTVIE(InfoExtractor):
             'width': image.get('width'),
             'height': image.get('height'),
         } for image_id, image in video_data['images'].items() if image.get('uri')] if video_data.get('images') else None
-
-        video_metadata = video_data['assetFields']
 
         subtitles = {
             'en': [{

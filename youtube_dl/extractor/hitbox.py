@@ -25,7 +25,7 @@ class HitboxIE(InfoExtractor):
             'alt_title': 'hitboxlive - Aug 9th #6',
             'description': '',
             'ext': 'mp4',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 215.1666,
             'resolution': 'HD 720p',
             'uploader': 'hitboxlive',
@@ -163,7 +163,7 @@ class HitboxLiveIE(HitboxIE):
             if cdn.get('rtmpSubscribe') is True:
                 continue
             base_url = cdn.get('netConnectionUrl')
-            host = re.search('.+\.([^\.]+\.[^\./]+)/.+', base_url).group(1)
+            host = re.search(r'.+\.([^\.]+\.[^\./]+)/.+', base_url).group(1)
             if base_url not in servers:
                 servers.append(base_url)
                 for stream in cdn.get('bitrates'):

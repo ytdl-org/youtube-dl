@@ -160,7 +160,7 @@ class MyVideoIE(InfoExtractor):
         else:
             video_playpath = ''
 
-        video_swfobj = self._search_regex('swfobject.embedSWF\(\'(.+?)\'', webpage, 'swfobj')
+        video_swfobj = self._search_regex(r'swfobject.embedSWF\(\'(.+?)\'', webpage, 'swfobj')
         video_swfobj = compat_urllib_parse_unquote(video_swfobj)
 
         video_title = self._html_search_regex("<h1(?: class='globalHd')?>(.*?)</h1>",

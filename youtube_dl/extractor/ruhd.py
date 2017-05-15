@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -14,7 +14,7 @@ class RUHDIE(InfoExtractor):
             'ext': 'divx',
             'title': 'КОТ бааааам',
             'description': 'классный кот)',
-            'thumbnail': 're:^http://.*\.jpg$',
+            'thumbnail': r're:^http://.*\.jpg$',
         }
     }
 

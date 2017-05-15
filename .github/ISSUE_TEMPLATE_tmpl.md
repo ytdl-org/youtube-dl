@@ -50,9 +50,11 @@ $ youtube-dl -v <your command line>
 - Single video: https://youtu.be/BaW_jenozKc
 - Playlist: https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc
 
+Note that **youtube-dl does not support sites dedicated to [copyright infringement](https://github.com/rg3/youtube-dl#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. In order for site support request to be accepted all provided example URLs should not violate any copyrights.
+
 ---
 
 ### Description of your *issue*, suggested solution and other information
 
 Explanation of your *issue* in arbitrary form goes here. Please make sure the [description is worded well enough to be understood](https://github.com/rg3/youtube-dl#is-the-description-of-the-issue-itself-sufficient). Provide as much context and examples as possible.
-If work on your *issue* required an account credentials please provide them or explain how one can obtain them.
+If work on your *issue* requires account credentials please provide them or explain how one can obtain them.

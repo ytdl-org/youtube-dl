@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -103,7 +103,7 @@ class SpiegelIE(InfoExtractor):
 
 
 class SpiegelArticleIE(InfoExtractor):
-    _VALID_URL = 'https?://www\.spiegel\.de/(?!video/)[^?#]*?-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?spiegel\.de/(?!video/)[^?#]*?-(?P<id>[0-9]+)\.html'
     IE_NAME = 'Spiegel:Article'
     IE_DESC = 'Articles on spiegel.de'
     _TESTS = [{

@@ -1,8 +1,8 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .screenwavemedia import ScreenwaveMediaIE
+from .jwplatform import JWPlatformIE
 
 from ..utils import (
     unified_strdate,
@@ -25,7 +25,7 @@ class NormalbootsIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
-        'add_ie': ['ScreenwaveMedia'],
+        'add_ie': ['JWPlatform'],
     }
 
     def _real_extract(self, url):
@@ -39,15 +39,13 @@ class NormalbootsIE(InfoExtractor):
             r'<span style="text-transform:uppercase; font-size:inherit;">[A-Za-z]+, (?P<date>.*)</span>',
             webpage, 'date', fatal=False))
 
-        screenwavemedia_url = self._html_search_regex(
-            ScreenwaveMediaIE.EMBED_PATTERN, webpage, 'screenwave URL',
-            group='url')
+        jwplatform_url = JWPlatformIE._extract_url(webpage)
 
         return {
             '_type': 'url_transparent',
             'id': video_id,
-            'url': screenwavemedia_url,
-            'ie_key': ScreenwaveMediaIE.ie_key(),
+            'url': jwplatform_url,
+            'ie_key': JWPlatformIE.ie_key(),
             'title': self._og_search_title(webpage),
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),

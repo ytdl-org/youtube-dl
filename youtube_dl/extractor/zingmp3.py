@@ -1,4 +1,4 @@
-# coding=utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -95,7 +95,7 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
             'id': 'ZWZB9WAB',
             'title': 'Xa Mãi Xa',
             'ext': 'mp3',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://mp3.zing.vn/video-clip/Let-It-Go-Frozen-OST-Sungha-Jung/ZW6BAEA0.html',

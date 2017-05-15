@@ -1,9 +1,8 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import collections
 import re
-import json
 import sys
 
 from .common import InfoExtractor
@@ -20,11 +19,12 @@ from ..utils import (
     remove_start,
     str_to_int,
     unescapeHTML,
-    unified_strdate,
+    unified_timestamp,
     urlencode_postdata,
 )
-from .vimeo import VimeoIE
+from .dailymotion import DailymotionIE
 from .pladform import PladformIE
+from .vimeo import VimeoIE
 
 
 class VKBaseIE(InfoExtractor):
@@ -105,6 +105,7 @@ class VKIE(VKBaseIE):
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
                 'duration': 195,
+                'timestamp': 1329060660,
                 'upload_date': '20120212',
                 'view_count': int,
             },
@@ -118,6 +119,7 @@ class VKIE(VKBaseIE):
                 'uploader': 'Tom Cruise',
                 'title': 'No name',
                 'duration': 9,
+                'timestamp': 1374374880,
                 'upload_date': '20130721',
                 'view_count': int,
             }
@@ -194,6 +196,7 @@ class VKIE(VKBaseIE):
                 'upload_date': '20150709',
                 'view_count': int,
             },
+            'skip': 'Removed',
         },
         {
             # youtube embed
@@ -211,6 +214,23 @@ class VKIE(VKBaseIE):
             },
         },
         {
+            # dailymotion embed
+            'url': 'https://vk.com/video-37468416_456239855',
+            'info_dict': {
+                'id': 'k3lz2cmXyRuJQSjGHUv',
+                'ext': 'mp4',
+                'title': 'md5:d52606645c20b0ddbb21655adaa4f56f',
+                'description': 'md5:c651358f03c56f1150b555c26d90a0fd',
+                'uploader': 'AniLibria.Tv',
+                'upload_date': '20160914',
+                'uploader_id': 'x1p5vl5',
+                'timestamp': 1473877246,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             # video key is extra_data not url\d+
             'url': 'http://vk.com/video-110305615_171782105',
             'md5': 'e13fcda136f99764872e739d13fac1d1',
@@ -219,9 +239,29 @@ class VKIE(VKBaseIE):
                 'ext': 'mp4',
                 'title': 'S-Dance, репетиции к The way show',
                 'uploader': 'THE WAY SHOW | 17 апреля',
+                'timestamp': 1454870100,
                 'upload_date': '20160207',
                 'view_count': int,
             },
+        },
+        {
+            # finished live stream, postlive_mp4
+            'url': 'https://vk.com/videos-387766?z=video-387766_456242764%2Fpl_-387766_-2',
+            'md5': '90d22d051fccbbe9becfccc615be6791',
+            'info_dict': {
+                'id': '456242764',
+                'ext': 'mp4',
+                'title': 'ИгроМир 2016 — день 1',
+                'uploader': 'Игромания',
+                'duration': 5239,
+                'view_count': int,
+            },
+        },
+        {
+            # live stream, hls and rtmp links, most likely already finished live
+            # stream by the time you are reading this comment
+            'url': 'https://vk.com/video-140332_456239111',
+            'only_matching': True,
         },
         {
             # removed video, just testing that we match the pattern
@@ -240,6 +280,11 @@ class VKIE(VKBaseIE):
         },
         {
             'url': 'http://new.vk.com/video205387401_165548505',
+            'only_matching': True,
+        },
+        {
+            # This video is no longer available, because its author has been blocked.
+            'url': 'https://vk.com/video-10639516_456240611',
             'only_matching': True,
         }
     ]
@@ -288,6 +333,12 @@ class VKIE(VKBaseIE):
 
             r'<!>Access denied':
             'Access denied to video %s.',
+
+            r'<!>Видеозапись недоступна, так как её автор был заблокирован.':
+            'Video %s is no longer available, because its author has been blocked.',
+
+            r'<!>This video is no longer available, because its author has been blocked.':
+            'Video %s is no longer available, because its author has been blocked.',
         }
 
         for error_re, error_msg in ERRORS.items():
@@ -300,7 +351,7 @@ class VKIE(VKBaseIE):
         if youtube_url:
             return self.url_result(youtube_url, 'Youtube')
 
-        vimeo_url = VimeoIE._extract_vimeo_url(url, info_page)
+        vimeo_url = VimeoIE._extract_url(url, info_page)
         if vimeo_url is not None:
             return self.url_result(vimeo_url)
 
@@ -315,6 +366,10 @@ class VKIE(VKBaseIE):
                 m_rutube.group(1).replace('\\', ''))
             return self.url_result(rutube_url)
 
+        dailymotion_urls = DailymotionIE._extract_urls(info_page)
+        if dailymotion_urls:
+            return self.url_result(dailymotion_urls[0], DailymotionIE.ie_key())
+
         m_opts = re.search(r'(?s)var\s+opts\s*=\s*({.+?});', info_page)
         if m_opts:
             m_opts_url = re.search(r"url\s*:\s*'((?!/\b)[^']+)", m_opts.group(1))
@@ -324,46 +379,79 @@ class VKIE(VKBaseIE):
                     opts_url = 'http:' + opts_url
                 return self.url_result(opts_url)
 
-        data_json = self._search_regex(r'var\s+vars\s*=\s*({.+?});', info_page, 'vars')
-        data = json.loads(data_json)
+        # vars does not look to be served anymore since 24.10.2016
+        data = self._parse_json(
+            self._search_regex(
+                r'var\s+vars\s*=\s*({.+?});', info_page, 'vars', default='{}'),
+            video_id, fatal=False)
 
-        # Extract upload date
-        upload_date = None
-        mobj = re.search(r'id="mv_date(?:_views)?_wrap"[^>]*>([a-zA-Z]+ [0-9]+), ([0-9]+) at', info_page)
-        if mobj is not None:
-            mobj.group(1) + ' ' + mobj.group(2)
-            upload_date = unified_strdate(mobj.group(1) + ' ' + mobj.group(2))
+        # <!json> is served instead
+        if not data:
+            data = self._parse_json(
+                self._search_regex(
+                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json', default='{}'),
+                video_id)
+            if data:
+                data = data['player']['params'][0]
 
-        view_count = None
-        views = self._html_search_regex(
-            r'"mv_views_count_number"[^>]*>(.+?\bviews?)<',
-            info_page, 'view count', default=None)
-        if views:
-            view_count = str_to_int(self._search_regex(
-                r'([\d,.]+)', views, 'view count', fatal=False))
+        if not data:
+            data = self._parse_json(
+                self._search_regex(
+                    r'var\s+playerParams\s*=\s*({.+?})\s*;\s*\n', info_page,
+                    'player params'),
+                video_id)['params'][0]
+
+        title = unescapeHTML(data['md_title'])
+
+        # 2 = live
+        # 3 = post live (finished live)
+        is_live = data.get('live') == 2
+        if is_live:
+            title = self._live_title(title)
+
+        timestamp = unified_timestamp(self._html_search_regex(
+            r'class=["\']mv_info_date[^>]+>([^<]+)(?:<|from)', info_page,
+            'upload date', fatal=False))
+
+        view_count = str_to_int(self._search_regex(
+            r'class=["\']mv_views_count[^>]+>\s*([\d,.]+)',
+            info_page, 'view count', fatal=False))
 
         formats = []
-        for k, v in data.items():
-            if not k.startswith('url') and not k.startswith('cache') and k != 'extra_data' or not v:
+        for format_id, format_url in data.items():
+            if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
-            height = int_or_none(self._search_regex(
-                r'^(?:url|cache)(\d+)', k, 'height', default=None))
-            formats.append({
-                'format_id': k,
-                'url': v,
-                'height': height,
-            })
+            if (format_id.startswith(('url', 'cache')) or
+                    format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):
+                height = int_or_none(self._search_regex(
+                    r'^(?:url|cache)(\d+)', format_id, 'height', default=None))
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'height': height,
+                })
+            elif format_id == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id=format_id, fatal=False, live=is_live))
+            elif format_id == 'rtmp':
+                formats.append({
+                    'format_id': format_id,
+                    'url': format_url,
+                    'ext': 'flv',
+                })
         self._sort_formats(formats)
 
         return {
-            'id': compat_str(data['vid']),
+            'id': compat_str(data.get('vid') or video_id),
             'formats': formats,
-            'title': unescapeHTML(data['md_title']),
+            'title': title,
             'thumbnail': data.get('jpg'),
             'uploader': data.get('md_author'),
             'duration': data.get('duration'),
-            'upload_date': upload_date,
+            'timestamp': timestamp,
             'view_count': view_count,
+            'is_live': is_live,
         }
 
 

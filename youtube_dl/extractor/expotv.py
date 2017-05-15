@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class ExpoTVIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.expotv\.com/videos/[^?#]*/(?P<id>[0-9]+)($|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?expotv\.com/videos/[^?#]*/(?P<id>[0-9]+)($|[?#])'
     _TEST = {
         'url': 'http://www.expotv.com/videos/reviews/3/40/NYX-Butter-lipstick/667916',
         'md5': 'fe1d728c3a813ff78f595bc8b7a707a8',
@@ -17,7 +17,7 @@ class ExpoTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'NYX Butter Lipstick Little Susie',
             'description': 'Goes on like butter, but looks better!',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Stephanie S.',
             'upload_date': '20150520',
             'view_count': int,

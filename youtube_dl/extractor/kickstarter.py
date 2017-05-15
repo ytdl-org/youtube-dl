@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -6,7 +6,7 @@ from ..utils import smuggle_url
 
 
 class KickStarterIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.kickstarter\.com/projects/(?P<id>[^/]*)/.*'
+    _VALID_URL = r'https?://(?:www\.)?kickstarter\.com/projects/(?P<id>[^/]*)/.*'
     _TESTS = [{
         'url': 'https://www.kickstarter.com/projects/1404461844/intersection-the-story-of-josh-grant/description',
         'md5': 'c81addca81327ffa66c642b5d8b08cab',

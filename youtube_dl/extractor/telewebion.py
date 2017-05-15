@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class TelewebionIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.telewebion\.com/#!/episode/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?telewebion\.com/#!/episode/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.telewebion.com/#!/episode/1263668/',
@@ -13,7 +13,7 @@ class TelewebionIE(InfoExtractor):
             'id': '1263668',
             'ext': 'mp4',
             'title': 'قرعه\u200cکشی لیگ قهرمانان اروپا',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
         },
         'params': {

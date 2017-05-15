@@ -19,7 +19,7 @@ class TeleMBIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Mons - Cook with Danielle : des cours de cuisine en anglais ! - Les reportages',
                 'description': 'md5:bc5225f47b17c309761c856ad4776265',
-                'thumbnail': 're:^http://.*\.(?:jpg|png)$',
+                'thumbnail': r're:^http://.*\.(?:jpg|png)$',
             }
         },
         {
@@ -32,7 +32,7 @@ class TeleMBIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Havré - Incendie mortel - Les reportages',
                 'description': 'md5:5e54cb449acb029c2b7734e2d946bd4a',
-                'thumbnail': 're:^http://.*\.(?:jpg|png)$',
+                'thumbnail': r're:^http://.*\.(?:jpg|png)$',
             }
         },
     ]

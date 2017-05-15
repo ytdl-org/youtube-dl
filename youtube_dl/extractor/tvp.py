@@ -69,7 +69,8 @@ class TVPIE(InfoExtractor):
         webpage = self._download_webpage(url, page_id)
         video_id = self._search_regex([
             r'<iframe[^>]+src="[^"]*?object_id=(\d+)',
-            "object_id\s*:\s*'(\d+)'"], webpage, 'video id')
+            r"object_id\s*:\s*'(\d+)'",
+            r'data-video-id="(\d+)"'], webpage, 'video id', default=page_id)
         return {
             '_type': 'url_transparent',
             'url': 'tvp:' + video_id,
@@ -138,6 +139,9 @@ class TVPEmbedIE(InfoExtractor):
             # formats.extend(self._extract_mpd_formats(
             #     video_url_base + '.ism/video.mpd',
             #     video_id, mpd_id='dash', fatal=False))
+            formats.extend(self._extract_ism_formats(
+                video_url_base + '.ism/Manifest',
+                video_id, 'mss', fatal=False))
             formats.extend(self._extract_f4m_formats(
                 video_url_base + '.ism/video.f4m',
                 video_id, f4m_id='hds', fatal=False))
@@ -146,8 +150,7 @@ class TVPEmbedIE(InfoExtractor):
                 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self._sort_formats(m3u8_formats)
             m3u8_formats = list(filter(
-                lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-                m3u8_formats))
+                lambda f: f.get('vcodec') != 'none', m3u8_formats))
             formats.extend(m3u8_formats)
             for i, m3u8_format in enumerate(m3u8_formats, 2):
                 http_url = '%s-%d.mp4' % (video_url_base, i)

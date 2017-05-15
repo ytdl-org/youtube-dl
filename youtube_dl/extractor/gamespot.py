@@ -63,7 +63,7 @@ class GameSpotIE(OnceIE):
             streams, ('progressive_hd', 'progressive_high', 'progressive_low'))
         if progressive_url and manifest_url:
             qualities_basename = self._search_regex(
-                '/([^/]+)\.csmil/',
+                r'/([^/]+)\.csmil/',
                 manifest_url, 'qualities basename', default=None)
             if qualities_basename:
                 QUALITIES_RE = r'((,\d+)+,?)'
@@ -78,8 +78,7 @@ class GameSpotIE(OnceIE):
                     if m3u8_formats:
                         self._sort_formats(m3u8_formats)
                         m3u8_formats = list(filter(
-                            lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-                            m3u8_formats))
+                            lambda f: f.get('vcodec') != 'none', m3u8_formats))
                     if len(qualities) == len(m3u8_formats):
                         for q, m3u8_format in zip(qualities, m3u8_formats):
                             f = m3u8_format.copy()

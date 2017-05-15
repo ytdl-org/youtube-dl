@@ -15,7 +15,7 @@ from ..utils import (
 
 class YamIE(InfoExtractor):
     IE_DESC = '蕃薯藤yam天空部落'
-    _VALID_URL = r'https?://mymedia.yam.com/m/(?P<id>\d+)'
+    _VALID_URL = r'https?://mymedia\.yam\.com/m/(?P<id>\d+)'
 
     _TESTS = [{
         # An audio hosted on Yam

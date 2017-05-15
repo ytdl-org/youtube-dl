@@ -9,21 +9,24 @@ from ..utils import (
 
 
 class MwaveIE(InfoExtractor):
-    _VALID_URL = r'https?://mwave\.interest\.me/mnettv/videodetail\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://mwave\.interest\.me/(?:[^/]+/)?mnettv/videodetail\.m\?searchVideoDetailVO\.clip_id=(?P<id>[0-9]+)'
     _URL_TEMPLATE = 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id=%s'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://mwave.interest.me/mnettv/videodetail.m?searchVideoDetailVO.clip_id=168859',
         # md5 is unstable
         'info_dict': {
             'id': '168859',
             'ext': 'flv',
             'title': '[M COUNTDOWN] SISTAR - SHAKE IT',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'M COUNTDOWN',
             'duration': 206,
             'view_count': int,
         }
-    }
+    }, {
+        'url': 'http://mwave.interest.me/en/mnettv/videodetail.m?searchVideoDetailVO.clip_id=176199',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -60,19 +63,22 @@ class MwaveIE(InfoExtractor):
 
 
 class MwaveMeetGreetIE(InfoExtractor):
-    _VALID_URL = r'https?://mwave\.interest\.me/meetgreet/view/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://mwave\.interest\.me/(?:[^/]+/)?meetgreet/view/(?P<id>\d+)'
+    _TESTS = [{
         'url': 'http://mwave.interest.me/meetgreet/view/256',
         'info_dict': {
             'id': '173294',
             'ext': 'flv',
             'title': '[MEET&GREET] Park BoRam',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Mwave',
             'duration': 3634,
             'view_count': int,
         }
-    }
+    }, {
+        'url': 'http://mwave.interest.me/en/meetgreet/view/256',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

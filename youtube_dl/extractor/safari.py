@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -103,13 +103,13 @@ class SafariIE(SafariBaseIE):
 
         webpage = self._download_webpage(url, video_id)
         reference_id = self._search_regex(
-            r'data-reference-id=(["\'])(?P<id>.+?)\1',
+            r'data-reference-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'kaltura reference id', group='id')
         partner_id = self._search_regex(
-            r'data-partner-id=(["\'])(?P<id>.+?)\1',
+            r'data-partner-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'kaltura widget id', group='id')
         ui_id = self._search_regex(
-            r'data-ui-id=(["\'])(?P<id>.+?)\1',
+            r'data-ui-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'kaltura uiconf id', group='id')
 
         query = {
@@ -157,7 +157,14 @@ class SafariCourseIE(SafariBaseIE):
     IE_NAME = 'safari:course'
     IE_DESC = 'safaribooksonline.com online courses'
 
-    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)/(?P<id>[^/]+)/?(?:[#?]|$)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?safaribooksonline\.com/(?:library/view/[^/]+|api/v1/book)|
+                            techbus\.safaribooksonline\.com
+                        )
+                        /(?P<id>[^/]+)/?(?:[#?]|$)
+                    '''
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/library/view/hadoop-fundamentals-livelessons/9780133392838/',
@@ -169,6 +176,9 @@ class SafariCourseIE(SafariBaseIE):
         'skip': 'Requires safaribooksonline account credentials',
     }, {
         'url': 'https://www.safaribooksonline.com/api/v1/book/9781449396459/?override_format=json',
+        'only_matching': True,
+    }, {
+        'url': 'http://techbus.safaribooksonline.com/9780134426365',
         'only_matching': True,
     }]
 

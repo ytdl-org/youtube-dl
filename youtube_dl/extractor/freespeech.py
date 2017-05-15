@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 class FreespeechIE(InfoExtractor):
     IE_NAME = 'freespeech.org'
-    _VALID_URL = r'https://www\.freespeech\.org/video/(?P<title>.+)'
+    _VALID_URL = r'https?://(?:www\.)?freespeech\.org/video/(?P<title>.+)'
     _TEST = {
         'add_ie': ['Youtube'],
         'url': 'https://www.freespeech.org/video/obama-romney-campaign-colorado-ahead-debate-0',

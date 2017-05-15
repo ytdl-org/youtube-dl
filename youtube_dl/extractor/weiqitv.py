@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class WeiqiTVIE(InfoExtractor):
     IE_DESC = 'WQTV'
-    _VALID_URL = r'https?://www\.weiqitv\.com/index/video_play\?videoId=(?P<id>[A-Za-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?weiqitv\.com/index/video_play\?videoId=(?P<id>[A-Za-z0-9]+)'
 
     _TESTS = [{
         'url': 'http://www.weiqitv.com/index/video_play?videoId=53c744f09874f0e76a8b46f3',
@@ -37,11 +37,11 @@ class WeiqiTVIE(InfoExtractor):
         page = self._download_webpage(url, media_id)
 
         info_json_str = self._search_regex(
-            'var\s+video\s*=\s*(.+});', page, 'info json str')
+            r'var\s+video\s*=\s*(.+});', page, 'info json str')
         info_json = self._parse_json(info_json_str, media_id)
 
         letvcloud_url = self._search_regex(
-            'var\s+letvurl\s*=\s*"([^"]+)', page, 'letvcloud url')
+            r'var\s+letvurl\s*=\s*"([^"]+)', page, 'letvcloud url')
 
         return {
             '_type': 'url_transparent',

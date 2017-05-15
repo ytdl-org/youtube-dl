@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -17,7 +17,7 @@ from ..utils import (
 class RutubeIE(InfoExtractor):
     IE_NAME = 'rutube'
     IE_DESC = 'Rutube videos'
-    _VALID_URL = r'https?://rutube\.ru/(?:video|play/embed)/(?P<id>[\da-z]{32})'
+    _VALID_URL = r'https?://rutube\.ru/(?:video|(?:play/)?embed)/(?P<id>[\da-z]{32})'
 
     _TESTS = [{
         'url': 'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/',
@@ -39,7 +39,16 @@ class RutubeIE(InfoExtractor):
     }, {
         'url': 'http://rutube.ru/play/embed/a10e53b86e8f349080f718582ce4c661',
         'only_matching': True,
+    }, {
+        'url': 'http://rutube.ru/embed/a10e53b86e8f349080f718582ce4c661',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [mobj.group('url') for mobj in re.finditer(
+            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//rutube\.ru/embed/[\da-z]{32}.*?)\1',
+            webpage)]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -88,7 +97,7 @@ class RutubeIE(InfoExtractor):
 class RutubeEmbedIE(InfoExtractor):
     IE_NAME = 'rutube:embed'
     IE_DESC = 'Rutube embedded videos'
-    _VALID_URL = 'https?://rutube\.ru/(?:video|play)/embed/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://rutube\.ru/(?:video|play)/embed/(?P<id>[0-9]+)'
 
     _TESTS = [{
         'url': 'http://rutube.ru/video/embed/6722881?vk_puid37=&vk_puid38=',

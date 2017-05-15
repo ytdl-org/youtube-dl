@@ -17,31 +17,23 @@ class PornoXOIE(InfoExtractor):
             'id': '7564',
             'ext': 'flv',
             'title': 'Striptease From Sexy Secretary!',
-            'description': 'Striptease From Sexy Secretary!',
+            'display_id': 'striptease-from-sexy-secretary',
+            'description': 'md5:0ee35252b685b3883f4a1d38332f9980',
             'categories': list,  # NSFW
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id, display_id = mobj.groups()
 
         webpage = self._download_webpage(url, video_id)
-
-        video_url = self._html_search_regex(
-            r'\'file\'\s*:\s*"([^"]+)"', webpage, 'video_url')
+        video_data = self._extract_jwplayer_data(webpage, video_id, require_title=False)
 
         title = self._html_search_regex(
             r'<title>([^<]+)\s*-\s*PornoXO', webpage, 'title')
-
-        description = self._html_search_regex(
-            r'<meta name="description" content="([^"]+)\s*featuring',
-            webpage, 'description', fatal=False)
-
-        thumbnail = self._html_search_regex(
-            r'\'image\'\s*:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         view_count = str_to_int(self._html_search_regex(
             r'[vV]iews:\s*([0-9,]+)', webpage, 'view count', fatal=False))
@@ -53,13 +45,14 @@ class PornoXOIE(InfoExtractor):
             None if categories_str is None
             else categories_str.split(','))
 
-        return {
+        video_data.update({
             'id': video_id,
-            'url': video_url,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
+            'display_id': display_id,
+            'description': self._html_search_meta('description', webpage),
             'categories': categories,
             'view_count': view_count,
             'age_limit': 18,
-        }
+        })
+
+        return video_data

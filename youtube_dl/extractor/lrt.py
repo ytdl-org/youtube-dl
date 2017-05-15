@@ -1,8 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     int_or_none,
     parse_duration,
     remove_end,
@@ -12,8 +15,10 @@ from ..utils import (
 class LRTIE(InfoExtractor):
     IE_NAME = 'lrt.lt'
     _VALID_URL = r'https?://(?:www\.)?lrt\.lt/mediateka/irasas/(?P<id>[0-9]+)'
-    _TEST = {
+    _TESTS = [{
+        # m3u8 download
         'url': 'http://www.lrt.lt/mediateka/irasas/54391/',
+        'md5': 'fe44cf7e4ab3198055f2c598fc175cb0',
         'info_dict': {
             'id': '54391',
             'ext': 'mp4',
@@ -23,20 +28,45 @@ class LRTIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
         },
-        'params': {
-            'skip_download': True,  # m3u8 download
+    }, {
+        # direct mp3 download
+        'url': 'http://www.lrt.lt/mediateka/irasas/1013074524/',
+        'md5': '389da8ca3cad0f51d12bed0c844f6a0a',
+        'info_dict': {
+            'id': '1013074524',
+            'ext': 'mp3',
+            'title': 'Kita tema 2016-09-05 15:05',
+            'description': 'md5:1b295a8fc7219ed0d543fc228c931fb5',
+            'duration': 3008,
+            'view_count': int,
+            'like_count': int,
         },
-    }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         title = remove_end(self._og_search_title(webpage), ' - LRT')
-        m3u8_url = self._search_regex(
-            r'file\s*:\s*(["\'])(?P<url>.+?)\1\s*\+\s*location\.hash\.substring\(1\)',
-            webpage, 'm3u8 url', group='url')
-        formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4')
+
+        formats = []
+        for _, file_url in re.findall(
+                r'file\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage):
+            ext = determine_ext(file_url)
+            if ext not in ('m3u8', 'mp3'):
+                continue
+            # mp3 served as m3u8 produces stuttered media file
+            if ext == 'm3u8' and '.mp3' in file_url:
+                continue
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    file_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    fatal=False))
+            elif ext == 'mp3':
+                formats.append({
+                    'url': file_url,
+                    'vcodec': 'none',
+                })
         self._sort_formats(formats)
 
         thumbnail = self._og_search_thumbnail(webpage)

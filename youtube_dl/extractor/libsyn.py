@@ -41,7 +41,7 @@ class LibsynIE(InfoExtractor):
 
         formats = [{
             'url': media_url,
-        } for media_url in set(re.findall('var\s+mediaURL(?:Libsyn)?\s*=\s*"([^"]+)"', webpage))]
+        } for media_url in set(re.findall(r'var\s+mediaURL(?:Libsyn)?\s*=\s*"([^"]+)"', webpage))]
 
         podcast_title = self._search_regex(
             r'<h2>([^<]+)</h2>', webpage, 'podcast title', default=None)

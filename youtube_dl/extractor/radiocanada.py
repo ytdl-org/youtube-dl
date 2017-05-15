@@ -13,6 +13,7 @@ from ..utils import (
     xpath_element,
     ExtractorError,
     determine_protocol,
+    unsmuggle_url,
 )
 
 
@@ -35,28 +36,50 @@ class RadioCanadaIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         app_code, video_id = re.match(self._VALID_URL, url).groups()
 
-        device_types = ['ipad', 'android']
-        if app_code != 'toutv':
+        metadata = self._download_xml(
+            'http://api.radio-canada.ca/metaMedia/v1/index.ashx',
+            video_id, note='Downloading metadata XML', query={
+                'appCode': app_code,
+                'idMedia': video_id,
+            })
+
+        def get_meta(name):
+            el = find_xpath_attr(metadata, './/Meta', 'name', name)
+            return el.text if el is not None else None
+
+        if get_meta('protectionType'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
+        device_types = ['ipad']
+        if not smuggled_data:
             device_types.append('flash')
+            device_types.append('android')
 
         formats = []
         # TODO: extract f4m formats
         # f4m formats can be extracted using flashhd device_type but they produce unplayable file
         for device_type in device_types:
-            v_data = self._download_xml(
-                'http://api.radio-canada.ca/validationMedia/v1/Validation.ashx',
-                video_id, note='Downloading %s XML' % device_type, query={
-                    'appCode': app_code,
-                    'idMedia': video_id,
-                    'connectionType': 'broadband',
-                    'multibitrate': 'true',
-                    'deviceType': device_type,
+            validation_url = 'http://api.radio-canada.ca/validationMedia/v1/Validation.ashx'
+            query = {
+                'appCode': app_code,
+                'idMedia': video_id,
+                'connectionType': 'broadband',
+                'multibitrate': 'true',
+                'deviceType': device_type,
+            }
+            if smuggled_data:
+                validation_url = 'https://services.radio-canada.ca/media/validation/v2/'
+                query.update(smuggled_data)
+            else:
+                query.update({
                     # paysJ391wsHjbOJwvCs26toz and bypasslock are used to bypass geo-restriction
                     'paysJ391wsHjbOJwvCs26toz': 'CA',
                     'bypasslock': 'NZt5K62gRqfc',
-                }, fatal=False)
+                })
+            v_data = self._download_xml(validation_url, video_id, note='Downloading %s XML' % device_type, query=query, fatal=False)
             v_url = xpath_text(v_data, 'url')
             if not v_url:
                 continue
@@ -79,7 +102,7 @@ class RadioCanadaIE(InfoExtractor):
                         continue
                     f_url = re.sub(r'\d+\.%s' % ext, '%d.%s' % (tbr, ext), v_url)
                     protocol = determine_protocol({'url': f_url})
-                    formats.append({
+                    f = {
                         'format_id': '%s-%d' % (protocol, tbr),
                         'url': f_url,
                         'ext': 'flv' if protocol == 'rtmp' else ext,
@@ -87,7 +110,14 @@ class RadioCanadaIE(InfoExtractor):
                         'width': int_or_none(url_e.get('width')),
                         'height': int_or_none(url_e.get('height')),
                         'tbr': tbr,
-                    })
+                    }
+                    mobj = re.match(r'(?P<url>rtmp://[^/]+/[^/]+)/(?P<playpath>[^?]+)(?P<auth>\?.+)', f_url)
+                    if mobj:
+                        f.update({
+                            'url': mobj.group('url') + mobj.group('auth'),
+                            'play_path': mobj.group('playpath'),
+                        })
+                    formats.append(f)
                     if protocol == 'rtsp':
                         base_url = self._search_regex(
                             r'rtsp://([^?]+)', f_url, 'base url', default=None)
@@ -101,16 +131,13 @@ class RadioCanadaIE(InfoExtractor):
                                 f4m_id='hds', fatal=False))
         self._sort_formats(formats)
 
-        metadata = self._download_xml(
-            'http://api.radio-canada.ca/metaMedia/v1/index.ashx',
-            video_id, note='Downloading metadata XML', query={
-                'appCode': app_code,
-                'idMedia': video_id,
-            })
-
-        def get_meta(name):
-            el = find_xpath_attr(metadata, './/Meta', 'name', name)
-            return el.text if el is not None else None
+        subtitles = {}
+        closed_caption_url = get_meta('closedCaption') or get_meta('closedCaptionHTML5')
+        if closed_caption_url:
+            subtitles['fr'] = [{
+                'url': closed_caption_url,
+                'ext': determine_ext(closed_caption_url, 'vtt'),
+            }]
 
         return {
             'id': video_id,
@@ -122,6 +149,7 @@ class RadioCanadaIE(InfoExtractor):
             'season_number': int_or_none('SrcSaison'),
             'episode_number': int_or_none('SrcEpisode'),
             'upload_date': unified_strdate(get_meta('Date')),
+            'subtitles': subtitles,
             'formats': formats,
         }
 

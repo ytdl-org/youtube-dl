@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 #
 # youtube-dl documentation build configuration file, created by
 # sphinx-quickstart on Fri Mar 14 21:05:43 2014.

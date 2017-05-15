@@ -55,12 +55,12 @@ class Socks5AddressType(object):
     ATYP_IPV6 = 0x04
 
 
-class ProxyError(IOError):
+class ProxyError(socket.error):
     ERR_SUCCESS = 0x00
 
     def __init__(self, code=None, msg=None):
         if code is not None and msg is None:
-            msg = self.CODES.get(code) and 'unknown error'
+            msg = self.CODES.get(code) or 'unknown error'
         super(ProxyError, self).__init__(code, msg)
 
 
@@ -103,6 +103,7 @@ class ProxyType(object):
     SOCKS4A = 1
     SOCKS5 = 2
 
+
 Proxy = collections.namedtuple('Proxy', (
     'type', 'host', 'port', 'username', 'password', 'remote_dns'))
 
@@ -122,7 +123,7 @@ class sockssocket(socket.socket):
         while len(data) < cnt:
             cur = self.recv(cnt - len(data))
             if not cur:
-                raise IOError('{0} bytes missing'.format(cnt - len(data)))
+                raise EOFError('{0} bytes missing'.format(cnt - len(data)))
             data += cur
         return data
 
@@ -192,9 +193,10 @@ class sockssocket(socket.socket):
 
         self._check_response_version(SOCKS5_VERSION, version)
 
-        if method == Socks5Auth.AUTH_NO_ACCEPTABLE:
+        if method == Socks5Auth.AUTH_NO_ACCEPTABLE or (
+                method == Socks5Auth.AUTH_USER_PASS and (not self._proxy.username or not self._proxy.password)):
             self.close()
-            raise Socks5Error(method)
+            raise Socks5Error(Socks5Auth.AUTH_NO_ACCEPTABLE)
 
         if method == Socks5Auth.AUTH_USER_PASS:
             username = self._proxy.username.encode('utf-8')

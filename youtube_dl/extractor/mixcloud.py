@@ -16,13 +16,12 @@ from ..utils import (
     clean_html,
     ExtractorError,
     OnDemandPagedList,
-    parse_count,
     str_to_int,
 )
 
 
 class MixcloudIE(InfoExtractor):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
+    _VALID_URL = r'https?://(?:(?:www|beta|m)\.)?mixcloud\.com/([^/]+)/(?!stream|uploads|favorites|listens|playlists)([^/]+)'
     IE_NAME = 'mixcloud'
 
     _TESTS = [{
@@ -34,9 +33,8 @@ class MixcloudIE(InfoExtractor):
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
             'uploader': 'Daniel Holbach',
             'uploader_id': 'dholbach',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'view_count': int,
-            'like_count': int,
         },
     }, {
         'url': 'http://www.mixcloud.com/gillespeterson/caribou-7-inch-vinyl-mix-chat/',
@@ -49,8 +47,10 @@ class MixcloudIE(InfoExtractor):
             'uploader_id': 'gillespeterson',
             'thumbnail': 're:https?://.*',
             'view_count': int,
-            'like_count': int,
         },
+    }, {
+        'url': 'https://beta.mixcloud.com/RedLightRadio/nosedrip-15-red-light-radio-01-18-2016/',
+        'only_matching': True,
     }]
 
     # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
@@ -86,26 +86,18 @@ class MixcloudIE(InfoExtractor):
 
         song_url = play_info['stream_url']
 
-        PREFIX = (
-            r'm-play-on-spacebar[^>]+'
-            r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
-        title = self._html_search_regex(
-            PREFIX + r'm-title="([^"]+)"', webpage, 'title')
+        title = self._html_search_regex(r'm-title="([^"]+)"', webpage, 'title')
         thumbnail = self._proto_relative_url(self._html_search_regex(
-            PREFIX + r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail',
-            fatal=False))
+            r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail', fatal=False))
         uploader = self._html_search_regex(
-            PREFIX + r'm-owner-name="([^"]+)"',
-            webpage, 'uploader', fatal=False)
+            r'm-owner-name="([^"]+)"', webpage, 'uploader', fatal=False)
         uploader_id = self._search_regex(
             r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
         description = self._og_search_description(webpage)
-        like_count = parse_count(self._search_regex(
-            r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
-            webpage, 'like count', default=None))
         view_count = str_to_int(self._search_regex(
             [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
-             r'/listeners/?">([0-9,.]+)</a>'],
+             r'/listeners/?">([0-9,.]+)</a>',
+             r'(?:m|data)-tooltip=["\']([\d,.]+) plays'],
             webpage, 'play count', default=None))
 
         return {
@@ -117,7 +109,6 @@ class MixcloudIE(InfoExtractor):
             'uploader': uploader,
             'uploader_id': uploader_id,
             'view_count': view_count,
-            'like_count': like_count,
         }
 
 
@@ -147,12 +138,12 @@ class MixcloudPlaylistBaseIE(InfoExtractor):
 
     def _get_user_description(self, page_content):
         return self._html_search_regex(
-            r'<div[^>]+class="description-text"[^>]*>(.+?)</div>',
+            r'<div[^>]+class="profile-bio"[^>]*>(.+?)</div>',
             page_content, 'user description', fatal=False)
 
 
 class MixcloudUserIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/(?P<type>uploads|favorites|listens)?/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/(?P<type>uploads|favorites|listens)?/?$'
     IE_NAME = 'mixcloud:user'
 
     _TESTS = [{
@@ -160,7 +151,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'playlist_mincount': 11,
     }, {
@@ -168,7 +159,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'playlist_mincount': 11,
     }, {
@@ -176,7 +167,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_favorites',
             'title': 'Daniel Holbach (favorites)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'params': {
             'playlist_items': '1-100',
@@ -187,7 +178,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_listens',
             'title': 'Daniel Holbach (listens)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'params': {
             'playlist_items': '1-100',
@@ -225,7 +216,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
 
 
 class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/playlists/(?P<playlist>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/playlists/(?P<playlist>[^/]+)/?$'
     IE_NAME = 'mixcloud:playlist'
 
     _TESTS = [{
@@ -238,12 +229,7 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
         'playlist_mincount': 16,
     }, {
         'url': 'https://www.mixcloud.com/maxvibes/playlists/jazzcat-on-ness-radio/',
-        'info_dict': {
-            'id': 'maxvibes_jazzcat-on-ness-radio',
-            'title': 'Jazzcat on Ness Radio',
-            'description': 'md5:7bbbf0d6359a0b8cda85224be0f8f263',
-        },
-        'playlist_mincount': 23
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -252,15 +238,16 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
         playlist_id = mobj.group('playlist')
         video_id = '%s_%s' % (user_id, playlist_id)
 
-        profile = self._download_webpage(
+        webpage = self._download_webpage(
             url, user_id,
             note='Downloading playlist page',
             errnote='Unable to download playlist page')
 
-        description = self._get_user_description(profile)
-        playlist_title = self._html_search_regex(
-            r'<span[^>]+class="[^"]*list-playlist-title[^"]*"[^>]*>(.*?)</span>',
-            profile, 'playlist title')
+        title = self._html_search_regex(
+            r'<a[^>]+class="parent active"[^>]*><b>\d+</b><span[^>]*>([^<]+)',
+            webpage, 'playlist title',
+            default=None) or self._og_search_title(webpage, fatal=False)
+        description = self._get_user_description(webpage)
 
         entries = OnDemandPagedList(
             functools.partial(
@@ -268,11 +255,11 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
                 '%s/playlists/%s' % (user_id, playlist_id), video_id, 'tracklist'),
             self._PAGE_SIZE)
 
-        return self.playlist_result(entries, video_id, playlist_title, description)
+        return self.playlist_result(entries, video_id, title, description)
 
 
 class MixcloudStreamIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<id>[^/]+)/stream/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<id>[^/]+)/stream/?$'
     IE_NAME = 'mixcloud:stream'
 
     _TEST = {

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -23,7 +23,7 @@ class TagesschauPlayerIE(InfoExtractor):
             'id': '179517',
             'ext': 'mp4',
             'title': 'Marie Kristin Boese, ARD Berlin, über den zukünftigen Kurs der AfD',
-            'thumbnail': 're:^https?:.*\.jpg$',
+            'thumbnail': r're:^https?:.*\.jpg$',
             'formats': 'mincount:6',
         },
     }, {
@@ -33,7 +33,7 @@ class TagesschauPlayerIE(InfoExtractor):
             'id': '29417',
             'ext': 'mp3',
             'title': 'Trabi - Bye, bye Rennpappe',
-            'thumbnail': 're:^https?:.*\.jpg$',
+            'thumbnail': r're:^https?:.*\.jpg$',
             'formats': 'mincount:2',
         },
     }, {
@@ -135,7 +135,7 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Regierungsumbildung in Athen: Neue Minister in Griechenland vereidigt',
             'description': '18.07.2015 20:10 Uhr',
-            'thumbnail': 're:^https?:.*\.jpg$',
+            'thumbnail': r're:^https?:.*\.jpg$',
         },
     }, {
         'url': 'http://www.tagesschau.de/multimedia/sendung/ts-5727.html',
@@ -145,7 +145,7 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sendung: tagesschau \t04.12.2014 20:00 Uhr',
             'description': 'md5:695c01bfd98b7e313c501386327aea59',
-            'thumbnail': 're:^https?:.*\.jpg$',
+            'thumbnail': r're:^https?:.*\.jpg$',
         },
     }, {
         # exclusive audio
@@ -156,7 +156,7 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'Trabi - Bye, bye Rennpappe',
             'description': 'md5:8687dda862cbbe2cfb2df09b56341317',
-            'thumbnail': 're:^https?:.*\.jpg$',
+            'thumbnail': r're:^https?:.*\.jpg$',
         },
     }, {
         # audio in article
@@ -167,7 +167,7 @@ class TagesschauIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'Viele Baustellen für neuen BND-Chef',
             'description': 'md5:1e69a54be3e1255b2b07cdbce5bcd8b4',
-            'thumbnail': 're:^https?:.*\.jpg$',
+            'thumbnail': r're:^https?:.*\.jpg$',
         },
     }, {
         'url': 'http://www.tagesschau.de/inland/afd-parteitag-135.html',

@@ -7,7 +7,7 @@ from ..utils import ExtractorError
 class MacGameStoreIE(InfoExtractor):
     IE_NAME = 'macgamestore'
     IE_DESC = 'MacGameStore trailers'
-    _VALID_URL = r'https?://www\.macgamestore\.com/mediaviewer\.php\?trailer=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?macgamestore\.com/mediaviewer\.php\?trailer=(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.macgamestore.com/mediaviewer.php?trailer=2450',

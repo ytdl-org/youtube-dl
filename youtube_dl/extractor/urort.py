@@ -21,7 +21,7 @@ class UrortIE(InfoExtractor):
             'id': '33124-24',
             'ext': 'mp3',
             'title': 'The Bomb',
-            'thumbnail': 're:^https?://.+\.jpg',
+            'thumbnail': r're:^https?://.+\.jpg',
             'uploader': 'Gerilja',
             'uploader_id': 'Gerilja',
             'upload_date': '20100323',

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -10,9 +10,10 @@ from ..utils import (
 
 
 class NuevoBaseIE(InfoExtractor):
-    def _extract_nuevo(self, config_url, video_id):
+    def _extract_nuevo(self, config_url, video_id, headers={}):
         config = self._download_xml(
-            config_url, video_id, transform_source=lambda s: s.strip())
+            config_url, video_id, transform_source=lambda s: s.strip(),
+            headers=headers)
 
         title = xpath_text(config, './title', 'title', fatal=True).strip()
         video_id = xpath_text(config, './mediaid', default=video_id)

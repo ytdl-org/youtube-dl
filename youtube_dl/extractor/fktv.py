@@ -19,7 +19,7 @@ class FKTVIE(InfoExtractor):
             'id': '1',
             'ext': 'mp4',
             'title': 'Folge 1 vom 10. April 2007',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }
 

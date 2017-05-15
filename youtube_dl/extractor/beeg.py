@@ -16,7 +16,7 @@ class BeegIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?beeg\.com/(?P<id>\d+)'
     _TEST = {
         'url': 'http://beeg.com/5416503',
-        'md5': '46c384def73b33dbc581262e5ee67cef',
+        'md5': 'a1a1b1a8bc70a89e49ccfd113aed0820',
         'info_dict': {
             'id': '5416503',
             'ext': 'mp4',
@@ -46,19 +46,19 @@ class BeegIE(InfoExtractor):
                 self._proto_relative_url(cpl_url), video_id,
                 'Downloading cpl JS', fatal=False)
             if cpl:
-                beeg_version = self._search_regex(
-                    r'beeg_version\s*=\s*(\d+)', cpl,
-                    'beeg version', default=None) or self._search_regex(
+                beeg_version = int_or_none(self._search_regex(
+                    r'beeg_version\s*=\s*([^\b]+)', cpl,
+                    'beeg version', default=None)) or self._search_regex(
                     r'/(\d+)\.js', cpl_url, 'beeg version', default=None)
                 beeg_salt = self._search_regex(
-                    r'beeg_salt\s*=\s*(["\'])(?P<beeg_salt>.+?)\1', cpl, 'beeg beeg_salt',
+                    r'beeg_salt\s*=\s*(["\'])(?P<beeg_salt>.+?)\1', cpl, 'beeg salt',
                     default=None, group='beeg_salt')
 
-        beeg_version = beeg_version or '1750'
-        beeg_salt = beeg_salt or 'MIDtGaw96f0N1kMMAM1DE46EC9pmFr'
+        beeg_version = beeg_version or '2000'
+        beeg_salt = beeg_salt or 'pmweAkq8lAYKdfWcFCUj0yoVgoPlinamH5UE1CB3H'
 
         video = self._download_json(
-            'http://api.beeg.com/api/v6/%s/video/%s' % (beeg_version, video_id),
+            'https://api.beeg.com/api/v6/%s/video/%s' % (beeg_version, video_id),
             video_id)
 
         def split(o, e):

@@ -18,7 +18,7 @@ from ..utils import (
 class QQMusicIE(InfoExtractor):
     IE_NAME = 'qqmusic'
     IE_DESC = 'QQ音乐'
-    _VALID_URL = r'https?://y.qq.com/#type=song&mid=(?P<id>[0-9A-Za-z]+)'
+    _VALID_URL = r'https?://y\.qq\.com/#type=song&mid=(?P<id>[0-9A-Za-z]+)'
     _TESTS = [{
         'url': 'http://y.qq.com/#type=song&mid=004295Et37taLD',
         'md5': '9ce1c1c8445f561506d2e3cfb0255705',
@@ -29,7 +29,7 @@ class QQMusicIE(InfoExtractor):
             'release_date': '20141227',
             'creator': '林俊杰',
             'description': 'md5:d327722d0361576fde558f1ac68a7065',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'note': 'There is no mp3-320 version of this song.',
@@ -42,7 +42,7 @@ class QQMusicIE(InfoExtractor):
             'release_date': '20050626',
             'creator': '李季美',
             'description': 'md5:46857d5ed62bc4ba84607a805dccf437',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'note': 'lyrics not in .lrc format',
@@ -54,7 +54,7 @@ class QQMusicIE(InfoExtractor):
             'release_date': '19970225',
             'creator': 'Dark Funeral',
             'description': 'md5:ed14d5bd7ecec19609108052c25b2c11',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             'skip_download': True,
@@ -172,7 +172,7 @@ class QQPlaylistBaseIE(InfoExtractor):
 class QQMusicSingerIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:singer'
     IE_DESC = 'QQ音乐 - 歌手'
-    _VALID_URL = r'https?://y.qq.com/#type=singer&mid=(?P<id>[0-9A-Za-z]+)'
+    _VALID_URL = r'https?://y\.qq\.com/#type=singer&mid=(?P<id>[0-9A-Za-z]+)'
     _TEST = {
         'url': 'http://y.qq.com/#type=singer&mid=001BLpXF2DyJe2',
         'info_dict': {
@@ -217,7 +217,7 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
 class QQMusicAlbumIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:album'
     IE_DESC = 'QQ音乐 - 专辑'
-    _VALID_URL = r'https?://y.qq.com/#type=album&mid=(?P<id>[0-9A-Za-z]+)'
+    _VALID_URL = r'https?://y\.qq\.com/#type=album&mid=(?P<id>[0-9A-Za-z]+)'
 
     _TESTS = [{
         'url': 'http://y.qq.com/#type=album&mid=000gXCTb2AhRR1',

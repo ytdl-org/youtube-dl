@@ -26,7 +26,7 @@ class CamdemyIE(InfoExtractor):
             'id': '5181',
             'ext': 'mp4',
             'title': 'Ch1-1 Introduction, Signals (02-23-2012)',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'creator': 'ss11spring',
             'duration': 1591,
             'upload_date': '20130114',
@@ -41,7 +41,7 @@ class CamdemyIE(InfoExtractor):
             'id': '13885',
             'ext': 'mp4',
             'title': 'EverCam + Camdemy QuickStart',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:2a9f989c2b153a2342acee579c6e7db6',
             'creator': 'evercam',
             'duration': 318,
@@ -112,7 +112,7 @@ class CamdemyIE(InfoExtractor):
 
 
 class CamdemyFolderIE(InfoExtractor):
-    _VALID_URL = r'https?://www.camdemy.com/folder/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?camdemy\.com/folder/(?P<id>\d+)'
     _TESTS = [{
         # links with trailing slash
         'url': 'http://www.camdemy.com/folder/450',

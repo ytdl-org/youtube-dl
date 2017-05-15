@@ -25,7 +25,7 @@ class NetzkinoIE(InfoExtractor):
             'comments': 'mincount:3',
             'description': 'md5:1eddeacc7e62d5a25a2d1a7290c64a28',
             'upload_date': '20120813',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'timestamp': 1344858571,
             'age_limit': 12,
         },

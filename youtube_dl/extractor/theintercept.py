@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class TheInterceptIE(InfoExtractor):
-    _VALID_URL = r'https://theintercept.com/fieldofvision/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://theintercept\.com/fieldofvision/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'https://theintercept.com/fieldofvision/thisisacoup-episode-four-surrender-or-die/',
         'md5': '145f28b41d44aab2f87c0a4ac8ec95bd',

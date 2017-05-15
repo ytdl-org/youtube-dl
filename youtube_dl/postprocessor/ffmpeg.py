@@ -4,6 +4,7 @@ import io
 import os
 import subprocess
 import time
+import re
 
 
 from .common import AudioConversionError, PostProcessor
@@ -22,19 +23,30 @@ from ..utils import (
     subtitles_filename,
     dfxp2srt,
     ISO639Utils,
+    replace_extension,
 )
 
 
 EXT_TO_OUT_FORMATS = {
-    "aac": "adts",
-    "m4a": "ipod",
-    "mka": "matroska",
-    "mkv": "matroska",
-    "mpg": "mpeg",
-    "ogv": "ogg",
-    "ts": "mpegts",
-    "wma": "asf",
-    "wmv": "asf",
+    'aac': 'adts',
+    'flac': 'flac',
+    'm4a': 'ipod',
+    'mka': 'matroska',
+    'mkv': 'matroska',
+    'mpg': 'mpeg',
+    'ogv': 'ogg',
+    'ts': 'mpegts',
+    'wma': 'asf',
+    'wmv': 'asf',
+}
+ACODECS = {
+    'mp3': 'libmp3lame',
+    'aac': 'aac',
+    'flac': 'flac',
+    'm4a': 'aac',
+    'opus': 'opus',
+    'vorbis': 'libvorbis',
+    'wav': None,
 }
 
 
@@ -139,6 +151,30 @@ class FFmpegPostProcessor(PostProcessor):
     def probe_executable(self):
         return self._paths[self.probe_basename]
 
+    def get_audio_codec(self, path):
+        if not self.probe_available:
+            raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
+        try:
+            cmd = [
+                encodeFilename(self.probe_executable, True),
+                encodeArgument('-show_streams'),
+                encodeFilename(self._ffmpeg_filename_argument(path), True)]
+            if self._downloader.params.get('verbose', False):
+                self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
+            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            output = handle.communicate()[0]
+            if handle.wait() != 0:
+                return None
+        except (IOError, OSError):
+            return None
+        audio_codec = None
+        for line in output.decode('ascii', 'ignore').split('\n'):
+            if line.startswith('codec_name='):
+                audio_codec = line.split('=')[1].strip()
+            elif line.strip() == 'codec_type=audio' and audio_codec is not None:
+                return audio_codec
+        return None
+
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         self.check_version()
 
@@ -188,31 +224,6 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         self._preferredquality = preferredquality
         self._nopostoverwrites = nopostoverwrites
 
-    def get_audio_codec(self, path):
-
-        if not self.probe_available:
-            raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
-        try:
-            cmd = [
-                encodeFilename(self.probe_executable, True),
-                encodeArgument('-show_streams'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)]
-            if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
-            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            output = handle.communicate()[0]
-            if handle.wait() != 0:
-                return None
-        except (IOError, OSError):
-            return None
-        audio_codec = None
-        for line in output.decode('ascii', 'ignore').split('\n'):
-            if line.startswith('codec_name='):
-                audio_codec = line.split('=')[1].strip()
-            elif line.strip() == 'codec_type=audio' and audio_codec is not None:
-                return audio_codec
-        return None
-
     def run_ffmpeg(self, path, out_path, codec, more_opts):
         if codec is None:
             acodec_opts = []
@@ -238,7 +249,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 acodec = 'copy'
                 extension = 'm4a'
                 more_opts = ['-bsf:a', 'aac_adtstoasc']
-            elif filecodec in ['aac', 'mp3', 'vorbis', 'opus']:
+            elif filecodec in ['aac', 'flac', 'mp3', 'vorbis', 'opus']:
                 # Lossless if possible
                 acodec = 'copy'
                 extension = filecodec
@@ -257,8 +268,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                     else:
                         more_opts += ['-b:a', self._preferredquality + 'k']
         else:
-            # We convert the audio (lossy)
-            acodec = {'mp3': 'libmp3lame', 'aac': 'aac', 'm4a': 'aac', 'opus': 'opus', 'vorbis': 'libvorbis', 'wav': None}[self._preferredcodec]
+            # We convert the audio (lossy if codec is lossy)
+            acodec = ACODECS[self._preferredcodec]
             extension = self._preferredcodec
             more_opts = []
             if self._preferredquality is not None:
@@ -280,6 +291,9 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         prefix, sep, ext = path.rpartition('.')  # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
 
+        information['filepath'] = new_path
+        information['ext'] = extension
+
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
         if (new_path == path or
                 (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
@@ -300,9 +314,6 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             self.try_utime(
                 new_path, time.time(), information['filetime'],
                 errnote='Cannot update utime of audio file')
-
-        information['filepath'] = new_path
-        information['ext'] = extension
 
         return [path], information
 
@@ -420,17 +431,40 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
+        in_filenames = [filename]
+        options = []
 
         if info['ext'] == 'm4a':
-            options = ['-vn', '-acodec', 'copy']
+            options.extend(['-vn', '-acodec', 'copy'])
         else:
-            options = ['-c', 'copy']
+            options.extend(['-c', 'copy'])
 
         for (name, value) in metadata.items():
             options.extend(['-metadata', '%s=%s' % (name, value)])
 
+        chapters = info.get('chapters', [])
+        if chapters:
+            metadata_filename = encodeFilename(replace_extension(filename, 'meta'))
+            with io.open(metadata_filename, 'wt', encoding='utf-8') as f:
+                def ffmpeg_escape(text):
+                    return re.sub(r'(=|;|#|\\|\n)', r'\\\1', text)
+
+                metadata_file_content = ';FFMETADATA1\n'
+                for chapter in chapters:
+                    metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
+                    metadata_file_content += 'START=%d\n' % (chapter['start_time'] * 1000)
+                    metadata_file_content += 'END=%d\n' % (chapter['end_time'] * 1000)
+                    chapter_title = chapter.get('title')
+                    if chapter_title:
+                        metadata_file_content += 'title=%s\n' % ffmpeg_escape(chapter_title)
+                f.write(metadata_file_content)
+                in_filenames.append(metadata_filename)
+                options.extend(['-map_metadata', '1'])
+
         self._downloader.to_screen('[ffmpeg] Adding metadata to \'%s\'' % filename)
-        self.run_ffmpeg(filename, temp_filename, options)
+        self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options)
+        if chapters:
+            os.remove(metadata_filename)
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return [], info
@@ -504,15 +538,15 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
 class FFmpegFixupM3u8PP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
-        temp_filename = prepend_extension(filename, 'temp')
+        if self.get_audio_codec(filename) == 'aac':
+            temp_filename = prepend_extension(filename, 'temp')
 
-        options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
-        self._downloader.to_screen('[ffmpeg] Fixing malformated aac bitstream in "%s"' % filename)
-        self.run_ffmpeg(filename, temp_filename, options)
+            options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+            self._downloader.to_screen('[ffmpeg] Fixing malformated aac bitstream in "%s"' % filename)
+            self.run_ffmpeg(filename, temp_filename, options)
 
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-
+            os.remove(encodeFilename(filename))
+            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return [], info
 
 
@@ -537,14 +571,13 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             ext = sub['ext']
             if ext == new_ext:
                 self._downloader.to_screen(
-                    '[ffmpeg] Subtitle file for %s is already in the requested'
-                    'format' % new_ext)
+                    '[ffmpeg] Subtitle file for %s is already in the requested format' % new_ext)
                 continue
             old_file = subtitles_filename(filename, lang, ext)
             sub_filenames.append(old_file)
             new_file = subtitles_filename(filename, lang, new_ext)
 
-            if ext == 'dfxp' or ext == 'ttml' or ext == 'tt':
+            if ext in ('dfxp', 'ttml', 'tt'):
                 self._downloader.report_warning(
                     'You have requested to convert dfxp (TTML) subtitles into another format, '
                     'which results in style information loss')

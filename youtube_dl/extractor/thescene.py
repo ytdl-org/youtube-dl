@@ -3,11 +3,10 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 from ..compat import compat_urlparse
-from ..utils import qualities
 
 
 class TheSceneIE(InfoExtractor):
-    _VALID_URL = r'https://thescene\.com/watch/[^/]+/(?P<id>[^/#?]+)'
+    _VALID_URL = r'https?://thescene\.com/watch/[^/]+/(?P<id>[^/#?]+)'
 
     _TEST = {
         'url': 'https://thescene.com/watch/vogue/narciso-rodriguez-spring-2013-ready-to-wear',
@@ -16,6 +15,14 @@ class TheSceneIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Narciso Rodriguez: Spring 2013 Ready-to-Wear',
             'display_id': 'narciso-rodriguez-spring-2013-ready-to-wear',
+            'duration': 127,
+            'series': 'Style.com Fashion Shows',
+            'season': 'Ready To Wear Spring 2013',
+            'tags': list,
+            'categories': list,
+            'upload_date': '20120913',
+            'timestamp': 1347512400,
+            'uploader': 'vogue',
         },
     }
 
@@ -29,24 +36,9 @@ class TheSceneIE(InfoExtractor):
             self._html_search_regex(
                 r'id=\'js-player-script\'[^>]+src=\'(.+?)\'', webpage, 'player url'))
 
-        player = self._download_webpage(player_url, display_id)
-        info = self._parse_json(
-            self._search_regex(
-                r'(?m)var\s+video\s+=\s+({.+?});$', player, 'info json'),
-            display_id)
-
-        qualities_order = qualities(('low', 'high'))
-        formats = [{
-            'format_id': '{0}-{1}'.format(f['type'].split('/')[0], f['quality']),
-            'url': f['src'],
-            'quality': qualities_order(f['quality']),
-        } for f in info['sources'][0]]
-        self._sort_formats(formats)
-
         return {
-            'id': info['id'],
+            '_type': 'url_transparent',
             'display_id': display_id,
-            'title': info['title'],
-            'formats': formats,
-            'thumbnail': info.get('poster_frame'),
+            'url': player_url,
+            'ie_key': 'CondeNast',
         }

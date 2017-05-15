@@ -245,7 +245,11 @@ class NHLVideocenterCategoryIE(NHLBaseInfoExtractor):
 
 class NHLIE(InfoExtractor):
     IE_NAME = 'nhl.com'
-    _VALID_URL = r'https?://(?:www\.)?nhl\.com/([^/]+/)*c-(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>nhl|wch2016)\.com/(?:[^/]+/)*c-(?P<id>\d+)'
+    _SITES_MAP = {
+        'nhl': 'nhl',
+        'wch2016': 'wch',
+    }
     _TESTS = [{
         # type=video
         'url': 'https://www.nhl.com/video/anisimov-cleans-up-mess/t-277752844/c-43663503',
@@ -270,13 +274,32 @@ class NHLIE(InfoExtractor):
             'upload_date': '20160204',
             'timestamp': 1454544904,
         },
+    }, {
+        # Some m3u8 URLs are invalid (https://github.com/rg3/youtube-dl/issues/10713)
+        'url': 'https://www.nhl.com/predators/video/poile-laviolette-on-subban-trade/t-277437416/c-44315003',
+        'md5': '50b2bb47f405121484dda3ccbea25459',
+        'info_dict': {
+            'id': '44315003',
+            'ext': 'mp4',
+            'title': 'Poile, Laviolette on Subban trade',
+            'description': 'General manager David Poile and head coach Peter Laviolette share their thoughts on acquiring P.K. Subban from Montreal (06/29/16)',
+            'timestamp': 1467242866,
+            'upload_date': '20160629',
+        },
+    }, {
+        'url': 'https://www.wch2016.com/video/caneur-best-of-game-2-micd-up/t-281230378/c-44983703',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.wch2016.com/news/3-stars-team-europe-vs-team-canada/c-282195068',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        tmp_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        tmp_id, site = mobj.group('id'), mobj.group('site')
         video_data = self._download_json(
-            'https://nhl.bamcontent.com/nhl/id/v1/%s/details/web-v1.json' % tmp_id,
-            tmp_id)
+            'https://nhl.bamcontent.com/%s/id/v1/%s/details/web-v1.json'
+            % (self._SITES_MAP[site], tmp_id), tmp_id)
         if video_data.get('type') == 'article':
             video_data = video_data['media']
 
@@ -290,9 +313,11 @@ class NHLIE(InfoExtractor):
                 continue
             ext = determine_ext(playback_url)
             if ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                m3u8_formats = self._extract_m3u8_formats(
                     playback_url, video_id, 'mp4', 'm3u8_native',
-                    m3u8_id=playback.get('name', 'hls'), fatal=False))
+                    m3u8_id=playback.get('name', 'hls'), fatal=False)
+                self._check_formats(m3u8_formats, video_id)
+                formats.extend(m3u8_formats)
             else:
                 height = int_or_none(playback.get('height'))
                 formats.append({

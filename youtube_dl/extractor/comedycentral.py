@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 class ComedyCentralIE(MTVServicesInfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
-        (video-clips|episodes|cc-studios|video-collections|full-episodes|shows)
+        (video-clips|episodes|cc-studios|video-collections|shows(?=/[^/]+/(?!full-episodes)))
         /(?P<title>.*)'''
     _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
 
@@ -27,6 +27,32 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
     }]
 
 
+class ComedyCentralFullEpisodesIE(MTVServicesInfoExtractor):
+    _VALID_URL = r'''(?x)https?://(?:www\.)?cc\.com/
+        (?:full-episodes|shows(?=/[^/]+/full-episodes))
+        /(?P<id>[^?]+)'''
+    _FEED_URL = 'http://comedycentral.com/feeds/mrss/'
+
+    _TESTS = [{
+        'url': 'http://www.cc.com/full-episodes/pv391a/the-daily-show-with-trevor-noah-november-28--2016---ryan-speedo-green-season-22-ep-22028',
+        'info_dict': {
+            'description': 'Donald Trump is accused of exploiting his president-elect status for personal gain, Cuban leader Fidel Castro dies, and Ryan Speedo Green discusses "Sing for Your Life."',
+            'title': 'November 28, 2016 - Ryan Speedo Green',
+        },
+        'playlist_count': 4,
+    }, {
+        'url': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+        mgid = self._extract_triforce_mgid(webpage, data_zone='t2_lc_promo1')
+        videos_info = self._get_videos_info(mgid)
+        return videos_info
+
+
 class ToshIE(MTVServicesInfoExtractor):
     IE_DESC = 'Tosh.0'
     _VALID_URL = r'^https?://tosh\.cc\.com/video-(?:clips|collections)/[^/]+/(?P<videotitle>[^/?#]+)'
@@ -45,7 +71,7 @@ class ToshIE(MTVServicesInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Tosh.0|June 9, 2077|2|211|Twitter Users Share Summer Plans',
                 'description': 'Tosh asked fans to share their summer plans.',
-                'thumbnail': 're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*\.jpg',
                 # It's really reported to be published on year 2077
                 'upload_date': '20770610',
                 'timestamp': 3390510600,
@@ -58,12 +84,6 @@ class ToshIE(MTVServicesInfoExtractor):
         'url': 'http://tosh.cc.com/video-collections/x2iz7k/just-plain-foul/m5q4fp',
         'only_matching': True,
     }]
-
-    @classmethod
-    def _transform_rtmp_url(cls, rtmp_video_url):
-        new_urls = super(ToshIE, cls)._transform_rtmp_url(rtmp_video_url)
-        new_urls['rtmp'] = rtmp_video_url.replace('viacomccstrm', 'viacommtvstrm')
-        return new_urls
 
 
 class ComedyCentralTVIE(MTVServicesInfoExtractor):

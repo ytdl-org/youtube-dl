@@ -72,7 +72,7 @@ class NFLIE(InfoExtractor):
             'description': 'md5:56323bfb0ac4ee5ab24bd05fdf3bf478',
             'upload_date': '20140921',
             'timestamp': 1411337580,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'url': 'http://prod.www.steelers.clubs.nfl.com/video-and-audio/videos/LIVE_Post_Game_vs_Browns/9d72f26a-9e2b-4718-84d3-09fb4046c266',
@@ -84,7 +84,7 @@ class NFLIE(InfoExtractor):
             'description': 'md5:6a97f7e5ebeb4c0e69a418a89e0636e8',
             'upload_date': '20131229',
             'timestamp': 1388354455,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'url': 'http://www.nfl.com/news/story/0ap3000000467586/article/patriots-seahawks-involved-in-lategame-skirmish',
@@ -165,7 +165,7 @@ class NFLIE(InfoExtractor):
             group='config'))
         # For articles, the id in the url is not the video id
         video_id = self._search_regex(
-            r'(?:<nflcs:avplayer[^>]+data-content[Ii]d\s*=\s*|content[Ii]d\s*:\s*)(["\'])(?P<id>.+?)\1',
+            r'(?:<nflcs:avplayer[^>]+data-content[Ii]d\s*=\s*|content[Ii]d\s*:\s*)(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'video id', default=video_id, group='id')
         config = self._download_json(config_url, video_id, 'Downloading player config')
         url_template = NFLIE.prepend_host(

@@ -24,7 +24,7 @@ class NozIE(InfoExtractor):
             'duration': 215,
             'title': '3:2 - Deutschland gewinnt Badminton-Länderspiel in Melle',
             'description': 'Vor rund 370 Zuschauern gewinnt die deutsche Badminton-Nationalmannschaft am Donnerstag ein EM-Vorbereitungsspiel gegen Frankreich in Melle. Video Moritz Frankenberg.',
-            'thumbnail': 're:^http://.*\.jpg',
+            'thumbnail': r're:^http://.*\.jpg',
         },
     }]
 

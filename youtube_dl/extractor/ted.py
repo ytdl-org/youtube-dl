@@ -47,7 +47,7 @@ class TEDIE(InfoExtractor):
             'id': 'tSVI8ta_P4w',
             'ext': 'mp4',
             'title': 'Vishal Sikka: The beauty and power of algorithms',
-            'thumbnail': 're:^https?://.+\.jpg',
+            'thumbnail': r're:^https?://.+\.jpg',
             'description': 'md5:6261fdfe3e02f4f579cbbfc00aff73f4',
             'upload_date': '20140122',
             'uploader_id': 'TEDInstitute',
@@ -189,7 +189,7 @@ class TEDIE(InfoExtractor):
                         'format_id': '%s-%sk' % (format_id, bitrate),
                         'tbr': bitrate,
                     })
-                    if re.search('\d+k', h264_url):
+                    if re.search(r'\d+k', h264_url):
                         http_url = h264_url
             elif format_id == 'rtmp':
                 streamer = talk_info.get('streamer')
@@ -210,7 +210,7 @@ class TEDIE(InfoExtractor):
                     resources.get('stream'), video_name, 'mp4', m3u8_id=format_id, fatal=False))
 
         m3u8_formats = list(filter(
-            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none',
             formats))
         if http_url:
             for m3u8_format in m3u8_formats:

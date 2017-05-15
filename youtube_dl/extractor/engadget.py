@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class EngadgetIE(InfoExtractor):
-    _VALID_URL = r'https?://www.engadget.com/video/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?engadget\.com/video/(?P<id>[^/?#]+)'
 
     _TESTS = [{
         # video with 5min ID

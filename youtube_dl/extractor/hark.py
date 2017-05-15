@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
 
 class HarkIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.hark\.com/clips/(?P<id>.+?)-.+'
+    _VALID_URL = r'https?://(?:www\.)?hark\.com/clips/(?P<id>.+?)-.+'
     _TEST = {
         'url': 'http://www.hark.com/clips/mmbzyhkgny-obama-beyond-the-afghan-theater-we-only-target-al-qaeda-on-may-23-2013',
         'md5': '6783a58491b47b92c7c1af5a77d4cbee',

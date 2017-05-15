@@ -29,9 +29,14 @@ updates_key.pem
 *.m4a
 *.m4v
 *.mp3
+*.3gp
+*.wav
+*.ape
+*.mkv
+*.swf
 *.part
+*.ytdl
 *.swp
-test/testdata
 test/local_parameters.json
 .tox
 youtube-dl.zsh

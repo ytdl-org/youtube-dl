@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class VesselIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vessel\.com/(?:videos|embed)/(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?vessel\.com/(?:videos|embed)/(?P<id>[0-9a-zA-Z-_]+)'
     _API_URL_TEMPLATE = 'https://www.vessel.com/api/view/items/%s'
     _LOGIN_URL = 'https://www.vessel.com/api/account/login'
     _NETRC_MACHINE = 'vessel'
@@ -24,7 +24,7 @@ class VesselIE(InfoExtractor):
             'id': 'HDN7G5UMs',
             'ext': 'mp4',
             'title': 'Nvidia GeForce GTX Titan X - The Best Video Card on the Market?',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20150317',
             'description': 'Did Nvidia pull out all the stops on the Titan X, or does its performance leave something to be desired?',
             'timestamp': int,
@@ -32,12 +32,18 @@ class VesselIE(InfoExtractor):
     }, {
         'url': 'https://www.vessel.com/embed/G4U7gUJ6a?w=615&h=346',
         'only_matching': True,
+    }, {
+        'url': 'https://www.vessel.com/videos/F01_dsLj1',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.vessel.com/videos/RRX-sir-J',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
         return [url for _, url in re.findall(
-            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?vessel\.com/embed/[0-9a-zA-Z]+.*?)\1',
+            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?vessel\.com/embed/[0-9a-zA-Z-_]+.*?)\1',
             webpage)]
 
     @staticmethod

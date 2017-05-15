@@ -1,9 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
@@ -22,7 +19,7 @@ class ClubicIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Clubic Week 2.0 : le FBI se lance dans la photo d\u0092identité',
             'description': 're:Gueule de bois chez Nokia. Le constructeur a indiqué cette.*',
-            'thumbnail': 're:^http://img\.clubic\.com/.*\.jpg$',
+            'thumbnail': r're:^http://img\.clubic\.com/.*\.jpg$',
         }
     }, {
         'url': 'http://www.clubic.com/video/video-clubic-week-2-0-apple-iphone-6s-et-plus-mais-surtout-le-pencil-469792.html',
@@ -30,16 +27,14 @@ class ClubicIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         player_url = 'http://player.m6web.fr/v1/player/clubic/%s.html' % video_id
         player_page = self._download_webpage(player_url, video_id)
 
-        config_json = self._search_regex(
+        config = self._parse_json(self._search_regex(
             r'(?m)M6\.Player\.config\s*=\s*(\{.+?\});$', player_page,
-            'configuration')
-        config = json.loads(config_json)
+            'configuration'), video_id)
 
         video_info = config['videoInfo']
         sources = config['sources']

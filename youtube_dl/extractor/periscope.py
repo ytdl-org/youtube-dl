@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
@@ -18,7 +20,7 @@ class PeriscopeBaseIE(InfoExtractor):
 class PeriscopeIE(PeriscopeBaseIE):
     IE_DESC = 'Periscope'
     IE_NAME = 'periscope'
-    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:periscope|pscp)\.tv/[^/]+/(?P<id>[^/?#]+)'
     # Alive example URLs can be found here http://onperiscope.com/
     _TESTS = [{
         'url': 'https://www.periscope.tv/w/aJUQnjY3MjA3ODF8NTYxMDIyMDl2zCg2pECBgwTqRpQuQD352EMPTKQjT4uqlM3cgWFA-g==',
@@ -39,7 +41,17 @@ class PeriscopeIE(PeriscopeBaseIE):
     }, {
         'url': 'https://www.periscope.tv/bastaakanoggano/1OdKrlkZZjOJX',
         'only_matching': True,
+    }, {
+        'url': 'https://www.periscope.tv/w/1ZkKzPbMVggJv',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?periscope\.tv/(?:(?!\1).)+)\1', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _real_extract(self, url):
         token = self._match_id(url)
@@ -78,7 +90,7 @@ class PeriscopeIE(PeriscopeBaseIE):
                 'ext': 'flv' if format_id == 'rtmp' else 'mp4',
             }
             if format_id != 'rtmp':
-                f['protocol'] = 'm3u8_native' if state == 'ended' else 'm3u8'
+                f['protocol'] = 'm3u8_native' if state in ('ended', 'timed_out') else 'm3u8'
             formats.append(f)
         self._sort_formats(formats)
 
@@ -94,7 +106,7 @@ class PeriscopeIE(PeriscopeBaseIE):
 
 
 class PeriscopeUserIE(PeriscopeBaseIE):
-    _VALID_URL = r'https?://www\.periscope\.tv/(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?(?:periscope|pscp)\.tv/(?P<id>[^/]+)/?$'
     IE_DESC = 'Periscope user videos'
     IE_NAME = 'periscope:user'
 
@@ -123,7 +135,7 @@ class PeriscopeUserIE(PeriscopeBaseIE):
 
         user = list(data_store['UserCache']['users'].values())[0]['user']
         user_id = user['id']
-        session_id = data_store['SessionToken']['broadcastHistory']['token']['session_id']
+        session_id = data_store['SessionToken']['public']['broadcastHistory']['token']['session_id']
 
         broadcasts = self._call_api(
             'getUserBroadcastsPublic',

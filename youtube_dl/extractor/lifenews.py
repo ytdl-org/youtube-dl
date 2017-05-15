@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -176,7 +176,7 @@ class LifeEmbedIE(InfoExtractor):
             'id': 'e50c2dec2867350528e2574c899b8291',
             'ext': 'mp4',
             'title': 'e50c2dec2867350528e2574c899b8291',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         # with 1080p

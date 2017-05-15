@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
@@ -21,7 +21,7 @@ class NTVRuIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Командующий Черноморским флотом провел переговоры в штабе ВМС Украины',
             'description': 'Командующий Черноморским флотом провел переговоры в штабе ВМС Украины',
-            'thumbnail': 're:^http://.*\.jpg',
+            'thumbnail': r're:^http://.*\.jpg',
             'duration': 136,
         },
     }, {
@@ -32,7 +32,7 @@ class NTVRuIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Родные пассажиров пропавшего Boeing не верят в трагический исход',
             'description': 'Родные пассажиров пропавшего Boeing не верят в трагический исход',
-            'thumbnail': 're:^http://.*\.jpg',
+            'thumbnail': r're:^http://.*\.jpg',
             'duration': 172,
         },
     }, {
@@ -43,7 +43,7 @@ class NTVRuIE(InfoExtractor):
             'ext': 'mp4',
             'title': '«Сегодня». 21 марта 2014 года. 16:00',
             'description': '«Сегодня». 21 марта 2014 года. 16:00',
-            'thumbnail': 're:^http://.*\.jpg',
+            'thumbnail': r're:^http://.*\.jpg',
             'duration': 1496,
         },
     }, {
@@ -54,7 +54,7 @@ class NTVRuIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Остросюжетный фильм «Кома»',
             'description': 'Остросюжетный фильм «Кома»',
-            'thumbnail': 're:^http://.*\.jpg',
+            'thumbnail': r're:^http://.*\.jpg',
             'duration': 5592,
         },
     }, {
@@ -65,7 +65,7 @@ class NTVRuIE(InfoExtractor):
             'ext': 'mp4',
             'title': '«Дело врачей»: «Деревце жизни»',
             'description': '«Дело врачей»: «Деревце жизни»',
-            'thumbnail': 're:^http://.*\.jpg',
+            'thumbnail': r're:^http://.*\.jpg',
             'duration': 2590,
         },
     }]

@@ -14,7 +14,7 @@ from ..utils import (
 
 class MDRIE(InfoExtractor):
     IE_DESC = 'MDR.DE and KiKA'
-    _VALID_URL = r'https?://(?:www\.)?(?:mdr|kika)\.de/(?:.*)/[a-z]+-?(?P<id>\d+)(?:_.+?)?\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?:mdr|kika)\.de/(?:.*)/[a-z-]+-?(?P<id>\d+)(?:_.+?)?\.html'
 
     _TESTS = [{
         # MDR regularly deletes its videos
@@ -31,6 +31,7 @@ class MDRIE(InfoExtractor):
             'duration': 250,
             'uploader': 'MITTELDEUTSCHER RUNDFUNK',
         },
+        'skip': '404 not found',
     }, {
         'url': 'http://www.kika.de/baumhaus/videos/video19636.html',
         'md5': '4930515e36b06c111213e80d1e4aad0e',
@@ -41,6 +42,7 @@ class MDRIE(InfoExtractor):
             'duration': 134,
             'uploader': 'KIKA',
         },
+        'skip': '404 not found',
     }, {
         'url': 'http://www.kika.de/sendungen/einzelsendungen/weihnachtsprogramm/videos/video8182.html',
         'md5': '5fe9c4dd7d71e3b238f04b8fdd588357',
@@ -49,10 +51,20 @@ class MDRIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Beutolomäus und der geheime Weihnachtswunsch',
             'description': 'md5:b69d32d7b2c55cbe86945ab309d39bbd',
-            'timestamp': 1450950000,
-            'upload_date': '20151224',
+            'timestamp': 1482541200,
+            'upload_date': '20161224',
             'duration': 4628,
             'uploader': 'KIKA',
+        },
+    }, {
+        # audio with alternative playerURL pattern
+        'url': 'http://www.mdr.de/kultur/videos-und-audios/audio-radio/operation-mindfuck-robert-wilson100.html',
+        'info_dict': {
+            'id': '100',
+            'ext': 'mp4',
+            'title': 'Feature: Operation Mindfuck - Robert Anton Wilson',
+            'duration': 3239,
+            'uploader': 'MITTELDEUTSCHER RUNDFUNK',
         },
     }, {
         'url': 'http://www.kika.de/baumhaus/sendungen/video19636_zc-fea7f8a0_zs-4bf89c60.html',
@@ -71,8 +83,8 @@ class MDRIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         data_url = self._search_regex(
-            r'(?:dataURL|playerXml(?:["\'])?)\s*:\s*(["\'])(?P<url>.+/(?:video|audio)-?[0-9]+-avCustom\.xml)\1',
-            webpage, 'data url', group='url').replace('\/', '/')
+            r'(?:dataURL|playerXml(?:["\'])?)\s*:\s*(["\'])(?P<url>.+?-avCustom\.xml)\1',
+            webpage, 'data url', group='url').replace(r'\/', '/')
 
         doc = self._download_xml(
             compat_urlparse.urljoin(url, data_url), video_id)

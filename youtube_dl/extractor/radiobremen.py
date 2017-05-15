@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -20,7 +20,7 @@ class RadioBremenIE(InfoExtractor):
             'duration': 178,
             'width': 512,
             'title': 'Druck auf Patrick Öztürk',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'description': 'Gegen den SPD-Bürgerschaftsabgeordneten Patrick Öztürk wird wegen Beihilfe zum gewerbsmäßigen Betrug ermittelt. Am Donnerstagabend sollte er dem Vorstand des SPD-Unterbezirks Bremerhaven dazu Rede und Antwort stehen.',
         },
     }

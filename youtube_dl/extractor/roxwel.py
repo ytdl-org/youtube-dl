@@ -7,7 +7,7 @@ from ..utils import unified_strdate, determine_ext
 
 
 class RoxwelIE(InfoExtractor):
-    _VALID_URL = r'https?://www\.roxwel\.com/player/(?P<filename>.+?)(\.|\?|$)'
+    _VALID_URL = r'https?://(?:www\.)?roxwel\.com/player/(?P<filename>.+?)(\.|\?|$)'
 
     _TEST = {
         'url': 'http://www.roxwel.com/player/passionpittakeawalklive.html',

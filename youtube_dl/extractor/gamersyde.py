@@ -20,7 +20,7 @@ class GamersydeIE(InfoExtractor):
             'ext': 'mp4',
             'duration': 372,
             'title': 'Bloodborne - Birth of a hero',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 

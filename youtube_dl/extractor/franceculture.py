@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
-    unified_strdate,
+    extract_attributes,
+    int_or_none,
 )
 
 
@@ -17,8 +18,9 @@ class FranceCultureIE(InfoExtractor):
             'display_id': 'rendez-vous-au-pays-des-geeks',
             'ext': 'mp3',
             'title': 'Rendez-vous au pays des geeks',
-            'thumbnail': 're:^https?://.*\\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140301',
+            'timestamp': 1393642916,
             'vcodec': 'none',
         }
     }
@@ -28,30 +30,34 @@ class FranceCultureIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_url = self._search_regex(
-            r'(?s)<div[^>]+class="[^"]*?title-zone-diffusion[^"]*?"[^>]*>.*?<a[^>]+href="([^"]+)"',
-            webpage, 'video path')
+        video_data = extract_attributes(self._search_regex(
+            r'(?s)<div[^>]+class="[^"]*?(?:title-zone-diffusion|heading-zone-(?:wrapper|player-button))[^"]*?"[^>]*>.*?(<button[^>]+data-asset-source="[^"]+"[^>]+>)',
+            webpage, 'video data'))
 
-        title = self._og_search_title(webpage)
+        video_url = video_data['data-asset-source']
+        title = video_data.get('data-asset-title') or self._og_search_title(webpage)
 
-        upload_date = unified_strdate(self._search_regex(
-            '(?s)<div[^>]+class="date"[^>]*>.*?<span[^>]+class="inner"[^>]*>([^<]+)<',
-            webpage, 'upload date', fatal=False))
+        description = self._html_search_regex(
+            r'(?s)<div[^>]+class="intro"[^>]*>.*?<h2>(.+?)</h2>',
+            webpage, 'description', default=None)
         thumbnail = self._search_regex(
-            r'(?s)<figure[^>]+itemtype="https://schema.org/ImageObject"[^>]*>.*?<img[^>]+data-pagespeed-(?:lazy|high-res)-src="([^"]+)"',
+            r'(?s)<figure[^>]+itemtype="https://schema.org/ImageObject"[^>]*>.*?<img[^>]+(?:data-dejavu-)?src="([^"]+)"',
             webpage, 'thumbnail', fatal=False)
         uploader = self._html_search_regex(
-            r'(?s)<div id="emission".*?<span class="author">(.*?)</span>',
+            r'(?s)<span class="author">(.*?)</span>',
             webpage, 'uploader', default=None)
-        vcodec = 'none' if determine_ext(video_url.lower()) == 'mp3' else None
+        ext = determine_ext(video_url.lower())
 
         return {
             'id': display_id,
             'display_id': display_id,
             'url': video_url,
             'title': title,
+            'description': description,
             'thumbnail': thumbnail,
-            'vcodec': vcodec,
+            'ext': ext,
+            'vcodec': 'none' if ext == 'mp3' else None,
             'uploader': uploader,
-            'upload_date': upload_date,
+            'timestamp': int_or_none(video_data.get('data-asset-created-date')),
+            'duration': int_or_none(video_data.get('data-duration')),
         }

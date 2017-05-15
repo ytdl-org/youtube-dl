@@ -14,7 +14,7 @@ class MatchTVIE(InfoExtractor):
         'info_dict': {
             'id': 'matchtv-live',
             'ext': 'flv',
-            'title': 're:^Матч ТВ - Прямой эфир \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
+            'title': r're:^Матч ТВ - Прямой эфир \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
             'is_live': True,
         },
         'params': {

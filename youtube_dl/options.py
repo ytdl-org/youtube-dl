@@ -94,7 +94,7 @@ def parseOpts(overrideArguments=None):
         setattr(parser.values, option.dest, value.split(','))
 
     def _hide_login_info(opts):
-        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password']
+        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username']
         eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
 
         def _scrub_eq(o):
@@ -179,6 +179,10 @@ def parseOpts(overrideArguments=None):
         'Do not read the user configuration in ~/.config/youtube-dl/config '
         '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
+        '--config-location',
+        dest='config_location', metavar='PATH',
+        help='Location of the configuration file; either the path to the config or its containing directory.')
+    general.add_option(
         '--flat-playlist',
         action='store_const', dest='extract_flat', const='in_playlist',
         default=False,
@@ -212,29 +216,41 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--source-address',
         metavar='IP', dest='source_address', default=None,
-        help='Client-side IP address to bind to (experimental)',
+        help='Client-side IP address to bind to',
     )
     network.add_option(
         '-4', '--force-ipv4',
         action='store_const', const='0.0.0.0', dest='source_address',
-        help='Make all connections via IPv4 (experimental)',
+        help='Make all connections via IPv4',
     )
     network.add_option(
         '-6', '--force-ipv6',
         action='store_const', const='::', dest='source_address',
-        help='Make all connections via IPv6 (experimental)',
+        help='Make all connections via IPv6',
     )
-    network.add_option(
+
+    geo = optparse.OptionGroup(parser, 'Geo Restriction')
+    geo.add_option(
         '--geo-verification-proxy',
         dest='geo_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some geo-restricted sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
-    )
-    network.add_option(
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.')
+    geo.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
-        help=optparse.SUPPRESS_HELP,
-    )
+        help=optparse.SUPPRESS_HELP)
+    geo.add_option(
+        '--geo-bypass',
+        action='store_true', dest='geo_bypass', default=True,
+        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--no-geo-bypass',
+        action='store_false', dest='geo_bypass', default=True,
+        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--geo-bypass-country', metavar='CODE',
+        dest='geo_bypass_country', default=None,
+        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
@@ -293,15 +309,17 @@ def parseOpts(overrideArguments=None):
         '--match-filter',
         metavar='FILTER', dest='match_filter', default=None,
         help=(
-            'Generic video filter (experimental). '
-            'Specify any key (see help for -o for a list of available keys) to'
-            ' match if the key is present, '
-            '!key to check if the key is not present,'
+            'Generic video filter. '
+            'Specify any key (see help for -o for a list of available keys) to '
+            'match if the key is present, '
+            '!key to check if the key is not present, '
             'key > NUMBER (like "comment_count > 12", also works with '
-            '>=, <, <=, !=, =) to compare against a number, and '
-            '& to require multiple matches. '
-            'Values which are not known are excluded unless you'
-            ' put a question mark (?) after the operator.'
+            '>=, <, <=, !=, =) to compare against a number, '
+            'key = \'LITERAL\' (like "uploader = \'Mike Smith\'", also works with !=) '
+            'to match against a string literal '
+            'and & to require multiple matches. '
+            'Values which are not known are excluded unless you '
+            'put a question mark (?) after the operator. '
             'For example, to only match videos that have been liked more than '
             '100 times and disliked less than 50 times (or the dislike '
             'functionality is not available at the given service), but who '
@@ -341,7 +359,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '-2', '--twofactor',
         dest='twofactor', metavar='TWOFACTOR',
-        help='Two-factor auth code')
+        help='Two-factor authentication code')
     authentication.add_option(
         '-n', '--netrc',
         action='store_true', dest='usenetrc', default=False,
@@ -350,6 +368,24 @@ def parseOpts(overrideArguments=None):
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
         help='Video password (vimeo, smotri, youku)')
+
+    adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
+    adobe_pass.add_option(
+        '--ap-mso',
+        dest='ap_mso', metavar='MSO',
+        help='Adobe Pass multiple-system operator (TV provider) identifier, use --ap-list-mso for a list of available MSOs')
+    adobe_pass.add_option(
+        '--ap-username',
+        dest='ap_username', metavar='USERNAME',
+        help='Multiple-system operator account login')
+    adobe_pass.add_option(
+        '--ap-password',
+        dest='ap_password', metavar='PASSWORD',
+        help='Multiple-system operator account password. If this option is left out, youtube-dl will ask interactively.')
+    adobe_pass.add_option(
+        '--ap-list-mso',
+        action='store_true', dest='ap_list_mso', default=False,
+        help='List all supported multiple-system operators')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
@@ -423,7 +459,19 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--fragment-retries',
         dest='fragment_retries', metavar='RETRIES', default=10,
-        help='Number of retries for a fragment (default is %default), or "infinite" (DASH only)')
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH, hlsnative and ISM)')
+    downloader.add_option(
+        '--skip-unavailable-fragments',
+        action='store_true', dest='skip_unavailable_fragments', default=True,
+        help='Skip unavailable fragments (DASH, hlsnative and ISM)')
+    downloader.add_option(
+        '--abort-on-unavailable-fragment',
+        action='store_false', dest='skip_unavailable_fragments',
+        help='Abort downloading when some fragment is not available')
+    downloader.add_option(
+        '--keep-fragments',
+        action='store_true', dest='keep_fragments', default=False,
+        help='Keep downloaded fragments on disk after downloading is finished; fragments are erased by default')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
@@ -441,9 +489,13 @@ def parseOpts(overrideArguments=None):
         action='store_true',
         help='Download playlist videos in reverse order')
     downloader.add_option(
+        '--playlist-random',
+        action='store_true',
+        help='Download playlist videos in random order')
+    downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',
-        help='Set file xattribute ytdl.filesize with expected filesize (experimental)')
+        help='Set file xattribute ytdl.filesize with expected file size (experimental)')
     downloader.add_option(
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true', default=None,
@@ -631,8 +683,12 @@ def parseOpts(overrideArguments=None):
         help=('Output filename template, see the "OUTPUT TEMPLATE" for all the info'))
     filesystem.add_option(
         '--autonumber-size',
-        dest='autonumber_size', metavar='NUMBER',
-        help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given')
+        dest='autonumber_size', metavar='NUMBER', type=int,
+        help=optparse.SUPPRESS_HELP)
+    filesystem.add_option(
+        '--autonumber-start',
+        dest='autonumber_start', metavar='NUMBER', default=1, type=int,
+        help='Specify the start value for %(autonumber)s (default is %default)')
     filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
@@ -640,15 +696,15 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
-        help='[deprecated] Use title in file name (default)')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-l', '--literal', default=False,
         action='store_true', dest='usetitle',
-        help='[deprecated] Alias of --title')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-w', '--no-overwrites',
         action='store_true', dest='nooverwrites', default=False,
@@ -721,7 +777,7 @@ def parseOpts(overrideArguments=None):
         help='Convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
     postproc.add_option(
         '--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-        help='Specify audio format: "best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; "%default" by default')
+        help='Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "%default" by default; No effect without -x')
     postproc.add_option(
         '--audio-quality', metavar='QUALITY',
         dest='audioquality', default='5',
@@ -758,11 +814,12 @@ def parseOpts(overrideArguments=None):
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
         help='Parse additional metadata like song title / artist from the video title. '
-             'The format syntax is the same as --output, '
-             'the parsed parameters replace existing values. '
-             'Additional templates: %(album)s, %(artist)s. '
+             'The format syntax is the same as --output. Regular expression with '
+             'named capture groups may also be used. '
+             'The parsed parameters replace existing values. '
              'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like '
-             '"Coldplay - Paradise"')
+             '"Coldplay - Paradise". '
+             'Example (regex): --metadata-from-title "(?P<artist>.+?) - (?P<title>.+)"')
     postproc.add_option(
         '--xattrs',
         action='store_true', dest='xattrs', default=False,
@@ -796,6 +853,7 @@ def parseOpts(overrideArguments=None):
 
     parser.add_option_group(general)
     parser.add_option_group(network)
+    parser.add_option_group(geo)
     parser.add_option_group(selection)
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)
@@ -805,6 +863,7 @@ def parseOpts(overrideArguments=None):
     parser.add_option_group(video_format)
     parser.add_option_group(subtitles)
     parser.add_option_group(authentication)
+    parser.add_option_group(adobe_pass)
     parser.add_option_group(postproc)
 
     if overrideArguments is not None:
@@ -818,22 +877,32 @@ def parseOpts(overrideArguments=None):
             return conf
 
         command_line_conf = compat_conf(sys.argv[1:])
+        opts, args = parser.parse_args(command_line_conf)
 
-        if '--ignore-config' in command_line_conf:
-            system_conf = []
-            user_conf = []
+        system_conf = user_conf = custom_conf = []
+
+        if '--config-location' in command_line_conf:
+            location = compat_expanduser(opts.config_location)
+            if os.path.isdir(location):
+                location = os.path.join(location, 'youtube-dl.conf')
+            if not os.path.exists(location):
+                parser.error('config-location %s does not exist.' % location)
+            custom_conf = _readOptions(location)
+        elif '--ignore-config' in command_line_conf:
+            pass
         else:
             system_conf = _readOptions('/etc/youtube-dl.conf')
-            if '--ignore-config' in system_conf:
-                user_conf = []
-            else:
+            if '--ignore-config' not in system_conf:
                 user_conf = _readUserConf()
-        argv = system_conf + user_conf + command_line_conf
 
+        argv = system_conf + user_conf + custom_conf + command_line_conf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
-            write_string('[debug] System config: ' + repr(_hide_login_info(system_conf)) + '\n')
-            write_string('[debug] User config: ' + repr(_hide_login_info(user_conf)) + '\n')
-            write_string('[debug] Command-line args: ' + repr(_hide_login_info(command_line_conf)) + '\n')
+            for conf_label, conf in (
+                    ('System config', system_conf),
+                    ('User config', user_conf),
+                    ('Custom config', custom_conf),
+                    ('Command-line args', command_line_conf)):
+                write_string('[debug] %s: %s\n' % (conf_label, repr(_hide_login_info(conf))))
 
     return parser, opts, args

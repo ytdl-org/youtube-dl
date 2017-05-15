@@ -1,4 +1,4 @@
-# encoding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -16,6 +16,9 @@ class TvigleIE(InfoExtractor):
     IE_NAME = 'tvigle'
     IE_DESC = 'Интернет-телевидение Tvigle.ru'
     _VALID_URL = r'https?://(?:www\.)?(?:tvigle\.ru/(?:[^/]+/)+(?P<display_id>[^/]+)/$|cloud\.tvigle\.ru/video/(?P<id>\d+))'
+
+    _GEO_BYPASS = False
+    _GEO_COUNTRIES = ['RU']
 
     _TESTS = [
         {
@@ -72,8 +75,13 @@ class TvigleIE(InfoExtractor):
 
         error_message = item.get('errorMessage')
         if not videos and error_message:
-            raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, error_message), expected=True)
+            if item.get('isGeoBlocked') is True:
+                self.raise_geo_restricted(
+                    msg=error_message, countries=self._GEO_COUNTRIES)
+            else:
+                raise ExtractorError(
+                    '%s returned error: %s' % (self.IE_NAME, error_message),
+                    expected=True)
 
         title = item['title']
         description = item.get('description')

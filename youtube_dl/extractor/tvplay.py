@@ -225,7 +225,11 @@ class TVPlayIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
+        geo_country = self._search_regex(
+            r'https?://[^/]+\.([a-z]{2})', url,
+            'geo country', default=None)
+        if geo_country:
+            self._initialize_geo_bypass([geo_country.upper()])
         video = self._download_json(
             'http://playapi.mtgx.tv/v3/videos/%s' % video_id, video_id, 'Downloading video JSON')
 
@@ -349,6 +353,29 @@ class ViafreeIE(InfoExtractor):
         },
         'add_ie': [TVPlayIE.ie_key()],
     }, {
+        # with relatedClips
+        'url': 'http://www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-1',
+        'info_dict': {
+            'id': '758770',
+            'ext': 'mp4',
+            'title': 'Sommaren med YouTube-stjärnorna S01E01',
+            'description': 'md5:2bc69dce2c4bb48391e858539bbb0e3f',
+            'series': 'Sommaren med YouTube-stjärnorna',
+            'season': 'Säsong 1',
+            'season_number': 1,
+            'duration': 1326,
+            'timestamp': 1470905572,
+            'upload_date': '20160811',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [TVPlayIE.ie_key()],
+    }, {
+        # Different og:image URL schema
+        'url': 'http://www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-2',
+        'only_matching': True,
+    }, {
         'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
         'only_matching': True,
     }, {
@@ -365,8 +392,38 @@ class ViafreeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_id = self._search_regex(
-            r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](?P<id>\d{6,})',
-            webpage, 'video id')
+        data = self._parse_json(
+            self._search_regex(
+                r'(?s)window\.App\s*=\s*({.+?})\s*;\s*</script',
+                webpage, 'data', default='{}'),
+            video_id, transform_source=lambda x: re.sub(
+                r'(?s)function\s+[a-zA-Z_][\da-zA-Z_]*\s*\([^)]*\)\s*{[^}]*}\s*',
+                'null', x), fatal=False)
+
+        video_id = None
+
+        if data:
+            video_id = try_get(
+                data, lambda x: x['context']['dispatcher']['stores'][
+                    'ContentPageProgramStore']['currentVideo']['id'],
+                compat_str)
+
+        # Fallback #1 (extract from og:image URL schema)
+        if not video_id:
+            thumbnail = self._og_search_thumbnail(webpage, default=None)
+            if thumbnail:
+                video_id = self._search_regex(
+                    # Patterns seen:
+                    #  http://cdn.playapi.mtgx.tv/imagecache/600x315/cloud/content-images/inbox/765166/a2e95e5f1d735bab9f309fa345cc3f25.jpg
+                    #  http://cdn.playapi.mtgx.tv/imagecache/600x315/cloud/content-images/seasons/15204/758770/4a5ba509ca8bc043e1ebd1a76131cdf2.jpg
+                    r'https?://[^/]+/imagecache/(?:[^/]+/)+(\d{6,})/',
+                    thumbnail, 'video id', default=None)
+
+        # Fallback #2. Extract from raw JSON string.
+        # May extract wrong video id if relatedClips is present.
+        if not video_id:
+            video_id = self._search_regex(
+                r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](\d{6,})',
+                webpage, 'video id')
 
         return self.url_result('mtg:%s' % video_id, TVPlayIE.ie_key())

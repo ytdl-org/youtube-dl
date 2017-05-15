@@ -4,7 +4,7 @@ from .cbs import CBSBaseIE
 
 
 class CBSSportsIE(CBSBaseIE):
-    _VALID_URL = r'https?://www\.cbssports\.com/video/player/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?cbssports\.com/video/player/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.cbssports.com/video/player/videos/708337219968/0/ben-simmons-the-next-lebron?-not-so-fast',

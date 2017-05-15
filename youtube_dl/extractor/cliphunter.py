@@ -30,7 +30,7 @@ class CliphunterIE(InfoExtractor):
             'id': '1012420',
             'ext': 'flv',
             'title': 'Fun Jynx Maze solo',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'age_limit': 18,
         },
         'skip': 'Video gone',
@@ -41,7 +41,7 @@ class CliphunterIE(InfoExtractor):
             'id': '2019449',
             'ext': 'mp4',
             'title': 'ShesNew - My booty girlfriend, Victoria Paradice\'s pussy filled with jizz',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'age_limit': 18,
         },
     }]

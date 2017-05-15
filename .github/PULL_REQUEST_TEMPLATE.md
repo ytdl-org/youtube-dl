@@ -10,8 +10,13 @@
 - [ ] At least skimmed through [adding new extractor tutorial](https://github.com/rg3/youtube-dl#adding-support-for-a-new-site) and [youtube-dl coding conventions](https://github.com/rg3/youtube-dl#youtube-dl-coding-conventions) sections
 - [ ] [Searched](https://github.com/rg3/youtube-dl/search?q=is%3Apr&type=Issues) the bugtracker for similar pull requests
 
+### In order to be accepted and merged into youtube-dl each piece of code must be in public domain or released under [Unlicense](http://unlicense.org/). Check one of the following options:
+- [ ] I am the original author of this code and I am willing to release it under [Unlicense](http://unlicense.org/)
+- [ ] I am not the original author of this code but it is in public domain or released under [Unlicense](http://unlicense.org/) (provide reliable evidence)
+
 ### What is the purpose of your *pull request*?
 - [ ] Bug fix
+- [ ] Improvement
 - [ ] New extractor
 - [ ] New feature
 

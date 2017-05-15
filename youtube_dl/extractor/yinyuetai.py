@@ -18,7 +18,7 @@ class YinYueTaiIE(InfoExtractor):
             'title': '少女时代_PARTY_Music Video Teaser',
             'creator': '少女时代',
             'duration': 25,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://v.yinyuetai.com/video/h5/2322376',

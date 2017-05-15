@@ -225,6 +225,8 @@ class BBCCoUkIE(InfoExtractor):
         }
     ]
 
+    _USP_RE = r'/([^/]+?)\.ism(?:\.hlsv2\.ism)?/[^/]+\.m3u8'
+
     class MediaSelectionError(Exception):
         def __init__(self, id):
             self.id = id
@@ -336,6 +338,15 @@ class BBCCoUkIE(InfoExtractor):
                         formats.extend(self._extract_m3u8_formats(
                             href, programme_id, ext='mp4', entry_protocol='m3u8_native',
                             m3u8_id=format_id, fatal=False))
+                        if re.search(self._USP_RE, href):
+                            usp_formats = self._extract_m3u8_formats(
+                                re.sub(self._USP_RE, r'/\1.ism/\1.m3u8', href),
+                                programme_id, ext='mp4', entry_protocol='m3u8_native',
+                                m3u8_id=format_id, fatal=False)
+                            for f in usp_formats:
+                                if f.get('height') and f['height'] > 720:
+                                    continue
+                                formats.append(f)
                     elif transfer_format == 'hds':
                         formats.extend(self._extract_f4m_formats(
                             href, programme_id, f4m_id=format_id, fatal=False))
@@ -350,7 +361,7 @@ class BBCCoUkIE(InfoExtractor):
                             fmt.update({
                                 'width': width,
                                 'height': height,
-                                'vbr': bitrate,
+                                'tbr': bitrate,
                                 'vcodec': encoding,
                             })
                         else:
@@ -359,7 +370,7 @@ class BBCCoUkIE(InfoExtractor):
                                 'acodec': encoding,
                                 'vcodec': 'none',
                             })
-                        if protocol == 'http':
+                        if protocol in ('http', 'https'):
                             # Direct link
                             fmt.update({
                                 'url': href,
@@ -378,6 +389,8 @@ class BBCCoUkIE(InfoExtractor):
                                 'rtmp_live': False,
                                 'ext': 'flv',
                             })
+                        else:
+                            continue
                         formats.append(fmt)
             elif kind == 'captions':
                 subtitles = self.extract_subtitles(media, programme_id)
@@ -396,7 +409,7 @@ class BBCCoUkIE(InfoExtractor):
                 description = smp_config['summary']
                 for item in smp_config['items']:
                     kind = item['kind']
-                    if kind != 'programme' and kind != 'radioProgramme':
+                    if kind not in ('programme', 'radioProgramme'):
                         continue
                     programme_id = item.get('vpid')
                     duration = int_or_none(item.get('duration'))
@@ -437,7 +450,7 @@ class BBCCoUkIE(InfoExtractor):
 
         for item in self._extract_items(playlist):
             kind = item.get('kind')
-            if kind != 'programme' and kind != 'radioProgramme':
+            if kind not in ('programme', 'radioProgramme'):
                 continue
             title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
             description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)
@@ -1028,7 +1041,7 @@ class BBCIE(BBCCoUkIE):
 
 
 class BBCCoUkArticleIE(InfoExtractor):
-    _VALID_URL = r'https?://www.bbc.co.uk/programmes/articles/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/programmes/articles/(?P<id>[a-zA-Z0-9]+)'
     IE_NAME = 'bbc.co.uk:article'
     IE_DESC = 'BBC articles'
 
