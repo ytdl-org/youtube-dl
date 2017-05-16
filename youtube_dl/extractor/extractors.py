@@ -368,6 +368,8 @@ from .francetv import (
     FranceTVInfoIE,
     GenerationQuoiIE,
     CultureboxIE,
+    FranceTVVideosIE,
+    LudoFrPlaylistIE,
 )
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE

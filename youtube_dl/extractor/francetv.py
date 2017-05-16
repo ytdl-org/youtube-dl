@@ -366,3 +366,74 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
             r'"http://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
 
         return self._extract_video(video_id, catalogue)
+
+
+# Common extractor for videos URL produced by playlists
+class FranceTVVideosIE(FranceTVBaseInfoExtractor):
+    _VALID_URL = r'https?://videos\.francetv\.fr/video/(?P<id>[^@]+)@(?P<catalog>[^/?#]+)'
+
+    _TEST = {
+        'url': 'http://videos.francetv.fr/video/NI_662195@Ludo',
+        'info_dict': {
+            'id': 'NI_662195@Ludo',
+            'ext': 'mp4',
+            'title': 'Pr\u00e9sentation de Flintlock',
+        },
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        return self._extract_video(mobj.group('id'), mobj.group('catalog'))
+
+
+class LudoFrPlaylistIE(FranceTVBaseInfoExtractor):
+    IE_NAME = 'ludo.fr'
+    _VALID_URL = r'https?://www\.ludo\.fr/heros/(?P<name>[^/?#]+)'
+
+    _TEST = {
+        'url': 'http://www.ludo.fr/heros/ninjago',
+        'info_dict': {
+            'title': IE_NAME + ':ninjago',
+            'entries': [
+                {
+                    "url": "http://videos.francetv.fr/video/NI_662201@Ludo",
+                    "id": "NI_662201@Ludo", "title": "Pr\u00e9sentation de Kay"
+                },
+                {
+                    "url": "http://videos.francetv.fr/video/NI_662195@Ludo",
+                    "id": "NI_662195@Ludo", "title": "Pr\u00e9sentation de Flintlock"
+                },
+                {
+                    "url": "http://videos.francetv.fr/video/NI_662199@Ludo",
+                    "id": "NI_662199@Ludo", "title": "Pr\u00e9sentation de Jay"
+                },
+                {
+                    "url": "http://videos.francetv.fr/video/NI_662193@Ludo",
+                    "id": "NI_662193@Ludo", "title": "Pr\u00e9sentation de Lloyd"
+                },
+                {
+                    "url": "http://videos.francetv.fr/video/NI_662187@Ludo",
+                    "id": "NI_662187@Ludo", "title": "Pr\u00e9sentation de Clancy"
+                },
+            ]
+        },
+        'playlist_mincount': 5,
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        name = mobj.group('name')
+        playlist = self._download_json(url + '/playlist', name)
+        entries = [
+            self.url_result('http://videos.francetv.fr/video/' + video_object['identity'],
+                            'FranceTVVideos',
+                            video_object['identity'],
+                            video_object['title'])
+            for video_object in playlist['items']
+        ]
+
+        return {
+            '_type': 'playlist',
+            'title': self.IE_NAME + ':' + name,
+            'entries': entries,
+        }
