@@ -492,6 +492,10 @@ def parseOpts(overrideArguments=None):
         '--playlist-random',
         action='store_true',
         help='Download playlist videos in random order')
+    selection.add_option(
+        '--playlist-skip',
+        action='store_true',
+        help='Skip over playlist items that fail to download.')
     downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',

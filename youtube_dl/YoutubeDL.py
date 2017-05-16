@@ -164,6 +164,7 @@ class YoutubeDL(object):
     playlist_items:    Specific indices of playlist to download.
     playlistreverse:   Download playlist items in reverse order.
     playlistrandom:    Download playlist items in random order.
+    playlistskip:      Skip over playlist items that fail to download.
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -957,9 +958,16 @@ class YoutubeDL(object):
                     self.to_screen('[download] ' + reason)
                     continue
 
-                entry_result = self.process_ie_result(entry,
-                                                      download=download,
-                                                      extra_info=extra)
+                try:
+                    entry_result = self.process_ie_result(entry,
+                                                          download=download,
+                                                          extra_info=extra)
+                except DownloadError:
+                    if self.params.get('playlistskip'):
+                        continue
+                    else:
+                        raise
+
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
             self.to_screen('[download] Finished downloading playlist: %s' % playlist)
