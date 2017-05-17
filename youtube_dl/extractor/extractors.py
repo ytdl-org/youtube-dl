@@ -295,6 +295,7 @@ from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .einthusan import EinthusanIE
 from .eitb import EitbIE
+from .asbook import AsBookIE
 from .ellentv import (
     EllenTVIE,
     EllenTVClipsIE,
