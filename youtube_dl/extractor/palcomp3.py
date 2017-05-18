@@ -3,12 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from ..compat import compat_etree_fromstring
 from ..utils import get_element_by_id, get_element_by_attribute
 from .common import InfoExtractor
 
-# TEMP FOR DEV
-from pprint import pprint as pp
 
 class PalcoMP3IE(InfoExtractor):
     IE_NAME = 'PalcoMP3:song'
@@ -41,15 +38,13 @@ class PalcoMP3IE(InfoExtractor):
             `_json_ld` function does not fit us."""
         return self._parse_json(json_ld, display_id, fatal=fatal)
 
-
     def _extract_common(self, url):
         artist_id = self._VALID_URL_RE.match(url).group('artist')
         webpage = self._download_webpage(url, artist_id)
-        print ("Webpage", type(webpage), len(webpage))
         self.webpage = webpage
 
         ld = self._get_ld_info(webpage, artist_id)
-        tracks = [ self._ld_track_process(track, ld) for track in ld['track'] ]
+        tracks = [self._ld_track_process(track, ld) for track in ld['track']]
 
         return tracks, ld, webpage
 
@@ -63,20 +58,14 @@ class PalcoMP3IE(InfoExtractor):
                 else:
                     return track
 
-
     def _get_ld_info(self, webpage, display_id):
-        # player = get_element_by_attribute('id', 'player', webpage, escape_value=False)
-        player = get_element_by_id('player', webpage)
-        pp(player)
-
+        player = get_element_by_id('player', webpage) or \
+            get_element_by_attribute('id', 'player', webpage, escape_value=False)
         ld = self._search_json_ld(player, display_id, expected_type="MusicGroup")
-        print("LD:")
-        pp(ld)
-
         return ld
 
-    def _ld_track_process(self, track, ld={'genre':None}):
-        tmin, tsec = re.findall("PT(\d+)M(\d+)S", track['duration'], re.IGNORECASE)[0]
+    def _ld_track_process(self, track, ld={'genre': None}):
+        tmin, tsec = re.findall(r"PT(\d+)M(\d+)S", track['duration'], re.IGNORECASE)[0]
 
         return {
             'id': track['@id'],
@@ -87,7 +76,7 @@ class PalcoMP3IE(InfoExtractor):
             'artist': track['byArtist']['name'],
             'thumbnail': track['byArtist']['image'],
             'display_id': track['url'].split('/')[-2],
-            'duration': int(tmin)*60 + int(tsec),
+            'duration': int(tmin) * 60 + int(tsec),
             'genre': ld['genre'],
         }
 
@@ -97,30 +86,30 @@ class PalcoMP3ArtistIE(PalcoMP3IE):
     _VALID_URL = r'https?://(?:www\.)?palcomp3\.com/(?P<artist>[^/]+)/?$'
     _TESTS = [
         {
-        'url': 'https://www.palcomp3.com/banda5cha/',
-        'info_dict': {
-            'id': 'banda5cha',
-            'title': '5Chá',
+            'url': 'https://www.palcomp3.com/banda5cha/',
+            'info_dict': {
+                'id': 'banda5cha',
+                'title': '5Chá',
             },
-        'playlist_count': 2,
+            'playlist_count': 2,
         },
         {
-        'url': 'https://www.palcomp3.com/kleijohnata/',
-        'info_dict': {
-            'id': 'kleijohnata',
-            'title': 'KLEIJOHNATA ',
+            'url': 'https://www.palcomp3.com/kleijohnata/',
+            'info_dict': {
+                'id': 'kleijohnata',
+                'title': 'KLEIJOHNATA ',
             },
-        'playlist_count': 4,
+            'playlist_count': 4,
         },
 
-        # Active famous artist; Very likely to change the playlist a lot
+        # Active famous artist; Very likely to change playlist_count.
         # {
-        # 'url': 'https://www.palcomp3.com/maiaraemaraisaoficial',
-        # 'info_dict': {
-        #     'id': 'maiaraemaraisaoficial',
-        #     'title': 'Maiara e Maraisa Oficial',
+        #     'url': 'https://www.palcomp3.com/maiaraemaraisaoficial',
+        #     'info_dict': {
+        #         'id': 'maiaraemaraisaoficial',
+        #         'title': 'Maiara e Maraisa Oficial',
         #     },
-        # 'playlist_count': '>8',
+        #     'playlist_count': 8,
         # },
     ]
 
@@ -134,35 +123,35 @@ class PalcoMP3VideoIE(PalcoMP3IE):
     _VALID_URL = r'https?://(?:www\.)?palcomp3\.com/(?P<artist>[^/]+)/(?P<id>[^/]+)/#clipe$'
     _TESTS = [
         {
-        'url': 'https://www.palcomp3.com/maiaraemaraisaoficial/maiara-e-maraisa-voce-faz-falta-aqui-ao-vivo-em-vicosa-mg/#clipe',
-        'add_ie': ['Youtube'],
-        'info_dict': {
-            'id': '_pD1nR2qqPg',
-            'ext': 'mp4',
-            'title': 'Maiara e Maraisa - Você Faz Falta Aqui - DVD Ao Vivo Em Campo Grande',
-            'description': 'md5:739d585d094212b999e507377daa21de',
-            'upload_date': '20161107',
-            'uploader_id': 'maiaramaraisaoficial',
-            'uploader': 'Maiara e Maraisa',
-        }},
+            'url': 'https://www.palcomp3.com/maiaraemaraisaoficial/maiara-e-maraisa-voce-faz-falta-aqui-ao-vivo-em-vicosa-mg/#clipe',
+            'add_ie': ['Youtube'],
+            'info_dict': {
+                'id': '_pD1nR2qqPg',
+                'ext': 'mp4',
+                'title': 'Maiara e Maraisa - Você Faz Falta Aqui - DVD Ao Vivo Em Campo Grande',
+                'description': 'md5:739d585d094212b999e507377daa21de',
+                'upload_date': '20161107',
+                'uploader_id': 'maiaramaraisaoficial',
+                'uploader': 'Maiara e Maraisa',
+            }
+        },
         {
-        'url': 'https://www.palcomp3.com/mckevinho/dog-vagabundo-mc-phe-cachorrera-part-mc-kevinho/#clipe',
-        'add_ie': ['Youtube'],
-        'info_dict': {
-            'id': 'iKVAfp6-o-Q',
-            'ext': 'mp4',
-            'title': 'MC Phe Cachorrera e MC Kevinho - Dog Vagabundo (Video Clipe) Jorgin Deejhay / HDUC ep.2',
-            'description': 'md5:728024b6905a9a321c8c16e1e1985e56',
-            'upload_date': '20170208',
-            'uploader': 'GR6 EXPLODE',
-            'uploader_id': 'gr6explode',
-        }},
+            'url': 'https://www.palcomp3.com/mckevinho/dog-vagabundo-mc-phe-cachorrera-part-mc-kevinho/#clipe',
+            'add_ie': ['Youtube'],
+            'info_dict': {
+                'id': 'iKVAfp6-o-Q',
+                'ext': 'mp4',
+                'title': 'MC Phe Cachorrera e MC Kevinho - Dog Vagabundo (Video Clipe) Jorgin Deejhay / HDUC ep.2',
+                'description': 'md5:728024b6905a9a321c8c16e1e1985e56',
+                'upload_date': '20170208',
+                'uploader': 'GR6 EXPLODE',
+                'uploader_id': 'gr6explode',
+            }
+        },
     ]
 
     def _real_extract(self, url):
         track, webpage = super(PalcoMP3VideoIE, self)._real_extract(url, with_webpage=True)
-        print "TRACK"
-        pp(track)
 
         video_re = r"""
             (?x)
@@ -173,14 +162,9 @@ class PalcoMP3VideoIE(PalcoMP3IE):
             <span>([^<]*?)</span></a></li>
             """.format(track['id'])
 
-        m  = re.search(video_re, webpage)
-
-        # from IPython import embed
-        # embed()
-
+        m = re.search(video_re, webpage)
         if not m:
             return None
-
         video_id = m.group('video_id')
 
         return {
