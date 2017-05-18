@@ -123,6 +123,12 @@ class JSInterpreter(object):
         m = re.match(
             r'(?P<var>%s)\.(?P<member>[^(]+)(?:\(+(?P<args>[^()]*)\))?$' % _NAME_RE,
             expr)
+
+        if not m:
+            m = re.match(
+                r'(?P<var>%s)\[\"(?P<member>[^(]+)\"\](?:\(+(?P<args>[^()]*)\))?$' % _NAME_RE,
+                expr)
+
         if m:
             variable = m.group('var')
             member = m.group('member')
@@ -214,13 +220,13 @@ class JSInterpreter(object):
         obj = {}
         obj_m = re.search(
             (r'(?<!this\.)%s\s*=\s*\{' % re.escape(objname)) +
-            r'\s*(?P<fields>([a-zA-Z$0-9]+\s*:\s*function\(.*?\)\s*\{.*?\}(?:,\s*)?)*)' +
+            r'\s*(?P<fields>\"?([a-zA-Z$0-9]+\"?\s*:\s*function\(.*?\)\s*\{.*?\}(?:,\s*)?)*)' +
             r'\}\s*;',
             self.code)
         fields = obj_m.group('fields')
         # Currently, it only supports function definitions
         fields_m = re.finditer(
-            r'(?P<key>[a-zA-Z$0-9]+)\s*:\s*function'
+            r'\"?(?P<key>[a-zA-Z$0-9]+)\"?\s*:\s*function'
             r'\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}',
             fields)
         for f in fields_m:
