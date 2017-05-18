@@ -97,14 +97,6 @@ class PalcoMP3ArtistIE(PalcoMP3IE):
     _VALID_URL = r'https?://(?:www\.)?palcomp3\.com/(?P<artist>[^/]+)/?$'
     _TESTS = [
         {
-        'url': 'https://www.palcomp3.com/maiaraemaraisaoficial',
-        'info_dict': {
-            'id': 'maiaraemaraisaoficial',
-            'title': 'Maiara e Maraisa Oficial',
-            },
-        'playlist_count': 8,
-        },
-        {
         'url': 'https://www.palcomp3.com/banda5cha/',
         'info_dict': {
             'id': 'banda5cha',
@@ -112,6 +104,24 @@ class PalcoMP3ArtistIE(PalcoMP3IE):
             },
         'playlist_count': 2,
         },
+        {
+        'url': 'https://www.palcomp3.com/kleijohnata/',
+        'info_dict': {
+            'id': 'kleijohnata',
+            'title': 'KLEIJOHNATA ',
+            },
+        'playlist_count': 4,
+        },
+
+        # Active famous artist; Very likely to change the playlist a lot
+        # {
+        # 'url': 'https://www.palcomp3.com/maiaraemaraisaoficial',
+        # 'info_dict': {
+        #     'id': 'maiaraemaraisaoficial',
+        #     'title': 'Maiara e Maraisa Oficial',
+        #     },
+        # 'playlist_count': '>8',
+        # },
     ]
 
     def _real_extract(self, url):
