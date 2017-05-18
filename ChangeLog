@@ -24,7 +24,7 @@ Core
 + [postprocessor/metadatafromtitle] Add support regular expression syntax for
   --metadata-from-title (#13065)
 
-Extractor
+Extractors
 + [mediaset] Add support for video.mediaset.it (#12708, #12964)
 * [orf:radio] Fix extraction (#11643, #12926)
 * [aljazeera] Extend URL regular expression (#13053)
