@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.05.18.1
 
 Core
 * [jsinterp] Fix typo and cleanup regular expressions (#13134)
