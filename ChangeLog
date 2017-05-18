@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.05.18
 
 Core
 + [jsinterp] Add support for quoted names and indexers (#13123, #13124, #13125,
