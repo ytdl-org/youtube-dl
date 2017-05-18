@@ -214,15 +214,18 @@ class JSInterpreter(object):
         _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
         obj = {}
         obj_m = re.search(
-            (r'(?<!this\.)%s\s*=\s*\{' % re.escape(objname)) +
-            r'\s*(?P<fields>(%s\s*:\s*function\(.*?\)\s*\{.*?\}(?:,\s*)?)*)' +
-            r'\}\s*;' % _FUNC_NAME_RE,
+            r'''(?x)
+                (?<!this\.)%s\s*=\s*{\s*
+                    (?P<fields>(%s\s*:\s*function\s*\(.*?\)\s*{.*?}(?:,\s*)?)*)
+                }\s*;
+            ''' % (re.escape(objname), _FUNC_NAME_RE),
             self.code)
         fields = obj_m.group('fields')
         # Currently, it only supports function definitions
         fields_m = re.finditer(
-            r'(?P<key>%s)\s*:\s*function'
-            r'\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}' % _FUNC_NAME_RE,
+            r'''(?x)
+                (?P<key>%s)\s*:\s*function\s*\((?P<args>[a-z,]+)\){(?P<code>[^}]+)}
+            ''' % _FUNC_NAME_RE,
             fields)
         for f in fields_m:
             argnames = f.group('args').split(',')
