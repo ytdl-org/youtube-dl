@@ -1458,11 +1458,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # manifest pointed by get_video_info's dashmpd).
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
+
+                # up-to-date sts value is required to properly decode the signature
+                sts = self._search_regex(r'"sts"\s*:\s*(\d+)', video_webpage, 'sts', default='')
                 self.report_video_info_webpage_download(video_id)
                 for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
                     video_info_url = (
-                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                        % (proto, video_id, el_type))
+                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&eurl=&gl=US&hl=en&sts=%s'
+                        % (proto, video_id, el_type, sts))
                     video_info_webpage = self._download_webpage(
                         video_info_url,
                         video_id, note=False,
