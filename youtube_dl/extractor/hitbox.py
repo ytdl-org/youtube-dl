@@ -16,8 +16,8 @@ from ..utils import (
 
 class HitboxIE(InfoExtractor):
     IE_NAME = 'hitbox'
-    _VALID_URL = r'https?://(?:www\.)?hitbox\.tv/video/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:hitbox|smashcast)\.tv/(?:[^/]+/)*videos?/(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://www.hitbox.tv/video/203213',
         'info_dict': {
             'id': '203213',
@@ -38,13 +38,15 @@ class HitboxIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'https://www.smashcast.tv/hitboxlive/videos/203213',
+        'only_matching': True,
+    }]
 
     def _extract_metadata(self, url, video_id):
         thumb_base = 'https://edge.sf.hitbox.tv'
         metadata = self._download_json(
-            '%s/%s' % (url, video_id), video_id,
-            'Downloading metadata JSON')
+            '%s/%s' % (url, video_id), video_id, 'Downloading metadata JSON')
 
         date = 'media_live_since'
         media_type = 'livestream'
@@ -63,14 +65,15 @@ class HitboxIE(InfoExtractor):
         views = int_or_none(video_meta.get('media_views'))
         timestamp = parse_iso8601(video_meta.get(date), ' ')
         categories = [video_meta.get('category_name')]
-        thumbs = [
-            {'url': thumb_base + video_meta.get('media_thumbnail'),
-             'width': 320,
-             'height': 180},
-            {'url': thumb_base + video_meta.get('media_thumbnail_large'),
-             'width': 768,
-             'height': 432},
-        ]
+        thumbs = [{
+            'url': thumb_base + video_meta.get('media_thumbnail'),
+            'width': 320,
+            'height': 180
+        }, {
+            'url': thumb_base + video_meta.get('media_thumbnail_large'),
+            'width': 768,
+            'height': 432
+        }]
 
         return {
             'id': video_id,
@@ -90,7 +93,7 @@ class HitboxIE(InfoExtractor):
         video_id = self._match_id(url)
 
         player_config = self._download_json(
-            'https://www.hitbox.tv/api/player/config/video/%s' % video_id,
+            'https://www.smashcast.tv/api/player/config/video/%s' % video_id,
             video_id, 'Downloading video JSON')
 
         formats = []
@@ -121,8 +124,7 @@ class HitboxIE(InfoExtractor):
         self._sort_formats(formats)
 
         metadata = self._extract_metadata(
-            'https://www.hitbox.tv/api/media/video',
-            video_id)
+            'https://www.smashcast.tv/api/media/video', video_id)
         metadata['formats'] = formats
 
         return metadata
@@ -130,8 +132,8 @@ class HitboxIE(InfoExtractor):
 
 class HitboxLiveIE(HitboxIE):
     IE_NAME = 'hitbox:live'
-    _VALID_URL = r'https?://(?:www\.)?hitbox\.tv/(?!video)(?P<id>.+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:hitbox|smashcast)\.tv/(?P<id>[^/?#&]+)'
+    _TESTS = [{
         'url': 'http://www.hitbox.tv/dimak',
         'info_dict': {
             'id': 'dimak',
@@ -146,13 +148,20 @@ class HitboxLiveIE(HitboxIE):
             # live
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'https://www.smashcast.tv/dimak',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if HitboxIE.suitable(url) else super(HitboxLiveIE, cls).suitable(url)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         player_config = self._download_json(
-            'https://www.hitbox.tv/api/player/config/live/%s' % video_id,
+            'https://www.smashcast.tv/api/player/config/live/%s' % video_id,
             video_id)
 
         formats = []
@@ -197,8 +206,7 @@ class HitboxLiveIE(HitboxIE):
         self._sort_formats(formats)
 
         metadata = self._extract_metadata(
-            'https://www.hitbox.tv/api/media/live',
-            video_id)
+            'https://www.smashcast.tv/api/media/live', video_id)
         metadata['formats'] = formats
         metadata['is_live'] = True
         metadata['title'] = self._live_title(metadata.get('title'))
