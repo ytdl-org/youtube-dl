@@ -899,6 +899,7 @@ from .skynewsarabia import (
 from .skysports import SkySportsIE
 from .slideshare import SlideshareIE
 from .slutload import SlutloadIE
+from .smashcast import SmashcastIE, SmashcastLiveIE
 from .smotri import (
     SmotriIE,
     SmotriCommunityIE,
