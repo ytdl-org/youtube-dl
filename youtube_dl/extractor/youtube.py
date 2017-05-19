@@ -1464,7 +1464,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 self.report_video_info_webpage_download(video_id)
                 for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
                     video_info_url = (
-                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&eurl=&gl=US&hl=en&sts=%s'
+                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en&sts=%s'
                         % (proto, video_id, el_type, sts))
                     video_info_webpage = self._download_webpage(
                         video_info_url,
