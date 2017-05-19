@@ -130,7 +130,7 @@ class SmashcastIE(InfoExtractor):
 
 class SmashcastLiveIE(SmashcastIE):
     IE_NAME = 'smashcast:live'
-    _VALID_URL = r'https?://(?:www\.)?smashcast\.tv/(?!video)(?P<id>.+)'
+    _VALID_URL = r'https?://(?:www\.)?smashcast\.tv/?P<id>[\w\d\-]+)/?$'
     _TEST = {
         'url': 'http://www.smashcast.tv/dimak',
         'info_dict': {
