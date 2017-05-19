@@ -1435,9 +1435,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             age_gate = False
             video_info = None
+            sts = ''
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
+                sts = ytplayer_config['sts']
                 args = ytplayer_config['args']
                 if args.get('url_encoded_fmt_stream_map'):
                     # Convert to the same format returned by compat_parse_qs
@@ -1460,7 +1462,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
 
                 # up-to-date sts value is required to properly decode the signature
-                sts = self._search_regex(r'"sts"\s*:\s*(\d+)', video_webpage, 'sts', default='')
                 self.report_video_info_webpage_download(video_id)
                 for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
                     video_info_url = (
