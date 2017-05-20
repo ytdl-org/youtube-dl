@@ -1439,7 +1439,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
-                sts = ytplayer_config['sts']
+                sts = ytplayer_config.get('sts', '')
                 args = ytplayer_config['args']
                 if args.get('url_encoded_fmt_stream_map'):
                     # Convert to the same format returned by compat_parse_qs
