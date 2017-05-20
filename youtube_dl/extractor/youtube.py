@@ -1435,6 +1435,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             age_gate = False
             video_info = None
+            sts = ''
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
@@ -1451,6 +1452,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
+                sts = ytplayer_config.get('sts', '')
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
@@ -1461,8 +1463,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 self.report_video_info_webpage_download(video_id)
                 for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
                     video_info_url = (
-                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                        % (proto, video_id, el_type))
+                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en&sts=%s'
+                        % (proto, video_id, el_type, sts))
                     video_info_webpage = self._download_webpage(
                         video_info_url,
                         video_id, note=False,
