@@ -36,6 +36,11 @@ MSO_INFO = {
         'username_field': 'Ecom_User_ID',
         'password_field': 'Ecom_Password',
     },
+    'Brighthouse': {
+        'name': 'Bright House Networks | Spectrum',
+        'username_field': 'j_username',
+        'password_field': 'j_password',
+    },
     'Charter_Direct': {
         'name': 'Charter Spectrum',
         'username_field': 'IDToken1',
