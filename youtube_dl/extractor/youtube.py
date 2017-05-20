@@ -1439,8 +1439,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
-                # up-to-date sts value is required to properly decode the signature, if the video has one
-                sts = ytplayer_config.get('sts', '')
                 args = ytplayer_config['args']
                 if args.get('url_encoded_fmt_stream_map'):
                     # Convert to the same format returned by compat_parse_qs
@@ -1454,6 +1452,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
+                sts = ytplayer_config.get('sts', '')
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
