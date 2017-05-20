@@ -1439,6 +1439,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
+                # up-to-date sts value is required to properly decode the signature, if the video has one
                 sts = ytplayer_config.get('sts', '')
                 args = ytplayer_config['args']
                 if args.get('url_encoded_fmt_stream_map'):
@@ -1461,7 +1462,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
 
-                # up-to-date sts value is required to properly decode the signature
                 self.report_video_info_webpage_download(video_id)
                 for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
                     video_info_url = (
