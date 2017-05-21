@@ -85,6 +85,14 @@ class StreamCZIE(InfoExtractor):
         else:
             title = data['name']
 
+        subtitles = {}
+        srt_url = data.get('subtitles_srt')
+        if srt_url:
+            subtitles['cs'] = [{
+                'ext': 'srt',
+                'url': srt_url,
+            }]
+
         return {
             'id': video_id,
             'title': title,
@@ -93,4 +101,5 @@ class StreamCZIE(InfoExtractor):
             'description': data.get('web_site_text'),
             'duration': int_or_none(data.get('duration')),
             'view_count': int_or_none(data.get('views')),
+            'subtitles': subtitles,
         }
