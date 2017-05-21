@@ -16,21 +16,29 @@ from ..utils import (
 
 
 class WDRBaseIE(InfoExtractor):
-    def _extract_wdr_video(self, webpage, display_id):
+    def _extract_wdr_jsonp_urls(self, webpage, display_id):
+        """ returns list of jsonp urls """
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
         # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
         # for wdrmaus, in a tag with the class "videoButton" (previously a link
         # to the page in a multiline "videoLink"-tag)
-        json_metadata = self._html_search_regex(
+        json_metadata = re.findall(
             r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
-            webpage, 'media link', default=None, flags=re.MULTILINE)
+            webpage, flags=re.MULTILINE)
 
         if not json_metadata:
             return
 
-        media_link_obj = self._parse_json(json_metadata, display_id,
-                                          transform_source=js_to_json)
-        jsonp_url = media_link_obj['mediaObj']['url']
+        urls = []
+        for json in json_metadata:
+            media_link_obj = self._parse_json(json, display_id,
+                                              transform_source=js_to_json)
+            urls.append(media_link_obj['mediaObj']['url'])
+
+        return urls
+
+    def _extract_wdr_video_from_jsonp_url(self, jsonp_url, display_id):
+        """ returns info dict """
 
         metadata = self._download_json(
             jsonp_url, display_id, transform_source=strip_jsonp)
@@ -199,9 +207,9 @@ class WDRIE(WDRBaseIE):
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
 
-        info_dict = self._extract_wdr_video(webpage, display_id)
+        jsonp_urls = self._extract_wdr_jsonp_urls(webpage, display_id)
 
-        if not info_dict:
+        if not jsonp_urls:
             entries = [
                 self.url_result(page_url + href[0], 'WDR')
                 for href in re.findall(
