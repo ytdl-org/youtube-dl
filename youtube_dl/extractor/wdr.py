@@ -103,34 +103,32 @@ class WDRIE(WDRBaseIE):
 
     _TESTS = [
         {
-            'url': 'http://www1.wdr.de/mediathek/video/sendungen/doku-am-freitag/video-geheimnis-aachener-dom-100.html',
-            # HDS download, MD5 is unstable
+            'url': 'http://www1.wdr.de/mediathek/video/sendungen/lokalzeit/video-lokalzeit-am-samstag-206.html',
             'info_dict': {
-                'id': 'mdb-1058683',
-                'ext': 'flv',
-                'display_id': 'doku-am-freitag/video-geheimnis-aachener-dom-100',
-                'title': 'Geheimnis Aachener Dom',
-                'alt_title': 'Doku am Freitag',
-                'upload_date': '20160304',
-                'description': 'md5:87be8ff14d8dfd7a7ee46f0299b52318',
+                'id': 'mdb-1378846',
+                'ext': 'mp4',
+                'display_id': 'lokalzeit/video-lokalzeit-am-samstag-206',
+                'title': 'Lokalzeit am Samstag',
+                'alt_title': 'Lokalzeit',
+                'upload_date': '20170520',
+                'description': 'md5:4a6785498658eabd870ada34dfd6580c',
                 'is_live': False,
                 'subtitles': {'de': [{
-                    'url': 'http://ondemand-ww.wdr.de/medp/fsk0/105/1058683/1058683_12220974.xml',
+                    'url': 'http://ondemand-ww.wdr.de/medp/fsk0/137/1378846/1378846_15999051.xml',
                     'ext': 'ttml',
                 }]},
             },
         },
         {
-            'url': 'http://www1.wdr.de/mediathek/audio/wdr3/wdr3-gespraech-am-samstag/audio-schriftstellerin-juli-zeh-100.html',
-            'md5': 'f4c1f96d01cf285240f53ea4309663d8',
+            'url': 'http://www1.wdr.de/mediathek/audio/wdr-aktuell/audio-in-duesseldorf-wollen-fdp-und-cdu-koalitionsverhandlungen-aufnehm-100.html',
             'info_dict': {
-                'id': 'mdb-1072000',
+                'id': 'mdb-1378415',
                 'ext': 'mp3',
-                'display_id': 'wdr3-gespraech-am-samstag/audio-schriftstellerin-juli-zeh-100',
-                'title': 'Schriftstellerin Juli Zeh',
-                'alt_title': 'WDR 3 Gespräch am Samstag',
-                'upload_date': '20160312',
-                'description': 'md5:e127d320bc2b1f149be697ce044a3dd7',
+                'display_id': 'audio-in-duesseldorf-wollen-fdp-und-cdu-koalitionsverhandlungen-aufnehm-100',
+                'title': u'In D\u00fcsseldorf wollen FDP und CDU Koalitionsverhandlungen aufnehm',
+                'alt_title': 'WDR Aktuell',
+                'upload_date': '20170519',
+                'description': 'md5:da9c9e242037b030fd3845b5e2e2068e',
                 'is_live': False,
                 'subtitles': {}
             },
