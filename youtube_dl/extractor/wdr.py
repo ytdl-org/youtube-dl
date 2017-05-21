@@ -105,9 +105,9 @@ class WDRBaseIE(InfoExtractor):
 
 
 class WDRIE(WDRBaseIE):
-    _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
+    _WDR_MAUS_REGEX = r'https?://(?:www\.)wdrmaus.de/(?P<display_id_maus>(?:[^/]+/){1,4}[^/?#]+)\.php5'
     _PAGE_REGEX = r'/(?:mediathek/)?[^/]+/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
-    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
+    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _WDR_MAUS_REGEX
 
     _TESTS = [
         {
@@ -188,6 +188,13 @@ class WDRIE(WDRBaseIE):
             },
         },
         {
+            'url': 'http://www.wdrmaus.de/extras/mausthemen/eisenbahn/index.php5',
+            'playlist_mincount': 8,
+            'info_dict': {
+                'id': 'extras/mausthemen/eisenbahn/index',
+            },
+        },
+        {
             'url': 'http://www1.wdr.de/radio/player/radioplayer116~_layout-popupVersion.html',
             # Live stream, MD5 unstable
             'info_dict': {
@@ -210,6 +217,7 @@ class WDRIE(WDRBaseIE):
         jsonp_urls = self._extract_wdr_jsonp_urls(webpage, display_id)
 
         if not jsonp_urls:
+            # WDR Mediathek playlist pages contain links to the single video pages:
             entries = [
                 self.url_result(page_url + href[0], 'WDR')
                 for href in re.findall(
@@ -221,6 +229,19 @@ class WDRIE(WDRBaseIE):
                 return self.playlist_result(entries, playlist_id=display_id)
 
             raise ExtractorError('No downloadable streams found', expected=True)
+
+        elif len(jsonp_urls) > 1:
+            # wdrmaus playlist pages directly contain the JSONP URLs:
+            display_id = mobj.group('display_id_maus')
+            entries = [
+                    self._extract_wdr_video_from_jsonp_url(jsonp_url, display_id)
+                    for jsonp_url in jsonp_urls
+            ]
+            return { '_type': 'playlist', 'entries': entries, 'id': display_id }
+
+        else:
+            # page with a single video
+            info_dict = self._extract_wdr_video_from_jsonp_url(jsonp_urls[0], display_id)
 
         is_live = url_type == 'live'
 
