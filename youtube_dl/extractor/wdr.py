@@ -128,15 +128,15 @@ class WDRIE(WDRBaseIE):
             },
         },
         {
-            'url': 'http://www1.wdr.de/mediathek/audio/wdr-aktuell/audio-in-duesseldorf-wollen-fdp-und-cdu-koalitionsverhandlungen-aufnehm-100.html',
+            'url': 'http://www1.wdr.de/mediathek/audio/wdr5/wdr5-erlebte-geschichten/audio-dieter-rams-designer-mr-braun-100.html',
             'info_dict': {
-                'id': 'mdb-1378415',
+                'id': 'mdb-1376845',
                 'ext': 'mp3',
-                'display_id': 'audio-in-duesseldorf-wollen-fdp-und-cdu-koalitionsverhandlungen-aufnehm-100',
-                'title': u'In D\u00fcsseldorf wollen FDP und CDU Koalitionsverhandlungen aufnehm',
-                'alt_title': 'WDR Aktuell',
-                'upload_date': '20170519',
-                'description': 'md5:da9c9e242037b030fd3845b5e2e2068e',
+                'display_id': 'wdr5-erlebte-geschichten/audio-dieter-rams-designer-mr-braun-100',
+                'title': 'Dieter Rams, Designer "Mr. Braun"',
+                'alt_title': 'WDR 5 Erlebte Geschichten',
+                'upload_date': '20170521',
+                'description': 'md5:0fd731f515ae4fb013b4323a4d7ea946',
                 'is_live': False,
                 'subtitles': {}
             },
