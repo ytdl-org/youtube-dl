@@ -1,3 +1,19 @@
+version <unreleased>
+
+Core
++ [downloader/external] Pass -loglevel to ffmpeg downloader (#13183)
++ [adobepass] Add support for Bright House Networks (#13149)
+
+Extractors
++ [streamcz] Add support for subtitles (#13174)
+* [youtube] Fix DASH manifest signature decryption (#8944, #13156)
+* [toggle] Relax URL regular expression (#13172)
+* [toypics] Fix extraction (#13077)
+* [njpwworld] Fix extraction (#13162, #13169)
++ [hitbox] Add support for smashcast.tv (#13154)
+* [mitele] Update app key regular expression (#13158)
+
+
 version 2017.05.18.1
 
 Core
