@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.05.23
 
 Core
 + [downloader/external] Pass -loglevel to ffmpeg downloader (#13183)

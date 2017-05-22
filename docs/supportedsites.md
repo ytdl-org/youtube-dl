@@ -803,7 +803,7 @@
  - **ToonGoggles**
  - **Tosh**: Tosh.0
  - **tou.tv**
- - **Toypics**: Toypics user profile
+ - **Toypics**: Toypics video
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
