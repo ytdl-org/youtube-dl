@@ -212,6 +212,11 @@ class FFmpegFD(ExternalFD):
 
         args = [ffpp.executable, '-y']
 
+        for log_level in ('quiet', 'verbose'):
+            if self.params.get(log_level, False):
+                args += ['-loglevel', log_level]
+                break
+
         seekable = info_dict.get('_seekable')
         if seekable is not None:
             # setting -seekable prevents ffmpeg from guessing if the server
