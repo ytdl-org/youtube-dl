@@ -8,10 +8,13 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     orderedSet,
+    bytes_to_intlist,
+    intlist_to_bytes,
 )
 
 from hashlib import md5
-from Crypto.Cipher import AES
+from ..aes import aes_ecb_encrypt
+
 from binascii import b2a_hex
 from ..compat import compat_ord, compat_chr
 
@@ -21,19 +24,14 @@ def md5hex(data):
     return md5(data).hexdigest().encode('utf-8')
 
 
-def hexaescrypt(data, key):
-    """ returns hex string of aes encrypted data """
-    c = AES.new(key, AES.MODE_ECB)
-    return b2a_hex(c.encrypt(data))
-
-
 def calcurlkey(songid, md5origin, mediaver=4, fmt=1):
     """ Calculate the deezer download url given the songid, origin and media+format """
     data = b'\xa4'.join(_.encode("utf-8") for _ in [md5origin, str(fmt), str(songid), str(mediaver)])
     data = b'\xa4'.join([md5hex(data), data]) + b'\xa4'
     if len(data) % 16:
         data += b'\x00' * (16 - len(data) % 16)
-    return hexaescrypt(data, "jo6aey6haid2Teih").decode('utf-8')
+    enc = aes_ecb_encrypt(bytes_to_intlist(data), bytes_to_intlist(b"jo6aey6haid2Teih"))
+    return b2a_hex(intlist_to_bytes(enc)).decode('utf-8')
 
 
 def calcblowfishkey(songid):
@@ -52,13 +50,6 @@ def getformat(song):
     return 1
 
 
-def check_for_blowfish():
-    try:
-        from Crypto.Cipher import Blowfish
-    except:
-        raise ExtractorError('DeezerDownloader needs pyCrypto installed.', expected=True)
-
-
 class DeezerPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?deezer\.com/\w+/(?P<id>[0-9]+)'
     _TEST = {
@@ -74,8 +65,6 @@ class DeezerPlaylistIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        check_for_blowfish()
-        
         if 'test' not in self._downloader.params:
             self._downloader.report_warning('For now, this extractor only supports the 30 second previews. Patches welcome!')
 
