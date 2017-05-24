@@ -52,6 +52,13 @@ def getformat(song):
     return 1
 
 
+def check_for_blowfish():
+    try:
+        from Crypto.Cipher import Blowfish
+    except:
+        raise ExtractorError('DeezerDownloader needs pyCrypto installed.', expected=True)
+
+
 class DeezerPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?deezer\.com/\w+/(?P<id>[0-9]+)'
     _TEST = {
@@ -67,6 +74,8 @@ class DeezerPlaylistIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        check_for_blowfish()
+        
         if 'test' not in self._downloader.params:
             self._downloader.report_warning('For now, this extractor only supports the 30 second previews. Patches welcome!')
 
