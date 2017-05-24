@@ -88,6 +88,25 @@ def aes_cbc_encrypt(data, key, iv):
     return encrypted_data
 
 
+def aes_ecb_encrypt(data, key):
+    """
+    Encrypt with aes in ECB mode.
+
+    @param {int[]} data        cleartext
+    @param {int[]} key         16/24/32-Byte cipher key
+    @returns {int[]}           encrypted data
+    """
+    expanded_key = key_expansion(key)
+    block_count = len(data) // BLOCK_SIZE_BYTES
+
+    encrypted_data = []
+    for i in range(block_count):
+        block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
+        encrypted_data += aes_encrypt(block, expanded_key)
+
+    return encrypted_data
+
+
 def key_expansion(data):
     """
     Generate key schedule
@@ -358,4 +377,4 @@ def inc(data):
     return data
 
 
-__all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text']
+__all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text', 'aes_ecb_encrypt']
