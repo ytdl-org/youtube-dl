@@ -7,6 +7,7 @@ from .http import HttpFD
 from .rtmp import RtmpFD
 from .dash import DashSegmentsFD
 from .rtsp import RtspFD
+from .deezer import DeezerDownloader
 from .ism import IsmFD
 from .external import (
     get_external_downloader,
@@ -23,6 +24,7 @@ PROTOCOL_MAP = {
     'm3u8': FFmpegFD,
     'mms': RtspFD,
     'rtsp': RtspFD,
+    'deezer': DeezerDownloader,
     'f4m': F4mFD,
     'http_dash_segments': DashSegmentsFD,
     'ism': IsmFD,
