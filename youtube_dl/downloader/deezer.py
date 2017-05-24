@@ -5,6 +5,7 @@ from .common import FileDownloader
 
 from ..utils import sanitized_Request
 
+
 def blowfishDecrypt(data, key):
     """ CBC decrypt data with key """
     c = Blowfish.new(key, Blowfish.MODE_CBC, binascii.a2b_hex("0001020304050607"))
@@ -23,7 +24,7 @@ def decryptfile(fh, key, fo):
         if not data:
             break
 
-        if (i % 3)==0 and len(data)==2048:
+        if (i % 3) == 0 and len(data) == 2048:
             data = blowfishDecrypt(data, key)
         fo.write(data)
         i += 1
@@ -37,4 +38,3 @@ class DeezerDownloader(FileDownloader):
 
         with open(filename, "wb") as fo:
             decryptfile(data, info_dict['key'], fo)
-
