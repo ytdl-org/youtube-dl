@@ -65,7 +65,7 @@ class CBSNewsIE(CBSIE):
 
         item = video_info['item'] if 'item' in video_info else video_info
         guid = item['mpxRefId']
-        return self._extract_video_info(guid)
+        return self._extract_video_info(guid, 'cbsnews')
 
 
 class CBSNewsLiveVideoIE(InfoExtractor):
