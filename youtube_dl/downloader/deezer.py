@@ -1,15 +1,8 @@
-from Crypto.Cipher import Blowfish
-import binascii
+from __future__ import unicode_literals
 
+from ..blowfish import blowfish_cbc_decrypt
 from .common import FileDownloader
-
 from ..utils import sanitized_Request
-
-
-def blowfishDecrypt(data, key):
-    """ CBC decrypt data with key """
-    c = Blowfish.new(key, Blowfish.MODE_CBC, binascii.a2b_hex("0001020304050607"))
-    return c.decrypt(data)
 
 
 def decryptfile(fh, key, fo):
@@ -25,7 +18,7 @@ def decryptfile(fh, key, fo):
             break
 
         if (i % 3) == 0 and len(data) == 2048:
-            data = blowfishDecrypt(data, key)
+            data = blowfish_cbc_decrypt(data, key, b"\x00\x01\x02\x03\x04\x05\x06\x07")
         fo.write(data)
         i += 1
 
