@@ -11,15 +11,15 @@ from ..utils import (
 )
 
 from hashlib import md5
-from Crypto.Cipher import AES, Blowfish
+from Crypto.Cipher import AES
 from binascii import b2a_hex
 from ..compat import compat_ord, compat_chr
 
-############
 
 def md5hex(data):
     """ return hex string of md5 of the given string """
     return md5(data).hexdigest().encode('utf-8')
+
 
 def hexaescrypt(data, key):
     """ returns hex string of aes encrypted data """
@@ -30,9 +30,9 @@ def hexaescrypt(data, key):
 def calcurlkey(songid, md5origin, mediaver=4, fmt=1):
     """ Calculate the deezer download url given the songid, origin and media+format """
     data = b'\xa4'.join(_.encode("utf-8") for _ in [md5origin, str(fmt), str(songid), str(mediaver)])
-    data = b'\xa4'.join([md5hex(data), data])+b'\xa4'
-    if len(data)%16:
-        data += b'\x00' * (16-len(data)%16)
+    data = b'\xa4'.join([md5hex(data), data]) + b'\xa4'
+    if len(data) % 16:
+        data += b'\x00' * (16 - len(data) % 16)
     return hexaescrypt(data, "jo6aey6haid2Teih").decode('utf-8')
 
 
@@ -40,7 +40,7 @@ def calcblowfishkey(songid):
     """ Calculate the Blowfish decrypt key for a given songid """
     h = md5hex(b"%d" % songid)
     key = b"g4el58wc0zvf9na1"
-    return "".join(compat_chr(compat_ord(h[i]) ^ compat_ord(h[i+16]) ^ compat_ord(key[i])) for i in range(16))
+    return "".join(compat_chr(compat_ord(h[i]) ^ compat_ord(h[i + 16]) ^ compat_ord(key[i])) for i in range(16))
 
 
 def getformat(song):
@@ -51,9 +51,6 @@ def getformat(song):
         return 5
     return 1
 
-
-
-############
 
 class DeezerPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?deezer\.com/\w+/(?P<id>[0-9]+)'
@@ -85,9 +82,7 @@ class DeezerPlaylistIE(InfoExtractor):
                 'Deezer said: %s' % geoblocking_msg, expected=True)
 
         host_stream_cdn = self._search_regex(
-                r'var HOST_STREAM_CDN = \'(.*?)\'', webpage, 'host stream cdn')
-        setting_domain_img = self._search_regex(
-                r'var SETTING_DOMAIN_IMG = \'(.*?)\'', webpage, 'setting domain img')
+            r'var HOST_STREAM_CDN = \'(.*?)\'', webpage, 'host stream cdn')
 
         data_json = self._search_regex(
             (r'__DZR_APP_STATE__\s*=\s*({.+?})\s*</script>',
@@ -97,11 +92,8 @@ class DeezerPlaylistIE(InfoExtractor):
 
         playlist_title = data.get('DATA', {}).get('TITLE')
         playlist_uploader = data.get('DATA', {}).get('PARENT_USERNAME')
-        #playlist_thumbnail = self._search_regex( r'<img id="naboo_playlist_image".*?src="([^"]+)"', webpage, 'playlist thumbnail')
+        # playlist_thumbnail = self._search_regex( r'<img id="naboo_playlist_image".*?src="([^"]+)"', webpage, 'playlist thumbnail')
 
-        preview_pattern = self._search_regex(
-            r"var SOUND_PREVIEW_GATEWAY\s*=\s*'([^']+)';", webpage,
-            'preview URL pattern', fatal=False)
         entries = []
 
         if 'SONGS' in data:
@@ -109,7 +101,7 @@ class DeezerPlaylistIE(InfoExtractor):
             songlist = data['SONGS']['data']
         elif 'MD5_ORIGIN' in data['DATA']:
             # track
-            songlist = [ data['DATA'] ]
+            songlist = [data['DATA']]
         elif "ALBUMS" in data:
             songlist = []
             for album in data["ALBUMS"]["data"]:
@@ -149,6 +141,6 @@ class DeezerPlaylistIE(InfoExtractor):
             'id': playlist_id,
             'title': playlist_title,
             'uploader': playlist_uploader,
-            #'thumbnail': playlist_thumbnail,
+            # 'thumbnail': playlist_thumbnail,
             'entries': entries,
         }
