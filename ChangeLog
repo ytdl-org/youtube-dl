@@ -1,3 +1,9 @@
+version <unreleased>
+
+Core
+* [postprocessor/ffmpeg] Fix metadata filename handling on Python 2 (#13182)
+
+
 version 2017.05.23
 
 Core
