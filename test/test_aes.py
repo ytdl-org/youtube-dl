@@ -43,9 +43,9 @@ class TestAES(unittest.TestCase):
             b"\x97\x92+\xe5\x0b\xc3\x18\x91ky9m&\xb3\xb5@\xe6'\xc2\x96.\xc8u\x88\xab9-[\x9e|\xf1\xcd")
 
     def test_ecb_encrypt(self):
-        key = a2b_hex("0123456789abcdeff0e1d2c3b4a59687")
-        data = a2b_hex("6b77b4d63006dee605b156e27403979358deb9e7154616d90123456789abcdef")
-        check = a2b_hex("1498ad525d546566da51197e5cd8c5487360057efbf565f10de06b58626aef28")
+        key = a2b_hex(b"0123456789abcdeff0e1d2c3b4a59687")
+        data = a2b_hex(b"6b77b4d63006dee605b156e27403979358deb9e7154616d90123456789abcdef")
+        check = a2b_hex(b"1498ad525d546566da51197e5cd8c5487360057efbf565f10de06b58626aef28")
 
         data = bytes_to_intlist(data)
         key = bytes_to_intlist(key)
