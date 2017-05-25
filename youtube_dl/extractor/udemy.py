@@ -52,6 +52,10 @@ class UdemyIE(InfoExtractor):
         # new URL schema
         'url': 'https://www.udemy.com/electric-bass-right-from-the-start/learn/v4/t/lecture/4580906',
         'only_matching': True,
+    }, {
+        # no url in outputs format entry
+        'url': 'https://www.udemy.com/learn-web-development-complete-step-by-step-guide-to-success/learn/v4/t/lecture/4125812',
+        'only_matching': True,
     }]
 
     def _extract_course_info(self, webpage, video_id):
@@ -219,7 +223,7 @@ class UdemyIE(InfoExtractor):
 
         def extract_output_format(src, f_id):
             return {
-                'url': src['url'],
+                'url': src.get('url'),
                 'format_id': '%sp' % (src.get('height') or f_id),
                 'width': int_or_none(src.get('width')),
                 'height': int_or_none(src.get('height')),
