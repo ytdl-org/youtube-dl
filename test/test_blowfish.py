@@ -71,10 +71,10 @@ class TestBlowfish(unittest.TestCase):
             self.assertEqual((l, r), outdata)
 
     def test_cbc1(self):
-        key = a2b_hex("0123456789abcdeff0e1d2c3b4a59687")
-        iv = a2b_hex("fedcba9876543210")
-        indata = a2b_hex("6b77b4d63006dee605b156e27403979358deb9e7154616d9")
-        check = a2b_hex("37363534333231204e6f77206973207468652074696d6520")
+        key = a2b_hex(b"0123456789abcdeff0e1d2c3b4a59687")
+        iv = a2b_hex(b"fedcba9876543210")
+        indata = a2b_hex(b"6b77b4d63006dee605b156e27403979358deb9e7154616d9")
+        check = a2b_hex(b"37363534333231204e6f77206973207468652074696d6520")
 
         outdata = blowfish_cbc_decrypt(indata, key, iv)
         self.assertEqual(outdata, check)
