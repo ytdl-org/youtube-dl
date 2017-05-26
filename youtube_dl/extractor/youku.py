@@ -10,7 +10,10 @@ import time
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    get_element_by_attribute,
+    get_element_by_class,
+    js_to_json,
+    strip_jsonp,
+    urljoin,
 )
 
 
@@ -160,49 +163,59 @@ class YoukuIE(InfoExtractor):
 
 
 class YoukuShowIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?youku\.com/show_page/id_(?P<id>[0-9a-z]+)\.html'
+    _VALID_URL = r'https?://list\.youku\.com/show/id_(?P<id>[0-9a-z]+)\.html'
     IE_NAME = 'youku:show'
 
     _TEST = {
-        'url': 'http://www.youku.com/show_page/id_zc7c670be07ff11e48b3f.html',
+        'url': 'http://list.youku.com/show/id_zc7c670be07ff11e48b3f.html',
         'info_dict': {
             'id': 'zc7c670be07ff11e48b3f',
             'title': '花千骨 未删减版',
-            'description': 'md5:578d4f2145ae3f9128d9d4d863312910',
+            'description': 'md5:a1ae6f5618571bbeb5c9821f9c81b558',
         },
         'playlist_count': 50,
     }
 
     _PAGE_SIZE = 40
 
-    def _find_videos_in_page(self, webpage):
-        videos = re.findall(
-            r'<li><a[^>]+href="(?P<url>https?://v\.youku\.com/[^"]+)"[^>]+title="(?P<title>[^"]+)"', webpage)
-        return [
-            self.url_result(video_url, YoukuIE.ie_key(), title)
-            for video_url, title in videos]
-
     def _real_extract(self, url):
         show_id = self._match_id(url)
         webpage = self._download_webpage(url, show_id)
 
-        entries = self._find_videos_in_page(webpage)
-
-        playlist_title = self._html_search_regex(
-            r'<span[^>]+class="name">([^<]+)</span>', webpage, 'playlist title', fatal=False)
-        detail_div = get_element_by_attribute('class', 'detail', webpage) or ''
-        playlist_description = self._html_search_regex(
-            r'<span[^>]+style="display:none"[^>]*>([^<]+)</span>',
-            detail_div, 'playlist description', fatal=False)
-
-        for idx in itertools.count(1):
-            episodes_page = self._download_webpage(
-                'http://www.youku.com/show_episode/id_%s.html' % show_id,
-                show_id, query={'divid': 'reload_%d' % (idx * self._PAGE_SIZE + 1)},
-                note='Downloading episodes page %d' % idx)
-            new_entries = self._find_videos_in_page(episodes_page)
+        entries = []
+        page_config = self._parse_json(self._search_regex(
+            r'var\s+PageConfig\s*=\s*({.+});', webpage, 'page config'),
+            show_id, transform_source=js_to_json)
+        for idx in itertools.count(0):
+            if idx == 0:
+                playlist_data_url = 'http://list.youku.com/show/module'
+                query = {'id': page_config['showid'], 'tab': 'point'}
+            else:
+                playlist_data_url = 'http://list.youku.com/show/point'
+                query = {
+                    'id': page_config['showid'],
+                    'stage': 'reload_%d' % (self._PAGE_SIZE * idx + 1),
+                }
+            query['callback'] = 'cb'
+            playlist_data = self._download_json(
+                playlist_data_url, show_id, query=query,
+                note='Downloading playlist data page %d' % (idx + 1),
+                transform_source=lambda s: js_to_json(strip_jsonp(s)))['html']
+            video_urls = re.findall(
+                r'<div[^>]+class="p-thumb"[^<]+<a[^>]+href="([^"]+)"',
+                playlist_data)
+            new_entries = [
+                self.url_result(urljoin(url, video_url), YoukuIE.ie_key())
+                for video_url in video_urls]
             entries.extend(new_entries)
             if len(new_entries) < self._PAGE_SIZE:
                 break
 
-        return self.playlist_result(entries, show_id, playlist_title, playlist_description)
+        desc = self._html_search_meta('description', webpage, fatal=False)
+        playlist_title = desc.split(',')[0] if desc else None
+        detail_li = get_element_by_class('p-intro', webpage)
+        playlist_description = get_element_by_class(
+            'intro-more', detail_li) if detail_li else None
+
+        return self.playlist_result(
+            entries, show_id, playlist_title, playlist_description)
