@@ -15,6 +15,7 @@ from ..utils import (
     intlist_to_bytes,
     srt_subtitles_timecode,
     strip_or_none,
+    urljoin,
 )
 
 
@@ -31,25 +32,28 @@ class ADNIE(InfoExtractor):
             'description': 'md5:2f7b5aa76edbc1a7a92cedcda8a528d5',
         }
     }
+    _BASE_URL = 'http://animedigitalnetwork.fr'
 
     def _get_subtitles(self, sub_path, video_id):
         if not sub_path:
             return None
 
         enc_subtitles = self._download_webpage(
-            'http://animedigitalnetwork.fr/' + sub_path,
-            video_id, fatal=False)
+            urljoin(self._BASE_URL, sub_path),
+            video_id, fatal=False, headers={
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:53.0) Gecko/20100101 Firefox/53.0',
+            })
         if not enc_subtitles:
             return None
 
         # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(base64.b64decode(enc_subtitles[24:])),
-            bytes_to_intlist(b'\nd\xaf\xd2J\xd0\xfc\xe1\xfc\xdf\xb61\xe8\xe1\xf0\xcc'),
+            bytes_to_intlist(b'\x1b\xe0\x29\x61\x38\x94\x24\x00\x12\xbd\xc5\x80\xac\xce\xbe\xb0'),
             bytes_to_intlist(base64.b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
-            dec_subtitles[:-compat_ord(dec_subtitles[-1])],
+            dec_subtitles[:-compat_ord(dec_subtitles[-1])].decode(),
             None, fatal=False)
         if not subtitles_json:
             return None
@@ -103,9 +107,16 @@ class ADNIE(InfoExtractor):
         metas = options.get('metas') or {}
         title = metas.get('title') or video_info['title']
         links = player_config.get('links') or {}
+        if not links:
+            links_url = player_config['linksurl']
+            links_data = self._download_json(urljoin(
+                self._BASE_URL, links_url), video_id)
+            links = links_data.get('links') or {}
 
         formats = []
         for format_id, qualities in links.items():
+            if not isinstance(qualities, dict):
+                continue
             for load_balancer_url in qualities.values():
                 load_balancer_data = self._download_json(
                     load_balancer_url, video_id, fatal=False) or {}
