@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import itertools
 import random
 import re
@@ -9,15 +8,9 @@ import string
 import time
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_ord,
-    compat_str,
-    compat_urllib_parse_urlencode,
-)
 from ..utils import (
     ExtractorError,
     get_element_by_attribute,
-    try_get,
 )
 
 
@@ -35,9 +28,9 @@ class YoukuIE(InfoExtractor):
         # MD5 is unstable
         'url': 'http://v.youku.com/v_show/id_XMTc1ODE5Njcy.html',
         'info_dict': {
-            'id': 'XMTc1ODE5Njcy_part1',
+            'id': 'XMTc1ODE5Njcy',
             'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
-            'ext': 'flv'
+            'ext': 'mp4',
         }
     }, {
         'url': 'http://player.youku.com/player.php/sid/XNDgyMDQ2NTQw/v.swf',
@@ -46,25 +39,24 @@ class YoukuIE(InfoExtractor):
         'url': 'http://v.youku.com/v_show/id_XODgxNjg1Mzk2_ev_1.html',
         'info_dict': {
             'id': 'XODgxNjg1Mzk2',
+            'ext': 'mp4',
             'title': '武媚娘传奇 85',
         },
-        'playlist_count': 11,
-        'skip': 'Available in China only',
     }, {
         'url': 'http://v.youku.com/v_show/id_XMTI1OTczNDM5Mg==.html',
         'info_dict': {
             'id': 'XMTI1OTczNDM5Mg',
+            'ext': 'mp4',
             'title': '花千骨 04',
         },
-        'playlist_count': 13,
     }, {
         'url': 'http://v.youku.com/v_show/id_XNjA1NzA2Njgw.html',
         'note': 'Video protected with password',
         'info_dict': {
             'id': 'XNjA1NzA2Njgw',
+            'ext': 'mp4',
             'title': '邢義田复旦讲座之想象中的胡人—从“左衽孔子”说起',
         },
-        'playlist_count': 19,
         'params': {
             'videopassword': '100600',
         },
@@ -73,129 +65,15 @@ class YoukuIE(InfoExtractor):
         'url': 'http://v.youku.com/v_show/id_XOTUxMzg4NDMy.html',
         'info_dict': {
             'id': 'XOTUxMzg4NDMy',
+            'ext': 'mp4',
             'title': '我的世界☆明月庄主☆车震猎杀☆杀人艺术Minecraft',
         },
-        'playlist_count': 6,
     }]
-
-    def construct_video_urls(self, data):
-        # get sid, token
-        def yk_t(s1, s2):
-            ls = list(range(256))
-            t = 0
-            for i in range(256):
-                t = (t + ls[i] + compat_ord(s1[i % len(s1)])) % 256
-                ls[i], ls[t] = ls[t], ls[i]
-            s = bytearray()
-            x, y = 0, 0
-            for i in range(len(s2)):
-                y = (y + 1) % 256
-                x = (x + ls[y]) % 256
-                ls[x], ls[y] = ls[y], ls[x]
-                s.append(compat_ord(s2[i]) ^ ls[(ls[x] + ls[y]) % 256])
-            return bytes(s)
-
-        sid, token = yk_t(
-            b'becaf9be', base64.b64decode(data['security']['encrypt_string'].encode('ascii'))
-        ).decode('ascii').split('_')
-
-        # get oip
-        oip = data['security']['ip']
-
-        fileid_dict = {}
-        for stream in data['stream']:
-            if stream.get('channel_type') == 'tail':
-                continue
-            format = stream.get('stream_type')
-            fileid = try_get(
-                stream, lambda x: x['segs'][0]['fileid'],
-                compat_str) or stream['stream_fileid']
-            fileid_dict[format] = fileid
-
-        def get_fileid(format, n):
-            number = hex(int(str(n), 10))[2:].upper()
-            if len(number) == 1:
-                number = '0' + number
-            streamfileids = fileid_dict[format]
-            fileid = streamfileids[0:8] + number + streamfileids[10:]
-            return fileid
-
-        # get ep
-        def generate_ep(format, n):
-            fileid = get_fileid(format, n)
-            ep_t = yk_t(
-                b'bf7e5f01',
-                ('%s_%s_%s' % (sid, fileid, token)).encode('ascii')
-            )
-            ep = base64.b64encode(ep_t).decode('ascii')
-            return ep
-
-        # generate video_urls
-        video_urls_dict = {}
-        for stream in data['stream']:
-            if stream.get('channel_type') == 'tail':
-                continue
-            format = stream.get('stream_type')
-            video_urls = []
-            for dt in stream['segs']:
-                n = str(stream['segs'].index(dt))
-                param = {
-                    'K': dt['key'],
-                    'hd': self.get_hd(format),
-                    'myp': 0,
-                    'ypp': 0,
-                    'ctype': 12,
-                    'ev': 1,
-                    'token': token,
-                    'oip': oip,
-                    'ep': generate_ep(format, n)
-                }
-                video_url = \
-                    'http://k.youku.com/player/getFlvPath/' + \
-                    'sid/' + sid + \
-                    '_00' + \
-                    '/st/' + self.parse_ext_l(format) + \
-                    '/fileid/' + get_fileid(format, n) + '?' + \
-                    compat_urllib_parse_urlencode(param)
-                video_urls.append(video_url)
-            video_urls_dict[format] = video_urls
-
-        return video_urls_dict
 
     @staticmethod
     def get_ysuid():
         return '%d%s' % (int(time.time()), ''.join([
             random.choice(string.ascii_letters) for i in range(3)]))
-
-    def get_hd(self, fm):
-        hd_id_dict = {
-            '3gp': '0',
-            '3gphd': '1',
-            'flv': '0',
-            'flvhd': '0',
-            'mp4': '1',
-            'mp4hd': '1',
-            'mp4hd2': '1',
-            'mp4hd3': '1',
-            'hd2': '2',
-            'hd3': '3',
-        }
-        return hd_id_dict[fm]
-
-    def parse_ext_l(self, fm):
-        ext_dict = {
-            '3gp': 'flv',
-            '3gphd': 'mp4',
-            'flv': 'flv',
-            'flvhd': 'flv',
-            'mp4': 'mp4',
-            'mp4hd': 'mp4',
-            'mp4hd2': 'flv',
-            'mp4hd3': 'flv',
-            'hd2': 'flv',
-            'hd3': 'flv',
-        }
-        return ext_dict[fm]
 
     def get_format_name(self, fm):
         _dict = {
@@ -210,32 +88,40 @@ class YoukuIE(InfoExtractor):
             'hd2': 'h2',
             'hd3': 'h1',
         }
-        return _dict[fm]
+        return _dict.get(fm)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         self._set_cookie('youku.com', '__ysuid', self.get_ysuid())
+        self._set_cookie('youku.com', 'xreferrer', 'http://www.youku.com')
 
-        def retrieve_data(req_url, note):
-            headers = {
-                'Referer': req_url,
-            }
-            headers.update(self.geo_verification_headers())
-            self._set_cookie('youku.com', 'xreferrer', 'http://www.youku.com')
-
-            raw_data = self._download_json(req_url, video_id, note=note, headers=headers)
-
-            return raw_data['data']
-
-        video_password = self._downloader.params.get('videopassword')
+        _, urlh = self._download_webpage_handle(
+            'https://log.mmstat.com/eg.js', video_id, 'Retrieving cna info')
+        # The etag header is '"foobar"'; let's remove the double quotes
+        cna = urlh.headers['etag'][1:-1]
 
         # request basic data
-        basic_data_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % video_id
-        if video_password:
-            basic_data_url += '&pwd=%s' % video_password
+        basic_data_params = {
+            'vid': video_id,
+            'ccode': '0401',
+            'client_ip': '192.168.1.1',
+            'utid': cna,
+            'client_ts': time.time() / 1000,
+        }
 
-        data = retrieve_data(basic_data_url, 'Downloading JSON metadata')
+        video_password = self._downloader.params.get('videopassword')
+        if video_password:
+            basic_data_params['password'] = video_password
+
+        headers = {
+            'Referer': url,
+        }
+        headers.update(self.geo_verification_headers())
+        data = self._download_json(
+            'https://ups.youku.com/ups/get.json', video_id,
+            'Downloading JSON metadata',
+            query=basic_data_params, headers=headers)['data']
 
         error = data.get('error')
         if error:
@@ -255,37 +141,21 @@ class YoukuIE(InfoExtractor):
         # get video title
         title = data['video']['title']
 
-        # generate video_urls_dict
-        video_urls_dict = self.construct_video_urls(data)
-
-        # construct info
-        entries = [{
-            'id': '%s_part%d' % (video_id, i + 1),
-            'title': title,
-            'formats': [],
-            # some formats are not available for all parts, we have to detect
-            # which one has all
-        } for i in range(max(len(v.get('segs')) for v in data['stream']))]
-        for stream in data['stream']:
-            if stream.get('channel_type') == 'tail':
-                continue
-            fm = stream.get('stream_type')
-            video_urls = video_urls_dict[fm]
-            for video_url, seg, entry in zip(video_urls, stream['segs'], entries):
-                entry['formats'].append({
-                    'url': video_url,
-                    'format_id': self.get_format_name(fm),
-                    'ext': self.parse_ext_l(fm),
-                    'filesize': int(seg['size']),
-                    'width': stream.get('width'),
-                    'height': stream.get('height'),
-                })
+        formats = [{
+            'url': stream['m3u8_url'],
+            'format_id': self.get_format_name(stream.get('stream_type')),
+            'ext': 'mp4',
+            'protocol': 'm3u8_native',
+            'filesize': int(stream.get('size')),
+            'width': stream.get('width'),
+            'height': stream.get('height'),
+        } for stream in data['stream'] if stream.get('channel_type') != 'tail']
+        self._sort_formats(formats)
 
         return {
-            '_type': 'multi_video',
             'id': video_id,
             'title': title,
-            'entries': entries,
+            'formats': formats,
         }
 
 
