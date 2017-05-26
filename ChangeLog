@@ -1,6 +1,7 @@
 version <unreleased>
 
 Core
++ [utils] strip_jsonp() can recognize more patterns
 * [postprocessor/ffmpeg] Fix metadata filename handling on Python 2 (#13182)
 
 Extractors
