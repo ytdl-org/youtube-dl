@@ -1019,11 +1019,6 @@ from .trilulilu import TriluliluIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
-from .tudou import (
-    TudouIE,
-    TudouPlaylistIE,
-    TudouAlbumIE,
-)
 from .tumblr import TumblrIE
 from .tunein import (
     TuneInClipIE,

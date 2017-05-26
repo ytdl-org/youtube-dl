@@ -22,7 +22,9 @@ class YoukuIE(InfoExtractor):
     IE_DESC = '优酷'
     _VALID_URL = r'''(?x)
         (?:
-            http://(?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|
+            https?://(
+                (?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|
+                video\.tudou\.com/v/)|
             youku:)
         (?P<id>[A-Za-z0-9]+)(?:\.html|/v\.swf|)
     '''
@@ -71,6 +73,16 @@ class YoukuIE(InfoExtractor):
             'ext': 'mp4',
             'title': '我的世界☆明月庄主☆车震猎杀☆杀人艺术Minecraft',
         },
+    }, {
+        'url': 'http://video.tudou.com/v/XMjIyNzAzMTQ4NA==.html?f=46177805',
+        'info_dict': {
+            'id': 'XMjIyNzAzMTQ4NA',
+            'ext': 'mp4',
+            'title': '卡马乔国足开大脚长传冲吊集锦',
+        },
+    }, {
+        'url': 'http://video.tudou.com/v/XMjE4ODI3OTg2MA==.html',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -107,7 +119,7 @@ class YoukuIE(InfoExtractor):
         # request basic data
         basic_data_params = {
             'vid': video_id,
-            'ccode': '0401',
+            'ccode': '0402' if 'tudou.com' in url else '0401',
             'client_ip': '192.168.1.1',
             'utid': cna,
             'client_ts': time.time() / 1000,
