@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from compat import compat_struct_unpack, compat_struct_pack
+from .compat import compat_struct_unpack, compat_struct_pack
 
 # Blowfish implementation, translated from original C code by Bruce Schneier.
 
