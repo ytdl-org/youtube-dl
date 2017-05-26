@@ -12,6 +12,7 @@ from ..utils import (
     ExtractorError,
     get_element_by_class,
     js_to_json,
+    str_or_none,
     strip_jsonp,
     urljoin,
 )
@@ -36,6 +37,12 @@ class YoukuIE(InfoExtractor):
             'id': 'XMTc1ODE5Njcy',
             'title': '★Smile﹗♡ Git Fresh -Booty Music舞蹈.',
             'ext': 'mp4',
+            'duration': 74.73,
+            'thumbnail': r're:^https?://.*',
+            'uploader': '。躲猫猫、',
+            'uploader_id': '36017967',
+            'uploader_url': 'http://i.youku.com/u/UMTQ0MDcxODY4',
+            'tags': list,
         }
     }, {
         'url': 'http://player.youku.com/player.php/sid/XNDgyMDQ2NTQw/v.swf',
@@ -46,6 +53,12 @@ class YoukuIE(InfoExtractor):
             'id': 'XODgxNjg1Mzk2',
             'ext': 'mp4',
             'title': '武媚娘传奇 85',
+            'duration': 1999.61,
+            'thumbnail': r're:^https?://.*',
+            'uploader': '疯狂豆花',
+            'uploader_id': '62583473',
+            'uploader_url': 'http://i.youku.com/u/UMjUwMzMzODky',
+            'tags': list,
         },
     }, {
         'url': 'http://v.youku.com/v_show/id_XMTI1OTczNDM5Mg==.html',
@@ -53,6 +66,12 @@ class YoukuIE(InfoExtractor):
             'id': 'XMTI1OTczNDM5Mg',
             'ext': 'mp4',
             'title': '花千骨 04',
+            'duration': 2363,
+            'thumbnail': r're:^https?://.*',
+            'uploader': '放剧场-花千骨',
+            'uploader_id': '772849359',
+            'uploader_url': 'http://i.youku.com/u/UMzA5MTM5NzQzNg==',
+            'tags': list,
         },
     }, {
         'url': 'http://v.youku.com/v_show/id_XNjA1NzA2Njgw.html',
@@ -61,6 +80,12 @@ class YoukuIE(InfoExtractor):
             'id': 'XNjA1NzA2Njgw',
             'ext': 'mp4',
             'title': '邢義田复旦讲座之想象中的胡人—从“左衽孔子”说起',
+            'duration': 7264.5,
+            'thumbnail': r're:^https?://.*',
+            'uploader': 'FoxJin1006',
+            'uploader_id': '322014285',
+            'uploader_url': 'http://i.youku.com/u/UMTI4ODA1NzE0MA==',
+            'tags': list,
         },
         'params': {
             'videopassword': '100600',
@@ -72,6 +97,12 @@ class YoukuIE(InfoExtractor):
             'id': 'XOTUxMzg4NDMy',
             'ext': 'mp4',
             'title': '我的世界☆明月庄主☆车震猎杀☆杀人艺术Minecraft',
+            'duration': 702.08,
+            'thumbnail': r're:^https?://.*',
+            'uploader': '明月庄主moon',
+            'uploader_id': '38465621',
+            'uploader_url': 'http://i.youku.com/u/UMTUzODYyNDg0',
+            'tags': list,
         },
     }, {
         'url': 'http://video.tudou.com/v/XMjIyNzAzMTQ4NA==.html?f=46177805',
@@ -79,6 +110,12 @@ class YoukuIE(InfoExtractor):
             'id': 'XMjIyNzAzMTQ4NA',
             'ext': 'mp4',
             'title': '卡马乔国足开大脚长传冲吊集锦',
+            'duration': 289,
+            'thumbnail': r're:^https?://.*',
+            'uploader': '阿卜杜拉之星',
+            'uploader_id': '2382249',
+            'uploader_url': 'http://i.youku.com/u/UOTUyODk5Ng==',
+            'tags': list,
         },
     }, {
         'url': 'http://video.tudou.com/v/XMjE4ODI3OTg2MA==.html',
@@ -154,7 +191,8 @@ class YoukuIE(InfoExtractor):
                 raise ExtractorError(msg)
 
         # get video title
-        title = data['video']['title']
+        video_data = data['video']
+        title = video_data['title']
 
         formats = [{
             'url': stream['m3u8_url'],
@@ -171,6 +209,12 @@ class YoukuIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'formats': formats,
+            'duration': video_data.get('seconds'),
+            'thumbnail': video_data.get('logo'),
+            'uploader': video_data.get('username'),
+            'uploader_id': str_or_none(video_data.get('userid')),
+            'uploader_url': data.get('uploader', {}).get('homepage'),
+            'tags': video_data.get('tags'),
         }
 
 

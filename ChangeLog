@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
++ [youku] Extract more metadata (#10433)
+
+
 version 2017.05.26
 
 Core
