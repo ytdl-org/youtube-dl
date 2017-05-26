@@ -6,9 +6,13 @@ Core
 
 Extractors
 + [youtube] DASH MPDs with cipher signatures are recognized now (#11381)
++ [bbc] Add support for authentication
 * [tudou] Merge into youku extractor (#12214)
 * [youku:show] Fix extraction
 * [youku] Fix extraction (#13191)
+* [udemy] Fix extraction for outputs' format entries without URL (#13192)
+* [vimeo] Fix formats' sorting (#13189)
+* [cbsnews] Fix extraction for 60 Minutes videos (#12861)
 
 
 version 2017.05.23
