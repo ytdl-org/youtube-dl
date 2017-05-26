@@ -810,9 +810,6 @@
  - **TruTV**
  - **Tube8**
  - **TubiTv**
- - **tudou**
- - **tudou:album**
- - **tudou:playlist**
  - **Tumblr**
  - **tunein:clip**
  - **tunein:program**
