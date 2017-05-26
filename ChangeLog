@@ -5,6 +5,7 @@ Core
 * [postprocessor/ffmpeg] Fix metadata filename handling on Python 2 (#13182)
 
 Extractors
++ [youtube] DASH MPDs with cipher signatures are recognized now (#11381)
 * [tudou] Merge into youku extractor (#12214)
 * [youku:show] Fix extraction
 * [youku] Fix extraction (#13191)
