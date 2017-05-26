@@ -1481,8 +1481,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if not video_info_webpage:
                         continue
                     get_video_info = compat_parse_qs(video_info_webpage)
-                    if get_video_info.get('use_cipher_signature') != ['True']:
-                        add_dash_mpd(get_video_info)
+                    add_dash_mpd(get_video_info)
                     if not video_info:
                         video_info = get_video_info
                     if 'token' in get_video_info:
