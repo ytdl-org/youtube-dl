@@ -61,11 +61,17 @@ class CBSNewsIE(CBSIE):
 
         video_info = self._parse_json(self._html_search_regex(
             r'(?:<ul class="media-list items" id="media-related-items"><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
-            webpage, 'video JSON info'), video_id)
+            webpage, 'video JSON info', default='{}'), video_id, fatal=False)
 
-        item = video_info['item'] if 'item' in video_info else video_info
-        guid = item['mpxRefId']
-        return self._extract_video_info(guid, 'cbsnews')
+        if video_info:
+            item = video_info['item'] if 'item' in video_info else video_info
+        else:
+            state = self._parse_json(self._search_regex(
+                r'data-cbsvideoui-options=(["\'])(?P<json>{.+?})\1', webpage,
+                'playlist JSON info', group='json'), video_id)['state']
+            item = state['playlist'][state['pid']]
+
+        return self._extract_video_info(item['mpxRefId'], 'cbsnews')
 
 
 class CBSNewsLiveVideoIE(InfoExtractor):
