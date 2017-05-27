@@ -6,7 +6,6 @@ from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     int_or_none,
-    js_to_json,
     unified_strdate,
 )
 
@@ -49,19 +48,12 @@ class GaskrankIE(InfoExtractor):
 
     def _real_extract(self, url):
         """extract information from gaskrank.tv"""
-        def fix_json(code):
-            """Removes trailing comma in json: {{},} --> {{}}"""
-            return re.sub(r',\s*}', r'}', js_to_json(code))
 
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         categories = [re.match(self._VALID_URL, url).group('categories')]
-        title = self._search_regex(
-            r'movieName\s*:\s*\'([^\']*)\'',
-            webpage, 'title')
-        thumbnail = self._search_regex(
-            r'poster\s*:\s*\'([^\']*)\'',
-            webpage, 'thumbnail', default=None)
+        title = self._og_search_title(webpage, default=None) or self._html_search_meta(
+            'title', webpage, fatal=True)
 
         mobj = re.search(
             r'Video von:\s*(?P<uploader_id>[^|]*?)\s*\|\s*vom:\s*(?P<upload_date>[0-9][0-9]\.[0-9][0-9]\.[0-9][0-9][0-9][0-9])',
@@ -89,29 +81,14 @@ class GaskrankIE(InfoExtractor):
         if average_rating:
             average_rating = float_or_none(average_rating.replace(',', '.'))
 
-        playlist = self._parse_json(
-            self._search_regex(
-                r'playlist\s*:\s*\[([^\]]*)\]',
-                webpage, 'playlist', default='{}'),
-            display_id, transform_source=fix_json, fatal=False)
-
         video_id = self._search_regex(
             r'https?://movies\.gaskrank\.tv/([^-]*?)(-[^\.]*)?\.mp4',
-            playlist.get('0').get('src'), 'video id')
+            webpage, 'video id')
 
-        formats = []
-        for key in playlist:
-            formats.append({
-                'url': playlist[key]['src'],
-                'format_id': key,
-                'quality': playlist[key].get('quality')})
-        self._sort_formats(formats, field_preference=['format_id'])
-
-        return {
+        entry = self._parse_html5_media_entries(url, webpage, video_id)[0]
+        entry.update({
             'id': video_id,
             'title': title,
-            'formats': formats,
-            'thumbnail': thumbnail,
             'categories': categories,
             'display_id': display_id,
             'uploader_id': uploader_id,
@@ -120,4 +97,7 @@ class GaskrankIE(InfoExtractor):
             'tags': tags,
             'view_count': view_count,
             'average_rating': average_rating,
-        }
+        })
+        self._sort_formats(entry['formats'])
+
+        return entry
