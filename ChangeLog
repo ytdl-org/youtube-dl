@@ -1,6 +1,8 @@
 version <unreleased>
 
 Extractors
+* [youtube] Fix DASH MPD extraction for videos with non-encrypted format URLs
+  (#13211)
 + [youku] Extract more metadata (#10433)
 
 
