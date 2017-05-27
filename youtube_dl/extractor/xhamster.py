@@ -104,7 +104,7 @@ class XHamsterIE(InfoExtractor):
             webpage, 'upload date', fatal=False))
 
         uploader = self._html_search_regex(
-            r'<span[^>]+itemprop=["\']author[^>]+><a[^>]+href=["\'].+?xhamster\.com/user/[^>]+>(?P<uploader>.+?)</a>',
+            r'<span[^>]+?itemprop=["\']author[^>]+?><a[^>]+?href=["\'][^>]+?><span[^>]+?itemprop=["\']name[^>]+?>(.+?)</span',
             webpage, 'uploader', default='anonymous')
 
         thumbnail = self._search_regex(
@@ -120,7 +120,7 @@ class XHamsterIE(InfoExtractor):
             r'content=["\']User(?:View|Play)s:(\d+)',
             webpage, 'view count', fatal=False))
 
-        mobj = re.search(r"hint='(?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes'", webpage)
+        mobj = re.search(r'hint=[\'"](?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes[\'"]', webpage)
         (like_count, dislike_count) = (mobj.group('likecount'), mobj.group('dislikecount')) if mobj else (None, None)
 
         mobj = re.search(r'</label>Comments \((?P<commentcount>\d+)\)</div>', webpage)
