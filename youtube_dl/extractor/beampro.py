@@ -15,6 +15,7 @@ from ..utils import (
 
 
 class BeamProBaseIE(InfoExtractor):
+    _API_BASE = 'https://mixer.com/api/v1'
     _RATINGS = {'family': 0, 'teen': 13, '18+': 18}
 
     def _extract_channel_info(self, chan):
@@ -28,10 +29,10 @@ class BeamProBaseIE(InfoExtractor):
 
 
 class BeamProLiveIE(BeamProBaseIE):
-    IE_NAME = 'Beam:live'
-    _VALID_URL = r'https?://(?:\w+\.)?beam\.pro/(?P<id>[^/?#&]+)'
+    IE_NAME = 'Mixer:live'
+    _VALID_URL = r'https?://(?:\w+\.)?(?:beam\.pro|mixer\.com)/(?P<id>[^/?#&]+)'
     _TEST = {
-        'url': 'http://www.beam.pro/niterhayven',
+        'url': 'http://mixer.com/niterhayven',
         'info_dict': {
             'id': '261562',
             'ext': 'mp4',
@@ -52,6 +53,8 @@ class BeamProLiveIE(BeamProBaseIE):
         },
     }
 
+    _MANIFEST_URL_TEMPLATE = '%s/channels/%%s/manifest.%%s' % BeamProBaseIE._API_BASE
+
     @classmethod
     def suitable(cls, url):
         return False if BeamProVodIE.suitable(url) else super(BeamProLiveIE, cls).suitable(url)
@@ -60,7 +63,7 @@ class BeamProLiveIE(BeamProBaseIE):
         channel_name = self._match_id(url)
 
         chan = self._download_json(
-            'https://beam.pro/api/v1/channels/%s' % channel_name, channel_name)
+            '%s/channels/%s' % (self._API_BASE, channel_name), channel_name)
 
         if chan.get('online') is False:
             raise ExtractorError(
@@ -68,16 +71,22 @@ class BeamProLiveIE(BeamProBaseIE):
 
         channel_id = chan['id']
 
+        def manifest_url(kind):
+            return self._MANIFEST_URL_TEMPLATE % (channel_id, kind)
+
         formats = self._extract_m3u8_formats(
-            'https://beam.pro/api/v1/channels/%s/manifest.m3u8' % channel_id,
-            channel_name, ext='mp4', m3u8_id='hls', fatal=False)
+            manifest_url('m3u8'), channel_name, ext='mp4', m3u8_id='hls',
+            fatal=False)
+        formats.extend(self._extract_smil_formats(
+            manifest_url('smil'), channel_name, fatal=False))
         self._sort_formats(formats)
 
         info = {
             'id': compat_str(chan.get('id') or channel_name),
             'title': self._live_title(chan.get('name') or channel_name),
             'description': clean_html(chan.get('description')),
-            'thumbnail': try_get(chan, lambda x: x['thumbnail']['url'], compat_str),
+            'thumbnail': try_get(
+                chan, lambda x: x['thumbnail']['url'], compat_str),
             'timestamp': parse_iso8601(chan.get('updatedAt')),
             'is_live': True,
             'view_count': int_or_none(chan.get('viewersTotal')),
@@ -89,10 +98,10 @@ class BeamProLiveIE(BeamProBaseIE):
 
 
 class BeamProVodIE(BeamProBaseIE):
-    IE_NAME = 'Beam:vod'
-    _VALID_URL = r'https?://(?:\w+\.)?beam\.pro/[^/?#&]+.*[?&]vod=(?P<id>\d+)'
+    IE_NAME = 'Mixer:vod'
+    _VALID_URL = r'https?://(?:\w+\.)?(?:beam\.pro|mixer\.com)/[^/?#&]+\?.*?\bvod=(?P<id>\d+)'
     _TEST = {
-        'url': 'https://beam.pro/willow8714?vod=2259830',
+        'url': 'https://mixer.com/willow8714?vod=2259830',
         'md5': 'b2431e6e8347dc92ebafb565d368b76b',
         'info_dict': {
             'id': '2259830',
@@ -107,23 +116,27 @@ class BeamProVodIE(BeamProBaseIE):
             'age_limit': 13,
             'view_count': int,
         },
+        'params': {
+            'skip_download': True,
+        },
     }
 
-    def _extract_format(self, vod, vod_type):
+    @staticmethod
+    def _extract_format(vod, vod_type):
         if not vod.get('baseUrl'):
             return []
 
         if vod_type == 'hls':
-            filename, protocol = 'manifest.m3u8', 'm3u8'
+            filename, protocol = 'manifest.m3u8', 'm3u8_native'
         elif vod_type == 'raw':
             filename, protocol = 'source.mp4', 'https'
         else:
-            return []
+            assert False
 
-        data = vod.get('data') or {}
+        data = vod.get('data') if isinstance(vod.get('data'), dict) else {}
 
         format_id = [vod_type]
-        if 'Height' in data:
+        if isinstance(data.get('Height'), compat_str):
             format_id.append('%sp' % data['Height'])
 
         return [{
@@ -141,12 +154,13 @@ class BeamProVodIE(BeamProBaseIE):
         vod_id = self._match_id(url)
 
         vod_info = self._download_json(
-            'https://beam.pro/api/v1/recordings/%s' % vod_id, vod_id)
+            '%s/recordings/%s' % (self._API_BASE, vod_id), vod_id)
 
         state = vod_info.get('state')
         if state != 'AVAILABLE':
             raise ExtractorError(
-                'VOD %s is not available (state: %s)' % (vod_id, state), expected=True)
+                'VOD %s is not available (state: %s)' % (vod_id, state),
+                expected=True)
 
         formats = []
         thumbnail_url = None
@@ -169,8 +183,6 @@ class BeamProVodIE(BeamProBaseIE):
             'view_count': int_or_none(vod_info.get('viewsTotal')),
             'formats': formats,
         }
-
-        chan = vod_info.get('channel') or {}
-        info.update(self._extract_channel_info(chan))
+        info.update(self._extract_channel_info(vod_info.get('channel') or {}))
 
         return info
