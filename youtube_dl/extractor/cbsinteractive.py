@@ -8,7 +8,7 @@ from ..utils import int_or_none
 
 
 class CBSInteractiveIE(CBSIE):
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>cnet|zdnet)\.com/(?:videos|video/share)/(?P<id>[^/?]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>cnet|zdnet)\.com/(?:videos|video(?:/share)?)/(?P<id>[^/?]+)'
     _TESTS = [{
         'url': 'http://www.cnet.com/videos/hands-on-with-microsofts-windows-8-1-update/',
         'info_dict': {
@@ -60,6 +60,9 @@ class CBSInteractiveIE(CBSIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.zdnet.com/video/huawei-matebook-x-video/',
+        'only_matching': True,
     }]
 
     MPX_ACCOUNTS = {
