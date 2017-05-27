@@ -699,6 +699,7 @@ from .npo import (
     HetKlokhuisIE,
     VPROIE,
     WNLIE,
+    TweeDocIE,
 )
 from .npr import NprIE
 from .nrk import (
