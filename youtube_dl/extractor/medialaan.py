@@ -94,7 +94,7 @@ class MedialaanIE(InfoExtractor):
             'title': 'K3 Dansstudio Ushuaia afl.6',
         },
         'params': {
-                'skip_download': True,
+            'skip_download': True,
         },
         'skip': 'Requires account credentials',
     }, {
