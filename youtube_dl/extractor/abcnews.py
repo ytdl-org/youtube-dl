@@ -13,10 +13,14 @@ from ..compat import compat_urlparse
 class AbcNewsVideoIE(AMPIE):
     IE_NAME = 'abcnews:video'
     _VALID_URL = r'''(?x)
-        https?://abcnews\.go\.com/
-            (?:[^/]+/video/(?P<display_id>[0-9a-z-]+)-|
-               video/embed\?id=)
-       (?P<id>\d+)'''
+                    https?://
+                        abcnews\.go\.com/
+                        (?:
+                            [^/]+/video/(?P<display_id>[0-9a-z-]+)-|
+                            video/embed\?.*?\bid=
+                        )
+                        (?P<id>\d+)
+                    '''
 
     _TESTS = [{
         'url': 'http://abcnews.go.com/ThisWeek/video/week-exclusive-irans-foreign-minister-zarif-20411932',
@@ -35,15 +39,7 @@ class AbcNewsVideoIE(AMPIE):
         },
     }, {
         'url': 'http://abcnews.go.com/video/embed?id=46979033',
-        'md5': 'd19d160cfa8372fc197f406d4821dd9f',
-        'info_dict': {
-            'id': '46979033',
-            'ext': 'flv',
-            'title': 'Nikki Haley reacts to French election results',
-            'description': 'md5:df1b5ad1b8ad76c4d4e01d3c67d6b38e',
-            'duration': 274,
-            'thumbnail': r're:^https?://.*\.jpg$',
-        },
+        'only_matching': True,
     }, {
         'url': 'http://abcnews.go.com/2020/video/2020-husband-stands-teacher-jail-student-affairs-26119478',
         'only_matching': True,
