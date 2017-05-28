@@ -16,8 +16,28 @@ from ..utils import (
 
 
 MSO_INFO = {
+    'ATT': {
+        'name': 'AT\&T U-Verse',
+        'username_field': 'userid',
+        'password_field': 'password',
+    },
+    'Charter_Direct': {
+        'name': 'Charter',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
+    'Comcast_SSO': {
+        'name': 'Comcast XFINITY',
+        'username_field': 'user',
+        'password_field': 'passwd',
+    },
     'DTV': {
         'name': 'DIRECTV',
+        'username_field': 'username',
+        'password_field': 'password',
+    },
+    'Dish': {
+        'name': 'Dish'
         'username_field': 'username',
         'password_field': 'password',
     },
@@ -26,10 +46,15 @@ MSO_INFO = {
         'username_field': 'UserName',
         'password_field': 'UserPassword',
     },
-    'Comcast_SSO': {
-        'name': 'Comcast XFINITY',
-        'username_field': 'user',
-        'password_field': 'passwd',
+    'TWC': {
+        'name': 'Time Warner Cable',
+        'username_field': 'Ecom_User_ID',
+        'password_field': 'Ecom_Password',
+    },
+    'verizon': {
+        'name': 'Verizon FiOS',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
     },
     'TWC': {
         'name': 'Time Warner Cable | Spectrum',
