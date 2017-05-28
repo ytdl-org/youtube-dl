@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import unicode_literals
 
 import re
@@ -10,6 +11,8 @@ from ..utils import (
     parse_duration,
     unified_strdate,
 )
+
+
 
 
 class XHamsterIE(InfoExtractor):
@@ -25,6 +28,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'Ruseful2011',
             'duration': 893,
             'age_limit': 18,
+            'tags': ['Amateur', 'MILFs', 'POV', 'Reality', 'Sexy', 'Office', 'Oral', 'Boss', 'Fake Hub']
         },
     }, {
         'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
@@ -36,6 +40,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'jojo747400',
             'duration': 200,
             'age_limit': 18,
+            'tags:': ['Britney Spears', 'Berühmtheiten', 'HD Videos', 'Sexy', 'Sexy Booty']
         },
         'params': {
             'skip_download': True,
@@ -51,6 +56,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'parejafree',
             'duration': 72,
             'age_limit': 18,
+            'tags': []
         },
         'params': {
             'skip_download': True,
@@ -94,6 +100,9 @@ class XHamsterIE(InfoExtractor):
              r'<meta[^>]+itemprop=".*?caption.*?"[^>]+content="(.+?)"',
              r'<title[^>]*>(.+?)(?:,\s*[^,]*?\s*Porn\s*[^,]*?:\s*xHamster[^<]*| - xHamster\.com)</title>'],
             webpage, 'title')
+
+        video_tags = re.findall(r'<meta itemprop="name" content="(.+?)"', webpage)[2:]
+
 
         # Only a few videos have an description
         mobj = re.search(r'<span>Description: </span>([^<]+)', webpage)
@@ -165,6 +174,7 @@ class XHamsterIE(InfoExtractor):
             'dislike_count': int_or_none(dislike_count),
             'comment_count': int_or_none(comment_count),
             'age_limit': age_limit,
+            'tags': video_tags,
             'formats': formats,
         }
 
