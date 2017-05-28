@@ -65,9 +65,6 @@ class DeezerPlaylistIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        if 'test' not in self._downloader.params:
-            self._downloader.report_warning('For now, this extractor only supports the 30 second previews. Patches welcome!')
-
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('id')
 
