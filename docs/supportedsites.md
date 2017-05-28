@@ -93,7 +93,6 @@
  - **bbc.co.uk:article**: BBC articles
  - **bbc.co.uk:iplayer:playlist**
  - **bbc.co.uk:playlist**
- - **Beam:live**
  - **Beatport**
  - **Beeg**
  - **BehindKink**
@@ -453,6 +452,8 @@
  - **mixcloud:playlist**
  - **mixcloud:stream**
  - **mixcloud:user**
+ - **Mixer:live**
+ - **Mixer:vod**
  - **MLB**
  - **Mnet**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
