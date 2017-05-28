@@ -3,7 +3,18 @@ version <unreleased>
 Extractors
 * [youtube] Fix DASH MPD extraction for videos with non-encrypted format URLs
   (#13211)
+* [xhamster] Fix uploader and like/dislike count extraction (#13216))
++ [xhamster] Extract categories (#11728)
++ [abcnews] Add support for embed URLs (#12851)
+* [gaskrank] Fix extraction (#12493)
+* [medialaan] Fix videos with missing videoUrl (#12774)
+* [dvtv] Fix playlist support
++ [dvtv] Add support for DASH and HLS formats (#3063)
++ [beam:vod] Add support for beam.pro/mixer.com VODs (#13032))
+* [cbsinteractive] Relax URL regular expression (#13213)
+* [adn] Fix formats extraction
 + [youku] Extract more metadata (#10433)
+* [cbsnews] Fix extraction (#13205)
 
 
 version 2017.05.26
