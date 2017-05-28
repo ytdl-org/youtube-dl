@@ -1,6 +1,6 @@
 {
-    "latest": "2017.05.26",
-    "signature": "122787dcd819d576bd00e84f5f5c69fa8079b277e2b452799e0c8dbffab0ef2a3a87fcd30859296e9d3d995f7bb1bc6e12ed1c7238ac510ffe5f88276d57e58e27b5e276c25aff254f55ffb46426f36cb724df068aad36039476f6a9e72b948d5dbb7cdbf75700fd91ef19a4102c49cd6615099a6ecca66eafba93e9d2e54e75",
+    "latest": "2017.05.29",
+    "signature": "63ddacbbbfa7fccd04f3dc2a3713223aea7dbabfdc88cbd46b28ae16a0ad8fb14d6ca53f3559db609b56ea9d8a87207c8306ade59d605cfb58a2e747deb940d34ad7c5c9a798b6cd6f20afdd34af5a907b09a2a79fcb2b0c283ae821d289abc36ce586314a9dc15c069501c76d930a8cd769f93cfb6c23003247d53fcb9af922",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -10954,6 +10954,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2017.05.26/youtube-dl-2017.05.26.tar.gz",
                 "811e7dcf3aea5f27aa5ad854285fbae519ff537541a440c52a872045ae36fcf2"
+            ]
+        },
+        "2017.05.29": {
+            "bin": [
+                "https://yt-dl.org/downloads/2017.05.29/youtube-dl",
+                "65dd36dbbbe19fd2a86f4152d4e129d0b931f44d1be4f8ccc16fcd4e47be5226"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2017.05.29/youtube-dl.exe",
+                "7faf6bc95683c2004ab9be91b822bae18043f21fc96535af523fcc2932bd9730"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2017.05.29/youtube-dl-2017.05.29.tar.gz",
+                "3da77e06c4e01d5cffb953c867c391af1655dc5e782e6c764ca3730e0904f087"
             ]
         }
     }
