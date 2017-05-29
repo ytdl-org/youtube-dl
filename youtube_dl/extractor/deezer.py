@@ -36,7 +36,7 @@ def calcurlkey(songid, md5origin, mediaver=4, fmt=1):
 
 def calcblowfishkey(songid):
     """ Calculate the Blowfish decrypt key for a given songid """
-    h = md5hex(b"%d" % songid)
+    h = md5hex(str(songid).encode('ascii'))
     key = b"g4el58wc0zvf9na1"
     return "".join(compat_chr(compat_ord(h[i]) ^ compat_ord(h[i + 16]) ^ compat_ord(key[i])) for i in range(16))
 
@@ -178,6 +178,10 @@ class DeezerPlaylistIE(InfoExtractor):
                 'id': s['SNG_ID'],
                 'duration': int_or_none(s.get('DURATION')),
                 'title': '%s - %s' % (artists, s['SNG_TITLE']),
+                'artist': s['ART_NAME'],
+                'track': s['SNG_TITLE'],
+                'album': s['ALB_TITLE'],
+                'track_number': s['TRACK_NUMBER'],
                 'uploader': s['ART_NAME'],
                 'uploader_id': s['ART_ID'],
                 'age_limit': 16 if convert_to_int(s.get('EXPLICIT_LYRICS')) else 0,
