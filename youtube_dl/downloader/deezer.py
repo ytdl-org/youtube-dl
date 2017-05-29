@@ -45,7 +45,7 @@ def writeid3v2(fo, info_dict, ydl):
         maketag(b"TALB", makeutf8(info_dict["album"])),     # tern NUL ?
     ]
     try:
-        fh = ydl.urlopen(url)
+        fh = ydl.urlopen(info_dict["thumbnail"])
         id3.append(maketag(b"APIC", makepic(fh.read())))
     except Exception as e:
         pass
