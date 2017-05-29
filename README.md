@@ -474,7 +474,10 @@ machine twitch login my_twitch_account_name password my_twitch_password
 ```
 To activate authentication with the `.netrc` file you should pass `--netrc` to youtube-dl or place it in the [configuration file](#configuration).
 
-On Windows you may also need to setup the `%HOME%` environment variable manually.
+On Windows you may also need to setup the `%HOME%` environment variable manually. For example:
+```
+set HOME=%USERPROFILE%
+```
 
 # OUTPUT TEMPLATE
 
