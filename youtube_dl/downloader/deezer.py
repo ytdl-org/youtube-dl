@@ -106,4 +106,3 @@ class DeezerDownloader(FileDownloader):
         finally:
             if realfilename != '-':
                 stream.close()
-
