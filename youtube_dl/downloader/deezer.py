@@ -2,8 +2,64 @@ from __future__ import unicode_literals
 
 from ..blowfish import blowfish_cbc_decrypt
 from .common import FileDownloader
-from ..utils import sanitized_Request
+from ..utils import sanitized_Request, sanitize_open
+from ..compat import compat_struct_pack
 import time
+
+
+def writeid3v1(fo, info_dict):
+    data = compat_struct_pack("3s" "30s" "30s" "30s" "4s" "28s" "BB" "B",
+                              b"TAG",
+                              info_dict["track"].encode('utf-8'),
+                              info_dict["artist"].encode('utf-8'),
+                              info_dict["album"].encode('utf-8'),
+                              b"",   # year
+                              b"",   # comment
+                              0, int(info_dict["track_number"] or 0),  # tracknum
+                              255)    # genre
+    fo.write(data)
+
+
+def writeid3v2(fo, info_dict, ydl):
+    def make28bit(x):
+        return ((x << 3) & 0x7F000000) | ((x << 2) & 0x7F0000) | ((x << 1) & 0x7F00) | (x & 127)
+
+    def maketag(tag, content):
+        return compat_struct_pack(">4sLH", tag, len(content), 0) + content
+
+    def makeutf8(txt):
+        return b"\x03" + (txt.encode('utf-8'))
+
+    def makepic(data):
+        imgframe = (b"\x00",          # text encoding
+                    b"image/jpeg\x00",     # mime type
+                    b"\x00",               # picture type: 'other'
+                    b"\x00",               # description
+                    data)
+        return b''.join(imgframe)
+
+    id3 = [
+        maketag(b"TRCK", makeutf8("%02s" % str(info_dict["track_number"]))),  # decimal, no term NUL
+        maketag(b"TIT2", makeutf8(info_dict["track"])),     # tern NUL ?
+        maketag(b"TPE1", makeutf8(info_dict["artist"])),    # tern NUL ?
+        maketag(b"TALB", makeutf8(info_dict["album"])),     # tern NUL ?
+    ]
+    try:
+        fh = ydl.urlopen(url)
+        id3.append(maketag(b"APIC", makepic(fh.read())))
+    except Exception as e:
+        pass
+
+    id3data = b"".join(id3)
+
+    hdr = compat_struct_pack(">3s" "H" "B" "L",
+                             b"ID3",
+                             0x400,   # version
+                             0x00,    # flags
+                             make28bit(len(id3data)))
+
+    fo.write(hdr)
+    fo.write(id3data)
 
 
 def decryptfile(fh, key, fo, progress, data_len):
@@ -42,5 +98,12 @@ class DeezerDownloader(FileDownloader):
         request = sanitized_Request(url, None, {})
         data = self.ydl.urlopen(request)
 
-        with open(filename, "wb") as fo:
-            decryptfile(data, info_dict['key'], fo, self, int(data.info().get('Content-length', 0)))
+        stream, realfilename = sanitize_open(filename, "wb")
+        try:
+            writeid3v2(stream, info_dict, self.ydl)
+            decryptfile(data, info_dict['key'], stream, self, int(data.info().get('Content-length', 0)))
+            writeid3v1(stream, info_dict)
+        finally:
+            if realfilename != '-':
+                stream.close()
+
