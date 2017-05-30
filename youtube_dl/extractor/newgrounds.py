@@ -13,6 +13,8 @@ class NewgroundsIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'B7 - BusMode',
             'uploader': 'Burn7',
+            'upload_date': '20130911',
+            'duration': 143
         }
     }, {
         'url': 'https://www.newgrounds.com/portal/view/673111',
@@ -37,10 +39,35 @@ class NewgroundsIE(InfoExtractor):
 
         music_url = self._parse_json(self._search_regex(
             r'"url":("[^"]+"),', webpage, ''), media_id)
-
-        return {
+        
+        match = re.search(
+            (r'"sidestats">\s*<dt>Uploaded</dt>\s*<dd>(.+?)<dd>\s'
+             r'<dt.*?<dd>([a-z0-9 ]+)</dd>\s<dt>Score'), webpage)
+        
+        ret_data = {
             'id': media_id,
             'title': title,
             'url': music_url,
             'uploader': uploader,
         }
+        
+        if match is not None:
+            uploaded_at, length = match.groups()
+
+            date = datetime.datetime.strptime(uploaded_at, "%b %m, %Y | %I:%M %p %Z")
+
+            ret_data["upload_date"] = date.strftime("%Y%m%d")
+            
+            fmt = "%H hrs %M min %S sec"
+
+            duration = None
+
+            while duration is None:
+                try:
+                    duration = datetime.datetime.strptime(length, fmt)
+                except ValueError:
+                    fmt = fmt[7:]
+            
+            ret_data["duration"] = duration
+
+        return ret_data
