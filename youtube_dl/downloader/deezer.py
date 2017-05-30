@@ -16,7 +16,7 @@ def writeid3v1(fo, info_dict):
                               b"",   # year
                               b"",   # comment
                               0, int(info_dict["track_number"] or 0),  # tracknum
-                              255)    # genre
+                              255)   # genre
     fo.write(data)
 
 
@@ -62,7 +62,7 @@ def writeid3v2(fo, info_dict, ydl):
     fo.write(id3data)
 
 
-def decryptfile(fh, key, fo, progress, data_len):
+def decryptfile(fh, key, fo, progressupdate):
     """
     Decrypt data from file <fh>, and write to file <fo>.
     decrypt using blowfish with <key>.
@@ -70,7 +70,6 @@ def decryptfile(fh, key, fo, progress, data_len):
     """
     i = 0
     byte_counter = 0
-    tstart = time.time()
     while True:
         data = fh.read(2048)
         if not data:
@@ -83,13 +82,8 @@ def decryptfile(fh, key, fo, progress, data_len):
 
         byte_counter += len(data)
 
-        progress._hook_progress({
-            'status': 'downloading',
-            'downloaded_bytes': byte_counter,
-            'total_bytes': data_len,
-            'eta': progress.calc_eta(tstart, time.time(), data_len, byte_counter),
-            'speed': progress.calc_speed(tstart, time.time(), byte_counter),
-        })
+        if (i % 16) == 0:
+            progressupdate(byte_counter)
 
 
 class DeezerDownloader(FileDownloader):
@@ -98,11 +92,33 @@ class DeezerDownloader(FileDownloader):
         request = sanitized_Request(url, None, {})
         data = self.ydl.urlopen(request)
 
+        tstart = time.time()
+        data_len = int(data.info().get('Content-length', 0))
+
+        def progressupdate(byte_counter):
+            self._hook_progress({
+                'filename': filename,
+                'status': 'downloading',
+                'downloaded_bytes': byte_counter,
+                'total_bytes': data_len,
+                'eta': self.calc_eta(tstart, time.time(), data_len, byte_counter),
+                'speed': self.calc_speed(tstart, time.time(), byte_counter),
+            })
+
+        def progressfinished():
+            self._hook_progress({
+                'filename': filename,
+                'status': 'finished',
+                'downloaded_bytes': data_len,
+                'total_bytes': data_len,
+            })
+
         stream, realfilename = sanitize_open(filename, "wb")
         try:
             writeid3v2(stream, info_dict, self.ydl)
-            decryptfile(data, info_dict['key'], stream, self, int(data.info().get('Content-length', 0)))
+            decryptfile(data, info_dict['key'], stream, progressupdate)
             writeid3v1(stream, info_dict)
+            progressfinished()
         finally:
             if realfilename != '-':
                 stream.close()
