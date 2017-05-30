@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
+import re
 
 class NewgroundsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?newgrounds\.com/(?:audio/listen|portal/view)/(?P<id>[0-9]+)'
