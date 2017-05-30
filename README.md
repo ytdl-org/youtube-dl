@@ -652,7 +652,7 @@ Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begin
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
  - `container`: Name of the container format
- - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `m3u8`, or `m3u8_native`)
+ - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `http_dash_segments`, `m3u8`, or `m3u8_native`)
  - `format_id`: A short description of the format
 
 Note that none of the aforementioned meta fields are guaranteed to be present since this solely depends on the metadata obtained by particular extractor, i.e. the metadata offered by the video hoster.
