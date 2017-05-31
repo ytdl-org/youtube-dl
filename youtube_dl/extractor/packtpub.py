@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
@@ -14,7 +15,6 @@ from ..utils import (
     strip_or_none,
     unified_timestamp,
     urljoin,
-    urlencode_postdata,
 )
 
 
@@ -45,22 +45,15 @@ class PacktPubIE(PacktPubBaseIE):
         (username, password) = self._get_login_info()
         if username is None:
             return
-        webpage = self._download_webpage(self._PACKT_BASE, None)
-        login_form = self._form_hidden_inputs(
-            'packt-user-login-form', webpage)
-        login_form.update({
-            'email': username,
-            'password': password,
-        })
-        self._download_webpage(
-            self._PACKT_BASE, None, 'Logging in as %s' % username,
-            data=urlencode_postdata(login_form))
         try:
             self._TOKEN = self._download_json(
-                '%s/users/tokens/sessions' % self._MAPT_REST, None,
-                'Downloading Authorization Token')['data']['token']
+                self._MAPT_REST + '/users/tokens', None,
+                'Downloading Authorization Token', data=json.dumps({
+                    'email': username,
+                    'password': password,
+                }).encode())['data']['access']
         except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (401, 404):
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (400, 401, 404):
                 message = self._parse_json(e.cause.read().decode(), None)['message']
                 raise ExtractorError(message, expected=True)
             raise
@@ -83,7 +76,7 @@ class PacktPubIE(PacktPubBaseIE):
 
         headers = {}
         if self._TOKEN:
-            headers['Authorization'] = self._TOKEN
+            headers['Authorization'] = 'Bearer ' + self._TOKEN
         video = self._download_json(
             '%s/users/me/products/%s/chapters/%s/sections/%s'
             % (self._MAPT_REST, course_id, chapter_id, video_id), video_id,
