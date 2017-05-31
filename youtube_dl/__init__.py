@@ -123,7 +123,13 @@ def _real_main(argv=None):
         table = [[mso_id, mso_info['name']] for mso_id, mso_info in MSO_INFO.items()]
         write_string('Supported TV Providers:\n' + render_table(['mso', 'mso name'], table) + '\n', out=sys.stdout)
         sys.exit(0)
-
+        
+    if opts.read_file:
+        if os.path.isfile(opts.read_file):
+            all_urls = [line.rstrip('\n') for line in open(opts.read_file)]
+        else:
+            sys.exit('ERROR: This file does not exist')
+            
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error('using .netrc conflicts with giving username/password')
