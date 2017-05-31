@@ -3,10 +3,6 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 from ..compat import compat_urlparse
-from ..utils import (
-    int_or_none,
-    qualities,
-)
 
 
 class TheSceneIE(InfoExtractor):
@@ -24,6 +20,9 @@ class TheSceneIE(InfoExtractor):
             'season': 'Ready To Wear Spring 2013',
             'tags': list,
             'categories': list,
+            'upload_date': '20120913',
+            'timestamp': 1347512400,
+            'uploader': 'vogue',
         },
     }
 
@@ -37,32 +36,9 @@ class TheSceneIE(InfoExtractor):
             self._html_search_regex(
                 r'id=\'js-player-script\'[^>]+src=\'(.+?)\'', webpage, 'player url'))
 
-        player = self._download_webpage(player_url, display_id)
-        info = self._parse_json(
-            self._search_regex(
-                r'(?m)video\s*:\s*({.+?}),$', player, 'info json'),
-            display_id)
-
-        video_id = info['id']
-        title = info['title']
-
-        qualities_order = qualities(('low', 'high'))
-        formats = [{
-            'format_id': '{0}-{1}'.format(f['type'].split('/')[0], f['quality']),
-            'url': f['src'],
-            'quality': qualities_order(f['quality']),
-        } for f in info['sources']]
-        self._sort_formats(formats)
-
         return {
-            'id': video_id,
+            '_type': 'url_transparent',
             'display_id': display_id,
-            'title': title,
-            'formats': formats,
-            'thumbnail': info.get('poster_frame'),
-            'duration': int_or_none(info.get('duration')),
-            'series': info.get('series_title'),
-            'season': info.get('season_title'),
-            'tags': info.get('tags'),
-            'categories': info.get('categories'),
+            'url': player_url,
+            'ie_key': 'CondeNast',
         }

@@ -34,12 +34,12 @@ class BandcampIE(InfoExtractor):
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '73d0b3171568232574e45652f8720b5c',
+        'md5': '0369ace6b939f0927e62c67a1a8d9fa7',
         'info_dict': {
             'id': '2650410135',
-            'ext': 'mp3',
-            'title': 'Lanius (Battle)',
-            'uploader': 'Ben Prunty Music',
+            'ext': 'aiff',
+            'title': 'Ben Prunty - Lanius (Battle)',
+            'uploader': 'Ben Prunty',
         },
     }]
 
@@ -47,6 +47,7 @@ class BandcampIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
+        thumbnail = self._html_search_meta('og:image', webpage, default=None)
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
@@ -75,6 +76,7 @@ class BandcampIE(InfoExtractor):
                 return {
                     'id': track_id,
                     'title': data['title'],
+                    'thumbnail': thumbnail,
                     'formats': formats,
                     'duration': float_or_none(data.get('duration')),
                 }
@@ -143,7 +145,7 @@ class BandcampIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': info.get('thumb_url'),
+            'thumbnail': info.get('thumb_url') or thumbnail,
             'uploader': info.get('artist'),
             'artist': artist,
             'track': track,

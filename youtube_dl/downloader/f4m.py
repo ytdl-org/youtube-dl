@@ -3,7 +3,6 @@ from __future__ import division, unicode_literals
 import base64
 import io
 import itertools
-import os
 import time
 
 from .fragment import FragmentFD
@@ -16,9 +15,7 @@ from ..compat import (
     compat_struct_unpack,
 )
 from ..utils import (
-    encodeFilename,
     fix_xml_ampersands,
-    sanitize_open,
     xpath_text,
 )
 
@@ -366,17 +363,21 @@ class F4mFD(FragmentFD):
 
         dest_stream = ctx['dest_stream']
 
-        write_flv_header(dest_stream)
-        if not live:
-            write_metadata_tag(dest_stream, metadata)
+        if ctx['complete_frags_downloaded_bytes'] == 0:
+            write_flv_header(dest_stream)
+            if not live:
+                write_metadata_tag(dest_stream, metadata)
 
         base_url_parsed = compat_urllib_parse_urlparse(base_url)
 
         self._start_frag_download(ctx)
 
-        frags_filenames = []
+        frag_index = 0
         while fragments_list:
             seg_i, frag_i = fragments_list.pop(0)
+            frag_index += 1
+            if frag_index <= ctx['fragment_index']:
+                continue
             name = 'Seg%d-Frag%d' % (seg_i, frag_i)
             query = []
             if base_url_parsed.query:
@@ -386,17 +387,10 @@ class F4mFD(FragmentFD):
             if info_dict.get('extra_param_to_segment_url'):
                 query.append(info_dict['extra_param_to_segment_url'])
             url_parsed = base_url_parsed._replace(path=base_url_parsed.path + name, query='&'.join(query))
-            frag_filename = '%s-%s' % (ctx['tmpfilename'], name)
             try:
-                success = ctx['dl'].download(frag_filename, {
-                    'url': url_parsed.geturl(),
-                    'http_headers': info_dict.get('http_headers'),
-                })
+                success, down_data = self._download_fragment(ctx, url_parsed.geturl(), info_dict)
                 if not success:
                     return False
-                (down, frag_sanitized) = sanitize_open(frag_filename, 'rb')
-                down_data = down.read()
-                down.close()
                 reader = FlvReader(down_data)
                 while True:
                     try:
@@ -411,12 +405,8 @@ class F4mFD(FragmentFD):
                             break
                         raise
                     if box_type == b'mdat':
-                        dest_stream.write(box_data)
+                        self._append_fragment(ctx, box_data)
                         break
-                if live:
-                    os.remove(encodeFilename(frag_sanitized))
-                else:
-                    frags_filenames.append(frag_sanitized)
             except (compat_urllib_error.HTTPError, ) as err:
                 if live and (err.code == 404 or err.code == 410):
                     # We didn't keep up with the live window. Continue
@@ -435,8 +425,5 @@ class F4mFD(FragmentFD):
                     self.report_warning(msg)
 
         self._finish_frag_download(ctx)
-
-        for frag_file in frags_filenames:
-            os.remove(encodeFilename(frag_file))
 
         return True

@@ -62,8 +62,7 @@ class R7IE(InfoExtractor):
             # m3u8 format always matches the http format, let's copy metadata from
             # one to another
             m3u8_formats = list(filter(
-                lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-                formats))
+                lambda f: f.get('vcodec') != 'none', formats))
             if len(m3u8_formats) == 1:
                 f_copy = m3u8_formats[0].copy()
                 f_copy.update(f)

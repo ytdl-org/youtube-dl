@@ -38,7 +38,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 
 
 class DailymotionIE(DailymotionBaseInfoExtractor):
-    _VALID_URL = r'(?i)(?:https?://)?(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:embed|swf|#)/)?video/(?P<id>[^/?_]+)'
+    _VALID_URL = r'(?i)https?://(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|#)/)?video|swf)/(?P<id>[^/?_]+)'
     IE_NAME = 'dailymotion'
 
     _FORMATS = [
@@ -49,68 +49,82 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         ('stream_h264_hd1080_url', 'hd180'),
     ]
 
-    _TESTS = [
-        {
-            'url': 'https://www.dailymotion.com/video/x2iuewm_steam-machine-models-pricing-listed-on-steam-store-ign-news_videogames',
-            'md5': '2137c41a8e78554bb09225b8eb322406',
-            'info_dict': {
-                'id': 'x2iuewm',
-                'ext': 'mp4',
-                'title': 'Steam Machine Models, Pricing Listed on Steam Store - IGN News',
-                'description': 'Several come bundled with the Steam Controller.',
-                'thumbnail': r're:^https?:.*\.(?:jpg|png)$',
-                'duration': 74,
-                'timestamp': 1425657362,
-                'upload_date': '20150306',
-                'uploader': 'IGN',
-                'uploader_id': 'xijv66',
-                'age_limit': 0,
-                'view_count': int,
-            }
+    _TESTS = [{
+        'url': 'http://www.dailymotion.com/video/x5kesuj_office-christmas-party-review-jason-bateman-olivia-munn-t-j-miller_news',
+        'md5': '074b95bdee76b9e3654137aee9c79dfe',
+        'info_dict': {
+            'id': 'x5kesuj',
+            'ext': 'mp4',
+            'title': 'Office Christmas Party Review –  Jason Bateman, Olivia Munn, T.J. Miller',
+            'description': 'Office Christmas Party Review -  Jason Bateman, Olivia Munn, T.J. Miller',
+            'thumbnail': r're:^https?:.*\.(?:jpg|png)$',
+            'duration': 187,
+            'timestamp': 1493651285,
+            'upload_date': '20170501',
+            'uploader': 'Deadline',
+            'uploader_id': 'x1xm8ri',
+            'age_limit': 0,
+            'view_count': int,
         },
+    }, {
+        'url': 'https://www.dailymotion.com/video/x2iuewm_steam-machine-models-pricing-listed-on-steam-store-ign-news_videogames',
+        'md5': '2137c41a8e78554bb09225b8eb322406',
+        'info_dict': {
+            'id': 'x2iuewm',
+            'ext': 'mp4',
+            'title': 'Steam Machine Models, Pricing Listed on Steam Store - IGN News',
+            'description': 'Several come bundled with the Steam Controller.',
+            'thumbnail': r're:^https?:.*\.(?:jpg|png)$',
+            'duration': 74,
+            'timestamp': 1425657362,
+            'upload_date': '20150306',
+            'uploader': 'IGN',
+            'uploader_id': 'xijv66',
+            'age_limit': 0,
+            'view_count': int,
+        },
+        'skip': 'video gone',
+    }, {
         # Vevo video
-        {
-            'url': 'http://www.dailymotion.com/video/x149uew_katy-perry-roar-official_musi',
-            'info_dict': {
-                'title': 'Roar (Official)',
-                'id': 'USUV71301934',
-                'ext': 'mp4',
-                'uploader': 'Katy Perry',
-                'upload_date': '20130905',
-            },
-            'params': {
-                'skip_download': True,
-            },
-            'skip': 'VEVO is only available in some countries',
+        'url': 'http://www.dailymotion.com/video/x149uew_katy-perry-roar-official_musi',
+        'info_dict': {
+            'title': 'Roar (Official)',
+            'id': 'USUV71301934',
+            'ext': 'mp4',
+            'uploader': 'Katy Perry',
+            'upload_date': '20130905',
         },
+        'params': {
+            'skip_download': True,
+        },
+        'skip': 'VEVO is only available in some countries',
+    }, {
         # age-restricted video
-        {
-            'url': 'http://www.dailymotion.com/video/xyh2zz_leanna-decker-cyber-girl-of-the-year-desires-nude-playboy-plus_redband',
-            'md5': '0d667a7b9cebecc3c89ee93099c4159d',
-            'info_dict': {
-                'id': 'xyh2zz',
-                'ext': 'mp4',
-                'title': 'Leanna Decker - Cyber Girl Of The Year Desires Nude [Playboy Plus]',
-                'uploader': 'HotWaves1012',
-                'age_limit': 18,
-            },
-            'skip': 'video gone',
+        'url': 'http://www.dailymotion.com/video/xyh2zz_leanna-decker-cyber-girl-of-the-year-desires-nude-playboy-plus_redband',
+        'md5': '0d667a7b9cebecc3c89ee93099c4159d',
+        'info_dict': {
+            'id': 'xyh2zz',
+            'ext': 'mp4',
+            'title': 'Leanna Decker - Cyber Girl Of The Year Desires Nude [Playboy Plus]',
+            'uploader': 'HotWaves1012',
+            'age_limit': 18,
         },
+        'skip': 'video gone',
+    }, {
         # geo-restricted, player v5
-        {
-            'url': 'http://www.dailymotion.com/video/xhza0o',
-            'only_matching': True,
-        },
+        'url': 'http://www.dailymotion.com/video/xhza0o',
+        'only_matching': True,
+    }, {
         # with subtitles
-        {
-            'url': 'http://www.dailymotion.com/video/x20su5f_the-power-of-nightmares-1-the-rise-of-the-politics-of-fear-bbc-2004_news',
-            'only_matching': True,
-        },
-        {
-            'url': 'http://www.dailymotion.com/swf/video/x3n92nf',
-            'only_matching': True,
-        }
-    ]
+        'url': 'http://www.dailymotion.com/video/x20su5f_the-power-of-nightmares-1-the-rise-of-the-politics-of-fear-bbc-2004_news',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.dailymotion.com/swf/video/x3n92nf',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.dailymotion.com/swf/x3ss1m_funny-magic-trick-barry-and-stuart_fun',
+        'only_matching': True,
+    }]
 
     @staticmethod
     def _extract_urls(webpage):

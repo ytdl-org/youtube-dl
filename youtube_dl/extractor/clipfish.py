@@ -12,7 +12,7 @@ class ClipfishIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?clipfish\.de/(?:[^/]+/)+video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.clipfish.de/special/ugly-americans/video/4343170/s01-e01-ugly-americans-date-in-der-hoelle/',
-        'md5': '720563e467b86374c194bdead08d207d',
+        'md5': 'b9a5dc46294154c1193e2d10e0c95693',
         'info_dict': {
             'id': '4343170',
             'ext': 'mp4',

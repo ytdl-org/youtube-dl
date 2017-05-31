@@ -92,12 +92,14 @@ class HBOBaseIE(InfoExtractor):
                         video_url.replace('.tar', '/base_index_w8.m3u8'),
                         video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
                 elif source.tag == 'hls':
-                    # #EXT-X-BYTERANGE is not supported by native hls downloader
-                    # and ffmpeg (#10955)
-                    # formats.extend(self._extract_m3u8_formats(
-                    #     video_url.replace('.tar', '/base_index.m3u8'),
-                    #     video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-                    continue
+                    m3u8_formats = self._extract_m3u8_formats(
+                        video_url.replace('.tar', '/base_index.m3u8'),
+                        video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+                    for f in m3u8_formats:
+                        if f.get('vcodec') == 'none' and not f.get('tbr'):
+                            f['tbr'] = int_or_none(self._search_regex(
+                                r'-(\d+)k/', f['url'], 'tbr', default=None))
+                    formats.extend(m3u8_formats)
                 elif source.tag == 'dash':
                     formats.extend(self._extract_mpd_formats(
                         video_url.replace('.tar', '/manifest.mpd'),
@@ -110,7 +112,7 @@ class HBOBaseIE(InfoExtractor):
                         'width': format_info.get('width'),
                         'height': format_info.get('height'),
                     })
-        self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))
+        self._sort_formats(formats)
 
         thumbnails = []
         card_sizes = xpath_element(video_data, 'titleCardSizes')

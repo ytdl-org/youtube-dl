@@ -85,6 +85,11 @@ from .ustream import UstreamIE
 from .openload import OpenloadIE
 from .videopress import VideoPressIE
 from .rutube import RutubeIE
+from .limelight import LimelightBaseIE
+from .anvato import AnvatoIE
+from .washingtonpost import WashingtonPostIE
+from .wistia import WistiaIE
+from .mediaset import MediasetIE
 
 
 class GenericIE(InfoExtractor):
@@ -430,6 +435,22 @@ class GenericIE(InfoExtractor):
             },
         },
         {
+            # Brightcove video in <iframe>
+            'url': 'http://www.un.org/chinese/News/story.asp?NewsID=27724',
+            'md5': '36d74ef5e37c8b4a2ce92880d208b968',
+            'info_dict': {
+                'id': '5360463607001',
+                'ext': 'mp4',
+                'title': '叙利亚失明儿童在废墟上演唱《心跳》  呼吁获得正常童年生活',
+                'description': '联合国儿童基金会中东和北非区域大使、作曲家扎德·迪拉尼（Zade Dirani）在3月15日叙利亚冲突爆发7周年纪念日之际发布了为叙利亚谱写的歌曲《心跳》（HEARTBEAT），为受到六年冲突影响的叙利亚儿童发出强烈呐喊，呼吁世界做出共同努力，使叙利亚儿童重新获得享有正常童年生活的权利。',
+                'uploader': 'United Nations',
+                'uploader_id': '1362235914001',
+                'timestamp': 1489593889,
+                'upload_date': '20170315',
+            },
+            'add_ie': ['BrightcoveLegacy'],
+        },
+        {
             # Brightcove with alternative playerID key
             'url': 'http://www.nature.com/nmeth/journal/v9/n7/fig_tab/nmeth.2062_SV1.html',
             'info_dict': {
@@ -447,6 +468,59 @@ class GenericIE(InfoExtractor):
                     'uploader': 'Nature Publishing Group',
                     'uploader_id': '1964492299001',
                 },
+            }],
+        },
+        {
+            # Brightcove with UUID in videoPlayer
+            'url': 'http://www8.hp.com/cn/zh/home.html',
+            'info_dict': {
+                'id': '5255815316001',
+                'ext': 'mp4',
+                'title': 'Sprocket Video - China',
+                'description': 'Sprocket Video - China',
+                'uploader': 'HP-Video Gallery',
+                'timestamp': 1482263210,
+                'upload_date': '20161220',
+                'uploader_id': '1107601872001',
+            },
+            'params': {
+                'skip_download': True,  # m3u8 download
+            },
+            'skip': 'video rotates...weekly?',
+        },
+        {
+            # Brightcove:new type [2].
+            'url': 'http://www.delawaresportszone.com/video-st-thomas-more-earns-first-trip-to-basketball-semis',
+            'md5': '2b35148fcf48da41c9fb4591650784f3',
+            'info_dict': {
+                'id': '5348741021001',
+                'ext': 'mp4',
+                'upload_date': '20170306',
+                'uploader_id': '4191638492001',
+                'timestamp': 1488769918,
+                'title': 'VIDEO:  St. Thomas More earns first trip to basketball semis',
+
+            },
+        },
+        {
+            # Alternative brightcove <video> attributes
+            'url': 'http://www.programme-tv.net/videos/extraits/81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche/',
+            'info_dict': {
+                'id': '81095-guillaume-canet-evoque-les-rumeurs-d-infidelite-de-marion-cotillard-avec-brad-pitt-dans-vivement-dimanche',
+                'title': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche, Extraits : toutes les vidéos avec Télé-Loisirs",
+            },
+            'playlist': [{
+                'md5': '732d22ba3d33f2f3fc253c39f8f36523',
+                'info_dict': {
+                    'id': '5311302538001',
+                    'ext': 'mp4',
+                    'title': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche",
+                    'description': "Guillaume Canet évoque les rumeurs d'infidélité de Marion Cotillard avec Brad Pitt dans Vivement Dimanche (France 2, 5 février 2017)",
+                    'timestamp': 1486321708,
+                    'upload_date': '20170205',
+                    'uploader_id': '800000640001',
+                },
+                'only_matching': True,
             }],
         },
         {
@@ -730,6 +804,21 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
+        # YouTube <object> embed
+        {
+            'url': 'http://www.improbable.com/2017/04/03/untrained-modern-youths-and-ancient-masters-in-selfie-portraits/',
+            'md5': '516718101ec834f74318df76259fb3cc',
+            'info_dict': {
+                'id': 'msN87y-iEx0',
+                'ext': 'webm',
+                'title': 'Feynman: Mirrors FUN TO IMAGINE 6',
+                'upload_date': '20080526',
+                'description': 'md5:0ffc78ea3f01b2e2c247d5f8d1d3c18d',
+                'uploader': 'Christopher Sykes',
+                'uploader_id': 'ChristopherJSykes',
+            },
+            'add_ie': ['Youtube'],
+        },
         # Camtasia studio
         {
             'url': 'http://www.ll.mit.edu/workshops/education/videocourses/antennas/lecture1/video/',
@@ -991,6 +1080,20 @@ class GenericIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
+        {
+            # JWPlayer config passed as variable
+            'url': 'http://www.txxx.com/videos/3326530/ariele/',
+            'info_dict': {
+                'id': '3326530_hq',
+                'ext': 'mp4',
+                'title': 'ARIELE | Tube Cup',
+                'uploader': 'www.txxx.com',
+                'age_limit': 18,
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # rtl.nl embed
         {
             'url': 'http://www.rtlnieuws.nl/nieuws/buitenland/aanslagen-kopenhagen',
@@ -1063,6 +1166,21 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1321158993,
                 'upload_date': '20111113',
                 'uploader_id': 'kps1',
+            },
+            'add_ie': ['Kaltura'],
+        },
+        {
+            # Kaltura iframe embed
+            'url': 'http://www.gsd.harvard.edu/event/i-m-pei-a-centennial-celebration/',
+            'md5': 'ae5ace8eb09dc1a35d03b579a9c2cc44',
+            'info_dict': {
+                'id': '0_f2cfbpwy',
+                'ext': 'mp4',
+                'title': 'I. M. Pei: A Centennial Celebration',
+                'description': 'md5:1db8f40c69edc46ca180ba30c567f37c',
+                'upload_date': '20170403',
+                'uploader_id': 'batchUser',
+                'timestamp': 1491232186,
             },
             'add_ie': ['Kaltura'],
         },
@@ -1313,6 +1431,22 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            # Brightcove embed with whitespace around attribute names
+            'url': 'http://www.stack.com/video/3167554373001/learn-to-hit-open-three-pointers-with-damian-lillard-s-baseline-drift-drill',
+            'info_dict': {
+                'id': '3167554373001',
+                'ext': 'mp4',
+                'title': "Learn to Hit Open Three-Pointers With Damian Lillard's Baseline Drift Drill",
+                'description': 'md5:57bacb0e0f29349de4972bfda3191713',
+                'uploader_id': '1079349493',
+                'upload_date': '20140207',
+                'timestamp': 1391810548,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # Another form of arte.tv embed
         {
             'url': 'http://www.tv-replay.fr/redirection/09-04-16/arte-reportage-arte-11508975.html',
@@ -1554,6 +1688,51 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': [SenateISVPIE.ie_key()],
         },
+        {
+            # Limelight embeds (1 channel embed + 4 media embeds)
+            'url': 'http://www.sedona.com/FacilitatorTraining2017',
+            'info_dict': {
+                'id': 'FacilitatorTraining2017',
+                'title': 'Facilitator Training 2017',
+            },
+            'playlist_mincount': 5,
+        },
+        {
+            'url': 'http://kron4.com/2017/04/28/standoff-with-walnut-creek-murder-suspect-ends-with-arrest/',
+            'info_dict': {
+                'id': 'standoff-with-walnut-creek-murder-suspect-ends-with-arrest',
+                'title': 'Standoff with Walnut Creek murder suspect ends',
+                'description': 'md5:3ccc48a60fc9441eeccfc9c469ebf788',
+            },
+            'playlist_mincount': 4,
+        },
+        {
+            # WashingtonPost embed
+            'url': 'http://www.vanityfair.com/hollywood/2017/04/donald-trump-tv-pitches',
+            'info_dict': {
+                'id': '8caf6e88-d0ec-11e5-90d3-34c2c42653ac',
+                'ext': 'mp4',
+                'title': "No one has seen the drama series based on Trump's life \u2014 until now",
+                'description': 'Donald Trump wanted a weekly TV drama based on his life. It never aired. But The Washington Post recently obtained a scene from the pilot script — and enlisted actors.',
+                'timestamp': 1455216756,
+                'uploader': 'The Washington Post',
+                'upload_date': '20160211',
+            },
+            'add_ie': [WashingtonPostIE.ie_key()],
+        },
+        {
+            # Mediaset embed
+            'url': 'http://www.tgcom24.mediaset.it/politica/serracchiani-voglio-vivere-in-una-societa-aperta-reazioni-sproporzionate-_3071354-201702a.shtml',
+            'info_dict': {
+                'id': '720642',
+                'ext': 'mp4',
+                'title': 'Serracchiani: "Voglio vivere in una società aperta, con tutela del patto di fiducia"',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [MediasetIE.ie_key()],
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -1596,7 +1775,7 @@ class GenericIE(InfoExtractor):
                 continue
 
             entries.append({
-                '_type': 'url',
+                '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
             })
@@ -1856,7 +2035,6 @@ class GenericIE(InfoExtractor):
         # Look for Brightcove Legacy Studio embeds
         bc_urls = BrightcoveLegacyIE._extract_brightcove_urls(webpage)
         if bc_urls:
-            self.to_screen('Brightcove video detected.')
             entries = [{
                 '_type': 'url',
                 'url': smuggle_url(bc_url, {'Referer': url}),
@@ -1871,7 +2049,7 @@ class GenericIE(InfoExtractor):
             }
 
         # Look for Brightcove New Studio embeds
-        bc_urls = BrightcoveNewIE._extract_urls(webpage)
+        bc_urls = BrightcoveNewIE._extract_urls(self, webpage)
         if bc_urls:
             return self.playlist_from_matches(bc_urls, video_id, video_title, ie='BrightcoveNew')
 
@@ -1909,6 +2087,7 @@ class GenericIE(InfoExtractor):
                 data-video-url=|
                 <embed[^>]+?src=|
                 embedSWF\(?:\s*|
+                <object[^>]+data=|
                 new\s+SWFObject\(
             )
             (["\'])
@@ -1947,56 +2126,19 @@ class GenericIE(InfoExtractor):
                     playlists, video_id, video_title, lambda p: '//dailymotion.com/playlist/%s' % p)
 
         # Look for embedded Wistia player
-        match = re.search(
-            r'<(?:meta[^>]+?content|iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
-        if match:
-            embed_url = self._proto_relative_url(
-                unescapeHTML(match.group('url')))
+        wistia_url = WistiaIE._extract_url(webpage)
+        if wistia_url:
             return {
                 '_type': 'url_transparent',
-                'url': embed_url,
-                'ie_key': 'Wistia',
+                'url': self._proto_relative_url(wistia_url),
+                'ie_key': WistiaIE.ie_key(),
                 'uploader': video_uploader,
             }
-
-        match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
-        if match:
-            return {
-                '_type': 'url_transparent',
-                'url': 'wistia:%s' % match.group('id'),
-                'ie_key': 'Wistia',
-                'uploader': video_uploader,
-            }
-
-        match = re.search(
-            r'''(?sx)
-                <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
-                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
-            ''', webpage)
-        if match:
-            return self.url_result(self._proto_relative_url(
-                'wistia:%s' % match.group('id')), 'Wistia')
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
         if svt_url:
             return self.url_result(svt_url, 'SVT')
-
-        # Look for embedded condenast player
-        matches = re.findall(
-            r'<iframe\s+(?:[a-zA-Z-]+="[^"]+"\s+)*?src="(https?://player\.cnevids\.com/embed/[^"]+")',
-            webpage)
-        if matches:
-            return {
-                '_type': 'playlist',
-                'entries': [{
-                    '_type': 'url',
-                    'ie_key': 'CondeNast',
-                    'url': ma,
-                } for ma in matches],
-                'title': video_title,
-                'id': video_id,
-            }
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
@@ -2386,28 +2528,16 @@ class GenericIE(InfoExtractor):
             return self.url_result(piksel_url, PikselIE.ie_key())
 
         # Look for Limelight embeds
-        mobj = re.search(r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})', webpage)
-        if mobj:
-            lm = {
-                'Media': 'media',
-                'Channel': 'channel',
-                'ChannelList': 'channel_list',
-            }
-            return self.url_result(smuggle_url('limelight:%s:%s' % (
-                lm[mobj.group(1)], mobj.group(2)), {'source_url': url}),
-                'Limelight%s' % mobj.group(1), mobj.group(2))
+        limelight_urls = LimelightBaseIE._extract_urls(webpage, url)
+        if limelight_urls:
+            return self.playlist_result(
+                limelight_urls, video_id, video_title, video_description)
 
-        mobj = re.search(
-            r'''(?sx)
-                <object[^>]+class=(["\'])LimelightEmbeddedPlayerFlash\1[^>]*>.*?
-                    <param[^>]+
-                        name=(["\'])flashVars\2[^>]+
-                        value=(["\'])(?:(?!\3).)*mediaId=(?P<id>[a-z0-9]{32})
-            ''', webpage)
-        if mobj:
-            return self.url_result(smuggle_url(
-                'limelight:media:%s' % mobj.group('id'),
-                {'source_url': url}), 'LimelightMedia', mobj.group('id'))
+        # Look for Anvato embeds
+        anvato_urls = AnvatoIE._extract_urls(self, webpage, video_id)
+        if anvato_urls:
+            return self.playlist_result(
+                anvato_urls, video_id, video_title, video_description)
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
@@ -2526,6 +2656,18 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 rutube_urls, ie=RutubeIE.ie_key())
 
+        # Look for WashingtonPost embeds
+        wapo_urls = WashingtonPostIE._extract_urls(webpage)
+        if wapo_urls:
+            return self.playlist_from_matches(
+                wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key())
+
+        # Look for Mediaset embeds
+        mediaset_urls = MediasetIE._extract_urls(webpage)
+        if mediaset_urls:
+            return self.playlist_from_matches(
+                mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key())
+
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
             webpage, video_id, default={}, expected_type='VideoObject')
@@ -2550,18 +2692,14 @@ class GenericIE(InfoExtractor):
                 self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
 
-        jwplayer_data_str = self._find_jwplayer_data(webpage)
-        if jwplayer_data_str:
-            try:
-                jwplayer_data = self._parse_json(
-                    jwplayer_data_str, video_id, transform_source=js_to_json)
-                info = self._parse_jwplayer_data(
-                    jwplayer_data, video_id, require_title=False)
-                if not info.get('title'):
-                    info['title'] = video_title
-                return info
-            except ExtractorError:
-                pass
+        jwplayer_data = self._find_jwplayer_data(
+            webpage, video_id, transform_source=js_to_json)
+        if jwplayer_data:
+            info = self._parse_jwplayer_data(
+                jwplayer_data, video_id, require_title=False, base_url=url)
+            if not info.get('title'):
+                info['title'] = video_title
+            return info
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
@@ -2570,7 +2708,7 @@ class GenericIE(InfoExtractor):
                 return True
             vpath = compat_urlparse.urlparse(vurl).path
             vext = determine_ext(vpath)
-            return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml', 'js')
+            return '.' in vpath and vext not in ('swf', 'png', 'jpg', 'srt', 'sbv', 'sub', 'vtt', 'ttml', 'js', 'xml')
 
         def filter_video(urls):
             return list(filter(check_video, urls))

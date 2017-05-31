@@ -2,9 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     determine_protocol,
+    try_get,
     unescapeHTML,
 )
 
@@ -28,8 +30,14 @@ class DailyMailIE(InfoExtractor):
         video_data = self._parse_json(self._search_regex(
             r"data-opts='({.+?})'", webpage, 'video data'), video_id)
         title = unescapeHTML(video_data['title'])
-        video_sources = self._download_json(video_data.get(
-            'sources', {}).get('url') or 'http://www.dailymail.co.uk/api/player/%s/video-sources.json' % video_id, video_id)
+
+        sources_url = (try_get(
+            video_data,
+            (lambda x: x['plugins']['sources']['url'],
+             lambda x: x['sources']['url']), compat_str) or
+            'http://www.dailymail.co.uk/api/player/%s/video-sources.json' % video_id)
+
+        video_sources = self._download_json(sources_url, video_id)
 
         formats = []
         for rendition in video_sources['renditions']:

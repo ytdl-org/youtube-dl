@@ -210,7 +210,7 @@ class TEDIE(InfoExtractor):
                     resources.get('stream'), video_name, 'mp4', m3u8_id=format_id, fatal=False))
 
         m3u8_formats = list(filter(
-            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none',
             formats))
         if http_url:
             for m3u8_format in m3u8_formats:

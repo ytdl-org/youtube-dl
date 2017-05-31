@@ -16,7 +16,7 @@ class BeegIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?beeg\.com/(?P<id>\d+)'
     _TEST = {
         'url': 'http://beeg.com/5416503',
-        'md5': '46c384def73b33dbc581262e5ee67cef',
+        'md5': 'a1a1b1a8bc70a89e49ccfd113aed0820',
         'info_dict': {
             'id': '5416503',
             'ext': 'mp4',

@@ -225,7 +225,11 @@ class TVPlayIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
+        geo_country = self._search_regex(
+            r'https?://[^/]+\.([a-z]{2})', url,
+            'geo country', default=None)
+        if geo_country:
+            self._initialize_geo_bypass([geo_country.upper()])
         video = self._download_json(
             'http://playapi.mtgx.tv/v3/videos/%s' % video_id, video_id, 'Downloading video JSON')
 

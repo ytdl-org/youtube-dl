@@ -171,7 +171,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         'info_dict': {
             'id': '727589',
             'ext': 'mp4',
-            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance from this Judicial Injustice!",
+            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance From This Judicial Injustice!",
             'description': 'md5:cbcf05e528124b0f3a0a419fc805ea7d',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Kadokawa Pictures Inc.',
@@ -179,7 +179,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'series': "KONOSUBA -God's blessing on this wonderful world!",
             'season': "KONOSUBA -God's blessing on this wonderful world! 2",
             'season_number': 2,
-            'episode': 'Give Me Deliverance from this Judicial Injustice!',
+            'episode': 'Give Me Deliverance From This Judicial Injustice!',
             'episode_number': 1,
         },
         'params': {
@@ -390,7 +390,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         else:
             webpage_url = 'http://www.' + mobj.group('url')
 
-        webpage = self._download_webpage(self._add_skip_wall(webpage_url), video_id, 'Downloading webpage')
+        webpage = self._download_webpage(
+            self._add_skip_wall(webpage_url), video_id,
+            headers=self.geo_verification_headers())
         note_m = self._html_search_regex(
             r'<div class="showmedia-trailer-notice">(.+?)</div>',
             webpage, 'trailer-notice', default='')
@@ -565,7 +567,9 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
     def _real_extract(self, url):
         show_id = self._match_id(url)
 
-        webpage = self._download_webpage(self._add_skip_wall(url), show_id)
+        webpage = self._download_webpage(
+            self._add_skip_wall(url), show_id,
+            headers=self.geo_verification_headers())
         title = self._html_search_regex(
             r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
             webpage, 'title')

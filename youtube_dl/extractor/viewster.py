@@ -176,8 +176,7 @@ class ViewsterIE(InfoExtractor):
                     if m3u8_formats:
                         self._sort_formats(m3u8_formats)
                         m3u8_formats = list(filter(
-                            lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-                            m3u8_formats))
+                            lambda f: f.get('vcodec') != 'none', m3u8_formats))
                     if len(qualities) == len(m3u8_formats):
                         for q, m3u8_format in zip(qualities, m3u8_formats):
                             f = m3u8_format.copy()

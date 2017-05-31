@@ -70,7 +70,8 @@ class AppleTrailersIE(InfoExtractor):
     }, {
         'url': 'http://trailers.apple.com/trailers/magnolia/blackthorn/',
         'info_dict': {
-            'id': 'blackthorn',
+            'id': '4489',
+            'title': 'Blackthorn',
         },
         'playlist_mincount': 2,
         'expected_warnings': ['Unable to download JSON metadata'],
@@ -261,7 +262,7 @@ class AppleTrailersSectionIE(InfoExtractor):
             'title': 'Most Popular',
             'id': 'mostpopular',
         },
-        'playlist_mincount': 80,
+        'playlist_mincount': 30,
     }, {
         'url': 'http://trailers.apple.com/#section=moviestudios',
         'info_dict': {

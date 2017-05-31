@@ -116,13 +116,25 @@ class ITVIE(InfoExtractor):
             if not play_path:
                 continue
             tbr = int_or_none(media_file.get('bitrate'), 1000)
-            formats.append({
+            f = {
                 'format_id': 'rtmp' + ('-%d' % tbr if tbr else ''),
-                'url': rtmp_url,
                 'play_path': play_path,
+                # Providing this swfVfy allows to avoid truncated downloads
+                'player_url': 'http://www.itv.com/mercury/Mercury_VideoPlayer.swf',
+                'page_url': url,
                 'tbr': tbr,
                 'ext': 'flv',
-            })
+            }
+            app = self._search_regex(
+                'rtmpe?://[^/]+/(.+)$', rtmp_url, 'app', default=None)
+            if app:
+                f.update({
+                    'url': rtmp_url.split('?', 1)[0],
+                    'app': app,
+                })
+            else:
+                f['url'] = rtmp_url
+            formats.append(f)
 
         ios_playlist_url = params.get('data-video-playlist')
         hmac = params.get('data-video-hmac')
@@ -172,7 +184,9 @@ class ITVIE(InfoExtractor):
                         href = ios_base_url + href
                     ext = determine_ext(href)
                     if ext == 'm3u8':
-                        formats.extend(self._extract_m3u8_formats(href, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                        formats.extend(self._extract_m3u8_formats(
+                            href, video_id, 'mp4', entry_protocol='m3u8_native',
+                            m3u8_id='hls', fatal=False))
                     else:
                         formats.append({
                             'url': href,
@@ -189,7 +203,8 @@ class ITVIE(InfoExtractor):
                 'ext': 'ttml' if ext == 'xml' else ext,
             })
 
-        return {
+        info = self._search_json_ld(webpage, video_id, default={})
+        info.update({
             'id': video_id,
             'title': title,
             'formats': formats,
@@ -198,4 +213,5 @@ class ITVIE(InfoExtractor):
             'episode_number': int_or_none(xpath_text(playlist, 'EpisodeNumber')),
             'series': xpath_text(playlist, 'ProgrammeTitle'),
             'duartion': parse_duration(xpath_text(playlist, 'Duration')),
-        }
+        })
+        return info

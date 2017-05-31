@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
+    extract_attributes,
     get_element_by_class,
     urlencode_postdata,
 )
@@ -56,17 +57,24 @@ class NJPWWorldIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         formats = []
-        for player_url, kind in re.findall(r'<a[^>]+href="(/player[^"]+)".+?<img[^>]+src="[^"]+qf_btn_([^".]+)', webpage):
-            player_url = compat_urlparse.urljoin(url, player_url)
-
+        for mobj in re.finditer(r'<a[^>]+\bhref=(["\'])/player.+?[^>]*>', webpage):
+            player = extract_attributes(mobj.group(0))
+            player_path = player.get('href')
+            if not player_path:
+                continue
+            kind = self._search_regex(
+                r'(low|high)$', player.get('class') or '', 'kind',
+                default='low')
+            player_url = compat_urlparse.urljoin(url, player_path)
             player_page = self._download_webpage(
                 player_url, video_id, note='Downloading player page')
-
             entries = self._parse_html5_media_entries(
                 player_url, player_page, video_id, m3u8_id='hls-%s' % kind,
-                m3u8_entry_protocol='m3u8_native',
-                preference=2 if 'hq' in kind else 1)
-            formats.extend(entries[0]['formats'])
+                m3u8_entry_protocol='m3u8_native')
+            kind_formats = entries[0]['formats']
+            for f in kind_formats:
+                f['quality'] = 2 if kind == 'high' else 1
+            formats.extend(kind_formats)
 
         self._sort_formats(formats)
 

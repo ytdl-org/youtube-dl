@@ -7,6 +7,7 @@ from ..utils import float_or_none
 
 
 class CanvasIE(InfoExtractor):
+    IE_DESC = 'canvas.be and een.be'
     _VALID_URL = r'https?://(?:www\.)?(?P<site_id>canvas|een)\.be/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.canvas.be/video/de-afspraak/najaar-2015/de-afspraak-veilt-voor-de-warmste-week',

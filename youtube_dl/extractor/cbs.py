@@ -49,13 +49,13 @@ class CBSIE(CBSBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_video_info(self, content_id):
+    def _extract_video_info(self, content_id, site='cbs', mpx_acc=2198311517):
         items_data = self._download_xml(
             'http://can.cbs.com/thunder/player/videoPlayerService.php',
-            content_id, query={'partner': 'cbs', 'contentId': content_id})
+            content_id, query={'partner': site, 'contentId': content_id})
         video_data = xpath_element(items_data, './/item')
         title = xpath_text(video_data, 'videoTitle', 'title', True)
-        tp_path = 'dJ5BDC/media/guid/2198311517/%s' % content_id
+        tp_path = 'dJ5BDC/media/guid/%d/%s' % (mpx_acc, content_id)
         tp_release_url = 'http://link.theplatform.com/s/' + tp_path
 
         asset_types = []

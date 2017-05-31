@@ -2,9 +2,13 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+)
 from ..utils import (
     extract_attributes,
+    try_get,
     urlencode_postdata,
     ExtractorError,
 )
@@ -34,25 +38,32 @@ class TVPlayerIE(InfoExtractor):
             webpage, 'channel element'))
         title = current_channel['data-name']
 
-        resource_id = self._search_regex(
-            r'resourceId\s*=\s*"(\d+)"', webpage, 'resource id')
-        platform = self._search_regex(
-            r'platform\s*=\s*"([^"]+)"', webpage, 'platform')
+        resource_id = current_channel['data-id']
+
         token = self._search_regex(
-            r'token\s*=\s*"([^"]+)"', webpage, 'token', default='null')
-        validate = self._search_regex(
-            r'validate\s*=\s*"([^"]+)"', webpage, 'validate', default='null')
+            r'data-token=(["\'])(?P<token>(?!\1).+)\1', webpage,
+            'token', group='token')
+
+        context = self._download_json(
+            'https://tvplayer.com/watch/context', display_id,
+            'Downloading JSON context', query={
+                'resource': resource_id,
+                'nonce': token,
+            })
+
+        validate = context['validate']
+        platform = try_get(
+            context, lambda x: x['platform']['key'], compat_str) or 'firefox'
 
         try:
             response = self._download_json(
                 'http://api.tvplayer.com/api/v2/stream/live',
-                resource_id, headers={
+                display_id, 'Downloading JSON stream', headers={
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 }, data=urlencode_postdata({
+                    'id': resource_id,
                     'service': 1,
                     'platform': platform,
-                    'id': resource_id,
-                    'token': token,
                     'validate': validate,
                 }))['tvplayer']['response']
         except ExtractorError as e:
@@ -63,7 +74,7 @@ class TVPlayerIE(InfoExtractor):
                     '%s said: %s' % (self.IE_NAME, response['error']), expected=True)
             raise
 
-        formats = self._extract_m3u8_formats(response['stream'], resource_id, 'mp4')
+        formats = self._extract_m3u8_formats(response['stream'], display_id, 'mp4')
         self._sort_formats(formats)
 
         return {

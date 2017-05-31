@@ -122,6 +122,11 @@ class BiliBiliIE(InfoExtractor):
                     'preference': -2 if 'hd.mp4' in backup_url else -3,
                 })
 
+            for a_format in formats:
+                a_format.setdefault('http_headers', {}).update({
+                    'Referer': url,
+                })
+
             self._sort_formats(formats)
 
             entries.append({

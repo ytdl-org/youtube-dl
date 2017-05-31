@@ -313,9 +313,9 @@ class NPOIE(NPOBaseIE):
 
 class NPOLiveIE(NPOBaseIE):
     IE_NAME = 'npo.nl:live'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/live/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/live(?:/(?P<id>[^/?#&]+))?'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.npo.nl/live/npo-1',
         'info_dict': {
             'id': 'LI_NL1_4188102',
@@ -327,10 +327,13 @@ class NPOLiveIE(NPOBaseIE):
         'params': {
             'skip_download': True,
         }
-    }
+    }, {
+        'url': 'http://www.npo.nl/live',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        display_id = self._match_id(url) or 'npo-1'
 
         webpage = self._download_webpage(url, display_id)
 

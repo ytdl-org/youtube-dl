@@ -370,10 +370,10 @@ class YoutubeDL(object):
                 else:
                     raise
 
-        if (sys.version_info >= (3,) and sys.platform != 'win32' and
+        if (sys.platform != 'win32' and
                 sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968'] and
                 not params.get('restrictfilenames', False)):
-            # On Python 3, the Unicode filesystem API will throw errors (#1474)
+            # Unicode filesystem API will throw errors (#1474, #13027)
             self.report_warning(
                 'Assuming --restrict-filenames since file system encoding '
                 'cannot encode all characters. '
@@ -640,7 +640,7 @@ class YoutubeDL(object):
 
             NUMERIC_FIELDS = set((
                 'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
-                'upload_year', 'upload_month', 'upload_day',
+                'timestamp', 'upload_year', 'upload_month', 'upload_day',
                 'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
                 'average_rating', 'comment_count', 'age_limit',
                 'start_time', 'end_time',
@@ -672,8 +672,7 @@ class YoutubeDL(object):
                         FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
-            tmpl = expand_path(outtmpl)
-            filename = tmpl % template_dict
+            filename = expand_path(outtmpl % template_dict)
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
@@ -837,6 +836,12 @@ class YoutubeDL(object):
                 ie_result['url'], ie_key=ie_result.get('ie_key'),
                 extra_info=extra_info, download=False, process=False)
 
+            # extract_info may return None when ignoreerrors is enabled and
+            # extraction failed with an error, don't crash and return early
+            # in this case
+            if not info:
+                return info
+
             force_properties = dict(
                 (k, v) for k, v in ie_result.items() if v is not None)
             for f in ('_type', 'url', 'ie_key'):
@@ -845,11 +850,18 @@ class YoutubeDL(object):
             new_result = info.copy()
             new_result.update(force_properties)
 
-            assert new_result.get('_type') != 'url_transparent'
+            # Extracted info may not be a video result (i.e.
+            # info.get('_type', 'video') != video) but rather an url or
+            # url_transparent. In such cases outer metadata (from ie_result)
+            # should be propagated to inner one (info). For this to happen
+            # _type of info should be overridden with url_transparent. This
+            # fixes issue from https://github.com/rg3/youtube-dl/pull/11163.
+            if new_result.get('_type') == 'url':
+                new_result['_type'] = 'url_transparent'
 
             return self.process_ie_result(
                 new_result, download=download, extra_info=extra_info)
-        elif result_type == 'playlist' or result_type == 'multi_video':
+        elif result_type in ('playlist', 'multi_video'):
             # We process each entry in the playlist
             playlist = ie_result.get('title') or ie_result.get('id')
             self.to_screen('[download] Downloading playlist: %s' % playlist)

@@ -42,14 +42,15 @@ class VidziIE(InfoExtractor):
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 
-        packed_codes = [mobj.group(0) for mobj in re.finditer(
-            PACKED_CODES_RE, webpage)]
-        for num, pc in enumerate(packed_codes, 1):
-            code = decode_packed_codes(pc).replace('\\\'', '\'')
+        codes = [webpage]
+        codes.extend([
+            decode_packed_codes(mobj.group(0)).replace('\\\'', '\'')
+            for mobj in re.finditer(PACKED_CODES_RE, webpage)])
+        for num, code in enumerate(codes, 1):
             jwplayer_data = self._parse_json(
                 self._search_regex(
                     r'setup\(([^)]+)\)', code, 'jwplayer data',
-                    default=NO_DEFAULT if num == len(packed_codes) else '{}'),
+                    default=NO_DEFAULT if num == len(codes) else '{}'),
                 video_id, transform_source=js_to_json)
             if jwplayer_data:
                 break

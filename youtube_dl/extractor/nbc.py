@@ -5,10 +5,8 @@ import re
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
-from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     find_xpath_attr,
-    lowercase_escape,
     smuggle_url,
     unescapeHTML,
     update_url_query,
@@ -17,7 +15,7 @@ from ..utils import (
 
 
 class NBCIE(AdobePassIE):
-    _VALID_URL = r'https?://(?:www\.)?nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
+    _VALID_URL = r'(?P<permalink>https?://(?:www\.)?nbc\.com/[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
         {
@@ -37,16 +35,6 @@ class NBCIE(AdobePassIE):
             },
         },
         {
-            'url': 'http://www.nbc.com/the-tonight-show/episodes/176',
-            'info_dict': {
-                'id': '176',
-                'ext': 'flv',
-                'title': 'Ricky Gervais, Steven Van Zandt, ILoveMakonnen',
-                'description': 'A brand new episode of The Tonight Show welcomes Ricky Gervais, Steven Van Zandt and ILoveMakonnen.',
-            },
-            'skip': '404 Not Found',
-        },
-        {
             'url': 'http://www.nbc.com/saturday-night-live/video/star-wars-teaser/2832821',
             'info_dict': {
                 'id': '2832821',
@@ -62,11 +50,6 @@ class NBCIE(AdobePassIE):
                 'skip_download': True,
             },
             'skip': 'Only works from US',
-        },
-        {
-            # This video has expired but with an escaped embedURL
-            'url': 'http://www.nbc.com/parenthood/episode-guide/season-5/just-like-at-home/515',
-            'only_matching': True,
         },
         {
             # HLS streams requires the 'hdnea3' cookie
@@ -88,59 +71,38 @@ class NBCIE(AdobePassIE):
     ]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        info = {
-            '_type': 'url_transparent',
-            'ie_key': 'ThePlatform',
-            'id': video_id,
+        permalink, video_id = re.match(self._VALID_URL, url).groups()
+        video_data = self._download_json(
+            'https://api.nbc.com/v3/videos', video_id, query={
+                'filter[permalink]': permalink,
+            })['data'][0]['attributes']
+        query = {
+            'mbr': 'true',
+            'manifest': 'm3u',
         }
-        video_data = None
-        preload = self._search_regex(
-            r'PRELOAD\s*=\s*({.+})', webpage, 'preload data', default=None)
-        if preload:
-            preload_data = self._parse_json(preload, video_id)
-            path = compat_urllib_parse_urlparse(url).path.rstrip('/')
-            entity_id = preload_data.get('xref', {}).get(path)
-            video_data = preload_data.get('entities', {}).get(entity_id)
-        if video_data:
-            query = {
-                'mbr': 'true',
-                'manifest': 'm3u',
-            }
-            video_id = video_data['guid']
-            title = video_data['title']
-            if video_data.get('entitlement') == 'auth':
-                resource = self._get_mvpd_resource(
-                    'nbcentertainment', title, video_id,
-                    video_data.get('vChipRating'))
-                query['auth'] = self._extract_mvpd_auth(
-                    url, video_id, 'nbcentertainment', resource)
-            theplatform_url = smuggle_url(update_url_query(
-                'http://link.theplatform.com/s/NnzsPC/media/guid/2410887629/' + video_id,
-                query), {'force_smil_url': True})
-            info.update({
-                'id': video_id,
-                'title': title,
-                'url': theplatform_url,
-                'description': video_data.get('description'),
-                'keywords': video_data.get('keywords'),
-                'season_number': int_or_none(video_data.get('seasonNumber')),
-                'episode_number': int_or_none(video_data.get('episodeNumber')),
-                'series': video_data.get('showName'),
-            })
-        else:
-            theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
-                [
-                    r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
-                    r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
-                    r'"embedURL"\s*:\s*"([^"]+)"'
-                ],
-                webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
-            if theplatform_url.startswith('//'):
-                theplatform_url = 'http:' + theplatform_url
-            info['url'] = smuggle_url(theplatform_url, {'source_url': url})
-        return info
+        video_id = video_data['guid']
+        title = video_data['title']
+        if video_data.get('entitlement') == 'auth':
+            resource = self._get_mvpd_resource(
+                'nbcentertainment', title, video_id,
+                video_data.get('vChipRating'))
+            query['auth'] = self._extract_mvpd_auth(
+                url, video_id, 'nbcentertainment', resource)
+        theplatform_url = smuggle_url(update_url_query(
+            'http://link.theplatform.com/s/NnzsPC/media/guid/2410887629/' + video_id,
+            query), {'force_smil_url': True})
+        return {
+            '_type': 'url_transparent',
+            'id': video_id,
+            'title': title,
+            'url': theplatform_url,
+            'description': video_data.get('description'),
+            'keywords': video_data.get('keywords'),
+            'season_number': int_or_none(video_data.get('seasonNumber')),
+            'episode_number': int_or_none(video_data.get('episodeNumber')),
+            'series': video_data.get('showName'),
+            'ie_key': 'ThePlatform',
+        }
 
 
 class NBCSportsVPlayerIE(InfoExtractor):

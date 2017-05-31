@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     dict_get,
     ExtractorError,
     int_or_none,
@@ -25,6 +26,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'Ruseful2011',
             'duration': 893,
             'age_limit': 18,
+            'categories': ['Fake Hub', 'Amateur', 'MILFs', 'POV', 'Boss', 'Office', 'Oral', 'Reality', 'Sexy'],
         },
     }, {
         'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
@@ -36,6 +38,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'jojo747400',
             'duration': 200,
             'age_limit': 18,
+            'categories': ['Britney Spears', 'Celebrities', 'HD Videos', 'Sexy', 'Sexy Booty'],
         },
         'params': {
             'skip_download': True,
@@ -51,6 +54,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'parejafree',
             'duration': 72,
             'age_limit': 18,
+            'categories': ['Amateur', 'Blowjobs'],
         },
         'params': {
             'skip_download': True,
@@ -104,7 +108,7 @@ class XHamsterIE(InfoExtractor):
             webpage, 'upload date', fatal=False))
 
         uploader = self._html_search_regex(
-            r'<span[^>]+itemprop=["\']author[^>]+><a[^>]+href=["\'].+?xhamster\.com/user/[^>]+>(?P<uploader>.+?)</a>',
+            r'<span[^>]+itemprop=["\']author[^>]+><a[^>]+><span[^>]+>([^<]+)',
             webpage, 'uploader', default='anonymous')
 
         thumbnail = self._search_regex(
@@ -120,7 +124,7 @@ class XHamsterIE(InfoExtractor):
             r'content=["\']User(?:View|Play)s:(\d+)',
             webpage, 'view count', fatal=False))
 
-        mobj = re.search(r"hint='(?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes'", webpage)
+        mobj = re.search(r'hint=[\'"](?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes', webpage)
         (like_count, dislike_count) = (mobj.group('likecount'), mobj.group('dislikecount')) if mobj else (None, None)
 
         mobj = re.search(r'</label>Comments \((?P<commentcount>\d+)\)</div>', webpage)
@@ -152,6 +156,12 @@ class XHamsterIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        categories_html = self._search_regex(
+            r'(?s)<table.+?(<span>Categories:.+?)</table>', webpage,
+            'categories', default=None)
+        categories = [clean_html(category) for category in re.findall(
+            r'<a[^>]+>(.+?)</a>', categories_html)] if categories_html else None
+
         return {
             'id': video_id,
             'title': title,
@@ -165,6 +175,7 @@ class XHamsterIE(InfoExtractor):
             'dislike_count': int_or_none(dislike_count),
             'comment_count': int_or_none(comment_count),
             'age_limit': age_limit,
+            'categories': categories,
             'formats': formats,
         }
 
