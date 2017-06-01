@@ -254,6 +254,13 @@ class TestYoutubeChapters(unittest.TestCase):
                 'title': '3 - Из серпов луны...[Iz serpov luny]',
             }]
         ),
+        (
+            # https://www.youtube.com/watch?v=xZW70zEasOk
+            # time point more than duration
+            '''● LCS Spring finals: Saturday and Sunday from <a href="#" onclick="yt.www.watch.player.seekTo(13*60+30);return false;">13:30</a> outside the venue! <br />● PAX East: Fri, Sat & Sun - more info in tomorrows video on the main channel!''',
+            283,
+            []
+        ),
     ]
 
     def test_youtube_chapters(self):

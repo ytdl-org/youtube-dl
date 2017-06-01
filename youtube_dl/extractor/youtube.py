@@ -1353,10 +1353,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             start_time = parse_duration(time_point)
             if start_time is None:
                 continue
+            if start_time > duration:
+                break
             end_time = (duration if next_num == len(chapter_lines)
                         else parse_duration(chapter_lines[next_num][1]))
             if end_time is None:
                 continue
+            if end_time > duration:
+                end_time = duration
+            if start_time > end_time:
+                break
             chapter_title = re.sub(
                 r'<a[^>]+>[^<]+</a>', '', chapter_line).strip(' \t-')
             chapter_title = re.sub(r'\s+', ' ', chapter_title)
