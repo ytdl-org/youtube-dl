@@ -102,6 +102,8 @@ class FirstTVIE(InfoExtractor):
                     'format_id': f.get('name'),
                     'tbr': tbr,
                     'source_preference': quality(f.get('name')),
+                    # quality metadata of http formats may be incorrect
+                    'preference': -1,
                 })
             # m3u8 URL format is reverse engineered from [1] (search for
             # master.m3u8). dashEdges (that is currently balancer-vod.1tv.ru)
