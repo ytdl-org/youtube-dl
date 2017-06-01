@@ -67,7 +67,7 @@ class SafariBaseIE(InfoExtractor):
                 'Login failed; make sure your credentials are correct and try again.',
                 expected=True)
 
-        SafariBaseIE.LOGGED_IN = True
+        self.LOGGED_IN = True
 
         self.to_screen('Login successful')
 
