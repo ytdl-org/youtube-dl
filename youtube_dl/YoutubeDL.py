@@ -498,24 +498,25 @@ class YoutubeDL(object):
     def to_console_title(self, message):
         if not self.params.get('consoletitle', False):
             return
-        if compat_os_name == 'nt' and ctypes.windll.kernel32.GetConsoleWindow():
-            # c_wchar_p() might not be necessary if `message` is
-            # already of type unicode()
-            ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
+        if compat_os_name == 'nt':
+            if ctypes.windll.kernel32.GetConsoleWindow():
+                # c_wchar_p() might not be necessary if `message` is
+                # already of type unicode()
+                ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
         elif 'TERM' in os.environ:
             self._write_string('\033]0;%s\007' % message, self._screen_file)
 
     def save_console_title(self):
         if not self.params.get('consoletitle', False):
             return
-        if 'TERM' in os.environ:
+        if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Save the title on stack
             self._write_string('\033[22;0t', self._screen_file)
 
     def restore_console_title(self):
         if not self.params.get('consoletitle', False):
             return
-        if 'TERM' in os.environ:
+        if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Restore the title from stack
             self._write_string('\033[23;0t', self._screen_file)
 
