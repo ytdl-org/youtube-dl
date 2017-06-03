@@ -392,7 +392,6 @@ from .globo import (
 from .go import GoIE
 from .go90 import Go90IE
 from .godtube import GodTubeIE
-from .godtv import GodTVIE
 from .golem import GolemIE
 from .googledrive import GoogleDriveIE
 from .googleplus import GooglePlusIE
