@@ -7,11 +7,13 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
-    float_or_none,
-    xpath_text,
-    remove_end,
-    int_or_none,
+    dict_get,
     ExtractorError,
+    float_or_none,
+    int_or_none,
+    remove_end,
+    try_get,
+    xpath_text,
 )
 
 from .periscope import PeriscopeIE
@@ -21,6 +23,15 @@ class TwitterBaseIE(InfoExtractor):
     def _get_vmap_video_url(self, vmap_url, video_id):
         vmap_data = self._download_xml(vmap_url, video_id)
         return xpath_text(vmap_data, './/MediaFile').strip()
+
+    @staticmethod
+    def _search_dimensions_in_video_url(a_format, video_url):
+        m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
+        if m:
+            a_format.update({
+                'width': int(m.group('width')),
+                'height': int(m.group('height')),
+            })
 
 
 class TwitterCardIE(TwitterBaseIE):
@@ -90,6 +101,59 @@ class TwitterCardIE(TwitterBaseIE):
         },
     ]
 
+    def _parse_media_info(self, media_info, video_id):
+        formats = []
+        for media_variant in media_info.get('variants', []):
+            media_url = media_variant['url']
+            if media_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(media_url, video_id, ext='mp4', m3u8_id='hls'))
+            elif media_url.endswith('.mpd'):
+                formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
+            else:
+                vbr = int_or_none(dict_get(media_variant, ('bitRate', 'bitrate')), scale=1000)
+                a_format = {
+                    'url': media_url,
+                    'format_id': 'http-%d' % vbr if vbr else 'http',
+                    'vbr': vbr,
+                }
+                # Reported bitRate may be zero
+                if not a_format['vbr']:
+                    del a_format['vbr']
+
+                self._search_dimensions_in_video_url(a_format, media_url)
+
+                formats.append(a_format)
+        return formats
+
+    def _extract_mobile_formats(self, username, video_id):
+        webpage = self._download_webpage(
+            'https://mobile.twitter.com/%s/status/%s' % (username, video_id),
+            video_id, 'Downloading mobile webpage',
+            headers={
+                # A recent mobile UA is necessary for `gt` cookie
+                'User-Agent': 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0',
+            })
+        main_script_url = self._html_search_regex(
+            r'<script[^>]+src="([^"]+main\.[^"]+)"', webpage, 'main script URL')
+        main_script = self._download_webpage(
+            main_script_url, video_id, 'Downloading main script')
+        bearer_token = self._search_regex(
+            r'BEARER_TOKEN\s*:\s*"([^"]+)"',
+            main_script, 'bearer token')
+        guest_token = self._search_regex(
+            r'document\.cookie\s*=\s*decodeURIComponent\("gt=(\d+)',
+            webpage, 'guest token')
+        api_data = self._download_json(
+            'https://api.twitter.com/2/timeline/conversation/%s.json' % video_id,
+            video_id, 'Downloading mobile API data',
+            headers={
+                'Authorization': 'Bearer ' + bearer_token,
+                'x-guest-token': guest_token,
+            })
+        media_info = try_get(api_data, lambda o: o['globalObjects']['tweets'][video_id]
+                                                  ['extended_entities']['media'][0]['video_info']) or {}
+        return self._parse_media_info(media_info, video_id)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -117,14 +181,6 @@ class TwitterCardIE(TwitterBaseIE):
         if periscope_url:
             return self.url_result(periscope_url, PeriscopeIE.ie_key())
 
-        def _search_dimensions_in_video_url(a_format, video_url):
-            m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
-            if m:
-                a_format.update({
-                    'width': int(m.group('width')),
-                    'height': int(m.group('height')),
-                })
-
         video_url = config.get('video_url') or config.get('playlist', [{}])[0].get('source')
 
         if video_url:
@@ -135,7 +191,7 @@ class TwitterCardIE(TwitterBaseIE):
                     'url': video_url,
                 }
 
-                _search_dimensions_in_video_url(f, video_url)
+                self._search_dimensions_in_video_url(f, video_url)
 
                 formats.append(f)
 
@@ -152,29 +208,14 @@ class TwitterCardIE(TwitterBaseIE):
                 media_info = entity['mediaInfo']
 
         if media_info:
-            for media_variant in media_info['variants']:
-                media_url = media_variant['url']
-                if media_url.endswith('.m3u8'):
-                    formats.extend(self._extract_m3u8_formats(media_url, video_id, ext='mp4', m3u8_id='hls'))
-                elif media_url.endswith('.mpd'):
-                    formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
-                else:
-                    vbr = int_or_none(media_variant.get('bitRate'), scale=1000)
-                    a_format = {
-                        'url': media_url,
-                        'format_id': 'http-%d' % vbr if vbr else 'http',
-                        'vbr': vbr,
-                    }
-                    # Reported bitRate may be zero
-                    if not a_format['vbr']:
-                        del a_format['vbr']
-
-                    _search_dimensions_in_video_url(a_format, media_url)
-
-                    formats.append(a_format)
-
+            formats.extend(self._parse_media_info(media_info, video_id))
             duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
 
+        username = config.get('user', {}).get('screen_name')
+        if username:
+            formats.extend(self._extract_mobile_formats(username, video_id))
+
+        self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
         title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
@@ -301,6 +342,20 @@ class TwitterIE(InfoExtractor):
             'timestamp': 1474613214,
         },
         'add_ie': ['Periscope'],
+    }, {
+        # has mp4 formats via mobile API
+        'url': 'https://twitter.com/news_al3alm/status/852138619213144067',
+        'info_dict': {
+            'id': '852138619213144067',
+            'ext': 'mp4',
+            'title': 'عالم الأخبار - كلمة تاريخية بجلسة الجناسي التاريخية.. النائب خالد مؤنس العتيبي للمعارضين : اتقوا الله .. الظلم ظلمات يوم القيامة',
+            'description': 'عالم الأخبار on Twitter: "كلمة تاريخية بجلسة الجناسي التاريخية.. النائب خالد مؤنس العتيبي للمعارضين : اتقوا الله .. الظلم ظلمات يوم القيامة   https://t.co/xg6OhpyKfN"',
+            'uploader': 'عالم الأخبار',
+            'uploader_id': 'news_al3alm',
+        },
+        'params': {
+            'format': 'best[format_id^=http-]',
+        },
     }]
 
     def _real_extract(self, url):
