@@ -16,6 +16,7 @@ from .ffmpeg import (
 from .xattrpp import XAttrMetadataPP
 from .execafterdownload import ExecAfterDownloadPP
 from .metadatafromtitle import MetadataFromTitlePP
+from .move import MovePP
 
 
 def get_postprocessor(key):
@@ -25,6 +26,7 @@ def get_postprocessor(key):
 __all__ = [
     'EmbedThumbnailPP',
     'ExecAfterDownloadPP',
+    'MovePP',
     'FFmpegEmbedSubtitlePP',
     'FFmpegExtractAudioPP',
     'FFmpegFixupM3u8PP',
