@@ -252,11 +252,14 @@ class PornHubPlaylistBaseIE(InfoExtractor):
 
         playlist = self._parse_json(
             self._search_regex(
-                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
-            playlist_id)
+                r'(?:playlistObject|PLAYLIST_VIEW)\s*=\s*({.+?});', webpage,
+                'playlist', default='{}'),
+            playlist_id, fatal=False)
+        title = playlist.get('title') or self._search_regex(
+            r'>Videos\s+in\s+(.+?)\s+[Pp]laylist<', webpage, 'title', fatal=False)
 
         return self.playlist_result(
-            entries, playlist_id, playlist.get('title'), playlist.get('description'))
+            entries, playlist_id, title, playlist.get('description'))
 
 
 class PornHubPlaylistIE(PornHubPlaylistBaseIE):
