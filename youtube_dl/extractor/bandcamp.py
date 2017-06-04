@@ -14,6 +14,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    KNOWN_EXTENSIONS,
     parse_filesize,
     unescapeHTML,
     update_url_query,
@@ -22,7 +23,7 @@ from ..utils import (
 
 
 class BandcampIE(InfoExtractor):
-    _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>.*)'
+    _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
         'md5': 'c557841d5e50261777a6585648adf439',
@@ -156,7 +157,7 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<album_id>[^?#]+)|/?(?:$|[?#]))'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<album_id>[^/?#&]+))?'
 
     _TESTS = [{
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
@@ -225,7 +226,9 @@ class BandcampAlbumIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if BandcampWeeklyIE.suitable(url) else super(BandcampAlbumIE, cls).suitable(url)
+        return (False
+                if BandcampWeeklyIE.suitable(url) or BandcampIE.suitable(url)
+                else super(BandcampAlbumIE, cls).suitable(url))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -258,16 +261,22 @@ class BandcampAlbumIE(InfoExtractor):
 
 
 class BandcampWeeklyIE(InfoExtractor):
-    IE_NAME = 'Bandcamp:bandcamp_weekly'
-    _VALID_URL = r'https?://(?:www\.)?bandcamp\.com/?\?(?:.*&)?show=(?P<id>\d+)(?:$|[&#])'
+    IE_NAME = 'Bandcamp:weekly'
+    _VALID_URL = r'https?://(?:www\.)?bandcamp\.com/?\?(?:.*?&)?show=(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://bandcamp.com/?show=224',
         'md5': 'b00df799c733cf7e0c567ed187dea0fd',
         'info_dict': {
             'id': '224',
             'ext': 'opus',
-            'title': 'BC Weekly April 4th 2017: Magic Moments',
-            'description': 'Stones Throw\'s Vex Ruffin, plus up and coming singer Salami Rose Joe Louis, in conversation about their fantastic DIY albums.',
+            'title': 'BC Weekly April 4th 2017 - Magic Moments',
+            'description': 'md5:5d48150916e8e02d030623a48512c874',
+            'duration': 5829.77,
+            'release_date': '20170404',
+            'series': 'Bandcamp Weekly',
+            'episode': 'Magic Moments',
+            'episode_number': 208,
+            'episode_id': '224',
         }
     }, {
         'url': 'https://bandcamp.com/?blah/blah@&show=228',
@@ -288,32 +297,53 @@ class BandcampWeeklyIE(InfoExtractor):
 
         # This is desired because any invalid show id redirects to `bandcamp.com`
         # which happens to expose the latest Bandcamp Weekly episode.
-        video_id = compat_str(show['show_id'])
+        show_id = int_or_none(show.get('show_id')) or int_or_none(video_id)
 
-        def to_format_dictionaries(audio_stream):
-            dictionaries = [{'format_id': kvp[0], 'url': kvp[1]} for kvp in audio_stream.items()]
-            known_extensions = ['mp3', 'opus']
-
-            for dictionary in dictionaries:
-                for ext in known_extensions:
-                    if ext in dictionary['format_id']:
-                        dictionary['ext'] = ext
-                        break
-
-            return dictionaries
-
-        formats = to_format_dictionaries(show['audio_stream'])
+        formats = []
+        for format_id, format_url in show['audio_stream'].items():
+            if not isinstance(format_url, compat_str):
+                continue
+            for known_ext in KNOWN_EXTENSIONS:
+                if known_ext in format_id:
+                    ext = known_ext
+                    break
+            else:
+                ext = None
+            formats.append({
+                'format_id': format_id,
+                'url': format_url,
+                'ext': ext,
+                'vcodec': 'none',
+            })
         self._sort_formats(formats)
+
+        title = show.get('audio_title') or 'Bandcamp Weekly'
+        subtitle = show.get('subtitle')
+        if subtitle:
+            title += ' - %s' % subtitle
+
+        episode_number = None
+        seq = blob.get('bcw_seq')
+
+        if seq and isinstance(seq, list):
+            try:
+                episode_number = next(
+                    int_or_none(e.get('episode_number'))
+                    for e in seq
+                    if isinstance(e, dict) and int_or_none(e.get('id')) == show_id)
+            except StopIteration:
+                pass
 
         return {
             'id': video_id,
-            'title': show['audio_title'] + ': ' + show['subtitle'],
-            'description': show.get('desc'),
+            'title': title,
+            'description': show.get('desc') or show.get('short_desc'),
             'duration': float_or_none(show.get('audio_duration')),
-            'webpage_url': 'https://bandcamp.com/?show=' + video_id,
             'is_live': False,
             'release_date': unified_strdate(show.get('published_date')),
             'series': 'Bandcamp Weekly',
+            'episode': show.get('subtitle'),
+            'episode_number': episode_number,
             'episode_id': compat_str(video_id),
             'formats': formats
         }
