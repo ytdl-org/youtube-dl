@@ -1,3 +1,20 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Don't emit ANSI escape codes on Windows (#13270)
+
+Extractors
++ [bandcamp:weekly] Add support for bandcamp weekly (#12758)
+* [pornhub:playlist] Fix extraction (#13281)
+- [godtv] Remove extractor (#13175)
+* [safari] Fix typo (#13252)
+* [youtube] Improve chapters extraction (#13247)
+* [1tv] Lower preference for HTTP formats (#13246)
+* [francetv] Relax URL regular expression
+* [drbonanza] Fix extraction (#13231)
+* [packtpub] Fix authentication (#13240)
+
+
 version 2017.05.29
 
 Extractors
