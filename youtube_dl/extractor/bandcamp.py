@@ -17,6 +17,7 @@ from ..utils import (
     parse_filesize,
     unescapeHTML,
     update_url_query,
+    unified_strdate,
 )
 
 
@@ -222,6 +223,10 @@ class BandcampAlbumIE(InfoExtractor):
         'playlist_count': 2,
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if BandcampWeeklyIE.suitable(url) else super(BandcampAlbumIE, cls).suitable(url)
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         uploader_id = mobj.group('subdomain')
@@ -249,4 +254,66 @@ class BandcampAlbumIE(InfoExtractor):
             'id': playlist_id,
             'title': title,
             'entries': entries,
+        }
+
+
+class BandcampWeeklyIE(InfoExtractor):
+    IE_NAME = 'Bandcamp:bandcamp_weekly'
+    _VALID_URL = r'https?://(?:www\.)?bandcamp\.com/?\?(?:.*&)?show=(?P<id>\d+)(?:$|[&#])'
+    _TESTS = [{
+        'url': 'https://bandcamp.com/?show=224',
+        'md5': 'b00df799c733cf7e0c567ed187dea0fd',
+        'info_dict': {
+            'id': '224',
+            'ext': 'opus',
+            'title': 'BC Weekly April 4th 2017: Magic Moments',
+            'description': 'Stones Throw\'s Vex Ruffin, plus up and coming singer Salami Rose Joe Louis, in conversation about their fantastic DIY albums.',
+        }
+    }, {
+        'url': 'https://bandcamp.com/?blah/blah@&show=228',
+        'only_matching': True
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        blob = self._parse_json(
+            self._search_regex(
+                r'data-blob=(["\'])(?P<blob>{.+?})\1', webpage,
+                'blob', group='blob'),
+            video_id, transform_source=unescapeHTML)
+
+        show = blob['bcw_show']
+
+        # This is desired because any invalid show id redirects to `bandcamp.com`
+        # which happens to expose the latest Bandcamp Weekly episode.
+        video_id = compat_str(show['show_id'])
+
+        def to_format_dictionaries(audio_stream):
+            dictionaries = [{'format_id': kvp[0], 'url': kvp[1]} for kvp in audio_stream.items()]
+            known_extensions = ['mp3', 'opus']
+
+            for dictionary in dictionaries:
+                for ext in known_extensions:
+                    if ext in dictionary['format_id']:
+                        dictionary['ext'] = ext
+                        break
+
+            return dictionaries
+
+        formats = to_format_dictionaries(show['audio_stream'])
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': show['audio_title'] + ': ' + show['subtitle'],
+            'description': show.get('desc'),
+            'duration': float_or_none(show.get('audio_duration')),
+            'webpage_url': 'https://bandcamp.com/?show=' + video_id,
+            'is_live': False,
+            'release_date': unified_strdate(show.get('published_date')),
+            'series': 'Bandcamp Weekly',
+            'episode_id': compat_str(video_id),
+            'formats': formats
         }
