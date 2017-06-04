@@ -87,6 +87,7 @@
  - **bambuser:channel**
  - **Bandcamp**
  - **Bandcamp:album**
+ - **Bandcamp:weekly**
  - **bangumi.bilibili.com**: BiliBili番剧
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
@@ -310,7 +311,6 @@
  - **Go**
  - **Go90**
  - **GodTube**
- - **GodTV**
  - **Golem**
  - **GoogleDrive**
  - **Goshgay**

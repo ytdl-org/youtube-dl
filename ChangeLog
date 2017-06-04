@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.06.05
 
 Core
 * [YoutubeDL] Don't emit ANSI escape codes on Windows (#13270)
