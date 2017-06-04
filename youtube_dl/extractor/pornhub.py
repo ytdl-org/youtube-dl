@@ -299,6 +299,7 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
                     break
+                raise
             page_entries = self._extract_entries(webpage)
             if not page_entries:
                 break
