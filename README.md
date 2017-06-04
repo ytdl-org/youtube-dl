@@ -27,6 +27,10 @@ If you do not have curl, you can alternatively use a recent wget:
 
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
 
+Ubuntu user can use apt:
+
+    sudo apt-get install youtube-dl
+    
 You can also use pip:
 
     sudo -H pip install --upgrade youtube-dl
