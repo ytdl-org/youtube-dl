@@ -48,7 +48,7 @@ class TVPlayerIE(InfoExtractor):
             'https://tvplayer.com/watch/context', display_id,
             'Downloading JSON context', query={
                 'resource': resource_id,
-                'nonce': token,
+                'gen': token,
             })
 
         validate = context['validate']
