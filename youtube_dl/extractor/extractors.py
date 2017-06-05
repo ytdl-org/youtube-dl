@@ -1123,6 +1123,7 @@ from .vevo import (
     VevoIE,
     VevoPlaylistIE,
 )
+from .veyqo import VeyqoIE
 from .vgtv import (
     BTArticleIE,
     BTVestlendingenIE,
