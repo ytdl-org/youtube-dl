@@ -22,6 +22,13 @@ class StreamangoIE(InfoExtractor):
             'title': '20170315_150006.mp4',
         }
     }, {
+        'url': 'https://streamango.com/embed/foqebrpftarclpob/asdf_asd_2_mp4',
+        'info_dict': {
+            'id': 'foqebrpftarclpob',
+            'ext': 'mp4',
+            'title': 'foqebrpftarclpob',
+        }
+    }, {
         'url': 'https://streamango.com/embed/clapasobsptpkdfe/20170315_150006_mp4',
         'only_matching': True,
     }]
@@ -31,7 +38,7 @@ class StreamangoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage)
+        title = self._og_search_title(webpage, default=video_id)
 
         formats = []
         for format_ in re.findall(r'({[^}]*\bsrc\s*:\s*[^}]*})', webpage):
