@@ -1053,7 +1053,7 @@ class InfoExtractor(object):
 
     def _sort_formats(self, formats, field_preference=None):
         if not formats:
-            raise ExtractorError('No video formats found')
+            return
 
         for f in formats:
             # Automatically determine tbr when missing based on abr and vbr (improves
