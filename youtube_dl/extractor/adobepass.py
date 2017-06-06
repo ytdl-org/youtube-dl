@@ -1486,6 +1486,12 @@ class AdobePassIE(InfoExtractor):
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
                 else:
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    if '<body onload="document.loginform.submit()">' in provider_redirect_page:
+                        provider_login_page_res = post_form(
+                            provider_redirect_page_res, 'Downloading Provider Login Page')
+                    else:
+                        provider_login_page_res = provider_redirect_page_res
                     provider_login_page_res = process_redirects(
                         provider_redirect_page_res, video_id, 'Downloading Provider Login Page')
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
