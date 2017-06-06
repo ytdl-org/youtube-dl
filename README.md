@@ -132,7 +132,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      caseless sub-string)
     --max-downloads NUMBER           Abort after downloading NUMBER files
     --min-filesize SIZE              Do not download any videos smaller than
-                                     SIZE (e.g. 50k or 44.6m)
+                                     SIZE (e.g. 50k or 44.6m). Use match-filter
+                                     with the duration key instead of this to
+                                     filter for long videos only as this will
+                                     often download the video track and skip
+                                     the audio if they are downloaded separately.
     --max-filesize SIZE              Do not download any videos larger than SIZE
                                      (e.g. 50k or 44.6m)
     --date DATE                      Download only videos uploaded in this date
