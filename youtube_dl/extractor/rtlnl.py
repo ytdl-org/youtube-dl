@@ -15,7 +15,7 @@ class RtlNlIE(InfoExtractor):
         https?://(?:www\.)?
         (?:
             rtlxl\.nl/[^\#]*\#!/[^/]+/|
-            rtl\.nl/system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html\b.+?\buuid=
+            rtl\.nl/(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html\b.+?\buuid=|video/)
         )
         (?P<id>[0-9a-f-]+)'''
 
@@ -69,6 +69,9 @@ class RtlNlIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://rtlxl.nl/?_ga=1.204735956.572365465.1466978370#!/rtl-nieuws-132237/3c487912-023b-49ac-903e-2c5d79f8410f',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rtl.nl/video/c603c9c2-601d-4b5e-8175-64f1e942dc7d/',
         'only_matching': True,
     }]
 
