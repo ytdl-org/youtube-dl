@@ -22,12 +22,16 @@ class StreamangoIE(InfoExtractor):
             'title': '20170315_150006.mp4',
         }
     }, {
+        # no og:title
         'url': 'https://streamango.com/embed/foqebrpftarclpob/asdf_asd_2_mp4',
         'info_dict': {
             'id': 'foqebrpftarclpob',
             'ext': 'mp4',
             'title': 'foqebrpftarclpob',
-        }
+        },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'https://streamango.com/embed/clapasobsptpkdfe/20170315_150006_mp4',
         'only_matching': True,
