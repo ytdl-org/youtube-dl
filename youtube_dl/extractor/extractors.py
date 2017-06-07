@@ -699,6 +699,7 @@ from .npo import (
     NPORadioFragmentIE,
     SchoolTVIE,
     HetKlokhuisIE,
+    NPORecentsIE,
     VPROIE,
     WNLIE,
 )
