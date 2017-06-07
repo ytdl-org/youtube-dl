@@ -1,23 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
 import datetime
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_parse_qs,
     compat_urlparse,
 )
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
     parse_duration,
     parse_iso8601,
-    sanitized_Request,
-    xpath_text,
-    determine_ext,
     urlencode_postdata,
+    xpath_text,
 )
 
 
@@ -101,19 +100,24 @@ class NiconicoIE(InfoExtractor):
             return True
 
         # Log in
+        login_ok = True
         login_form_strs = {
-            'mail': username,
+            'mail_tel': username,
             'password': password,
         }
-        login_data = urlencode_postdata(login_form_strs)
-        request = sanitized_Request(
-            'https://secure.nicovideo.jp/secure/login', login_data)
-        login_results = self._download_webpage(
-            request, None, note='Logging in', errnote='Unable to log in')
-        if re.search(r'(?i)<h1 class="mb8p4">Log in error</h1>', login_results) is not None:
+        urlh = self._request_webpage(
+            'https://account.nicovideo.jp/api/v1/login', None,
+            note='Logging in', errnote='Unable to log in',
+            data=urlencode_postdata(login_form_strs))
+        if urlh is False:
+            login_ok = False
+        else:
+            parts = compat_urlparse.urlparse(urlh.geturl())
+            if compat_parse_qs(parts.query).get('message', [None])[0] == 'cant_login':
+                login_ok = False
+        if not login_ok:
             self._downloader.report_warning('unable to log in: bad username or password')
-            return False
-        return True
+        return login_ok
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
