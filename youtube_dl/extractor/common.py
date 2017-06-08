@@ -376,7 +376,7 @@ class InfoExtractor(object):
             cls._VALID_URL_RE = re.compile(cls._VALID_URL)
         m = cls._VALID_URL_RE.match(url)
         assert m
-        return m.group('id')
+        return compat_str(m.group('id'))
 
     @classmethod
     def working(cls):
