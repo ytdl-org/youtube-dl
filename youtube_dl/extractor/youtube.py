@@ -1016,6 +1016,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
             'only_matching': True,
         },
+        {
+            # extra DASH formats with use_cipher_signature=True
+            'url': 'https://www.youtube.com/watch?v=4H4dqBqGS2s',
+            'only_matching': True,
+        }
     ]
 
     def __init__(self, *args, **kwargs):
