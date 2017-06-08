@@ -535,13 +535,14 @@ The basic usage is not to set any template arguments when downloading a single f
  - `playlist_id` (string): Playlist identifier
  - `playlist_title` (string): Playlist title
 
-
 Available for the video that belongs to some logical chapter or section:
+
  - `chapter` (string): Name or title of the chapter the video belongs to
  - `chapter_number` (numeric): Number of the chapter the video belongs to
  - `chapter_id` (string): Id of the chapter the video belongs to
 
 Available for the video that is an episode of some series or programme:
+
  - `series` (string): Title of the series or programme the video episode belongs to
  - `season` (string): Title of the season the video episode belongs to
  - `season_number` (numeric): Number of the season the video episode belongs to
@@ -551,6 +552,7 @@ Available for the video that is an episode of some series or programme:
  - `episode_id` (string): Id of the video episode
 
 Available for the media that is a track or a part of a music album:
+
  - `track` (string): Title of the track
  - `track_number` (numeric): Number of the track within an album or a disc
  - `track_id` (string): Id of the track
