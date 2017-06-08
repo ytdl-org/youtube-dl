@@ -44,8 +44,15 @@ class DrTuberIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.drtuber.com/video/%s' % video_id, display_id)
 
-        video_url = self._html_search_regex(
-            r'<source src="([^"]+)"', webpage, 'video URL')
+        # the video URL must be extracted from an external JSON stream
+        video_data = self._download_json(
+            'http://www.drtuber.com/player_config_json/?vid=%s&embed=0&aid=0&domain_id=0'
+            % video_id, video_id)
+        # is a high-quality video available?
+        video_url = video_data['files']['hq']
+        if video_url is None:
+            # nope - use the standard-quality video instead
+            video_url = video_data['files']['lq']
 
         title = self._html_search_regex(
             (r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
