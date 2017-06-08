@@ -174,6 +174,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      downloaded videos in it.
     --include-ads                    Download advertisements as well
                                      (experimental)
+    --playlist-skip                  Skip over playlist items that fail to
+                                     download.
 
 ## Download Options:
     -r, --limit-rate RATE            Maximum download rate in bytes per second
