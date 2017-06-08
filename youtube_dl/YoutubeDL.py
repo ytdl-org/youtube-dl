@@ -58,6 +58,7 @@ from .utils import (
     format_bytes,
     formatSeconds,
     GeoRestrictedError,
+    int_or_none,
     ISO3166Utils,
     locked_file,
     make_HTTPS_handler,
@@ -301,6 +302,17 @@ class YoutubeDL(object):
     postprocessor_args: A list of additional command-line arguments for the
                         postprocessor.
     """
+
+    _NUMERIC_FIELDS = set((
+        'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
+        'timestamp', 'upload_year', 'upload_month', 'upload_day',
+        'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
+        'average_rating', 'comment_count', 'age_limit',
+        'start_time', 'end_time',
+        'chapter_number', 'season_number', 'episode_number',
+        'track_number', 'disc_number', 'release_year',
+        'playlist_index',
+    ))
 
     params = None
     _ies = []
@@ -639,22 +651,11 @@ class YoutubeDL(object):
                     r'%%(\1)0%dd' % field_size_compat_map[mobj.group('field')],
                     outtmpl)
 
-            NUMERIC_FIELDS = set((
-                'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
-                'timestamp', 'upload_year', 'upload_month', 'upload_day',
-                'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
-                'average_rating', 'comment_count', 'age_limit',
-                'start_time', 'end_time',
-                'chapter_number', 'season_number', 'episode_number',
-                'track_number', 'disc_number', 'release_year',
-                'playlist_index',
-            ))
-
             # Missing numeric fields used together with integer presentation types
             # in format specification will break the argument substitution since
             # string 'NA' is returned for missing fields. We will patch output
             # template for missing fields to meet string presentation type.
-            for numeric_field in NUMERIC_FIELDS:
+            for numeric_field in self._NUMERIC_FIELDS:
                 if numeric_field not in template_dict:
                     # As of [1] format syntax is:
                     #  %[mapping_key][conversion_flags][minimum_width][.precision][length_modifier]type
@@ -1345,9 +1346,28 @@ class YoutubeDL(object):
         if 'title' not in info_dict:
             raise ExtractorError('Missing "title" field in extractor result')
 
-        if not isinstance(info_dict['id'], compat_str):
-            self.report_warning('"id" field is not a string - forcing string conversion')
-            info_dict['id'] = compat_str(info_dict['id'])
+        def report_force_conversion(field, field_not, conversion):
+            self.report_warning(
+                '"%s" field is not %s - forcing %s conversion, there is an error in extractor'
+                % (field, field_not, conversion))
+
+        def sanitize_string_field(info, string_field):
+            field = info.get(string_field)
+            if field is None or isinstance(field, compat_str):
+                return
+            report_force_conversion(string_field, 'a string', 'string')
+            info[string_field] = compat_str(field)
+
+        def sanitize_numeric_fields(info):
+            for numeric_field in self._NUMERIC_FIELDS:
+                field = info.get(numeric_field)
+                if field is None or isinstance(field, compat_numeric_types):
+                    continue
+                report_force_conversion(numeric_field, 'numeric', 'int')
+                info[numeric_field] = int_or_none(field)
+
+        sanitize_string_field(info_dict, 'id')
+        sanitize_numeric_fields(info_dict)
 
         if 'playlist' not in info_dict:
             # It isn't part of a playlist
@@ -1435,6 +1455,8 @@ class YoutubeDL(object):
             if 'url' not in format:
                 raise ExtractorError('Missing "url" key in result (index %d)' % i)
 
+            sanitize_string_field(format, 'format_id')
+            sanitize_numeric_fields(format)
             format['url'] = sanitize_url(format['url'])
 
             if format.get('format_id') is None:
