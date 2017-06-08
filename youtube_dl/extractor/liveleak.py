@@ -115,8 +115,9 @@ class LiveLeakIE(InfoExtractor):
 
         for a_format in info_dict['formats']:
             if not a_format.get('height'):
-                a_format['height'] = self._search_regex(
-                    r'([0-9]+)p\.mp4', a_format['url'], 'height label', default=None)
+                a_format['height'] = int_or_none(self._search_regex(
+                    r'([0-9]+)p\.mp4', a_format['url'], 'height label',
+                    default=None))
 
         self._sort_formats(info_dict['formats'])
 
