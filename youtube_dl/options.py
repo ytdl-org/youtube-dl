@@ -310,7 +310,7 @@ def parseOpts(overrideArguments=None):
         metavar='FILTER', dest='match_filter', default=None,
         help=(
             'Generic video filter. '
-            'Specify any key (see help for -o for a list of available keys) to '
+            'Specify any key (see the "OUTPUT TEMPLATE" for a list of available keys) to '
             'match if the key is present, '
             '!key to check if the key is not present, '
             'key > NUMBER (like "comment_count > 12", also works with '
@@ -618,7 +618,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '-j', '--dump-json',
         action='store_true', dest='dumpjson', default=False,
-        help='Simulate, quiet but print JSON information. See --output for a description of available keys.')
+        help='Simulate, quiet but print JSON information. See the "OUTPUT TEMPLATE" for a description of available keys.')
     verbosity.add_option(
         '-J', '--dump-single-json',
         action='store_true', dest='dump_single_json', default=False,
