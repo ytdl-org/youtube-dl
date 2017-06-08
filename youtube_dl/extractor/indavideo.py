@@ -133,7 +133,7 @@ class IndavideoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
         embed_url = self._search_regex(
-            r'<link[^>]+rel="video_src"[^>]+href="(.+?)"', webpage, 'embed url')
+            r'<div[^>]+id="player".*><iframe[^>]+src="(.+?)"', webpage, 'embed url')
 
         return {
             '_type': 'url_transparent',
