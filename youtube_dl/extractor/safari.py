@@ -16,7 +16,6 @@ from ..utils import (
 
 class SafariBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.safaribooksonline.com/accounts/login/'
-    _SUCCESSFUL_LOGIN_REGEX = r'<a href="/accounts/logout/"[^>]*>Sign Out</a>'
     _NETRC_MACHINE = 'safari'
 
     _API_BASE = 'https://www.safaribooksonline.com/api/v1'
@@ -28,10 +27,6 @@ class SafariBaseIE(InfoExtractor):
         self._login()
 
     def _login(self):
-        # We only need to log in once for courses or individual videos
-        if self.LOGGED_IN:
-            return
-
         (username, password) = self._get_login_info()
         if username is None:
             return
@@ -39,11 +34,17 @@ class SafariBaseIE(InfoExtractor):
         headers = std_headers.copy()
         if 'Referer' not in headers:
             headers['Referer'] = self._LOGIN_URL
-        login_page_request = sanitized_Request(self._LOGIN_URL, headers=headers)
 
         login_page = self._download_webpage(
-            login_page_request, None,
-            'Downloading login form')
+            self._LOGIN_URL, None, 'Downloading login form', headers=headers)
+
+        def is_logged(webpage):
+            return any(re.search(p, webpage) for p in (
+                r'href=["\']/accounts/logout/', r'>Sign Out<'))
+
+        if is_logged(login_page):
+            self.LOGGED_IN = True
+            return
 
         csrf = self._html_search_regex(
             r"name='csrfmiddlewaretoken'\s+value='([^']+)'",
@@ -62,14 +63,12 @@ class SafariBaseIE(InfoExtractor):
         login_page = self._download_webpage(
             request, None, 'Logging in as %s' % username)
 
-        if re.search(self._SUCCESSFUL_LOGIN_REGEX, login_page) is None:
+        if not is_logged(login_page):
             raise ExtractorError(
                 'Login failed; make sure your credentials are correct and try again.',
                 expected=True)
 
         self.LOGGED_IN = True
-
-        self.to_screen('Login successful')
 
 
 class SafariIE(SafariBaseIE):
