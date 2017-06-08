@@ -8,7 +8,11 @@ from ..compat import (
     compat_str,
     compat_urllib_parse_urlencode,
 )
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    try_get,
+)
 
 
 class SohuIE(InfoExtractor):
@@ -169,10 +173,11 @@ class SohuIE(InfoExtractor):
                 formats.append({
                     'url': video_url,
                     'format_id': format_id,
-                    'filesize': data['clipsBytes'][i],
-                    'width': data['width'],
-                    'height': data['height'],
-                    'fps': data['fps'],
+                    'filesize': int_or_none(
+                        try_get(data, lambda x: x['clipsBytes'][i])),
+                    'width': int_or_none(data.get('width')),
+                    'height': int_or_none(data.get('height')),
+                    'fps': int_or_none(data.get('fps')),
                 })
             self._sort_formats(formats)
 
