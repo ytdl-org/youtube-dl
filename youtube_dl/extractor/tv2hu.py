@@ -36,7 +36,7 @@ class TV2HuIE(InfoExtractor):
         formats = []
         for b in ('bitrates', 'backupBitrates'):
             bitrates = json_data.get(b, {})
-            m3u8_url = bitrates.get('hls')
+            m3u8_url = 'http:' + bitrates.get('hls')
             if m3u8_url:
                 formats.extend(self._extract_wowza_formats(
                     m3u8_url, video_id, skip_protocols=['rtmp', 'rtsp']))
