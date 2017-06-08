@@ -82,7 +82,7 @@ class GfycatIE(InfoExtractor):
             video_url = gfy.get('%sUrl' % format_id)
             if not video_url:
                 continue
-            filesize = gfy.get('%sSize' % format_id)
+            filesize = int_or_none(gfy.get('%sSize' % format_id))
             formats.append({
                 'url': video_url,
                 'format_id': format_id,
