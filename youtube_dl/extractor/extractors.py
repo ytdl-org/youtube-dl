@@ -40,6 +40,10 @@ from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
 from .amcnetworks import AMCNetworksIE
 from .animeondemand import AnimeOnDemandIE
+from .animevost import (
+    AnimevostIE,
+    AnimevostEntryIE,
+)
 from .anitube import AnitubeIE
 from .anvato import AnvatoIE
 from .anysex import AnySexIE
