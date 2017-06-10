@@ -10,6 +10,7 @@ from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..compat import (
     compat_etree_fromstring,
+    compat_str,
     compat_urllib_parse_unquote,
     compat_urlparse,
     compat_xml_parse_error,
@@ -1907,14 +1908,14 @@ class GenericIE(InfoExtractor):
         content_type = head_response.headers.get('Content-Type', '').lower()
         m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>[^;\s]+)', content_type)
         if m:
-            format_id = m.group('format_id')
+            format_id = compat_str(m.group('format_id'))
             if format_id.endswith('mpegurl'):
                 formats = self._extract_m3u8_formats(url, video_id, 'mp4')
             elif format_id == 'f4m':
                 formats = self._extract_f4m_formats(url, video_id)
             else:
                 formats = [{
-                    'format_id': m.group('format_id'),
+                    'format_id': format_id,
                     'url': url,
                     'vcodec': 'none' if m.group('type') == 'audio' else None
                 }]
