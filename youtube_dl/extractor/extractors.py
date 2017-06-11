@@ -636,10 +636,7 @@ from .neteasemusic import (
     NetEaseMusicProgramIE,
     NetEaseMusicDjRadioIE,
 )
-from .newgrounds import (
-    NewgroundsIE,
-    NewgroundsPlaylistIE,
-)
+from .newgrounds import NewgroundsIE
 from .newstube import NewstubeIE
 from .nextmedia import (
     NextMediaIE,
@@ -822,6 +819,7 @@ from .rai import (
     RaiPlayIE,
     RaiIE,
 )
+from .rapidvideo import RapidVideoIE
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redbulltv import RedBullTVIE
