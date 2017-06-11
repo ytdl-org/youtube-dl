@@ -13,6 +13,7 @@ from .abcotvs import (
     ABCOTVSIE,
     ABCOTVSClipsIE,
 )
+from .abysstream import AbySStreamIE
 from .academicearth import AcademicEarthCourseIE
 from .acast import (
     ACastIE,
