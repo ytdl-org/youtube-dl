@@ -1,7 +1,12 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    extract_attributes,
+    int_or_none,
+)
 
 
 class NewgroundsIE(InfoExtractor):
@@ -82,3 +87,52 @@ class NewgroundsIE(InfoExtractor):
             'uploader': uploader,
             'formats': formats,
         }
+
+
+class NewgroundsPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?newgrounds\.com/(?:collection|[^/]+/search/[^/]+)/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.newgrounds.com/collection/cats',
+        'info_dict': {
+            'id': 'cats',
+            'title': 'Cats',
+        },
+        'playlist_mincount': 46,
+    }, {
+        'url': 'http://www.newgrounds.com/portal/search/author/ZONE-SAMA',
+        'info_dict': {
+            'id': 'ZONE-SAMA',
+            'title': 'Portal Search: ZONE-SAMA',
+        },
+        'playlist_mincount': 47,
+    }, {
+        'url': 'http://www.newgrounds.com/audio/search/title/cats',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        title = self._search_regex(
+            r'<title>([^>]+)</title>', webpage, 'title', default=None)
+
+        # cut left menu
+        webpage = self._search_regex(
+            r'(?s)<div[^>]+\bclass=["\']column wide(.+)',
+            webpage, 'wide column', default=webpage)
+
+        entries = []
+        for a, path, media_id in re.findall(
+                r'(<a[^>]+\bhref=["\']/?((?:portal/view|audio/listen)/(\d+))[^>]+>)',
+                webpage):
+            a_class = extract_attributes(a).get('class')
+            if a_class not in ('item-portalsubmission', 'item-audiosubmission'):
+                continue
+            entries.append(
+                self.url_result(
+                    'https://www.newgrounds.com/%s' % path,
+                    ie=NewgroundsIE.ie_key(), video_id=media_id))
+
+        return self.playlist_result(entries, playlist_id, title)
