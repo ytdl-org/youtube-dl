@@ -130,12 +130,12 @@ class XFileShareIE(InfoExtractor):
             if countdown:
                 self._sleep(countdown, video_id)
 
-            post = urlencode_postdata(fields)
-
-            req = sanitized_Request(url, post)
-            req.add_header('Content-type', 'application/x-www-form-urlencoded')
-
-            webpage = self._download_webpage(req, video_id, 'Downloading video page')
+            webpage = self._download_webpage(
+                url, video_id, 'Downloading video page',
+                data=urlencode_postdata(fields), headers={
+                    'Referer': url,
+                    'Content-type': 'application/x-www-form-urlencoded',
+                })
 
         title = (self._search_regex(
             (r'style="z-index: [0-9]+;">([^<]+)</span>',
