@@ -916,6 +916,8 @@ class TestUtil(unittest.TestCase):
             supports_outside_bmp = False
         if supports_outside_bmp:
             self.assertEqual(extract_attributes('<e x="Smile &#128512;!">'), {'x': 'Smile \U0001f600!'})
+        # Malformed HTML should not break attributes extraction on older Python
+        self.assertEqual(extract_attributes('<mal"formed/>'), {})
 
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')

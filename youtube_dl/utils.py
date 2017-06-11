@@ -36,6 +36,7 @@ import xml.etree.ElementTree
 import zlib
 
 from .compat import (
+    compat_HTMLParseError,
     compat_HTMLParser,
     compat_basestring,
     compat_chr,
@@ -409,8 +410,12 @@ def extract_attributes(html_element):
     but the cases in the unit test will work for all of 2.6, 2.7, 3.2-3.5.
     """
     parser = HTMLAttributeParser()
-    parser.feed(html_element)
-    parser.close()
+    try:
+        parser.feed(html_element)
+        parser.close()
+    # Older Python may throw HTMLParseError in case of malformed HTML
+    except compat_HTMLParseError:
+        pass
     return parser.attrs
 
 
