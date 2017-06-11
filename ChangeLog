@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.06.12
 
 Core
 * [utils] Handle compat_HTMLParseError in extract_attributes (#13349)
