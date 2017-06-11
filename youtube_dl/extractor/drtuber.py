@@ -44,15 +44,33 @@ class DrTuberIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.drtuber.com/video/%s' % video_id, display_id)
 
-        # the video URL must be extracted from an external JSON stream
-        video_data = self._download_json(
-            'http://www.drtuber.com/player_config_json/?vid=%s&embed=0&aid=0&domain_id=0'
-            % video_id, video_id)
-        # is a high-quality video available?
-        video_url = video_data['files']['hq']
-        if video_url is None:
-            # nope - use the standard-quality video instead
-            video_url = video_data['files']['lq']
+        video_data = self._download_json('http://www.drtuber.com/player_config_json/', video_id, query={
+            'vid': video_id,
+            'embed': 0,
+            'aid': 0,
+            'domain_id': 0,
+        }, fatal=False)
+
+        formats = []
+        if video_data:
+            # standard-quality video format
+            video_url_lq = video_data.get('files', {}).get('lq')
+            if video_url_lq:
+                formats.append({
+                    'format_id': 'LQ',
+                    'quality': 1,
+                    'url': video_url_lq
+                })
+            # high-quality video format is preferred, if available
+            video_url_hq = video_data.get('files', {}).get('hq')
+            if video_url_hq:
+                formats.append({
+                    'format_id': 'HQ',
+                    'quality': 2,
+                    'url': video_url_hq
+                })
+        self._check_formats(formats, video_id)
+        self._sort_formats(formats, 'quality')
 
         title = self._html_search_regex(
             (r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
@@ -82,7 +100,7 @@ class DrTuberIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
             'thumbnail': thumbnail,
             'like_count': like_count,
