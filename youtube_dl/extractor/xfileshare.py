@@ -30,6 +30,7 @@ class XFileShareIE(InfoExtractor):
         (r'vidabc\.com', 'Vid ABC'),
         (r'vidbom\.com', 'VidBom'),
         (r'vidlo\.us', 'vidlo'),
+        (r'rapidvideo\.(?:cool|org)', 'RapidVideo.TV'),
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
@@ -109,6 +110,9 @@ class XFileShareIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.rapidvideo.cool/b667kprndr8w',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
