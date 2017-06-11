@@ -2895,6 +2895,7 @@ else:
 
 
 __all__ = [
+    'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
