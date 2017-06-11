@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class NewgroundsIE(InfoExtractor):
@@ -23,24 +24,61 @@ class NewgroundsIE(InfoExtractor):
             'title': 'Dancin',
             'uploader': 'Squirrelman82',
         },
+    }, {
+        # source format unavailable, additional mp4 formats
+        'url': 'http://www.newgrounds.com/portal/view/689400',
+        'info_dict': {
+            'id': '689400',
+            'ext': 'mp4',
+            'title': 'ZTV News Episode 8',
+            'uploader': 'BennettTheSage',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         media_id = self._match_id(url)
+
         webpage = self._download_webpage(url, media_id)
 
         title = self._html_search_regex(
             r'<title>([^>]+)</title>', webpage, 'title')
 
-        uploader = self._html_search_regex(
-            r'Author\s*<a[^>]+>([^<]+)', webpage, 'uploader', fatal=False)
+        video_url = self._parse_json(self._search_regex(
+            r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
 
-        music_url = self._parse_json(self._search_regex(
-            r'"url":("[^"]+"),', webpage, ''), media_id)
+        formats = [{
+            'url': video_url,
+            'format_id': 'source',
+            'quality': 1,
+        }]
+
+        max_resolution = int_or_none(self._search_regex(
+            r'max_resolution["\']\s*:\s*(\d+)', webpage, 'max resolution',
+            default=None))
+        if max_resolution:
+            url_base = video_url.rpartition('.')[0]
+            for resolution in (360, 720, 1080):
+                if resolution > max_resolution:
+                    break
+                formats.append({
+                    'url': '%s.%dp.mp4' % (url_base, resolution),
+                    'format_id': '%dp' % resolution,
+                    'height': resolution,
+                })
+
+        self._check_formats(formats, media_id)
+        self._sort_formats(formats)
+
+        uploader = self._html_search_regex(
+            r'(?:Author|Writer)\s*<a[^>]+>([^<]+)', webpage, 'uploader',
+            fatal=False)
 
         return {
             'id': media_id,
             'title': title,
-            'url': music_url,
             'uploader': uploader,
+            'formats': formats,
         }
