@@ -2322,6 +2322,19 @@ try:
 except ImportError:  # Python 2
     from HTMLParser import HTMLParser as compat_HTMLParser
 
+try:  # Python 2
+    from HTMLParser import HTMLParseError as compat_HTMLParseError
+except ImportError:  # Python <3.4
+    try:
+        from html.parser import HTMLParseError as compat_HTMLParseError
+    except ImportError:  # Python >3.4
+
+        # HTMLParseError has been deprecated in Python 3.3 and removed in
+        # Python 3.5. Introducing dummy exception for Python >3.5 for compatible
+        # and uniform cross-version exceptiong handling
+        class compat_HTMLParseError(Exception):
+            pass
+
 try:
     from subprocess import DEVNULL
     compat_subprocess_get_DEVNULL = lambda: DEVNULL
