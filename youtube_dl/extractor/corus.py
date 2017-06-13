@@ -13,7 +13,7 @@ class CorusIE(ThePlatformFeedIE):
                         (?:www\.)?
                         (?P<domain>
                             (?:globaltv|etcanada)\.com|
-                            (?:hgtv|foodnetwork|slice|history)\.ca
+                            (?:hgtv|foodnetwork|slice|history|showcase)\.ca
                         )
                         /(?:video/|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
                         (?P<id>\d+)
@@ -38,6 +38,9 @@ class CorusIE(ThePlatformFeedIE):
         'only_matching': True,
     }, {
         'url': 'http://www.history.ca/the-world-without-canada/video/full-episodes/natural-resources/video.html?v=955054659646#video',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.showcase.ca/eyewitness/video/eyewitness++106/video.html?v=955070531919&p=1&s=da#video',
         'only_matching': True,
     }]
 
@@ -65,6 +68,10 @@ class CorusIE(ThePlatformFeedIE):
         'history': {
             'feed_id': 'tQFx_TyyEq4J',
             'account_id': 2369613659,
+        },
+        'showcase': {
+            'feed_id': '9H6qyshBZU3E',
+            'account_id': 2414426607,
         },
     }
 
