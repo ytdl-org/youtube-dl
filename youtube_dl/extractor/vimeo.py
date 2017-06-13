@@ -196,7 +196,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             )
                             \.
                         )?
-                        vimeo(?P<pro>pro)?\.com/
+                        vimeo\.com/
                         (?!(?:channels|album)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
                         (?:.*?/)?
                         (?:
@@ -207,7 +207,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                         (?:videos?/)?
                         (?P<id>[0-9]+)
                         (?:/[\da-f]+)?
-                        /?(?:[?&].*)?(?:[#].*)?$
+                        /?(?P<qs>(?:[?&].*)?(?:[#].*)?)$
                     '''
     IE_NAME = 'vimeo'
     _TESTS = [
@@ -459,10 +459,14 @@ class VimeoIE(VimeoBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         orig_url = url
-        if mobj.group('pro') or mobj.group('player'):
+        if mobj.group('player'):
             url = 'https://player.vimeo.com/video/' + video_id
         elif any(p in url for p in ('play_redirect_hls', 'moogaloop.swf')):
             url = 'https://vimeo.com/' + video_id
+
+        if mobj.group('qs'):
+            # Some vimeopro embeds have query strings (`?portfolio_id=NNNNNN`) which are necessary
+            url += mobj.group('qs')
 
         # Retrieve video webpage to extract further information
         request = sanitized_Request(url, headers=headers)
@@ -577,7 +581,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if not video_description:
             video_description = self._html_search_meta(
                 'description', webpage, default=None)
-        if not video_description and mobj.group('pro'):
+        if not video_description:
             orig_webpage = self._download_webpage(
                 orig_url, video_id,
                 note='Downloading webpage for description',
