@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
 
@@ -22,18 +20,18 @@ class EggheadCourseIE(InfoExtractor):
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
-        webpage = self._download_webpage(url, playlist_id)
+        api_url = 'https://egghead.io/api/v1/series/' + playlist_id
+        course = self._download_json(api_url, playlist_id)
+        title = course.get('title')
+        description = course.get('description')
 
-        title = self._html_search_regex(r'<h1 class="title">([^<]+)</h1>', webpage, 'title')
-        ul = self._search_regex(r'(?s)<ul class="series-lessons-list">(.*?)</ul>', webpage, 'session list')
-
-        found = re.findall(r'(?s)<a class="[^"]*"\s*href="([^"]+)">\s*<li class="item', ul)
-        entries = [self.url_result(m) for m in found]
+        lessons = course.get('lessons')
+        entries = [{'_type': 'url', 'ie_key': 'Wistia', 'url': 'wistia:' + l.get('wistia_id')} for l in lessons]
 
         return {
             '_type': 'playlist',
             'id': playlist_id,
             'title': title,
-            'description': self._og_search_description(webpage),
+            'description': description,
             'entries': entries,
         }
