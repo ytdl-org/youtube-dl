@@ -2328,6 +2328,8 @@ class InfoExtractor(object):
         urls = []
         formats = []
         for source in jwplayer_sources_data:
+            if not isinstance(source, dict):
+                continue
             source_url = self._proto_relative_url(source.get('file'))
             if not source_url:
                 continue
