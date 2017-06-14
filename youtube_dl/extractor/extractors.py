@@ -115,6 +115,7 @@ from .bilibili import (
 )
 from .biobiochiletv import BioBioChileTVIE
 from .biqle import BIQLEIE
+from .bitporno import BitpornoIE
 from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
