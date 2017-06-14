@@ -150,7 +150,7 @@ class DisneyIE(InfoExtractor):
                 }.get(caption_format, caption_format),
             })
 
-        return {
+        metadata = {
             'id': video_id,
             'title': title,
             'description': video_data.get('description') or video_data.get('short_desc'),
@@ -160,3 +160,16 @@ class DisneyIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+        externals = video_data.get('externals', {})
+        if len(externals) > 0:
+	    data_pack = externals[0].get('data', {})
+            if data_pack:
+                season_number = int_or_none(data_pack.get('Season', None))
+                episode_number = int_or_none(data_pack.get('Episode', None))
+		if season_number:
+			metadata['season_number'] = season_number
+		if episode_number:
+			metadata['episode_number'] = episode_number
+
+        return metadata
