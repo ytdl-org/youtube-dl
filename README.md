@@ -145,18 +145,18 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --max-views COUNT                Do not download any videos with more than
                                      COUNT views
     --match-filter FILTER            Generic video filter. Specify any key (see
-                                     help for -o for a list of available keys)
-                                     to match if the key is present, !key to
-                                     check if the key is not present, key >
-                                     NUMBER (like "comment_count > 12", also
-                                     works with >=, <, <=, !=, =) to compare
-                                     against a number, key = 'LITERAL' (like
-                                     "uploader = 'Mike Smith'", also works with
-                                     !=) to match against a string literal and &
-                                     to require multiple matches. Values which
-                                     are not known are excluded unless you put a
-                                     question mark (?) after the operator. For
-                                     example, to only match videos that have
+                                     the "OUTPUT TEMPLATE" for a list of
+                                     available keys) to match if the key is
+                                     present, !key to check if the key is not
+                                     present, key > NUMBER (like "comment_count
+                                     > 12", also works with >=, <, <=, !=, =) to
+                                     compare against a number, key = 'LITERAL'
+                                     (like "uploader = 'Mike Smith'", also works
+                                     with !=) to match against a string literal
+                                     and & to require multiple matches. Values
+                                     which are not known are excluded unless you
+                                     put a question mark (?) after the operator.
+                                     For example, to only match videos that have
                                      been liked more than 100 times and disliked
                                      less than 50 times (or the dislike
                                      functionality is not available at the given
@@ -277,8 +277,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --get-filename                   Simulate, quiet but print output filename
     --get-format                     Simulate, quiet but print output format
     -j, --dump-json                  Simulate, quiet but print JSON information.
-                                     See --output for a description of available
-                                     keys.
+                                     See the "OUTPUT TEMPLATE" for a description
+                                     of available keys.
     -J, --dump-single-json           Simulate, quiet but print JSON information
                                      for each command-line argument. If the URL
                                      refers to a playlist, dump the whole

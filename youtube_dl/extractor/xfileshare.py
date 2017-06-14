@@ -10,7 +10,6 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     NO_DEFAULT,
-    sanitized_Request,
     urlencode_postdata,
 )
 
@@ -30,6 +29,7 @@ class XFileShareIE(InfoExtractor):
         (r'vidabc\.com', 'Vid ABC'),
         (r'vidbom\.com', 'VidBom'),
         (r'vidlo\.us', 'vidlo'),
+        (r'rapidvideo\.(?:cool|org)', 'RapidVideo.TV'),
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
@@ -109,6 +109,9 @@ class XFileShareIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.rapidvideo.cool/b667kprndr8w',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -130,12 +133,12 @@ class XFileShareIE(InfoExtractor):
             if countdown:
                 self._sleep(countdown, video_id)
 
-            post = urlencode_postdata(fields)
-
-            req = sanitized_Request(url, post)
-            req.add_header('Content-type', 'application/x-www-form-urlencoded')
-
-            webpage = self._download_webpage(req, video_id, 'Downloading video page')
+            webpage = self._download_webpage(
+                url, video_id, 'Downloading video page',
+                data=urlencode_postdata(fields), headers={
+                    'Referer': url,
+                    'Content-type': 'application/x-www-form-urlencoded',
+                })
 
         title = (self._search_regex(
             (r'style="z-index: [0-9]+;">([^<]+)</span>',

@@ -1,3 +1,36 @@
+version 2017.06.12
+
+Core
+* [utils] Handle compat_HTMLParseError in extract_attributes (#13349)
++ [compat] Introduce compat_HTMLParseError
+* [utils] Improve unified_timestamp
+* [extractor/generic] Ensure format id is unicode string
+* [extractor/common] Return unicode string from _match_id
++ [YoutubeDL] Sanitize more fields (#13313)
+
+Extractors
++ [xfileshare] Add support for rapidvideo.tv (#13348)
+* [xfileshare] Modernize and pass Referer
++ [rutv] Add support for testplayer.vgtrk.com (#13347)
++ [newgrounds] Extract more metadata (#13232)
++ [newgrounds:playlist] Add support for playlists (#10611)
+* [newgrounds] Improve formats and uploader extraction (#13346)
+* [msn] Fix formats extraction
+* [turbo] Ensure format id is string
+* [sexu] Ensure height is int
+* [jove] Ensure comment count is int
+* [golem] Ensure format id is string
+* [gfycat] Ensure filesize is int
+* [foxgay] Ensure height is int
+* [flickr] Ensure format id is string
+* [sohu] Fix numeric fields
+* [safari] Improve authentication detection (#13319)
+* [liveleak] Ensure height is int (#13313)
+* [streamango] Make title optional (#13292)
+* [rtlnl] Improve URL regular expression (#13295)
+* [tvplayer] Fix extraction (#13291)
+
+
 version 2017.06.05
 
 Core
