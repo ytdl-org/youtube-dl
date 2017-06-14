@@ -15,7 +15,7 @@ from ..utils import (
 
 class DisneyIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-        https?://(?P<domain>(?:[^/]+\.)?(?:disney\.[a-z]{2,3}(?:\.[a-z]{2})?|disney(?:(?:me|latino)\.com|turkiye\.com\.tr)|(?:starwars|marvelkids)\.com))/(?:(?:embed/|(?:[^/]+/)+[\w-]+-)(?P<id>[a-z0-9]{24})|(?:[^/]+/)?(?P<display_id>[^/?#]+))'''
+        https?://(?P<domain>(?:[^/]+\.)?(?:disney\.[a-z]{2,3}(?:\.[a-z]{2})?|disney(?:(?:me|latino)\.com|turkiye\.com\.tr|channel\.de)|(?:starwars|marvelkids)\.com))/(?:(?:embed/|(?:[^/]+/)+[\w-]+-)(?P<id>[a-z0-9]{24})|(?:[^/]+/)?(?P<display_id>[^/?#]+))'''
     _TESTS = [{
         # Disney.EmbedVideo
         'url': 'http://video.disney.com/watch/moana-trailer-545ed1857afee5a0ec239977',
@@ -67,6 +67,9 @@ class DisneyIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://disneyjunior.en.disneyme.com/dj/watch-my-friends-tigger-and-pooh-promo',
+        'only_matching': True,
+    }, {
+        'url': 'http://disneychannel.de/sehen/soy-luna-folge-118-5518518987ba27f3cc729268',
         'only_matching': True,
     }, {
         'url': 'http://disneyjunior.disney.com/galactech-the-galactech-grab-galactech-an-admiral-rescue',
