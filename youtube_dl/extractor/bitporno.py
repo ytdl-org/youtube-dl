@@ -29,9 +29,10 @@ class BitpornoIE(InfoExtractor):
         if not tmp_str:
             raise ExtractorError('Note: this Bitporno extractor only support 720p videos.')
         true_url = tmp_str[tmp_str.rfind('https'):].replace("\\", "")
-        print('Note: this Bitporno extractor only support 720p videos.\nVideo url: ' + true_url)
+        # print('Note: this Bitporno extractor only support 720p videos.\nVideo url: ' + true_url)
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
+            'title': self._og_search_title(webpage) or \
+                self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title'),
             'url': true_url,
         }
