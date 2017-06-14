@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     NO_DEFAULT,
     str_to_int,
+    ExtractorError,
 )
 
 
@@ -53,24 +54,18 @@ class DrTuberIE(InfoExtractor):
 
         formats = []
         if video_data:
-            # standard-quality video format
-            video_url_lq = video_data.get('files', {}).get('lq')
-            if video_url_lq:
-                formats.append({
-                    'format_id': 'LQ',
-                    'quality': 1,
-                    'url': video_url_lq
-                })
-            # high-quality video format is preferred, if available
-            video_url_hq = video_data.get('files', {}).get('hq')
-            if video_url_hq:
-                formats.append({
-                    'format_id': 'HQ',
-                    'quality': 2,
-                    'url': video_url_hq
-                })
+            for video_url_key in video_data.get('files', {}):
+                # high-quality video format is preferred, if available
+                if video_data['files'][video_url_key]:
+                    formats.append({
+                        'format_id': video_url_key.upper(),
+                        'quality': 2 if video_url_key == 'hq' else 1,
+                        'url': video_data['files'][video_url_key]
+                    })
+        if not formats:
+            raise ExtractorError('Video %s is not available' % video_id, expected=True)
         self._check_formats(formats, video_id)
-        self._sort_formats(formats, 'quality')
+        self._sort_formats(formats)
 
         title = self._html_search_regex(
             (r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
