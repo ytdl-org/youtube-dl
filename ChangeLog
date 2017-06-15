@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [bilibili] Fix extraction of videos with double quotes in titles (#13387)
+
+
 version 2017.06.12
 
 Core
