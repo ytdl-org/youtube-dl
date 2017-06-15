@@ -420,7 +420,7 @@ class InfoExtractor(object):
             if country_code:
                 self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
                 if self._downloader.params.get('verbose', False):
-                    self._downloader.to_stdout(
+                    self._downloader.to_screen(
                         '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
                         % (self._x_forwarded_for_ip, country_code.upper()))
 

@@ -1,5 +1,8 @@
 version <unreleased>
 
+Core
+* [extractor/common] Fix json dumping with --geo-bypass
+
 Extractors
 * [bilibili] Fix extraction of videos with double quotes in titles (#13387)
 
