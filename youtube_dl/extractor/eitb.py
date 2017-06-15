@@ -12,7 +12,7 @@ from ..utils import (
 
 class EitbIE(InfoExtractor):
     IE_NAME = 'eitb.tv'
-    _VALID_URL = r'https?://(?:www\.)?eitb\.tv/(?:eu/bideoa|es/video)/[^/]+/\d+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?eitb\.(tv|eus)/(?:eu/bideoa|es/video)/[^/]+/\d+/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.eitb.tv/es/video/60-minutos-60-minutos-2013-2014/4104995148001/4090227752001/lasa-y-zabala-30-anos/',
