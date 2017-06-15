@@ -2299,6 +2299,8 @@ class InfoExtractor(object):
             tracks = video_data.get('tracks')
             if tracks and isinstance(tracks, list):
                 for track in tracks:
+                    if not isinstance(track, dict):
+                        continue
                     if track.get('kind') != 'captions':
                         continue
                     track_url = urljoin(base_url, track.get('file'))
