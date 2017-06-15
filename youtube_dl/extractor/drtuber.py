@@ -6,7 +6,6 @@ from .common import InfoExtractor
 from ..utils import (
     NO_DEFAULT,
     str_to_int,
-    ExtractorError,
 )
 
 
@@ -50,20 +49,16 @@ class DrTuberIE(InfoExtractor):
             'embed': 0,
             'aid': 0,
             'domain_id': 0,
-        }, fatal=False)
+        }, fatal=True)
 
         formats = []
-        if video_data:
-            for video_url_key in video_data.get('files', {}):
-                # high-quality video format is preferred, if available
-                if video_data['files'][video_url_key]:
-                    formats.append({
-                        'format_id': video_url_key.upper(),
-                        'quality': 2 if video_url_key == 'hq' else 1,
-                        'url': video_data['files'][video_url_key]
-                    })
-        if not formats:
-            raise ExtractorError('Video %s is not available' % video_id, expected=True)
+        for video_url_key in video_data.get('files', {}):
+            if video_data['files'][video_url_key]:
+                formats.append({
+                    'format_id': video_url_key.upper(),
+                    'quality': 2 if video_url_key == 'hq' else 1,
+                    'url': video_data['files'][video_url_key]
+                })
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
