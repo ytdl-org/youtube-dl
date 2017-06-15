@@ -420,7 +420,7 @@ class InfoExtractor(object):
             if country_code:
                 self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
                 if self._downloader.params.get('verbose', False):
-                    self._downloader.to_stdout(
+                    self._downloader.to_screen(
                         '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
                         % (self._x_forwarded_for_ip, country_code.upper()))
 
@@ -2299,6 +2299,8 @@ class InfoExtractor(object):
             tracks = video_data.get('tracks')
             if tracks and isinstance(tracks, list):
                 for track in tracks:
+                    if not isinstance(track, dict):
+                        continue
                     if track.get('kind') != 'captions':
                         continue
                     track_url = urljoin(base_url, track.get('file'))
