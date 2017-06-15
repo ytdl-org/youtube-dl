@@ -565,6 +565,7 @@ from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
 from .miomio import MioMioIE
+from .mirror import MirrorIE
 from .mit import TechTVMITIE, MITIE, OCWMITIE
 from .mitele import MiTeleIE
 from .mixcloud import (
