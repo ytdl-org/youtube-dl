@@ -30,6 +30,7 @@ class XFileShareIE(InfoExtractor):
         (r'vidbom\.com', 'VidBom'),
         (r'vidlo\.us', 'vidlo'),
         (r'rapidvideo\.(?:cool|org)', 'RapidVideo.TV'),
+        (r'fastvideo\.me', 'FastVideo.me'),
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
@@ -112,6 +113,9 @@ class XFileShareIE(InfoExtractor):
     }, {
         'url': 'http://www.rapidvideo.cool/b667kprndr8w',
         'only_matching': True,
+    }, {
+        'url': 'http://www.fastvideo.me/k8604r8nk8sn/FAST_FURIOUS_8_-_Trailer_italiano_ufficiale.mp4.html',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
