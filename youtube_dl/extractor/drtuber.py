@@ -49,15 +49,15 @@ class DrTuberIE(InfoExtractor):
             'embed': 0,
             'aid': 0,
             'domain_id': 0,
-        }, fatal=True)
+        })
 
         formats = []
-        for video_url_key in video_data.get('files', {}):
-            if video_data['files'][video_url_key]:
+        for video_url_key, video_url_value in video_data['files'].items():
+            if video_url_value:
                 formats.append({
                     'format_id': video_url_key.upper(),
                     'quality': 2 if video_url_key == 'hq' else 1,
-                    'url': video_data['files'][video_url_key]
+                    'url': video_url_value
                 })
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
