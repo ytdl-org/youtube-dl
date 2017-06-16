@@ -5,15 +5,16 @@ from .common import InfoExtractor
 
 from ..utils import (
     ExtractorError,
+    RegexNotFoundError,
 )
 
 import re
 
 
 class MirrorIE(InfoExtractor):
-    _VALID_URL = (r'https?://(?:www\.)?(?:mirror\.co\.uk)/.*')
+    _VALID_URL = r'https?://(?:www\.)?mirror\.co\.uk.*/(?P<id>[^/?#&]+)'
 
-    _TESTS = [{
+    _TEST = {
         'url': 'http://www.mirror.co.uk/news/uk-news/grenfell-tower-block-fire-london-10619120?service=responsive',
         'md5': 'e8c52bcdf5180884b4e4d3159de3a40b',
         'info_dict': {
@@ -21,53 +22,62 @@ class MirrorIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Blaze at Grenfell Tower continues 11 hours on',
             'timestamp': 1497433370,
+            'upload_date': '20170614',
             'uploader_id': '4221396001',
-            'upload_date': '20170614'
         }
-    }, {
-        'url': 'http://www.mirror.co.uk/tv/tv-news/tim-brown-grenfell-fire-us-10627790',
-        'md5': 'cd8e2ee6a57b043d9612321d8b4d07be',
-        'info_dict': {
-            'id': '5472207456001',
-            'ext': 'mp4',
-            'title': 'Structural engineer who warned of cladding fire dangers explains Grenfell Tower fire',
-            'timestamp': 1497527486,
-            'uploader_id': '4221396001',
-            'upload_date': '20170615',
-            'description': 'Structural engineer who warned of cladding fire dangers explains what made Grenfell Tower a death trap'
-        }
-    }]
+    }
 
     def _real_extract(self, url):
-        webpage = self._download_webpage(url, '', 'Downloading webpage')
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
 
-        mobj = re.search(r'<meta[^<]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"](?P<video_url>.+?brightcove\.com/\d+/(?P<account_id>[^/]+)/\d+/\d+/\2_\d+_(?P<video_id>[^.]+)\.mp4)', webpage)
+        title = None
+        account_id = None
+        video_id = None
+        player_id = None
 
-        if mobj is None:
-            raise ExtractorError('Video does not exist', expected=True)
-
-        account_id = mobj.group('account_id')
-        video_id = mobj.group('video_id')
-        video_url = mobj.group('video_url')
-
-        player_id = self._search_regex(
-            r'(&l?s?quot?;)+playerId\1+:\1+(?P<player_id>[a-zA-Z0-9]+)\1+,',
-            webpage, 'player id', group='player_id'
-        )
-
-        player_url = 'http://players.brightcove.net/%s/%s_default/index.html?videoId=%s' % (account_id, player_id, video_id)
-        info = None
         try:
-            info = self.url_result(
-                player_url, 'BrightcoveNew', video_id
+            json_data = self._parse_json(self._html_search_regex(
+                r'<div[^>]+class=(["\'])json-placeholder\1[^>]+data-json=\1(?P<json>.*?)\1',
+                webpage, 'extract json', group='json', fatal=False
+            ), display_id, fatal=False)
+
+            if all(k in json_data for k in ('playerData', 'videoData')):
+                player_id = json_data['playerData'].get('playerId')
+                account_id = json_data['playerData'].get('account')
+                video_id = json_data['videoData'].get('videoId')
+                title = json_data['videoData'].get('videoTitle')
+            else:
+                raise ExtractorError('json data not found')
+        except (RegexNotFoundError, ExtractorError):
+            title = self._og_search_title(
+                webpage, default=None) or self._search_regex(
+                r'<title>([^<]+)', webpage,
+                'title', default=None)
+            account_id = self._html_search_regex(
+                r'<meta[^<]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"].+?brightcove\.com/\d+/(?P<account_id>[^/]+)/',
+                webpage, 'account id', group='account_id'
             )
-        except:
-            info = {
+            video_id = self._html_search_regex(
+                r'<meta[^<]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"].+?brightcove\.com/[a-zA-Z0-9-_/]+_(?P<video_id>\d+)\.mp4',
+                webpage, 'video id', group='video_id'
+            )
+
+        try:
+            return {
+                '_type': 'url_transparent',
                 'id': video_id,
-                'title': self._search_regex(
-                    r'(&l?s?quot?;)videoTitle\1+:\1(?P<video_title>[^&]+)\1[^}]+%s' % video_id,
-                    webpage, 'video title', group='video_title'
-                ),
-                'url': video_url
+                'display_id': display_id,
+                'url': 'http://players.brightcove.net/%s/%s_default/index.html?videoId=%s' % (account_id, player_id, video_id),
+                'ie_key': 'BrightcoveNew'
             }
-        return info
+        except ExtractorError:
+            return {
+                'id': video_id,
+                'title': title,
+                'url': self._search_regex(
+                    r'<meta[^<]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"](?P<video_url>.+?brightcove\.com\/[^\'"]+)',
+                    webpage, 'video url', group='video_url'
+                ),
+                'uploader_id': account_id
+            }
