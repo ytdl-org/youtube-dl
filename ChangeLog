@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.06.18
 
 Core
 * [downloader/common] Use utils.shell_quote for debug command line

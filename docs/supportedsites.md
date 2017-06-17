@@ -975,7 +975,7 @@
  - **WSJArticle**
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo, RapidVideo.TV
+ - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo, RapidVideo.TV, FastVideo.me
  - **XHamster**
  - **XHamsterEmbed**
  - **xiami:album**: 虾米音乐 - 专辑
