@@ -118,7 +118,7 @@ class RaiBaseIE(InfoExtractor):
 
 
 class RaiPlayIE(RaiBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s)\.html)' % RaiBaseIE._UUID_RE
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/(?:dirette/.*)?(?:.+?-(?=[\da-f]{8})(?P<id>%s)\.html)?)' % RaiBaseIE._UUID_RE
     _TESTS = [{
         'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html?source=twitter',
         'md5': '340aa3b7afb54bfd14a8c11786450d76',
@@ -136,7 +136,7 @@ class RaiPlayIE(RaiBaseIE):
             'upload_date': '20161029',
             'series': 'La Casa Bianca',
             'season': '2016',
-        },
+        }
     }, {
         'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
         'md5': '8970abf8caf8aef4696e7b1f2adfc696',
@@ -156,15 +156,25 @@ class RaiPlayIE(RaiBaseIE):
         },
         'params': {
             'skip_download': True,
-        },
+        }
     }, {
         'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.raiplay.it/dirette/rai3',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         url, video_id = mobj.group('url', 'id')
+
+        # Support for livestreams: downloads the page and retrieves ContentItem id
+        if video_id is None and 'dirette' in url:
+            webpage = self._download_webpage(url, video_id)
+            re_id = r'<div([^>]*)data-uniquename=(["\'])[\w-]*(?P<id>%s)(\2)([^>]*?)>'  % RaiBaseIE._UUID_RE
+            video_id = self._html_search_regex(re_id, webpage, 'livestream-id', group='id')
+            url = 'http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id
 
         media = self._download_json(
             '%s?json' % url, video_id, 'Downloading video JSON')
