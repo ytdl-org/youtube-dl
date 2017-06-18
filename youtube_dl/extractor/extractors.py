@@ -724,6 +724,7 @@ from .nytimes import (
 from .nuvid import NuvidIE
 from .nzz import NZZIE
 from .odatv import OdaTVIE
+from .oddshot import OddshotIE
 from .odnoklassniki import OdnoklassnikiIE
 from .oktoberfesttv import OktoberfestTVIE
 from .ondemandkorea import OnDemandKoreaIE
