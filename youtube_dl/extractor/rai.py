@@ -118,7 +118,7 @@ class RaiBaseIE(InfoExtractor):
 
 
 class RaiPlayIE(RaiBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/(?:dirette/.*)?(?:.+?-(?=[\da-f]{8})(?P<id>%s)\.html)?)' % RaiBaseIE._UUID_RE
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s)\.html)' % RaiBaseIE._UUID_RE
     _TESTS = [{
         'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html?source=twitter',
         'md5': '340aa3b7afb54bfd14a8c11786450d76',
@@ -160,21 +160,11 @@ class RaiPlayIE(RaiBaseIE):
     }, {
         'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
         'only_matching': True,
-    }, {
-        'url': 'http://www.raiplay.it/dirette/rai3',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         url, video_id = mobj.group('url', 'id')
-
-        # Support for livestreams: downloads the page and retrieves ContentItem id
-        if video_id is None and 'dirette' in url:
-            webpage = self._download_webpage(url, video_id)
-            re_id = r'<div([^>]*)data-uniquename=(["\'])[\w-]*(?P<id>%s)(\2)([^>]*?)>'  % RaiBaseIE._UUID_RE
-            video_id = self._html_search_regex(re_id, webpage, 'livestream-id', group='id')
-            url = 'http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id
 
         media = self._download_json(
             '%s?json' % url, video_id, 'Downloading video JSON')
@@ -218,7 +208,60 @@ class RaiPlayIE(RaiBaseIE):
         }
 
         info.update(relinker_info)
+        return info
 
+
+class RaiPlayLiveIE(RaiBaseIE):
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/dirette/(?P<id>\w*))'
+    _TEST = {
+        'url': 'http://www.raiplay.it/dirette/rai3',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        url, channel = mobj.group('url', 'id')
+
+        webpage = self._download_webpage(url, channel)
+        re_id = r'<div([^>]*)data-uniquename=(["\'])[\w-]*(?P<id>%s)(\2)([^>]*?)>' % RaiBaseIE._UUID_RE
+        video_id = self._html_search_regex(re_id, webpage, 'livestream-id', group='id')
+        url = 'http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id
+
+        media = self._download_json(
+            '%s?json' % url, video_id, 'Downloading video JSON')
+
+        title = media['name']
+        video = media['video']
+
+        relinker_info = self._extract_relinker_info(video['contentUrl'], video_id)
+        self._sort_formats(relinker_info['formats'])
+
+        thumbnails = []
+        if 'images' in media:
+            for _, value in media.get('images').items():
+                if value:
+                    thumbnails.append({
+                        'url': value.replace('[RESOLUTION]', '600x400')
+                    })
+
+        timestamp = unified_timestamp(try_get(
+            media, lambda x: x['availabilities'][0]['start'], compat_str))
+
+        subtitles = self._extract_subtitles(url, video.get('subtitles'))
+
+        info = {
+            'id': video_id,
+            'title': title,
+            'alt_title': media.get('subtitle'),
+            'description': media.get('description'),
+            'uploader': media.get('channel'),
+            'creator': media.get('editor'),
+            'timestamp': timestamp,
+            'thumbnails': thumbnails,
+            'subtitles': subtitles,
+        }
+
+        info.update(relinker_info)
         return info
 
 

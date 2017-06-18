@@ -820,6 +820,7 @@ from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import (
     RaiPlayIE,
+    RaiPlayLiveIE,
     RaiIE,
 )
 from .rbmaradio import RBMARadioIE
