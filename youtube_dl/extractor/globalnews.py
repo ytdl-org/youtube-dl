@@ -41,7 +41,7 @@ class GlobalNewsIE(InfoExtractor):
             group='feed'
         )
         platform_id = self._search_regex((
-            r'<span[^<]+class=(["\'])[^\'"]+?the_platform_id_(?P<platformId>\d+)\1\s+?data-v_count_id=\1\2\1',
+            r'<span[^>]+class=(["\'])[^\'"]+?the_platform_id_(?P<platformId>\d+)\1\s+?data-v_count_id=\1\2\1',
             r'svp\.setContentId\(\s*([\'"])(?P<platformId>\d+)\1.*?loadCallback'),
             webpage,
             'platform id',
