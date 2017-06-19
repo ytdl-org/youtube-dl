@@ -343,6 +343,16 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             if first_video_id is None:
                 first_video_id = cur_video_id
                 duration = float_or_none(item.get('plfile$duration'))
+            if item.get('plfile$assetTypes') is None:
+                query = {
+                    'mbr': 'true',
+                    'formats': item['plfile$format'],
+                }
+                cur_formats, cur_subtitles = self._extract_theplatform_smil(update_url_query(
+                    main_smil_url or smil_url, query), video_id, 'Downloading SMIL data')
+                formats.extend(cur_formats)
+                subtitles = self._merge_subtitles(subtitles, cur_subtitles)
+                continue
             for asset_type in item['plfile$assetTypes']:
                 if asset_type in asset_types:
                     continue
