@@ -389,6 +389,7 @@ from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
 from .giga import GigaIE
 from .glide import GlideIE
+from .globalnews import GlobalNewsIE
 from .globo import (
     GloboIE,
     GloboArticleIE,
