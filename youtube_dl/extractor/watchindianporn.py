@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    int_or_none,
-)
+from ..utils import parse_duration
 
 
 class WatchIndianPornIE(InfoExtractor):
@@ -39,7 +36,7 @@ class WatchIndianPornIE(InfoExtractor):
         info_dict = self._parse_html5_media_entries(url, webpage, video_id)[0]
 
         title = self._html_search_regex((
-            r'<title>(.+?)-\s+Indian\s+Porn</title>',
+            r'<title>(.+?)\s*-\s*Indian\s+Porn</title>',
             r'<h4>(.+?)</h4>'
         ), webpage, 'title')
 
@@ -47,12 +44,12 @@ class WatchIndianPornIE(InfoExtractor):
             r'Time:\s*<strong>\s*(.+?)\s*</strong>',
             webpage, 'duration', fatal=False))
 
-        view_count = int_or_none(self._search_regex(
-            r'(?s)Time:\s*<strong>\s*.+?\s*</strong>.*?<strong>\s*(\d+)\s*</strong>',
+        view_count = int(self._search_regex(
+            r'(?s)Time:\s*<strong>.*?</strong>.*?<strong>\s*(\d+)\s*</strong>',
             webpage, 'view count', fatal=False))
 
         categories = re.findall(
-            r'<a[^>]+?class=[\'"]categories[\'"]>\s*([^<]+)\s*</a>',
+            r'<a[^>]+class=[\'"]categories[\'"][^>]*>\s*([^<]+)\s*</a>',
             webpage)
 
         info_dict.update({
