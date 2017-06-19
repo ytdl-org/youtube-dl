@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class GlobalNewsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?globalnews\.ca/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?globalnews\.ca/video/(?:embed/)?(?P<id>\d+)'
     _TEST = {
         'url': "http://globalnews.ca/video/2066998/focus-montreal-doulia-hamad-and-nebras-m-warsi",
         'info_dict': {
