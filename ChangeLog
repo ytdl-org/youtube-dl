@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [pandora.tv] Fix upload_date extraction (#12846)
+
+
 version 2017.06.18
 
 Core
