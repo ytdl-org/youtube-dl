@@ -101,7 +101,7 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude '*.pyc' \
 		--exclude '*.pyo' \
 		--exclude '*~' \
-		--exclude '__pycache' \
+		--exclude '__pycache__' \
 		--exclude '.git' \
 		--exclude 'testdata' \
 		--exclude 'docs/_build' \

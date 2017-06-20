@@ -35,11 +35,14 @@ class MetadataFromTitlePP(PostProcessor):
         title = info['title']
         match = re.match(self._titleregex, title)
         if match is None:
-            self._downloader.to_screen('[fromtitle] Could not interpret title of video as "%s"' % self._titleformat)
+            self._downloader.to_screen(
+                '[fromtitle] Could not interpret title of video as "%s"'
+                % self._titleformat)
             return [], info
         for attribute, value in match.groupdict().items():
-            value = match.group(attribute)
             info[attribute] = value
-            self._downloader.to_screen('[fromtitle] parsed ' + attribute + ': ' + value)
+            self._downloader.to_screen(
+                '[fromtitle] parsed %s: %s'
+                % (attribute, value if value is not None else 'NA'))
 
         return [], info

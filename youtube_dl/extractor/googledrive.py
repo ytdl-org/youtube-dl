@@ -69,19 +69,32 @@ class GoogleDriveIE(InfoExtractor):
             r'"fmt_stream_map"\s*,\s*"([^"]+)', webpage, 'fmt stream map').split(',')
         fmt_list = self._search_regex(r'"fmt_list"\s*,\s*"([^"]+)', webpage, 'fmt_list').split(',')
 
+        resolutions = {}
+        for fmt in fmt_list:
+            mobj = re.search(
+                r'^(?P<format_id>\d+)/(?P<width>\d+)[xX](?P<height>\d+)', fmt)
+            if mobj:
+                resolutions[mobj.group('format_id')] = (
+                    int(mobj.group('width')), int(mobj.group('height')))
+
         formats = []
-        for fmt, fmt_stream in zip(fmt_list, fmt_stream_map):
-            fmt_id, fmt_url = fmt_stream.split('|')
-            resolution = fmt.split('/')[1]
-            width, height = resolution.split('x')
-            formats.append({
-                'url': lowercase_escape(fmt_url),
-                'format_id': fmt_id,
-                'resolution': resolution,
-                'width': int_or_none(width),
-                'height': int_or_none(height),
-                'ext': self._FORMATS_EXT[fmt_id],
-            })
+        for fmt_stream in fmt_stream_map:
+            fmt_stream_split = fmt_stream.split('|')
+            if len(fmt_stream_split) < 2:
+                continue
+            format_id, format_url = fmt_stream_split[:2]
+            f = {
+                'url': lowercase_escape(format_url),
+                'format_id': format_id,
+                'ext': self._FORMATS_EXT[format_id],
+            }
+            resolution = resolutions.get(format_id)
+            if resolution:
+                f.update({
+                    'width': resolution[0],
+                    'height': resolution[0],
+                })
+            formats.append(f)
         self._sort_formats(formats)
 
         return {

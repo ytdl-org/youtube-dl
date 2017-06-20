@@ -2617,14 +2617,22 @@ except ImportError:  # Python 2
                 parsed_result[name] = [value]
         return parsed_result
 
-try:
-    from shlex import quote as compat_shlex_quote
-except ImportError:  # Python < 3.3
+
+compat_os_name = os._name if os.name == 'java' else os.name
+
+
+if compat_os_name == 'nt':
     def compat_shlex_quote(s):
-        if re.match(r'^[-_\w./]+$', s):
-            return s
-        else:
-            return "'" + s.replace("'", "'\"'\"'") + "'"
+        return s if re.match(r'^[-_\w./]+$', s) else '"%s"' % s.replace('"', '\\"')
+else:
+    try:
+        from shlex import quote as compat_shlex_quote
+    except ImportError:  # Python < 3.3
+        def compat_shlex_quote(s):
+            if re.match(r'^[-_\w./]+$', s):
+                return s
+            else:
+                return "'" + s.replace("'", "'\"'\"'") + "'"
 
 
 try:
@@ -2647,9 +2655,6 @@ def compat_ord(c):
         return c
     else:
         return ord(c)
-
-
-compat_os_name = os._name if os.name == 'java' else os.name
 
 
 if sys.version_info >= (3, 0):

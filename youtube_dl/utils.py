@@ -22,7 +22,6 @@ import locale
 import math
 import operator
 import os
-import pipes
 import platform
 import random
 import re
@@ -1535,7 +1534,7 @@ def shell_quote(args):
         if isinstance(a, bytes):
             # We may get a filename encoded with 'encodeFilename'
             a = a.decode(encoding)
-        quoted_args.append(pipes.quote(a))
+        quoted_args.append(compat_shlex_quote(a))
     return ' '.join(quoted_args)
 
 
