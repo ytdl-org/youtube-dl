@@ -615,7 +615,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 if download_url and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
                     source_name = source_file.get('public_name', 'Original')
                     if self._is_valid_url(download_url, video_id, '%s video' % source_name):
-                        ext = source_file.get('extension', determine_ext(download_url)).lower()
+                        ext = (try_get(
+                            source_file, lambda x: x['extension'],
+                            compat_str) or determine_ext(
+                            download_url, None) or 'mp4').lower()
                         formats.append({
                             'url': download_url,
                             'ext': ext,

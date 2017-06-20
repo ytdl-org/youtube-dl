@@ -8,10 +8,11 @@ import random
 
 from ..compat import compat_os_name
 from ..utils import (
+    decodeArgument,
     encodeFilename,
     error_to_compat_str,
-    decodeArgument,
     format_bytes,
+    shell_quote,
     timeconvert,
 )
 
@@ -381,10 +382,5 @@ class FileDownloader(object):
         if exe is None:
             exe = os.path.basename(str_args[0])
 
-        try:
-            import pipes
-            shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
-        except ImportError:
-            shell_quote = repr
         self.to_screen('[debug] %s command line: %s' % (
             exe, shell_quote(str_args)))

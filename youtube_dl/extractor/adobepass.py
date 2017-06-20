@@ -6,7 +6,10 @@ import time
 import xml.etree.ElementTree as etree
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_kwargs,
+    compat_urlparse,
+)
 from ..utils import (
     unescapeHTML,
     urlencode_postdata,
@@ -1317,7 +1320,8 @@ class AdobePassIE(InfoExtractor):
         headers = kwargs.get('headers', {})
         headers.update(self.geo_verification_headers())
         kwargs['headers'] = headers
-        return super(AdobePassIE, self)._download_webpage_handle(*args, **kwargs)
+        return super(AdobePassIE, self)._download_webpage_handle(
+            *args, **compat_kwargs(kwargs))
 
     @staticmethod
     def _get_mvpd_resource(provider_id, title, guid, rating):

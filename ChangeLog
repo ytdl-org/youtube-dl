@@ -1,10 +1,31 @@
 version <unreleased>
 
+Extractors
+* [pandora.tv] Fix upload_date extraction (#12846)
+
+
+version 2017.06.18
+
 Core
+* [downloader/common] Use utils.shell_quote for debug command line
+* [utils] Use compat_shlex_quote in shell_quote
+* [postprocessor/execafterdownload] Encode command line (#13407)
+* [compat] Fix compat_shlex_quote on Windows (#5889, #10254)
+* [postprocessor/metadatafromtitle] Fix missing optional meta fields processing
+   in --metadata-from-title (#13408)
 * [extractor/common] Fix json dumping with --geo-bypass
++ [extractor/common] Improve jwplayer subtitles extraction
++ [extractor/common] Improve jwplayer formats extraction (#13379)
 
 Extractors
+* [polskieradio] Fix extraction (#13392)
++ [xfileshare] Add support for fastvideo.me (#13385)
 * [bilibili] Fix extraction of videos with double quotes in titles (#13387)
+* [4tube] Fix extraction (#13381, #13382)
++ [disney] Add support for disneychannel.de (#13383)
+* [npo] Improve URL regular expression (#13376)
++ [corus] Add support for showcase.ca
++ [corus] Add support for history.ca (#13359)
 
 
 version 2017.06.12
