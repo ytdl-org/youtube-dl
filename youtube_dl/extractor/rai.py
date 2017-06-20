@@ -225,44 +225,12 @@ class RaiPlayLiveIE(RaiBaseIE):
         webpage = self._download_webpage(url, channel)
         re_id = r'<div([^>]*)data-uniquename=(["\'])[\w-]*(?P<id>%s)(\2)([^>]*?)>' % RaiBaseIE._UUID_RE
         video_id = self._html_search_regex(re_id, webpage, 'livestream-id', group='id')
-        url = 'http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id
 
-        media = self._download_json(
-            '%s?json' % url, video_id, 'Downloading video JSON')
-
-        title = media['name']
-        video = media['video']
-
-        relinker_info = self._extract_relinker_info(video['contentUrl'], video_id)
-        self._sort_formats(relinker_info['formats'])
-
-        thumbnails = []
-        if 'images' in media:
-            for _, value in media.get('images').items():
-                if value:
-                    thumbnails.append({
-                        'url': value.replace('[RESOLUTION]', '600x400')
-                    })
-
-        timestamp = unified_timestamp(try_get(
-            media, lambda x: x['availabilities'][0]['start'], compat_str))
-
-        subtitles = self._extract_subtitles(url, video.get('subtitles'))
-
-        info = {
-            'id': video_id,
-            'title': title,
-            'alt_title': media.get('subtitle'),
-            'description': media.get('description'),
-            'uploader': media.get('channel'),
-            'creator': media.get('editor'),
-            'timestamp': timestamp,
-            'thumbnails': thumbnails,
-            'subtitles': subtitles,
+        return {
+            '_type': 'url_transparent',
+            'url': 'http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id,
+            'ie_key': RaiPlayIE.ie_key()
         }
-
-        info.update(relinker_info)
-        return info
 
 
 class RaiIE(RaiBaseIE):
