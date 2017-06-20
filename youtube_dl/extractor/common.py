@@ -2250,6 +2250,8 @@ class InfoExtractor(object):
     def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
         mobj = re.search(
             r'(?s)jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)(?!</script>).*?\.setup\s*\((?P<options>[^)]+)\)',
+            webpage) or re.search(
+            r'(?is)<div[^>]+data-jwplayer=([\'"])(?P<options>.*?)\1\s*>',
             webpage)
         if mobj:
             try:
