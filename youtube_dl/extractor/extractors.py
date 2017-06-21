@@ -710,7 +710,7 @@ from .npo import (
     WNLIE,
 )
 from .npr import (
-    NprPlaylistIE,
+    NprIE,
     NprVideoIE,
 )
 from .nrk import (
