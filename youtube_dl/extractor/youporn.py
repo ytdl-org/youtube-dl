@@ -27,7 +27,7 @@ class YouPornIE(InfoExtractor):
             'description': 'Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Ask Dan And Jennifer',
-            'upload_date': '20101221',
+            'upload_date': '20101217',
             'average_rating': int,
             'view_count': int,
             'comment_count': int,
@@ -46,7 +46,7 @@ class YouPornIE(InfoExtractor):
             'description': 'http://sweetlivegirls.com Big Tits Awesome Brunette On amazing webcam show.mp4',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Unknown',
-            'upload_date': '20111125',
+            'upload_date': '20110418',
             'average_rating': int,
             'view_count': int,
             'comment_count': int,
@@ -143,7 +143,8 @@ class YouPornIE(InfoExtractor):
             r'(?s)<div[^>]+class=["\']submitByLink["\'][^>]*>(.+?)</div>',
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>',
+            [r'Date\s+[Aa]dded:\s*<span>([^<]+)',
+             r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>'],
             webpage, 'upload date', fatal=False))
 
         age_limit = self._rta_search(webpage)
