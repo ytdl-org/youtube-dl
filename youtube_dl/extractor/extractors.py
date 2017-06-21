@@ -756,6 +756,10 @@ from .packtpub import (
 )
 from .pandatv import PandaTVIE
 from .pandoratv import PandoraTVIE
+from .panopto import (
+    PanoptoIE,
+    PanoptoFolderIE,
+)
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
