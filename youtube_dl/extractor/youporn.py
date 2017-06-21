@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     sanitized_Request,
@@ -68,7 +69,7 @@ class YouPornIE(InfoExtractor):
         webpage = self._download_webpage(request, display_id)
 
         title = self._search_regex(
-            [r'(?:video_titles|videoTitle|title)\s*[:=]\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
+            [r'(?:video_titles|videoTitle)\s*[:=]\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
              r'<h1[^>]+class=["\']heading\d?["\'][^>]*>(?P<title>[^<]+)<'],
             webpage, 'title', group='title',
             default=None) or self._og_search_title(
@@ -77,22 +78,37 @@ class YouPornIE(InfoExtractor):
 
         links = []
 
+        # Main source
+        definitions = self._parse_json(
+            self._search_regex(
+                r'mediaDefinition\s*=\s*(\[.+?\]);', webpage,
+                'media definitions', default='[]'),
+            video_id, fatal=False)
+        if definitions:
+            for definition in definitions:
+                if not isinstance(definition, dict):
+                    continue
+                video_url = definition.get('videoUrl')
+                if isinstance(video_url, compat_str) and video_url:
+                    links.append(video_url)
+
+        # Fallback #1, this also contains extra low quality 180p format
+        for _, link in re.findall(r'<a[^>]+href=(["\'])(http.+?)\1[^>]+title=["\']Download [Vv]ideo', webpage):
+            links.append(link)
+
+        # Fallback #2 (unavailable as at 22.06.2017)
         sources = self._search_regex(
             r'(?s)sources\s*:\s*({.+?})', webpage, 'sources', default=None)
         if sources:
             for _, link in re.findall(r'[^:]+\s*:\s*(["\'])(http.+?)\1', sources):
                 links.append(link)
 
-        # Fallback #1
+        # Fallback #3 (unavailable as at 22.06.2017)
         for _, link in re.findall(
-                r'(?:videoUrl|videoSrc|videoIpadUrl|html5PlayerSrc)\s*[:=]\s*(["\'])(http.+?)\1', webpage):
+                r'(?:videoSrc|videoIpadUrl|html5PlayerSrc)\s*[:=]\s*(["\'])(http.+?)\1', webpage):
             links.append(link)
 
-        # Fallback #2, this also contains extra low quality 180p format
-        for _, link in re.findall(r'<a[^>]+href=(["\'])(http.+?)\1[^>]+title=["\']Download [Vv]ideo', webpage):
-            links.append(link)
-
-        # Fallback #3, encrypted links
+        # Fallback #4, encrypted links (unavailable as at 22.06.2017)
         for _, encrypted_link in re.findall(
                 r'encryptedQuality\d{3,4}URL\s*=\s*(["\'])([\da-zA-Z+/=]+)\1', webpage):
             links.append(aes_decrypt_text(encrypted_link, title, 32).decode('utf-8'))
