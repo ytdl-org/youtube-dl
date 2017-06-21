@@ -68,9 +68,12 @@ class YouPornIE(InfoExtractor):
         webpage = self._download_webpage(request, display_id)
 
         title = self._search_regex(
-            [r'(?:video_titles|videoTitle)\s*[:=]\s*(["\'])(?P<title>.+?)\1',
-             r'<h1[^>]+class=["\']heading\d?["\'][^>]*>([^<])<'],
-            webpage, 'title', group='title')
+            [r'(?:video_titles|videoTitle|title)\s*[:=]\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
+             r'<h1[^>]+class=["\']heading\d?["\'][^>]*>(?P<title>[^<]+)<'],
+            webpage, 'title', group='title',
+            default=None) or self._og_search_title(
+            webpage, default=None) or self._html_search_meta(
+            'title', webpage, fatal=True)
 
         links = []
 
