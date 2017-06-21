@@ -98,6 +98,7 @@ class IGNIE(InfoExtractor):
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
             r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
+            r'videoId&quot;:&quot;(.+?)&'
         ]
         return self._search_regex(res_id, webpage, 'video id', default=None)
 
