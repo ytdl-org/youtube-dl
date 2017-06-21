@@ -98,11 +98,13 @@ class BlenderCloudIE(InfoExtractor):
         #print "BlenderCloudIE : get_webpage_title : webpage_title : %s" % webpage_title
         return webpage_title
 
-    def is_video_subscriber_only(self, source):
+    @staticmethod
+    def is_video_subscriber_only(source):
         errmsg_subscribers_only = 'Only available to Blender Cloud subscribers.'
         return True if errmsg_subscribers_only in source else False
 
-    def get_video_formats(self, source):
+    @staticmethod
+    def get_video_formats(source):
         video_formats = []
         for video in re.findall(r'<source\s*src=\"(.*?)\"\s*type="video/(.*?)"', source):
             #print "BlenderCloudIE : get_video_formats : video : %s" % video[0]
