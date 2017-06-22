@@ -186,7 +186,6 @@ class VevoIE(VevoBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         self._initialize_api(video_id)
 
         video_info = self._call_api(
@@ -304,7 +303,6 @@ class VevoIE(VevoBaseIE):
 
 class VevoPlaylistIE(VevoBaseIE):
     _VALID_URL = r'https?://(?:www\.)?vevo\.com/watch/(?P<kind>playlist|genre)/(?P<id>[^/?#&]+)'
-
     _TESTS = [{
         'url': 'http://www.vevo.com/watch/playlist/dadbf4e7-b99f-4184-9670-6f0e547b6a29',
         'info_dict': {
@@ -342,29 +340,17 @@ class VevoPlaylistIE(VevoBaseIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('id')
-        playlist_kind = mobj.group('kind')
-
         webpage = self._download_webpage(url, playlist_id)
-
         qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         index = qs.get('index', [None])[0]
 
+        playlist_videoIDs = re.findall(r',"isrc":"(.*?)","title', webpage)
+
         if index:
-            video_id = self._search_regex(
-                r'<meta[^>]+content=(["\'])vevo://video/(?P<id>.+?)\1[^>]*>',
-                webpage, 'video id', default=None, group='id')
-            if video_id:
-                return self.url_result('vevo:%s' % video_id, VevoIE.ie_key())
-
-        playlists = self._extract_json(webpage, playlist_id)['default']['%ss' % playlist_kind]
-
-        playlist = (list(playlists.values())[0]
-                    if playlist_kind == 'playlist' else playlists[playlist_id])
+            return self.url_result('vevo:%s' % playlist_videoIDs[int(index)], VevoIE.ie_key())
 
         entries = [
-            self.url_result('vevo:%s' % src, VevoIE.ie_key())
-            for src in playlist['isrcs']]
+            self.url_result('vevo:%s' % videoID, VevoIE.ie_key())
+            for videoID in playlist_videoIDs]
 
-        return self.playlist_result(
-            entries, playlist.get('playlistId') or playlist_id,
-            playlist.get('name'), playlist.get('description'))
+        return self.playlist_result(entries, playlist_id)
