@@ -24,14 +24,12 @@ class BlenderCloudBaseIE(InfoExtractor):
         node_title = None
         node_title = self._html_search_regex(
             r'<div\s*id=\"node-title\"\s*class=\"node-title\">(.*?)</div>', source, 'title').strip()
-        #print "BlenderCloudBaseIE : get_node_title : node_title : %s" % node_title
         return node_title
 
     def get_webpage_title(self, source):
         webpage_title = None
         webpage_title = self._html_search_regex(
             r'<title>(.*?)</title>', source, 'title').strip()
-        #print "BlenderCloudBaseIE : get_webpage_title : webpage_title : %s" % webpage_title
         return webpage_title
 
     @staticmethod
@@ -43,8 +41,6 @@ class BlenderCloudBaseIE(InfoExtractor):
     def get_video_formats(source):
         video_formats = []
         for video in re.findall(r'<source\s*src=\"(.*?)\"\s*type="video/(.*?)"', source):
-            #print "BlenderCloudBaseIE : get_video_formats : video : %s" % video[0]
-            #print "BlenderCloudBaseIE : get_video_formats : video_type : %s" % video[1]
             video_url = video[0].replace('&amp;', '&')
             video_format_id = video[1].upper()
             fmt = {
@@ -58,7 +54,6 @@ class BlenderCloudBaseIE(InfoExtractor):
 
 class BlenderCloudIE(BlenderCloudBaseIE):
     _VALID_URL = r'https?://cloud\.blender\.org/[^/]+/(?P<display_id>[0-9a-z-]+)/(?P<base_node_id>[0-9a-z]+)/?'
-
     _TESTS = [
         {
             # Single video
@@ -136,32 +131,22 @@ class BlenderCloudIE(BlenderCloudBaseIE):
     ]
 
     def _real_extract(self, url):
-        #print "BlenderCloudIE : _real_extract : %s" % url
-
+        # extract a single video -or- a playlist of subsection videos
         mobj = re.match(self._VALID_URL, url)
         base_node_id = mobj.group('base_node_id')
         display_id = mobj.group('display_id')
-        #print "BlenderCloudIE : _real_extract : base_node_id : %s" % base_node_id
-        #print "BlenderCloudIE : _real_extract : display_id : %s" % display_id
-
-        # extract a single video -or- a playlist of subsection videos
-
         webpage = self._download_webpage(self.url_node % base_node_id, base_node_id)
 
         if '<section class="node-preview video">' in webpage:
             # this base node references a single video (i.e. a single node)
-
             title = None
             formats = []
-
             if self.is_video_subscriber_only(webpage):
                 self.report_warning('%s - %s' % (base_node_id, self.warning_subscribers_only))
             else:
                 title = self.get_node_title(webpage)
                 formats = self.get_video_formats(webpage)
-                #self._check_formats(formats, base_node_id)
                 self._sort_formats(formats)
-
             return {
                 'id': base_node_id,
                 'display_id': display_id,
@@ -170,20 +155,15 @@ class BlenderCloudIE(BlenderCloudBaseIE):
             }
         elif '<section class="node-preview group">' in webpage:
             # this base node references a playlist of subsection videos (i.e. multiple nodes)
-
             entries = []
             for node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*title=\"', webpage):
-                #print "BlenderCloudIE : _real_extract : node_id : %s" % node_id
-
                 webpage_node = self._download_webpage(self.url_node % node_id, node_id)
-
                 if '<section class="node-preview video">' in webpage_node:
                     if self.is_video_subscriber_only(webpage_node):
                         self.report_warning('%s - %s' % (node_id, self.warning_subscribers_only))
                     else:
                         title = self.get_node_title(webpage_node)
                         formats = self.get_video_formats(webpage_node)
-                        #self._check_formats(formats, node_id)
                         self._sort_formats(formats)
                         entries.append({
                             'id': node_id,
@@ -193,8 +173,6 @@ class BlenderCloudIE(BlenderCloudBaseIE):
                         })
                 else:
                     self.report_warning('%s - %s' % (node_id, warning_no_video_sources))
-
-            #print "BlenderCloudIE : _real_extract : entries : %s" % entries
             return self.playlist_result(entries, playlist_id=base_node_id, playlist_title=self.get_node_title(webpage))
         else:
             self.report_warning('%s - %s' % (base_node_id, self.warning_no_video_sources))
@@ -208,7 +186,6 @@ class BlenderCloudIE(BlenderCloudBaseIE):
 
 class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
     _VALID_URL = r'https?://cloud\.blender\.org/[^/]+/(?P<display_id>[0-9a-z-]+)/?$'
-
     _TESTS = [
         {
             # Playlist (complete)
@@ -235,31 +212,21 @@ class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
     ]
 
     def _real_extract(self, url):
-        #print "BlenderCloudPlaylistIE : _real_extract : %s" % url
-
+        # extract the complete playlist for an entire video section
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('display_id')
-        #print "BlenderCloudPlaylistIE : _real_extract : display_id : %s" % display_id
-
-        # extract the complete playlist for an entire video section
-
         webpage = self._download_webpage(url, display_id)
 
         entries = []
         for node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*class=\"', webpage):
-            #print "BlenderCloudPlaylistIE : _real_extract : node_id : %s" % node_id
-
             webpage_node = self._download_webpage(self.url_node % node_id, node_id)
-
             if '<section class="node-preview video">' in webpage_node:
                 # this node references a single video (i.e. a single node)
-
                 if self.is_video_subscriber_only(webpage_node):
                     self.report_warning('%s - %s' % (node_id, self.warning_subscribers_only))
                 else:
                     title = self.get_node_title(webpage_node)
                     formats = self.get_video_formats(webpage_node)
-                    #self._check_formats(formats, node_id)
                     self._sort_formats(formats)
                     entries.append({
                         'id': node_id,
@@ -269,19 +236,14 @@ class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
                     })
             elif '<section class="node-preview group">' in webpage_node:
                 # this node references a playlist of subsection videos (i.e. multiple nodes)
-
                 for sub_node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*title=\"', webpage_node):
-                    #print "BlenderCloudPlaylistIE : _real_extract : sub_node_id : %s" % sub_node_id
-
                     webpage_sub_node = self._download_webpage(self.url_node % sub_node_id, sub_node_id)
-
                     if '<section class="node-preview video">' in webpage_sub_node:
                         if self.is_video_subscriber_only(webpage_sub_node):
                             self.report_warning('%s - %s' % (sub_node_id, self.warning_subscribers_only))
                         else:
                             title = self.get_node_title(webpage_sub_node)
                             formats = self.get_video_formats(webpage_sub_node)
-                            #self._check_formats(formats, sub_node_id)
                             self._sort_formats(formats)
                             entries.append({
                                 'id': sub_node_id,
@@ -293,5 +255,4 @@ class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
                         self.report_warning('%s - %s' % (sub_node_id, self.warning_no_video_sources))
             else:
                 self.report_warning('%s - %s' % (node_id, self.warning_no_video_sources))
-
         return self.playlist_result(entries, playlist_id=display_id, playlist_title=self.get_webpage_title(webpage))
