@@ -59,7 +59,6 @@ class DrTuberIE(InfoExtractor):
                     'quality': 2 if video_url_key == 'hq' else 1,
                     'url': video_url_value
                 })
-        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         title = self._html_search_regex(
