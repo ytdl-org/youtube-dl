@@ -10,7 +10,7 @@ class BlenderCloudBaseIE(InfoExtractor):
     #
     # The data we want for any given node ID can be fetched at:
     url_node = "https://cloud.blender.org/nodes/%s/view"
-    
+
     # TODO: Add authentication scheme for subscriber-only videos.
     #
     # This will require the use of a (paid) Blender ID token available from:
@@ -172,7 +172,7 @@ class BlenderCloudIE(BlenderCloudBaseIE):
                             'formats': formats,
                         })
                 else:
-                    self.report_warning('%s - %s' % (node_id, warning_no_video_sources))
+                    self.report_warning('%s - %s' % (node_id, self.warning_no_video_sources))
             return self.playlist_result(entries, playlist_id=base_node_id, playlist_title=self.get_node_title(webpage))
         else:
             self.report_warning('%s - %s' % (base_node_id, self.warning_no_video_sources))
