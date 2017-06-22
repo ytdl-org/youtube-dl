@@ -44,20 +44,21 @@ class DrTuberIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.drtuber.com/video/%s' % video_id, display_id)
 
-        video_data = self._download_json('http://www.drtuber.com/player_config_json/', video_id, query={
-            'vid': video_id,
-            'embed': 0,
-            'aid': 0,
-            'domain_id': 0,
-        })
+        video_data = self._download_json(
+            'http://www.drtuber.com/player_config_json/', video_id, query={
+                'vid': video_id,
+                'embed': 0,
+                'aid': 0,
+                'domain_id': 0,
+            })
 
         formats = []
-        for video_url_key, video_url_value in video_data['files'].items():
-            if video_url_value:
+        for format_id, video_url in video_data['files'].items():
+            if video_url:
                 formats.append({
-                    'format_id': video_url_key.upper(),
-                    'quality': 2 if video_url_key == 'hq' else 1,
-                    'url': video_url_value
+                    'format_id': format_id,
+                    'quality': 2 if format_id == 'hq' else 1,
+                    'url': video_url
                 })
         self._sort_formats(formats)
 
