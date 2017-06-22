@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.06.23
 
 Core
 * [adobepass] Fix extraction on older python 2.6

@@ -67,6 +67,8 @@
  - **arte.tv:info**
  - **arte.tv:magazine**
  - **arte.tv:playlist**
+ - **AsianCrush**
+ - **AsianCrushPlaylist**
  - **AtresPlayer**
  - **ATTTechChannel**
  - **ATVAt**
@@ -686,6 +688,7 @@
  - **rutube:person**: Rutube person videos
  - **RUTV**: RUTV.RU
  - **Ruutu**
+ - **Ruv**
  - **safari**: safaribooksonline.com online video
  - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
