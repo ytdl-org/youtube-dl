@@ -123,7 +123,10 @@ from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
 )
-from .blendercloud import (BlenderCloudIE)
+from .blendercloud import (
+    BlenderCloudIE,
+    BlenderCloudPlaylistIE
+)
 from .blinkx import BlinkxIE
 from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
