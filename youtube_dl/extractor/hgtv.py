@@ -28,7 +28,7 @@ class HGTVComShowIE(InfoExtractor):
 
         config = self._parse_json(
             self._search_regex(
-                r'(?s)data-(?:deferred)?-module=["\']video["\'][^>]*>.*?<script[^>]+type=["\']text/x-config["\'][^>]*>(.+?)</script',
+                r'(?s)data-(?:deferred-)?module=["\']video["\'][^>]*>.*?<script[^>]+type=["\']text/x-config["\'][^>]*>(.+?)</script',
                 webpage, 'video config'),
             display_id)['channels'][0]
 
