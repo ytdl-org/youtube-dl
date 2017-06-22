@@ -209,6 +209,62 @@ class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
                 'No video sources available.'
             ],
         },
+        {
+            # Playlist (complete)
+            'url': 'https://cloud.blender.org/p/blender-inside-out/',
+            'info_dict': {
+                'id': 'blender-inside-out',
+                'title': 'From Maya and Max to Blender — Blender Cloud',
+            },
+            'playlist': [
+                {
+                    'info_dict': {
+                        'id': '560414b7044a2a00c4a6da99',
+                        'display_id': 'blender-inside-out',
+                        'ext': 'mp4',
+                        'title': 'Interface Tour',
+                    },
+                },
+                {
+                    'info_dict': {
+                        'id': '560414b7044a2a00c4a6da9d',
+                        'display_id': 'blender-inside-out',
+                        'ext': 'mp4',
+                        'title': 'Search',
+                    },
+                },
+                {
+                    'info_dict': {
+                        'id': '560414b7044a2a00c4a6da9b',
+                        'display_id': 'blender-inside-out',
+                        'ext': 'mp4',
+                        'title': 'Selection Tools',
+                    },
+                },
+                {
+                    'info_dict': {
+                        'id': '560414b7044a2a00c4a6da9c',
+                        'display_id': 'blender-inside-out',
+                        'ext': 'mp4',
+                        'title': 'Transform Tools',
+                    },
+                },
+                {
+                    'info_dict': {
+                        'id': '560414b7044a2a00c4a6da9a',
+                        'display_id': 'blender-inside-out',
+                        'ext': 'mp4',
+                        'title': 'Viewport Navigation',
+                    },
+                },
+            ],
+            'expected_warnings': [
+                'No video sources available.'
+            ],
+            'params': {
+                'only_matching': True,
+            },
+        },
     ]
 
     def _real_extract(self, url):
