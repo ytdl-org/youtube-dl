@@ -812,7 +812,7 @@ class YoutubeDL(object):
         Returns the resolved ie_result.
         """
         result_type = ie_result.get('_type', 'video')
-        
+
         if result_type in ('url', 'url_transparent'):
             ie_result['url'] = sanitize_url(ie_result['url'])
             extract_flat = self.params.get('extract_flat', False)
