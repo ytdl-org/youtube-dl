@@ -812,7 +812,6 @@ class YoutubeDL(object):
         Returns the resolved ie_result.
         """
         result_type = ie_result.get('_type', 'video')
-
         if result_type in ('url', 'url_transparent'):
             ie_result['url'] = sanitize_url(ie_result['url'])
             extract_flat = self.params.get('extract_flat', False)
@@ -1322,8 +1321,8 @@ class YoutubeDL(object):
         if add_headers:
             res.update(add_headers)
 
-        cookies = self._calc_cookies(info_dict)
-        if cookies:
+        if info_dict['url']:
+            cookies = self._calc_cookies(info_dict)
             res['Cookie'] = cookies
 
         if 'X-Forwarded-For' not in res:
