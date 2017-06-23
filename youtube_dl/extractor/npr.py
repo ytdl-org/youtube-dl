@@ -1,7 +1,5 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -44,18 +42,14 @@ class NprBaseIE(InfoExtractor):
                 )
                 continue
             elif format_id == 'm3u8':
-                mobj = re.match(
-                    r'(?P<baseurl>https?:.+?akamaihd.+?-n-)(?P<qualities>(?:,*\d+)+)',
-                    format_url
-                )
-                if mobj is None:
-                    continue
-                m3u8_base = mobj.group('baseurl')
-                qualities = re.findall(r'(\d+)', mobj.group('qualities'))
-
-                for quality in qualities:
+                try:
                     formats += self._extract_m3u8_formats(
-                        m3u8_base + '%s.mp4/master.m3u8' % quality,
+                        format_url.replace('200000', '2000000'),
+                        media_info['id']
+                    )
+                except ExtractorError:
+                    formats += self._extract_m3u8_formats(
+                        format_url,
                         media_info['id'],
                         fatal=False
                     )
@@ -119,13 +113,13 @@ class NprVideoIE(NprBaseIE):
 
     _TEST = {
         'url': 'http://www.npr.org/event/music/533198237/tigers-jaw-tiny-desk-concert',
-        'md5': '5b385e0e96c2731261df9a4ed1ff2cba',
+        'md5': '2ca640c9725579ea7d020dd23b9cffc2',
         'info_dict': {
             'id': '533198237',
             'title': 'Tigers Jaw: Tiny Desk Concert',
-            'ext': 'mp4',
-            'width': 624,
-            'height': 351,
+            'ext': 'm3u8',
+            'width': 1280,
+            'height': 720,
         },
         'expected_warnings': ['HTTP Error 404'],
     }
