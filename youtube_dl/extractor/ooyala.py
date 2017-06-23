@@ -140,6 +140,11 @@ class OoyalaIE(OoyalaBaseIE):
                 'title': 'Divide Tool Path.mp4',
                 'duration': 204.405,
             }
+        },
+        {
+            # empty stream['url']['data']
+            'url': 'http://player.ooyala.com/player.js?embedCode=w2bnZtYjE6axZ_dw1Cd0hQtXd_ige2Is',
+            'only_matching': True,
         }
     ]
 
