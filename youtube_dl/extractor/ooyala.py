@@ -41,7 +41,7 @@ class OoyalaBaseIE(InfoExtractor):
             for stream in cur_auth_data['streams']:
                 s_url = base64.b64decode(
                     stream['url']['data'].encode('ascii')).decode('utf-8')
-                if s_url in urls:
+                if not s_url or s_url in urls:
                     continue
                 urls.append(s_url)
                 ext = determine_ext(s_url, None)
