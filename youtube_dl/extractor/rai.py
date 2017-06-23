@@ -136,7 +136,7 @@ class RaiPlayIE(RaiBaseIE):
             'upload_date': '20161029',
             'series': 'La Casa Bianca',
             'season': '2016',
-        }
+        },
     }, {
         'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
         'md5': '8970abf8caf8aef4696e7b1f2adfc696',
@@ -156,7 +156,7 @@ class RaiPlayIE(RaiBaseIE):
         },
         'params': {
             'skip_download': True,
-        }
+        },
     }, {
         'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
         'only_matching': True,
@@ -212,25 +212,21 @@ class RaiPlayIE(RaiBaseIE):
 
 
 class RaiPlayLiveIE(RaiBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/dirette/(?P<id>\w*))'
+    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/dirette/(?P<id>\w*)'
     _TEST = {
         'url': 'http://www.raiplay.it/dirette/rai3',
         'only_matching': True,
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        url, channel = mobj.group('url', 'id')
+        channel = self._match_id(url)
 
         webpage = self._download_webpage(url, channel)
         re_id = r'<div([^>]*)data-uniquename=(["\'])[\w-]*(?P<id>%s)(\2)([^>]*?)>' % RaiBaseIE._UUID_RE
         video_id = self._html_search_regex(re_id, webpage, 'livestream-id', group='id')
 
-        return {
-            '_type': 'url_transparent',
-            'url': 'http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id,
-            'ie_key': RaiPlayIE.ie_key()
-        }
+        return self.url_result('http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id,
+                               RaiPlayIE.ie_key(), video_id)
 
 
 class RaiIE(RaiBaseIE):
