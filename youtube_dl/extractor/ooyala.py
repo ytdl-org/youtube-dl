@@ -3,12 +3,14 @@ import re
 import base64
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    int_or_none,
-    float_or_none,
-    ExtractorError,
-    unsmuggle_url,
     determine_ext,
+    ExtractorError,
+    float_or_none,
+    int_or_none,
+    try_get,
+    unsmuggle_url,
 )
 from ..compat import compat_urllib_parse_urlencode
 
@@ -39,13 +41,15 @@ class OoyalaBaseIE(InfoExtractor):
         formats = []
         if cur_auth_data['authorized']:
             for stream in cur_auth_data['streams']:
-                s_url = base64.b64decode(
-                    stream['url']['data'].encode('ascii')).decode('utf-8')
+                url_data = try_get(stream, lambda x: x['url']['data'], compat_str)
+                if not url_data:
+                    continue
+                s_url = base64.b64decode(url_data.encode('ascii')).decode('utf-8')
                 if not s_url or s_url in urls:
                     continue
                 urls.append(s_url)
                 ext = determine_ext(s_url, None)
-                delivery_type = stream['delivery_type']
+                delivery_type = stream.get('delivery_type')
                 if delivery_type == 'hls' or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
                         re.sub(r'/ip(?:ad|hone)/', '/all/', s_url), embed_code, 'mp4', 'm3u8_native',
@@ -65,7 +69,7 @@ class OoyalaBaseIE(InfoExtractor):
                 else:
                     formats.append({
                         'url': s_url,
-                        'ext': ext or stream.get('delivery_type'),
+                        'ext': ext or delivery_type,
                         'vcodec': stream.get('video_codec'),
                         'format_id': delivery_type,
                         'width': int_or_none(stream.get('width')),
