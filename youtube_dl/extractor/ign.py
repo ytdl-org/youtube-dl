@@ -97,8 +97,7 @@ class IGNIE(InfoExtractor):
             r'class="hero-poster[^"]*?"[^>]*id="(.+?)"',
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
-            r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
-            r'videoId&quot;:&quot;(.+?)&'
+            r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"'
         ]
         return self._search_regex(res_id, webpage, 'video id', default=None)
 
