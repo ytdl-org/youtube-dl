@@ -1324,6 +1324,9 @@ class YoutubeDL(object):
 
         if info_dict['url']:
             cookies = self._calc_cookies(info_dict)
+        else:
+            cookies = None
+        if cookies:
             res['Cookie'] = cookies
 
         if 'X-Forwarded-For' not in res:
