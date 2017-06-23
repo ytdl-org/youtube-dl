@@ -1322,7 +1322,10 @@ class YoutubeDL(object):
         if add_headers:
             res.update(add_headers)
 
-        cookies = self._calc_cookies(info_dict)
+        if info_dict['url']:
+            cookies = self._calc_cookies(info_dict)
+        else:
+            cookies = None
         if cookies:
             res['Cookie'] = cookies
 
