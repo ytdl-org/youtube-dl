@@ -208,8 +208,25 @@ class RaiPlayIE(RaiBaseIE):
         }
 
         info.update(relinker_info)
-
         return info
+
+
+class RaiPlayLiveIE(RaiBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/dirette/(?P<id>\w*)'
+    _TEST = {
+        'url': 'http://www.raiplay.it/dirette/rai3',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        channel = self._match_id(url)
+
+        webpage = self._download_webpage(url, channel)
+        re_id = r'<div([^>]*)data-uniquename=(["\'])[\w-]*(?P<id>%s)(\2)([^>]*?)>' % RaiBaseIE._UUID_RE
+        video_id = self._html_search_regex(re_id, webpage, 'livestream-id', group='id')
+
+        return self.url_result('http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id,
+                               RaiPlayIE.ie_key(), video_id)
 
 
 class RaiIE(RaiBaseIE):
