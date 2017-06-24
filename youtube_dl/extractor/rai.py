@@ -191,11 +191,12 @@ class RaiPlayIE(RaiBaseIE):
 
         info = {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if relinker_info.get(
+                'is_live') else title,
             'alt_title': media.get('subtitle'),
             'description': media.get('description'),
-            'uploader': media.get('channel'),
-            'creator': media.get('editor'),
+            'uploader': strip_or_none(media.get('channel')),
+            'creator': strip_or_none(media.get('editor')),
             'duration': parse_duration(video.get('duration')),
             'timestamp': timestamp,
             'thumbnails': thumbnails,
@@ -212,21 +213,40 @@ class RaiPlayIE(RaiBaseIE):
 
 
 class RaiPlayLiveIE(RaiBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/dirette/(?P<id>\w*)'
+    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/dirette/(?P<id>[^/?#&]+)'
     _TEST = {
-        'url': 'http://www.raiplay.it/dirette/rai3',
-        'only_matching': True,
+        'url': 'http://www.raiplay.it/dirette/rainews24',
+        'info_dict': {
+            'id': 'd784ad40-e0ae-4a69-aa76-37519d238a9c',
+            'display_id': 'rainews24',
+            'ext': 'mp4',
+            'title': 're:^Diretta di Rai News 24 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'md5:6eca31500550f9376819f174e5644754',
+            'uploader': 'Rai News 24',
+            'creator': 'Rai News 24',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
-        channel = self._match_id(url)
+        display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, channel)
-        re_id = r'<div([^>]*)data-uniquename=(["\'])[\w-]*(?P<id>%s)(\2)([^>]*?)>' % RaiBaseIE._UUID_RE
-        video_id = self._html_search_regex(re_id, webpage, 'livestream-id', group='id')
+        webpage = self._download_webpage(url, display_id)
 
-        return self.url_result('http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id,
-                               RaiPlayIE.ie_key(), video_id)
+        video_id = self._search_regex(
+            r'data-uniquename=["\']ContentItem-(%s)' % RaiBaseIE._UUID_RE,
+            webpage, 'content id')
+
+        return {
+            '_type': 'url_transparent',
+            'ie_key': RaiPlayIE.ie_key(),
+            'url': 'http://www.raiplay.it/dirette/ContentItem-%s.html' % video_id,
+            'id': video_id,
+            'display_id': display_id,
+        }
 
 
 class RaiIE(RaiBaseIE):
