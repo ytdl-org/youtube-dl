@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.06.25
 
 Core
 + [adobepass] Add support for DIRECTV NOW (mso ATTOTT) (#13472)
