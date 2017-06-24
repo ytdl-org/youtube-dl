@@ -98,7 +98,8 @@ class RedBullTVIE(InfoExtractor):
         title = info['title'].strip()
 
         formats = self._extract_m3u8_formats(
-            video['url'], video_id, 'mp4', 'm3u8_native')
+            video['url'], video_id, 'mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls')
         self._sort_formats(formats)
 
         subtitles = {}
