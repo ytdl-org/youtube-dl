@@ -1448,17 +1448,25 @@ class YoutubeDL(object):
         if not formats:
             raise ExtractorError('No video formats found!')
 
+        def is_wellformed(f):
+            url = f.get('url')
+            valid_url = url and isinstance(url, compat_str)
+            if not valid_url:
+                self.report_warning(
+                    '"url" field is missing or empty - skipping format, '
+                    'there is an error in extractor')
+            return valid_url
+
+        # Filter out malformed formats for better extraction robustness
+        formats = list(filter(is_wellformed, formats))
+
         formats_dict = {}
 
         # We check that all the formats have the format and format_id fields
         for i, format in enumerate(formats):
-            if 'url' not in format:
-                raise ExtractorError('Missing "url" key in result (index %d)' % i)
-
             sanitize_string_field(format, 'format_id')
             sanitize_numeric_fields(format)
             format['url'] = sanitize_url(format['url'])
-
             if format.get('format_id') is None:
                 format['format_id'] = compat_str(i)
             else:

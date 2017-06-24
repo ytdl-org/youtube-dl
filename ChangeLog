@@ -1,7 +1,22 @@
-version <unreleased>
+version 2017.06.23
+
+Core
+* [adobepass] Fix extraction on older python 2.6
 
 Extractors
+* [youtube] Adapt to new automatic captions rendition (#13467)
+* [hgtv.com:show] Relax video config regular expression (#13279, #13461)
+* [drtuber] Fix formats extraction (#12058)
+* [youporn] Fix upload date extraction
+* [youporn] Improve formats extraction
+* [youporn] Fix title extraction (#13456)
+* [googledrive] Fix formats sorting (#13443)
+* [watchindianporn] Fix extraction (#13411, #13415)
++ [vimeo] Add fallback mp4 extension for original format
++ [ruv] Add support for ruv.is (#13396)
+* [viu] Fix extraction on older python 2.6
 * [pandora.tv] Fix upload_date extraction (#12846)
++ [asiancrush] Add support for asiancrush.com (#13420)
 
 
 version 2017.06.18
