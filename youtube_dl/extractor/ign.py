@@ -89,6 +89,11 @@ class IGNIE(InfoExtractor):
             'url': 'http://me.ign.com/ar/angry-birds-2/106533/video/lrd-ldyy-lwl-lfylm-angry-birds',
             'only_matching': True,
         },
+        {
+            # videoId pattern
+            'url': 'http://www.ign.com/articles/2017/06/08/new-ducktales-short-donalds-birthday-doesnt-go-as-planned',
+            'only_matching': True,
+        },
     ]
 
     def _find_video_id(self, webpage):
@@ -98,6 +103,8 @@ class IGNIE(InfoExtractor):
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
             r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
+            r'videoId&quot;\s*:\s*&quot;(.+?)&quot;',
+            r'videoId["\']\s*:\s*["\']([^"\']+?)["\']',
         ]
         return self._search_regex(res_id, webpage, 'video id', default=None)
 
