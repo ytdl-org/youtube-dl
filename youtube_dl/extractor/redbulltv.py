@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class RedBullTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?redbull\.tv/(?:video|film)/(?P<id>AP-\w+)'
+    _VALID_URL = r'https?://(?:www\.)?redbull\.tv/(?:video|film|live)/(?:AP-\w+/segment/)?(?P<id>AP-\w+)'
     _TESTS = [{
         # film
         'url': 'https://www.redbull.tv/video/AP-1Q756YYX51W11/abc-of-wrc',
@@ -41,6 +41,22 @@ class RedBullTVIE(InfoExtractor):
             'series': 'Hashtags',
             'season_number': 2,
             'episode_number': 4,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # segment
+        'url': 'https://www.redbull.tv/live/AP-1R5DX49XS1W11/segment/AP-1QSAQJ6V52111/semi-finals',
+        'info_dict': {
+            'id': 'AP-1QSAQJ6V52111',
+            'ext': 'mp4',
+            'title': 'Semi Finals - Vans Park Series Pro Tour',
+            'description': 'md5:306a2783cdafa9e65e39aa62f514fd97',
+            'duration': 11791.991,
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'https://www.redbull.tv/film/AP-1MSKKF5T92111/in-motion',
