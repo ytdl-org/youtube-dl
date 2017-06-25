@@ -10,7 +10,7 @@ from ..utils import (
 
 class PandaTVIE(InfoExtractor):
     IE_DESC = '熊猫TV'
-    _VALID_URL = r'http://(?:www\.)?panda\.tv/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?panda\.tv/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.panda.tv/10091',
         'info_dict': {
