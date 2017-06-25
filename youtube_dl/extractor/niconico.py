@@ -83,9 +83,12 @@ class NiconicoIE(InfoExtractor):
             'uploader_id': '312',
         },
         'skip': 'The viewing period of the video you were searching for has expired.',
+    }, {
+        'url': 'http://sp.nicovideo.jp/watch/sm28964488?ss_pos=1&cp_in=wt_tg',
+        'only_matching': True,
     }]
 
-    _VALID_URL = r'https?://(?:www\.|secure\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.|secure\.|sp\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'
     _NETRC_MACHINE = 'niconico'
 
     def _real_initialize(self):
