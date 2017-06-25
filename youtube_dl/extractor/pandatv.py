@@ -11,12 +11,12 @@ from ..utils import (
 class PandaTVIE(InfoExtractor):
     IE_DESC = '熊猫TV'
     _VALID_URL = r'https?://(?:www\.)?panda\.tv/(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://www.panda.tv/10091',
+    _TESTS = [{
+        'url': 'http://www.panda.tv/66666',
         'info_dict': {
-            'id': '10091',
+            'id': '66666',
             'title': 're:.+',
-            'uploader': '囚徒',
+            'uploader': '刘杀鸡',
             'ext': 'flv',
             'is_live': True,
         },
@@ -24,7 +24,10 @@ class PandaTVIE(InfoExtractor):
             'skip_download': True,
         },
         'skip': 'Live stream is offline',
-    }
+    }, {
+        'url': 'https://www.panda.tv/66666',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
