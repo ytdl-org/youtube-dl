@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
++ [niconico] Support sp subdomain (#13494)
+
+
 version 2017.06.25
 
 Core
