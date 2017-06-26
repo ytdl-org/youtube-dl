@@ -15,6 +15,7 @@ from ..utils import (
     urlencode_postdata,
     unified_timestamp,
     ExtractorError,
+    NO_DEFAULT,
 )
 
 
@@ -23,6 +24,11 @@ MSO_INFO = {
         'name': 'DIRECTV',
         'username_field': 'username',
         'password_field': 'password',
+    },
+    'ATTOTT': {
+        'name': 'DIRECTV NOW',
+        'username_field': 'email',
+        'password_field': 'loginpassword',
     },
     'Rogers': {
         'name': 'Rogers',
@@ -1316,6 +1322,8 @@ class AdobePassIE(InfoExtractor):
     _USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0'
     _MVPD_CACHE = 'ap-mvpd'
 
+    _DOWNLOADING_LOGIN_PAGE = 'Downloading Provider Login Page'
+
     def _download_webpage_handle(self, *args, **kwargs):
         headers = kwargs.get('headers', {})
         headers.update(self.geo_verification_headers())
@@ -1364,6 +1372,21 @@ class AdobePassIE(InfoExtractor):
                 'This video is only available for users of participating TV providers. '
                 'Use --ap-mso to specify Adobe Pass Multiple-system operator Identifier '
                 'and --ap-username and --ap-password or --netrc to provide account credentials.', expected=True)
+
+        def extract_redirect_url(html, url=None, fatal=False):
+            # TODO: eliminate code duplication with generic extractor and move
+            # redirection code into _download_webpage_handle
+            REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
+            redirect_url = self._search_regex(
+                r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
+                r'(?:[a-z-]+="[^"]+"\s+)*?content="%s' % REDIRECT_REGEX,
+                html, 'meta refresh redirect',
+                default=NO_DEFAULT if fatal else None, fatal=fatal)
+            if not redirect_url:
+                return None
+            if url:
+                redirect_url = compat_urlparse.urljoin(url, unescapeHTML(redirect_url))
+            return redirect_url
 
         mvpd_headers = {
             'ap_42': 'anonymous',
@@ -1414,16 +1437,15 @@ class AdobePassIE(InfoExtractor):
                         if '<form name="signin"' in provider_redirect_page:
                             provider_login_page_res = provider_redirect_page_res
                         elif 'http-equiv="refresh"' in provider_redirect_page:
-                            oauth_redirect_url = self._html_search_regex(
-                                r'content="0;\s*url=([^\'"]+)',
-                                provider_redirect_page, 'meta refresh redirect')
+                            oauth_redirect_url = extract_redirect_url(
+                                provider_redirect_page, fatal=True)
                             provider_login_page_res = self._download_webpage_handle(
                                 oauth_redirect_url, video_id,
-                                'Downloading Provider Login Page')
+                                self._DOWNLOADING_LOGIN_PAGE)
                         else:
                             provider_login_page_res = post_form(
                                 provider_redirect_page_res,
-                                'Downloading Provider Login Page')
+                                self._DOWNLOADING_LOGIN_PAGE)
 
                         mvpd_confirm_page_res = post_form(
                             provider_login_page_res, 'Logging in', {
@@ -1470,8 +1492,17 @@ class AdobePassIE(InfoExtractor):
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
                 else:
+                    # Some providers (e.g. DIRECTV NOW) have another meta refresh
+                    # based redirect that should be followed.
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = extract_redirect_url(
+                        provider_redirect_page, url=urlh.geturl())
+                    if provider_refresh_redirect_url:
+                        provider_redirect_page_res = self._download_webpage_handle(
+                            provider_refresh_redirect_url, video_id,
+                            'Downloading Provider Redirect Page (meta refresh)')
                     provider_login_page_res = post_form(
-                        provider_redirect_page_res, 'Downloading Provider Login Page')
+                        provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
                         mso_info.get('username_field', 'username'): username,
                         mso_info.get('password_field', 'password'): password,

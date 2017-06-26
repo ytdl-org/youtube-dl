@@ -13,7 +13,7 @@ class WSJIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         (?:
                             https?://video-api\.wsj\.com/api-video/player/iframe\.html\?.*?\bguid=|
-                            https?://(?:www\.)?wsj\.com/video/[^/]+/|
+                            https?://(?:www\.)?(?:wsj|barrons)\.com/video/[^/]+/|
                             wsj:
                         )
                         (?P<id>[a-fA-F0-9-]{36})
@@ -34,6 +34,9 @@ class WSJIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.wsj.com/video/can-alphabet-build-a-smarter-city/359DDAA8-9AC1-489C-82E6-0429C1E430E0.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.barrons.com/video/capitalism-deserves-more-respect-from-millennials/F301217E-6F46-43AE-B8D2-B7180D642EE9.html',
         'only_matching': True,
     }]
 

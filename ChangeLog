@@ -1,3 +1,20 @@
+version 2017.06.25
+
+Core
++ [adobepass] Add support for DIRECTV NOW (mso ATTOTT) (#13472)
+* [YoutubeDL] Skip malformed formats for better extraction robustness
+
+Extractors
++ [wsj] Add support for barrons.com (#13470)
++ [ign] Add another video id pattern (#13328)
++ [raiplay:live] Add support for live streams (#13414)
++ [redbulltv] Add support for live videos and segments (#13486)
++ [onetpl] Add support for videos embedded via pulsembed (#13482)
+* [ooyala] Make more robust
+* [ooyala] Skip empty format URLs (#13471, #13476)
+* [hgtv.com:show] Fix typo
+
+
 version 2017.06.23
 
 Core
