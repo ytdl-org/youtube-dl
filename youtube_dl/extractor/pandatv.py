@@ -33,7 +33,7 @@ class PandaTVIE(InfoExtractor):
         video_id = self._match_id(url)
 
         config = self._download_json(
-            'http://www.panda.tv/api_room?roomid=%s' % video_id, video_id)
+            'https://www.panda.tv/api_room?roomid=%s' % video_id, video_id)
 
         error_code = config.get('errno', 0)
         if error_code is not 0:
@@ -77,7 +77,7 @@ class PandaTVIE(InfoExtractor):
                 continue
             for pref, (ext, pl) in enumerate((('m3u8', '-hls'), ('flv', ''))):
                 formats.append({
-                    'url': 'http://pl%s%s.live.panda.tv/live_panda/%s%s%s.%s'
+                    'url': 'https://pl%s%s.live.panda.tv/live_panda/%s%s%s.%s'
                     % (pl, plflag1, room_key, live_panda, suffix[quality], ext),
                     'format_id': '%s-%s' % (k, ext),
                     'quality': quality,
