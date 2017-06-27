@@ -290,7 +290,7 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
             'id': '2284613',
             'title': 'The Royal Concept EP',
         },
-        'playlist_mincount': 6,
+        'playlist_mincount': 5,
     }, {
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep/token',
         'only_matching': True,
@@ -380,7 +380,7 @@ class SoundcloudUserIE(SoundcloudPlaylistBaseIE):
         'url': 'https://soundcloud.com/grynpyret/spotlight',
         'info_dict': {
             'id': '7098329',
-            'title': 'GRYNPYRET (Spotlight)',
+            'title': 'Grynpyret (Spotlight)',
         },
         'playlist_mincount': 1,
     }]
