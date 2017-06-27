@@ -1522,6 +1522,21 @@ class GenericIE(InfoExtractor):
                 'title': 'Facebook video #599637780109885',
             },
         },
+        # Facebook <iframe> embed, plugin video
+        {
+            'url': 'http://5pillarsuk.com/2017/06/07/tariq-ramadan-disagrees-with-pr-exercise-by-imams-refusing-funeral-prayers-for-london-attackers/',
+            'info_dict': {
+                'id': '1754168231264132',
+                'ext': 'mp4',
+                'title': 'About the Imams and Religious leaders refusing to perform funeral prayers for...',
+                'uploader': 'Tariq Ramadan (official)',
+                'timestamp': 1496758379,
+                'upload_date': '20170606',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # Facebook API embed
         {
             'url': 'http://www.lothype.com/blue-stars-2016-preview-standstill-full-show/',
