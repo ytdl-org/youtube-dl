@@ -1827,11 +1827,13 @@ class GenericIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
+        entries_for_batch = [];
+
         if url.startswith('//'):
-            return {
+            entries_for_batch.append({
                 '_type': 'url',
                 'url': self.http_scheme() + url,
-            }
+            })
 
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
@@ -1842,7 +1844,7 @@ class GenericIE(InfoExtractor):
             if default_search in ('auto', 'auto_warning', 'fixup_error'):
                 if '/' in url:
                     self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
-                    return self.url_result('http://' + url)
+                    entries_for_batch.append(self.url_result('http://' + url))
                 elif default_search != 'fixup_error':
                     if default_search == 'auto_warning':
                         if re.match(r'^(?:url|URL)$', url):
@@ -1852,7 +1854,7 @@ class GenericIE(InfoExtractor):
                         else:
                             self._downloader.report_warning(
                                 'Falling back to youtube search for  %s . Set --default-search "auto" to suppress this warning.' % url)
-                    return self.url_result('ytsearch:' + url)
+                    entries_for_batch.append(self.url_result('ytsearch:' + url))
 
             if default_search in ('error', 'fixup_error'):
                 raise ExtractorError(
@@ -1862,7 +1864,7 @@ class GenericIE(InfoExtractor):
             else:
                 if ':' not in default_search:
                     default_search += ':'
-                return self.url_result(default_search + url)
+                entries_for_batch.append(self.url_result(default_search + url))
 
         url, smuggled_data = unsmuggle_url(url)
         force_videoid = None
@@ -1889,7 +1891,7 @@ class GenericIE(InfoExtractor):
                 if force_videoid:
                     new_url = smuggle_url(
                         new_url, {'force_videoid': force_videoid})
-                return self.url_result(new_url)
+                entries_for_batch.append(self.url_result(new_url))
 
         full_response = None
         if head_response is False:
@@ -1970,7 +1972,7 @@ class GenericIE(InfoExtractor):
         try:
             doc = compat_etree_fromstring(webpage.encode('utf-8'))
             if doc.tag == 'rss':
-                return self._extract_rss(url, video_id, doc)
+                entries_for_batch.append(self._extract_rss(url, video_id, doc))
             elif doc.tag == 'SmoothStreamingMedia':
                 info_dict['formats'] = self._parse_ism_formats(doc, url)
                 self._sort_formats(info_dict['formats'])
@@ -1980,7 +1982,7 @@ class GenericIE(InfoExtractor):
                 self._sort_formats(smil['formats'])
                 return smil
             elif doc.tag == '{http://xspf.org/ns/0/}playlist':
-                return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
+                entries_for_batch.append(self.playlist_result(self._parse_xspf(doc, video_id), video_id))
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
                     doc, video_id,
@@ -1998,7 +2000,7 @@ class GenericIE(InfoExtractor):
         # Is it a Camtasia project?
         camtasia_res = self._extract_camtasia(url, video_id, webpage)
         if camtasia_res is not None:
-            return camtasia_res
+            entries_for_batch.append(camtasia_res)
 
         # Sometimes embedded video player is hidden behind percent encoding
         # (e.g. https://github.com/rg3/youtube-dl/issues/2448)
@@ -2042,44 +2044,44 @@ class GenericIE(InfoExtractor):
                 'ie_key': 'BrightcoveLegacy'
             } for bc_url in bc_urls]
 
-            return {
+            entries_for_batch.append({
                 '_type': 'playlist',
                 'title': video_title,
                 'id': video_id,
                 'entries': entries,
-            }
+            })
 
         # Look for Brightcove New Studio embeds
         bc_urls = BrightcoveNewIE._extract_urls(self, webpage)
         if bc_urls:
-            return self.playlist_from_matches(bc_urls, video_id, video_title, ie='BrightcoveNew')
+            entries_for_batch.append(self.playlist_from_matches(bc_urls, video_id, video_title, ie='BrightcoveNew'))
 
         # Look for ThePlatform embeds
         tp_urls = ThePlatformIE._extract_urls(webpage)
         if tp_urls:
-            return self.playlist_from_matches(tp_urls, video_id, video_title, ie='ThePlatform')
+            entries_for_batch.append(self.playlist_from_matches(tp_urls, video_id, video_title, ie='ThePlatform'))
 
         # Look for Vessel embeds
         vessel_urls = VesselIE._extract_urls(webpage)
         if vessel_urls:
-            return self.playlist_from_matches(vessel_urls, video_id, video_title, ie=VesselIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(vessel_urls, video_id, video_title, ie=VesselIE.ie_key()))
 
         # Look for embedded rtl.nl player
         matches = re.findall(
             r'<iframe[^>]+?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+(?:video_)?embed[^"]+)"',
             webpage)
         if matches:
-            return self.playlist_from_matches(matches, video_id, video_title, ie='RtlNl')
+            entries_for_batch.append(self.playlist_from_matches(matches, video_id, video_title, ie='RtlNl'))
 
         vimeo_urls = VimeoIE._extract_urls(url, webpage)
         if vimeo_urls:
-            return self.playlist_from_matches(vimeo_urls, video_id, video_title, ie=VimeoIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(vimeo_urls, video_id, video_title, ie=VimeoIE.ie_key()))
 
         vid_me_embed_url = self._search_regex(
             r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
             webpage, 'vid.me embed', default=None)
         if vid_me_embed_url is not None:
-            return self.url_result(vid_me_embed_url, 'Vidme')
+            entries_for_batch.append(self.url_result(vid_me_embed_url, 'Vidme'))
 
         # Look for embedded YouTube player
         matches = re.findall(r'''(?x)
@@ -2096,6 +2098,7 @@ class GenericIE(InfoExtractor):
                 (?:embed|v|p)/.+?)
             \1''', webpage)
         if matches:
+            # can't remove return else errors
             return self.playlist_from_matches(
                 matches, video_id, video_title, lambda m: unescapeHTML(m[1]))
 
@@ -2103,18 +2106,18 @@ class GenericIE(InfoExtractor):
         matches = re.findall(
             r'class="lazyYT" data-youtube-id="([^"]+)"', webpage)
         if matches:
-            return self.playlist_from_matches(matches, video_id, video_title, lambda m: unescapeHTML(m))
+            entries_for_batch.append(self.playlist_from_matches(matches, video_id, video_title, lambda m: unescapeHTML(m)))
 
         # Look for Wordpress "YouTube Video Importer" plugin
         matches = re.findall(r'''(?x)<div[^>]+
             class=(?P<q1>[\'"])[^\'"]*\byvii_single_video_player\b[^\'"]*(?P=q1)[^>]+
             data-video_id=(?P<q2>[\'"])([^\'"]+)(?P=q2)''', webpage)
         if matches:
-            return self.playlist_from_matches(matches, video_id, video_title, lambda m: m[-1])
+            entries_for_batch.append(self.playlist_from_matches(matches, video_id, video_title, lambda m: m[-1]))
 
         matches = DailymotionIE._extract_urls(webpage)
         if matches:
-            return self.playlist_from_matches(matches, video_id, video_title)
+            entries_for_batch.append(self.playlist_from_matches(matches, video_id, video_title))
 
         # Look for embedded Dailymotion playlist player (#3822)
         m = re.search(
@@ -2123,56 +2126,56 @@ class GenericIE(InfoExtractor):
             playlists = re.findall(
                 r'list\[\]=/playlist/([^/]+)/', unescapeHTML(m.group('url')))
             if playlists:
-                return self.playlist_from_matches(
-                    playlists, video_id, video_title, lambda p: '//dailymotion.com/playlist/%s' % p)
+                entries_for_batch.append(self.playlist_from_matches(
+                    playlists, video_id, video_title, lambda p: '//dailymotion.com/playlist/%s' % p))
 
         # Look for embedded Wistia player
         wistia_url = WistiaIE._extract_url(webpage)
         if wistia_url:
-            return {
+            entries_for_batch.append({
                 '_type': 'url_transparent',
                 'url': self._proto_relative_url(wistia_url),
                 'ie_key': WistiaIE.ie_key(),
                 'uploader': video_uploader,
-            }
+            })
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
         if svt_url:
-            return self.url_result(svt_url, 'SVT')
+            entries_for_batch.append(self.url_result(svt_url, 'SVT'))
 
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
         if mobj is not None:
             burl = unescapeHTML(mobj.group(1))
             # Don't set the extractor because it can be a track url or an album
-            return self.url_result(burl)
+            entries_for_batch.append(self.url_result(burl))
 
         # Look for embedded Vevo player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:cache\.)?vevo\.com/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for embedded Viddler player
         mobj = re.search(
             r'<(?:iframe[^>]+?src|param[^>]+?value)=(["\'])(?P<url>(?:https?:)?//(?:www\.)?viddler\.com/(?:embed|player)/.+?)\1',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for NYTimes player
         mobj = re.search(
             r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//graphics8\.nytimes\.com/bcvideo/[^/]+/iframe/embed\.html.+?)\1>',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for Libsyn player
         mobj = re.search(
             r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//html5-player\.libsyn\.com/embed/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for Ooyala videos
         mobj = (re.search(r'player\.ooyala\.com/[^"?]+[?#][^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
@@ -2194,19 +2197,19 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             embeds = self._parse_json(mobj.group(1), video_id, fatal=False)
             if embeds:
-                return self.playlist_from_matches(
+                entries_for_batch.append(self.playlist_from_matches(
                     embeds, video_id, video_title,
-                    getter=lambda v: OoyalaIE._url_for_embed_code(smuggle_url(v['provider_video_id'], {'domain': url})), ie='Ooyala')
+                    getter=lambda v: OoyalaIE._url_for_embed_code(smuggle_url(v['provider_video_id'], {'domain': url})), ie='Ooyala'))
 
         # Look for Aparat videos
         mobj = re.search(r'<iframe .*?src="(http://www\.aparat\.com/video/[^"]+)"', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group(1), 'Aparat')
+            entries_for_batch.append(self.url_result(mobj.group(1), 'Aparat'))
 
         # Look for MPORA videos
         mobj = re.search(r'<iframe .*?src="(http://mpora\.(?:com|de)/videos/[^"]+)"', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group(1), 'Mpora')
+            entries_for_batch.append(self.url_result(mobj.group(1), 'Mpora'))
 
         # Look for embedded NovaMov-based player
         mobj = re.search(
@@ -2219,155 +2222,155 @@ class GenericIE(InfoExtractor):
                            divxstage\.(?:eu|net|ch|co|at|ag))
                         /embed\.php.+?)\1''', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for embedded Facebook player
         facebook_url = FacebookIE._extract_url(webpage)
         if facebook_url is not None:
-            return self.url_result(facebook_url, 'Facebook')
+            entries_for_batch.append(self.url_result(facebook_url, 'Facebook'))
 
         # Look for embedded VK player
         mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://vk\.com/video_ext\.php.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'VK')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'VK'))
 
         # Look for embedded Odnoklassniki player
         mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:odnoklassniki|ok)\.ru/videoembed/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Odnoklassniki')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'Odnoklassniki'))
 
         # Look for embedded ivi player
         mobj = re.search(r'<embed[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?ivi\.ru/video/player.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Ivi')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'Ivi'))
 
         # Look for embedded Huffington Post player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed\.live\.huffingtonpost\.com/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'HuffPost')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'HuffPost'))
 
         # Look for embed.ly
         mobj = re.search(r'class=["\']embedly-card["\'][^>]href=["\'](?P<url>[^"\']+)', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
         mobj = re.search(r'class=["\']embedly-embed["\'][^>]src=["\'][^"\']*url=(?P<url>[^&]+)', webpage)
         if mobj is not None:
-            return self.url_result(compat_urllib_parse_unquote(mobj.group('url')))
+            entries_for_batch.append(self.url_result(compat_urllib_parse_unquote(mobj.group('url'))))
 
         # Look for funnyordie embed
         matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
         if matches:
-            return self.playlist_from_matches(
-                matches, video_id, video_title, getter=unescapeHTML, ie='FunnyOrDie')
+            entries_for_batch.append(self.playlist_from_matches(
+                matches, video_id, video_title, getter=unescapeHTML, ie='FunnyOrDie'))
 
         # Look for BBC iPlayer embed
         matches = re.findall(r'setPlaylist\("(https?://www\.bbc\.co\.uk/iplayer/[^/]+/[\da-z]{8})"\)', webpage)
         if matches:
-            return self.playlist_from_matches(matches, video_id, video_title, ie='BBCCoUk')
+            entries_for_batch.append(self.playlist_from_matches(matches, video_id, video_title, ie='BBCCoUk'))
 
         # Look for embedded RUTV player
         rutv_url = RUTVIE._extract_url(webpage)
         if rutv_url:
-            return self.url_result(rutv_url, 'RUTV')
+            entries_for_batch.append(self.url_result(rutv_url, 'RUTV'))
 
         # Look for embedded TVC player
         tvc_url = TVCIE._extract_url(webpage)
         if tvc_url:
-            return self.url_result(tvc_url, 'TVC')
+            entries_for_batch.append(self.url_result(tvc_url, 'TVC'))
 
         # Look for embedded SportBox player
         sportbox_urls = SportBoxEmbedIE._extract_urls(webpage)
         if sportbox_urls:
-            return self.playlist_from_matches(sportbox_urls, video_id, video_title, ie='SportBoxEmbed')
+            entries_for_batch.append(self.playlist_from_matches(sportbox_urls, video_id, video_title, ie='SportBoxEmbed'))
 
         # Look for embedded XHamster player
         xhamster_urls = XHamsterEmbedIE._extract_urls(webpage)
         if xhamster_urls:
-            return self.playlist_from_matches(xhamster_urls, video_id, video_title, ie='XHamsterEmbed')
+            entries_for_batch.append(self.playlist_from_matches(xhamster_urls, video_id, video_title, ie='XHamsterEmbed'))
 
         # Look for embedded TNAFlixNetwork player
         tnaflix_urls = TNAFlixNetworkEmbedIE._extract_urls(webpage)
         if tnaflix_urls:
-            return self.playlist_from_matches(tnaflix_urls, video_id, video_title, ie=TNAFlixNetworkEmbedIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(tnaflix_urls, video_id, video_title, ie=TNAFlixNetworkEmbedIE.ie_key()))
 
         # Look for embedded PornHub player
         pornhub_urls = PornHubIE._extract_urls(webpage)
         if pornhub_urls:
-            return self.playlist_from_matches(pornhub_urls, video_id, video_title, ie=PornHubIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(pornhub_urls, video_id, video_title, ie=PornHubIE.ie_key()))
 
         # Look for embedded DrTuber player
         drtuber_urls = DrTuberIE._extract_urls(webpage)
         if drtuber_urls:
-            return self.playlist_from_matches(drtuber_urls, video_id, video_title, ie=DrTuberIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(drtuber_urls, video_id, video_title, ie=DrTuberIE.ie_key()))
 
         # Look for embedded RedTube player
         redtube_urls = RedTubeIE._extract_urls(webpage)
         if redtube_urls:
-            return self.playlist_from_matches(redtube_urls, video_id, video_title, ie=RedTubeIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(redtube_urls, video_id, video_title, ie=RedTubeIE.ie_key()))
 
         # Look for embedded Tvigle player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//cloud\.tvigle\.ru/video/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Tvigle')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'Tvigle'))
 
         # Look for embedded TED player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://embed(?:-ssl)?\.ted\.com/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'TED')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'TED'))
 
         # Look for embedded Ustream videos
         ustream_url = UstreamIE._extract_url(webpage)
         if ustream_url:
-            return self.url_result(ustream_url, UstreamIE.ie_key())
+            entries_for_batch.append(self.url_result(ustream_url, UstreamIE.ie_key()))
 
         # Look for embedded arte.tv player
         mobj = re.search(
             r'<(?:script|iframe) [^>]*?src="(?P<url>http://www\.arte\.tv/(?:playerv2/embed|arte_vp/index)[^"]+)"',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'ArteTVEmbed')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'ArteTVEmbed'))
 
         # Look for embedded francetv player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?://)?embed\.francetv\.fr/\?ue=.+?)\1',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for embedded smotri.com player
         smotri_url = SmotriIE._extract_url(webpage)
         if smotri_url:
-            return self.url_result(smotri_url, 'Smotri')
+            entries_for_batch.append(self.url_result(smotri_url, 'Smotri'))
 
         # Look for embedded Myvi.ru player
         myvi_url = MyviIE._extract_url(webpage)
         if myvi_url:
-            return self.url_result(myvi_url)
+            entries_for_batch.append(self.url_result(myvi_url))
 
         # Look for embedded soundcloud player
         soundcloud_urls = SoundcloudIE._extract_urls(webpage)
         if soundcloud_urls:
-            return self.playlist_from_matches(soundcloud_urls, video_id, video_title, getter=unescapeHTML, ie=SoundcloudIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(soundcloud_urls, video_id, video_title, getter=unescapeHTML, ie=SoundcloudIE.ie_key()))
 
         # Look for tunein player
         tunein_urls = TuneInBaseIE._extract_urls(webpage)
         if tunein_urls:
-            return self.playlist_from_matches(tunein_urls, video_id, video_title)
+            entries_for_batch.append(self.playlist_from_matches(tunein_urls, video_id, video_title))
 
         # Look for embedded mtvservices player
         mtvservices_url = MTVServicesEmbeddedIE._extract_url(webpage)
         if mtvservices_url:
-            return self.url_result(mtvservices_url, ie='MTVServicesEmbedded')
+            entries_for_batch.append(self.url_result(mtvservices_url, ie='MTVServicesEmbedded'))
 
         # Look for embedded yahoo player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:screen|movies)\.yahoo\.com/.+?\.html\?format=embed)\1',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Yahoo')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'Yahoo'))
 
         # Look for embedded sbs.com.au player
         mobj = re.search(
@@ -2379,14 +2382,14 @@ class GenericIE(InfoExtractor):
             (["\'])(?P<url>https?://(?:www\.)?sbs\.com\.au/ondemand/video/.+?)\1''',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'SBS')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'SBS'))
 
         # Look for embedded Cinchcast player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.cinchcast\.com/.+?)\1',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Cinchcast')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'Cinchcast'))
 
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>https?://m(?:lb)?\.mlb\.com/shared/video/embed/embed\.html\?.+?)\1',
@@ -2396,174 +2399,174 @@ class GenericIE(InfoExtractor):
                 r'data-video-link=["\'](?P<url>http://m.mlb.com/video/[^"\']+)',
                 webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'MLB')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'MLB'))
 
         mobj = re.search(
             r'<(?:iframe|script)[^>]+?src=(["\'])(?P<url>%s)\1' % CondeNastIE.EMBED_URL,
             webpage)
         if mobj is not None:
-            return self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast')
+            entries_for_batch.append(self.url_result(self._proto_relative_url(mobj.group('url'), scheme='http:'), 'CondeNast'))
 
         mobj = re.search(
             r'<iframe[^>]+src="(?P<url>https?://(?:new\.)?livestream\.com/[^"]+/player[^"]+)"',
             webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Livestream')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'Livestream'))
 
         # Look for Zapiks embed
         mobj = re.search(
             r'<iframe[^>]+src="(?P<url>https?://(?:www\.)?zapiks\.fr/index\.php\?.+?)"', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'), 'Zapiks')
+            entries_for_batch.append(self.url_result(mobj.group('url'), 'Zapiks'))
 
         # Look for Kaltura embeds
         kaltura_url = KalturaIE._extract_url(webpage)
         if kaltura_url:
-            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
+            entries_for_batch.append(self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key()))
 
         # Look for Eagle.Platform embeds
         eagleplatform_url = EaglePlatformIE._extract_url(webpage)
         if eagleplatform_url:
-            return self.url_result(eagleplatform_url, EaglePlatformIE.ie_key())
+            entries_for_batch.append(self.url_result(eagleplatform_url, EaglePlatformIE.ie_key()))
 
         # Look for ClipYou (uses Eagle.Platform) embeds
         mobj = re.search(
             r'<iframe[^>]+src="https?://(?P<host>media\.clipyou\.ru)/index/player\?.*\brecord_id=(?P<id>\d+).*"', webpage)
         if mobj is not None:
-            return self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform')
+            entries_for_batch.append(self.url_result('eagleplatform:%(host)s:%(id)s' % mobj.groupdict(), 'EaglePlatform'))
 
         # Look for Pladform embeds
         pladform_url = PladformIE._extract_url(webpage)
         if pladform_url:
-            return self.url_result(pladform_url)
+            entries_for_batch.append(self.url_result(pladform_url))
 
         # Look for Videomore embeds
         videomore_url = VideomoreIE._extract_url(webpage)
         if videomore_url:
-            return self.url_result(videomore_url)
+            entries_for_batch.append(self.url_result(videomore_url))
 
         # Look for Webcaster embeds
         webcaster_url = WebcasterFeedIE._extract_url(self, webpage)
         if webcaster_url:
-            return self.url_result(webcaster_url, ie=WebcasterFeedIE.ie_key())
+            entries_for_batch.append(self.url_result(webcaster_url, ie=WebcasterFeedIE.ie_key()))
 
         # Look for Playwire embeds
         mobj = re.search(
             r'<script[^>]+data-config=(["\'])(?P<url>(?:https?:)?//config\.playwire\.com/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for 5min embeds
         mobj = re.search(
             r'<meta[^>]+property="og:video"[^>]+content="https?://embed\.5min\.com/(?P<id>[0-9]+)/?', webpage)
         if mobj is not None:
-            return self.url_result('5min:%s' % mobj.group('id'), 'FiveMin')
+            entries_for_batch.append(self.url_result('5min:%s' % mobj.group('id'), 'FiveMin'))
 
         # Look for Crooks and Liars embeds
         mobj = re.search(
             r'<(?:iframe[^>]+src|param[^>]+value)=(["\'])(?P<url>(?:https?:)?//embed\.crooksandliars\.com/(?:embed|v)/.+?)\1', webpage)
         if mobj is not None:
-            return self.url_result(mobj.group('url'))
+            entries_for_batch.append(self.url_result(mobj.group('url')))
 
         # Look for NBC Sports VPlayer embeds
         nbc_sports_url = NBCSportsVPlayerIE._extract_url(webpage)
         if nbc_sports_url:
-            return self.url_result(nbc_sports_url, 'NBCSportsVPlayer')
+            entries_for_batch.append(self.url_result(nbc_sports_url, 'NBCSportsVPlayer'))
 
         # Look for NBC News embeds
         nbc_news_embed_url = re.search(
             r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//www\.nbcnews\.com/widget/video-embed/[^"\']+)\1', webpage)
         if nbc_news_embed_url:
-            return self.url_result(nbc_news_embed_url.group('url'), 'NBCNews')
+            entries_for_batch.append(self.url_result(nbc_news_embed_url.group('url'), 'NBCNews'))
 
         # Look for Google Drive embeds
         google_drive_url = GoogleDriveIE._extract_url(webpage)
         if google_drive_url:
-            return self.url_result(google_drive_url, 'GoogleDrive')
+            entries_for_batch.append(self.url_result(google_drive_url, 'GoogleDrive'))
 
         # Look for UDN embeds
         mobj = re.search(
             r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._PROTOCOL_RELATIVE_VALID_URL, webpage)
         if mobj is not None:
-            return self.url_result(
-                compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed')
+            entries_for_batch.append(self.url_result(
+                compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed'))
 
         # Look for Senate ISVP iframe
         senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
         if senate_isvp_url:
-            return self.url_result(senate_isvp_url, 'SenateISVP')
+            entries_for_batch.append(self.url_result(senate_isvp_url, 'SenateISVP'))
 
         # Look for Dailymotion Cloud videos
         dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
         if dmcloud_url:
-            return self.url_result(dmcloud_url, 'DailymotionCloud')
+            entries_for_batch.append(self.url_result(dmcloud_url, 'DailymotionCloud'))
 
         # Look for OnionStudios embeds
         onionstudios_url = OnionStudiosIE._extract_url(webpage)
         if onionstudios_url:
-            return self.url_result(onionstudios_url)
+            entries_for_batch.append(self.url_result(onionstudios_url))
 
         # Look for ViewLift embeds
         viewlift_url = ViewLiftEmbedIE._extract_url(webpage)
         if viewlift_url:
-            return self.url_result(viewlift_url)
+            entries_for_batch.append(self.url_result(viewlift_url))
 
         # Look for JWPlatform embeds
         jwplatform_url = JWPlatformIE._extract_url(webpage)
         if jwplatform_url:
-            return self.url_result(jwplatform_url, 'JWPlatform')
+            entries_for_batch.append(self.url_result(jwplatform_url, 'JWPlatform'))
 
         # Look for Digiteka embeds
         digiteka_url = DigitekaIE._extract_url(webpage)
         if digiteka_url:
-            return self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key())
+            entries_for_batch.append(self.url_result(self._proto_relative_url(digiteka_url), DigitekaIE.ie_key()))
 
         # Look for Arkena embeds
         arkena_url = ArkenaIE._extract_url(webpage)
         if arkena_url:
-            return self.url_result(arkena_url, ArkenaIE.ie_key())
+            entries_for_batch.append(self.url_result(arkena_url, ArkenaIE.ie_key()))
 
         # Look for Piksel embeds
         piksel_url = PikselIE._extract_url(webpage)
         if piksel_url:
-            return self.url_result(piksel_url, PikselIE.ie_key())
+            entries_for_batch.append(self.url_result(piksel_url, PikselIE.ie_key()))
 
         # Look for Limelight embeds
         limelight_urls = LimelightBaseIE._extract_urls(webpage, url)
         if limelight_urls:
-            return self.playlist_result(
-                limelight_urls, video_id, video_title, video_description)
+            entries_for_batch.append(self.playlist_result(
+                limelight_urls, video_id, video_title, video_description))
 
         # Look for Anvato embeds
         anvato_urls = AnvatoIE._extract_urls(self, webpage, video_id)
         if anvato_urls:
-            return self.playlist_result(
-                anvato_urls, video_id, video_title, video_description)
+            entries_for_batch.append(self.playlist_result(
+                anvato_urls, video_id, video_title, video_description))
 
         # Look for AdobeTVVideo embeds
         mobj = re.search(
             r'<iframe[^>]+src=[\'"]((?:https?:)?//video\.tv\.adobe\.com/v/\d+[^"]+)[\'"]',
             webpage)
         if mobj is not None:
-            return self.url_result(
+            entries_for_batch.append(self.url_result(
                 self._proto_relative_url(unescapeHTML(mobj.group(1))),
-                'AdobeTVVideo')
+                'AdobeTVVideo'))
 
         # Look for Vine embeds
         mobj = re.search(
             r'<iframe[^>]+src=[\'"]((?:https?:)?//(?:www\.)?vine\.co/v/[^/]+/embed/(?:simple|postcard))',
             webpage)
         if mobj is not None:
-            return self.url_result(
-                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
+            entries_for_batch.append(self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine'))
 
         # Look for VODPlatform embeds
         mobj = re.search(
             r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vod-platform\.net/[eE]mbed/.+?)\1',
             webpage)
         if mobj is not None:
-            return self.url_result(
-                self._proto_relative_url(unescapeHTML(mobj.group('url'))), 'VODPlatform')
+            entries_for_batch.append(self.url_result(
+                self._proto_relative_url(unescapeHTML(mobj.group('url'))), 'VODPlatform'))
 
         # Look for Mangomolo embeds
         mobj = re.search(
@@ -2597,18 +2600,18 @@ class GenericIE(InfoExtractor):
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
         if instagram_embed_url is not None:
-            return self.url_result(
-                self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key())
+            entries_for_batch.append(self.url_result(
+                self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key()))
 
         # Look for LiveLeak embeds
         liveleak_url = LiveLeakIE._extract_url(webpage)
         if liveleak_url:
-            return self.url_result(liveleak_url, 'LiveLeak')
+            entries_for_batch.append(self.url_result(liveleak_url, 'LiveLeak'))
 
         # Look for 3Q SDN embeds
         threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
         if threeqsdn_url:
-            return {
+            entries_for_batch.append({
                 '_type': 'url_transparent',
                 'ie_key': ThreeQSDNIE.ie_key(),
                 'url': self._proto_relative_url(threeqsdn_url),
@@ -2616,58 +2619,58 @@ class GenericIE(InfoExtractor):
                 'description': video_description,
                 'thumbnail': video_thumbnail,
                 'uploader': video_uploader,
-            }
+            })
 
         # Look for VBOX7 embeds
         vbox7_url = Vbox7IE._extract_url(webpage)
         if vbox7_url:
-            return self.url_result(vbox7_url, Vbox7IE.ie_key())
+            entries_for_batch.append(self.url_result(vbox7_url, Vbox7IE.ie_key()))
 
         # Look for DBTV embeds
         dbtv_urls = DBTVIE._extract_urls(webpage)
         if dbtv_urls:
-            return self.playlist_from_matches(dbtv_urls, video_id, video_title, ie=DBTVIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(dbtv_urls, video_id, video_title, ie=DBTVIE.ie_key()))
 
         # Look for Videa embeds
         videa_urls = VideaIE._extract_urls(webpage)
         if videa_urls:
-            return self.playlist_from_matches(videa_urls, video_id, video_title, ie=VideaIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(videa_urls, video_id, video_title, ie=VideaIE.ie_key()))
 
         # Look for 20 minuten embeds
         twentymin_urls = TwentyMinutenIE._extract_urls(webpage)
         if twentymin_urls:
-            return self.playlist_from_matches(
-                twentymin_urls, video_id, video_title, ie=TwentyMinutenIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(
+                twentymin_urls, video_id, video_title, ie=TwentyMinutenIE.ie_key()))
 
         # Look for Openload embeds
         openload_urls = OpenloadIE._extract_urls(webpage)
         if openload_urls:
-            return self.playlist_from_matches(
-                openload_urls, video_id, video_title, ie=OpenloadIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(
+                openload_urls, video_id, video_title, ie=OpenloadIE.ie_key()))
 
         # Look for VideoPress embeds
         videopress_urls = VideoPressIE._extract_urls(webpage)
         if videopress_urls:
-            return self.playlist_from_matches(
-                videopress_urls, video_id, video_title, ie=VideoPressIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(
+                videopress_urls, video_id, video_title, ie=VideoPressIE.ie_key()))
 
         # Look for Rutube embeds
         rutube_urls = RutubeIE._extract_urls(webpage)
         if rutube_urls:
-            return self.playlist_from_matches(
-                rutube_urls, ie=RutubeIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(
+                rutube_urls, ie=RutubeIE.ie_key()))
 
         # Look for WashingtonPost embeds
         wapo_urls = WashingtonPostIE._extract_urls(webpage)
         if wapo_urls:
-            return self.playlist_from_matches(
-                wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(
+                wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key()))
 
         # Look for Mediaset embeds
         mediaset_urls = MediasetIE._extract_urls(webpage)
         if mediaset_urls:
-            return self.playlist_from_matches(
-                mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key())
+            entries_for_batch.append(self.playlist_from_matches(
+                mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key()))
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
@@ -2691,7 +2694,7 @@ class GenericIE(InfoExtractor):
                     'title': video_title,
                 })
                 self._sort_formats(entry['formats'])
-            return self.playlist_result(entries)
+            entries_for_batch.append(self.playlist_result(entries))
 
         jwplayer_data = self._find_jwplayer_data(
             webpage, video_id, transform_source=js_to_json)
@@ -2777,10 +2780,10 @@ class GenericIE(InfoExtractor):
                 new_url = compat_urlparse.urljoin(url, unescapeHTML(found.group(1)))
                 if new_url != url:
                     self.report_following_redirect(new_url)
-                    return {
+                    entries_for_batch.append({
                         '_type': 'url',
                         'url': new_url,
-                    }
+                    })
                 else:
                     found = None
 
@@ -2790,7 +2793,7 @@ class GenericIE(InfoExtractor):
             # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser)
             embed_url = self._html_search_meta('twitter:player', webpage, default=None)
             if embed_url:
-                return self.url_result(embed_url)
+                entries_for_batch.append(self.url_result(embed_url))
 
         if not found:
             raise UnsupportedError(url)
@@ -2830,7 +2833,7 @@ class GenericIE(InfoExtractor):
             if ext == 'smil':
                 entry_info_dict['formats'] = self._extract_smil_formats(video_url, video_id)
             elif ext == 'xspf':
-                return self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id)
+                entries_for_batch.append(self.playlist_result(self._extract_xspf_playlist(video_url, video_id), video_id))
             elif ext == 'm3u8':
                 entry_info_dict['formats'] = self._extract_m3u8_formats(video_url, video_id, ext='mp4')
             elif ext == 'mpd':
@@ -2861,13 +2864,18 @@ class GenericIE(InfoExtractor):
             entries.append(entry_info_dict)
 
         if len(entries) == 1:
-            return entries[0]
+            entries_for_batch.append(entries[0])
         else:
             for num, e in enumerate(entries, start=1):
                 # 'url' results don't have a title
                 if e.get('title') is not None:
                     e['title'] = '%s (%d)' % (e['title'], num)
-            return {
+            entries_for_batch.append({
                 '_type': 'playlist',
                 'entries': entries,
-            }
+            })
+
+        return {
+            '_type': 'playlist',
+            'entries': entries_for_batch,
+        }
