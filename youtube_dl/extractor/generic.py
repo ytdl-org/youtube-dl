@@ -2222,9 +2222,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
 
         # Look for embedded Facebook player
-        facebook_url = FacebookIE._extract_url(webpage)
-        if facebook_url is not None:
-            return self.url_result(facebook_url, 'Facebook')
+        facebook_urls = FacebookIE._extract_urls(webpage)
+        if facebook_urls:
+            return self.playlist_from_matches(facebook_urls, video_id, video_title)
 
         # Look for embedded VK player
         mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://vk\.com/video_ext\.php.+?)\1', webpage)
