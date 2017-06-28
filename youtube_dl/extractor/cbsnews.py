@@ -52,6 +52,21 @@ class CBSNewsIE(CBSIE):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'http://www.cbsnews.com/news/maria-ridulph-murder-will-the-nations-oldest-cold-case-to-go-to-trial-ever-get-solved/',
+            'info_dict': {
+                'id': 'QpM5BJjBVEAUFi7ydR9LusS69DPLqPJ1',
+                'ext': 'mp4',
+                'title': 'Cold as Ice',
+                'description': 'Can a childhood memory of a friend\'s murder solve a 1957 cold case? "48 Hours" correspondent Erin Moriarty has the latest.',
+                'upload_date': '20170604',
+                'timestamp': 1496538000,
+                'uploader': 'CBSI-NEW',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -60,7 +75,7 @@ class CBSNewsIE(CBSIE):
         webpage = self._download_webpage(url, video_id)
 
         video_info = self._parse_json(self._html_search_regex(
-            r'(?:<ul class="media-list items" id="media-related-items"><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
+            r'(?:<ul class="media-list items" id="media-related-items"[^>]*><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
             webpage, 'video JSON info', default='{}'), video_id, fatal=False)
 
         if video_info:
