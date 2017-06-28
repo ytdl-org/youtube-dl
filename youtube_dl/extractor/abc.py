@@ -124,10 +124,10 @@ class ABCIViewIE(InfoExtractor):
         title = video_params.get('title') or video_params['seriesTitle']
         stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
 
-        if 'sd' in stream["stream-labels"]:
-            hds = stream['streams']['hds']['sd'].replace('metered', 'um')
+        if 'sd' in stream.get("stream-labels", {}):
+            hds = stream.get('streams', {}).get('hds', {}).get('sd', '').replace('metered', 'um')
         else:
-            hds = stream['hds-unmetered']
+            hds = stream.get('hds-unmetered')
 
         formats = self._extract_akamai_formats(hds, video_id)
         self._sort_formats(formats)
