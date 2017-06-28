@@ -1522,6 +1522,21 @@ class GenericIE(InfoExtractor):
                 'title': 'Facebook video #599637780109885',
             },
         },
+        # Facebook <iframe> embed, plugin video
+        {
+            'url': 'http://5pillarsuk.com/2017/06/07/tariq-ramadan-disagrees-with-pr-exercise-by-imams-refusing-funeral-prayers-for-london-attackers/',
+            'info_dict': {
+                'id': '1754168231264132',
+                'ext': 'mp4',
+                'title': 'About the Imams and Religious leaders refusing to perform funeral prayers for...',
+                'uploader': 'Tariq Ramadan (official)',
+                'timestamp': 1496758379,
+                'upload_date': '20170606',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # Facebook API embed
         {
             'url': 'http://www.lothype.com/blue-stars-2016-preview-standstill-full-show/',
@@ -2222,9 +2237,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
 
         # Look for embedded Facebook player
-        facebook_url = FacebookIE._extract_url(webpage)
-        if facebook_url is not None:
-            return self.url_result(facebook_url, 'Facebook')
+        facebook_urls = FacebookIE._extract_urls(webpage)
+        if facebook_urls:
+            return self.playlist_from_matches(facebook_urls, video_id, video_title)
 
         # Look for embedded VK player
         mobj = re.search(r'<iframe[^>]+?src=(["\'])(?P<url>https?://vk\.com/video_ext\.php.+?)\1', webpage)
