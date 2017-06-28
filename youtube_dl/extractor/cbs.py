@@ -6,7 +6,8 @@ from ..utils import (
     find_xpath_attr,
     xpath_element,
     xpath_text,
-    update_url_query,
+    ExtractorError,
+    update_url_query
 )
 
 
