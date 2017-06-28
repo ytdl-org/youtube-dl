@@ -369,7 +369,10 @@ from .francetv import (
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freshlive import FreshLiveIE
-from .funimation import FunimationIE
+from .funimation import (
+    FunimationIE,
+    FunimationShowPlaylistIE
+)
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE

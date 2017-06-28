@@ -10,13 +10,36 @@ from ..utils import (
     ExtractorError,
     urlencode_postdata
 )
+import re
 
-
-class FunimationIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/shows/[^/]+/(?P<id>[^/?#&]+)'
-
+class FunimationCommonIE(InfoExtractor):
     _NETRC_MACHINE = 'funimation'
     _TOKEN = None
+
+    def _login(self):
+        (username, password) = self._get_login_info()
+        if username is None:
+            return
+        try:
+            data = self._download_json(
+                'https://prod-api-funimationnow.dadcdigital.com/api/auth/login/',
+                None, 'Logging in as %s' % username, data=urlencode_postdata({
+                    'username': username,
+                    'password': password,
+                }))
+            self._TOKEN = data['token']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                error = self._parse_json(e.cause.read().decode(), None)['error']
+                raise ExtractorError(error, expected=True)
+            raise
+
+    def _real_initialize(self):
+        self._login()
+
+class FunimationIE(FunimationCommonIE):
+    _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/shows/[^/]+/'+\
+                 r'(?P<id>[^/?#&]+)/?(?P<alpha>simulcast|uncut)?/?(?:\?lang=(?P<lang>english|japanese))?'
 
     _TESTS = [{
         'url': 'https://www.funimation.com/shows/hacksign/role-play/',
@@ -50,29 +73,11 @@ class FunimationIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _login(self):
-        (username, password) = self._get_login_info()
-        if username is None:
-            return
-        try:
-            data = self._download_json(
-                'https://prod-api-funimationnow.dadcdigital.com/api/auth/login/',
-                None, 'Logging in as %s' % username, data=urlencode_postdata({
-                    'username': username,
-                    'password': password,
-                }))
-            self._TOKEN = data['token']
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
-                error = self._parse_json(e.cause.read().decode(), None)['error']
-                raise ExtractorError(error, expected=True)
-            raise
-
-    def _real_initialize(self):
-        self._login()
-
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        m = re.compile(self._VALID_URL).match(url)
+        display_id = m.group('id')
+        intended_alpha = m.group('alpha') or 'simulcast'
+        intended_language = m.group('lang') or 'english'
         webpage = self._download_webpage(url, display_id)
 
         def _search_kane(name):
@@ -97,12 +102,60 @@ class FunimationIE(InfoExtractor):
             ], webpage, fatal=True)
             video_id = self._search_regex(r'/player/(\d+)', player_url, 'video id')
 
-        title = episode = title_data.get('title') or _search_kane('videoTitle') or self._og_search_title(webpage)
-        series = _search_kane('showName')
-        if series:
-            title = '%s - %s' % (series, title)
-        description = self._html_search_meta(['description', 'og:description'], webpage, fatal=True)
-
+        try:
+            headers = {}
+            if self._TOKEN:
+                headers['Authorization'] = 'Token %s' % self._TOKEN
+            experience = self._download_json(
+                'https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/title/experience/%s/' % video_id,
+                video_id, headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                error = self._parse_json(e.cause.read(), video_id)['errors'][0]
+                raise ExtractorError('%s said: %s' % (
+                    self.IE_NAME, error.get('detail') or error.get('title')), expected=True)
+            raise
+        showLanguage = _search_kane('showLanguage')
+        alpha = title_data['alpha'].lower()
+        target_video_id = int(video_id)
+        matched_episode = None
+        for season in experience['seasons']:
+            for episode in season['episodes']:
+                # We can use showLanguage to know what the video_id is expected to be, let's look for it
+                desiredcut = episode['languages'].get(showLanguage, {'alpha': {}})
+                desiredcut = desiredcut['alpha'].get(alpha, {})
+                if desiredcut.get('experienceId', None) == target_video_id:
+                    # Winning!
+                    matched_episode = episode
+                    break
+            if matched_episode:
+                break
+        if not matched_episode:
+            raise ExtractorError('%s said: Failed to find the episode' % (
+                    self.IE_NAME), expected=False)
+        matched_alpha = None
+        matched_language = None
+        # Preferences
+        for il in [intended_language, 'english', 'japanese']:
+            if (il in episode['languages']):
+                for ia in [intended_alpha, 'uncut', 'simulcast', 'extras']:
+                    if (ia in episode['languages'][il]['alpha'] and
+                        episode['languages'][il]['alpha'][ia]['sources']):
+                        matched_language = il
+                        matched_alpha = ia
+                        break
+            if (matched_alpha):
+                break
+        if not matched_alpha:
+            raise ExtractorError('%s could not find acceptable language and alpha'%self.IE_NAME, expected=False)
+        if matched_language != intended_language:
+            print("Falling back to %s"%matched_language)
+        if matched_alpha != intended_alpha:
+            print("Falling back to %s"%matched_alpha)
+        intended_language = matched_language
+        intended_alpha = matched_alpha
+        final_alpha = episode['languages'][intended_language]['alpha'][intended_alpha]
+        video_id = str(final_alpha['experienceId'])
         try:
             headers = {}
             if self._TOKEN:
@@ -116,7 +169,6 @@ class FunimationIE(InfoExtractor):
                 raise ExtractorError('%s said: %s' % (
                     self.IE_NAME, error.get('detail') or error.get('title')), expected=True)
             raise
-
         formats = []
         for source in sources:
             source_url = source.get('src')
@@ -137,13 +189,62 @@ class FunimationIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'title': title,
-            'description': description,
+            'title': "%s - %s"%(experience['showTitle'], episode['episodeTitle']),
+            'description': episode['episodeSummary'],
             'thumbnail': self._og_search_thumbnail(webpage),
-            'series': series,
-            'season_number': int_or_none(title_data.get('seasonNum') or _search_kane('season')),
-            'episode_number': int_or_none(title_data.get('episodeNum')),
-            'episode': episode,
-            'season_id': title_data.get('seriesId'),
+            'series': experience['showTitle'],
+            'season_number': int_or_none(season['seasonId']),
+            'episode_number': int_or_none(episode['episodeId']),
+            'episode': episode['episodeTitle'],
+            'season_id': experience['showId'],
             'formats': formats,
+            'duration': final_alpha['duration']
+        }
+
+class FunimationShowPlaylistIE(FunimationCommonIE):
+    IE_NAME = 'Funimation:playlist'
+    _VALID_URL = (r'(?P<real_url>https?://(?:www\.)?funimation(?P<ter>\.com|now\.uk)/shows/'+
+                 r'(?P<id>[^/?#&]+))/?(?:\?alpha=(?P<alpha>simulcast|uncut))?(?:[?&]lang=(?P<lang>english|japanese))?$')
+
+    def _real_extract(self, url):
+        m = re.compile(self._VALID_URL).match(url)
+        display_id = m.group('id')
+        intended_alpha = m.group('alpha') or 'simulcast'
+        intended_language = m.group('lang') or 'english'
+        domext = m.group('ter')
+        ter = 'US' if (domext == '.com') else 'GB'
+        url = m.group('real_url')
+        webpage = self._download_webpage(url, display_id)
+
+        title = self._html_search_regex(
+            r'(?s)<h2 class="video-title">(.*?)</h2>',
+            webpage, 'title')
+
+        show_id = re.findall(r'var showId = (\d+)', webpage)[0]
+        try:
+            headers = {}
+            if self._TOKEN:
+                headers['Authorization'] = 'Token %s' % self._TOKEN
+            sources = self._download_json(
+                'https://prod-api-funimationnow.dadcdigital.com/api/funimation/episodes/?limit=-1&ter=%s&title_id=%s&sort=order&sort_direction=ASC' % (ter, show_id),
+                show_id, headers=headers)['items']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                error = self._parse_json(e.cause.read(), show_id)['errors'][0]
+                raise ExtractorError('%s said: %s' % (
+                    self.IE_NAME, error.get('detail') or error.get('title')), expected=True)
+            raise
+
+        entries = [
+            self.url_result('https://www.funimation%s/shows/%s/%s/%s/?lang=%s'%(
+                    domext, ep['item']['titleSlug'], ep['item']['episodeSlug'], intended_alpha, intended_language),
+                    'Funimation', ep['item']['episodeName'])
+            for ep in sources
+        ]
+
+        return {
+            '_type': 'playlist',
+            'id': display_id,
+            'title': title,
+            'entries': entries,
         }
