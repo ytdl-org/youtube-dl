@@ -75,7 +75,7 @@ class CBSNewsIE(CBSIE):
         webpage = self._download_webpage(url, video_id)
 
         video_info = self._parse_json(self._html_search_regex(
-            r'(?:<ul class="media-list items" id="media-related-items"[^>]+><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
+            r'(?:<ul class="media-list items" id="media-related-items"(?:[^>]+)?><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
             webpage, 'video JSON info', default='{}'), video_id, fatal=False)
 
         if video_info:
