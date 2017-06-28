@@ -15,19 +15,23 @@ class CBSNewsIE(CBSIE):
 
     _TESTS = [
         {
-            'url': 'http://www.cbsnews.com/news/tesla-and-spacex-elon-musks-industrial-empire/',
+            # 60 minutes
+            'url': 'http://www.cbsnews.com/news/artificial-intelligence-positioned-to-be-a-game-changer/',
             'info_dict': {
-                'id': 'tesla-and-spacex-elon-musks-industrial-empire',
-                'ext': 'flv',
-                'title': 'Tesla and SpaceX: Elon Musk\'s industrial empire',
-                'thumbnail': 'http://beta.img.cbsnews.com/i/2014/03/30/60147937-2f53-4565-ad64-1bdd6eb64679/60-0330-pelley-640x360.jpg',
-                'duration': 791,
+                'id': '_B6Ga3VJrI4iQNKsir_cdFo9Re_YJHE_',
+                'ext': 'mp4',
+                'title': 'Artificial Intelligence',
+                'description': 'md5:8818145f9974431e0fb58a1b8d69613c',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 1606,
+                'uploader': 'CBSI-NEW',
+                'timestamp': 1498431900,
+                'upload_date': '20170625',
             },
             'params': {
-                # rtmp download
+                # m3u8 download
                 'skip_download': True,
             },
-            'skip': 'Subscribers only',
         },
         {
             'url': 'http://www.cbsnews.com/videos/fort-hood-shooting-army-downplays-mental-illness-as-cause-of-attack/',
@@ -52,6 +56,22 @@ class CBSNewsIE(CBSIE):
                 'skip_download': True,
             },
         },
+        {
+            # 48 hours
+            'url': 'http://www.cbsnews.com/news/maria-ridulph-murder-will-the-nations-oldest-cold-case-to-go-to-trial-ever-get-solved/',
+            'info_dict': {
+                'id': 'QpM5BJjBVEAUFi7ydR9LusS69DPLqPJ1',
+                'ext': 'mp4',
+                'title': 'Cold as Ice',
+                'description': 'Can a childhood memory of a friend\'s murder solve a 1957 cold case? "48 Hours" correspondent Erin Moriarty has the latest.',
+                'upload_date': '20170604',
+                'timestamp': 1496538000,
+                'uploader': 'CBSI-NEW',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def _real_extract(self, url):
@@ -60,7 +80,7 @@ class CBSNewsIE(CBSIE):
         webpage = self._download_webpage(url, video_id)
 
         video_info = self._parse_json(self._html_search_regex(
-            r'(?:<ul class="media-list items" id="media-related-items"><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
+            r'(?:<ul class="media-list items" id="media-related-items"[^>]*><li data-video-info|<div id="cbsNewsVideoPlayer" data-video-player-options)=\'({.+?})\'',
             webpage, 'video JSON info', default='{}'), video_id, fatal=False)
 
         if video_info:
