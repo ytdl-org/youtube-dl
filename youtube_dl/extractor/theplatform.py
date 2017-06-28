@@ -37,14 +37,10 @@ class ThePlatformBaseIE(OnceIE):
             smil_url, video_id, note=note, query={'format': 'SMIL'},
             headers=self.geo_verification_headers())
         error_element = find_xpath_attr(meta, _x('.//smil:ref'), 'src')
-        try:
-            if error_element is not None and error_element.attrib['src'].startswith(
-                    'http://link.theplatform.com/s/errorFiles/Unavailable.'):
-                raise ExtractorError(error_element.attrib['abstract'], expected=True)
-        except ExtractorError:
-            if error_element.attrib['title'].startswith('No AssetType'):
-                return [], {}
-            raise
+        if error_element is not None and error_element.attrib['src'].startswith(
+                'http://link.theplatform.com/s/errorFiles/Unavailable.'):
+            self.errorattrib_title = error_element.attrib['title']
+            raise ExtractorError(error_element.attrib['abstract'], expected=True)
 
         smil_formats = self._parse_smil_formats(
             meta, smil_url, video_id, namespace=default_ns,
