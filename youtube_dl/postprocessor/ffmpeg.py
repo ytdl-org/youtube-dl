@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import io
 import os
+import shutil
 import subprocess
 import time
 import re
@@ -319,9 +320,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferedformat=None):
+    def __init__(self, downloader=None, preferedformat=None, outpath=None):
         super(FFmpegVideoConvertorPP, self).__init__(downloader)
         self._preferedformat = preferedformat
+        self._outpath = outpath
 
     def run(self, information):
         path = information['filepath']
@@ -331,14 +333,54 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
         options = []
         if self._preferedformat == 'avi':
             options.extend(['-c:v', 'libxvid', '-vtag', 'XVID'])
-        prefix, sep, ext = path.rpartition('.')
-        outpath = prefix + sep + self._preferedformat
-        self._downloader.to_screen('[' + 'ffmpeg' + '] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
-        self.run_ffmpeg(path, outpath, options)
-        information['filepath'] = outpath
+        if not self._outpath:
+            prefix, sep, ext = path.rpartition('.')
+            self._outpath = prefix + sep + self._preferedformat
+        self._downloader.to_screen('[' + 'ffmpeg' + '] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + self._outpath)
+        self.run_ffmpeg(path, self._outpath, options)
+        information['filepath'] = self._outpath
         information['format'] = self._preferedformat
         information['ext'] = self._preferedformat
         return [path], information
+
+
+class FFmpegAVConvertorPP(FFmpegPostProcessor):
+    def __init__(self, downloader=None, preferedvformat=None, preferedaformat=None, preferredquality=None):
+        super(FFmpegAVConvertorPP, self).__init__(downloader)
+        self._downloader = downloader
+        self._preferedaformat = preferedaformat
+        self._preferedvformat = preferedvformat
+        self._preferredquality = preferredquality
+
+    def run(self, information):
+        path = information['filepath']
+        paths_to_remove = []
+        prefix, sep, ext = path.rpartition('.')
+        tmp_file = prefix + '.tmp' + sep + self._preferedvformat 
+        if ext != self._preferedvformat:
+            tmp_file = prefix + '.tmp' + sep + self._preferedvformat 
+            vc = FFmpegVideoConvertorPP(downloader=self._downloader,
+                                        preferedformat=self._preferedvformat,
+                                        outpath=tmp_file)
+            path_list, information = vc.run(information)
+            paths_to_remove.append(path_list[0])
+        elif self.get_audio_codec(path) != self._preferedaformat:
+            information['filepath'] = tmp_file
+            shutil.move(path, tmp_file)
+        else:
+            self._downloader.to_screen('[ffmpeg] Not converting video file %s - '
+                                       'already is in target format %s:%s' %
+                                       (path, self._preferedvformat, self._preferedaformat))
+            return [], information
+        
+        path = information['filepath']
+        if self.get_audio_codec(path) != self._preferedaformat:
+            output = prefix + sep + self._preferedvformat
+            aformat = self._preferedaformat
+            quality = self._preferredquality + 'k'
+            self.run_ffmpeg(path, output, ['-c:v', 'copy', '-c:a', aformat, '-b:a', quality])
+            paths_to_remove.append(path)
+        return paths_to_remove, information
 
 
 class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
