@@ -74,9 +74,14 @@ class CBSIE(CBSBaseIE):
                 query['formats'] = 'MPEG4,M3U'
             elif asset_type in ('RTMP', 'WIFI', '3G'):
                 query['formats'] = 'MPEG4,FLV'
-            tp_formats, tp_subtitles = self._extract_theplatform_smil(
-                update_url_query(tp_release_url, query), content_id,
-                'Downloading %s SMIL data' % asset_type)
+            try:
+                tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                    update_url_query(tp_release_url, query), content_id,
+                    'Downloading %s SMIL data' % asset_type)
+            except ExtractorError:
+                if self.errorattrib_title.startswith('No AssetType'):
+                    continue
+                raise
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
         self._sort_formats(formats)
