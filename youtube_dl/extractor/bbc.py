@@ -523,6 +523,12 @@ class BBCCoUkIE(InfoExtractor):
 
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
 
+        error = self._search_regex(
+            r'<div\b[^>]+\bclass=["\']smp__message delta["\'][^>]*>([^<]+)<',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
+
         programme_id = None
         duration = None
 
