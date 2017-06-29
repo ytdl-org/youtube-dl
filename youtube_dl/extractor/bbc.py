@@ -526,6 +526,9 @@ class BBCCoUkIE(InfoExtractor):
         programme_id = None
         duration = None
 
+        if 'is not currently available' in webpage:
+            raise ExtractorError('Video not available', expected=True)
+
         tviplayer = self._search_regex(
             r'mediator\.bind\(({.+?})\s*,\s*document\.getElementById',
             webpage, 'player', default=None)
