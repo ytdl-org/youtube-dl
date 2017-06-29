@@ -36,7 +36,7 @@ class BBCCoUkIE(InfoExtractor):
                         (?:
                             programmes/(?!articles/)|
                             iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
-                            music/clips[/#]|
+                            music/(?:clips|audiovideo/popular)[/#]|
                             radio/player/
                         )
                         (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
@@ -229,8 +229,10 @@ class BBCCoUkIE(InfoExtractor):
         }, {
             'url': 'http://www.bbc.co.uk/radio/player/p03cchwf',
             'only_matching': True,
-        }
-    ]
+        }, {
+            'url': 'https://www.bbc.co.uk/music/audiovideo/popular#p055bc55',
+            'only_matching': True,
+        }]
 
     _USP_RE = r'/([^/]+?)\.ism(?:\.hlsv2\.ism)?/[^/]+\.m3u8'
 
