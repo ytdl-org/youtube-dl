@@ -1029,6 +1029,7 @@ from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
+from .tubepatrol import TubepatrolIE
 from .tubitv import TubiTvIE
 from .tumblr import TumblrIE
 from .tunein import (
