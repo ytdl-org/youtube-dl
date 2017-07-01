@@ -184,7 +184,7 @@ class DPlayItIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         info_url = self._search_regex(
-            r'url\s*:\s*["\']((?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)',
+            r'url\s*[:=]\s*["\']((?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)',
             webpage, 'video id')
 
         title = remove_end(self._og_search_title(webpage), ' | Dplay')

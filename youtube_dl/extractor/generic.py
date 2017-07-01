@@ -2048,6 +2048,13 @@ class GenericIE(InfoExtractor):
         video_description = self._og_search_description(webpage, default=None)
         video_thumbnail = self._og_search_thumbnail(webpage, default=None)
 
+        info_dict.update({
+            'title': video_title,
+            'description': video_description,
+            'thumbnail': video_thumbnail,
+            'age_limit': age_limit,
+        })
+
         # Look for Brightcove Legacy Studio embeds
         bc_urls = BrightcoveLegacyIE._extract_brightcove_urls(webpage)
         if bc_urls:
@@ -2684,18 +2691,26 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key())
 
+        def merge_dicts(dict1, dict2):
+            merged = {}
+            for k, v in dict1.items():
+                if v is not None:
+                    merged[k] = v
+            for k, v in dict2.items():
+                if v is None:
+                    continue
+                if (k not in merged or
+                        (isinstance(v, compat_str) and v and
+                            isinstance(merged[k], compat_str) and
+                            not merged[k])):
+                    merged[k] = v
+            return merged
+
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
             webpage, video_id, default={}, expected_type='VideoObject')
         if json_ld.get('url'):
-            info_dict.update({
-                'title': video_title or info_dict['title'],
-                'description': video_description,
-                'thumbnail': video_thumbnail,
-                'age_limit': age_limit
-            })
-            info_dict.update(json_ld)
-            return info_dict
+            return merge_dicts(json_ld, info_dict)
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
@@ -2713,9 +2728,7 @@ class GenericIE(InfoExtractor):
         if jwplayer_data:
             info = self._parse_jwplayer_data(
                 jwplayer_data, video_id, require_title=False, base_url=url)
-            if not info.get('title'):
-                info['title'] = video_title
-            return info
+            return merge_dicts(info, info_dict)
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

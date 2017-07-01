@@ -36,7 +36,7 @@ class BBCCoUkIE(InfoExtractor):
                         (?:
                             programmes/(?!articles/)|
                             iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
-                            music/clips[/#]|
+                            music/(?:clips|audiovideo/popular)[/#]|
                             radio/player/
                         )
                         (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
@@ -229,8 +229,10 @@ class BBCCoUkIE(InfoExtractor):
         }, {
             'url': 'http://www.bbc.co.uk/radio/player/p03cchwf',
             'only_matching': True,
-        }
-    ]
+        }, {
+            'url': 'https://www.bbc.co.uk/music/audiovideo/popular#p055bc55',
+            'only_matching': True,
+        }]
 
     _USP_RE = r'/([^/]+?)\.ism(?:\.hlsv2\.ism)?/[^/]+\.m3u8'
 
@@ -522,6 +524,12 @@ class BBCCoUkIE(InfoExtractor):
         group_id = self._match_id(url)
 
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
+
+        error = self._search_regex(
+            r'<div\b[^>]+\bclass=["\']smp__message delta["\'][^>]*>([^<]+)<',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
 
         programme_id = None
         duration = None

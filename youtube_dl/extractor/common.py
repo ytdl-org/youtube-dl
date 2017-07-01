@@ -1002,17 +1002,17 @@ class InfoExtractor(object):
                 item_type = e.get('@type')
                 if expected_type is not None and expected_type != item_type:
                     return info
-                if item_type == 'TVEpisode':
+                if item_type in ('TVEpisode', 'Episode'):
                     info.update({
                         'episode': unescapeHTML(e.get('name')),
                         'episode_number': int_or_none(e.get('episodeNumber')),
                         'description': unescapeHTML(e.get('description')),
                     })
                     part_of_season = e.get('partOfSeason')
-                    if isinstance(part_of_season, dict) and part_of_season.get('@type') == 'TVSeason':
+                    if isinstance(part_of_season, dict) and part_of_season.get('@type') in ('TVSeason', 'Season', 'CreativeWorkSeason'):
                         info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
                     part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
-                    if isinstance(part_of_series, dict) and part_of_series.get('@type') == 'TVSeries':
+                    if isinstance(part_of_series, dict) and part_of_series.get('@type') in ('TVSeries', 'Series', 'CreativeWorkSeries'):
                         info['series'] = unescapeHTML(part_of_series.get('name'))
                 elif item_type == 'Article':
                     info.update({
@@ -1022,10 +1022,10 @@ class InfoExtractor(object):
                     })
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
-                elif item_type == 'WebPage':
-                    video = e.get('video')
-                    if isinstance(video, dict) and video.get('@type') == 'VideoObject':
-                        extract_video_object(video)
+                    continue
+                video = e.get('video')
+                if isinstance(video, dict) and video.get('@type') == 'VideoObject':
+                    extract_video_object(video)
                 break
         return dict((k, v) for k, v in info.items() if v is not None)
 
