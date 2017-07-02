@@ -31,5 +31,5 @@ class ThisOldHouseIE(InfoExtractor):
         drupal_settings = self._parse_json(self._search_regex(
             r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
             webpage, 'drupal settings'), display_id)
-        video_id = drupal_settings['jwplatform']['video_id']
+        video_id = list(drupal_settings['comScore'])[0]
         return self.url_result('jwplatform:' + video_id, 'JWPlatform', video_id)
