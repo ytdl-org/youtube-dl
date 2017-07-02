@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.07.02
 
 Core
 * [extractor/common] Improve _json_ld

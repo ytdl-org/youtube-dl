@@ -768,6 +768,7 @@
  - **Tagesschau**
  - **tagesschau:player**
  - **Tass**
+ - **TastyTrade**
  - **TBS**
  - **TDSLifeway**
  - **teachertube**: teachertube.com videos
