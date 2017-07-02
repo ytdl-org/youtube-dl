@@ -1,6 +1,22 @@
-version <unreleased>
+version 2017.07.02
+
+Core
+* [extractor/common] Improve _json_ld
 
 Extractors
++ [thisoldhouse] Add more fallbacks for video id
+* [thisoldhouse] Fix video id extraction (#13540, #13541)
+* [xfileshare] Extend format regular expression (#13536)
+* [ted] Fix extraction (#13535)
++ [tastytrade] Add support for tastytrade.com (#13521)
+* [dplayit] Relax video id regular expression (#13524)
++ [generic] Extract more generic metadata (#13527)
++ [bbccouk] Capture and output error message (#13501, #13518)
+* [cbsnews] Relax video info regular expression (#13284, #13503)
++ [facebook] Add support for plugin video embeds and multiple embeds (#13493)
+* [soundcloud] Switch to https for API requests (#13502)
+* [pandatv] Switch to https for API and download URLs
++ [pandatv] Add support for https URLs (#13491)
 + [niconico] Support sp subdomain (#13494)
 
 
