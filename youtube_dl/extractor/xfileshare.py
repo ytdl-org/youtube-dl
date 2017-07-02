@@ -157,7 +157,7 @@ class XFileShareIE(InfoExtractor):
         def extract_formats(default=NO_DEFAULT):
             urls = []
             for regex in (
-                    r'file\s*:\s*(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1',
+                    r'(?:file|src)\s*:\s*(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1',
                     r'file_link\s*=\s*(["\'])(?P<url>http(?:(?!\1).)+)\1',
                     r'addVariable\((\\?["\'])file\1\s*,\s*(\\?["\'])(?P<url>http(?:(?!\2).)+)\2\)',
                     r'<embed[^>]+src=(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1'):
