@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
+from ..utils import try_get
 
 
 class ThisOldHouseIE(InfoExtractor):
@@ -28,8 +30,15 @@ class ThisOldHouseIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        drupal_settings = self._parse_json(self._search_regex(
-            r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
-            webpage, 'drupal settings'), display_id)
-        video_id = list(drupal_settings['comScore'])[0]
+        video_id = self._search_regex(
+            (r'data-mid=(["\'])(?P<id>(?:(?!\1).)+)\1',
+             r'id=(["\'])inline-video-player-(?P<id>(?:(?!\1).)+)\1'),
+            webpage, 'video id', default=None, group='id')
+        if not video_id:
+            drupal_settings = self._parse_json(self._search_regex(
+                r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
+                webpage, 'drupal settings'), display_id)
+            video_id = try_get(
+                drupal_settings, lambda x: x['jwplatform']['video_id'],
+                compat_str) or list(drupal_settings['comScore'])[0]
         return self.url_result('jwplatform:' + video_id, 'JWPlatform', video_id)
