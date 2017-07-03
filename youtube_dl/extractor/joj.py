@@ -6,7 +6,7 @@ import re
 
 
 class JojIE(InfoExtractor):
-    _VALID_URL = r'https?://([a-z0-9]+\.)joj\.sk/([^/]+/)*(?P<title_query>(?P<release_date>[0-9]{4}(-[0-9]{2}){2}).*)' # noqa
+    _VALID_URL = r'https?://[a-z0-9]+\.joj\.sk/([^/]+/)*(?P<title_query>(?P<release_date>[0-9]{4}(-[0-9]{2}){2}).*)' # noqa
     _TESTS = [{
         'url': 'https://www.joj.sk/nove-byvanie/archiv/2017-05-28-nove-byvanie', # noqa
         'info_dict': {
@@ -30,27 +30,27 @@ class JojIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        title_query = mobj.group('title_query')
         release_date = mobj.group('release_date').replace('-', '')
-        webpage = self._download_webpage(url, 'video_id')
+        webpage = self._download_webpage(url, 'id')
         video_id = self._html_search_regex(
-            r'https?://([a-z0-9]+\.)joj\.sk/embed/(?P<video_id>[a-f0-9\-]+)', webpage,
-            'id', group='video_id', default=None)
-        print(video_id)
+            r'https?://([a-z0-9]+\.)joj\.sk/embed/(?P<video_id>[a-f0-9\-]+)',
+            webpage, 'id', group='video_id')
         xml_playlist_url = self.xml_source_url + video_id
-        xml_playlist_et = self._download_xml(xml_playlist_url, title_query)
+        xml_playlist_et = self._download_xml(xml_playlist_url, 'XML playlist')
         formats = []
-        for file_el in xml_playlist_et.iter('file'):
-            formats.append({'height': file_el.attrib['id'].replace('p', ''),
+        for file_el in xml_playlist_et.findall('files/file'):
+            try:
+                height = int(file_el.attrib['id'].replace('p', ''))
+            except ValueError:
+                height = 0
+            formats.append({'height': height,
                             'url': self.media_src_url + file_el.attrib['path'].replace(  # noqa
                                 'dat/', '', 1)})
-
-        def get_height(d):
-            return d.get('height')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': self._og_search_title(webpage).title(),
-            'formats': sorted(formats, key=get_height),
+            'formats': formats,
             'release_date': release_date
         }
