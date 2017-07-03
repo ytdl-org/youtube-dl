@@ -25,15 +25,70 @@ class ESPNIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # intl video, from http://www.espnfc.us/video/mls-highlights/150/video/2743663/must-see-moments-best-of-the-mls-season
-        'url': 'http://espn.go.com/video/clip?id=2743663',
+        'url': 'https://broadband.espn.go.com/video/clip?id=18910086',
         'info_dict': {
-            'id': '2743663',
+            'id': '18910086',
             'ext': 'mp4',
-            'title': 'Must-See Moments: Best of the MLS season',
-            'description': 'md5:4c2d7232beaea572632bec41004f0aeb',
-            'timestamp': 1449446454,
-            'upload_date': '20151207',
+            'title': 'Kyrie spins around defender for two',
+            'description': 'md5:2b0f5bae9616d26fba8808350f0d2b9b',
+            'timestamp': 1489539155,
+            'upload_date': '20170315',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
+        'url': 'http://nonredline.sports.espn.go.com/video/clip?id=19744672',
+        'info_dict': {
+            'id': '19744672',
+            'ext': 'mp4',
+            'title': 'Aggies use 2016 season as motivation',
+            'description': 'md5:2fe30038633f86408a184ec676c5fdac',
+            'timestamp': 1498519201,
+            'upload_date': '20170626',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
+        'url': 'https://cdn.espn.go.com/video/clip/_/id/19771774',
+        'info_dict': {
+            'id': '19771774',
+            'ext': 'mp4',
+            'title': 'Coach Cal to the Knicks? Not so fast',
+            'description': 'md5:a60393eaee9c203dd4184c48c308651b',
+            'timestamp': 1498806684,
+            'upload_date': '20170630',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
+        'url': 'http://www.espn.com/watch/player?id=19141491',
+        'info_dict': {
+            'id': '19141491',
+            'ext': 'mp4',
+            'title': 'Stephen A.: Lynch was wrong for slapping phone out of fan\'s hand',
+            'description': 'md5:9b31cf7b31e85c6dfcdefd11571e6c8e',
+            'timestamp': 1492011670,
+            'upload_date': '20170412',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
+        'url': 'http://www.espn.com/watch/player?bucketId=257&id=19505875',
+        'info_dict': {
+            'id': '19505875',
+            'ext': 'mp4',
+            'title': 'Six-year-old Fuller nails first word at Spelling Bee',
+            'description': 'md5:f90babb45b196d7c8ca1d295bb68e36a',
+            'timestamp': 1496252167,
+            'upload_date': '20170531',
         },
         'params': {
             'skip_download': True,
