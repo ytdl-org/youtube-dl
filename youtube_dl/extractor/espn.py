@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class ESPNIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:espn\.go|(?:www\.)?espn)\.com/video/clip(?:\?.*?\bid=|/_/id/)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:(?:(\w+\.)+)?espn\.go|(?:www\.)?espn)\.com/(?:video/clip(?:\?.*?\bid=|/_/id/)|watch/player\?.*?\bid=)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://espn.go.com/video/clip?id=10365079',
         'info_dict': {
