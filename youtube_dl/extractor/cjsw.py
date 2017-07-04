@@ -1,17 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    unescapeHTML,
 )
 
 
 class CJSWIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?cjsw\.com/program/(?P<program_name>[\S]+)/(?P<id>[0-9]+)/?'
+    _VALID_URL = r'https?://(?:www\.)?cjsw\.com/program/\S+/(?P<id>[0-9]+)'
     IE_NAME = 'cjsw'
     _TEST = {
         'url': 'http://cjsw.com/program/freshly-squeezed/episode/20170620',
@@ -29,18 +26,19 @@ class CJSWIE(InfoExtractor):
 
         webpage = self._download_webpage(url, episode_id)
 
-        episode_controls = re.search(r'<div[^>]+class=(["\'])episode-controls\1[^>]*>', webpage)
+        episode_controls = self._search_regex(r'<div[^>]+class=(["\'])episode-controls\1[^>]*>', webpage, 'episode_controls', fatal=False)
         if not episode_controls:
             raise ExtractorError('No streamable podcast', video_id=episode_id, expected=True)
 
-        title = unescapeHTML(self._search_regex(
-            r'<button[^>]+data-showname=(["\'])(?P<title>.*?)\1[^>]*>', webpage, 'title', group='title'))
-        description = unescapeHTML(self._html_search_regex(
-            r'<p>(?P<description>.*?)</p>', webpage, 'description', fatal=False))
+        title = self._html_search_regex(
+            r'<button[^>]+data-showname=(["\'])(?P<title>.+?)\1[^>]*>', webpage, 'title', group='title')
+        description = self._html_search_regex(
+            r'<p>(?P<description>.+?)</p>', webpage, 'description', fatal=False)
         formats = [{
             'url': self._html_search_regex(
-                r'<button[^>]+data-audio-src=(["\'])(?P<audio_url>.*?)\1[^>]*>', webpage, 'audio_url', group='audio_url'),
+                r'<button[^>]+data-audio-src=(["\'])(?P<audio_url>.+?)\1[^>]*>', webpage, 'audio_url', group='audio_url'),
             'ext': 'mp3',
+            'vcodec': 'none',
         }]
         return {
             'id': episode_id,
