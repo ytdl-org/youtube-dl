@@ -198,7 +198,7 @@ class RutubePlaylistIE(InfoExtractor):
     IE_NAME = 'rutube:playlist'
     IE_DESC = 'Rutube playlists'
     _TESTS = [{
-        'url': 'https://rutube.ru/video/10b3a03fc01d5bbcc632a2f3514e8aab/?pl_id=4252&pl_type=source'
+        'url': 'https://rutube.ru/video/10b3a03fc01d5bbcc632a2f3514e8aab/?pl_id=4252&pl_type=source',
         'info_dict': {
             'id': '4252',
         },
