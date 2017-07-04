@@ -7,10 +7,14 @@ import itertools
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
+    compat_parse_qs,
+    compat_urllib_parse_urlparse,
 )
 from ..utils import (
     determine_ext,
     unified_strdate,
+    try_get,
+    int_or_none,
 )
 
 
@@ -42,7 +46,23 @@ class RutubeIE(InfoExtractor):
     }, {
         'url': 'http://rutube.ru/embed/a10e53b86e8f349080f718582ce4c661',
         'only_matching': True,
+    }, {
+        'url': 'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/?pl_id=4252',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        parts = compat_urllib_parse_urlparse(url)
+        params = compat_parse_qs(parts.query)
+
+        # see if URL without parameters is OK
+        res = super(RutubeIE, cls).suitable(url)
+
+        if params:  # we only allow pl_id parameter in the url
+            res = res and 'pl_id' in params and len(params) == 1
+
+        return res
 
     @staticmethod
     def _extract_urls(webpage):
@@ -193,3 +213,67 @@ class RutubePersonIE(RutubeChannelIE):
     }]
 
     _PAGE_TEMPLATE = 'http://rutube.ru/api/video/person/%s/?page=%s&format=json'
+
+
+class RutubePlaylistIE(InfoExtractor):
+    IE_NAME = 'rutube:playlist'
+    IE_DESC = 'Rutube playlists'
+    _TESTS = [{
+        'url': 'https://rutube.ru/video/10b3a03fc01d5bbcc632a2f3514e8aab/?pl_id=4252&pl_type=source',
+        'info_dict': {
+            'id': '4252',
+        },
+        'playlist_count': 25,
+    }]
+
+    _VALID_URL = r'https?://rutube\.ru/(?:video|(?:play/)?embed)/[\da-z]{32}/\?(?:.+)?pl_id=(?P<id>\d+)'
+    _PAGE_TEMPLATE = 'http://rutube.ru/api/playlist/source/%s/?page=%s'
+
+    @staticmethod
+    def suitable(url):
+        params = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        return params.get('pl_id') and int_or_none(params['pl_id'][0]) \
+            and params.get('pl_type')
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        return self._extract_playlist(playlist_id)
+
+    def _extract_playlist(self, playlist_id):
+        entries = []
+        for pagenum in itertools.count(1):
+            page_url = self._PAGE_TEMPLATE % (playlist_id, pagenum)
+
+            # download_json will sent an accept: application/xml header
+            page = self._download_json(page_url, playlist_id,
+                                       "Downloading metadata for page %s" % pagenum,
+                                       headers={'Accept': 'application/json'})
+
+            if not page['results']:
+                break
+
+            results = page['results']
+            for result in results:
+                entry = self.url_result(result.get('video_url'), 'Rutube')
+                category = try_get(result, lambda x: x['category']['name'])
+                entry.update({
+                    'id': result.get('id'),
+                    'uploader': try_get(result, lambda x: x['author']['name']),
+                    'uploader_id': try_get(result, lambda x: x['author']['id']),
+                    'upload_date': unified_strdate(result.get('created_ts')),
+                    'title': result.get('title'),
+                    'description': result.get('description'),
+                    'thumbnail': result.get('thumbnail_url'),
+                    'duration': int_or_none(result.get('duration')),
+                    'category': [category] if category else None,
+                    'age_limit': 18 if result.get('is_adult') else 0,
+                    'view_count': int_or_none(result.get('hits')),
+                    'is_live': result.get('is_livestream'),
+                    'webpage_url': result.get('video_url'),
+                })
+                entries.append(entry)
+
+            if page['has_next'] is False:
+                break
+
+        return self.playlist_result(entries, playlist_id, page['name'])
