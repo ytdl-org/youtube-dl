@@ -11,6 +11,7 @@ from ..compat import (
 from ..utils import (
     determine_ext,
     unified_strdate,
+    try_get,
 )
 
 
@@ -205,7 +206,7 @@ class RutubePlaylistIE(InfoExtractor):
         'playlist_count': 25,
     }]
 
-    _VALID_URL = r'https?://rutube\.ru/(?:video|(?:play/)?embed)/(?P<id>[\da-z]{32})/.+pl_id=(?P<pl_id>\d+).*$'
+    _VALID_URL = r'https?://rutube\.ru/(?:video|(?:play/)?embed)/[\da-z]{32}/\?.+pl_id=(?P<pl_id>\d+).*$'
     _PAGE_TEMPLATE = 'http://rutube.ru/api/playlist/source/%s/?page=%s'
 
     def _real_extract(self, url):
@@ -214,6 +215,7 @@ class RutubePlaylistIE(InfoExtractor):
         return self._extract_playlist(playlist_id)
 
     def _extract_playlist(self, playlist_id):
+        import pdb
         entries = []
         for pagenum in itertools.count(1):
             page_url = self._PAGE_TEMPLATE % (playlist_id, pagenum)
@@ -229,20 +231,20 @@ class RutubePlaylistIE(InfoExtractor):
 
             results = page['results']
             for result in results:
-                entry = self.url_result(result['video_url'], 'Rutube')
+                entry = self.url_result(result.get('video_url'), 'Rutube')
                 entry['id'] = result['id']
-                entry['uploader'] = result['author']['name']
-                entry['uploader_id'] = result['author']['id']
-                entry['upload_date'] = unified_strdate(result['created_ts'])
-                entry['title'] = result['title']
-                entry['description'] = result['description']
-                entry['thumbnail'] = result['thumbnail_url']
-                entry['duration'] = result['duration']
-                entry['category'] = result['category']['name']
-                entry['age_limit'] = 18 if result['is_adult'] else 0
-                entry['view_count'] = result['hits']
-                entry['is_live'] = result['is_livestream']
-                entry['webpage_url'] = result['video_url']
+                entry['uploader'] = try_get(result, lambda x: x['author']['name'])
+                entry['uploader_id'] = try_get(result, lambda x: x['author']['id'])
+                entry['upload_date'] = unified_strdate(result.get('created_ts'))
+                entry['title'] = result.get('title')
+                entry['description'] = result.get('description')
+                entry['thumbnail'] = result.get('thumbnail_url')
+                entry['duration'] = result.get('duration')
+                entry['category'] = try_get(result, lambda x: x['category']['name'])
+                entry['age_limit'] = 18 if result.get('is_adult') else 0
+                entry['view_count'] = result.get('hits')
+                entry['is_live'] = result.get('is_livestream')
+                entry['webpage_url'] = result.get('video_url')
                 entries.append(entry)
 
             if page['has_next'] is False:
