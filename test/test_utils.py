@@ -1228,6 +1228,12 @@ part 3</font></u>
         self.assertEqual(get_element_by_attribute('class', 'foo', html), None)
         self.assertEqual(get_element_by_attribute('class', 'no-such-foo', html), None)
 
+        html = '''
+            <div itemprop="author" itemscope>foo</div>
+        '''
+
+        self.assertEqual(get_element_by_attribute('itemprop', 'author', html), 'foo')
+
     def test_get_elements_by_class(self):
         html = '''
             <span class="foo bar">nice</span><span class="foo bar">also nice</span>
