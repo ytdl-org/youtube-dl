@@ -1,14 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
-
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
+    float_or_none,
+    get_element_by_attribute,
     parse_iso8601,
-    parse_duration,
+    remove_end,
 )
 
 
@@ -24,6 +23,7 @@ class XuiteIE(InfoExtractor):
             'id': '3860914',
             'ext': 'mp3',
             'title': '孤單南半球-歐德陽',
+            'description': '孤單南半球-歐德陽',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 247.246,
             'timestamp': 1314932940,
@@ -44,7 +44,7 @@ class XuiteIE(InfoExtractor):
             'duration': 596.458,
             'timestamp': 1454242500,
             'upload_date': '20160131',
-            'uploader': 'yan12125',
+            'uploader': '屁姥',
             'uploader_id': '12158353',
             'categories': ['個人短片'],
             'description': 'http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4',
@@ -72,10 +72,10 @@ class XuiteIE(InfoExtractor):
         # from http://forgetfulbc.blogspot.com/2016/06/date.html
         'url': 'http://vlog.xuite.net/embed/cE1xbENoLTI3NDQ3MzM2LmZsdg==?ar=0&as=0',
         'info_dict': {
-            'id': 'cE1xbENoLTI3NDQ3MzM2LmZsdg==',
+            'id': '27447336',
             'ext': 'mp4',
             'title': '男女平權只是口號？專家解釋約會時男生是否該幫女生付錢 (中字)',
-            'description': 'md5:f0abdcb69df300f522a5442ef3146f2a',
+            'description': 'md5:1223810fa123b179083a3aed53574706',
             'timestamp': 1466160960,
             'upload_date': '20160617',
             'uploader': 'B.C. & Lowy',
@@ -86,29 +86,9 @@ class XuiteIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    @staticmethod
-    def base64_decode_utf8(data):
-        return base64.b64decode(data.encode('utf-8')).decode('utf-8')
-
-    @staticmethod
-    def base64_encode_utf8(data):
-        return base64.b64encode(data.encode('utf-8')).decode('utf-8')
-
-    def _extract_flv_config(self, encoded_media_id):
-        flv_config = self._download_xml(
-            'http://vlog.xuite.net/flash/player?media=%s' % encoded_media_id,
-            'flv config')
-        prop_dict = {}
-        for prop in flv_config.findall('./property'):
-            prop_id = self.base64_decode_utf8(prop.attrib['id'])
-            # CDATA may be empty in flv config
-            if not prop.text:
-                continue
-            encoded_content = self.base64_decode_utf8(prop.text)
-            prop_dict[prop_id] = compat_urllib_parse_unquote(encoded_content)
-        return prop_dict
-
     def _real_extract(self, url):
+        # /play/ URLs provide embedded video URL and more metadata
+        url = url.replace('/embed/', '/play/')
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
@@ -121,51 +101,53 @@ class XuiteIE(InfoExtractor):
                 '%s returned error: %s' % (self.IE_NAME, error_msg),
                 expected=True)
 
-        encoded_media_id = self._search_regex(
-            r'attributes\.name\s*=\s*"([^"]+)"', webpage,
-            'encoded media id', default=None)
-        if encoded_media_id is None:
-            video_id = self._html_search_regex(
-                r'data-mediaid="(\d+)"', webpage, 'media id')
-            encoded_media_id = self.base64_encode_utf8(video_id)
-        flv_config = self._extract_flv_config(encoded_media_id)
+        media_info = self._parse_json(self._search_regex(
+            r'var\s+mediaInfo\s*=\s*({.*});', webpage, 'media info'), video_id)
 
-        FORMATS = {
-            'audio': 'mp3',
-            'video': 'mp4',
-        }
+        video_id = media_info['MEDIA_ID']
 
         formats = []
-        for format_tag in ('src', 'hq_src'):
-            video_url = flv_config.get(format_tag)
+        for key in ('html5Url', 'html5HQUrl'):
+            video_url = media_info.get(key)
             if not video_url:
                 continue
             format_id = self._search_regex(
-                r'\bq=(.+?)\b', video_url, 'format id', default=format_tag)
+                r'\bq=(.+?)\b', video_url, 'format id', default=None)
             formats.append({
                 'url': video_url,
-                'ext': FORMATS.get(flv_config['type'], 'mp4'),
+                'ext': 'mp4' if format_id.isnumeric() else format_id,
                 'format_id': format_id,
                 'height': int(format_id) if format_id.isnumeric() else None,
             })
         self._sort_formats(formats)
 
-        timestamp = flv_config.get('publish_datetime')
+        timestamp = media_info.get('PUBLISH_DATETIME')
         if timestamp:
             timestamp = parse_iso8601(timestamp + ' +0800', ' ')
 
-        category = flv_config.get('category')
+        category = media_info.get('catName')
         categories = [category] if category else []
+
+        uploader = media_info.get('NICKNAME')
+        uploader_url = None
+
+        author_div = get_element_by_attribute('itemprop', 'author', webpage)
+        if author_div:
+            uploader = uploader or self._html_search_meta('name', author_div)
+            uploader_url = self._html_search_regex(
+                r'<link[^>]+itemprop="url"[^>]+href="([^"]+)"', author_div,
+                'uploader URL', fatal=False)
 
         return {
             'id': video_id,
-            'title': flv_config['title'],
-            'description': flv_config.get('description'),
-            'thumbnail': flv_config.get('thumb'),
+            'title': media_info['TITLE'],
+            'description': remove_end(media_info.get('metaDesc'), ' (Xuite 影音)'),
+            'thumbnail': media_info.get('ogImageUrl'),
             'timestamp': timestamp,
-            'uploader': flv_config.get('author_name'),
-            'uploader_id': flv_config.get('author_id'),
-            'duration': parse_duration(flv_config.get('duration')),
+            'uploader': uploader,
+            'uploader_id': media_info.get('MEMBER_ID'),
+            'uploader_url': uploader_url,
+            'duration': float_or_none(media_info.get('MEDIA_DURATION'), 1000000),
             'categories': categories,
             'formats': formats,
         }
