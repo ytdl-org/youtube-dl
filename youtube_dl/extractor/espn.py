@@ -18,7 +18,7 @@ class ESPNIE(InfoExtractor):
                         )\.com/
                         (?:
                             video/clip(?:\?.*?\bid=|/_/id/)|
-                            watch/player\?.*?\bid=
+                            watch/player(?:\?.*?\bid=|/_/id/)
                         )
                         (?P<id>\d+)
                     '''
@@ -61,6 +61,9 @@ class ESPNIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.espn.com/watch/player?bucketId=257&id=19505875',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/watch/player/_/id/19141491',
         'only_matching': True,
     }, {
         'url': 'http://www.espn.com/video/clip?id=10365079',
