@@ -98,6 +98,7 @@ from youtube_dl.compat import (
     compat_chr,
     compat_etree_fromstring,
     compat_getenv,
+    compat_os_name,
     compat_setenv,
     compat_urlparse,
     compat_parse_qs,
@@ -448,7 +449,9 @@ class TestUtil(unittest.TestCase):
 
     def test_shell_quote(self):
         args = ['ffmpeg', '-i', encodeFilename('ñ€ß\'.mp4')]
-        self.assertEqual(shell_quote(args), """ffmpeg -i 'ñ€ß'"'"'.mp4'""")
+        self.assertEqual(
+            shell_quote(args),
+            """ffmpeg -i 'ñ€ß'"'"'.mp4'""" if compat_os_name != 'nt' else '''ffmpeg -i "ñ€ß'.mp4"''')
 
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
@@ -932,7 +935,7 @@ class TestUtil(unittest.TestCase):
     def test_args_to_str(self):
         self.assertEqual(
             args_to_str(['foo', 'ba/r', '-baz', '2 be', '']),
-            'foo ba/r -baz \'2 be\' \'\''
+            'foo ba/r -baz \'2 be\' \'\'' if compat_os_name != 'nt' else 'foo ba/r -baz "2 be" ""'
         )
 
     def test_parse_filesize(self):
@@ -1227,6 +1230,12 @@ part 3</font></u>
         self.assertEqual(get_element_by_attribute('class', 'foo bar', html), 'nice')
         self.assertEqual(get_element_by_attribute('class', 'foo', html), None)
         self.assertEqual(get_element_by_attribute('class', 'no-such-foo', html), None)
+
+        html = '''
+            <div itemprop="author" itemscope>foo</div>
+        '''
+
+        self.assertEqual(get_element_by_attribute('itemprop', 'author', html), 'foo')
 
     def test_get_elements_by_class(self):
         html = '''
