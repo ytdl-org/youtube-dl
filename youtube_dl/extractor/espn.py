@@ -17,8 +17,14 @@ class ESPNIE(InfoExtractor):
                             (?:www\.)?espn
                         )\.com/
                         (?:
-                            video/clip(?:\?.*?\bid=|/_/id/)|
-                            watch/player(?:\?.*?\bid=|/_/id/)
+                            (?:
+                                video/clip|
+                                watch/player
+                            )
+                            (?:
+                                \?.*?\bid=|
+                                /_/id/
+                            )
                         )
                         (?P<id>\d+)
                     '''
