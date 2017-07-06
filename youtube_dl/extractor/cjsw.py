@@ -2,9 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
 
 
 class CJSWIE(InfoExtractor):
@@ -26,17 +23,13 @@ class CJSWIE(InfoExtractor):
 
         webpage = self._download_webpage(url, episode_id)
 
-        episode_controls = self._search_regex(r'<div[^>]+class=(["\'])episode-controls\1[^>]*>', webpage, 'episode_controls', fatal=False)
-        if not episode_controls:
-            raise ExtractorError('No streamable podcast', video_id=episode_id, expected=True)
-
-        title = self._html_search_regex(
-            r'<button[^>]+data-showname=(["\'])(?P<title>.+?)\1[^>]*>', webpage, 'title', group='title')
+        title = self._search_regex(
+            r'<button[^>]+data-showname=(["\'])(?P<title>(?!\1).+?)\1[^>]*>', webpage, 'title', group='title')
         description = self._html_search_regex(
             r'<p>(?P<description>.+?)</p>', webpage, 'description', fatal=False)
         formats = [{
-            'url': self._html_search_regex(
-                r'<button[^>]+data-audio-src=(["\'])(?P<audio_url>.+?)\1[^>]*>', webpage, 'audio_url', group='audio_url'),
+            'url': self._search_regex(
+                r'<button[^>]+data-audio-src=(["\'])(?P<audio_url>(?!\1).+?)\1[^>]*>', webpage, 'audio_url', group='audio_url'),
             'ext': 'mp3',
             'vcodec': 'none',
         }]
