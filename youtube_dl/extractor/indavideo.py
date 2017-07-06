@@ -8,6 +8,7 @@ from ..utils import (
     int_or_none,
     parse_age_limit,
     parse_iso8601,
+    update_url_query
 )
 
 
@@ -102,8 +103,8 @@ class IndavideoIE(InfoExtractor):
             _url = video_url
             if filesh:
                 if _height in filesh:
-                    _url += '&' if '?' in _url else '?'
-                    _url += "token=" + filesh.get(_height)
+                    _url = update_url_query(_url, {'token': filesh.get(_height)});
+
             formats.append({
                 'url': _url,
                 'height': int_or_none(_height),
