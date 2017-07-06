@@ -75,7 +75,7 @@ class IndavideoIE(InfoExtractor):
             'http://amfphp.indavideo.hu/SYm0json.php/player.playerHandler.getVideoData/%s' % video_id,
             video_id)['data']
 
-        title = video.get('title')
+        title = video['title']
 
         filesh = video.get('filesh')
 
@@ -134,3 +134,10 @@ class IndavideoIE(InfoExtractor):
             'tags': tags,
             'formats': formats,
         }
+
+class IndavideoEmbedIE(InfoExtractor):
+    _VALID_URL = IndavideoIE._VALID_URL;
+    _TESTS = IndavideoIE._TESTS;
+
+    def _real_extract(self, url):
+        return IndavideoIE._real_extract(self, url);
