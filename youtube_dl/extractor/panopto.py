@@ -37,7 +37,7 @@ class PanoptoIE(PanoptoBaseIE):
     def _get_contribs_str(contribs):
         s = ''
         for c in contribs:
-            s += '%s, ' % c['DisplayName']
+            s += '{}, ' .format(c['DisplayName'])
         return s[:-2] if len(contribs) else ''
 
     def _real_extract(self, url):
@@ -45,7 +45,7 @@ class PanoptoIE(PanoptoBaseIE):
         org = self._match_organization(url)
 
         delivery_info = self._download_json(
-            'https://%s.hosted.panopto.com/Panopto/Pages/Viewer/DeliveryInfo.aspx' % org,
+            'https://{}.hosted.panopto.com/Panopto/Pages/Viewer/DeliveryInfo.aspx'.format(org),
             video_id,
             query={
                 'deliveryId': video_id,
@@ -66,8 +66,8 @@ class PanoptoIE(PanoptoBaseIE):
                                             "with Panopto. If the error below is about unauthorized access, this is "
                                             "most likely the issue.")
             raise ExtractorError(
-                'API error: (%s) %s' %
-                (delivery_info['ErrorCode'], delivery_info['ErrorMessage'] if 'ErrorMessage' in delivery_info else '')
+                'API error: ({}) {}'.format(delivery_info['ErrorCode'],
+                                            delivery_info['ErrorMessage'] if 'ErrorMessage' in delivery_info else '')
             )
 
         streams = []
@@ -94,8 +94,8 @@ class PanoptoIE(PanoptoBaseIE):
         result = {
             'id': video_id,
             'title': delivery_info['Delivery']['SessionName'],
-            'thumbnail': 'https://%s.hosted.panopto.com/Panopto/Services/FrameGrabber.svc/FrameRedirect?objectId=%s&mode=Delivery&random=%s' %
-                         (org, video_id, random()),
+            'thumbnail': 'https://{}.hosted.panopto.com/Panopto/Services/FrameGrabber.svc/FrameRedirect?objectId={}&mode=Delivery&random={}'.format(
+                         org, video_id, random()),
         }
 
         if len(streams) == 1:
@@ -117,10 +117,10 @@ class PanoptoIE(PanoptoBaseIE):
         if 'Timestamps' in delivery_info['Delivery']:
             for timestamp in delivery_info['Delivery']['Timestamps']:
                 thumbnails.append({
-                    # 'url': 'https://%s.hosted.panopto.com/Panopto/Pages/Viewer/Thumb.aspx?eventTargetPID=%s&sessionPID=%s&number=%s&isPrimary=false&absoluteTime=%s' %
-                    #    (org, timestamp['ObjectPublicIdentifier'], timestamp['SessionID'], timestamp['ObjectSequenceNumber'], timestamp['AbsoluteTime']),
-                    'url': 'https://%s.hosted.panopto.com/Panopto/Pages/Viewer/Image.aspx?id=%s&number=%s&x=undefined' %
-                           (org, timestamp['ObjectIdentifier'], timestamp['ObjectSequenceNumber'])
+                    # 'url': 'https://{}.hosted.panopto.com/Panopto/Pages/Viewer/Thumb.aspx?eventTargetPID={}&sessionPID={}&number={}&isPrimary=false&absoluteTime={}'.format(
+                    #        org, timestamp['ObjectPublicIdentifier'], timestamp['SessionID'], timestamp['ObjectSequenceNumber'], timestamp['AbsoluteTime']),
+                    'url': 'https://{}.hosted.panopto.com/Panopto/Pages/Viewer/Image.aspx?id={}&number={}&x=undefined'.format(
+                           org, timestamp['ObjectIdentifier'], timestamp['ObjectSequenceNumber'])
                 })
 
         if len(thumbnails):
@@ -145,7 +145,7 @@ class PanoptoFolderIE(PanoptoBaseIE):
         org = self._match_organization(url)
 
         folder_data = self._download_json(
-            'https://%s.hosted.panopto.com/Panopto/Services/Data.svc/GetSessions' % org,
+            'https://{}.hosted.panopto.com/Panopto/Services/Data.svc/GetSessions'.format(org),
             folder_id,
             'Downloading folder listing',
             'Failed to download folder listing',
@@ -190,8 +190,8 @@ class PanoptoFolderIE(PanoptoBaseIE):
                 }
                 if 'prev_folders' in smuggled:
                     new_folder['title'] = smuggled['prev_folders'] + ' -- ' + new_folder['title']
-                new_folder['url'] = smuggle_url('https://%s.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID="%s"' %
-                                                (org, subfolder['ID']), {'prev_folders': new_folder['title']})
+                new_folder['url'] = smuggle_url('https://{}.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID="{}"'
+                                                .format(org, subfolder['ID']), {'prev_folders': new_folder['title']})
                 entries.append(new_folder)
 
         if not entries:
