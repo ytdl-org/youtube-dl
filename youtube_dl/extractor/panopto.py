@@ -21,6 +21,7 @@ class PanoptoBaseIE(InfoExtractor):
 
     @classmethod
     def _match_organization(cls, url):
+        """Match and return the organization part of a Panopto hosted URL."""
         if '_VALID_URL_RE' not in cls.__dict__:
             cls._VALID_URL_RE = re.compile(cls._VALID_URL)
         m = cls._VALID_URL_RE.match(url)
@@ -35,12 +36,14 @@ class PanoptoIE(PanoptoBaseIE):
 
     @staticmethod
     def _get_contribs_str(contribs):
+        """Returns a comma-delimited string of contributors."""
         s = ''
         for c in contribs:
             s += '{}, ' .format(c['DisplayName'])
         return s[:-2] if len(contribs) else ''
 
     def _real_extract(self, url):
+        """Extracts the video and stream information for the given Panopto hosted URL."""
         video_id = self._match_id(url)
         org = self._match_organization(url)
 
@@ -138,6 +141,7 @@ class PanoptoFolderIE(PanoptoBaseIE):
     _VALID_URL = r'^https?:\/\/(?P<org>[a-z0-9]+)\.hosted\.panopto.com\/Panopto\/Pages\/Sessions\/List\.aspx#folderID=(?:"|%22)(?P<id>[a-f0-9-]+)'
 
     def _real_extract(self, url):
+        """Recursively extracts the video and stream information for the given Panopto hosted URL."""
         url, smuggled = unsmuggle_url(url)
         if smuggled is None:
             smuggled = {}
