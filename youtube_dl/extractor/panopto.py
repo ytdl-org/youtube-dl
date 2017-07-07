@@ -39,7 +39,9 @@ class PanoptoIE(PanoptoBaseIE):
         """Returns a comma-delimited string of contributors."""
         s = ''
         for c in contribs:
-            s += '{}, ' .format(c['DisplayName'])
+            display_name = c.get('DisplayName')
+            if display_name is not None:
+                s += '{}, '.format(display_name)
         return s[:-2] if len(contribs) else ''
 
     def _real_extract(self, url):
@@ -69,8 +71,7 @@ class PanoptoIE(PanoptoBaseIE):
                                             "with Panopto. If the error below is about unauthorized access, this is "
                                             "most likely the issue.")
             raise ExtractorError(
-                'API error: ({}) {}'.format(delivery_info['ErrorCode'],
-                                            delivery_info['ErrorMessage'] if 'ErrorMessage' in delivery_info else '')
+                'API error: ({}) {}'.format(delivery_info.get('ErrorCode', '?'), delivery_info.get('ErrorMessage', '?'))
             )
 
         streams = []
@@ -107,24 +108,39 @@ class PanoptoIE(PanoptoBaseIE):
             result['_type'] = 'multi_video'
             result['entries'] = streams
 
-        if 'Contributors' in delivery_info['Delivery']:
-            result['uploader'] = self._get_contribs_str(delivery_info['Delivery']['Contributors'])
+        # We already know Delivery exists since we need it for stream extraction
+        contributors = delivery_info['Delivery'].get('Contributors')
+        if contributors is not None:
+            result['uploader'] = self._get_contribs_str(contributors)
 
-        if 'SessionStartTime' in delivery_info['Delivery']:
-            result['timestamp'] = delivery_info['Delivery']['SessionStartTime'] - 11640000000
+        session_start_time = delivery_info['Delivery'].get('SessionStartTime')
+        if session_start_time is not None:
+            result['timestamp'] = session_start_time - 11640000000
 
-        if 'Duration' in delivery_info['Delivery']:
-            result['duration'] = delivery_info['Delivery']['Duration']
+        duration = delivery_info['Delivery'].get('Duration')
+        if duration is not None:
+            result['duration'] = duration
 
         thumbnails = []
         if 'Timestamps' in delivery_info['Delivery']:
             for timestamp in delivery_info['Delivery']['Timestamps']:
-                thumbnails.append({
-                    # 'url': 'https://{}.hosted.panopto.com/Panopto/Pages/Viewer/Thumb.aspx?eventTargetPID={}&sessionPID={}&number={}&isPrimary=false&absoluteTime={}'.format(
-                    #        org, timestamp['ObjectPublicIdentifier'], timestamp['SessionID'], timestamp['ObjectSequenceNumber'], timestamp['AbsoluteTime']),
-                    'url': 'https://{}.hosted.panopto.com/Panopto/Pages/Viewer/Image.aspx?id={}&number={}&x=undefined'.format(
-                           org, timestamp['ObjectIdentifier'], timestamp['ObjectSequenceNumber'])
-                })
+                object_id = timestamp.get('ObjectIdentifier')
+                object_sequence_num = timestamp.get('ObjectSequenceNumber')
+                if object_id is not None and object_sequence_num is not None:
+                    thumbnails.append({
+                        'url': 'https://{}.hosted.panopto.com/Panopto/Pages/Viewer/Image.aspx?id={}&number={}&x=undefined'.format(
+                               org, object_id, object_sequence_num)
+                    })
+
+                # This provides actual thumbnails instead of the above which allows for downloading of real slides
+                # object_public_id = timestamp.get('ObjectPublicIdentifier')
+                # session_id = timestamp.get('SessionID')
+                # absolute_time = timestamp.get('AbsoluteTime')
+                # if object_public_id is not None and session_id is not None and object_sequence_num is not None and absolute_time is not None:
+                #     thumbnails.append({
+                #         'url': 'https://{}.hosted.panopto.com/Panopto/Pages/Viewer/Thumb.aspx?eventTargetPID={}&sessionPID={}&number={}&isPrimary=false&absoluteTime={}'.format(
+                #             org, object_public_id, session_id, object_sequence_num, absolute_time),
+                #     })
 
         if len(thumbnails):
             if result.get('entries') is not None:
