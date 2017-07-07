@@ -216,8 +216,8 @@ class RutubePlaylistIE(InfoExtractor):
     _PAGE_TEMPLATE = 'http://rutube.ru/api/playlist/source/%s/?page=%s'
 
 
-    @classmethod
-    def suitable(cls, url):
+    @staticmethod
+    def suitable(url):
         params = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
         return params.get('pl_id') and params['pl_id'][0].isdigit()
 
