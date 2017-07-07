@@ -33,6 +33,48 @@ class PanoptoIE(PanoptoBaseIE):
     """Extracts a single Panopto video including all available streams."""
 
     _VALID_URL = r'^https?:\/\/(?P<org>[a-z0-9]+)\.hosted\.panopto.com\/Panopto\/Pages\/Viewer\.aspx\?id=(?P<id>[a-f0-9-]+)'
+    _TESTS = [
+        {
+            'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=26b3ae9e-4a48-4dcc-96ba-0befba08a0fb',
+            'md5': '06fb292a3510aa5bc5f0c950fe58c9f7',
+            'info_dict': {
+                'id': '26b3ae9e-4a48-4dcc-96ba-0befba08a0fb',
+                'ext': 'mp4',
+                'title': 'Panopto for Business',
+                'uploader': 'Ari Bixhorn',
+                'upload_date': '20160328',
+                'timestamp': 1459184200.3759995,
+            },
+        },
+        {
+            'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=ed01b077-c9e5-4c7b-b8ff-15fa306d7a59',
+            'info_dict': {
+                'id': 'ed01b077-c9e5-4c7b-b8ff-15fa306d7a59',
+                'title': 'Overcoming Top 4 Challenges of Enterprise Video',
+                'uploader': 'Panopto Support',
+                'timestamp': 1449409251.8579998,
+            },
+            'playlist': [
+                {
+                    'md5': 'e22b5a284789ba2681e4fe215352d816',
+                    'info_dict': {
+                        'id': '15ad06ef-3f7d-4074-aa4a-87c41dd18f9c',
+                        'ext': 'mp4',
+                        'title': 'OBJECT',
+                    },
+                },
+                {
+                    'md5': '4396cbff07e7b883ca522a6783dc6a70',
+                    'info_dict': {
+                        'id': '7668d6b2-dc81-421d-9853-20653689e2e8',
+                        'ext': 'mp4',
+                        'title': 'DV',
+                    },
+                },
+            ],
+            'playlist_count': 2,
+        },
+    ]
 
     @staticmethod
     def _get_contribs_str(contribs):
@@ -155,6 +197,35 @@ class PanoptoFolderIE(PanoptoBaseIE):
     """Recursively extracts a folder of Panopto videos, digging as far as possible into subfolders."""
 
     _VALID_URL = r'^https?:\/\/(?P<org>[a-z0-9]+)\.hosted\.panopto.com\/Panopto\/Pages\/Sessions\/List\.aspx#folderID=(?:"|%22)(?P<id>[a-f0-9-]+)'
+    _TESTS = [
+        {
+            'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID=%222a0546e0-c6c0-4ab1-bc79-5c0b0e801c4f%22',
+            'info_dict': {
+                'id': '2a0546e0-c6c0-4ab1-bc79-5c0b0e801c4f',
+                'title': 'End-to-End Demo',
+            },
+            'playlist': [
+                {
+                    'info_dict': {
+                        'id': '70f7441d-01b5-4319-b399-6591e456b935',
+                        # Fails before download with this line (it claims it needs an ext field)
+                        # but fails after download when it's included because 'ext' should be None
+                        'ext': 'a',
+                        'title': 'b',
+                    },
+                    'playlist': [
+                        {
+                            'info_dict': {
+                                'id': 'c',
+                                'ext': 'd',
+                                'title': 'e',
+                            }
+                        }
+                    ],
+                },
+            ],
+        },
+    ]
 
     def _real_extract(self, url):
         """Recursively extracts the video and stream information for the given Panopto hosted URL."""
