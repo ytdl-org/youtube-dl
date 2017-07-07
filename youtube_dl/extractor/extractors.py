@@ -39,6 +39,7 @@ from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
 from .amcnetworks import AMCNetworksIE
+from .animelab import AnimeLabIE
 from .animeondemand import AnimeOnDemandIE
 from .anitube import AnitubeIE
 from .anvato import AnvatoIE
