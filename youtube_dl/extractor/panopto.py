@@ -33,7 +33,8 @@ class PanoptoIE(PanoptoBaseIE):
 
     _VALID_URL = r'^https?:\/\/(?P<org>[a-z0-9]+)\.hosted\.panopto.com\/Panopto\/Pages\/Viewer\.aspx\?id=(?P<id>[a-f0-9-]+)'
 
-    def _get_contribs_str(self, contribs):
+    @staticmethod
+    def _get_contribs_str(contribs):
         s = ''
         for c in contribs:
             s += '%s, ' % c['DisplayName']
