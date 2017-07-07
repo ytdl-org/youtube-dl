@@ -14,7 +14,15 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
-    _VALID_URL = r'(?P<proto>https?)://(?:.+?\.)?xhamster\.com/movies/(?P<id>[0-9]+)/(?P<seo>.*?)\.html(?:\?.*)?'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:.+?\.)?xhamster\.com/
+                        (?:
+                            movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
+                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
+                        )
+                    '''
+
     _TESTS = [{
         'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
         'md5': '8281348b8d3c53d39fffb377d24eac4e',
@@ -66,6 +74,10 @@ class XHamsterIE(InfoExtractor):
         # This video is visible for marcoalfa123456's friends only
         'url': 'https://it.xhamster.com/movies/7263980/la_mia_vicina.html',
         'only_matching': True,
+    }, {
+        # new URL schema
+        'url': 'https://pt.xhamster.com/videos/euro-pedal-pumping-7937821',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -81,11 +93,10 @@ class XHamsterIE(InfoExtractor):
 
         mobj = re.match(self._VALID_URL, url)
 
-        video_id = mobj.group('id')
-        seo = mobj.group('seo')
-        proto = mobj.group('proto')
-        mrss_url = '%s://xhamster.com/movies/%s/%s.html' % (proto, video_id, seo)
-        webpage = self._download_webpage(mrss_url, video_id)
+        video_id = mobj.group('id') or mobj.group('id_2')
+        display_id = mobj.group('display_id') or mobj.group('display_id_2')
+
+        webpage = self._download_webpage(url, video_id)
 
         error = self._html_search_regex(
             r'<div[^>]+id=["\']videoClosed["\'][^>]*>(.+?)</div>',
