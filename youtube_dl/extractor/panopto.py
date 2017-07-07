@@ -81,14 +81,14 @@ class PanoptoIE(PanoptoBaseIE):
                 'title': this_stream['Tag'],
                 'formats': [],
             }
-            if 'StreamUrl' in this_stream:
-                new_stream['formats'].append({
-                    'url': this_stream['StreamUrl'],
-                })
             if 'StreamHttpUrl' in this_stream:
                 new_stream['formats'].append({
                     'url': this_stream['StreamHttpUrl'],
                 })
+            if 'StreamUrl' in this_stream:
+                m3u8_formats = self._extract_m3u8_formats(this_stream['StreamUrl'], video_id, 'mp4')
+                self._sort_formats(m3u8_formats)
+                new_stream['formats'].extend(m3u8_formats)
             if len(new_stream['formats']):
                 streams.append(new_stream)
 
