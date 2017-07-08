@@ -26,12 +26,6 @@ class BlenderCloudBaseIE(InfoExtractor):
             r'<div\s*id=\"node-title\"\s*class=\"node-title\">(.*?)</div>', source, 'title').strip()
         return node_title
 
-    def get_webpage_title(self, source):
-        webpage_title = None
-        webpage_title = self._html_search_regex(
-            r'<title>(.*?)</title>', source, 'title').strip()
-        return webpage_title
-
     @staticmethod
     def is_video_subscriber_only(source):
         errmsg_subscribers_only = 'Only available to Blender Cloud subscribers.'
@@ -272,6 +266,7 @@ class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
+        webpage_title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title').strip() or None
 
         entries = []
         for node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*class=\"', webpage):
@@ -311,4 +306,4 @@ class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
                         self.report_warning('%s - %s' % (sub_node_id, self.warning_no_video_sources))
             else:
                 self.report_warning('%s - %s' % (node_id, self.warning_no_video_sources))
-        return self.playlist_result(entries, playlist_id=display_id, playlist_title=self.get_webpage_title(webpage))
+        return self.playlist_result(entries, playlist_id=display_id, playlist_title=webpage_title)
