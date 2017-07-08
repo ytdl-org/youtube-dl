@@ -14,6 +14,7 @@ from ..utils import (
     determine_ext,
     unified_strdate,
     try_get,
+    int_or_none,
 )
 
 
@@ -241,19 +242,21 @@ class RutubePlaylistIE(InfoExtractor):
             results = page['results']
             for result in results:
                 entry = self.url_result(result.get('video_url'), 'Rutube')
-                entry['id'] = result['id']
-                entry['uploader'] = try_get(result, lambda x: x['author']['name'])
-                entry['uploader_id'] = try_get(result, lambda x: x['author']['id'])
-                entry['upload_date'] = unified_strdate(result.get('created_ts'))
-                entry['title'] = result.get('title')
-                entry['description'] = result.get('description')
-                entry['thumbnail'] = result.get('thumbnail_url')
-                entry['duration'] = result.get('duration')
-                entry['category'] = try_get(result, lambda x: x['category']['name'])
-                entry['age_limit'] = 18 if result.get('is_adult') else 0
-                entry['view_count'] = result.get('hits')
-                entry['is_live'] = result.get('is_livestream')
-                entry['webpage_url'] = result.get('video_url')
+                entry.update({
+                    'id': result['id'],
+                    'uploader': try_get(result, lambda x: x['author']['name']),
+                    'uploader_id': try_get(result, lambda x: x['author']['id']),
+                    'upload_date': unified_strdate(result.get('created_ts')),
+                    'title': result.get('title'),
+                    'description': result.get('description'),
+                    'thumbnail': result.get('thumbnail_url'),
+                    'duration': int_or_none(result.get('duration')),
+                    'category': try_get(result, lambda x: x['category']['name']),
+                    'age_limit': 18 if result.get('is_adult') else 0,
+                    'view_count': int_or_none(result.get('hits')),
+                    'is_live': result.get('is_livestream'),
+                    'webpage_url': result.get('video_url'),
+                })
                 entries.append(entry)
 
             if page['has_next'] is False:
