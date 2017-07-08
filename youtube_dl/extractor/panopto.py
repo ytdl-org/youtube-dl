@@ -32,7 +32,7 @@ class PanoptoBaseIE(InfoExtractor):
 class PanoptoIE(PanoptoBaseIE):
     """Extracts a single Panopto video including all available streams."""
 
-    _VALID_URL = r'^https?:\/\/(?P<org>[a-z0-9]+)\.hosted\.panopto.com\/Panopto\/Pages\/Viewer\.aspx\?id=(?P<id>[a-f0-9-]+)'
+    _VALID_URL = r'^https?://(?P<org>[a-z0-9]+)\.hosted\.panopto.com/Panopto/Pages/Viewer\.aspx\?id=(?P<id>[a-f0-9-]+)'
     _TESTS = [
         {
             'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=26b3ae9e-4a48-4dcc-96ba-0befba08a0fb',
@@ -196,7 +196,7 @@ class PanoptoIE(PanoptoBaseIE):
 class PanoptoFolderIE(PanoptoBaseIE):
     """Recursively extracts a folder of Panopto videos, digging as far as possible into subfolders."""
 
-    _VALID_URL = r'^https?:\/\/(?P<org>[a-z0-9]+)\.hosted\.panopto.com\/Panopto\/Pages\/Sessions\/List\.aspx#folderID=(?:"|%22)(?P<id>[a-f0-9-]+)'
+    _VALID_URL = r'^https?://(?P<org>[a-z0-9]+)\.hosted\.panopto.com/Panopto/Pages/Sessions/List\.aspx#folderID=(?:"|%22)(?P<id>[a-f0-9-]+)'
     _TESTS = [
         {
             'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID=%222a0546e0-c6c0-4ab1-bc79-5c0b0e801c4f%22',
