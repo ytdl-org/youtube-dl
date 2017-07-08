@@ -253,7 +253,7 @@ class RutubePlaylistIE(InfoExtractor):
                     'description': result.get('description'),
                     'thumbnail': result.get('thumbnail_url'),
                     'duration': int_or_none(result.get('duration')),
-                    'category': try_get(result, lambda x: x['category']['name']),
+                    'category': [try_get(result, lambda x: x['category']['name'])],
                     'age_limit': 18 if result.get('is_adult') else 0,
                     'view_count': int_or_none(result.get('hits')),
                     'is_live': result.get('is_livestream'),
