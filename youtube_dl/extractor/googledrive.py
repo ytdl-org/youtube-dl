@@ -92,7 +92,7 @@ class GoogleDriveIE(InfoExtractor):
             if resolution:
                 f.update({
                     'width': resolution[0],
-                    'height': resolution[0],
+                    'height': resolution[1],
                 })
             formats.append(f)
         self._sort_formats(formats)

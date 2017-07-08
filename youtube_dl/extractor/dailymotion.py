@@ -147,7 +147,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         view_count_str = self._search_regex(
             (r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:([\s\d,.]+)"',
              r'video_views_count[^>]+>\s+([\s\d\,.]+)'),
-            webpage, 'view count', fatal=False)
+            webpage, 'view count', default=None)
         if view_count_str:
             view_count_str = re.sub(r'\s', '', view_count_str)
         view_count = str_to_int(view_count_str)
@@ -159,7 +159,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/rg3/youtube-dl/issues/7826
              r'playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);',
              r'buildPlayer\(({.+?})\);',
-             r'var\s+config\s*=\s*({.+?});'],
+             r'var\s+config\s*=\s*({.+?});',
+             # New layout regex (see https://github.com/rg3/youtube-dl/issues/13580)
+             r'__PLAYER_CONFIG__\s*=\s*({.+?});'],
             webpage, 'player v5', default=None)
         if player_v5:
             player = self._parse_json(player_v5, video_id)
