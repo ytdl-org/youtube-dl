@@ -358,7 +358,14 @@ class FileDownloader(object):
                     else '%.2f' % sleep_interval))
             time.sleep(sleep_interval)
 
-        return self.real_download(filename, info_dict)
+        real_download_result = self.real_download(filename, info_dict)
+
+        if real_download_result and self.params.get('test', False):
+            f = open(filename, 'ab')
+            f.truncate(self._TEST_FILE_SIZE)
+            f.close()
+
+        return real_download_result
 
     def real_download(self, filename, info_dict):
         """Real download process. Redefine in subclasses."""
