@@ -70,7 +70,8 @@ class FiveTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"',
+            [r'<div[^>]+?class="flowplayer[^>]+?data-href="([^"]+)"',
+             r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"'],
             webpage, 'video url')
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
