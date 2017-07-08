@@ -50,7 +50,8 @@ class RutubeIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if RutubePlaylistIE.suitable(url) else super(RutubeIE, cls).suitable(url)
+        parts = compat_urllib_parse_urlparse(url)
+        return super(RutubeIE, cls).suitable(url) and not parts.query
 
     @staticmethod
     def _extract_urls(webpage):
@@ -220,7 +221,8 @@ class RutubePlaylistIE(InfoExtractor):
     @staticmethod
     def suitable(url):
         params = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
-        return params.get('pl_id') and params['pl_id'][0].isdigit()
+        return params.get('pl_id') and int_or_none(params['pl_id'][0]) \
+            and params.get('pl_type')
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
