@@ -231,10 +231,9 @@ class RutubePlaylistIE(InfoExtractor):
             page_url = self._PAGE_TEMPLATE % (playlist_id, pagenum)
 
             # download_json will sent an accept: application/xml header
-            headers = {'Accept': 'application/json'}
             page = self._download_json(page_url, playlist_id,
-                                      "Downloading metadata for page %s" %
-                                      pagenum, headers=headers)
+                                       "Downloading metadata for page %s" % pagenum,
+                                       headers={'Accept': 'application/json'})
 
             if not page['results']:
                 break
