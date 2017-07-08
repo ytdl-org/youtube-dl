@@ -203,6 +203,7 @@ class RutubePersonIE(RutubeChannelIE):
 
     _PAGE_TEMPLATE = 'http://rutube.ru/api/video/person/%s/?page=%s&format=json'
 
+
 class RutubePlaylistIE(InfoExtractor):
     IE_NAME = 'rutube:playlist'
     IE_DESC = 'Rutube playlists'
@@ -216,7 +217,6 @@ class RutubePlaylistIE(InfoExtractor):
 
     _VALID_URL = r'https?://rutube\.ru/(?:video|(?:play/)?embed)/[\da-z]{32}/\?(?:.+)?pl_id=(?P<id>\d+)'
     _PAGE_TEMPLATE = 'http://rutube.ru/api/playlist/source/%s/?page=%s'
-
 
     @staticmethod
     def suitable(url):
