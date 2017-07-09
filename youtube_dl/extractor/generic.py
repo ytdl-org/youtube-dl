@@ -1770,6 +1770,16 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': [MediasetIE.ie_key()],
         },
+        {
+            # AMP embed (see https://www.ampproject.org/docs/reference/components/amp-video)
+            'url': 'https://tvrain.ru/amp/418921/',
+            'md5': 'cc00413936695987e8de148b67d14f1d',
+            'info_dict': {
+                'id': '418921',
+                'ext': 'mp4',
+                'title': 'Стас Намин: «Мы нарушили девственность Кремля»',
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
