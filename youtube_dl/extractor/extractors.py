@@ -1203,6 +1203,7 @@ from .vk import (
     VKWallPostIE,
 )
 from .vlive import (
+    VLivePlaylistIE,
     VLiveIE,
     VLiveChannelIE
 )

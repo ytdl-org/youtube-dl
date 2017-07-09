@@ -261,3 +261,50 @@ class VLiveChannelIE(InfoExtractor):
 
         return self.playlist_result(
             entries, channel_code, channel_name)
+
+
+class VLivePlaylistIE(InfoExtractor):
+    IE_NAME = 'vlive:playlist'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<video_id>[0-9]+)/playlist/(?P<id>[0-9]+)'
+    _TESTS = [{
+        'url': 'http://www.vlive.tv/video/30824/playlist/30826',
+        'info_dict': {
+            'id': '30826',
+            'title': 'TWICE TV5 - TWICE in SWITZERLAND'
+        },
+        'playlist_mincount': 20
+    }, {
+        'url': 'http://www.vlive.tv/video/22867/playlist/22912',
+        'info_dict': {
+            'id': '22912',
+            'title': 'Valentine Day Message from TWICE'
+        },
+        'playlist_mincount': 9
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        video_id = self._search_regex(
+            self._VALID_URL, url, 'video id', group='video_id')
+
+        webpage = self._download_webpage(
+            'http://www.vlive.tv/video/%s/playlist/%s' % (video_id, playlist_id), video_id)
+
+        playlist_name = self._html_search_regex(
+            r'<div[^>]+class="[^"]*multicam_playlist[^>]*>\s*<h3[^>]+>([^<]+)',
+            webpage, 'playlist name', fatal=False)
+
+        item_ids = self._search_regex(
+            r'\bvar\s+playlistVideoSeqs\s*=\s*\[([^\]]+)\]',
+            webpage, 'playlist item ids', default='')
+
+        entries = []
+        for item_id in re.split(r'\s*,\s*', item_ids):
+            item_id = compat_str(item_id)
+            entries.append(
+                self.url_result(
+                    'http://www.vlive.tv/video/%s' % item_id,
+                    ie=VLiveIE.ie_key(), video_id=item_id))
+
+        return self.playlist_result(
+            entries, playlist_id, playlist_name)
