@@ -11,7 +11,7 @@ from ..utils import (
 
 class CJSWIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?cjsw\.com/program/(?P<program>[^/]+)/episode/(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://cjsw.com/program/freshly-squeezed/episode/20170620',
         'md5': 'cee14d40f1e9433632c56e3d14977120',
         'info_dict': {
@@ -22,7 +22,11 @@ class CJSWIE(InfoExtractor):
             'series': 'Freshly Squeezed',
             'episode_id': '20170620',
         },
-    }
+    }, {
+        # no description
+        'url': 'http://cjsw.com/program/road-pops/episode/20170707/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -51,7 +55,8 @@ class CJSWIE(InfoExtractor):
         }]
 
         description = self._html_search_regex(
-            r'<p>(?P<description>.+?)</p>', webpage, 'description', fatal=False)
+            r'<p>(?P<description>.+?)</p>', webpage, 'description',
+            default=None)
         series = self._search_regex(
             r'data-showname=(["\'])(?P<name>(?:(?!\1).)+)\1', webpage,
             'series', default=program, group='name')
