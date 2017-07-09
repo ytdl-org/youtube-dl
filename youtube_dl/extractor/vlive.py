@@ -270,21 +270,14 @@ class VLiveChannelIE(InfoExtractor):
 class VLivePlaylistIE(InfoExtractor):
     IE_NAME = 'vlive:playlist'
     _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<video_id>[0-9]+)/playlist/(?P<id>[0-9]+)'
-    _TESTS = [{
-        'url': 'http://www.vlive.tv/video/30824/playlist/30826',
-        'info_dict': {
-            'id': '30826',
-            'title': 'TWICE TV5 - TWICE in SWITZERLAND'
-        },
-        'playlist_mincount': 20
-    }, {
+    _TEST = {
         'url': 'http://www.vlive.tv/video/22867/playlist/22912',
         'info_dict': {
             'id': '22912',
             'title': 'Valentine Day Message from TWICE'
         },
         'playlist_mincount': 9
-    }]
+    }
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
