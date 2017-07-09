@@ -280,10 +280,8 @@ class VLivePlaylistIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
-        video_id_match = re.match(self._VALID_URL, url)
-        assert video_id_match
-        video_id = compat_str(video_id_match.group('video_id'))
+        mobj = re.match(self._VALID_URL, url)
+        video_id, playlist_id = mobj.group('video_id', 'id')
 
         VIDEO_URL_TEMPLATE = 'http://www.vlive.tv/video/%s'
         if self._downloader.params.get('noplaylist'):
@@ -294,26 +292,27 @@ class VLivePlaylistIE(InfoExtractor):
                 ie=VLiveIE.ie_key(), video_id=video_id)
 
         self.to_screen(
-            'Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
+            'Downloading playlist %s - add --no-playlist to just download video'
+            % playlist_id)
 
         webpage = self._download_webpage(
-            'http://www.vlive.tv/video/%s/playlist/%s' % (video_id, playlist_id), video_id)
+            'http://www.vlive.tv/video/%s/playlist/%s'
+            % (video_id, playlist_id), playlist_id)
+
+        item_ids = self._parse_json(
+            self._search_regex(
+                r'playlistVideoSeqs\s*=\s*(\[[^]]+\])', webpage,
+                'playlist video seqs'),
+            playlist_id)
+
+        entries = [
+            self.url_result(
+                VIDEO_URL_TEMPLATE % item_id, ie=VLiveIE.ie_key(),
+                video_id=compat_str(item_id))
+            for item_id in item_ids]
 
         playlist_name = self._html_search_regex(
             r'<div[^>]+class="[^"]*multicam_playlist[^>]*>\s*<h3[^>]+>([^<]+)',
-            webpage, 'playlist name', fatal=False)
+            webpage, 'playlist title', fatal=False)
 
-        item_ids = self._search_regex(
-            r'\bvar\s+playlistVideoSeqs\s*=\s*(\[[^]]+\])',
-            webpage, 'playlist item ids')
-
-        entries = []
-        for item_id in self._parse_json(item_ids, playlist_id):
-            item_id = compat_str(item_id)
-            entries.append(
-                self.url_result(
-                    VIDEO_URL_TEMPLATE % item_id,
-                    ie=VLiveIE.ie_key(), video_id=item_id))
-
-        return self.playlist_result(
-            entries, playlist_id, playlist_name)
+        return self.playlist_result(entries, playlist_id, playlist_name)
