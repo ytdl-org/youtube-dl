@@ -1,9 +1,10 @@
 youtube-dl - download videos from youtube.com or other video platforms
-<table width="100%" border="1"  align="center"  class="table_border_both">
+<table width="100%"   align="center"  class="table_border_both">
 <tr class="heading_table_top">
+<td> this is siddht1 fork of rg3:youtube-dl </td>
 <td>Build Satus</td>
 <td><img src="https://travis-ci.org/siddht1/youtube-dl.svg?branch=master" alt="youtube-dl build status"></td>
-<td> this is siddht1 fork of rg3:youtube-dl </td>
+
 </tr>
 </table> 
 
