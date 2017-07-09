@@ -48,7 +48,7 @@ class AnimeLabBaseIE(InfoExtractor):
                 page = e.cause.read().decode('utf-8')
                 js_error = self._search_regex(
                     r'Utils\.notify\( *?[\'"]error[\'"] *?, *?[\'"](.*?)[\'"]',
-                    page, 'Trying to get error message in js', default=None, fatal=False)
+                    page, 'Trying to get error message in js', default=None)
                 if js_error:
                     raise ExtractorError('Unable to log in: %s' % js_error, expected=True)
 
