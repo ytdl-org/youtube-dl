@@ -131,11 +131,7 @@ class AnimeLabBaseIE(InfoExtractor):
 
                 formats.append(current_format)
 
-        # due to Python's sorting algorithm having the property of being 'stable', the following
-        # means that videos are sorted by height, but in the case of the same height,
-        # are sorted by language
-        formats.sort(key=lambda k: str.lower(k.get('language') or ''))
-        formats.sort(key=lambda k: k.get('height') or 0)
+        self._sort_formats(formats)
 
         return formats
 
