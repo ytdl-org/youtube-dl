@@ -57,6 +57,7 @@ from .dailymotion import (
     DailymotionIE,
     DailymotionCloudIE,
 )
+from .dailymail import DailyMailIE
 from .onionstudios import OnionStudiosIE
 from .viewlift import ViewLiftEmbedIE
 from .mtv import MTVServicesEmbeddedIE
@@ -759,6 +760,20 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1398441542,
             },
             'add_ie': ['Dailymotion'],
+        },
+        # DailyMail embed
+        {
+            'url': 'http://www.bumm.sk/krimi/2017/07/05/biztonsagi-kamera-buktatta-le-az-agg-ferfit-utlegelo-apolot',
+            'info_dict': {
+                'id': '1495629',
+                'ext': 'mp4',
+                'title': 'Care worker punches elderly dementia patient in head 11 times',
+                'description': 'md5:3a743dee84e57e48ec68bf67113199a5',
+            },
+            'add_ie': ['DailyMail'],
+            'params': {
+                'skip_download': True,
+            },
         },
         # YouTube embed
         {
@@ -2189,6 +2204,12 @@ class GenericIE(InfoExtractor):
             if playlists:
                 return self.playlist_from_matches(
                     playlists, video_id, video_title, lambda p: '//dailymotion.com/playlist/%s' % p)
+
+        # Look for DailyMail embeds
+        dailymail_urls = DailyMailIE._extract_urls(webpage)
+        if dailymail_urls:
+            return self.playlist_from_matches(
+                dailymail_urls, video_id, video_title, ie=DailyMailIE.ie_key())
 
         # Look for embedded Wistia player
         wistia_url = WistiaIE._extract_url(webpage)
