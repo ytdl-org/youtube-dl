@@ -66,7 +66,7 @@ class AnimeLabBaseIE(InfoExtractor):
         self._login()
 
     def _extract_video_collection_from_player(self, webpage):
-        video_collection_str = self._search_regex(r'new +?VideoCollection *?\((.*?)\);', webpage, 'AnimeLab VideoCollection')
+        video_collection_str = self._search_regex(r'new\s+?VideoCollection\s*?\((.*?)\);', webpage, 'AnimeLab VideoCollection')
         return self._parse_json(video_collection_str, None)
 
     def _extract_position_from_player(self, webpage):
