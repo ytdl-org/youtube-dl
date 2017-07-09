@@ -89,7 +89,8 @@ class AnimeLabIE(AnimeLabBaseIE):
             },
             'params': {
                 'format': '[format_id=59288_yeshardsubbed_ja-JP]',
-            }
+            },
+            'skip': 'All AnimeLab content requires authentication',
         },
 
         {
@@ -106,7 +107,8 @@ class AnimeLabIE(AnimeLabBaseIE):
             },
             'params': {
                 'format': '[format_id=21711_yeshardsubbed_ja-JP]',
-            }
+            },
+            'skip': 'All AnimeLab content requires authentication',
         },
     ]
 
