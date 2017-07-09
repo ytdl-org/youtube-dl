@@ -154,6 +154,7 @@
  - **chirbit**
  - **chirbit:profile**
  - **Cinchcast**
+ - **CJSW**
  - **Clipfish**
  - **cliphunter**
  - **ClipRs**
@@ -369,6 +370,7 @@
  - **Jamendo**
  - **JamendoAlbum**
  - **JeuxVideo**
+ - **Joj**
  - **Jove**
  - **jpopsuki.tv**
  - **JWPlatform**
@@ -996,7 +998,6 @@
  - **XVideos**
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
- - **Yam**: 蕃薯藤yam天空部落
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек
