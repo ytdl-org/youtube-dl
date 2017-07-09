@@ -1199,6 +1199,24 @@ class GenericIE(InfoExtractor):
                 'view_count': int,
                 'age_limit': 0,
             },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # referrer protected EaglePlatform embed
+        {
+            'url': 'https://tvrain.ru/lite/teleshow/kak_vse_nachinalos/namin-418921/',
+            'info_dict': {
+                'id': '582306',
+                'ext': 'mp4',
+                'title': 'Стас Намин: «Мы нарушили девственность Кремля»',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 3382,
+                'view_count': int,
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
         # ClipYou (EaglePlatform) embed (custom URL)
         {
@@ -1211,6 +1229,9 @@ class GenericIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 216,
                 'view_count': int,
+            },
+            'params': {
+                'skip_download': True,
             },
         },
         # Pladform embed
