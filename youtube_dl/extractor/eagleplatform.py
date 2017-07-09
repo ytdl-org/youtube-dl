@@ -53,7 +53,7 @@ class EaglePlatformIE(InfoExtractor):
         'skip': 'Georestricted',
     }, {
         # referrer protected video (https://tvrain.ru/lite/teleshow/kak_vse_nachinalos/namin-418921/)
-        'url': 'tvrainru.media.eagleplatform.com:582306',
+        'url': 'eagleplatform:tvrainru.media.eagleplatform.com:582306',
         'only_matching': True,
     }]
 
