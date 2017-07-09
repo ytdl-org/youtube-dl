@@ -1654,6 +1654,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if m_music:
             video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
             video_creator = clean_html(m_music.group('creator'))
+            if video_creator:
+                video_creator = video_creator.replace(' Listen ad-free with YouTube Red', '')
         else:
             video_alt_title = video_creator = None
 
