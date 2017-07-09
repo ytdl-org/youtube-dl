@@ -311,11 +311,11 @@ class VLivePlaylistIE(InfoExtractor):
             webpage, 'playlist name', fatal=False)
 
         item_ids = self._search_regex(
-            r'\bvar\s+playlistVideoSeqs\s*=\s*\[([^]]+)\]',
+            r'\bvar\s+playlistVideoSeqs\s*=\s*(\[[^]]+\])',
             webpage, 'playlist item ids')
 
         entries = []
-        for item_id in self._parse_json('[%s]' % item_ids, playlist_id):
+        for item_id in self._parse_json(item_ids, playlist_id):
             item_id = compat_str(item_id)
             entries.append(
                 self.url_result(
