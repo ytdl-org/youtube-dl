@@ -91,6 +91,7 @@ from .anvato import AnvatoIE
 from .washingtonpost import WashingtonPostIE
 from .wistia import WistiaIE
 from .mediaset import MediasetIE
+from .joj import JojIE
 
 
 class GenericIE(InfoExtractor):
@@ -1771,6 +1772,16 @@ class GenericIE(InfoExtractor):
             'add_ie': [MediasetIE.ie_key()],
         },
         {
+            # JOJ.sk embeds
+            'url': 'https://www.noviny.sk/slovensko/238543-slovenskom-sa-prehnala-vlna-silnych-burok',
+            'info_dict': {
+                'id': '238543-slovenskom-sa-prehnala-vlna-silnych-burok',
+                'title': 'Slovenskom sa prehnala vlna silných búrok',
+            },
+            'playlist_mincount': 5,
+            'add_ie': [JojIE.ie_key()],
+        },
+        {
             # AMP embed (see https://www.ampproject.org/docs/reference/components/amp-video)
             'url': 'https://tvrain.ru/amp/418921/',
             'md5': 'cc00413936695987e8de148b67d14f1d',
@@ -2721,6 +2732,12 @@ class GenericIE(InfoExtractor):
         if mediaset_urls:
             return self.playlist_from_matches(
                 mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key())
+
+        # Look for JOJ.sk embeds
+        joj_urls = JojIE._extract_urls(webpage)
+        if joj_urls:
+            return self.playlist_from_matches(
+                joj_urls, video_id, video_title, ie=JojIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}
