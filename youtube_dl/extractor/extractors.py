@@ -1280,6 +1280,7 @@ from .yahoo import (
     YahooIE,
     YahooSearchIE,
 )
+from .yam import YamIE
 from .yandexmusic import (
     YandexMusicTrackIE,
     YandexMusicAlbumIE,
@@ -1319,3 +1320,4 @@ from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
+from .pornjam import PornjamIE
