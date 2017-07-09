@@ -1,4 +1,16 @@
 youtube-dl - download videos from youtube.com or other video platforms
+<table width="100%"   align="center"  class="table_border_both">
+<tr class="heading_table_top">
+<td>  rg3:youtube-dl </td>
+<td>Build Satus</td>
+<td><img src="https://travis-ci.org/rg3/youtube-dl.svg?branch=master" alt="youtube-dl build status"></td>
+
+</tr>
+</table> 
+
+
+
+
 
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
