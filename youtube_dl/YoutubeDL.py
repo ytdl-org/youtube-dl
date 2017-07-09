@@ -1890,7 +1890,7 @@ class YoutubeDL(object):
                         info_dict.get('protocol') == 'm3u8' and
                         self.params.get('hls_prefer_native')):
                     if fixup_policy == 'warn':
-                        self.report_warning('%s: malformated aac bitstream.' % (
+                        self.report_warning('%s: malformed AAC bitstream detected.' % (
                             info_dict['id']))
                     elif fixup_policy == 'detect_or_warn':
                         fixup_pp = FFmpegFixupM3u8PP(self)
@@ -1899,7 +1899,7 @@ class YoutubeDL(object):
                             info_dict['__postprocessors'].append(fixup_pp)
                         else:
                             self.report_warning(
-                                '%s: malformated aac bitstream. %s'
+                                '%s: malformed AAC bitstream detected. %s'
                                 % (info_dict['id'], INSTALL_FFMPEG_MESSAGE))
                     else:
                         assert fixup_policy in ('ignore', 'never')

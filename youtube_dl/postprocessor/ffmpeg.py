@@ -542,7 +542,7 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
             temp_filename = prepend_extension(filename, 'temp')
 
             options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
-            self._downloader.to_screen('[ffmpeg] Fixing malformated aac bitstream in "%s"' % filename)
+            self._downloader.to_screen('[ffmpeg] Fixing malformed AAC bitstream in "%s"' % filename)
             self.run_ffmpeg(filename, temp_filename, options)
 
             os.remove(encodeFilename(filename))
