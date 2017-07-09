@@ -112,22 +112,35 @@ class AnimeLabIE(AnimeLabBaseIE):
         },
     ]
 
-    def _extract_video_collection_from_player(self, webpage):
+    def _real_extract(self, url):
+        webpage = self._download_webpage(url, None, 'Downloading requested URL')
+
         video_collection_str = self._search_regex(r'new\s+?VideoCollection\s*?\((.*?)\);', webpage, 'AnimeLab VideoCollection')
-        return self._parse_json(video_collection_str, None)
+        video_collection = self._parse_json(video_collection_str, None)
+        position = int_or_none(self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position'))
 
-    def _extract_position_from_player(self, webpage):
-        position_str = self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position')
-        return int_or_none(position_str)
+        raw_data = video_collection[position]['videoEntry']
 
-    def _create_title(self, webpage, title_parts):
+        video_id = str_or_none(raw_data['id'])
+
+        # create a title from many sources (while grabbing other info)
+        # TODO use more fallback sources to get some of these
+        series = raw_data.get('showTitle')
+        video_type = raw_data.get('videoEntryType', {}).get('name')
+        episode_number = raw_data.get('episodeNumber')
+        episode_name = raw_data.get('name')
+
+        title_parts = (series, video_type, episode_number, episode_name)
         if None not in title_parts:
-            return '%s - %s %s - %s' % title_parts
+            title = '%s - %s %s - %s' % title_parts
         else:
             self.report_warning('Could not get all necessary data to contruct title manually, trying alternative sources...')
-            return self._search_regex(r'AnimeLab - (.*) - Watch Online', webpage, 'Title from html')
+            title = self._search_regex(r'AnimeLab - (.*) - Watch Online', webpage, 'Title from html')
 
-    def _get_available_formats(self, webpage, raw_data):
+        description = raw_data.get('synopsis') or self._og_search_description(webpage, default=None)
+
+        # TODO extract thumbnails and other things youtube-dl optionally wants
+
         formats = []
         for video_data in raw_data['videoList']:
             current_video_list = {}
@@ -180,29 +193,6 @@ class AnimeLabIE(AnimeLabBaseIE):
 
         self._sort_formats(formats)
 
-        return formats
-
-    def _extract_video_from_collection(self, webpage, video_collection, position):
-        raw_data = video_collection[position]['videoEntry']
-
-        video_id = str_or_none(raw_data['id'])
-
-        # create a title from many sources (while grabbing other info)
-        # TODO use more fallback sources to get some of these
-        series = raw_data.get('showTitle')
-        video_type = raw_data.get('videoEntryType', {}).get('name')
-        episode_number = raw_data.get('episodeNumber')
-        episode_name = raw_data.get('name')
-
-        title_parts = (series, video_type, episode_number, episode_name)
-        title = self._create_title(webpage, title_parts)
-
-        description = raw_data.get('synopsis') or self._og_search_description(webpage, default=None)
-
-        formats = self._get_available_formats(webpage, raw_data)
-
-        # TODO extract thumbnails and other things youtube-dl optionally wants
-
         return {
             'id': video_id,
             'title': title,
@@ -212,14 +202,5 @@ class AnimeLabIE(AnimeLabBaseIE):
             'episode_number': int_or_none(episode_number),
             'formats': formats,
         }
-
-    def _extract_video_from_player(self, webpage):
-        video_collection = self._extract_video_collection_from_player(webpage)
-        position = self._extract_position_from_player(webpage)
-        return self._extract_video_from_collection(webpage, video_collection, position)
-
-    def _real_extract(self, url):
-        webpage = self._download_webpage(url, None, 'Downloading requested URL')
-        return self._extract_video_from_player(webpage)
 
 # TODO implement shows and myqueue (playlists)
