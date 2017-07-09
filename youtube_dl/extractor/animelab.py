@@ -71,11 +71,7 @@ class AnimeLabBaseIE(InfoExtractor):
 
     def _extract_position_from_player(self, webpage):
         position_str = self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position')
-        position = int_or_none(position_str)
-        if position is None:
-            raise ExtractorError('Could not get playlist position as integer. Extracted string was %s' % position_str)
-
-        return position
+        return int_or_none(position_str)
 
     def _create_title(self, webpage, title_parts):
         if None not in title_parts:
