@@ -292,16 +292,16 @@ class VLivePlaylistIE(InfoExtractor):
         assert video_id_match
         video_id = compat_str(video_id_match.group('video_id'))
 
-        video_url_format = 'http://www.vlive.tv/video/%s'
+        VIDEO_URL_TEMPLATE = 'http://www.vlive.tv/video/%s'
         if self._downloader.params.get('noplaylist'):
             self.to_screen(
                 'Downloading just video %s because of --no-playlist' % video_id)
             return self.url_result(
-                video_url_format % video_id,
+                VIDEO_URL_TEMPLATE % video_id,
                 ie=VLiveIE.ie_key(), video_id=video_id)
-        else:
-            self.to_screen(
-                'Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
+
+        self.to_screen(
+            'Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
 
         webpage = self._download_webpage(
             'http://www.vlive.tv/video/%s/playlist/%s' % (video_id, playlist_id), video_id)
@@ -319,7 +319,7 @@ class VLivePlaylistIE(InfoExtractor):
             item_id = compat_str(item_id)
             entries.append(
                 self.url_result(
-                    video_url_format % item_id,
+                    VIDEO_URL_TEMPLATE % item_id,
                     ie=VLiveIE.ie_key(), video_id=item_id))
 
         return self.playlist_result(
