@@ -1,4 +1,14 @@
 youtube-dl - download videos from youtube.com or other video platforms
+<table width="90%" border="1"  align="center" cellpadding="3" cellspacing="1" class="table_border_both">
+<TR class="heading_table_top">
+<Td>Build Satus</Td>
+<Td><img src="https://travis-ci.org/siddht1/youtube-dl.svg?branch=master" alt="youtube-dl build status"></Td>
+</TR>
+</TABLE> 
+
+
+
+
 
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
