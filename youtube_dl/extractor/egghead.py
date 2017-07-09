@@ -7,7 +7,7 @@ from .common import InfoExtractor
 class EggheadCourseIE(InfoExtractor):
     IE_DESC = 'egghead.io course'
     IE_NAME = 'egghead:course'
-    _VALID_URL = r'https://egghead\.io/courses/(?P<id>[a-zA-Z_0-9-]+)'
+    _VALID_URL = r'https://egghead\.io/courses/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://egghead.io/courses/professor-frisby-introduces-composable-functional-javascript',
         'playlist_count': 29,
@@ -20,18 +20,16 @@ class EggheadCourseIE(InfoExtractor):
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
-        api_url = 'https://egghead.io/api/v1/series/' + playlist_id
-        course = self._download_json(api_url, playlist_id)
-        title = course.get('title')
-        description = course.get('description')
 
-        lessons = course.get('lessons')
-        entries = [{'_type': 'url', 'ie_key': 'Wistia', 'url': 'wistia:' + l.get('wistia_id')} for l in lessons]
+        course = self._download_json(
+            'https://egghead.io/api/v1/series/%s' % playlist_id, playlist_id)
 
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'title': title,
-            'description': description,
-            'entries': entries,
-        }
+        entries = [
+            self.url_result(
+                'wistia:%s' % lesson['wistia_id'], ie='Wistia',
+                video_id=lesson['wistia_id'], video_title=lesson.get('title'))
+            for lesson in course['lessons'] if lesson.get('wistia_id')]
+
+        return self.playlist_result(
+            entries, playlist_id, course.get('title'),
+            course.get('description'))
