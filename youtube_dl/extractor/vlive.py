@@ -288,8 +288,20 @@ class VLivePlaylistIE(InfoExtractor):
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
-        video_id = self._search_regex(
-            self._VALID_URL, url, 'video id', group='video_id')
+        video_id_match = re.match(self._VALID_URL, url)
+        assert video_id_match
+        video_id = compat_str(video_id_match.group('video_id'))
+
+        video_url_format = 'http://www.vlive.tv/video/%s'
+        if self._downloader.params.get('noplaylist'):
+            self.to_screen(
+                'Downloading just video %s because of --no-playlist' % video_id)
+            return self.url_result(
+                video_url_format % video_id,
+                ie=VLiveIE.ie_key(), video_id=video_id)
+        else:
+            self.to_screen(
+                'Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
 
         webpage = self._download_webpage(
             'http://www.vlive.tv/video/%s/playlist/%s' % (video_id, playlist_id), video_id)
@@ -299,15 +311,15 @@ class VLivePlaylistIE(InfoExtractor):
             webpage, 'playlist name', fatal=False)
 
         item_ids = self._search_regex(
-            r'\bvar\s+playlistVideoSeqs\s*=\s*\[([^\]]+)\]',
-            webpage, 'playlist item ids', default='')
+            r'\bvar\s+playlistVideoSeqs\s*=\s*\[([^]]+)\]',
+            webpage, 'playlist item ids')
 
         entries = []
-        for item_id in re.split(r'\s*,\s*', item_ids):
+        for item_id in self._parse_json('[%s]' % item_ids, playlist_id):
             item_id = compat_str(item_id)
             entries.append(
                 self.url_result(
-                    'http://www.vlive.tv/video/%s' % item_id,
+                    video_url_format % item_id,
                     ie=VLiveIE.ie_key(), video_id=item_id))
 
         return self.playlist_result(
