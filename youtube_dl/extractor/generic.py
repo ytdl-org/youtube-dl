@@ -91,6 +91,7 @@ from .anvato import AnvatoIE
 from .washingtonpost import WashingtonPostIE
 from .wistia import WistiaIE
 from .mediaset import MediasetIE
+from .pornjam import PornjamIE
 
 
 class GenericIE(InfoExtractor):
