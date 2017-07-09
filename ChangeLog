@@ -1,7 +1,27 @@
-version <unreleased>
+version 2017.07.09
+
+Core
++ [extractor/common] Add support for AMP tags in _parse_html5_media_entries
++ [utils] Support attributes with no values in get_elements_by_attribute
 
 Extractors
++ [dailymail] Add support for embeds
++ [joj] Add support for joj.sk (#13268)
+* [abc.net.au:iview] Extract more formats (#13492, #13489)
+* [egghead:course] Fix extraction (#6635, #13370)
++ [cjsw] Add support for cjsw.com (#13525)
++ [eagleplatform] Add support for referrer protected videos (#13557)
++ [eagleplatform] Add support for another embed pattern (#13557)
+* [veoh] Extend URL regular expression (#13601)
+* [npo:live] Fix live stream id extraction (#13568, #13605)
+* [googledrive] Fix height extraction (#13603)
++ [dailymotion] Add support for new layout (#13580)
 - [yam] Remove extractor
+* [xhamster] Extract all formats and fix duration extraction (#13593)
++ [xhamster] Add support for new URL schema (#13593)
+* [espn] Extend URL regular expression (#13244, #13549)
+* [kaltura] Fix typo in subtitles extraction (#13569)
+* [vier] Adapt extraction to redesign (#13575)
 
 
 version 2017.07.02

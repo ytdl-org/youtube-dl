@@ -189,6 +189,7 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
+from .cjsw import CJSWIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .cliprs import ClipRsIE
@@ -473,6 +474,7 @@ from .jamendo import (
 )
 from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
+from .joj import JojIE
 from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
 from .kaltura import KalturaIE
@@ -1208,7 +1210,8 @@ from .vk import (
 )
 from .vlive import (
     VLiveIE,
-    VLiveChannelIE
+    VLiveChannelIE,
+    VLivePlaylistIE
 )
 from .vodlocker import VodlockerIE
 from .vodpl import VODPlIE

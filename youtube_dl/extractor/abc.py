@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     js_to_json,
     int_or_none,
     parse_iso8601,
+    try_get,
 )
 
 
@@ -124,7 +126,20 @@ class ABCIViewIE(InfoExtractor):
         title = video_params.get('title') or video_params['seriesTitle']
         stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
 
-        formats = self._extract_akamai_formats(stream['hds-unmetered'], video_id)
+        format_urls = [
+            try_get(stream, lambda x: x['hds-unmetered'], compat_str)]
+
+        # May have higher quality video
+        sd_url = try_get(
+            stream, lambda x: x['streams']['hds']['sd'], compat_str)
+        if sd_url:
+            format_urls.append(sd_url.replace('metered', 'um'))
+
+        formats = []
+        for format_url in format_urls:
+            if format_url:
+                formats.extend(
+                    self._extract_akamai_formats(format_url, video_id))
         self._sort_formats(formats)
 
         subtitles = {}

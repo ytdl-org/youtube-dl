@@ -49,6 +49,10 @@ class VLiveIE(InfoExtractor):
         },
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if VLivePlaylistIE.suitable(url) else super(VLiveIE, cls).suitable(url)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -261,3 +265,54 @@ class VLiveChannelIE(InfoExtractor):
 
         return self.playlist_result(
             entries, channel_code, channel_name)
+
+
+class VLivePlaylistIE(InfoExtractor):
+    IE_NAME = 'vlive:playlist'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<video_id>[0-9]+)/playlist/(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://www.vlive.tv/video/22867/playlist/22912',
+        'info_dict': {
+            'id': '22912',
+            'title': 'Valentine Day Message from TWICE'
+        },
+        'playlist_mincount': 9
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id, playlist_id = mobj.group('video_id', 'id')
+
+        VIDEO_URL_TEMPLATE = 'http://www.vlive.tv/video/%s'
+        if self._downloader.params.get('noplaylist'):
+            self.to_screen(
+                'Downloading just video %s because of --no-playlist' % video_id)
+            return self.url_result(
+                VIDEO_URL_TEMPLATE % video_id,
+                ie=VLiveIE.ie_key(), video_id=video_id)
+
+        self.to_screen(
+            'Downloading playlist %s - add --no-playlist to just download video'
+            % playlist_id)
+
+        webpage = self._download_webpage(
+            'http://www.vlive.tv/video/%s/playlist/%s'
+            % (video_id, playlist_id), playlist_id)
+
+        item_ids = self._parse_json(
+            self._search_regex(
+                r'playlistVideoSeqs\s*=\s*(\[[^]]+\])', webpage,
+                'playlist video seqs'),
+            playlist_id)
+
+        entries = [
+            self.url_result(
+                VIDEO_URL_TEMPLATE % item_id, ie=VLiveIE.ie_key(),
+                video_id=compat_str(item_id))
+            for item_id in item_ids]
+
+        playlist_name = self._html_search_regex(
+            r'<div[^>]+class="[^"]*multicam_playlist[^>]*>\s*<h3[^>]+>([^<]+)',
+            webpage, 'playlist title', fatal=False)
+
+        return self.playlist_result(entries, playlist_id, playlist_name)

@@ -57,6 +57,7 @@ from .dailymotion import (
     DailymotionIE,
     DailymotionCloudIE,
 )
+from .dailymail import DailyMailIE
 from .onionstudios import OnionStudiosIE
 from .viewlift import ViewLiftEmbedIE
 from .mtv import MTVServicesEmbeddedIE
@@ -91,6 +92,7 @@ from .anvato import AnvatoIE
 from .washingtonpost import WashingtonPostIE
 from .wistia import WistiaIE
 from .mediaset import MediasetIE
+from .joj import JojIE
 
 
 class GenericIE(InfoExtractor):
@@ -759,6 +761,20 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Dailymotion'],
         },
+        # DailyMail embed
+        {
+            'url': 'http://www.bumm.sk/krimi/2017/07/05/biztonsagi-kamera-buktatta-le-az-agg-ferfit-utlegelo-apolot',
+            'info_dict': {
+                'id': '1495629',
+                'ext': 'mp4',
+                'title': 'Care worker punches elderly dementia patient in head 11 times',
+                'description': 'md5:3a743dee84e57e48ec68bf67113199a5',
+            },
+            'add_ie': ['DailyMail'],
+            'params': {
+                'skip_download': True,
+            },
+        },
         # YouTube embed
         {
             'url': 'http://www.badzine.de/ansicht/datum/2014/06/09/so-funktioniert-die-neue-englische-badminton-liga.html',
@@ -1185,7 +1201,7 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
-        # Eagle.Platform embed (generic URL)
+        # EaglePlatform embed (generic URL)
         {
             'url': 'http://lenta.ru/news/2015/03/06/navalny/',
             # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
@@ -1199,8 +1215,26 @@ class GenericIE(InfoExtractor):
                 'view_count': int,
                 'age_limit': 0,
             },
+            'params': {
+                'skip_download': True,
+            },
         },
-        # ClipYou (Eagle.Platform) embed (custom URL)
+        # referrer protected EaglePlatform embed
+        {
+            'url': 'https://tvrain.ru/lite/teleshow/kak_vse_nachinalos/namin-418921/',
+            'info_dict': {
+                'id': '582306',
+                'ext': 'mp4',
+                'title': 'Стас Намин: «Мы нарушили девственность Кремля»',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 3382,
+                'view_count': int,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        # ClipYou (EaglePlatform) embed (custom URL)
         {
             'url': 'http://muz-tv.ru/play/7129/',
             # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
@@ -1211,6 +1245,9 @@ class GenericIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 216,
                 'view_count': int,
+            },
+            'params': {
+                'skip_download': True,
             },
         },
         # Pladform embed
@@ -1749,6 +1786,26 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': [MediasetIE.ie_key()],
         },
+        {
+            # JOJ.sk embeds
+            'url': 'https://www.noviny.sk/slovensko/238543-slovenskom-sa-prehnala-vlna-silnych-burok',
+            'info_dict': {
+                'id': '238543-slovenskom-sa-prehnala-vlna-silnych-burok',
+                'title': 'Slovenskom sa prehnala vlna silných búrok',
+            },
+            'playlist_mincount': 5,
+            'add_ie': [JojIE.ie_key()],
+        },
+        {
+            # AMP embed (see https://www.ampproject.org/docs/reference/components/amp-video)
+            'url': 'https://tvrain.ru/amp/418921/',
+            'md5': 'cc00413936695987e8de148b67d14f1d',
+            'info_dict': {
+                'id': '418921',
+                'ext': 'mp4',
+                'title': 'Стас Намин: «Мы нарушили девственность Кремля»',
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2148,6 +2205,12 @@ class GenericIE(InfoExtractor):
                 return self.playlist_from_matches(
                     playlists, video_id, video_title, lambda p: '//dailymotion.com/playlist/%s' % p)
 
+        # Look for DailyMail embeds
+        dailymail_urls = DailyMailIE._extract_urls(webpage)
+        if dailymail_urls:
+            return self.playlist_from_matches(
+                dailymail_urls, video_id, video_title, ie=DailyMailIE.ie_key())
+
         # Look for embedded Wistia player
         wistia_url = WistiaIE._extract_url(webpage)
         if wistia_url:
@@ -2443,12 +2506,12 @@ class GenericIE(InfoExtractor):
         if kaltura_url:
             return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
 
-        # Look for Eagle.Platform embeds
+        # Look for EaglePlatform embeds
         eagleplatform_url = EaglePlatformIE._extract_url(webpage)
         if eagleplatform_url:
-            return self.url_result(eagleplatform_url, EaglePlatformIE.ie_key())
+            return self.url_result(smuggle_url(eagleplatform_url, {'referrer': url}), EaglePlatformIE.ie_key())
 
-        # Look for ClipYou (uses Eagle.Platform) embeds
+        # Look for ClipYou (uses EaglePlatform) embeds
         mobj = re.search(
             r'<iframe[^>]+src="https?://(?P<host>media\.clipyou\.ru)/index/player\?.*\brecord_id=(?P<id>\d+).*"', webpage)
         if mobj is not None:
@@ -2690,6 +2753,12 @@ class GenericIE(InfoExtractor):
         if mediaset_urls:
             return self.playlist_from_matches(
                 mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key())
+
+        # Look for JOJ.sk embeds
+        joj_urls = JojIE._extract_urls(webpage)
+        if joj_urls:
+            return self.playlist_from_matches(
+                joj_urls, video_id, video_title, ie=JojIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}

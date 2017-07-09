@@ -341,7 +341,7 @@ class NPOLiveIE(NPOBaseIE):
         webpage = self._download_webpage(url, display_id)
 
         live_id = self._search_regex(
-            r'data-prid="([^"]+)"', webpage, 'live id')
+            [r'media-id="([^"]+)"', r'data-prid="([^"]+)"'], webpage, 'live id')
 
         return {
             '_type': 'url_transparent',

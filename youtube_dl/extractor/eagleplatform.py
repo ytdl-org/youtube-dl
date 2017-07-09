@@ -11,6 +11,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    unsmuggle_url,
 )
 
 
@@ -50,6 +51,10 @@ class EaglePlatformIE(InfoExtractor):
             'view_count': int,
         },
         'skip': 'Georestricted',
+    }, {
+        # referrer protected video (https://tvrain.ru/lite/teleshow/kak_vse_nachinalos/namin-418921/)
+        'url': 'eagleplatform:tvrainru.media.eagleplatform.com:582306',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -60,16 +65,40 @@ class EaglePlatformIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return mobj.group('url')
-        # Basic usage embedding (see http://dultonmedia.github.io/eplayer/)
+        PLAYER_JS_RE = r'''
+                        <script[^>]+
+                            src=(?P<qjs>["\'])(?:https?:)?//(?P<host>(?:(?!(?P=qjs)).)+\.media\.eagleplatform\.com)/player/player\.js(?P=qjs)
+                        .+?
+                    '''
+        # "Basic usage" embedding (see http://dultonmedia.github.io/eplayer/)
         mobj = re.search(
             r'''(?xs)
-                    <script[^>]+
-                        src=(?P<q1>["\'])(?:https?:)?//(?P<host>.+?\.media\.eagleplatform\.com)/player/player\.js(?P=q1)
-                    .+?
+                    %s
                     <div[^>]+
-                        class=(?P<q2>["\'])eagleplayer(?P=q2)[^>]+
+                        class=(?P<qclass>["\'])eagleplayer(?P=qclass)[^>]+
                         data-id=["\'](?P<id>\d+)
-            ''', webpage)
+            ''' % PLAYER_JS_RE, webpage)
+        if mobj is not None:
+            return 'eagleplatform:%(host)s:%(id)s' % mobj.groupdict()
+        # Generalization of "Javascript code usage", "Combined usage" and
+        # "Usage without attaching to DOM" embeddings (see
+        # http://dultonmedia.github.io/eplayer/)
+        mobj = re.search(
+            r'''(?xs)
+                    %s
+                    <script>
+                    .+?
+                    new\s+EaglePlayer\(
+                        (?:[^,]+\s*,\s*)?
+                        {
+                            .+?
+                            \bid\s*:\s*["\']?(?P<id>\d+)
+                            .+?
+                        }
+                    \s*\)
+                    .+?
+                    </script>
+            ''' % PLAYER_JS_RE, webpage)
         if mobj is not None:
             return 'eagleplatform:%(host)s:%(id)s' % mobj.groupdict()
 
@@ -79,9 +108,10 @@ class EaglePlatformIE(InfoExtractor):
         if status != 200:
             raise ExtractorError(' '.join(response['errors']), expected=True)
 
-    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata', *args, **kwargs):
+    def _download_json(self, url_or_request, video_id, *args, **kwargs):
         try:
-            response = super(EaglePlatformIE, self)._download_json(url_or_request, video_id, note)
+            response = super(EaglePlatformIE, self)._download_json(
+                url_or_request, video_id, *args, **kwargs)
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError):
                 response = self._parse_json(ee.cause.read().decode('utf-8'), video_id)
@@ -93,11 +123,24 @@ class EaglePlatformIE(InfoExtractor):
         return self._download_json(url_or_request, video_id, note)['data'][0]
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+
         mobj = re.match(self._VALID_URL, url)
         host, video_id = mobj.group('custom_host') or mobj.group('host'), mobj.group('id')
 
+        headers = {}
+        query = {
+            'id': video_id,
+        }
+
+        referrer = smuggled_data.get('referrer')
+        if referrer:
+            headers['Referer'] = referrer
+            query['referrer'] = referrer
+
         player_data = self._download_json(
-            'http://%s/api/player_data?id=%s' % (host, video_id), video_id)
+            'http://%s/api/player_data' % host, video_id,
+            headers=headers, query=query)
 
         media = player_data['data']['playlist']['viewports'][0]['medialist'][0]
 
