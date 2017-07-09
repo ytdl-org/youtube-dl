@@ -185,6 +185,7 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
+from .cjsw import CJSWIE
 from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .cliprs import ClipRsIE
