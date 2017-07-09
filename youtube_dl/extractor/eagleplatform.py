@@ -60,16 +60,40 @@ class EaglePlatformIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return mobj.group('url')
-        # Basic usage embedding (see http://dultonmedia.github.io/eplayer/)
+        PLAYER_JS_RE = r'''
+                        <script[^>]+
+                            src=(?P<qjs>["\'])(?:https?:)?//(?P<host>(?:(?!(?P=qjs)).)+\.media\.eagleplatform\.com)/player/player\.js(?P=qjs)
+                        .+?
+                    '''
+        # "Basic usage" embedding (see http://dultonmedia.github.io/eplayer/)
         mobj = re.search(
             r'''(?xs)
-                    <script[^>]+
-                        src=(?P<q1>["\'])(?:https?:)?//(?P<host>.+?\.media\.eagleplatform\.com)/player/player\.js(?P=q1)
-                    .+?
+                    %s
                     <div[^>]+
-                        class=(?P<q2>["\'])eagleplayer(?P=q2)[^>]+
+                        class=(?P<qclass>["\'])eagleplayer(?P=qclass)[^>]+
                         data-id=["\'](?P<id>\d+)
-            ''', webpage)
+            ''' % PLAYER_JS_RE, webpage)
+        if mobj is not None:
+            return 'eagleplatform:%(host)s:%(id)s' % mobj.groupdict()
+        # Generalization of "Javascript code usage", "Combined usage" and
+        # "Usage without attaching to DOM" embeddings (see
+        # http://dultonmedia.github.io/eplayer/)
+        mobj = re.search(
+            r'''(?xs)
+                    %s
+                    <script>
+                    .+?
+                    new\s+EaglePlayer\(
+                        (?:[^,]+\s*,\s*)?
+                        {
+                            .+?
+                            \bid\s*:\s*["\']?(?P<id>\d+)
+                            .+?
+                        }
+                    \s*\)
+                    .+?
+                    </script>
+            ''' % PLAYER_JS_RE, webpage)
         if mobj is not None:
             return 'eagleplatform:%(host)s:%(id)s' % mobj.groupdict()
 
