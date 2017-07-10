@@ -113,10 +113,10 @@ class AnimeLabIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, None, 'Downloading requested URL')
+        webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
 
         video_collection_str = self._search_regex(r'new\s+?VideoCollection\s*?\((.*?)\);', webpage, 'AnimeLab VideoCollection')
-        video_collection = self._parse_json(video_collection_str, None)
+        video_collection = self._parse_json(video_collection_str, display_id)
         position = int_or_none(self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position'))
 
         raw_data = video_collection[position]['videoEntry']
