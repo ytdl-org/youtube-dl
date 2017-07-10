@@ -28,6 +28,7 @@ class AnimeLabIE(InfoExtractor):
             'info_dict': {
                 'id': '46000',
                 'ext': 'mp4',
+                'display_id': 'death-note-episode-1',
                 'title': 'Death Note - Episode 1 - Rebirth',
                 'description': 'md5:82581ad67bf1f714409a434fd96ff85d',
                 'series': 'Death Note',
@@ -46,6 +47,7 @@ class AnimeLabIE(InfoExtractor):
             'info_dict': {
                 'id': '383',
                 'ext': 'mp4',
+                'display_id': 'fullmetal-alchemist-brotherhood-episode-42',
                 'title': 'Fullmetal Alchemist: Brotherhood - Episode 42 - Signs of a Counteroffensive',
                 'description': 'md5:103eb61dd0a56d3dfc5dbf748e5e83f4',
                 'series': 'Fullmetal Alchemist: Brotherhood',
