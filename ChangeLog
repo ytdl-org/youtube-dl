@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [giantbomb] Extract m3u8 formats (#13626)
+
+
 version 2017.07.09
 
 Core
