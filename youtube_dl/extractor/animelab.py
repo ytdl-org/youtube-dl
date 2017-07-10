@@ -13,7 +13,52 @@ from ..utils import (
 from ..compat import compat_HTTPError
 
 
-class AnimeLabBaseIE(InfoExtractor):
+class AnimeLabIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/.+'
+
+    # the following tests require authentication, but a free account will suffice
+    # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
+    # or you can set 'username' and 'password' there
+    # the tests also select a specific format so that the same video is downloaded
+    # regardless of whether the user is premium or not (needs testing on a premium account)
+    _TESTS = [
+        {
+            'url': 'https://www.animelab.com/player/death-note-episode-1',
+            'md5': 'cfb6eab52b32f687c1cad1adc945ca65',
+            'info_dict': {
+                'id': '46000',
+                'ext': 'mp4',
+                'title': 'Death Note - Episode 1 - Rebirth',
+                'description': 'md5:82581ad67bf1f714409a434fd96ff85d',
+                'series': 'Death Note',
+                'episode': 'Rebirth',
+                'episode_number': 1,
+            },
+            'params': {
+                'format': '[format_id=59288_yeshardsubbed_ja-JP]',
+            },
+            'skip': 'All AnimeLab content requires authentication',
+        },
+
+        {
+            'url': 'https://www.animelab.com/player/fullmetal-alchemist-brotherhood-episode-42',
+            'md5': '05bde4b91a5d1ff46ef5b94df05b0f7f',
+            'info_dict': {
+                'id': '383',
+                'ext': 'mp4',
+                'title': 'Fullmetal Alchemist: Brotherhood - Episode 42 - Signs of a Counteroffensive',
+                'description': 'md5:103eb61dd0a56d3dfc5dbf748e5e83f4',
+                'series': 'Fullmetal Alchemist: Brotherhood',
+                'episode': 'Signs of a Counteroffensive',
+                'episode_number': 42,
+            },
+            'params': {
+                'format': '[format_id=21711_yeshardsubbed_ja-JP]',
+            },
+            'skip': 'All AnimeLab content requires authentication',
+        },
+    ]
+
     _LOGIN_REQUIRED = True
     _LOGIN_URL = 'https://www.animelab.com/login'
     _NETRC_MACHINE = 'animelab'
@@ -64,53 +109,6 @@ class AnimeLabBaseIE(InfoExtractor):
 
     def _real_initialize(self):
         self._login()
-
-
-class AnimeLabIE(AnimeLabBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/.+'
-
-    # the following tests require authentication, but a free account will suffice
-    # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
-    # or you can set 'username' and 'password' there
-    # the tests also select a specific format so that the same video is downloaded
-    # regardless of whether the user is premium or not (needs testing on a premium account)
-    _TESTS = [
-        {
-            'url': 'https://www.animelab.com/player/death-note-episode-1',
-            'md5': 'cfb6eab52b32f687c1cad1adc945ca65',
-            'info_dict': {
-                'id': '46000',
-                'ext': 'mp4',
-                'title': 'Death Note - Episode 1 - Rebirth',
-                'description': 'md5:82581ad67bf1f714409a434fd96ff85d',
-                'series': 'Death Note',
-                'episode': 'Rebirth',
-                'episode_number': 1,
-            },
-            'params': {
-                'format': '[format_id=59288_yeshardsubbed_ja-JP]',
-            },
-            'skip': 'All AnimeLab content requires authentication',
-        },
-
-        {
-            'url': 'https://www.animelab.com/player/fullmetal-alchemist-brotherhood-episode-42',
-            'md5': '05bde4b91a5d1ff46ef5b94df05b0f7f',
-            'info_dict': {
-                'id': '383',
-                'ext': 'mp4',
-                'title': 'Fullmetal Alchemist: Brotherhood - Episode 42 - Signs of a Counteroffensive',
-                'description': 'md5:103eb61dd0a56d3dfc5dbf748e5e83f4',
-                'series': 'Fullmetal Alchemist: Brotherhood',
-                'episode': 'Signs of a Counteroffensive',
-                'episode_number': 42,
-            },
-            'params': {
-                'format': '[format_id=21711_yeshardsubbed_ja-JP]',
-            },
-            'skip': 'All AnimeLab content requires authentication',
-        },
-    ]
 
     def _real_extract(self, url):
         webpage = self._download_webpage(url, None, 'Downloading requested URL')
