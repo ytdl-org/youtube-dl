@@ -36,7 +36,7 @@ class AnimeLabIE(InfoExtractor):
                 'episode_number': 1,
             },
             'params': {
-                'format': '[format_id=59288_yeshardsubbed_ja-JP]',
+                'format': '[format_id=59288_yeshardsubbed_ja-JP][height=480]',
             },
             'skip': 'All AnimeLab content requires authentication',
         },
@@ -55,7 +55,7 @@ class AnimeLabIE(InfoExtractor):
                 'episode_number': 42,
             },
             'params': {
-                'format': '[format_id=21711_yeshardsubbed_ja-JP]',
+                'format': '[format_id=21711_yeshardsubbed_ja-JP][height=480]',
             },
             'skip': 'All AnimeLab content requires authentication',
         },
