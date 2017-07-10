@@ -21,10 +21,21 @@ from ..utils import (
 
 class ViceBaseIE(AdobePassIE):
     def _extract_preplay_video(self, url, locale, webpage):
-        watch_hub_data = extract_attributes(self._search_regex(
-            r'(?s)(<watch-hub\s*.+?</watch-hub>)', webpage, 'watch hub'))
-        video_id = watch_hub_data['vms-id']
-        title = watch_hub_data['video-title']
+        try:
+            watch_hub_data = extract_attributes(self._search_regex(
+                r'(?s)(<watch-hub\s*.+?</watch-hub>)', webpage, 'watch hub'))
+            video_id = watch_hub_data['vms-id']
+            title = watch_hub_data['video-title']
+        except:
+            embed_player = extract_attributes(self._search_regex(
+                r'(?s)(<embed-player\s*.+?</embed-player>)', webpage, 'embed player'))
+            video_id = embed_player['vms-id']
+            title = embed_player['video-title']
+            watch_hub_data = {'thumbnail': embed_player.get('img'),
+                              'show-title': embed_player.get('show-title'),
+                              'channel-title': embed_player.get('channel-title'),
+                              'uploader': embed_player.get('channel-id')
+                              }
 
         query = {}
         is_locked = watch_hub_data.get('video-locked') == '1'
@@ -93,7 +104,7 @@ class ViceBaseIE(AdobePassIE):
 
 class ViceIE(ViceBaseIE):
     IE_NAME = 'vice'
-    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/(?:(?P<locale>[^/]+)/)?videos?/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/(?:(?P<locale>[^/]+)/)?(?:videos?|embed)/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'https://news.vice.com/video/experimenting-on-animals-inside-the-monkey-lab',
@@ -235,6 +246,9 @@ class ViceArticleIE(InfoExtractor):
     }, {
         'url': 'https://www.vice.com/ru/article/big-night-out-ibiza-clive-martin-229',
         'only_matching': True,
+    }, {
+        'url': 'https://www.vice.com/en_us/article/karley-sciortino-slutever-reloaded',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -267,8 +281,13 @@ class ViceArticleIE(InfoExtractor):
         if youtube_url:
             return _url_res(youtube_url, 'Youtube')
 
-        video_url = self._html_search_regex(
-            r'data-video-url="([^"]+)"',
-            prefetch_data['embed_code'], 'video URL')
+        try:
+            video_url = self._html_search_regex(
+                r'data-video-url="([^"]+)"',
+                prefetch_data['embed_code'], 'video URL')
+        except TypeError:
+            video_url = self._html_search_regex(
+                r'<\s*iframe\s*src=\s*"([^"]+)',
+                body, 'video URL')
 
         return _url_res(video_url, ViceIE.ie_key())
