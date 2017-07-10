@@ -14,7 +14,7 @@ from ..compat import compat_HTTPError
 
 
 class AnimeLabIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/.+'
+    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/(?P<id>[^/]+)'
 
     # the following tests require authentication, but a free account will suffice
     # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
@@ -111,6 +111,8 @@ class AnimeLabIE(InfoExtractor):
         self._login()
 
     def _real_extract(self, url):
+        display_id = self._match_id(url)
+
         webpage = self._download_webpage(url, None, 'Downloading requested URL')
 
         video_collection_str = self._search_regex(r'new\s+?VideoCollection\s*?\((.*?)\);', webpage, 'AnimeLab VideoCollection')
@@ -193,6 +195,7 @@ class AnimeLabIE(InfoExtractor):
 
         return {
             'id': video_id,
+            'display_id': display_id,
             'title': title,
             'description': description,
             'series': series,
