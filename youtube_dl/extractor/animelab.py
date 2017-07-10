@@ -134,7 +134,6 @@ class AnimeLabIE(InfoExtractor):
         if None not in title_parts:
             title = '%s - %s %s - %s' % title_parts
         else:
-            self.report_warning('Could not get all necessary data to contruct title manually, trying alternative sources...')
             title = self._search_regex(r'AnimeLab - (.*) - Watch Online', webpage, 'Title from html')
 
         description = raw_data.get('synopsis') or self._og_search_description(webpage, default=None)
