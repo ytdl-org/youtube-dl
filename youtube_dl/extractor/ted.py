@@ -271,20 +271,22 @@ class TEDIE(InfoExtractor):
         }
 
     def _get_subtitles(self, video_id, talk_info):
-        languages = [lang['languageCode'] for lang in talk_info.get('languages', [])]
-        if languages:
-            sub_lang_list = {}
-            for l in languages:
-                sub_lang_list[l] = [
-                    {
-                        'url': 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/%s' % (video_id, l, ext),
-                        'ext': ext,
-                    }
-                    for ext in ['ted', 'srt']
-                ]
-            return sub_lang_list
-        else:
-            return {}
+        sub_lang_list = {}
+        for language in try_get(
+                talk_info,
+                (lambda x: x['downloads']['languages'],
+                 lambda x: x['languages']), list):
+            lang_code = language.get('languageCode') or language.get('ianaCode')
+            if not lang_code:
+                continue
+            sub_lang_list[lang_code] = [
+                {
+                    'url': 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/%s' % (video_id, lang_code, ext),
+                    'ext': ext,
+                }
+                for ext in ['ted', 'srt']
+            ]
+        return sub_lang_list
 
     def _watch_info(self, url, name):
         webpage = self._download_webpage(url, name)
