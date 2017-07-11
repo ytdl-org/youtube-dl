@@ -91,6 +91,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'uploader_id': '1189339351084113920',
                 'uploader': 'ArsenalTerje',
                 'title': 'Vine by ArsenalTerje',
+                'timestamp': 1447451307,
             },
             'add_ie': ['Vine'],
         }, {
