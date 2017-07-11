@@ -335,10 +335,11 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '1zqKVVlkqLaKB',
             'ext': 'mp4',
-            'title': 'Sgt Kerry Schmidt - Ontario Provincial Police - Road rage, mischief, assault, rollover and fire in one occurrence',
+            'title': 'Sgt Kerry Schmidt - LIVE on #Periscope: Road rage, mischief, assault, rollover and fire in one occurrence',
+            'description': 'Sgt Kerry Schmidt on Twitter: "LIVE on #Periscope: Road rage, mischief, assault, rollover and fire in one occurrence  https://t.co/EKrVgIXF3s"',
             'upload_date': '20160923',
             'uploader_id': 'OPP_HSD',
-            'uploader': 'Sgt Kerry Schmidt - Ontario Provincial Police',
+            'uploader': 'Sgt Kerry Schmidt',
             'timestamp': 1474613214,
         },
         'add_ie': ['Periscope'],
