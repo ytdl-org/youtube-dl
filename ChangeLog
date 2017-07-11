@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [niconico] Fix authentication error handling (#12486)
 * [giantbomb] Extract m3u8 formats (#13626)
 
 
