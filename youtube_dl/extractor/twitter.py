@@ -54,7 +54,8 @@ class TwitterCardIE(TwitterBaseIE):
                 'title': 'Twitter Card',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 30.033,
-            }
+            },
+            'skip': 'Video gone',
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/623160978427936768',
@@ -66,6 +67,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 80.155,
             },
+            'skip': 'Video gone',
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
@@ -83,7 +85,7 @@ class TwitterCardIE(TwitterBaseIE):
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/665289828897005568',
-            'md5': 'ab2745d0b0ce53319a534fccaa986439',
+            'md5': '6dabeaca9e68cbb71c99c322a4b42a11',
             'info_dict': {
                 'id': 'iBb2x00UVlv',
                 'ext': 'mp4',
@@ -96,12 +98,12 @@ class TwitterCardIE(TwitterBaseIE):
             'add_ie': ['Vine'],
         }, {
             'url': 'https://twitter.com/i/videos/tweet/705235433198714880',
-            'md5': '3846d0a07109b5ab622425449b59049d',
+            'md5': '884812a2adc8aaf6fe52b15ccbfa3b88',
             'info_dict': {
                 'id': '705235433198714880',
                 'ext': 'mp4',
                 'title': 'Twitter web player',
-                'thumbnail': r're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*',
             },
         }, {
             'url': 'https://twitter.com/i/videos/752274308186120192',
@@ -303,10 +305,10 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'JG - BEAT PROD: @suhmeduh #Damndaniel',
-            'description': 'JG on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'title': 'Donte - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'Donte on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
             'thumbnail': r're:^https?://.*\.jpg',
-            'uploader': 'JG',
+            'uploader': 'Donte',
             'uploader_id': 'jaydingeer',
         },
         'params': {
@@ -318,9 +320,11 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': 'MIOxnrUteUd',
             'ext': 'mp4',
-            'title': 'Dr.Pepperの飲み方 #japanese #バカ #ドクペ #電動ガン',
-            'uploader': 'TAKUMA',
-            'uploader_id': '1004126642786242560',
+            'title': 'FilmDrunk - Vine of the day',
+            'description': 'FilmDrunk on Twitter: "Vine of the day https://t.co/xmTvRdqxWf"',
+            'uploader': 'FilmDrunk',
+            'uploader_id': 'Filmdrunk',
+            'timestamp': 1402826626,
             'upload_date': '20140615',
         },
         'add_ie': ['Vine'],
