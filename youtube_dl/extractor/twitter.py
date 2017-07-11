@@ -20,9 +20,16 @@ from .periscope import PeriscopeIE
 
 
 class TwitterBaseIE(InfoExtractor):
-    def _get_vmap_video_url(self, vmap_url, video_id):
+    def _extract_formats_from_vmap_url(self, vmap_url, video_id):
         vmap_data = self._download_xml(vmap_url, video_id)
-        return xpath_text(vmap_data, './/MediaFile').strip()
+        video_url = xpath_text(vmap_data, './/MediaFile').strip()
+        if determine_ext(video_url) == 'm3u8':
+            return self._extract_m3u8_formats(
+                video_url, video_id, ext='mp4', m3u8_id='hls',
+                entry_protocol='m3u8_native')
+        return [{
+            'url': video_url,
+        }]
 
     @staticmethod
     def _search_dimensions_in_video_url(a_format, video_url):
@@ -197,9 +204,8 @@ class TwitterCardIE(TwitterBaseIE):
 
         vmap_url = config.get('vmapUrl') or config.get('vmap_url')
         if vmap_url:
-            formats.append({
-                'url': self._get_vmap_video_url(vmap_url, video_id),
-            })
+            formats.extend(
+                self._extract_formats_from_vmap_url(vmap_url, video_id))
 
         media_info = None
 
@@ -449,7 +455,7 @@ class TwitterAmplifyIE(TwitterBaseIE):
 
         vmap_url = self._html_search_meta(
             'twitter:amplify:vmap', webpage, 'vmap url')
-        video_url = self._get_vmap_video_url(vmap_url, video_id)
+        formats = self._extract_formats_from_vmap_url(vmap_url, video_id)
 
         thumbnails = []
         thumbnail = self._html_search_meta(
@@ -471,11 +477,10 @@ class TwitterAmplifyIE(TwitterBaseIE):
             })
 
         video_w, video_h = _find_dimension('player')
-        formats = [{
-            'url': video_url,
+        formats[0].update({
             'width': video_w,
             'height': video_h,
-        }]
+        })
 
         return {
             'id': video_id,
