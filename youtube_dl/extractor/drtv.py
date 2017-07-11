@@ -118,7 +118,7 @@ class DRTVIE(InfoExtractor):
                     if target == 'HDS':
                         f4m_formats = self._extract_f4m_formats(
                             uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
-                            video_id, preference, f4m_id=format_id)
+                            video_id, preference, f4m_id=format_id, fatal=False)
                         if kind == 'AudioResource':
                             for f in f4m_formats:
                                 f['vcodec'] = 'none'
@@ -126,7 +126,8 @@ class DRTVIE(InfoExtractor):
                     elif target == 'HLS':
                         formats.extend(self._extract_m3u8_formats(
                             uri, video_id, 'mp4', entry_protocol='m3u8_native',
-                            preference=preference, m3u8_id=format_id))
+                            preference=preference, m3u8_id=format_id,
+                            fatal=False))
                     else:
                         bitrate = link.get('Bitrate')
                         if bitrate:
