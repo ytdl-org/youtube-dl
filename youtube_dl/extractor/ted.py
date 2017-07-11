@@ -271,7 +271,7 @@ class TEDIE(InfoExtractor):
         }
 
     def _get_subtitles(self, video_id, talk_info):
-        languages = [lang['languageCode'] for lang in talk_info.get('languages', [])]
+        languages = [lang['languageCode'] for lang in talk_info.get('downloads', {}).get('languages', [])]
         if languages:
             sub_lang_list = {}
             for l in languages:
