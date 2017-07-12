@@ -79,6 +79,11 @@ from .awaan import (
     AWAANSeasonIE,
 )
 from .azmedien import AZMedienIE
+from .aznude import (
+    AZNudeIE,
+    AZNudeCelebIE,
+    AZNudeMovieIE,
+)
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE, BandcampWeeklyIE
