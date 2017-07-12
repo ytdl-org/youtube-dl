@@ -98,7 +98,7 @@ def write_piff_header(stream, params):
 
     if is_audio:
         smhd_payload = s88.pack(0)  # balance
-        smhd_payload = u16.pack(0)  # reserved
+        smhd_payload += u16.pack(0)  # reserved
         media_header_box = full_box(b'smhd', 0, 0, smhd_payload)  # Sound Media Header
     else:
         vmhd_payload = u16.pack(0)  # graphics mode
