@@ -44,6 +44,10 @@ class GoogleDriveIE(InfoExtractor):
         '46': 'webm',
         '59': 'mp4',
     }
+    _SUBTITLE_FORMATS_EXT = (
+         'vtt', 
+         'ttml'
+    )
 
     @staticmethod
     def _extract_url(webpage):
@@ -97,10 +101,31 @@ class GoogleDriveIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
+        hl = self._search_regex(
+            r'"hl"\s*,\s*"([^"]+)', webpage, 'hl')
+        ttsurl = self._search_regex(
+            r'"ttsurl"\s*,\s*"([^"]+)', webpage, 'ttsurl').encode('utf-8').decode('unicode_escape')
+        # the video Id for subtitles will be the last value in the ttsurl query string
+        video_subtitles_id = ttsurl.split('=')[-1]
+
+        subtitles = {}
+        subtitles_by_country = self._download_xml('https://drive.google.com/timedtext?id=%s&vid=%s&hl=%s&type=list&tlangs=1&v=%s&fmts=1&vssids=1' % (video_id, video_subtitles_id, hl, video_id), video_id)
+        subtitle_available_tracks = subtitles_by_country.findall('track')
+        for subtitle_track in subtitle_available_tracks:
+            subtitle_lang_code = subtitle_track.attrib['lang_code']
+            subtitle_format_data = []
+            for subtitle_format in self._SUBTITLE_FORMATS_EXT:
+                subtitle_format_data.append({
+                    'url': 'https://drive.google.com/timedtext?vid=%s&v=%s&type=track&lang=%s&name&kind&fmt=%s' % (video_subtitles_id, video_id, subtitle_lang_code, subtitle_format),
+                    'ext': subtitle_format,
+                })
+            subtitles[subtitle_lang_code] = subtitle_format_data
+
         return {
             'id': video_id,
             'title': title,
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'duration': duration,
             'formats': formats,
+            'subtitles': subtitles,
         }
