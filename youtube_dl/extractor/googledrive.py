@@ -32,7 +32,7 @@ class GoogleDriveIE(InfoExtractor):
             'duration': 189,
         },
         'params': {
-             'only_matching': True,
+            'only_matching': True,
         }
     }, {
         'url': 'https://drive.google.com/file/d/0B0Pcx5-LUToEblNxcXRPWmtmS00/view',
@@ -42,7 +42,7 @@ class GoogleDriveIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'bbo20wmv.mp4',
             'duration': 5888,
-            'subtitles' : 'mincount:1',
+            'subtitles': 'mincount:1',
         }
     }, {
         'url': 'https://drive.google.com/file/d/0B7uqFWpTkjfcVi1RaXp1OW1ycFE/edit',
@@ -52,10 +52,10 @@ class GoogleDriveIE(InfoExtractor):
             'ext': 'mp4',
             'title': '[18] 101 Dalmatians (1961)',
             'duration': 4756,
-            'subtitles' : 'mincount:1',
+            'subtitles': 'mincount:1',
         },
         'params': {
-             'only_matching': True,
+            'only_matching': True,
         }
     }, {
         'url': 'https://drive.google.com/file/d/0B7klLRUbm38_cXdENHY1cFlHenM/preview',
@@ -65,10 +65,10 @@ class GoogleDriveIE(InfoExtractor):
             'ext': 'mp4',
             'title': '101 Dalmatians 1961 1080p BluRay x264 AC3 - Ozlem.mp4',
             'duration': 4755,
-            'subtitles' : 'mincount:1',
+            'subtitles': 'mincount:1',
         },
         'params': {
-             'only_matching': True,
+            'only_matching': True,
         }
     }, {
         'url': 'https://drive.google.com/file/d/0B_Cc_rAzzVX9blZZZzZJX2tNYVk/edit',
@@ -80,7 +80,7 @@ class GoogleDriveIE(InfoExtractor):
             'duration': 2548,
         },
         'params': {
-             'only_matching': True,
+            'only_matching': True,
         }
     }]
     _FORMATS_EXT = {
@@ -102,8 +102,8 @@ class GoogleDriveIE(InfoExtractor):
         '59': 'mp4',
     }
     _SUBTITLE_FORMATS_EXT = (
-         'vtt', 
-         'ttml'
+        'vtt',
+        'ttml'
     )
 
     @staticmethod
