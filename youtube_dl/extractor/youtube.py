@@ -1016,6 +1016,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
             'only_matching': True,
         },
+        {
+            'url': 'https://www.youtube.com/watch?v=ZUf6p5Inc08',
+            'note': 'Audio of Video with artist containing YouTube advert',
+            'info_dict': {
+                'id': 'ZUf6p5Inc08',
+                'ext': 'm4a',
+                'upload_date': '20140210',
+                'uploader_id': 'glitchmob',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/glitchmob',
+                'creator': 'The Glitch Mob',
+                'license': 'Standard YouTube License',
+                'title': 'The Glitch Mob - Mind of a Beast'
+            },
+            'params': {
+                'skip_download': True,
+                'youtube_include_dash_manifest': True,
+                'format': '140',
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
