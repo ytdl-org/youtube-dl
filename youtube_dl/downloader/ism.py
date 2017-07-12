@@ -126,7 +126,6 @@ def write_piff_header(stream, params):
         if fourcc == 'AACL':
             sample_entry_box = box(b'mp4a', sample_entry_payload)
     else:
-        sample_entry_payload = sample_entry_payload
         sample_entry_payload += u16.pack(0)  # pre defined
         sample_entry_payload += u16.pack(0)  # reserved
         sample_entry_payload += u32.pack(0) * 3  # pre defined
