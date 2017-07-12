@@ -24,7 +24,64 @@ class GoogleDriveIE(InfoExtractor):
     }, {
         # video id is longer than 28 characters
         'url': 'https://drive.google.com/file/d/1ENcQ_jeCuj7y19s66_Ou9dRP4GKGsodiDQ/edit',
-        'only_matching': True,
+        'md5': 'c230c67252874fddd8170e3fd1a45886',
+        'info_dict': {
+            'id': '1ENcQ_jeCuj7y19s66_Ou9dRP4GKGsodiDQ',
+            'ext': 'mp4',
+            'title': 'Andreea Banica feat Smiley - Hooky Song (Official Video).mp4',
+            'duration': 189,
+        },
+        'params': {
+             'only_matching': True,
+        }
+    }, {
+        'url': 'https://drive.google.com/file/d/0B0Pcx5-LUToEblNxcXRPWmtmS00/view',
+        'md5': '3085012a025cf683c67f12010626d897',
+        'info_dict': {
+            'id': '0B0Pcx5-LUToEblNxcXRPWmtmS00',
+            'ext': 'mp4',
+            'title': 'bbo20wmv.mp4',
+            'duration': 5888,
+            'subtitles' : 'mincount:1',
+        }
+    }, {
+        'url': 'https://drive.google.com/file/d/0B7uqFWpTkjfcVi1RaXp1OW1ycFE/edit',
+        'md5': 'eab2f1adacf1b283362a9ce28d947db2',
+        'info_dict': {
+            'id': '0B7uqFWpTkjfcVi1RaXp1OW1ycFE',
+            'ext': 'mp4',
+            'title': '[18] 101 Dalmatians (1961)',
+            'duration': 4756,
+            'subtitles' : 'mincount:1',
+        },
+        'params': {
+             'only_matching': True,
+        }
+    }, {
+        'url': 'https://drive.google.com/file/d/0B7klLRUbm38_cXdENHY1cFlHenM/preview',
+        'md5': '0eabf6a71f61469b6b4df1c93c57b669',
+        'info_dict': {
+            'id': '0B7klLRUbm38_cXdENHY1cFlHenM',
+            'ext': 'mp4',
+            'title': '101 Dalmatians 1961 1080p BluRay x264 AC3 - Ozlem.mp4',
+            'duration': 4755,
+            'subtitles' : 'mincount:1',
+        },
+        'params': {
+             'only_matching': True,
+        }
+    }, {
+        'url': 'https://drive.google.com/file/d/0B_Cc_rAzzVX9blZZZzZJX2tNYVk/edit',
+        'md5': 'a5dd2666a9ee9da523b7a1a6f6c916ae',
+        'info_dict': {
+            'id': '0B_Cc_rAzzVX9blZZZzZJX2tNYVk',
+            'ext': 'mp4',
+            'title': 'Buffy 5x04 - Out of My Mind.mkv',
+            'duration': 2548,
+        },
+        'params': {
+             'only_matching': True,
+        }
     }]
     _FORMATS_EXT = {
         '5': 'flv',
