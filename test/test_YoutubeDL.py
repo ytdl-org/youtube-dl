@@ -527,6 +527,8 @@ class TestYoutubeDL(unittest.TestCase):
             'ext': 'mp4',
             'width': None,
             'height': 1080,
+            'title1': '$PATH',
+            'title2': '%PATH%',
         }
 
         def fname(templ):
@@ -545,10 +547,14 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(fname('%(height)0 6d.%(ext)s'), ' 01080.mp4')
         self.assertEqual(fname('%(height)0   6d.%(ext)s'), ' 01080.mp4')
         self.assertEqual(fname('%(height)   0   6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%%'), '%')
+        self.assertEqual(fname('%%%%'), '%%')
         self.assertEqual(fname('%%(height)06d.%(ext)s'), '%(height)06d.mp4')
         self.assertEqual(fname('%(width)06d.%(ext)s'), 'NA.mp4')
         self.assertEqual(fname('%(width)06d.%%(ext)s'), 'NA.%(ext)s')
         self.assertEqual(fname('%%(width)06d.%(ext)s'), '%(width)06d.mp4')
+        self.assertEqual(fname('Hello %(title1)s'), 'Hello $PATH')
+        self.assertEqual(fname('Hello %(title2)s'), 'Hello %PATH%')
 
     def test_format_note(self):
         ydl = YoutubeDL()
