@@ -31,57 +31,7 @@ class GoogleDriveIE(InfoExtractor):
             'title': 'Andreea Banica feat Smiley - Hooky Song (Official Video).mp4',
             'duration': 189,
         },
-        'params': {
-            'only_matching': True,
-        }
-    }, {
-        'url': 'https://drive.google.com/file/d/0B0Pcx5-LUToEblNxcXRPWmtmS00/view',
-        'md5': '3085012a025cf683c67f12010626d897',
-        'info_dict': {
-            'id': '0B0Pcx5-LUToEblNxcXRPWmtmS00',
-            'ext': 'mp4',
-            'title': 'bbo20wmv.mp4',
-            'duration': 5888,
-            'subtitles': 'mincount:1',
-        }
-    }, {
-        'url': 'https://drive.google.com/file/d/0B7uqFWpTkjfcVi1RaXp1OW1ycFE/edit',
-        'md5': 'eab2f1adacf1b283362a9ce28d947db2',
-        'info_dict': {
-            'id': '0B7uqFWpTkjfcVi1RaXp1OW1ycFE',
-            'ext': 'mp4',
-            'title': '[18] 101 Dalmatians (1961)',
-            'duration': 4756,
-            'subtitles': 'mincount:1',
-        },
-        'params': {
-            'only_matching': True,
-        }
-    }, {
-        'url': 'https://drive.google.com/file/d/0B7klLRUbm38_cXdENHY1cFlHenM/preview',
-        'md5': '0eabf6a71f61469b6b4df1c93c57b669',
-        'info_dict': {
-            'id': '0B7klLRUbm38_cXdENHY1cFlHenM',
-            'ext': 'mp4',
-            'title': '101 Dalmatians 1961 1080p BluRay x264 AC3 - Ozlem.mp4',
-            'duration': 4755,
-            'subtitles': 'mincount:1',
-        },
-        'params': {
-            'only_matching': True,
-        }
-    }, {
-        'url': 'https://drive.google.com/file/d/0B_Cc_rAzzVX9blZZZzZJX2tNYVk/edit',
-        'md5': 'a5dd2666a9ee9da523b7a1a6f6c916ae',
-        'info_dict': {
-            'id': '0B_Cc_rAzzVX9blZZZzZJX2tNYVk',
-            'ext': 'mp4',
-            'title': 'Buffy 5x04 - Out of My Mind.mkv',
-            'duration': 2548,
-        },
-        'params': {
-            'only_matching': True,
-        }
+        'only_matching': True
     }]
     _FORMATS_EXT = {
         '5': 'flv',
@@ -113,6 +63,23 @@ class GoogleDriveIE(InfoExtractor):
             webpage)
         if mobj:
             return 'https://drive.google.com/file/d/%s' % mobj.group('id')
+
+    def _get_subtitles(self, video_id, video_subtitles_id, hl):
+        if not video_subtitles_id or not hl:
+            return None
+        subtitles = {}
+        subtitles_by_country = self._download_xml('https://drive.google.com/timedtext?id=%s&vid=%s&hl=%s&type=list&tlangs=1&v=%s&fmts=1&vssids=1' % (video_id, video_subtitles_id, hl, video_id), video_id)
+        subtitle_available_tracks = subtitles_by_country.findall('track')
+        for subtitle_track in subtitle_available_tracks:
+            subtitle_lang_code = subtitle_track.attrib['lang_code']
+            subtitle_format_data = []
+            for subtitle_format in self._SUBTITLE_FORMATS_EXT:
+                subtitle_format_data.append({
+                    'url': 'https://drive.google.com/timedtext?vid=%s&v=%s&type=track&lang=%s&name&kind&fmt=%s' % (video_subtitles_id, video_id, subtitle_lang_code, subtitle_format),
+                    'ext': subtitle_format,
+                })
+            subtitles[subtitle_lang_code] = subtitle_format_data
+        return subtitles
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -159,24 +126,13 @@ class GoogleDriveIE(InfoExtractor):
         self._sort_formats(formats)
 
         hl = self._search_regex(
-            r'"hl"\s*,\s*"([^"]+)', webpage, 'hl')
+            r'"hl"\s*,\s*"([^"]+)', webpage, 'hl', default=None)
+        video_subtitles_id = None
         ttsurl = self._search_regex(
-            r'"ttsurl"\s*,\s*"([^"]+)', webpage, 'ttsurl').encode('utf-8').decode('unicode_escape')
-        # the video Id for subtitles will be the last value in the ttsurl query string
-        video_subtitles_id = ttsurl.split('=')[-1]
-
-        subtitles = {}
-        subtitles_by_country = self._download_xml('https://drive.google.com/timedtext?id=%s&vid=%s&hl=%s&type=list&tlangs=1&v=%s&fmts=1&vssids=1' % (video_id, video_subtitles_id, hl, video_id), video_id)
-        subtitle_available_tracks = subtitles_by_country.findall('track')
-        for subtitle_track in subtitle_available_tracks:
-            subtitle_lang_code = subtitle_track.attrib['lang_code']
-            subtitle_format_data = []
-            for subtitle_format in self._SUBTITLE_FORMATS_EXT:
-                subtitle_format_data.append({
-                    'url': 'https://drive.google.com/timedtext?vid=%s&v=%s&type=track&lang=%s&name&kind&fmt=%s' % (video_subtitles_id, video_id, subtitle_lang_code, subtitle_format),
-                    'ext': subtitle_format,
-                })
-            subtitles[subtitle_lang_code] = subtitle_format_data
+            r'"ttsurl"\s*,\s*"([^"]+)', webpage, 'ttsurl', default=None)
+        if ttsurl:
+            # the video Id for subtitles will be the last value in the ttsurl query string
+            video_subtitles_id = ttsurl.encode('utf-8').decode('unicode_escape').split('=')[-1]
 
         return {
             'id': video_id,
@@ -184,5 +140,5 @@ class GoogleDriveIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'duration': duration,
             'formats': formats,
-            'subtitles': subtitles,
+            'subtitles': self.extract_subtitles(video_id, video_subtitles_id, hl),
         }
