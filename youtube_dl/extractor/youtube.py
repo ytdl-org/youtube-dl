@@ -1017,6 +1017,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
             'only_matching': True,
         },
+        {
+            'url': 'https://www.youtube.com/watch?v=ZUf6p5Inc08',
+            'note': 'Audio of Video with artist containing YouTube advert',
+            'info_dict': {
+                'id': 'ZUf6p5Inc08',
+                'ext': 'm4a',
+                'upload_date': '20140210',
+                'uploader_id': 'glitchmob',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/glitchmob',
+                'creator': 'The Glitch Mob',
+                'license': 'Standard YouTube License',
+                'title': 'The Glitch Mob - Mind of a Beast'
+            },
+            'params': {
+                'skip_download': True,
+                'youtube_include_dash_manifest': True,
+                'format': '140',
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1669,6 +1688,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if m_music:
             video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
             video_creator = clean_html(m_music.group('creator'))
+            if video_creator:
+                video_creator = video_creator.replace(' Listen ad-free with YouTube Red', '')
         else:
             video_alt_title = video_creator = None
 
