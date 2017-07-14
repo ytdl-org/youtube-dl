@@ -20,6 +20,7 @@ import re
 import shutil
 import subprocess
 import socket
+import string
 import sys
 import time
 import tokenize
@@ -674,7 +675,19 @@ class YoutubeDL(object):
                         FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
-            filename = expand_path(outtmpl % template_dict)
+            # expand_path translates '%%' into '%' and '$$' into '$'
+            # correspondingly that is not what we want since we need to keep
+            # '%%' intact for template dict substitution step. Working around
+            # with boundary-alike separator hack.
+            sep = ''.join([random.choice(string.ascii_letters) for _ in range(32)])
+            outtmpl = outtmpl.replace('%%', '%{0}%'.format(sep)).replace('$$', '${0}$'.format(sep))
+
+            # outtmpl should be expand_path'ed before template dict substitution
+            # because meta fields may contain env variables we don't want to
+            # be expanded. For example, for outtmpl "%(title)s.%(ext)s" and
+            # title "Hello $PATH", we don't want `$PATH` to be expanded.
+            filename = expand_path(outtmpl).replace(sep, '') % template_dict
+
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows

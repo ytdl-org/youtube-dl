@@ -2740,7 +2740,7 @@ class GenericIE(InfoExtractor):
         rutube_urls = RutubeIE._extract_urls(webpage)
         if rutube_urls:
             return self.playlist_from_matches(
-                rutube_urls, ie=RutubeIE.ie_key())
+                rutube_urls, video_id, video_title, ie=RutubeIE.ie_key())
 
         # Look for WashingtonPost embeds
         wapo_urls = WashingtonPostIE._extract_urls(webpage)
