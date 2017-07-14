@@ -43,7 +43,7 @@ class AudioBoomIE(InfoExtractor):
 
         def from_clip(field):
             if clip:
-                clip.get(field)
+                return clip.get(field)
 
         audio_url = from_clip('clipURLPriorToLoading') or self._og_search_property(
             'audio', webpage, 'audio url')
