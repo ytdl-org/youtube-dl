@@ -260,7 +260,7 @@ class NexxEmbedIE(InfoExtractor):
 
         # iFrame Embed Integration
         return [mobj.group('url') for mobj in re.finditer(
-                r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.nexx(?:\.cloud|cdn\.com)/\d+/(?:(?!\1).)+)\1',
+            r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.nexx(?:\.cloud|cdn\.com)/\d+/(?:(?!\1).)+)\1',
             webpage)]
 
     def _real_extract(self, url):
