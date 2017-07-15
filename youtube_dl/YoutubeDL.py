@@ -20,12 +20,13 @@ import re
 import shutil
 import subprocess
 import socket
-import string
 import sys
 import time
 import tokenize
 import traceback
 import random
+
+from string import ascii_letters
 
 from .compat import (
     compat_basestring,
@@ -679,7 +680,7 @@ class YoutubeDL(object):
             # correspondingly that is not what we want since we need to keep
             # '%%' intact for template dict substitution step. Working around
             # with boundary-alike separator hack.
-            sep = ''.join([random.choice(string.ascii_letters) for _ in range(32)])
+            sep = ''.join([random.choice(ascii_letters) for _ in range(32)])
             outtmpl = outtmpl.replace('%%', '%{0}%'.format(sep)).replace('$$', '${0}$'.format(sep))
 
             # outtmpl should be expand_path'ed before template dict substitution
