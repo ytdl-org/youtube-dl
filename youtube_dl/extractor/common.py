@@ -730,12 +730,12 @@ class InfoExtractor(object):
             video_info['title'] = video_title
         return video_info
 
-    def playlist_from_matches(self, matches, video_id, video_title, getter=None, ie=None):
-        urlrs = orderedSet(
+    def playlist_from_matches(self, matches, playlist_id=None, playlist_title=None, getter=None, ie=None):
+        urls = orderedSet(
             self.url_result(self._proto_relative_url(getter(m) if getter else m), ie)
             for m in matches)
         return self.playlist_result(
-            urlrs, playlist_id=video_id, playlist_title=video_title)
+            urls, playlist_id=playlist_id, playlist_title=playlist_title)
 
     @staticmethod
     def playlist_result(entries, playlist_id=None, playlist_title=None, playlist_description=None):
