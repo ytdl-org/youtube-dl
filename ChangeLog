@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.07.15
 
 Core
 * [YoutubeDL] Don't expand environment variables in meta fields (#13637)
