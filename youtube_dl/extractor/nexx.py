@@ -88,6 +88,10 @@ class NexxIE(InfoExtractor):
 
         return entries
 
+    @staticmethod
+    def _extract_url(webpage):
+        return NexxIE._extract_urls(webpage)[0]
+
     def _handle_error(self, response):
         status = int_or_none(try_get(
             response, lambda x: x['metadata']['status']) or 200)
@@ -223,3 +227,45 @@ class NexxIE(InfoExtractor):
                 video, lambda x: x['episodedata']['season'])),
             'formats': formats,
         }
+
+
+class NexxEmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://embed\.nexx(?:\.cloud|cdn\.com)/\d+/(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'http://embed.nexx.cloud/748/KC1614647Z27Y7T?autoplay=1',
+        'md5': '16746bfc28c42049492385c989b26c4a',
+        'info_dict': {
+            'id': '161464',
+            'ext': 'mp4',
+            'title': 'Nervenkitzel Achterbahn',
+            'alt_title': 'Karussellbauer in Deutschland',
+            'description': 'md5:ffe7b1cc59a01f585e0569949aef73cc',
+            'release_year': 2005,
+            'creator': 'SPIEGEL TV',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 2761,
+            'timestamp': 1394021479,
+            'upload_date': '20140305',
+        },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': True,
+        },
+    }
+
+    @staticmethod
+    def _extract_urls(webpage):
+        # Reference:
+        # 1. https://nx-s.akamaized.net/files/201510/44.pdf
+
+        # iFrame Embed Integration
+        return [mobj.group('url') for mobj in re.finditer(
+                r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.nexx(?:\.cloud|cdn\.com)/\d+/(?:(?!\1).)+)\1',
+            webpage)]
+
+    def _real_extract(self, url):
+        embed_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, embed_id)
+
+        return self.url_result(NexxIE._extract_url(webpage), ie=NexxIE.ie_key())

@@ -36,7 +36,10 @@ from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
 )
-from .nexx import NexxIE
+from .nexx import (
+    NexxIE,
+    NexxEmbedIE,
+)
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
@@ -1566,6 +1569,27 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        # Nexx iFrame embed
+        {
+            'url': 'http://www.spiegel.de/sptv/spiegeltv/spiegel-tv-ueber-schnellste-katapult-achterbahn-der-welt-taron-a-1137884.html',
+            'info_dict': {
+                'id': '161464',
+                'ext': 'mp4',
+                'title': 'Nervenkitzel Achterbahn',
+                'alt_title': 'Karussellbauer in Deutschland',
+                'description': 'md5:ffe7b1cc59a01f585e0569949aef73cc',
+                'release_year': 2005,
+                'creator': 'SPIEGEL TV',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 2761,
+                'timestamp': 1394021479,
+                'upload_date': '20140305',
+            },
+            'params': {
+                'format': 'bestvideo',
+                'skip_download': True,
+            },
+        },
         # Facebook <iframe> embed
         {
             'url': 'https://www.hostblogger.de/blog/archives/6181-Auto-jagt-Betonmischer.html',
@@ -2154,6 +2178,11 @@ class GenericIE(InfoExtractor):
         nexx_urls = NexxIE._extract_urls(webpage)
         if nexx_urls:
             return self.playlist_from_matches(nexx_urls, video_id, video_title, ie=NexxIE.ie_key())
+
+        # Look for Nexx iFrame embeds
+        nexx_embed_urls = NexxEmbedIE._extract_urls(webpage)
+        if nexx_embed_urls:
+            return self.playlist_from_matches(nexx_embed_urls, video_id, video_title, ie=NexxEmbedIE.ie_key())
 
         # Look for ThePlatform embeds
         tp_urls = ThePlatformIE._extract_urls(webpage)

@@ -653,7 +653,10 @@ from .nextmedia import (
     AppleDailyIE,
     NextTVIE,
 )
-from .nexx import NexxIE
+from .nexx import (
+    NexxIE,
+    NexxEmbedIE,
+)
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhk import NhkVodIE
