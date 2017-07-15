@@ -136,6 +136,13 @@ class SpiegelArticleIE(InfoExtractor):
                 self.http_scheme() + '//spiegel.de/', video_link)
             return self.url_result(video_url)
 
+        # Embedded Spiegel.tv link
+        video_link = self._search_regex(
+            r'<iframe[^>]+src="(.+?spiegel\.tv.*?)"', webpage,'video page URL', default=None)
+        if video_link:
+            video_url = video_link.replace('/embed/?autoplay=true', '')
+            return self.url_result(video_url)
+        
         # Multiple embedded videos
         embeds = re.findall(
             r'<div class="vid_holder[0-9]+.*?</div>\s*.*?url\s*=\s*"([^"]+)"',
