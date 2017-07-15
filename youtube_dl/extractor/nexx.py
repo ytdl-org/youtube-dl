@@ -72,13 +72,17 @@ class NexxIE(InfoExtractor):
         entries = []
 
         # JavaScript Integration
-        for domain_id, video_id in re.findall(
-                r'''(?isx)
-                    <script\b[^>]+\bsrc=["\']https?://require\.nexx(?:\.cloud|cdn\.com)/(\d+).+?
-                    onPLAYReady.+?
-                    _play\.init\s*\(.+?\s*,\s*(\d+)\s*,\s*.+?\)
-                ''', webpage):
-            entries.append('https://api.nexx.cloud/v3/%s/videos/byid/%s' % (domain_id, video_id))
+        mobj = re.search(
+            r'<script\b[^>]+\bsrc=["\']https?://require\.nexx(?:\.cloud|cdn\.com)/(?P<id>\d+)',
+            webpage)
+        if mobj:
+            domain_id = mobj.group('id')
+            for video_id in re.findall(
+                    r'(?is)onPLAYReady.+?_play\.init\s*\(.+?\s*,\s*["\']?(\d+)',
+                    webpage):
+                entries.append(
+                    'https://api.nexx.cloud/v3/%s/videos/byid/%s'
+                    % (domain_id, video_id))
 
         # TODO: support more embed formats
 
