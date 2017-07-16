@@ -231,6 +231,10 @@ def _real_main(argv=None):
                (opts.useid and '%(id)s.%(ext)s') or
                (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s') or
                DEFAULT_OUTTMPL)
+
+    if opts.withindex:
+        outtmpl = '%(playlist_index)s. '+outtmpl
+
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error('Cannot download a video and extract audio into the same'
                      ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
@@ -333,6 +337,7 @@ def _real_main(argv=None):
         'format': opts.format,
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
+        'withindex': opts.withindex,
         'autonumber_size': opts.autonumber_size,
         'autonumber_start': opts.autonumber_start,
         'restrictfilenames': opts.restrictfilenames,

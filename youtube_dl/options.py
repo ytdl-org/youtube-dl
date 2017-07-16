@@ -690,6 +690,9 @@ def parseOpts(overrideArguments=None):
         dest='autonumber_start', metavar='NUMBER', default=1, type=int,
         help='Specify the start value for %(autonumber)s (default is %default)')
     filesystem.add_option(
+        '--with-index', default=False,
+        action='store_true', dest='withindex', help='Add playlist index before filenames')
+    filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
         help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames')
