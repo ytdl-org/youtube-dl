@@ -222,6 +222,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      TEMPLATE" for all the info
     --autonumber-start NUMBER        Specify the start value for %(autonumber)s
                                      (default is 1)
+    --with-index                     Add playlist index before filenames
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
