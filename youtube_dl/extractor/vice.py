@@ -90,10 +90,8 @@ class ViceBaseIE(AdobePassIE):
             'id': video_id,
             'title': title,
             'description': base.get('body') or base.get('display_body'),
-            'thumbnail': prefetch_data.get('thumbnail_url') or watch_hub_data.get('cover-image') or watch_hub_data.get(
-                'thumbnail'),
-            'duration': int_or_none(video_data.get('video_duration')) or parse_duration(
-                watch_hub_data.get('video-duration')),
+            'thumbnail': prefetch_data.get('thumbnail_url') or watch_hub_data.get('cover-image') or watch_hub_data.get('thumbnail'),
+            'duration': int_or_none(video_data.get('video_duration')) or parse_duration(watch_hub_data.get('video-duration')),
             'timestamp': int_or_none(video_data.get('created_at'), 1000),
             'age_limit': parse_age_limit(video_data.get('video_rating')),
             'series': video_data.get('show_title') or watch_hub_data.get('show-title'),
