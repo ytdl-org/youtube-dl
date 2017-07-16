@@ -107,11 +107,13 @@ class ADNIE(InfoExtractor):
         metas = options.get('metas') or {}
         title = metas.get('title') or video_info['title']
         links = player_config.get('links') or {}
+        error = None
         if not links:
             links_url = player_config['linksurl']
             links_data = self._download_json(urljoin(
                 self._BASE_URL, links_url), video_id)
             links = links_data.get('links') or {}
+            error = links_data.get('error')
 
         formats = []
         for format_id, qualities in links.items():
@@ -130,7 +132,8 @@ class ADNIE(InfoExtractor):
                     for f in m3u8_formats:
                         f['language'] = 'fr'
                 formats.extend(m3u8_formats)
-        error = options.get('error')
+        if not error:
+            error = options.get('error')
         if not formats and error:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
         self._sort_formats(formats)
