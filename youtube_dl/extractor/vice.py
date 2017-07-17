@@ -21,26 +21,24 @@ from ..utils import (
 
 class ViceBaseIE(AdobePassIE):
     def _extract_preplay_video(self, url, locale, webpage):
-
-        prefetch_data = self._parse_json(self._search_regex(
-            r'window\.__PREFETCH_DATA\s*=\s*({.*});',
-            webpage, 'prefetch data'), None, fatal=False)
-        if prefetch_data:
-            if prefetch_data.get('data'):
-                prefetch_data = prefetch_data.get('data')
-            prefetch_data = prefetch_data.get('video')
-
-            video_id = prefetch_data.get('id')
-            title = prefetch_data.get('title')
-            is_locked = prefetch_data.get('locked') == '1' or prefetch_data.get('locked') == 'true'
-            watch_hub_data = {}
-        else:
-            prefetch_data = {}
-            watch_hub_data = extract_attributes(self._search_regex(
-                r'(?s)(<watch-hub\s*.+?</watch-hub>)', webpage, 'watch hub'))
+        watch_hub = self._search_regex(
+            r'(?s)(<watch-hub\s*.+?</watch-hub>)', webpage, 'watch hub', default=None)
+        if watch_hub:
+            watch_hub_data = extract_attributes(watch_hub)
             video_id = watch_hub_data['vms-id']
             title = watch_hub_data['video-title']
             is_locked = watch_hub_data.get('video-locked') == '1'
+            prefetch_data = {}
+        else:
+            prefetch_data = self._parse_json(self._search_regex(
+                r'window\.__PREFETCH_DATA\s*=\s*({.*});',
+                webpage, 'prefetch data'), None)
+            prefetch_data = prefetch_data.get("data", {})
+            prefetch_data = prefetch_data['video']
+            video_id = prefetch_data['id']
+            title = prefetch_data.get('title')
+            is_locked = prefetch_data.get('locked') == '1' or prefetch_data.get('locked') == 'true'
+            watch_hub_data = {}
 
         query = {}
         if is_locked:
@@ -88,7 +86,7 @@ class ViceBaseIE(AdobePassIE):
             '_type': 'url_transparent',
             'url': uplynk_preplay_url,
             'id': video_id,
-            'title': title,
+            'title': title or base.get('display_title'),
             'description': base.get('body') or base.get('display_body'),
             'thumbnail': prefetch_data.get('thumbnail_url') or watch_hub_data.get('cover-image') or watch_hub_data.get('thumbnail'),
             'duration': int_or_none(video_data.get('video_duration')) or parse_duration(watch_hub_data.get('video-duration')),
@@ -160,7 +158,18 @@ class ViceIE(ViceBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://video.vice.com/en_us/embed/57f41d3556a0a80f54726060',
-        'only_matching': True,
+        'info_dict': {
+            'id': '57f41d3556a0a80f54726060',
+            'ext': 'mp4',
+            'title': "Making The World's First Male Sex Doll",
+            'description': "<p>In her show <i>Slutever</i>, VICE's resident sexpert Karley Sciortino explores the "
+                           "mysterious labyrinth of human sexuality and check out the various ways that people around "
+                           "the world like to get off. </p><p>In the premiere episode of <i>Slutever</i>'s brand new "
+                           "season, Karley finds herself in the world of life-like custom male sex dolls and meets the "
+                           "team pioneering the perfect plastic fuck buddy for women. </p>",
+            'uploader_id': '57a204088cb727dec794c67b',
+            'age_limit': 'TV-MA',
+        },
     }]
     _PREPLAY_HOST = 'video.vice'
 
@@ -294,7 +303,7 @@ class ViceArticleIE(InfoExtractor):
                 prefetch_data['embed_code'], 'video URL')
         else:
             video_url = self._html_search_regex(
-                r'<\s*iframe\s*src=\s*"([^"]+)',
+                r'<iframe[^>]+src="([^"]+)',
                 body, 'video URL')
 
         return _url_res(video_url, ViceIE.ie_key())
