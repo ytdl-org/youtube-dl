@@ -653,6 +653,10 @@ from .nextmedia import (
     AppleDailyIE,
     NextTVIE,
 )
+from .nexx import (
+    NexxIE,
+    NexxEmbedIE,
+)
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhk import NhkVodIE
@@ -761,6 +765,7 @@ from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .pearvideo import PearVideoIE
 from .people import PeopleIE
 from .periscope import (
     PeriscopeIE,

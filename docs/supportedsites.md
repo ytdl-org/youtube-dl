@@ -521,6 +521,7 @@
  - **NextMedia**: 蘋果日報
  - **NextMediaActionNews**: 蘋果日報 - 動新聞
  - **NextTV**: 壹電視
+ - **Nexx**
  - **nfb**: National Film Board of Canada
  - **nfl.com**
  - **NhkVod**
@@ -942,6 +943,7 @@
  - **vk:wallpost**
  - **vlive**
  - **vlive:channel**
+ - **vlive:playlist**
  - **Vodlocker**
  - **VODPl**
  - **VODPlatform**

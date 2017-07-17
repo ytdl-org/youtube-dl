@@ -1,11 +1,25 @@
-version <unreleased>
+version 2017.07.15
+
+Core
+* [YoutubeDL] Don't expand environment variables in meta fields (#13637)
 
 Extractors
+* [spiegeltv] Delegate extraction to nexx extractor (#13159)
++ [nexx] Add support for nexx.cloud (#10807, #13465)
+* [generic] Fix rutube embeds extraction (#13641)
+* [karrierevideos] Fix title extraction (#13641)
+* [youtube] Don't capture YouTube Red ad for creator meta field (#13621)
+* [slideshare] Fix extraction (#13617)
++ [5tv] Add another video URL pattern (#13354, #13606)
+* [drtv] Make HLS and HDS extraction non fatal
+* [ted] Fix subtitles extraction (#13628, #13629)
 * [vine] Make sure the title won't be empty
 + [twitter] Support HLS streams in vmap URLs
 + [periscope] Support pscp.tv URLs in embedded frames
+* [twitter] Extract mp4 urls via mobile API (#12726)
 * [niconico] Fix authentication error handling (#12486)
 * [giantbomb] Extract m3u8 formats (#13626)
++ [vlive:playlist] Add support for playlists (#13613)
 
 
 version 2017.07.09

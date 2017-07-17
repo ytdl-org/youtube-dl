@@ -1660,7 +1660,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     <a[^>]*
                         (?:
                             \bhref=["\']/red[^>]*>|             # drop possible
-                            >\s*Listen ad-free with YouTube Red # YouTube Red ad 
+                            >\s*Listen ad-free with YouTube Red # YouTube Red ad
                         )
                     .*?
                 )?</li

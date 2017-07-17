@@ -510,7 +510,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         # webpage provide more accurate data than series_title from XML
         series = self._html_search_regex(
-            r'id=["\']showmedia_about_episode_num[^>]+>\s*<a[^>]+>([^<]+)',
+            r'(?s)<h\d[^>]+\bid=["\']showmedia_about_episode_num[^>]+>(.+?)</h\d',
             webpage, 'series', fatal=False)
         season = xpath_text(metadata, 'series_title')
 
@@ -518,7 +518,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
 
         season_number = int_or_none(self._search_regex(
-            r'(?s)<h4[^>]+id=["\']showmedia_about_episode_num[^>]+>.+?</h4>\s*<h4>\s*Season (\d+)',
+            r'(?s)<h\d[^>]+id=["\']showmedia_about_episode_num[^>]+>.+?</h\d>\s*<h4>\s*Season (\d+)',
             webpage, 'season number', default=None))
 
         return {

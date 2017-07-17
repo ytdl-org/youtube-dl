@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .nexx import NexxEmbedIE
 from .spiegeltv import SpiegeltvIE
 from ..compat import compat_urlparse
 from ..utils import (
@@ -143,6 +144,9 @@ class SpiegelArticleIE(InfoExtractor):
         entries = [
             self.url_result(compat_urlparse.urljoin(
                 self.http_scheme() + '//spiegel.de/', embed_path))
-            for embed_path in embeds
-        ]
-        return self.playlist_result(entries)
+            for embed_path in embeds]
+        if embeds:
+            return self.playlist_result(entries)
+
+        return self.playlist_from_matches(
+            NexxEmbedIE._extract_urls(webpage), ie=NexxEmbedIE.ie_key())
