@@ -122,6 +122,26 @@ class SpiegelArticleIE(InfoExtractor):
 
         },
         'playlist_count': 6,
+    }, {
+        # Nexx iFrame embed
+        'url': 'http://www.spiegel.de/sptv/spiegeltv/spiegel-tv-ueber-schnellste-katapult-achterbahn-der-welt-taron-a-1137884.html',
+        'info_dict': {
+            'id': '161464',
+            'ext': 'mp4',
+            'title': 'Nervenkitzel Achterbahn',
+            'alt_title': 'Karussellbauer in Deutschland',
+            'description': 'md5:ffe7b1cc59a01f585e0569949aef73cc',
+            'release_year': 2005,
+            'creator': 'SPIEGEL TV',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 2761,
+            'timestamp': 1394021479,
+            'upload_date': '20140305',
+        },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
