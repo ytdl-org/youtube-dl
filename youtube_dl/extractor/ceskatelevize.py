@@ -12,6 +12,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     float_or_none,
+    str_or_none,
     sanitized_Request,
     unescapeHTML,
     urlencode_postdata,
@@ -94,10 +95,10 @@ class CeskaTelevizeIE(InfoExtractor):
 
         type_ = None
         episode_id = None
-        is_decko = "decko.ceskatelevize.cz" in url
+        is_decko = 'decko.ceskatelevize.cz' in url
 
         if is_decko:
-            type_ = "episode"
+            type_ = 'episode'
             episode_id = compat_urllib_parse_unquote(playlist_id)
             episode_id = episode_id.replace(" ", "").replace("_", "")
         else:
@@ -302,28 +303,35 @@ class CeskaTelevizePoradyIE(InfoExtractor):
 
 
 class CeskaTelevizeDeckoIE(InfoExtractor):
-    _VALID_URL = r'https?://decko.ceskatelevize.cz/(?P<id>[a-z-]+)$'
-    _TEST = {
+    _VALID_URL = r'https?://decko.ceskatelevize.cz/(?P<id>[a-z-]+)(\?.*)?$'
+    _TESTS = [{
         'url': 'http://decko.ceskatelevize.cz/nejmensi-slon-na-svete',
         'playlist_count': 13
-    }
+    }, {
+        'url': 'http://decko.ceskatelevize.cz/nejmensi-slon-na-svete?foo=bar',
+        'playlist_count': 13
+
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        idec = self._html_search_regex(r'var\s+IDEC\s+=\s+\'(.+?)\'', webpage, 'IDEC')
+        idec = self._html_search_regex(r'var\s+IDEC\s*=\s*\'(.+?)\'', webpage, 'IDEC')
 
-        args = compat_urllib_parse_urlencode({"IDEC":idec})
-        url = "http://decko.ceskatelevize.cz/rest/Programme/relatedVideosForEpisode?" + args
+        args = compat_urllib_parse_urlencode({'IDEC':idec})
+        url = 'http://decko.ceskatelevize.cz/rest/Programme/relatedVideosForEpisode?' + args
         json = self._download_json(url, video_id)
-        episodes = json.get("episodes", [])
+        episodes = json.get('episodes', [])
 
         entries = []
         for episode in episodes:
-            idec = episode.get("episode", {}).get("IDEC")
-            idec = idec.replace(" ", "").replace("/", "")
-            url = "http://decko.ceskatelevize.cz/video/" + idec
+            idec = str_or_none(episode.get('episode', {}).get('IDEC'))
+            if idec is None:
+                continue
+
+            idec = idec.replace(' ', '').replace('/', '')
+            url = 'http://decko.ceskatelevize.cz/video/' + idec
             entries.append(self.url_result(url))
 
         return {
