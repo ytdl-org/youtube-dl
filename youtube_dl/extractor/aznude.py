@@ -12,7 +12,7 @@ import re
 
 
 class AZNudeIE(InfoExtractor):
-    IE_NAME = "aznude"
+    IE_NAME = 'aznude'
     _VALID_URL = r'https?://(?:www\.)?aznude\.com/(?:mrskin|azncdn)/[^/?]+/[^/?]+/(?P<id>.*)\.html'
     _TEST = {
         'url': 'https://www.aznude.com/mrskin/marisatomei/loiteringwithintent/loiteringwithintent-mcnallytomei-hd-01-hd.html',
@@ -28,90 +28,92 @@ class AZNudeIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        numeric_id = "-".join(re.findall(r'(?P<num>(?:s\d+e\d+)|(?:\d+[xX]\d+)|(?:\d+))', video_id))
+        numeric_id = '-'.join(re.findall(r'(?P<num>(?:s\d+e\d+)|(?:\d+[xX]\d+)|(?:\d+))', video_id))
         webpage = self._download_webpage(url, video_id)
 
-        artist = self._search_regex(r'<span><a href="/view/celeb/[^/?]/[^/?]+\.html">(?P<artist>[^<]+)</a></span>',
+        jwplayer_data = self._find_jwplayer_data(webpage)
+        parsed_formats = self._parse_jwplayer_data(jwplayer_data, video_id, require_title=False)['formats']
+
+        for format in parsed_formats:
+            url = format['url']
+
+            if url.endswith('-lo.' + format['ext']):
+                format['format'] = 'Low Quality'
+                format['format_id'] = 'LQ'
+                format['quality'] = 1
+                format['resolution'] = '640x360'
+                format['format_note'] = '360p video with 64 kbps audio'
+
+            elif url.endswith('-hi.' + format['ext']):
+                format['format'] = 'High Quality'
+                format['format_id'] = 'HQ'
+                format['quality'] = 2
+                format['resolution'] = '640x360'
+                format['format_note'] = '360p video with 128 kbps audio'
+
+            elif url.endswith('-hd.' + format['ext']):
+                format['format'] = 'High Definition'
+                format['format_id'] = 'HD'
+                format['quality'] = 2
+                format['resolution'] = '1280x720'
+                format['format_note'] = '720p video with 128 kbps audio'
+            else:
+                # Unknown format!
+                parsed_formats.remove(format)
+
+
+        artist = self._html_search_regex(r'(?P<artist><span><a href="/view/celeb/[^/?]/[^/?]+\.html">[^<]+</a></span>)',
                                     webpage,
                                     url,
                                     default=None)
-        work = self._search_regex(r'in <a href="/view/movie/[^/?]/[^/?]+\.html">(?P<work>[^<]+)</a>',
+        work = self._html_search_regex(r'in (?P<work><a href="/view/movie/[^/?]/[^/?]+\.html">[^<]+</a>)',
                                   webpage,
                                   url,
                                   default=None)
 
         if (artist is not None) and (work is not None):
-            title = artist + " in " + work
+            title = artist + ' in ' + work
         else:
             title = self._og_search_title(webpage)
 
         return {
             'id': video_id,
-            'title': title + " - " + numeric_id,
+            'title': title + ' - ' + numeric_id,
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
-            'url': self._search_regex(r'(?:<a href=")(?P<url>(https?:)?//[^/]*\.aznude\.com/.*\.mp4)(?:"><div class="videoButtons"><i class="fa"></i>Download</div></a>)',
-                                      webpage,
-                                      'url',
-                                      fatal=True)
+            'formats': parsed_formats
         }
 
 
-class AZNudeMultiPageBaseIE(InfoExtractor):
-    def _extract_entries(self, webpage, regex, prefix):
-        for url in re.findall(regex, webpage):
-            yield self.url_result(prefix + url, AZNudeIE.ie_key())
+class AZNudeCollectionIE(InfoExtractor):
+    IE_NAME = 'aznude:collection'
+    _VALID_URL = r'https?://(?:www\.)?aznude\.com/(?P<id>(?:view|browse|tags)/.+\.html)'
+    _TESTS = [ {
+        'url': 'http://www.aznude.com/view/celeb/m/marisatomei.html',
+        'info_dict': {
+            'title': 'Marisa Tomei Nude - Aznude ',
+            'id': 'view/celeb/m/marisatomei.html',
+        },
+        'playlist_mincount': 33,
+    }, {
+        'url': 'https://www.aznude.com/view/movie/l/loiteringwithintent.html',
+        'info_dict': {
+            'title': 'Loitering With Intent Nude Scenes - Aznude',
+            'id': 'view/movie/l/loiteringwithintent.html',
+        },
+        'playlist_mincount': 2,
+    } ]
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
         webpage = self._download_webpage(url, page_id)
+        title = self._search_regex(r'(?:<title>)(?P<thetitle>.+)(?:</title>)', webpage, 'title', default=None).title()
 
         parse_result = urlparse(url)
-        url_prefix = parse_result.scheme + "://" + parse_result.netloc
+        url_prefix = parse_result.scheme + '://' + parse_result.netloc
 
-        entries = self._extract_entries(webpage, self._get_entry_regex(page_id), url_prefix)
-        return self.playlist_result(entries, page_id, self._get_webpage_title(webpage))
+        entries = []
+        for path in re.findall(r'(?:<a[^>]+href=")(?P<url>[^"]+)(?:"[^>]+class="(?:[^"]+ )?show-clip(?:"| [^"]+")[^>]*>)', webpage):
+            entries.append( self.url_result(url_prefix + path, AZNudeIE.ie_key()) )
 
-    def _get_webpage_title(self, webpage):
-        return self._search_regex(r'(?:<title>)(?P<title>.+)(?:</title>)', webpage, 'title', default=None, fatal=False).title()
-
-    def _get_entry_regex(self, page_id):
-        return ""
-
-
-class AZNudeCelebIE(AZNudeMultiPageBaseIE):
-    IE_NAME = "aznude:celeb"
-    _VALID_URL = r'https?://(?:www\.)?aznude\.com/view/celeb/[^/?]/(?P<id>.+)\.html'
-    _TEST = {
-        'url': 'http://www.aznude.com/view/celeb/m/marisatomei.html',
-        'info_dict': {
-            'title': 'Marisa Tomei',
-            'id': 'marisatomei',
-        },
-        'playlist_mincount': 33,
-    }
-
-    def _get_webpage_title(self, webpage):
-        return self._search_regex(r'(?:<title>)(?P<title>.+)(?: Nude - AZNude </title>)', webpage, 'title', default=None).title()
-
-    def _get_entry_regex(self, page_id):
-        return r'(?:href=")(?P<url>/(?:mrskin|azncdn)/' + page_id + '/[^"]*)'
-
-
-class AZNudeMovieIE(AZNudeMultiPageBaseIE):
-    IE_NAME = "aznude:movie"
-    _VALID_URL = r'https?://(?:www\.)?aznude\.com/view/movie/[^/?]/(?P<id>.+)\.html'
-    _TEST = {
-        'url': 'https://www.aznude.com/view/movie/l/loiteringwithintent.html',
-        'info_dict': {
-            'title': 'Loitering With Intent',
-            'id': 'loiteringwithintent',
-        },
-        'playlist_mincount': 2,
-    }
-
-    def _get_webpage_title(self, webpage):
-        return self._search_regex(r'(?:<title>)(?P<title>.+)(?: NUDE SCENES - AZNude</title>)', webpage, 'title', default=None).title()
-
-    def _get_entry_regex(self, page_id):
-        return r'(?:href=")(?P<url>/(?:mrskin|azncdn)/[^/?]+/' + page_id + '/[^"]*)'
+        return self.playlist_result(entries, page_id, title)
