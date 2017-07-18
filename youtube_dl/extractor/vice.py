@@ -33,8 +33,7 @@ class ViceBaseIE(AdobePassIE):
             prefetch_data = self._parse_json(self._search_regex(
                 r'window\.__PREFETCH_DATA\s*=\s*({.*});',
                 webpage, 'prefetch data'), None)
-            prefetch_data = prefetch_data.get("data", {})
-            prefetch_data = prefetch_data['video']
+            prefetch_data = prefetch_data.get("data", prefetch_data)['video']
             video_id = prefetch_data['id']
             title = prefetch_data.get('title')
             is_locked = prefetch_data.get('locked') == '1' or prefetch_data.get('locked') == 'true'
