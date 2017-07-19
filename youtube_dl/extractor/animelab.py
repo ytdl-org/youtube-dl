@@ -119,7 +119,14 @@ class AnimeLabIE(InfoExtractor):
 
         description = raw_data.get('synopsis') or self._og_search_description(webpage, default=None)
 
-        # TODO extract thumbnails and other things youtube-dl optionally wants
+        thumbnail_data = raw_data.get('thumbnailInstance', {})
+        image_data = thumbnail_data.get('imageInfo', {})
+        thumbnails = [{
+            'id': str_or_none(thumbnail_data.get('id')),
+            'url': image_data.get('fullPath'),
+            'width': image_data.get('width'),
+            'height': image_data.get('height'),
+        }]
 
         formats = []
         for video_data in raw_data['videoList']:
@@ -181,6 +188,7 @@ class AnimeLabIE(InfoExtractor):
             'series': series,
             'episode': episode_name,
             'episode_number': int_or_none(episode_number),
+            'thumbnails': thumbnails,
             'formats': formats,
         }
 
