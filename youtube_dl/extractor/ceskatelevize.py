@@ -318,10 +318,10 @@ class CeskaTelevizeDeckoIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         idec = self._html_search_regex(r'var\s+IDEC\s*=\s*\'(.+?)\'', webpage, 'IDEC')
-
-        args = compat_urllib_parse_urlencode({'IDEC':idec})
-        url = 'http://decko.ceskatelevize.cz/rest/Programme/relatedVideosForEpisode?' + args
-        json = self._download_json(url, video_id)
+        json = self._download_json(
+            'http://decko.ceskatelevize.cz/rest/Programme/relatedVideosForEpisode?'
+                + compat_urllib_parse_urlencode({'IDEC':idec}),
+            video_id)
         episodes = json.get('episodes', [])
 
         entries = []
