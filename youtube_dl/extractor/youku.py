@@ -13,7 +13,6 @@ from ..utils import (
     js_to_json,
     str_or_none,
     strip_jsonp,
-    urljoin,
 )
 
 
@@ -238,13 +237,16 @@ class YoukuShowIE(InfoExtractor):
             'description': 'md5:275715156abebe5ccc2a1992e9d56b98',
         },
         'playlist_count': 24,
+    }, {
+        # Ongoing playlist. The initial page is the last one
+        'url': 'http://list.youku.com/show/id_za7c275ecd7b411e1a19e.html',
+        'only_matchine': True,
     }]
 
-    def _extract_entries(self, playlist_data_url, show_id, idx, query, url):
+    def _extract_entries(self, playlist_data_url, show_id, note, query):
         query['callback'] = 'cb'
         playlist_data = self._download_json(
-            playlist_data_url, show_id, query=query,
-            note='Downloading playlist data page %d' % (idx + 1),
+            playlist_data_url, show_id, query=query, note=note,
             transform_source=lambda s: js_to_json(strip_jsonp(s)))['html']
         drama_list = (get_element_by_class('p-drama-grid', playlist_data) or
                       get_element_by_class('p-drama-half-row', playlist_data))
@@ -252,29 +254,39 @@ class YoukuShowIE(InfoExtractor):
             raise ExtractorError('No episodes found')
         video_urls = re.findall(r'<a[^>]+href="([^"]+)"', drama_list)
         return playlist_data, [
-            self.url_result(urljoin(url, video_url), YoukuIE.ie_key())
+            self.url_result(self._proto_relative_url(video_url, 'http:'), YoukuIE.ie_key())
             for video_url in video_urls]
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
         webpage = self._download_webpage(url, show_id)
 
+        entries = []
         page_config = self._parse_json(self._search_regex(
             r'var\s+PageConfig\s*=\s*({.+});', webpage, 'page config'),
             show_id, transform_source=js_to_json)
-        first_page, entries = self._extract_entries(
-            'http://list.youku.com/show/module', show_id, 0, {
+        first_page, initial_entries = self._extract_entries(
+            'http://list.youku.com/show/module', show_id,
+            note='Downloading initial playlist data page',
+            query={
                 'id': page_config['showid'],
                 'tab': 'showInfo',
-            }, url)
+            })
+        first_page_reload_id = self._html_search_regex(
+            r'<div[^>]+id="(reload_\d+)', first_page, 'first page reload id')
         # The first reload_id has the same items as first_page
-        reload_ids = re.findall('<li[^>]+data-id="([^"]+)">', first_page)[1:]
+        reload_ids = re.findall('<li[^>]+data-id="([^"]+)">', first_page)
         for idx, reload_id in enumerate(reload_ids):
+            if reload_id == first_page_reload_id:
+                entries.extend(initial_entries)
+                continue
             _, new_entries = self._extract_entries(
-                'http://list.youku.com/show/episode', show_id, idx + 1, {
+                'http://list.youku.com/show/episode', show_id,
+                note='Downloading playlist data page %d' % (idx + 1),
+                query={
                     'id': page_config['showid'],
                     'stage': reload_id,
-                }, url)
+                })
             entries.extend(new_entries)
 
         desc = self._html_search_meta('description', webpage, fatal=False)
