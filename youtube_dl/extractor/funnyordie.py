@@ -1,10 +1,14 @@
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    float_or_none,
+    int_or_none,
+    unified_timestamp,
+)
 
 
 class FunnyOrDieIE(InfoExtractor):
@@ -18,6 +22,10 @@ class FunnyOrDieIE(InfoExtractor):
             'title': 'Heart-Shaped Box: Literal Video Version',
             'description': 'md5:ea09a01bc9a1c46d9ab696c01747c338',
             'thumbnail': r're:^http:.*\.jpg$',
+            'uploader': 'DASjr',
+            'timestamp': 1317904928,
+            'upload_date': '20111006',
+            'duration': 318.3,
         },
     }, {
         'url': 'http://www.funnyordie.com/embed/e402820827',
@@ -27,6 +35,8 @@ class FunnyOrDieIE(InfoExtractor):
             'title': 'Please Use This Song (Jon Lajoie)',
             'description': 'Please use this to sell something.  www.jonlajoie.com',
             'thumbnail': r're:^http:.*\.jpg$',
+            'timestamp': 1398988800,
+            'upload_date': '20140502',
         },
         'params': {
             'skip_download': True,
@@ -100,15 +110,53 @@ class FunnyOrDieIE(InfoExtractor):
                 'url': 'http://www.funnyordie.com%s' % src,
             }]
 
-        post_json = self._search_regex(
-            r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details')
-        post = json.loads(post_json)
+        timestamp = unified_timestamp(self._html_search_meta(
+            'uploadDate', webpage, 'timestamp', default=None))
+
+        uploader = self._html_search_regex(
+            r'<h\d[^>]+\bclass=["\']channel-preview-name[^>]+>(.+?)</h',
+            webpage, 'uploader', default=None)
+
+        title, description, thumbnail, duration = [None] * 4
+
+        medium = self._parse_json(
+            self._search_regex(
+                r'jsonMedium\s*=\s*({.+?});', webpage, 'JSON medium',
+                default='{}'),
+            video_id, fatal=False)
+        if medium:
+            title = medium.get('title')
+            duration = float_or_none(medium.get('duration'))
+            if not timestamp:
+                timestamp = unified_timestamp(medium.get('publishDate'))
+
+        post = self._parse_json(
+            self._search_regex(
+                r'fb_post\s*=\s*(\{.*?\});', webpage, 'post details',
+                default='{}'),
+            video_id, fatal=False)
+        if post:
+            if not title:
+                title = post.get('name')
+            description = post.get('description')
+            thumbnail = post.get('picture')
+
+        if not title:
+            title = self._og_search_title(webpage)
+        if not description:
+            description = self._og_search_description(webpage)
+        if not duration:
+            duration = int_or_none(self._html_search_meta(
+                ('video:duration', 'duration'), webpage, 'duration', default=False))
 
         return {
             'id': video_id,
-            'title': post['name'],
-            'description': post.get('description'),
-            'thumbnail': post.get('picture'),
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'timestamp': timestamp,
+            'duration': duration,
             'formats': formats,
             'subtitles': subtitles,
         }
