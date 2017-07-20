@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import itertools
 import random
 import re
 import string
@@ -222,50 +221,61 @@ class YoukuShowIE(InfoExtractor):
     _VALID_URL = r'https?://list\.youku\.com/show/id_(?P<id>[0-9a-z]+)\.html'
     IE_NAME = 'youku:show'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://list.youku.com/show/id_zc7c670be07ff11e48b3f.html',
         'info_dict': {
             'id': 'zc7c670be07ff11e48b3f',
-            'title': '花千骨 未删减版',
+            'title': '花千骨 DVD版',
             'description': 'md5:a1ae6f5618571bbeb5c9821f9c81b558',
         },
         'playlist_count': 50,
-    }
+    }, {
+        # Episode number not starting from 1
+        'url': 'http://list.youku.com/show/id_zefbfbd70efbfbd780bef.html',
+        'info_dict': {
+            'id': 'zefbfbd70efbfbd780bef',
+            'title': '超级飞侠3',
+            'description': 'md5:275715156abebe5ccc2a1992e9d56b98',
+        },
+        'playlist_count': 24,
+    }]
 
-    _PAGE_SIZE = 40
+    def _extract_entries(self, playlist_data_url, show_id, idx, query, url):
+        query['callback'] = 'cb'
+        playlist_data = self._download_json(
+            playlist_data_url, show_id, query=query,
+            note='Downloading playlist data page %d' % (idx + 1),
+            transform_source=lambda s: js_to_json(strip_jsonp(s)))['html']
+        drama_list = (get_element_by_class('p-drama-grid', playlist_data) or
+                      get_element_by_class('p-drama-half-row', playlist_data))
+        if drama_list is None:
+            raise ExtractorError('No episodes found')
+        video_urls = re.findall(r'<a[^>]+href="([^"]+)"', drama_list)
+        return playlist_data, [
+            self.url_result(urljoin(url, video_url), YoukuIE.ie_key())
+            for video_url in video_urls]
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
         webpage = self._download_webpage(url, show_id)
 
-        entries = []
         page_config = self._parse_json(self._search_regex(
             r'var\s+PageConfig\s*=\s*({.+});', webpage, 'page config'),
             show_id, transform_source=js_to_json)
-        for idx in itertools.count(0):
-            if idx == 0:
-                playlist_data_url = 'http://list.youku.com/show/module'
-                query = {'id': page_config['showid'], 'tab': 'point'}
-            else:
-                playlist_data_url = 'http://list.youku.com/show/point'
-                query = {
+        first_page, entries = self._extract_entries(
+            'http://list.youku.com/show/module', show_id, 0, {
+                'id': page_config['showid'],
+                'tab': 'showInfo',
+            }, url)
+        # The first reload_id has the same items as first_page
+        reload_ids = re.findall('<li[^>]+data-id="([^"]+)">', first_page)[1:]
+        for idx, reload_id in enumerate(reload_ids):
+            _, new_entries = self._extract_entries(
+                'http://list.youku.com/show/episode', show_id, idx + 1, {
                     'id': page_config['showid'],
-                    'stage': 'reload_%d' % (self._PAGE_SIZE * idx + 1),
-                }
-            query['callback'] = 'cb'
-            playlist_data = self._download_json(
-                playlist_data_url, show_id, query=query,
-                note='Downloading playlist data page %d' % (idx + 1),
-                transform_source=lambda s: js_to_json(strip_jsonp(s)))['html']
-            video_urls = re.findall(
-                r'<div[^>]+class="p-thumb"[^<]+<a[^>]+href="([^"]+)"',
-                playlist_data)
-            new_entries = [
-                self.url_result(urljoin(url, video_url), YoukuIE.ie_key())
-                for video_url in video_urls]
+                    'stage': reload_id,
+                }, url)
             entries.extend(new_entries)
-            if len(new_entries) < self._PAGE_SIZE:
-                break
 
         desc = self._html_search_meta('description', webpage, fatal=False)
         playlist_title = desc.split(',')[0] if desc else None

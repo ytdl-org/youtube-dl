@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [youku:show] Fix playlist extraction (#13248)
 + [dispeak] Recognize sevt subdomain (#13276)
 
 
