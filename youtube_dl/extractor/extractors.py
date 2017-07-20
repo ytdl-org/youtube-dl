@@ -298,7 +298,10 @@ from .dw import (
 from .eagleplatform import EaglePlatformIE
 from .ebaumsworld import EbaumsWorldIE
 from .echomsk import EchoMskIE
-from .egghead import EggheadCourseIE
+from .egghead import (
+    EggheadCourseIE,
+    EggheadLessonIE,
+)
 from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .einthusan import EinthusanIE
