@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
++ [dispeak] Recognize sevt subdomain (#13276)
+
+
 version 2017.07.15
 
 Core
