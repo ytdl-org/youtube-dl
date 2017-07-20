@@ -41,6 +41,7 @@ def _make_result(formats, **kwargs):
         'id': 'testid',
         'title': 'testttitle',
         'extractor': 'testex',
+        'extractor_key': 'TestEx',
     }
     res.update(**kwargs)
     return res
@@ -761,7 +762,8 @@ class TestYoutubeDL(unittest.TestCase):
                     '_type': 'url_transparent',
                     'url': 'foo2:',
                     'ie_key': 'Foo2',
-                    'title': 'foo1 title'
+                    'title': 'foo1 title',
+                    'id': 'foo1_id',
                 }
 
         class Foo2IE(InfoExtractor):
@@ -787,6 +789,9 @@ class TestYoutubeDL(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['url'], TEST_URL)
         self.assertEqual(downloaded['title'], 'foo1 title')
+        self.assertEqual(downloaded['id'], 'testid')
+        self.assertEqual(downloaded['extractor'], 'testex')
+        self.assertEqual(downloaded['extractor_key'], 'TestEx')
 
 
 if __name__ == '__main__':
