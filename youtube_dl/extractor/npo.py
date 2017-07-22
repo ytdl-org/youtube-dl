@@ -28,7 +28,7 @@ class NPOBaseIE(InfoExtractor):
 
 class NPOIE(NPOBaseIE):
     IE_NAME = 'npo'
-    IE_DESC = 'npo.nl and ntr.nl'
+    IE_DESC = 'npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl'
     _VALID_URL = r'''(?x)
                     (?:
                         npo:|
@@ -38,7 +38,7 @@ class NPOIE(NPOBaseIE):
                                 npo\.nl/(?!(?:live|radio)/)(?:[^/]+/){2}|
                                 ntr\.nl/(?:[^/]+/){2,}|
                                 omroepwnl\.nl/video/fragment/[^/]+__|
-                                zapp\.nl/[^/]+/[^/]+/
+                                (?:zapp|npo3)\.nl/(?:[^/]+/){2}
                             )
                         )
                         (?P<id>[^/?#]+)
@@ -145,6 +145,9 @@ class NPOIE(NPOBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://www.zapp.nl/beste-vrienden-quiz/extra-video-s/WO_NTR_1067990',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.npo3.nl/3onderzoekt/16-09-2015/VPWON_1239870',
         'only_matching': True,
     }, {
         # live stream

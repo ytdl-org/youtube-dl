@@ -1,8 +1,28 @@
-version <unreleased>
+version 2017.07.23
+
+Core
+* [YoutubeDL] Improve default format specification (#13704)
+* [YoutubeDL] Do not override id, extractor and extractor_key for
+  url_transparent entities
+* [extractor/common] Fix playlist_from_matches
 
 Extractors
+* [itv] Fix production id extraction (#13671, #13703)
+* [vidio] Make duration non fatal and fix typo
+* [mtv] Skip missing video parts (#13690)
+* [sportbox:embed] Fix extraction
++ [npo] Add support for npo3.nl URLs (#13695)
+* [dramafever] Remove video id from title (#13699)
++ [egghead:lesson] Add support for lessons (#6635)
+* [funnyordie] Extract more metadata (#13677)
 * [youku:show] Fix playlist extraction (#13248)
 + [dispeak] Recognize sevt subdomain (#13276)
+* [adn] Improve error reporting (#13663)
+* [crunchyroll] Relax series and season regex (#13659)
++ [spiegel:article] Add support for nexx iframe embeds (#13029)
++ [nexx:embed] Add support for iframe embeds
+* [nexx] Improve JS embed extraction
++ [pearvideo] Add support for pearvideo.com (#13031)
 
 
 version 2017.07.15

@@ -56,7 +56,8 @@ class VidioIE(InfoExtractor):
         self._sort_formats(formats)
 
         duration = int_or_none(duration or self._search_regex(
-            r'data-video-duration=(["\'])(?P<duartion>\d+)\1', webpage, 'duration'))
+            r'data-video-duration=(["\'])(?P<duration>\d+)\1', webpage,
+            'duration', fatal=False, group='duration'))
         thumbnail = thumbnail or self._og_search_thumbnail(webpage)
 
         like_count = int_or_none(self._search_regex(

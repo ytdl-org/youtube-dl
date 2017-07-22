@@ -449,6 +449,17 @@ class TestFormatSelection(unittest.TestCase):
             pass
         self.assertEqual(ydl.downloaded_info_dicts, [])
 
+    def test_default_format_spec(self):
+        ydl = YDL({'simulate': True})
+        self.assertEqual(ydl._default_format_spec({}), 'bestvideo+bestaudio/best')
+
+        ydl = YDL({'outtmpl': '-'})
+        self.assertEqual(ydl._default_format_spec({}), 'best')
+
+        ydl = YDL({})
+        self.assertEqual(ydl._default_format_spec({}, download=False), 'bestvideo+bestaudio/best')
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best')
+
 
 class TestYoutubeDL(unittest.TestCase):
     def test_subtitles(self):

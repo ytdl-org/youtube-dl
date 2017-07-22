@@ -59,12 +59,18 @@ class ITVIE(InfoExtractor):
         def _add_sub_element(element, name):
             return etree.SubElement(element, _add_ns(name))
 
+        production_id = (
+            params.get('data-video-autoplay-id') or
+            '%s#001' % (
+                params.get('data-video-episode-id') or
+                video_id.replace('a', '/')))
+
         req_env = etree.Element(_add_ns('soapenv:Envelope'))
         _add_sub_element(req_env, 'soapenv:Header')
         body = _add_sub_element(req_env, 'soapenv:Body')
         get_playlist = _add_sub_element(body, ('tem:GetPlaylist'))
         request = _add_sub_element(get_playlist, 'tem:request')
-        _add_sub_element(request, 'itv:ProductionId').text = params['data-video-id']
+        _add_sub_element(request, 'itv:ProductionId').text = production_id
         _add_sub_element(request, 'itv:RequestGuid').text = compat_str(uuid.uuid4()).upper()
         vodcrid = _add_sub_element(request, 'itv:Vodcrid')
         _add_sub_element(vodcrid, 'com:Id')
