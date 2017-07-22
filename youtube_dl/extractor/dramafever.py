@@ -73,7 +73,7 @@ class DramaFeverIE(DramaFeverBaseIE):
         'url': 'http://www.dramafever.com/drama/4512/1/Cooking_with_Shin/',
         'info_dict': {
             'id': '4512.1',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Cooking with Shin',
             'description': 'md5:a8eec7942e1664a6896fcd5e1287bfd0',
             'episode': 'Episode 1',
@@ -81,7 +81,7 @@ class DramaFeverIE(DramaFeverBaseIE):
             'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1404336058,
             'upload_date': '20140702',
-            'duration': 343,
+            'duration': 344,
         },
         'params': {
             # m3u8 download
@@ -91,7 +91,7 @@ class DramaFeverIE(DramaFeverBaseIE):
         'url': 'http://www.dramafever.com/drama/4826/4/Mnet_Asian_Music_Awards_2015/?ap=1',
         'info_dict': {
             'id': '4826.4',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Mnet Asian Music Awards 2015',
             'description': 'md5:3ff2ee8fedaef86e076791c909cf2e91',
             'episode': 'Mnet Asian Music Awards 2015 - Part 3',
@@ -99,7 +99,7 @@ class DramaFeverIE(DramaFeverBaseIE):
             'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1450213200,
             'upload_date': '20151215',
-            'duration': 5602,
+            'duration': 5359,
         },
         'params': {
             # m3u8 download
