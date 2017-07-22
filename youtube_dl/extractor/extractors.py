@@ -45,6 +45,7 @@ from .anvato import AnvatoIE
 from .anysex import AnySexIE
 from .aol import AolIE
 from .allocine import AllocineIE
+from .aliexpress import AliExpressLiveIE
 from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
 from .appletrailers import (
