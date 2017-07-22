@@ -1064,6 +1064,25 @@ class YoutubeDL(object):
             return op(actual_value, comparison_value)
         return _filter
 
+    def _default_format_spec(self, info_dict, download=True):
+        req_format_list = []
+
+        def can_have_partial_formats():
+            if self.params.get('simulate', False):
+                return True
+            if not download:
+                return True
+            if self.params.get('outtmpl', DEFAULT_OUTTMPL) == '-':
+                return False
+            if info_dict.get('is_live'):
+                return False
+            merger = FFmpegMergerPP(self)
+            return merger.available and merger.can_merge()
+        if can_have_partial_formats():
+            req_format_list.append('bestvideo+bestaudio')
+        req_format_list.append('best')
+        return '/'.join(req_format_list)
+
     def build_format_selector(self, format_spec):
         def syntax_error(note, start):
             message = (
@@ -1534,14 +1553,10 @@ class YoutubeDL(object):
 
         req_format = self.params.get('format')
         if req_format is None:
-            req_format_list = []
-            if (self.params.get('outtmpl', DEFAULT_OUTTMPL) != '-' and
-                    not info_dict.get('is_live')):
-                merger = FFmpegMergerPP(self)
-                if merger.available and merger.can_merge():
-                    req_format_list.append('bestvideo+bestaudio')
-            req_format_list.append('best')
-            req_format = '/'.join(req_format_list)
+            req_format = self._default_format_spec(info_dict, download=download)
+            if self.params.get('verbose'):
+                self.to_stdout('[debug] Default format spec: %s' % req_format)
+
         format_selector = self.build_format_selector(req_format)
 
         # While in format selection we may need to have an access to the original
