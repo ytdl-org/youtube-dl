@@ -12,6 +12,7 @@ class NickIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.com'
     _VALID_URL = r'https?://(?:(?:www|beta)\.)?nick(?:jr)?\.com/(?:[^/]+/)?(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://udat.mtvnservices.com/service1/dispatch.htm'
+    _GEO_COUNTRIES = ['US']
     _TESTS = [{
         'url': 'http://www.nick.com/videos/clip/alvinnn-and-the-chipmunks-112-full-episode.html',
         'playlist': [
