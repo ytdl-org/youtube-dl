@@ -147,6 +147,9 @@ class NiconicoIE(InfoExtractor):
             elif 'closed' in flv_info:
                 raise ExtractorError('Niconico videos now require logging in',
                                      expected=True)
+            elif 'error' in flv_info:
+                raise ExtractorError('%s reports error: %s' % (
+                    self.IE_NAME, flv_info['error'][0]), expected=True)
             else:
                 raise ExtractorError('Unable to find video URL')
 
