@@ -256,7 +256,7 @@ class RutubePlaylistIE(InfoExtractor):
             for result in results:
                 entry = self.url_result(result.get('video_url'), 'Rutube')
                 entry.update({
-                    'id': result['id'],
+                    'id': result.get('id'),
                     'uploader': try_get(result, lambda x: x['author']['name']),
                     'uploader_id': try_get(result, lambda x: x['author']['id']),
                     'upload_date': unified_strdate(result.get('created_ts')),
