@@ -1984,20 +1984,26 @@ class YoutubeDL(object):
         if ie_info.get('__postprocessors') is not None:
             pps_chain.extend(ie_info['__postprocessors'])
         pps_chain.extend(self._pps)
+        filepaths = []
         for pp in pps_chain:
             files_to_delete = []
             try:
                 files_to_delete, info = pp.run(info)
-                ie_info['_filename'] = info['filepath']
             except PostProcessingError as e:
                 self.report_error(e.msg)
-            if files_to_delete and not self.params.get('keepvideo', False):
-                for old_filename in files_to_delete:
-                    self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
-                    try:
-                        os.remove(encodeFilename(old_filename))
-                    except (IOError, OSError):
-                        self.report_warning('Unable to remove downloaded original file')
+            if files_to_delete:
+                if self.params.get('keepvideo'):
+                    filepaths.extend(files_to_delete)
+                else:
+                    for old_filename in files_to_delete:
+                        self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
+                        try:
+                            os.remove(encodeFilename(old_filename))
+                        except (IOError, OSError):
+                            self.report_warning('Unable to remove downloaded original file')
+        if info.get('filepath'):
+            filepaths.append(info['filepath'])
+        ie_info['_filename'] = filepaths or filename
 
     def _make_archive_id(self, info_dict):
         # Future-proof against any change in case
