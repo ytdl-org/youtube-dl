@@ -46,12 +46,23 @@ class RutubeIE(InfoExtractor):
     }, {
         'url': 'http://rutube.ru/embed/a10e53b86e8f349080f718582ce4c661',
         'only_matching': True,
+    }, {
+        'url': 'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/?pl_id=4252',
+        'only_matching': True,
     }]
 
     @classmethod
     def suitable(cls, url):
         parts = compat_urllib_parse_urlparse(url)
-        return super(RutubeIE, cls).suitable(url) and not parts.query
+        params = compat_parse_qs(parts.query)
+
+        # see if URL without parameters is OK
+        res = super(RutubeIE, cls).suitable(url)
+
+        if params:  # we only allow pl_id parameter in the url
+            res = res and 'pl_id' in params and len(params) == 1
+
+        return res
 
     @staticmethod
     def _extract_urls(webpage):
