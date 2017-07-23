@@ -125,3 +125,21 @@ class NickNightIE(NickDeIE):
         return self._search_regex(
             r'mrss\s*:\s*(["\'])(?P<url>http.+?)\1', webpage,
             'mrss url', group='url')
+
+
+class NickRuIE(MTVServicesInfoExtractor):
+    IE_NAME = 'nickelodeonru'
+    _VALID_URL = r'https?://(?:www\.)nickelodeon\.ru/(?:playlist|shows|videos)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'http://www.nickelodeon.ru/shows/henrydanger/videos/episodes/3-sezon-15-seriya-licenziya-na-polyot/pmomfb#playlist/7airc6',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.ru/videos/smotri-na-nickelodeon-v-iyule/g9hvh7',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        mgid = self._extract_mgid(webpage)
+        return self.url_result('http://media.mtvnservices.com/embed/%s' % mgid)
