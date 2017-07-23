@@ -1578,10 +1578,13 @@ class YoutubeDL(object):
         if download:
             if len(formats_to_download) > 1:
                 self.to_screen('[info] %s: downloading video in %s formats' % (info_dict['id'], len(formats_to_download)))
+            filenames = []
             for format in formats_to_download:
                 new_info = dict(info_dict)
                 new_info.update(format)
                 self.process_info(new_info)
+                filenames.append(new_info.get('_filename'))
+            info_dict['filenames'] = filenames
         # We update the info dict with the best quality format (backwards compatibility)
         info_dict.update(formats_to_download[-1])
         return info_dict
@@ -1827,7 +1830,7 @@ class YoutubeDL(object):
                         self.report_warning(
                             'Requested formats are incompatible for merge and will be merged into mkv.')
                     # Ensure filename always has a correct extension for successful merge
-                    filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
+                    info_dict['_filename'] = filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
                             '[download] %s has already been downloaded and '
@@ -1985,6 +1988,7 @@ class YoutubeDL(object):
             files_to_delete = []
             try:
                 files_to_delete, info = pp.run(info)
+                ie_info['_filename'] = info['filepath']
             except PostProcessingError as e:
                 self.report_error(e.msg)
             if files_to_delete and not self.params.get('keepvideo', False):
