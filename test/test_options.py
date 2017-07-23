@@ -12,7 +12,7 @@ from youtube_dl.options import _hide_login_info
 
 
 class TestOptions(unittest.TestCase):
-    def test_hide_login_inf(self):
+    def test_hide_login_info(self):
         self.assertEqual(_hide_login_info(['-u', 'foo', '-p', 'bar']),
                          ['-u', 'PRIVATE', '-p', 'PRIVATE'])
         self.assertEqual(_hide_login_info(['-u']), ['-u'])
