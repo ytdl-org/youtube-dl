@@ -20,6 +20,24 @@ from .utils import (
 from .version import __version__
 
 
+def _hide_login_info(opts):
+    PRIVATE_OPTS = set(['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username'])
+    eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
+
+    def _scrub_eq(o):
+        m = eqre.match(o)
+        if m:
+            return m.group('key') + '=PRIVATE'
+        else:
+            return o
+
+    opts = list(map(_scrub_eq, opts))
+    for idx, opt in enumerate(opts):
+        if opt in PRIVATE_OPTS and idx + 1 < len(opts):
+            opts[idx + 1] = 'PRIVATE'
+    return opts
+
+
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes, default=[]):
         try:
@@ -92,26 +110,6 @@ def parseOpts(overrideArguments=None):
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
-
-    def _hide_login_info(opts):
-        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username']
-        eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
-
-        def _scrub_eq(o):
-            m = eqre.match(o)
-            if m:
-                return m.group('key') + '=PRIVATE'
-            else:
-                return o
-
-        opts = list(map(_scrub_eq, opts))
-        for private_opt in PRIVATE_OPTS:
-            try:
-                i = opts.index(private_opt)
-                opts[i + 1] = 'PRIVATE'
-            except ValueError:
-                pass
-        return opts
 
     # No need to wrap help messages if we're on a wide console
     columns = compat_get_terminal_size().columns

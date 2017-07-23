@@ -1,3 +1,9 @@
+version <unreleased>
+
+Core
+* [options] Correctly hide login info from debug outputs (#13696)
+
+
 version 2017.07.23
 
 Core
