@@ -50,8 +50,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         thumb_node = itemdoc.find(search_path)
         if thumb_node is None:
             return None
-        else:
-            return thumb_node.attrib['url']
+        return thumb_node.get('url') or thumb_node.text or None
 
     def _extract_mobile_video_formats(self, mtvn_id):
         webpage_url = self._MOBILE_TEMPLATE % mtvn_id
