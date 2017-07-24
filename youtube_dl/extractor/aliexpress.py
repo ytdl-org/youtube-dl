@@ -1,7 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+
+import re
+
 from .common import InfoExtractor
+from ..utils import try_get, float_or_none
+from ..compat import compat_str
 
 
 class AliExpressLiveIE(InfoExtractor):
@@ -23,15 +28,13 @@ class AliExpressLiveIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         page = self._download_webpage(url, video_id)
-        # runParams is a variable which contains information about the stream
-        run_params_json = self._search_regex(r'runParams = ([^<]+)[\s+]var [a-z]+', page, 'runParams')
+        run_params_json = self._search_regex(r'runParams = (.+)[\s+]var myCtl', page, 'runParams', flags=re.DOTALL)
         run_params = self._parse_json(run_params_json, video_id)
 
         return {
             'id': video_id,
             'title': run_params['title'],
             'url': run_params['replyStreamUrl'],
-            'uploader': run_params.get('followBar', {'name': None}).get('name'),
-            # the given unix timestamp contains 000 at the end, so we have to strip it off by dividing it with 1000
-            'timestamp': run_params.get('followBar', {'createTime': 0}).get('createTime', 0) / 1000,
+            'uploader': try_get(run_params, lambda x: x['followBar']['name'], compat_str),
+            'timestamp': float_or_none(try_get(run_params, lambda x: x['followBar']['createTime']) / 1000),
         }
