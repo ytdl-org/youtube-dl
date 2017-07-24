@@ -197,16 +197,9 @@ class PornHubIE(InfoExtractor):
             r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
-
-        page_params = self._parse_json(self._search_regex(
-            r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
-            webpage, 'page parameters', group='data', default='{}'),
-            video_id, transform_source=js_to_json, fatal=False)
-        tags = categories = None
-        if page_params:
-            tags = page_params.get('tags', '').split(',')
-            categories = page_params.get('categories', '').split(',')
-
+        categories = re.findall(r"onclick=\"ga\('send', 'event', 'Watch Page', 'click', 'Category'\);\">([^<]+)<", webpage)
+        tags = re.findall(r'<a href="/video/search\?search=[^"]+">([^<]+)<', webpage)
+        
         return {
             'id': video_id,
             'url': video_url,
