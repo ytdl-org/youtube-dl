@@ -533,6 +533,7 @@
  - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
  - **nick.de**
+ - **nickelodeonru**
  - **nicknight**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
