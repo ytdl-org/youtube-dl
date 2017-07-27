@@ -1454,7 +1454,8 @@ class YoutubeDL(object):
                 upload_date = datetime.datetime.utcfromtimestamp(info_dict['timestamp'])
             except (ValueError, OverflowError, OSError):
                 pass
-        elif info_dict.get('upload_date') is not None:
+        # should only occur if timestamp didn't exist
+        if upload_date is None and info_dict.get('upload_date') is not None:
             try:
                 upload_date = datetime.datetime.strptime(info_dict['upload_date'], '%Y%m%d')
             except (ValueError, OverflowError, OSError):
