@@ -1447,6 +1447,37 @@ class YoutubeDL(object):
             except (ValueError, OverflowError, OSError):
                 pass
 
+        # Add extended date fields for organization
+        upload_date = None
+        if info_dict.get('timestamp') is not None:
+            try:
+                upload_date = datetime.datetime.utcfromtimestamp(info_dict['timestamp'])
+            except (ValueError, OverflowError, OSError):
+                pass
+        else if info_dict.get('upload_date') is not None:
+            try:
+                upload_date = datetime.datetime.strptime(info_dict['upload_date'], '%Y%m%d')
+            except (ValueError, OverflowError, OSError):
+                pass
+        if upload_date is not None:
+            info_dict['upload_year'] = upload_date.strftime('%Y')
+            info_dict['upload_month'] = upload_date.strftime('%m')
+            info_dict['upload_day'] = upload_date.strftime('%d')
+            info_dict['upload_day_of_year'] = upload_date.strftime('%j')
+            info_dict['upload_week_of_year'] = upload_date.strftime('%U')
+            info_dict['upload_dayname'] = upload_date.strftime('%A')
+            info_dict['upload_dayname_a'] = upload_date.strftime('%a')
+            info_dict['upload_monthname'] = upload_date.strftime('%B')
+            info_dict['upload_monthname_a'] = upload_date.strftime('%b')
+            info_dict['upload_hour24'] = upload_date.strftime('%H')
+            info_dict['upload_hour12'] = upload_date.strftime('%I') 
+            info_dict['upload_minute'] = upload_date.strftime('%M')
+            info_dict['upload_second'] = upload_date.strftime('%S')
+            info_dict['upload_ampm'] = upload_date.strftime('%p')
+            info_dict['upload_time24'] = upload_date.strftime('%H%M%S') 
+            info_dict['upload_time12'] = upload_date.strftime('%I%M%S%p')
+                
+
         # Auto generate title fields corresponding to the *_number fields when missing
         # in order to always have clean titles. This is very common for TV series.
         for field in ('chapter', 'season', 'episode'):
