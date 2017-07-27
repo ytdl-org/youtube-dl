@@ -30,7 +30,11 @@ class CloudyIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'http://www.cloudy.ec/embed.php?id=%s' % video_id, video_id)
+            'https://www.cloudy.ec/embed.php', video_id, query={
+                'id': video_id,
+                'playerPage': 1,
+                'autoplay': 1,
+            })
 
         info = self._parse_html5_media_entries(url, webpage, video_id)[0]
 
