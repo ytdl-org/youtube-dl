@@ -6,6 +6,11 @@ import re
 
 class LazyLoadExtractor(object):
     _module = None
+    _WORKING = True
+
+    @classmethod
+    def working(cls):
+        return cls._WORKING
 
     @classmethod
     def ie_key(cls):
