@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from ..utils import urljoin
+
 try:
     from urlparse import urlparse
 except ImportError:
@@ -41,22 +43,25 @@ class AZNudeIE(InfoExtractor):
                 format['format'] = 'Low Quality'
                 format['format_id'] = 'LQ'
                 format['quality'] = 1
-                format['resolution'] = '640x360'
-                format['format_note'] = '360p video with 64 kbps audio'
+                format['width'] = 640
+                format['height'] = 360
+                format['format_note'] = '360p video with mono audio'
 
             elif url.endswith('-hi.' + format['ext']):
                 format['format'] = 'High Quality'
                 format['format_id'] = 'HQ'
                 format['quality'] = 2
-                format['resolution'] = '640x360'
-                format['format_note'] = '360p video with 128 kbps audio'
+                format['width'] = 640
+                format['height'] = 360
+                format['format_note'] = '360p video with stereo audio'
 
             elif url.endswith('-hd.' + format['ext']):
                 format['format'] = 'High Definition'
                 format['format_id'] = 'HD'
-                format['quality'] = 2
-                format['resolution'] = '1280x720'
-                format['format_note'] = '720p video with 128 kbps audio'
+                format['quality'] = 3
+                format['width'] = 1280
+                format['height'] = 720
+                format['format_note'] = '720p video with stereo audio'
             else:
                 # Unknown format!
                 parsed_formats.remove(format)
@@ -76,9 +81,12 @@ class AZNudeIE(InfoExtractor):
         else:
             title = self._og_search_title(webpage)
 
+        if numeric_id != "":
+            title = title + ' - ' + numeric_id
+
         return {
             'id': video_id,
-            'title': title + ' - ' + numeric_id,
+            'title': title,
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
             'formats': parsed_formats
@@ -87,7 +95,7 @@ class AZNudeIE(InfoExtractor):
 
 class AZNudeCollectionIE(InfoExtractor):
     IE_NAME = 'aznude:collection'
-    _VALID_URL = r'https?://(?:www\.)?aznude\.com/(?P<id>(?:view|browse|tags)/.+\.html)'
+    _VALID_URL = r'https?://(?:www\.)?aznude\.com/(?:view/[^/]+/[^/]+|browse/(?:videos|tags/vids))/(?P<id>.+)\.html'
     _TESTS = [ {
         'url': 'http://www.aznude.com/view/celeb/m/marisatomei.html',
         'info_dict': {
@@ -114,6 +122,7 @@ class AZNudeCollectionIE(InfoExtractor):
 
         entries = []
         for path in re.findall(r'(?:<a[^>]+href=")(?P<url>[^"]+)(?:"[^>]+class="(?:[^"]+ )?show-clip(?:"| [^"]+")[^>]*>)', webpage):
-            entries.append( self.url_result(url_prefix + path, AZNudeIE.ie_key()) )
+            if not path.startswith("//"):
+                entries.append( self.url_result(urljoin(url_prefix, path), AZNudeIE.ie_key()) )
 
         return self.playlist_result(entries, page_id, title)
