@@ -558,6 +558,7 @@ from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .mediaset import MediasetIE
 from .medici import MediciIE
+from .megaphone import MegaphoneIE
 from .meipai import MeipaiIE
 from .melonvod import MelonVODIE
 from .meta import METAIE

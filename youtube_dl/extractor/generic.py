@@ -97,6 +97,7 @@ from .washingtonpost import WashingtonPostIE
 from .wistia import WistiaIE
 from .mediaset import MediasetIE
 from .joj import JojIE
+from .megaphone import MegaphoneIE
 
 
 class GenericIE(InfoExtractor):
@@ -2789,6 +2790,13 @@ class GenericIE(InfoExtractor):
         if joj_urls:
             return self.playlist_from_matches(
                 joj_urls, video_id, video_title, ie=JojIE.ie_key())
+
+        # Look for megaphone.fm embeds
+        mpfn_urls = MegaphoneIE._extract_urls(webpage)
+        if mpfn_urls:
+            return self.playlist_from_matches(
+                mpfn_urls, video_id, video_title, ie=MegaphoneIE.ie_key())
+
 
         def merge_dicts(dict1, dict2):
             merged = {}
