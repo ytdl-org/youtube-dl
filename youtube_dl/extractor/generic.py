@@ -2797,7 +2797,6 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 mpfn_urls, video_id, video_title, ie=MegaphoneIE.ie_key())
 
-
         def merge_dicts(dict1, dict2):
             merged = {}
             for k, v in dict1.items():
