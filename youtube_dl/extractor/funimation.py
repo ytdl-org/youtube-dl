@@ -37,6 +37,34 @@ class FunimationCommonIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
+    def fetch_experience(self, video_id, showLanguage, alpha):
+        try:
+            headers = {}
+            if self._TOKEN:
+                headers['Authorization'] = 'Token %s' % self._TOKEN
+            experience = self._download_json(
+                'https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/title/experience/%s/' % video_id,
+                video_id, headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                error = self._parse_json(e.cause.read(), video_id)['errors'][0]
+                raise ExtractorError('%s said: %s' % (
+                    self.IE_NAME, error.get('detail') or error.get('title')), expected=True)
+            raise
+        target_video_id = int(video_id)
+        matched_episode = None
+        for season in experience['seasons']:
+            for episode in season['episodes']:
+                # We can use showLanguage to know what the video_id is expected to be, let's look for it
+                desiredcut = episode['languages'].get(showLanguage, {'alpha': {}})
+                desiredcut = desiredcut['alpha'].get(alpha, {})
+                if desiredcut.get('experienceId', None) == target_video_id:
+                    # Winning!
+                    return (experience, season, episode)
+        raise ExtractorError('%s said: Failed to find the episode' % (
+                self.IE_NAME), expected=False)
+
+
 class FunimationIE(FunimationCommonIE):
     _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/shows/[^/]+/'+\
                  r'(?P<id>[^/?#&]+)/?(?P<alpha>simulcast|uncut)?/?(?:\?lang=(?P<lang>english|japanese))?'
@@ -102,45 +130,18 @@ class FunimationIE(FunimationCommonIE):
             ], webpage, fatal=True)
             video_id = self._search_regex(r'/player/(\d+)', player_url, 'video id')
 
-        try:
-            headers = {}
-            if self._TOKEN:
-                headers['Authorization'] = 'Token %s' % self._TOKEN
-            experience = self._download_json(
-                'https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/title/experience/%s/' % video_id,
-                video_id, headers=headers)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                error = self._parse_json(e.cause.read(), video_id)['errors'][0]
-                raise ExtractorError('%s said: %s' % (
-                    self.IE_NAME, error.get('detail') or error.get('title')), expected=True)
-            raise
         showLanguage = _search_kane('showLanguage')
         alpha = title_data['alpha'].lower()
-        target_video_id = int(video_id)
-        matched_episode = None
-        for season in experience['seasons']:
-            for episode in season['episodes']:
-                # We can use showLanguage to know what the video_id is expected to be, let's look for it
-                desiredcut = episode['languages'].get(showLanguage, {'alpha': {}})
-                desiredcut = desiredcut['alpha'].get(alpha, {})
-                if desiredcut.get('experienceId', None) == target_video_id:
-                    # Winning!
-                    matched_episode = episode
-                    break
-            if matched_episode:
-                break
-        if not matched_episode:
-            raise ExtractorError('%s said: Failed to find the episode' % (
-                    self.IE_NAME), expected=False)
+        experience, season, episode = self.fetch_experience(video_id, showLanguage, alpha)
+
+        # We're going to do two passes here... first we'll try for an exact match
         matched_alpha = None
         matched_language = None
         # Preferences
         for il in [intended_language, 'english', 'japanese']:
             if (il in episode['languages']):
                 for ia in [intended_alpha, 'uncut', 'simulcast', 'extras']:
-                    if (ia in episode['languages'][il]['alpha'] and
-                        episode['languages'][il]['alpha'][ia]['sources']):
+                    if (ia in episode['languages'][il]['alpha']):
                         matched_language = il
                         matched_alpha = ia
                         break
@@ -148,13 +149,32 @@ class FunimationIE(FunimationCommonIE):
                 break
         if not matched_alpha:
             raise ExtractorError('%s could not find acceptable language and alpha'%self.IE_NAME, expected=False)
+        final_alpha = episode['languages'][matched_language]['alpha'][matched_alpha]
+
+        # Now we want to repeat that if we don't have a source to work with
+        if (not final_alpha['sources']):
+            experience, season, episode = self.fetch_experience(final_alpha['experienceId'], matched_language, matched_alpha)
+            matched_alpha = None
+            matched_language = None
+            # Preferences
+            for il in [intended_language, 'english', 'japanese']:
+                if (il in episode['languages']):
+                    for ia in [intended_alpha, 'uncut', 'simulcast', 'extras']:
+                        if (ia in episode['languages'][il]['alpha'] and
+                            episode['languages'][il]['alpha'][ia]['sources']):
+                            matched_language = il
+                            matched_alpha = ia
+                            break
+                if (matched_alpha):
+                    break
+            if not matched_alpha:
+                raise ExtractorError('%s could not find acceptable language and alpha'%self.IE_NAME, expected=False)
+            final_alpha = episode['languages'][matched_language]['alpha'][matched_alpha]
+
         if matched_language != intended_language:
             print("Falling back to %s"%matched_language)
         if matched_alpha != intended_alpha:
             print("Falling back to %s"%matched_alpha)
-        intended_language = matched_language
-        intended_alpha = matched_alpha
-        final_alpha = episode['languages'][intended_language]['alpha'][intended_alpha]
         video_id = str(final_alpha['experienceId'])
         try:
             headers = {}
@@ -170,19 +190,26 @@ class FunimationIE(FunimationCommonIE):
                     self.IE_NAME, error.get('detail') or error.get('title')), expected=True)
             raise
         formats = []
+        f_language = {'japanese': 'jp', 'english': 'en'}.get(matched_language)
+        f_language_preference = {intended_language: 10}.get(matched_language, -10)
         for source in sources:
             source_url = source.get('src')
             if not source_url:
                 continue
             source_type = source.get('videoType') or determine_ext(source_url)
             if source_type == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                for f in self._extract_m3u8_formats(
                     source_url, video_id, 'mp4',
-                    m3u8_id='hls', fatal=False))
+                    m3u8_id='hls', fatal=False):
+                    f['language'] = f_language
+                    f['language_preference'] = f_language_preference
+                    formats.append(f)
             else:
                 formats.append({
                     'format_id': source_type,
                     'url': source_url,
+                    'language': f_language,
+                    'language_preference': f_language_preference
                 })
         self._sort_formats(formats)
 
