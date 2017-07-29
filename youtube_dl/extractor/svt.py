@@ -181,7 +181,7 @@ class SVTPlayIE(SVTBaseIE):
 
         if video_id:
             data = self._download_json(
-                'http://www.svt.se/videoplayer-api/video/%s' % video_id, video_id)
+                'https://api.svt.se/videoplayer-api/video/%s' % video_id, video_id)
             info_dict = self._extract_video(data, video_id)
             if not info_dict.get('title'):
                 info_dict['title'] = re.sub(
