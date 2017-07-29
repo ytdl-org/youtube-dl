@@ -935,8 +935,9 @@ from .soundcloud import (
     SoundcloudIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
+    SoundcloudTrackStationIE,
     SoundcloudPlaylistIE,
-    SoundcloudSearchIE
+    SoundcloudSearchIE,
 )
 from .soundgasm import (
     SoundgasmIE,
