@@ -575,6 +575,19 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'movie expired',
         },
+        # ooyala video embedded with http://player.ooyala.com/static/v4/production/latest/core.min.js
+        {
+            'url': 'http://wnep.com/2017/07/22/steampunk-fest-comes-to-honesdale/',
+            'info_dict': {
+                'id': 'lwYWYxYzE6V5uJMjNGyKtwwiw9ZJD7t2',
+                'ext': 'mp4',
+                'title': 'Steampunk Fest Comes to Honesdale',
+                'duration': 43.276,
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # embed.ly video
         {
             'url': 'http://www.tested.com/science/weird/460206-tested-grinding-coffee-2000-frames-second/',
@@ -2293,6 +2306,7 @@ class GenericIE(InfoExtractor):
         # Look for Ooyala videos
         mobj = (re.search(r'player\.ooyala\.com/[^"?]+[?#][^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
                 re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
+                re.search(r'OO\.Player\.create\.apply\(\s*OO\.Player\s*,\s*op\(\s*\[\s*[\'"][^\'"]*[\'"]\s*,\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
                 re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
