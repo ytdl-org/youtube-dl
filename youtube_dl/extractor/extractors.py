@@ -1298,6 +1298,7 @@ from .yandexmusic import (
     YandexMusicAlbumIE,
     YandexMusicPlaylistIE,
 )
+from .yandexdisk import YandexDiskIE
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE
