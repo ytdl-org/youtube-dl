@@ -95,6 +95,18 @@ class MLBIE(InfoExtractor):
             }
         },
         {
+            'url': 'https://www.mlb.com/video/hargrove-homers-off-caldwell/c-1352023483?tid=67793694',
+            'md5': 'b2af6c81fcd6c8edd9c74daea0676359',
+            'info_dict': {
+                'id': '1352023483',
+                'ext': 'mp4',
+                'title': 'Hargrove homers off Caldwell',
+                'description': '7/31/82: Mike Hargrove shows off a lengthy batting routine, then homers off Mike Caldwell',
+                'timestamp': 396934380,
+                'upload_date': '19820731',
+            }
+        },
+        {
             'url': 'http://m.mlb.com/shared/video/embed/embed.html?content_id=35692085&topic_id=6479266&width=400&height=224&property=mlb',
             'only_matching': True,
         },
