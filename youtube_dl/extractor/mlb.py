@@ -15,7 +15,7 @@ class MLBIE(InfoExtractor):
                         (?:[\da-z_-]+\.)*mlb\.com/
                         (?:
                             (?:
-                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?(?:v|(?:.*?\/)c-)|
+                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?(?:v|(?:.*?/)c-)|
                                 (?:
                                     shared/video/embed/(?:embed|m-internal-embed)\.html|
                                     (?:[^/]+/)+(?:play|index)\.jsp|
