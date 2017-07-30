@@ -1,12 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     int_or_none,
     mimetype2ext,
     remove_end,
+    clean_html,
+    get_element_by_class,
+    get_elements_by_class,
+    unified_strdate,
 )
 
 
@@ -20,6 +26,12 @@ class IwaraIE(InfoExtractor):
             'ext': 'mp4',
             'title': '【MMD R-18】ガールフレンド carry_me_off',
             'age_limit': 18,
+            'upload_date': '20150828',
+            'uploader': 'Reimu丨Action',
+            'description': '禁止转载\n\n=acfun=\n=bilibili=\n=youtube=\n\n=stage=\n=motion=\n=camera=\n=dress=',
+            'comment_count': int,
+            'like_count': int,
+            'view_count': int,
         },
     }, {
         'url': 'http://ecchi.iwara.tv/videos/Vb4yf2yZspkzkBO',
@@ -71,6 +83,19 @@ class IwaraIE(InfoExtractor):
         title = remove_end(self._html_search_regex(
             r'<title>([^<]+)</title>', webpage, 'title'), ' | Iwara')
 
+        upload_date = unified_strdate(self._html_search_regex(
+            r'(\d{4}-\d{2}-\d{2})', webpage, 'upload_date', fatal=False))
+
+        uploader = get_element_by_class('username', webpage)
+
+        description = clean_html(get_element_by_class('field-type-text-with-summary', webpage).replace('</p>', '<br /></p>'))
+
+        comment_count = int_or_none(re.sub('\D', '', get_elements_by_class('title', webpage)[1]))
+
+        node_views = clean_html(get_element_by_class('node-views', webpage)).split()
+        like_count = int_or_none(node_views[0].replace(',', ''))
+        view_count = int_or_none(node_views[1].replace(',', ''))
+
         formats = []
         for a_format in video_data:
             format_id = a_format.get('resolution')
@@ -92,4 +117,10 @@ class IwaraIE(InfoExtractor):
             'title': title,
             'age_limit': age_limit,
             'formats': formats,
+            'upload_date': upload_date,
+            'uploader': uploader,
+            'description': description,
+            'comment_count': comment_count,
+            'like_count': like_count,
+            'view_count': view_count,
         }
