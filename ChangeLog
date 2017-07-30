@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.07.30.1
 
 Core
 * [downloader/hls] Use redirect URL as manifest base (#13755)

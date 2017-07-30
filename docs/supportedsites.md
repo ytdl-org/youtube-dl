@@ -155,7 +155,6 @@
  - **chirbit:profile**
  - **Cinchcast**
  - **CJSW**
- - **Clipfish**
  - **cliphunter**
  - **ClipRs**
  - **Clipsyndicate**
@@ -440,6 +439,7 @@
  - **Medialaan**
  - **Mediaset**
  - **Medici**
+ - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
  - **MelonVOD**
  - **META**
@@ -533,6 +533,7 @@
  - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
  - **nick.de**
+ - **nickelodeonru**
  - **nicknight**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
@@ -734,6 +735,7 @@
  - **soundcloud:playlist**
  - **soundcloud:search**: Soundcloud search
  - **soundcloud:set**
+ - **soundcloud:trackstation**
  - **soundcloud:user**
  - **soundgasm**
  - **soundgasm:profile**
@@ -968,6 +970,7 @@
  - **washingtonpost**
  - **washingtonpost:article**
  - **wat.tv**
+ - **WatchBox**
  - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**
  - **wdr:mobile**
@@ -1003,6 +1006,7 @@
  - **XVideos**
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
+ - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек
