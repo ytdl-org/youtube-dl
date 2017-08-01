@@ -186,7 +186,6 @@ from .chirbit import (
 )
 from .cinchcast import CinchcastIE
 from .cjsw import CJSWIE
-from .clipfish import ClipfishIE
 from .cliphunter import CliphunterIE
 from .cliprs import ClipRsIE
 from .clipsyndicate import ClipsyndicateIE
@@ -558,6 +557,7 @@ from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .mediaset import MediasetIE
 from .medici import MediciIE
+from .megaphone import MegaphoneIE
 from .meipai import MeipaiIE
 from .melonvod import MelonVODIE
 from .meta import METAIE
@@ -934,8 +934,9 @@ from .soundcloud import (
     SoundcloudIE,
     SoundcloudSetIE,
     SoundcloudUserIE,
+    SoundcloudTrackStationIE,
     SoundcloudPlaylistIE,
-    SoundcloudSearchIE
+    SoundcloudSearchIE,
 )
 from .soundgasm import (
     SoundgasmIE,
@@ -1243,6 +1244,7 @@ from .washingtonpost import (
     WashingtonPostArticleIE,
 )
 from .wat import WatIE
+from .watchbox import WatchBoxIE
 from .watchindianporn import WatchIndianPornIE
 from .wdr import (
     WDRIE,
@@ -1297,6 +1299,7 @@ from .yandexmusic import (
     YandexMusicAlbumIE,
     YandexMusicPlaylistIE,
 )
+from .yandexdisk import YandexDiskIE
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
 from .ynet import YnetIE

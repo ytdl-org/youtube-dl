@@ -1,7 +1,27 @@
-version <unreleased>
+version 2017.07.30.1
 
 Core
+* [downloader/hls] Use redirect URL as manifest base (#13755)
 * [options] Correctly hide login info from debug outputs (#13696)
+
+Extractors
++ [watchbox] Add support for watchbox.de (#13739)
+- [clipfish] Remove extractor
++ [youjizz] Fix extraction (#13744)
++ [generic] Add support for another ooyala embed pattern (#13727)
++ [ard] Add support for lives (#13771)
+* [soundcloud] Update client id
++ [soundcloud:trackstation] Add support for track stations (#13733)
+* [svtplay] Use geo verification proxy for API request
+* [svtplay] Update API URL (#13767)
++ [yandexdisk] Add support for yadi.sk (#13755)
++ [megaphone] Add support for megaphone.fm
+* [amcnetworks] Make rating optional (#12453)
+* [cloudy] Fix extraction (#13737)
++ [nickru] Add support for nickelodeon.ru
+* [mtv] Improve thumbnal extraction
+* [nick] Automate geo-restriction bypass (#13711)
+* [niconico] Improve error reporting (#13696)
 
 
 version 2017.07.23
