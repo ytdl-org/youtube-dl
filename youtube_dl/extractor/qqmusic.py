@@ -156,16 +156,27 @@ class QQPlaylistBaseIE(InfoExtractor):
     def qq_static_url(category, mid):
         return 'http://y.qq.com/y/static/%s/%s/%s/%s.html' % (category, mid[-2], mid[-1], mid)
 
-    @classmethod
-    def get_entries_from_page(cls, page):
+    def get_singer_all_songs(self, singmid, num):
+        return self._download_webpage(
+            r'https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg?format=json&inCharset=utf8&outCharset=utf-8&platform=yqq&needNewCode=0&singermid=%s&order=listen&begin=0&num=%s&songstatus=1' %
+            (singmid, num), singmid)
+
+    def get_entries_from_page(self, singmid):
         entries = []
 
-        for item in re.findall(r'class="data"[^<>]*>([^<>]+)</', page):
-            song_mid = unescapeHTML(item).split('|')[-5]
-            entries.append(cls.url_result(
-                # https://y.qq.com/n/yqq/song/004Dbsoo1yCbNZ.html
-                'https://y.qq.com/n/yqq/song/' + song_mid + ".html", 'QQMusic',
-                song_mid))
+        default_num = 1
+        json_text = self.get_singer_all_songs(singmid, default_num)
+        json_obj = self._parse_json(json_text, singmid)
+
+        if json_obj['code'] == 0:
+            total = json_obj['data']['total']
+            json_text = self.get_singer_all_songs(singmid, total)
+            json_obj = self._parse_json(json_text, singmid)
+
+        for item in json_obj['data']['list']:
+            if not (item['musicData'].get('songmid') is None):
+                songmid = item['musicData']['songmid']
+                entries.append(self.url_result(r'https://y.qq.com/n/yqq/song/%s.html' % songmid, 'QQMusic', songmid))
 
         return entries
 
@@ -187,26 +198,16 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
     def _real_extract(self, url):
         mid = self._match_id(url)
 
-        singer_page = self._download_webpage(
-            self.qq_static_url('singer', mid), mid, 'Download singer page')
-
-        entries = self.get_entries_from_page(singer_page)
-
-        singer_name = self._html_search_regex(
-            r"singername\s*:\s*'([^']+)'", singer_page, 'singer name',
-            default=None)
-
-        singer_id = self._html_search_regex(
-            r"singerid\s*:\s*'([0-9]+)'", singer_page, 'singer id',
-            default=None)
-
+        entries = self.get_entries_from_page(mid)
+        singer_page = self._download_webpage(url, mid, 'Download singer page')
+        singer_name = self._html_search_regex(r"singername : '(.*?)'", singer_page, 'singer name', default=None)
         singer_desc = None
 
-        if singer_id:
+        if mid:
             req = sanitized_Request(
-                'http://s.plcloud.music.qq.com/fcgi-bin/fcg_get_singer_desc.fcg?utf8=1&outCharset=utf-8&format=xml&singerid=%s' % singer_id)
+                'http://s.plcloud.music.qq.com/fcgi-bin/fcg_get_singer_desc.fcg?utf8=1&outCharset=utf-8&format=xml&singermid=%s' % mid)
             req.add_header(
-                'Referer', 'http://s.plcloud.music.qq.com/xhr_proxy_utf8.html')
+                'Referer', 'https://y.qq.com/n/yqq/singer/')
             singer_desc_page = self._download_xml(
                 req, mid, 'Donwload singer description XML')
 
@@ -304,7 +305,8 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
 
         entries = [
             self.url_result(
-                'https://y.qq.com/n/yqq/song/' + song['data']['songmid'] + ".html", 'QQMusic', song['data']['songmid']
+                'https://y.qq.com/n/yqq/song/' + song['data']['songmid'] + ".html", 'QQMusic',
+                song['data']['songmid']
             ) for song in toplist_json['songlist']
         ]
 
