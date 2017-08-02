@@ -4,9 +4,9 @@ from .common import InfoExtractor
 
 
 class AlJazeeraIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?aljazeera\.com/programmes/.*?/(?P<id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?aljazeera\.com/(?:programmes|video)/.*?/(?P<id>[^/]+)\.html'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.aljazeera.com/programmes/the-slum/2014/08/deliverance-201482883754237240.html',
         'info_dict': {
             'id': '3792260579001',
@@ -19,7 +19,10 @@ class AlJazeeraIE(InfoExtractor):
         },
         'add_ie': ['BrightcoveNew'],
         'skip': 'Not accessible from Travis CI server',
-    }
+    }, {
+        'url': 'http://www.aljazeera.com/video/news/2017/05/sierra-leone-709-carat-diamond-auctioned-170511100111930.html',
+        'only_matching': True,
+    }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/665003303001/default_default/index.html?videoId=%s'
 
     def _real_extract(self, url):

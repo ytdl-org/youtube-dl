@@ -20,6 +20,24 @@ from .utils import (
 from .version import __version__
 
 
+def _hide_login_info(opts):
+    PRIVATE_OPTS = set(['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username'])
+    eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
+
+    def _scrub_eq(o):
+        m = eqre.match(o)
+        if m:
+            return m.group('key') + '=PRIVATE'
+        else:
+            return o
+
+    opts = list(map(_scrub_eq, opts))
+    for idx, opt in enumerate(opts):
+        if opt in PRIVATE_OPTS and idx + 1 < len(opts):
+            opts[idx + 1] = 'PRIVATE'
+    return opts
+
+
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes, default=[]):
         try:
@@ -92,26 +110,6 @@ def parseOpts(overrideArguments=None):
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
-
-    def _hide_login_info(opts):
-        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username']
-        eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
-
-        def _scrub_eq(o):
-            m = eqre.match(o)
-            if m:
-                return m.group('key') + '=PRIVATE'
-            else:
-                return o
-
-        opts = list(map(_scrub_eq, opts))
-        for private_opt in PRIVATE_OPTS:
-            try:
-                i = opts.index(private_opt)
-                opts[i + 1] = 'PRIVATE'
-            except ValueError:
-                pass
-        return opts
 
     # No need to wrap help messages if we're on a wide console
     columns = compat_get_terminal_size().columns
@@ -317,7 +315,7 @@ def parseOpts(overrideArguments=None):
         metavar='FILTER', dest='match_filter', default=None,
         help=(
             'Generic video filter. '
-            'Specify any key (see help for -o for a list of available keys) to '
+            'Specify any key (see the "OUTPUT TEMPLATE" for a list of available keys) to '
             'match if the key is present, '
             '!key to check if the key is not present, '
             'key > NUMBER (like "comment_count > 12", also works with '
@@ -466,15 +464,19 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--fragment-retries',
         dest='fragment_retries', metavar='RETRIES', default=10,
-        help='Number of retries for a fragment (default is %default), or "infinite" (DASH and hlsnative only)')
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH, hlsnative and ISM)')
     downloader.add_option(
         '--skip-unavailable-fragments',
         action='store_true', dest='skip_unavailable_fragments', default=True,
-        help='Skip unavailable fragments (DASH and hlsnative only)')
+        help='Skip unavailable fragments (DASH, hlsnative and ISM)')
     downloader.add_option(
         '--abort-on-unavailable-fragment',
         action='store_false', dest='skip_unavailable_fragments',
         help='Abort downloading when some fragment is not available')
+    downloader.add_option(
+        '--keep-fragments',
+        action='store_true', dest='keep_fragments', default=False,
+        help='Keep downloaded fragments on disk after downloading is finished; fragments are erased by default')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
@@ -621,7 +623,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '-j', '--dump-json',
         action='store_true', dest='dumpjson', default=False,
-        help='Simulate, quiet but print JSON information. See --output for a description of available keys.')
+        help='Simulate, quiet but print JSON information. See the "OUTPUT TEMPLATE" for a description of available keys.')
     verbosity.add_option(
         '-J', '--dump-single-json',
         action='store_true', dest='dump_single_json', default=False,
@@ -817,11 +819,12 @@ def parseOpts(overrideArguments=None):
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
         help='Parse additional metadata like song title / artist from the video title. '
-             'The format syntax is the same as --output, '
-             'the parsed parameters replace existing values. '
-             'Additional templates: %(album)s, %(artist)s. '
+             'The format syntax is the same as --output. Regular expression with '
+             'named capture groups may also be used. '
+             'The parsed parameters replace existing values. '
              'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like '
-             '"Coldplay - Paradise"')
+             '"Coldplay - Paradise". '
+             'Example (regex): --metadata-from-title "(?P<artist>.+?) - (?P<title>.+)"')
     postproc.add_option(
         '--xattrs',
         action='store_true', dest='xattrs', default=False,

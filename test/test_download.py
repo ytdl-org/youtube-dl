@@ -151,7 +151,7 @@ def generator(test_case, tname):
             try_num = 1
             while True:
                 try:
-                    # We're not using .download here sine that is just a shim
+                    # We're not using .download here since that is just a shim
                     # for outside error handling, and returns the exit code
                     # instead of the result dict.
                     res_dict = ydl.extract_info(
@@ -199,7 +199,16 @@ def generator(test_case, tname):
                 self.assertEqual(
                     test_case['playlist_duration_sum'], got_duration)
 
-            for tc in test_cases:
+            # Generalize both playlists and single videos to unified format for
+            # simplicity
+            if 'entries' not in res_dict:
+                res_dict['entries'] = [res_dict]
+
+            for tc_num, tc in enumerate(test_cases):
+                tc_res_dict = res_dict['entries'][tc_num]
+                # First, check test cases' data against extracted data alone
+                expect_info_dict(self, tc_res_dict, tc.get('info_dict', {}))
+                # Now, check downloaded file consistency
                 tc_filename = get_tc_filename(tc)
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
@@ -216,14 +225,15 @@ def generator(test_case, tname):
                                 format_bytes(got_fsize)))
                     if 'md5' in tc:
                         md5_for_file = _file_md5(tc_filename)
-                        self.assertEqual(md5_for_file, tc['md5'])
+                        self.assertEqual(tc['md5'], md5_for_file)
+                # Finally, check test cases' data again but this time against
+                # extracted data from info JSON file written during processing
                 info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
                 self.assertTrue(
                     os.path.exists(info_json_fn),
                     'Missing info file %s' % info_json_fn)
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
-
                 expect_info_dict(self, info_dict, tc.get('info_dict', {}))
         finally:
             try_rm_tcs_files()

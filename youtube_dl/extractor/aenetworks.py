@@ -23,7 +23,19 @@ class AENetworksBaseIE(ThePlatformIE):
 class AENetworksIE(AENetworksBaseIE):
     IE_NAME = 'aenetworks'
     IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|aetv|mylifetime|lifetimemovieclub)\.com|fyi\.tv)/(?:shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?P<domain>
+                            (?:history|aetv|mylifetime|lifetimemovieclub)\.com|
+                            fyi\.tv
+                        )/
+                        (?:
+                            shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|
+                            movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?|
+                            specials/(?P<special_display_id>[^/]+)/full-special
+                        )
+                    '''
     _TESTS = [{
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
         'md5': 'a97a65f7e823ae10e9244bc5433d5fe6',
@@ -65,6 +77,9 @@ class AENetworksIE(AENetworksBaseIE):
     }, {
         'url': 'https://www.lifetimemovieclub.com/movies/a-killer-among-us',
         'only_matching': True
+    }, {
+        'url': 'http://www.history.com/specials/sniper-into-the-kill-zone/full-special',
+        'only_matching': True
     }]
     _DOMAIN_TO_REQUESTOR_ID = {
         'history.com': 'HISTORY',
@@ -75,8 +90,8 @@ class AENetworksIE(AENetworksBaseIE):
     }
 
     def _real_extract(self, url):
-        domain, show_path, movie_display_id = re.match(self._VALID_URL, url).groups()
-        display_id = show_path or movie_display_id
+        domain, show_path, movie_display_id, special_display_id = re.match(self._VALID_URL, url).groups()
+        display_id = show_path or movie_display_id or special_display_id
         webpage = self._download_webpage(url, display_id)
         if show_path:
             url_parts = show_path.split('/')
@@ -86,10 +101,14 @@ class AENetworksIE(AENetworksBaseIE):
                 for season_url_path in re.findall(r'(?s)<li[^>]+data-href="(/shows/%s/season-\d+)"' % url_parts[0], webpage):
                     entries.append(self.url_result(
                         compat_urlparse.urljoin(url, season_url_path), 'AENetworks'))
-                return self.playlist_result(
-                    entries, self._html_search_meta('aetn:SeriesId', webpage),
-                    self._html_search_meta('aetn:SeriesTitle', webpage))
-            elif url_parts_len == 2:
+                if entries:
+                    return self.playlist_result(
+                        entries, self._html_search_meta('aetn:SeriesId', webpage),
+                        self._html_search_meta('aetn:SeriesTitle', webpage))
+                else:
+                    # single season
+                    url_parts_len = 2
+            if url_parts_len == 2:
                 entries = []
                 for episode_item in re.findall(r'(?s)<[^>]+class="[^"]*(?:episode|program)-item[^"]*"[^>]*>', webpage):
                     episode_attributes = extract_attributes(episode_item)
@@ -97,7 +116,7 @@ class AENetworksIE(AENetworksBaseIE):
                         url, episode_attributes['data-canonical'])
                     entries.append(self.url_result(
                         episode_url, 'AENetworks',
-                        episode_attributes['data-videoid']))
+                        episode_attributes.get('data-videoid') or episode_attributes.get('data-video-id')))
                 return self.playlist_result(
                     entries, self._html_search_meta('aetn:SeasonId', webpage))
 
@@ -107,7 +126,10 @@ class AENetworksIE(AENetworksBaseIE):
         }
         video_id = self._html_search_meta('aetn:VideoID', webpage)
         media_url = self._search_regex(
-            r"media_url\s*=\s*'([^']+)'", webpage, 'video url')
+            [r"media_url\s*=\s*'(?P<url>[^']+)'",
+             r'data-media-url=(?P<url>(?:https?:)?//[^\s>]+)',
+             r'data-media-url=(["\'])(?P<url>(?:(?!\1).)+?)\1'],
+            webpage, 'video url', group='url')
         theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
             r'https?://link.theplatform.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
         info = self._parse_theplatform_metadata(theplatform_metadata)

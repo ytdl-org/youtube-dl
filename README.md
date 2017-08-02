@@ -145,18 +145,18 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --max-views COUNT                Do not download any videos with more than
                                      COUNT views
     --match-filter FILTER            Generic video filter. Specify any key (see
-                                     help for -o for a list of available keys)
-                                     to match if the key is present, !key to
-                                     check if the key is not present, key >
-                                     NUMBER (like "comment_count > 12", also
-                                     works with >=, <, <=, !=, =) to compare
-                                     against a number, key = 'LITERAL' (like
-                                     "uploader = 'Mike Smith'", also works with
-                                     !=) to match against a string literal and &
-                                     to require multiple matches. Values which
-                                     are not known are excluded unless you put a
-                                     question mark (?) after the operator. For
-                                     example, to only match videos that have
+                                     the "OUTPUT TEMPLATE" for a list of
+                                     available keys) to match if the key is
+                                     present, !key to check if the key is not
+                                     present, key > NUMBER (like "comment_count
+                                     > 12", also works with >=, <, <=, !=, =) to
+                                     compare against a number, key = 'LITERAL'
+                                     (like "uploader = 'Mike Smith'", also works
+                                     with !=) to match against a string literal
+                                     and & to require multiple matches. Values
+                                     which are not known are excluded unless you
+                                     put a question mark (?) after the operator.
+                                     For example, to only match videos that have
                                      been liked more than 100 times and disliked
                                      less than 50 times (or the dislike
                                      functionality is not available at the given
@@ -181,12 +181,15 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
     --fragment-retries RETRIES       Number of retries for a fragment (default
-                                     is 10), or "infinite" (DASH and hlsnative
-                                     only)
-    --skip-unavailable-fragments     Skip unavailable fragments (DASH and
-                                     hlsnative only)
+                                     is 10), or "infinite" (DASH, hlsnative and
+                                     ISM)
+    --skip-unavailable-fragments     Skip unavailable fragments (DASH, hlsnative
+                                     and ISM)
     --abort-on-unavailable-fragment  Abort downloading when some fragment is not
                                      available
+    --keep-fragments                 Keep downloaded fragments on disk after
+                                     downloading is finished; fragments are
+                                     erased by default
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -274,8 +277,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --get-filename                   Simulate, quiet but print output filename
     --get-format                     Simulate, quiet but print output format
     -j, --dump-json                  Simulate, quiet but print JSON information.
-                                     See --output for a description of available
-                                     keys.
+                                     See the "OUTPUT TEMPLATE" for a description
+                                     of available keys.
     -J, --dump-single-json           Simulate, quiet but print JSON information
                                      for each command-line argument. If the URL
                                      refers to a playlist, dump the whole
@@ -397,12 +400,14 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --add-metadata                   Write metadata to the video file
     --metadata-from-title FORMAT     Parse additional metadata like song title /
                                      artist from the video title. The format
-                                     syntax is the same as --output, the parsed
-                                     parameters replace existing values.
-                                     Additional templates: %(album)s,
-                                     %(artist)s. Example: --metadata-from-title
-                                     "%(artist)s - %(title)s" matches a title
-                                     like "Coldplay - Paradise"
+                                     syntax is the same as --output. Regular
+                                     expression with named capture groups may
+                                     also be used. The parsed parameters replace
+                                     existing values. Example: --metadata-from-
+                                     title "%(artist)s - %(title)s" matches a
+                                     title like "Coldplay - Paradise". Example
+                                     (regex): --metadata-from-title
+                                     "(?P<artist>.+?) - (?P<title>.+)"
     --xattrs                         Write metadata to the video file's xattrs
                                      (using dublin core and xdg standards)
     --fixup POLICY                   Automatically correct known faults of the
@@ -469,7 +474,10 @@ machine twitch login my_twitch_account_name password my_twitch_password
 ```
 To activate authentication with the `.netrc` file you should pass `--netrc` to youtube-dl or place it in the [configuration file](#configuration).
 
-On Windows you may also need to setup the `%HOME%` environment variable manually.
+On Windows you may also need to setup the `%HOME%` environment variable manually. For example:
+```
+set HOME=%USERPROFILE%
+```
 
 # OUTPUT TEMPLATE
 
@@ -527,13 +535,14 @@ The basic usage is not to set any template arguments when downloading a single f
  - `playlist_id` (string): Playlist identifier
  - `playlist_title` (string): Playlist title
 
-
 Available for the video that belongs to some logical chapter or section:
+
  - `chapter` (string): Name or title of the chapter the video belongs to
  - `chapter_number` (numeric): Number of the chapter the video belongs to
  - `chapter_id` (string): Id of the chapter the video belongs to
 
 Available for the video that is an episode of some series or programme:
+
  - `series` (string): Title of the series or programme the video episode belongs to
  - `season` (string): Title of the season the video episode belongs to
  - `season_number` (numeric): Number of the season the video episode belongs to
@@ -543,6 +552,7 @@ Available for the video that is an episode of some series or programme:
  - `episode_id` (string): Id of the video episode
 
 Available for the media that is a track or a part of a music album:
+
  - `track` (string): Title of the track
  - `track_number` (numeric): Number of the track within an album or a disc
  - `track_id` (string): Id of the track
@@ -644,7 +654,7 @@ Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begin
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
  - `container`: Name of the container format
- - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `m3u8`, or `m3u8_native`)
+ - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `http_dash_segments`, `m3u8`, or `m3u8_native`)
  - `format_id`: A short description of the format
 
 Note that none of the aforementioned meta fields are guaranteed to be present since this solely depends on the metadata obtained by particular extractor, i.e. the metadata offered by the video hoster.

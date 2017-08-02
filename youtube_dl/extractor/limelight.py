@@ -9,6 +9,7 @@ from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    smuggle_url,
     unsmuggle_url,
     ExtractorError,
 )
@@ -17,6 +18,42 @@ from ..utils import (
 class LimelightBaseIE(InfoExtractor):
     _PLAYLIST_SERVICE_URL = 'http://production-ps.lvp.llnw.net/r/PlaylistService/%s/%s/%s'
     _API_URL = 'http://api.video.limelight.com/rest/organizations/%s/%s/%s/%s.json'
+
+    @classmethod
+    def _extract_urls(cls, webpage, source_url):
+        lm = {
+            'Media': 'media',
+            'Channel': 'channel',
+            'ChannelList': 'channel_list',
+        }
+        entries = []
+        for kind, video_id in re.findall(
+                r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})',
+                webpage):
+            entries.append(cls.url_result(
+                smuggle_url(
+                    'limelight:%s:%s' % (lm[kind], video_id),
+                    {'source_url': source_url}),
+                'Limelight%s' % kind, video_id))
+        for mobj in re.finditer(
+                # As per [1] class attribute should be exactly equal to
+                # LimelightEmbeddedPlayerFlash but numerous examples seen
+                # that don't exactly match it (e.g. [2]).
+                # 1. http://support.3playmedia.com/hc/en-us/articles/227732408-Limelight-Embedding-the-Captions-Plugin-with-the-Limelight-Player-on-Your-Webpage
+                # 2. http://www.sedona.com/FacilitatorTraining2017
+                r'''(?sx)
+                    <object[^>]+class=(["\'])(?:(?!\1).)*\bLimelightEmbeddedPlayerFlash\b(?:(?!\1).)*\1[^>]*>.*?
+                        <param[^>]+
+                            name=(["\'])flashVars\2[^>]+
+                            value=(["\'])(?:(?!\3).)*(?P<kind>media|channel(?:List)?)Id=(?P<id>[a-z0-9]{32})
+                ''', webpage):
+            kind, video_id = mobj.group('kind'), mobj.group('id')
+            entries.append(cls.url_result(
+                smuggle_url(
+                    'limelight:%s:%s' % (kind, video_id),
+                    {'source_url': source_url}),
+                'Limelight%s' % kind.capitalize(), video_id))
+        return entries
 
     def _call_playlist_service(self, item_id, method, fatal=True, referer=None):
         headers = {}
@@ -62,13 +99,21 @@ class LimelightBaseIE(InfoExtractor):
                 fmt = {
                     'url': stream_url,
                     'abr': float_or_none(stream.get('audioBitRate')),
-                    'vbr': float_or_none(stream.get('videoBitRate')),
                     'fps': float_or_none(stream.get('videoFrameRate')),
-                    'width': int_or_none(stream.get('videoWidthInPixels')),
-                    'height': int_or_none(stream.get('videoHeightInPixels')),
                     'ext': ext,
                 }
-                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp4:.+)$', stream_url)
+                width = int_or_none(stream.get('videoWidthInPixels'))
+                height = int_or_none(stream.get('videoHeightInPixels'))
+                vbr = float_or_none(stream.get('videoBitRate'))
+                if width or height or vbr:
+                    fmt.update({
+                        'width': width,
+                        'height': height,
+                        'vbr': vbr,
+                    })
+                else:
+                    fmt['vcodec'] = 'none'
+                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp[34]:.+)$', stream_url)
                 if rtmp:
                     format_id = 'rtmp'
                     if stream.get('videoBitRate'):

@@ -44,8 +44,23 @@ class DrTuberIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.drtuber.com/video/%s' % video_id, display_id)
 
-        video_url = self._html_search_regex(
-            r'<source src="([^"]+)"', webpage, 'video URL')
+        video_data = self._download_json(
+            'http://www.drtuber.com/player_config_json/', video_id, query={
+                'vid': video_id,
+                'embed': 0,
+                'aid': 0,
+                'domain_id': 0,
+            })
+
+        formats = []
+        for format_id, video_url in video_data['files'].items():
+            if video_url:
+                formats.append({
+                    'format_id': format_id,
+                    'quality': 2 if format_id == 'hq' else 1,
+                    'url': video_url
+                })
+        self._sort_formats(formats)
 
         title = self._html_search_regex(
             (r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
@@ -75,7 +90,7 @@ class DrTuberIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
             'thumbnail': thumbnail,
             'like_count': like_count,

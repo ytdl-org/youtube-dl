@@ -3,9 +3,10 @@ from __future__ import unicode_literals
 
 from .theplatform import ThePlatformIE
 from ..utils import (
-    update_url_query,
-    parse_age_limit,
     int_or_none,
+    parse_age_limit,
+    try_get,
+    update_url_query,
 )
 
 
@@ -68,7 +69,8 @@ class AMCNetworksIE(ThePlatformIE):
         info = self._parse_theplatform_metadata(theplatform_metadata)
         video_id = theplatform_metadata['pid']
         title = theplatform_metadata['title']
-        rating = theplatform_metadata['ratings'][0]['rating']
+        rating = try_get(
+            theplatform_metadata, lambda x: x['ratings'][0]['rating'])
         auth_required = self._search_regex(
             r'window\.authRequired\s*=\s*(true|false);',
             webpage, 'auth required')

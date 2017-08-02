@@ -2,8 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import calendar
-import datetime
 
 from .common import InfoExtractor
 from ..compat import compat_str
@@ -144,77 +142,25 @@ class ORFTVthekIE(InfoExtractor):
         }
 
 
-class ORFOE1IE(InfoExtractor):
-    IE_NAME = 'orf:oe1'
-    IE_DESC = 'Radio Österreich 1'
-    _VALID_URL = r'https?://oe1\.orf\.at/(?:programm/|konsole\?.*?\btrack_id=)(?P<id>[0-9]+)'
-
-    # Audios on ORF radio are only available for 7 days, so we can't add tests.
-    _TESTS = [{
-        'url': 'http://oe1.orf.at/konsole?show=on_demand#?track_id=394211',
-        'only_matching': True,
-    }, {
-        'url': 'http://oe1.orf.at/konsole?show=ondemand&track_id=443608&load_day=/programm/konsole/tag/20160726',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        show_id = self._match_id(url)
-        data = self._download_json(
-            'http://oe1.orf.at/programm/%s/konsole' % show_id,
-            show_id
-        )
-
-        timestamp = datetime.datetime.strptime('%s %s' % (
-            data['item']['day_label'],
-            data['item']['time']
-        ), '%d.%m.%Y %H:%M')
-        unix_timestamp = calendar.timegm(timestamp.utctimetuple())
-
-        return {
-            'id': show_id,
-            'title': data['item']['title'],
-            'url': data['item']['url_stream'],
-            'ext': 'mp3',
-            'description': data['item'].get('info'),
-            'timestamp': unix_timestamp
-        }
-
-
-class ORFFM4IE(InfoExtractor):
-    IE_NAME = 'orf:fm4'
-    IE_DESC = 'radio FM4'
-    _VALID_URL = r'https?://fm4\.orf\.at/(?:7tage/?#|player/)(?P<date>[0-9]+)/(?P<show>\w+)'
-
-    _TEST = {
-        'url': 'http://fm4.orf.at/player/20160110/IS/',
-        'md5': '01e736e8f1cef7e13246e880a59ad298',
-        'info_dict': {
-            'id': '2016-01-10_2100_tl_54_7DaysSun13_11244',
-            'ext': 'mp3',
-            'title': 'Im Sumpf',
-            'description': 'md5:384c543f866c4e422a55f66a62d669cd',
-            'duration': 7173,
-            'timestamp': 1452456073,
-            'upload_date': '20160110',
-        },
-        'skip': 'Live streams on FM4 got deleted soon',
-    }
-
+class ORFRadioIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        station = mobj.group('station')
         show_date = mobj.group('date')
         show_id = mobj.group('show')
 
+        if station == 'fm4':
+            show_id = '4%s' % show_id
+
         data = self._download_json(
-            'http://audioapi.orf.at/fm4/json/2.0/broadcasts/%s/4%s' % (show_date, show_id),
+            'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s' % (station, show_id, show_date),
             show_id
         )
 
         def extract_entry_dict(info, title, subtitle):
             return {
                 'id': info['loopStreamId'].replace('.mp3', ''),
-                'url': 'http://loopstream01.apa.at/?channel=fm4&id=%s' % info['loopStreamId'],
+                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (station, info['loopStreamId']),
                 'title': title,
                 'description': subtitle,
                 'duration': (info['end'] - info['start']) / 1000,
@@ -231,6 +177,47 @@ class ORFFM4IE(InfoExtractor):
             'description': data['subtitle'],
             'entries': entries
         }
+
+
+class ORFFM4IE(ORFRadioIE):
+    IE_NAME = 'orf:fm4'
+    IE_DESC = 'radio FM4'
+    _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+    _TEST = {
+        'url': 'http://fm4.orf.at/player/20170107/CC',
+        'md5': '2b0be47375432a7ef104453432a19212',
+        'info_dict': {
+            'id': '2017-01-07_2100_tl_54_7DaysSat18_31295',
+            'ext': 'mp3',
+            'title': 'Solid Steel Radioshow',
+            'description': 'Die Mixshow von Coldcut und Ninja Tune.',
+            'duration': 3599,
+            'timestamp': 1483819257,
+            'upload_date': '20170107',
+        },
+        'skip': 'Shows from ORF radios are only available for 7 days.'
+    }
+
+
+class ORFOE1IE(ORFRadioIE):
+    IE_NAME = 'orf:oe1'
+    IE_DESC = 'Radio Österreich 1'
+    _VALID_URL = r'https?://(?P<station>oe1)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+    _TEST = {
+        'url': 'http://oe1.orf.at/player/20170108/456544',
+        'md5': '34d8a6e67ea888293741c86a099b745b',
+        'info_dict': {
+            'id': '2017-01-08_0759_tl_51_7DaysSun6_256141',
+            'ext': 'mp3',
+            'title': 'Morgenjournal',
+            'duration': 609,
+            'timestamp': 1483858796,
+            'upload_date': '20170108',
+        },
+        'skip': 'Shows from ORF radios are only available for 7 days.'
+    }
 
 
 class ORFIPTVIE(InfoExtractor):

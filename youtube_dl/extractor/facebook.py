@@ -203,19 +203,19 @@ class FacebookIE(InfoExtractor):
     }]
 
     @staticmethod
-    def _extract_url(webpage):
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
-        if mobj is not None:
-            return mobj.group('url')
-
+    def _extract_urls(webpage):
+        urls = []
+        for mobj in re.finditer(
+                r'<iframe[^>]+?src=(["\'])(?P<url>https?://www\.facebook\.com/(?:video/embed|plugins/video\.php).+?)\1',
+                webpage):
+            urls.append(mobj.group('url'))
         # Facebook API embed
         # see https://developers.facebook.com/docs/plugins/embedded-video-player
-        mobj = re.search(r'''(?x)<div[^>]+
+        for mobj in re.finditer(r'''(?x)<div[^>]+
                 class=(?P<q1>[\'"])[^\'"]*\bfb-(?:video|post)\b[^\'"]*(?P=q1)[^>]+
-                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage)
-        if mobj is not None:
-            return mobj.group('url')
+                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage):
+            urls.append(mobj.group('url'))
+        return urls
 
     def _login(self):
         (useremail, password) = self._get_login_info()

@@ -136,11 +136,9 @@ class MiTeleIE(InfoExtractor):
             video_id, 'Downloading gigya script')
 
         # Get a appKey/uuid for getting the session key
-        appKey_var = self._search_regex(
-            r'value\s*\(\s*["\']appGridApplicationKey["\']\s*,\s*([0-9a-f]+)',
-            gigya_sc, 'appKey variable')
         appKey = self._search_regex(
-            r'var\s+%s\s*=\s*["\']([0-9a-f]+)' % appKey_var, gigya_sc, 'appKey')
+            r'constant\s*\(\s*["\']_appGridApplicationKey["\']\s*,\s*["\']([0-9a-f]+)',
+            gigya_sc, 'appKey')
 
         session_json = self._download_json(
             'https://appgrid-api.cloud.accedo.tv/session',

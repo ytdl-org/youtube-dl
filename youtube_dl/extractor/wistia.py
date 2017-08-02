@@ -1,10 +1,13 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
+    unescapeHTML,
 )
 
 
@@ -33,6 +36,25 @@ class WistiaIE(InfoExtractor):
         'url': 'wistia:807fafadvk',
         'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        match = re.search(
+            r'<(?:meta[^>]+?content|iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.net/embed/iframe/.+?)\1', webpage)
+        if match:
+            return unescapeHTML(match.group('url'))
+
+        match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
+        if match:
+            return 'wistia:%s' % match.group('id')
+
+        match = re.search(
+            r'''(?sx)
+                <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
+                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
+            ''', webpage)
+        if match:
+            return 'wistia:%s' % match.group('id')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

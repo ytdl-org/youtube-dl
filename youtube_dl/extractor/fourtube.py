@@ -85,11 +85,11 @@ class FourTubeIE(InfoExtractor):
             media_id = params[0]
             sources = ['%s' % p for p in params[2]]
 
-        token_url = 'http://tkn.4tube.com/{0}/desktop/{1}'.format(
+        token_url = 'https://tkn.kodicdn.com/{0}/desktop/{1}'.format(
             media_id, '+'.join(sources))
         headers = {
             b'Content-Type': b'application/x-www-form-urlencoded',
-            b'Origin': b'http://www.4tube.com',
+            b'Origin': b'https://www.4tube.com',
         }
         token_req = sanitized_Request(token_url, b'{}', headers)
         tokens = self._download_json(token_req, video_id)

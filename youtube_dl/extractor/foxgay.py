@@ -5,6 +5,7 @@ import itertools
 from .common import InfoExtractor
 from ..utils import (
     get_element_by_id,
+    int_or_none,
     remove_end,
 )
 
@@ -46,7 +47,7 @@ class FoxgayIE(InfoExtractor):
 
         formats = [{
             'url': source,
-            'height': resolution,
+            'height': int_or_none(resolution),
         } for source, resolution in zip(
             video_data['sources'], video_data.get('resolutions', itertools.repeat(None)))]
 

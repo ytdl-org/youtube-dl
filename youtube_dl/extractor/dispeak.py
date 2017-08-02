@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class DigitallySpeakingIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:evt\.dispeak|events\.digitallyspeaking)\.com/(?:[^/]+/)+xml/(?P<id>[^.]+)\.xml'
+    _VALID_URL = r'https?://(?:s?evt\.dispeak|events\.digitallyspeaking)\.com/(?:[^/]+/)+xml/(?P<id>[^.]+)\.xml'
 
     _TESTS = [{
         # From http://gdcvault.com/play/1023460/Tenacious-Design-and-The-Interface
@@ -27,6 +27,10 @@ class DigitallySpeakingIE(InfoExtractor):
     }, {
         # From http://www.gdcvault.com/play/1014631/Classic-Game-Postmortem-PAC
         'url': 'http://events.digitallyspeaking.com/gdc/sf11/xml/12396_1299111843500GMPX.xml',
+        'only_matching': True,
+    }, {
+        # From http://www.gdcvault.com/play/1013700/Advanced-Material
+        'url': 'http://sevt.dispeak.com/ubm/gdc/eur10/xml/11256_1282118587281VNIT.xml',
         'only_matching': True,
     }]
 

@@ -11,6 +11,7 @@ from ..utils import (
     get_element_by_class,
     int_or_none,
     js_to_json,
+    NO_DEFAULT,
     parse_iso8601,
     remove_start,
     strip_or_none,
@@ -199,6 +200,19 @@ class OnetPlIE(InfoExtractor):
             'timestamp': 1487078046,
         },
     }, {
+        # embedded via pulsembed
+        'url': 'http://film.onet.pl/pensjonat-nad-rozlewiskiem-relacja-z-planu-serialu/y428n0',
+        'info_dict': {
+            'id': '501235.965429946',
+            'ext': 'mp4',
+            'title': '"Pensjonat nad rozlewiskiem": relacja z planu serialu',
+            'upload_date': '20170622',
+            'timestamp': 1498159955,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://film.onet.pl/zwiastuny/ghost-in-the-shell-drugi-zwiastun-pl/5q6yl3',
         'only_matching': True,
     }, {
@@ -212,13 +226,25 @@ class OnetPlIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    def _search_mvp_id(self, webpage, default=NO_DEFAULT):
+        return self._search_regex(
+            r'data-(?:params-)?mvp=["\'](\d+\.\d+)', webpage, 'mvp id',
+            default=default)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
 
-        mvp_id = self._search_regex(
-            r'data-params-mvp=["\'](\d+\.\d+)', webpage, 'mvp id')
+        mvp_id = self._search_mvp_id(webpage, default=None)
+
+        if not mvp_id:
+            pulsembed_url = self._search_regex(
+                r'data-src=(["\'])(?P<url>(?:https?:)?//pulsembed\.eu/.+?)\1',
+                webpage, 'pulsembed url', group='url')
+            webpage = self._download_webpage(
+                pulsembed_url, video_id, 'Downloading pulsembed webpage')
+            mvp_id = self._search_mvp_id(webpage)
 
         return self.url_result(
             'onetmvp:%s' % mvp_id, OnetMVPIE.ie_key(), video_id=mvp_id)

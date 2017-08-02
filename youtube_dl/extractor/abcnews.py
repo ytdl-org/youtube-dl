@@ -12,7 +12,15 @@ from ..compat import compat_urlparse
 
 class AbcNewsVideoIE(AMPIE):
     IE_NAME = 'abcnews:video'
-    _VALID_URL = r'https?://abcnews\.go\.com/[^/]+/video/(?P<display_id>[0-9a-z-]+)-(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        abcnews\.go\.com/
+                        (?:
+                            [^/]+/video/(?P<display_id>[0-9a-z-]+)-|
+                            video/embed\?.*?\bid=
+                        )
+                        (?P<id>\d+)
+                    '''
 
     _TESTS = [{
         'url': 'http://abcnews.go.com/ThisWeek/video/week-exclusive-irans-foreign-minister-zarif-20411932',
@@ -29,6 +37,9 @@ class AbcNewsVideoIE(AMPIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://abcnews.go.com/video/embed?id=46979033',
+        'only_matching': True,
     }, {
         'url': 'http://abcnews.go.com/2020/video/2020-husband-stands-teacher-jail-student-affairs-26119478',
         'only_matching': True,

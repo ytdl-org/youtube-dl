@@ -38,7 +38,6 @@ from ..utils import (
     parse_duration,
     remove_quotes,
     remove_start,
-    sanitized_Request,
     smuggle_url,
     str_to_int,
     try_get,
@@ -54,7 +53,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
-    _PASSWORD_CHALLENGE_URL = 'https://accounts.google.com/signin/challenge/sl/password'
+
+    _LOOKUP_URL = 'https://accounts.google.com/_/signin/sl/lookup'
+    _CHALLENGE_URL = 'https://accounts.google.com/_/signin/sl/challenge'
+    _TFA_URL = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
+
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
@@ -96,72 +99,150 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         login_form = self._hidden_inputs(login_page)
 
-        login_form.update({
-            'checkConnection': 'youtube',
-            'Email': username,
-            'Passwd': password,
-        })
-
-        login_results = self._download_webpage(
-            self._PASSWORD_CHALLENGE_URL, None,
-            note='Logging in', errnote='unable to log in', fatal=False,
-            data=urlencode_postdata(login_form))
-        if login_results is False:
-            return False
-
-        error_msg = self._html_search_regex(
-            r'<[^>]+id="errormsg_0_Passwd"[^>]*>([^<]+)<',
-            login_results, 'error message', default=None)
-        if error_msg:
-            raise ExtractorError('Unable to login: %s' % error_msg, expected=True)
-
-        if re.search(r'id="errormsg_0_Passwd"', login_results) is not None:
-            raise ExtractorError('Please use your account password and a two-factor code instead of an application-specific password.', expected=True)
-
-        # Two-Factor
-        # TODO add SMS and phone call support - these require making a request and then prompting the user
-
-        if re.search(r'(?i)<form[^>]+id="challenge"', login_results) is not None:
-            tfa_code = self._get_tfa_info('2-step verification code')
-
-            if not tfa_code:
-                self._downloader.report_warning(
-                    'Two-factor authentication required. Provide it either interactively or with --twofactor <code>'
-                    '(Note that only TOTP (Google Authenticator App) codes work at this time.)')
-                return False
-
-            tfa_code = remove_start(tfa_code, 'G-')
-
-            tfa_form_strs = self._form_hidden_inputs('challenge', login_results)
-
-            tfa_form_strs.update({
-                'Pin': tfa_code,
-                'TrustDevice': 'on',
+        def req(url, f_req, note, errnote):
+            data = login_form.copy()
+            data.update({
+                'pstMsg': 1,
+                'checkConnection': 'youtube',
+                'checkedDomains': 'youtube',
+                'hl': 'en',
+                'deviceinfo': '[null,null,null,[],null,"US",null,null,[],"GlifWebSignIn",null,[null,null,[]]]',
+                'f.req': json.dumps(f_req),
+                'flowName': 'GlifWebSignIn',
+                'flowEntry': 'ServiceLogin',
             })
+            return self._download_json(
+                url, None, note=note, errnote=errnote,
+                transform_source=lambda s: re.sub(r'^[^[]*', '', s),
+                fatal=False,
+                data=urlencode_postdata(data), headers={
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                    'Google-Accounts-XSRF': 1,
+                })
 
-            tfa_data = urlencode_postdata(tfa_form_strs)
+        def warn(message):
+            self._downloader.report_warning(message)
 
-            tfa_req = sanitized_Request(self._TWOFACTOR_URL, tfa_data)
-            tfa_results = self._download_webpage(
-                tfa_req, None,
-                note='Submitting TFA code', errnote='unable to submit tfa', fatal=False)
+        lookup_req = [
+            username,
+            None, [], None, 'US', None, None, 2, False, True,
+            [
+                None, None,
+                [2, 1, None, 1,
+                 'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn',
+                 None, [], 4],
+                1, [None, None, []], None, None, None, True
+            ],
+            username,
+        ]
 
-            if tfa_results is False:
-                return False
+        lookup_results = req(
+            self._LOOKUP_URL, lookup_req,
+            'Looking up account info', 'Unable to look up account info')
 
-            if re.search(r'(?i)<form[^>]+id="challenge"', tfa_results) is not None:
-                self._downloader.report_warning('Two-factor code expired or invalid. Please try again, or use a one-use backup code instead.')
-                return False
-            if re.search(r'(?i)<form[^>]+id="gaia_loginform"', tfa_results) is not None:
-                self._downloader.report_warning('unable to log in - did the page structure change?')
-                return False
-            if re.search(r'smsauth-interstitial-reviewsettings', tfa_results) is not None:
-                self._downloader.report_warning('Your Google account has a security notice. Please log in on your web browser, resolve the notice, and try again.')
-                return False
-
-        if re.search(r'(?i)<form[^>]+id="gaia_loginform"', login_results) is not None:
-            self._downloader.report_warning('unable to log in: bad username or password')
+        if lookup_results is False:
             return False
+
+        user_hash = try_get(lookup_results, lambda x: x[0][2], compat_str)
+        if not user_hash:
+            warn('Unable to extract user hash')
+            return False
+
+        challenge_req = [
+            user_hash,
+            None, 1, None, [1, None, None, None, [password, None, True]],
+            [
+                None, None, [2, 1, None, 1, 'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn', None, [], 4],
+                1, [None, None, []], None, None, None, True
+            ]]
+
+        challenge_results = req(
+            self._CHALLENGE_URL, challenge_req,
+            'Logging in', 'Unable to log in')
+
+        if challenge_results is False:
+            return
+
+        login_res = try_get(challenge_results, lambda x: x[0][5], list)
+        if login_res:
+            login_msg = try_get(login_res, lambda x: x[5], compat_str)
+            warn(
+                'Unable to login: %s' % 'Invalid password'
+                if login_msg == 'INCORRECT_ANSWER_ENTERED' else login_msg)
+            return False
+
+        res = try_get(challenge_results, lambda x: x[0][-1], list)
+        if not res:
+            warn('Unable to extract result entry')
+            return False
+
+        tfa = try_get(res, lambda x: x[0][0], list)
+        if tfa:
+            tfa_str = try_get(tfa, lambda x: x[2], compat_str)
+            if tfa_str == 'TWO_STEP_VERIFICATION':
+                # SEND_SUCCESS - TFA code has been successfully sent to phone
+                # QUOTA_EXCEEDED - reached the limit of TFA codes
+                status = try_get(tfa, lambda x: x[5], compat_str)
+                if status == 'QUOTA_EXCEEDED':
+                    warn('Exceeded the limit of TFA codes, try later')
+                    return False
+
+                tl = try_get(challenge_results, lambda x: x[1][2], compat_str)
+                if not tl:
+                    warn('Unable to extract TL')
+                    return False
+
+                tfa_code = self._get_tfa_info('2-step verification code')
+
+                if not tfa_code:
+                    warn(
+                        'Two-factor authentication required. Provide it either interactively or with --twofactor <code>'
+                        '(Note that only TOTP (Google Authenticator App) codes work at this time.)')
+                    return False
+
+                tfa_code = remove_start(tfa_code, 'G-')
+
+                tfa_req = [
+                    user_hash, None, 2, None,
+                    [
+                        9, None, None, None, None, None, None, None,
+                        [None, tfa_code, True, 2]
+                    ]]
+
+                tfa_results = req(
+                    self._TFA_URL.format(tl), tfa_req,
+                    'Submitting TFA code', 'Unable to submit TFA code')
+
+                if tfa_results is False:
+                    return False
+
+                tfa_res = try_get(tfa_results, lambda x: x[0][5], list)
+                if tfa_res:
+                    tfa_msg = try_get(tfa_res, lambda x: x[5], compat_str)
+                    warn(
+                        'Unable to finish TFA: %s' % 'Invalid TFA code'
+                        if tfa_msg == 'INCORRECT_ANSWER_ENTERED' else tfa_msg)
+                    return False
+
+                check_cookie_url = try_get(
+                    tfa_results, lambda x: x[0][-1][2], compat_str)
+        else:
+            check_cookie_url = try_get(res, lambda x: x[2], compat_str)
+
+        if not check_cookie_url:
+            warn('Unable to extract CheckCookie URL')
+            return False
+
+        check_cookie_results = self._download_webpage(
+            check_cookie_url, None, 'Checking cookie', fatal=False)
+
+        if check_cookie_results is False:
+            return False
+
+        if 'https://myaccount.google.com/' not in check_cookie_results:
+            warn('Unable to log in')
+            return False
+
         return True
 
     def _real_initialize(self):
@@ -317,60 +398,60 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '151': {'ext': 'mp4', 'height': 72, 'format_note': 'HLS', 'acodec': 'aac', 'abr': 24, 'vcodec': 'h264', 'preference': -10},
 
         # DASH mp4 video
-        '133': {'ext': 'mp4', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '134': {'ext': 'mp4', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
-        '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '212': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
-        '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60, 'preference': -40},
-        '299': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60, 'preference': -40},
-        '266': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'h264', 'preference': -40},
+        '133': {'ext': 'mp4', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '134': {'ext': 'mp4', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264'},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
+        '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '212': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'h264'},
+        '298': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60},
+        '299': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264', 'fps': 60},
+        '266': {'ext': 'mp4', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'h264'},
 
         # Dash mp4 audio
-        '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 48, 'preference': -50, 'container': 'm4a_dash'},
-        '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 128, 'preference': -50, 'container': 'm4a_dash'},
-        '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 256, 'preference': -50, 'container': 'm4a_dash'},
-        '256': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
-        '258': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'preference': -50, 'container': 'm4a_dash'},
-        '325': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'dtse', 'preference': -50, 'container': 'm4a_dash'},
-        '328': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'ec-3', 'preference': -50, 'container': 'm4a_dash'},
+        '139': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 48, 'container': 'm4a_dash'},
+        '140': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 128, 'container': 'm4a_dash'},
+        '141': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'abr': 256, 'container': 'm4a_dash'},
+        '256': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'container': 'm4a_dash'},
+        '258': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'aac', 'container': 'm4a_dash'},
+        '325': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'dtse', 'container': 'm4a_dash'},
+        '328': {'ext': 'm4a', 'format_note': 'DASH audio', 'acodec': 'ec-3', 'container': 'm4a_dash'},
 
         # Dash webm
-        '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '168': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '169': {'ext': 'webm', 'height': 720, 'width': 1280, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8', 'preference': -40},
-        '278': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp9', 'preference': -40},
-        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
+        '167': {'ext': 'webm', 'height': 360, 'width': 640, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '168': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '169': {'ext': 'webm', 'height': 720, 'width': 1280, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '170': {'ext': 'webm', 'height': 1080, 'width': 1920, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '218': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '219': {'ext': 'webm', 'height': 480, 'width': 854, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp8'},
+        '278': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp9'},
+        '242': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '243': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '244': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '245': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '246': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '247': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '248': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '271': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9'},
         # itag 272 videos are either 3840x2160 (e.g. RtoitU2A-3E) or 7680x4320 (sLprVF6d7Ug)
-        '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
-        '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
-        '308': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
-        '313': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'preference': -40},
-        '315': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60, 'preference': -40},
+        '272': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '302': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
+        '303': {'ext': 'webm', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
+        '308': {'ext': 'webm', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
+        '313': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '315': {'ext': 'webm', 'height': 2160, 'format_note': 'DASH video', 'vcodec': 'vp9', 'fps': 60},
 
         # Dash webm audio
-        '171': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 128, 'preference': -50},
-        '172': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 256, 'preference': -50},
+        '171': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 128},
+        '172': {'ext': 'webm', 'acodec': 'vorbis', 'format_note': 'DASH audio', 'abr': 256},
 
         # Dash webm audio with opus inside
-        '249': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 50, 'preference': -50},
-        '250': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 70, 'preference': -50},
-        '251': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 160, 'preference': -50},
+        '249': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 50},
+        '250': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 70},
+        '251': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 160},
 
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
@@ -592,6 +673,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
+        # YouTube Red ad is not captured for creator
         {
             'url': '__2ABJjxzNo',
             'info_dict': {
@@ -963,7 +1045,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_signature_function(self, video_id, player_url, example_sig):
         id_m = re.match(
-            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|/base)?\.(?P<ext>[a-z]+)$',
+            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
             player_url)
         if not id_m:
             raise ExtractorError('Cannot identify player %r' % player_url)
@@ -1188,37 +1270,57 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     sub_lang_list[sub_lang] = sub_formats
                 return sub_lang_list
 
+            def make_captions(sub_url, sub_langs):
+                parsed_sub_url = compat_urllib_parse_urlparse(sub_url)
+                caption_qs = compat_parse_qs(parsed_sub_url.query)
+                captions = {}
+                for sub_lang in sub_langs:
+                    sub_formats = []
+                    for ext in self._SUBTITLE_FORMATS:
+                        caption_qs.update({
+                            'tlang': [sub_lang],
+                            'fmt': [ext],
+                        })
+                        sub_url = compat_urlparse.urlunparse(parsed_sub_url._replace(
+                            query=compat_urllib_parse_urlencode(caption_qs, True)))
+                        sub_formats.append({
+                            'url': sub_url,
+                            'ext': ext,
+                        })
+                    captions[sub_lang] = sub_formats
+                return captions
+
+            # New captions format as of 22.06.2017
+            player_response = args.get('player_response')
+            if player_response and isinstance(player_response, compat_str):
+                player_response = self._parse_json(
+                    player_response, video_id, fatal=False)
+                if player_response:
+                    renderer = player_response['captions']['playerCaptionsTracklistRenderer']
+                    base_url = renderer['captionTracks'][0]['baseUrl']
+                    sub_lang_list = []
+                    for lang in renderer['translationLanguages']:
+                        lang_code = lang.get('languageCode')
+                        if lang_code:
+                            sub_lang_list.append(lang_code)
+                    return make_captions(base_url, sub_lang_list)
+
             # Some videos don't provide ttsurl but rather caption_tracks and
             # caption_translation_languages (e.g. 20LmZk1hakA)
+            # Does not used anymore as of 22.06.2017
             caption_tracks = args['caption_tracks']
             caption_translation_languages = args['caption_translation_languages']
             caption_url = compat_parse_qs(caption_tracks.split(',')[0])['u'][0]
-            parsed_caption_url = compat_urllib_parse_urlparse(caption_url)
-            caption_qs = compat_parse_qs(parsed_caption_url.query)
-
-            sub_lang_list = {}
+            sub_lang_list = []
             for lang in caption_translation_languages.split(','):
                 lang_qs = compat_parse_qs(compat_urllib_parse_unquote_plus(lang))
                 sub_lang = lang_qs.get('lc', [None])[0]
-                if not sub_lang:
-                    continue
-                sub_formats = []
-                for ext in self._SUBTITLE_FORMATS:
-                    caption_qs.update({
-                        'tlang': [sub_lang],
-                        'fmt': [ext],
-                    })
-                    sub_url = compat_urlparse.urlunparse(parsed_caption_url._replace(
-                        query=compat_urllib_parse_urlencode(caption_qs, True)))
-                    sub_formats.append({
-                        'url': sub_url,
-                        'ext': ext,
-                    })
-                sub_lang_list[sub_lang] = sub_formats
-            return sub_lang_list
+                if sub_lang:
+                    sub_lang_list.append(sub_lang)
+            return make_captions(caption_url, sub_lang_list)
         # An extractor error can be raise by the download process if there are
         # no automatic captions but there are subtitles
-        except (KeyError, ExtractorError):
+        except (KeyError, IndexError, ExtractorError):
             self._downloader.report_warning(err_msg)
             return {}
 
@@ -1253,24 +1355,44 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
-    def _extract_from_m3u8(self, manifest_url, video_id):
-        url_map = {}
-
-        def _get_urls(_manifest):
-            lines = _manifest.split('\n')
-            urls = filter(lambda l: l and not l.startswith('#'),
-                          lines)
-            return urls
-        manifest = self._download_webpage(manifest_url, video_id, 'Downloading formats manifest')
-        formats_urls = _get_urls(manifest)
-        for format_url in formats_urls:
-            itag = self._search_regex(r'itag/(\d+?)/', format_url, 'itag')
-            url_map[itag] = format_url
-        return url_map
-
     def _extract_annotations(self, video_id):
         url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
         return self._download_webpage(url, video_id, note='Searching for annotations.', errnote='Unable to download video annotations.')
+
+    @staticmethod
+    def _extract_chapters(description, duration):
+        if not description:
+            return None
+        chapter_lines = re.findall(
+            r'(?:^|<br\s*/>)([^<]*<a[^>]+onclick=["\']yt\.www\.watch\.player\.seekTo[^>]+>(\d{1,2}:\d{1,2}(?::\d{1,2})?)</a>[^>]*)(?=$|<br\s*/>)',
+            description)
+        if not chapter_lines:
+            return None
+        chapters = []
+        for next_num, (chapter_line, time_point) in enumerate(
+                chapter_lines, start=1):
+            start_time = parse_duration(time_point)
+            if start_time is None:
+                continue
+            if start_time > duration:
+                break
+            end_time = (duration if next_num == len(chapter_lines)
+                        else parse_duration(chapter_lines[next_num][1]))
+            if end_time is None:
+                continue
+            if end_time > duration:
+                end_time = duration
+            if start_time > end_time:
+                break
+            chapter_title = re.sub(
+                r'<a[^>]+>[^<]+</a>', '', chapter_line).strip(' \t-')
+            chapter_title = re.sub(r'\s+', ' ', chapter_title)
+            chapters.append({
+                'start_time': start_time,
+                'end_time': end_time,
+                'title': chapter_title,
+            })
+        return chapters
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -1340,6 +1462,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             age_gate = False
             video_info = None
+            sts = None
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
@@ -1356,6 +1479,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
+                sts = ytplayer_config.get('sts')
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
@@ -1364,17 +1488,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el_type in ['&el=info', '&el=embedded', '&el=detailpage', '&el=vevo', '']:
-                    video_info_url = (
-                        '%s://www.youtube.com/get_video_info?&video_id=%s%s&ps=default&eurl=&gl=US&hl=en'
-                        % (proto, video_id, el_type))
+                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
+                    query = {
+                        'video_id': video_id,
+                        'ps': 'default',
+                        'eurl': '',
+                        'gl': 'US',
+                        'hl': 'en',
+                    }
+                    if el:
+                        query['el'] = el
+                    if sts:
+                        query['sts'] = sts
                     video_info_webpage = self._download_webpage(
-                        video_info_url,
+                        '%s://www.youtube.com/get_video_info' % proto,
                         video_id, note=False,
-                        errnote='unable to download video info webpage')
+                        errnote='unable to download video info webpage',
+                        fatal=False, query=query)
+                    if not video_info_webpage:
+                        continue
                     get_video_info = compat_parse_qs(video_info_webpage)
-                    if get_video_info.get('use_cipher_signature') != ['True']:
-                        add_dash_mpd(get_video_info)
+                    add_dash_mpd(get_video_info)
                     if not video_info:
                         video_info = get_video_info
                     if 'token' in get_video_info:
@@ -1414,9 +1548,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_title = '_'
 
         # description
-        video_description = get_element_by_id("eow-description", video_webpage)
+        description_original = video_description = get_element_by_id("eow-description", video_webpage)
         if video_description:
-            video_description = re.sub(r'''(?x)
+            description_original = video_description = re.sub(r'''(?x)
                 <a\s+
                     (?:[a-zA-Z-]+="[^"]*"\s+)*?
                     (?:title|href)="([^"]+)"\s+
@@ -1516,7 +1650,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_webpage, 'license', default=None)
 
         m_music = re.search(
-            r'<h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*<ul[^>]*>\s*<li>(?P<title>.+?) by (?P<creator>.+?)(?:\(.+?\))?</li',
+            r'''(?x)
+                <h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*
+                <ul[^>]*>\s*
+                <li>(?P<title>.+?)
+                by (?P<creator>.+?)
+                (?:
+                    \(.+?\)|
+                    <a[^>]*
+                        (?:
+                            \bhref=["\']/red[^>]*>|             # drop possible
+                            >\s*Listen ad-free with YouTube Red # YouTube Red ad
+                        )
+                    .*?
+                )?</li
+            ''',
             video_webpage)
         if m_music:
             video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
@@ -1573,18 +1721,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if self._downloader.params.get('writeannotations', False):
             video_annotations = self._extract_annotations(video_id)
 
-        def _map_to_format_list(urlmap):
-            formats = []
-            for itag, video_real_url in urlmap.items():
-                dct = {
-                    'format_id': itag,
-                    'url': video_real_url,
-                    'player_url': player_url,
-                }
-                if itag in self._formats:
-                    dct.update(self._formats[itag])
-                formats.append(dct)
-            return formats
+        chapters = self._extract_chapters(description_original, video_duration)
 
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
@@ -1619,12 +1756,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 format_id = url_data['itag'][0]
                 url = url_data['url'][0]
 
-                if 'sig' in url_data:
-                    url += '&signature=' + url_data['sig'][0]
-                elif 's' in url_data:
-                    encrypted_sig = url_data['s'][0]
+                if 's' in url_data or self._downloader.params.get('youtube_include_dash_manifest', True):
                     ASSETS_RE = r'"assets":.+?"js":\s*("[^"]+")'
-
                     jsplayer_url_json = self._search_regex(
                         ASSETS_RE,
                         embed_webpage if age_gate else video_webpage,
@@ -1645,6 +1778,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             video_webpage, 'age gate player URL')
                         player_url = json.loads(player_url_json)
 
+                if 'sig' in url_data:
+                    url += '&signature=' + url_data['sig'][0]
+                elif 's' in url_data:
+                    encrypted_sig = url_data['s'][0]
+
                     if self._downloader.params.get('verbose'):
                         if player_url is None:
                             player_version = 'unknown'
@@ -1657,7 +1795,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 player_desc = 'flash player %s' % player_version
                             else:
                                 player_version = self._search_regex(
-                                    [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js', r'(?:www|player)-([^/]+)/base\.js'],
+                                    [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
+                                     r'(?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\.js'],
                                     player_url,
                                     'html5 player', fatal=False)
                                 player_desc = 'html5 player %s' % player_version
@@ -1718,11 +1857,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 formats.append(dct)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
-            url_map = self._extract_from_m3u8(manifest_url, video_id)
-            formats = _map_to_format_list(url_map)
-            # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
-            for a_format in formats:
+            formats = []
+            m3u8_formats = self._extract_m3u8_formats(
+                manifest_url, video_id, 'mp4', fatal=False)
+            for a_format in m3u8_formats:
+                itag = self._search_regex(
+                    r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
+                if itag:
+                    a_format['format_id'] = itag
+                    if itag in self._formats:
+                        dct = self._formats[itag].copy()
+                        dct.update(a_format)
+                        a_format = dct
+                a_format['player_url'] = player_url
+                # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
                 a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
+                formats.append(a_format)
         else:
             unavailable_message = self._html_search_regex(
                 r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
@@ -1806,6 +1956,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'duration': video_duration,
             'age_limit': 18 if age_gate else 0,
             'annotations': video_annotations,
+            'chapters': chapters,
             'webpage_url': proto + '://www.youtube.com/watch?v=%s' % video_id,
             'view_count': view_count,
             'like_count': like_count,

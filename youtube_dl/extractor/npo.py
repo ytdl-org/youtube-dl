@@ -28,17 +28,17 @@ class NPOBaseIE(InfoExtractor):
 
 class NPOIE(NPOBaseIE):
     IE_NAME = 'npo'
-    IE_DESC = 'npo.nl and ntr.nl'
+    IE_DESC = 'npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl'
     _VALID_URL = r'''(?x)
                     (?:
                         npo:|
                         https?://
                             (?:www\.)?
                             (?:
-                                npo\.nl/(?!live|radio)(?:[^/]+/){2}|
+                                npo\.nl/(?!(?:live|radio)/)(?:[^/]+/){2}|
                                 ntr\.nl/(?:[^/]+/){2,}|
                                 omroepwnl\.nl/video/fragment/[^/]+__|
-                                zapp\.nl/[^/]+/[^/]+/
+                                (?:zapp|npo3)\.nl/(?:[^/]+/){2}
                             )
                         )
                         (?P<id>[^/?#]+)
@@ -147,8 +147,14 @@ class NPOIE(NPOBaseIE):
         'url': 'http://www.zapp.nl/beste-vrienden-quiz/extra-video-s/WO_NTR_1067990',
         'only_matching': True,
     }, {
+        'url': 'https://www.npo3.nl/3onderzoekt/16-09-2015/VPWON_1239870',
+        'only_matching': True,
+    }, {
         # live stream
         'url': 'npo:LI_NL1_4188102',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.npo.nl/radio-gaga/13-06-2017/BNN_101383373',
         'only_matching': True,
     }]
 
@@ -313,9 +319,9 @@ class NPOIE(NPOBaseIE):
 
 class NPOLiveIE(NPOBaseIE):
     IE_NAME = 'npo.nl:live'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/live/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/live(?:/(?P<id>[^/?#&]+))?'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.npo.nl/live/npo-1',
         'info_dict': {
             'id': 'LI_NL1_4188102',
@@ -327,15 +333,18 @@ class NPOLiveIE(NPOBaseIE):
         'params': {
             'skip_download': True,
         }
-    }
+    }, {
+        'url': 'http://www.npo.nl/live',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        display_id = self._match_id(url) or 'npo-1'
 
         webpage = self._download_webpage(url, display_id)
 
         live_id = self._search_regex(
-            r'data-prid="([^"]+)"', webpage, 'live id')
+            [r'media-id="([^"]+)"', r'data-prid="([^"]+)"'], webpage, 'live id')
 
         return {
             '_type': 'url_transparent',

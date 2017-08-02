@@ -92,10 +92,12 @@ class VineIE(InfoExtractor):
 
         username = data.get('username')
 
+        alt_title = 'Vine by %s' % username if username else None
+
         return {
             'id': video_id,
-            'title': data.get('description'),
-            'alt_title': 'Vine by %s' % username if username else None,
+            'title': data.get('description') or alt_title or 'Vine video',
+            'alt_title': alt_title,
             'thumbnail': data.get('thumbnailUrl'),
             'timestamp': unified_timestamp(data.get('created')),
             'uploader': username,

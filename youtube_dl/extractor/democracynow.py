@@ -21,7 +21,8 @@ class DemocracynowIE(InfoExtractor):
         'info_dict': {
             'id': '2015-0703-001',
             'ext': 'mp4',
-            'title': 'Daily Show',
+            'title': 'Daily Show for July 03, 2015',
+            'description': 'md5:80eb927244d6749900de6072c7cc2c86',
         },
     }, {
         'url': 'http://www.democracynow.org/2015/7/3/this_flag_comes_down_today_bree',

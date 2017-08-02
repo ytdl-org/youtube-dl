@@ -12,13 +12,13 @@ class AppleConnectIE(InfoExtractor):
     _VALID_URL = r'https?://itunes\.apple\.com/\w{0,2}/?post/idsa\.(?P<id>[\w-]+)'
     _TEST = {
         'url': 'https://itunes.apple.com/us/post/idsa.4ab17a39-2720-11e5-96c5-a5b38f6c42d3',
-        'md5': '10d0f2799111df4cb1c924520ca78f98',
+        'md5': 'e7c38568a01ea45402570e6029206723',
         'info_dict': {
             'id': '4ab17a39-2720-11e5-96c5-a5b38f6c42d3',
             'ext': 'm4v',
             'title': 'Energy',
             'uploader': 'Drake',
-            'thumbnail': 'http://is5.mzstatic.com/image/thumb/Video5/v4/78/61/c5/7861c5fa-ad6d-294b-1464-cf7605b911d6/source/1920x1080sr.jpg',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20150710',
             'timestamp': 1436545535,
         },

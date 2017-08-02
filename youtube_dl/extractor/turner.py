@@ -13,6 +13,7 @@ from ..utils import (
     xpath_attr,
     update_url_query,
     ExtractorError,
+    strip_or_none,
 )
 
 
@@ -163,17 +164,21 @@ class TurnerBaseIE(AdobePassIE):
             'height': int_or_none(image.get('height')),
         } for image in video_data.findall('images/image')]
 
+        is_live = xpath_text(video_data, 'isLive') == 'true'
+
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'formats': formats,
             'subtitles': subtitles,
             'thumbnails': thumbnails,
-            'description': xpath_text(video_data, 'description'),
+            'thumbnail': xpath_text(video_data, 'poster'),
+            'description': strip_or_none(xpath_text(video_data, 'description')),
             'duration': parse_duration(xpath_text(video_data, 'length') or xpath_text(video_data, 'trt')),
             'timestamp': self._extract_timestamp(video_data),
             'upload_date': xpath_attr(video_data, 'metas', 'version'),
             'series': xpath_text(video_data, 'showTitle'),
             'season_number': int_or_none(xpath_text(video_data, 'seasonNumber')),
             'episode_number': int_or_none(xpath_text(video_data, 'episodeNumber')),
+            'is_live': is_live,
         }

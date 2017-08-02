@@ -8,7 +8,16 @@ from ..utils import int_or_none
 
 
 class CorusIE(ThePlatformFeedIE):
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:globaltv|etcanada)\.com|(?:hgtv|foodnetwork|slice)\.ca)/(?:video/|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?P<domain>
+                            (?:globaltv|etcanada)\.com|
+                            (?:hgtv|foodnetwork|slice|history|showcase)\.ca
+                        )
+                        /(?:video/|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
+                        (?P<id>\d+)
+                    '''
     _TESTS = [{
         'url': 'http://www.hgtv.ca/shows/bryan-inc/videos/movie-night-popcorn-with-bryan-870923331648/',
         'md5': '05dcbca777bf1e58c2acbb57168ad3a6',
@@ -26,6 +35,12 @@ class CorusIE(ThePlatformFeedIE):
         'only_matching': True,
     }, {
         'url': 'http://etcanada.com/video/873675331955/meet-the-survivor-game-changers-castaways-part-2/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.history.ca/the-world-without-canada/video/full-episodes/natural-resources/video.html?v=955054659646#video',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.showcase.ca/eyewitness/video/eyewitness++106/video.html?v=955070531919&p=1&s=da#video',
         'only_matching': True,
     }]
 
@@ -49,6 +64,14 @@ class CorusIE(ThePlatformFeedIE):
         'slice': {
             'feed_id': '5tUJLgV2YNJ5',
             'account_id': 2414427935,
+        },
+        'history': {
+            'feed_id': 'tQFx_TyyEq4J',
+            'account_id': 2369613659,
+        },
+        'showcase': {
+            'feed_id': '9H6qyshBZU3E',
+            'account_id': 2414426607,
         },
     }
 

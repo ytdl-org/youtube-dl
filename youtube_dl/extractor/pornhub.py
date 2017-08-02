@@ -33,7 +33,7 @@ class PornHubIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[a-z]+\.)?pornhub\.com/(?:view_video\.php\?viewkey=|embed/)|
+                            (?:[a-z]+\.)?pornhub\.com/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -96,6 +96,9 @@ class PornHubIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.thumbzilla.com/video/ph56c6114abd99a/horny-girlfriend-sex',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.pornhub.com/video/show?viewkey=648719015',
         'only_matching': True,
     }]
 
@@ -249,11 +252,14 @@ class PornHubPlaylistBaseIE(InfoExtractor):
 
         playlist = self._parse_json(
             self._search_regex(
-                r'playlistObject\s*=\s*({.+?});', webpage, 'playlist'),
-            playlist_id)
+                r'(?:playlistObject|PLAYLIST_VIEW)\s*=\s*({.+?});', webpage,
+                'playlist', default='{}'),
+            playlist_id, fatal=False)
+        title = playlist.get('title') or self._search_regex(
+            r'>Videos\s+in\s+(.+?)\s+[Pp]laylist<', webpage, 'title', fatal=False)
 
         return self.playlist_result(
-            entries, playlist_id, playlist.get('title'), playlist.get('description'))
+            entries, playlist_id, title, playlist.get('description'))
 
 
 class PornHubPlaylistIE(PornHubPlaylistBaseIE):
@@ -293,6 +299,7 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
                     break
+                raise
             page_entries = self._extract_entries(webpage)
             if not page_entries:
                 break

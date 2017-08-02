@@ -29,7 +29,17 @@ class ExternalFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        retval = self._call_downloader(tmpfilename, info_dict)
+        try:
+            retval = self._call_downloader(tmpfilename, info_dict)
+        except KeyboardInterrupt:
+            if not info_dict.get('is_live'):
+                raise
+            # Live stream downloading cancellation should be considered as
+            # correct and expected termination thus all postprocessing
+            # should take place
+            retval = 0
+            self.to_screen('[%s] Interrupted by user' % self.get_basename())
+
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
@@ -201,6 +211,11 @@ class FFmpegFD(ExternalFD):
         ffpp.check_version()
 
         args = [ffpp.executable, '-y']
+
+        for log_level in ('quiet', 'verbose'):
+            if self.params.get(log_level, False):
+                args += ['-loglevel', log_level]
+                break
 
         seekable = info_dict.get('_seekable')
         if seekable is not None:

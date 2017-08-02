@@ -6,12 +6,16 @@ import time
 import xml.etree.ElementTree as etree
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_kwargs,
+    compat_urlparse,
+)
 from ..utils import (
     unescapeHTML,
     urlencode_postdata,
     unified_timestamp,
     ExtractorError,
+    NO_DEFAULT,
 )
 
 
@@ -20,6 +24,11 @@ MSO_INFO = {
         'name': 'DIRECTV',
         'username_field': 'username',
         'password_field': 'password',
+    },
+    'ATTOTT': {
+        'name': 'DIRECTV NOW',
+        'username_field': 'email',
+        'password_field': 'loginpassword',
     },
     'Rogers': {
         'name': 'Rogers',
@@ -36,8 +45,18 @@ MSO_INFO = {
         'username_field': 'Ecom_User_ID',
         'password_field': 'Ecom_Password',
     },
+    'Brighthouse': {
+        'name': 'Bright House Networks | Spectrum',
+        'username_field': 'j_username',
+        'password_field': 'j_password',
+    },
     'Charter_Direct': {
         'name': 'Charter Spectrum',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
+    'Verizon': {
+        'name': 'Verizon FiOS',
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
     },
@@ -1303,6 +1322,15 @@ class AdobePassIE(InfoExtractor):
     _USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:47.0) Gecko/20100101 Firefox/47.0'
     _MVPD_CACHE = 'ap-mvpd'
 
+    _DOWNLOADING_LOGIN_PAGE = 'Downloading Provider Login Page'
+
+    def _download_webpage_handle(self, *args, **kwargs):
+        headers = kwargs.get('headers', {})
+        headers.update(self.geo_verification_headers())
+        kwargs['headers'] = headers
+        return super(AdobePassIE, self)._download_webpage_handle(
+            *args, **compat_kwargs(kwargs))
+
     @staticmethod
     def _get_mvpd_resource(provider_id, title, guid, rating):
         channel = etree.Element('channel')
@@ -1345,6 +1373,21 @@ class AdobePassIE(InfoExtractor):
                 'Use --ap-mso to specify Adobe Pass Multiple-system operator Identifier '
                 'and --ap-username and --ap-password or --netrc to provide account credentials.', expected=True)
 
+        def extract_redirect_url(html, url=None, fatal=False):
+            # TODO: eliminate code duplication with generic extractor and move
+            # redirection code into _download_webpage_handle
+            REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
+            redirect_url = self._search_regex(
+                r'(?i)<meta\s+(?=(?:[a-z-]+="[^"]+"\s+)*http-equiv="refresh")'
+                r'(?:[a-z-]+="[^"]+"\s+)*?content="%s' % REDIRECT_REGEX,
+                html, 'meta refresh redirect',
+                default=NO_DEFAULT if fatal else None, fatal=fatal)
+            if not redirect_url:
+                return None
+            if url:
+                redirect_url = compat_urlparse.urljoin(url, unescapeHTML(redirect_url))
+            return redirect_url
+
         mvpd_headers = {
             'ap_42': 'anonymous',
             'ap_11': 'Linux i686',
@@ -1384,42 +1427,82 @@ class AdobePassIE(InfoExtractor):
                     # Comcast page flow varies by video site and whether you
                     # are on Comcast's network.
                     provider_redirect_page, urlh = provider_redirect_page_res
-                    # Check for Comcast auto login
                     if 'automatically signing you in' in provider_redirect_page:
                         oauth_redirect_url = self._html_search_regex(
                             r'window\.location\s*=\s*[\'"]([^\'"]+)',
                             provider_redirect_page, 'oauth redirect')
-                        # Just need to process the request. No useful data comes back
                         self._download_webpage(
                             oauth_redirect_url, video_id, 'Confirming auto login')
                     else:
                         if '<form name="signin"' in provider_redirect_page:
-                            # already have the form, just fill it
                             provider_login_page_res = provider_redirect_page_res
                         elif 'http-equiv="refresh"' in provider_redirect_page:
-                            # redirects to the login page
-                            oauth_redirect_url = self._html_search_regex(
-                                r'content="0;\s*url=([^\'"]+)',
-                                provider_redirect_page, 'meta refresh redirect')
+                            oauth_redirect_url = extract_redirect_url(
+                                provider_redirect_page, fatal=True)
                             provider_login_page_res = self._download_webpage_handle(
-                                oauth_redirect_url,
-                                video_id, 'Downloading Provider Login Page')
+                                oauth_redirect_url, video_id,
+                                self._DOWNLOADING_LOGIN_PAGE)
                         else:
                             provider_login_page_res = post_form(
-                                provider_redirect_page_res, 'Downloading Provider Login Page')
+                                provider_redirect_page_res,
+                                self._DOWNLOADING_LOGIN_PAGE)
 
-                        mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
-                            mso_info.get('username_field', 'username'): username,
-                            mso_info.get('password_field', 'password'): password,
-                        })
+                        mvpd_confirm_page_res = post_form(
+                            provider_login_page_res, 'Logging in', {
+                                mso_info['username_field']: username,
+                                mso_info['password_field']: password,
+                            })
                         mvpd_confirm_page, urlh = mvpd_confirm_page_res
                         if '<button class="submit" value="Resume">Resume</button>' in mvpd_confirm_page:
                             post_form(mvpd_confirm_page_res, 'Confirming Login')
-
+                elif mso_id == 'Verizon':
+                    # In general, if you're connecting from a Verizon-assigned IP,
+                    # you will not actually pass your credentials.
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    if 'Please wait ...' in provider_redirect_page:
+                        saml_redirect_url = self._html_search_regex(
+                            r'self\.parent\.location=(["\'])(?P<url>.+?)\1',
+                            provider_redirect_page,
+                            'SAML Redirect URL', group='url')
+                        saml_login_page = self._download_webpage(
+                            saml_redirect_url, video_id,
+                            'Downloading SAML Login Page')
+                    else:
+                        saml_login_page_res = post_form(
+                            provider_redirect_page_res, 'Logging in', {
+                                mso_info['username_field']: username,
+                                mso_info['password_field']: password,
+                            })
+                        saml_login_page, urlh = saml_login_page_res
+                        if 'Please try again.' in saml_login_page:
+                            raise ExtractorError(
+                                'We\'re sorry, but either the User ID or Password entered is not correct.')
+                    saml_login_url = self._search_regex(
+                        r'xmlHttp\.open\("POST"\s*,\s*(["\'])(?P<url>.+?)\1',
+                        saml_login_page, 'SAML Login URL', group='url')
+                    saml_response_json = self._download_json(
+                        saml_login_url, video_id, 'Downloading SAML Response',
+                        headers={'Content-Type': 'text/xml'})
+                    self._download_webpage(
+                        saml_response_json['targetValue'], video_id,
+                        'Confirming Login', data=urlencode_postdata({
+                            'SAMLResponse': saml_response_json['SAMLResponse'],
+                            'RelayState': saml_response_json['RelayState']
+                        }), headers={
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        })
                 else:
-                    # Normal, non-Comcast flow
+                    # Some providers (e.g. DIRECTV NOW) have another meta refresh
+                    # based redirect that should be followed.
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = extract_redirect_url(
+                        provider_redirect_page, url=urlh.geturl())
+                    if provider_refresh_redirect_url:
+                        provider_redirect_page_res = self._download_webpage_handle(
+                            provider_refresh_redirect_url, video_id,
+                            'Downloading Provider Redirect Page (meta refresh)')
                     provider_login_page_res = post_form(
-                        provider_redirect_page_res, 'Downloading Provider Login Page')
+                        provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
                         mso_info.get('username_field', 'username'): username,
                         mso_info.get('password_field', 'password'): password,

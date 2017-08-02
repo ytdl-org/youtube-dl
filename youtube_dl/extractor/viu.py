@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_kwargs,
+    compat_str,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -36,7 +39,8 @@ class ViuBaseIE(InfoExtractor):
         headers.update(kwargs.get('headers', {}))
         kwargs['headers'] = headers
         response = self._download_json(
-            'https://www.viu.com/api/' + path, *args, **kwargs)['response']
+            'https://www.viu.com/api/' + path, *args,
+            **compat_kwargs(kwargs))['response']
         if response.get('status') != 'success':
             raise ExtractorError('%s said: %s' % (
                 self.IE_NAME, response['message']), expected=True)

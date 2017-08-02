@@ -7,8 +7,8 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     dict_get,
-    ExtractorError,
-    HEADRequest,
+    # ExtractorError,
+    # HEADRequest,
     int_or_none,
     qualities,
     remove_end,
@@ -45,6 +45,9 @@ class CanalplusIE(InfoExtractor):
         'itele': 'itele',
     }
 
+    # Only works for direct mp4 URLs
+    _GEO_COUNTRIES = ['FR']
+
     _TESTS = [{
         'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1192814',
         'info_dict': {
@@ -56,6 +59,7 @@ class CanalplusIE(InfoExtractor):
             'upload_date': '20160702',
         },
     }, {
+        # geo restricted, bypassed
         'url': 'http://www.piwiplus.fr/videos-piwi/pid1405-le-labyrinthe-boing-super-ranger.html?vid=1108190',
         'info_dict': {
             'id': '1108190',
@@ -65,19 +69,20 @@ class CanalplusIE(InfoExtractor):
             'description': 'md5:4cea7a37153be42c1ba2c1d3064376ff',
             'upload_date': '20140724',
         },
-        'skip': 'Only works from France',
+        'expected_warnings': ['HTTP Error 403: Forbidden'],
     }, {
-        'url': 'http://www.c8.fr/c8-divertissement/ms-touche-pas-a-mon-poste/pid6318-videos-integrales.html',
-        'md5': '4b47b12b4ee43002626b97fad8fb1de5',
+        # geo restricted, bypassed
+        'url': 'http://www.c8.fr/c8-divertissement/ms-touche-pas-a-mon-poste/pid6318-videos-integrales.html?vid=1443684',
+        'md5': 'bb6f9f343296ab7ebd88c97b660ecf8d',
         'info_dict': {
-            'id': '1420213',
+            'id': '1443684',
             'display_id': 'pid6318-videos-integrales',
             'ext': 'mp4',
-            'title': 'TPMP ! Même le matin - Les 35H de Baba - 14/10/2016',
-            'description': 'md5:f96736c1b0ffaa96fd5b9e60ad871799',
-            'upload_date': '20161014',
+            'title': 'Guess my iep ! - TPMP - 07/04/2017',
+            'description': 'md5:6f005933f6e06760a9236d9b3b5f17fa',
+            'upload_date': '20170407',
         },
-        'skip': 'Only works from France',
+        'expected_warnings': ['HTTP Error 403: Forbidden'],
     }, {
         'url': 'http://www.itele.fr/chroniques/invite-michael-darmon/rachida-dati-nicolas-sarkozy-est-le-plus-en-phase-avec-les-inquietudes-des-francais-171510',
         'info_dict': {
@@ -134,15 +139,15 @@ class CanalplusIE(InfoExtractor):
 
         preference = qualities(['MOBILE', 'BAS_DEBIT', 'HAUT_DEBIT', 'HD'])
 
-        fmt_url = next(iter(media.get('VIDEOS')))
-        if '/geo' in fmt_url.lower():
-            response = self._request_webpage(
-                HEADRequest(fmt_url), video_id,
-                'Checking if the video is georestricted')
-            if '/blocage' in response.geturl():
-                raise ExtractorError(
-                    'The video is not available in your country',
-                    expected=True)
+        # _, fmt_url = next(iter(media['VIDEOS'].items()))
+        # if '/geo' in fmt_url.lower():
+        #     response = self._request_webpage(
+        #         HEADRequest(fmt_url), video_id,
+        #         'Checking if the video is georestricted')
+        #     if '/blocage' in response.geturl():
+        #         raise ExtractorError(
+        #             'The video is not available in your country',
+        #             expected=True)
 
         formats = []
         for format_id, format_url in media['VIDEOS'].items():

@@ -7,20 +7,38 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
-    float_or_none,
-    xpath_text,
-    remove_end,
-    int_or_none,
+    dict_get,
     ExtractorError,
+    float_or_none,
+    int_or_none,
+    remove_end,
+    try_get,
+    xpath_text,
 )
 
 from .periscope import PeriscopeIE
 
 
 class TwitterBaseIE(InfoExtractor):
-    def _get_vmap_video_url(self, vmap_url, video_id):
+    def _extract_formats_from_vmap_url(self, vmap_url, video_id):
         vmap_data = self._download_xml(vmap_url, video_id)
-        return xpath_text(vmap_data, './/MediaFile').strip()
+        video_url = xpath_text(vmap_data, './/MediaFile').strip()
+        if determine_ext(video_url) == 'm3u8':
+            return self._extract_m3u8_formats(
+                video_url, video_id, ext='mp4', m3u8_id='hls',
+                entry_protocol='m3u8_native')
+        return [{
+            'url': video_url,
+        }]
+
+    @staticmethod
+    def _search_dimensions_in_video_url(a_format, video_url):
+        m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
+        if m:
+            a_format.update({
+                'width': int(m.group('width')),
+                'height': int(m.group('height')),
+            })
 
 
 class TwitterCardIE(TwitterBaseIE):
@@ -36,7 +54,8 @@ class TwitterCardIE(TwitterBaseIE):
                 'title': 'Twitter Card',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 30.033,
-            }
+            },
+            'skip': 'Video gone',
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/623160978427936768',
@@ -48,6 +67,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'thumbnail': r're:^https?://.*\.jpg',
                 'duration': 80.155,
             },
+            'skip': 'Video gone',
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
@@ -65,7 +85,7 @@ class TwitterCardIE(TwitterBaseIE):
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/665289828897005568',
-            'md5': 'ab2745d0b0ce53319a534fccaa986439',
+            'md5': '6dabeaca9e68cbb71c99c322a4b42a11',
             'info_dict': {
                 'id': 'iBb2x00UVlv',
                 'ext': 'mp4',
@@ -73,22 +93,76 @@ class TwitterCardIE(TwitterBaseIE):
                 'uploader_id': '1189339351084113920',
                 'uploader': 'ArsenalTerje',
                 'title': 'Vine by ArsenalTerje',
+                'timestamp': 1447451307,
             },
             'add_ie': ['Vine'],
         }, {
             'url': 'https://twitter.com/i/videos/tweet/705235433198714880',
-            'md5': '3846d0a07109b5ab622425449b59049d',
+            'md5': '884812a2adc8aaf6fe52b15ccbfa3b88',
             'info_dict': {
                 'id': '705235433198714880',
                 'ext': 'mp4',
                 'title': 'Twitter web player',
-                'thumbnail': r're:^https?://.*\.jpg',
+                'thumbnail': r're:^https?://.*',
             },
         }, {
             'url': 'https://twitter.com/i/videos/752274308186120192',
             'only_matching': True,
         },
     ]
+
+    def _parse_media_info(self, media_info, video_id):
+        formats = []
+        for media_variant in media_info.get('variants', []):
+            media_url = media_variant['url']
+            if media_url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(media_url, video_id, ext='mp4', m3u8_id='hls'))
+            elif media_url.endswith('.mpd'):
+                formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
+            else:
+                vbr = int_or_none(dict_get(media_variant, ('bitRate', 'bitrate')), scale=1000)
+                a_format = {
+                    'url': media_url,
+                    'format_id': 'http-%d' % vbr if vbr else 'http',
+                    'vbr': vbr,
+                }
+                # Reported bitRate may be zero
+                if not a_format['vbr']:
+                    del a_format['vbr']
+
+                self._search_dimensions_in_video_url(a_format, media_url)
+
+                formats.append(a_format)
+        return formats
+
+    def _extract_mobile_formats(self, username, video_id):
+        webpage = self._download_webpage(
+            'https://mobile.twitter.com/%s/status/%s' % (username, video_id),
+            video_id, 'Downloading mobile webpage',
+            headers={
+                # A recent mobile UA is necessary for `gt` cookie
+                'User-Agent': 'Mozilla/5.0 (Android 6.0.1; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0',
+            })
+        main_script_url = self._html_search_regex(
+            r'<script[^>]+src="([^"]+main\.[^"]+)"', webpage, 'main script URL')
+        main_script = self._download_webpage(
+            main_script_url, video_id, 'Downloading main script')
+        bearer_token = self._search_regex(
+            r'BEARER_TOKEN\s*:\s*"([^"]+)"',
+            main_script, 'bearer token')
+        guest_token = self._search_regex(
+            r'document\.cookie\s*=\s*decodeURIComponent\("gt=(\d+)',
+            webpage, 'guest token')
+        api_data = self._download_json(
+            'https://api.twitter.com/2/timeline/conversation/%s.json' % video_id,
+            video_id, 'Downloading mobile API data',
+            headers={
+                'Authorization': 'Bearer ' + bearer_token,
+                'x-guest-token': guest_token,
+            })
+        media_info = try_get(api_data, lambda o: o['globalObjects']['tweets'][video_id]
+                                                  ['extended_entities']['media'][0]['video_info']) or {}
+        return self._parse_media_info(media_info, video_id)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -117,14 +191,6 @@ class TwitterCardIE(TwitterBaseIE):
         if periscope_url:
             return self.url_result(periscope_url, PeriscopeIE.ie_key())
 
-        def _search_dimensions_in_video_url(a_format, video_url):
-            m = re.search(r'/(?P<width>\d+)x(?P<height>\d+)/', video_url)
-            if m:
-                a_format.update({
-                    'width': int(m.group('width')),
-                    'height': int(m.group('height')),
-                })
-
         video_url = config.get('video_url') or config.get('playlist', [{}])[0].get('source')
 
         if video_url:
@@ -135,15 +201,14 @@ class TwitterCardIE(TwitterBaseIE):
                     'url': video_url,
                 }
 
-                _search_dimensions_in_video_url(f, video_url)
+                self._search_dimensions_in_video_url(f, video_url)
 
                 formats.append(f)
 
         vmap_url = config.get('vmapUrl') or config.get('vmap_url')
         if vmap_url:
-            formats.append({
-                'url': self._get_vmap_video_url(vmap_url, video_id),
-            })
+            formats.extend(
+                self._extract_formats_from_vmap_url(vmap_url, video_id))
 
         media_info = None
 
@@ -152,29 +217,14 @@ class TwitterCardIE(TwitterBaseIE):
                 media_info = entity['mediaInfo']
 
         if media_info:
-            for media_variant in media_info['variants']:
-                media_url = media_variant['url']
-                if media_url.endswith('.m3u8'):
-                    formats.extend(self._extract_m3u8_formats(media_url, video_id, ext='mp4', m3u8_id='hls'))
-                elif media_url.endswith('.mpd'):
-                    formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
-                else:
-                    vbr = int_or_none(media_variant.get('bitRate'), scale=1000)
-                    a_format = {
-                        'url': media_url,
-                        'format_id': 'http-%d' % vbr if vbr else 'http',
-                        'vbr': vbr,
-                    }
-                    # Reported bitRate may be zero
-                    if not a_format['vbr']:
-                        del a_format['vbr']
-
-                    _search_dimensions_in_video_url(a_format, media_url)
-
-                    formats.append(a_format)
-
+            formats.extend(self._parse_media_info(media_info, video_id))
             duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
 
+        username = config.get('user', {}).get('screen_name')
+        if username:
+            formats.extend(self._extract_mobile_formats(username, video_id))
+
+        self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
         title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
@@ -255,10 +305,10 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'JG - BEAT PROD: @suhmeduh #Damndaniel',
-            'description': 'JG on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'title': 'Donte - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'Donte on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
             'thumbnail': r're:^https?://.*\.jpg',
-            'uploader': 'JG',
+            'uploader': 'Donte',
             'uploader_id': 'jaydingeer',
         },
         'params': {
@@ -270,9 +320,11 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': 'MIOxnrUteUd',
             'ext': 'mp4',
-            'title': 'Dr.Pepperの飲み方 #japanese #バカ #ドクペ #電動ガン',
-            'uploader': 'TAKUMA',
-            'uploader_id': '1004126642786242560',
+            'title': 'FilmDrunk - Vine of the day',
+            'description': 'FilmDrunk on Twitter: "Vine of the day https://t.co/xmTvRdqxWf"',
+            'uploader': 'FilmDrunk',
+            'uploader_id': 'Filmdrunk',
+            'timestamp': 1402826626,
             'upload_date': '20140615',
         },
         'add_ie': ['Vine'],
@@ -294,13 +346,28 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '1zqKVVlkqLaKB',
             'ext': 'mp4',
-            'title': 'Sgt Kerry Schmidt - Ontario Provincial Police - Road rage, mischief, assault, rollover and fire in one occurrence',
+            'title': 'Sgt Kerry Schmidt - LIVE on #Periscope: Road rage, mischief, assault, rollover and fire in one occurrence',
+            'description': 'Sgt Kerry Schmidt on Twitter: "LIVE on #Periscope: Road rage, mischief, assault, rollover and fire in one occurrence  https://t.co/EKrVgIXF3s"',
             'upload_date': '20160923',
             'uploader_id': 'OPP_HSD',
-            'uploader': 'Sgt Kerry Schmidt - Ontario Provincial Police',
+            'uploader': 'Sgt Kerry Schmidt',
             'timestamp': 1474613214,
         },
         'add_ie': ['Periscope'],
+    }, {
+        # has mp4 formats via mobile API
+        'url': 'https://twitter.com/news_al3alm/status/852138619213144067',
+        'info_dict': {
+            'id': '852138619213144067',
+            'ext': 'mp4',
+            'title': 'عالم الأخبار - كلمة تاريخية بجلسة الجناسي التاريخية.. النائب خالد مؤنس العتيبي للمعارضين : اتقوا الله .. الظلم ظلمات يوم القيامة',
+            'description': 'عالم الأخبار on Twitter: "كلمة تاريخية بجلسة الجناسي التاريخية.. النائب خالد مؤنس العتيبي للمعارضين : اتقوا الله .. الظلم ظلمات يوم القيامة   https://t.co/xg6OhpyKfN"',
+            'uploader': 'عالم الأخبار',
+            'uploader_id': 'news_al3alm',
+        },
+        'params': {
+            'format': 'best[format_id^=http-]',
+        },
     }]
 
     def _real_extract(self, url):
@@ -393,7 +460,7 @@ class TwitterAmplifyIE(TwitterBaseIE):
 
         vmap_url = self._html_search_meta(
             'twitter:amplify:vmap', webpage, 'vmap url')
-        video_url = self._get_vmap_video_url(vmap_url, video_id)
+        formats = self._extract_formats_from_vmap_url(vmap_url, video_id)
 
         thumbnails = []
         thumbnail = self._html_search_meta(
@@ -415,11 +482,10 @@ class TwitterAmplifyIE(TwitterBaseIE):
             })
 
         video_w, video_h = _find_dimension('player')
-        formats = [{
-            'url': video_url,
+        formats[0].update({
             'width': video_w,
             'height': video_h,
-        }]
+        })
 
         return {
             'id': video_id,

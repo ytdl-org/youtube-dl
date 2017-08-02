@@ -20,7 +20,7 @@ class PeriscopeBaseIE(InfoExtractor):
 class PeriscopeIE(PeriscopeBaseIE):
     IE_DESC = 'Periscope'
     IE_NAME = 'periscope'
-    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:periscope|pscp)\.tv/[^/]+/(?P<id>[^/?#]+)'
     # Alive example URLs can be found here http://onperiscope.com/
     _TESTS = [{
         'url': 'https://www.periscope.tv/w/aJUQnjY3MjA3ODF8NTYxMDIyMDl2zCg2pECBgwTqRpQuQD352EMPTKQjT4uqlM3cgWFA-g==',
@@ -41,12 +41,15 @@ class PeriscopeIE(PeriscopeBaseIE):
     }, {
         'url': 'https://www.periscope.tv/bastaakanoggano/1OdKrlkZZjOJX',
         'only_matching': True,
+    }, {
+        'url': 'https://www.periscope.tv/w/1ZkKzPbMVggJv',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?periscope\.tv/(?:(?!\1).)+)\1', webpage)
+            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?(?:periscope|pscp)\.tv/(?:(?!\1).)+)\1', webpage)
         if mobj:
             return mobj.group('url')
 
@@ -103,7 +106,7 @@ class PeriscopeIE(PeriscopeBaseIE):
 
 
 class PeriscopeUserIE(PeriscopeBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?(?:periscope|pscp)\.tv/(?P<id>[^/]+)/?$'
     IE_DESC = 'Periscope user videos'
     IE_NAME = 'periscope:user'
 

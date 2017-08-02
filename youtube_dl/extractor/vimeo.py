@@ -151,10 +151,16 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                     else:
                         mpd_manifest_urls = [(format_id, manifest_url)]
                     for f_id, m_url in mpd_manifest_urls:
-                        formats.extend(self._extract_mpd_formats(
+                        mpd_formats = self._extract_mpd_formats(
                             m_url.replace('/master.json', '/master.mpd'), video_id, f_id,
                             'Downloading %s MPD information' % cdn_name,
-                            fatal=False))
+                            fatal=False)
+                        for f in mpd_formats:
+                            if f.get('vcodec') == 'none':
+                                f['preference'] = -50
+                            elif f.get('acodec') == 'none':
+                                f['preference'] = -40
+                        formats.extend(mpd_formats)
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
@@ -609,7 +615,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 if download_url and not source_file.get('is_cold') and not source_file.get('is_defrosting'):
                     source_name = source_file.get('public_name', 'Original')
                     if self._is_valid_url(download_url, video_id, '%s video' % source_name):
-                        ext = source_file.get('extension', determine_ext(download_url)).lower()
+                        ext = (try_get(
+                            source_file, lambda x: x['extension'],
+                            compat_str) or determine_ext(
+                            download_url, None) or 'mp4').lower()
                         formats.append({
                             'url': download_url,
                             'ext': ext,

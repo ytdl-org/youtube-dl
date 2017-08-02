@@ -6,7 +6,10 @@ import re
 from .common import InfoExtractor
 
 from ..compat import compat_str
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    try_get,
+)
 
 
 class TEDIE(InfoExtractor):
@@ -113,8 +116,9 @@ class TEDIE(InfoExtractor):
     }
 
     def _extract_info(self, webpage):
-        info_json = self._search_regex(r'q\("\w+.init",({.+})\)</script>',
-                                       webpage, 'info json')
+        info_json = self._search_regex(
+            r'(?s)q\(\s*"\w+.init"\s*,\s*({.+})\)\s*</script>',
+            webpage, 'info json')
         return json.loads(info_json)
 
     def _real_extract(self, url):
@@ -136,11 +140,16 @@ class TEDIE(InfoExtractor):
         webpage = self._download_webpage(url, name,
                                          'Downloading playlist webpage')
         info = self._extract_info(webpage)
-        playlist_info = info['playlist']
+
+        playlist_info = try_get(
+            info, lambda x: x['__INITIAL_DATA__']['playlist'],
+            dict) or info['playlist']
 
         playlist_entries = [
             self.url_result('http://www.ted.com/talks/' + talk['slug'], self.ie_key())
-            for talk in info['talks']
+            for talk in try_get(
+                info, lambda x: x['__INITIAL_DATA__']['talks'],
+                dict) or info['talks']
         ]
         return self.playlist_result(
             playlist_entries,
@@ -149,9 +158,14 @@ class TEDIE(InfoExtractor):
 
     def _talk_info(self, url, video_name):
         webpage = self._download_webpage(url, video_name)
-        self.report_extraction(video_name)
 
-        talk_info = self._extract_info(webpage)['talks'][0]
+        info = self._extract_info(webpage)
+
+        talk_info = try_get(
+            info, lambda x: x['__INITIAL_DATA__']['talks'][0],
+            dict) or info['talks'][0]
+
+        title = talk_info['title'].strip()
 
         external = talk_info.get('external')
         if external:
@@ -165,19 +179,27 @@ class TEDIE(InfoExtractor):
                 'url': ext_url or external['uri'],
             }
 
+        native_downloads = try_get(
+            talk_info, lambda x: x['downloads']['nativeDownloads'],
+            dict) or talk_info['nativeDownloads']
+
         formats = [{
             'url': format_url,
             'format_id': format_id,
             'format': format_id,
-        } for (format_id, format_url) in talk_info['nativeDownloads'].items() if format_url is not None]
+        } for (format_id, format_url) in native_downloads.items() if format_url is not None]
         if formats:
             for f in formats:
                 finfo = self._NATIVE_FORMATS.get(f['format_id'])
                 if finfo:
                     f.update(finfo)
 
+        player_talk = talk_info['player_talks'][0]
+
+        resources_ = player_talk.get('resources') or talk_info.get('resources')
+
         http_url = None
-        for format_id, resources in talk_info['resources'].items():
+        for format_id, resources in resources_.items():
             if format_id == 'h264':
                 for resource in resources:
                     h264_url = resource.get('file')
@@ -210,7 +232,7 @@ class TEDIE(InfoExtractor):
                     resources.get('stream'), video_name, 'mp4', m3u8_id=format_id, fatal=False))
 
         m3u8_formats = list(filter(
-            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
+            lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none',
             formats))
         if http_url:
             for m3u8_format in m3u8_formats:
@@ -237,14 +259,11 @@ class TEDIE(InfoExtractor):
 
         video_id = compat_str(talk_info['id'])
 
-        thumbnail = talk_info['thumb']
-        if not thumbnail.startswith('http'):
-            thumbnail = 'http://' + thumbnail
         return {
             'id': video_id,
-            'title': talk_info['title'].strip(),
-            'uploader': talk_info['speaker'],
-            'thumbnail': thumbnail,
+            'title': title,
+            'uploader': player_talk.get('speaker') or talk_info.get('speaker'),
+            'thumbnail': player_talk.get('thumb') or talk_info.get('thumb'),
             'description': self._og_search_description(webpage),
             'subtitles': self._get_subtitles(video_id, talk_info),
             'formats': formats,
@@ -252,20 +271,22 @@ class TEDIE(InfoExtractor):
         }
 
     def _get_subtitles(self, video_id, talk_info):
-        languages = [lang['languageCode'] for lang in talk_info.get('languages', [])]
-        if languages:
-            sub_lang_list = {}
-            for l in languages:
-                sub_lang_list[l] = [
-                    {
-                        'url': 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/%s' % (video_id, l, ext),
-                        'ext': ext,
-                    }
-                    for ext in ['ted', 'srt']
-                ]
-            return sub_lang_list
-        else:
-            return {}
+        sub_lang_list = {}
+        for language in try_get(
+                talk_info,
+                (lambda x: x['downloads']['languages'],
+                 lambda x: x['languages']), list):
+            lang_code = language.get('languageCode') or language.get('ianaCode')
+            if not lang_code:
+                continue
+            sub_lang_list[lang_code] = [
+                {
+                    'url': 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/%s' % (video_id, lang_code, ext),
+                    'ext': ext,
+                }
+                for ext in ['ted', 'srt']
+            ]
+        return sub_lang_list
 
     def _watch_info(self, url, name):
         webpage = self._download_webpage(url, name)
