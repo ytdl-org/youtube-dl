@@ -261,7 +261,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
 class QQMusicToplistIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:toplist'
     IE_DESC = 'QQ音乐 - 排行榜'
-    _VALID_URL = r'https?://y\.qq\.com/n/yqq/toplist/(?P<id>(top|global)_[0-9]+)\.html'
+    _VALID_URL = r'https?://y\.qq\.com/n/yqq/toplist/(?P<id>[0-9]+)\.html'
 
     _TESTS = [{
         'url': 'https://y.qq.com/n/yqq/toplist/123.html',
@@ -293,7 +293,9 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
     def _real_extract(self, url):
         list_id = self._match_id(url)
 
-        list_type, num_id = list_id.split("_")
+        # list_type, num_id = list_id.split("_")
+        list_type = "toplist"
+        num_id = list_id
 
         toplist_json = self._download_json(
             'http://i.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?type=%s&topid=%s&format=json'
