@@ -23,7 +23,6 @@ class AZNudeIE(InfoExtractor):
             'id': 'loiteringwithintent-mcnallytomei-hd-01-hd',
             'ext': 'mp4',
             'title': 'Marisa Tomei in Loitering With Intent - 01',
-            'thumbnail': 'https://cdn1.aznude.com/marisatomei/loiteringwithintent/LoiteringWithIntent-McNallyTomei-HD-01-gigantic-4.jpg',
             'description': 'Watch Marisa Tomei\'s Breasts scene on AZNude for free (22 seconds).',
         },
     }
