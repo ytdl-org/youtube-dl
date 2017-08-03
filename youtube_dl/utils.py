@@ -3895,6 +3895,10 @@ class PhantomJSwrapper(object):
 
     _TMP_FILE_NAMES = ['script', 'html', 'cookies']
 
+    @staticmethod
+    def _version():
+        return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
+
     def __init__(self, extractor, required_version=None, timeout=10000):
         self.exe = check_executable('phantomjs', ['-v'])
         if not self.exe:
@@ -3905,7 +3909,7 @@ class PhantomJSwrapper(object):
         self.extractor = extractor
 
         if required_version:
-            version = get_exe_version(self.exe, version_re=r'([0-9.]+)')
+            version = self._version()
             if is_outdated_version(version, required_version):
                 self.extractor._downloader.report_warning(
                     'Your copy of PhantomJS is outdated, update it to version '
