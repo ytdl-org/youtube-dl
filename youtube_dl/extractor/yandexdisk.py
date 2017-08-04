@@ -13,9 +13,9 @@ from ..utils import (
 
 
 class YandexDiskIE(InfoExtractor):
-    _VALID_URL = r'https?://yadi\.sk/i/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://yadi\.sk/[di]/(?P<id>[^/?#&]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://yadi.sk/i/VdOeDou8eZs6Y',
         'md5': '33955d7ae052f15853dc41f35f17581c',
         'info_dict': {
@@ -27,7 +27,10 @@ class YandexDiskIE(InfoExtractor):
             'uploader_id': '300043621',
             'view_count': int,
         },
-    }
+    }, {
+        'url': 'https://yadi.sk/d/h3WAXvDS3Li3Ce',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
