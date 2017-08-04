@@ -84,7 +84,7 @@ class MLBIE(InfoExtractor):
         },
         {
             'url': 'http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer',
-            'md5': 'b190e70141fb9a1552a85426b4da1b5d',
+            'md5': 'aafaf5b0186fee8f32f20508092f8111',
             'info_dict': {
                 'id': '75609783',
                 'ext': 'mp4',
