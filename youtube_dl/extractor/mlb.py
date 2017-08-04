@@ -15,7 +15,7 @@ class MLBIE(InfoExtractor):
                         (?:[\da-z_-]+\.)*mlb\.com/
                         (?:
                             (?:
-                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|
+                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?(?:v|.*?/c-)|
                                 (?:
                                     shared/video/embed/(?:embed|m-internal-embed)\.html|
                                     (?:[^/]+/)+(?:play|index)\.jsp|
@@ -93,6 +93,10 @@ class MLBIE(InfoExtractor):
                 'timestamp': 1429124820,
                 'upload_date': '20150415',
             }
+        },
+        {
+            'url': 'https://www.mlb.com/video/hargrove-homers-off-caldwell/c-1352023483?tid=67793694',
+            'only_matching': True,
         },
         {
             'url': 'http://m.mlb.com/shared/video/embed/embed.html?content_id=35692085&topic_id=6479266&width=400&height=224&property=mlb',
