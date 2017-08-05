@@ -584,7 +584,7 @@ If you are using an output template inside a Windows batch file then you must es
 
 #### Output template examples
 
-Note on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single.
 
 ```bash
 $ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc
@@ -671,7 +671,7 @@ If you want to preserve the old format selection behavior (prior to youtube-dl 2
 
 #### Format selection examples
 
-Note on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single.
 
 ```bash
 # Download best mp4 format available or any other best if no mp4 available

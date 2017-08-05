@@ -371,6 +371,19 @@ class TestFormatSelection(unittest.TestCase):
         ydl = YDL({'format': 'best[height>360]'})
         self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
 
+    def test_format_selection_issue_10083(self):
+        # See https://github.com/rg3/youtube-dl/issues/10083
+        formats = [
+            {'format_id': 'regular', 'height': 360, 'url': TEST_URL},
+            {'format_id': 'video', 'height': 720, 'acodec': 'none', 'url': TEST_URL},
+            {'format_id': 'audio', 'vcodec': 'none', 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'best[height>360]/bestvideo[height>360]+bestaudio'})
+        ydl.process_ie_result(info_dict.copy())
+        self.assertEqual(ydl.downloaded_info_dicts[0]['format_id'], 'video+audio')
+
     def test_invalid_format_specs(self):
         def assert_syntax_error(format_spec):
             ydl = YDL({'format': format_spec})

@@ -1892,9 +1892,13 @@ class InfoExtractor(object):
                                 'Bandwidth': bandwidth,
                             }
 
+                        def location_key(location):
+                            return 'url' if re.match(r'^https?://', location) else 'path'
+
                         if 'segment_urls' not in representation_ms_info and 'media' in representation_ms_info:
 
                             media_template = prepare_template('media', ('Number', 'Bandwidth', 'Time'))
+                            media_location_key = location_key(media_template)
 
                             # As per [1, 5.3.9.4.4, Table 16, page 55] $Number$ and $Time$
                             # can't be used at the same time
@@ -1904,7 +1908,7 @@ class InfoExtractor(object):
                                     segment_duration = float_or_none(representation_ms_info['segment_duration'], representation_ms_info['timescale'])
                                     representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
                                 representation_ms_info['fragments'] = [{
-                                    'url': media_template % {
+                                    media_location_key: media_template % {
                                         'Number': segment_number,
                                         'Bandwidth': bandwidth,
                                     },
@@ -1928,7 +1932,7 @@ class InfoExtractor(object):
                                         'Number': segment_number,
                                     }
                                     representation_ms_info['fragments'].append({
-                                        'url': segment_url,
+                                        media_location_key: segment_url,
                                         'duration': float_or_none(segment_d, representation_ms_info['timescale']),
                                     })
 
@@ -1952,8 +1956,9 @@ class InfoExtractor(object):
                             for s in representation_ms_info['s']:
                                 duration = float_or_none(s['d'], timescale)
                                 for r in range(s.get('r', 0) + 1):
+                                    segment_uri = representation_ms_info['segment_urls'][segment_index]
                                     fragments.append({
-                                        'url': representation_ms_info['segment_urls'][segment_index],
+                                        location_key(segment_uri): segment_uri,
                                         'duration': duration,
                                     })
                                     segment_index += 1
@@ -1962,6 +1967,7 @@ class InfoExtractor(object):
                         # No fragments key is present in this case.
                         if 'fragments' in representation_ms_info:
                             f.update({
+                                'fragment_base_url': base_url,
                                 'fragments': [],
                                 'protocol': 'http_dash_segments',
                             })
@@ -1969,10 +1975,8 @@ class InfoExtractor(object):
                                 initialization_url = representation_ms_info['initialization_url']
                                 if not f.get('url'):
                                     f['url'] = initialization_url
-                                f['fragments'].append({'url': initialization_url})
+                                f['fragments'].append({location_key(initialization_url): initialization_url})
                             f['fragments'].extend(representation_ms_info['fragments'])
-                            for fragment in f['fragments']:
-                                fragment['url'] = urljoin(base_url, fragment['url'])
                         try:
                             existing_format = next(
                                 fo for fo in formats

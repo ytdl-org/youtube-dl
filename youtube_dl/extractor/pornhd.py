@@ -54,7 +54,7 @@ class PornHdIE(InfoExtractor):
              r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
 
         sources = self._parse_json(js_to_json(self._search_regex(
-            r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}[;,)]",
+            r"(?s)sources'?\s*:\s*(\{.+?\})\s*\}[;,)]",
             webpage, 'sources', default='{}')), video_id)
 
         if not sources:
