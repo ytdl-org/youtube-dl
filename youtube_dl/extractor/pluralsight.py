@@ -224,6 +224,7 @@ class PluralsightIE(PluralsightBaseIE):
                 req_format_split = req_format.split('-', 1)
                 if len(req_format_split) > 1:
                     req_ext, req_quality = req_format_split
+                    req_quality = '-'.join(req_quality.split('-')[:2])
                     for allowed_quality in ALLOWED_QUALITIES:
                         if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
                             return (AllowedQuality(req_ext, (req_quality, )), )
