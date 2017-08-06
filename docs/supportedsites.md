@@ -472,7 +472,6 @@
  - **MovieFap**
  - **Moviezine**
  - **MovingImage**
- - **MPORA**
  - **MSN**
  - **mtg**: MTG services
  - **mtv**
@@ -783,7 +782,6 @@
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
  - **Teamcoco**
- - **TeamFourStar**
  - **TechTalks**
  - **techtv.mit.edu**
  - **ted**
@@ -953,6 +951,7 @@
  - **VODPl**
  - **VODPlatform**
  - **VoiceRepublic**
+ - **Voot**
  - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl

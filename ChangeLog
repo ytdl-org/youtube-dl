@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.08.06
 
 Core
 * Use relative paths for DASH fragments (#12990)
