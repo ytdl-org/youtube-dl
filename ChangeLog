@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
++ [niconico] Support HTML5-only videos (#13806)
+
+
 version 2017.08.06
 
 Core

@@ -11,10 +11,13 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
+    dict_get,
     ExtractorError,
     int_or_none,
     parse_duration,
     parse_iso8601,
+    try_get,
+    unified_timestamp,
     urlencode_postdata,
     xpath_text,
 )
@@ -31,12 +34,15 @@ class NiconicoIE(InfoExtractor):
             'id': 'sm22312215',
             'ext': 'mp4',
             'title': 'Big Buck Bunny',
+            'thumbnail': r're:https?://.*',
             'uploader': 'takuya0301',
             'uploader_id': '2698420',
             'upload_date': '20131123',
             'timestamp': 1385182762,
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
             'duration': 33,
+            'view_count': int,
+            'comment_count': int,
         },
         'skip': 'Requires an account',
     }, {
@@ -48,6 +54,7 @@ class NiconicoIE(InfoExtractor):
             'ext': 'swf',
             'title': '【鏡音リン】Dance on media【オリジナル】take2!',
             'description': 'md5:689f066d74610b3b22e0f1739add0f58',
+            'thumbnail': r're:https?://.*',
             'uploader': 'りょうた',
             'uploader_id': '18822557',
             'upload_date': '20110429',
@@ -64,9 +71,11 @@ class NiconicoIE(InfoExtractor):
             'ext': 'unknown_video',
             'description': 'deleted',
             'title': 'ドラえもんエターナル第3話「決戦第3新東京市」＜前編＞',
+            'thumbnail': r're:https?://.*',
             'upload_date': '20071224',
             'timestamp': int,  # timestamp field has different value if logged in
             'duration': 304,
+            'view_count': int,
         },
         'skip': 'Requires an account',
     }, {
@@ -76,12 +85,31 @@ class NiconicoIE(InfoExtractor):
             'ext': 'mp4',
             'title': '【第1回】RADIOアニメロミックス ラブライブ！～のぞえりRadio Garden～',
             'description': 'md5:b27d224bb0ff53d3c8269e9f8b561cf1',
+            'thumbnail': r're:https?://.*',
             'timestamp': 1388851200,
             'upload_date': '20140104',
             'uploader': 'アニメロチャンネル',
             'uploader_id': '312',
         },
         'skip': 'The viewing period of the video you were searching for has expired.',
+    }, {
+        # video not available via `getflv`
+        'url': 'http://www.nicovideo.jp/watch/sm1151009',
+        'info_dict': {
+            'id': 'sm1151009',
+            'ext': 'flv',
+            'title': 'マスターシステム本体内蔵のスペハリのメインテーマ（ＰＳＧ版）',
+            'description': 'md5:6ee077e0581ff5019773e2e714cdd0b7',
+            'thumbnail': r're:https?://.*',
+            'duration': 184,
+            'timestamp': 1190868283,
+            'upload_date': '20070927',
+            'uploader': 'denden2',
+            'uploader_id': '1392194',
+            'view_count': int,
+            'comment_count': int,
+        },
+        'skip': 'Requires an account',
     }, {
         'url': 'http://sp.nicovideo.jp/watch/sm28964488?ss_pos=1&cp_in=wt_tg',
         'only_matching': True,
@@ -130,33 +158,51 @@ class NiconicoIE(InfoExtractor):
         if video_id.startswith('so'):
             video_id = self._match_id(handle.geturl())
 
-        video_info = self._download_xml(
-            'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id, video_id,
-            note='Downloading video info page')
+        api_data = self._parse_json(self._html_search_regex(
+            'data-api-data="([^"]+)"', webpage,
+            'API data', default='{}'), video_id)
+        video_real_url = try_get(
+            api_data, lambda x: x['video']['smileInfo']['url'])
 
-        # Get flv info
-        flv_info_webpage = self._download_webpage(
-            'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
-            video_id, 'Downloading flv info')
+        if video_real_url:
+            def get_video_info(items):
+                return dict_get(api_data['video'], items)
+        else:
+            # Get flv info
+            flv_info_webpage = self._download_webpage(
+                'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
+                video_id, 'Downloading flv info')
 
-        flv_info = compat_urlparse.parse_qs(flv_info_webpage)
-        if 'url' not in flv_info:
-            if 'deleted' in flv_info:
-                raise ExtractorError('The video has been deleted.',
-                                     expected=True)
-            elif 'closed' in flv_info:
-                raise ExtractorError('Niconico videos now require logging in',
-                                     expected=True)
-            elif 'error' in flv_info:
-                raise ExtractorError('%s reports error: %s' % (
-                    self.IE_NAME, flv_info['error'][0]), expected=True)
-            else:
-                raise ExtractorError('Unable to find video URL')
+            flv_info = compat_urlparse.parse_qs(flv_info_webpage)
+            if 'url' not in flv_info:
+                if 'deleted' in flv_info:
+                    raise ExtractorError('The video has been deleted.',
+                                         expected=True)
+                elif 'closed' in flv_info:
+                    raise ExtractorError('Niconico videos now require logging in',
+                                         expected=True)
+                elif 'error' in flv_info:
+                    raise ExtractorError('%s reports error: %s' % (
+                        self.IE_NAME, flv_info['error'][0]), expected=True)
+                else:
+                    raise ExtractorError('Unable to find video URL')
 
-        video_real_url = flv_info['url'][0]
+            video_real_url = flv_info['url'][0]
+
+            video_info_xml = self._download_xml(
+                'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id,
+                video_id, note='Downloading video info page')
+
+            def get_video_info(items):
+                if not isinstance(items, list):
+                    items = [items]
+                for item in items:
+                    ret = xpath_text(video_info_xml, './/' + item)
+                    if ret:
+                        return ret
 
         # Start extracting information
-        title = xpath_text(video_info, './/title')
+        title = get_video_info('title')
         if not title:
             title = self._og_search_title(webpage, default=None)
         if not title:
@@ -170,18 +216,19 @@ class NiconicoIE(InfoExtractor):
         watch_api_data = self._parse_json(watch_api_data_string, video_id) if watch_api_data_string else {}
         video_detail = watch_api_data.get('videoDetail', {})
 
-        extension = xpath_text(video_info, './/movie_type')
+        extension = get_video_info(['movie_type', 'movieType'])
         if not extension:
             extension = determine_ext(video_real_url)
 
         thumbnail = (
-            xpath_text(video_info, './/thumbnail_url') or
+            get_video_info(['thumbnail_url', 'thumbnailURL']) or
             self._html_search_meta('image', webpage, 'thumbnail', default=None) or
             video_detail.get('thumbnail'))
 
-        description = xpath_text(video_info, './/description')
+        description = get_video_info('description')
 
-        timestamp = parse_iso8601(xpath_text(video_info, './/first_retrieve'))
+        timestamp = (parse_iso8601(get_video_info('first_retrieve')) or
+                     unified_timestamp(get_video_info('postedDateTime')))
         if not timestamp:
             match = self._html_search_meta('datePublished', webpage, 'date published', default=None)
             if match:
@@ -191,7 +238,7 @@ class NiconicoIE(InfoExtractor):
                 video_detail['postedAt'].replace('/', '-'),
                 delimiter=' ', timezone=datetime.timedelta(hours=9))
 
-        view_count = int_or_none(xpath_text(video_info, './/view_counter'))
+        view_count = int_or_none(get_video_info(['view_counter', 'viewCount']))
         if not view_count:
             match = self._html_search_regex(
                 r'>Views: <strong[^>]*>([^<]+)</strong>',
@@ -200,31 +247,28 @@ class NiconicoIE(InfoExtractor):
                 view_count = int_or_none(match.replace(',', ''))
         view_count = view_count or video_detail.get('viewCount')
 
-        comment_count = int_or_none(xpath_text(video_info, './/comment_num'))
+        comment_count = (int_or_none(get_video_info('comment_num')) or
+                         video_detail.get('commentCount') or
+                         try_get(api_data, lambda x: x['thread']['commentCount']))
         if not comment_count:
             match = self._html_search_regex(
                 r'>Comments: <strong[^>]*>([^<]+)</strong>',
                 webpage, 'comment count', default=None)
             if match:
                 comment_count = int_or_none(match.replace(',', ''))
-        comment_count = comment_count or video_detail.get('commentCount')
 
         duration = (parse_duration(
-            xpath_text(video_info, './/length') or
+            get_video_info('length') or
             self._html_search_meta(
                 'video:duration', webpage, 'video duration', default=None)) or
-            video_detail.get('length'))
+            video_detail.get('length') or
+            get_video_info('duration'))
 
-        webpage_url = xpath_text(video_info, './/watch_url') or url
+        webpage_url = get_video_info('watch_url') or url
 
-        if video_info.find('.//ch_id') is not None:
-            uploader_id = video_info.find('.//ch_id').text
-            uploader = video_info.find('.//ch_name').text
-        elif video_info.find('.//user_id') is not None:
-            uploader_id = video_info.find('.//user_id').text
-            uploader = video_info.find('.//user_nickname').text
-        else:
-            uploader_id = uploader = None
+        owner = api_data.get('owner', {})
+        uploader_id = get_video_info(['ch_id', 'user_id']) or owner.get('id')
+        uploader = get_video_info(['ch_name', 'user_nickname']) or owner.get('nickname')
 
         return {
             'id': video_id,
