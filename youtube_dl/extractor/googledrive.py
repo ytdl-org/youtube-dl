@@ -53,8 +53,8 @@ class GoogleDriveIE(InfoExtractor):
         '46': 'webm',
         '59': 'mp4',
     }
-    _CAPTION_FORMATS_EXT = []
-    _CAPTIONS_BY_COUNTRY_XML = None
+    _caption_formats_ext = []
+    _captions_by_country_xml = None
 
     @staticmethod
     def _extract_url(webpage):
@@ -66,7 +66,7 @@ class GoogleDriveIE(InfoExtractor):
 
     def _set_captions_data(self, video_id, video_subtitles_id, hl):
         try:
-            self._CAPTIONS_BY_COUNTRY_XML = self._download_xml(
+            self._captions_by_country_xml = self._download_xml(
                 'https://drive.google.com/timedtext?id=%s&vid=%s&hl=%s&type=list&tlangs=1&v=%s&fmts=1&vssids=1', video_id, query={
                     'id': video_id,
                     'vid': video_subtitles_id,
@@ -75,38 +75,38 @@ class GoogleDriveIE(InfoExtractor):
                 })
         except ExtractorError as ee:
             self.report_warning('unable to download video subtitles: %s' % error_to_compat_str(ee))
-        if self._CAPTIONS_BY_COUNTRY_XML is not None:
-            caption_available_extensions = self._CAPTIONS_BY_COUNTRY_XML.findall('format')
+        if self._captions_by_country_xml is not None:
+            caption_available_extensions = self._captions_by_country_xml.findall('format')
             for caption_extension in caption_available_extensions:
                 if caption_extension.attrib.get('fmt_code') and not caption_extension.attrib.get('default'):
-                    self._CAPTION_FORMATS_EXT.append(caption_extension.attrib['fmt_code'])
+                    self._caption_formats_ext.append(caption_extension.attrib['fmt_code'])
 
     def _get_subtitles(self, video_id, video_subtitles_id, hl):
         if not video_subtitles_id or not hl:
             return None
-        if self._CAPTIONS_BY_COUNTRY_XML is None:
+        if self._captions_by_country_xml is None:
             self._set_captions_data(video_id, video_subtitles_id, hl)
-            if self._CAPTIONS_BY_COUNTRY_XML is None:
+            if self._captions_by_country_xml is None:
                 return None
 
         subtitles = {}
-        subtitle_available_tracks = self._CAPTIONS_BY_COUNTRY_XML.findall('track')
-        for subtitle_track in subtitle_available_tracks:
-            if not subtitle_track.attrib.get('lang_code'):
+        for subtitle_track in self._captions_by_country_xml.findall('track'):
+            subtitle_lang_code = subtitle_track.attrib.get('lang_code')
+            if not subtitle_lang_code:
                 continue
-            subtitle_lang_code = subtitle_track.attrib['lang_code']
             subtitle_format_data = []
-            for subtitle_format in self._CAPTION_FORMATS_EXT:
+            for subtitle_format in self._caption_formats_ext:
                 query = {
                     'vid': video_subtitles_id,
                     'v': video_id,
                     'lang': subtitle_lang_code,
                     'fmt': subtitle_format,
+                    'type': 'track',
                     'name': '',
                     'kind': '',
                 }
                 subtitle_format_data.append({
-                    'url': update_url_query('https://drive.google.com/timedtext?vid=%s&v=%s&type=track&lang=%s&name&kind&fmt=%s', query),
+                    'url': update_url_query('https://drive.google.com/timedtext', query),
                     'ext': subtitle_format,
                 })
             subtitles[subtitle_lang_code] = subtitle_format_data
@@ -117,38 +117,38 @@ class GoogleDriveIE(InfoExtractor):
     def _get_automatic_captions(self, video_id, video_subtitles_id, hl):
         if not video_subtitles_id or not hl:
             return None
-        if self._CAPTIONS_BY_COUNTRY_XML is None:
+        if self._captions_by_country_xml is None:
             self._set_captions_data(video_id, video_subtitles_id, hl)
-            if self._CAPTIONS_BY_COUNTRY_XML is None:
+            if self._captions_by_country_xml is None:
                 return None
         self.to_screen('%s: Looking for automatic captions' % video_id)
 
-        subtitle_original_track = self._CAPTIONS_BY_COUNTRY_XML.find('track')
+        subtitle_original_track = self._captions_by_country_xml.find('track')
         if subtitle_original_track is None:
             return None
-        if not subtitle_original_track.attrib.get('lang_code'):
+        subtitle_original_lang_code = subtitle_original_track.attrib.get('lang_code')
+        if not subtitle_original_lang_code:
             return None
-        subtitle_original_lang_code = subtitle_original_track.attrib['lang_code']
 
         automatic_captions = {}
-        automatic_caption_available_targets = self._CAPTIONS_BY_COUNTRY_XML.findall('target')
-        for automatic_caption_target in automatic_caption_available_targets:
-            if not automatic_caption_target.attrib.get('lang_code'):
+        for automatic_caption_target in self._captions_by_country_xml.findall('target'):
+            automatic_caption_lang_code = automatic_caption_target.attrib.get('lang_code')
+            if not automatic_caption_lang_code:
                 continue
-            automatic_caption_lang_code = automatic_caption_target.attrib['lang_code']
             automatic_caption_format_data = []
-            for automatic_caption_format in self._CAPTION_FORMATS_EXT:
+            for automatic_caption_format in self._caption_formats_ext:
                 query = {
                     'vid': video_subtitles_id,
                     'v': video_id,
                     'lang': subtitle_original_lang_code,
                     'fmt': automatic_caption_format,
                     'tlang': automatic_caption_lang_code,
+                    'type': 'track',
                     'name': '',
                     'kind': '',
                 }
                 automatic_caption_format_data.append({
-                    'url': update_url_query('https://drive.google.com/timedtext?vid=%s&v=%s&type=track&lang=%s&name&kind&fmt=%s&tlang=%s', query),
+                    'url': update_url_query('https://drive.google.com/timedtext', query),
                     'ext': automatic_caption_format,
                 })
             automatic_captions[automatic_caption_lang_code] = automatic_caption_format_data
