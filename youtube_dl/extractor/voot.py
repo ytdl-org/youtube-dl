@@ -2,54 +2,97 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from .kaltura import KalturaIE
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    try_get,
+    unified_timestamp,
+)
 
 
 class VootIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?voot\.com/shows/(?:.+?[/-]?)/1/(?:.+?[0-9]?)/(?:.+?[/-]?)/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?voot\.com/(?:[^/]+/)+(?P<id>\d+)'
+    _GEO_COUNTRIES = ['IN']
+    _TESTS = [{
         'url': 'https://www.voot.com/shows/ishq-ka-rang-safed/1/360558/is-this-the-end-of-kamini-/441353',
         'info_dict': {
-            'id': '441353',
+            'id': '0_8ledb18o',
             'ext': 'mp4',
             'title': 'Ishq Ka Rang Safed - Season 01 - Episode 340',
-            'thumbnail': r're:^https?://.*\.jpg$',
-        }
-    }
-
-    _GET_CONTENT_TEMPLATE = 'https://wapi.voot.com/ws/ott/getMediaInfo.json?platform=Web&pId=3&mediaId=%s'
-
-    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata', fatal=True):
-        json_data = super(VootIE, self)._download_json(url_or_request, video_id, note, fatal=fatal)
-        if json_data['status']['code'] != 0:
-            if fatal:
-                raise ExtractorError(json_data['status']['message'])
-            return None
-        return json_data['assets']
+            'description': 'md5:06291fbbbc4dcbe21235c40c262507c1',
+            'uploader_id': 'batchUser',
+            'timestamp': 1472162937,
+            'upload_date': '20160825',
+            'duration': 1146,
+            'series': 'Ishq Ka Rang Safed',
+            'season_number': 1,
+            'episode': 'Is this the end of Kamini?',
+            'episode_number': 340,
+            'view_count': int,
+            'like_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Failed to download m3u8 information'],
+    }, {
+        'url': 'https://www.voot.com/kids/characters/mighty-cat-masked-niyander-e-/400478/school-bag-disappears/440925',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.voot.com/movies/pandavas-5/424627',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_data = self._download_json(
-            self._GET_CONTENT_TEMPLATE % video_id,
-            video_id)
 
-        thumbnail = ''
-        formats = []
+        media_info = self._download_json(
+            'https://wapi.voot.com/ws/ott/getMediaInfo.json', video_id,
+            query={
+                'platform': 'Web',
+                'pId': 2,
+                'mediaId': video_id,
+            })
 
-        if video_data:
-            format_url = video_data.get('URL')
-            formats.extend(self._extract_m3u8_formats(format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+        status_code = try_get(media_info, lambda x: x['status']['code'], int)
+        if status_code != 0:
+            raise ExtractorError(media_info['status']['message'], expected=True)
 
-        if video_data['Pictures']:
-            for picture in video_data['Pictures']:
-                #Get only first available thumbnail
-                thumbnail = picture.get('URL')
-                break
+        media = media_info['assets']
 
-        self._sort_formats(formats)
+        entry_id = media['EntryId']
+        title = media['MediaName']
+
+        description, series, season_number, episode, episode_number = [None] * 5
+
+        for meta in try_get(media, lambda x: x['Metas'], list) or []:
+            key, value = meta.get('Key'), meta.get('Value')
+            if not key or not value:
+                continue
+            if key == 'ContentSynopsis':
+                description = value
+            elif key == 'RefSeriesTitle':
+                series = value
+            elif key == 'RefSeriesSeason':
+                season_number = int_or_none(value)
+            elif key == 'EpisodeMainTitle':
+                episode = value
+            elif key == 'EpisodeNo':
+                episode_number = int_or_none(value)
 
         return {
-            'id': video_id,
-            'title': video_data.get('MediaName'),
-            'thumbnail': thumbnail,
-            'formats':formats,
+            '_type': 'url_transparent',
+            'url': 'kaltura:1982551:%s' % entry_id,
+            'ie_key': KalturaIE.ie_key(),
+            'title': title,
+            'description': description,
+            'series': series,
+            'season_number': season_number,
+            'episode': episode,
+            'episode_number': episode_number,
+            'timestamp': unified_timestamp(media.get('CreationDate')),
+            'duration': int_or_none(media.get('Duration')),
+            'view_count': int_or_none(media.get('ViewCounter')),
+            'like_count': int_or_none(media.get('like_counter')),
         }

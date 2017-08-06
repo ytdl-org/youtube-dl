@@ -1222,6 +1222,7 @@ from .vodlocker import VodlockerIE
 from .vodpl import VODPlIE
 from .vodplatform import VODPlatformIE
 from .voicerepublic import VoiceRepublicIE
+from .voot import VootIE
 from .voxmedia import VoxMediaIE
 from .vporn import VpornIE
 from .vrt import VRTIE
@@ -1333,4 +1334,3 @@ from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
-from .voot import VootIE
