@@ -340,7 +340,7 @@ class NiconicoIE(InfoExtractor):
             title = self._og_search_title(webpage, default=None)
         if not title:
             title = self._html_search_regex(
-                r'<span[^>]+class="videoHeaderTitle"[^>]*>([^<]+)</span>',
+                r'<h1[^>]+class="txt-title"[^>]*>([^<]+)</h1>',
                 webpage, 'video title')
 
         watch_api_data_string = self._html_search_regex(
