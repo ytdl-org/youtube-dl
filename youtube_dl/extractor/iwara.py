@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
@@ -88,13 +86,20 @@ class IwaraIE(InfoExtractor):
 
         uploader = get_element_by_class('username', webpage)
 
-        description = clean_html(get_element_by_class('field-type-text-with-summary', webpage).replace('</p>', '<br /></p>'))
+        description_class = get_element_by_class('field-type-text-with-summary', webpage)
+        description = clean_html(description_class.replace('</p>', '<br /></p>') if description_class else None)
 
-        comment_count = int_or_none(re.sub('\D', '', get_elements_by_class('title', webpage)[1]))
+        comment_count_classes = get_elements_by_class('title', webpage)
+        comment_count = None
+        if comment_count_classes and len(comment_count_classes) >= 2:
+            comment_count = int_or_none(''.join(digit for digit in comment_count_classes[1] if digit.isdigit()))
 
-        node_views = clean_html(get_element_by_class('node-views', webpage)).split()
-        like_count = int_or_none(node_views[0].replace(',', ''))
-        view_count = int_or_none(node_views[1].replace(',', ''))
+        node_views_class = clean_html(get_element_by_class('node-views', webpage))
+        node_views = node_views_class.split() if node_views_class else None
+        like_count = view_count = None
+        if node_views and len(node_views) >= 2:
+            like_count = int_or_none(node_views[0].replace(',', ''))
+            view_count = int_or_none(node_views[1].replace(',', ''))
 
         formats = []
         for a_format in video_data:
