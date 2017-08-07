@@ -7,16 +7,18 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
     compat_HTTPError,
+    compat_str,
+    compat_urlparse,
 )
 from ..utils import (
-    USER_AGENTS,
     ExtractorError,
     int_or_none,
-    unified_strdate,
     remove_end,
+    try_get,
+    unified_strdate,
     update_url_query,
+    USER_AGENTS,
 )
 
 
@@ -183,28 +185,44 @@ class DPlayItIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        info_url = self._search_regex(
-            r'url\s*[:=]\s*["\']((?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)',
-            webpage, 'video id')
-
         title = remove_end(self._og_search_title(webpage), ' | Dplay')
 
-        try:
-            info = self._download_json(
-                info_url, display_id, headers={
-                    'Authorization': 'Bearer %s' % self._get_cookies(url).get(
-                        'dplayit_token').value,
-                    'Referer': url,
-                })
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (400, 403):
-                info = self._parse_json(e.cause.read().decode('utf-8'), display_id)
-                error = info['errors'][0]
-                if error.get('code') == 'access.denied.geoblocked':
-                    self.raise_geo_restricted(
-                        msg=error.get('detail'), countries=self._GEO_COUNTRIES)
-                raise ExtractorError(info['errors'][0]['detail'], expected=True)
-            raise
+        video_id = None
+
+        info = self._search_regex(
+            r'playback_json\s*:\s*JSON\.parse\s*\(\s*("(?:\\.|[^"\\])+?")',
+            webpage, 'playback JSON', default=None)
+        if info:
+            for _ in range(2):
+                info = self._parse_json(info, display_id, fatal=False)
+                if not info:
+                    break
+            else:
+                video_id = try_get(info, lambda x: x['data']['id'])
+
+        if not info:
+            info_url = self._search_regex(
+                r'url\s*[:=]\s*["\']((?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)',
+                webpage, 'info url')
+
+            video_id = info_url.rpartition('/')[-1]
+
+            try:
+                info = self._download_json(
+                    info_url, display_id, headers={
+                        'Authorization': 'Bearer %s' % self._get_cookies(url).get(
+                            'dplayit_token').value,
+                        'Referer': url,
+                    })
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code in (400, 403):
+                    info = self._parse_json(e.cause.read().decode('utf-8'), display_id)
+                    error = info['errors'][0]
+                    if error.get('code') == 'access.denied.geoblocked':
+                        self.raise_geo_restricted(
+                            msg=error.get('detail'), countries=self._GEO_COUNTRIES)
+                    raise ExtractorError(info['errors'][0]['detail'], expected=True)
+                raise
 
         hls_url = info['data']['attributes']['streaming']['hls']['url']
 
@@ -230,7 +248,7 @@ class DPlayItIE(InfoExtractor):
             season_number = episode_number = upload_date = None
 
         return {
-            'id': info_url.rpartition('/')[-1],
+            'id': compat_str(video_id or display_id),
             'display_id': display_id,
             'title': title,
             'description': self._og_search_description(webpage),
