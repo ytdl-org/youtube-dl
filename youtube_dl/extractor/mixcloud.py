@@ -54,15 +54,22 @@ class MixcloudIE(InfoExtractor):
     }]
 
     # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
-    @staticmethod
-    def _decrypt_play_info(play_info):
-        KEY = 'pleasedontdownloadourmusictheartistswontgetpaid'
-
+    def _decrypt_play_info(self, play_info, video_id):
+        KEYS = (
+            'pleasedontdownloadourmusictheartistswontgetpaid',
+            '(function() { return new Date().toLocaleDateString(); })()'
+        )
         play_info = base64.b64decode(play_info.encode('ascii'))
-
-        return ''.join([
-            compat_chr(compat_ord(ch) ^ compat_ord(KEY[idx % len(KEY)]))
-            for idx, ch in enumerate(play_info)])
+        for num, key in enumerate(KEYS, start=1):
+            try:
+                return self._parse_json(
+                    ''.join([
+                        compat_chr(compat_ord(ch) ^ compat_ord(key[idx % len(key)]))
+                        for idx, ch in enumerate(play_info)]),
+                    video_id)
+            except ExtractorError:
+                if num == len(KEYS):
+                    raise
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -78,8 +85,8 @@ class MixcloudIE(InfoExtractor):
 
         encrypted_play_info = self._search_regex(
             r'm-play-info="([^"]+)"', webpage, 'play info')
-        play_info = self._parse_json(
-            self._decrypt_play_info(encrypted_play_info), track_id)
+
+        play_info = self._decrypt_play_info(encrypted_play_info, track_id)
 
         if message and 'stream_url' not in play_info:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
