@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.08.09
 
 Core
 * [utils] Skip missing params in cli_bool_option (#13865)
