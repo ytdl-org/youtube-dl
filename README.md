@@ -24,6 +24,22 @@ If you do not have curl, you can alternatively use a recent wget:
 
     sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
+    
+Now youtube-dl is installed but the user group is root, so to change it  
+
+      sudo chown [user]:[user_group] /usr/local/bin/youtube-dl
+   
+     where [user]  is your user name
+      and  [user_group] is the group where your user name has privileges
+      
+      Example :
+      
+       sudo chown user:user /usr/local/bin/youtube-dl
+      
+ then to verify the file permission change 
+
+        ls -l /usr/local/bin/youtube-dl
+        
 
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
 
@@ -716,7 +732,7 @@ $ youtube-dl --dateafter 20000101 --datebefore 20091231
 
 ### How do I update youtube-dl?
 
-If you've followed [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html), you can simply run `youtube-dl -U` (or, on Linux, `sudo youtube-dl -U`).
+If you've followed [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html), you can simply run `youtube-dl -U` .
 
 If you have used pip, a simple `sudo pip install -U youtube-dl` is sufficient to update.
 
