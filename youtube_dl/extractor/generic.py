@@ -98,7 +98,7 @@ from .wistia import WistiaIE
 from .mediaset import MediasetIE
 from .joj import JojIE
 from .megaphone import MegaphoneIE
-
+from .vzaar import VzaarIE
 
 class GenericIE(InfoExtractor):
     IE_DESC = 'Generic downloader that works on some sites'
@@ -1840,6 +1840,16 @@ class GenericIE(InfoExtractor):
                 'title': 'Стас Намин: «Мы нарушили девственность Кремля»',
             },
         },
+        {
+            # vzaar embed
+            'url': 'http://www.xruniversity.com/bdsm-lets-begin-melissa-moore/',
+            'md5': 'cddc9fb8a8644a0a7742149eee95080b',
+            'info_dict': {
+                'id': '11002506',
+                'ext': 'mp4',
+                'title': 'XR-U SHOW: Ready Player Fuck - EP. 61',
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2780,6 +2790,12 @@ class GenericIE(InfoExtractor):
         if videopress_urls:
             return self.playlist_from_matches(
                 videopress_urls, video_id, video_title, ie=VideoPressIE.ie_key())
+
+        # Look for vzaar embeds
+        vzaar_urls = VzaarIE._extract_urls(webpage)
+        if vzaar_urls:
+            return self.playlist_from_matches(
+                vzaar_urls, video_id, video_title, ie=VzaarIE.ie_key())
 
         # Look for Rutube embeds
         rutube_urls = RutubeIE._extract_urls(webpage)
