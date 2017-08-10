@@ -9,7 +9,7 @@ from ..utils import int_or_none, ExtractorError
 
 
 class SpreakerPlaylistIE(InfoExtractor):
-    IE_NAME = 'spreaker'
+    IE_NAME = 'spreaker:playlist'
     _VALID_URL = r'^https?://(?:www\.)?spreaker\.com/show/[a-z0-9_-]+'
     _TEST = {
             'url': 'https://www.spreaker.com/show/success-with-music',
@@ -48,7 +48,7 @@ class SpreakerPlaylistIE(InfoExtractor):
 
 
 class SpreakerAPIEpisodeIE(InfoExtractor):
-    IE_NAME = 'spreaker'
+    IE_NAME = 'spreaker:api'
     _VALID_URL = r'^https?://(?:api\.)?spreaker\.com/(?:download/)?episode/(?P<id>[0-9]+)(?:/[^\.]+\.mp3$)?'
     _TESTS = [
         {
