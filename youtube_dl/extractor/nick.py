@@ -75,7 +75,7 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.de|nickelodeon\.(?:nl|at))/(?:playlist|shows)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.(?:de|com\.pl)|nickelodeon\.(?:nl|at))/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
         'only_matching': True,
@@ -87,6 +87,9 @@ class NickDeIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.nickelodeon.at/playlist/3773-top-videos/videos/episode/77993-das-letzte-gefecht',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nick.com.pl/seriale/474-spongebob-kanciastoporty/wideo/17412-teatr-to-jest-to-rodeo-oszolom',
         'only_matching': True,
     }]
 
