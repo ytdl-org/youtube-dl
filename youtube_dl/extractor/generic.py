@@ -1843,12 +1843,12 @@ class GenericIE(InfoExtractor):
         },
         {
             # vzaar embed
-            'url': 'http://www.xruniversity.com/bdsm-lets-begin-melissa-moore/',
-            'md5': 'cddc9fb8a8644a0a7742149eee95080b',
+            'url': 'http://help.vzaar.com/article/165-embedding-video',
+            'md5': '7e3919d9d2620b89e3e00bec7fe8c9d4',
             'info_dict': {
-                'id': '11002506',
+                'id': '8707641',
                 'ext': 'mp4',
-                'title': 'XR-U SHOW: Ready Player Fuck - EP. 61',
+                'title': 'Building A Business Online: Principal Chairs Q & A',
             },
         },
         # {
@@ -2792,12 +2792,6 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 videopress_urls, video_id, video_title, ie=VideoPressIE.ie_key())
 
-        # Look for vzaar embeds
-        vzaar_urls = VzaarIE._extract_urls(webpage)
-        if vzaar_urls:
-            return self.playlist_from_matches(
-                vzaar_urls, video_id, video_title, ie=VzaarIE.ie_key())
-
         # Look for Rutube embeds
         rutube_urls = RutubeIE._extract_urls(webpage)
         if rutube_urls:
@@ -2827,6 +2821,12 @@ class GenericIE(InfoExtractor):
         if mpfn_urls:
             return self.playlist_from_matches(
                 mpfn_urls, video_id, video_title, ie=MegaphoneIE.ie_key())
+
+        # Look for vzaar embeds
+        vzaar_urls = VzaarIE._extract_urls(webpage)
+        if vzaar_urls:
+            return self.playlist_from_matches(
+                vzaar_urls, video_id, video_title, ie=VzaarIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}
