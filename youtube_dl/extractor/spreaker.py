@@ -160,6 +160,7 @@ class SpreakerIE(InfoExtractor):
                     'url': show_image.get('small_url')
                 },
             ],
+            'extractor': 'spreaker',
         }
 
     def _real_extract(self, url):
