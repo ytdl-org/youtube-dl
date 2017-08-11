@@ -24,11 +24,29 @@ class SpreakerPlaylistIE(InfoExtractor):
         html = self._download_webpage(url, None)
         playlist_url = self._html_search_regex(
             r'data-playlist_url="(?P<url>https\://[^"]+")', html, 'url')
-        items = self._download_json(playlist_url, None)
-        items = items['response']['playlist']['items']
+        items = self._download_json(playlist_url,
+                                    None,
+                                    'Downloading playlist JSON')
+        playlist = items['response']['playlist']
+        next_url = playlist.get('next_url')
+        items = playlist.get('items', [])
 
         if not items:
             raise ExtractorError('Empty playlist')
+
+        page_no = 2
+        download_str = 'Downloading playlist JSON page #%d'
+        while next_url:
+            items_ = self._download_json(next_url,
+                                         None,
+                                         download_str % (page_no,))
+            playlist_ = items_['response']['playlist']
+            new_items = playlist_.get('items', [])
+            if not new_items:
+                break
+            items += new_items
+            next_url = playlist_.get('next_url')
+            page_no += 1
 
         urls = [x['api_url'] for x in items]
         ret = []
