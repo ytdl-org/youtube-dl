@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class VzaarIE(InfoExtractor):
-    _VALID_URL = r'(https?://)?(?:(?:www|view)\.)?vzaar\.com/(?:videos/)?(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:(?:www|view)\.)?vzaar\.com/(?:videos/)?(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://vzaar.com/videos/1152805',
         'md5': 'bde5ddfeb104a6c56a93a06b04901dbf',
@@ -33,7 +33,7 @@ class VzaarIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+src=["\']//((?:view.vzaar\.com)/[0-9]+)',
+            r'<iframe[^>]+src=["\']((?:https?:)?//(?:view\.vzaar\.com)/[0-9]+)',
             webpage)
 
     def _real_extract(self, url):

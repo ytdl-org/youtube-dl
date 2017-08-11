@@ -100,6 +100,7 @@ from .joj import JojIE
 from .megaphone import MegaphoneIE
 from .vzaar import VzaarIE
 
+
 class GenericIE(InfoExtractor):
     IE_DESC = 'Generic downloader that works on some sites'
     _VALID_URL = r'.*'
