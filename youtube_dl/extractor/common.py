@@ -2114,9 +2114,9 @@ class InfoExtractor(object):
                 return f
             return {}
 
-        def _media_formats(src, cur_media_type):
+        def _media_formats(src, type_info, cur_media_type):
             full_url = absolute_url(src)
-            ext = determine_ext(full_url)
+            ext = type_info.get('ext') or determine_ext(full_url)
             if ext == 'm3u8':
                 is_plain_url = False
                 formats = self._extract_m3u8_formats(
@@ -2165,9 +2165,9 @@ class InfoExtractor(object):
                     src = source_attributes.get('src')
                     if not src:
                         continue
-                    is_plain_url, formats = _media_formats(src, media_type)
+                    f = parse_content_type(source_attributes.get('type'))
+                    is_plain_url, formats = _media_formats(src, f, media_type)
                     if is_plain_url:
-                        f = parse_content_type(source_attributes.get('type'))
                         f.update(formats[0])
                         media_info['formats'].append(f)
                     else:
