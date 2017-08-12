@@ -22,7 +22,6 @@ from ..utils import (
     # sanitized_Request,
     remove_quotes,
     str_to_int,
-    bug_reports_message,
 )
 # from ..aes import (
 #     aes_decrypt_text
@@ -288,18 +287,6 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'only_matching': True,
     }]
 
-    def _filter_user_vids(self, webpage):
-        # PornHub sends (un-rendered) related videos as part of the userlist webpage.
-        # Omit everything before the userlist to avoid downloading unnecessary videos.
-        user_list_start = webpage.find('<div class="videoUList">')
-        if user_list_start >= 0:
-            return webpage[user_list_start:]
-
-        # Getting here means PornHub changed layout of the user page.
-        self.report_warning("Could not find start of user's upload list, "
-                            "downloading all videos in webpage%s" % bug_reports_message())
-        return webpage
-
     def _real_extract(self, url):
         user_id = self._match_id(url)
 
@@ -313,8 +300,16 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
                     break
                 raise
-            webpage = self._filter_user_vids(webpage)
-            page_entries = self._extract_entries(webpage)
+
+            # PornHub sends related videos as part of the uploaded videos webpage.
+            # Omit everything before the uploaded videos section to avoid
+            # downloading unnecessary videos.
+            # See: https://github.com/rg3/youtube-dl/issues/12819
+            upload_list = self._search_regex(
+                r'(?s)(<div[^>]+class=["\']videoUList.+)',
+                webpage, 'upload_list', default=webpage)
+
+            page_entries = self._extract_entries(upload_list)
             if not page_entries:
                 break
             entries.extend(page_entries)
