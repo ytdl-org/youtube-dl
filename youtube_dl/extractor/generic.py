@@ -1786,6 +1786,21 @@ class GenericIE(InfoExtractor):
             'playlist_mincount': 5,
         },
         {
+            # Limelight embed (LimelightPlayerUtil.embed)
+            'url': 'https://tv5.ca/videos?v=xuu8qowr291ri',
+            'info_dict': {
+                'id': '95d035dc5c8a401588e9c0e6bd1e9c92',
+                'ext': 'mp4',
+                'title': '07448641',
+                'timestamp': 1499890639,
+                'upload_date': '20170712',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['LimelightMedia'],
+        },
+        {
             'url': 'http://kron4.com/2017/04/28/standoff-with-walnut-creek-murder-suspect-ends-with-arrest/',
             'info_dict': {
                 'id': 'standoff-with-walnut-creek-murder-suspect-ends-with-arrest',
