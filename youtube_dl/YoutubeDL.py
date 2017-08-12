@@ -1500,7 +1500,7 @@ class YoutubeDL(object):
             sanitize_string_field(format, 'format_id')
             sanitize_numeric_fields(format)
             format['url'] = sanitize_url(format['url'])
-            if format.get('format_id') is None:
+            if not format.get('format_id'):
                 format['format_id'] = compat_str(i)
             else:
                 # Sanitize format_id from characters used in format selector expression

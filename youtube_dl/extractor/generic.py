@@ -98,6 +98,7 @@ from .wistia import WistiaIE
 from .mediaset import MediasetIE
 from .joj import JojIE
 from .megaphone import MegaphoneIE
+from .vzaar import VzaarIE
 
 
 class GenericIE(InfoExtractor):
@@ -1785,6 +1786,21 @@ class GenericIE(InfoExtractor):
             'playlist_mincount': 5,
         },
         {
+            # Limelight embed (LimelightPlayerUtil.embed)
+            'url': 'https://tv5.ca/videos?v=xuu8qowr291ri',
+            'info_dict': {
+                'id': '95d035dc5c8a401588e9c0e6bd1e9c92',
+                'ext': 'mp4',
+                'title': '07448641',
+                'timestamp': 1499890639,
+                'upload_date': '20170712',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['LimelightMedia'],
+        },
+        {
             'url': 'http://kron4.com/2017/04/28/standoff-with-walnut-creek-murder-suspect-ends-with-arrest/',
             'info_dict': {
                 'id': 'standoff-with-walnut-creek-murder-suspect-ends-with-arrest',
@@ -1838,6 +1854,16 @@ class GenericIE(InfoExtractor):
                 'id': '418921',
                 'ext': 'mp4',
                 'title': 'Стас Намин: «Мы нарушили девственность Кремля»',
+            },
+        },
+        {
+            # vzaar embed
+            'url': 'http://help.vzaar.com/article/165-embedding-video',
+            'md5': '7e3919d9d2620b89e3e00bec7fe8c9d4',
+            'info_dict': {
+                'id': '8707641',
+                'ext': 'mp4',
+                'title': 'Building A Business Online: Principal Chairs Q & A',
             },
         },
         # {
@@ -2810,6 +2836,12 @@ class GenericIE(InfoExtractor):
         if mpfn_urls:
             return self.playlist_from_matches(
                 mpfn_urls, video_id, video_title, ie=MegaphoneIE.ie_key())
+
+        # Look for vzaar embeds
+        vzaar_urls = VzaarIE._extract_urls(webpage)
+        if vzaar_urls:
+            return self.playlist_from_matches(
+                vzaar_urls, video_id, video_title, ie=VzaarIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}

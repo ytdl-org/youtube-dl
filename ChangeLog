@@ -1,6 +1,14 @@
-version <unreleased>
+version 2017.08.09
+
+Core
+* [utils] Skip missing params in cli_bool_option (#13865)
 
 Extractors
+* [xxxymovies] Fix title extraction (#13868)
++ [nick] Add support for nick.com.pl (#13860)
+* [mixcloud] Fix play info decryption (#13867)
+* [20min] Fix embeds extraction (#13852)
+* [dplayit] Fix extraction (#13851)
 + [niconico] Support videos with multiple formats (#13522)
 + [niconico] Support HTML5-only videos (#13806)
 
