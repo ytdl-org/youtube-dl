@@ -940,7 +940,8 @@ class InfoExtractor(object):
 
     def _family_friendly_search(self, html):
         # See http://schema.org/VideoObject
-        family_friendly = self._html_search_meta('isFamilyFriendly', html)
+        family_friendly = self._html_search_meta(
+            'isFamilyFriendly', html, default=None)
 
         if not family_friendly:
             return None
