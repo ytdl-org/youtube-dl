@@ -294,6 +294,7 @@
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
+ - **Fux**
  - **FXNetworks**
  - **GameInformer**
  - **GameOne**
@@ -621,6 +622,7 @@
  - **PolskieRadio**
  - **PolskieRadioCategory**
  - **PornCom**
+ - **PornerBros**
  - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
@@ -629,6 +631,7 @@
  - **Pornotube**
  - **PornoVoisines**
  - **PornoXO**
+ - **PornTube**
  - **PressTV**
  - **PrimeShareTV**
  - **PromptFile**
@@ -654,6 +657,8 @@
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
+ - **Reddit**
+ - **RedditR**
  - **RedTube**
  - **RegioTV**
  - **RENTV**
