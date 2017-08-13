@@ -300,7 +300,16 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
                     break
                 raise
-            page_entries = self._extract_entries(webpage)
+
+            # PornHub sends related videos as part of the uploaded videos webpage.
+            # Omit everything before the uploaded videos section to avoid
+            # downloading unnecessary videos.
+            # See: https://github.com/rg3/youtube-dl/issues/12819
+            upload_list = self._search_regex(
+                r'(?s)(<div[^>]+class=["\']videoUList.+)',
+                webpage, 'upload_list', default=webpage)
+
+            page_entries = self._extract_entries(upload_list)
             if not page_entries:
                 break
             entries.extend(page_entries)
