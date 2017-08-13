@@ -57,7 +57,8 @@ class MixcloudIE(InfoExtractor):
     def _decrypt_play_info(self, play_info, video_id):
         KEYS = (
             'pleasedontdownloadourmusictheartistswontgetpaid',
-            '(function() { return new Date().toLocaleDateString(); })()'
+            'window.addEventListener = window.addEventListener || function() {};',
+            '(function() { return new Date().toLocaleDateString(); })()',
         )
         play_info = base64.b64decode(play_info.encode('ascii'))
         for num, key in enumerate(KEYS, start=1):

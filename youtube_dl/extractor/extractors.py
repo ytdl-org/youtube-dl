@@ -840,6 +840,10 @@ from .rai import (
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redbulltv import RedBullTVIE
+from .reddit import (
+    RedditIE,
+    RedditRIE,
+)
 from .redtube import RedTubeIE
 from .regiotv import RegioTVIE
 from .rentv import (
