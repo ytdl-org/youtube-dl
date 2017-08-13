@@ -53,6 +53,11 @@ class GoogleDriveIE(InfoExtractor):
         '46': 'webm',
         '59': 'mp4',
     }
+    _BASE_URL_CAPTIONS = 'https://drive.google.com/timedtext'
+    _CAPTIONS_ENTRY_TAG = {
+        'subtitles': 'track',
+        'automatic_captions': 'target',
+    }
     _caption_formats_ext = []
     _captions_by_country_xml = None
 
@@ -66,13 +71,16 @@ class GoogleDriveIE(InfoExtractor):
 
     def _set_captions_data(self, video_id, video_subtitles_id, hl):
         try:
-            self._captions_by_country_xml = self._download_xml(
-                'https://drive.google.com/timedtext?id=%s&vid=%s&hl=%s&type=list&tlangs=1&v=%s&fmts=1&vssids=1', video_id, query={
-                    'id': video_id,
-                    'vid': video_subtitles_id,
-                    'hl': hl,
-                    'v': video_id,
-                })
+            self._captions_by_country_xml = self._download_xml(self._BASE_URL_CAPTIONS, video_id, query={
+                'id': video_id,
+                'vid': video_subtitles_id,
+                'hl': hl,
+                'v': video_id,
+                'type': 'list',
+                'tlangs': '1',
+                'fmts': '1',
+                'vssids': '1',
+            })
         except ExtractorError as ee:
             self.report_warning('unable to download video subtitles: %s' % error_to_compat_str(ee))
         if self._captions_by_country_xml is not None:
@@ -81,6 +89,36 @@ class GoogleDriveIE(InfoExtractor):
                 if caption_extension.attrib.get('fmt_code') and not caption_extension.attrib.get('default'):
                     self._caption_formats_ext.append(caption_extension.attrib['fmt_code'])
 
+    def _get_captions_by_type(self, video_id, video_subtitles_id, caption_type, caption_original_lang_code=None):
+        if not video_subtitles_id or not caption_type:
+            return None
+        captions = {}
+        for caption_entry in self._captions_by_country_xml.findall(self._CAPTIONS_ENTRY_TAG[caption_type]):
+            caption_lang_code = caption_entry.attrib.get('lang_code')
+            if not caption_lang_code:
+                continue
+            caption_format_data = []
+            for caption_format in self._caption_formats_ext:
+                query = {
+                    'vid': video_subtitles_id,
+                    'v': video_id,
+                    'fmt': caption_format,
+                    'lang': caption_lang_code if caption_original_lang_code is None else caption_original_lang_code,
+                    'type': 'track',
+                    'name': '',
+                    'kind': '',
+                }
+                if caption_original_lang_code is not None:
+                    query.update({'tlang': caption_lang_code})
+                caption_format_data.append({
+                    'url': update_url_query(self._BASE_URL_CAPTIONS, query),
+                    'ext': caption_format,
+                })
+            captions[caption_lang_code] = caption_format_data
+        if not captions:
+            self.report_warning('video doesn\'t have %s' % caption_type.replace('_', ' '))
+        return captions
+
     def _get_subtitles(self, video_id, video_subtitles_id, hl):
         if not video_subtitles_id or not hl:
             return None
@@ -88,31 +126,7 @@ class GoogleDriveIE(InfoExtractor):
             self._set_captions_data(video_id, video_subtitles_id, hl)
             if self._captions_by_country_xml is None:
                 return None
-
-        subtitles = {}
-        for subtitle_track in self._captions_by_country_xml.findall('track'):
-            subtitle_lang_code = subtitle_track.attrib.get('lang_code')
-            if not subtitle_lang_code:
-                continue
-            subtitle_format_data = []
-            for subtitle_format in self._caption_formats_ext:
-                query = {
-                    'vid': video_subtitles_id,
-                    'v': video_id,
-                    'lang': subtitle_lang_code,
-                    'fmt': subtitle_format,
-                    'type': 'track',
-                    'name': '',
-                    'kind': '',
-                }
-                subtitle_format_data.append({
-                    'url': update_url_query('https://drive.google.com/timedtext', query),
-                    'ext': subtitle_format,
-                })
-            subtitles[subtitle_lang_code] = subtitle_format_data
-        if not subtitles:
-            self.report_warning('video doesn\'t have subtitles')
-        return subtitles
+        return self._get_captions_by_type(video_id, video_subtitles_id, 'subtitles')
 
     def _get_automatic_captions(self, video_id, video_subtitles_id, hl):
         if not video_subtitles_id or not hl:
@@ -122,39 +136,13 @@ class GoogleDriveIE(InfoExtractor):
             if self._captions_by_country_xml is None:
                 return None
         self.to_screen('%s: Looking for automatic captions' % video_id)
-
         subtitle_original_track = self._captions_by_country_xml.find('track')
         if subtitle_original_track is None:
             return None
         subtitle_original_lang_code = subtitle_original_track.attrib.get('lang_code')
         if not subtitle_original_lang_code:
             return None
-
-        automatic_captions = {}
-        for automatic_caption_target in self._captions_by_country_xml.findall('target'):
-            automatic_caption_lang_code = automatic_caption_target.attrib.get('lang_code')
-            if not automatic_caption_lang_code:
-                continue
-            automatic_caption_format_data = []
-            for automatic_caption_format in self._caption_formats_ext:
-                query = {
-                    'vid': video_subtitles_id,
-                    'v': video_id,
-                    'lang': subtitle_original_lang_code,
-                    'fmt': automatic_caption_format,
-                    'tlang': automatic_caption_lang_code,
-                    'type': 'track',
-                    'name': '',
-                    'kind': '',
-                }
-                automatic_caption_format_data.append({
-                    'url': update_url_query('https://drive.google.com/timedtext', query),
-                    'ext': automatic_caption_format,
-                })
-            automatic_captions[automatic_caption_lang_code] = automatic_caption_format_data
-        if not automatic_captions:
-            self.report_warning('video doesn\'t have automatic captions')
-        return automatic_captions
+        return self._get_captions_by_type(video_id, video_subtitles_id, 'automatic_captions', subtitle_original_lang_code)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
