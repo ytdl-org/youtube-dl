@@ -1,3 +1,22 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Make sure format id is not empty
+* [extractor/common] Make _family_friendly_search optional
+* [extractor/common] Respect source's type attribute for HTML5 media (#13892)
+
+Extractors
+* [pornhub:playlistbase] Skip videos from drop-down menu (#12819, #13902)
++ [fourtube] Add support pornerbros.com (#6022)
++ [fourtube] Add support porntube.com (#7859, #13901)
++ [fourtube] Add support fux.com
+* [limelight] Improve embeds detection (#13895)
++ [reddit] Add support for v.redd.it and reddit.com (#13847)
+* [aparat] Extract all formats (#13887)
+* [mixcloud] Fix play info decryption (#13885)
++ [generic] Add support for vzaar embeds (#13876)
+
+
 version 2017.08.09
 
 Core
