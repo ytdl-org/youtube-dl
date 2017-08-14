@@ -166,15 +166,15 @@ class QQPlaylistBaseIE(InfoExtractor):
 
         default_num = 1
         json_text = self.get_singer_all_songs(singmid, default_num)
-        json_obj = self._parse_json(json_text, singmid)
+        json_obj_all_songs = self._parse_json(json_text, singmid)
 
-        if json_obj['code'] == 0:
-            total = json_obj['data']['total']
+        if json_obj_all_songs['code'] == 0:
+            total = json_obj_all_songs['data']['total']
             json_text = self.get_singer_all_songs(singmid, total)
-            json_obj = self._parse_json(json_text, singmid)
+            json_obj_all_songs = self._parse_json(json_text, singmid)
 
-        for item in json_obj['data']['list']:
-            if not (item['musicData'].get('songmid') is None):
+        for item in json_obj_all_songs['data']['list']:
+            if item['musicData'].get('songmid') is not None:
                 songmid = item['musicData']['songmid']
                 entries.append(self.url_result(r'https://y.qq.com/n/yqq/song/%s.html' % songmid, 'QQMusic', songmid))
 
@@ -248,7 +248,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
 
         entries = [
             self.url_result(
-                'https://y.qq.com/n/yqq/song/' + song['songmid'] + ".html", 'QQMusic', song['songmid']
+                'https://y.qq.com/n/yqq/song/' + song['songmid'] + '.html', 'QQMusic', song['songmid']
             ) for song in album['list']
         ]
         album_name = album.get('name')
@@ -294,8 +294,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
     def _real_extract(self, url):
         list_id = self._match_id(url)
 
-        # list_type, num_id = list_id.split("_")
-        list_type = "toplist"
+        list_type = 'toplist'
         num_id = list_id
 
         toplist_json = self._download_json(
@@ -305,7 +304,7 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
 
         entries = [
             self.url_result(
-                'https://y.qq.com/n/yqq/song/' + song['data']['songmid'] + ".html", 'QQMusic',
+                'https://y.qq.com/n/yqq/song/' + song['data']['songmid'] + '.html', 'QQMusic',
                 song['data']['songmid']
             ) for song in toplist_json['songlist']
         ]
@@ -357,7 +356,7 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
         cdlist = list_json['cdlist'][0]
         entries = [
             self.url_result(
-                'https://y.qq.com/n/yqq/song/' + song['songmid'] + ".html", 'QQMusic', song['songmid']
+                'https://y.qq.com/n/yqq/song/' + song['songmid'] + '.html', 'QQMusic', song['songmid']
             ) for song in cdlist['songlist']
         ]
 
