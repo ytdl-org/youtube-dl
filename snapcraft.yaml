@@ -1,0 +1,20 @@
+name: youtube-dl
+version: git
+summary: YouTube downloader
+description: |
+  Command-line program to download videos from YouTube.com and other video
+  sites
+grade: stable
+confinement: strict
+
+parts:
+  youtube-dl:
+    source: .
+    plugin: python
+    python-version: python3
+    after: [ffmpeg]
+
+apps:
+  youtube-dl:
+    command: bin/youtube-dl
+    plugs: [network, home]
