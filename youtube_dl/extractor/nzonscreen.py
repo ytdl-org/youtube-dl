@@ -19,12 +19,6 @@ class NZOnScreenIE(InfoExtractor):
             'ext': 'm4v',
             'title': 'Watermark',
             'description': 'md5:c654662c3985fb0cef75812fbb378174',
-            #'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         }
     }
 
@@ -71,7 +65,3 @@ class NZOnScreenIE(InfoExtractor):
                         })
 
         return self.playlist_result(entries, video_id, title, self._og_search_description(webpage))
-        return {
-            #'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
-            # TODO more properties (see youtube_dl/extractor/common.py)
-        }
