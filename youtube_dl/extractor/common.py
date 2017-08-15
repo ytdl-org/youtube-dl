@@ -1786,7 +1786,7 @@ class InfoExtractor(object):
                     ms_info['timescale'] = int(timescale)
                 segment_duration = source.get('duration')
                 if segment_duration:
-                    ms_info['segment_duration'] = int(segment_duration)
+                    ms_info['segment_duration'] = float(segment_duration)
 
             def extract_Initialization(source):
                 initialization = source.find(_add_ns('Initialization'))
