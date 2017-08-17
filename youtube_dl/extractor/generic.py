@@ -2015,7 +2015,7 @@ class GenericIE(InfoExtractor):
 
         if head_response is not False:
             # Check for redirect
-            new_url = head_response.geturl()
+            new_url = compat_str(head_response.geturl())
             if url != new_url:
                 self.report_following_redirect(new_url)
                 if force_videoid:
@@ -2116,7 +2116,7 @@ class GenericIE(InfoExtractor):
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
                     doc, video_id,
-                    mpd_base_url=full_response.geturl().rpartition('/')[0],
+                    mpd_base_url=compat_str(full_response.geturl()).rpartition('/')[0],
                     mpd_url=url)
                 self._sort_formats(info_dict['formats'])
                 return info_dict
