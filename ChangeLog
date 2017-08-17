@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.08.18
 
 Core
 * [YoutubeDL] Sanitize byte string format URLs (#13951)
