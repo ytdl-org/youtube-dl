@@ -74,7 +74,7 @@ class UdemyIE(InfoExtractor):
             return compat_urlparse.urljoin(base_url, url) if not url.startswith('http') else url
 
         checkout_url = unescapeHTML(self._search_regex(
-            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/payment/checkout/.+?)\1',
+            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/(?:payment|cart)/checkout/.+?)\1',
             webpage, 'checkout url', group='url', default=None))
         if checkout_url:
             raise ExtractorError(
