@@ -1,8 +1,19 @@
 version <unreleased>
 
+Core
+* [YoutubeDL] Sanitize byte string format URLs (#13951)
++ [extractor/common] Add support for float durations in _parse_mpd_formats
+  (#13919)
+
 Extractors
+* [arte] Detect unavailable videos (#13945)
+* [generic] Convert redirect URLs to unicode strings (#13951)
+* [udemy] Fix paid course detection (#13943)
+* [pluralsight] Use RPC API for course extraction (#13937)
 + [clippit] Add support for clippituser.tv
 + [qqmusic] Support new URL schemes (#13805)
+* [periscope] Renew HLS extraction (#13917)
+* [mixcloud] Extract decrypt key
 
 
 version 2017.08.13
