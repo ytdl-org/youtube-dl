@@ -1,3 +1,10 @@
+version <unreleased>
+
+Extractors
+
++ [qqmusic] Support new URL schemes (#13805)
+
+
 version 2017.08.13
 
 Core
