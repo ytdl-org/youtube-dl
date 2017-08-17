@@ -304,9 +304,6 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
     def _real_extract(self, url):
         list_id = self._match_id(url)
 
-        list_type = 'toplist'
-        num_id = list_id
-
         toplist_json = self._download_json(
             'http://i.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg', list_id,
             note='Download toplist page',
