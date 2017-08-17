@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 
 
@@ -27,9 +29,9 @@ class VShareIE(InfoExtractor):
 
         title = self._html_search_regex(
             r'(?s)<div id="root-container">(.+?)<br/>', webpage, 'title')
-        video_url = self._search_regex(
+        video_url = re.sub(r'http://', r'https://', self._search_regex(
             r'<a[^>]+href=(["\'])(?P<url>(?:https?:)?//.+?)\1[^>]*>[Cc]lick\s+here',
-            webpage, 'video url', group='url')
+            webpage, 'video url', group='url'))
 
         return {
             'id': video_id,
