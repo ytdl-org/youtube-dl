@@ -33,11 +33,11 @@ You can also use pip:
     
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
-OS X users can install youtube-dl with [Homebrew](https://brew.sh):
+OS X users can install youtube-dl with [Homebrew](https://brew.sh/):
 
     brew install youtube-dl
 
-Or with [MacPorts](https://www.macports.org):
+Or with [MacPorts](https://www.macports.org/):
 
     sudo port install youtube-dl
 
@@ -764,13 +764,13 @@ Apparently YouTube requires you to pass a CAPTCHA test if you download too much.
 
 ### Do I need any other programs?
 
-youtube-dl works fine on its own on most sites. However, if you want to convert video/audio, you'll need [avconv](https://libav.org) or [ffmpeg](https://www.ffmpeg.org). On some sites - most notably YouTube - videos can be retrieved in a higher quality format without sound. youtube-dl will detect whether avconv/ffmpeg is present and automatically pick the best option.
+youtube-dl works fine on its own on most sites. However, if you want to convert video/audio, you'll need [avconv](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/). On some sites - most notably YouTube - videos can be retrieved in a higher quality format without sound. youtube-dl will detect whether avconv/ffmpeg is present and automatically pick the best option.
 
-Videos or video formats streamed via RTMP protocol can only be downloaded when [rtmpdump](https://rtmpdump.mplayerhq.hu) is installed. Downloading MMS and RTSP videos requires either [mplayer](https://mplayerhq.hu) or [mpv](https://mpv.io) to be installed.
+Videos or video formats streamed via RTMP protocol can only be downloaded when [rtmpdump](https://rtmpdump.mplayerhq.hu/) is installed. Downloading MMS and RTSP videos requires either [mplayer](https://mplayerhq.hu/) or [mpv](https://mpv.io/) to be installed.
 
 ### I have downloaded a video but how can I play it?
 
-Once the video is fully downloaded, use any video player, such as [mpv](https://mpv.io), [vlc](https://www.videolan.org) or [mplayer](https://www.mplayerhq.hu).
+Once the video is fully downloaded, use any video player, such as [mpv](https://mpv.io/), [vlc](https://www.videolan.org/) or [mplayer](https://www.mplayerhq.hu/).
 
 ### I extracted a video URL with `-g`, but it does not play on another machine / in my web browser.
 
@@ -854,7 +854,7 @@ Either prepend `https://www.youtube.com/watch?v=` or separate the ID from the op
 
 Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`.
 
-In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [cookies.txt](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg) (for Chrome) or [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies) (for Firefox).
+In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [cookies.txt](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg) (for Chrome) or [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies/) (for Firefox).
 
 Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows and `LF` (`\n`) for Unix and Unix-like systems (Linux, Mac OS, etc.). `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
 
@@ -862,7 +862,7 @@ Passing cookies to youtube-dl is a good way to workaround login when a particula
 
 ### How do I stream directly to media player?
 
-You will first need to tell youtube-dl to stream media to stdout with `-o -`, and also tell your media player to read from stdin (it must be capable of this for streaming) and then pipe former to latter. For example, streaming to [vlc](https://www.videolan.org) can be achieved with:
+You will first need to tell youtube-dl to stream media to stdout with `-o -`, and also tell your media player to read from stdin (it must be capable of this for streaming) and then pipe former to latter. For example, streaming to [vlc](https://www.videolan.org/) can be achieved with:
 
     youtube-dl -o - "https://www.youtube.com/watch?v=BaW_jenozKcj" | vlc -
 
@@ -1005,7 +1005,7 @@ After you have ensured this site is distributing its content legally, you can fo
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
 7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L74-L252). Add tests and code for as many as you want.
-8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](https://www.python.org) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
+8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](https://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
 9. When the tests pass, [add](https://git-scm.com/docs/git-add) the new files and [commit](https://git-scm.com/docs/git-commit) them and [push](https://git-scm.com/docs/git-push) the result, like this:
 
         $ git add youtube_dl/extractor/extractors.py
