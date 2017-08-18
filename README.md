@@ -716,7 +716,7 @@ $ youtube-dl --dateafter 20000101 --datebefore 20091231
 
 ### How do I update youtube-dl?
 
-If you've followed [our manual installation instructions](https://rg3.github.io/youtube-dl/download), you can simply run `youtube-dl -U` (or, on Linux, `sudo youtube-dl -U`).
+If you've followed [our manual installation instructions](https://rg3.github.io/youtube-dl/download.html), you can simply run `youtube-dl -U` (or, on Linux, `sudo youtube-dl -U`).
 
 If you have used pip, a simple `sudo pip install -U youtube-dl` is sufficient to update.
 
@@ -726,7 +726,7 @@ As a last resort, you can also uninstall the version installed by your package m
 
     sudo apt-get remove -y youtube-dl
 
-Afterwards, simply follow [our manual installation instructions](https://rg3.github.io/youtube-dl/download):
+Afterwards, simply follow [our manual installation instructions](https://rg3.github.io/youtube-dl/download.html):
 
 ```
 sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
@@ -1242,7 +1242,7 @@ If your report is shorter than two lines, it is almost certainly missing some of
 
 For bug reports, this means that your report should contain the *complete* output of youtube-dl when called with the `-v` flag. The error message you get for (most) bugs even says so, but you would not believe how many of our bug reports do not contain this information.
 
-If your server has multiple IPs or you suspect censorship, adding `--call-home` may be a good idea to get more diagnostics. If the error is `ERROR: Unable to extract ...` and you cannot reproduce it from multiple countries, add `--dump-pages` (warning: this will yield a rather large output, redirect it to the file `log.txt` by adding `>log.txt 2>&1` to your command-line) or upload the `.dump` files you get when you add `--write-pages` [somewhere](https://gist.github.com).
+If your server has multiple IPs or you suspect censorship, adding `--call-home` may be a good idea to get more diagnostics. If the error is `ERROR: Unable to extract ...` and you cannot reproduce it from multiple countries, add `--dump-pages` (warning: this will yield a rather large output, redirect it to the file `log.txt` by adding `>log.txt 2>&1` to your command-line) or upload the `.dump` files you get when you add `--write-pages` [somewhere](https://gist.github.com/).
 
 **Site support requests must contain an example URL**. An example URL is a URL you might want to download, like `https://www.youtube.com/watch?v=BaW_jenozKc`. There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. `https://www.youtube.com`) is *not* an example URL.
 
