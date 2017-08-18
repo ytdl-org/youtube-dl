@@ -187,6 +187,7 @@ from .chirbit import (
 from .cinchcast import CinchcastIE
 from .cjsw import CJSWIE
 from .cliphunter import CliphunterIE
+from .clippit import ClippitIE
 from .cliprs import ClipRsIE
 from .clipsyndicate import ClipsyndicateIE
 from .closertotruth import CloserToTruthIE

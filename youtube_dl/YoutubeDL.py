@@ -1483,12 +1483,14 @@ class YoutubeDL(object):
 
         def is_wellformed(f):
             url = f.get('url')
-            valid_url = url and isinstance(url, compat_str)
-            if not valid_url:
+            if not url:
                 self.report_warning(
                     '"url" field is missing or empty - skipping format, '
                     'there is an error in extractor')
-            return valid_url
+                return False
+            if isinstance(url, bytes):
+                sanitize_string_field(f, 'url')
+            return True
 
         # Filter out malformed formats for better extraction robustness
         formats = list(filter(is_wellformed, formats))

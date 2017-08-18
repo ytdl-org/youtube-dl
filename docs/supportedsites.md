@@ -156,6 +156,7 @@
  - **Cinchcast**
  - **CJSW**
  - **cliphunter**
+ - **Clippit**
  - **ClipRs**
  - **Clipsyndicate**
  - **CloserToTruth**
