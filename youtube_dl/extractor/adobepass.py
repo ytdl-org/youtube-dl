@@ -20,6 +20,11 @@ from ..utils import (
 
 
 MSO_INFO = {
+    'ATT': {
+        'name': 'AT&T U-Verse',
+        'username_field': 'nameBox',
+        'password_field': 'pwdBox'
+    },
     'DTV': {
         'name': 'DIRECTV',
         'username_field': 'username',
