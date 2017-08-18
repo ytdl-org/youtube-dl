@@ -91,12 +91,14 @@ class MixcloudIE(InfoExtractor):
             if js_url:
                 js = self._download_webpage(js_url, track_id, fatal=False)
                 if js:
-                    key = self._search_regex(
-                        r'player\s*:\s*{.*?\bvalue\s*:\s*(["\'])(?P<key>(?:(?!\1).)+)\1',
-                        js, 'key', default=None, group='key')
-                    if key and isinstance(key, compat_str):
-                        self._keys.insert(0, key)
-                        self._current_key = key
+                    KEY_RE_TEMPLATE = r'player\s*:\s*{.*?\b%s\s*:\s*(["\'])(?P<key>(?:(?!\1).)+)\1'
+                    for key_name in ('value', 'key_value'):
+                        key = self._search_regex(
+                            KEY_RE_TEMPLATE % key_name, js, 'key',
+                            default=None, group='key')
+                        if key and isinstance(key, compat_str):
+                            self._keys.insert(0, key)
+                            self._current_key = key
 
         message = self._html_search_regex(
             r'(?s)<div[^>]+class="global-message cloudcast-disabled-notice-light"[^>]*>(.+?)<(?:a|/div)',
