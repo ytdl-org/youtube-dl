@@ -99,11 +99,21 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --source-address IP              Client-side IP address to bind to
     -4, --force-ipv4                 Make all connections via IPv4
     -6, --force-ipv6                 Make all connections via IPv6
+
+## Geo Restriction:
     --geo-verification-proxy URL     Use this proxy to verify the IP address for
                                      some geo-restricted sites. The default
                                      proxy specified by --proxy (or none, if the
                                      options is not present) is used for the
                                      actual downloading.
+    --geo-bypass                     Bypass geographic restriction via faking
+                                     X-Forwarded-For HTTP header (experimental)
+    --no-geo-bypass                  Do not bypass geographic restriction via
+                                     faking X-Forwarded-For HTTP header
+                                     (experimental)
+    --geo-bypass-country CODE        Force bypass geographic restriction with
+                                     explicitly provided two-letter ISO 3166-2
+                                     country code (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          Playlist video to start at (default is 1)
@@ -135,22 +145,24 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --max-views COUNT                Do not download any videos with more than
                                      COUNT views
     --match-filter FILTER            Generic video filter. Specify any key (see
-                                     help for -o for a list of available keys)
-                                     to match if the key is present, !key to
-                                     check if the key is not present,key >
-                                     NUMBER (like "comment_count > 12", also
-                                     works with >=, <, <=, !=, =) to compare
-                                     against a number, and & to require multiple
-                                     matches. Values which are not known are
-                                     excluded unless you put a question mark (?)
-                                     after the operator.For example, to only
-                                     match videos that have been liked more than
-                                     100 times and disliked less than 50 times
-                                     (or the dislike functionality is not
-                                     available at the given service), but who
-                                     also have a description, use --match-filter
-                                     "like_count > 100 & dislike_count <? 50 &
-                                     description" .
+                                     the "OUTPUT TEMPLATE" for a list of
+                                     available keys) to match if the key is
+                                     present, !key to check if the key is not
+                                     present, key > NUMBER (like "comment_count
+                                     > 12", also works with >=, <, <=, !=, =) to
+                                     compare against a number, key = 'LITERAL'
+                                     (like "uploader = 'Mike Smith'", also works
+                                     with !=) to match against a string literal
+                                     and & to require multiple matches. Values
+                                     which are not known are excluded unless you
+                                     put a question mark (?) after the operator.
+                                     For example, to only match videos that have
+                                     been liked more than 100 times and disliked
+                                     less than 50 times (or the dislike
+                                     functionality is not available at the given
+                                     service), but who also have a description,
+                                     use --match-filter "like_count > 100 &
+                                     dislike_count <? 50 & description" .
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to
@@ -169,12 +181,15 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
     --fragment-retries RETRIES       Number of retries for a fragment (default
-                                     is 10), or "infinite" (DASH and hlsnative
-                                     only)
-    --skip-unavailable-fragments     Skip unavailable fragments (DASH and
-                                     hlsnative only)
+                                     is 10), or "infinite" (DASH, hlsnative and
+                                     ISM)
+    --skip-unavailable-fragments     Skip unavailable fragments (DASH, hlsnative
+                                     and ISM)
     --abort-on-unavailable-fragment  Abort downloading when some fragment is not
                                      available
+    --keep-fragments                 Keep downloaded fragments on disk after
+                                     downloading is finished; fragments are
+                                     erased by default
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -205,21 +220,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --id                             Use only video ID in file name
     -o, --output TEMPLATE            Output filename template, see the "OUTPUT
                                      TEMPLATE" for all the info
-    --autonumber-size NUMBER         Specify the number of digits in
-                                     %(autonumber)s when it is present in output
-                                     filename template or --auto-number option
-                                     is given (default is 5)
     --autonumber-start NUMBER        Specify the start value for %(autonumber)s
                                      (default is 1)
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
-    -A, --auto-number                [deprecated; use -o
-                                     "%(autonumber)s-%(title)s.%(ext)s" ] Number
-                                     downloaded files starting from 00000
-    -t, --title                      [deprecated] Use title in file name
-                                     (default)
-    -l, --literal                    [deprecated] Alias of --title
     -w, --no-overwrites              Do not overwrite files
     -c, --continue                   Force resume of partially downloaded files.
                                      By default, youtube-dl will resume
@@ -272,8 +277,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --get-filename                   Simulate, quiet but print output filename
     --get-format                     Simulate, quiet but print output format
     -j, --dump-json                  Simulate, quiet but print JSON information.
-                                     See --output for a description of available
-                                     keys.
+                                     See the "OUTPUT TEMPLATE" for a description
+                                     of available keys.
     -J, --dump-single-json           Simulate, quiet but print JSON information
                                      for each command-line argument. If the URL
                                      refers to a playlist, dump the whole
@@ -373,8 +378,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      (requires ffmpeg or avconv and ffprobe or
                                      avprobe)
     --audio-format FORMAT            Specify audio format: "best", "aac",
-                                     "vorbis", "mp3", "m4a", "opus", or "wav";
-                                     "best" by default; No effect without -x
+                                     "flac", "mp3", "m4a", "opus", "vorbis", or
+                                     "wav"; "best" by default; No effect without
+                                     -x
     --audio-quality QUALITY          Specify ffmpeg/avconv audio quality, insert
                                      a value between 0 (better) and 9 (worse)
                                      for VBR or a specific bitrate like 128K
@@ -394,12 +400,14 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --add-metadata                   Write metadata to the video file
     --metadata-from-title FORMAT     Parse additional metadata like song title /
                                      artist from the video title. The format
-                                     syntax is the same as --output, the parsed
-                                     parameters replace existing values.
-                                     Additional templates: %(album)s,
-                                     %(artist)s. Example: --metadata-from-title
-                                     "%(artist)s - %(title)s" matches a title
-                                     like "Coldplay - Paradise"
+                                     syntax is the same as --output. Regular
+                                     expression with named capture groups may
+                                     also be used. The parsed parameters replace
+                                     existing values. Example: --metadata-from-
+                                     title "%(artist)s - %(title)s" matches a
+                                     title like "Coldplay - Paradise". Example
+                                     (regex): --metadata-from-title
+                                     "(?P<artist>.+?) - (?P<title>.+)"
     --xattrs                         Write metadata to the video file's xattrs
                                      (using dublin core and xdg standards)
     --fixup POLICY                   Automatically correct known faults of the
@@ -466,7 +474,10 @@ machine twitch login my_twitch_account_name password my_twitch_password
 ```
 To activate authentication with the `.netrc` file you should pass `--netrc` to youtube-dl or place it in the [configuration file](#configuration).
 
-On Windows you may also need to setup the `%HOME%` environment variable manually.
+On Windows you may also need to setup the `%HOME%` environment variable manually. For example:
+```
+set HOME=%USERPROFILE%
+```
 
 # OUTPUT TEMPLATE
 
@@ -474,86 +485,90 @@ The `-o` option allows users to indicate a template for the output file names.
 
 **tl;dr:** [navigate me to examples](#output-template-examples).
 
-The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a lowercase S. Allowed names are:
+The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences may be formatted according to [python string formatting operations](https://docs.python.org/2/library/stdtypes.html#string-formatting). For example, `%(NAME)s` or `%(NAME)05d`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a formatting operations. Allowed names along with sequence type are:
 
- - `id`: Video identifier
- - `title`: Video title
- - `url`: Video URL
- - `ext`: Video filename extension
- - `alt_title`: A secondary title of the video
- - `display_id`: An alternative identifier for the video
- - `uploader`: Full name of the video uploader
- - `license`: License name the video is licensed under
- - `creator`: The creator of the video
- - `release_date`: The date (YYYYMMDD) when the video was released
- - `timestamp`: UNIX timestamp of the moment the video became available
- - `upload_date`: Video upload date (YYYYMMDD)
- - `uploader_id`: Nickname or id of the video uploader
- - `location`: Physical location where the video was filmed
- - `duration`: Length of the video in seconds
- - `view_count`: How many users have watched the video on the platform
- - `like_count`: Number of positive ratings of the video
- - `dislike_count`: Number of negative ratings of the video
- - `repost_count`: Number of reposts of the video
- - `average_rating`: Average rating give by users, the scale used depends on the webpage
- - `comment_count`: Number of comments on the video
- - `age_limit`: Age restriction for the video (years)
- - `format`: A human-readable description of the format 
- - `format_id`: Format code specified by `--format`
- - `format_note`: Additional info about the format
- - `width`: Width of the video
- - `height`: Height of the video
- - `resolution`: Textual description of width and height
- - `tbr`: Average bitrate of audio and video in KBit/s
- - `abr`: Average audio bitrate in KBit/s
- - `acodec`: Name of the audio codec in use
- - `asr`: Audio sampling rate in Hertz
- - `vbr`: Average video bitrate in KBit/s
- - `fps`: Frame rate
- - `vcodec`: Name of the video codec in use
- - `container`: Name of the container format
- - `filesize`: The number of bytes, if known in advance
- - `filesize_approx`: An estimate for the number of bytes
- - `protocol`: The protocol that will be used for the actual download
- - `extractor`: Name of the extractor
- - `extractor_key`: Key name of the extractor
- - `epoch`: Unix epoch when creating the file
- - `autonumber`: Five-digit number that will be increased with each download, starting at zero
- - `playlist`: Name or id of the playlist that contains the video
- - `playlist_index`: Index of the video in the playlist padded with leading zeros according to the total length of the playlist
- - `playlist_id`: Playlist identifier
- - `playlist_title`: Playlist title
-
+ - `id` (string): Video identifier
+ - `title` (string): Video title
+ - `url` (string): Video URL
+ - `ext` (string): Video filename extension
+ - `alt_title` (string): A secondary title of the video
+ - `display_id` (string): An alternative identifier for the video
+ - `uploader` (string): Full name of the video uploader
+ - `license` (string): License name the video is licensed under
+ - `creator` (string): The creator of the video
+ - `release_date` (string): The date (YYYYMMDD) when the video was released
+ - `timestamp` (numeric): UNIX timestamp of the moment the video became available
+ - `upload_date` (string): Video upload date (YYYYMMDD)
+ - `uploader_id` (string): Nickname or id of the video uploader
+ - `location` (string): Physical location where the video was filmed
+ - `duration` (numeric): Length of the video in seconds
+ - `view_count` (numeric): How many users have watched the video on the platform
+ - `like_count` (numeric): Number of positive ratings of the video
+ - `dislike_count` (numeric): Number of negative ratings of the video
+ - `repost_count` (numeric): Number of reposts of the video
+ - `average_rating` (numeric): Average rating give by users, the scale used depends on the webpage
+ - `comment_count` (numeric): Number of comments on the video
+ - `age_limit` (numeric): Age restriction for the video (years)
+ - `format` (string): A human-readable description of the format 
+ - `format_id` (string): Format code specified by `--format`
+ - `format_note` (string): Additional info about the format
+ - `width` (numeric): Width of the video
+ - `height` (numeric): Height of the video
+ - `resolution` (string): Textual description of width and height
+ - `tbr` (numeric): Average bitrate of audio and video in KBit/s
+ - `abr` (numeric): Average audio bitrate in KBit/s
+ - `acodec` (string): Name of the audio codec in use
+ - `asr` (numeric): Audio sampling rate in Hertz
+ - `vbr` (numeric): Average video bitrate in KBit/s
+ - `fps` (numeric): Frame rate
+ - `vcodec` (string): Name of the video codec in use
+ - `container` (string): Name of the container format
+ - `filesize` (numeric): The number of bytes, if known in advance
+ - `filesize_approx` (numeric): An estimate for the number of bytes
+ - `protocol` (string): The protocol that will be used for the actual download
+ - `extractor` (string): Name of the extractor
+ - `extractor_key` (string): Key name of the extractor
+ - `epoch` (numeric): Unix epoch when creating the file
+ - `autonumber` (numeric): Five-digit number that will be increased with each download, starting at zero
+ - `playlist` (string): Name or id of the playlist that contains the video
+ - `playlist_index` (numeric): Index of the video in the playlist padded with leading zeros according to the total length of the playlist
+ - `playlist_id` (string): Playlist identifier
+ - `playlist_title` (string): Playlist title
 
 Available for the video that belongs to some logical chapter or section:
- - `chapter`: Name or title of the chapter the video belongs to
- - `chapter_number`: Number of the chapter the video belongs to
- - `chapter_id`: Id of the chapter the video belongs to
+
+ - `chapter` (string): Name or title of the chapter the video belongs to
+ - `chapter_number` (numeric): Number of the chapter the video belongs to
+ - `chapter_id` (string): Id of the chapter the video belongs to
 
 Available for the video that is an episode of some series or programme:
- - `series`: Title of the series or programme the video episode belongs to
- - `season`: Title of the season the video episode belongs to
- - `season_number`: Number of the season the video episode belongs to
- - `season_id`: Id of the season the video episode belongs to
- - `episode`: Title of the video episode
- - `episode_number`: Number of the video episode within a season
- - `episode_id`: Id of the video episode
+
+ - `series` (string): Title of the series or programme the video episode belongs to
+ - `season` (string): Title of the season the video episode belongs to
+ - `season_number` (numeric): Number of the season the video episode belongs to
+ - `season_id` (string): Id of the season the video episode belongs to
+ - `episode` (string): Title of the video episode
+ - `episode_number` (numeric): Number of the video episode within a season
+ - `episode_id` (string): Id of the video episode
 
 Available for the media that is a track or a part of a music album:
- - `track`: Title of the track
- - `track_number`: Number of the track within an album or a disc
- - `track_id`: Id of the track
- - `artist`: Artist(s) of the track
- - `genre`: Genre(s) of the track
- - `album`: Title of the album the track belongs to
- - `album_type`: Type of the album
- - `album_artist`: List of all artists appeared on the album
- - `disc_number`: Number of the disc or other physical medium the track belongs to
- - `release_year`: Year (YYYY) when the album was released
+
+ - `track` (string): Title of the track
+ - `track_number` (numeric): Number of the track within an album or a disc
+ - `track_id` (string): Id of the track
+ - `artist` (string): Artist(s) of the track
+ - `genre` (string): Genre(s) of the track
+ - `album` (string): Title of the album the track belongs to
+ - `album_type` (string): Type of the album
+ - `album_artist` (string): List of all artists appeared on the album
+ - `disc_number` (numeric): Number of the disc or other physical medium the track belongs to
+ - `release_year` (numeric): Year (YYYY) when the album was released
 
 Each aforementioned sequence when referenced in an output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by a particular extractor. Such sequences will be replaced with `NA`.
 
 For example for `-o %(title)s-%(id)s.%(ext)s` and an mp4 video with title `youtube-dl test video` and id `BaW_jenozKcj`, this will result in a `youtube-dl test video-BaW_jenozKcj.mp4` file created in the current directory.
+
+For numeric sequences you can use numeric related formatting, for example, `%(view_count)05d` will result in a string with view count padded with zeros up to 5 characters, like in `00042`.
 
 Output templates can also contain arbitrary hierarchical path, e.g. `-o '%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'` which will result in downloading each video in a directory corresponding to this path template. Any missing directory will be automatically created for you.
 
@@ -569,7 +584,7 @@ If you are using an output template inside a Windows batch file then you must es
 
 #### Output template examples
 
-Note on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single.
 
 ```bash
 $ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc
@@ -639,7 +654,7 @@ Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begin
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
  - `container`: Name of the container format
- - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `m3u8`, or `m3u8_native`)
+ - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `http_dash_segments`, `m3u8`, or `m3u8_native`)
  - `format_id`: A short description of the format
 
 Note that none of the aforementioned meta fields are guaranteed to be present since this solely depends on the metadata obtained by particular extractor, i.e. the metadata offered by the video hoster.
@@ -656,7 +671,7 @@ If you want to preserve the old format selection behavior (prior to youtube-dl 2
 
 #### Format selection examples
 
-Note on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single.
 
 ```bash
 # Download best mp4 format available or any other best if no mp4 available

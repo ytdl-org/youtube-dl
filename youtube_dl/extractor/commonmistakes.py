@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import sys
+
 from .common import InfoExtractor
 from ..utils import ExtractorError
 
@@ -7,7 +9,7 @@ from ..utils import ExtractorError
 class CommonMistakesIE(InfoExtractor):
     IE_DESC = False  # Do not list
     _VALID_URL = r'''(?x)
-        (?:url|URL)
+        (?:url|URL)$
     '''
 
     _TESTS = [{
@@ -33,7 +35,9 @@ class UnicodeBOMIE(InfoExtractor):
         IE_DESC = False
         _VALID_URL = r'(?P<bom>\ufeff)(?P<id>.*)$'
 
-        _TESTS = [{
+        # Disable test for python 3.2 since BOM is broken in re in this version
+        # (see https://github.com/rg3/youtube-dl/issues/9751)
+        _TESTS = [] if (3, 0) < sys.version_info <= (3, 3) else [{
             'url': '\ufeffhttp://www.youtube.com/watch?v=BaW_jenozKc',
             'only_matching': True,
         }]

@@ -87,8 +87,8 @@ class InfoQIE(BokeCCBaseIE):
 
     def _extract_http_audio(self, webpage, video_id):
         fields = self._hidden_inputs(webpage)
-        http_audio_url = fields['filename']
-        if http_audio_url is None:
+        http_audio_url = fields.get('filename')
+        if not http_audio_url:
             return []
 
         cookies_header = {'Cookie': self._extract_cookies(webpage)}

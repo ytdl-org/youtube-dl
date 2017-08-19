@@ -13,21 +13,20 @@ class RMCDecouverteIE(InfoExtractor):
     _VALID_URL = r'https?://rmcdecouverte\.bfmtv\.com/mediaplayer-replay.*?\bid=(?P<id>\d+)'
 
     _TEST = {
-        'url': 'http://rmcdecouverte.bfmtv.com/mediaplayer-replay/?id=1430&title=LES%20HEROS%20DU%2088e%20ETAGE',
+        'url': 'http://rmcdecouverte.bfmtv.com/mediaplayer-replay/?id=13502&title=AQUAMEN:LES%20ROIS%20DES%20AQUARIUMS%20:UN%20DELICIEUX%20PROJET',
         'info_dict': {
-            'id': '5111223049001',
+            'id': '5419055995001',
             'ext': 'mp4',
-            'title': ': LES HEROS DU 88e ETAGE',
-            'description': 'Découvrez comment la bravoure de deux hommes dans la Tour Nord du World Trade Center a sauvé  la vie d\'innombrables personnes le 11 septembre 2001.',
+            'title': 'UN DELICIEUX PROJET',
+            'description': 'md5:63610df7c8b1fc1698acd4d0d90ba8b5',
             'uploader_id': '1969646226001',
-            'upload_date': '20160904',
-            'timestamp': 1472951103,
+            'upload_date': '20170502',
+            'timestamp': 1493745308,
         },
         'params': {
-            # rtmp download
             'skip_download': True,
         },
-        'skip': 'Only works from France',
+        'skip': 'only available for a week',
     }
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1969646226001/default_default/index.html?videoId=%s'
 
@@ -35,5 +34,12 @@ class RMCDecouverteIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         brightcove_legacy_url = BrightcoveLegacyIE._extract_brightcove_url(webpage)
-        brightcove_id = compat_parse_qs(compat_urlparse.urlparse(brightcove_legacy_url).query)['@videoPlayer'][0]
-        return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)
+        if brightcove_legacy_url:
+            brightcove_id = compat_parse_qs(compat_urlparse.urlparse(
+                brightcove_legacy_url).query)['@videoPlayer'][0]
+        else:
+            brightcove_id = self._search_regex(
+                r'data-video-id=["\'](\d+)', webpage, 'brightcove id')
+        return self.url_result(
+            self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew',
+            brightcove_id)

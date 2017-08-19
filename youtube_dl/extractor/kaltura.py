@@ -23,11 +23,11 @@ class KalturaIE(InfoExtractor):
                 (?:
                     kaltura:(?P<partner_id>\d+):(?P<id>[0-9a-z_]+)|
                     https?://
-                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/
+                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com(?::\d+)?/
                         (?:
                             (?:
                                 # flash player
-                                index\.php/kwidget|
+                                index\.php/(?:kwidget|extwidget/preview)|
                                 # html5 player
                                 html5/html5lib/[^/]+/mwEmbedFrame\.php
                             )
@@ -91,35 +91,54 @@ class KalturaIE(InfoExtractor):
                     }],
                 },
             },
+            'skip': 'Gone. Maybe https://www.safaribooksonline.com/library/tutorials/introduction-to-python-anon/3469/',
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'https://www.kaltura.com/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://www.kaltura.com:443/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
+            'only_matching': True,
         }
     ]
 
     @staticmethod
     def _extract_url(webpage):
+        # Embed codes: https://knowledge.kaltura.com/embedding-kaltura-media-players-your-site
         mobj = (
             re.search(
                 r"""(?xs)
                     kWidget\.(?:thumb)?[Ee]mbed\(
                     \{.*?
-                        (?P<q1>['\"])wid(?P=q1)\s*:\s*
-                        (?P<q2>['\"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
-                        (?P<q3>['\"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['\"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
+                        (?P<q1>['"])wid(?P=q1)\s*:\s*
+                        (?P<q2>['"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
+                        (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
+                        (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
                 """, webpage) or
             re.search(
                 r'''(?xs)
-                    (?P<q1>["\'])
-                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com/(?:(?!(?P=q1)).)*(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
+                    (?P<q1>["'])
+                        (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
                         entry_?[Ii]d|
-                        (?P<q2>["\'])entry_?[Ii]d(?P=q2)
+                        (?P<q2>["'])entry_?[Ii]d(?P=q2)
                     )\s*:\s*
-                    (?P<q3>["\'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
-                ''', webpage))
+                    (?P<q3>["'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
+                ''', webpage) or
+            re.search(
+                r'''(?xs)
+                    <iframe[^>]+src=(?P<q1>["'])
+                      (?:https?:)?//(?:www\.)?kaltura\.com/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)
+                      (?:(?!(?P=q1)).)*
+                      [?&]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
+                    (?P=q1)
+                ''', webpage)
+        )
         if mobj:
             embed_info = mobj.groupdict()
             url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
@@ -209,6 +228,8 @@ class KalturaIE(InfoExtractor):
                 partner_id = params['wid'][0][1:]
             elif 'p' in params:
                 partner_id = params['p'][0]
+            elif 'partner_id' in params:
+                partner_id = params['partner_id'][0]
             else:
                 raise ExtractorError('Invalid URL', expected=True)
             if 'entry_id' in params:
@@ -303,7 +324,7 @@ class KalturaIE(InfoExtractor):
         if captions:
             for caption in captions.get('objects', []):
                 # Continue if caption is not ready
-                if f.get('status') != 2:
+                if caption.get('status') != 2:
                     continue
                 if not caption.get('id'):
                     continue

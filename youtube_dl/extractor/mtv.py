@@ -50,8 +50,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         thumb_node = itemdoc.find(search_path)
         if thumb_node is None:
             return None
-        else:
-            return thumb_node.attrib['url']
+        return thumb_node.get('url') or thumb_node.text or None
 
     def _extract_mobile_video_formats(self, mtvn_id):
         webpage_url = self._MOBILE_TEMPLATE % mtvn_id
@@ -83,7 +82,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
                 hls_url = rendition.find('./src').text
                 formats.extend(self._extract_m3u8_formats(
                     hls_url, video_id, ext='mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls'))
+                    m3u8_id='hls', fatal=False))
             else:
                 # fms
                 try:
@@ -106,7 +105,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
                     }])
                 except (KeyError, TypeError):
                     raise ExtractorError('Invalid rendition field.')
-        self._sort_formats(formats)
+        if formats:
+            self._sort_formats(formats)
         return formats
 
     def _extract_subtitles(self, mdoc, mtvn_id):
@@ -133,8 +133,11 @@ class MTVServicesInfoExtractor(InfoExtractor):
             mediagen_url += 'acceptMethods='
             mediagen_url += 'hls' if use_hls else 'fms'
 
-        mediagen_doc = self._download_xml(mediagen_url, video_id,
-                                          'Downloading video urls')
+        mediagen_doc = self._download_xml(
+            mediagen_url, video_id, 'Downloading video urls', fatal=False)
+
+        if mediagen_doc is False:
+            return None
 
         item = mediagen_doc.find('./video/item')
         if item is not None and item.get('type') == 'text':
@@ -174,6 +177,13 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         formats = self._extract_video_formats(mediagen_doc, mtvn_id, video_id)
 
+        # Some parts of complete video may be missing (e.g. missing Act 3 in
+        # http://www.southpark.de/alle-episoden/s14e01-sexual-healing)
+        if not formats:
+            return None
+
+        self._sort_formats(formats)
+
         return {
             'title': title,
             'formats': formats,
@@ -205,9 +215,14 @@ class MTVServicesInfoExtractor(InfoExtractor):
         title = xpath_text(idoc, './channel/title')
         description = xpath_text(idoc, './channel/description')
 
+        entries = []
+        for item in idoc.findall('.//item'):
+            info = self._get_video_info(item, use_hls)
+            if info:
+                entries.append(info)
+
         return self.playlist_result(
-            [self._get_video_info(item, use_hls) for item in idoc.findall('.//item')],
-            playlist_title=title, playlist_description=description)
+            entries, playlist_title=title, playlist_description=description)
 
     def _extract_triforce_mgid(self, webpage, data_zone=None, video_id=None):
         triforce_feed = self._parse_json(self._search_regex(

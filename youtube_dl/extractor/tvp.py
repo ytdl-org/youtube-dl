@@ -150,8 +150,7 @@ class TVPEmbedIE(InfoExtractor):
                 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self._sort_formats(m3u8_formats)
             m3u8_formats = list(filter(
-                lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-                m3u8_formats))
+                lambda f: f.get('vcodec') != 'none', m3u8_formats))
             formats.extend(m3u8_formats)
             for i, m3u8_format in enumerate(m3u8_formats, 2):
                 http_url = '%s-%d.mp4' % (video_url_base, i)

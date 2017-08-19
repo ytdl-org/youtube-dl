@@ -2322,6 +2322,19 @@ try:
 except ImportError:  # Python 2
     from HTMLParser import HTMLParser as compat_HTMLParser
 
+try:  # Python 2
+    from HTMLParser import HTMLParseError as compat_HTMLParseError
+except ImportError:  # Python <3.4
+    try:
+        from html.parser import HTMLParseError as compat_HTMLParseError
+    except ImportError:  # Python >3.4
+
+        # HTMLParseError has been deprecated in Python 3.3 and removed in
+        # Python 3.5. Introducing dummy exception for Python >3.5 for compatible
+        # and uniform cross-version exceptiong handling
+        class compat_HTMLParseError(Exception):
+            pass
+
 try:
     from subprocess import DEVNULL
     compat_subprocess_get_DEVNULL = lambda: DEVNULL
@@ -2604,14 +2617,22 @@ except ImportError:  # Python 2
                 parsed_result[name] = [value]
         return parsed_result
 
-try:
-    from shlex import quote as compat_shlex_quote
-except ImportError:  # Python < 3.3
+
+compat_os_name = os._name if os.name == 'java' else os.name
+
+
+if compat_os_name == 'nt':
     def compat_shlex_quote(s):
-        if re.match(r'^[-_\w./]+$', s):
-            return s
-        else:
-            return "'" + s.replace("'", "'\"'\"'") + "'"
+        return s if re.match(r'^[-_\w./]+$', s) else '"%s"' % s.replace('"', '\\"')
+else:
+    try:
+        from shlex import quote as compat_shlex_quote
+    except ImportError:  # Python < 3.3
+        def compat_shlex_quote(s):
+            if re.match(r'^[-_\w./]+$', s):
+                return s
+            else:
+                return "'" + s.replace("'", "'\"'\"'") + "'"
 
 
 try:
@@ -2634,9 +2655,6 @@ def compat_ord(c):
         return c
     else:
         return ord(c)
-
-
-compat_os_name = os._name if os.name == 'java' else os.name
 
 
 if sys.version_info >= (3, 0):
@@ -2692,7 +2710,7 @@ else:
                 userhome = pwent.pw_dir
             userhome = userhome.rstrip('/')
             return (userhome + path[i:]) or '/'
-    elif compat_os_name == 'nt' or compat_os_name == 'ce':
+    elif compat_os_name in ('nt', 'ce'):
         def compat_expanduser(path):
             """Expand ~ and ~user constructs.
 
@@ -2758,6 +2776,12 @@ except TypeError:
         return dict((bytes(k), v) for k, v in kwargs.items())
 else:
     compat_kwargs = lambda kwargs: kwargs
+
+
+try:
+    compat_numeric_types = (int, float, long, complex)
+except NameError:  # Python 3
+    compat_numeric_types = (int, float, complex)
 
 
 if sys.version_info < (2, 7):
@@ -2876,6 +2900,7 @@ else:
 
 
 __all__ = [
+    'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
@@ -2895,6 +2920,7 @@ __all__ = [
     'compat_input',
     'compat_itertools_count',
     'compat_kwargs',
+    'compat_numeric_types',
     'compat_ord',
     'compat_os_name',
     'compat_parse_qs',

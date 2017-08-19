@@ -6,14 +6,18 @@ import itertools
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     dict_get,
     ExtractorError,
     float_or_none,
+    get_element_by_class,
     int_or_none,
     parse_duration,
     parse_iso8601,
     try_get,
     unescapeHTML,
+    urlencode_postdata,
+    urljoin,
 )
 from ..compat import (
     compat_etree_fromstring,
@@ -32,11 +36,14 @@ class BBCCoUkIE(InfoExtractor):
                         (?:
                             programmes/(?!articles/)|
                             iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
-                            music/clips[/#]|
+                            music/(?:clips|audiovideo/popular)[/#]|
                             radio/player/
                         )
                         (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
                     ''' % _ID_REGEX
+
+    _LOGIN_URL = 'https://account.bbc.com/signin'
+    _NETRC_MACHINE = 'bbc'
 
     _MEDIASELECTOR_URLS = [
         # Provides HQ HLS streams with even better quality that pc mediaset but fails
@@ -222,8 +229,45 @@ class BBCCoUkIE(InfoExtractor):
         }, {
             'url': 'http://www.bbc.co.uk/radio/player/p03cchwf',
             'only_matching': True,
-        }
-    ]
+        }, {
+            'url': 'https://www.bbc.co.uk/music/audiovideo/popular#p055bc55',
+            'only_matching': True,
+        }]
+
+    _USP_RE = r'/([^/]+?)\.ism(?:\.hlsv2\.ism)?/[^/]+\.m3u8'
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading signin page')
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'username': username,
+            'password': password,
+        })
+
+        post_url = urljoin(self._LOGIN_URL, self._search_regex(
+            r'<form[^>]+action=(["\'])(?P<url>.+?)\1', login_page,
+            'post url', default=self._LOGIN_URL, group='url'))
+
+        response, urlh = self._download_webpage_handle(
+            post_url, None, 'Logging in', data=urlencode_postdata(login_form),
+            headers={'Referer': self._LOGIN_URL})
+
+        if self._LOGIN_URL in urlh.geturl():
+            error = clean_html(get_element_by_class('form-message', response))
+            if error:
+                raise ExtractorError(
+                    'Unable to login: %s' % error, expected=True)
+            raise ExtractorError('Unable to log in')
+
+    def _real_initialize(self):
+        self._login()
 
     class MediaSelectionError(Exception):
         def __init__(self, id):
@@ -336,6 +380,15 @@ class BBCCoUkIE(InfoExtractor):
                         formats.extend(self._extract_m3u8_formats(
                             href, programme_id, ext='mp4', entry_protocol='m3u8_native',
                             m3u8_id=format_id, fatal=False))
+                        if re.search(self._USP_RE, href):
+                            usp_formats = self._extract_m3u8_formats(
+                                re.sub(self._USP_RE, r'/\1.ism/\1.m3u8', href),
+                                programme_id, ext='mp4', entry_protocol='m3u8_native',
+                                m3u8_id=format_id, fatal=False)
+                            for f in usp_formats:
+                                if f.get('height') and f['height'] > 720:
+                                    continue
+                                formats.append(f)
                     elif transfer_format == 'hds':
                         formats.extend(self._extract_f4m_formats(
                             href, programme_id, f4m_id=format_id, fatal=False))
@@ -350,7 +403,7 @@ class BBCCoUkIE(InfoExtractor):
                             fmt.update({
                                 'width': width,
                                 'height': height,
-                                'vbr': bitrate,
+                                'tbr': bitrate,
                                 'vcodec': encoding,
                             })
                         else:
@@ -359,7 +412,7 @@ class BBCCoUkIE(InfoExtractor):
                                 'acodec': encoding,
                                 'vcodec': 'none',
                             })
-                        if protocol == 'http':
+                        if protocol in ('http', 'https'):
                             # Direct link
                             fmt.update({
                                 'url': href,
@@ -378,6 +431,8 @@ class BBCCoUkIE(InfoExtractor):
                                 'rtmp_live': False,
                                 'ext': 'flv',
                             })
+                        else:
+                            continue
                         formats.append(fmt)
             elif kind == 'captions':
                 subtitles = self.extract_subtitles(media, programme_id)
@@ -396,7 +451,7 @@ class BBCCoUkIE(InfoExtractor):
                 description = smp_config['summary']
                 for item in smp_config['items']:
                     kind = item['kind']
-                    if kind != 'programme' and kind != 'radioProgramme':
+                    if kind not in ('programme', 'radioProgramme'):
                         continue
                     programme_id = item.get('vpid')
                     duration = int_or_none(item.get('duration'))
@@ -437,7 +492,7 @@ class BBCCoUkIE(InfoExtractor):
 
         for item in self._extract_items(playlist):
             kind = item.get('kind')
-            if kind != 'programme' and kind != 'radioProgramme':
+            if kind not in ('programme', 'radioProgramme'):
                 continue
             title = playlist.find('./{%s}title' % self._EMP_PLAYLIST_NS).text
             description_el = playlist.find('./{%s}summary' % self._EMP_PLAYLIST_NS)
@@ -469,6 +524,12 @@ class BBCCoUkIE(InfoExtractor):
         group_id = self._match_id(url)
 
         webpage = self._download_webpage(url, group_id, 'Downloading video page')
+
+        error = self._search_regex(
+            r'<div\b[^>]+\bclass=["\']smp__message delta["\'][^>]*>([^<]+)<',
+            webpage, 'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
 
         programme_id = None
         duration = None

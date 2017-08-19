@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import random
 import re
 
 from .common import InfoExtractor
@@ -15,24 +14,7 @@ from ..utils import (
 
 
 class NRKBaseIE(InfoExtractor):
-    _faked_ip = None
-
-    def _download_webpage_handle(self, *args, **kwargs):
-        # NRK checks X-Forwarded-For HTTP header in order to figure out the
-        # origin of the client behind proxy. This allows to bypass geo
-        # restriction by faking this header's value to some Norway IP.
-        # We will do so once we encounter any geo restriction error.
-        if self._faked_ip:
-            # NB: str is intentional
-            kwargs.setdefault(str('headers'), {})['X-Forwarded-For'] = self._faked_ip
-        return super(NRKBaseIE, self)._download_webpage_handle(*args, **kwargs)
-
-    def _fake_ip(self):
-        # Use fake IP from 37.191.128.0/17 in order to workaround geo
-        # restriction
-        def octet(lb=0, ub=255):
-            return random.randint(lb, ub)
-        self._faked_ip = '37.191.%d.%d' % (octet(128), octet())
+    _GEO_COUNTRIES = ['NO']
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -43,8 +25,6 @@ class NRKBaseIE(InfoExtractor):
 
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
         video_id = data.get('id') or video_id
-
-        http_headers = {'X-Forwarded-For': self._faked_ip} if self._faked_ip else {}
 
         entries = []
 
@@ -90,7 +70,6 @@ class NRKBaseIE(InfoExtractor):
                     'duration': duration,
                     'subtitles': subtitles,
                     'formats': formats,
-                    'http_headers': http_headers,
                 })
 
         if not entries:
@@ -107,19 +86,17 @@ class NRKBaseIE(InfoExtractor):
                 }]
 
         if not entries:
-            message_type = data.get('messageType', '')
-            # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
-            if 'IsGeoBlocked' in message_type and not self._faked_ip:
-                self.report_warning(
-                    'Video is geo restricted, trying to fake IP')
-                self._fake_ip()
-                return self._real_extract(url)
-
             MESSAGES = {
                 'ProgramRightsAreNotReady': 'Du kan dessverre ikke se eller høre programmet',
                 'ProgramRightsHasExpired': 'Programmet har gått ut',
                 'ProgramIsGeoBlocked': 'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
             }
+            message_type = data.get('messageType', '')
+            # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
+            if 'IsGeoBlocked' in message_type:
+                self.raise_geo_restricted(
+                    msg=MESSAGES.get('ProgramIsGeoBlocked'),
+                    countries=self._GEO_COUNTRIES)
             raise ExtractorError(
                 '%s said: %s' % (self.IE_NAME, MESSAGES.get(
                     message_type, message_type)),
@@ -171,12 +148,33 @@ class NRKBaseIE(InfoExtractor):
 
         vcodec = 'none' if data.get('mediaType') == 'Audio' else None
 
-        # TODO: extract chapters when https://github.com/rg3/youtube-dl/pull/9409 is merged
-
         for entry in entries:
             entry.update(common_info)
             for f in entry['formats']:
                 f['vcodec'] = vcodec
+
+        points = data.get('shortIndexPoints')
+        if isinstance(points, list):
+            chapters = []
+            for next_num, point in enumerate(points, start=1):
+                if not isinstance(point, dict):
+                    continue
+                start_time = parse_duration(point.get('startPoint'))
+                if start_time is None:
+                    continue
+                end_time = parse_duration(
+                    data.get('duration')
+                    if next_num == len(points)
+                    else points[next_num].get('startPoint'))
+                if end_time is None:
+                    continue
+                chapters.append({
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'title': point.get('title'),
+                })
+            if chapters and len(entries) == 1:
+                entries[0]['chapters'] = chapters
 
         return self.playlist_result(entries, video_id, title, description)
 
@@ -188,12 +186,12 @@ class NRKIE(NRKBaseIE):
                             https?://
                                 (?:
                                     (?:www\.)?nrk\.no/video/PS\*|
-                                    v8-psapi\.nrk\.no/mediaelement/
+                                    v8[-.]psapi\.nrk\.no/mediaelement/
                                 )
                             )
-                            (?P<id>[^/?#&]+)
+                            (?P<id>[^?#&]+)
                         '''
-    _API_HOST = 'v8.psapi.nrk.no'
+    _API_HOST = 'v8-psapi.nrk.no'
     _TESTS = [{
         # video
         'url': 'http://www.nrk.no/video/PS*150533',
@@ -220,6 +218,9 @@ class NRKIE(NRKBaseIE):
         'url': 'nrk:ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
         'only_matching': True,
     }, {
+        'url': 'nrk:clip/7707d5a3-ebe7-434a-87d5-a3ebe7a34a70',
+        'only_matching': True,
+    }, {
         'url': 'https://v8-psapi.nrk.no/mediaelement/ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
         'only_matching': True,
     }]
@@ -236,7 +237,7 @@ class NRKTVIE(NRKBaseIE):
                             (?:/\d{2}-\d{2}-\d{4})?
                             (?:\#del=(?P<part_id>\d+))?
                     ''' % _EPISODE_RE
-    _API_HOST = 'psapi-we.nrk.no'
+    _API_HOST = 'psapi-ne.nrk.no'
 
     _TESTS = [{
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',

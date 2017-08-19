@@ -9,12 +9,13 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    ExtractorError,
     find_xpath_attr,
-    unified_strdate,
     get_element_by_attribute,
     int_or_none,
     NO_DEFAULT,
     qualities,
+    unified_strdate,
 )
 
 # There are different sources of video in arte.tv, the extraction process
@@ -79,6 +80,13 @@ class ArteTVBaseIE(InfoExtractor):
         info = self._download_json(json_url, video_id)
         player_info = info['videoJsonPlayer']
 
+        vsr = player_info['VSR']
+
+        if not vsr and not player_info.get('VRU'):
+            raise ExtractorError(
+                'Video %s is not available' % player_info.get('VID') or video_id,
+                expected=True)
+
         upload_date_str = player_info.get('shootingDate')
         if not upload_date_str:
             upload_date_str = (player_info.get('VRA') or player_info.get('VDA') or '').split(' ')[0]
@@ -107,7 +115,7 @@ class ArteTVBaseIE(InfoExtractor):
         langcode = LANGS.get(lang, lang)
 
         formats = []
-        for format_id, format_dict in player_info['VSR'].items():
+        for format_id, format_dict in vsr.items():
             f = dict(format_dict)
             versionCode = f.get('versionCode')
             l = re.escape(langcode)
@@ -180,13 +188,16 @@ class ArteTVBaseIE(InfoExtractor):
 
 class ArteTVPlus7IE(ArteTVBaseIE):
     IE_NAME = 'arte.tv:+7'
-    _VALID_URL = r'https?://(?:(?:www|sites)\.)?arte\.tv/[^/]+/(?P<lang>fr|de|en|es)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:(?:www|sites)\.)?arte\.tv/(?:[^/]+/)?(?P<lang>fr|de|en|es)/(?:videos/)?(?:[^/]+/)*(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'http://www.arte.tv/guide/de/sendungen/XEN/xenius/?vid=055918-015_PLUS7-D',
         'only_matching': True,
     }, {
         'url': 'http://sites.arte.tv/karambolage/de/video/karambolage-22',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.arte.tv/de/videos/048696-000-A/der-kluge-bauch-unser-zweites-gehirn',
         'only_matching': True,
     }]
 

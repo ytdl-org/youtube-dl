@@ -65,7 +65,23 @@ defs = gettestcases()
 
 
 class TestDownload(unittest.TestCase):
+    # Parallel testing in nosetests. See
+    # http://nose.readthedocs.org/en/latest/doc_tests/test_multiprocess/multiprocess.html
+    _multiprocess_shared_ = True
+
     maxDiff = None
+
+    def __str__(self):
+        """Identify each test with the `add_ie` attribute, if available."""
+
+        def strclass(cls):
+            """From 2.7's unittest; 2.6 had _strclass so we can't import it."""
+            return '%s.%s' % (cls.__module__, cls.__name__)
+
+        add_ie = getattr(self, self._testMethodName).add_ie
+        return '%s (%s)%s:' % (self._testMethodName,
+                               strclass(self.__class__),
+                               ' [%s]' % add_ie if add_ie else '')
 
     def setUp(self):
         self.defs = defs
@@ -73,7 +89,7 @@ class TestDownload(unittest.TestCase):
 # Dynamically generate tests
 
 
-def generator(test_case):
+def generator(test_case, tname):
 
     def test_template(self):
         ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
@@ -102,6 +118,7 @@ def generator(test_case):
                 return
 
         params = get_params(test_case.get('params', {}))
+        params['outtmpl'] = tname + '_' + params['outtmpl']
         if is_playlist and 'playlist' not in test_case:
             params.setdefault('extract_flat', 'in_playlist')
             params.setdefault('skip_download', True)
@@ -134,7 +151,7 @@ def generator(test_case):
             try_num = 1
             while True:
                 try:
-                    # We're not using .download here sine that is just a shim
+                    # We're not using .download here since that is just a shim
                     # for outside error handling, and returns the exit code
                     # instead of the result dict.
                     res_dict = ydl.extract_info(
@@ -146,7 +163,7 @@ def generator(test_case):
                         raise
 
                     if try_num == RETRIES:
-                        report_warning('Failed due to network errors, skipping...')
+                        report_warning('%s failed due to network errors, skipping...' % tname)
                         return
 
                     print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))
@@ -182,7 +199,16 @@ def generator(test_case):
                 self.assertEqual(
                     test_case['playlist_duration_sum'], got_duration)
 
-            for tc in test_cases:
+            # Generalize both playlists and single videos to unified format for
+            # simplicity
+            if 'entries' not in res_dict:
+                res_dict['entries'] = [res_dict]
+
+            for tc_num, tc in enumerate(test_cases):
+                tc_res_dict = res_dict['entries'][tc_num]
+                # First, check test cases' data against extracted data alone
+                expect_info_dict(self, tc_res_dict, tc.get('info_dict', {}))
+                # Now, check downloaded file consistency
                 tc_filename = get_tc_filename(tc)
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
@@ -199,14 +225,15 @@ def generator(test_case):
                                 format_bytes(got_fsize)))
                     if 'md5' in tc:
                         md5_for_file = _file_md5(tc_filename)
-                        self.assertEqual(md5_for_file, tc['md5'])
+                        self.assertEqual(tc['md5'], md5_for_file)
+                # Finally, check test cases' data again but this time against
+                # extracted data from info JSON file written during processing
                 info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
                 self.assertTrue(
                     os.path.exists(info_json_fn),
                     'Missing info file %s' % info_json_fn)
                 with io.open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
-
                 expect_info_dict(self, info_dict, tc.get('info_dict', {}))
         finally:
             try_rm_tcs_files()
@@ -221,13 +248,15 @@ def generator(test_case):
 
 # And add them to TestDownload
 for n, test_case in enumerate(defs):
-    test_method = generator(test_case)
     tname = 'test_' + str(test_case['name'])
     i = 1
     while hasattr(TestDownload, tname):
         tname = 'test_%s_%d' % (test_case['name'], i)
         i += 1
+    test_method = generator(test_case, tname)
     test_method.__name__ = str(tname)
+    ie_list = test_case.get('add_ie')
+    test_method.add_ie = ie_list and ','.join(ie_list)
     setattr(TestDownload, test_method.__name__, test_method)
     del test_method
 

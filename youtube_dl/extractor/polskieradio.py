@@ -65,7 +65,7 @@ class PolskieRadioIE(InfoExtractor):
         webpage = self._download_webpage(url, playlist_id)
 
         content = self._search_regex(
-            r'(?s)<div[^>]+class="audio atarticle"[^>]*>(.+?)<script>',
+            r'(?s)<div[^>]+class="\s*this-article\s*"[^>]*>(.+?)<div[^>]+class="tags"[^>]*>',
             webpage, 'content')
 
         timestamp = unified_timestamp(self._html_search_regex(

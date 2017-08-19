@@ -1,17 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     determine_protocol,
+    try_get,
     unescapeHTML,
 )
 
 
 class DailyMailIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dailymail\.co\.uk/video/[^/]+/video-(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?dailymail\.co\.uk/(?:video/[^/]+/video-|embed/video/)(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://www.dailymail.co.uk/video/tvshowbiz/video-1295863/The-Mountain-appears-sparkling-water-ad-Heavy-Bubbles.html',
         'md5': 'f6129624562251f628296c3a9ffde124',
         'info_dict': {
@@ -20,7 +24,16 @@ class DailyMailIE(InfoExtractor):
             'title': 'The Mountain appears in sparkling water ad for \'Heavy Bubbles\'',
             'description': 'md5:a93d74b6da172dd5dc4d973e0b766a84',
         }
-    }
+    }, {
+        'url': 'http://www.dailymail.co.uk/embed/video/1295863.html',
+        'only_matching': True,
+    }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe\b[^>]+\bsrc=["\'](?P<url>(?:https?:)?//(?:www\.)?dailymail\.co\.uk/embed/video/\d+\.html)',
+            webpage)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -28,8 +41,14 @@ class DailyMailIE(InfoExtractor):
         video_data = self._parse_json(self._search_regex(
             r"data-opts='({.+?})'", webpage, 'video data'), video_id)
         title = unescapeHTML(video_data['title'])
-        video_sources = self._download_json(video_data.get(
-            'sources', {}).get('url') or 'http://www.dailymail.co.uk/api/player/%s/video-sources.json' % video_id, video_id)
+
+        sources_url = (try_get(
+            video_data,
+            (lambda x: x['plugins']['sources']['url'],
+             lambda x: x['sources']['url']), compat_str) or
+            'http://www.dailymail.co.uk/api/player/%s/video-sources.json' % video_id)
+
+        video_sources = self._download_json(sources_url, video_id)
 
         formats = []
         for rendition in video_sources['renditions']:

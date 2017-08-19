@@ -65,9 +65,9 @@ class JoveIE(InfoExtractor):
             webpage, 'description', fatal=False)
         publish_date = unified_strdate(self._html_search_meta(
             'citation_publication_date', webpage, 'publish date', fatal=False))
-        comment_count = self._html_search_regex(
+        comment_count = int(self._html_search_regex(
             r'<meta name="num_comments" content="(\d+) Comments?"',
-            webpage, 'comment count', fatal=False)
+            webpage, 'comment count', fatal=False))
 
         return {
             'id': video_id,

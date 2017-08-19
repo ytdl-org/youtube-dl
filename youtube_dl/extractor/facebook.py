@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -135,6 +136,46 @@ class FacebookIE(InfoExtractor):
             'uploader': 'CNN',
         },
     }, {
+        # bigPipe.onPageletArrive ... onPageletArrive pagelet_group_mall
+        'url': 'https://www.facebook.com/yaroslav.korpan/videos/1417995061575415/',
+        'info_dict': {
+            'id': '1417995061575415',
+            'ext': 'mp4',
+            'title': 'md5:a7b86ca673f51800cd54687b7f4012fe',
+            'timestamp': 1486648217,
+            'upload_date': '20170209',
+            'uploader': 'Yaroslav Korpan',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.facebook.com/LaGuiaDelVaron/posts/1072691702860471',
+        'info_dict': {
+            'id': '1072691702860471',
+            'ext': 'mp4',
+            'title': 'md5:ae2d22a93fbb12dad20dc393a869739d',
+            'timestamp': 1477305000,
+            'upload_date': '20161024',
+            'uploader': 'La Guía Del Varón',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.facebook.com/groups/1024490957622648/permalink/1396382447100162/',
+        'info_dict': {
+            'id': '1396382447100162',
+            'ext': 'mp4',
+            'title': 'md5:e2d2700afdf84e121f5d0f999bad13a3',
+            'timestamp': 1486035494,
+            'upload_date': '20170202',
+            'uploader': 'Elisabeth Ahtn',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
         'only_matching': True,
     }, {
@@ -155,22 +196,26 @@ class FacebookIE(InfoExtractor):
     }, {
         'url': 'https://www.facebookcorewwwi.onion/video.php?v=274175099429670',
         'only_matching': True,
+    }, {
+        # no title
+        'url': 'https://www.facebook.com/onlycleverentertainment/videos/1947995502095005/',
+        'only_matching': True,
     }]
 
     @staticmethod
-    def _extract_url(webpage):
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
-        if mobj is not None:
-            return mobj.group('url')
-
+    def _extract_urls(webpage):
+        urls = []
+        for mobj in re.finditer(
+                r'<iframe[^>]+?src=(["\'])(?P<url>https?://www\.facebook\.com/(?:video/embed|plugins/video\.php).+?)\1',
+                webpage):
+            urls.append(mobj.group('url'))
         # Facebook API embed
         # see https://developers.facebook.com/docs/plugins/embedded-video-player
-        mobj = re.search(r'''(?x)<div[^>]+
+        for mobj in re.finditer(r'''(?x)<div[^>]+
                 class=(?P<q1>[\'"])[^\'"]*\bfb-(?:video|post)\b[^\'"]*(?P=q1)[^>]+
-                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage)
-        if mobj is not None:
-            return mobj.group('url')
+                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage):
+            urls.append(mobj.group('url'))
+        return urls
 
     def _login(self):
         (useremail, password) = self._get_login_info()
@@ -249,7 +294,7 @@ class FacebookIE(InfoExtractor):
             for item in instances:
                 if item[1][0] == 'VideoConfig':
                     video_item = item[2][0]
-                    if video_item.get('video_id') == video_id:
+                    if video_item.get('video_id'):
                         return video_item['videoData']
 
         server_js_data = self._parse_json(self._search_regex(
@@ -262,7 +307,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             server_js_data = self._parse_json(
                 self._search_regex(
-                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+stream_pagelet',
+                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:stream_pagelet|pagelet_group_mall|permalink_video_pagelet)',
                     webpage, 'js data', default='{}'),
                 video_id, transform_source=js_to_json, fatal=False)
             if server_js_data:
@@ -312,15 +357,15 @@ class FacebookIE(InfoExtractor):
         self._sort_formats(formats)
 
         video_title = self._html_search_regex(
-            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage, 'title',
-            default=None)
+            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
+            'title', default=None)
         if not video_title:
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
         if not video_title:
             video_title = self._html_search_meta(
-                'description', webpage, 'title')
+                'description', webpage, 'title', default=None)
         if video_title:
             video_title = limit_length(video_title, 80)
         else:

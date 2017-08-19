@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -49,7 +50,7 @@ class TurboIE(InfoExtractor):
         for child in item:
             m = re.search(r'url_video_(?P<quality>.+)', child.tag)
             if m:
-                quality = m.group('quality')
+                quality = compat_str(m.group('quality'))
                 formats.append({
                     'format_id': quality,
                     'url': child.text,

@@ -22,7 +22,7 @@ class ABCOTVSIE(InfoExtractor):
                 'display_id': 'east-bay-museum-celebrates-vintage-synthesizers',
                 'ext': 'mp4',
                 'title': 'East Bay museum celebrates vintage synthesizers',
-                'description': 'md5:a4f10fb2f2a02565c1749d4adbab4b10',
+                'description': 'md5:24ed2bd527096ec2a5c67b9d5a9005f3',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'timestamp': 1421123075,
                 'upload_date': '20150113',

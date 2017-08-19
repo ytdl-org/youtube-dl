@@ -31,6 +31,7 @@ class SoundcloudIE(InfoExtractor):
 
     _VALID_URL = r'''(?x)^(?:https?://)?
                     (?:(?:(?:www\.|m\.)?soundcloud\.com/
+                            (?!stations/track)
                             (?P<uploader>[\w\d-]+)/
                             (?!(?:tracks|sets(?:/.+?)?|reposts|likes|spotlight)/?(?:$|[?#]))
                             (?P<title>[\w\d-]+)/?
@@ -121,7 +122,7 @@ class SoundcloudIE(InfoExtractor):
         },
     ]
 
-    _CLIENT_ID = 'fDoItMDbsbZz8dY16ZzARCZmzgHBPotA'
+    _CLIENT_ID = 'JlZIsxg2hY5WnBgtn3jfS0UYCl0K8DOg'
     _IPHONE_CLIENT_ID = '376f225bf427445fc4bfb6b99b72e0bf'
 
     @staticmethod
@@ -136,7 +137,7 @@ class SoundcloudIE(InfoExtractor):
 
     @classmethod
     def _resolv_url(cls, url):
-        return 'http://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
+        return 'https://api.soundcloud.com/resolve.json?url=' + url + '&client_id=' + cls._CLIENT_ID
 
     def _extract_info_dict(self, info, full_title=None, quiet=False, secret_token=None):
         track_id = compat_str(info['id'])
@@ -174,7 +175,7 @@ class SoundcloudIE(InfoExtractor):
 
         # We have to retrieve the url
         format_dict = self._download_json(
-            'http://api.soundcloud.com/i1/tracks/%s/streams' % track_id,
+            'https://api.soundcloud.com/i1/tracks/%s/streams' % track_id,
             track_id, 'Downloading track url', query={
                 'client_id': self._CLIENT_ID,
                 'secret_token': secret_token,
@@ -236,7 +237,7 @@ class SoundcloudIE(InfoExtractor):
         track_id = mobj.group('track_id')
 
         if track_id is not None:
-            info_json_url = 'http://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
+            info_json_url = 'https://api.soundcloud.com/tracks/' + track_id + '.json?client_id=' + self._CLIENT_ID
             full_title = track_id
             token = mobj.group('secret_token')
             if token:
@@ -261,7 +262,7 @@ class SoundcloudIE(InfoExtractor):
 
             self.report_resolve(full_title)
 
-            url = 'http://soundcloud.com/%s' % resolve_title
+            url = 'https://soundcloud.com/%s' % resolve_title
             info_json_url = self._resolv_url(url)
         info = self._download_json(info_json_url, full_title, 'Downloading info JSON')
 
@@ -290,7 +291,7 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
             'id': '2284613',
             'title': 'The Royal Concept EP',
         },
-        'playlist_mincount': 6,
+        'playlist_mincount': 5,
     }, {
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep/token',
         'only_matching': True,
@@ -304,7 +305,7 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
         # extract simple title (uploader + slug of song title)
         slug_title = mobj.group('slug_title')
         full_title = '%s/sets/%s' % (uploader, slug_title)
-        url = 'http://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
+        url = 'https://soundcloud.com/%s/sets/%s' % (uploader, slug_title)
 
         token = mobj.group('token')
         if token:
@@ -330,7 +331,63 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
         }
 
 
-class SoundcloudUserIE(SoundcloudPlaylistBaseIE):
+class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
+    _API_BASE = 'https://api.soundcloud.com'
+    _API_V2_BASE = 'https://api-v2.soundcloud.com'
+
+    def _extract_playlist(self, base_url, playlist_id, playlist_title):
+        COMMON_QUERY = {
+            'limit': 50,
+            'client_id': self._CLIENT_ID,
+            'linked_partitioning': '1',
+        }
+
+        query = COMMON_QUERY.copy()
+        query['offset'] = 0
+
+        next_href = base_url + '?' + compat_urllib_parse_urlencode(query)
+
+        entries = []
+        for i in itertools.count():
+            response = self._download_json(
+                next_href, playlist_id, 'Downloading track page %s' % (i + 1))
+
+            collection = response['collection']
+            if not collection:
+                break
+
+            def resolve_permalink_url(candidates):
+                for cand in candidates:
+                    if isinstance(cand, dict):
+                        permalink_url = cand.get('permalink_url')
+                        entry_id = self._extract_id(cand)
+                        if permalink_url and permalink_url.startswith('http'):
+                            return permalink_url, entry_id
+
+            for e in collection:
+                permalink_url, entry_id = resolve_permalink_url((e, e.get('track'), e.get('playlist')))
+                if permalink_url:
+                    entries.append(self.url_result(permalink_url, video_id=entry_id))
+
+            next_href = response.get('next_href')
+            if not next_href:
+                break
+
+            parsed_next_href = compat_urlparse.urlparse(response['next_href'])
+            qs = compat_urlparse.parse_qs(parsed_next_href.query)
+            qs.update(COMMON_QUERY)
+            next_href = compat_urlparse.urlunparse(
+                parsed_next_href._replace(query=compat_urllib_parse_urlencode(qs, True)))
+
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'title': playlist_title,
+            'entries': entries,
+        }
+
+
+class SoundcloudUserIE(SoundcloudPagedPlaylistBaseIE):
     _VALID_URL = r'''(?x)
                         https?://
                             (?:(?:www|m)\.)?soundcloud\.com/
@@ -380,21 +437,18 @@ class SoundcloudUserIE(SoundcloudPlaylistBaseIE):
         'url': 'https://soundcloud.com/grynpyret/spotlight',
         'info_dict': {
             'id': '7098329',
-            'title': 'GRYNPYRET (Spotlight)',
+            'title': 'Grynpyret (Spotlight)',
         },
         'playlist_mincount': 1,
     }]
 
-    _API_BASE = 'https://api.soundcloud.com'
-    _API_V2_BASE = 'https://api-v2.soundcloud.com'
-
     _BASE_URL_MAP = {
-        'all': '%s/profile/soundcloud:users:%%s' % _API_V2_BASE,
-        'tracks': '%s/users/%%s/tracks' % _API_BASE,
-        'sets': '%s/users/%%s/playlists' % _API_V2_BASE,
-        'reposts': '%s/profile/soundcloud:users:%%s/reposts' % _API_V2_BASE,
-        'likes': '%s/users/%%s/likes' % _API_V2_BASE,
-        'spotlight': '%s/users/%%s/spotlight' % _API_V2_BASE,
+        'all': '%s/profile/soundcloud:users:%%s' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
+        'tracks': '%s/users/%%s/tracks' % SoundcloudPagedPlaylistBaseIE._API_BASE,
+        'sets': '%s/users/%%s/playlists' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
+        'reposts': '%s/profile/soundcloud:users:%%s/reposts' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
+        'likes': '%s/users/%%s/likes' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
+        'spotlight': '%s/users/%%s/spotlight' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
     }
 
     _TITLE_MAP = {
@@ -410,70 +464,49 @@ class SoundcloudUserIE(SoundcloudPlaylistBaseIE):
         mobj = re.match(self._VALID_URL, url)
         uploader = mobj.group('user')
 
-        url = 'http://soundcloud.com/%s/' % uploader
+        url = 'https://soundcloud.com/%s/' % uploader
         resolv_url = self._resolv_url(url)
         user = self._download_json(
             resolv_url, uploader, 'Downloading user info')
 
         resource = mobj.group('rsrc') or 'all'
-        base_url = self._BASE_URL_MAP[resource] % user['id']
 
-        COMMON_QUERY = {
-            'limit': 50,
-            'client_id': self._CLIENT_ID,
-            'linked_partitioning': '1',
-        }
+        return self._extract_playlist(
+            self._BASE_URL_MAP[resource] % user['id'], compat_str(user['id']),
+            '%s (%s)' % (user['username'], self._TITLE_MAP[resource]))
 
-        query = COMMON_QUERY.copy()
-        query['offset'] = 0
 
-        next_href = base_url + '?' + compat_urllib_parse_urlencode(query)
+class SoundcloudTrackStationIE(SoundcloudPagedPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/stations/track/[^/]+/(?P<id>[^/?#&]+)'
+    IE_NAME = 'soundcloud:trackstation'
+    _TESTS = [{
+        'url': 'https://soundcloud.com/stations/track/officialsundial/your-text',
+        'info_dict': {
+            'id': '286017854',
+            'title': 'Track station: your-text',
+        },
+        'playlist_mincount': 47,
+    }]
 
-        entries = []
-        for i in itertools.count():
-            response = self._download_json(
-                next_href, uploader, 'Downloading track page %s' % (i + 1))
+    def _real_extract(self, url):
+        track_name = self._match_id(url)
 
-            collection = response['collection']
-            if not collection:
-                break
+        webpage = self._download_webpage(url, track_name)
 
-            def resolve_permalink_url(candidates):
-                for cand in candidates:
-                    if isinstance(cand, dict):
-                        permalink_url = cand.get('permalink_url')
-                        entry_id = self._extract_id(cand)
-                        if permalink_url and permalink_url.startswith('http'):
-                            return permalink_url, entry_id
+        track_id = self._search_regex(
+            r'soundcloud:track-stations:(\d+)', webpage, 'track id')
 
-            for e in collection:
-                permalink_url, entry_id = resolve_permalink_url((e, e.get('track'), e.get('playlist')))
-                if permalink_url:
-                    entries.append(self.url_result(permalink_url, video_id=entry_id))
-
-            next_href = response.get('next_href')
-            if not next_href:
-                break
-
-            parsed_next_href = compat_urlparse.urlparse(response['next_href'])
-            qs = compat_urlparse.parse_qs(parsed_next_href.query)
-            qs.update(COMMON_QUERY)
-            next_href = compat_urlparse.urlunparse(
-                parsed_next_href._replace(query=compat_urllib_parse_urlencode(qs, True)))
-
-        return {
-            '_type': 'playlist',
-            'id': compat_str(user['id']),
-            'title': '%s (%s)' % (user['username'], self._TITLE_MAP[resource]),
-            'entries': entries,
-        }
+        return self._extract_playlist(
+            '%s/stations/soundcloud:track-stations:%s/tracks'
+            % (self._API_V2_BASE, track_id),
+            track_id, 'Track station: %s' % track_name)
 
 
 class SoundcloudPlaylistIE(SoundcloudPlaylistBaseIE):
     _VALID_URL = r'https?://api\.soundcloud\.com/playlists/(?P<id>[0-9]+)(?:/?\?secret_token=(?P<token>[^&]+?))?$'
     IE_NAME = 'soundcloud:playlist'
     _TESTS = [{
-        'url': 'http://api.soundcloud.com/playlists/4110309',
+        'url': 'https://api.soundcloud.com/playlists/4110309',
         'info_dict': {
             'id': '4110309',
             'title': 'TILT Brass - Bowery Poetry Club, August \'03 [Non-Site SCR 02]',

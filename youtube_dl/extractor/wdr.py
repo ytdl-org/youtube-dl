@@ -19,9 +19,10 @@ class WDRBaseIE(InfoExtractor):
     def _extract_wdr_video(self, webpage, display_id):
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
         # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
-        # for wdrmaus its in a link to the page in a multiline "videoLink"-tag
+        # for wdrmaus, in a tag with the class "videoButton" (previously a link
+        # to the page in a multiline "videoLink"-tag)
         json_metadata = self._html_search_regex(
-            r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
+            r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
             webpage, 'media link', default=None, flags=re.MULTILINE)
 
         if not json_metadata:
@@ -32,7 +33,7 @@ class WDRBaseIE(InfoExtractor):
         jsonp_url = media_link_obj['mediaObj']['url']
 
         metadata = self._download_json(
-            jsonp_url, 'metadata', transform_source=strip_jsonp)
+            jsonp_url, display_id, transform_source=strip_jsonp)
 
         metadata_tracker_data = metadata['trackerData']
         metadata_media_resource = metadata['mediaResource']
@@ -161,23 +162,23 @@ class WDRIE(WDRBaseIE):
         {
             'url': 'http://www.wdrmaus.de/aktuelle-sendung/index.php5',
             'info_dict': {
-                'id': 'mdb-1096487',
-                'ext': 'flv',
+                'id': 'mdb-1323501',
+                'ext': 'mp4',
                 'upload_date': 're:^[0-9]{8}$',
                 'title': 're:^Die Sendung mit der Maus vom [0-9.]{10}$',
-                'description': '- Die Sendung mit der Maus -',
+                'description': 'Die Seite mit der Maus -',
             },
             'skip': 'The id changes from week to week because of the new episode'
         },
         {
-            'url': 'http://www.wdrmaus.de/sachgeschichten/sachgeschichten/achterbahn.php5',
+            'url': 'http://www.wdrmaus.de/filme/sachgeschichten/achterbahn.php5',
             'md5': '803138901f6368ee497b4d195bb164f2',
             'info_dict': {
                 'id': 'mdb-186083',
                 'ext': 'mp4',
                 'upload_date': '20130919',
                 'title': 'Sachgeschichte - Achterbahn ',
-                'description': '- Die Sendung mit der Maus -',
+                'description': 'Die Seite mit der Maus -',
             },
         },
         {
@@ -186,7 +187,7 @@ class WDRIE(WDRBaseIE):
             'info_dict': {
                 'id': 'mdb-869971',
                 'ext': 'flv',
-                'title': 'Funkhaus Europa Livestream',
+                'title': 'COSMO Livestream',
                 'description': 'md5:2309992a6716c347891c045be50992e4',
                 'upload_date': '20160101',
             },

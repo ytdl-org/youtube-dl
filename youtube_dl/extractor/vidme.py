@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import itertools
 
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -161,13 +164,28 @@ class VidmeIE(InfoExtractor):
                 'or for violating the terms of use.',
                 expected=True)
 
-        formats = [{
-            'format_id': f.get('type'),
-            'url': f['uri'],
-            'width': int_or_none(f.get('width')),
-            'height': int_or_none(f.get('height')),
-            'preference': 0 if f.get('type', '').endswith('clip') else 1,
-        } for f in video.get('formats', []) if f.get('uri')]
+        formats = []
+        for f in video.get('formats', []):
+            format_url = f.get('uri')
+            if not format_url or not isinstance(format_url, compat_str):
+                continue
+            format_type = f.get('type')
+            if format_type == 'dash':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, video_id, mpd_id='dash', fatal=False))
+            elif format_type == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            else:
+                formats.append({
+                    'format_id': f.get('type'),
+                    'url': format_url,
+                    'width': int_or_none(f.get('width')),
+                    'height': int_or_none(f.get('height')),
+                    'preference': 0 if f.get('type', '').endswith(
+                        'clip') else 1,
+                })
 
         if not formats and video.get('complete_url'):
             formats.append({

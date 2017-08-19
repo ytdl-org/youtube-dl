@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import js_to_json
+from ..utils import (
+    determine_ext,
+    int_or_none,
+    js_to_json,
+)
 
 
 class SportBoxEmbedIE(InfoExtractor):
@@ -14,8 +18,10 @@ class SportBoxEmbedIE(InfoExtractor):
         'info_dict': {
             'id': '211355',
             'ext': 'mp4',
-            'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
+            'title': '211355',
             'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 292,
+            'view_count': int,
         },
         'params': {
             # m3u8 download
@@ -23,6 +29,9 @@ class SportBoxEmbedIE(InfoExtractor):
         },
     }, {
         'url': 'http://news.sportbox.ru/vdl/player?nid=370908&only_player=1&autostart=false&playeri=2&height=340&width=580',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.sportbox.ru/vdl/player/media/193095',
         'only_matching': True,
     }]
 
@@ -37,36 +46,34 @@ class SportBoxEmbedIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        wjplayer_data = self._parse_json(
+            self._search_regex(
+                r'(?s)wjplayer\(({.+?})\);', webpage, 'wjplayer settings'),
+            video_id, transform_source=js_to_json)
+
         formats = []
-
-        def cleanup_js(code):
-            # desktop_advert_config contains complex Javascripts and we don't need it
-            return js_to_json(re.sub(r'desktop_advert_config.*', '', code))
-
-        jwplayer_data = self._parse_json(self._search_regex(
-            r'(?s)player\.setup\(({.+?})\);', webpage, 'jwplayer settings'), video_id,
-            transform_source=cleanup_js)
-
-        hls_url = jwplayer_data.get('hls_url')
-        if hls_url:
-            formats.extend(self._extract_m3u8_formats(
-                hls_url, video_id, ext='mp4', m3u8_id='hls'))
-
-        rtsp_url = jwplayer_data.get('rtsp_url')
-        if rtsp_url:
-            formats.append({
-                'url': rtsp_url,
-                'format_id': 'rtsp',
-            })
-
+        for source in wjplayer_data['sources']:
+            src = source.get('src')
+            if not src:
+                continue
+            if determine_ext(src) == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    src, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            else:
+                formats.append({
+                    'url': src,
+                })
         self._sort_formats(formats)
 
-        title = jwplayer_data['node_title']
-        thumbnail = jwplayer_data.get('image_url')
+        view_count = int_or_none(self._search_regex(
+            r'Просмотров\s*:\s*(\d+)', webpage, 'view count', default=None))
 
         return {
             'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
+            'title': video_id,
+            'thumbnail': wjplayer_data.get('poster'),
+            'duration': int_or_none(wjplayer_data.get('duration')),
+            'view_count': view_count,
             'formats': formats,
         }

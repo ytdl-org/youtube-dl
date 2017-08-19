@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     sanitized_Request,
@@ -26,7 +27,7 @@ class YouPornIE(InfoExtractor):
             'description': 'Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Ask Dan And Jennifer',
-            'upload_date': '20101221',
+            'upload_date': '20101217',
             'average_rating': int,
             'view_count': int,
             'comment_count': int,
@@ -45,7 +46,7 @@ class YouPornIE(InfoExtractor):
             'description': 'http://sweetlivegirls.com Big Tits Awesome Brunette On amazing webcam show.mp4',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Unknown',
-            'upload_date': '20111125',
+            'upload_date': '20110418',
             'average_rating': int,
             'view_count': int,
             'comment_count': int,
@@ -68,28 +69,46 @@ class YouPornIE(InfoExtractor):
         webpage = self._download_webpage(request, display_id)
 
         title = self._search_regex(
-            [r'(?:video_titles|videoTitle)\s*[:=]\s*(["\'])(?P<title>.+?)\1',
-             r'<h1[^>]+class=["\']heading\d?["\'][^>]*>([^<])<'],
-            webpage, 'title', group='title')
+            [r'(?:video_titles|videoTitle)\s*[:=]\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
+             r'<h1[^>]+class=["\']heading\d?["\'][^>]*>(?P<title>[^<]+)<'],
+            webpage, 'title', group='title',
+            default=None) or self._og_search_title(
+            webpage, default=None) or self._html_search_meta(
+            'title', webpage, fatal=True)
 
         links = []
 
+        # Main source
+        definitions = self._parse_json(
+            self._search_regex(
+                r'mediaDefinition\s*=\s*(\[.+?\]);', webpage,
+                'media definitions', default='[]'),
+            video_id, fatal=False)
+        if definitions:
+            for definition in definitions:
+                if not isinstance(definition, dict):
+                    continue
+                video_url = definition.get('videoUrl')
+                if isinstance(video_url, compat_str) and video_url:
+                    links.append(video_url)
+
+        # Fallback #1, this also contains extra low quality 180p format
+        for _, link in re.findall(r'<a[^>]+href=(["\'])(http.+?)\1[^>]+title=["\']Download [Vv]ideo', webpage):
+            links.append(link)
+
+        # Fallback #2 (unavailable as at 22.06.2017)
         sources = self._search_regex(
             r'(?s)sources\s*:\s*({.+?})', webpage, 'sources', default=None)
         if sources:
             for _, link in re.findall(r'[^:]+\s*:\s*(["\'])(http.+?)\1', sources):
                 links.append(link)
 
-        # Fallback #1
+        # Fallback #3 (unavailable as at 22.06.2017)
         for _, link in re.findall(
-                r'(?:videoUrl|videoSrc|videoIpadUrl|html5PlayerSrc)\s*[:=]\s*(["\'])(http.+?)\1', webpage):
+                r'(?:videoSrc|videoIpadUrl|html5PlayerSrc)\s*[:=]\s*(["\'])(http.+?)\1', webpage):
             links.append(link)
 
-        # Fallback #2, this also contains extra low quality 180p format
-        for _, link in re.findall(r'<a[^>]+href=(["\'])(http.+?)\1[^>]+title=["\']Download [Vv]ideo', webpage):
-            links.append(link)
-
-        # Fallback #3, encrypted links
+        # Fallback #4, encrypted links (unavailable as at 22.06.2017)
         for _, encrypted_link in re.findall(
                 r'encryptedQuality\d{3,4}URL\s*=\s*(["\'])([\da-zA-Z+/=]+)\1', webpage):
             links.append(aes_decrypt_text(encrypted_link, title, 32).decode('utf-8'))
@@ -124,7 +143,8 @@ class YouPornIE(InfoExtractor):
             r'(?s)<div[^>]+class=["\']submitByLink["\'][^>]*>(.+?)</div>',
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
-            r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>',
+            [r'Date\s+[Aa]dded:\s*<span>([^<]+)',
+             r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>'],
             webpage, 'upload date', fatal=False))
 
         age_limit = self._rta_search(webpage)
