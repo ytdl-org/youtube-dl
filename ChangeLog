@@ -1,6 +1,7 @@
 version <unreleased>
 
 Core
+* [cda] Fix extraction (closes #13935)
 * [utils] Fix unescapeHTML for misformed string like "&a&quot;" (#13935)
 
 
