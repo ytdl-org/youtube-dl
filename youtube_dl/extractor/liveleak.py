@@ -72,6 +72,13 @@ class LiveLeakIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.liveleak.com/view?i=677_1439397581',
+        'info_dict': {
+            'id': '677_1439397581',
+            'title': 'Fuel Depot in China Explosion caught on video',
+        },
+        'playlist_count': 3,
     }]
 
     @staticmethod
@@ -109,26 +116,30 @@ class LiveLeakIE(InfoExtractor):
                 'age_limit': age_limit,
             }
 
-        info_dict = entries[0]
+        for idx, info_dict in enumerate(entries):
+            for a_format in info_dict['formats']:
+                if not a_format.get('height'):
+                    a_format['height'] = int_or_none(self._search_regex(
+                        r'([0-9]+)p\.mp4', a_format['url'], 'height label',
+                        default=None))
 
-        for a_format in info_dict['formats']:
-            if not a_format.get('height'):
-                a_format['height'] = int_or_none(self._search_regex(
-                    r'([0-9]+)p\.mp4', a_format['url'], 'height label',
-                    default=None))
+            self._sort_formats(info_dict['formats'])
 
-        self._sort_formats(info_dict['formats'])
+            # Don't append entry ID for one-video pages to keep backward compatibility
+            if len(entries) > 1:
+                info_dict['id'] = '%s_%s' % (video_id, idx + 1)
+            else:
+                info_dict['id'] = video_id
 
-        info_dict.update({
-            'id': video_id,
-            'title': video_title,
-            'description': video_description,
-            'uploader': video_uploader,
-            'age_limit': age_limit,
-            'thumbnail': video_thumbnail,
-        })
+            info_dict.update({
+                'title': video_title,
+                'description': video_description,
+                'uploader': video_uploader,
+                'age_limit': age_limit,
+                'thumbnail': video_thumbnail,
+            })
 
-        return info_dict
+        return self.playlist_result(entries, video_id, video_title)
 
 
 class LiveLeakEmbedIE(InfoExtractor):
