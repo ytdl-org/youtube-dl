@@ -37,7 +37,8 @@ class BBCCoUkIE(InfoExtractor):
                             programmes/(?!articles/)|
                             iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
                             music/(?:clips|audiovideo/popular)[/#]|
-                            radio/player/
+                            radio/player/|
+                            events/[^/]+/play/[^/]+/
                         )
                         (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
                     ''' % _ID_REGEX
