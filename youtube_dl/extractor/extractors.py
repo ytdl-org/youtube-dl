@@ -509,6 +509,7 @@ from .la7 import LA7IE
 from .laola1tv import (
     Laola1TvEmbedIE,
     Laola1TvIE,
+    ITTFIE,
 )
 from .lci import LCIIE
 from .lcp import (
