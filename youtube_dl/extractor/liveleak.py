@@ -75,12 +75,10 @@ class LiveLeakIE(InfoExtractor):
     }]
 
     @staticmethod
-    def _extract_url(webpage):
-        mobj = re.search(
-            r'<iframe[^>]+src="https?://(?:\w+\.)?liveleak\.com/ll_embed\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)',
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src="(https?://(?:\w+\.)?liveleak\.com/ll_embed\?[^"]*[if]=[\w_]+[^"]+)"',
             webpage)
-        if mobj:
-            return 'http://www.liveleak.com/view?i=%s' % mobj.group('id')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -131,3 +129,30 @@ class LiveLeakIE(InfoExtractor):
         })
 
         return info_dict
+
+
+class LiveLeakEmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?liveleak\.com/ll_embed\?.*?\b(?P<kind>[if])=(?P<id>[\w_]+)'
+
+    # See generic.py for actual test cases
+    _TESTS = [{
+        'url': 'https://www.liveleak.com/ll_embed?i=874_1459135191',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.liveleak.com/ll_embed?f=ab065df993c1',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        kind, video_id = mobj.group('kind', 'id')
+
+        if kind == 'f':
+            webpage = self._download_webpage(url, video_id)
+            liveleak_url = self._search_regex(
+                r'logourl\s*:\s*(?P<q1>[\'"])(?P<url>%s)(?P=q1)' % LiveLeakIE._VALID_URL,
+                webpage, 'LiveLeak URL', group='url')
+        elif kind == 'i':
+            liveleak_url = 'http://www.liveleak.com/view?i=%s' % video_id
+
+        return self.url_result(liveleak_url, ie=LiveLeakIE.ie_key())

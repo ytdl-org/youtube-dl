@@ -4,6 +4,9 @@ Core
 * [cda] Fix extraction (closes #13935)
 * [utils] Fix unescapeHTML for misformed string like "&a&quot;" (#13935)
 
+Extractors
++ [liveleak] Support another liveleak embedding pattern (#13336)
+
 
 version 2017.08.18
 
