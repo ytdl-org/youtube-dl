@@ -2123,11 +2123,11 @@ class InfoExtractor(object):
                 formats = self._extract_m3u8_formats(
                     full_url, video_id, ext='mp4',
                     entry_protocol=m3u8_entry_protocol, m3u8_id=m3u8_id,
-                    preference=preference)
+                    preference=preference, fatal=False)
             elif ext == 'mpd':
                 is_plain_url = False
                 formats = self._extract_mpd_formats(
-                    full_url, video_id, mpd_id=mpd_id)
+                    full_url, video_id, mpd_id=mpd_id, fatal=False)
             else:
                 is_plain_url = True
                 formats = [{
