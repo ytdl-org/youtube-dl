@@ -186,7 +186,7 @@ class PornHubIE(InfoExtractor):
             title, thumbnail, duration = [None] * 3
 
         video_uploader = self._html_search_regex(
-            r'(?s)From:&nbsp;.+?<(?:a href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
+            r'(?s)From:&nbsp;.+?<(?:a.+?href="/users/|a href="/channels/|span class="username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
 
         view_count = self._extract_count(
