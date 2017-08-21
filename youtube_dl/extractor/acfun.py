@@ -184,6 +184,10 @@ class AcFunVideoIE(_AcFunBaseIE):
         same_len = 1 == len(set(segs_len))
         entries = []
         for idx in range(max(segs_len)):
+            # no KeyError in formats
+            # 'segs': streams checked that
+            # idx: checked by segs_len
+            # ('url', 'size', etc...): api should return these, or the api fail
             formats = [{
                 'url': stream['segs'][idx]['url'],
                 'ext': 'mp4',
@@ -218,11 +222,16 @@ class _AcFunVideoListIE(_AcFunBaseIE):
     def _acfun_list(self, videos_info, video_id, video_idx):
         info = {
             'description': self._get_desc(videos_info),
-            'thumbnail': videos_info['cover'],
-            'view_count': videos_info['visit']['views'],
-            'comment_count': videos_info['visit']['comments'],
+            'thumbnail': videos_info.get('cover'),
             'tags': videos_info.get('tags'),
+            'timestamp': int_or_none(videos_info.get('releaseDate'), scale=1000)
         }
+        if 'visit' in videos_info:
+            visit = videos_info['visit']
+            info.update({
+                'view_count': visit['views'],
+                'comment_count': visit['comments'],
+            })
         if 'owner' in videos_info:
             owner = videos_info['owner']
             info.update({
@@ -230,8 +239,6 @@ class _AcFunVideoListIE(_AcFunBaseIE):
                 'uploader_id': owner['id'],
                 'uploader_url': 'http://www.acfun.cn/u/%d.aspx' % owner['id'],
             })
-        if 'releaseDate' in videos_info:
-            info['timestamp'] = int_or_none(videos_info['releaseDate'], scale=1000)
 
         entries = []
         for idx, video in enumerate(videos_info['videos']):
