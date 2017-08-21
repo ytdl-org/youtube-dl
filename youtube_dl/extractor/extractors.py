@@ -18,6 +18,14 @@ from .acast import (
     ACastIE,
     ACastChannelIE,
 )
+from .acfun import (
+    AcFunAlbumGroupIE,
+    AcFunAlbumIE,
+    AcFunBangumiIE,
+    AcFunIE,
+    AcFunUserIE,
+    AcFunVideoIE,
+)
 from .addanime import AddAnimeIE
 from .adn import ADNIE
 from .adobetv import (

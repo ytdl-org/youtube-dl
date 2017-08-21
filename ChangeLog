@@ -7,6 +7,7 @@ Extractors
 + [liveleak] Support multi-video pages (#6542)
 + [liveleak] Support another liveleak embedding pattern (#13336)
 * [cda] Fix extraction (#13935)
++ [acfun] Add support for AcFun.tv
 
 
 version 2017.08.18

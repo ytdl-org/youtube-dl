@@ -27,6 +27,10 @@
  - **AcademicEarth:Course**
  - **acast**
  - **acast:channel**
+ - **acfun**: AcFun 弹幕视频网
+ - **acfun:album**: AcFun - 合辑
+ - **acfun:bangumi**: AcFun - 番剧
+ - **acfun:user**: AcFun - UP主投稿
  - **AddAnime**
  - **ADN**: Anime Digital Network
  - **AdobeTV**
