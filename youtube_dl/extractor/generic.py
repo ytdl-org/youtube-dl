@@ -1519,14 +1519,27 @@ class GenericIE(InfoExtractor):
         # LiveLeak embed
         {
             'url': 'http://www.wykop.pl/link/3088787/',
-            'md5': 'ace83b9ed19b21f68e1b50e844fdf95d',
+            'md5': '7619da8c820e835bef21a1efa2a0fc71',
             'info_dict': {
                 'id': '874_1459135191',
                 'ext': 'mp4',
                 'title': 'Man shows poor quality of new apartment building',
                 'description': 'The wall is like a sand pile.',
                 'uploader': 'Lake8737',
-            }
+            },
+            'add_ie': [LiveLeakIE.ie_key()],
+        },
+        # Another LiveLeak embed pattern (#13336)
+        {
+            'url': 'https://milo.yiannopoulos.net/2017/06/concealed-carry-robbery/',
+            'info_dict': {
+                'id': '2eb_1496309988',
+                'ext': 'mp4',
+                'title': 'Thief robs place where everyone was armed',
+                'description': 'md5:694d73ee79e535953cf2488562288eee',
+                'uploader': 'brazilwtf',
+            },
+            'add_ie': [LiveLeakIE.ie_key()],
         },
         # Duplicated embedded video URLs
         {
@@ -2757,9 +2770,9 @@ class GenericIE(InfoExtractor):
                 self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key())
 
         # Look for LiveLeak embeds
-        liveleak_url = LiveLeakIE._extract_url(webpage)
-        if liveleak_url:
-            return self.url_result(liveleak_url, 'LiveLeak')
+        liveleak_urls = LiveLeakIE._extract_urls(webpage)
+        if liveleak_urls:
+            return self.playlist_from_matches(liveleak_urls, video_id, video_title)
 
         # Look for 3Q SDN embeds
         threeqsdn_url = ThreeQSDNIE._extract_url(webpage)

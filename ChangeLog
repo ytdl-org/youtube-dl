@@ -1,3 +1,14 @@
+version <unreleased>
+
+Core
+* [utils] Fix unescapeHTML for misformed string like "&a&quot;" (#13935)
+
+Extractors
++ [liveleak] Support multi-video pages (#6542)
++ [liveleak] Support another liveleak embedding pattern (#13336)
+* [cda] Fix extraction (#13935)
+
+
 version 2017.08.18
 
 Core

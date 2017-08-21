@@ -509,6 +509,7 @@ from .la7 import LA7IE
 from .laola1tv import (
     Laola1TvEmbedIE,
     Laola1TvIE,
+    ITTFIE,
 )
 from .lci import LCIIE
 from .lcp import (
@@ -536,7 +537,10 @@ from .limelight import (
     LimelightChannelListIE,
 )
 from .litv import LiTVIE
-from .liveleak import LiveLeakIE
+from .liveleak import (
+    LiveLeakIE,
+    LiveLeakEmbedIE,
+)
 from .livestream import (
     LivestreamIE,
     LivestreamOriginalIE,
