@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.08.23
 
 Core
 + [extractor/common] Introduce _parse_xml
