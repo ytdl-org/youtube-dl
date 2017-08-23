@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -27,6 +29,12 @@ class VzaarIE(InfoExtractor):
             'title': 'MP3',
         },
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src=["\']((?:https?:)?//(?:view\.vzaar\.com)/[0-9]+)',
+            webpage)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

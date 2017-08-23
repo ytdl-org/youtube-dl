@@ -36,6 +36,10 @@ from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
 )
+from .nexx import (
+    NexxIE,
+    NexxEmbedIE,
+)
 from .nbc import NBCSportsVPlayerIE
 from .ooyala import OoyalaIE
 from .rutv import RUTVIE
@@ -93,6 +97,8 @@ from .washingtonpost import WashingtonPostIE
 from .wistia import WistiaIE
 from .mediaset import MediasetIE
 from .joj import JojIE
+from .megaphone import MegaphoneIE
+from .vzaar import VzaarIE
 
 
 class GenericIE(InfoExtractor):
@@ -569,6 +575,19 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'skip': 'movie expired',
+        },
+        # ooyala video embedded with http://player.ooyala.com/static/v4/production/latest/core.min.js
+        {
+            'url': 'http://wnep.com/2017/07/22/steampunk-fest-comes-to-honesdale/',
+            'info_dict': {
+                'id': 'lwYWYxYzE6V5uJMjNGyKtwwiw9ZJD7t2',
+                'ext': 'mp4',
+                'title': 'Steampunk Fest Comes to Honesdale',
+                'duration': 43.276,
+            },
+            'params': {
+                'skip_download': True,
+            }
         },
         # embed.ly video
         {
@@ -1500,14 +1519,27 @@ class GenericIE(InfoExtractor):
         # LiveLeak embed
         {
             'url': 'http://www.wykop.pl/link/3088787/',
-            'md5': 'ace83b9ed19b21f68e1b50e844fdf95d',
+            'md5': '7619da8c820e835bef21a1efa2a0fc71',
             'info_dict': {
                 'id': '874_1459135191',
                 'ext': 'mp4',
                 'title': 'Man shows poor quality of new apartment building',
                 'description': 'The wall is like a sand pile.',
                 'uploader': 'Lake8737',
-            }
+            },
+            'add_ie': [LiveLeakIE.ie_key()],
+        },
+        # Another LiveLeak embed pattern (#13336)
+        {
+            'url': 'https://milo.yiannopoulos.net/2017/06/concealed-carry-robbery/',
+            'info_dict': {
+                'id': '2eb_1496309988',
+                'ext': 'mp4',
+                'title': 'Thief robs place where everyone was armed',
+                'description': 'md5:694d73ee79e535953cf2488562288eee',
+                'uploader': 'brazilwtf',
+            },
+            'add_ie': [LiveLeakIE.ie_key()],
         },
         # Duplicated embedded video URLs
         {
@@ -1548,6 +1580,22 @@ class GenericIE(InfoExtractor):
                 'uploader': 'TheAtlantic',
             },
             'add_ie': ['BrightcoveLegacy'],
+        },
+        # Nexx embed
+        {
+            'url': 'https://www.funk.net/serien/5940e15073f6120001657956/items/593efbb173f6120001657503',
+            'info_dict': {
+                'id': '247746',
+                'ext': 'mp4',
+                'title': "Yesterday's Jam (OV)",
+                'description': 'md5:09bc0984723fed34e2581624a84e05f0',
+                'timestamp': 1492594816,
+                'upload_date': '20170419',
+            },
+            'params': {
+                'format': 'bestvideo',
+                'skip_download': True,
+            },
         },
         # Facebook <iframe> embed
         {
@@ -1751,6 +1799,21 @@ class GenericIE(InfoExtractor):
             'playlist_mincount': 5,
         },
         {
+            # Limelight embed (LimelightPlayerUtil.embed)
+            'url': 'https://tv5.ca/videos?v=xuu8qowr291ri',
+            'info_dict': {
+                'id': '95d035dc5c8a401588e9c0e6bd1e9c92',
+                'ext': 'mp4',
+                'title': '07448641',
+                'timestamp': 1499890639,
+                'upload_date': '20170712',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['LimelightMedia'],
+        },
+        {
             'url': 'http://kron4.com/2017/04/28/standoff-with-walnut-creek-murder-suspect-ends-with-arrest/',
             'info_dict': {
                 'id': 'standoff-with-walnut-creek-murder-suspect-ends-with-arrest',
@@ -1804,6 +1867,16 @@ class GenericIE(InfoExtractor):
                 'id': '418921',
                 'ext': 'mp4',
                 'title': 'Стас Намин: «Мы нарушили девственность Кремля»',
+            },
+        },
+        {
+            # vzaar embed
+            'url': 'http://help.vzaar.com/article/165-embedding-video',
+            'md5': '7e3919d9d2620b89e3e00bec7fe8c9d4',
+            'info_dict': {
+                'id': '8707641',
+                'ext': 'mp4',
+                'title': 'Building A Business Online: Principal Chairs Q & A',
             },
         },
         # {
@@ -1955,7 +2028,7 @@ class GenericIE(InfoExtractor):
 
         if head_response is not False:
             # Check for redirect
-            new_url = head_response.geturl()
+            new_url = compat_str(head_response.geturl())
             if url != new_url:
                 self.report_following_redirect(new_url)
                 if force_videoid:
@@ -2056,7 +2129,7 @@ class GenericIE(InfoExtractor):
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
                     doc, video_id,
-                    mpd_base_url=full_response.geturl().rpartition('/')[0],
+                    mpd_base_url=compat_str(full_response.geturl()).rpartition('/')[0],
                     mpd_url=url)
                 self._sort_formats(info_dict['formats'])
                 return info_dict
@@ -2132,6 +2205,16 @@ class GenericIE(InfoExtractor):
         bc_urls = BrightcoveNewIE._extract_urls(self, webpage)
         if bc_urls:
             return self.playlist_from_matches(bc_urls, video_id, video_title, ie='BrightcoveNew')
+
+        # Look for Nexx embeds
+        nexx_urls = NexxIE._extract_urls(webpage)
+        if nexx_urls:
+            return self.playlist_from_matches(nexx_urls, video_id, video_title, ie=NexxIE.ie_key())
+
+        # Look for Nexx iFrame embeds
+        nexx_embed_urls = NexxEmbedIE._extract_urls(webpage)
+        if nexx_embed_urls:
+            return self.playlist_from_matches(nexx_embed_urls, video_id, video_title, ie=NexxEmbedIE.ie_key())
 
         # Look for ThePlatform embeds
         tp_urls = ThePlatformIE._extract_urls(webpage)
@@ -2262,6 +2345,7 @@ class GenericIE(InfoExtractor):
         # Look for Ooyala videos
         mobj = (re.search(r'player\.ooyala\.com/[^"?]+[?#][^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
                 re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
+                re.search(r'OO\.Player\.create\.apply\(\s*OO\.Player\s*,\s*op\(\s*\[\s*[\'"][^\'"]*[\'"]\s*,\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
                 re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
                 re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
@@ -2686,9 +2770,9 @@ class GenericIE(InfoExtractor):
                 self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key())
 
         # Look for LiveLeak embeds
-        liveleak_url = LiveLeakIE._extract_url(webpage)
-        if liveleak_url:
-            return self.url_result(liveleak_url, 'LiveLeak')
+        liveleak_urls = LiveLeakIE._extract_urls(webpage)
+        if liveleak_urls:
+            return self.playlist_from_matches(liveleak_urls, video_id, video_title)
 
         # Look for 3Q SDN embeds
         threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
@@ -2740,7 +2824,7 @@ class GenericIE(InfoExtractor):
         rutube_urls = RutubeIE._extract_urls(webpage)
         if rutube_urls:
             return self.playlist_from_matches(
-                rutube_urls, ie=RutubeIE.ie_key())
+                rutube_urls, video_id, video_title, ie=RutubeIE.ie_key())
 
         # Look for WashingtonPost embeds
         wapo_urls = WashingtonPostIE._extract_urls(webpage)
@@ -2759,6 +2843,18 @@ class GenericIE(InfoExtractor):
         if joj_urls:
             return self.playlist_from_matches(
                 joj_urls, video_id, video_title, ie=JojIE.ie_key())
+
+        # Look for megaphone.fm embeds
+        mpfn_urls = MegaphoneIE._extract_urls(webpage)
+        if mpfn_urls:
+            return self.playlist_from_matches(
+                mpfn_urls, video_id, video_title, ie=MegaphoneIE.ie_key())
+
+        # Look for vzaar embeds
+        vzaar_urls = VzaarIE._extract_urls(webpage)
+        if vzaar_urls:
+            return self.playlist_from_matches(
+                vzaar_urls, video_id, video_title, ie=VzaarIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}

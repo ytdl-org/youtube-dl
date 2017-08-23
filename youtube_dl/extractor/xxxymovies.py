@@ -39,8 +39,8 @@ class XXXYMoviesIE(InfoExtractor):
             r"video_url\s*:\s*'([^']+)'", webpage, 'video URL')
 
         title = self._html_search_regex(
-            [r'<div class="block_header">\s*<h1>([^<]+)</h1>',
-             r'<title>(.*?)\s*-\s*XXXYMovies\.com</title>'],
+            [r'<div[^>]+\bclass="block_header"[^>]*>\s*<h1>([^<]+)<',
+             r'<title>(.*?)\s*-\s*(?:XXXYMovies\.com|XXX\s+Movies)</title>'],
             webpage, 'title')
 
         thumbnail = self._search_regex(

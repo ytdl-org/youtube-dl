@@ -9,6 +9,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_chr,
     compat_ord,
+    compat_str,
     compat_urllib_parse_unquote,
     compat_urlparse,
 )
@@ -53,16 +54,27 @@ class MixcloudIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    _keys = [
+        'return { requestAnimationFrame: function(callback) { callback(); }, innerHeight: 500 };',
+        'pleasedontdownloadourmusictheartistswontgetpaid',
+        'window.addEventListener = window.addEventListener || function() {};',
+        '(function() { return new Date().toLocaleDateString(); })()'
+    ]
+    _current_key = None
+
     # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
-    @staticmethod
-    def _decrypt_play_info(play_info):
-        KEY = 'pleasedontdownloadourmusictheartistswontgetpaid'
-
+    def _decrypt_play_info(self, play_info, video_id):
         play_info = base64.b64decode(play_info.encode('ascii'))
-
-        return ''.join([
-            compat_chr(compat_ord(ch) ^ compat_ord(KEY[idx % len(KEY)]))
-            for idx, ch in enumerate(play_info)])
+        for num, key in enumerate(self._keys, start=1):
+            try:
+                return self._parse_json(
+                    ''.join([
+                        compat_chr(compat_ord(ch) ^ compat_ord(key[idx % len(key)]))
+                        for idx, ch in enumerate(play_info)]),
+                    video_id)
+            except ExtractorError:
+                if num == len(self._keys):
+                    raise
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -72,14 +84,30 @@ class MixcloudIE(InfoExtractor):
 
         webpage = self._download_webpage(url, track_id)
 
+        if not self._current_key:
+            js_url = self._search_regex(
+                r'<script[^>]+\bsrc=["\"](https://(?:www\.)?mixcloud\.com/media/js2/www_js_4\.[^>]+\.js)',
+                webpage, 'js url', default=None)
+            if js_url:
+                js = self._download_webpage(js_url, track_id, fatal=False)
+                if js:
+                    KEY_RE_TEMPLATE = r'player\s*:\s*{.*?\b%s\s*:\s*(["\'])(?P<key>(?:(?!\1).)+)\1'
+                    for key_name in ('value', 'key_value'):
+                        key = self._search_regex(
+                            KEY_RE_TEMPLATE % key_name, js, 'key',
+                            default=None, group='key')
+                        if key and isinstance(key, compat_str):
+                            self._keys.insert(0, key)
+                            self._current_key = key
+
         message = self._html_search_regex(
             r'(?s)<div[^>]+class="global-message cloudcast-disabled-notice-light"[^>]*>(.+?)<(?:a|/div)',
             webpage, 'error message', default=None)
 
         encrypted_play_info = self._search_regex(
             r'm-play-info="([^"]+)"', webpage, 'play info')
-        play_info = self._parse_json(
-            self._decrypt_play_info(encrypted_play_info), track_id)
+
+        play_info = self._decrypt_play_info(encrypted_play_info, track_id)
 
         if message and 'stream_url' not in play_info:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)

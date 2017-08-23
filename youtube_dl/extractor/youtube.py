@@ -673,6 +673,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
+        # YouTube Red ad is not captured for creator
         {
             'url': '__2ABJjxzNo',
             'info_dict': {
@@ -1649,7 +1650,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_webpage, 'license', default=None)
 
         m_music = re.search(
-            r'<h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*<ul[^>]*>\s*<li>(?P<title>.+?) by (?P<creator>.+?)(?:\(.+?\))?</li',
+            r'''(?x)
+                <h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*
+                <ul[^>]*>\s*
+                <li>(?P<title>.+?)
+                by (?P<creator>.+?)
+                (?:
+                    \(.+?\)|
+                    <a[^>]*
+                        (?:
+                            \bhref=["\']/red[^>]*>|             # drop possible
+                            >\s*Listen ad-free with YouTube Red # YouTube Red ad
+                        )
+                    .*?
+                )?</li
+            ''',
             video_webpage)
         if m_music:
             video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))

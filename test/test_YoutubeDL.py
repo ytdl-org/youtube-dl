@@ -41,6 +41,7 @@ def _make_result(formats, **kwargs):
         'id': 'testid',
         'title': 'testttitle',
         'extractor': 'testex',
+        'extractor_key': 'TestEx',
     }
     res.update(**kwargs)
     return res
@@ -370,6 +371,19 @@ class TestFormatSelection(unittest.TestCase):
         ydl = YDL({'format': 'best[height>360]'})
         self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
 
+    def test_format_selection_issue_10083(self):
+        # See https://github.com/rg3/youtube-dl/issues/10083
+        formats = [
+            {'format_id': 'regular', 'height': 360, 'url': TEST_URL},
+            {'format_id': 'video', 'height': 720, 'acodec': 'none', 'url': TEST_URL},
+            {'format_id': 'audio', 'vcodec': 'none', 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'best[height>360]/bestvideo[height>360]+bestaudio'})
+        ydl.process_ie_result(info_dict.copy())
+        self.assertEqual(ydl.downloaded_info_dicts[0]['format_id'], 'video+audio')
+
     def test_invalid_format_specs(self):
         def assert_syntax_error(format_spec):
             ydl = YDL({'format': format_spec})
@@ -447,6 +461,17 @@ class TestFormatSelection(unittest.TestCase):
         except ExtractorError:
             pass
         self.assertEqual(ydl.downloaded_info_dicts, [])
+
+    def test_default_format_spec(self):
+        ydl = YDL({'simulate': True})
+        self.assertEqual(ydl._default_format_spec({}), 'bestvideo+bestaudio/best')
+
+        ydl = YDL({'outtmpl': '-'})
+        self.assertEqual(ydl._default_format_spec({}), 'best')
+
+        ydl = YDL({})
+        self.assertEqual(ydl._default_format_spec({}, download=False), 'bestvideo+bestaudio/best')
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best')
 
 
 class TestYoutubeDL(unittest.TestCase):
@@ -527,6 +552,8 @@ class TestYoutubeDL(unittest.TestCase):
             'ext': 'mp4',
             'width': None,
             'height': 1080,
+            'title1': '$PATH',
+            'title2': '%PATH%',
         }
 
         def fname(templ):
@@ -545,10 +572,14 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(fname('%(height)0 6d.%(ext)s'), ' 01080.mp4')
         self.assertEqual(fname('%(height)0   6d.%(ext)s'), ' 01080.mp4')
         self.assertEqual(fname('%(height)   0   6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%%'), '%')
+        self.assertEqual(fname('%%%%'), '%%')
         self.assertEqual(fname('%%(height)06d.%(ext)s'), '%(height)06d.mp4')
         self.assertEqual(fname('%(width)06d.%(ext)s'), 'NA.mp4')
         self.assertEqual(fname('%(width)06d.%%(ext)s'), 'NA.%(ext)s')
         self.assertEqual(fname('%%(width)06d.%(ext)s'), '%(width)06d.mp4')
+        self.assertEqual(fname('Hello %(title1)s'), 'Hello $PATH')
+        self.assertEqual(fname('Hello %(title2)s'), 'Hello %PATH%')
 
     def test_format_note(self):
         ydl = YoutubeDL()
@@ -755,7 +786,8 @@ class TestYoutubeDL(unittest.TestCase):
                     '_type': 'url_transparent',
                     'url': 'foo2:',
                     'ie_key': 'Foo2',
-                    'title': 'foo1 title'
+                    'title': 'foo1 title',
+                    'id': 'foo1_id',
                 }
 
         class Foo2IE(InfoExtractor):
@@ -781,6 +813,9 @@ class TestYoutubeDL(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['url'], TEST_URL)
         self.assertEqual(downloaded['title'], 'foo1 title')
+        self.assertEqual(downloaded['id'], 'testid')
+        self.assertEqual(downloaded['extractor'], 'testex')
+        self.assertEqual(downloaded['extractor_key'], 'TestEx')
 
 
 if __name__ == '__main__':

@@ -59,9 +59,9 @@ class HlsFD(FragmentFD):
         man_url = info_dict['url']
         self.to_screen('[%s] Downloading m3u8 manifest' % self.FD_NAME)
 
-        manifest = self.ydl.urlopen(self._prepare_url(info_dict, man_url)).read()
-
-        s = manifest.decode('utf-8', 'ignore')
+        urlh = self.ydl.urlopen(self._prepare_url(info_dict, man_url))
+        man_url = urlh.geturl()
+        s = urlh.read().decode('utf-8', 'ignore')
 
         if not self.can_download(s, info_dict):
             if info_dict.get('extra_param_to_segment_url'):

@@ -26,6 +26,8 @@ import tokenize
 import traceback
 import random
 
+from string import ascii_letters
+
 from .compat import (
     compat_basestring,
     compat_cookiejar,
@@ -674,7 +676,19 @@ class YoutubeDL(object):
                         FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
-            filename = expand_path(outtmpl % template_dict)
+            # expand_path translates '%%' into '%' and '$$' into '$'
+            # correspondingly that is not what we want since we need to keep
+            # '%%' intact for template dict substitution step. Working around
+            # with boundary-alike separator hack.
+            sep = ''.join([random.choice(ascii_letters) for _ in range(32)])
+            outtmpl = outtmpl.replace('%%', '%{0}%'.format(sep)).replace('$$', '${0}$'.format(sep))
+
+            # outtmpl should be expand_path'ed before template dict substitution
+            # because meta fields may contain env variables we don't want to
+            # be expanded. For example, for outtmpl "%(title)s.%(ext)s" and
+            # title "Hello $PATH", we don't want `$PATH` to be expanded.
+            filename = expand_path(outtmpl).replace(sep, '') % template_dict
+
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
@@ -846,7 +860,7 @@ class YoutubeDL(object):
 
             force_properties = dict(
                 (k, v) for k, v in ie_result.items() if v is not None)
-            for f in ('_type', 'url', 'ie_key'):
+            for f in ('_type', 'url', 'id', 'extractor', 'extractor_key', 'ie_key'):
                 if f in force_properties:
                     del force_properties[f]
             new_result = info.copy()
@@ -1049,6 +1063,25 @@ class YoutubeDL(object):
                 return m.group('none_inclusive')
             return op(actual_value, comparison_value)
         return _filter
+
+    def _default_format_spec(self, info_dict, download=True):
+        req_format_list = []
+
+        def can_have_partial_formats():
+            if self.params.get('simulate', False):
+                return True
+            if not download:
+                return True
+            if self.params.get('outtmpl', DEFAULT_OUTTMPL) == '-':
+                return False
+            if info_dict.get('is_live'):
+                return False
+            merger = FFmpegMergerPP(self)
+            return merger.available and merger.can_merge()
+        if can_have_partial_formats():
+            req_format_list.append('bestvideo+bestaudio')
+        req_format_list.append('best')
+        return '/'.join(req_format_list)
 
     def build_format_selector(self, format_spec):
         def syntax_error(note, start):
@@ -1450,12 +1483,14 @@ class YoutubeDL(object):
 
         def is_wellformed(f):
             url = f.get('url')
-            valid_url = url and isinstance(url, compat_str)
-            if not valid_url:
+            if not url:
                 self.report_warning(
                     '"url" field is missing or empty - skipping format, '
                     'there is an error in extractor')
-            return valid_url
+                return False
+            if isinstance(url, bytes):
+                sanitize_string_field(f, 'url')
+            return True
 
         # Filter out malformed formats for better extraction robustness
         formats = list(filter(is_wellformed, formats))
@@ -1467,7 +1502,7 @@ class YoutubeDL(object):
             sanitize_string_field(format, 'format_id')
             sanitize_numeric_fields(format)
             format['url'] = sanitize_url(format['url'])
-            if format.get('format_id') is None:
+            if not format.get('format_id'):
                 format['format_id'] = compat_str(i)
             else:
                 # Sanitize format_id from characters used in format selector expression
@@ -1520,14 +1555,10 @@ class YoutubeDL(object):
 
         req_format = self.params.get('format')
         if req_format is None:
-            req_format_list = []
-            if (self.params.get('outtmpl', DEFAULT_OUTTMPL) != '-' and
-                    not info_dict.get('is_live')):
-                merger = FFmpegMergerPP(self)
-                if merger.available and merger.can_merge():
-                    req_format_list.append('bestvideo+bestaudio')
-            req_format_list.append('best')
-            req_format = '/'.join(req_format_list)
+            req_format = self._default_format_spec(info_dict, download=download)
+            if self.params.get('verbose'):
+                self.to_stdout('[debug] Default format spec: %s' % req_format)
+
         format_selector = self.build_format_selector(req_format)
 
         # While in format selection we may need to have an access to the original

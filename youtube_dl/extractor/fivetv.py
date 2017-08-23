@@ -43,7 +43,7 @@ class FiveTVIE(InfoExtractor):
         'info_dict': {
             'id': 'glavnoe',
             'ext': 'mp4',
-            'title': 'Итоги недели с 8 по 14 июня 2015 года',
+            'title': r're:^Итоги недели с \d+ по \d+ \w+ \d{4} года$',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
@@ -70,7 +70,8 @@ class FiveTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"',
+            [r'<div[^>]+?class="flowplayer[^>]+?data-href="([^"]+)"',
+             r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"'],
             webpage, 'video url')
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(

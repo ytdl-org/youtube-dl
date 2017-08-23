@@ -49,7 +49,7 @@ class PeriscopeIE(PeriscopeBaseIE):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?periscope\.tv/(?:(?!\1).)+)\1', webpage)
+            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?(?:periscope|pscp)\.tv/(?:(?!\1).)+)\1', webpage)
         if mobj:
             return mobj.group('url')
 
@@ -80,18 +80,24 @@ class PeriscopeIE(PeriscopeBaseIE):
         stream = self._call_api(
             'getAccessPublic', {'broadcast_id': token}, token)
 
+        video_urls = set()
         formats = []
-        for format_id in ('replay', 'rtmp', 'hls', 'https_hls'):
+        for format_id in ('replay', 'rtmp', 'hls', 'https_hls', 'lhls', 'lhlsweb'):
             video_url = stream.get(format_id + '_url')
-            if not video_url:
+            if not video_url or video_url in video_urls:
                 continue
-            f = {
+            video_urls.add(video_url)
+            if format_id != 'rtmp':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, token, 'mp4',
+                    entry_protocol='m3u8_native'
+                    if state in ('ended', 'timed_out') else 'm3u8',
+                    m3u8_id=format_id, fatal=False))
+                continue
+            formats.append({
                 'url': video_url,
                 'ext': 'flv' if format_id == 'rtmp' else 'mp4',
-            }
-            if format_id != 'rtmp':
-                f['protocol'] = 'm3u8_native' if state in ('ended', 'timed_out') else 'm3u8'
-            formats.append(f)
+            })
         self._sort_formats(formats)
 
         return {

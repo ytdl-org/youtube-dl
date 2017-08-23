@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from .fragment import FragmentFD
 from ..compat import compat_urllib_error
+from ..utils import urljoin
 
 
 class DashSegmentsFD(FragmentFD):
@@ -12,12 +13,13 @@ class DashSegmentsFD(FragmentFD):
     FD_NAME = 'dashsegments'
 
     def real_download(self, filename, info_dict):
-        segments = info_dict['fragments'][:1] if self.params.get(
+        fragment_base_url = info_dict.get('fragment_base_url')
+        fragments = info_dict['fragments'][:1] if self.params.get(
             'test', False) else info_dict['fragments']
 
         ctx = {
             'filename': filename,
-            'total_frags': len(segments),
+            'total_frags': len(fragments),
         }
 
         self._prepare_and_start_frag_download(ctx)
@@ -26,7 +28,7 @@ class DashSegmentsFD(FragmentFD):
         skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
 
         frag_index = 0
-        for i, segment in enumerate(segments):
+        for i, fragment in enumerate(fragments):
             frag_index += 1
             if frag_index <= ctx['fragment_index']:
                 continue
@@ -36,7 +38,11 @@ class DashSegmentsFD(FragmentFD):
             count = 0
             while count <= fragment_retries:
                 try:
-                    success, frag_content = self._download_fragment(ctx, segment['url'], info_dict)
+                    fragment_url = fragment.get('url')
+                    if not fragment_url:
+                        assert fragment_base_url
+                        fragment_url = urljoin(fragment_base_url, fragment['path'])
+                    success, frag_content = self._download_fragment(ctx, fragment_url, info_dict)
                     if not success:
                         return False
                     self._append_fragment(ctx, frag_content)
