@@ -3,7 +3,7 @@
 $ youtube-dl -v <your command line>
 [debug] System config: []
 [debug] User config: []
-[debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
+[debug] Command-line args: [u'-v', u'https://www.youtube.com/watch?v=BaW_jenozKcj']
 [debug] Encodings: locale cp1251, fs mbcs, out cp866, pref cp1251
 [debug] youtube-dl version 2015.12.06
 [debug] Git HEAD: 135392e
@@ -34,7 +34,7 @@ For bug reports, this means that your report should contain the *complete* outpu
 
 If your server has multiple IPs or you suspect censorship, adding `--call-home` may be a good idea to get more diagnostics. If the error is `ERROR: Unable to extract ...` and you cannot reproduce it from multiple countries, add `--dump-pages` (warning: this will yield a rather large output, redirect it to the file `log.txt` by adding `>log.txt 2>&1` to your command-line) or upload the `.dump` files you get when you add `--write-pages` [somewhere](https://gist.github.com/).
 
-**Site support requests must contain an example URL**. An example URL is a URL you might want to download, like `http://www.youtube.com/watch?v=BaW_jenozKc`. There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. `http://www.youtube.com/`) is *not* an example URL.
+**Site support requests must contain an example URL**. An example URL is a URL you might want to download, like `https://www.youtube.com/watch?v=BaW_jenozKc`. There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. `https://www.youtube.com/`) is *not* an example URL.
 
 ###  Are you using the latest version?
 
@@ -70,7 +70,7 @@ It may sound strange, but some bug reports we receive are completely unrelated t
 
 # DEVELOPER INSTRUCTIONS
 
-Most users do not need to build youtube-dl and can [download the builds](http://rg3.github.io/youtube-dl/download.html) or get them from their distribution.
+Most users do not need to build youtube-dl and can [download the builds](https://rg3.github.io/youtube-dl/download.html) or get them from their distribution.
 
 To run youtube-dl as a developer, you don't need to build anything either. Simply execute
 
@@ -118,7 +118,7 @@ After you have ensured this site is distributing its content legally, you can fo
     class YourExtractorIE(InfoExtractor):
         _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
         _TEST = {
-            'url': 'http://yourextractor.com/watch/42',
+            'url': 'https://yourextractor.com/watch/42',
             'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
             'info_dict': {
                 'id': '42',
@@ -151,8 +151,8 @@ After you have ensured this site is distributing its content legally, you can fo
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
 7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L74-L252). Add tests and code for as many as you want.
-8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](http://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
-9. When the tests pass, [add](http://git-scm.com/docs/git-add) the new files and [commit](http://git-scm.com/docs/git-commit) them and [push](http://git-scm.com/docs/git-push) the result, like this:
+8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](https://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
+9. When the tests pass, [add](https://git-scm.com/docs/git-add) the new files and [commit](https://git-scm.com/docs/git-commit) them and [push](https://git-scm.com/docs/git-push) the result, like this:
 
         $ git add youtube_dl/extractor/extractors.py
         $ git add youtube_dl/extractor/yourextractor.py

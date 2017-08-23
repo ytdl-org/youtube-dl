@@ -363,6 +363,7 @@
  - **IPrima**
  - **iqiyi**: 爱奇艺
  - **Ir90Tv**
+ - **ITTF**
  - **ITV**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
@@ -419,6 +420,7 @@
  - **limelight:channel_list**
  - **LiTV**
  - **LiveLeak**
+ - **LiveLeakEmbed**
  - **livestream**
  - **livestream:original**
  - **LnkGo**

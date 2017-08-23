@@ -1,12 +1,23 @@
-version <unreleased>
+version 2017.08.23
 
 Core
++ [extractor/common] Introduce _parse_xml
+* [extractor/common] Make HLS and DASH extraction in_parse_html5_media_entries
+  non fatal (#13970)
 * [utils] Fix unescapeHTML for misformed string like "&a&quot;" (#13935)
 
 Extractors
+* [cbc:watch] Bypass geo restriction (#13993)
+* [toutv] Relax DRM check (#13994)
++ [googledrive] Add support for subtitles (#13619, #13638)
+* [pornhub] Relax uploader regular expression (#13906, #13975)
+* [bandcamp:album] Extract track titles (#13962)
++ [bbccouk] Add support for events URLs (#13893)
 + [liveleak] Support multi-video pages (#6542)
 + [liveleak] Support another liveleak embedding pattern (#13336)
 * [cda] Fix extraction (#13935)
++ [laola1tv] Add support for tv.ittf.com (#13965)
+* [mixcloud] Fix extraction (#13958, #13974, #13980, #14003)
 
 
 version 2017.08.18
@@ -129,7 +140,7 @@ Extractors
 * [youku:show] Fix playlist extraction (#13248)
 + [dispeak] Recognize sevt subdomain (#13276)
 * [adn] Improve error reporting (#13663)
-* [crunchyroll] Relax series and season regex (#13659)
+* [crunchyroll] Relax series and season regular expression (#13659)
 + [spiegel:article] Add support for nexx iframe embeds (#13029)
 + [nexx:embed] Add support for iframe embeds
 * [nexx] Improve JS embed extraction
