@@ -78,8 +78,10 @@ class TouTvIE(InfoExtractor):
     def _real_extract(self, url):
         path = self._match_id(url)
         metadata = self._download_json('http://ici.tou.tv/presentation/%s' % path, path)
+        # IsDrm does not necessarily mean the video is DRM protected (see
+        # https://github.com/rg3/youtube-dl/issues/13994).
         if metadata.get('IsDrm'):
-            raise ExtractorError('This video is DRM protected.', expected=True)
+            self.report_warning('This video is probably DRM protected.', path)
         video_id = metadata['IdMedia']
         details = metadata['Details']
         title = details['OriginalTitle']
