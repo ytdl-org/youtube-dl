@@ -146,21 +146,20 @@ class AcFunVideoIE(_AcFunBaseIE):
         api = 'http://player.acfun.cn/flash_data?vid={vid}&ct=85&ev=3&sign={sign}&time={time}'
         flash_data = self._download_json(
             api.format(vid=vid, sign=sign, time=int(time.time()*1000)),
-            video_id, note='Downloading video flash data: vid=%s' % vid,
-            headers={'Referer': ref})
+            video_id, note=False, headers={'Referer': ref})
         encrypted = base64.b64decode(flash_data['data'])
         decrypted = self._yk_t('8bdc7e1a', encrypted)
         return json.loads(decrypted.decode('utf8'))
 
-    def _acfun_video(self, video, url, title, video_id):
+    def _acfun_video(self, vid, url, title, video_id):
         info = self._download_json(
-            'http://www.acfun.cn/video/getVideo.aspx?id={}'.format(video[2:]),
-            video_id, note='Downloading video part info')
+            'http://www.acfun.cn/video/getVideo.aspx?id={}'.format(vid),
+            video_id, note='Downloading video part info: id=%s' % vid)
         if not info['success']:
             raise ExtractorError(info['result'], expected=True, video_id=video_id)
         sourceType = info['sourceType']
         if 'zhuzhan' == sourceType:
-            return self._acfun_video_zhuzhan(video, info, url, title, video_id)
+            return self._acfun_video_zhuzhan(vid, info, url, title, video_id)
         sourceId = info['sourceId']
         new_url = None
         if sourceType in ('youku', 'youku2'):
@@ -198,7 +197,7 @@ class AcFunVideoIE(_AcFunBaseIE):
             } for sidx, stream in enumerate(streams) if idx < segs_len[sidx]]
             seconds = streams[0]['segs'][idx]['seconds'] if same_len else None
             entries.append({
-                'id': '%s_seg%d' % (vid, idx),
+                'id': 'av%s_seg%d' % (vid, idx),
                 'title': title,
                 'formats': formats,
                 'duration': float_or_none(seconds),
@@ -214,7 +213,7 @@ class AcFunVideoIE(_AcFunBaseIE):
         parsed_url = compat_urllib_parse_urlparse(url)
         query = compat_parse_qs(parsed_url.query)
         title = query['title'][0] if 'title' in query else video_id
-        vid = 'av' + query['vid'][0]
+        vid = query['vid'][0]
         return self._acfun_video(vid, url, title, video_id)
 
 
