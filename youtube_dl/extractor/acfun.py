@@ -73,7 +73,7 @@ class AcFunVideoIE(_AcFunBaseIE):
     IE_DESC = False  # Do not list
     # NOTE: require query string, internal use only
     _VALID_URL = _ACFUN_HOST + r'/v/(?P<id>a[bc]\d+_\d+)\?(?P<query>.*)$'
-    # for document purpose
+    # note some urls for different sourceType
     _TESTS = [] and [{
         'url': 'http://www.acfun.cn/v/ab1470310_1',
         'note': 'sourceType: youku',
@@ -145,7 +145,7 @@ class AcFunVideoIE(_AcFunBaseIE):
     def _acfun_flash_data(self, vid, sign, ref, video_id):
         api = 'http://player.acfun.cn/flash_data?vid={vid}&ct=85&ev=3&sign={sign}&time={time}'
         flash_data = self._download_json(
-            api.format(vid=vid, sign=sign, time=int(time.time()*1000)),
+            api.format(vid=vid, sign=sign, time=int(time.time() * 1000)),
             video_id, note=False, headers={'Referer': ref})
         encrypted = base64.b64decode(flash_data['data'])
         decrypted = self._yk_t('8bdc7e1a', encrypted)
@@ -183,10 +183,6 @@ class AcFunVideoIE(_AcFunBaseIE):
         same_len = 1 == len(set(segs_len))
         entries = []
         for idx in range(max(segs_len)):
-            # no KeyError in formats
-            # 'segs': streams checked that
-            # idx: checked by segs_len
-            # ('url', 'size', etc...): api should return these, or the api fail
             formats = [{
                 'url': stream['segs'][idx]['url'],
                 'ext': 'mp4',
@@ -266,8 +262,9 @@ class _AcFunVideoListIE(_AcFunBaseIE):
         if video_idx is not None:
             return entries[video_idx - 1]
 
-        return self.playlist_result(entries,
-            video_id, videos_info['title'], self._get_desc(videos_info))
+        return self.playlist_result(
+            entries, video_id,
+            videos_info['title'], self._get_desc(videos_info))
 
 
 class AcFunIE(_AcFunVideoListIE):
@@ -331,8 +328,8 @@ class AcFunIE(_AcFunVideoListIE):
     }]
 
     def _acfun_video_info(self, video_id):
-        return self._acfun_api_v2(video_id,
-            'http://apipc.app.acfun.cn/v2/videos/' + video_id[2:],
+        return self._acfun_api_v2(
+            video_id, 'http://apipc.app.acfun.cn/v2/videos/' + video_id[2:],
             note='Downloading video info')
 
     def _real_extract(self, url):
@@ -383,15 +380,15 @@ class AcFunBangumiIE(_AcFunVideoListIE):
             'isWeb': 1,
             'order': 2,
         }
-        info = self._acfun_api_v0(bangumi_id,
-            'http://www.acfun.cn/bangumi/video/page',
+        info = self._acfun_api_v0(
+            bangumi_id, 'http://www.acfun.cn/bangumi/video/page',
             query=query,
             note='Downloading Bangumi video info, page=%d' % page)
         return info['list']
 
     def _acfun_bangumi_info(self, bangumi_id):
-        bangumi_info = self._acfun_api_v2(bangumi_id,
-            'http://apipc.app.acfun.cn/v2/bangumis/' + bangumi_id[2:],
+        bangumi_info = self._acfun_api_v2(
+            bangumi_id, 'http://apipc.app.acfun.cn/v2/bangumis/' + bangumi_id[2:],
             query={'page': '{num:%d,size:%d}' % (1, self._PAGE_SIZE)},
             note='Downloading Bangumi info')
         if 'tags' in bangumi_info:
@@ -418,7 +415,8 @@ class _AcFunListIE(_AcFunBaseIE):
         )
 
     def _acfun_list(self, videos_info, video_id, entries):
-        return self.playlist_result(entries, video_id,
+        return self.playlist_result(
+            entries, video_id,
             videos_info.get('title'), self._get_desc(videos_info))
 
 
@@ -444,16 +442,16 @@ class AcFunUserIE(_AcFunListIE):
             'userId': user_id,
             'type': 1,
         }
-        info = self._acfun_api_v0(user_id,
-            'http://api.app.acfun.cn/apiserver/user/contribution',
+        info = self._acfun_api_v0(
+            user_id, 'http://api.app.acfun.cn/apiserver/user/contribution',
             query=query,
             note='Downloading user videos info, page=%d' % page)
         for video in info['page']['list']:
             yield self._acfun_entry(video)
 
     def _acfun_user_info(self, user_id):
-        info = self._acfun_api_v0(user_id,
-            'http://api.app.acfun.cn/apiserver/profile',
+        info = self._acfun_api_v0(
+            user_id, 'http://api.app.acfun.cn/apiserver/profile',
             query={'userId': user_id},
             note='Downloading user info')
         return info['fullUser']
@@ -465,9 +463,9 @@ class AcFunUserIE(_AcFunListIE):
             functools.partial(self._acfun_user_video_page, user_id, self._PAGE_SIZE),
             self._PAGE_SIZE, use_cache=True)
         return self._acfun_list({
-                'title': user_info['username'],
-                'description': user_info['signature'],
-            }, user_id, paged)
+            'title': user_info['username'],
+            'description': user_info['signature'],
+        }, user_id, paged)
 
 
 class _AcFunAlbumIE(_AcFunListIE):
@@ -485,8 +483,8 @@ class _AcFunAlbumIE(_AcFunListIE):
             'groupId': group_id,
             'page': '{num:%d,size:%d}' % (page, pagesize),
         }
-        info = self._acfun_api_v1(album_id,
-            self._ACFUN_API_ALBUM + album_id[2:] + '/contents',
+        info = self._acfun_api_v1(
+            album_id, self._ACFUN_API_ALBUM + album_id[2:] + '/contents',
             query=query,
             note='Downloading Album group info, group=%d, page=%d' % (group_id, page))
         return info['list']
@@ -494,8 +492,8 @@ class _AcFunAlbumIE(_AcFunListIE):
     def _acfun_album_info(self, album_id):
         if album_id in self._ACFUN_ALBUM_CACHE:
             return self._ACFUN_ALBUM_CACHE[album_id]
-        album_info = self._acfun_api_v1(album_id,
-            self._ACFUN_API_ALBUM + album_id[2:],
+        album_info = self._acfun_api_v1(
+            album_id, self._ACFUN_API_ALBUM + album_id[2:],
             note='Downloading Album info')
         album_groups = []
         for group in album_info.pop('groups'):
@@ -572,5 +570,6 @@ class AcFunAlbumIE(_AcFunAlbumIE):
             ie=AcFunAlbumGroupIE.ie_key(),
             video_title='%s_%s' % (album_info.get('title'), group['groupName']),
         ) for idx, group in enumerate(album_info['groups'])]
-        return self.playlist_result(entries, album_id,
+        return self.playlist_result(
+            entries, album_id,
             album_info.get('title'), self._get_desc(album_info))
