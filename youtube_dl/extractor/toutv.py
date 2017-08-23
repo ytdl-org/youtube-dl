@@ -5,7 +5,6 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     js_to_json,
-    ExtractorError,
     urlencode_postdata,
     extract_attributes,
     smuggle_url,
