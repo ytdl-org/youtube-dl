@@ -116,7 +116,7 @@ class KakaoIE(InfoExtractor):
         # Parse upload date.
         upload_date = None
         try:
-            upload_date = datetime.datetime.strptime(clipLink['create_time'], '%Y-%m-%d %H:%M:%S')
+            upload_date = datetime.datetime.strptime(clipLink['createTime'], '%Y-%m-%d %H:%M:%S')
             upload_date = upload_date.strftime('%Y%m%d')
         except (ValueError, KeyError):
             pass
