@@ -1,6 +1,5 @@
 # coding: utf-8
 from __future__ import unicode_literals
-
 from .common import InfoExtractor
 import re
 
@@ -78,6 +77,14 @@ class XimalayaAlbumIE(XimalayaBaseIE):
 
     _VALID_URL = r'http://www\.ximalaya\.com/[0-9]+/album/(?P<id>[0-9]+)'
 
+    _TESTS = [{
+        'url': 'http://www.ximalaya.com/10936615/album/7651313',
+        'info_dict': {
+            'id': '7651313',
+            'title': '晓说2017',
+        },
+    }]
+
     def next_page(self, url):
         webpage = self._download_webpage(url, self._match_id(url))
 
@@ -114,7 +121,6 @@ class XimalayaAlbumIE(XimalayaBaseIE):
             webpage)
 
         # next page
-        # r'<a href="(.*)" data-page="[0-9]+" class="pagingBar_page" hashlink="" unencode="" rel="next">'
         next_page_url = self._search_regex(
             r'<a href=\'([0-9a-zA-Z\/?=/]+)\' data-page=\'[0-9]+\' class=\'pagingBar_page\' hashlink=\'\' unencode rel=\'next\'', webpage,
             'next page URL', default=None)
@@ -128,4 +134,4 @@ class XimalayaAlbumIE(XimalayaBaseIE):
         for track in entries:
             ret.append(self._extract_track(track))
 
-        return self.playlist_result(ret)
+        return self.playlist_result(ret, album_id, album_name)
