@@ -22,6 +22,7 @@ class KakaoIE(InfoExtractor):
             'title': '乃木坂46 バナナマン 「3期生紹介コーナーが始動！顔高低差GPも！」 『乃木坂工事中』',
             'uploader_id': 2671005,
             'uploader': '그랑그랑이',
+            'upload_date': '20170227'
         }
     }, {
         'url': 'http://tv.kakao.com/channel/2653210/cliplink/300103180',
@@ -33,6 +34,7 @@ class KakaoIE(InfoExtractor):
             'title': '러블리즈 - Destiny (나의 지구) (Lovelyz - Destiny)',
             'uploader_id': 2653210,
             'uploader': '쇼 음악중심',
+            'upload_date': '20170129'
         }
     }]
 
