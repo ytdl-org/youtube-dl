@@ -215,3 +215,21 @@ class Laola1TvIE(Laola1TvEmbedIE):
             'formats': formats,
             'is_live': is_live,
         }
+
+
+class ITTFIE(InfoExtractor):
+    _VALID_URL = r'https?://tv\.ittf\.com/video/[^/]+/(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://tv.ittf.com/video/peng-wang-wei-matsudaira-kenta/951802',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        return self.url_result(
+            update_url_query('https://www.laola1.tv/titanplayer.php', {
+                'videoid': self._match_id(url),
+                'type': 'V',
+                'lang': 'en',
+                'portal': 'int',
+                'customer': 1024,
+            }), Laola1TvEmbedIE.ie_key())

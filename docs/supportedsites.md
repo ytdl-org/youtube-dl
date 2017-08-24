@@ -155,8 +155,8 @@
  - **chirbit:profile**
  - **Cinchcast**
  - **CJSW**
- - **Clipfish**
  - **cliphunter**
+ - **Clippit**
  - **ClipRs**
  - **Clipsyndicate**
  - **CloserToTruth**
@@ -295,6 +295,7 @@
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
+ - **Fux**
  - **FXNetworks**
  - **GameInformer**
  - **GameOne**
@@ -362,6 +363,7 @@
  - **IPrima**
  - **iqiyi**: 爱奇艺
  - **Ir90Tv**
+ - **ITTF**
  - **ITV**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
@@ -418,6 +420,7 @@
  - **limelight:channel_list**
  - **LiTV**
  - **LiveLeak**
+ - **LiveLeakEmbed**
  - **livestream**
  - **livestream:original**
  - **LnkGo**
@@ -440,6 +443,7 @@
  - **Medialaan**
  - **Mediaset**
  - **Medici**
+ - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
  - **MelonVOD**
  - **META**
@@ -472,7 +476,6 @@
  - **MovieFap**
  - **Moviezine**
  - **MovingImage**
- - **MPORA**
  - **MSN**
  - **mtg**: MTG services
  - **mtv**
@@ -533,6 +536,7 @@
  - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
  - **nick.de**
+ - **nickelodeonru**
  - **nicknight**
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
@@ -621,6 +625,7 @@
  - **PolskieRadio**
  - **PolskieRadioCategory**
  - **PornCom**
+ - **PornerBros**
  - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
@@ -629,6 +634,7 @@
  - **Pornotube**
  - **PornoVoisines**
  - **PornoXO**
+ - **PornTube**
  - **PressTV**
  - **PrimeShareTV**
  - **PromptFile**
@@ -654,6 +660,8 @@
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
+ - **Reddit**
+ - **RedditR**
  - **RedTube**
  - **RegioTV**
  - **RENTV**
@@ -734,6 +742,7 @@
  - **soundcloud:playlist**
  - **soundcloud:search**: Soundcloud search
  - **soundcloud:set**
+ - **soundcloud:trackstation**
  - **soundcloud:user**
  - **soundgasm**
  - **soundgasm:profile**
@@ -781,7 +790,6 @@
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
  - **Teamcoco**
- - **TeamFourStar**
  - **TechTalks**
  - **techtv.mit.edu**
  - **ted**
@@ -951,6 +959,7 @@
  - **VODPl**
  - **VODPlatform**
  - **VoiceRepublic**
+ - **Voot**
  - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
@@ -968,6 +977,7 @@
  - **washingtonpost**
  - **washingtonpost:article**
  - **wat.tv**
+ - **WatchBox**
  - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**
  - **wdr:mobile**
@@ -1003,6 +1013,7 @@
  - **XVideos**
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
+ - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек

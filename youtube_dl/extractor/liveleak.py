@@ -72,15 +72,20 @@ class LiveLeakIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.liveleak.com/view?i=677_1439397581',
+        'info_dict': {
+            'id': '677_1439397581',
+            'title': 'Fuel Depot in China Explosion caught on video',
+        },
+        'playlist_count': 3,
     }]
 
     @staticmethod
-    def _extract_url(webpage):
-        mobj = re.search(
-            r'<iframe[^>]+src="https?://(?:\w+\.)?liveleak\.com/ll_embed\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)',
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src="(https?://(?:\w+\.)?liveleak\.com/ll_embed\?[^"]*[if]=[\w_]+[^"]+)"',
             webpage)
-        if mobj:
-            return 'http://www.liveleak.com/view?i=%s' % mobj.group('id')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -111,23 +116,54 @@ class LiveLeakIE(InfoExtractor):
                 'age_limit': age_limit,
             }
 
-        info_dict = entries[0]
+        for idx, info_dict in enumerate(entries):
+            for a_format in info_dict['formats']:
+                if not a_format.get('height'):
+                    a_format['height'] = int_or_none(self._search_regex(
+                        r'([0-9]+)p\.mp4', a_format['url'], 'height label',
+                        default=None))
 
-        for a_format in info_dict['formats']:
-            if not a_format.get('height'):
-                a_format['height'] = int_or_none(self._search_regex(
-                    r'([0-9]+)p\.mp4', a_format['url'], 'height label',
-                    default=None))
+            self._sort_formats(info_dict['formats'])
 
-        self._sort_formats(info_dict['formats'])
+            # Don't append entry ID for one-video pages to keep backward compatibility
+            if len(entries) > 1:
+                info_dict['id'] = '%s_%s' % (video_id, idx + 1)
+            else:
+                info_dict['id'] = video_id
 
-        info_dict.update({
-            'id': video_id,
-            'title': video_title,
-            'description': video_description,
-            'uploader': video_uploader,
-            'age_limit': age_limit,
-            'thumbnail': video_thumbnail,
-        })
+            info_dict.update({
+                'title': video_title,
+                'description': video_description,
+                'uploader': video_uploader,
+                'age_limit': age_limit,
+                'thumbnail': video_thumbnail,
+            })
 
-        return info_dict
+        return self.playlist_result(entries, video_id, video_title)
+
+
+class LiveLeakEmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?liveleak\.com/ll_embed\?.*?\b(?P<kind>[if])=(?P<id>[\w_]+)'
+
+    # See generic.py for actual test cases
+    _TESTS = [{
+        'url': 'https://www.liveleak.com/ll_embed?i=874_1459135191',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.liveleak.com/ll_embed?f=ab065df993c1',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        kind, video_id = mobj.group('kind', 'id')
+
+        if kind == 'f':
+            webpage = self._download_webpage(url, video_id)
+            liveleak_url = self._search_regex(
+                r'logourl\s*:\s*(?P<q1>[\'"])(?P<url>%s)(?P=q1)' % LiveLeakIE._VALID_URL,
+                webpage, 'LiveLeak URL', group='url')
+        elif kind == 'i':
+            liveleak_url = 'http://www.liveleak.com/view?i=%s' % video_id
+
+        return self.url_result(liveleak_url, ie=LiveLeakIE.ie_key())

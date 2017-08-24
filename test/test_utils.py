@@ -279,6 +279,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(unescapeHTML('&eacute;'), 'é')
         self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
+        self.assertEqual(unescapeHTML('&a&quot;'), '&a"')
         # HTML5 entities
         self.assertEqual(unescapeHTML('&period;&apos;'), '.\'')
 
@@ -1182,6 +1183,10 @@ part 3</font></u>
             cli_bool_option(
                 {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
             ['--check-certificate=true'])
+        self.assertEqual(
+            cli_bool_option(
+                {}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
+            [])
 
     def test_ohdave_rsa_encrypt(self):
         N = 0xab86b6371b5318aaa1d3c9e612a9f1264f372323c8c0f19875b5fc3b3fd3afcc1e5bec527aa94bfa85bffc157e4245aebda05389a5357b75115ac94f074aefcd
