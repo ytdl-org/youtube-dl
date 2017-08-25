@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    compat_str,
+    unified_timestamp,
 )
-import datetime
 
 
 class KakaoIE(InfoExtractor):
@@ -22,7 +23,8 @@ class KakaoIE(InfoExtractor):
             'title': '乃木坂46 バナナマン 「3期生紹介コーナーが始動！顔高低差GPも！」 『乃木坂工事中』',
             'uploader_id': 2671005,
             'uploader': '그랑그랑이',
-            'upload_date': '20170227'
+            'timestamp': 1488160199,
+            'upload_date': '20170227',
         }
     }, {
         'url': 'http://tv.kakao.com/channel/2653210/cliplink/300103180',
@@ -34,7 +36,8 @@ class KakaoIE(InfoExtractor):
             'title': '러블리즈 - Destiny (나의 지구) (Lovelyz - Destiny)',
             'uploader_id': 2653210,
             'uploader': '쇼 음악중심',
-            'upload_date': '20170129'
+            'timestamp': 1485684628,
+            'upload_date': '20170129',
         }
     }]
 
@@ -62,7 +65,7 @@ class KakaoIE(InfoExtractor):
 
         clipLink = impress['clipLink']
 
-        # Now we request Raw, which contains infos about video files.
+        # Raw contains informations regarding downloading video files.
         tid = impress.get('tid', '')
         raw = self._download_json(
             'http://tv.kakao.com/api/v1/ft/cliplinks/%s/raw' % video_id,
@@ -76,52 +79,51 @@ class KakaoIE(InfoExtractor):
                 'tid': tid,
                 'profile': 'HIGH',
                 'dteType': 'PC',
-            }, headers=player_header)
+            }, headers=player_header, fatal=False)
 
         formats = []
-        for fmt in raw['outputList']:
-            profile_name = fmt['profile']
-            # The following request is called when user changes the video quality.
-            # We simulate it here.
-            fmt_url_json = self._download_json(
-                'http://tv.kakao.com/api/v1/ft/cliplinks/%s/raw/videolocation' % video_id,
-                video_id, 'Downloading video URL for profile %s' % profile_name,
-                query={
-                    'service': 'kakao_tv',
-                    'section': '',
-                    'tid': tid,
-                    'profile': profile_name
-                }, headers=player_header)
-            fmt_url = fmt_url_json['url']
+        for fmt in raw.get('outputList', []):
+            try:
+                profile_name = fmt['profile']
+                # The following request is called when user changes the video quality.
+                # We simulate it here.
+                fmt_url_json = self._download_json(
+                    'http://tv.kakao.com/api/v1/ft/cliplinks/%s/raw/videolocation' % video_id,
+                    video_id, 'Downloading video URL for profile %s' % profile_name,
+                    query={
+                        'service': 'kakao_tv',
+                        'section': '',
+                        'tid': tid,
+                        'profile': profile_name
+                    }, headers=player_header, fatal=False)
+                fmt_url = fmt_url_json['url']
 
-            formats.append({
-                'url': fmt_url,
-                'format_id': profile_name,
-                'width': int_or_none(fmt.get('width')),
-                'height': int_or_none(fmt.get('height')),
-                'format_note': fmt.get('label', None),
-                'filesize': int_or_none(fmt.get('filesize'))
-            })
+                formats.append({
+                    'url': fmt_url,
+                    'format_id': profile_name,
+                    'width': int_or_none(fmt.get('width')),
+                    'height': int_or_none(fmt.get('height')),
+                    'format_note': fmt.get('label'),
+                    'filesize': int_or_none(fmt.get('filesize'))
+                })
+            except KeyError:
+                pass
 
         self._sort_formats(formats)
 
         clip = clipLink['clip']
         # Parse thumbnails.
-        top_thumbnail = clip.get('thumbnailUrl', None)
+        top_thumbnail = clip.get('thumbnailUrl')
         thumbs = []
         for thumb in clip.get('clipChapterThumbnailList', []):
             thumbs.append({
-                'url': thumb['thumbnailUrl'],
-                'id': str(thumb['timeInSec']),
-                'preference': -1 if thumb['isDefault'] else 0
+                'url': thumb.get('thumbnailUrl'),
+                'id': compat_str(thumb.get('timeInSec')),
+                'preference': -1 if thumb.get('isDefault') else 0
             })
+
         # Parse upload date.
-        upload_date = None
-        try:
-            upload_date = datetime.datetime.strptime(clipLink['createTime'], '%Y-%m-%d %H:%M:%S')
-            upload_date = upload_date.strftime('%Y%m%d')
-        except (ValueError, KeyError):
-            pass
+        upload_date = unified_timestamp(clipLink.get('createTime'))
 
         return {
             'id': video_id,
@@ -130,8 +132,8 @@ class KakaoIE(InfoExtractor):
             'thumbnail': top_thumbnail,
             'thumbnails': thumbs,
             'description': clip.get('description'),
-            'uploader': clipLink['channel'].get('name'),
-            'upload_date': upload_date,
+            'uploader': clipLink.get('channel', {}).get('name'),
+            'timestamp': upload_date,
             'uploader_id': clipLink.get('channelId'),
             'duration': int_or_none(clip.get('duration')),
             'view_count': int_or_none(clip.get('playCount')),
