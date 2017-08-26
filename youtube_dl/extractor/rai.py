@@ -345,11 +345,11 @@ class RaiIE(RaiBaseIE):
         media_type = media['type']
         if 'Audio' in media_type:
             relinker_info = {
-                'formats': {
+                'formats': [{
                     'format_id': media.get('formatoAudio'),
                     'url': media['audioUrl'],
                     'ext': media.get('formatoAudio'),
-                }
+                }]
             }
         elif 'Video' in media_type:
             relinker_info = self._extract_relinker_info(media['mediaUri'], content_id)
