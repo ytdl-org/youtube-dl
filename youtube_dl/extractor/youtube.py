@@ -1621,7 +1621,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
 
         if view_count is None:
-            view_count = extract_view_count(get_video_info)
+            view_count = extract_view_count(video_info)
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
