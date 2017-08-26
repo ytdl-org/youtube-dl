@@ -304,11 +304,11 @@ class FileDownloader(object):
         """Report attempt to resume at given byte."""
         self.to_screen('[download] Resuming download at byte %s' % resume_len)
 
-    def report_retry(self, count, retries):
+    def report_retry(self, err, count, retries):
         """Report retry in case of HTTP error 5xx"""
         self.to_screen(
-            '[download] Got server HTTP error. Retrying (attempt %d of %s)...'
-            % (count, self.format_retries(retries)))
+            '[download] Got server HTTP error: %s. Retrying (attempt %d of %s)...'
+            % (error_to_compat_str(err), count, self.format_retries(retries)))
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""
