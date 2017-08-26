@@ -1,3 +1,10 @@
+version <unreleased>
+
+Extractors
+
+* [youtube] Fix extraction with --youtube-skip-dash-manifest enabled (#14037)
+
+
 version 2017.08.27
 
 Core
