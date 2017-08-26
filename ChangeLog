@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.08.27
 
 Core
 + [extractor/common] Extract height and format id for HTML5 videos (#14034)
