@@ -13,7 +13,18 @@ from ..utils import (
 
 
 class GoogleDriveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)|video\.google\.com/get_player\?.*?docid=)(?P<id>[a-zA-Z0-9_-]{28,})'
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:
+                                (?:docs|drive)\.google\.com/
+                                (?:
+                                    (?:uc|open)\?.*?id=|
+                                    file/d/
+                                )|
+                                video\.google\.com/get_player\?.*?docid=
+                            )
+                            (?P<id>[a-zA-Z0-9_-]{28,})
+                    '''
     _TESTS = [{
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
         'md5': '5c602afbbf2c1db91831f5d82f678554',
@@ -42,7 +53,13 @@ class GoogleDriveIE(InfoExtractor):
             'title': 'Andreea Banica feat Smiley - Hooky Song (Official Video).mp4',
             'duration': 189,
         },
-        'only_matching': True
+        'only_matching': True,
+    }, {
+        'url': 'https://drive.google.com/open?id=0B2fjwgkl1A_CX083Tkowdmt6d28',
+        'only_matching': True,
+    }, {
+        'url': 'https://drive.google.com/uc?id=0B2fjwgkl1A_CX083Tkowdmt6d28',
+        'only_matching': True,
     }]
     _FORMATS_EXT = {
         '5': 'flv',
