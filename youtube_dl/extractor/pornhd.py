@@ -54,7 +54,7 @@ class PornHdIE(InfoExtractor):
              r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
 
         sources = self._parse_json(js_to_json(self._search_regex(
-            r"(?s)sources'?\s*:\s*(\{.+?\})\s*\}[;,)]",
+            r"(?s)sources'?\s*[:=]\s*(\{.+?\})",
             webpage, 'sources', default='{}')), video_id)
 
         if not sources:
@@ -82,7 +82,8 @@ class PornHdIE(InfoExtractor):
         view_count = int_or_none(self._html_search_regex(
             r'(\d+) views\s*<', webpage, 'view count', fatal=False))
         thumbnail = self._search_regex(
-            r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
+            r"poster'?\s*:\s*([\"'])(?P<url>(?:(?!\1).)+)\1", webpage,
+            'thumbnail', fatal=False, group='url')
 
         return {
             'id': video_id,
