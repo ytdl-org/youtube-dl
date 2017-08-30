@@ -77,7 +77,10 @@ class BandcampIE(InfoExtractor):
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
         json_code = m_trackinfo.group(1) if m_trackinfo else None
-        data = json.loads(json_code)[0] if json_code else None
+        try:
+            data = json.loads(json_code)[0] if json_code else None
+        except ValueError:
+            data = None
 
         match = re.search(r'album_title\s*:\s*"([^"]+)"', webpage)
         album_title = match.group(1) if match else None
@@ -89,8 +92,11 @@ class BandcampIE(InfoExtractor):
         release_date = unified_strdate(match.group(1)) if match else None
         release_year = int(release_date[0:4]) if release_date else None
 
-        track = data['title'] if data else None
+        track = data.get('title') if data else None
         title = '%s - %s' % (artist, track) if artist else track
+
+        track_number = data.get('track_num') if data else None
+        duration = float_or_none(data.get('duration'))
 
         if not m_download:
             if data:
@@ -119,14 +125,14 @@ class BandcampIE(InfoExtractor):
                     'uploader': artist,
                     'artist': artist,
                     'track_id': track_id,
-                    'track_number': data.get('track_num'),
+                    'track_number': track_number,
                     'release_date': release_date,
                     'release_year': release_year,
                     'track': track,
                     'title': title,
                     'thumbnail': thumbnail,
                     'formats': formats,
-                    'duration': float_or_none(data.get('duration')),
+                    'duration': duration,
                 }
             else:
                 raise ExtractorError('No free songs found')
@@ -192,7 +198,7 @@ class BandcampIE(InfoExtractor):
             'uploader': artist,
             'artist': artist,
             'track_id': video_id,
-            'track_number': data.get('track_num'),
+            'track_number': track_number,
             'release_date': release_date,
             'release_year': release_year,
             'track': track,
@@ -200,6 +206,7 @@ class BandcampIE(InfoExtractor):
             'thumbnail': digital_items.get('thumb_url') or thumbnail,
             'track': track,
             'formats': formats,
+            'duration': duration,
         }
 
 
