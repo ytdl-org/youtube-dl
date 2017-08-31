@@ -266,14 +266,21 @@ class VidmeUserIE(VidmeListBaseIE):
     _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})(?!/likes)(?:[^\da-zA-Z]|$)'
     _API_ITEM = 'list'
     _TITLE = 'Videos'
-    _TEST = {
-        'url': 'https://vid.me/EFARCHIVE',
+    _TESTS = [{
+        'url': 'https://vid.me/MasakoX',
         'info_dict': {
-            'id': '3834632',
-            'title': 'EFARCHIVE - %s' % _TITLE,
+            'id': '16112341',
+            'title': 'MasakoX - %s' % _TITLE,
         },
-        'playlist_mincount': 238,
-    }
+        'playlist_mincount': 191,
+    }, {
+        'url': 'https://vid.me/unsQuare_netWork',
+        'info_dict': {
+            'id': '16148757',
+            'title': 'unsQuare_netWork - %s' % _TITLE,
+        },
+        'playlist_mincount': 73,
+    }]
 
 
 class VidmeUserLikesIE(VidmeListBaseIE):
@@ -281,11 +288,18 @@ class VidmeUserLikesIE(VidmeListBaseIE):
     _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})/likes'
     _API_ITEM = 'likes'
     _TITLE = 'Likes'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vid.me/ErinAlexis/likes',
         'info_dict': {
             'id': '6483530',
             'title': 'ErinAlexis - %s' % _TITLE,
         },
         'playlist_mincount': 415,
-    }
+    }, {
+        'url': 'https://vid.me/Kaleidoscope-Ish/likes',
+        'info_dict': {
+            'id': '16908594',
+            'title': 'Kaleidoscope-Ish - %s' % _TITLE,
+        },
+        'playlist_mincount': 43,
+    }]
