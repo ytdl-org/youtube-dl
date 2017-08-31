@@ -58,7 +58,7 @@ class HeiseIE(InfoExtractor):
 
         # Find embedded youtube videos
         yt_videos = re.findall(
-            r'<iframe class="yt_video" width="[0-9]+" height="[0-9]+" src="//(.+?)"', # noqa
+            r'<iframe[^>]+class="yt_video"[^>]+src="//([^"]+)', 
             webpage)
         if yt_videos:
             return self.playlist_from_matches(yt_videos, title, 'Youtube')
