@@ -1,3 +1,16 @@
+version 2017.09.02
+
+Extractors
+* [youtube] Force old layout for each webpage (#14068, #14072, #14074, #14076,
+  #14077, #14079, #14082, #14083, #14094, #14095, #14096)
+* [youtube] Fix upload date extraction (#14065)
++ [charlierose] Add support for episodes (#14062)
++ [bbccouk] Add support for w-prefixed ids (#14056)
+* [googledrive] Extend URL regular expression (#9785)
++ [googledrive] Add support for source format (#14046)
+* [pornhd] Fix extraction (#14005)
+
+
 version 2017.08.27.1
 
 Extractors

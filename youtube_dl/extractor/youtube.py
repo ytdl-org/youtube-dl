@@ -16,6 +16,7 @@ from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
+    compat_kwargs,
     compat_parse_qs,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
@@ -244,6 +245,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return False
 
         return True
+
+    def _download_webpage(self, *args, **kwargs):
+        kwargs.setdefault('query', {})['disable_polymer'] = 'true'
+        return super(YoutubeBaseInfoExtractor, self)._download_webpage(
+            *args, **compat_kwargs(kwargs))
 
     def _real_initialize(self):
         if self._downloader is None:
@@ -1665,10 +1671,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if not upload_date:
             upload_date = self._search_regex(
                 [r'(?s)id="eow-date.*?>(.*?)</span>',
-                 r'id="watch-uploader-info".*?>.*?(?:Published|Uploaded|Streamed live|Started) on (.+?)</strong>'],
+                 r'(?:id="watch-uploader-info".*?>.*?|["\']simpleText["\']\s*:\s*["\'])(?:Published|Uploaded|Streamed live|Started) on (.+?)[<"\']'],
                 video_webpage, 'upload date', default=None)
-            if upload_date:
-                upload_date = ' '.join(re.sub(r'[/,-]', r' ', mobj.group(1)).split())
         upload_date = unified_strdate(upload_date)
 
         video_license = self._html_search_regex(
@@ -2054,7 +2058,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                      |
                         (%(playlist_id)s)
                      )""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
-    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s&disable_polymer=true'
+    _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
     _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)(?:[^>]+>(?P<title>[^<]+))?'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
