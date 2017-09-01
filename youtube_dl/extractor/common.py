@@ -27,6 +27,7 @@ from ..compat import (
     compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
+    compat_xml_parse_error,
 )
 from ..downloader.f4m import remove_encrypted_media
 from ..utils import (
@@ -646,15 +647,29 @@ class InfoExtractor(object):
 
     def _download_xml(self, url_or_request, video_id,
                       note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True, encoding=None, data=None, headers={}, query={}):
+                      transform_source=None, fatal=True, encoding=None,
+                      data=None, headers={}, query={}):
         """Return the xml as an xml.etree.ElementTree.Element"""
         xml_string = self._download_webpage(
-            url_or_request, video_id, note, errnote, fatal=fatal, encoding=encoding, data=data, headers=headers, query=query)
+            url_or_request, video_id, note, errnote, fatal=fatal,
+            encoding=encoding, data=data, headers=headers, query=query)
         if xml_string is False:
             return xml_string
+        return self._parse_xml(
+            xml_string, video_id, transform_source=transform_source,
+            fatal=fatal)
+
+    def _parse_xml(self, xml_string, video_id, transform_source=None, fatal=True):
         if transform_source:
             xml_string = transform_source(xml_string)
-        return compat_etree_fromstring(xml_string.encode('utf-8'))
+        try:
+            return compat_etree_fromstring(xml_string.encode('utf-8'))
+        except compat_xml_parse_error as ve:
+            errmsg = '%s: Failed to parse XML ' % video_id
+            if fatal:
+                raise ExtractorError(errmsg, cause=ve)
+            else:
+                self.report_warning(errmsg + str(ve))
 
     def _download_json(self, url_or_request, video_id,
                        note='Downloading JSON metadata',
@@ -2123,11 +2138,11 @@ class InfoExtractor(object):
                 formats = self._extract_m3u8_formats(
                     full_url, video_id, ext='mp4',
                     entry_protocol=m3u8_entry_protocol, m3u8_id=m3u8_id,
-                    preference=preference)
+                    preference=preference, fatal=False)
             elif ext == 'mpd':
                 is_plain_url = False
                 formats = self._extract_mpd_formats(
-                    full_url, video_id, mpd_id=mpd_id)
+                    full_url, video_id, mpd_id=mpd_id, fatal=False)
             else:
                 is_plain_url = True
                 formats = [{
@@ -2169,6 +2184,12 @@ class InfoExtractor(object):
                     f = parse_content_type(source_attributes.get('type'))
                     is_plain_url, formats = _media_formats(src, media_type, f)
                     if is_plain_url:
+                        # res attribute is not standard but seen several times
+                        # in the wild
+                        f.update({
+                            'height': int_or_none(source_attributes.get('res')),
+                            'format_id': source_attributes.get('label'),
+                        })
                         f.update(formats[0])
                         media_info['formats'].append(f)
                     else:

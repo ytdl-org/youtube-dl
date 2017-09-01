@@ -1,3 +1,52 @@
+version 2017.08.27.1
+
+Extractors
+
+* [youtube] Fix extraction with --youtube-skip-dash-manifest enabled (#14037)
+
+
+version 2017.08.27
+
+Core
++ [extractor/common] Extract height and format id for HTML5 videos (#14034)
+* [downloader/http] Rework HTTP downloader (#506, #809, #2849, #4240, #6023,
+  #8625, #9483)
+    * Simplify code and split into separate routines to facilitate maintaining
+    * Make retry mechanism work on errors during actual download not only
+      during connection establishment phase
+    * Retry on ECONNRESET and ETIMEDOUT during reading data from network
+    * Retry on content too short
+    * Show error description on retry
+
+Extractors
+* [generic] Lower preference for extraction from LD-JSON
+* [rai] Fix audio formats extraction (#14024)
+* [youtube] Fix controversy videos extraction (#14027, #14029)
+* [mixcloud] Fix extraction (#14015, #14020)
+
+
+version 2017.08.23
+
+Core
++ [extractor/common] Introduce _parse_xml
+* [extractor/common] Make HLS and DASH extraction in_parse_html5_media_entries
+  non fatal (#13970)
+* [utils] Fix unescapeHTML for misformed string like "&a&quot;" (#13935)
+
+Extractors
+* [cbc:watch] Bypass geo restriction (#13993)
+* [toutv] Relax DRM check (#13994)
++ [googledrive] Add support for subtitles (#13619, #13638)
+* [pornhub] Relax uploader regular expression (#13906, #13975)
+* [bandcamp:album] Extract track titles (#13962)
++ [bbccouk] Add support for events URLs (#13893)
++ [liveleak] Support multi-video pages (#6542)
++ [liveleak] Support another liveleak embedding pattern (#13336)
+* [cda] Fix extraction (#13935)
++ [laola1tv] Add support for tv.ittf.com (#13965)
+* [mixcloud] Fix extraction (#13958, #13974, #13980, #14003)
+
+
 version 2017.08.18
 
 Core
@@ -118,7 +167,7 @@ Extractors
 * [youku:show] Fix playlist extraction (#13248)
 + [dispeak] Recognize sevt subdomain (#13276)
 * [adn] Improve error reporting (#13663)
-* [crunchyroll] Relax series and season regex (#13659)
+* [crunchyroll] Relax series and season regular expression (#13659)
 + [spiegel:article] Add support for nexx iframe embeds (#13029)
 + [nexx:embed] Add support for iframe embeds
 * [nexx] Improve JS embed extraction

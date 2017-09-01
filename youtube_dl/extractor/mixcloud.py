@@ -92,7 +92,7 @@ class MixcloudIE(InfoExtractor):
                 js = self._download_webpage(js_url, track_id, fatal=False)
                 if js:
                     KEY_RE_TEMPLATE = r'player\s*:\s*{.*?\b%s\s*:\s*(["\'])(?P<key>(?:(?!\1).)+)\1'
-                    for key_name in ('value', 'key_value'):
+                    for key_name in ('value', 'key_value', 'key_value.*?', '.*?value.*?'):
                         key = self._search_regex(
                             KEY_RE_TEMPLATE % key_name, js, 'key',
                             default=None, group='key')
