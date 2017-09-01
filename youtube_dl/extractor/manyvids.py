@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 
+
 class ManyVidsIE(InfoExtractor):
     _VALID_URL = r'https?://www.manyvids\.com/Video/(?P<id>[0-9]+)'
     _TEST = {
@@ -24,8 +25,7 @@ class ManyVidsIE(InfoExtractor):
         video_url = compat_urllib_parse_unquote(self._search_regex(
             r'data-video-filepath=\"(.+?)\"', webpage, 'video URL', default=''))
 
-        title = self._html_search_regex(r'<h2 class="m-a-0" title=\"(.+?)\">',
-                                              webpage, 'title')
+        title = self._html_search_regex(r'<h2[^>]+class="m-a-0"[^>]*>([^<]+)', webpage, 'title')
         formats.append({
             'url': video_url
         })
@@ -33,5 +33,4 @@ class ManyVidsIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'formats': formats,
-
         }
