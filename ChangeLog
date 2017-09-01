@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.09.02
 
 Extractors
 * [youtube] Force old layout for each webpage (#14068, #14072, #14074, #14076,
