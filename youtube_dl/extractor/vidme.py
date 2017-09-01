@@ -263,7 +263,7 @@ class VidmeListBaseIE(InfoExtractor):
 
 class VidmeUserIE(VidmeListBaseIE):
     IE_NAME = 'vidme:user'
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})(?!/likes)(?:[^\da-zA-Z]|$)'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})(?!/likes)(?:[^\da-zA-Z_-]|$)'
     _API_ITEM = 'list'
     _TITLE = 'Videos'
     _TESTS = [{
