@@ -1296,6 +1296,12 @@ from .xiami import (
     XiamiArtistIE,
     XiamiCollectionIE
 )
+
+from .ximalaya import (
+    XimalayaSongIE,
+    XimalayaAlbumIE
+)
+
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE
