@@ -59,6 +59,7 @@ class RadioCanadaIE(InfoExtractor):
             device_types.append('android')
 
         formats = []
+        error = None
         # TODO: extract f4m formats
         # f4m formats can be extracted using flashhd device_type but they produce unplayable file
         for device_type in device_types:
@@ -84,8 +85,8 @@ class RadioCanadaIE(InfoExtractor):
             if not v_url:
                 continue
             if v_url == 'null':
-                raise ExtractorError('%s said: %s' % (
-                    self.IE_NAME, xpath_text(v_data, 'message')), expected=True)
+                error = xpath_text(v_data, 'message')
+                continue
             ext = determine_ext(v_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
@@ -129,6 +130,9 @@ class RadioCanadaIE(InfoExtractor):
                             formats.extend(self._extract_f4m_formats(
                                 base_url + '/manifest.f4m', video_id,
                                 f4m_id='hds', fatal=False))
+        if not formats and error:
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, error), expected=True)
         self._sort_formats(formats)
 
         subtitles = {}
