@@ -33,13 +33,13 @@ class BpbIE(InfoExtractor):
         title = self._html_search_regex(
             r'<h2 class="white">(.*?)</h2>', webpage, 'title')
         video_info_dicts = re.findall(
-            r"({\s*src:\s*'http://film\.bpb\.de/[^}]+})", webpage)
+            r"({\s*src\s*:\s*'https://film\.bpb\.de/[^}]+})", webpage)
 
         formats = []
         for video_info in video_info_dicts:
             video_info = self._parse_json(video_info, video_id, transform_source=js_to_json)
-            quality = video_info['quality']
             video_url = video_info['src']
+            quality = 'high' if re.search(r'_high\.', video_url) else 'low'
             formats.append({
                 'url': video_url,
                 'preference': 10 if quality == 'high' else 0,
