@@ -9,6 +9,8 @@ from ..utils import (
     xpath_text,
 )
 
+import re
+
 
 class HeiseIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
@@ -40,18 +42,23 @@ class HeiseIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
+        title = self._html_search_meta('fulltitle', webpage, default=None)
+        if not title or title == "c't":
+            title = self._search_regex(
+                    r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
+                    webpage, 'title')
+
+        yt_videos = re.findall(
+                r'<iframe[^>]+class="yt_video"[^>]+src="//([^"]+)', webpage)
+        if yt_videos:
+            return self.playlist_from_matches(yt_videos, title, 'Youtube')
+                    
         container_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-container="([0-9]+)"',
             webpage, 'container ID')
         sequenz_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-sequenz="([0-9]+)"',
             webpage, 'sequenz ID')
-
-        title = self._html_search_meta('fulltitle', webpage, default=None)
-        if not title or title == "c't":
-            title = self._search_regex(
-                r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
-                webpage, 'title')
 
         doc = self._download_xml(
             'http://www.heise.de/videout/feed', video_id, query={
