@@ -17,19 +17,61 @@ class BlenderCloudBaseIE(InfoExtractor):
     # https://store.blender.org/product/membership/
     #
     # For now - ignore any subscriber-only videos and just grab the public ones.
-    warning_subscribers_only = 'Only available to Blender Cloud subscribers.'
-    warning_no_video_sources = 'No video sources available.'
+
+    def notify_for(self, node_id, notify_type):
+        notify_message = None
+        if notify_type == 'subscribers_only':
+            notify_message = 'Only available to Blender Cloud subscribers.'
+        elif notify_type == 'no_video_sources_available':
+            notify_message = 'No video sources available.'
+        else:
+            return None
+        self.report_warning('%s - %s' % (node_id, notify_message))
 
     def get_node_title(self, source):
-        node_title = None
-        node_title = self._html_search_regex(
-            r'<div\s*id=\"node-title\"\s*class=\"node-title\">(.*?)</div>', source, 'title').strip()
-        return node_title
+        return self._html_search_regex(
+            r'<div\s*class=\"node-title\"\s*id=\"node-title\">(.*?)</div>', source, 'title').strip()
+
+    def get_video_single(self, node_id, source):
+        video_title = None
+        video_formats = []
+        if self.is_video(source, 'subscribers_only'):
+            self.notify_for(node_id, 'subscribers_only')
+        else:
+            video_title = self.get_node_title(source)
+            video_formats = self.get_video_formats(source)
+            self._sort_formats(video_formats)
+        return video_title, video_formats
+
+    def get_video_playlist(self, display_id, source):
+        entries = []
+        for node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*title=\"', source):
+            webpage_node = self._download_webpage(self.url_node % node_id, node_id)
+            if self.is_video(webpage_node, 'single'):
+                title, formats = self.get_video_single(node_id, webpage_node)
+                if title is not None:
+                    entries.append({
+                        'id': node_id,
+                        'display_id': display_id,
+                        'title': title,
+                        'formats': formats,
+                    })
+            else:
+                self.notify_for(node_id, 'no_video_sources_available')
+        return entries
 
     @staticmethod
-    def is_video_subscriber_only(source):
-        errmsg_subscribers_only = 'Only available to Blender Cloud subscribers.'
-        return True if errmsg_subscribers_only in source else False
+    def is_video(source, check_for):
+        tag = None
+        if check_for == 'subscribers_only':
+            tag = 'Only available to Blender Cloud subscribers.'
+        elif check_for == 'single':
+            tag = '<section class="node-preview video">'
+        elif check_for == 'playlist':
+            tag = '<section class="node-preview group">'
+        else:
+            return False
+        return True if tag in source else False
 
     @staticmethod
     def get_video_formats(source):
@@ -47,7 +89,7 @@ class BlenderCloudBaseIE(InfoExtractor):
 
 
 class BlenderCloudIE(BlenderCloudBaseIE):
-    _VALID_URL = r'https?://cloud\.blender\.org/[^/]+/(?P<display_id>[0-9a-z-]+)/(?P<base_node_id>[0-9a-z]+)/?'
+    _VALID_URL = r'https?://cloud\.blender\.org/[^/]+/(?P<display_id>[0-9a-z-]+)/(?P<node_id>[0-9a-z]+)/?'
     _TESTS = [
         {
             # Single video
@@ -125,57 +167,27 @@ class BlenderCloudIE(BlenderCloudBaseIE):
     ]
 
     def _real_extract(self, url):
-        # extract a single video -or- a playlist of subsection videos
+        # extract a single video, or a playlist of subsection videos
         mobj = re.match(self._VALID_URL, url)
-        base_node_id = mobj.group('base_node_id')
+        node_id = mobj.group('node_id')
         display_id = mobj.group('display_id')
-        webpage = self._download_webpage(self.url_node % base_node_id, base_node_id)
-
-        if '<section class="node-preview video">' in webpage:
-            # this base node references a single video (i.e. a single node)
-            title = None
-            formats = []
-            if self.is_video_subscriber_only(webpage):
-                self.report_warning('%s - %s' % (base_node_id, self.warning_subscribers_only))
-            else:
-                title = self.get_node_title(webpage)
-                formats = self.get_video_formats(webpage)
-                self._sort_formats(formats)
-            return {
-                'id': base_node_id,
-                'display_id': display_id,
-                'title': title,
-                'formats': formats,
-            }
-        elif '<section class="node-preview group">' in webpage:
-            # this base node references a playlist of subsection videos (i.e. multiple nodes)
-            entries = []
-            for node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*title=\"', webpage):
-                webpage_node = self._download_webpage(self.url_node % node_id, node_id)
-                if '<section class="node-preview video">' in webpage_node:
-                    if self.is_video_subscriber_only(webpage_node):
-                        self.report_warning('%s - %s' % (node_id, self.warning_subscribers_only))
-                    else:
-                        title = self.get_node_title(webpage_node)
-                        formats = self.get_video_formats(webpage_node)
-                        self._sort_formats(formats)
-                        entries.append({
-                            'id': node_id,
-                            'display_id': display_id,
-                            'title': title,
-                            'formats': formats,
-                        })
-                else:
-                    self.report_warning('%s - %s' % (node_id, self.warning_no_video_sources))
-            return self.playlist_result(entries, playlist_id=base_node_id, playlist_title=self.get_node_title(webpage))
+        webpage = self._download_webpage(self.url_node % node_id, node_id)
+        title = None
+        formats = []
+        if self.is_video(webpage, 'single'):
+            title, formats = self.get_video_single(node_id, webpage)
+        elif self.is_video(webpage, 'playlist'):
+            entries = self.get_video_playlist(display_id, webpage)
+            return self.playlist_result(
+                entries, playlist_id=node_id, playlist_title=self.get_node_title(webpage))
         else:
-            self.report_warning('%s - %s' % (base_node_id, self.warning_no_video_sources))
-            return {
-                'id': base_node_id,
-                'display_id': display_id,
-                'title': None,
-                'formats': [],
-            }
+            self.notify_for(node_id, 'no_video_sources_available')
+        return {
+            'id': node_id,
+            'display_id': display_id,
+            'title': title,
+            'formats': formats,
+        }
 
 
 class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
@@ -266,44 +278,23 @@ class BlenderCloudPlaylistIE(BlenderCloudBaseIE):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
-        webpage_title = self._html_search_regex(r'<title>(.*?)</title>', webpage, 'title').strip() or None
-
         entries = []
-        for node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*class=\"', webpage):
+        for node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"', webpage):
             webpage_node = self._download_webpage(self.url_node % node_id, node_id)
-            if '<section class="node-preview video">' in webpage_node:
-                # this node references a single video (i.e. a single node)
-                if self.is_video_subscriber_only(webpage_node):
-                    self.report_warning('%s - %s' % (node_id, self.warning_subscribers_only))
-                else:
-                    title = self.get_node_title(webpage_node)
-                    formats = self.get_video_formats(webpage_node)
-                    self._sort_formats(formats)
+            if self.is_video(webpage_node, 'single'):
+                title, formats = self.get_video_single(node_id, webpage_node)
+                if title is not None:
                     entries.append({
                         'id': node_id,
                         'display_id': display_id,
                         'title': title,
                         'formats': formats,
                     })
-            elif '<section class="node-preview group">' in webpage_node:
-                # this node references a playlist of subsection videos (i.e. multiple nodes)
-                for sub_node_id in re.findall(r'data-node_id=\"([0-9a-z]+)\"\s*title=\"', webpage_node):
-                    webpage_sub_node = self._download_webpage(self.url_node % sub_node_id, sub_node_id)
-                    if '<section class="node-preview video">' in webpage_sub_node:
-                        if self.is_video_subscriber_only(webpage_sub_node):
-                            self.report_warning('%s - %s' % (sub_node_id, self.warning_subscribers_only))
-                        else:
-                            title = self.get_node_title(webpage_sub_node)
-                            formats = self.get_video_formats(webpage_sub_node)
-                            self._sort_formats(formats)
-                            entries.append({
-                                'id': sub_node_id,
-                                'display_id': display_id,
-                                'title': title,
-                                'formats': formats,
-                            })
-                    else:
-                        self.report_warning('%s - %s' % (sub_node_id, self.warning_no_video_sources))
+            elif self.is_video(webpage_node, 'playlist'):
+                entries = self.get_video_playlist(display_id, webpage_node)
             else:
-                self.report_warning('%s - %s' % (node_id, self.warning_no_video_sources))
-        return self.playlist_result(entries, playlist_id=display_id, playlist_title=webpage_title)
+                self.notify_for(node_id, 'no_video_sources_available')
+        return self.playlist_result(
+            entries, playlist_id=display_id,
+            playlist_title=self._html_search_regex(
+                r'<title>(.*?)</title>', webpage, 'title').strip())
