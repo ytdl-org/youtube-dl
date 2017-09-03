@@ -2184,6 +2184,12 @@ class InfoExtractor(object):
                     f = parse_content_type(source_attributes.get('type'))
                     is_plain_url, formats = _media_formats(src, media_type, f)
                     if is_plain_url:
+                        # res attribute is not standard but seen several times
+                        # in the wild
+                        f.update({
+                            'height': int_or_none(source_attributes.get('res')),
+                            'format_id': source_attributes.get('label'),
+                        })
                         f.update(formats[0])
                         media_info['formats'].append(f)
                     else:

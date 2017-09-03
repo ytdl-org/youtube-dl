@@ -2871,12 +2871,6 @@ class GenericIE(InfoExtractor):
                     merged[k] = v
             return merged
 
-        # Looking for http://schema.org/VideoObject
-        json_ld = self._search_json_ld(
-            webpage, video_id, default={}, expected_type='VideoObject')
-        if json_ld.get('url'):
-            return merge_dicts(json_ld, info_dict)
-
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
         if entries:
@@ -2894,6 +2888,12 @@ class GenericIE(InfoExtractor):
             info = self._parse_jwplayer_data(
                 jwplayer_data, video_id, require_title=False, base_url=url)
             return merge_dicts(info, info_dict)
+
+        # Looking for http://schema.org/VideoObject
+        json_ld = self._search_json_ld(
+            webpage, video_id, default={}, expected_type='VideoObject')
+        if json_ld.get('url'):
+            return merge_dicts(json_ld, info_dict)
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):

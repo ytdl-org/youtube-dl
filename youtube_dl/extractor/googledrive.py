@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
     lowercase_escape,
@@ -12,10 +13,21 @@ from ..utils import (
 
 
 class GoogleDriveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:docs|drive)\.google\.com/(?:uc\?.*?id=|file/d/)|video\.google\.com/get_player\?.*?docid=)(?P<id>[a-zA-Z0-9_-]{28,})'
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:
+                                (?:docs|drive)\.google\.com/
+                                (?:
+                                    (?:uc|open)\?.*?id=|
+                                    file/d/
+                                )|
+                                video\.google\.com/get_player\?.*?docid=
+                            )
+                            (?P<id>[a-zA-Z0-9_-]{28,})
+                    '''
     _TESTS = [{
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
-        'md5': 'd109872761f7e7ecf353fa108c0dbe1e',
+        'md5': '5c602afbbf2c1db91831f5d82f678554',
         'info_dict': {
             'id': '0ByeS4oOUV-49Zzh4R1J6R09zazQ',
             'ext': 'mp4',
@@ -23,16 +35,31 @@ class GoogleDriveIE(InfoExtractor):
             'duration': 45,
         }
     }, {
+        # video can't be watched anonymously due to view count limit reached,
+        # but can be downloaded (see https://github.com/rg3/youtube-dl/issues/14046)
+        'url': 'https://drive.google.com/file/d/0B-vUyvmDLdWDcEt4WjBqcmI2XzQ/view',
+        'md5': 'bfbd670d03a470bb1e6d4a257adec12e',
+        'info_dict': {
+            'id': '0B-vUyvmDLdWDcEt4WjBqcmI2XzQ',
+            'ext': 'mp4',
+            'title': 'Annabelle Creation (2017)- Z.V1 [TH].MP4',
+        }
+    }, {
         # video id is longer than 28 characters
         'url': 'https://drive.google.com/file/d/1ENcQ_jeCuj7y19s66_Ou9dRP4GKGsodiDQ/edit',
-        'md5': 'c230c67252874fddd8170e3fd1a45886',
         'info_dict': {
             'id': '1ENcQ_jeCuj7y19s66_Ou9dRP4GKGsodiDQ',
             'ext': 'mp4',
             'title': 'Andreea Banica feat Smiley - Hooky Song (Official Video).mp4',
             'duration': 189,
         },
-        'only_matching': True
+        'only_matching': True,
+    }, {
+        'url': 'https://drive.google.com/open?id=0B2fjwgkl1A_CX083Tkowdmt6d28',
+        'only_matching': True,
+    }, {
+        'url': 'https://drive.google.com/uc?id=0B2fjwgkl1A_CX083Tkowdmt6d28',
+        'only_matching': True,
     }]
     _FORMATS_EXT = {
         '5': 'flv',
@@ -147,47 +174,84 @@ class GoogleDriveIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://docs.google.com/file/d/%s' % video_id, video_id)
 
-        reason = self._search_regex(
-            r'"reason"\s*,\s*"([^"]+)', webpage, 'reason', default=None)
-        if reason:
-            raise ExtractorError(reason)
-
-        title = self._search_regex(r'"title"\s*,\s*"([^"]+)', webpage, 'title')
+        title = self._search_regex(
+            r'"title"\s*,\s*"([^"]+)', webpage, 'title',
+            default=None) or self._og_search_title(webpage)
         duration = int_or_none(self._search_regex(
             r'"length_seconds"\s*,\s*"([^"]+)', webpage, 'length seconds',
             default=None))
-        fmt_stream_map = self._search_regex(
-            r'"fmt_stream_map"\s*,\s*"([^"]+)', webpage,
-            'fmt stream map').split(',')
-        fmt_list = self._search_regex(
-            r'"fmt_list"\s*,\s*"([^"]+)', webpage, 'fmt_list').split(',')
-
-        resolutions = {}
-        for fmt in fmt_list:
-            mobj = re.search(
-                r'^(?P<format_id>\d+)/(?P<width>\d+)[xX](?P<height>\d+)', fmt)
-            if mobj:
-                resolutions[mobj.group('format_id')] = (
-                    int(mobj.group('width')), int(mobj.group('height')))
 
         formats = []
-        for fmt_stream in fmt_stream_map:
-            fmt_stream_split = fmt_stream.split('|')
-            if len(fmt_stream_split) < 2:
-                continue
-            format_id, format_url = fmt_stream_split[:2]
-            f = {
-                'url': lowercase_escape(format_url),
-                'format_id': format_id,
-                'ext': self._FORMATS_EXT[format_id],
-            }
-            resolution = resolutions.get(format_id)
-            if resolution:
-                f.update({
-                    'width': resolution[0],
-                    'height': resolution[1],
+        fmt_stream_map = self._search_regex(
+            r'"fmt_stream_map"\s*,\s*"([^"]+)', webpage,
+            'fmt stream map', default='').split(',')
+        fmt_list = self._search_regex(
+            r'"fmt_list"\s*,\s*"([^"]+)', webpage,
+            'fmt_list', default='').split(',')
+        if fmt_stream_map and fmt_list:
+            resolutions = {}
+            for fmt in fmt_list:
+                mobj = re.search(
+                    r'^(?P<format_id>\d+)/(?P<width>\d+)[xX](?P<height>\d+)', fmt)
+                if mobj:
+                    resolutions[mobj.group('format_id')] = (
+                        int(mobj.group('width')), int(mobj.group('height')))
+
+            for fmt_stream in fmt_stream_map:
+                fmt_stream_split = fmt_stream.split('|')
+                if len(fmt_stream_split) < 2:
+                    continue
+                format_id, format_url = fmt_stream_split[:2]
+                f = {
+                    'url': lowercase_escape(format_url),
+                    'format_id': format_id,
+                    'ext': self._FORMATS_EXT[format_id],
+                }
+                resolution = resolutions.get(format_id)
+                if resolution:
+                    f.update({
+                        'width': resolution[0],
+                        'height': resolution[1],
+                    })
+                formats.append(f)
+
+        source_url = update_url_query(
+            'https://drive.google.com/uc', {
+                'id': video_id,
+                'export': 'download',
+            })
+        urlh = self._request_webpage(
+            source_url, video_id, note='Requesting source file',
+            errnote='Unable to request source file', fatal=False)
+        if urlh:
+            def add_source_format(src_url):
+                formats.append({
+                    'url': src_url,
+                    'ext': determine_ext(title, 'mp4').lower(),
+                    'format_id': 'source',
+                    'quality': 1,
                 })
-            formats.append(f)
+            if urlh.headers.get('Content-Disposition'):
+                add_source_format(source_url)
+            else:
+                confirmation_webpage = self._webpage_read_content(
+                    urlh, url, video_id, note='Downloading confirmation page',
+                    errnote='Unable to confirm download', fatal=False)
+                if confirmation_webpage:
+                    confirm = self._search_regex(
+                        r'confirm=([^&"\']+)', confirmation_webpage,
+                        'confirmation code', fatal=False)
+                    if confirm:
+                        add_source_format(update_url_query(source_url, {
+                            'confirm': confirm,
+                        }))
+
+        if not formats:
+            reason = self._search_regex(
+                r'"reason"\s*,\s*"([^"]+)', webpage, 'reason', default=None)
+            if reason:
+                raise ExtractorError(reason, expected=True)
+
         self._sort_formats(formats)
 
         hl = self._search_regex(

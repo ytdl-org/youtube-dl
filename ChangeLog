@@ -1,3 +1,43 @@
+version 2017.09.02
+
+Extractors
+* [youtube] Force old layout for each webpage (#14068, #14072, #14074, #14076,
+  #14077, #14079, #14082, #14083, #14094, #14095, #14096)
+* [youtube] Fix upload date extraction (#14065)
++ [charlierose] Add support for episodes (#14062)
++ [bbccouk] Add support for w-prefixed ids (#14056)
+* [googledrive] Extend URL regular expression (#9785)
++ [googledrive] Add support for source format (#14046)
+* [pornhd] Fix extraction (#14005)
+
+
+version 2017.08.27.1
+
+Extractors
+
+* [youtube] Fix extraction with --youtube-skip-dash-manifest enabled (#14037)
+
+
+version 2017.08.27
+
+Core
++ [extractor/common] Extract height and format id for HTML5 videos (#14034)
+* [downloader/http] Rework HTTP downloader (#506, #809, #2849, #4240, #6023,
+  #8625, #9483)
+    * Simplify code and split into separate routines to facilitate maintaining
+    * Make retry mechanism work on errors during actual download not only
+      during connection establishment phase
+    * Retry on ECONNRESET and ETIMEDOUT during reading data from network
+    * Retry on content too short
+    * Show error description on retry
+
+Extractors
+* [generic] Lower preference for extraction from LD-JSON
+* [rai] Fix audio formats extraction (#14024)
+* [youtube] Fix controversy videos extraction (#14027, #14029)
+* [mixcloud] Fix extraction (#14015, #14020)
+
+
 version 2017.08.23
 
 Core
