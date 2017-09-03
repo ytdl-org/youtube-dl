@@ -9,6 +9,8 @@ from ..utils import (
     xpath_text,
 )
 
+import re
+
 
 class HeiseIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
@@ -24,6 +26,14 @@ class HeiseIE(InfoExtractor):
             'upload_date': '20140927',
             'description': 'md5:c934cbfb326c669c2bcabcbe3d3fcd20',
             'thumbnail': r're:^https?://.*/gallery/$',
+        }
+    }, {
+        'url': 'https://www.heise.de/ct/artikel/c-t-uplink-18-5-Android-Oreo-Nokia-Galaxy-Note-8-AMD-Ryzen-Threadripper-3812972.html',# noqa
+        'info_dict': {
+            'id': '3812972',
+            'ext': 'mp4',
+            'title': "c't uplink 18.5: Android Oreo, Nokia, Galaxy Note 8, AMD Ryzen Threadripper",# noqa
+            'description': 'md5:0601ade34ae5c4f5058d378327928348'
         }
     }, {
         'url': 'http://www.heise.de/ct/artikel/c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2403911.html',
@@ -53,11 +63,20 @@ class HeiseIE(InfoExtractor):
                 r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
                 webpage, 'title')
 
-        doc = self._download_xml(
-            'http://www.heise.de/videout/feed', video_id, query={
-                'container': container_id,
-                'sequenz': sequenz_id,
-            })
+        # videout/feed still and exlusively works for older videos
+        # for new ct uplink episodes, whe need the work-around below.
+        try:
+            doc = self._download_xml(
+                'http://www.heise.de/videout/feed', video_id, query={
+                    'container': container_id,
+                    'sequenz': sequenz_id,
+                })
+        except Exception as e:
+            if e.cause.code == 404:
+                if title.rfind('c\'t') != -1:
+                    return self.ctUplinkHelper(title, video_id)
+            else:
+                raise e
 
         formats = []
         for source_node in doc.findall('.//{http://rss.jwpcdn.com/}source'):
@@ -87,4 +106,52 @@ class HeiseIE(InfoExtractor):
             'timestamp': parse_iso8601(
                 self._html_search_meta('date', webpage)),
             'formats': formats,
+        }
+
+    def ctUplinkHelper(self, title, video_id):
+        formats = []
+
+        # e.g. "18.5" from "c't uplink 18.5:"
+        episode_str = re.findall(r'[0-9]{1,2}.[0-9]{1,2}', title)
+
+        sd_rss_feed = self._download_xml(
+                'https://blog.ct.de/ctuplink/ctuplinkvideo.rss',
+                video_id, "Downloading alternative XML (SD)")
+        hd_rss_feed = self._download_xml(
+                'https://blog.ct.de/ctuplink/ctuplinkvideohd.rss',
+                video_id, "Downloading alternative XML (HD)")
+
+        titles = hd_rss_feed.findall('./channel/item/title')
+        descriptions = hd_rss_feed.findall('./channel/item/description')
+
+        sd_video_urls = sd_rss_feed.findall('./channel/item/guid')
+        hd_video_urls = hd_rss_feed.findall('./channel/item/guid')
+
+        # try to find the real matching title. it might be misformatted or so.
+        # thereby only rely on the episode_str, e.g. "18.5"
+        episode_index = -1
+        for index, item in enumerate(titles):
+            if titles[index].text.rfind(episode_str[0]) != -1:
+                episode_index = index
+                break
+
+        # in case something went wrong
+        if episode_index == -1:
+            return
+
+        formats.append({
+            'url': sd_video_urls[episode_index].text,
+            'height': 360})
+
+        formats.append({
+            'url': hd_video_urls[episode_index].text,
+            'height': 720})
+
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': descriptions[episode_index].text,
+            'formats': formats
         }
