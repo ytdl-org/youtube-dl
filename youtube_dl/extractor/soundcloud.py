@@ -17,7 +17,8 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     unified_strdate,
-    update_url_query)
+    update_url_query,
+)
 
 
 class SoundcloudIE(InfoExtractor):
@@ -166,7 +167,7 @@ class SoundcloudIE(InfoExtractor):
         if info.get('downloadable', False):
             # We can build a direct link to the song
             format_url = update_url_query(
-                'https://api.soundcloud.com/tracks/{0}/download'.format(track_id), query)
+                'https://api.soundcloud.com/tracks/%s/download' % track_id, query)
             formats.append({
                 'format_id': 'download',
                 'ext': info.get('original_format', 'mp3'),
