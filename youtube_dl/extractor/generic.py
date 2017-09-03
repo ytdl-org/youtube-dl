@@ -2874,12 +2874,17 @@ class GenericIE(InfoExtractor):
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
         if entries:
-            for entry in entries:
-                entry.update({
+            if len(entries) == 1:
+                entries[0].update({
                     'id': video_id,
-                    'title': video_title,
-                })
-                self._sort_formats(entry['formats'])
+                    'title': video_itle})
+                self._sort_formats(entries[0]['formats'])
+            else:
+                for num, entry in enumerate(entries):
+                    entry.update({
+                        'id': video_id,
+                        'title': '%s (%d) ' % (video_title, num+1)})
+                    self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
 
         jwplayer_data = self._find_jwplayer_data(
