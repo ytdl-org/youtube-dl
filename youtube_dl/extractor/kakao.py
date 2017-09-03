@@ -44,12 +44,10 @@ class KakaoIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # Player URL, to be used in Referer header
         player_url = 'http://tv.kakao.com/embed/player/cliplink/' + video_id + \
             '?service=kakao_tv&autoplay=1&profile=HIGH&wmode=transparent'
         player_header = {'Referer': player_url}
 
-        # Request Impress, which contains video information
         impress = self._download_json(
             'http://tv.kakao.com/api/v1/ft/cliplinks/%s/impress' % video_id,
             video_id, 'Downloading video info',
@@ -64,8 +62,20 @@ class KakaoIE(InfoExtractor):
             }, headers=player_header)
 
         clipLink = impress['clipLink']
+        clip = clipLink['clip']
 
-        # Raw contains informations regarding downloading video files.
+        video_info = {
+            'id': video_id,
+            'title': clip['title'],
+            'description': clip.get('description'),
+            'uploader': clipLink.get('channel', {}).get('name'),
+            'uploader_id': clipLink.get('channelId'),
+            'duration': int_or_none(clip.get('duration')),
+            'view_count': int_or_none(clip.get('playCount')),
+            'like_count': int_or_none(clip.get('likeCount')),
+            'comment_count': int_or_none(clip.get('commentCount')),
+        }
+
         tid = impress.get('tid', '')
         raw = self._download_json(
             'http://tv.kakao.com/api/v1/ft/cliplinks/%s/raw' % video_id,
@@ -85,8 +95,6 @@ class KakaoIE(InfoExtractor):
         for fmt in raw.get('outputList', []):
             try:
                 profile_name = fmt['profile']
-                # The following request is called when user changes the video quality.
-                # We simulate it here.
                 fmt_url_json = self._download_json(
                     'http://tv.kakao.com/api/v1/ft/cliplinks/%s/raw/videolocation' % video_id,
                     video_id, 'Downloading video URL for profile %s' % profile_name,
@@ -96,8 +104,11 @@ class KakaoIE(InfoExtractor):
                         'tid': tid,
                         'profile': profile_name
                     }, headers=player_header, fatal=False)
-                fmt_url = fmt_url_json['url']
 
+                if fmt_url_json is None:
+                    continue
+
+                fmt_url = fmt_url_json['url']
                 formats.append({
                     'url': fmt_url,
                     'format_id': profile_name,
@@ -110,9 +121,8 @@ class KakaoIE(InfoExtractor):
                 pass
 
         self._sort_formats(formats)
+        video_info['formats'] = formats
 
-        clip = clipLink['clip']
-        # Parse thumbnails.
         top_thumbnail = clip.get('thumbnailUrl')
         thumbs = []
         for thumb in clip.get('clipChapterThumbnailList', []):
@@ -121,22 +131,10 @@ class KakaoIE(InfoExtractor):
                 'id': compat_str(thumb.get('timeInSec')),
                 'preference': -1 if thumb.get('isDefault') else 0
             })
+        video_info['thumbnail'] = top_thumbnail
+        video_info['thumbnails'] = thumbs
 
-        # Parse upload date.
         upload_date = unified_timestamp(clipLink.get('createTime'))
+        video_info['timestamp'] = upload_date
 
-        return {
-            'id': video_id,
-            'title': clip['title'],
-            'formats': formats,
-            'thumbnail': top_thumbnail,
-            'thumbnails': thumbs,
-            'description': clip.get('description'),
-            'uploader': clipLink.get('channel', {}).get('name'),
-            'timestamp': upload_date,
-            'uploader_id': clipLink.get('channelId'),
-            'duration': int_or_none(clip.get('duration')),
-            'view_count': int_or_none(clip.get('playCount')),
-            'like_count': int_or_none(clip.get('likeCount')),
-            'comment_count': int_or_none(clip.get('commentCount')),
-        }
+        return video_info
