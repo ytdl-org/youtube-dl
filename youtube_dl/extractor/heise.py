@@ -28,6 +28,18 @@ class HeiseIE(InfoExtractor):
             'thumbnail': r're:^https?://.*/gallery/$',
         }
     }, {
+        'url': 'http://www.heise.de/newsticker/meldung/Netflix-In-20-Jahren-vom-Videoverleih-zum-TV-Revolutionaer-3814130.html',
+        'md5': 'e403d2b43fea8e405e88e3f8623909f1',
+        'info_dict': {
+            'id': '6kmWbXleKW4',
+            'ext': 'mp4',
+            'title': 'NEU IM SEPTEMBER | Netflix',
+            'description': 'md5:2131f3c7525e540d5fd841de938bd452',
+            'upload_date': '20170830',
+            'uploader': 'Netflix Deutschland, Österreich und Schweiz',
+            'uploader_id': 'netflixdach',
+        }
+    }, {
         'url': 'http://www.heise.de/ct/artikel/c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2403911.html',
         'only_matching': True,
     }, {
@@ -51,6 +63,8 @@ class HeiseIE(InfoExtractor):
         yt_videos = re.findall(
                 r'<iframe[^>]+class="yt_video"[^>]+src="//([^"]+)', webpage)
         if yt_videos:
+            for i in range(len(yt_videos)):
+                yt_videos[i] = 'https://' + yt_videos[i] 
             return self.playlist_from_matches(yt_videos, title, 'Youtube')
                     
         container_id = self._search_regex(
