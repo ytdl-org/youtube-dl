@@ -275,11 +275,7 @@ class VidmeUserIE(VidmeListBaseIE):
         'playlist_mincount': 191,
     }, {
         'url': 'https://vid.me/unsQuare_netWork',
-        'info_dict': {
-            'id': '16148757',
-            'title': 'unsQuare_netWork - %s' % _TITLE,
-        },
-        'playlist_mincount': 73,
+        'only_matching': True,
     }]
 
 
@@ -297,9 +293,5 @@ class VidmeUserLikesIE(VidmeListBaseIE):
         'playlist_mincount': 415,
     }, {
         'url': 'https://vid.me/Kaleidoscope-Ish/likes',
-        'info_dict': {
-            'id': '16908594',
-            'title': 'Kaleidoscope-Ish - %s' % _TITLE,
-        },
-        'playlist_mincount': 43,
+        'only_matching': True,
     }]
