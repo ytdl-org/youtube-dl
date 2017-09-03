@@ -17,7 +17,8 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     unified_strdate,
-    update_url_query)
+    update_url_query,
+)
 
 
 class SoundcloudIE(InfoExtractor):
@@ -120,6 +121,21 @@ class SoundcloudIE(InfoExtractor):
                 'license': 'cc-by-sa',
             },
         },
+        # private link, downloadable format
+        {
+            'url': 'https://soundcloud.com/oriuplift/uponly-238-no-talking-wav/s-AyZUd',
+            'md5': '64a60b16e617d41d0bef032b7f55441e',
+            'info_dict': {
+                'id': '340344461',
+                'ext': 'wav',
+                'title': 'Uplifting Only 238 [No Talking] (incl. Alex Feed Guestmix) (Aug 31, 2017) [wav]',
+                'description': 'md5:fa20ee0fca76a3d6df8c7e57f3715366',
+                'uploader': 'Ori Uplift Music',
+                'upload_date': '20170831',
+                'duration': 7449,
+                'license': 'all-rights-reserved',
+            },
+        },
     ]
 
     _CLIENT_ID = 'JlZIsxg2hY5WnBgtn3jfS0UYCl0K8DOg'
@@ -166,7 +182,7 @@ class SoundcloudIE(InfoExtractor):
         if info.get('downloadable', False):
             # We can build a direct link to the song
             format_url = update_url_query(
-                'https://api.soundcloud.com/tracks/{0}/download'.format(track_id), query)
+                'https://api.soundcloud.com/tracks/%s/download' % track_id, query)
             formats.append({
                 'format_id': 'download',
                 'ext': info.get('original_format', 'mp3'),
