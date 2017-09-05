@@ -7,6 +7,7 @@ import hashlib
 import json
 
 from .adobepass import AdobePassIE
+from .youtube import YoutubeIE
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
@@ -261,11 +262,9 @@ class ViceArticleIE(InfoExtractor):
         if embed_code:
             return _url_res('ooyala:%s' % embed_code, 'Ooyala')
 
-        youtube_url = self._html_search_regex(
-            r'<iframe[^>]+src="(.*youtube\.com/.*)"',
-            body, 'YouTube URL', default=None)
+        youtube_url = YoutubeIE._extract_url(body)
         if youtube_url:
-            return _url_res(youtube_url, 'Youtube')
+            return _url_res(youtube_url, YoutubeIE.ie_key())
 
         video_url = self._html_search_regex(
             r'data-video-url="([^"]+)"',
