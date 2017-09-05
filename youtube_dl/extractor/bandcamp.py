@@ -77,24 +77,15 @@ class BandcampIE(InfoExtractor):
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
         json_code = m_trackinfo.group(1) if m_trackinfo else None
-        try:
-            data = json.loads(json_code)[0] if json_code else None
-        except ValueError:
-            data = None
+        data = self._parse_json(json_code, title)[0]
 
-        match = re.search(r'album_title\s*:\s*"([^"]+)"', webpage)
-        album_title = match.group(1) if match else None
-
-        match = re.search(r'artist\s*:\s*"([^"]+)"', webpage)
-        artist = match.group(1) if match else None
-
-        match = re.search(r'album_release_date\s*:\s*"([^"]+)"', webpage)
-        release_date = unified_strdate(match.group(1)) if match else None
+        artist = self._search_regex(r'artist\s*:\s*"([^"]+)"', webpage, 'artist', default=None)
+        album_title = self._search_regex(r'album_title\s*:\s*"([^"]+)"', webpage, 'album title', default=None)
+        release_date = self._search_regex(r'album_release_date\s*:\s*"([^"]+)"', webpage, 'release', default=None)
+        release_date = unified_strdate(release_date) if release_date else None
         release_year = int(release_date[0:4]) if release_date else None
-
         track = data.get('title') if data else None
-        title = '%s - %s' % (artist, track) if artist else track
-
+        title = '%s - %s' % (artist, track) if artist else (track or title)
         track_number = data.get('track_num') if data else None
         duration = float_or_none(data.get('duration'))
 
