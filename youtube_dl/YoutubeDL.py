@@ -1710,12 +1710,17 @@ class YoutubeDL(object):
         if filename is None:
             return
 
-        try:
-            dn = os.path.dirname(sanitize_path(encodeFilename(filename)))
-            if dn and not os.path.exists(dn):
-                os.makedirs(dn)
-        except (OSError, IOError) as err:
-            self.report_error('unable to create directory ' + error_to_compat_str(err))
+        def ensure_dir_exists(path):
+            try:
+                dn = os.path.dirname(path)
+                if dn and not os.path.exists(dn):
+                    os.makedirs(dn)
+                return True
+            except (OSError, IOError) as err:
+                self.report_error('unable to create directory ' + error_to_compat_str(err))
+                return False
+
+        if not ensure_dir_exists(sanitize_path(encodeFilename(filename))):
             return
 
         if self.params.get('writedescription', False):
@@ -1853,8 +1858,11 @@ class YoutubeDL(object):
                         for f in requested_formats:
                             new_info = dict(info_dict)
                             new_info.update(f)
-                            fname = self.prepare_filename(new_info)
-                            fname = prepend_extension(fname, 'f%s' % f['format_id'], new_info['ext'])
+                            fname = prepend_extension(
+                                self.prepare_filename(new_info),
+                                'f%s' % f['format_id'], new_info['ext'])
+                            if not ensure_dir_exists(fname):
+                                return
                             downloaded.append(fname)
                             partial_success = dl(fname, new_info)
                             success = success and partial_success
