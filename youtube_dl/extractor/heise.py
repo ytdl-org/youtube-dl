@@ -8,8 +8,7 @@ from ..utils import (
     parse_iso8601,
     xpath_text,
 )
-
-import re
+from .youtube import YoutubeIE
 
 
 class HeiseIE(InfoExtractor):
@@ -60,13 +59,10 @@ class HeiseIE(InfoExtractor):
                     r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
                     webpage, 'title')
 
-        yt_videos = re.findall(
-                r'<iframe[^>]+class="yt_video"[^>]+src="//([^"]+)', webpage)
-        if yt_videos:
-            for i in range(len(yt_videos)):
-                yt_videos[i] = 'https://' + yt_videos[i] 
-            return self.playlist_from_matches(yt_videos, title, 'Youtube')
-                    
+        yt_urls = YoutubeIE._extract_urls(webpage)
+        if yt_urls:
+            return self.playlist_from_matches(yt_urls, video_id, title, ie=YoutubeIE.ie_key())
+
         container_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-container="([0-9]+)"',
             webpage, 'container ID')
