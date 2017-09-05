@@ -2877,13 +2877,13 @@ class GenericIE(InfoExtractor):
             if len(entries) == 1:
                 entries[0].update({
                     'id': video_id,
-                    'title': video_itle})
+                    'title': video_title})
                 self._sort_formats(entries[0]['formats'])
             else:
-                for num, entry in enumerate(entries):
+                for num, entry in enumerate(entries, start=1):
                     entry.update({
                         'id': video_id,
-                        'title': '%s (%d) ' % (video_title, num+1)})
+                        'title': '%s (%d) ' % (video_title, num)})
                     self._sort_formats(entry['formats'])
             return self.playlist_result(entries)
 
