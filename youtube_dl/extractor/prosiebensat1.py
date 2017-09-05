@@ -148,7 +148,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'info_dict': {
                 'id': '2104602',
                 'ext': 'mp4',
-                'title': 'Episode 18 - Staffel 2',
+                'title': 'CIRCUS HALLIGALLI - Episode 18 - Staffel 2',
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
                 'duration': 5845.04,
@@ -255,7 +255,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'info_dict': {
                 'id': '2572814',
                 'ext': 'mp4',
-                'title': 'Andreas Kümmert: Rocket Man',
+                'title': 'The Voice of Germany - Andreas Kümmert: Rocket Man',
                 'description': 'md5:6ddb02b0781c6adf778afea606652e38',
                 'upload_date': '20131017',
                 'duration': 469.88,
@@ -292,7 +292,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'info_dict': {
                 'id': '4187506',
                 'ext': 'mp4',
-                'title': 'Best of Circus HalliGalli',
+                'title': 'Best of Circus HalliGalli - Circus Halligalli - 7TV',
                 'description': 'md5:8849752efd90b9772c9db6fdf87fb9e9',
                 'upload_date': '20151229',
             },
@@ -385,9 +385,11 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
     def _extract_clip(self, url, webpage):
         clip_id = self._html_search_regex(
             self._CLIPID_REGEXES, webpage, 'clip id')
-        title = self._html_search_regex(
-            self._TITLE_REGEXES, webpage, 'title',
-            default=None) or self._og_search_title(webpage)
+        title = self._og_search_title(webpage)
+        if title is None:
+            self._html_search_regex(
+                self._TITLE_REGEXES, webpage, 'title',
+                default=None) 
         info = self._extract_video_info(url, clip_id)
         description = self._html_search_regex(
             self._DESCRIPTION_REGEXES, webpage, 'description', default=None)
