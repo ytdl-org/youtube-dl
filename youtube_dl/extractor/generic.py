@@ -2243,36 +2243,11 @@ class GenericIE(InfoExtractor):
         if vid_me_embed_url is not None:
             return self.url_result(vid_me_embed_url, 'Vidme')
 
-        # Look for embedded YouTube player
-        matches = re.findall(r'''(?x)
-            (?:
-                <iframe[^>]+?src=|
-                data-video-url=|
-                <embed[^>]+?src=|
-                embedSWF\(?:\s*|
-                <object[^>]+data=|
-                new\s+SWFObject\(
-            )
-            (["\'])
-                (?P<url>(?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
-                (?:embed|v|p)/.+?)
-            \1''', webpage)
-        if matches:
+        # Look for YouTube embeds
+        youtube_urls = YoutubeIE._extract_urls(webpage)
+        if youtube_urls:
             return self.playlist_from_matches(
-                matches, video_id, video_title, lambda m: unescapeHTML(m[1]))
-
-        # Look for lazyYT YouTube embed
-        matches = re.findall(
-            r'class="lazyYT" data-youtube-id="([^"]+)"', webpage)
-        if matches:
-            return self.playlist_from_matches(matches, video_id, video_title, lambda m: unescapeHTML(m))
-
-        # Look for Wordpress "YouTube Video Importer" plugin
-        matches = re.findall(r'''(?x)<div[^>]+
-            class=(?P<q1>[\'"])[^\'"]*\byvii_single_video_player\b[^\'"]*(?P=q1)[^>]+
-            data-video_id=(?P<q2>[\'"])([^\'"]+)(?P=q2)''', webpage)
-        if matches:
-            return self.playlist_from_matches(matches, video_id, video_title, lambda m: m[-1])
+                youtube_urls, video_id, video_title, ie=YoutubeIE.ie_key())
 
         matches = DailymotionIE._extract_urls(webpage)
         if matches:
