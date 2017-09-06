@@ -134,7 +134,8 @@ class NBCSportsVPlayerIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = self._og_search_video_url(webpage)
+        theplatform_url = self._og_search_video_url(webpage).replace(
+            'vplayer.nbcsports.com', 'player.theplatform.com')
         return self.url_result(theplatform_url, 'ThePlatform')
 
 
