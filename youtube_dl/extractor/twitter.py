@@ -229,7 +229,7 @@ class TwitterCardIE(TwitterBaseIE):
 
         title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
         thumbnail = config.get('posterImageUrl') or config.get('image_src')
-        duration = float_or_none(config.get('duration')) or duration
+        duration = float_or_none(config.get('duration') * 10e-4) or duration
 
         return {
             'id': video_id,
