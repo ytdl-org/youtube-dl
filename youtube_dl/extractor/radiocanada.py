@@ -36,6 +36,7 @@ class RadioCanadaIE(InfoExtractor):
             }
         },
         {
+            # empty Title
             'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7754998/',
             'info_dict': {
                 'id': '7754998',
