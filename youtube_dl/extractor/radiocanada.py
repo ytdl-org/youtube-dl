@@ -20,20 +20,37 @@ from ..utils import (
 class RadioCanadaIE(InfoExtractor):
     IE_NAME = 'radiocanada'
     _VALID_URL = r'(?:radiocanada:|https?://ici\.radio-canada\.ca/widgets/mediaconsole/)(?P<app_code>[^:/]+)[:/](?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7184272',
-        'info_dict': {
-            'id': '7184272',
-            'ext': 'mp4',
-            'title': 'Le parcours du tireur capté sur vidéo',
-            'description': 'Images des caméras de surveillance fournies par la GRC montrant le parcours du tireur d\'Ottawa',
-            'upload_date': '20141023',
+    _TESTS = [
+        {
+            'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7184272',
+            'info_dict': {
+                'id': '7184272',
+                'ext': 'mp4',
+                'title': 'Le parcours du tireur capté sur vidéo',
+                'description': 'Images des caméras de surveillance fournies par la GRC montrant le parcours du tireur d\'Ottawa',
+                'upload_date': '20141023',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            }
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }
+        {
+            # empty Title
+            'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7754998/',
+            'info_dict': {
+                'id': '7754998',
+                'ext': 'mp4',
+                'title': 'letelejournal22h',
+                'description': 'INTEGRALE WEB 22H-TJ',
+                'upload_date': '20170720',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        }
+    ]
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -145,7 +162,7 @@ class RadioCanadaIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': get_meta('Title'),
+            'title': get_meta('Title') or get_meta('AV-nomEmission'),
             'description': get_meta('Description') or get_meta('ShortDescription'),
             'thumbnail': get_meta('imageHR') or get_meta('imageMR') or get_meta('imageBR'),
             'duration': int_or_none(get_meta('length')),
