@@ -936,7 +936,7 @@ To run the test, simply invoke your favorite test runner, or execute a test file
     python test/test_download.py
     nosetests
 
-To see an example of how to run specific test cases, see subitem 6 in the instructions on [adding support for a new site](#adding-support-for-a-new-site).
+See item 6 of [new extractor tutorial](#adding-support-for-a-new-site) for how to run extractor specific test cases.
 
 If you want to create a build of youtube-dl yourself, you'll need
 
