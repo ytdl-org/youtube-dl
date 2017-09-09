@@ -33,6 +33,7 @@ class AnimeLabIE(InfoExtractor):
             'series': 'Fullmetal Alchemist: Brotherhood',
             'episode': 'Signs of a Counteroffensive',
             'episode_number': 42,
+            'duration': 1469,
         },
         'params': {
             'format': '[format_id=21711_yeshardsubbed_ja-JP][height=480]',
