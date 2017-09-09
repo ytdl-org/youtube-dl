@@ -119,6 +119,8 @@ class AnimeLabIE(InfoExtractor):
 
         description = raw_data.get('synopsis') or self._og_search_description(webpage, default=None)
 
+        duration = int_or_none(raw_data.get('duration'))
+
         thumbnail_data = raw_data.get('thumbnailInstance', {})
         image_data = thumbnail_data.get('imageInfo', {})
         thumbnails = [{
@@ -189,6 +191,7 @@ class AnimeLabIE(InfoExtractor):
             'episode': episode_name,
             'episode_number': int_or_none(episode_number),
             'thumbnails': thumbnails,
+            'duration': duration,
             'formats': formats,
         }
 
