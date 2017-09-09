@@ -20,7 +20,6 @@ class TOKFMIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        # TODO more code goes here, for example ...
         title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
         description = self._html_search_regex(r'<div class=content>(.+?)</div>', webpage, None)
         js = self._download_json('http://audycje.tokfm.pl/gets', video_id, data='{"pid": %s, "st": "tokfm"}' % video_id)
@@ -28,6 +27,6 @@ class TOKFMIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'description': description,
-            'url': js['url']
-            # TODO more properties (see youtube_dl/extractor/common.py)
+            'url': js['url'],
+            'ext': 'mp3'
         }
