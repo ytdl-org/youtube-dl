@@ -12,9 +12,10 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
-    unified_timestamp,
-    try_get,
+    bool_or_none,
     int_or_none,
+    try_get,
+    unified_timestamp,
 )
 
 
@@ -42,7 +43,7 @@ class RutubeBaseIE(InfoExtractor):
             'age_limit': age_limit,
             'view_count': int_or_none(video.get('hits')),
             'comment_count': int_or_none(video.get('comments_count')),
-            'is_live': video.get('is_livestream'),
+            'is_live': bool_or_none(video.get('is_livestream')),
         }
 
 
