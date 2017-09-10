@@ -1815,6 +1815,10 @@ def float_or_none(v, scale=1, invscale=1, default=None):
         return default
 
 
+def bool_or_none(v, default=None):
+    return v if isinstance(v, bool) else default
+
+
 def strip_or_none(v):
     return None if v is None else v.strip()
 
