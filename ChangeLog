@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.09.11
 
 Extractors
 * [rutube:playlist] Fix suitable (#14166)
