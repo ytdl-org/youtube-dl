@@ -265,8 +265,10 @@ class RutubePlaylistIE(RutubePlaylistBaseIE):
 
     _PAGE_TEMPLATE = 'http://rutube.ru/api/playlist/%s/%s/?page=%s&format=json'
 
-    @staticmethod
-    def suitable(url):
+    @classmethod
+    def suitable(cls, url):
+        if not super(RutubePlaylistIE, cls).suitable(url):
+            return False
         params = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
         return params.get('pl_type', [None])[0] and int_or_none(params.get('pl_id', [None])[0])
 
