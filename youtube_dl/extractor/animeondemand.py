@@ -3,16 +3,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-    compat_str,
-)
+from ..compat import compat_str
 from ..utils import (
     determine_ext,
     extract_attributes,
     ExtractorError,
-    sanitized_Request,
     urlencode_postdata,
+    urljoin,
 )
 
 
@@ -78,14 +75,13 @@ class AnimeOnDemandIE(InfoExtractor):
             'post url', default=self._LOGIN_URL, group='url')
 
         if not post_url.startswith('http'):
-            post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
-
-        request = sanitized_Request(
-            post_url, urlencode_postdata(login_form))
-        request.add_header('Referer', self._LOGIN_URL)
+            post_url = urljoin(self._LOGIN_URL, post_url)
 
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            post_url, None, 'Logging in as %s' % username,
+            data=urlencode_postdata(login_form), headers={
+                'Referer': self._LOGIN_URL,
+            })
 
         if all(p not in response for p in ('>Logout<', 'href="/users/sign_out"')):
             error = self._search_regex(
@@ -154,17 +150,19 @@ class AnimeOnDemandIE(InfoExtractor):
                         format_id_list.append(compat_str(num))
                     format_id = '-'.join(format_id_list)
                     format_note = ', '.join(filter(None, (kind, lang_note)))
-                    request = sanitized_Request(
-                        compat_urlparse.urljoin(url, playlist_url),
+                    item_id_list = []
+                    if format_id:
+                        item_id_list.append(format_id)
+                    item_id_list.append('videomaterial')
+                    playlist = self._download_json(
+                        urljoin(url, playlist_url), video_id,
+                        'Downloading %s JSON' % ' '.join(item_id_list),
                         headers={
                             'X-Requested-With': 'XMLHttpRequest',
                             'X-CSRF-Token': csrf_token,
                             'Referer': url,
                             'Accept': 'application/json, text/javascript, */*; q=0.01',
-                        })
-                    playlist = self._download_json(
-                        request, video_id, 'Downloading %s playlist JSON' % format_id,
-                        fatal=False)
+                        }, fatal=False)
                     if not playlist:
                         continue
                     stream_url = playlist.get('streamurl')
@@ -246,7 +244,7 @@ class AnimeOnDemandIE(InfoExtractor):
                     f.update({
                         'id': '%s-%s' % (f['id'], m.group('kind').lower()),
                         'title': m.group('title'),
-                        'url': compat_urlparse.urljoin(url, m.group('href')),
+                        'url': urljoin(url, m.group('href')),
                     })
                     entries.append(f)
 
