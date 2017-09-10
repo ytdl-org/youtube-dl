@@ -21,6 +21,8 @@ class AnimeOnDemandIE(InfoExtractor):
     _LOGIN_URL = 'https://www.anime-on-demand.de/users/sign_in'
     _APPLY_HTML5_URL = 'https://www.anime-on-demand.de/html5apply'
     _NETRC_MACHINE = 'animeondemand'
+    # German-speaking countries of Europe
+    _GEO_COUNTRIES = ['AT', 'CH', 'DE', 'LI', 'LU']
     _TESTS = [{
         # jap, OmU
         'url': 'https://www.anime-on-demand.de/anime/161',
