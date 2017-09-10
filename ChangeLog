@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.09.10
 
 Core
 + [utils] Introduce bool_or_none
