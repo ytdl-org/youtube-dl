@@ -46,6 +46,10 @@ class AnimeOnDemandIE(InfoExtractor):
         # Full length film, non-series, ger/jap, Dub/OmU, account required
         'url': 'https://www.anime-on-demand.de/anime/185',
         'only_matching': True,
+    }, {
+        # Flash videos
+        'url': 'https://www.anime-on-demand.de/anime/12',
+        'only_matching': True,
     }]
 
     def _login(self):
@@ -120,10 +124,11 @@ class AnimeOnDemandIE(InfoExtractor):
             formats = []
 
             for input_ in re.findall(
-                    r'<input[^>]+class=["\'].*?streamstarter_html5[^>]+>', html):
+                    r'<input[^>]+class=["\'].*?streamstarter[^>]+>', html):
                 attributes = extract_attributes(input_)
+                title = attributes.get('data-dialog-header')
                 playlist_urls = []
-                for playlist_key in ('data-playlist', 'data-otherplaylist'):
+                for playlist_key in ('data-playlist', 'data-otherplaylist', 'data-stream'):
                     playlist_url = attributes.get(playlist_key)
                     if isinstance(playlist_url, compat_str) and re.match(
                             r'/?[\da-zA-Z]+', playlist_url):
@@ -160,6 +165,23 @@ class AnimeOnDemandIE(InfoExtractor):
                         fatal=False)
                     if not playlist:
                         continue
+                    stream_url = playlist.get('streamurl')
+                    if stream_url:
+                        rtmp = re.search(
+                            r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+/))(?P<playpath>mp[34]:.+)',
+                            stream_url)
+                        if rtmp:
+                            formats.append({
+                                'url': rtmp.group('url'),
+                                'app': rtmp.group('app'),
+                                'play_path': rtmp.group('playpath'),
+                                'page_url': url,
+                                'player_url': 'https://www.anime-on-demand.de/assets/jwplayer.flash-55abfb34080700304d49125ce9ffb4a6.swf',
+                                'rtmp_real_time': True,
+                                'format_id': 'rtmp',
+                                'ext': 'flv',
+                            })
+                            continue
                     start_video = playlist.get('startvideo', 0)
                     playlist = playlist.get('playlist')
                     if not playlist or not isinstance(playlist, list):
