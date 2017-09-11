@@ -38,6 +38,7 @@
  - **afreecatv**: afreecatv.com
  - **afreecatv:global**: afreecatv.com
  - **AirMozilla**
+ - **AliExpressLive**
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
@@ -437,6 +438,7 @@
  - **MakerTV**
  - **mangomolo:live**
  - **mangomolo:video**
+ - **ManyVids**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
@@ -701,6 +703,7 @@
  - **rutube:embed**: Rutube embedded videos
  - **rutube:movie**: Rutube movies
  - **rutube:person**: Rutube person videos
+ - **rutube:playlist**: Rutube playlists
  - **RUTV**: RUTV.RU
  - **Ruutu**
  - **Ruv**
