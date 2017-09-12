@@ -809,6 +809,28 @@ class InfoExtractor(object):
         else:
             return res
 
+    def _simple_search_between(self, search_str, start_str, end_str):
+        """
+        Searches string for a starting substring followed by an ending substring
+        and returns the substring in between. If starting or ending substring are
+        not found returns None.
+        @search_str [str, unicode]
+        @start_str [str, unicode]
+        @end_str [str, unicode]
+        """
+        assert(type(search_str) in (str, unicode))
+        assert(type(start_str) in (str, unicode))
+        assert(type(end_str) in (str, unicode))
+        search_start = search_str.find(start_str)
+        if search_start == -1:
+            return None
+        between_a = search_start + len(start_str)
+        search_end = search_str[between_a:].find(end_str)
+        if search_end == -1:
+            return None
+        between_b = search_end + between_a
+        return search_str[between_a:between_b]
+
     def _get_netrc_login_info(self, netrc_machine=None):
         username = None
         password = None
