@@ -1879,6 +1879,15 @@ class GenericIE(InfoExtractor):
                 'title': 'Building A Business Online: Principal Chairs Q & A',
             },
         },
+        {
+            # multiple HTML5 videos on one page
+            'url': 'https://www.paragon-software.com/home/rk-free/keyscenarios.html',
+            'info_dict': {
+                'id': 'keyscenarios',
+                'title': 'Rescue Kit 14 Free Edition - Getting started',
+            },
+            'playlist_count': 4,
+        }
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2885,7 +2894,7 @@ class GenericIE(InfoExtractor):
                         'id': video_id,
                         'title': '%s (%d) ' % (video_title, num)})
                     self._sort_formats(entry['formats'])
-            return self.playlist_result(entries)
+            return self.playlist_result(entries, video_id, video_title)
 
         jwplayer_data = self._find_jwplayer_data(
             webpage, video_id, transform_source=js_to_json)
