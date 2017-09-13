@@ -18,7 +18,7 @@ from ..utils import (
     ExtractorError,
     OnDemandPagedList,
     str_to_int,
-)
+    try_get)
 
 
 class MixcloudIE(InfoExtractor):
@@ -81,12 +81,8 @@ class MixcloudIE(InfoExtractor):
             full_info_json = self._parse_json(self._html_search_regex(
                 r'<script id="relay-data" type="text/x-mixcloud">([^<]+)</script>', webpage, 'play info'), 'play info')
             for item in full_info_json:
-                item_data = item.get("cloudcast", {}) \
-                    .get("data", {}) \
-                    .get("cloudcastLookup", {})
-                if item_data \
-                        .get("streamInfo", {}) \
-                        .get("url", "") != "":
+                item_data = try_get(item, lambda x: x['cloudcast']['data']['cloudcastLookup'])
+                if try_get(item_data, lambda x: x['streamInfo']['url']) not in ['', None]:
                     info_json = item_data
                     break
 
@@ -108,7 +104,7 @@ class MixcloudIE(InfoExtractor):
             kpa_target = encrypted_play_info
         else:
             kp = 'https://'
-            kpa_target = base64.b64decode(info_json["streamInfo"]["url"])
+            kpa_target = base64.b64decode(info_json['streamInfo']['url'])
         partial_key = self._decrypt_xor_cipher(kpa_target, kp)
         for quote in ["'", '"']:
             key = self._search_regex(r'{0}({1}[^{0}]*){0}'.format(quote, re.escape(partial_key)), js,
@@ -142,25 +138,26 @@ class MixcloudIE(InfoExtractor):
 
         else:
             title = info_json['name']
-            thumbnail = 'https://thumbnailer.mixcloud.com/unsafe/600x600/' + info_json['picture']['urlRoot']
-            uploader = info_json['owner']['displayName']
-            uploader_id = info_json['owner']['username']
-            description = info_json['description']
-            view_count = info_json['plays']
-            formats = [
-                {
-                    'format_id': 'normal',
-                    'url': self._decrypt_xor_cipher(key, base64.b64decode(info_json['streamInfo']['url']))
-                },
-                {
-                    'format_id': 'hls',
-                    'url': self._decrypt_xor_cipher(key, base64.b64decode(info_json['streamInfo']['hlsUrl']))
-                },
-                {
-                    'format_id': 'dash',
-                    'url': self._decrypt_xor_cipher(key, base64.b64decode(info_json['streamInfo']['dashUrl']))
-                }
-            ]
+            thumbnail = try_get(info_json,
+                                lambda x: 'https://thumbnailer.mixcloud.com/unsafe/600x600/' + x['picture']['urlRoot'])
+            uploader = try_get(info_json, lambda x: x['owner']['displayName'])
+            uploader_id = try_get(info_json, lambda x: x['owner']['username'])
+            description = try_get(info_json, lambda x: x['description'])
+            view_count = try_get(info_json, lambda x: x['plays'])
+            formats = [{
+                'format_id': 'normal',
+                'url': self._decrypt_xor_cipher(key, base64.b64decode(info_json['streamInfo']['url']))
+            }]
+
+            hls_encrypted = try_get(info_json, lambda x: x['streamInfo']['hlsUrl'])
+            if hls_encrypted is not None:
+                hls_url = self._decrypt_xor_cipher(key, base64.b64decode(hls_encrypted))
+                formats.extend(self._extract_m3u8_formats(hls_url, title))
+
+            dash_encrypted = try_get(info_json, lambda x: x['streamInfo']['dashUrl'])
+            if dash_encrypted is not None:
+                dash_url = self._decrypt_xor_cipher(key, base64.b64decode(dash_encrypted))
+                formats.extend(self._extract_mpd_formats(dash_url, title))
 
         return {
             'id': track_id,
