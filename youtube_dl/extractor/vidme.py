@@ -263,29 +263,35 @@ class VidmeListBaseIE(InfoExtractor):
 
 class VidmeUserIE(VidmeListBaseIE):
     IE_NAME = 'vidme:user'
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})(?!/likes)(?:[^\da-zA-Z]|$)'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})(?!/likes)(?:[^\da-zA-Z_-]|$)'
     _API_ITEM = 'list'
     _TITLE = 'Videos'
-    _TEST = {
-        'url': 'https://vid.me/EFARCHIVE',
+    _TESTS = [{
+        'url': 'https://vid.me/MasakoX',
         'info_dict': {
-            'id': '3834632',
-            'title': 'EFARCHIVE - %s' % _TITLE,
+            'id': '16112341',
+            'title': 'MasakoX - %s' % _TITLE,
         },
-        'playlist_mincount': 238,
-    }
+        'playlist_mincount': 191,
+    }, {
+        'url': 'https://vid.me/unsQuare_netWork',
+        'only_matching': True,
+    }]
 
 
 class VidmeUserLikesIE(VidmeListBaseIE):
     IE_NAME = 'vidme:user:likes'
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})/likes'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})/likes'
     _API_ITEM = 'likes'
     _TITLE = 'Likes'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vid.me/ErinAlexis/likes',
         'info_dict': {
             'id': '6483530',
             'title': 'ErinAlexis - %s' % _TITLE,
         },
         'playlist_mincount': 415,
-    }
+    }, {
+        'url': 'https://vid.me/Kaleidoscope-Ish/likes',
+        'only_matching': True,
+    }]

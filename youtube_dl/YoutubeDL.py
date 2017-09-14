@@ -1710,12 +1710,17 @@ class YoutubeDL(object):
         if filename is None:
             return
 
-        try:
-            dn = os.path.dirname(sanitize_path(encodeFilename(filename)))
-            if dn and not os.path.exists(dn):
-                os.makedirs(dn)
-        except (OSError, IOError) as err:
-            self.report_error('unable to create directory ' + error_to_compat_str(err))
+        def ensure_dir_exists(path):
+            try:
+                dn = os.path.dirname(path)
+                if dn and not os.path.exists(dn):
+                    os.makedirs(dn)
+                return True
+            except (OSError, IOError) as err:
+                self.report_error('unable to create directory ' + error_to_compat_str(err))
+                return False
+
+        if not ensure_dir_exists(sanitize_path(encodeFilename(filename))):
             return
 
         if self.params.get('writedescription', False):
@@ -1758,29 +1763,30 @@ class YoutubeDL(object):
             ie = self.get_info_extractor(info_dict['extractor_key'])
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
-                if sub_info.get('data') is not None:
-                    sub_data = sub_info['data']
+                sub_filename = subtitles_filename(filename, sub_lang, sub_format)
+                if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
+                    self.to_screen('[info] Video subtitle %s.%s is already present' % (sub_lang, sub_format))
                 else:
-                    try:
-                        sub_data = ie._download_webpage(
-                            sub_info['url'], info_dict['id'], note=False)
-                    except ExtractorError as err:
-                        self.report_warning('Unable to download subtitle for "%s": %s' %
-                                            (sub_lang, error_to_compat_str(err.cause)))
-                        continue
-                try:
-                    sub_filename = subtitles_filename(filename, sub_lang, sub_format)
-                    if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
-                        self.to_screen('[info] Video subtitle %s.%s is already_present' % (sub_lang, sub_format))
+                    self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
+                    if sub_info.get('data') is not None:
+                        try:
+                            # Use newline='' to prevent conversion of newline characters
+                            # See https://github.com/rg3/youtube-dl/issues/10268
+                            with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
+                                subfile.write(sub_info['data'])
+                        except (OSError, IOError):
+                            self.report_error('Cannot write subtitles file ' + sub_filename)
+                            return
                     else:
-                        self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
-                        # Use newline='' to prevent conversion of newline characters
-                        # See https://github.com/rg3/youtube-dl/issues/10268
-                        with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
-                            subfile.write(sub_data)
-                except (OSError, IOError):
-                    self.report_error('Cannot write subtitles file ' + sub_filename)
-                    return
+                        try:
+                            sub_data = ie._request_webpage(
+                                sub_info['url'], info_dict['id'], note=False).read()
+                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
+                                subfile.write(sub_data)
+                        except (ExtractorError, IOError, OSError, ValueError) as err:
+                            self.report_warning('Unable to download subtitle for "%s": %s' %
+                                                (sub_lang, error_to_compat_str(err)))
+                            continue
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
@@ -1853,8 +1859,11 @@ class YoutubeDL(object):
                         for f in requested_formats:
                             new_info = dict(info_dict)
                             new_info.update(f)
-                            fname = self.prepare_filename(new_info)
-                            fname = prepend_extension(fname, 'f%s' % f['format_id'], new_info['ext'])
+                            fname = prepend_extension(
+                                self.prepare_filename(new_info),
+                                'f%s' % f['format_id'], new_info['ext'])
+                            if not ensure_dir_exists(fname):
+                                return
                             downloaded.append(fname)
                             partial_success = dl(fname, new_info)
                             success = success and partial_success

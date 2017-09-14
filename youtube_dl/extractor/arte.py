@@ -82,7 +82,7 @@ class ArteTVBaseIE(InfoExtractor):
 
         vsr = player_info['VSR']
 
-        if not vsr and not player_info.get('VRU'):
+        if not vsr:
             raise ExtractorError(
                 'Video %s is not available' % player_info.get('VID') or video_id,
                 expected=True)

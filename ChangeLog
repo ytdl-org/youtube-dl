@@ -1,3 +1,38 @@
+version 2017.09.11
+
+Extractors
+* [rutube:playlist] Fix suitable (#14166)
+
+
+version 2017.09.10
+
+Core
++ [utils] Introduce bool_or_none
+* [YoutubeDL] Ensure dir existence for each requested format (#14116)
+
+Extractors
+* [fox] Fix extraction (#14147)
+* [rutube] Use bool_or_none
+* [rutube] Rework and generalize playlist extractors (#13565)
++ [rutube:playlist] Add support for playlists (#13534, #13565)
++ [radiocanada] Add fallback for title extraction (#14145)
+* [vk] Use dedicated YouTube embeds extraction routine
+* [vice] Use dedicated YouTube embeds extraction routine
+* [cracked] Use dedicated YouTube embeds extraction routine
+* [chilloutzone] Use dedicated YouTube embeds extraction routine
+* [abcnews] Use dedicated YouTube embeds extraction routine
+* [youtube] Separate methods for embeds extraction
+* [redtube] Fix formats extraction (#14122)
+* [arte] Relax unavailability check (#14112)
++ [manyvids] Add support for preview videos from manyvids.com (#14053, #14059)
+* [vidme:user] Relax URL regular expression (#14054)
+* [bpb] Fix extraction (#14043, #14086)
+* [soundcloud] Fix download URL with private tracks (#14093)
+* [aliexpress:live] Add support for live.aliexpress.com (#13698, #13707)
+* [viidea] Capture and output lecture error message (#14099)
+* [radiocanada] Skip unsupported platforms (#14100)
+
+
 version 2017.09.02
 
 Extractors

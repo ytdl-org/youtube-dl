@@ -5,6 +5,7 @@ import base64
 import json
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..utils import (
     clean_html,
     ExtractorError
@@ -70,11 +71,9 @@ class ChilloutzoneIE(InfoExtractor):
 
         # If nativePlatform is None a fallback mechanism is used (i.e. youtube embed)
         if native_platform is None:
-            youtube_url = self._html_search_regex(
-                r'<iframe.* src="((?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
-                webpage, 'fallback video URL', default=None)
-            if youtube_url is not None:
-                return self.url_result(youtube_url, ie='Youtube')
+            youtube_url = YoutubeIE._extract_url(webpage)
+            if youtube_url:
+                return self.url_result(youtube_url, ie=YoutubeIE.ie_key())
 
         # Non Fallback: Decide to use native source (e.g. youtube or vimeo) or
         # the own CDN
