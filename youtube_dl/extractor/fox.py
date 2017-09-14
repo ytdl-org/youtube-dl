@@ -8,6 +8,7 @@ from ..utils import (
     parse_duration,
     try_get,
     unified_timestamp,
+    update_url_query,
 )
 
 
@@ -54,8 +55,19 @@ class FOXIE(AdobePassIE):
 
         title = video['name']
 
+        data = try_get(
+            video, lambda x: x['trackingData']['properties'], dict) or {}
+
+        query = {}
+        if data.get('authRequired'):
+            rating = video.get('contentRating')
+            if rating == 'n/a':
+                rating = None
+            resource = self._get_mvpd_resource('fbc-fox', None, video['guid'], rating)
+            query['auth'] = self._extract_mvpd_auth(url, video_id, 'fbc-fox', resource)
+
         m3u8_url = self._download_json(
-            video['videoRelease']['url'], video_id)['playURL']
+            update_url_query(video['videoRelease']['url'], query), video_id)['playURL']
 
         formats = self._extract_m3u8_formats(
             m3u8_url, video_id, 'mp4',
@@ -68,21 +80,14 @@ class FOXIE(AdobePassIE):
         timestamp = unified_timestamp(video.get('datePublished'))
         age_limit = parse_age_limit(video.get('contentRating'))
 
-        data = try_get(
-            video, lambda x: x['trackingData']['properties'], dict) or {}
-
         creator = data.get('brand') or data.get('network') or video.get('network')
 
-        series = video.get('seriesName') or data.get(
+        series = video.get('seriesName') or video.get('series') or data.get(
             'seriesName') or data.get('show')
-        season_number = int_or_none(video.get('seasonNumber'))
+        season_number = int_or_none(video.get('seasonNumber') or video.get('season_number'))
         episode = video.get('name')
-        episode_number = int_or_none(video.get('episodeNumber'))
-        release_year = int_or_none(video.get('releaseYear'))
-
-        if data.get('authRequired'):
-            # TODO: AP
-            pass
+        episode_number = int_or_none(video.get('episodeNumber') or video.get('episode_number'))
+        release_year = int_or_none(video.get('releaseYear') or video.get('release_year'))
 
         return {
             'id': video_id,
