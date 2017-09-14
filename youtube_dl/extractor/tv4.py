@@ -64,7 +64,7 @@ class TV4IE(InfoExtractor):
             'only_matching': True,
         },
         {
-            'url': ' http://www.tv4play.se/program/farang/3922081',
+            'url': 'http://www.tv4play.se/program/farang/3922081',
             'only_matching': True,
         }
     ]
