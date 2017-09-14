@@ -6,14 +6,15 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    HEADRequest,
-    unified_strdate,
-    strip_jsonp,
-    int_or_none,
-    float_or_none,
     determine_ext,
+    float_or_none,
+    HEADRequest,
+    int_or_none,
+    orderedSet,
     remove_end,
+    strip_jsonp,
     unescapeHTML,
+    unified_strdate,
 )
 
 
@@ -307,3 +308,108 @@ class ORFIPTVIE(InfoExtractor):
             'upload_date': upload_date,
             'formats': formats,
         }
+
+
+class ORFFM4StoryIE(InfoExtractor):
+    IE_NAME = 'orf:fm4:story'
+    IE_DESC = 'fm4.orf.at stories'
+    _VALID_URL = r'https?://fm4\.orf\.at/stories/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://fm4.orf.at/stories/2865738/',
+        'playlist': [{
+            'md5': 'e1c2c706c45c7b34cf478bbf409907ca',
+            'info_dict': {
+                'id': '547792',
+                'ext': 'flv',
+                'title': 'Manu Delago und Inner Tongue live',
+                'description': 'Manu Delago und Inner Tongue haben bei der FM4 Soundpark Session live alles gegeben. Hier gibt es Fotos und die gesamte Session als Video.',
+                'duration': 1748.52,
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'upload_date': '20170913',
+            },
+        }, {
+            'md5': 'c6dd2179731f86f4f55a7b49899d515f',
+            'info_dict': {
+                'id': '547798',
+                'ext': 'flv',
+                'title': 'Manu Delago und Inner Tongue live (2)',
+                'duration': 1504.08,
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'upload_date': '20170913',
+                'description': 'Manu Delago und Inner Tongue haben bei der FM4 Soundpark Session live alles gegeben. Hier gibt es Fotos und die gesamte Session als Video.',
+            },
+        }],
+    }
+
+    def _real_extract(self, url):
+        story_id = self._match_id(url)
+        webpage = self._download_webpage(url, story_id)
+
+        entries = []
+        all_ids = orderedSet(re.findall(r'data-video(?:id)?="(\d+)"', webpage))
+        for idx, video_id in enumerate(all_ids):
+            data = self._download_json(
+                'http://bits.orf.at/filehandler/static-api/json/current/data.json?file=%s' % video_id,
+                video_id)[0]
+
+            duration = float_or_none(data['duration'], 1000)
+
+            video = data['sources']['q8c']
+            load_balancer_url = video['loadBalancerUrl']
+            abr = int_or_none(video.get('audioBitrate'))
+            vbr = int_or_none(video.get('bitrate'))
+            fps = int_or_none(video.get('videoFps'))
+            width = int_or_none(video.get('videoWidth'))
+            height = int_or_none(video.get('videoHeight'))
+            thumbnail = video.get('preview')
+
+            rendition = self._download_json(
+                load_balancer_url, video_id, transform_source=strip_jsonp)
+
+            f = {
+                'abr': abr,
+                'vbr': vbr,
+                'fps': fps,
+                'width': width,
+                'height': height,
+            }
+
+            formats = []
+            for format_id, format_url in rendition['redirect'].items():
+                if format_id == 'rtmp':
+                    ff = f.copy()
+                    ff.update({
+                        'url': format_url,
+                        'format_id': format_id,
+                    })
+                    formats.append(ff)
+                elif determine_ext(format_url) == 'f4m':
+                    formats.extend(self._extract_f4m_formats(
+                        format_url, video_id, f4m_id=format_id))
+                elif determine_ext(format_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4', m3u8_id=format_id))
+                else:
+                    continue
+            self._sort_formats(formats)
+
+            title = remove_end(self._og_search_title(webpage), ' - fm4.ORF.at')
+            if idx >= 1:
+                # Titles are duplicates, make them unique
+                title += ' (' + str(idx + 1) + ')'
+            description = self._og_search_description(webpage)
+            upload_date = unified_strdate(self._html_search_meta(
+                'dc.date', webpage, 'upload date'))
+
+            entries.append({
+                'id': video_id,
+                'title': title,
+                'description': description,
+                'duration': duration,
+                'thumbnail': thumbnail,
+                'upload_date': upload_date,
+                'formats': formats,
+            })
+
+        return self.playlist_result(entries)
