@@ -107,7 +107,7 @@ class XuiteIE(InfoExtractor):
         video_id = media_info['MEDIA_ID']
 
         formats = []
-        for key in ('html5Url', 'html5HQUrl'):
+        for key in ('html5Url', 'html5HQUrl', 'html5HQUrl2'):
             video_url = media_info.get(key)
             if not video_url:
                 continue
