@@ -768,6 +768,7 @@ from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
     ORFFM4IE,
+    ORFFM4StoryIE,
     ORFOE1IE,
     ORFIPTVIE,
 )
