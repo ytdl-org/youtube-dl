@@ -8,10 +8,15 @@ from ..utils import ExtractorError
 import json
 import math
 import random
+import re
 
 
 class AniGamerIE(InfoExtractor):
     _VALID_URL = r'https?://ani\.gamer\.com\.tw/animeVideo\.php\?sn=(?P<id>[0-9]+)'
+
+    _ANI_BASE = 'https://ani.gamer.com.tw'
+    _I2_BASE = 'https://i2.bahamut.com.tw'
+
     _TEST = {
         'url': 'https://yourextractor.com/watch/42',
         'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
@@ -33,18 +38,27 @@ class AniGamerIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         info = {'id': video_id}
 
-        device_id_json = self._download_json('https://ani.gamer.com.tw/ajax/getdeviceid.php', video_id,
-                                        note='Get device id', query={'id': ''})
+        str_info = self._html_search_regex(r'<script[^>]+type="application/ld\+json"[^>]*>(?P<code>[^<]+)', webpage, 'code')
+        video_info = json.loads(str_info)
+
+        info['description'] = video_info[2].get('description')
+        info['title'] = video_info[2].get('name')
+        info['interaction_count'] = video_info[2].get('interactionCount')
+        info['thumbnail'] = video_info[2].get('thumbnailUrl')
+
+        if video_info[2].get('uploadDate'):
+            dmoj = re.search(r'(?P<y>[0-9]+)-(?P<m>[0-9]+)-(?P<d>[0-9]+)T', video_info[2]['uploadDate'])
+            info['upload_date'] = dmoj.group('y') + dmoj.group('m') + dmoj.group('d')
+
+        device_id_json = self._download_json('%s/ajax/getdeviceid.php' % self._ANI_BASE, video_id,
+                                        note='Getting device id', query={'id': ''})
 
         if device_id_json.get('deviceid'):
             device_id = device_id_json.get('deviceid')
         else:
             self.report_warning('Warning! Cannot get device id', video_id)
 
-        title = self._html_search_regex('<h1>(.+?)</h1>', webpage, 'title')
-        info['title'] = title
-
-        ad_js = self._download_webpage('https://i2.bahamut.com.tw/JS/ad/animeVideo2.js', video_id, )
+        ad_js = self._download_webpage('%s/JS/ad/animeVideo2.js' % self._I2_BASE, video_id, )
 
         minor_code = self._search_regex(r'var\s+getMinorAd\s*=\s*function\(\)\s*\{(?P<code>[^}]+)\};', ad_js, 'code')
 
@@ -60,17 +74,18 @@ class AniGamerIE(InfoExtractor):
             's': ad_sid,
             'sn': video_id
         }
-        self._download_webpage('https://ani.gamer.com.tw/ajax/videoCastcishu.php', video_id, query=ad_query)
+        self._download_webpage('%s/ajax/videoCastcishu.php' % self._ANI_BASE, video_id,
+                                note='Skipping ad', query=ad_query)
 
         ad_query['ad'] = 'end'
-        self._download_webpage('https://ani.gamer.com.tw/ajax/videoCastcishu.php', video_id, query=ad_query)
+        self._download_webpage('%s/ajax/videoCastcishu.php' % self._ANI_BASE, video_id, note='Skipping ad', query=ad_query)
 
         m3u8_query = {
             'sn': video_id,
             'device': device_id
         }
 
-        m3u8_json = self._download_json('https://ani.gamer.com.tw/ajax/m3u8.php', video_id, query=m3u8_query)
+        m3u8_json = self._download_json('%s/ajax/m3u8.php' % self._ANI_BASE, video_id, query=m3u8_query)
 
         if 'error' in m3u8_json:
             raise ExtractorError('Cannot extract URL.')
