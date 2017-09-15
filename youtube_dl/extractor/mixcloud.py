@@ -85,6 +85,8 @@ class MixcloudIE(InfoExtractor):
                 if try_get(item_data, lambda x: x['streamInfo']['url']) not in ['', None]:
                     info_json = item_data
                     break
+            else:
+                raise ExtractorError('Failed to extract matching stream info')
 
         message = self._html_search_regex(
             r'(?s)<div[^>]+class="global-message cloudcast-disabled-notice-light"[^>]*>(.+?)<(?:a|/div)',
@@ -115,6 +117,8 @@ class MixcloudIE(InfoExtractor):
             else:
                 continue
             break
+        else:
+            raise ExtractorError('Failed to extract encryption key')
 
         if encrypted_play_info is not None:
             play_info = self._parse_json(self._decrypt_xor_cipher(key, encrypted_play_info), 'play info')
