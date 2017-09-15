@@ -100,17 +100,21 @@ class MixcloudIE(InfoExtractor):
         js = self._download_webpage(js_url, track_id)
         # Known plaintext attack
         if encrypted_play_info:
-            kp = '{"stream_url":'
+            kps = ['{"stream_url":']
             kpa_target = encrypted_play_info
         else:
-            kp = 'https://'
+            kps = ['https://', 'http://']
             kpa_target = base64.b64decode(info_json['streamInfo']['url'])
-        partial_key = self._decrypt_xor_cipher(kpa_target, kp)
-        for quote in ["'", '"']:
-            key = self._search_regex(r'{0}({1}[^{0}]*){0}'.format(quote, re.escape(partial_key)), js,
-                                     "encryption key", default=None)
-            if key is not None:
-                break
+        for kp in kps:
+            partial_key = self._decrypt_xor_cipher(kpa_target, kp)
+            for quote in ["'", '"']:
+                key = self._search_regex(r'{0}({1}[^{0}]*){0}'.format(quote, re.escape(partial_key)), js,
+                                         "encryption key", default=None)
+                if key is not None:
+                    break
+            else:
+                continue
+            break
 
         if encrypted_play_info is not None:
             play_info = self._parse_json(self._decrypt_xor_cipher(key, encrypted_play_info), 'play info')
