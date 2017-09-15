@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.09.15
 
 Core
 * [downloader/fragment] Restart inconsistent incomplete fragment downloads
