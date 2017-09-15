@@ -28,7 +28,7 @@ from ..utils import (
 
 
 class TwitchBaseIE(InfoExtractor):
-    _VALID_URL_BASE = r'https?://(?:www\.)?twitch\.tv'
+    _VALID_URL_BASE = r'https?://(?:(?:www|go)\.)?twitch\.tv'
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
@@ -217,7 +217,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?twitch\.tv/(?:[^/]+/v|videos)/|
+                            (?:(?:www|go)\.)?twitch\.tv/(?:[^/]+/v|videos)/|
                             player\.twitch\.tv/\?.*?\bvideo=v
                         )
                         (?P<id>\d+)
@@ -458,7 +458,7 @@ class TwitchStreamIE(TwitchBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?twitch\.tv/|
+                            (?:(?:www|go)\.)?twitch\.tv/|
                             player\.twitch\.tv/\?.*?\bchannel=
                         )
                         (?P<id>[^/#?]+)
@@ -488,6 +488,9 @@ class TwitchStreamIE(TwitchBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://player.twitch.tv/?channel=lotsofs',
+        'only_matching': True,
+    }, {
+        'url': 'https://go.twitch.tv/food',
         'only_matching': True,
     }]
 
