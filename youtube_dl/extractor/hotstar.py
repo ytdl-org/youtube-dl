@@ -57,7 +57,8 @@ class HotStarIE(InfoExtractor):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         formats = []
-        for f in ('JIO',):
+        platforms = video_data['availableAlso'].split('|')
+        for f in platforms:
             format_data = self._download_json(
                 'http://getcdn.hotstar.com/AVS/besc',
                 video_id, 'Downloading %s JSON metadata' % f,
@@ -86,6 +87,7 @@ class HotStarIE(InfoExtractor):
                         'width': int_or_none(format_data.get('width')),
                         'height': int_or_none(format_data.get('height')),
                     })
+        self._remove_duplicate_formats_by_id(formats)
         self._sort_formats(formats)
 
         return {
