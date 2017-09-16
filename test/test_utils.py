@@ -1064,7 +1064,7 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
                     <p begin="3" dur="-1">Ignored, three</p>
                 </div>
             </body>
-            </tt>'''
+            </tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:00,000 --> 00:00:01,000
 The following line contains Chinese characters and special symbols
@@ -1089,7 +1089,7 @@ Line
                     <p begin="0" end="1">The first line</p>
                 </div>
             </body>
-            </tt>'''
+            </tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:00,000 --> 00:00:01,000
 The first line
@@ -1115,7 +1115,7 @@ The first line
       <p style="s1" tts:textDecoration="underline" begin="00:00:09.56" id="p2" end="00:00:12.36"><span style="s2" tts:color="lime">inner<br /> </span>style</p>
     </div>
   </body>
-</tt>'''
+</tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:02,080 --> 00:00:05,839
 <font color="white" face="sansSerif" size="16">default style<font color="red">custom style</font></font>
@@ -1137,6 +1137,26 @@ part 3</font></u>
 
 '''
         self.assertEqual(dfxp2srt(dfxp_data_with_style), srt_data)
+
+        dfxp_data_non_utf8 = '''<?xml version="1.0" encoding="UTF-16"?>
+            <tt xmlns="http://www.w3.org/ns/ttml" xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">Line 1</p>
+                    <p begin="1" end="2">第二行</p>
+                </div>
+            </body>
+            </tt>'''.encode('utf-16')
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+Line 1
+
+2
+00:00:01,000 --> 00:00:02,000
+第二行
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_non_utf8), srt_data)
 
     def test_cli_option(self):
         self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])

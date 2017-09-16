@@ -585,7 +585,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 dfxp_file = old_file
                 srt_file = subtitles_filename(filename, lang, 'srt')
 
-                with io.open(dfxp_file, 'rt', encoding='utf-8') as f:
+                with open(dfxp_file, 'rb') as f:
                     srt_data = dfxp2srt(f.read())
 
                 with io.open(srt_file, 'wt', encoding='utf-8') as f:
