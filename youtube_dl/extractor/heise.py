@@ -27,6 +27,7 @@ class HeiseIE(InfoExtractor):
             'thumbnail': r're:^https?://.*/gallery/$',
         }
     }, {
+        # YouTube embed
         'url': 'http://www.heise.de/newsticker/meldung/Netflix-In-20-Jahren-vom-Videoverleih-zum-TV-Revolutionaer-3814130.html',
         'md5': 'e403d2b43fea8e405e88e3f8623909f1',
         'info_dict': {
@@ -37,7 +38,10 @@ class HeiseIE(InfoExtractor):
             'upload_date': '20170830',
             'uploader': 'Netflix Deutschland, Österreich und Schweiz',
             'uploader_id': 'netflixdach',
-        }
+        },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.heise.de/ct/artikel/c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2403911.html',
         'only_matching': True,
