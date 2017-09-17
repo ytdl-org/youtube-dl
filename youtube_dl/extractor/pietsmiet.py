@@ -41,30 +41,35 @@ class PietsmietIE(OnceIE):
             m3u8_manifest_url, page_id, 'mp4', 'm3u8_native',
             m3u8_id='hls')
 
-        # Give reproducible names for HLS formats instead of hls-<bitrate>
-        for f in m3u8_formats:
-            f['format_id'] = 'hls-{}p'.format(f['height'])
-
         formats.extend(m3u8_formats)
 
         if len(data_video['sources']) > 1:
             http_video = data_video['sources'][1]
 
-            # Calculate resolution for HTTP format but should always be 1280x720
-            format_height_raw = self._search_regex(
-                '([0-9]+)p', http_video['label'], 'http video height',
-                default=720, fatal=False)
-            format_height = int_or_none(format_height_raw)
+            label = http_video.get('label')
 
-            if format_height:
-                format_width = float(format_height) * (16 / 9)
+            if label:
+                # Calculate resolution for HTTP format but should always be 1280x720
+                format_height_raw = self._search_regex(
+                    '([0-9]+)p', label, 'http video height',
+                    default=720, fatal=False)
+                format_height = int_or_none(format_height_raw)
 
+                if format_height:
+                    format_width = float(format_height) * (16 / 9)
+
+                    formats.append({
+                        'url': "https:{0}".format(http_video['file']),
+                        'ext': http_video.get('type'),
+                        'format_id': 'http-{0}'.format(label),
+                        'width': int_or_none(format_width),
+                        'height': format_height,
+                        'fps': 30.0,
+                    })
+            else:
                 formats.append({
-                    'url': "https:{}".format(http_video['file']),
-                    'ext': http_video['type'],
-                    'format_id': 'http-{}'.format(http_video['label']),
-                    'width': int_or_none(format_width),
-                    'height': format_height,
+                    'url': "https:{0}".format(http_video['file']),
+                    'ext': http_video.get('type'),
                     'fps': 30.0,
                 })
 
@@ -75,5 +80,5 @@ class PietsmietIE(OnceIE):
             'display_id': page_id,
             'title': compat_urllib_parse_unquote(data_video['abouttext']),
             'formats': formats,
-            'thumbnail': 'http://www.pietsmiet.de/{}'.format(data_video.get('image')),
+            'thumbnail': 'http://www.pietsmiet.de/{0}'.format(data_video.get('image')),
         }
