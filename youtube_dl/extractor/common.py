@@ -2452,7 +2452,7 @@ class InfoExtractor(object):
     def _set_cookie(self, domain, name, value, expire_time=None, port=None,
                     path='/', secure=False, discard=False, rest={}, **kwargs):
         cookie = compat_cookiejar.Cookie(
-            0, name, value, port, not port is None, domain, True,
+            0, name, value, port, port is not None, domain, True,
             domain.startswith('.'), path, True, secure, expire_time,
             discard, None, None, rest)
         self._downloader.cookiejar.set_cookie(cookie)

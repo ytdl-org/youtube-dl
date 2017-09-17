@@ -3830,23 +3830,23 @@ def cookie_to_dict(cookie):
     cookie_dict = {
         'name': cookie.name,
         'value': cookie.value,
-    };
+    }
     if cookie.port_specified:
         cookie_dict['port'] = cookie.port
     if cookie.domain_specified:
         cookie_dict['domain'] = cookie.domain
     if cookie.path_specified:
         cookie_dict['path'] = cookie.path
-    if not cookie.expires is None:
+    if cookie.expires is not None:
         cookie_dict['expires'] = cookie.expires
-    if not cookie.secure is None:
+    if cookie.secure is not None:
         cookie_dict['secure'] = cookie.secure
-    if not cookie.discard is None:
+    if cookie.discard is not None:
         cookie_dict['discard'] = cookie.discard
     try:
         if (cookie.has_nonstandard_attr('httpOnly') or
-            cookie.has_nonstandard_attr('httponly') or
-            cookie.has_nonstandard_attr('HttpOnly')):
+                cookie.has_nonstandard_attr('httponly') or
+                cookie.has_nonstandard_attr('HttpOnly')):
             cookie_dict['httponly'] = True
     except TypeError:
         pass
@@ -3957,7 +3957,7 @@ class PhantomJSwrapper(object):
             cookies = json.loads(f.read().decode('utf-8'))
         for cookie in cookies:
             if cookie['httponly'] is True:
-                cookie['rest'] = { 'httpOnly': None }
+                cookie['rest'] = {'httpOnly': None}
             if 'expiry' in cookie:
                 cookie['expire_time'] = cookie['expiry']
             self.extractor._set_cookie(**cookie)
@@ -3965,7 +3965,7 @@ class PhantomJSwrapper(object):
     def get(self, url, html=None, video_id=None, note=None, note2='Executing JS on webpage', headers={}, jscode='saveAndExit();'):
         """
         Downloads webpage (if needed) and executes JS
-        
+
         Params:
             url: website url
             html: optional, html code of website
@@ -3974,11 +3974,11 @@ class PhantomJSwrapper(object):
             note2: optional, displayed when executing JS
             headers: custom http headers
             jscode: code to be executed when page is loaded
-        
+
         Returns tuple with:
             * downloaded website (after JS execution)
             * anything you print with `console.log` (but not inside `page.execute`!)
-        
+
         In most cases you don't need to add any `jscode`.
         It is executed in `page.onLoadFinished`.
         `saveAndExit();` is mandatory, use it instead of `phantom.exit()`
@@ -3992,7 +3992,7 @@ class PhantomJSwrapper(object):
               else
                 window.setTimeout(check, 500);
             }
-            
+
             page.evaluate(function(){
               document.querySelector('#a').click();
             });
@@ -4024,13 +4024,14 @@ class PhantomJSwrapper(object):
         else:
             self.extractor.to_screen('%s: %s' % (video_id, note2))
 
-        p = subprocess.Popen([self.exe, '--ssl-protocol=any',
-            self._TMP_FILES['script'].name], stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+        p = subprocess.Popen([
+            self.exe, '--ssl-protocol=any',
+            self._TMP_FILES['script'].name
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
-            raise ExtractorError('Executing JS failed\n:'
-                                 + encodeArgument(err))
+            raise ExtractorError(
+                'Executing JS failed\n:' + encodeArgument(err))
         with open(self._TMP_FILES['html'].name, 'rb') as f:
             html = f.read().decode('utf-8')
 
