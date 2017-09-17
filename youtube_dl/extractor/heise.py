@@ -112,16 +112,19 @@ class HeiseIE(InfoExtractor):
         # e.g. "18.5" from "c't uplink 18.5:"
         episode_str = re.findall(r'[0-9]{1,2}.[0-9]{1,2}', title)
 
-        feeds = [
-            self._download_xml(
+        feeds = []
+        for i, feed in enumerate([
                 'https://www.heise.de/ct/uplink/ctuplink.rss',
-                video_id, "Downloading alternative XML (audio)"),
-            self._download_xml(
                 'https://www.heise.de/ct/uplink/ctuplinkvideo.rss',
-                video_id, "Downloading alternative XML (SD)"),
-            self._download_xml(
-                'https://www.heise.de/ct/uplink/ctuplinkvideohd.rss',
-                video_id, "Downloading alternative XML (HD)")]
+                'https://www.heise.de/ct/uplink/ctuplinkvideohd.rss']):
+            xml = self._download_xml(feed, video_id,
+                "Downloading alternative XML (%s)" % (['audio', 'SD video', 'HD video'][i]),
+                fatal=False)
+            if xml is not False:
+                feeds.append(xml)
+
+        if len(feeds) == 0:
+            return
 
         titles = feeds[0].findall('./channel/item/title')
         descriptions = feeds[0].findall('./channel/item/description')
