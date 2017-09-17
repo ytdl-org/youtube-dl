@@ -114,10 +114,13 @@ class HeiseIE(InfoExtractor):
 
         feeds = [
             self._download_xml(
-                'https://blog.ct.de/ctuplink/ctuplinkvideo.rss',
+                'https://www.heise.de/ct/uplink/ctuplink.rss',
+                video_id, "Downloading alternative XML (audio)"),
+            self._download_xml(
+                'https://www.heise.de/ct/uplink/ctuplinkvideo.rss',
                 video_id, "Downloading alternative XML (SD)"),
             self._download_xml(
-                'https://blog.ct.de/ctuplink/ctuplinkvideohd.rss',
+                'https://www.heise.de/ct/uplink/ctuplinkvideohd.rss',
                 video_id, "Downloading alternative XML (HD)")]
 
         titles = feeds[0].findall('./channel/item/title')
@@ -131,15 +134,16 @@ class HeiseIE(InfoExtractor):
                 episode_index = index
                 break
 
-        # in case episode not found at all 
+        # in case episode not found at all
         if episode_index == -1:
             return
 
         formats = []
         for feed in feeds:
+            url = feed.findall('./channel/item/guid')[episode_index].text
             formats.append({
-                'url': feed.findall('./channel/item/guid')[episode_index].text,
-                'ext': 'mp4'})
+                'url': url,
+                'ext': determine_ext(url, '')})
 
         self._sort_formats(formats)
 
