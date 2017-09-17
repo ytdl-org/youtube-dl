@@ -1,3 +1,24 @@
+version <unreleased>
+
+Core
+* [utils] Fix handling raw TTML subtitles (#14191)
+
+
+version 2017.09.15
+
+Core
+* [downloader/fragment] Restart inconsistent incomplete fragment downloads
+  (#13731)
+* [YoutubeDL] Download raw subtitles files (#12909, #14191)
+
+Extractors
+* [condenast] Fix extraction (#14196, #14207)
++ [orf] Add support for f4m stories
+* [tv4] Relax URL regular expression (#14206)
+* [animeondemand] Bypass geo restriction
++ [animeondemand] Add support for flash videos (#9944)
+
+
 version 2017.09.11
 
 Extractors

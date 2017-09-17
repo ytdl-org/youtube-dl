@@ -593,6 +593,7 @@
  - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
+ - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek

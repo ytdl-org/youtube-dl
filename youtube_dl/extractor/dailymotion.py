@@ -325,7 +325,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
 class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
     IE_NAME = 'dailymotion:playlist'
-    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>.+?)/'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>[^/?#&]+)'
     _MORE_PAGES_INDICATOR = r'(?s)<div class="pages[^"]*">.*?<a\s+class="[^"]*?icon-arrow_right[^"]*?"'
     _PAGE_TEMPLATE = 'https://www.dailymotion.com/playlist/%s/%s'
     _TESTS = [{
