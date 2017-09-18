@@ -11,27 +11,31 @@ import random
 import re
 
 
-class AniGamerIE(InfoExtractor):
+class AnimeBahamutIE(InfoExtractor):
     _VALID_URL = r'https?://ani\.gamer\.com\.tw/animeVideo\.php\?sn=(?P<id>[0-9]+)'
 
     _ANI_BASE = 'https://ani.gamer.com.tw'
     _I2_BASE = 'https://i2.bahamut.com.tw'
 
-    _TEST = {
-        'url': 'https://yourextractor.com/watch/42',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+    _TESTS = [{
+        'url': 'https://ani.gamer.com.tw/animeVideo.php?sn=90',
         'info_dict': {
-            'id': '42',
+            'id': '90',
             'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'title': '冰菓[1]',
+            'thumbnail': 'https://p2.bahamut.com.tw/B/2KU/11/0001306611.JPG',
+            'description': '追求灰色校園生活的消極少年、與充滿好奇心又積極的少女在即將倒閉的古典社相遇了，他們的相遇是會帶來怎麼樣的青春生活呢？改編自米澤穗信古典社系列的同名原作《冰菓》，由京都動畫所製作的動畫作品《冰菓》已於今年春季開播。 這次《冰菓》的監督是擔任過《驚爆危機 校園篇》、《涼宮春日的消失》監督的 武本康弘。武本監'
         }
-    }
+    }, {
+        'url': 'https://ani.gamer.com.tw/animeVideo.php?sn=4243',
+        'info_dict': {
+            'id': '4243',
+            'ext': 'mp4',
+            'title': '無法掙脫的背叛[1]',
+            'thumbnail': 'https://p2.bahamut.com.tw/B/2KU/26/0001309926.JPG',
+            'description': '主角是在孤兒院長大的高中生「櫻井夕月」，而他擁有在觸碰人時能讀取他人記憶與思緒的特殊能力。某日，在他的面前出現了一位似曾相識、並讓他感到有點懷念的美貌青年「桀斯」，而桀斯也向夕月提出忠告，絕對不要在召喚死亡的紅月之夜「瓦爾波吉斯之夜」外出。 之後的某天，名為「祗王天白」的人拜訪了夕月，並告訴夕月他是'
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -67,7 +71,7 @@ class AniGamerIE(InfoExtractor):
         del minor_code
         del ad_list_s
 
-        ik = math.floor(9 * random.random())
+        ik = int(math.floor(9 * random.random()))
 
         ad_sid = ad_list[ik][2]
         ad_query = {
@@ -75,10 +79,10 @@ class AniGamerIE(InfoExtractor):
             'sn': video_id
         }
         self._download_webpage('%s/ajax/videoCastcishu.php' % self._ANI_BASE, video_id,
-                                note='Skipping ad', query=ad_query)
+                                query=ad_query)
 
         ad_query['ad'] = 'end'
-        self._download_webpage('%s/ajax/videoCastcishu.php' % self._ANI_BASE, video_id, note='Skipping ad', query=ad_query)
+        self._download_webpage('%s/ajax/videoCastcishu.php' % self._ANI_BASE, video_id, query=ad_query)
 
         m3u8_query = {
             'sn': video_id,
