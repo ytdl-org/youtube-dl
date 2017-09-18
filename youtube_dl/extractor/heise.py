@@ -113,13 +113,13 @@ class HeiseIE(InfoExtractor):
         episode_str = re.findall(r'[0-9]{1,2}.[0-9]{1,2}', title)
 
         feeds = []
-        for i, feed in enumerate([
-                'https://www.heise.de/ct/uplink/ctuplink.rss',
-                'https://www.heise.de/ct/uplink/ctuplinkvideo.rss',
-                'https://www.heise.de/ct/uplink/ctuplinkvideohd.rss']):
-            xml = self._download_xml(feed, video_id,
-                "Downloading alternative XML (%s)" % (['audio', 'SD video', 'HD video'][i]),
-                fatal=False)
+        for path, format_id in (
+                ('', 'audio'),
+                ('video', 'HD video'),
+                ('videohd', 'SD video')):
+            xml = self._download_xml(
+                'https://www.heise.de/ct/uplink/ctuplink%s.rss' % path,
+                video_id, 'Downloading %s feed' % format_id, fatal=False)
             if xml is not False:
                 feeds.append(xml)
 
