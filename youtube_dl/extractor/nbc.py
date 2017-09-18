@@ -109,18 +109,18 @@ class NBCSportsVPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
 
     _TESTS = [{
-        'url': 'http://vplayer.nbcsports.com/p/BxmELC/chicago_embed/select/media/u4xMi3ngFKsS',
+        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/9CsDKds0kvHI',
         'info_dict': {
-            'id': 'u4xMi3ngFKsS',
+            'id': '9CsDKds0kvHI',
             'ext': 'mp4',
-            'description': 'md5:8fb3edf07c77cc5901c5f37fa019f87c',
-            'title': 'Cubs PGL: Who needs to step up in Contreras\' absence',
-            'timestamp': 1502319595,
-            'upload_date': '20170809',
+            'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
+            'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
+            'timestamp': 1426270238,
+            'upload_date': '20150313',
             'uploader': 'NBCU-SPORTS',
         }
     }, {
-        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/media/qyc_v6mfDyWv',
+        'url': 'http://vplayer.nbcsports.com/p/BxmELC/chicago_embed/select/media/u4xMi3ngFKsS',
         'only_matching': True,
     }]
 
