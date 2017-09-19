@@ -368,6 +368,22 @@ class TwitterIE(InfoExtractor):
         'params': {
             'format': 'best[format_id^=http-]',
         },
+    }, {
+        # checks for correct duration
+        'url': 'https://twitter.com/SophiePassmann/status/903676793860829184',
+        'md5': '0c1edf87dd3afacf7b36b5a5666c00cc',
+        'info_dict': {
+            'id': '903676793860829184',
+            'ext': 'mp4',
+            'title': 'Sophie Passmann - Schaut euch an, was ich geschickt bekommen habe 😍😍😍 #unboxing #sponsored #ad',
+            'description': 'Sophie Passmann on Twitter: "Schaut euch an, was ich geschickt bekommen habe 😍😍😍 #unboxing #sponsored #ad https://t.co/jGWWxoVWYm"',
+            'uploader_id': 'SophiePassmann',
+            'uploader': 'Sophie Passmann',
+            'duration': 107.4,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
