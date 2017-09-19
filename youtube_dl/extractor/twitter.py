@@ -229,7 +229,7 @@ class TwitterCardIE(TwitterBaseIE):
 
         title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
         thumbnail = config.get('posterImageUrl') or config.get('image_src')
-        duration = float_or_none(config.get('duration')) or duration
+        duration = float_or_none(config.get('duration'), scale=1000) or duration
 
         return {
             'id': video_id,
@@ -255,6 +255,7 @@ class TwitterIE(InfoExtractor):
             'description': 'FREE THE NIPPLE on Twitter: "FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ"',
             'uploader': 'FREE THE NIPPLE',
             'uploader_id': 'freethenipple',
+            'duration': 12.922,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg
@@ -305,11 +306,12 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'Donte - BEAT PROD: @suhmeduh #Damndaniel',
-            'description': 'Donte on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'title': 'あかさ - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'あかさ on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
             'thumbnail': r're:^https?://.*\.jpg',
-            'uploader': 'Donte',
+            'uploader': 'あかさ',
             'uploader_id': 'jaydingeer',
+            'duration': 30.0,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg
@@ -337,6 +339,7 @@ class TwitterIE(InfoExtractor):
             'description': 'Captain America on Twitter: "@King0fNerd Are you sure you made the right choice? Find out in theaters. https://t.co/GpgYi9xMJI"',
             'uploader_id': 'captainamerica',
             'uploader': 'Captain America',
+            'duration': 3.17,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg
@@ -364,6 +367,7 @@ class TwitterIE(InfoExtractor):
             'description': 'عالم الأخبار on Twitter: "كلمة تاريخية بجلسة الجناسي التاريخية.. النائب خالد مؤنس العتيبي للمعارضين : اتقوا الله .. الظلم ظلمات يوم القيامة   https://t.co/xg6OhpyKfN"',
             'uploader': 'عالم الأخبار',
             'uploader_id': 'news_al3alm',
+            'duration': 277.4,
         },
         'params': {
             'format': 'best[format_id^=http-]',
