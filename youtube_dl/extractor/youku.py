@@ -22,9 +22,14 @@ class YoukuIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         (?:
             https?://(
-                (?:v|player)\.youku\.com/(?:v_show/id_|player\.php/sid/)|
-                video\.tudou\.com/v/)|
-            youku:)
+                v\.youku\.com/v_show/id_|
+                player\.youku\.com/player\.php/sid/|
+                player\.youku\.com/embed/|
+                cloud\.youku\.com/services/sharev\?vid=|
+                video\.tudou\.com/v/
+            )|
+            youku:
+        )
         (?P<id>[A-Za-z0-9]+)(?:\.html|/v\.swf|)
     '''
 
@@ -114,6 +119,16 @@ class YoukuIE(InfoExtractor):
             'uploader_id': '2382249',
             'uploader_url': 'http://i.youku.com/u/UOTUyODk5Ng==',
             'tags': list,
+        },
+    }, {
+        'url': 'http://cloud.youku.com/services/sharev?vid=XMzAwNzQzMjcyOA==',
+        'info_dict': {
+            'id': 'XMzAwNzQzMjcyOA',
+        },
+    }, {
+        'url': 'http://player.youku.com/embed/XMzAzMTU1NjAzMg==',
+        'info_dict': {
+            'id': 'XMzAzMTU1NjAzMg',
         },
     }, {
         'url': 'http://video.tudou.com/v/XMjE4ODI3OTg2MA==.html',
