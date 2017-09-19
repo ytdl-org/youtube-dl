@@ -108,7 +108,7 @@ class NBCIE(AdobePassIE):
 class NBCSportsVPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
 
-    _TESTS = [{
+    _TEST = {
         'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/9CsDKds0kvHI',
         'info_dict': {
             'id': '9CsDKds0kvHI',
@@ -119,10 +119,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
             'upload_date': '20150313',
             'uploader': 'NBCU-SPORTS',
         }
-    }, {
-        'url': 'http://vplayer.nbcsports.com/p/BxmELC/chicago_embed/select/media/u4xMi3ngFKsS',
-        'only_matching': True,
-    }]
+    }
 
     @staticmethod
     def _extract_url(webpage):
