@@ -37,7 +37,7 @@ class BeegIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         cpl_url = self._search_regex(
-            r'<script[^>]+src=(["\'])(?P<url>/static/cpl/\d+\.js.*?)\1',
+            r'<script[^>]+src=(["\'])(?P<url>(?:/static|(?:https?:)?//static\.beeg\.com)/cpl/\d+\.js.*?)\1',
             webpage, 'cpl', default=None, group='url')
 
         cpl_url = urljoin(url, cpl_url)
