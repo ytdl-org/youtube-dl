@@ -527,6 +527,7 @@ from .leeco import (
     LetvCloudIE,
 )
 from .libraryofcongress import LibraryOfCongressIE
+from .librivox import LibriVoxIE
 from .libsyn import LibsynIE
 from .lifenews import (
     LifeNewsIE,
