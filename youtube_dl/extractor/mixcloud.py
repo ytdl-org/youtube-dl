@@ -82,7 +82,7 @@ class MixcloudIE(InfoExtractor):
                 r'<script id="relay-data" type="text/x-mixcloud">([^<]+)</script>', webpage, 'play info'), 'play info')
             for item in full_info_json:
                 item_data = try_get(item, lambda x: x['cloudcast']['data']['cloudcastLookup'])
-                if try_get(item_data, lambda x: x['streamInfo']['url']) not in ['', None]:
+                if try_get(item_data, lambda x: x['streamInfo']['url']):
                     info_json = item_data
                     break
             else:
@@ -152,17 +152,19 @@ class MixcloudIE(InfoExtractor):
             uploader_id = try_get(info_json, lambda x: x['owner']['username'])
             description = try_get(info_json, lambda x: x['description'])
             view_count = try_get(info_json, lambda x: x['plays'])
+
+            stream_info = info_json['streamInfo']
             formats = [{
                 'format_id': 'normal',
-                'url': self._decrypt_xor_cipher(key, base64.b64decode(info_json['streamInfo']['url']))
+                'url': self._decrypt_xor_cipher(key, base64.b64decode(stream_info['url']))
             }]
 
-            hls_encrypted = try_get(info_json, lambda x: x['streamInfo']['hlsUrl'])
+            hls_encrypted = stream_info.get('hlsUrl')
             if hls_encrypted is not None:
                 hls_url = self._decrypt_xor_cipher(key, base64.b64decode(hls_encrypted))
                 formats.extend(self._extract_m3u8_formats(hls_url, title))
 
-            dash_encrypted = try_get(info_json, lambda x: x['streamInfo']['dashUrl'])
+            dash_encrypted = stream_info.get('dashUrl')
             if dash_encrypted is not None:
                 dash_url = self._decrypt_xor_cipher(key, base64.b64decode(dash_encrypted))
                 formats.extend(self._extract_mpd_formats(dash_url, title))
