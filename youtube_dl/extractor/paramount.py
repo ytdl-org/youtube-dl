@@ -1,16 +1,3 @@
-# youtube_dl extractor for www.paramountchannel.it
-
-# copy to youtube_dl/extractors
-# add a line to extractors.py:
-#        from .paramount import ParamountIE
-
-# can use functions from common.py, as _self.function(...)
-# also import from other modules
-
-# to test:
-# python -m youtube_dl --verbose "http://www.paramountchannel.it/playlist/speciali-paramount-channel/o3gr12/backstage-sigla-paramount/tqvbxd" >| x
-# python test/test_download.py TestDownload.test_Paramount
-
 # coding: utf-8
 from __future__ import unicode_literals
 
