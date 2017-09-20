@@ -9,6 +9,7 @@ from ..compat import (
 from ..utils import (
     int_or_none,
     parse_iso8601,
+    urljoin,
 )
 
 
@@ -36,11 +37,11 @@ class BeegIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         cpl_url = self._search_regex(
-            r'<script[^>]+src=(["\'])(?P<url>(?:https?:)?//?static(?:\.beeg\.com)?/cpl/\d+\.js.*?)\1',
+            r'<script[^>]+src=(["\'])(?P<url>(?:/static|(?:https?:)?//static\.beeg\.com)?/cpl/\d+\.js.*?)\1',
             webpage, 'cpl', default=None, group='url')
 
         if self._search_regex(r'(^/[^/])', cpl_url, 'cpl_url', default=None, fatal=False) is not None:
-            cpl_url = 'https://beeg.com%s' % (cpl_url)
+            cpl_url = urljoin('https://beeg.com', cpl_url)
 
         beeg_version, beeg_salt = [None] * 2
 
