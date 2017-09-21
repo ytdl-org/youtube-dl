@@ -61,6 +61,13 @@ class MixcloudIE(InfoExtractor):
             compat_chr(compat_ord(ch) ^ compat_ord(k))
             for ch, k in compat_zip(ciphertext, itertools.cycle(key))])
 
+    @staticmethod
+    def _decrypt_and_extend(stream_info, url_key, getter, key, formats):
+        maybe_url = stream_info.get(url_key)
+        if maybe_url is not None:
+            decrypted = MixcloudIE._decrypt_xor_cipher(key, base64.b64decode(maybe_url))
+            formats.extend(getter(decrypted))
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         uploader = mobj.group(1)
@@ -154,20 +161,15 @@ class MixcloudIE(InfoExtractor):
             view_count = try_get(info_json, lambda x: x['plays'])
 
             stream_info = info_json['streamInfo']
-            formats = [{
+            formats = []
+            self._decrypt_and_extend(stream_info, 'url', lambda x: [{
                 'format_id': 'normal',
-                'url': self._decrypt_xor_cipher(key, base64.b64decode(stream_info['url']))
-            }]
-
-            hls_encrypted = stream_info.get('hlsUrl')
-            if hls_encrypted is not None:
-                hls_url = self._decrypt_xor_cipher(key, base64.b64decode(hls_encrypted))
-                formats.extend(self._extract_m3u8_formats(hls_url, title))
-
-            dash_encrypted = stream_info.get('dashUrl')
-            if dash_encrypted is not None:
-                dash_url = self._decrypt_xor_cipher(key, base64.b64decode(dash_encrypted))
-                formats.extend(self._extract_mpd_formats(dash_url, title))
+                'url': x
+            }], key, formats)
+            self._decrypt_and_extend(stream_info, 'hlsUrl', lambda x: self._extract_m3u8_formats(x, title), key,
+                                     formats)
+            self._decrypt_and_extend(stream_info, 'dashUrl', lambda x: self._extract_mpd_formats(x, title), key,
+                                     formats)
 
         return {
             'id': track_id,
