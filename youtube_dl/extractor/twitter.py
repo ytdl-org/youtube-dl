@@ -396,7 +396,7 @@ class TwitterIE(InfoExtractor):
         twid = mobj.group('id')
 
         webpage, urlh = self._download_webpage_handle(
-            self._TEMPLATE_STATUSES_URL % (twid), twid)
+            self._TEMPLATE_STATUSES_URL % twid, twid)
 
         if 'twitter.com/account/suspended' in urlh.geturl():
             raise ExtractorError('Account suspended by Twitter.', expected=True)
