@@ -2886,14 +2886,16 @@ class GenericIE(InfoExtractor):
             if len(entries) == 1:
                 entries[0].update({
                     'id': video_id,
-                    'title': video_title})
-                self._sort_formats(entries[0]['formats'])
+                    'title': video_title,
+                })
             else:
                 for num, entry in enumerate(entries, start=1):
                     entry.update({
-                        'id': video_id,
-                        'title': '%s (%d) ' % (video_title, num)})
-                    self._sort_formats(entry['formats'])
+                        'id': '%s-%s' % (video_id, num),
+                        'title': '%s (%d)' % (video_title, num),
+                    })
+            for entry in entries:
+                self._sort_formats(entry['formats'])
             return self.playlist_result(entries, video_id, video_title)
 
         jwplayer_data = self._find_jwplayer_data(
