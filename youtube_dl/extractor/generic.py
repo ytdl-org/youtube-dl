@@ -1879,6 +1879,15 @@ class GenericIE(InfoExtractor):
                 'title': 'Building A Business Online: Principal Chairs Q & A',
             },
         },
+        {
+            # multiple HTML5 videos on one page
+            'url': 'https://www.paragon-software.com/home/rk-free/keyscenarios.html',
+            'info_dict': {
+                'id': 'keyscenarios',
+                'title': 'Rescue Kit 14 Free Edition - Getting started',
+            },
+            'playlist_count': 4,
+        }
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2849,13 +2858,20 @@ class GenericIE(InfoExtractor):
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
         if entries:
-            for entry in entries:
-                entry.update({
+            if len(entries) == 1:
+                entries[0].update({
                     'id': video_id,
                     'title': video_title,
                 })
+            else:
+                for num, entry in enumerate(entries, start=1):
+                    entry.update({
+                        'id': '%s-%s' % (video_id, num),
+                        'title': '%s (%d)' % (video_title, num),
+                    })
+            for entry in entries:
                 self._sort_formats(entry['formats'])
-            return self.playlist_result(entries)
+            return self.playlist_result(entries, video_id, video_title)
 
         jwplayer_data = self._find_jwplayer_data(
             webpage, video_id, transform_source=js_to_json)
