@@ -1,6 +1,7 @@
 version <unreleased>
 
 Core
++ [options] Accept lrc as a subtitle conversion target format (#14292)
 * [utils] Fix handling raw TTML subtitles (#14191)
 
 
