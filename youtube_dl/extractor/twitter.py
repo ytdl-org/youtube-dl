@@ -242,8 +242,9 @@ class TwitterCardIE(TwitterBaseIE):
 
 class TwitterIE(InfoExtractor):
     IE_NAME = 'twitter'
-    _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?P<user_id>[^/]+)/status/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?:i/web|(?P<user_id>[^/]+))/status/(?P<id>\d+)'
     _TEMPLATE_URL = 'https://twitter.com/%s/status/%s'
+    _TEMPLATE_STATUSES_URL = 'https://twitter.com/statuses/%s'
 
     _TESTS = [{
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
@@ -322,9 +323,9 @@ class TwitterIE(InfoExtractor):
         'info_dict': {
             'id': 'MIOxnrUteUd',
             'ext': 'mp4',
-            'title': 'FilmDrunk - Vine of the day',
-            'description': 'FilmDrunk on Twitter: "Vine of the day https://t.co/xmTvRdqxWf"',
-            'uploader': 'FilmDrunk',
+            'title': 'Vince Mancini - Vine of the day',
+            'description': 'Vince Mancini on Twitter: "Vine of the day https://t.co/xmTvRdqxWf"',
+            'uploader': 'Vince Mancini',
             'uploader_id': 'Filmdrunk',
             'timestamp': 1402826626,
             'upload_date': '20140615',
@@ -372,6 +373,21 @@ class TwitterIE(InfoExtractor):
         'params': {
             'format': 'best[format_id^=http-]',
         },
+    }, {
+        'url': 'https://twitter.com/i/web/status/910031516746514432',
+        'info_dict': {
+            'id': '910031516746514432',
+            'ext': 'mp4',
+            'title': 'Préfet de Guadeloupe - [Direct] #Maria Le centre se trouve actuellement au sud de Basse-Terre. Restez confinés. Réfugiez-vous dans la pièce la + sûre.',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'Préfet de Guadeloupe on Twitter: "[Direct] #Maria Le centre se trouve actuellement au sud de Basse-Terre. Restez confinés. Réfugiez-vous dans la pièce la + sûre. https://t.co/mwx01Rs4lo"',
+            'uploader': 'Préfet de Guadeloupe',
+            'uploader_id': 'Prefet971',
+            'duration': 47.48,
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        },
     }]
 
     def _real_extract(self, url):
@@ -380,10 +396,14 @@ class TwitterIE(InfoExtractor):
         twid = mobj.group('id')
 
         webpage, urlh = self._download_webpage_handle(
-            self._TEMPLATE_URL % (user_id, twid), twid)
+            self._TEMPLATE_STATUSES_URL % twid, twid)
 
         if 'twitter.com/account/suspended' in urlh.geturl():
             raise ExtractorError('Account suspended by Twitter.', expected=True)
+
+        if user_id is None:
+            mobj = re.match(self._VALID_URL, urlh.geturl())
+            user_id = mobj.group('user_id')
 
         username = remove_end(self._og_search_title(webpage), ' on Twitter')
 
