@@ -15,7 +15,9 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     qualities,
+    smuggle_url,
     try_get,
+    unsmuggle_url,
     update_url_query,
 )
 
@@ -224,6 +226,9 @@ class TVPlayIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+
         video_id = self._match_id(url)
         geo_country = self._search_regex(
             r'https?://[^/]+\.([a-z]{2})', url,
@@ -426,4 +431,9 @@ class ViafreeIE(InfoExtractor):
                 r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](\d{6,})',
                 webpage, 'video id')
 
-        return self.url_result('mtg:%s' % video_id, TVPlayIE.ie_key())
+        return self.url_result(
+            smuggle_url(
+                'mtg:%s' % video_id,
+                {'geo_countries': [
+                    compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1]]}),
+            ie=TVPlayIE.ie_key(), video_id=video_id)

@@ -42,7 +42,7 @@ class VGTVIE(XstreamIE):
                     )
                     /?
                     (?:
-                        \#!/(?:video|live)/|
+                        (?:\#!/)?(?:video|live)/|
                         embed?.*id=|
                         articles/
                     )|
@@ -146,7 +146,11 @@ class VGTVIE(XstreamIE):
         {
             'url': 'abtv:140026',
             'only_matching': True,
-        }
+        },
+        {
+            'url': 'http://www.vgtv.no/video/84196/hevnen-er-soet-episode-10-abu',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):

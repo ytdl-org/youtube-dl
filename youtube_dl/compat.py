@@ -6,6 +6,7 @@ import collections
 import email
 import getpass
 import io
+import itertools
 import optparse
 import os
 import re
@@ -15,7 +16,6 @@ import socket
 import struct
 import subprocess
 import sys
-import itertools
 import xml.etree.ElementTree
 
 
@@ -2898,6 +2898,13 @@ else:
     compat_struct_pack = struct.pack
     compat_struct_unpack = struct.unpack
 
+try:
+    from future_builtins import zip as compat_zip
+except ImportError:  # not 2.6+ or is 3.x
+    try:
+        from itertools import izip as compat_zip  # < 2.5 or 3.x
+    except ImportError:
+        compat_zip = zip
 
 __all__ = [
     'compat_HTMLParseError',
@@ -2948,5 +2955,6 @@ __all__ = [
     'compat_urlretrieve',
     'compat_xml_parse_error',
     'compat_xpath',
+    'compat_zip',
     'workaround_optparse_bug9161',
 ]

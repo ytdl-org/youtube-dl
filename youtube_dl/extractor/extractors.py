@@ -39,6 +39,7 @@ from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
 from .amcnetworks import AMCNetworksIE
+from .americastestkitchen import AmericasTestKitchenIE
 from .animeondemand import AnimeOnDemandIE
 from .anitube import AnitubeIE
 from .anvato import AnvatoIE
@@ -482,6 +483,7 @@ from .jove import JoveIE
 from .joj import JojIE
 from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
+from .kakao import KakaoIE
 from .kaltura import KalturaIE
 from .kamcord import KamcordIE
 from .kanalplay import KanalPlayIE
@@ -768,6 +770,7 @@ from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
     ORFFM4IE,
+    ORFFM4StoryIE,
     ORFOE1IE,
     ORFIPTVIE,
 )
@@ -807,6 +810,7 @@ from .polskieradio import (
     PolskieRadioIE,
     PolskieRadioCategoryIE,
 )
+from .popcorntv import PopcornTVIE
 from .porn91 import Porn91IE
 from .porncom import PornComIE
 from .pornflip import PornFlipIE
@@ -899,6 +903,7 @@ from .rutube import (
     RutubeEmbedIE,
     RutubeMovieIE,
     RutubePersonIE,
+    RutubePlaylistIE,
 )
 from .rutv import RUTVIE
 from .ruutu import RuutuIE

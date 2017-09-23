@@ -14,7 +14,7 @@ from ..utils import (
 
 class TwentyFourVideoIE(InfoExtractor):
     IE_NAME = '24video'
-    _VALID_URL = r'https?://(?P<host>(?:www\.)?24video\.(?:net|me|xxx|sex|tube))/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?P<host>(?:www\.)?24video\.(?:net|me|xxx|sex|tube|adult))/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.24video.net/video/view/1044982',
@@ -60,8 +60,8 @@ class TwentyFourVideoIE(InfoExtractor):
         duration = int_or_none(self._og_search_property(
             'duration', webpage, 'duration', fatal=False))
         timestamp = parse_iso8601(self._search_regex(
-            r'<time id="video-timeago" datetime="([^"]+)" itemprop="uploadDate">',
-            webpage, 'upload date'))
+            r'<time[^>]+\bdatetime="([^"]+)"[^>]+itemprop="uploadDate"',
+            webpage, 'upload date', fatal=False))
 
         uploader = self._html_search_regex(
             r'class="video-uploaded"[^>]*>\s*<a href="/jsecUser/movies/[^"]+"[^>]*>([^<]+)</a>',
@@ -72,7 +72,7 @@ class TwentyFourVideoIE(InfoExtractor):
             webpage, 'view count', fatal=False))
         comment_count = int_or_none(self._html_search_regex(
             r'<a[^>]+href="#tab-comments"[^>]*>(\d+) комментари',
-            webpage, 'comment count', fatal=False))
+            webpage, 'comment count', default=None))
 
         # Sets some cookies
         self._download_xml(

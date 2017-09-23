@@ -1,3 +1,84 @@
+version 2017.09.24
+
+Core
++ [options] Accept lrc as a subtitle conversion target format (#14292)
+* [utils] Fix handling raw TTML subtitles (#14191)
+
+Extractors
+* [24video] Fix timestamp extraction and make non fatal (#14295)
++ [24video] Add support for 24video.adult (#14295)
++ [kakao] Add support for tv.kakao.com (#12298, #14007)
++ [twitter] Add support for URLs without user id (#14270)
++ [americastestkitchen] Add support for americastestkitchen.com (#10764,
+  #13996)
+* [generic] Fix support for multiple HTML5 videos on one page (#14080)
+* [mixcloud] Fix extraction (#14088, #14132)
++ [lynda] Add support for educourse.ga (#14286)
+* [beeg] Fix extraction (#14275)
+* [nbcsports:vplayer] Correct theplatform URL (#13873)
+* [twitter] Fix duration extraction (#14141)
+* [tvplay] Bypass geo restriction
++ [heise] Add support for YouTube embeds (#14109)
++ [popcorntv] Add support for popcorntv.it (#5914, #14211)
+* [viki] Update app data (#14181)
+* [morningstar] Relax URL regular expression (#14222)
+* [openload] Fix extraction (#14225, #14257)
+* [noovo] Fix extraction (#14214)
+* [dailymotion:playlist] Relax URL regular expression (#14219)
++ [twitch] Add support for go.twitch.tv URLs (#14215)
+* [vgtv] Relax URL regular expression (#14223)
+
+
+version 2017.09.15
+
+Core
+* [downloader/fragment] Restart inconsistent incomplete fragment downloads
+  (#13731)
+* [YoutubeDL] Download raw subtitles files (#12909, #14191)
+
+Extractors
+* [condenast] Fix extraction (#14196, #14207)
++ [orf] Add support for f4m stories
+* [tv4] Relax URL regular expression (#14206)
+* [animeondemand] Bypass geo restriction
++ [animeondemand] Add support for flash videos (#9944)
+
+
+version 2017.09.11
+
+Extractors
+* [rutube:playlist] Fix suitable (#14166)
+
+
+version 2017.09.10
+
+Core
++ [utils] Introduce bool_or_none
+* [YoutubeDL] Ensure dir existence for each requested format (#14116)
+
+Extractors
+* [fox] Fix extraction (#14147)
+* [rutube] Use bool_or_none
+* [rutube] Rework and generalize playlist extractors (#13565)
++ [rutube:playlist] Add support for playlists (#13534, #13565)
++ [radiocanada] Add fallback for title extraction (#14145)
+* [vk] Use dedicated YouTube embeds extraction routine
+* [vice] Use dedicated YouTube embeds extraction routine
+* [cracked] Use dedicated YouTube embeds extraction routine
+* [chilloutzone] Use dedicated YouTube embeds extraction routine
+* [abcnews] Use dedicated YouTube embeds extraction routine
+* [youtube] Separate methods for embeds extraction
+* [redtube] Fix formats extraction (#14122)
+* [arte] Relax unavailability check (#14112)
++ [manyvids] Add support for preview videos from manyvids.com (#14053, #14059)
+* [vidme:user] Relax URL regular expression (#14054)
+* [bpb] Fix extraction (#14043, #14086)
+* [soundcloud] Fix download URL with private tracks (#14093)
+* [aliexpress:live] Add support for live.aliexpress.com (#13698, #13707)
+* [viidea] Capture and output lecture error message (#14099)
+* [radiocanada] Skip unsupported platforms (#14100)
+
+
 version 2017.09.02
 
 Extractors

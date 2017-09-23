@@ -94,7 +94,7 @@ class LyndaBaseIE(InfoExtractor):
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
-    _VALID_URL = r'https?://(?:www\.)?lynda\.com/(?:[^/]+/[^/]+/(?P<course_id>\d+)|player/embed)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:lynda\.com|educourse\.ga)/(?:[^/]+/[^/]+/(?P<course_id>\d+)|player/embed)/(?P<id>\d+)'
 
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
@@ -109,6 +109,9 @@ class LyndaIE(LyndaBaseIE):
         }
     }, {
         'url': 'https://www.lynda.com/player/embed/133770?tr=foo=1;bar=g;fizz=rt&fs=0',
+        'only_matching': True,
+    }, {
+        'url': 'https://educourse.ga/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
         'only_matching': True,
     }]
 
@@ -253,7 +256,7 @@ class LyndaCourseIE(LyndaBaseIE):
 
     # Course link equals to welcome/introduction video link of same course
     # We will recognize it as course link
-    _VALID_URL = r'https?://(?:www|m)\.lynda\.com/(?P<coursepath>[^/]+/[^/]+/(?P<courseid>\d+))-\d\.html'
+    _VALID_URL = r'https?://(?:www|m)\.(?:lynda\.com|educourse\.ga)/(?P<coursepath>[^/]+/[^/]+/(?P<courseid>\d+))-\d\.html'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

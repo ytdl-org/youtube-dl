@@ -38,10 +38,12 @@
  - **afreecatv**: afreecatv.com
  - **afreecatv:global**: afreecatv.com
  - **AirMozilla**
+ - **AliExpressLive**
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
  - **AMCNetworks**
+ - **AmericasTestKitchen**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
  - **anitube.se**
@@ -377,6 +379,7 @@
  - **Jove**
  - **jpopsuki.tv**
  - **JWPlatform**
+ - **Kakao**
  - **Kaltura**
  - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
@@ -437,6 +440,7 @@
  - **MakerTV**
  - **mangomolo:live**
  - **mangomolo:video**
+ - **ManyVids**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
@@ -591,6 +595,7 @@
  - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
+ - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
@@ -624,6 +629,7 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
+ - **PopcornTV**
  - **PornCom**
  - **PornerBros**
  - **PornFlip**
@@ -701,6 +707,7 @@
  - **rutube:embed**: Rutube embedded videos
  - **rutube:movie**: Rutube movies
  - **rutube:person**: Rutube person videos
+ - **rutube:playlist**: Rutube playlists
  - **RUTV**: RUTV.RU
  - **Ruutu**
  - **Ruv**

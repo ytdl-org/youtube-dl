@@ -12,12 +12,16 @@ from ..compat import (
     compat_str,
     compat_urllib_parse_unquote,
     compat_urlparse,
+    compat_zip
 )
 from ..utils import (
     clean_html,
     ExtractorError,
+    int_or_none,
     OnDemandPagedList,
     str_to_int,
+    try_get,
+    urljoin,
 )
 
 
@@ -54,27 +58,12 @@ class MixcloudIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    _keys = [
-        'return { requestAnimationFrame: function(callback) { callback(); }, innerHeight: 500 };',
-        'pleasedontdownloadourmusictheartistswontgetpaid',
-        'window.addEventListener = window.addEventListener || function() {};',
-        '(function() { return new Date().toLocaleDateString(); })()'
-    ]
-    _current_key = None
-
-    # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
-    def _decrypt_play_info(self, play_info, video_id):
-        play_info = base64.b64decode(play_info.encode('ascii'))
-        for num, key in enumerate(self._keys, start=1):
-            try:
-                return self._parse_json(
-                    ''.join([
-                        compat_chr(compat_ord(ch) ^ compat_ord(key[idx % len(key)]))
-                        for idx, ch in enumerate(play_info)]),
-                    video_id)
-            except ExtractorError:
-                if num == len(self._keys):
-                    raise
+    @staticmethod
+    def _decrypt_xor_cipher(key, ciphertext):
+        """Encrypt/Decrypt XOR cipher. Both ways are possible because it's XOR."""
+        return ''.join([
+            compat_chr(compat_ord(ch) ^ compat_ord(k))
+            for ch, k in compat_zip(ciphertext, itertools.cycle(key))])
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -84,54 +73,119 @@ class MixcloudIE(InfoExtractor):
 
         webpage = self._download_webpage(url, track_id)
 
-        if not self._current_key:
-            js_url = self._search_regex(
-                r'<script[^>]+\bsrc=["\"](https://(?:www\.)?mixcloud\.com/media/js2/www_js_4\.[^>]+\.js)',
-                webpage, 'js url', default=None)
-            if js_url:
-                js = self._download_webpage(js_url, track_id, fatal=False)
-                if js:
-                    KEY_RE_TEMPLATE = r'player\s*:\s*{.*?\b%s\s*:\s*(["\'])(?P<key>(?:(?!\1).)+)\1'
-                    for key_name in ('value', 'key_value', 'key_value.*?', '.*?value.*?'):
-                        key = self._search_regex(
-                            KEY_RE_TEMPLATE % key_name, js, 'key',
-                            default=None, group='key')
-                        if key and isinstance(key, compat_str):
-                            self._keys.insert(0, key)
-                            self._current_key = key
+        # Legacy path
+        encrypted_play_info = self._search_regex(
+            r'm-play-info="([^"]+)"', webpage, 'play info', default=None)
+
+        if encrypted_play_info is not None:
+            # Decode
+            encrypted_play_info = base64.b64decode(encrypted_play_info)
+        else:
+            # New path
+            full_info_json = self._parse_json(self._html_search_regex(
+                r'<script id="relay-data" type="text/x-mixcloud">([^<]+)</script>',
+                webpage, 'play info'), 'play info')
+            for item in full_info_json:
+                item_data = try_get(
+                    item, lambda x: x['cloudcast']['data']['cloudcastLookup'],
+                    dict)
+                if try_get(item_data, lambda x: x['streamInfo']['url']):
+                    info_json = item_data
+                    break
+            else:
+                raise ExtractorError('Failed to extract matching stream info')
 
         message = self._html_search_regex(
             r'(?s)<div[^>]+class="global-message cloudcast-disabled-notice-light"[^>]*>(.+?)<(?:a|/div)',
             webpage, 'error message', default=None)
 
-        encrypted_play_info = self._search_regex(
-            r'm-play-info="([^"]+)"', webpage, 'play info')
+        js_url = self._search_regex(
+            r'<script[^>]+\bsrc=["\"](https://(?:www\.)?mixcloud\.com/media/(?:js2/www_js_4|js/www)\.[^>]+\.js)',
+            webpage, 'js url')
+        js = self._download_webpage(js_url, track_id, 'Downloading JS')
+        # Known plaintext attack
+        if encrypted_play_info:
+            kps = ['{"stream_url":']
+            kpa_target = encrypted_play_info
+        else:
+            kps = ['https://', 'http://']
+            kpa_target = base64.b64decode(info_json['streamInfo']['url'])
+        for kp in kps:
+            partial_key = self._decrypt_xor_cipher(kpa_target, kp)
+            for quote in ["'", '"']:
+                key = self._search_regex(
+                    r'{0}({1}[^{0}]*){0}'.format(quote, re.escape(partial_key)),
+                    js, 'encryption key', default=None)
+                if key is not None:
+                    break
+            else:
+                continue
+            break
+        else:
+            raise ExtractorError('Failed to extract encryption key')
 
-        play_info = self._decrypt_play_info(encrypted_play_info, track_id)
+        if encrypted_play_info is not None:
+            play_info = self._parse_json(self._decrypt_xor_cipher(key, encrypted_play_info), 'play info')
+            if message and 'stream_url' not in play_info:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+            song_url = play_info['stream_url']
+            formats = [{
+                'format_id': 'normal',
+                'url': song_url
+            }]
 
-        if message and 'stream_url' not in play_info:
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+            title = self._html_search_regex(r'm-title="([^"]+)"', webpage, 'title')
+            thumbnail = self._proto_relative_url(self._html_search_regex(
+                r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail', fatal=False))
+            uploader = self._html_search_regex(
+                r'm-owner-name="([^"]+)"', webpage, 'uploader', fatal=False)
+            uploader_id = self._search_regex(
+                r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
+            description = self._og_search_description(webpage)
+            view_count = str_to_int(self._search_regex(
+                [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
+                 r'/listeners/?">([0-9,.]+)</a>',
+                 r'(?:m|data)-tooltip=["\']([\d,.]+) plays'],
+                webpage, 'play count', default=None))
 
-        song_url = play_info['stream_url']
+        else:
+            title = info_json['name']
+            thumbnail = urljoin(
+                'https://thumbnailer.mixcloud.com/unsafe/600x600/',
+                try_get(info_json, lambda x: x['picture']['urlRoot'], compat_str))
+            uploader = try_get(info_json, lambda x: x['owner']['displayName'])
+            uploader_id = try_get(info_json, lambda x: x['owner']['username'])
+            description = try_get(info_json, lambda x: x['description'])
+            view_count = int_or_none(try_get(info_json, lambda x: x['plays']))
 
-        title = self._html_search_regex(r'm-title="([^"]+)"', webpage, 'title')
-        thumbnail = self._proto_relative_url(self._html_search_regex(
-            r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail', fatal=False))
-        uploader = self._html_search_regex(
-            r'm-owner-name="([^"]+)"', webpage, 'uploader', fatal=False)
-        uploader_id = self._search_regex(
-            r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
-        description = self._og_search_description(webpage)
-        view_count = str_to_int(self._search_regex(
-            [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
-             r'/listeners/?">([0-9,.]+)</a>',
-             r'(?:m|data)-tooltip=["\']([\d,.]+) plays'],
-            webpage, 'play count', default=None))
+            stream_info = info_json['streamInfo']
+            formats = []
+
+            for url_key in ('url', 'hlsUrl', 'dashUrl'):
+                format_url = stream_info.get(url_key)
+                if not format_url:
+                    continue
+                decrypted = self._decrypt_xor_cipher(key, base64.b64decode(format_url))
+                if not decrypted:
+                    continue
+                if url_key == 'hlsUrl':
+                    formats.extend(self._extract_m3u8_formats(
+                        decrypted, track_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
+                elif url_key == 'dashUrl':
+                    formats.extend(self._extract_mpd_formats(
+                        decrypted, track_id, mpd_id='dash', fatal=False))
+                else:
+                    formats.append({
+                        'format_id': 'http',
+                        'url': decrypted,
+                    })
+            self._sort_formats(formats)
 
         return {
             'id': track_id,
             'title': title,
-            'url': song_url,
+            'formats': formats,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
