@@ -3,16 +3,17 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
-    compat_str,
     unified_timestamp,
+    update_url_query,
 )
 
 
 class KakaoIE(InfoExtractor):
     _VALID_URL = r'https?://tv.kakao.com/channel/(?P<channel>\d+)/cliplink/(?P<id>\d+)'
-    IE_NAME = 'kakao.com'
+    _API_BASE = 'http://tv.kakao.com/api/v1/ft/cliplinks'
 
     _TESTS = [{
         'url': 'http://tv.kakao.com/channel/2671005/cliplink/301965083',
@@ -44,60 +45,57 @@ class KakaoIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        player_url = 'http://tv.kakao.com/embed/player/cliplink/' + video_id + \
-            '?service=kakao_tv&autoplay=1&profile=HIGH&wmode=transparent'
-        player_header = {'Referer': player_url}
-
-        impress = self._download_json(
-            'http://tv.kakao.com/api/v1/ft/cliplinks/%s/impress' % video_id,
-            video_id, 'Downloading video info',
-            query={
-                'player': 'monet_html5',
-                'referer': url,
-                'uuid': '',
-                'service': 'kakao_tv',
-                'section': '',
-                'dteType': 'PC',
-                'fields': 'clipLink,clip,channel,hasPlusFriend,-service,-tagList'
-            }, headers=player_header)
-
-        clipLink = impress['clipLink']
-        clip = clipLink['clip']
-
-        video_info = {
-            'id': video_id,
-            'title': clip['title'],
-            'description': clip.get('description'),
-            'uploader': clipLink.get('channel', {}).get('name'),
-            'uploader_id': clipLink.get('channelId'),
-            'duration': int_or_none(clip.get('duration')),
-            'view_count': int_or_none(clip.get('playCount')),
-            'like_count': int_or_none(clip.get('likeCount')),
-            'comment_count': int_or_none(clip.get('commentCount')),
+        player_header = {
+            'Referer': update_url_query(
+                'http://tv.kakao.com/embed/player/cliplink/%s' % video_id, {
+                    'service': 'kakao_tv',
+                    'autoplay': '1',
+                    'profile': 'HIGH',
+                    'wmode': 'transparent',
+                })
         }
 
+        QUERY_COMMON = {
+            'player': 'monet_html5',
+            'referer': url,
+            'uuid': '',
+            'service': 'kakao_tv',
+            'section': '',
+            'dteType': 'PC',
+        }
+
+        query = QUERY_COMMON.copy()
+        query['fields'] = 'clipLink,clip,channel,hasPlusFriend,-service,-tagList'
+        impress = self._download_json(
+            '%s/%s/impress' % (self._API_BASE, video_id),
+            video_id, 'Downloading video info',
+            query=query, headers=player_header)
+
+        clip_link = impress['clipLink']
+        clip = clip_link['clip']
+
+        title = clip.get('title') or clip_link.get('displayTitle')
+
         tid = impress.get('tid', '')
+
+        query = QUERY_COMMON.copy()
+        query.update({
+            'tid': tid,
+            'profile': 'HIGH',
+        })
         raw = self._download_json(
-            'http://tv.kakao.com/api/v1/ft/cliplinks/%s/raw' % video_id,
+            '%s/%s/raw' % (self._API_BASE, video_id),
             video_id, 'Downloading video formats info',
-            query={
-                'player': 'monet_html5',
-                'referer': url,
-                'uuid': '',
-                'service': 'kakao_tv',
-                'section': '',
-                'tid': tid,
-                'profile': 'HIGH',
-                'dteType': 'PC',
-            }, headers=player_header, fatal=False)
+            query=query, headers=player_header)
 
         formats = []
         for fmt in raw.get('outputList', []):
             try:
                 profile_name = fmt['profile']
                 fmt_url_json = self._download_json(
-                    'http://tv.kakao.com/api/v1/ft/cliplinks/%s/raw/videolocation' % video_id,
-                    video_id, 'Downloading video URL for profile %s' % profile_name,
+                    '%s/%s/raw/videolocation' % (self._API_BASE, video_id),
+                    video_id,
+                    'Downloading video URL for profile %s' % profile_name,
                     query={
                         'service': 'kakao_tv',
                         'section': '',
@@ -119,11 +117,8 @@ class KakaoIE(InfoExtractor):
                 })
             except KeyError:
                 pass
-
         self._sort_formats(formats)
-        video_info['formats'] = formats
 
-        top_thumbnail = clip.get('thumbnailUrl')
         thumbs = []
         for thumb in clip.get('clipChapterThumbnailList', []):
             thumbs.append({
@@ -131,10 +126,24 @@ class KakaoIE(InfoExtractor):
                 'id': compat_str(thumb.get('timeInSec')),
                 'preference': -1 if thumb.get('isDefault') else 0
             })
-        video_info['thumbnail'] = top_thumbnail
-        video_info['thumbnails'] = thumbs
+        top_thumbnail = clip.get('thumbnailUrl')
+        if top_thumbnail:
+            thumbs.append({
+                'url': top_thumbnail,
+                'preference': 10,
+            })
 
-        upload_date = unified_timestamp(clipLink.get('createTime'))
-        video_info['timestamp'] = upload_date
-
-        return video_info
+        return {
+            'id': video_id,
+            'title': title,
+            'description': clip.get('description'),
+            'uploader': clip_link.get('channel', {}).get('name'),
+            'uploader_id': clip_link.get('channelId'),
+            'thumbnails': thumbs,
+            'timestamp': unified_timestamp(clip_link.get('createTime')),
+            'duration': int_or_none(clip.get('duration')),
+            'view_count': int_or_none(clip.get('playCount')),
+            'like_count': int_or_none(clip.get('likeCount')),
+            'comment_count': int_or_none(clip.get('commentCount')),
+            'formats': formats,
+        }
