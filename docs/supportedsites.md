@@ -43,6 +43,7 @@
  - **Allocine**
  - **AlphaPorno**
  - **AMCNetworks**
+ - **AmericasTestKitchen**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
  - **anitube.se**
@@ -378,6 +379,7 @@
  - **Jove**
  - **jpopsuki.tv**
  - **JWPlatform**
+ - **Kakao**
  - **Kaltura**
  - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
@@ -627,6 +629,7 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
+ - **PopcornTV**
  - **PornCom**
  - **PornerBros**
  - **PornFlip**

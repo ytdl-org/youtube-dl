@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.09.24
 
 Core
 + [options] Accept lrc as a subtitle conversion target format (#14292)

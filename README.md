@@ -427,7 +427,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      syntax. Example: --exec 'adb push {}
                                      /sdcard/Music/ && rm {}'
     --convert-subs FORMAT            Convert the subtitles to other format
-                                     (currently supported: srt|ass|vtt)
+                                     (currently supported: srt|ass|vtt|lrc)
 
 # CONFIGURATION
 
