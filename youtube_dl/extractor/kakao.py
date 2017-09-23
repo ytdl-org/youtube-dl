@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class KakaoIE(InfoExtractor):
-    _VALID_URL = r'https?://tv.kakao.com/channel/(?P<channel>\d+)/cliplink/(?P<id>\d+)'
+    _VALID_URL = r'https?://tv\.kakao\.com/channel/(?P<channel>\d+)/cliplink/(?P<id>\d+)'
     _API_BASE = 'http://tv.kakao.com/api/v1/ft/cliplinks'
 
     _TESTS = [{
