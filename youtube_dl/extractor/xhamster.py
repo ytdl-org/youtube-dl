@@ -221,7 +221,7 @@ class XHamsterEmbedIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            r'href="(https?://xhamster\.com/movies/%s/[^"]*\.html[^"]*)"' % video_id,
+            r'href="(https?://xhamster\.com/(?:movies/{0}/[^"]*\.html|videos/[^/]*-{0})[^"]*)"'.format(video_id),
             webpage, 'xhamster url', default=None)
 
         if not video_url:
