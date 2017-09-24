@@ -23,7 +23,8 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
                 expected=True)
 
         formats = []
-        for quality, source_url in zip(item.get('qualities') or item.get('quality', []), item.get('source_list') or item.get('source', [])):
+
+        for quality, source_url in item['source'].items():
             if not source_url or source_url == 'require vip':
                 continue
             if not re.match(r'https?://', source_url):
@@ -46,24 +47,30 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
                 })
             formats.append(f)
 
-        cover = item.get('cover')
+        #cover = item.get('cover')
 
         return {
             'title': (item.get('name') or item.get('title')).strip(),
             'formats': formats,
-            'thumbnail': 'http:/' + cover if cover else None,
+            #'thumbnail': 'http:/' + cover if cover else None,
             'artist': item.get('artist'),
         }
 
     def _extract_player_json(self, player_json_url, id, page_type, playlist_title=None):
         player_json = self._download_json(player_json_url, id, 'Downloading Player JSON')
-        items = player_json['data']
-        if 'item' in items:
-            items = items['item']
 
-        if len(items) == 1:
+        ''' if page_type == 'audio' or page_type == 'video':
+            items = player_json['data']['source']
+        else:
+            items = player_json['data']['items']
+         '''
+        items = player_json['data']
+        if 'items' in items:
+            items = items['items']
+
+        if page_type == 'audio' or page_type == 'video':
             # one single song
-            data = self._extract_item(items[0], page_type)
+            data = self._extract_item(items, page_type)
             data['id'] = id
 
             return data
@@ -95,25 +102,23 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
             'id': 'ZWZB9WAB',
             'title': 'Xa Mãi Xa',
             'ext': 'mp3',
-            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://mp3.zing.vn/video-clip/Let-It-Go-Frozen-OST-Sungha-Jung/ZW6BAEA0.html',
-        'md5': '870295a9cd8045c0e15663565902618d',
+        'md5': 'c04f2c8c6400d90b43dd0fa6485e2e32',
         'info_dict': {
             'id': 'ZW6BAEA0',
             'title': 'Let It Go (Frozen OST)',
             'ext': 'mp4',
         },
     }, {
-        'url': 'http://mp3.zing.vn/album/Lau-Dai-Tinh-Ai-Bang-Kieu-Minh-Tuyet/ZWZBWDAF.html',
+        'url': 'http://mp3.zing.vn/album/I-Lab-You-Single-Tien-Tien/ZO6976C0.html',
         'info_dict': {
             '_type': 'playlist',
-            'id': 'ZWZBWDAF',
-            'title': 'Lâu Đài Tình Ái - Bằng Kiều,Minh Tuyết | Album 320 lossless',
+            'id': 'ZO6976C0',
+            'title': 'I Lab You (Single)',
         },
-        'playlist_count': 10,
-        'skip': 'removed at the request of the owner',
+        'playlist_count': 2,
     }, {
         'url': 'http://mp3.zing.vn/playlist/Duong-Hong-Loan-apollobee/IWCAACCB.html',
         'only_matching': True,
@@ -126,18 +131,14 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
 
         webpage = self._download_webpage(url, page_id)
 
-        player_json_url = self._search_regex([
+        player_json_url = 'http://mp3.zing.vn/xhr' + self._search_regex([
             r'data-xml="([^"]+)',
             r'&amp;xmlURL=([^&]+)&'
         ], webpage, 'player xml url')
 
-        playlist_title = None
-        page_type = self._search_regex(r'/(?:html5)?xml/([^/-]+)', player_json_url, 'page type')
-        if page_type == 'video':
-            player_json_url = update_url_query(player_json_url, {'format': 'json'})
-        else:
-            player_json_url = player_json_url.replace('/xml/', '/html5xml/')
-            if page_type == 'album':
-                playlist_title = self._og_search_title(webpage)
+        playlist_title = self._html_search_regex(r'<h1 class="txt-primary">([^>]+)</h1>', webpage, 'title')
+        if not playlist_title:
+            playlist_title = self._og_search_title(webpage)
+        page_type = self._search_regex(r'type=([^&]+)', player_json_url, 'page type')
 
         return self._extract_player_json(player_json_url, page_id, page_type, playlist_title)
