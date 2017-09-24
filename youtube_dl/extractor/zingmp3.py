@@ -116,7 +116,7 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
         'info_dict': {
             '_type': 'playlist',
             'id': 'ZO6976C0',
-            'title': 'I Lab You (Single)',
+            'title': 'I Lab You (Single)  - Tiên Tiên | Zing MP3',
         },
         'playlist_count': 2,
     }, {
@@ -136,9 +136,8 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
             r'&amp;xmlURL=([^&]+)&'
         ], webpage, 'player xml url')
 
-        playlist_title = self._html_search_regex(r'<h1 class="txt-primary">([^>]+)</h1>', webpage, 'title')
-        if not playlist_title:
-            playlist_title = self._og_search_title(webpage)
+        #playlist_title = self._html_search_regex(r'<h1 class="txt-primary">([^>]+)</h1>', webpage, 'title')
+        playlist_title = self._og_search_title(webpage)
         page_type = self._search_regex(r'type=([^&]+)', player_json_url, 'page type')
 
         return self._extract_player_json(player_json_url, page_id, page_type, playlist_title)
