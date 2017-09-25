@@ -55,7 +55,6 @@ class GfycatIE(InfoExtractor):
         if 'error' in gfy:
             raise ExtractorError('Gfycat said: ' + gfy['error'], expected=True)
         gfy = gfy['gfyItem']
-        print gfy
 
         title = gfy.get('title') or gfy['gfyName']
         description = gfy.get('description')
