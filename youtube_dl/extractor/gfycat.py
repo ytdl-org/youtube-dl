@@ -55,14 +55,15 @@ class GfycatIE(InfoExtractor):
         if 'error' in gfy:
             raise ExtractorError('Gfycat said: ' + gfy['error'], expected=True)
         gfy = gfy['gfyItem']
+        print gfy
 
         title = gfy.get('title') or gfy['gfyName']
         description = gfy.get('description')
         timestamp = int_or_none(gfy.get('createDate'))
         uploader = gfy.get('userName')
         view_count = int_or_none(gfy.get('views'))
-        like_count = int_or_none(gfy.get('likes'))
-        dislike_count = int_or_none(gfy.get('dislikes'))
+        like_count = int_or_none(gfy.get('likes'), default=0)
+        dislike_count = int_or_none(gfy.get('dislikes'), default=0)
         age_limit = 18 if gfy.get('nsfw') == '1' else 0
 
         width = int_or_none(gfy.get('width'))
