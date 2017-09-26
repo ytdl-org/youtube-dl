@@ -2973,7 +2973,7 @@ class GenericIE(InfoExtractor):
             # be supported by youtube-dl thus this is checked the very last (see
             # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser)
             embed_url = self._html_search_meta('twitter:player', webpage, default=None)
-            if embed_url:
+            if embed_url and embed_url != url:
                 return self.url_result(embed_url)
 
         if not found:
