@@ -60,6 +60,11 @@ MSO_INFO = {
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
     },
+    'Frontier': {
+        'name': 'FRONTIER',
+        'username_field': 'username',
+        'password_field': 'password',
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
