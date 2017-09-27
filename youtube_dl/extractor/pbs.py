@@ -416,7 +416,7 @@ class PBSIE(InfoExtractor):
                 r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
                 r'class="coveplayerid">([^<]+)<',                       # coveplayer
                 r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
-                r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([0-9]+)"/>',  # jwplayer
+                r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([^"]+)"/>',  # jwplayer
             ]
 
             media_id = self._search_regex(
@@ -493,7 +493,7 @@ class PBSIE(InfoExtractor):
 
         chapters = []
         # Player pages may also serve different qualities
-        for page in ('widget/partnerplayer', 'portalplayer'):
+        for page in ('widget/partnerplayer', 'portalplayer', 'partnerplayer'):
             player = self._download_webpage(
                 'http://player.pbs.org/%s/%s' % (page, video_id),
                 display_id, 'Downloading %s page' % page, fatal=False)
