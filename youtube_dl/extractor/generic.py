@@ -22,6 +22,8 @@ from ..utils import (
     HEADRequest,
     is_html,
     js_to_json,
+    KNOWN_EXTENSIONS,
+    mimetype2ext,
     orderedSet,
     sanitized_Request,
     smuggle_url,
@@ -1129,6 +1131,22 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             }
+        },
+        {
+            # Video.js embed
+            'url': 'http://ortcam.com/solidworks-урок-6-настройка-чертежа_33f9b7351.html',
+            'info_dict': {
+                'id': 'yygqldloqIk',
+                'ext': 'mp4',
+                'title': 'SolidWorks. Урок 6 Настройка чертежа',
+                'description': 'md5:baf95267792646afdbf030e4d06b2ab3',
+                'upload_date': '20130314',
+                'uploader': 'PROстое3D',
+                'uploader_id': 'PROstoe3D',
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
         # rtl.nl embed
         {
@@ -2879,6 +2897,44 @@ class GenericIE(InfoExtractor):
             info = self._parse_jwplayer_data(
                 jwplayer_data, video_id, require_title=False, base_url=url)
             return merge_dicts(info, info_dict)
+
+        # Video.js embed
+        mobj = re.search(
+            r'(?s)\bvideojs\s*\(.+?\bplayer\.src\s*\(\s*(\[.+?\])\s*\)\s*;',
+            webpage)
+        if mobj is not None:
+            sources = self._parse_json(
+                mobj.group(1), video_id, transform_source=js_to_json,
+                fatal=False) or []
+            formats = []
+            for source in sources:
+                src = source.get('src')
+                if not src or not isinstance(src, compat_str):
+                    continue
+                src = compat_urlparse.urljoin(url, src)
+                src_type = source.get('type')
+                if isinstance(src_type, compat_str):
+                    src_type = src_type.lower()
+                ext = determine_ext(src).lower()
+                if src_type == 'video/youtube':
+                    return self.url_result(src, YoutubeIE.ie_key())
+                if src_type == 'application/dash+xml' or ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        src, video_id, mpd_id='dash', fatal=False))
+                elif src_type == 'application/x-mpegurl' or ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        src, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
+                else:
+                    formats.append({
+                        'url': src,
+                        'ext': (mimetype2ext(src_type) or
+                                ext if ext in KNOWN_EXTENSIONS else 'mp4'),
+                    })
+            if formats:
+                self._sort_formats(formats)
+                info_dict['formats'] = formats
+                return info_dict
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
