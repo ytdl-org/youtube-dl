@@ -32,10 +32,10 @@ Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.ex
 You can also use pip:
 
     sudo -H pip install --upgrade youtube-dl
-    
+
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
-macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
+macOS users can install youtube-dl with [Homebrew]:
 
     brew install youtube-dl
 
@@ -523,7 +523,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `is_live` (boolean): Whether this video is a live stream or a fixed-length video
  - `start_time` (numeric): Time in seconds where the reproduction should start, as specified in the URL
  - `end_time` (numeric): Time in seconds where the reproduction should end, as specified in the URL
- - `format` (string): A human-readable description of the format 
+ - `format` (string): A human-readable description of the format
  - `format_id` (string): Format code specified by `--format`
  - `format_note` (string): Additional info about the format
  - `width` (numeric): Width of the video
@@ -635,7 +635,7 @@ The general syntax for format selection is `--format FORMAT` or shorter `-f FORM
 
 **tl;dr:** [navigate me to examples](#format-selection-examples).
 
-The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific. 
+The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific.
 
 You can also use a file extension (currently `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm` are supported) to download the best quality format of a particular file extension served as a single file, e.g. `-f webm` will download the best quality format with the `webm` extension served as a single file.
 
@@ -714,7 +714,7 @@ Videos can be filtered by their upload date using the options `--date`, `--dateb
 
  - Absolute dates: Dates in the format `YYYYMMDD`.
  - Relative dates: Dates in the format `(now|today)[+-][0-9](day|week|month|year)(s)?`
- 
+
 Examples:
 
 ```bash
@@ -805,6 +805,28 @@ YouTube has switched to a new video info format in July 2011 which is not suppor
 ### ERROR: unable to download video
 
 YouTube requires an additional signature since September 2012 which is not supported by old versions of youtube-dl. See [above](#how-do-i-update-youtube-dl) for how to update youtube-dl.
+
+### ERROR: <urlopen error [SSL: TLSV1_ALERT_PROTOCOL_VERSION] tlsv1 alert protocol version (_ssl.c:590)> on macOS
+
+The python that comes with macOS uses an obsolete version of OpenSSL.
+
+Install python using [Homebrew]:
+```bash
+$ brew install python
+```
+
+Include the python `PATH` in your profile (`~/.bash_rc` or `~/.bash_profile`):
+```bash
+$ echo "export PATH=/usr/local/opt/python/libexec/bin:$PATH" >> ~/.bash_profile
+```
+
+Reload shell, using `reset`.
+
+Verify openssl version:
+```bash
+$ python -c 'import ssl; print(ssl.OPENSSL_VERSION)'
+OpenSSL 1.0.2l  25 May 2017
+```
 
 ### Video URL contains an ampersand and I'm getting some strange output `[1] 2839` or `'v' is not recognized as an internal or external command`
 
@@ -1060,7 +1082,7 @@ Say you have some source dictionary `meta` that you've fetched as JSON with HTTP
 ```python
 meta = self._download_json(url, video_id)
 ```
-    
+
 Assume at this point `meta`'s layout is:
 
 ```python
@@ -1104,7 +1126,7 @@ description = self._search_regex(
 ```
 
 On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that may or may not be present.
- 
+
 ### Provide fallbacks
 
 When extracting metadata try to do so from multiple sources. For example if `title` is present in several places, try extracting from at least some of them. This makes it more future-proof in case some of the sources become unavailable.
@@ -1130,7 +1152,7 @@ This code will try to extract from `meta` first and if it fails it will try extr
 ### Make regular expressions flexible
 
 When using regular expressions try to write them fuzzy and flexible.
- 
+
 #### Example
 
 Say you need to extract `title` from the following HTML code:
@@ -1154,7 +1176,7 @@ title = self._search_regex(
     webpage, 'title', group='title')
 ```
 
-Note how you tolerate potential changes in the `style` attribute's value or switch from using double quotes to single for `class` attribute: 
+Note how you tolerate potential changes in the `style` attribute's value or switch from using double quotes to single for `class` attribute:
 
 The code definitely should not look like:
 
@@ -1301,3 +1323,5 @@ It may sound strange, but some bug reports we receive are completely unrelated t
 youtube-dl is released into the public domain by the copyright holders.
 
 This README file was originally written by [Daniel Bolton](https://github.com/dbbolton) and is likewise released into the public domain.
+
+[Homebrew]: https://brew.sh/
