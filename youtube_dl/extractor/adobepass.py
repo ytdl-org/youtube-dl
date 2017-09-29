@@ -60,6 +60,11 @@ MSO_INFO = {
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
     },
+    'Verizon_HBA': {
+        'name': 'Verizon FiOS',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
@@ -1455,11 +1460,15 @@ class AdobePassIE(InfoExtractor):
                         mvpd_confirm_page, urlh = mvpd_confirm_page_res
                         if '<button class="submit" value="Resume">Resume</button>' in mvpd_confirm_page:
                             post_form(mvpd_confirm_page_res, 'Confirming Login')
-                elif mso_id == 'Verizon':
+                elif mso_id == 'Verizon' or mso_id == 'Verizon_HBA':
                     # In general, if you're connecting from a Verizon-assigned IP,
                     # you will not actually pass your credentials.
                     provider_redirect_page, urlh = provider_redirect_page_res
-                    if 'Please wait ...' in provider_redirect_page:
+                    with open('provider_redirect_page.html', 'w') as outFile:
+                        outFile.write(provider_redirect_page)
+                    #if 'Please wait ...' in provider_redirect_page: # window.onload=function redirect(){
+                    # From non-Verizon IP, still gave 'Please wait', but noticed N==Y; will need to try on Verizon IP
+                    if 'Please wait ...' in provider_redirect_page and "'N'== \"Y\"" not in provider_redirect_page:
                         saml_redirect_url = self._html_search_regex(
                             r'self\.parent\.location=(["\'])(?P<url>.+?)\1',
                             provider_redirect_page,
@@ -1467,9 +1476,29 @@ class AdobePassIE(InfoExtractor):
                         saml_login_page = self._download_webpage(
                             saml_redirect_url, video_id,
                             'Downloading SAML Login Page')
-                    else:
+                    elif 'Verizon FiOS - sign in' in  provider_redirect_page:
+                        # FXNetworks from non-Verizon IP
                         saml_login_page_res = post_form(
                             provider_redirect_page_res, 'Logging in', {
+                                mso_info['username_field']: username,
+                                mso_info['password_field']: password,
+                            })
+                        saml_login_page, urlh = saml_login_page_res
+                        if 'Please try again.' in saml_login_page:
+                            raise ExtractorError(
+                                'We\'re sorry, but either the User ID or Password entered is not correct.')
+                    else:
+                        # elif 'Please wait ...' in provider_redirect_page and "'N'== \"Y\"" in provider_redirect_page:
+                        # ABC from non-Verizon IP
+                        saml_redirect_url = self._html_search_regex(
+                            r'window\.location\s*=\s*(["\'])(?P<url>.+?)\1',
+                            provider_redirect_page,
+                            'SAML Redirect URL', group='url')
+                        saml_login_page = self._download_webpage(
+                            saml_redirect_url, video_id,
+                            'Downloading SAML Login Page')
+                        saml_login_page_res = post_form(
+                            [saml_login_page, saml_redirect_url] , 'Logging in', {
                                 mso_info['username_field']: username,
                                 mso_info['password_field']: password,
                             })
