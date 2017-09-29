@@ -134,9 +134,10 @@ class RTVEALaCartaIE(InfoExtractor):
             video_url = video_url.replace('.net.rtve', '.multimedia.cdn.rtve')
 
         if ext == 'm3u8':
-            formats.extend(self._extract_m3u8_formats(video_url, video_id, ext='mp4'))
+            formats.extend(self._extract_m3u8_formats(
+                video_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
         elif ext == 'f4m':
-            formats.extend(self._extract_f4m_formats(video_url, video_id))
+            formats.extend(self._extract_f4m_formats(video_url, video_id, f4m_id='hds', fatal=False))
         else:
             formats.append({
                 'url': video_url,
