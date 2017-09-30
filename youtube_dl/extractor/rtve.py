@@ -136,7 +136,8 @@ class RTVEALaCartaIE(InfoExtractor):
 
         if ext == 'm3u8':
             formats.extend(self._extract_m3u8_formats(
-                video_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
+                video_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False))
         elif ext == 'f4m':
             formats.extend(self._extract_f4m_formats(
                 video_url, video_id, f4m_id='hds', fatal=False))
