@@ -50,6 +50,7 @@ class YahooIE(InfoExtractor):
                 'description': 'md5:66b627ab0a282b26352136ca96ce73c1',
                 'duration': 151,
             },
+            'skip': 'HTTP Error 404',
         },
         {
             'url': 'https://screen.yahoo.com/community/community-sizzle-reel-203225340.html?format=embed',
@@ -142,7 +143,7 @@ class YahooIE(InfoExtractor):
             'skip': 'Domain name in.lifestyle.yahoo.com gone',
         }, {
             'url': 'https://www.yahoo.com/movies/v/true-story-trailer-173000497.html',
-            'md5': '2a9752f74cb898af5d1083ea9f661b58',
+            'md5': '989396ae73d20c6f057746fb226aa215',
             'info_dict': {
                 'id': '071c4013-ce30-3a93-a5b2-e0413cd4a9d1',
                 'ext': 'mp4',
