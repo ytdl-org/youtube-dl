@@ -304,7 +304,7 @@ class YoutubeDL(object):
                        otherwise prefer avconv.
     postprocessor_args: A list of additional command-line arguments for the
                         postprocessor.
-                        
+
     The following options are used by the Youtube extractor:
     youtube_include_dash_manifest: If True (default), DASH manifests and related
                         data will be downloaded and processed by extractor.
