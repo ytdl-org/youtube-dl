@@ -120,6 +120,7 @@ class RTVEALaCartaIE(InfoExtractor):
             video_id)['page']['items'][0]
         if info['state'] == 'DESPU':
             raise ExtractorError('The video is no longer available', expected=True)
+        title = info['title']
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id)
         png_request = sanitized_Request(png_url)
         png_request.add_header('Referer', url)
@@ -151,7 +152,7 @@ class RTVEALaCartaIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': info['title'],
+            'title': title,
             'formats': formats,
             'thumbnail': info.get('image'),
             'page_url': url,
