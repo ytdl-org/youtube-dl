@@ -12,11 +12,12 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
-    unescapeHTML,
+    determine_ext,
     ExtractorError,
+    extract_attributes,
     int_or_none,
     mimetype2ext,
-    determine_ext,
+    unescapeHTML,
 )
 
 from .brightcove import (
@@ -278,13 +279,21 @@ class YahooIE(InfoExtractor):
         if bc_url:
             return self.url_result(bc_url, BrightcoveNewIE.ie_key())
 
-        brightcove_id = self._search_regex(
-            r'<iframe[^>]+data-video-id=["\'](\d+)', webpage, 'brightcove id',
-            default=None)
-        if brightcove_id:
-            return self.url_result(
-                'http://players.brightcove.net/2376984109001/default_default/index.html?videoId=%s' % brightcove_id,
-                BrightcoveNewIE.ie_key())
+        brightcove_iframe = self._search_regex(
+            r'(<iframe[^>]+data-video-id=["\']\d+[^>]+>)', webpage,
+            'brightcove iframe', default=None)
+        if brightcove_iframe:
+            attr = extract_attributes(brightcove_iframe)
+            src = attr.get('src')
+            if src:
+                parsed_src = compat_urlparse.urlparse(src)
+                qs = compat_urlparse.parse_qs(parsed_src.query)
+                account_id = qs.get('accountId', ['2376984109001'])[0]
+                brightcove_id = attr.get('data-video-id') or qs.get('videoId', [None])[0]
+                if account_id and brightcove_id:
+                    return self.url_result(
+                        'http://players.brightcove.net/%s/default_default/index.html?videoId=%s' % (account_id, brightcove_id),
+                        BrightcoveNewIE.ie_key())
 
         # Query result is often embedded in webpage as JSON. Sometimes explicit requests
         # to video API results in a failure with geo restriction reason therefore using
