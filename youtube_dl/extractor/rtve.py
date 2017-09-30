@@ -10,13 +10,13 @@ from ..compat import (
     compat_struct_unpack,
 )
 from ..utils import (
+    determine_ext,
     ExtractorError,
     float_or_none,
     remove_end,
     remove_start,
     sanitized_Request,
     std_headers,
-    determine_ext,
 )
 
 
@@ -137,7 +137,8 @@ class RTVEALaCartaIE(InfoExtractor):
             formats.extend(self._extract_m3u8_formats(
                 video_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
         elif ext == 'f4m':
-            formats.extend(self._extract_f4m_formats(video_url, video_id, f4m_id='hds', fatal=False))
+            formats.extend(self._extract_f4m_formats(
+                video_url, video_id, f4m_id='hds', fatal=False))
         else:
             formats.append({
                 'url': video_url,
