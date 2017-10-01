@@ -44,7 +44,7 @@ ACODECS = {
     'aac': 'aac',
     'flac': 'flac',
     'm4a': 'aac',
-    'opus': 'opus',
+    'opus': 'libopus',
     'vorbis': 'libvorbis',
     'wav': None,
 }
