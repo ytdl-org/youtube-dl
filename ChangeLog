@@ -1,3 +1,21 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Document youtube_include_dash_manifest
+
+Extractors
++ [tvp] Add support for new URL schema (#14368)
++ [generic] Add support for single format Video.js embeds (#14371)
+* [yahoo] Bypass geo restriction for brightcove (#14210)
+* [yahoo] Use extracted brightcove account id (#14210)
+* [rtve:alacarta] Fix extraction (#14290)
++ [yahoo] Add support for custom brigthcove embeds (#14210)
++ [generic] Add support for Video.js embeds
++ [gfycat] Add support for /gifs/detail URLs (#14322)
+* [generic] Fix infinite recursion for twitter:player URLs (#14339)
+* [xhamsterembed] Fix extraction (#14308)
+
+
 version 2017.09.24
 
 Core
