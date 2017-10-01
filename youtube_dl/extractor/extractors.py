@@ -150,7 +150,10 @@ from .camdemy import (
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
-from .canvas import CanvasIE
+from .canvas import (
+    CanvasIE,
+    CanvasEenIE,
+)
 from .carambatv import (
     CarambaTVIE,
     CarambaTVPageIE,
