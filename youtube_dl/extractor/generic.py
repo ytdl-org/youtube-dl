@@ -1133,7 +1133,7 @@ class GenericIE(InfoExtractor):
             }
         },
         {
-            # Video.js embed
+            # Video.js embed, multiple formats
             'url': 'http://ortcam.com/solidworks-урок-6-настройка-чертежа_33f9b7351.html',
             'info_dict': {
                 'id': 'yygqldloqIk',
@@ -1143,6 +1143,19 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20130314',
                 'uploader': 'PROстое3D',
                 'uploader_id': 'PROstoe3D',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Video.js embed, single format
+            'url': 'https://www.vooplayer.com/v3/watch/watch.php?v=NzgwNTg=',
+            'info_dict': {
+                'id': 'watch',
+                'ext': 'mp4',
+                'title': 'Step 1 -  Good Foundation',
+                'description': 'md5:d1e7ff33a29fc3eb1673d6c270d344f4',
             },
             'params': {
                 'skip_download': True,
@@ -2900,12 +2913,14 @@ class GenericIE(InfoExtractor):
 
         # Video.js embed
         mobj = re.search(
-            r'(?s)\bvideojs\s*\(.+?\bplayer\.src\s*\(\s*(\[.+?\])\s*\)\s*;',
+            r'(?s)\bvideojs\s*\(.+?\.src\s*\(\s*((?:\[.+?\]|{.+?}))\s*\)\s*;',
             webpage)
         if mobj is not None:
             sources = self._parse_json(
                 mobj.group(1), video_id, transform_source=js_to_json,
                 fatal=False) or []
+            if not isinstance(sources, list):
+                sources = [sources]
             formats = []
             for source in sources:
                 src = source.get('src')
