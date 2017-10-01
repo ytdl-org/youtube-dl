@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.10.01
 
 Core
 * [YoutubeDL] Document youtube_include_dash_manifest
