@@ -14,6 +14,7 @@ from ..utils import (
     strip_jsonp,
     strip_or_none,
     unified_strdate,
+    urljoin,
     US_RATINGS,
 )
 
@@ -215,7 +216,7 @@ class PBSIE(InfoExtractor):
             'info_dict': {
                 'id': '2365297690',
                 'ext': 'mp4',
-                'title': 'FRONTLINE - Losing Iraq',
+                'title': 'FRONTLINE - S32 Ep15: Losing Iraq',
                 'description': 'md5:5979a4d069b157f622d02bff62fbe654',
                 'duration': 5050,
             },
@@ -250,8 +251,8 @@ class PBSIE(InfoExtractor):
                 'id': '2365160389',
                 'display_id': 'killer-typhoon',
                 'ext': 'mp4',
-                'description': 'md5:c741d14e979fc53228c575894094f157',
-                'title': 'NOVA - Killer Typhoon',
+                'description': 'md5:d3a61bce8de59bff91cd75269e38c13f',
+                'title': 'NOVA - S41 Ep6: Killer Typhoon',
                 'duration': 3172,
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20140122',
@@ -310,7 +311,7 @@ class PBSIE(InfoExtractor):
                 'id': '2365546844',
                 'display_id': 'a-chefs-life-season-3-episode-5-prickly-business',
                 'ext': 'mp4',
-                'title': "A Chef's Life - Season 3, Ep. 5: Prickly Business",
+                'title': "A Chef's Life - S3 Ep5: Prickly Business",
                 'description': 'md5:c0ff7475a4b70261c7e58f493c2792a5',
                 'duration': 1480,
                 'thumbnail': r're:^https?://.*\.jpg$',
@@ -323,7 +324,7 @@ class PBSIE(InfoExtractor):
                 'id': '2070868960',
                 'display_id': 'the-atomic-artists',
                 'ext': 'mp4',
-                'title': 'FRONTLINE - The Atomic Artists',
+                'title': 'FRONTLINE - S29 Ep17: The Atomic Artists',
                 'description': 'md5:f677e4520cfacb4a5ce1471e31b57800',
                 'duration': 723,
                 'thumbnail': r're:^https?://.*\.jpg$',
@@ -339,7 +340,7 @@ class PBSIE(InfoExtractor):
             'info_dict': {
                 'id': '2365641075',
                 'ext': 'mp4',
-                'title': 'FRONTLINE - Netanyahu at War',
+                'title': 'FRONTLINE - S34 Ep4: Netanyahu at War',
                 'duration': 6852,
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'formats': 'mincount:8',
@@ -355,6 +356,21 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
                 'duration': 3265,
                 'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            'url': 'http://www.pbs.org/wgbh/nova/space/death-dive-to-Saturn.html',
+            'info_dict': {
+                'id': '3004606354',
+                'ext': 'mp4',
+                'title': 'NOVA - S44 Ep12: Death Dive to Saturn',
+                'description': 'md5:683464c4d38d73c55d53ea45dff5f2e3',
+                'duration': 3272,
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'upload_date': '20170913',
             },
             'params': {
                 'skip_download': True,
@@ -415,14 +431,39 @@ class PBSIE(InfoExtractor):
             MEDIA_ID_REGEXES = [
                 r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
                 r'class="coveplayerid">([^<]+)<',                       # coveplayer
-                r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
-                r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([^"]+)"/>',  # jwplayer
+                r'<(?:section|div)[^>]+data-coveid="(\d+)"',            # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
+                r'<input[^>]+id\s*=\s*"pbs_video_id_[0-9]+"\s*value="(\d+)"[^>]*>',  # jwplayer
+                r'<div[^>]+id\s*=\s*"video_(\d+)"[^>]*>',
+                r'<(?:button|input)[^>]+data-video-id\s*=\s*["\']?(\d+)[^>]*>',
             ]
 
             media_id = self._search_regex(
                 MEDIA_ID_REGEXES, webpage, 'media ID', fatal=False, default=None)
             if media_id:
                 return media_id, presumptive_id, upload_date, description
+
+            media_id = self._search_regex(
+                [r'<(?:section|div)[^>]+data-coveid="([^"]+)"',
+                 r'<input[^>]+id\s*=\s*"pbs_video_id_[0-9]+"\s*value="([^"]+)"[^>]*>',
+                 ],
+                webpage, 'media ID', fatal=False, default=None)
+            if media_id:
+                player = self._download_webpage(
+                    urljoin('http://player.pbs.org/partnerplayer/', media_id),
+                    display_id, 'Downloading partnerplayer page', fatal=False)
+                jwSettings = self._parse_json(
+                    self._search_regex(
+                        r'(?s)jwSettings\s*=\s*({.+?});',
+                        player, 'jwSetting data', default='{}'),
+                    presumptive_id, transform_source=js_to_json, fatal=False)
+                if jwSettings and jwSettings.get('videoId'):
+                    return jwSettings['videoId'], presumptive_id, upload_date, description
+
+                media_id = self._search_regex(
+                    MEDIA_ID_REGEXES, player, 'media ID', fatal=False, default=None)
+
+                if media_id:
+                    return media_id, presumptive_id, upload_date, description
 
             # Fronline video embedded via flp
             video_id = self._search_regex(
@@ -493,7 +534,7 @@ class PBSIE(InfoExtractor):
 
         chapters = []
         # Player pages may also serve different qualities
-        for page in ('widget/partnerplayer', 'portalplayer', 'partnerplayer'):
+        for page in ('widget/partnerplayer', 'portalplayer', 'viralplayer'):
             player = self._download_webpage(
                 'http://player.pbs.org/%s/%s' % (page, video_id),
                 display_id, 'Downloading %s page' % page, fatal=False)
