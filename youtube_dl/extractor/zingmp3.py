@@ -10,7 +10,6 @@ from ..utils import (
     update_url_query,
 )
 
-
 class ZingMp3BaseInfoExtractor(InfoExtractor):
 
     def _extract_item(self, item, page_type, fatal=True):
@@ -59,11 +58,6 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
     def _extract_player_json(self, player_json_url, id, page_type, playlist_title=None):
         player_json = self._download_json(player_json_url, id, 'Downloading Player JSON')
 
-        ''' if page_type == 'audio' or page_type == 'video':
-            items = player_json['data']['source']
-        else:
-            items = player_json['data']['items']
-         '''
         items = player_json['data']
         if 'items' in items:
             items = items['items']
@@ -136,8 +130,7 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
             r'&amp;xmlURL=([^&]+)&'
         ], webpage, 'player xml url')
 
-        #playlist_title = self._html_search_regex(r'<h1 class="txt-primary">([^>]+)</h1>', webpage, 'title')
         playlist_title = self._og_search_title(webpage)
-        page_type = self._search_regex(r'type=([^&]+)', player_json_url, 'page type')
+        page_type = self._search_regex(r'type=([^&]+)', player_json_url, 'page type', fatal=False, default='audio')
 
         return self._extract_player_json(player_json_url, page_id, page_type, playlist_title)
