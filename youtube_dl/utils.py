@@ -1830,15 +1830,30 @@ def parse_duration(s):
     s = s.strip()
 
     days, hours, mins, secs, ms = [None] * 5
-    m = re.match(r'(?:(?:(?:(?P<days>[0-9]+):)?(?P<hours>[0-9]+):)?(?P<mins>[0-9]+):)?(?P<secs>[0-9]+)(?P<ms>\.[0-9]+)?Z?$', s)
+    m = re.match(r'''(?x)
+        (?:
+            (?:
+                (?:
+                  (?P<days>[0-9]+):
+                )?
+                (?P<hours>[0-9]+):
+            )?
+            (?P<mins>[0-9]+):
+        )?
+        (?P<secs>[0-9]+)
+        (?P<ms>\.[0-9]+)?
+        Z?$''', s)
     if m:
         days, hours, mins, secs, ms = m.groups()
     else:
         m = re.match(
-            r'''(?ix)(?:P?T)?
+            r'''(?ix)P?T?
+                (?:0Y)?
+                (?:0M)?
                 (?:
                     (?P<days>[0-9]+)\s*d(?:ays?)?\s*
                 )?
+                T?
                 (?:
                     (?P<hours>[0-9]+)\s*h(?:ours?)?\s*
                 )?
@@ -1851,7 +1866,12 @@ def parse_duration(s):
         if m:
             days, hours, mins, secs, ms = m.groups()
         else:
-            m = re.match(r'(?i)(?:(?P<hours>[0-9.]+)\s*(?:hours?)|(?P<mins>[0-9.]+)\s*(?:mins?\.?|minutes?)\s*)Z?$', s)
+            m = re.match(r'''(?ix)
+                (?:
+                    (?P<hours>[0-9.]+)\s*(?:hours?)
+                    |(?P<mins>[0-9.]+)\s*(?:mins?\.?|minutes?)\s*
+                )
+                Z?$''', s)
             if m:
                 hours, mins = m.groups()
             else:
