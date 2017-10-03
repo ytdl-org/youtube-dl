@@ -18,7 +18,7 @@ class TVN24IE(InfoExtractor):
             'ext': 'mp4',
             'title': '"Święta mają być wesołe, dlatego, ludziska, wszyscy pod jemiołę"',
             'description': 'Wyjątkowe orędzie Artura Andrusa, jednego z gości "Szkła kontaktowego".',
-            'thumbnail': 're:http://.*[.]jpeg',
+            'thumbnail': 're:https?://.*[.]jpeg',
         }
     }, {
         'url': 'http://fakty.tvn24.pl/ogladaj-online,60/53-konferencja-bezpieczenstwa-w-monachium,716431.html',
