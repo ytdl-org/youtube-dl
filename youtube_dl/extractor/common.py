@@ -1920,7 +1920,7 @@ class InfoExtractor(object):
                             # can't be used at the same time
                             if '%(Number' in media_template and 's' not in representation_ms_info:
                                 segment_duration = None
-                                if 'total_number' not in representation_ms_info and 'segment_duration':
+                                if 'total_number' not in representation_ms_info and 'segment_duration' in representation_ms_info:
                                     segment_duration = float_or_none(representation_ms_info['segment_duration'], representation_ms_info['timescale'])
                                     representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
                                 representation_ms_info['fragments'] = [{
