@@ -411,6 +411,11 @@ from .go import GoIE
 from .go90 import Go90IE
 from .godtube import GodTubeIE
 from .golem import GolemIE
+from .goodgame import (
+    GoodgameStreamIE,
+    GoodgameVideoIE,
+    GoodgameClipIE,
+)
 from .googledrive import GoogleDriveIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
