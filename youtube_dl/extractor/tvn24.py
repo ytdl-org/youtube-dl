@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class TVN24IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:[^/]+)\.)?tvn24(?:bis)?\.pl/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:(?:[^/]+)\.)?tvn24(?:bis)?\.pl/(?:[^/]+/)*(?P<id>[^/]+)(?:\.html)?'
     _TESTS = [{
         'url': 'http://www.tvn24.pl/wiadomosci-z-kraju,3/oredzie-artura-andrusa,702428.html',
         'md5': 'fbdec753d7bc29d96036808275f2130c',
@@ -28,6 +28,9 @@ class TVN24IE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://tvn24bis.pl/poranek,146,m/gen-koziej-w-tvn24-bis-wracamy-do-czasow-zimnej-wojny,715660.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tvn24.pl/magazyn-tvn24/angie-w-jednej-czwartej-polka-od-szarej-myszki-do-cesarzowej-europy,119,2158',
         'only_matching': True,
     }]
 
