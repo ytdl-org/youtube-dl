@@ -34,6 +34,26 @@ class PornFlipIE(InfoExtractor):
     }, {
         'url': 'https://www.pornflip.com/embed/wz7DfNhMmep',
         'only_matching': True,
+    }, {
+    	'url': 'https://www.pornflip.com/v/EkRD6-vS2-s',
+        'md5': 'd1daf08112bce8c02d18da2a7c928b22',
+        'info_dict': {
+            'id': 'EkRD6-vS2-s',
+            'ext': 'mp4',
+            'title': 'Deepthroat creampie for norwegian step mom',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 334,
+            'timestamp': 1506447970,
+            'upload_date': '20170926',
+            'uploader_id': '160131',
+            'uploader': 'Abarrambbar',
+            'view_count': int,
+            'age_limit': 18,
+           }
+
+    }, {
+    	'url': 'https://www.pornflip.com/embed/EkRD6-vS2-s',
+    	'only_matching': True,
     }]
 
     def _real_extract(self, url):
