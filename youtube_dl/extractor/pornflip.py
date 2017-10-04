@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class PornFlipIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pornflip\.com/(?:v|embed)/(?P<id>[0-9A-Za-z]{11})'
+    _VALID_URL = r'https?://(?:www\.)?pornflip\.com/(?:v|embed)/(?P<id>[0-9A-Za-z-]{11})'
     _TESTS = [{
         'url': 'https://www.pornflip.com/v/wz7DfNhMmep',
         'md5': '98c46639849145ae1fd77af532a9278c',
