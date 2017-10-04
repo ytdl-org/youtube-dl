@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class LnkGoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?lnkgo\.alfa\.lt/visi-video/(?P<show>[^/]+)/ziurek-(?P<id>[A-Za-z0-9-]+)'
+    _VALID_URL = r'https?://(?:www\.)?lnkgo\.(alfa\.lt)?/visi-video/(?P<show>[^/]+)/ziurek-(?P<id>[A-Za-z0-9-]+)'
     _TESTS = [{
         'url': 'http://lnkgo.alfa.lt/visi-video/yra-kaip-yra/ziurek-yra-kaip-yra-162',
         'info_dict': {
