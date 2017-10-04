@@ -38,10 +38,12 @@
  - **afreecatv**: afreecatv.com
  - **afreecatv:global**: afreecatv.com
  - **AirMozilla**
+ - **AliExpressLive**
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
  - **AMCNetworks**
+ - **AmericasTestKitchen**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
  - **anitube.se**
@@ -155,8 +157,8 @@
  - **chirbit:profile**
  - **Cinchcast**
  - **CJSW**
- - **Clipfish**
  - **cliphunter**
+ - **Clippit**
  - **ClipRs**
  - **Clipsyndicate**
  - **CloserToTruth**
@@ -295,6 +297,7 @@
  - **Funimation**
  - **FunnyOrDie**
  - **Fusion**
+ - **Fux**
  - **FXNetworks**
  - **GameInformer**
  - **GameOne**
@@ -362,6 +365,7 @@
  - **IPrima**
  - **iqiyi**: 爱奇艺
  - **Ir90Tv**
+ - **ITTF**
  - **ITV**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
@@ -375,6 +379,7 @@
  - **Jove**
  - **jpopsuki.tv**
  - **JWPlatform**
+ - **Kakao**
  - **Kaltura**
  - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
@@ -418,6 +423,7 @@
  - **limelight:channel_list**
  - **LiTV**
  - **LiveLeak**
+ - **LiveLeakEmbed**
  - **livestream**
  - **livestream:original**
  - **LnkGo**
@@ -434,12 +440,14 @@
  - **MakerTV**
  - **mangomolo:live**
  - **mangomolo:video**
+ - **ManyVids**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
  - **Medialaan**
  - **Mediaset**
  - **Medici**
+ - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
  - **MelonVOD**
  - **META**
@@ -472,7 +480,6 @@
  - **MovieFap**
  - **Moviezine**
  - **MovingImage**
- - **MPORA**
  - **MSN**
  - **mtg**: MTG services
  - **mtv**
@@ -588,6 +595,7 @@
  - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
+ - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
@@ -621,7 +629,9 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
+ - **PopcornTV**
  - **PornCom**
+ - **PornerBros**
  - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
@@ -630,6 +640,7 @@
  - **Pornotube**
  - **PornoVoisines**
  - **PornoXO**
+ - **PornTube**
  - **PressTV**
  - **PrimeShareTV**
  - **PromptFile**
@@ -655,6 +666,8 @@
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
+ - **Reddit**
+ - **RedditR**
  - **RedTube**
  - **RegioTV**
  - **RENTV**
@@ -694,6 +707,7 @@
  - **rutube:embed**: Rutube embedded videos
  - **rutube:movie**: Rutube movies
  - **rutube:person**: Rutube person videos
+ - **rutube:playlist**: Rutube playlists
  - **RUTV**: RUTV.RU
  - **Ruutu**
  - **Ruv**
@@ -735,6 +749,7 @@
  - **soundcloud:playlist**
  - **soundcloud:search**: Soundcloud search
  - **soundcloud:set**
+ - **soundcloud:trackstation**
  - **soundcloud:user**
  - **soundgasm**
  - **soundgasm:profile**
@@ -782,7 +797,6 @@
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
  - **Teamcoco**
- - **TeamFourStar**
  - **TechTalks**
  - **techtv.mit.edu**
  - **ted**
@@ -952,6 +966,7 @@
  - **VODPl**
  - **VODPlatform**
  - **VoiceRepublic**
+ - **Voot**
  - **VoxMedia**
  - **Vporn**
  - **vpro**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
@@ -969,6 +984,7 @@
  - **washingtonpost**
  - **washingtonpost:article**
  - **wat.tv**
+ - **WatchBox**
  - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**
  - **wdr:mobile**
@@ -1004,6 +1020,7 @@
  - **XVideos**
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
+ - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек

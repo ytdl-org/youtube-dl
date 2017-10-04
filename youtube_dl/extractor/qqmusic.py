@@ -2,38 +2,37 @@
 from __future__ import unicode_literals
 
 import random
-import time
 import re
+import time
 
 from .common import InfoExtractor
 from ..utils import (
-    sanitized_Request,
-    strip_jsonp,
-    unescapeHTML,
     clean_html,
     ExtractorError,
+    strip_jsonp,
+    unescapeHTML,
 )
 
 
 class QQMusicIE(InfoExtractor):
     IE_NAME = 'qqmusic'
     IE_DESC = 'QQ音乐'
-    _VALID_URL = r'https?://y\.qq\.com/#type=song&mid=(?P<id>[0-9A-Za-z]+)'
+    _VALID_URL = r'https?://y\.qq\.com/n/yqq/song/(?P<id>[0-9A-Za-z]+)\.html'
     _TESTS = [{
-        'url': 'http://y.qq.com/#type=song&mid=004295Et37taLD',
-        'md5': '9ce1c1c8445f561506d2e3cfb0255705',
+        'url': 'https://y.qq.com/n/yqq/song/004295Et37taLD.html',
+        'md5': '5f1e6cea39e182857da7ffc5ef5e6bb8',
         'info_dict': {
             'id': '004295Et37taLD',
             'ext': 'mp3',
             'title': '可惜没如果',
             'release_date': '20141227',
             'creator': '林俊杰',
-            'description': 'md5:d327722d0361576fde558f1ac68a7065',
+            'description': 'md5:d85afb3051952ecc50a1ee8a286d1eac',
             'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'note': 'There is no mp3-320 version of this song.',
-        'url': 'http://y.qq.com/#type=song&mid=004MsGEo3DdNxV',
+        'url': 'https://y.qq.com/n/yqq/song/004MsGEo3DdNxV.html',
         'md5': 'fa3926f0c585cda0af8fa4f796482e3e',
         'info_dict': {
             'id': '004MsGEo3DdNxV',
@@ -46,14 +45,14 @@ class QQMusicIE(InfoExtractor):
         }
     }, {
         'note': 'lyrics not in .lrc format',
-        'url': 'http://y.qq.com/#type=song&mid=001JyApY11tIp6',
+        'url': 'https://y.qq.com/n/yqq/song/001JyApY11tIp6.html',
         'info_dict': {
             'id': '001JyApY11tIp6',
             'ext': 'mp3',
             'title': 'Shadows Over Transylvania',
             'release_date': '19970225',
             'creator': 'Dark Funeral',
-            'description': 'md5:ed14d5bd7ecec19609108052c25b2c11',
+            'description': 'md5:c9b20210587cbcd6836a1c597bab4525',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
@@ -105,7 +104,7 @@ class QQMusicIE(InfoExtractor):
             [r'albummid:\'([0-9a-zA-Z]+)\'', r'"albummid":"([0-9a-zA-Z]+)"'],
             detail_info_page, 'album mid', default=None)
         if albummid:
-            thumbnail_url = "http://i.gtimg.cn/music/photo/mid_album_500/%s/%s/%s.jpg" \
+            thumbnail_url = 'http://i.gtimg.cn/music/photo/mid_album_500/%s/%s/%s.jpg' \
                             % (albummid[-2:-1], albummid[-1], albummid)
 
         guid = self.m_r_get_ruin()
@@ -156,15 +155,39 @@ class QQPlaylistBaseIE(InfoExtractor):
     def qq_static_url(category, mid):
         return 'http://y.qq.com/y/static/%s/%s/%s/%s.html' % (category, mid[-2], mid[-1], mid)
 
-    @classmethod
-    def get_entries_from_page(cls, page):
+    def get_singer_all_songs(self, singmid, num):
+        return self._download_webpage(
+            r'https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg', singmid,
+            query={
+                'format': 'json',
+                'inCharset': 'utf8',
+                'outCharset': 'utf-8',
+                'platform': 'yqq',
+                'needNewCode': 0,
+                'singermid': singmid,
+                'order': 'listen',
+                'begin': 0,
+                'num': num,
+                'songstatus': 1,
+            })
+
+    def get_entries_from_page(self, singmid):
         entries = []
 
-        for item in re.findall(r'class="data"[^<>]*>([^<>]+)</', page):
-            song_mid = unescapeHTML(item).split('|')[-5]
-            entries.append(cls.url_result(
-                'http://y.qq.com/#type=song&mid=' + song_mid, 'QQMusic',
-                song_mid))
+        default_num = 1
+        json_text = self.get_singer_all_songs(singmid, default_num)
+        json_obj_all_songs = self._parse_json(json_text, singmid)
+
+        if json_obj_all_songs['code'] == 0:
+            total = json_obj_all_songs['data']['total']
+            json_text = self.get_singer_all_songs(singmid, total)
+            json_obj_all_songs = self._parse_json(json_text, singmid)
+
+        for item in json_obj_all_songs['data']['list']:
+            if item['musicData'].get('songmid') is not None:
+                songmid = item['musicData']['songmid']
+                entries.append(self.url_result(
+                    r'https://y.qq.com/n/yqq/song/%s.html' % songmid, 'QQMusic', songmid))
 
         return entries
 
@@ -172,42 +195,32 @@ class QQPlaylistBaseIE(InfoExtractor):
 class QQMusicSingerIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:singer'
     IE_DESC = 'QQ音乐 - 歌手'
-    _VALID_URL = r'https?://y\.qq\.com/#type=singer&mid=(?P<id>[0-9A-Za-z]+)'
+    _VALID_URL = r'https?://y\.qq\.com/n/yqq/singer/(?P<id>[0-9A-Za-z]+)\.html'
     _TEST = {
-        'url': 'http://y.qq.com/#type=singer&mid=001BLpXF2DyJe2',
+        'url': 'https://y.qq.com/n/yqq/singer/001BLpXF2DyJe2.html',
         'info_dict': {
             'id': '001BLpXF2DyJe2',
             'title': '林俊杰',
             'description': 'md5:870ec08f7d8547c29c93010899103751',
         },
-        'playlist_count': 12,
+        'playlist_mincount': 12,
     }
 
     def _real_extract(self, url):
         mid = self._match_id(url)
 
-        singer_page = self._download_webpage(
-            self.qq_static_url('singer', mid), mid, 'Download singer page')
-
-        entries = self.get_entries_from_page(singer_page)
-
+        entries = self.get_entries_from_page(mid)
+        singer_page = self._download_webpage(url, mid, 'Download singer page')
         singer_name = self._html_search_regex(
-            r"singername\s*:\s*'([^']+)'", singer_page, 'singer name',
-            default=None)
-
-        singer_id = self._html_search_regex(
-            r"singerid\s*:\s*'([0-9]+)'", singer_page, 'singer id',
-            default=None)
-
+            r"singername\s*:\s*'(.*?)'", singer_page, 'singer name', default=None)
         singer_desc = None
 
-        if singer_id:
-            req = sanitized_Request(
-                'http://s.plcloud.music.qq.com/fcgi-bin/fcg_get_singer_desc.fcg?utf8=1&outCharset=utf-8&format=xml&singerid=%s' % singer_id)
-            req.add_header(
-                'Referer', 'http://s.plcloud.music.qq.com/xhr_proxy_utf8.html')
+        if mid:
             singer_desc_page = self._download_xml(
-                req, mid, 'Donwload singer description XML')
+                'http://s.plcloud.music.qq.com/fcgi-bin/fcg_get_singer_desc.fcg', mid,
+                'Donwload singer description XML',
+                query={'utf8': 1, 'outCharset': 'utf-8', 'format': 'xml', 'singermid': mid},
+                headers={'Referer': 'https://y.qq.com/n/yqq/singer/'})
 
             singer_desc = singer_desc_page.find('./data/info/desc').text
 
@@ -217,10 +230,10 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
 class QQMusicAlbumIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:album'
     IE_DESC = 'QQ音乐 - 专辑'
-    _VALID_URL = r'https?://y\.qq\.com/#type=album&mid=(?P<id>[0-9A-Za-z]+)'
+    _VALID_URL = r'https?://y\.qq\.com/n/yqq/album/(?P<id>[0-9A-Za-z]+)\.html'
 
     _TESTS = [{
-        'url': 'http://y.qq.com/#type=album&mid=000gXCTb2AhRR1',
+        'url': 'https://y.qq.com/n/yqq/album/000gXCTb2AhRR1.html',
         'info_dict': {
             'id': '000gXCTb2AhRR1',
             'title': '我们都是这样长大的',
@@ -228,7 +241,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
         },
         'playlist_count': 4,
     }, {
-        'url': 'http://y.qq.com/#type=album&mid=002Y5a3b3AlCu3',
+        'url': 'https://y.qq.com/n/yqq/album/002Y5a3b3AlCu3.html',
         'info_dict': {
             'id': '002Y5a3b3AlCu3',
             'title': '그리고...',
@@ -246,7 +259,7 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
 
         entries = [
             self.url_result(
-                'http://y.qq.com/#type=song&mid=' + song['songmid'], 'QQMusic', song['songmid']
+                'https://y.qq.com/n/yqq/song/' + song['songmid'] + '.html', 'QQMusic', song['songmid']
             ) for song in album['list']
         ]
         album_name = album.get('name')
@@ -260,31 +273,30 @@ class QQMusicAlbumIE(QQPlaylistBaseIE):
 class QQMusicToplistIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:toplist'
     IE_DESC = 'QQ音乐 - 排行榜'
-    _VALID_URL = r'https?://y\.qq\.com/#type=toplist&p=(?P<id>(top|global)_[0-9]+)'
+    _VALID_URL = r'https?://y\.qq\.com/n/yqq/toplist/(?P<id>[0-9]+)\.html'
 
     _TESTS = [{
-        'url': 'http://y.qq.com/#type=toplist&p=global_123',
+        'url': 'https://y.qq.com/n/yqq/toplist/123.html',
         'info_dict': {
-            'id': 'global_123',
+            'id': '123',
             'title': '美国iTunes榜',
-        },
-        'playlist_count': 10,
-    }, {
-        'url': 'http://y.qq.com/#type=toplist&p=top_3',
-        'info_dict': {
-            'id': 'top_3',
-            'title': '巅峰榜·欧美',
-            'description': 'QQ音乐巅峰榜·欧美根据用户收听行为自动生成，集结当下最流行的欧美新歌！:更新时间：每周四22点|统'
-                           '计周期：一周（上周四至本周三）|统计对象：三个月内发行的欧美歌曲|统计数量：100首|统计算法：根据'
-                           '歌曲在一周内的有效播放次数，由高到低取前100名（同一歌手最多允许5首歌曲同时上榜）|有效播放次数：'
-                           '登录用户完整播放一首歌曲，记为一次有效播放；同一用户收听同一首歌曲，每天记录为1次有效播放'
+            'description': 'md5:89db2335fdbb10678dee2d43fe9aba08',
         },
         'playlist_count': 100,
     }, {
-        'url': 'http://y.qq.com/#type=toplist&p=global_106',
+        'url': 'https://y.qq.com/n/yqq/toplist/3.html',
         'info_dict': {
-            'id': 'global_106',
+            'id': '3',
+            'title': '巅峰榜·欧美',
+            'description': 'md5:5a600d42c01696b26b71f8c4d43407da',
+        },
+        'playlist_count': 100,
+    }, {
+        'url': 'https://y.qq.com/n/yqq/toplist/106.html',
+        'info_dict': {
+            'id': '106',
             'title': '韩国Mnet榜',
+            'description': 'md5:cb84b325215e1d21708c615cac82a6e7',
         },
         'playlist_count': 50,
     }]
@@ -292,18 +304,15 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
     def _real_extract(self, url):
         list_id = self._match_id(url)
 
-        list_type, num_id = list_id.split("_")
-
         toplist_json = self._download_json(
-            'http://i.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg?type=%s&topid=%s&format=json'
-            % (list_type, num_id),
-            list_id, 'Download toplist page')
+            'http://i.y.qq.com/v8/fcg-bin/fcg_v8_toplist_cp.fcg', list_id,
+            note='Download toplist page',
+            query={'type': 'toplist', 'topid': list_id, 'format': 'json'})
 
-        entries = [
-            self.url_result(
-                'http://y.qq.com/#type=song&mid=' + song['data']['songmid'], 'QQMusic', song['data']['songmid']
-            ) for song in toplist_json['songlist']
-        ]
+        entries = [self.url_result(
+            'https://y.qq.com/n/yqq/song/' + song['data']['songmid'] + '.html', 'QQMusic',
+            song['data']['songmid'])
+            for song in toplist_json['songlist']]
 
         topinfo = toplist_json.get('topinfo', {})
         list_name = topinfo.get('ListName')
@@ -314,10 +323,10 @@ class QQMusicToplistIE(QQPlaylistBaseIE):
 class QQMusicPlaylistIE(QQPlaylistBaseIE):
     IE_NAME = 'qqmusic:playlist'
     IE_DESC = 'QQ音乐 - 歌单'
-    _VALID_URL = r'https?://y\.qq\.com/#type=taoge&id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://y\.qq\.com/n/yqq/playlist/(?P<id>[0-9]+)\.html'
 
     _TESTS = [{
-        'url': 'http://y.qq.com/#type=taoge&id=3462654915',
+        'url': 'http://y.qq.com/n/yqq/playlist/3462654915.html',
         'info_dict': {
             'id': '3462654915',
             'title': '韩国5月新歌精选下旬',
@@ -326,7 +335,7 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
         'playlist_count': 40,
         'skip': 'playlist gone',
     }, {
-        'url': 'http://y.qq.com/#type=taoge&id=1374105607',
+        'url': 'https://y.qq.com/n/yqq/playlist/1374105607.html',
         'info_dict': {
             'id': '1374105607',
             'title': '易入人心的华语民谣',
@@ -339,8 +348,9 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
         list_id = self._match_id(url)
 
         list_json = self._download_json(
-            'http://i.y.qq.com/qzone-music/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?type=1&json=1&utf8=1&onlysong=0&disstid=%s'
-            % list_id, list_id, 'Download list page',
+            'http://i.y.qq.com/qzone-music/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg',
+            list_id, 'Download list page',
+            query={'type': 1, 'json': 1, 'utf8': 1, 'onlysong': 0, 'disstid': list_id},
             transform_source=strip_jsonp)
         if not len(list_json.get('cdlist', [])):
             if list_json.get('code'):
@@ -350,11 +360,9 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
             raise ExtractorError('Unable to get playlist info')
 
         cdlist = list_json['cdlist'][0]
-        entries = [
-            self.url_result(
-                'http://y.qq.com/#type=song&mid=' + song['songmid'], 'QQMusic', song['songmid']
-            ) for song in cdlist['songlist']
-        ]
+        entries = [self.url_result(
+            'https://y.qq.com/n/yqq/song/' + song['songmid'] + '.html', 'QQMusic', song['songmid'])
+            for song in cdlist['songlist']]
 
         list_name = cdlist.get('dissname')
         list_description = clean_html(unescapeHTML(cdlist.get('desc')))

@@ -237,7 +237,7 @@ class NRKTVIE(NRKBaseIE):
                             (?:/\d{2}-\d{2}-\d{4})?
                             (?:\#del=(?P<part_id>\d+))?
                     ''' % _EPISODE_RE
-    _API_HOST = 'psapi-we.nrk.no'
+    _API_HOST = 'psapi-ne.nrk.no'
 
     _TESTS = [{
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',

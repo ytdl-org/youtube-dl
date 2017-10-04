@@ -46,8 +46,15 @@ tar: youtube-dl.tar.gz
 pypi-files: youtube-dl.bash-completion README.txt youtube-dl.1 youtube-dl.fish
 
 youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
-	zip --quiet youtube-dl youtube_dl/*.py youtube_dl/*/*.py
-	zip --quiet --junk-paths youtube-dl youtube_dl/__main__.py
+	mkdir -p zip
+	for d in youtube_dl youtube_dl/downloader youtube_dl/extractor youtube_dl/postprocessor ; do \
+	  mkdir -p zip/$$d ;\
+	  cp -pPR $$d/*.py zip/$$d/ ;\
+	done
+	touch -t 200001010101 zip/youtube_dl/*.py zip/youtube_dl/*/*.py
+	mv zip/youtube_dl/__main__.py zip/
+	cd zip ; zip -q ../youtube-dl youtube_dl/*.py youtube_dl/*/*.py __main__.py
+	rm -rf zip
 	echo '#!$(PYTHON)' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
 	rm youtube-dl.zip

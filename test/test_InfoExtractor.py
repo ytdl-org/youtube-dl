@@ -10,6 +10,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL, expect_dict, expect_value
+from youtube_dl.compat import compat_etree_fromstring
 from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.extractor import YoutubeIE, get_info_extractor
 from youtube_dl.utils import encode_data_uri, strip_jsonp, ExtractorError, RegexNotFoundError
@@ -485,6 +486,91 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                          mode='r', encoding='utf-8') as f:
                 formats = self.ie._parse_m3u8_formats(
                     f.read(), m3u8_url, ext='mp4')
+                self.ie._sort_formats(formats)
+                expect_value(self, formats, expected_formats, None)
+
+    def test_parse_mpd_formats(self):
+        _TEST_CASES = [
+            (
+                # https://github.com/rg3/youtube-dl/issues/13919
+                'float_duration',
+                'http://unknown/manifest.mpd',
+                [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '318597',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.42001f',
+                    'tbr': 318.597,
+                    'width': 340,
+                    'height': 192,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '638590',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.42001f',
+                    'tbr': 638.59,
+                    'width': 512,
+                    'height': 288,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '1022565',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4d001f',
+                    'tbr': 1022.565,
+                    'width': 688,
+                    'height': 384,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '2046506',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4d001f',
+                    'tbr': 2046.506,
+                    'width': 1024,
+                    'height': 576,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '3998017',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.640029',
+                    'tbr': 3998.017,
+                    'width': 1280,
+                    'height': 720,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '5997485',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.640032',
+                    'tbr': 5997.485,
+                    'width': 1920,
+                    'height': 1080,
+                }]
+            ),
+        ]
+
+        for mpd_file, mpd_url, expected_formats in _TEST_CASES:
+            with io.open('./test/testdata/mpd/%s.mpd' % mpd_file,
+                         mode='r', encoding='utf-8') as f:
+                formats = self.ie._parse_mpd_formats(
+                    compat_etree_fromstring(f.read().encode('utf-8')),
+                    mpd_url=mpd_url)
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
 

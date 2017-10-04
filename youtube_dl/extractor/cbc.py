@@ -200,6 +200,7 @@ class CBCWatchBaseIE(InfoExtractor):
         'media': 'http://search.yahoo.com/mrss/',
         'clearleap': 'http://www.clearleap.com/namespace/clearleap/1.0/',
     }
+    _GEO_COUNTRIES = ['CA']
 
     def _call_api(self, path, video_id):
         url = path if path.startswith('http') else self._API_BASE_URL + path
@@ -287,6 +288,11 @@ class CBCWatchBaseIE(InfoExtractor):
 class CBCWatchVideoIE(CBCWatchBaseIE):
     IE_NAME = 'cbc.ca:watch:video'
     _VALID_URL = r'https?://api-cbc\.cloud\.clearleap\.com/cloffice/client/web/play/?\?.*?\bcontentId=(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _TEST = {
+        # geo-restricted to Canada, bypassable
+        'url': 'https://api-cbc.cloud.clearleap.com/cloffice/client/web/play/?contentId=3c84472a-1eea-4dee-9267-2655d5055dcf&categoryId=ebc258f5-ee40-4cca-b66b-ba6bd55b7235',
+        'only_matching': True,
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -323,9 +329,10 @@ class CBCWatchIE(CBCWatchBaseIE):
     IE_NAME = 'cbc.ca:watch'
     _VALID_URL = r'https?://watch\.cbc\.ca/(?:[^/]+/)+(?P<id>[0-9a-f-]+)'
     _TESTS = [{
+        # geo-restricted to Canada, bypassable
         'url': 'http://watch.cbc.ca/doc-zone/season-6/customer-disservice/38e815a-009e3ab12e4',
         'info_dict': {
-            'id': '38e815a-009e3ab12e4',
+            'id': '9673749a-5e77-484c-8b62-a1092a6b5168',
             'ext': 'mp4',
             'title': 'Customer (Dis)Service',
             'description': 'md5:8bdd6913a0fe03d4b2a17ebe169c7c87',
@@ -337,8 +344,8 @@ class CBCWatchIE(CBCWatchBaseIE):
             'skip_download': True,
             'format': 'bestvideo',
         },
-        'skip': 'Geo-restricted to Canada',
     }, {
+        # geo-restricted to Canada, bypassable
         'url': 'http://watch.cbc.ca/arthur/all/1ed4b385-cd84-49cf-95f0-80f004680057',
         'info_dict': {
             'id': '1ed4b385-cd84-49cf-95f0-80f004680057',
@@ -346,7 +353,6 @@ class CBCWatchIE(CBCWatchBaseIE):
             'description': 'Arthur, the sweetest 8-year-old aardvark, and his pals solve all kinds of problems with humour, kindness and teamwork.',
         },
         'playlist_mincount': 30,
-        'skip': 'Geo-restricted to Canada',
     }]
 
     def _real_extract(self, url):

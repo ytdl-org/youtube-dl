@@ -93,6 +93,7 @@ class ARDMediathekIE(InfoExtractor):
 
         duration = int_or_none(media_info.get('_duration'))
         thumbnail = media_info.get('_previewImage')
+        is_live = media_info.get('_isLive') is True
 
         subtitles = {}
         subtitle_url = media_info.get('_subtitleUrl')
@@ -106,6 +107,7 @@ class ARDMediathekIE(InfoExtractor):
             'id': video_id,
             'duration': duration,
             'thumbnail': thumbnail,
+            'is_live': is_live,
             'formats': formats,
             'subtitles': subtitles,
         }
@@ -166,9 +168,11 @@ class ARDMediathekIE(InfoExtractor):
         # determine video id from url
         m = re.match(self._VALID_URL, url)
 
+        document_id = None
+
         numid = re.search(r'documentId=([0-9]+)', url)
         if numid:
-            video_id = numid.group(1)
+            document_id = video_id = numid.group(1)
         else:
             video_id = m.group('video_id')
 
@@ -228,12 +232,16 @@ class ARDMediathekIE(InfoExtractor):
                 'formats': formats,
             }
         else:  # request JSON file
+            if not document_id:
+                video_id = self._search_regex(
+                    r'/play/(?:config|media)/(\d+)', webpage, 'media id')
             info = self._extract_media_info(
-                'http://www.ardmediathek.de/play/media/%s' % video_id, webpage, video_id)
+                'http://www.ardmediathek.de/play/media/%s' % video_id,
+                webpage, video_id)
 
         info.update({
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if info.get('is_live') else title,
             'description': description,
             'thumbnail': thumbnail,
         })

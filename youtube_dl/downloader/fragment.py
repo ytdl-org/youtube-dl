@@ -151,10 +151,15 @@ class FragmentFD(FileDownloader):
         if self.__do_ytdl_file(ctx):
             if os.path.isfile(encodeFilename(self.ytdl_filename(ctx['filename']))):
                 self._read_ytdl_file(ctx)
+                if ctx['fragment_index'] > 0 and resume_len == 0:
+                    self.report_error(
+                        'Inconsistent state of incomplete fragment download. '
+                        'Restarting from the beginning...')
+                    ctx['fragment_index'] = resume_len = 0
+                    self._write_ytdl_file(ctx)
             else:
                 self._write_ytdl_file(ctx)
-            if ctx['fragment_index'] > 0:
-                assert resume_len > 0
+                assert ctx['fragment_index'] == 0
 
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 

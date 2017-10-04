@@ -18,6 +18,7 @@ from ..utils import (
     parse_duration,
     qualities,
     srt_subtitles_timecode,
+    try_get,
     update_url_query,
     urlencode_postdata,
 )
@@ -25,6 +26,39 @@ from ..utils import (
 
 class PluralsightBaseIE(InfoExtractor):
     _API_BASE = 'https://app.pluralsight.com'
+
+    def _download_course(self, course_id, url, display_id):
+        try:
+            return self._download_course_rpc(course_id, url, display_id)
+        except ExtractorError:
+            # Old API fallback
+            return self._download_json(
+                'https://app.pluralsight.com/player/user/api/v1/player/payload',
+                display_id, data=urlencode_postdata({'courseId': course_id}),
+                headers={'Referer': url})
+
+    def _download_course_rpc(self, course_id, url, display_id):
+        response = self._download_json(
+            '%s/player/functions/rpc' % self._API_BASE, display_id,
+            'Downloading course JSON',
+            data=json.dumps({
+                'fn': 'bootstrapPlayer',
+                'payload': {
+                    'courseId': course_id,
+                },
+            }).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json;charset=utf-8',
+                'Referer': url,
+            })
+
+        course = try_get(response, lambda x: x['payload']['course'], dict)
+        if course:
+            return course
+
+        raise ExtractorError(
+            '%s said: %s' % (self.IE_NAME, response['error']['message']),
+            expected=True)
 
 
 class PluralsightIE(PluralsightBaseIE):
@@ -162,10 +196,7 @@ class PluralsightIE(PluralsightBaseIE):
 
         display_id = '%s-%s' % (name, clip_id)
 
-        course = self._download_json(
-            'https://app.pluralsight.com/player/user/api/v1/player/payload',
-            display_id, data=urlencode_postdata({'courseId': course_name}),
-            headers={'Referer': url})
+        course = self._download_course(course_name, url, display_id)
 
         collection = course['modules']
 
@@ -224,6 +255,7 @@ class PluralsightIE(PluralsightBaseIE):
                 req_format_split = req_format.split('-', 1)
                 if len(req_format_split) > 1:
                     req_ext, req_quality = req_format_split
+                    req_quality = '-'.join(req_quality.split('-')[:2])
                     for allowed_quality in ALLOWED_QUALITIES:
                         if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
                             return (AllowedQuality(req_ext, (req_quality, )), )
@@ -330,18 +362,7 @@ class PluralsightCourseIE(PluralsightBaseIE):
 
         # TODO: PSM cookie
 
-        course = self._download_json(
-            '%s/player/functions/rpc' % self._API_BASE, course_id,
-            'Downloading course JSON',
-            data=json.dumps({
-                'fn': 'bootstrapPlayer',
-                'payload': {
-                    'courseId': course_id,
-                }
-            }).encode('utf-8'),
-            headers={
-                'Content-Type': 'application/json;charset=utf-8'
-            })['payload']['course']
+        course = self._download_course(course_id, url, course_id)
 
         title = course['title']
         course_name = course['name']

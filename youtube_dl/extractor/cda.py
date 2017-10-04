@@ -124,7 +124,7 @@ class CDAIE(InfoExtractor):
         }
 
         def extract_format(page, version):
-            json_str = self._search_regex(
+            json_str = self._html_search_regex(
                 r'player_data=(\\?["\'])(?P<player_data>.+?)\1', page,
                 '%s player_json' % version, fatal=False, group='player_data')
             if not json_str:

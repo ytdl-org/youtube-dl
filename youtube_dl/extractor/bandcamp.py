@@ -242,7 +242,12 @@ class BandcampAlbumIE(InfoExtractor):
             raise ExtractorError('The page doesn\'t contain any tracks')
         # Only tracks with duration info have songs
         entries = [
-            self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
+            self.url_result(
+                compat_urlparse.urljoin(url, t_path),
+                ie=BandcampIE.ie_key(),
+                video_title=self._search_regex(
+                    r'<span\b[^>]+\bitemprop=["\']name["\'][^>]*>([^<]+)',
+                    elem_content, 'track title', fatal=False))
             for elem_content, t_path in track_elements
             if self._html_search_meta('duration', elem_content, default=None)]
 

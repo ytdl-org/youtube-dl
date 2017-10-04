@@ -139,6 +139,23 @@ class AfreecaTVIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        # adult video
+        'url': 'http://vod.afreecatv.com/PLAYER/STATION/26542731',
+        'info_dict': {
+            'id': '20171001_F1AE1711_196617479_1',
+            'ext': 'mp4',
+            'title': '[생]서아 초심 찾기 방송 (part 1)',
+            'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
+            'uploader': 'BJ서아',
+            'uploader_id': 'bjdyrksu',
+            'upload_date': '20171001',
+            'duration': 3600,
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://www.afreecatv.com/player/Player.swf?szType=szBjId=djleegoon&nStationNo=11273158&nBbsNo=13161095&nTitleNo=36327652',
         'only_matching': True,
     }, {
@@ -160,7 +177,15 @@ class AfreecaTVIE(InfoExtractor):
 
         video_xml = self._download_xml(
             'http://afbbs.afreecatv.com:8080/api/video/get_video_info.php',
-            video_id, query={'nTitleNo': video_id})
+            video_id, query={
+                'nTitleNo': video_id,
+                'partialView': 'SKIP_ADULT',
+            })
+
+        flag = xpath_text(video_xml, './track/flag', 'flag', default=None)
+        if flag and flag != 'SUCCEED':
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, flag), expected=True)
 
         video_element = video_xml.findall(compat_xpath('./track/video'))[1]
         if video_element is None or video_element.text is None:
