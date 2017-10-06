@@ -438,7 +438,7 @@ class PBSIE(InfoExtractor):
             ]
 
             media_id = self._search_regex(
-                MEDIA_ID_REGEXES, webpage, 'media ID', fatal=False, default=None)
+                MEDIA_ID_REGEXES, webpage, 'media ID', default=None)
             if media_id:
                 return media_id, presumptive_id, upload_date, description
 
@@ -446,24 +446,19 @@ class PBSIE(InfoExtractor):
                 [r'<(?:section|div)[^>]+data-coveid="([^"]+)"',
                  r'<input[^>]+id\s*=\s*"pbs_video_id_[0-9]+"\s*value="([^"]+)"[^>]*>',
                  ],
-                webpage, 'media ID', fatal=False, default=None)
+                webpage, 'media ID', default=None)
             if media_id:
-                player = self._download_webpage(
-                    urljoin('http://player.pbs.org/partnerplayer/', media_id),
-                    display_id, 'Downloading partnerplayer page', fatal=False)
-                jwSettings = self._parse_json(
-                    self._search_regex(
-                        r'(?s)jwSettings\s*=\s*({.+?});',
-                        player, 'jwSetting data', default='{}'),
-                    presumptive_id, transform_source=js_to_json, fatal=False)
-                if jwSettings and jwSettings.get('videoId'):
-                    return jwSettings['videoId'], presumptive_id, upload_date, description
+                return self._extract_webpage(
+                    'http://player.pbs.org/partnerplayer/%s/' % media_id
+                )[0], presumptive_id, upload_date, description
 
-                media_id = self._search_regex(
-                    MEDIA_ID_REGEXES, player, 'media ID', fatal=False, default=None)
-
-                if media_id:
-                    return media_id, presumptive_id, upload_date, description
+            jwSettings = self._parse_json(
+                self._search_regex(
+                    r'(?s)jwSettings\s*=\s*({.+?});',
+                    webpage or '', 'jwSetting data', default='{}'),
+                presumptive_id, transform_source=js_to_json, fatal=False)
+            if jwSettings and jwSettings.get('videoId'):
+                return jwSettings['videoId'], presumptive_id, upload_date, description
 
             # Fronline video embedded via flp
             video_id = self._search_regex(
@@ -534,7 +529,7 @@ class PBSIE(InfoExtractor):
 
         chapters = []
         # Player pages may also serve different qualities
-        for page in ('widget/partnerplayer', 'portalplayer', 'viralplayer'):
+        for page in ('widget/partnerplayer', 'portalplayer'):
             player = self._download_webpage(
                 'http://player.pbs.org/%s/%s' % (page, video_id),
                 display_id, 'Downloading %s page' % page, fatal=False)
