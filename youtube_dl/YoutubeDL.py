@@ -911,12 +911,22 @@ class YoutubeDL(object):
                 playlistitems = iter_playlistitems(playlistitems_str)
 
             ie_entries = ie_result['entries']
+
+            def make_playlistitems_entries(list_ie_entries):
+                num_entries = len(list_ie_entries)
+                return [
+                    list_ie_entries[i - 1] for i in playlistitems
+                    if -num_entries <= i - 1 < num_entries]
+
+            def report_download(num_entries):
+                self.to_screen(
+                    '[%s] playlist %s: Downloading %d videos' %
+                    (ie_result['extractor'], playlist, num_entries))
+
             if isinstance(ie_entries, list):
                 n_all_entries = len(ie_entries)
                 if playlistitems:
-                    entries = [
-                        ie_entries[i - 1] for i in playlistitems
-                        if -n_all_entries <= i - 1 < n_all_entries]
+                    entries = make_playlistitems_entries(ie_entries)
                 else:
                     entries = ie_entries[playliststart:playlistend]
                 n_entries = len(entries)
@@ -934,20 +944,15 @@ class YoutubeDL(object):
                     entries = ie_entries.getslice(
                         playliststart, playlistend)
                 n_entries = len(entries)
-                self.to_screen(
-                    '[%s] playlist %s: Downloading %d videos' %
-                    (ie_result['extractor'], playlist, n_entries))
+                report_download(n_entries)
             else:  # iterable
                 if playlistitems:
-                    entry_list = list(ie_entries)
-                    entries = [entry_list[i - 1] for i in playlistitems]
+                    entries = make_playlistitems_entries(list(ie_entries))
                 else:
                     entries = list(itertools.islice(
                         ie_entries, playliststart, playlistend))
                 n_entries = len(entries)
-                self.to_screen(
-                    '[%s] playlist %s: Downloading %d videos' %
-                    (ie_result['extractor'], playlist, n_entries))
+                report_download(n_entries)
 
             if self.params.get('playlistreverse', False):
                 entries = entries[::-1]
