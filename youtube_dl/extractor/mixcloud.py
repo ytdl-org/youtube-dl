@@ -291,7 +291,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
             functools.partial(
                 self._tracks_page_func,
                 '%s/%s' % (user_id, list_type), video_id, 'list of %s' % list_type),
-            self._PAGE_SIZE, use_cache=True)
+            self._PAGE_SIZE)
 
         return self.playlist_result(
             entries, video_id, '%s (%s)' % (username, list_type), description)
