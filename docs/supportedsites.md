@@ -130,7 +130,8 @@
  - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
- - **Canvas**: canvas.be and een.be
+ - **Canvas**
+ - **CanvasEen**: canvas.be and een.be
  - **CarambaTV**
  - **CarambaTVPage**
  - **CartoonNetwork**

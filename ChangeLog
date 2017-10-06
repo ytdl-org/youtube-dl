@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.10.07
 
 Core
 * [YoutubeDL] Ignore duplicates in --playlist-items
