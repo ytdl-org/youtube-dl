@@ -1,3 +1,27 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Ignore duplicates in --playlist-items
+* [YoutubeDL] Fix out of range --playlist-items for iterable playlists and
+  reduce code duplication (#14425)
++ [utils] Use cache in OnDemandPagedList by default
+* [postprocessor/ffmpeg] Convert to opus using libopus (#14381)
+
+Extractors
+* [reddit] Sort formats (#14430)
+* [lnkgo] Relax URL regular expression (#14423)
+* [pornflip] Extend URL regular expression (#14405, #14406)
++ [xtube] Add support for embed URLs (#14417)
++ [xvideos] Add support for embed URLs and improve extraction (#14409)
+* [beeg] Fix extraction (#14403)
+* [tvn24] Relax URL regular expression (#14395)
+* [nbc] Fix extraction (#13651, #13715, #14137, #14198, #14312, #14314, #14378,
+  #14392, #14414, #14419, #14431)
++ [ketnet] Add support for videos without direct sources (#14377)
+* [canvas] Generalize mediazone.vrt.be extractor and rework canvas and een
++ [afreecatv] Add support for adult videos (#14376)
+
+
 version 2017.10.01
 
 Core
