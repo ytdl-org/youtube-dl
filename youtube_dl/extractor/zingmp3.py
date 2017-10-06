@@ -23,11 +23,9 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
                 expected=True)
 
         formats = []
-        for quality, source_url in zip(item.get('qualities') or item.get('quality', []), item.get('source_list') or item.get('source', [])):
+        for quality, source_url in item.get('source', []).items():
             if not source_url or source_url == 'require vip':
                 continue
-            if not re.match(r'https?://', source_url):
-                source_url = '//' + source_url
             source_url = self._proto_relative_url(source_url, 'http:')
             quality_num = int_or_none(quality)
             f = {
@@ -58,12 +56,12 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
     def _extract_player_json(self, player_json_url, id, page_type, playlist_title=None):
         player_json = self._download_json(player_json_url, id, 'Downloading Player JSON')
         items = player_json['data']
-        if 'item' in items:
-            items = items['item']
+        if 'items' in items:
+            items = items['items']
 
-        if len(items) == 1:
+        if type(items) == dict:
             # one single song
-            data = self._extract_item(items[0], page_type)
+            data = self._extract_item(items, page_type)
             data['id'] = id
 
             return data
@@ -132,12 +130,10 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
         ], webpage, 'player xml url')
 
         playlist_title = None
-        page_type = self._search_regex(r'/(?:html5)?xml/([^/-]+)', player_json_url, 'page type')
+        page_type = self._search_regex(r'type=(\w+)', player_json_url, 'page type')
         if page_type == 'video':
             player_json_url = update_url_query(player_json_url, {'format': 'json'})
-        else:
-            player_json_url = player_json_url.replace('/xml/', '/html5xml/')
-            if page_type == 'album':
-                playlist_title = self._og_search_title(webpage)
-
+        elif page_type == 'album':
+            playlist_title = self._og_search_title(webpage)
+        player_json_url = 'https://mp3.zing.vn/xhr' + player_json_url
         return self._extract_player_json(player_json_url, page_id, page_type, playlist_title)
