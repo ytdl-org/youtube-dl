@@ -65,6 +65,7 @@ from .utils import (
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
+    orderedSet,
     PagedList,
     parse_filesize,
     PerRequestProxyHandler,
@@ -908,7 +909,7 @@ class YoutubeDL(object):
                                 yield int(item)
                         else:
                             yield int(string_segment)
-                playlistitems = iter_playlistitems(playlistitems_str)
+                playlistitems = orderedSet(iter_playlistitems(playlistitems_str))
 
             ie_entries = ie_result['entries']
 

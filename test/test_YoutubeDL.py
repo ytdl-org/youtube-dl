@@ -773,6 +773,9 @@ class TestYoutubeDL(unittest.TestCase):
         result = get_ids({'playlist_items': '3-10'})
         self.assertEqual(result, [3, 4])
 
+        result = get_ids({'playlist_items': '2-4,3-4,3'})
+        self.assertEqual(result, [2, 3, 4])
+
     def test_urlopen_no_file_protocol(self):
         # see https://github.com/rg3/youtube-dl/issues/8227
         ydl = YDL()
