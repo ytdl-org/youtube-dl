@@ -332,6 +332,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/|
                             (?:www\.)?deturl\.com/www\.youtube\.com/|
                             (?:www\.)?pwnyoutube\.com/|
+                            (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
