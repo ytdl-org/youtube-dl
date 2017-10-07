@@ -104,7 +104,7 @@ class HRTiIE(HRTiBaseIE):
                         (?:
                             hrti:(?P<short_id>[0-9]+)|
                             https?://
-                                hrti\.hrt\.hr/\#/video/show/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?
+                                hrti\.hrt\.hr/(?:\#/)?video/show/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?
                         )
                     '''
     _TESTS = [{
@@ -128,6 +128,9 @@ class HRTiIE(HRTiBaseIE):
         'only_matching': True,
     }, {
         'url': 'hrti:2181385',
+        'only_matching': True,
+    }, {
+        'url': 'https://hrti.hrt.hr/video/show/3873068/cuvar-dvorca-dramska-serija-14',
         'only_matching': True,
     }]
 
