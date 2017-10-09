@@ -133,7 +133,7 @@ class VVVVIDIE(InfoExtractor):
             'season_id': season_id,
             'season_number': video_data.get('season_number'),
             'episode_id': str_or_none(video_data.get('id')),
-            'epidode_number': int_or_none(video_data.get('number')),
+            'episode_number': int_or_none(video_data.get('number')),
             'episode_title': video_data['title'],
             'view_count': int_or_none(video_data.get('views')),
             'like_count': int_or_none(video_data.get('video_likes')),
