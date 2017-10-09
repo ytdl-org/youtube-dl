@@ -2206,7 +2206,7 @@ class GenericIE(InfoExtractor):
         # And then there are the jokers who advertise that they use RTA,
         # but actually don't.
         AGE_LIMIT_MARKERS = [
-            r'Proudly Labeled <a href="http://www.rtalabel.org/" title="Restricted to Adults">RTA</a>',
+            r'Proudly Labeled <a href="http://www\.rtalabel\.org/" title="Restricted to Adults">RTA</a>',
         ]
         if any(re.search(marker, webpage) for marker in AGE_LIMIT_MARKERS):
             age_limit = 18

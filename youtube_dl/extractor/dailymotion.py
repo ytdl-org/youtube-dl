@@ -235,7 +235,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
         # vevo embed
         vevo_id = self._search_regex(
-            r'<link rel="video_src" href="[^"]*?vevo.com[^"]*?video=(?P<id>[\w]*)',
+            r'<link rel="video_src" href="[^"]*?vevo\.com[^"]*?video=(?P<id>[\w]*)',
             webpage, 'vevo embed', default=None)
         if vevo_id:
             return self.url_result('vevo:%s' % vevo_id, 'Vevo')

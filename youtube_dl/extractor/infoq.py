@@ -69,9 +69,9 @@ class InfoQIE(BokeCCBaseIE):
         }]
 
     def _extract_cookies(self, webpage):
-        policy = self._search_regex(r'InfoQConstants.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
-        signature = self._search_regex(r'InfoQConstants.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
-        key_pair_id = self._search_regex(r'InfoQConstants.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
+        policy = self._search_regex(r'InfoQConstants\.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
+        signature = self._search_regex(r'InfoQConstants\.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
+        key_pair_id = self._search_regex(r'InfoQConstants\.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
         return 'CloudFront-Policy=%s; CloudFront-Signature=%s; CloudFront-Key-Pair-Id=%s' % (
             policy, signature, key_pair_id)
 

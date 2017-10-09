@@ -386,7 +386,7 @@ class BBCCoUkIE(InfoExtractor):
                             m3u8_id=format_id, fatal=False))
                         if re.search(self._USP_RE, href):
                             usp_formats = self._extract_m3u8_formats(
-                                re.sub(self._USP_RE, r'/\1.ism/\1.m3u8', href),
+                                re.sub(self._USP_RE, r'/\1\.ism/\1\.m3u8', href),
                                 programme_id, ext='mp4', entry_protocol='m3u8_native',
                                 m3u8_id=format_id, fatal=False)
                             for f in usp_formats:
