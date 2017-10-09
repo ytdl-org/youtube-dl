@@ -173,7 +173,7 @@ class HRTiIE(HRTiBaseIE):
 
 
 class HRTiPlaylistIE(HRTiBaseIE):
-    _VALID_URL = r'https?://hrti\.hrt\.hr/#/video/list/category/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?'
+    _VALID_URL = r'https?://hrti\.hrt\.hr/(?:#/)?video/list/category/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?'
     _TESTS = [{
         'url': 'https://hrti.hrt.hr/#/video/list/category/212/ekumena',
         'info_dict': {
@@ -184,6 +184,9 @@ class HRTiPlaylistIE(HRTiBaseIE):
         'skip': 'Requires account credentials',
     }, {
         'url': 'https://hrti.hrt.hr/#/video/list/category/212/',
+        'only_matching': True,
+    }, {
+        'url': 'https://hrti.hrt.hr/video/list/category/212/ekumena',
         'only_matching': True,
     }]
 
