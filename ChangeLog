@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+- [youtube:shared] Removed extractor (#14420)
 + [facebook] Support thumbnails (#14416)
 
 
