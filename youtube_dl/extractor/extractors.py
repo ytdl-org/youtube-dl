@@ -1308,6 +1308,7 @@ from .xiami import (
     XiamiCollectionIE
 )
 from .xminus import XMinusIE
+from .xmovies8 import XMovies8IE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE
 from .xtube import XTubeUserIE, XTubeIE
