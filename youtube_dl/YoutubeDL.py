@@ -1078,22 +1078,27 @@ class YoutubeDL(object):
         return _filter
 
     def _default_format_spec(self, info_dict, download=True):
-        req_format_list = []
 
-        def can_have_partial_formats():
-            if self.params.get('simulate', False):
-                return True
-            if not download:
-                return True
-            if self.params.get('outtmpl', DEFAULT_OUTTMPL) == '-':
-                return False
-            if info_dict.get('is_live'):
-                return False
+        def can_merge():
             merger = FFmpegMergerPP(self)
             return merger.available and merger.can_merge()
-        if can_have_partial_formats():
-            req_format_list.append('bestvideo+bestaudio')
-        req_format_list.append('best')
+
+        def prefer_best():
+            if self.params.get('simulate', False):
+                return False
+            if not download:
+                return False
+            if self.params.get('outtmpl', DEFAULT_OUTTMPL) == '-':
+                return True
+            if info_dict.get('is_live'):
+                return True
+            if not can_merge():
+                return True
+            return False
+
+        req_format_list = ['bestvideo+bestaudio', 'best']
+        if prefer_best():
+            req_format_list.reverse()
         return '/'.join(req_format_list)
 
     def build_format_selector(self, format_spec):

@@ -466,12 +466,18 @@ class TestFormatSelection(unittest.TestCase):
         ydl = YDL({'simulate': True})
         self.assertEqual(ydl._default_format_spec({}), 'bestvideo+bestaudio/best')
 
+        ydl = YDL({'is_live': True})
+        self.assertEqual(ydl._default_format_spec({}), 'best/bestvideo+bestaudio')
+
+        ydl = YDL({'simulate': True, 'is_live': True})
+        self.assertEqual(ydl._default_format_spec({}), 'bestvideo+bestaudio/best')
+
         ydl = YDL({'outtmpl': '-'})
-        self.assertEqual(ydl._default_format_spec({}), 'best')
+        self.assertEqual(ydl._default_format_spec({}), 'best/bestvideo+bestaudio')
 
         ydl = YDL({})
         self.assertEqual(ydl._default_format_spec({}, download=False), 'bestvideo+bestaudio/best')
-        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best')
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best/bestvideo+bestaudio')
 
 
 class TestYoutubeDL(unittest.TestCase):
