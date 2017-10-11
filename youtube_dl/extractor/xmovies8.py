@@ -17,6 +17,12 @@ from ..utils import (
     sanitized_Request,
     update_Request
 )
+def urljoin(*args):
+    """
+    Joins given arguments into a url. Trailing but not leading slashes are
+    stripped for each argument.
+    """
+    return "/".join(map(lambda x: str(x).rstrip('/'), args))
 def cookie_to_dict(cookie):
     cookie_dict = {
         'name': cookie.name,
@@ -87,14 +93,34 @@ class XMovies8IE(InfoExtractor):
         # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'md5': 'f72c89fe7ecc14c1b5ce506c4996046e',
         'info_dict': {
-            'id': '36164052',
-            'ext': 'flv',
-            'title': '데일리 에이프릴 요정들의 시상식!',
-            'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
-            'uploader': 'dailyapril',
-            'uploader_id': 'dailyapril',
-            'upload_date': '20160503',
+            'id': '24749',
+            'title': "The Hitman's Bodyguard (2017)",
+            'ext': 'mp4',
+            'description': "The world's top bodyguard gets a new client, a hit man who must testify at the International Court of Justice. They must put their differences aside and work together to make it to the trial on time.",
+            'thumbnail': 'https://img.xmovies88.stream/crop/215/310/media/imagesv2/2017/08/the-hitman-s-bodyguard-2017-poster.jpg',
+            'formats': [{
+                'format_id': '1287', 
+                'url': 'https://s4.ostr.tv/hls/qvsbfwjmnxblgwsztrb2a5mblc3lpikarb6xmlv774kcxkug6nhunwo5q6pa/index-v1-a1.m3u8', 
+                'manifest_url': 'https://s4.ostr.tv/hls/,qvsbfwjmnxblgwsztrb2a5mblc3lpikarb6xmlv774kcxkug6nhunwo5q6pa,.urlset/master.m3u8', 
+                'tbr': 1287.551, 
+                'ext': 'mp4', 
+                'fps': 23.974, 
+                'protocol': 'm3u8', 
+                'preference': None, 
+                'width': 1280, 
+                'height': 720, 
+                'vcodec': 'avc1.64001f', 
+                'acodec': 'mp4a.40.2'}]
         },
+        # 'info_dict': {
+        #     'id': '36164052',
+        #     'ext': 'flv',
+        #     'title': '데일리 에이프릴 요정들의 시상식!',
+        #     'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
+        #     'uploader': 'dailyapril',
+        #     'uploader_id': 'dailyapril',
+        #     'upload_date': '20160503',
+        # },
         'params': {
             # m3u8 download
             'skip_download': True,
@@ -234,24 +260,79 @@ class XMovies8IE(InfoExtractor):
         video_id = mobj.group('id')
         isWatching = mobj.group('isWatching')
 
-        
-        full_video_url = compat_urlparse.urljoin(url, "/watching.html") if not isWatching else url
-        parsed_url = compat_urllib_parse_urlparse(full_video_url)
+        print("original :", url)
+        # url = compat_urlparse.urljoin(url, "/watching") if not isWatching else url
+        base_url = compat_urlparse.urljoin(url,"/")
+        print("base :", base_url)
+        parsed_url = compat_urllib_parse_urlparse(url)
+        print("after parsed:", parsed_url)
         headers = {
             'User-Agent': self._USER_AGENT,
             # 'Cookie':'__cfduid='+cfduid,
             'Referer':'http://'+parsed_url.netloc+'/',
             # 'Host':parsed_url.netloc
         }
-        req = sanitized_Request(full_video_url)
+        req = sanitized_Request(base_url)
         self._solve_challenge(req,headers)
         try:
-            webpage = self._download_webpage(req, video_id, headers=headers)
-            print("??????")
+            
+            path = urljoin(parsed_url.path,"watching.html") if not isWatching else parsed_url.path
+            #print(path)
+            print(compat_urlparse.urljoin(base_url,path))
+            webpage = self._download_webpage(compat_urlparse.urljoin(base_url,path), video_id, headers=headers)
+            # self.to_screen(webpage)
+            # title = self._html_search_regex(r'<div class="info_movie(?:\sfull.*)[^<]+class="full desc.*<h1>(.+)</h1>',webpage,'title', fatal=False)
+            # self.to_screen(webpage)
+            
+            title = self._html_search_regex(r'(?is)<meta[^>]+prop="name" content="([^"]+)',webpage,'title', fatal=False)
+            description = self._html_search_regex(r'(?is)<meta[^>]+prop="description" content="([^"]+)',webpage,'description', fatal=False)
+            duration = self._html_search_regex(r'(?is)<meta[^>]+prop="duration" content="([^"]+)',webpage,'duration', fatal=False)
+            thumbnailUrl = self._html_search_regex(r'(?is)<link[^>]+prop="thumbnailUrl" href="([^"]+)',webpage,'thumbnailUrl', fatal=False)
+
+            player_id = self._html_search_regex(r'[^}]+else[^{]+{.*load_player\(\'(\d+)\'[^\)]*',webpage,'player_id', fatal=False)
+            movie_id = self._html_search_regex(r'<script[^>]+/javascript\"> var movie = { id: (\d+),',webpage,'movie_id', fatal=False)
+
+            print(compat_urlparse.urljoin(base_url,"/ajax/movie/load_player_v3"))
+            load_player_v3 = self._download_json(compat_urlparse.urljoin(base_url,"/ajax/movie/load_player_v3"),video_id,headers=headers,query={'id':player_id})
+
+            print(title)
+            print(player_id)
+            print(load_player_v3)
+            print(load_player_v3.get('value'))
+
+            playlist = self._download_json(parsed_url.scheme+":"+load_player_v3.get('value'),video_id,headers=headers)
+            print(playlist)
+            formats = None
+            for play in playlist.get('playlist'):
+                print(play.get('file'))
+                # m3u8_formats = self._extract_m3u8_formats(play.get('file'),video_id)
+                formats = self._extract_m3u8_formats(play.get('file'),video_id,"mp4")
+                print(formats)
+            if not formats and error:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
+            self._sort_formats(formats)
+            print({
+                'id': movie_id,
+                'title': title,
+                'ext':formats[0].get('ext'),
+                'description': description,
+                'thumbnail': thumbnailUrl,
+                'formats': formats
+            })
+            return {
+                'id': movie_id,
+                'title': title,
+                'ext':formats[0].get('ext'),
+                'description': description,
+                'thumbnail': thumbnailUrl,
+                'formats': formats
+            }
         except ExtractorError as ee:
-            # print(ee)
+            print("OOOOOO")
+            print(ee)
             if not isinstance(ee.cause, compat_HTTPError) or \
                ee.cause.code != 503:
+                self.to_screen(ee.cause.read().decode('utf-8'))
                 raise
             redir_webpage = ee.cause.read().decode('utf-8')
             cfduid = self._get_cookies(parsed_url.netloc).get('__cfduid').value
