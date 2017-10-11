@@ -1,8 +1,27 @@
 version <unreleased>
 
+Core
+* [YoutubeDL] Improve _default_format_spec (#14461)
+
 Extractors
+* [steam] Fix extraction (#14067)
++ [funk] Add support for funk.net (#14464)
++ [nexx] Add support for shortcuts and relax domain id extraction
++ [voxmedia] Add support for recode.net (#14173)
++ [once] Add support for vmap URLs
++ [generic] Add support for channel9 embeds (#14469)
+* [tva] Fix extraction (#14328)
++ [tubitv] Add support for new URL format (#14460)
+- [afreecatv:global] Remove extractor
 - [youtube:shared] Removed extractor (#14420)
++ [slideslive] Add support for slideslive.com (#2680)
 + [facebook] Support thumbnails (#14416)
+* [vvvvid] Fix episode number extraction (#14456)
+* [hrti:playlist] Relax URL regular expression
+* [wdr] Relax media link regular expression (#14447)
+* [hrti] Relax URL regular expression (#14443)
+* [fox] Delegate extraction to uplynk:preplay (#14147)
++ [youtube] Add support for hooktube.com (#14437)
 
 
 version 2017.10.07
