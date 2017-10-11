@@ -23,41 +23,29 @@ class SteamIE(InfoExtractor):
     _AGECHECK_TEMPLATE = 'http://store.steampowered.com/agecheck/video/%s/?snr=1_agecheck_agecheck__age-gate&ageDay=1&ageMonth=January&ageYear=1970'
     _TESTS = [{
         'url': 'http://store.steampowered.com/video/105600/',
-        'playlist': [
-            {
-                'md5': 'f870007cee7065d7c76b88f0a45ecc07',
-                'info_dict': {
-                    'id': '81300',
+        'md5': '644c51b580f57db647da083be97c68c8',
+        'info_dict': {
+                    'id': '2040428',
                     'ext': 'flv',
-                    'title': 'Terraria 1.1 Trailer',
+                    'title': 'Terraria+1.3+Trailer',
                     'playlist_index': 1,
-                }
-            },
-            {
-                'md5': '61aaf31a5c5c3041afb58fb83cbb5751',
-                'info_dict': {
-                    'id': '80859',
-                    'ext': 'flv',
-                    'title': 'Terraria Trailer',
-                    'playlist_index': 2,
-                }
-            }
-        ],
+        },
         'params': {
-            'playlistend': 2,
+            'playlistend': 1,
         }
     }, {
         'url': 'http://steamcommunity.com/sharedfiles/filedetails/?id=242472205',
         'info_dict': {
-            'id': 'WB5DvDOOvAY',
+            'id': 'X8kpJBlzD2E',
             'ext': 'mp4',
-            'upload_date': '20140329',
-            'title': 'FRONTIERS - Final Greenlight Trailer',
-            'description': 'md5:dc96a773669d0ca1b36c13c1f30250d9',
+            'upload_date': '20140617',
+            'title': 'FRONTIERS - Trapping',
+            'description': 'md5:bf6f7f773def614054089e5769c12a6e',
             'uploader': 'AAD Productions',
             'uploader_id': 'AtomicAgeDogGames',
         }
     }]
+
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
@@ -77,6 +65,7 @@ class SteamIE(InfoExtractor):
             webpage = self._download_webpage(videourl, playlist_id)
 
         if fileID:
+
             playlist_title = self._html_search_regex(
                 r'<div class="workshopItemTitle">(.+)</div>', webpage, 'title')
             mweb = re.finditer(r'''(?x)
@@ -90,22 +79,19 @@ class SteamIE(InfoExtractor):
             } for vid in mweb]
         else:
             playlist_title = self._html_search_regex(
-                r'<h2 class="pageheader">(.*?)</h2>', webpage, 'game title')
-
+                r'<div class="apphub_AppName">(.*?)</div>', webpage, 'game title')
             mweb = re.finditer(r'''(?x)
                 'movie_(?P<videoID>[0-9]+)':\s*\{\s*
                 FILENAME:\s*"(?P<videoURL>[\w:/\.\?=]+)"
                 (,\s*MOVIE_NAME:\s*\"(?P<videoName>[\w:/\.\?=\+-]+)\")?\s*\},
                 ''', webpage)
-            titles = re.finditer(
-                r'<span class="title">(?P<videoName>.+?)</span>', webpage)
             thumbs = re.finditer(
                 r'<img class="movie_thumb" src="(?P<thumbnail>.+?)">', webpage)
             videos = []
 
-            for vid, vtitle, thumb in zip(mweb, titles, thumbs):
+            for vid, thumb in zip(mweb, thumbs):
                 video_id = vid.group('videoID')
-                title = vtitle.group('videoName')
+                title = vid.group('videoName')
                 video_url = vid.group('videoURL')
                 video_thumb = thumb.group('thumbnail')
                 if not video_url:
@@ -114,7 +100,7 @@ class SteamIE(InfoExtractor):
                     'id': video_id,
                     'url': video_url,
                     'ext': 'flv',
-                    'title': unescapeHTML(title),
+                    'title': title,
                     'thumbnail': video_thumb
                 })
         if not videos:
