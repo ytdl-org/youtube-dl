@@ -1613,22 +1613,6 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['BrightcoveLegacy'],
         },
-        # Nexx embed
-        {
-            'url': 'https://www.funk.net/serien/5940e15073f6120001657956/items/593efbb173f6120001657503',
-            'info_dict': {
-                'id': '247746',
-                'ext': 'mp4',
-                'title': "Yesterday's Jam (OV)",
-                'description': 'md5:09bc0984723fed34e2581624a84e05f0',
-                'timestamp': 1492594816,
-                'upload_date': '20170419',
-            },
-            'params': {
-                'format': 'bestvideo',
-                'skip_download': True,
-            },
-        },
         # Facebook <iframe> embed
         {
             'url': 'https://www.hostblogger.de/blog/archives/6181-Auto-jagt-Betonmischer.html',
