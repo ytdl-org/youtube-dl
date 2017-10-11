@@ -101,6 +101,7 @@ from .mediaset import MediasetIE
 from .joj import JojIE
 from .megaphone import MegaphoneIE
 from .vzaar import VzaarIE
+from .channel9 import Channel9IE
 
 
 class GenericIE(InfoExtractor):
@@ -2870,6 +2871,11 @@ class GenericIE(InfoExtractor):
         if vzaar_urls:
             return self.playlist_from_matches(
                 vzaar_urls, video_id, video_title, ie=VzaarIE.ie_key())
+
+        channel9_urls = Channel9IE._extract_urls(webpage)
+        if channel9_urls:
+            return self.playlist_from_matches(
+                channel9_urls, video_id, video_title, ie=Channel9IE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}

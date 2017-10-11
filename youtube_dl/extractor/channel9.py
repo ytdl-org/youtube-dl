@@ -81,6 +81,12 @@ class Channel9IE(InfoExtractor):
 
     _RSS_URL = 'http://channel9.msdn.com/%s/RSS'
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src=["\'](https?://channel9\.msdn\.com/(?:[^/]+/)+)player\b',
+            webpage)
+
     def _extract_list(self, video_id, rss_url=None):
         if not rss_url:
             rss_url = self._RSS_URL % video_id
