@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.10.12
 
 Core
 * [YoutubeDL] Improve _default_format_spec (#14461)

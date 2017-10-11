@@ -36,7 +36,6 @@
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
  - **afreecatv**: afreecatv.com
- - **afreecatv:global**: afreecatv.com
  - **AirMozilla**
  - **AliExpressLive**
  - **AlJazeera**
@@ -296,6 +295,7 @@
  - **freespeech.org**
  - **FreshLive**
  - **Funimation**
+ - **Funk**
  - **FunnyOrDie**
  - **Fusion**
  - **Fux**
@@ -738,6 +738,7 @@
  - **skynewsarabia:video**
  - **SkySports**
  - **Slideshare**
+ - **SlidesLive**
  - **Slutload**
  - **smotri**: Smotri.com
  - **smotri:broadcast**: Smotri.com broadcasts
@@ -969,6 +970,7 @@
  - **VoiceRepublic**
  - **Voot**
  - **VoxMedia**
+ - **VoxMediaVolume**
  - **Vporn**
  - **vpro**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **Vrak**
@@ -1044,7 +1046,6 @@
  - **youtube:search**: YouTube.com searches
  - **youtube:search:date**: YouTube.com searches, newest videos first
  - **youtube:search_url**: YouTube.com search URLs
- - **youtube:shared**
  - **youtube:show**: YouTube.com (multi-season) shows
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
