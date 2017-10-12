@@ -1091,7 +1091,7 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'upload_date': '20150212',
                 'uploader': 'The National Archives UK',
-                'description': 'md5:a236581cd2449dd2df4f93412f3f01c6',
+                'description': 'md5:8078af856dca76edc42910b61273dbbf',
                 'uploader_id': 'NationalArchives08',
                 'title': 'Webinar: Using Discovery, The National Archives’ online catalogue',
             },
@@ -1107,7 +1107,8 @@ class GenericIE(InfoExtractor):
             },
             'params': {
                 'skip_download': True,
-            }
+            },
+            'skip': 'does not contain a video anymore',
         },
         # Complex jwplayer
         {
@@ -1116,6 +1117,7 @@ class GenericIE(InfoExtractor):
                 'id': 'videos',
                 'ext': 'mp4',
                 'title': 'king machine trailer 1',
+                'description': 'Browse King Machine videos & audio for sweet media. Your eyes will thank you.',
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
@@ -1168,7 +1170,7 @@ class GenericIE(InfoExtractor):
             'playlist_mincount': 5,
             'info_dict': {
                 'id': 'aanslagen-kopenhagen',
-                'title': 'Aanslagen Kopenhagen | RTL Nieuws',
+                'title': 'Aanslagen Kopenhagen',
             }
         },
         # Zapiks embed
@@ -1300,6 +1302,7 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'This video is unavailable.',
         },
         # Pladform embed
         {
@@ -1313,6 +1316,7 @@ class GenericIE(InfoExtractor):
                 'duration': 694,
                 'age_limit': 0,
             },
+            'skip': 'HTTP Error 404: Not Found',
         },
         # Playwire embed
         {
@@ -1333,6 +1337,14 @@ class GenericIE(InfoExtractor):
                 'id': '518726732',
                 'ext': 'mp4',
                 'title': 'Facebook Creates "On This Day" | Crunch Report',
+                'description': 'Amazon updates Fire TV line, Tesla\'s Model X spotted in the wild',
+                'timestamp': 1427237531,
+                'uploader': 'Crunch Report',
+                'upload_date': '20150324',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
             },
         },
         # SVT embed
@@ -1384,16 +1396,20 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20140107',
                 'timestamp': 1389118457,
             },
+            'skip': 'Invalid Page URL',
         },
         # NBC News embed
         {
             'url': 'http://www.vulture.com/2016/06/letterman-couldnt-care-less-about-late-night.html',
             'md5': '1aa589c675898ae6d37a17913cf68d66',
             'info_dict': {
-                'id': '701714499682',
+                'id': 'x_dtl_oa_LettermanliftPR_160608',
                 'ext': 'mp4',
-                'title': 'PREVIEW: On Assignment: David Letterman',
+                'title': 'David Letterman: A Preview',
                 'description': 'A preview of Tom Brokaw\'s interview with David Letterman as part of the On Assignment series powered by Dateline. Airs Sunday June 12 at 7/6c.',
+                'upload_date': '20160609',
+                'timestamp': 1465431544,
+                'uploader': 'NBCU-NEWS',
             },
         },
         # UDN embed
@@ -1410,6 +1426,7 @@ class GenericIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+            'expected_warnings': ['Failed to parse JSON Expecting value'],
         },
         # Ooyala embed
         {
@@ -1417,7 +1434,7 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': '50YnY4czr4ms1vJ7yz3xzq0excz_pUMs',
                 'ext': 'mp4',
-                'description': 'VIDEO: INDEX/MATCH versus VLOOKUP.',
+                'description': 'Index/Match versus VLOOKUP.',
                 'title': 'This is what separates the Excel masters from the wannabes',
                 'duration': 191.933,
             },
@@ -1455,7 +1472,8 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20150622',
                 'uploader': 'Public Sénat',
                 'uploader_id': 'xa9gza',
-            }
+            },
+            'skip': 'File not found.',
         },
         # OnionStudios embed
         {
@@ -2253,7 +2271,7 @@ class GenericIE(InfoExtractor):
 
         # Look for embedded rtl.nl player
         matches = re.findall(
-            r'<iframe[^>]+?src="((?:https?:)?//(?:www\.)?rtl\.nl/system/videoplayer/[^"]+(?:video_)?embed[^"]+)"',
+            r'<iframe[^>]+?src="((?:https?:)?//(?:(?:www|static)\.)?rtl\.nl/(?:system/videoplayer/[^"]+(?:video_)?)?embed[^"]+)"',
             webpage)
         if matches:
             return self.playlist_from_matches(matches, video_id, video_title, ie='RtlNl')
@@ -2652,7 +2670,7 @@ class GenericIE(InfoExtractor):
 
         # Look for UDN embeds
         mobj = re.search(
-            r'<iframe[^>]+src="(?P<url>%s)"' % UDNEmbedIE._PROTOCOL_RELATIVE_VALID_URL, webpage)
+            r'<iframe[^>]+src="(?:https?:)?(?P<url>%s)"' % UDNEmbedIE._PROTOCOL_RELATIVE_VALID_URL, webpage)
         if mobj is not None:
             return self.url_result(
                 compat_urlparse.urljoin(url, mobj.group('url')), 'UDNEmbed')
