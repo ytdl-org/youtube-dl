@@ -2322,7 +2322,6 @@ class InfoExtractor(object):
             formats = self._parse_jwplayer_formats(
                 video_data['sources'], video_id=this_video_id, m3u8_id=m3u8_id,
                 mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
-            self._sort_formats(formats)
 
             subtitles = {}
             tracks = video_data.get('tracks')
@@ -2339,16 +2338,25 @@ class InfoExtractor(object):
                         'url': self._proto_relative_url(track_url)
                     })
 
-            entries.append({
+            entry = {
                 'id': this_video_id,
-                'title': video_data['title'] if require_title else video_data.get('title'),
+                'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
                 'description': video_data.get('description'),
                 'thumbnail': self._proto_relative_url(video_data.get('image')),
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
                 'subtitles': subtitles,
-                'formats': formats,
-            })
+            }
+            # https://github.com/jwplayer/jwplayer/blob/master/src/js/utils/validator.js#L32
+            if len(formats) == 1 and re.search(r'^(?:http|//).*(?:youtube\.com|youtu\.be)/.+', formats[0]['url']):
+                entry.update({
+                    '_type': 'url_transparent',
+                    'url': formats[0]['url'],
+                })
+            else:
+                self._sort_formats(formats)
+                entry['formats'] = formats
+            entries.append(entry)
         if len(entries) == 1:
             return entries[0]
         else:
