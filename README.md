@@ -382,7 +382,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      "wav"; "best" by default; No effect without
                                      -x
     --audio-quality QUALITY          Specify ffmpeg/avconv audio quality, insert
-                                     a value between 0 (better) and 9 (worse)
+                                     a value between 0 (worse) and 9 (better)
                                      for VBR or a specific bitrate like 128K
                                      (default 5)
     --recode-video FORMAT            Encode the video to another format if
