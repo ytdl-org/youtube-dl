@@ -484,7 +484,11 @@ from .jove import JoveIE
 from .joj import JojIE
 from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
-from .kakao import KakaoIE
+from .kakao import (
+    KakaoIE,
+    KakaoPlaylistIE,
+    KakaoChannelIE,
+)
 from .kaltura import KalturaIE
 from .kamcord import KamcordIE
 from .kanalplay import KanalPlayIE
