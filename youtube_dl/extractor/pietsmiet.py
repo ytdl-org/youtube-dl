@@ -47,6 +47,7 @@ class PietsmietIE(OnceIE):
             http_video = data_video['sources'][1]
 
             label = http_video.get('label')
+            format_height = 0
 
             if label:
                 # Calculate resolution for HTTP format but should always be 1280x720
@@ -55,17 +56,17 @@ class PietsmietIE(OnceIE):
                     default=720, fatal=False)
                 format_height = int_or_none(format_height_raw)
 
-                if format_height:
-                    format_width = float(format_height) * (16 / 9)
+            if format_height > 0:
+                format_width = float(format_height) * (16 / 9)
 
-                    formats.append({
-                        'url': "https:{0}".format(http_video['file']),
-                        'ext': http_video.get('type'),
-                        'format_id': 'http-{0}'.format(label),
-                        'width': int_or_none(format_width),
-                        'height': format_height,
-                        'fps': 30.0,
-                    })
+                formats.append({
+                    'url': "https:{0}".format(http_video['file']),
+                    'ext': http_video.get('type'),
+                    'format_id': 'http-{0}'.format(label),
+                    'width': int_or_none(format_width),
+                    'height': format_height,
+                    'fps': 30.0,
+                })
             else:
                 formats.append({
                     'url': "https:{0}".format(http_video['file']),
