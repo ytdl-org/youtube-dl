@@ -20,10 +20,11 @@ class ScrippsNetworksWatchIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         watch\.
-                        (?P<site>hgtv|foodnetwork|travelchannel|diynetwork|cookingchanneltv)\.com/
+                        (?P<site>hgtv|foodnetwork|travelchannel|diynetwork|cookingchanneltv|geniuskitchen)\.com/
                         (?:
                             player\.[A-Z0-9]+\.html\#|
-                            show/(?:[^/]+/){2}
+                            show/(?:[^/]+/){2}|
+                            player/
                         )
                         (?P<id>\d+)
                     '''
@@ -49,6 +50,9 @@ class ScrippsNetworksWatchIE(InfoExtractor):
     }, {
         'url': 'http://watch.diynetwork.com/player.HNT.html#2656646',
         'only_matching': True,
+    }, {
+        'url': 'http://watch.geniuskitchen.com/player/3787617/Ample-Hills-Ice-Cream-Bike/',
+        'only_matching': True,
     }]
 
     _SNI_TABLE = {
@@ -57,7 +61,7 @@ class ScrippsNetworksWatchIE(InfoExtractor):
         'foodnetwork': 'food',
         'cookingchanneltv': 'cook',
         'travelchannel': 'trav',
-        'geniuskitchen': 'geniuskitchen',
+        'geniuskitchen': 'genius',
     }
     _SNI_HOST = 'web.api.video.snidigital.com'
 
