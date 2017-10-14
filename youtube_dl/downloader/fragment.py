@@ -117,9 +117,15 @@ class FragmentFD(FileDownloader):
     def _prepare_frag_download(self, ctx):
         if 'live' not in ctx:
             ctx['live'] = False
+        if not ctx['live']:
+            total_frags_str = '%d' % ctx['total_frags']
+            ad_frags = ctx.get('ad_frags', 0)
+            if ad_frags:
+                total_frags_str += ' (not including %d ad)' % ad_frags
+        else:
+            total_frags_str = 'unknown (live)'
         self.to_screen(
-            '[%s] Total fragments: %s'
-            % (self.FD_NAME, ctx['total_frags'] if not ctx['live'] else 'unknown (live)'))
+            '[%s] Total fragments: %s' % (self.FD_NAME, total_frags_str))
         self.report_destination(ctx['filename'])
         dl = HttpQuietDownloader(
             self.ydl,
