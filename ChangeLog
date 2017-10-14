@@ -1,7 +1,22 @@
 version <unreleased>
 
+Core
++ [common] Add support for jwplayer youtube embeds
+
 Extractors
+* [scrippsnetworks:watch] Fix extraction (#14389)
+* [anvato] Process master m3u8 manifests
+* [youtube] Fix relative URLs in description
+* [spike] Bypass geo restriction
++ [howstuffworks] Add support for more domains
+* [infoq] Fix http format downloading
++ [rtlnl] Add support for another type of embeds
++ [onionstudios] Add support for bulbs-video embeds
+* [udn] Fix extraction
+* [shahid] Fix extraction (#14448)
 * [kaltura] Ignore Widevine encrypted video (.wvm) (#14471)
+* [vh1] Fix extraction (#9613)
+
 
 version 2017.10.12
 
