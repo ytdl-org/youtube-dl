@@ -476,15 +476,29 @@ class VKIE(VKBaseIE):
 class VKUserVideosIE(VKBaseIE):
     IE_NAME = 'vk:uservideos'
     IE_DESC = "VK - User's Videos"
-    _VALID_URL = r'https?://(?:(?:m|new)\.)?vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
-    _TEMPLATE_URL = 'https://vk.com/videos'
+    _VALID_URL = r'https?://(?:(?:m|new)\.)?vk\.com/videos(?P<id>-?[0-9]+)(?:.*\bsection=(?P<section>\w+))?(?!\?.*\bz=video)(?:[/?#&]|$)'
+    _TEMPLATE_URL = 'https://vk.com/al_video.php?act=load_videos_silent&al=1&need_albums=0&offset=0&oid=%s&rowlen=3&section=%s'
     _TESTS = [{
-        'url': 'http://vk.com/videos205387401',
+        'url': 'https://vk.com/videos451841516?section=album_1',
         'info_dict': {
-            'id': '205387401',
-            'title': "Tom Cruise's Videos",
+            'id': '451841516',
+            'title': 'album_1',
         },
-        'playlist_mincount': 4,
+        'playlist_count': 39,
+    }, {
+        'url': 'https://m.vk.com/videos451841516',
+        'info_dict': {
+            'id': '451841516',
+            'title': 'all',
+        },
+        'playlist_mincount': 40,
+    }, {
+        'url': 'https://vk.com/videos451841516',
+        'info_dict': {
+            'id': '451841516',
+            'title': 'all',
+        },
+        'playlist_mincount': 40,
     }, {
         'url': 'http://vk.com/videos-77521',
         'only_matching': True,
@@ -499,21 +513,22 @@ class VKUserVideosIE(VKBaseIE):
         'only_matching': True,
     }]
 
+    def _generate_entry(self, entry):
+        video_id = '%d_%d' % (entry[0], entry[1])
+        return self.url_result('http://vk.com/video' + video_id, 'VK', video_id=video_id)
+
     def _real_extract(self, url):
-        page_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        page_id = mobj.group('id')
+        section = mobj.group('section') or 'all'
 
-        webpage = self._download_webpage(url, page_id)
+        data = self._download_json(
+            self._TEMPLATE_URL % (page_id, section), page_id,
+            transform_source=lambda s: re.sub(r'.*<!json>(?P<callback_data>.*?)<!>.*', r'\g<callback_data>', s))
 
-        entries = [
-            self.url_result(
-                'http://vk.com/video' + video_id, 'VK', video_id=video_id)
-            for video_id in orderedSet(re.findall(r'href="/video(-?[0-9_]+)"', webpage))]
+        entries = [self._generate_entry(entry) for entry in reversed(data[section]['list'])]
 
-        title = unescapeHTML(self._search_regex(
-            r'<title>\s*([^<]+?)\s+\|\s+\d+\s+videos',
-            webpage, 'title', default=page_id))
-
-        return self.playlist_result(entries, page_id, title)
+        return self.playlist_result(entries, page_id, section)
 
 
 class VKWallPostIE(VKBaseIE):
