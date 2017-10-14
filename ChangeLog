@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.10.15
 
 Core
 + [common] Add support for jwplayer youtube embeds
