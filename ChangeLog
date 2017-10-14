@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.10.15.1
 
 Core
 * [downloader/hls] Ignore anvato ad fragments (#14496)
