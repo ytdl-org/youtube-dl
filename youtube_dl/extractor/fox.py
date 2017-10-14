@@ -22,7 +22,8 @@ class FOXIE(AdobePassIE):
         'url': 'https://www.fox.com/watch/4b765a60490325103ea69888fb2bd4e8/',
         'md5': 'ebd296fcc41dd4b19f8115d8461a3165',
         'info_dict': {
-            'id': '4b765a60490325103ea69888fb2bd4e8',
+            'id': '61625a1525bd4655835ad8f1e2e253c5',
+            'uploader_id': 'd8e6eec26bf544f084bad49a7fa2eac5',
             'ext': 'mp4',
             'title': 'Aftermath: Bruce Wayne Develops Into The Dark Knight',
             'description': 'md5:549cd9c70d413adb32ce2a779b53b486',
