@@ -11,7 +11,6 @@ from ..utils import (
     parse_duration,
     try_get,
     unified_timestamp,
-    update_url_query,
 )
 
 
@@ -77,13 +76,9 @@ class FOXIE(AdobePassIE):
         episode_number = int_or_none(video.get('episodeNumber'))
         release_year = int_or_none(video.get('releaseYear'))
 
-        query = {}
         if data.get('authRequired'):
-            rating = video.get('contentRating')
-            if rating == 'n/a':
-                rating = None
-            resource = self._get_mvpd_resource('fbc-fox', None, video['guid'], rating)
-            query['auth'] = self._extract_mvpd_auth(url, video_id, 'fbc-fox', resource)
+            # TODO: AP
+            pass
 
         info = {
             'id': video_id,
@@ -100,18 +95,17 @@ class FOXIE(AdobePassIE):
             'release_year': release_year,
         }
 
-        if not data.get('authRequired'):
-            urlh = self._request_webpage(HEADRequest(release_url), video_id)
-            video_url = compat_str(urlh.geturl())
+        urlh = self._request_webpage(HEADRequest(release_url), video_id)
+        video_url = compat_str(urlh.geturl())
 
-        if not data.get('authRequired') and UplynkPreplayIE.suitable(video_url):
+        if UplynkPreplayIE.suitable(video_url):
             info.update({
                 '_type': 'url_transparent',
                 'url': video_url,
                 'ie_key': UplynkPreplayIE.ie_key(),
             })
         else:
-            m3u8_url = self._download_json(update_url_query(video['videoRelease']['url'], query), video_id)['playURL']
+            m3u8_url = self._download_json(release_url, video_id)['playURL']
             formats = self._extract_m3u8_formats(
                 m3u8_url, video_id, 'mp4',
                 entry_protocol='m3u8_native', m3u8_id='hls')
