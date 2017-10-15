@@ -22,7 +22,8 @@ class CamModelsIE(InfoExtractor):
             r'manifestUrlRoot=(?P<id>https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))',
             webpage,
             'manifest',
-            fatal=False)
+            None,
+            False)
         if not manifest_url_root:
             offline = self._html_search_regex(
                 r'(?P<id>I\'m offline, but let\'s stay connected!)',
@@ -58,18 +59,23 @@ class CamModelsIE(InfoExtractor):
             'Link to stream URLs was found, but we couldn\'t access it.',
             headers=self._HEADERS)
         try:
-            rtmp_formats = manifest['formats']['mp4-rtmp']['encodings']
             formats = []
-            for format in rtmp_formats:
-                formats.append({
-                    'ext': 'flv',
-                    'url': format.get('location'),
-                    'width': format.get('videoWidth'),
-                    'height': format.get('videoHeight'),
-                    'vbr': format.get('videoKbps'),
-                    'abr': format.get('audioKbps'),
-                    'format_id': str(format.get('videoWidth'))
-                })
+            all_formats = manifest['formats']
+            for fmtName in all_formats:
+                fmt = all_formats[fmtName]
+                encodings = fmt.get('encodings')
+                if not encodings:
+                    continue
+                for encoding in encodings:
+                    formats.append({
+                        'ext': 'mp4',
+                        'url': encoding.get('location'),
+                        'width': encoding.get('videoWidth'),
+                        'height': encoding.get('videoHeight'),
+                        'vbr': encoding.get('videoKbps'),
+                        'abr': encoding.get('audioKbps'),
+                        'format_id': fmtName + str(encoding.get('videoWidth'))
+                    })
         # If they change the JSON format, then fallback to parsing out RTMP links via regex.
         except KeyError:
             manifest_json = json.dumps(manifest)
