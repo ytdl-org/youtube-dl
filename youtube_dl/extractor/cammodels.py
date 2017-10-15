@@ -61,7 +61,7 @@ class CamModelsIE(InfoExtractor):
         manifest = self._download_json(url_or_request=manifest_url, video_id=video_id, headers=self._HEADERS, fatal=False)
         if not manifest:
             raise ExtractorError(
-                msg='Link to stream info was found, but we couldn\'t access it. This stream may require login.',
+                msg='Link to stream URLs was found, but we couldn\'t access it.',
                 expected=False,
                 video_id=video_id)
         return manifest
