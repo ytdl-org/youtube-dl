@@ -18,23 +18,6 @@ class CamModelsIE(InfoExtractor):
             url,
             video_id,
             headers=self._HEADERS)
-        manifest_url = self._get_manifest_url_from_webpage(
-            webpage,
-            video_id)
-        manifest = self._get_manifest_from_manifest_url(
-            manifest_url,
-            video_id,
-            webpage)
-        formats = self._get_formats_from_manifest(
-            manifest,
-            video_id)
-        return {
-            'id': video_id,
-            'title': self._live_title(video_id),
-            'formats': formats
-        }
-
-    def _get_manifest_url_from_webpage(self, webpage, video_id):
         manifest_url_root = self._html_search_regex(
             r'manifestUrlRoot=(?P<id>https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))',
             webpage,
@@ -66,9 +49,6 @@ class CamModelsIE(InfoExtractor):
                 expected=False,
                 video_id=video_id)
         manifest_url = manifest_url_root + video_id + '.json'
-        return manifest_url
-
-    def _get_manifest_from_manifest_url(self, manifest_url, video_id, webpage):
         manifest = self._download_json(
             manifest_url,
             video_id,
@@ -79,9 +59,6 @@ class CamModelsIE(InfoExtractor):
                 'Link to stream URLs was found, but we couldn\'t access it.',
                 expected=False,
                 video_id=video_id)
-        return manifest
-
-    def _get_formats_from_manifest(self, manifest, video_id):
         try:
             rtmp_formats = manifest['formats']['mp4-rtmp']['encodings']
             formats = []
@@ -115,4 +92,8 @@ class CamModelsIE(InfoExtractor):
                     'format_id': url.split(sep='/')[-1]
                 })
         self._sort_formats(formats)
-        return formats
+        return {
+            'id': video_id,
+            'title': self._live_title(video_id),
+            'formats': formats
+        }
