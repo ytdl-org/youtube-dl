@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 from .common import InfoExtractor
 
+
 class CamModelsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?cammodels\.com/cam/(?P<id>\w+)'
     _MANIFEST_URL_ROOT_REGEX = r'manifestUrlRoot=(?P<id>https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))'
