@@ -88,6 +88,7 @@ class HlsFD(FragmentFD):
             if line.startswith('#'):
                 if anvato_ad(line):
                     ad_frags += 1
+                    ad_frag_next = True
                 continue
             if ad_frag_next:
                 ad_frag_next = False
