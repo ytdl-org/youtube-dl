@@ -54,13 +54,9 @@ class CamModelsIE(InfoExtractor):
         manifest = self._download_json(
             manifest_url,
             video_id,
-            headers=self._HEADERS,
-            fatal=False)
-        if not manifest:
-            raise ExtractorError(
-                'Link to stream URLs was found, but we couldn\'t access it.',
-                expected=False,
-                video_id=video_id)
+            'Downloading links to streams.',
+            'Link to stream URLs was found, but we couldn\'t access it.',
+            headers=self._HEADERS)
         try:
             rtmp_formats = manifest['formats']['mp4-rtmp']['encodings']
             formats = []
