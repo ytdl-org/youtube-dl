@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from .common import ExtractorError
 import json
+import re
 
 
 class CamModelsIE(InfoExtractor):
@@ -67,15 +68,16 @@ class CamModelsIE(InfoExtractor):
         # If they change the JSON format, then fallback to parsing out RTMP links via regex.
         except:
             manifest_json = json.dumps(manifest)
-            manifest_links = self._search_regex(pattern=self._RTMP_URL_FALLBACK, string=manifest_json, name='RTMP URLs', fatal=False)
+            manifest_links = re.finditer(pattern=self._RTMP_URL_FALLBACK, string=manifest_json)
             if not manifest_links:
                 raise ExtractorError(msg=self._RTMP_URL_FALLBACK_CONSOLE_ERROR, expected=False, video_id=video_id)
             formats = []
             for manifest_link in manifest_links:
+                url = manifest_link.group('id')
                 formats.append({
                     'ext': 'flv',
-                    'url': manifest_link,
-                    'format_id': manifest_link.split(sep='/')[-1]
+                    'url': url,
+                    'format_id': url.split(sep='/')[-1]
                 })
         self._sort_formats(formats)
         return formats
