@@ -40,7 +40,7 @@ class NiconicoIE(InfoExtractor):
             'uploader': 'takuya0301',
             'uploader_id': '2698420',
             'upload_date': '20131123',
-            'timestamp': 1385215162,
+            'timestamp': int, # timestamp is unstable
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
             'duration': 33,
             'view_count': int,
@@ -115,8 +115,8 @@ class NiconicoIE(InfoExtractor):
         'skip': 'Requires an account',
     }, {
         # "New" HTML5 video
+        # md5 is unstable
         'url': 'http://www.nicovideo.jp/watch/sm31464864',
-        'md5': '8b1d60d94c570858f98bfa47cc742400',
         'info_dict': {
             'id': 'sm31464864',
             'ext': 'mp4',
@@ -416,7 +416,7 @@ class NiconicoIE(InfoExtractor):
 
         # Note: cannot use api_data.get('owner', {}) because owner may be set to "null"
         # in the JSON, which will cause None to be returned instead of {}.
-        owner = api_data.get('owner') or {}
+        owner = try_get(api_data, lambda x: x.get('owner'), dict) or {}
         uploader_id = get_video_info(['ch_id', 'user_id']) or owner.get('id')
         uploader = get_video_info(['ch_name', 'user_nickname']) or owner.get('nickname')
 
