@@ -71,7 +71,7 @@ class CamModelsIE(InfoExtractor):
                     'format_id': str(format.get('videoWidth'))
                 })
         # If they change the JSON format, then fallback to parsing out RTMP links via regex.
-        except:
+        except KeyError:
             manifest_json = json.dumps(manifest)
             manifest_links = re.finditer(
                 r'(?P<id>rtmp?:\/\/[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#&//=]*))',
