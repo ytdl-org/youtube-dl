@@ -40,7 +40,7 @@ class NiconicoIE(InfoExtractor):
             'uploader': 'takuya0301',
             'uploader_id': '2698420',
             'upload_date': '20131123',
-            'timestamp': int, # timestamp is unstable
+            'timestamp': int,  # timestamp is unstable
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
             'duration': 33,
             'view_count': int,
