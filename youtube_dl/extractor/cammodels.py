@@ -28,7 +28,8 @@ class CamModelsIE(InfoExtractor):
                 r'(?P<id>I\'m offline, but let\'s stay connected!)',
                 webpage,
                 'offline indicator',
-                fatal=False)
+                None,
+                False)
             if offline:
                 raise ExtractorError(
                     'This user is currently offline, so nothing can be downloaded.',
@@ -38,7 +39,8 @@ class CamModelsIE(InfoExtractor):
                 r'(?P<id>I’m in a private show right now)',
                 webpage,
                 'private show indicator',
-                fatal=False)
+                None,
+                False)
             if private:
                 raise ExtractorError(
                     'This user is doing a private show, which requires payment. This extractor currently does not support private streams.',
