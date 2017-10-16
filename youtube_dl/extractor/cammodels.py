@@ -6,7 +6,6 @@ import re
 from ..utils import int_or_none
 
 
-
 class CamModelsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?cammodels\.com/cam/(?P<id>\w+)'
     _HEADERS = {
@@ -33,26 +32,20 @@ class CamModelsIE(InfoExtractor):
                 'offline indicator',
                 None,
                 False)
-            if offline:
-                raise ExtractorError(
-                    'This user is currently offline, so nothing can be downloaded.',
-                    expected=True,
-                    video_id=video_id)
             private = self._html_search_regex(
                 r'(?P<id>I’m in a private show right now)',
                 webpage,
                 'private show indicator',
                 None,
                 False)
-            if private:
-                raise ExtractorError(
-                    'This user is doing a private show, which requires payment. This extractor currently does not support private streams.',
-                    expected=True,
-                    video_id=video_id)
+            err = 'This user is currently offline, so nothing can be downloaded.' if offline \
+                else 'This user is doing a private show, which requires payment. This extractor currently does not support private streams.' if private \
+                else 'Unable to find link to stream info on webpage. Room is not offline, so something else is wrong.'
             raise ExtractorError(
-                'Unable to find link to stream info on webpage. Room is not offline, so something else is wrong.',
-                expected=False,
-                video_id=video_id)
+                err,
+                expected=True if offline or private else False,
+                video_id=video_id
+            )
         manifest_url = manifest_url_root + video_id + '.json'
         manifest = self._download_json(
             manifest_url,
