@@ -3,6 +3,8 @@ from .common import InfoExtractor
 from .common import ExtractorError
 import json
 import re
+from ..utils import int_or_none
+
 
 
 class CamModelsIE(InfoExtractor):
@@ -70,10 +72,10 @@ class CamModelsIE(InfoExtractor):
                     formats.append({
                         'ext': 'mp4',
                         'url': encoding.get('location'),
-                        'width': encoding.get('videoWidth'),
-                        'height': encoding.get('videoHeight'),
-                        'vbr': encoding.get('videoKbps'),
-                        'abr': encoding.get('audioKbps'),
+                        'width': int_or_none(encoding.get('videoWidth')),
+                        'height': int_or_none(encoding.get('videoHeight')),
+                        'vbr': int_or_none(encoding.get('videoKbps')),
+                        'abr': int_or_none(encoding.get('audioKbps')),
                         'format_id': fmtName + str(encoding.get('videoWidth'))
                     })
         # If they change the JSON format, then fallback to parsing out RTMP links via regex.
