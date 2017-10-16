@@ -64,7 +64,7 @@ class CamModelsIE(InfoExtractor):
                 for encoding in encodings:
                     formats.append({
                         'ext': 'mp4',
-                        'url': encoding.get('location'),
+                        'url': encoding['location'],
                         'width': int_or_none(encoding.get('videoWidth')),
                         'height': int_or_none(encoding.get('videoHeight')),
                         'vbr': int_or_none(encoding.get('videoKbps')),
