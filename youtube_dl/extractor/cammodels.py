@@ -55,13 +55,8 @@ class CamModelsIE(InfoExtractor):
             headers=self._HEADERS)
         try:
             formats = []
-            all_formats = manifest['formats']
-            for fmtName in all_formats:
-                fmt = all_formats[fmtName]
-                encodings = fmt.get('encodings')
-                if not encodings:
-                    continue
-                for encoding in encodings:
+            for fmtName in ['mp4-rtmp', 'mp4-hls']:
+                for encoding in manifest['formats'][fmtName]['encodings']:
                     formats.append({
                         'ext': 'mp4',
                         'url': encoding['location'],
@@ -86,7 +81,7 @@ class CamModelsIE(InfoExtractor):
             for manifest_link in manifest_links:
                 url = manifest_link.group('id')
                 formats.append({
-                    'ext': 'flv',
+                    'ext': 'mp4',
                     'url': url,
                     'format_id': url.split(sep='/')[-1]
                 })
