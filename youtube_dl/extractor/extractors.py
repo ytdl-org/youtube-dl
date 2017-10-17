@@ -1138,6 +1138,7 @@ from .udn import UDNEmbedIE
 from .uktvplay import UKTVPlayIE
 from .digiteka import DigitekaIE
 from .unistra import UnistraIE
+from .universalmusicservice import UniversalMusicServiceIE
 from .uol import UOLIE
 from .uplynk import (
     UplynkIE,
