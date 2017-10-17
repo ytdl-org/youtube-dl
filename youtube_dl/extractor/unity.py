@@ -15,7 +15,7 @@ class UnityIE(InfoExtractor):
             'id': 'jWuNtik0C8E',
             'ext': 'mp4',
             'title': 'Live Training 22nd September 2014 -  Animate Anything',
-            'description': 'md5:7752f2b827ce39a5acc648b53593dfbf',
+            'description': 'md5:e54913114bd45a554c56cdde7669636e',
             'duration': 2893,
             'uploader': 'Unity',
             'uploader_id': 'Unity3D',
