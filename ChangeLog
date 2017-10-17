@@ -1,3 +1,15 @@
+version 2017.10.15.1
+
+Core
+* [downloader/hls] Ignore anvato ad fragments (#14496)
+* [downloader/fragment] Output ad fragment count
+
+Extractors
+* [scrippsnetworks:watch] Bypass geo restriction
++ [anvato] Add ability to bypass geo restriction
+* [redditr] Fix extraction for URLs with query (#14495)
+
+
 version 2017.10.15
 
 Core

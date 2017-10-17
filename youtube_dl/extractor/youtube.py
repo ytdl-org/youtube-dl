@@ -1622,6 +1622,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # description
         description_original = video_description = get_element_by_id("eow-description", video_webpage)
         if video_description:
+
+            def replace_url(m):
+                redir_url = compat_urlparse.urljoin(url, m.group(1))
+                parsed_redir_url = compat_urllib_parse_urlparse(redir_url)
+                if re.search(r'^(?:www\.)?(?:youtube(?:-nocookie)?\.com|youtu\.be)$', parsed_redir_url.netloc) and parsed_redir_url.path == '/redirect':
+                    qs = compat_parse_qs(parsed_redir_url.query)
+                    q = qs.get('q')
+                    if q and q[0]:
+                        return q[0]
+                return redir_url
+
             description_original = video_description = re.sub(r'''(?x)
                 <a\s+
                     (?:[a-zA-Z-]+="[^"]*"\s+)*?
@@ -1630,7 +1641,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     class="[^"]*"[^>]*>
                 [^<]+\.{3}\s*
                 </a>
-            ''', lambda m: compat_urlparse.urljoin(url, m.group(1)), video_description)
+            ''', replace_url, video_description)
             video_description = clean_html(video_description)
         else:
             fd_mobj = re.search(r'<meta name="description" content="([^"]+)"', video_webpage)

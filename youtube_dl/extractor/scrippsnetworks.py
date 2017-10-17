@@ -10,6 +10,7 @@ import re
 from .common import InfoExtractor
 from .anvato import AnvatoIE
 from ..utils import (
+    smuggle_url,
     urlencode_postdata,
     xpath_text,
 )
@@ -183,5 +184,7 @@ x-api-key:%(key)s
             })['results'][0]['mcpId']
 
         return self.url_result(
-            'anvato:anvato_scripps_app_web_prod_0837996dbe373629133857ae9eb72e740424d80a:%s' % mcp_id,
+            smuggle_url(
+                'anvato:anvato_scripps_app_web_prod_0837996dbe373629133857ae9eb72e740424d80a:%s' % mcp_id,
+                {'geo_countries': ['US']}),
             AnvatoIE.ie_key(), video_id=mcp_id)

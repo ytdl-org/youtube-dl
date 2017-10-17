@@ -18,6 +18,7 @@ from ..utils import (
     int_or_none,
     strip_jsonp,
     unescapeHTML,
+    unsmuggle_url,
 )
 
 
@@ -275,6 +276,9 @@ class AnvatoIE(InfoExtractor):
             anvplayer_data['accessKey'], anvplayer_data['video'])
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+
         mobj = re.match(self._VALID_URL, url)
         access_key, video_id = mobj.group('access_key_or_mcp', 'id')
         if access_key not in self._ANVACK_TABLE:
