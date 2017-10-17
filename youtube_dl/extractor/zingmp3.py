@@ -113,13 +113,13 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
             'ext': 'mp4',
         },
     }, {
-        'url': 'http://mp3.zing.vn/album/Lau-Dai-Tinh-Ai-Bang-Kieu-Minh-Tuyet/ZWZBWDAF.html',
+        'url': 'https://mp3.zing.vn/album/Nhung-Bai-Hat-Hay-Nhat-Cua-Bang-Kieu-Bang-Kieu/ZWZ9DAEI.html',
         'info_dict': {
             '_type': 'playlist',
-            'id': 'ZWZBWDAF',
-            'title': 'Lâu Đài Tình Ái  - Bằng Kiều | Zing MP3',
+            'id': 'ZWZ9DAEI',
+            'title': 'Những Bài Hát Hay Nhất Của Bằng Kiều  - Bằng Kiều | Zing MP3',
         },
-        'playlist_count': 10,
+        'playlist_count': 39,
     }, {
         'url': 'http://mp3.zing.vn/playlist/Sofm-s-playlist-louissofm/IWE606EA.html',
         'info_dict': {
