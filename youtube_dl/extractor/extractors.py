@@ -925,6 +925,7 @@ from .seeker import SeekerIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
 from .servingsys import ServingSysIE
+from .servus import ServusIE
 from .sexu import SexuIE
 from .shahid import ShahidIE
 from .shared import (
