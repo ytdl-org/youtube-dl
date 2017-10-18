@@ -2,9 +2,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..utils import (
-    ExtractorError
-)
 
 
 class UnityIE(InfoExtractor):
@@ -27,12 +24,9 @@ class UnityIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        vid = self._match_id(url)
+        webpage = self._download_webpage(url, vid)
         youtube_id = self._search_regex(
             r'data-video-id="([_0-9a-zA-Z-]+)"',
-            webpage, 'youtube ID', default=None)
-        if not youtube_id:
-            raise ExtractorError('Unable to extract youtube ID', expected=True)
-        youtube_url = 'https://youtu.be/%s' % youtube_id
-        return self.url_result(youtube_url, ie=YoutubeIE.ie_key())
+            webpage, 'youtube ID')
+        return self.url_result(youtube_id, video_id=vid, ie=YoutubeIE.ie_key())
