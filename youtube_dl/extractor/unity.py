@@ -5,7 +5,7 @@ from .youtube import YoutubeIE
 
 
 class UnityIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?unity3d\.com/learn/tutorials/(?:.*)/(?P<id>[0-9a-zA-Z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?unity3d\.com/learn/tutorials/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://unity3d.com/learn/tutorials/topics/animation/animate-anything-mecanim',
         'info_dict': {
