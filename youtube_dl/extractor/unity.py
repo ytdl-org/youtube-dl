@@ -9,7 +9,7 @@ from ..utils import (
 
 class UnityIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?unity3d\.com/learn/tutorials/(?:.*)/(?P<id>[0-9a-zA-Z-]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://unity3d.com/learn/tutorials/topics/animation/animate-anything-mecanim',
         'info_dict': {
             'id': 'jWuNtik0C8E',
@@ -21,7 +21,10 @@ class UnityIE(InfoExtractor):
             'uploader_id': 'Unity3D',
             'upload_date': '20140926',
         }
-    }
+    }, {
+        'url': 'https://unity3d.com/learn/tutorials/projects/2d-ufo-tutorial/following-player-camera?playlist=25844',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
