@@ -29,4 +29,4 @@ class UnityIE(InfoExtractor):
         youtube_id = self._search_regex(
             r'data-video-id="([_0-9a-zA-Z-]+)"',
             webpage, 'youtube ID')
-        return self.url_result(youtube_id, YoutubeIE.ie_key(), video_id)
+        return self.url_result(youtube_id, ie=YoutubeIE.ie_key(), video_id=video_id)
