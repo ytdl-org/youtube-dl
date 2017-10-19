@@ -5,8 +5,8 @@ from .common import InfoExtractor
 
 
 class ServusIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?servus\.com/(?:at|de)/p/[^/]+/(?P<id>(?:AA-[A-Z\d]+|\d+-\d+))/'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?servus\.com/(?:at|de)/p/[^/]+/(?P<id>AA-\w+|\d+-\d+)'
+    _TESTS = [{
         'url': 'https://www.servus.com/de/p/Die-Gr%C3%BCnen-aus-Sicht-des-Volkes/AA-1T6VBU5PW1W12/',
         'md5': '046dee641cda1c4cabe13baef3be2c1c',
         'info_dict': {
@@ -16,7 +16,10 @@ class ServusIE(InfoExtractor):
             'description': 'md5:052b5da1cb2cd7d562ef1f19be5a5cba',
             'thumbnail': r're:^https?://.*\.jpg$',
         }
-    }
+    }, {
+        'url': 'https://www.servus.com/at/p/Wie-das-Leben-beginnt/1309984137314-381415152/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
