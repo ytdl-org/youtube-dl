@@ -332,7 +332,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --prefer-free-formats            Prefer free video formats unless a specific
                                      one is requested
     -F, --list-formats               List all available formats of requested
-                                     videos
+                                     videos and then exit
     --youtube-skip-dash-manifest     Do not download the DASH manifests and
                                      related data on YouTube videos
     --merge-output-format FORMAT     If a merge is required (e.g.
