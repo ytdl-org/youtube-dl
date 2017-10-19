@@ -834,7 +834,7 @@ version 2017.04.14
 
 Core
 + [downloader/hls] Add basic support for EXT-X-BYTERANGE tag (#10955)
-+ [adobepass] Improve Comcast and Verison login code (#10803)
++ [adobepass] Improve Comcast and Verizon login code (#10803)
 + [adobepass] Add support for Verizon (#10803)
 
 Extractors
