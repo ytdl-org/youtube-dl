@@ -60,6 +60,7 @@ from .utils import (
     format_bytes,
     formatSeconds,
     GeoRestrictedError,
+    get_filesystem_encoding,
     int_or_none,
     ISO3166Utils,
     locked_file,
@@ -1681,8 +1682,6 @@ class YoutubeDL(object):
                 raise MaxDownloadsReached()
 
         info_dict['fulltitle'] = info_dict['title']
-        if len(info_dict['title']) > 200:
-            info_dict['title'] = info_dict['title'][:197] + '...'
 
         if 'format' not in info_dict:
             info_dict['format'] = info_dict['ext']
@@ -1740,6 +1739,23 @@ class YoutubeDL(object):
 
         if not ensure_dir_exists(sanitize_path(encodeFilename(filename))):
             return
+
+        filesystem_enc = get_filesystem_encoding()
+        max_filename_len = 200
+        if hasattr(os, 'pathconf') and hasattr(os, 'pathconf_names'):
+            try:
+                dn = os.path.dirname(sanitize_path(encodeFilename(filename)))
+                max_filename_len = int(os.pathconf(os.path.abspath(dn), os.pathconf_names['PC_NAME_MAX']))
+            except OSError as err:
+                self.report_error('the system does not support PC_NAME_MAX ' + compat_str(err))
+        if len((os.path.basename(filename) + '.part').encode(filesystem_enc)) > max_filename_len:
+            trun_len = max_filename_len - len(('....part.' + info_dict['ext']).encode(filesystem_enc))
+            while True:
+                try:
+                    info_dict['title'] = info_dict['title'].encode(filesystem_enc)[:trun_len].decode() + '...'
+                    break
+                except:
+                    trun_len -= 1
 
         if self.params.get('writedescription', False):
             descfn = replace_extension(filename, 'description', info_dict.get('ext'))
