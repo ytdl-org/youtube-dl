@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class ServusIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?servus\.com/(?:at|de)/p/[^/]+/(?P<id>[^/]+)/$'
+    _VALID_URL = r'https?://(?:www\.)?servus\.com/(?:at|de)/p/[^/]+/(?P<id>(?:AA-[A-Z\d]+|\d+-\d+))/'
     _TEST = {
         'url': 'https://www.servus.com/de/p/Die-Gr%C3%BCnen-aus-Sicht-des-Volkes/AA-1T6VBU5PW1W12/',
         'md5': '046dee641cda1c4cabe13baef3be2c1c',
@@ -28,7 +28,7 @@ class ServusIE(InfoExtractor):
 
         m3u8_url = 'https://stv.rbmbtnx.net/api/v1/manifests/%s.m3u8' % video_id
         formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native')
+            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
         return {
