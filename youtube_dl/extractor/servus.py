@@ -29,9 +29,9 @@ class ServusIE(InfoExtractor):
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
 
-        m3u8_url = 'https://stv.rbmbtnx.net/api/v1/manifests/%s.m3u8' % video_id
         formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
+            'https://stv.rbmbtnx.net/api/v1/manifests/%s.m3u8' % video_id,
+            video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
         return {
