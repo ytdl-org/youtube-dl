@@ -150,6 +150,7 @@ from .canalc2 import Canalc2IE
 from .canvas import (
     CanvasIE,
     CanvasEenIE,
+    VrtNUIE,
 )
 from .carambatv import (
     CarambaTVIE,
