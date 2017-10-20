@@ -1,3 +1,23 @@
+version <unreleased>
+
+Core
+* [downloader/fragment] Report warning instead of error on inconsistent
+  download state
+* [downloader/hls] Fix total fragments count when ad fragments exist
+
+Extractors
+* [parliamentliveuk] Fix extraction (#14524)
+* [soundcloud] Update client id (#14546)
++ [servus] Add support for servus.com (#14362)
++ [unity] Add support for unity3d.com (#14528)
+* [youtube] Replace youtube redirect URLs in description (#14517)
+* [pbs] Restrict direct video URL regular expression (#14519)
+* [drtv] Respect preference for direct HTTP formats (#14509)
++ [eporner] Add support for embed URLs (#14507)
+* [arte] Capture and output error message
+* [niconico] Improve uploader metadata extraction robustness (#14135)
+
+
 version 2017.10.15.1
 
 Core
