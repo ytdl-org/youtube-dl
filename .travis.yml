@@ -20,7 +20,7 @@ notifications:
   email:
     - filippo.valsorda@gmail.com
     - yasoob.khld@gmail.com
-#  irc:
-#    channels:
-#      - "irc.freenode.org#youtube-dl"
-#    skip_join: true
+  irc:
+    channels:
+      - "irc.freenode.org#youtube-dl"
+    skip_join: true
