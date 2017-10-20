@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.10.20
 
 Core
 * [downloader/fragment] Report warning instead of error on inconsistent
