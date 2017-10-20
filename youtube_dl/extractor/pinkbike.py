@@ -64,7 +64,8 @@ class PinkbikeIE(InfoExtractor):
             'video:duration', webpage, 'duration'))
 
         uploader = self._search_regex(
-            r'un:\s*"([^"]+)"', webpage, 'uploader', fatal=False)
+            r'<a[^>]+\brel=["\']author[^>]+>([^<]+)', webpage,
+            'uploader', fatal=False)
         upload_date = unified_strdate(self._search_regex(
             r'class="fullTime"[^>]+title="([^"]+)"',
             webpage, 'upload date', fatal=False))

@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
-    HEADRequest,
+    int_or_none,
+    mimetype2ext,
 )
 
 
 class AparatIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?aparat\.com/(?:v/|video/video/embed/videohash/)(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?aparat\.com/(?:v/|video/video/embed/videohash/)(?P<id>[a-zA-Z0-9]+)'
 
     _TEST = {
         'url': 'http://www.aparat.com/v/wP8On',
@@ -29,30 +29,41 @@ class AparatIE(InfoExtractor):
         # Note: There is an easier-to-parse configuration at
         # http://www.aparat.com/video/video/config/videohash/%video_id
         # but the URL in there does not work
-        embed_url = 'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id
-        webpage = self._download_webpage(embed_url, video_id)
-
-        file_list = self._parse_json(self._search_regex(
-            r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage, 'file list'), video_id)
-        for i, item in enumerate(file_list[0]):
-            video_url = item['file']
-            req = HEADRequest(video_url)
-            res = self._request_webpage(
-                req, video_id, note='Testing video URL %d' % i, errnote=False)
-            if res:
-                break
-        else:
-            raise ExtractorError('No working video URLs found')
+        webpage = self._download_webpage(
+            'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id,
+            video_id)
 
         title = self._search_regex(r'\s+title:\s*"([^"]+)"', webpage, 'title')
+
+        file_list = self._parse_json(
+            self._search_regex(
+                r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage,
+                'file list'),
+            video_id)
+
+        formats = []
+        for item in file_list[0]:
+            file_url = item.get('file')
+            if not file_url:
+                continue
+            ext = mimetype2ext(item.get('type'))
+            label = item.get('label')
+            formats.append({
+                'url': file_url,
+                'ext': ext,
+                'format_id': label or ext,
+                'height': int_or_none(self._search_regex(
+                    r'(\d+)[pP]', label or '', 'height', default=None)),
+            })
+        self._sort_formats(formats)
+
         thumbnail = self._search_regex(
             r'image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
 
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
-            'ext': 'mp4',
             'thumbnail': thumbnail,
             'age_limit': self._family_friendly_search(webpage),
+            'formats': formats,
         }

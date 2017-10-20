@@ -193,9 +193,10 @@ class sockssocket(socket.socket):
 
         self._check_response_version(SOCKS5_VERSION, version)
 
-        if method == Socks5Auth.AUTH_NO_ACCEPTABLE:
+        if method == Socks5Auth.AUTH_NO_ACCEPTABLE or (
+                method == Socks5Auth.AUTH_USER_PASS and (not self._proxy.username or not self._proxy.password)):
             self.close()
-            raise Socks5Error(method)
+            raise Socks5Error(Socks5Auth.AUTH_NO_ACCEPTABLE)
 
         if method == Socks5Auth.AUTH_USER_PASS:
             username = self._proxy.username.encode('utf-8')

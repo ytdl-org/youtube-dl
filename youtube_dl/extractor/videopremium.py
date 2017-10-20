@@ -26,7 +26,7 @@ class VideoPremiumIE(InfoExtractor):
         webpage_url = 'http://videopremium.tv/' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
 
-        if re.match(r'^<html><head><script[^>]*>window.location\s*=', webpage):
+        if re.match(r'^<html><head><script[^>]*>window\.location\s*=', webpage):
             # Download again, we need a cookie
             webpage = self._download_webpage(
                 webpage_url, video_id,

@@ -10,7 +10,25 @@ from ..utils import (
 
 
 class ESPNIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:espn\.go|(?:www\.)?espn)\.com/video/clip(?:\?.*?\bid=|/_/id/)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:(?:\w+\.)+)?espn\.go|
+                            (?:www\.)?espn
+                        )\.com/
+                        (?:
+                            (?:
+                                video/clip|
+                                watch/player
+                            )
+                            (?:
+                                \?.*?\bid=|
+                                /_/id/
+                            )
+                        )
+                        (?P<id>\d+)
+                    '''
+
     _TESTS = [{
         'url': 'http://espn.go.com/video/clip?id=10365079',
         'info_dict': {
@@ -25,20 +43,34 @@ class ESPNIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # intl video, from http://www.espnfc.us/video/mls-highlights/150/video/2743663/must-see-moments-best-of-the-mls-season
-        'url': 'http://espn.go.com/video/clip?id=2743663',
+        'url': 'https://broadband.espn.go.com/video/clip?id=18910086',
         'info_dict': {
-            'id': '2743663',
+            'id': '18910086',
             'ext': 'mp4',
-            'title': 'Must-See Moments: Best of the MLS season',
-            'description': 'md5:4c2d7232beaea572632bec41004f0aeb',
-            'timestamp': 1449446454,
-            'upload_date': '20151207',
+            'title': 'Kyrie spins around defender for two',
+            'description': 'md5:2b0f5bae9616d26fba8808350f0d2b9b',
+            'timestamp': 1489539155,
+            'upload_date': '20170315',
         },
         'params': {
             'skip_download': True,
         },
         'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
+        'url': 'http://nonredline.sports.espn.go.com/video/clip?id=19744672',
+        'only_matching': True,
+    }, {
+        'url': 'https://cdn.espn.go.com/video/clip/_/id/19771774',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/watch/player?id=19141491',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/watch/player?bucketId=257&id=19505875',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/watch/player/_/id/19141491',
+        'only_matching': True,
     }, {
         'url': 'http://www.espn.com/video/clip?id=10365079',
         'only_matching': True,

@@ -1,13 +1,8 @@
 from __future__ import unicode_literals
 
-import os
-
 from .fragment import FragmentFD
 from ..compat import compat_urllib_error
-from ..utils import (
-    sanitize_open,
-    encodeFilename,
-)
+from ..utils import urljoin
 
 
 class DashSegmentsFD(FragmentFD):
@@ -18,38 +13,39 @@ class DashSegmentsFD(FragmentFD):
     FD_NAME = 'dashsegments'
 
     def real_download(self, filename, info_dict):
-        segments = info_dict['fragments'][:1] if self.params.get(
+        fragment_base_url = info_dict.get('fragment_base_url')
+        fragments = info_dict['fragments'][:1] if self.params.get(
             'test', False) else info_dict['fragments']
 
         ctx = {
             'filename': filename,
-            'total_frags': len(segments),
+            'total_frags': len(fragments),
         }
 
         self._prepare_and_start_frag_download(ctx)
 
-        segments_filenames = []
-
         fragment_retries = self.params.get('fragment_retries', 0)
         skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
 
-        def process_segment(segment, tmp_filename, num):
-            segment_url = segment['url']
-            segment_name = 'Frag%d' % num
-            target_filename = '%s-%s' % (tmp_filename, segment_name)
+        frag_index = 0
+        for i, fragment in enumerate(fragments):
+            frag_index += 1
+            if frag_index <= ctx['fragment_index']:
+                continue
             # In DASH, the first segment contains necessary headers to
             # generate a valid MP4 file, so always abort for the first segment
-            fatal = num == 0 or not skip_unavailable_fragments
+            fatal = i == 0 or not skip_unavailable_fragments
             count = 0
             while count <= fragment_retries:
                 try:
-                    success = ctx['dl'].download(target_filename, {'url': segment_url})
+                    fragment_url = fragment.get('url')
+                    if not fragment_url:
+                        assert fragment_base_url
+                        fragment_url = urljoin(fragment_base_url, fragment['path'])
+                    success, frag_content = self._download_fragment(ctx, fragment_url, info_dict)
                     if not success:
                         return False
-                    down, target_sanitized = sanitize_open(target_filename, 'rb')
-                    ctx['dest_stream'].write(down.read())
-                    down.close()
-                    segments_filenames.append(target_sanitized)
+                    self._append_fragment(ctx, frag_content)
                     break
                 except compat_urllib_error.HTTPError as err:
                     # YouTube may often return 404 HTTP error for a fragment causing the
@@ -60,22 +56,14 @@ class DashSegmentsFD(FragmentFD):
                     # HTTP error.
                     count += 1
                     if count <= fragment_retries:
-                        self.report_retry_fragment(err, segment_name, count, fragment_retries)
+                        self.report_retry_fragment(err, frag_index, count, fragment_retries)
             if count > fragment_retries:
                 if not fatal:
-                    self.report_skip_fragment(segment_name)
-                    return True
+                    self.report_skip_fragment(frag_index)
+                    continue
                 self.report_error('giving up after %s fragment retries' % fragment_retries)
-                return False
-            return True
-
-        for i, segment in enumerate(segments):
-            if not process_segment(segment, ctx['tmpfilename'], i):
                 return False
 
         self._finish_frag_download(ctx)
-
-        for segment_file in segments_filenames:
-            os.remove(encodeFilename(segment_file))
 
         return True

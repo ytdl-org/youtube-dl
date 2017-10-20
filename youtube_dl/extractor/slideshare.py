@@ -31,7 +31,7 @@ class SlideshareIE(InfoExtractor):
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
         slideshare_obj = self._search_regex(
-            r'\$\.extend\(slideshare_object,\s*(\{.*?\})\);',
+            r'\$\.extend\(.*?slideshare_object,\s*(\{.*?\})\);',
             webpage, 'slideshare object')
         info = json.loads(slideshare_obj)
         if info['slideshow']['type'] != 'video':

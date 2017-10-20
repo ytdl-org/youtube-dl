@@ -6,8 +6,12 @@ python:
   - "3.3"
   - "3.4"
   - "3.5"
+  - "3.6"
 sudo: false
-script: nosetests test --verbose
+env:
+  - YTDL_TEST_SET=core
+  - YTDL_TEST_SET=download
+script: ./devscripts/run_tests.sh
 notifications:
   email:
     - filippo.valsorda@gmail.com

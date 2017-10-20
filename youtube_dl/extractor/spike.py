@@ -44,9 +44,10 @@ class SpikeIE(MTVServicesInfoExtractor):
     _FEED_URL = 'http://www.spike.com/feeds/mrss/'
     _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
     _CUSTOM_URL_REGEX = re.compile(r'spikenetworkapp://([^/]+/[-a-fA-F0-9]+)')
+    _GEO_COUNTRIES = ['US']
 
     def _extract_mgid(self, webpage):
-        mgid = super(SpikeIE, self)._extract_mgid(webpage, default=None)
+        mgid = super(SpikeIE, self)._extract_mgid(webpage)
         if mgid is None:
             url_parts = self._search_regex(self._CUSTOM_URL_REGEX, webpage, 'episode_id')
             video_type, episode_id = url_parts.split('/', 1)

@@ -20,7 +20,7 @@ class PeriscopeBaseIE(InfoExtractor):
 class PeriscopeIE(PeriscopeBaseIE):
     IE_DESC = 'Periscope'
     IE_NAME = 'periscope'
-    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:periscope|pscp)\.tv/[^/]+/(?P<id>[^/?#]+)'
     # Alive example URLs can be found here http://onperiscope.com/
     _TESTS = [{
         'url': 'https://www.periscope.tv/w/aJUQnjY3MjA3ODF8NTYxMDIyMDl2zCg2pECBgwTqRpQuQD352EMPTKQjT4uqlM3cgWFA-g==',
@@ -41,12 +41,15 @@ class PeriscopeIE(PeriscopeBaseIE):
     }, {
         'url': 'https://www.periscope.tv/bastaakanoggano/1OdKrlkZZjOJX',
         'only_matching': True,
+    }, {
+        'url': 'https://www.periscope.tv/w/1ZkKzPbMVggJv',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?periscope\.tv/(?:(?!\1).)+)\1', webpage)
+            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?(?:periscope|pscp)\.tv/(?:(?!\1).)+)\1', webpage)
         if mobj:
             return mobj.group('url')
 
@@ -77,18 +80,24 @@ class PeriscopeIE(PeriscopeBaseIE):
         stream = self._call_api(
             'getAccessPublic', {'broadcast_id': token}, token)
 
+        video_urls = set()
         formats = []
-        for format_id in ('replay', 'rtmp', 'hls', 'https_hls'):
+        for format_id in ('replay', 'rtmp', 'hls', 'https_hls', 'lhls', 'lhlsweb'):
             video_url = stream.get(format_id + '_url')
-            if not video_url:
+            if not video_url or video_url in video_urls:
                 continue
-            f = {
+            video_urls.add(video_url)
+            if format_id != 'rtmp':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, token, 'mp4',
+                    entry_protocol='m3u8_native'
+                    if state in ('ended', 'timed_out') else 'm3u8',
+                    m3u8_id=format_id, fatal=False))
+                continue
+            formats.append({
                 'url': video_url,
                 'ext': 'flv' if format_id == 'rtmp' else 'mp4',
-            }
-            if format_id != 'rtmp':
-                f['protocol'] = 'm3u8_native' if state in ('ended', 'timed_out') else 'm3u8'
-            formats.append(f)
+            })
         self._sort_formats(formats)
 
         return {
@@ -103,7 +112,7 @@ class PeriscopeIE(PeriscopeBaseIE):
 
 
 class PeriscopeUserIE(PeriscopeBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?periscope\.tv/(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?(?:periscope|pscp)\.tv/(?P<id>[^/]+)/?$'
     IE_DESC = 'Periscope user videos'
     IE_NAME = 'periscope:user'
 

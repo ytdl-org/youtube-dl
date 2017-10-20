@@ -8,6 +8,9 @@ from ..utils import extract_attributes
 
 
 class TBSIE(TurnerBaseIE):
+    # https://github.com/rg3/youtube-dl/issues/13658
+    _WORKING = False
+
     _VALID_URL = r'https?://(?:www\.)?(?P<site>tbs|tntdrama)\.com/videos/(?:[^/]+/)+(?P<id>[^/?#]+)\.html'
     _TESTS = [{
         'url': 'http://www.tbs.com/videos/people-of-earth/season-1/extras/2007318/theatrical-trailer.html',
@@ -17,7 +20,8 @@ class TBSIE(TurnerBaseIE):
             'ext': 'mp4',
             'title': 'Theatrical Trailer',
             'description': 'Catch the latest comedy from TBS, People of Earth, premiering Halloween night--Monday, October 31, at 9/8c.',
-        }
+        },
+        'skip': 'TBS videos are deleted after a while',
     }, {
         'url': 'http://www.tntdrama.com/videos/good-behavior/season-1/extras/1538823/you-better-run.html',
         'md5': 'ce53c6ead5e9f3280b4ad2031a6fab56',
@@ -26,7 +30,8 @@ class TBSIE(TurnerBaseIE):
             'ext': 'mp4',
             'title': 'You Better Run',
             'description': 'Letty Raines must figure out what she\'s running toward while running away from her past. Good Behavior premieres November 15 at 9/8c.',
-        }
+        },
+        'skip': 'TBS videos are deleted after a while',
     }]
 
     def _real_extract(self, url):

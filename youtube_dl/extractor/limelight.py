@@ -4,10 +4,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    smuggle_url,
+    unsmuggle_url,
+    ExtractorError,
 )
 
 
@@ -15,20 +19,74 @@ class LimelightBaseIE(InfoExtractor):
     _PLAYLIST_SERVICE_URL = 'http://production-ps.lvp.llnw.net/r/PlaylistService/%s/%s/%s'
     _API_URL = 'http://api.video.limelight.com/rest/organizations/%s/%s/%s/%s.json'
 
-    def _call_playlist_service(self, item_id, method, fatal=True):
-        return self._download_json(
-            self._PLAYLIST_SERVICE_URL % (self._PLAYLIST_SERVICE_PATH, item_id, method),
-            item_id, 'Downloading PlaylistService %s JSON' % method, fatal=fatal)
+    @classmethod
+    def _extract_urls(cls, webpage, source_url):
+        lm = {
+            'Media': 'media',
+            'Channel': 'channel',
+            'ChannelList': 'channel_list',
+        }
+
+        def smuggle(url):
+            return smuggle_url(url, {'source_url': source_url})
+
+        entries = []
+        for kind, video_id in re.findall(
+                r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})',
+                webpage):
+            entries.append(cls.url_result(
+                smuggle('limelight:%s:%s' % (lm[kind], video_id)),
+                'Limelight%s' % kind, video_id))
+        for mobj in re.finditer(
+                # As per [1] class attribute should be exactly equal to
+                # LimelightEmbeddedPlayerFlash but numerous examples seen
+                # that don't exactly match it (e.g. [2]).
+                # 1. http://support.3playmedia.com/hc/en-us/articles/227732408-Limelight-Embedding-the-Captions-Plugin-with-the-Limelight-Player-on-Your-Webpage
+                # 2. http://www.sedona.com/FacilitatorTraining2017
+                r'''(?sx)
+                    <object[^>]+class=(["\'])(?:(?!\1).)*\bLimelightEmbeddedPlayerFlash\b(?:(?!\1).)*\1[^>]*>.*?
+                        <param[^>]+
+                            name=(["\'])flashVars\2[^>]+
+                            value=(["\'])(?:(?!\3).)*(?P<kind>media|channel(?:List)?)Id=(?P<id>[a-z0-9]{32})
+                ''', webpage):
+            kind, video_id = mobj.group('kind'), mobj.group('id')
+            entries.append(cls.url_result(
+                smuggle('limelight:%s:%s' % (kind, video_id)),
+                'Limelight%s' % kind.capitalize(), video_id))
+        # http://support.3playmedia.com/hc/en-us/articles/115009517327-Limelight-Embedding-the-Audio-Description-Plugin-with-the-Limelight-Player-on-Your-Web-Page)
+        for video_id in re.findall(
+                r'(?s)LimelightPlayerUtil\.embed\s*\(\s*{.*?\bmediaId["\']\s*:\s*["\'](?P<id>[a-z0-9]{32})',
+                webpage):
+            entries.append(cls.url_result(
+                smuggle('limelight:media:%s' % video_id),
+                LimelightMediaIE.ie_key(), video_id))
+        return entries
+
+    def _call_playlist_service(self, item_id, method, fatal=True, referer=None):
+        headers = {}
+        if referer:
+            headers['Referer'] = referer
+        try:
+            return self._download_json(
+                self._PLAYLIST_SERVICE_URL % (self._PLAYLIST_SERVICE_PATH, item_id, method),
+                item_id, 'Downloading PlaylistService %s JSON' % method, fatal=fatal, headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                error = self._parse_json(e.cause.read().decode(), item_id)['detail']['contentAccessPermission']
+                if error == 'CountryDisabled':
+                    self.raise_geo_restricted()
+                raise ExtractorError(error, expected=True)
+            raise
 
     def _call_api(self, organization_id, item_id, method):
         return self._download_json(
             self._API_URL % (organization_id, self._API_PATH, item_id, method),
             item_id, 'Downloading API %s JSON' % method)
 
-    def _extract(self, item_id, pc_method, mobile_method, meta_method):
-        pc = self._call_playlist_service(item_id, pc_method)
+    def _extract(self, item_id, pc_method, mobile_method, meta_method, referer=None):
+        pc = self._call_playlist_service(item_id, pc_method, referer=referer)
         metadata = self._call_api(pc['orgId'], item_id, meta_method)
-        mobile = self._call_playlist_service(item_id, mobile_method, fatal=False)
+        mobile = self._call_playlist_service(item_id, mobile_method, fatal=False, referer=referer)
         return pc, mobile, metadata
 
     def _extract_info(self, streams, mobile_urls, properties):
@@ -48,25 +106,45 @@ class LimelightBaseIE(InfoExtractor):
                 fmt = {
                     'url': stream_url,
                     'abr': float_or_none(stream.get('audioBitRate')),
-                    'vbr': float_or_none(stream.get('videoBitRate')),
                     'fps': float_or_none(stream.get('videoFrameRate')),
-                    'width': int_or_none(stream.get('videoWidthInPixels')),
-                    'height': int_or_none(stream.get('videoHeightInPixels')),
                     'ext': ext,
                 }
-                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp4:.+)$', stream_url)
+                width = int_or_none(stream.get('videoWidthInPixels'))
+                height = int_or_none(stream.get('videoHeightInPixels'))
+                vbr = float_or_none(stream.get('videoBitRate'))
+                if width or height or vbr:
+                    fmt.update({
+                        'width': width,
+                        'height': height,
+                        'vbr': vbr,
+                    })
+                else:
+                    fmt['vcodec'] = 'none'
+                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp[34]:.+)$', stream_url)
                 if rtmp:
                     format_id = 'rtmp'
                     if stream.get('videoBitRate'):
                         format_id += '-%d' % int_or_none(stream['videoBitRate'])
-                    http_url = 'http://cpl.delvenetworks.com/' + rtmp.group('playpath')[4:]
-                    urls.append(http_url)
-                    http_fmt = fmt.copy()
-                    http_fmt.update({
-                        'url': http_url,
-                        'format_id': format_id.replace('rtmp', 'http'),
-                    })
-                    formats.append(http_fmt)
+                    http_format_id = format_id.replace('rtmp', 'http')
+
+                    CDN_HOSTS = (
+                        ('delvenetworks.com', 'cpl.delvenetworks.com'),
+                        ('video.llnw.net', 's2.content.video.llnw.net'),
+                    )
+                    for cdn_host, http_host in CDN_HOSTS:
+                        if cdn_host not in rtmp.group('host').lower():
+                            continue
+                        http_url = 'http://%s/%s' % (http_host, rtmp.group('playpath')[4:])
+                        urls.append(http_url)
+                        if self._is_valid_url(http_url, video_id, http_format_id):
+                            http_fmt = fmt.copy()
+                            http_fmt.update({
+                                'url': http_url,
+                                'format_id': http_format_id,
+                            })
+                            formats.append(http_fmt)
+                            break
+
                     fmt.update({
                         'url': rtmp.group('url'),
                         'play_path': rtmp.group('playpath'),
@@ -195,10 +273,14 @@ class LimelightMediaIE(LimelightBaseIE):
     _API_PATH = 'media'
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         video_id = self._match_id(url)
+        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
 
         pc, mobile, metadata = self._extract(
-            video_id, 'getPlaylistByMediaId', 'getMobilePlaylistByMediaId', 'properties')
+            video_id, 'getPlaylistByMediaId',
+            'getMobilePlaylistByMediaId', 'properties',
+            smuggled_data.get('source_url'))
 
         return self._extract_info(
             pc['playlistItems'][0].get('streams', []),
@@ -235,11 +317,13 @@ class LimelightChannelIE(LimelightBaseIE):
     _API_PATH = 'channels'
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
         channel_id = self._match_id(url)
 
         pc, mobile, medias = self._extract(
             channel_id, 'getPlaylistByChannelId',
-            'getMobilePlaylistWithNItemsByChannelId?begin=0&count=-1', 'media')
+            'getMobilePlaylistWithNItemsByChannelId?begin=0&count=-1',
+            'media', smuggled_data.get('source_url'))
 
         entries = [
             self._extract_info(

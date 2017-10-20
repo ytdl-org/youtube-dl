@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import uuid
 
 from .common import InfoExtractor
+from .ooyala import OoyalaIE
 from ..compat import (
     compat_str,
     compat_urllib_parse_urlencode,
@@ -24,6 +25,9 @@ class MiTeleBaseIE(InfoExtractor):
             r'(?s)(<ms-video-player.+?</ms-video-player>)',
             webpage, 'ms video player'))
         video_id = player_data['data-media-id']
+        if player_data.get('data-cms-id') == 'ooyala':
+            return self.url_result(
+                'ooyala:%s' % video_id, ie=OoyalaIE.ie_key(), video_id=video_id)
         config_url = compat_urlparse.urljoin(url, player_data['data-config'])
         config = self._download_json(
             config_url, video_id, 'Downloading config JSON')
@@ -132,11 +136,9 @@ class MiTeleIE(InfoExtractor):
             video_id, 'Downloading gigya script')
 
         # Get a appKey/uuid for getting the session key
-        appKey_var = self._search_regex(
-            r'value\s*\(\s*["\']appGridApplicationKey["\']\s*,\s*([0-9a-f]+)',
-            gigya_sc, 'appKey variable')
         appKey = self._search_regex(
-            r'var\s+%s\s*=\s*["\']([0-9a-f]+)' % appKey_var, gigya_sc, 'appKey')
+            r'constant\s*\(\s*["\']_appGridApplicationKey["\']\s*,\s*["\']([0-9a-f]+)',
+            gigya_sc, 'appKey')
 
         session_json = self._download_json(
             'https://appgrid-api.cloud.accedo.tv/session',
@@ -190,7 +192,7 @@ class MiTeleIE(InfoExtractor):
         return {
             '_type': 'url_transparent',
             # for some reason only HLS is supported
-            'url': smuggle_url('ooyala:' + embedCode, {'supportedformats': 'm3u8'}),
+            'url': smuggle_url('ooyala:' + embedCode, {'supportedformats': 'm3u8,dash'}),
             'id': video_id,
             'title': title,
             'description': description,

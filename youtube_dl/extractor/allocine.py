@@ -2,9 +2,13 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    remove_end,
+    int_or_none,
     qualities,
+    remove_end,
+    try_get,
+    unified_timestamp,
     url_basename,
 )
 
@@ -22,6 +26,10 @@ class AllocineIE(InfoExtractor):
             'title': 'Astérix - Le Domaine des Dieux Teaser VF',
             'description': 'md5:4a754271d9c6f16c72629a8a993ee884',
             'thumbnail': r're:http://.*\.jpg',
+            'duration': 39,
+            'timestamp': 1404273600,
+            'upload_date': '20140702',
+            'view_count': int,
         },
     }, {
         'url': 'http://www.allocine.fr/video/player_gen_cmedia=19540403&cfilm=222257.html',
@@ -33,6 +41,10 @@ class AllocineIE(InfoExtractor):
             'title': 'Planes 2 Bande-annonce VF',
             'description': 'Regardez la bande annonce du film Planes 2 (Planes 2 Bande-annonce VF). Planes 2, un film de Roberts Gannaway',
             'thumbnail': r're:http://.*\.jpg',
+            'duration': 69,
+            'timestamp': 1385659800,
+            'upload_date': '20131128',
+            'view_count': int,
         },
     }, {
         'url': 'http://www.allocine.fr/video/player_gen_cmedia=19544709&cfilm=181290.html',
@@ -44,6 +56,10 @@ class AllocineIE(InfoExtractor):
             'title': 'Dragons 2 - Bande annonce finale VF',
             'description': 'md5:6cdd2d7c2687d4c6aafe80a35e17267a',
             'thumbnail': r're:http://.*\.jpg',
+            'duration': 144,
+            'timestamp': 1397589900,
+            'upload_date': '20140415',
+            'view_count': int,
         },
     }, {
         'url': 'http://www.allocine.fr/video/video-19550147/',
@@ -69,34 +85,37 @@ class AllocineIE(InfoExtractor):
             r'data-model="([^"]+)"', webpage, 'data model', default=None)
         if model:
             model_data = self._parse_json(model, display_id)
-
-            for video_url in model_data['sources'].values():
+            video = model_data['videos'][0]
+            title = video['title']
+            for video_url in video['sources'].values():
                 video_id, format_id = url_basename(video_url).split('_')[:2]
                 formats.append({
                     'format_id': format_id,
                     'quality': quality(format_id),
                     'url': video_url,
                 })
-
-            title = model_data['title']
+            duration = int_or_none(video.get('duration'))
+            view_count = int_or_none(video.get('view_count'))
+            timestamp = unified_timestamp(try_get(
+                video, lambda x: x['added_at']['date'], compat_str))
         else:
             video_id = display_id
             media_data = self._download_json(
                 'http://www.allocine.fr/ws/AcVisiondataV5.ashx?media=%s' % video_id, display_id)
+            title = remove_end(
+                self._html_search_regex(
+                    r'(?s)<title>(.+?)</title>', webpage, 'title').strip(),
+                ' - AlloCiné')
             for key, value in media_data['video'].items():
                 if not key.endswith('Path'):
                     continue
-
                 format_id = key[:-len('Path')]
                 formats.append({
                     'format_id': format_id,
                     'quality': quality(format_id),
                     'url': value,
                 })
-
-            title = remove_end(self._html_search_regex(
-                r'(?s)<title>(.+?)</title>', webpage, 'title'
-            ).strip(), ' - AlloCiné')
+            duration, view_count, timestamp = [None] * 3
 
         self._sort_formats(formats)
 
@@ -104,7 +123,10 @@ class AllocineIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'formats': formats,
             'description': self._og_search_description(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'duration': duration,
+            'timestamp': timestamp,
+            'view_count': view_count,
+            'formats': formats,
         }

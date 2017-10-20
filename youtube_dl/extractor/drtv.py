@@ -9,15 +9,18 @@ from ..utils import (
     mimetype2ext,
     parse_iso8601,
     remove_end,
+    update_url_query,
 )
 
 
 class DRTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
-
+    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder|radio/ondemand)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
+    _GEO_BYPASS = False
+    _GEO_COUNTRIES = ['DK']
+    IE_NAME = 'drtv'
     _TESTS = [{
         'url': 'https://www.dr.dk/tv/se/boern/ultra/klassen-ultra/klassen-darlig-taber-10',
-        'md5': '25e659cccc9a2ed956110a299fdf5983',
+        'md5': '7ae17b4e18eb5d29212f424a7511c184',
         'info_dict': {
             'id': 'klassen-darlig-taber-10',
             'ext': 'mp4',
@@ -27,20 +30,36 @@ class DRTVIE(InfoExtractor):
             'upload_date': '20160823',
             'duration': 606.84,
         },
-        'params': {
-            'skip_download': True,
-        },
     }, {
+        # embed
         'url': 'https://www.dr.dk/nyheder/indland/live-christianias-rydning-af-pusher-street-er-i-gang',
-        'md5': '2c37175c718155930f939ef59952474a',
         'info_dict': {
             'id': 'christiania-pusher-street-ryddes-drdkrjpo',
             'ext': 'mp4',
             'title': 'LIVE Christianias rydning af Pusher Street er i gang',
-            'description': '- Det er det fedeste, der er sket i 20 år, fortæller christianit til DR Nyheder.',
+            'description': 'md5:2a71898b15057e9b97334f61d04e6eb5',
             'timestamp': 1472800279,
             'upload_date': '20160902',
             'duration': 131.4,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # with SignLanguage formats
+        'url': 'https://www.dr.dk/tv/se/historien-om-danmark/-/historien-om-danmark-stenalder',
+        'info_dict': {
+            'id': 'historien-om-danmark-stenalder',
+            'ext': 'mp4',
+            'title': 'Historien om Danmark: Stenalder (1)',
+            'description': 'md5:8c66dcbc1669bbc6f873879880f37f2a',
+            'timestamp': 1490401996,
+            'upload_date': '20170325',
+            'duration': 3502.04,
+            'formats': 'mincount:20',
+        },
+        'params': {
+            'skip_download': True,
         },
     }]
 
@@ -79,12 +98,13 @@ class DRTVIE(InfoExtractor):
         subtitles = {}
 
         for asset in data['Assets']:
-            if asset.get('Kind') == 'Image':
+            kind = asset.get('Kind')
+            if kind == 'Image':
                 thumbnail = asset.get('Uri')
-            elif asset.get('Kind') == 'VideoResource':
+            elif kind in ('VideoResource', 'AudioResource'):
                 duration = float_or_none(asset.get('DurationInMilliseconds'), 1000)
                 restricted_to_denmark = asset.get('RestrictedToDenmark')
-                spoken_subtitles = asset.get('Target') == 'SpokenSubtitles'
+                asset_target = asset.get('Target')
                 for link in asset.get('Links', []):
                     uri = link.get('Uri')
                     if not uri:
@@ -92,17 +112,22 @@ class DRTVIE(InfoExtractor):
                     target = link.get('Target')
                     format_id = target or ''
                     preference = None
-                    if spoken_subtitles:
+                    if asset_target in ('SpokenSubtitles', 'SignLanguage'):
                         preference = -1
-                        format_id += '-spoken-subtitles'
+                        format_id += '-%s' % asset_target
                     if target == 'HDS':
-                        formats.extend(self._extract_f4m_formats(
+                        f4m_formats = self._extract_f4m_formats(
                             uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
-                            video_id, preference, f4m_id=format_id))
+                            video_id, preference, f4m_id=format_id, fatal=False)
+                        if kind == 'AudioResource':
+                            for f in f4m_formats:
+                                f['vcodec'] = 'none'
+                        formats.extend(f4m_formats)
                     elif target == 'HLS':
                         formats.extend(self._extract_m3u8_formats(
                             uri, video_id, 'mp4', entry_protocol='m3u8_native',
-                            preference=preference, m3u8_id=format_id))
+                            preference=preference, m3u8_id=format_id,
+                            fatal=False))
                     else:
                         bitrate = link.get('Bitrate')
                         if bitrate:
@@ -112,6 +137,8 @@ class DRTVIE(InfoExtractor):
                             'format_id': format_id,
                             'tbr': int_or_none(bitrate),
                             'ext': link.get('FileFormat'),
+                            'vcodec': 'none' if kind == 'AudioResource' else None,
+                            'preference': preference,
                         })
                 subtitles_list = asset.get('SubtitlesList')
                 if isinstance(subtitles_list, list):
@@ -130,7 +157,7 @@ class DRTVIE(InfoExtractor):
         if not formats and restricted_to_denmark:
             self.raise_geo_restricted(
                 'Unfortunately, DR is not allowed to show this program outside Denmark.',
-                expected=True)
+                countries=self._GEO_COUNTRIES)
 
         self._sort_formats(formats)
 
@@ -143,4 +170,60 @@ class DRTVIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
             'subtitles': subtitles,
+        }
+
+
+class DRTVLiveIE(InfoExtractor):
+    IE_NAME = 'drtv:live'
+    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv|TV)/live/(?P<id>[\da-z-]+)'
+    _GEO_COUNTRIES = ['DK']
+    _TEST = {
+        'url': 'https://www.dr.dk/tv/live/dr1',
+        'info_dict': {
+            'id': 'dr1',
+            'ext': 'mp4',
+            'title': 're:^DR1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+        channel_data = self._download_json(
+            'https://www.dr.dk/mu-online/api/1.0/channel/' + channel_id,
+            channel_id)
+        title = self._live_title(channel_data['Title'])
+
+        formats = []
+        for streaming_server in channel_data.get('StreamingServers', []):
+            server = streaming_server.get('Server')
+            if not server:
+                continue
+            link_type = streaming_server.get('LinkType')
+            for quality in streaming_server.get('Qualities', []):
+                for stream in quality.get('Streams', []):
+                    stream_path = stream.get('Stream')
+                    if not stream_path:
+                        continue
+                    stream_url = update_url_query(
+                        '%s/%s' % (server, stream_path), {'b': ''})
+                    if link_type == 'HLS':
+                        formats.extend(self._extract_m3u8_formats(
+                            stream_url, channel_id, 'mp4',
+                            m3u8_id=link_type, fatal=False, live=True))
+                    elif link_type == 'HDS':
+                        formats.extend(self._extract_f4m_formats(update_url_query(
+                            '%s/%s' % (server, stream_path), {'hdcore': '3.7.0'}),
+                            channel_id, f4m_id=link_type, fatal=False))
+        self._sort_formats(formats)
+
+        return {
+            'id': channel_id,
+            'title': title,
+            'thumbnail': channel_data.get('PrimaryImageUri'),
+            'formats': formats,
+            'is_live': True,
         }

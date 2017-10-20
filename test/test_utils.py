@@ -34,6 +34,9 @@ from youtube_dl.utils import (
     find_xpath_attr,
     fix_xml_ampersands,
     get_element_by_class,
+    get_element_by_attribute,
+    get_elements_by_class,
+    get_elements_by_attribute,
     InAdvancePagedList,
     intlist_to_bytes,
     is_html,
@@ -41,6 +44,7 @@ from youtube_dl.utils import (
     limit_length,
     mimetype2ext,
     month_by_name,
+    multipart_encode,
     ohdave_rsa_encrypt,
     OnDemandPagedList,
     orderedSet,
@@ -49,9 +53,11 @@ from youtube_dl.utils import (
     parse_filesize,
     parse_count,
     parse_iso8601,
+    pkcs1pad,
     read_batch_urls,
     sanitize_filename,
     sanitize_path,
+    expand_path,
     prepend_extension,
     replace_extension,
     remove_start,
@@ -91,6 +97,9 @@ from youtube_dl.utils import (
 from youtube_dl.compat import (
     compat_chr,
     compat_etree_fromstring,
+    compat_getenv,
+    compat_os_name,
+    compat_setenv,
     compat_urlparse,
     compat_parse_qs,
 )
@@ -210,6 +219,18 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_path('./abc'), 'abc')
         self.assertEqual(sanitize_path('./../abc'), '..\\abc')
 
+    def test_expand_path(self):
+        def env(var):
+            return '%{0}%'.format(var) if sys.platform == 'win32' else '${0}'.format(var)
+
+        compat_setenv('YOUTUBE_DL_EXPATH_PATH', 'expanded')
+        self.assertEqual(expand_path(env('YOUTUBE_DL_EXPATH_PATH')), 'expanded')
+        self.assertEqual(expand_path(env('HOME')), compat_getenv('HOME'))
+        self.assertEqual(expand_path('~'), compat_getenv('HOME'))
+        self.assertEqual(
+            expand_path('~/%s' % env('YOUTUBE_DL_EXPATH_PATH')),
+            '%s/expanded' % compat_getenv('HOME'))
+
     def test_prepend_extension(self):
         self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
         self.assertEqual(prepend_extension('abc.ext', 'temp', 'ext'), 'abc.temp.ext')
@@ -258,6 +279,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(unescapeHTML('&eacute;'), 'é')
         self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
+        self.assertEqual(unescapeHTML('&a&quot;'), '&a"')
         # HTML5 entities
         self.assertEqual(unescapeHTML('&period;&apos;'), '.\'')
 
@@ -319,6 +341,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_timestamp('UNKNOWN DATE FORMAT'), None)
         self.assertEqual(unified_timestamp('May 16, 2016 11:15 PM'), 1463440500)
         self.assertEqual(unified_timestamp('Feb 7, 2016 at 6:35 pm'), 1454870100)
+        self.assertEqual(unified_timestamp('2017-03-30T17:52:41Q'), 1490896361)
+        self.assertEqual(unified_timestamp('Sep 11, 2013 | 5:49 AM'), 1378878540)
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
@@ -426,7 +450,9 @@ class TestUtil(unittest.TestCase):
 
     def test_shell_quote(self):
         args = ['ffmpeg', '-i', encodeFilename('ñ€ß\'.mp4')]
-        self.assertEqual(shell_quote(args), """ffmpeg -i 'ñ€ß'"'"'.mp4'""")
+        self.assertEqual(
+            shell_quote(args),
+            """ffmpeg -i 'ñ€ß'"'"'.mp4'""" if compat_os_name != 'nt' else '''ffmpeg -i "ñ€ß'.mp4"''')
 
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
@@ -451,6 +477,9 @@ class TestUtil(unittest.TestCase):
 
     def test_urljoin(self):
         self.assertEqual(urljoin('http://foo.de/', '/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin(b'http://foo.de/', '/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin('http://foo.de/', b'/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
+        self.assertEqual(urljoin(b'http://foo.de/', b'/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
         self.assertEqual(urljoin('//foo.de/', '/a/b/c.txt'), '//foo.de/a/b/c.txt')
         self.assertEqual(urljoin('http://foo.de/', 'a/b/c.txt'), 'http://foo.de/a/b/c.txt')
         self.assertEqual(urljoin('http://foo.de', '/a/b/c.txt'), 'http://foo.de/a/b/c.txt')
@@ -510,6 +539,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('1 hour 3 minutes'), 3780)
         self.assertEqual(parse_duration('87 Min.'), 5220)
         self.assertEqual(parse_duration('PT1H0.040S'), 3600.04)
+        self.assertEqual(parse_duration('PT00H03M30SZ'), 210)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(
@@ -596,6 +626,16 @@ class TestUtil(unittest.TestCase):
             'http://example.com/path', {'test': '第二行тест'})),
             query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
 
+    def test_multipart_encode(self):
+        self.assertEqual(
+            multipart_encode({b'field': b'value'}, boundary='AAAAAA')[0],
+            b'--AAAAAA\r\nContent-Disposition: form-data; name="field"\r\n\r\nvalue\r\n--AAAAAA--\r\n')
+        self.assertEqual(
+            multipart_encode({'欄位'.encode('utf-8'): '值'.encode('utf-8')}, boundary='AAAAAA')[0],
+            b'--AAAAAA\r\nContent-Disposition: form-data; name="\xe6\xac\x84\xe4\xbd\x8d"\r\n\r\n\xe5\x80\xbc\r\n--AAAAAA--\r\n')
+        self.assertRaises(
+            ValueError, multipart_encode, {b'field': b'value'}, boundary='value')
+
     def test_dict_get(self):
         FALSE_VALUES = {
             'none': None,
@@ -640,6 +680,14 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(d, {'STATUS': 'OK'})
 
         stripped = strip_jsonp('ps.embedHandler({"status": "success"});')
+        d = json.loads(stripped)
+        self.assertEqual(d, {'status': 'success'})
+
+        stripped = strip_jsonp('window.cb && window.cb({"status": "success"});')
+        d = json.loads(stripped)
+        self.assertEqual(d, {'status': 'success'})
+
+        stripped = strip_jsonp('window.cb && cb({"status": "success"});')
         d = json.loads(stripped)
         self.assertEqual(d, {'status': 'success'})
 
@@ -784,11 +832,26 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('["abc", "def",]')
         self.assertEqual(json.loads(on), ['abc', 'def'])
 
+        on = js_to_json('[/*comment\n*/"abc"/*comment\n*/,/*comment\n*/"def",/*comment\n*/]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
+        on = js_to_json('[//comment\n"abc" //comment\n,//comment\n"def",//comment\n]')
+        self.assertEqual(json.loads(on), ['abc', 'def'])
+
         on = js_to_json('{"abc": "def",}')
+        self.assertEqual(json.loads(on), {'abc': 'def'})
+
+        on = js_to_json('{/*comment\n*/"abc"/*comment\n*/:/*comment\n*/"def"/*comment\n*/,/*comment\n*/}')
         self.assertEqual(json.loads(on), {'abc': 'def'})
 
         on = js_to_json('{ 0: /* " \n */ ",]" , }')
         self.assertEqual(json.loads(on), {'0': ',]'})
+
+        on = js_to_json('{ /*comment\n*/0/*comment\n*/: /* " \n */ ",]" , }')
+        self.assertEqual(json.loads(on), {'0': ',]'})
+
+        on = js_to_json('{ 0: // comment\n1 }')
+        self.assertEqual(json.loads(on), {'0': 1})
 
         on = js_to_json(r'["<p>x<\/p>"]')
         self.assertEqual(json.loads(on), ['<p>x</p>'])
@@ -799,13 +862,25 @@ class TestUtil(unittest.TestCase):
         on = js_to_json("['a\\\nb']")
         self.assertEqual(json.loads(on), ['ab'])
 
+        on = js_to_json("/*comment\n*/[/*comment\n*/'a\\\nb'/*comment\n*/]/*comment\n*/")
+        self.assertEqual(json.loads(on), ['ab'])
+
         on = js_to_json('{0xff:0xff}')
+        self.assertEqual(json.loads(on), {'255': 255})
+
+        on = js_to_json('{/*comment\n*/0xff/*comment\n*/:/*comment\n*/0xff/*comment\n*/}')
         self.assertEqual(json.loads(on), {'255': 255})
 
         on = js_to_json('{077:077}')
         self.assertEqual(json.loads(on), {'63': 63})
 
+        on = js_to_json('{/*comment\n*/077/*comment\n*/:/*comment\n*/077/*comment\n*/}')
+        self.assertEqual(json.loads(on), {'63': 63})
+
         on = js_to_json('{42:42}')
+        self.assertEqual(json.loads(on), {'42': 42})
+
+        on = js_to_json('{/*comment\n*/42/*comment\n*/:/*comment\n*/42/*comment\n*/}')
         self.assertEqual(json.loads(on), {'42': 42})
 
     def test_extract_attributes(self):
@@ -845,10 +920,13 @@ class TestUtil(unittest.TestCase):
             supports_outside_bmp = False
         if supports_outside_bmp:
             self.assertEqual(extract_attributes('<e x="Smile &#128512;!">'), {'x': 'Smile \U0001f600!'})
+        # Malformed HTML should not break attributes extraction on older Python
+        self.assertEqual(extract_attributes('<mal"formed/>'), {})
 
     def test_clean_html(self):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
         self.assertEqual(clean_html('a:\n   "b"'), 'a:    "b"')
+        self.assertEqual(clean_html('a<br>\xa0b'), 'a\nb')
 
     def test_intlist_to_bytes(self):
         self.assertEqual(
@@ -858,7 +936,7 @@ class TestUtil(unittest.TestCase):
     def test_args_to_str(self):
         self.assertEqual(
             args_to_str(['foo', 'ba/r', '-baz', '2 be', '']),
-            'foo ba/r -baz \'2 be\' \'\''
+            'foo ba/r -baz \'2 be\' \'\'' if compat_os_name != 'nt' else 'foo ba/r -baz "2 be" ""'
         )
 
     def test_parse_filesize(self):
@@ -986,7 +1064,7 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
                     <p begin="3" dur="-1">Ignored, three</p>
                 </div>
             </body>
-            </tt>'''
+            </tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:00,000 --> 00:00:01,000
 The following line contains Chinese characters and special symbols
@@ -1011,13 +1089,74 @@ Line
                     <p begin="0" end="1">The first line</p>
                 </div>
             </body>
-            </tt>'''
+            </tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:00,000 --> 00:00:01,000
 The first line
 
 '''
         self.assertEqual(dfxp2srt(dfxp_data_no_default_namespace), srt_data)
+
+        dfxp_data_with_style = '''<?xml version="1.0" encoding="utf-8"?>
+<tt xmlns="http://www.w3.org/2006/10/ttaf1" xmlns:ttp="http://www.w3.org/2006/10/ttaf1#parameter" ttp:timeBase="media" xmlns:tts="http://www.w3.org/2006/10/ttaf1#style" xml:lang="en" xmlns:ttm="http://www.w3.org/2006/10/ttaf1#metadata">
+  <head>
+    <styling>
+      <style id="s2" style="s0" tts:color="cyan" tts:fontWeight="bold" />
+      <style id="s1" style="s0" tts:color="yellow" tts:fontStyle="italic" />
+      <style id="s3" style="s0" tts:color="lime" tts:textDecoration="underline" />
+      <style id="s0" tts:backgroundColor="black" tts:fontStyle="normal" tts:fontSize="16" tts:fontFamily="sansSerif" tts:color="white" />
+    </styling>
+  </head>
+  <body tts:textAlign="center" style="s0">
+    <div>
+      <p begin="00:00:02.08" id="p0" end="00:00:05.84">default style<span tts:color="red">custom style</span></p>
+      <p style="s2" begin="00:00:02.08" id="p0" end="00:00:05.84"><span tts:color="lime">part 1<br /></span><span tts:color="cyan">part 2</span></p>
+      <p style="s3" begin="00:00:05.84" id="p1" end="00:00:09.56">line 3<br />part 3</p>
+      <p style="s1" tts:textDecoration="underline" begin="00:00:09.56" id="p2" end="00:00:12.36"><span style="s2" tts:color="lime">inner<br /> </span>style</p>
+    </div>
+  </body>
+</tt>'''.encode('utf-8')
+        srt_data = '''1
+00:00:02,080 --> 00:00:05,839
+<font color="white" face="sansSerif" size="16">default style<font color="red">custom style</font></font>
+
+2
+00:00:02,080 --> 00:00:05,839
+<b><font color="cyan" face="sansSerif" size="16"><font color="lime">part 1
+</font>part 2</font></b>
+
+3
+00:00:05,839 --> 00:00:09,560
+<u><font color="lime">line 3
+part 3</font></u>
+
+4
+00:00:09,560 --> 00:00:12,359
+<i><u><font color="yellow"><font color="lime">inner
+ </font>style</font></u></i>
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_with_style), srt_data)
+
+        dfxp_data_non_utf8 = '''<?xml version="1.0" encoding="UTF-16"?>
+            <tt xmlns="http://www.w3.org/ns/ttml" xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">Line 1</p>
+                    <p begin="1" end="2">第二行</p>
+                </div>
+            </body>
+            </tt>'''.encode('utf-16')
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+Line 1
+
+2
+00:00:01,000 --> 00:00:02,000
+第二行
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_non_utf8), srt_data)
 
     def test_cli_option(self):
         self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])
@@ -1064,6 +1203,10 @@ The first line
             cli_bool_option(
                 {'nocheckcertificate': False}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
             ['--check-certificate=true'])
+        self.assertEqual(
+            cli_bool_option(
+                {}, '--check-certificate', 'nocheckcertificate', 'false', 'true', '='),
+            [])
 
     def test_ohdave_rsa_encrypt(self):
         N = 0xab86b6371b5318aaa1d3c9e612a9f1264f372323c8c0f19875b5fc3b3fd3afcc1e5bec527aa94bfa85bffc157e4245aebda05389a5357b75115ac94f074aefcd
@@ -1072,6 +1215,14 @@ The first line
         self.assertEqual(
             ohdave_rsa_encrypt(b'aa111222', e, N),
             '726664bd9a23fd0c70f9f1b84aab5e3905ce1e45a584e9cbcf9bcc7510338fc1986d6c599ff990d923aa43c51c0d9013cd572e13bc58f4ae48f2ed8c0b0ba881')
+
+    def test_pkcs1pad(self):
+        data = [1, 2, 3]
+        padded_data = pkcs1pad(data, 32)
+        self.assertEqual(padded_data[:2], [0, 2])
+        self.assertEqual(padded_data[28:], [0, 1, 2, 3])
+
+        self.assertRaises(ValueError, pkcs1pad, data, 8)
 
     def test_encode_base_n(self):
         self.assertEqual(encode_base_n(0, 30), '0')
@@ -1095,6 +1246,38 @@ The first line
 
         self.assertEqual(get_element_by_class('foo', html), 'nice')
         self.assertEqual(get_element_by_class('no-such-class', html), None)
+
+    def test_get_element_by_attribute(self):
+        html = '''
+            <span class="foo bar">nice</span>
+        '''
+
+        self.assertEqual(get_element_by_attribute('class', 'foo bar', html), 'nice')
+        self.assertEqual(get_element_by_attribute('class', 'foo', html), None)
+        self.assertEqual(get_element_by_attribute('class', 'no-such-foo', html), None)
+
+        html = '''
+            <div itemprop="author" itemscope>foo</div>
+        '''
+
+        self.assertEqual(get_element_by_attribute('itemprop', 'author', html), 'foo')
+
+    def test_get_elements_by_class(self):
+        html = '''
+            <span class="foo bar">nice</span><span class="foo bar">also nice</span>
+        '''
+
+        self.assertEqual(get_elements_by_class('foo', html), ['nice', 'also nice'])
+        self.assertEqual(get_elements_by_class('no-such-class', html), [])
+
+    def test_get_elements_by_attribute(self):
+        html = '''
+            <span class="foo bar">nice</span><span class="foo bar">also nice</span>
+        '''
+
+        self.assertEqual(get_elements_by_attribute('class', 'foo bar', html), ['nice', 'also nice'])
+        self.assertEqual(get_elements_by_attribute('class', 'foo', html), [])
+        self.assertEqual(get_elements_by_attribute('class', 'no-such-foo', html), [])
 
 
 if __name__ == '__main__':

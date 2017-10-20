@@ -77,7 +77,7 @@ class BRIE(InfoExtractor):
                 'description': 'md5:bb659990e9e59905c3d41e369db1fbe3',
                 'duration': 893,
                 'uploader': 'Eva Maria Steimle',
-                'upload_date': '20140117',
+                'upload_date': '20170208',
             }
         },
     ]

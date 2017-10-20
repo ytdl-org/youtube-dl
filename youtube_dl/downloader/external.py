@@ -6,7 +6,10 @@ import sys
 import re
 
 from .common import FileDownloader
-from ..compat import compat_setenv
+from ..compat import (
+    compat_setenv,
+    compat_str,
+)
 from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
 from ..utils import (
     cli_option,
@@ -17,6 +20,7 @@ from ..utils import (
     encodeArgument,
     handle_youtubedl_headers,
     check_executable,
+    is_outdated_version,
 )
 
 
@@ -25,7 +29,17 @@ class ExternalFD(FileDownloader):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        retval = self._call_downloader(tmpfilename, info_dict)
+        try:
+            retval = self._call_downloader(tmpfilename, info_dict)
+        except KeyboardInterrupt:
+            if not info_dict.get('is_live'):
+                raise
+            # Live stream downloading cancellation should be considered as
+            # correct and expected termination thus all postprocessing
+            # should take place
+            retval = 0
+            self.to_screen('[%s] Interrupted by user' % self.get_basename())
+
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
             self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
@@ -198,6 +212,20 @@ class FFmpegFD(ExternalFD):
 
         args = [ffpp.executable, '-y']
 
+        for log_level in ('quiet', 'verbose'):
+            if self.params.get(log_level, False):
+                args += ['-loglevel', log_level]
+                break
+
+        seekable = info_dict.get('_seekable')
+        if seekable is not None:
+            # setting -seekable prevents ffmpeg from guessing if the server
+            # supports seeking(by adding the header `Range: bytes=0-`), which
+            # can cause problems in some cases
+            # https://github.com/rg3/youtube-dl/issues/11800#issuecomment-275037127
+            # http://trac.ffmpeg.org/ticket/6125#comment:10
+            args += ['-seekable', '1' if seekable else '0']
+
         args += self._configuration_args()
 
         # start_time = info_dict.get('start_time') or 0
@@ -260,11 +288,17 @@ class FFmpegFD(ExternalFD):
                 args += ['-rtmp_live', 'live']
 
         args += ['-i', url, '-c', 'copy']
+
+        if self.params.get('test', False):
+            args += ['-fs', compat_str(self._TEST_FILE_SIZE)]
+
         if protocol in ('m3u8', 'm3u8_native'):
             if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
                 args += ['-f', 'mpegts']
             else:
-                args += ['-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
+                args += ['-f', 'mp4']
+                if (ffpp.basename == 'ffmpeg' and is_outdated_version(ffpp._versions['ffmpeg'], '3.2', False)) and (not info_dict.get('acodec') or info_dict['acodec'].split('.')[0] in ('aac', 'mp4a')):
+                    args += ['-bsf:a', 'aac_adtstoasc']
         elif protocol == 'rtmp':
             args += ['-f', 'flv']
         else:

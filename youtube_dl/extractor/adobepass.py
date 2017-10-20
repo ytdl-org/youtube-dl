@@ -1531,7 +1531,6 @@ class AdobePassIE(InfoExtractor):
                     provider_redirect_page, urlh = provider_redirect_page_res
                     provider_redirect_page_res = self._download_webpage_handle(
                         urlh.geturl(), video_id, self._DOWNLOADING_LOGIN_PAGE)
-                    provider_redirect_page, urlh = provider_redirect_page_res
                     mvpd_confirm_page_res = post_form(provider_redirect_page_res, 'Attempting social login', {
                         mso_info.get('username_field', 'username'): username,
                         mso_info.get('password_field', 'password'): password,

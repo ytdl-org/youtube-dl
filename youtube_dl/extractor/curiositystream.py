@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -46,8 +48,49 @@ class CuriosityStreamBaseIE(InfoExtractor):
 
     def _extract_media_info(self, media):
         video_id = compat_str(media['id'])
-        limelight_media_id = media['limelight_media_id']
         title = media['title']
+
+        formats = []
+        for encoding in media.get('encodings', []):
+            m3u8_url = encoding.get('master_playlist_url')
+            if m3u8_url:
+                formats.extend(self._extract_m3u8_formats(
+                    m3u8_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
+            encoding_url = encoding.get('url')
+            file_url = encoding.get('file_url')
+            if not encoding_url and not file_url:
+                continue
+            f = {
+                'width': int_or_none(encoding.get('width')),
+                'height': int_or_none(encoding.get('height')),
+                'vbr': int_or_none(encoding.get('video_bitrate')),
+                'abr': int_or_none(encoding.get('audio_bitrate')),
+                'filesize': int_or_none(encoding.get('size_in_bytes')),
+                'vcodec': encoding.get('video_codec'),
+                'acodec': encoding.get('audio_codec'),
+                'container': encoding.get('container_type'),
+            }
+            for f_url in (encoding_url, file_url):
+                if not f_url:
+                    continue
+                fmt = f.copy()
+                rtmp = re.search(r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+))/(?P<playpath>mp[34]:.+)$', f_url)
+                if rtmp:
+                    fmt.update({
+                        'url': rtmp.group('url'),
+                        'play_path': rtmp.group('playpath'),
+                        'app': rtmp.group('app'),
+                        'ext': 'flv',
+                        'format_id': 'rtmp',
+                    })
+                else:
+                    fmt.update({
+                        'url': f_url,
+                        'format_id': 'http',
+                    })
+                formats.append(fmt)
+        self._sort_formats(formats)
 
         subtitles = {}
         for closed_caption in media.get('closed_captions', []):
@@ -60,16 +103,14 @@ class CuriosityStreamBaseIE(InfoExtractor):
             })
 
         return {
-            '_type': 'url_transparent',
             'id': video_id,
-            'url': 'limelight:media:' + limelight_media_id,
+            'formats': formats,
             'title': title,
             'description': media.get('description'),
             'thumbnail': media.get('image_large') or media.get('image_medium') or media.get('image_small'),
             'duration': int_or_none(media.get('duration')),
             'tags': media.get('tags'),
             'subtitles': subtitles,
-            'ie_key': 'LimelightMedia',
         }
 
 
@@ -78,14 +119,12 @@ class CuriosityStreamIE(CuriosityStreamBaseIE):
     _VALID_URL = r'https?://app\.curiositystream\.com/video/(?P<id>\d+)'
     _TEST = {
         'url': 'https://app.curiositystream.com/video/2',
-        'md5': 'a0074c190e6cddaf86900b28d3e9ee7a',
+        'md5': '262bb2f257ff301115f1973540de8983',
         'info_dict': {
             'id': '2',
             'ext': 'mp4',
             'title': 'How Did You Develop The Internet?',
             'description': 'Vint Cerf, Google\'s Chief Internet Evangelist, describes how he and Bob Kahn created the internet.',
-            'timestamp': 1448388615,
-            'upload_date': '20151124',
         }
     }
 
@@ -105,7 +144,7 @@ class CuriosityStreamCollectionIE(CuriosityStreamBaseIE):
             'title': 'Curious Minds: The Internet',
             'description': 'How is the internet shaping our lives in the 21st Century?',
         },
-        'playlist_mincount': 17,
+        'playlist_mincount': 12,
     }
 
     def _real_extract(self, url):

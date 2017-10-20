@@ -9,15 +9,19 @@ from .common import InfoExtractor
 from ..compat import (
     compat_chr,
     compat_ord,
+    compat_str,
     compat_urllib_parse_unquote,
     compat_urlparse,
+    compat_zip
 )
 from ..utils import (
     clean_html,
     ExtractorError,
+    int_or_none,
     OnDemandPagedList,
-    parse_count,
     str_to_int,
+    try_get,
+    urljoin,
 )
 
 
@@ -36,7 +40,6 @@ class MixcloudIE(InfoExtractor):
             'uploader_id': 'dholbach',
             'thumbnail': r're:https?://.*\.jpg',
             'view_count': int,
-            'like_count': int,
         },
     }, {
         'url': 'http://www.mixcloud.com/gillespeterson/caribou-7-inch-vinyl-mix-chat/',
@@ -49,23 +52,18 @@ class MixcloudIE(InfoExtractor):
             'uploader_id': 'gillespeterson',
             'thumbnail': 're:https?://.*',
             'view_count': int,
-            'like_count': int,
         },
     }, {
         'url': 'https://beta.mixcloud.com/RedLightRadio/nosedrip-15-red-light-radio-01-18-2016/',
         'only_matching': True,
     }]
 
-    # See https://www.mixcloud.com/media/js2/www_js_2.9e23256562c080482435196ca3975ab5.js
     @staticmethod
-    def _decrypt_play_info(play_info):
-        KEY = 'pleasedontdownloadourmusictheartistswontgetpaid'
-
-        play_info = base64.b64decode(play_info.encode('ascii'))
-
+    def _decrypt_xor_cipher(key, ciphertext):
+        """Encrypt/Decrypt XOR cipher. Both ways are possible because it's XOR."""
         return ''.join([
-            compat_chr(compat_ord(ch) ^ compat_ord(KEY[idx % len(KEY)]))
-            for idx, ch in enumerate(play_info)])
+            compat_chr(compat_ord(ch) ^ compat_ord(k))
+            for ch, k in compat_zip(ciphertext, itertools.cycle(key))])
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -75,52 +73,124 @@ class MixcloudIE(InfoExtractor):
 
         webpage = self._download_webpage(url, track_id)
 
+        # Legacy path
+        encrypted_play_info = self._search_regex(
+            r'm-play-info="([^"]+)"', webpage, 'play info', default=None)
+
+        if encrypted_play_info is not None:
+            # Decode
+            encrypted_play_info = base64.b64decode(encrypted_play_info)
+        else:
+            # New path
+            full_info_json = self._parse_json(self._html_search_regex(
+                r'<script id="relay-data" type="text/x-mixcloud">([^<]+)</script>',
+                webpage, 'play info'), 'play info')
+            for item in full_info_json:
+                item_data = try_get(
+                    item, lambda x: x['cloudcast']['data']['cloudcastLookup'],
+                    dict)
+                if try_get(item_data, lambda x: x['streamInfo']['url']):
+                    info_json = item_data
+                    break
+            else:
+                raise ExtractorError('Failed to extract matching stream info')
+
         message = self._html_search_regex(
             r'(?s)<div[^>]+class="global-message cloudcast-disabled-notice-light"[^>]*>(.+?)<(?:a|/div)',
             webpage, 'error message', default=None)
 
-        encrypted_play_info = self._search_regex(
-            r'm-play-info="([^"]+)"', webpage, 'play info')
-        play_info = self._parse_json(
-            self._decrypt_play_info(encrypted_play_info), track_id)
+        js_url = self._search_regex(
+            r'<script[^>]+\bsrc=["\"](https://(?:www\.)?mixcloud\.com/media/(?:js2/www_js_4|js/www)\.[^>]+\.js)',
+            webpage, 'js url')
+        js = self._download_webpage(js_url, track_id, 'Downloading JS')
+        # Known plaintext attack
+        if encrypted_play_info:
+            kps = ['{"stream_url":']
+            kpa_target = encrypted_play_info
+        else:
+            kps = ['https://', 'http://']
+            kpa_target = base64.b64decode(info_json['streamInfo']['url'])
+        for kp in kps:
+            partial_key = self._decrypt_xor_cipher(kpa_target, kp)
+            for quote in ["'", '"']:
+                key = self._search_regex(
+                    r'{0}({1}[^{0}]*){0}'.format(quote, re.escape(partial_key)),
+                    js, 'encryption key', default=None)
+                if key is not None:
+                    break
+            else:
+                continue
+            break
+        else:
+            raise ExtractorError('Failed to extract encryption key')
 
-        if message and 'stream_url' not in play_info:
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+        if encrypted_play_info is not None:
+            play_info = self._parse_json(self._decrypt_xor_cipher(key, encrypted_play_info), 'play info')
+            if message and 'stream_url' not in play_info:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+            song_url = play_info['stream_url']
+            formats = [{
+                'format_id': 'normal',
+                'url': song_url
+            }]
 
-        song_url = play_info['stream_url']
+            title = self._html_search_regex(r'm-title="([^"]+)"', webpage, 'title')
+            thumbnail = self._proto_relative_url(self._html_search_regex(
+                r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail', fatal=False))
+            uploader = self._html_search_regex(
+                r'm-owner-name="([^"]+)"', webpage, 'uploader', fatal=False)
+            uploader_id = self._search_regex(
+                r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
+            description = self._og_search_description(webpage)
+            view_count = str_to_int(self._search_regex(
+                [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
+                 r'/listeners/?">([0-9,.]+)</a>',
+                 r'(?:m|data)-tooltip=["\']([\d,.]+) plays'],
+                webpage, 'play count', default=None))
 
-        PREFIX = (
-            r'm-play-on-spacebar[^>]+'
-            r'(?:\s+[a-zA-Z0-9-]+(?:="[^"]+")?)*?\s+')
-        title = self._html_search_regex(
-            PREFIX + r'm-title="([^"]+)"', webpage, 'title')
-        thumbnail = self._proto_relative_url(self._html_search_regex(
-            PREFIX + r'm-thumbnail-url="([^"]+)"', webpage, 'thumbnail',
-            fatal=False))
-        uploader = self._html_search_regex(
-            PREFIX + r'm-owner-name="([^"]+)"',
-            webpage, 'uploader', fatal=False)
-        uploader_id = self._search_regex(
-            r'\s+"profile": "([^"]+)",', webpage, 'uploader id', fatal=False)
-        description = self._og_search_description(webpage)
-        like_count = parse_count(self._search_regex(
-            r'\bbutton-favorite[^>]+>.*?<span[^>]+class=["\']toggle-number[^>]+>\s*([^<]+)',
-            webpage, 'like count', default=None))
-        view_count = str_to_int(self._search_regex(
-            [r'<meta itemprop="interactionCount" content="UserPlays:([0-9]+)"',
-             r'/listeners/?">([0-9,.]+)</a>'],
-            webpage, 'play count', default=None))
+        else:
+            title = info_json['name']
+            thumbnail = urljoin(
+                'https://thumbnailer.mixcloud.com/unsafe/600x600/',
+                try_get(info_json, lambda x: x['picture']['urlRoot'], compat_str))
+            uploader = try_get(info_json, lambda x: x['owner']['displayName'])
+            uploader_id = try_get(info_json, lambda x: x['owner']['username'])
+            description = try_get(info_json, lambda x: x['description'])
+            view_count = int_or_none(try_get(info_json, lambda x: x['plays']))
+
+            stream_info = info_json['streamInfo']
+            formats = []
+
+            for url_key in ('url', 'hlsUrl', 'dashUrl'):
+                format_url = stream_info.get(url_key)
+                if not format_url:
+                    continue
+                decrypted = self._decrypt_xor_cipher(key, base64.b64decode(format_url))
+                if not decrypted:
+                    continue
+                if url_key == 'hlsUrl':
+                    formats.extend(self._extract_m3u8_formats(
+                        decrypted, track_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
+                elif url_key == 'dashUrl':
+                    formats.extend(self._extract_mpd_formats(
+                        decrypted, track_id, mpd_id='dash', fatal=False))
+                else:
+                    formats.append({
+                        'format_id': 'http',
+                        'url': decrypted,
+                    })
+            self._sort_formats(formats)
 
         return {
             'id': track_id,
             'title': title,
-            'url': song_url,
+            'formats': formats,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'view_count': view_count,
-            'like_count': like_count,
         }
 
 
@@ -150,12 +220,12 @@ class MixcloudPlaylistBaseIE(InfoExtractor):
 
     def _get_user_description(self, page_content):
         return self._html_search_regex(
-            r'<div[^>]+class="description-text"[^>]*>(.+?)</div>',
+            r'<div[^>]+class="profile-bio"[^>]*>(.+?)</div>',
             page_content, 'user description', fatal=False)
 
 
 class MixcloudUserIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/(?P<type>uploads|favorites|listens)?/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/(?P<type>uploads|favorites|listens)?/?$'
     IE_NAME = 'mixcloud:user'
 
     _TESTS = [{
@@ -163,7 +233,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'playlist_mincount': 11,
     }, {
@@ -171,7 +241,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_uploads',
             'title': 'Daniel Holbach (uploads)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'playlist_mincount': 11,
     }, {
@@ -179,7 +249,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_favorites',
             'title': 'Daniel Holbach (favorites)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'params': {
             'playlist_items': '1-100',
@@ -190,7 +260,7 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
         'info_dict': {
             'id': 'dholbach_listens',
             'title': 'Daniel Holbach (listens)',
-            'description': 'md5:327af72d1efeb404a8216c27240d1370',
+            'description': 'md5:def36060ac8747b3aabca54924897e47',
         },
         'params': {
             'playlist_items': '1-100',
@@ -221,14 +291,14 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
             functools.partial(
                 self._tracks_page_func,
                 '%s/%s' % (user_id, list_type), video_id, 'list of %s' % list_type),
-            self._PAGE_SIZE, use_cache=True)
+            self._PAGE_SIZE)
 
         return self.playlist_result(
             entries, video_id, '%s (%s)' % (username, list_type), description)
 
 
 class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/playlists/(?P<playlist>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<user>[^/]+)/playlists/(?P<playlist>[^/]+)/?$'
     IE_NAME = 'mixcloud:playlist'
 
     _TESTS = [{
@@ -241,12 +311,7 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
         'playlist_mincount': 16,
     }, {
         'url': 'https://www.mixcloud.com/maxvibes/playlists/jazzcat-on-ness-radio/',
-        'info_dict': {
-            'id': 'maxvibes_jazzcat-on-ness-radio',
-            'title': 'Jazzcat on Ness Radio',
-            'description': 'md5:7bbbf0d6359a0b8cda85224be0f8f263',
-        },
-        'playlist_mincount': 23
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -255,15 +320,16 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
         playlist_id = mobj.group('playlist')
         video_id = '%s_%s' % (user_id, playlist_id)
 
-        profile = self._download_webpage(
+        webpage = self._download_webpage(
             url, user_id,
             note='Downloading playlist page',
             errnote='Unable to download playlist page')
 
-        description = self._get_user_description(profile)
-        playlist_title = self._html_search_regex(
-            r'<span[^>]+class="[^"]*list-playlist-title[^"]*"[^>]*>(.*?)</span>',
-            profile, 'playlist title')
+        title = self._html_search_regex(
+            r'<a[^>]+class="parent active"[^>]*><b>\d+</b><span[^>]*>([^<]+)',
+            webpage, 'playlist title',
+            default=None) or self._og_search_title(webpage, fatal=False)
+        description = self._get_user_description(webpage)
 
         entries = OnDemandPagedList(
             functools.partial(
@@ -271,11 +337,11 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
                 '%s/playlists/%s' % (user_id, playlist_id), video_id, 'tracklist'),
             self._PAGE_SIZE)
 
-        return self.playlist_result(entries, video_id, playlist_title, description)
+        return self.playlist_result(entries, video_id, title, description)
 
 
 class MixcloudStreamIE(MixcloudPlaylistBaseIE):
-    _VALID_URL = r'^(?:https?://)?(?:www\.)?mixcloud\.com/(?P<id>[^/]+)/stream/?$'
+    _VALID_URL = r'https?://(?:www\.)?mixcloud\.com/(?P<id>[^/]+)/stream/?$'
     IE_NAME = 'mixcloud:stream'
 
     _TEST = {

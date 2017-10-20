@@ -78,8 +78,7 @@ class GameSpotIE(OnceIE):
                     if m3u8_formats:
                         self._sort_formats(m3u8_formats)
                         m3u8_formats = list(filter(
-                            lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-                            m3u8_formats))
+                            lambda f: f.get('vcodec') != 'none', m3u8_formats))
                     if len(qualities) == len(m3u8_formats):
                         for q, m3u8_format in zip(qualities, m3u8_formats):
                             f = m3u8_format.copy()
@@ -106,7 +105,7 @@ class GameSpotIE(OnceIE):
             onceux_url = self._parse_json(unescapeHTML(onceux_json), page_id).get('metadataUri')
             if onceux_url:
                 formats.extend(self._extract_once_formats(re.sub(
-                    r'https?://[^/]+', 'http://once.unicornmedia.com', onceux_url).replace('ads/vmap/', '')))
+                    r'https?://[^/]+', 'http://once.unicornmedia.com', onceux_url)))
 
         if not formats:
             for quality in ['sd', 'hd']:

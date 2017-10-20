@@ -15,16 +15,16 @@ from ..utils import (
 class TVPIE(InfoExtractor):
     IE_NAME = 'tvp'
     IE_DESC = 'Telewizja Polska'
-    _VALID_URL = r'https?://[^/]+\.tvp\.(?:pl|info)/(?:(?!\d+/)[^/]+/)*(?P<id>\d+)'
+    _VALID_URL = r'https?://[^/]+\.tvp\.(?:pl|info)/(?:video/(?:[^,\s]*,)*|(?:(?!\d+/)[^/]+/)*)(?P<id>\d+)'
 
     _TESTS = [{
-        'url': 'http://vod.tvp.pl/194536/i-seria-odc-13',
+        'url': 'https://vod.tvp.pl/video/czas-honoru,i-seria-odc-13,194536',
         'md5': '8aa518c15e5cc32dfe8db400dc921fbb',
         'info_dict': {
             'id': '194536',
             'ext': 'mp4',
             'title': 'Czas honoru, I seria – odc. 13',
-            'description': 'md5:76649d2014f65c99477be17f23a4dead',
+            'description': 'md5:381afa5bca72655fe94b05cfe82bf53d',
         },
     }, {
         'url': 'http://www.tvp.pl/there-can-be-anything-so-i-shortened-it/17916176',
@@ -37,12 +37,13 @@ class TVPIE(InfoExtractor):
         },
     }, {
         # page id is not the same as video id(#7799)
-        'url': 'http://vod.tvp.pl/22704887/08122015-1500',
-        'md5': 'cf6a4705dfd1489aef8deb168d6ba742',
+        'url': 'https://wiadomosci.tvp.pl/33908820/28092017-1930',
+        'md5': '84cd3c8aec4840046e5ab712416b73d0',
         'info_dict': {
-            'id': '22680786',
+            'id': '33908820',
             'ext': 'mp4',
-            'title': 'Wiadomości, 08.12.2015, 15:00',
+            'title': 'Wiadomości, 28.09.2017, 19:30',
+            'description': 'Wydanie główne codziennego serwisu informacyjnego.'
         },
     }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
@@ -150,8 +151,7 @@ class TVPEmbedIE(InfoExtractor):
                 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self._sort_formats(m3u8_formats)
             m3u8_formats = list(filter(
-                lambda f: f.get('vcodec') != 'none' and f.get('resolution') != 'multiple',
-                m3u8_formats))
+                lambda f: f.get('vcodec') != 'none', m3u8_formats))
             formats.extend(m3u8_formats)
             for i, m3u8_format in enumerate(m3u8_formats, 2):
                 http_url = '%s-%d.mp4' % (video_url_base, i)

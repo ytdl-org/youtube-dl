@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class StreamableIE(InfoExtractor):
-    _VALID_URL = r'https?://streamable\.com/(?:e/)?(?P<id>\w+)'
+    _VALID_URL = r'https?://streamable\.com/(?:[es]/)?(?P<id>\w+)'
     _TESTS = [
         {
             'url': 'https://streamable.com/dnd1',
@@ -47,6 +47,10 @@ class StreamableIE(InfoExtractor):
         {
             'url': 'https://streamable.com/e/dnd1',
             'only_matching': True,
+        },
+        {
+            'url': 'https://streamable.com/s/okkqk/drxjds',
+            'only_matching': True,
         }
     ]
 
@@ -65,7 +69,7 @@ class StreamableIE(InfoExtractor):
         # to return video info like the title properly sometimes, and doesn't
         # include info like the video duration
         video = self._download_json(
-            'https://streamable.com/ajax/videos/%s' % video_id, video_id)
+            'https://ajax.streamable.com/videos/%s' % video_id, video_id)
 
         # Format IDs:
         # 0 The video is being uploaded

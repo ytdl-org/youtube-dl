@@ -20,6 +20,7 @@ class Vbox7IE(InfoExtractor):
                         )
                         (?P<id>[\da-fA-F]+)
                     '''
+    _GEO_COUNTRIES = ['BG']
     _TESTS = [{
         'url': 'http://vbox7.com/play:0946fff23c',
         'md5': 'a60f9ab3a3a2f013ef9a967d5f7be5bf',
@@ -78,7 +79,7 @@ class Vbox7IE(InfoExtractor):
         video_url = video['src']
 
         if '/na.mp4' in video_url:
-            self.raise_geo_restricted()
+            self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
 
         uploader = video.get('uploader')
 

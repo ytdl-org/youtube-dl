@@ -93,8 +93,7 @@ class ArkenaIE(InfoExtractor):
                 exts = (mimetype2ext(f.get('Type')), determine_ext(f_url, None))
                 if kind == 'm3u8' or 'm3u8' in exts:
                     formats.extend(self._extract_m3u8_formats(
-                        f_url, video_id, 'mp4',
-                        entry_protocol='m3u8' if is_live else 'm3u8_native',
+                        f_url, video_id, 'mp4', 'm3u8_native',
                         m3u8_id=kind, fatal=False, live=is_live))
                 elif kind == 'flash' or 'f4m' in exts:
                     formats.extend(self._extract_f4m_formats(

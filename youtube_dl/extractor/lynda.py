@@ -94,7 +94,7 @@ class LyndaBaseIE(InfoExtractor):
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
-    _VALID_URL = r'https?://(?:www\.)?lynda\.com/(?:[^/]+/[^/]+/(?P<course_id>\d+)|player/embed)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:lynda\.com|educourse\.ga)/(?:[^/]+/[^/]+/(?P<course_id>\d+)|player/embed)/(?P<id>\d+)'
 
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
@@ -109,6 +109,9 @@ class LyndaIE(LyndaBaseIE):
         }
     }, {
         'url': 'https://www.lynda.com/player/embed/133770?tr=foo=1;bar=g;fizz=rt&fs=0',
+        'only_matching': True,
+    }, {
+        'url': 'https://educourse.ga/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
         'only_matching': True,
     }]
 
@@ -253,16 +256,31 @@ class LyndaCourseIE(LyndaBaseIE):
 
     # Course link equals to welcome/introduction video link of same course
     # We will recognize it as course link
-    _VALID_URL = r'https?://(?:www|m)\.lynda\.com/(?P<coursepath>[^/]+/[^/]+/(?P<courseid>\d+))-\d\.html'
+    _VALID_URL = r'https?://(?:www|m)\.(?:lynda\.com|educourse\.ga)/(?P<coursepath>[^/]+/[^/]+/(?P<courseid>\d+))-\d\.html'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         course_path = mobj.group('coursepath')
         course_id = mobj.group('courseid')
 
+        item_template = 'https://www.lynda.com/%s/%%s-4.html' % course_path
+
         course = self._download_json(
             'https://www.lynda.com/ajax/player?courseId=%s&type=course' % course_id,
-            course_id, 'Downloading course JSON')
+            course_id, 'Downloading course JSON', fatal=False)
+
+        if not course:
+            webpage = self._download_webpage(url, course_id)
+            entries = [
+                self.url_result(
+                    item_template % video_id, ie=LyndaIE.ie_key(),
+                    video_id=video_id)
+                for video_id in re.findall(
+                    r'data-video-id=["\'](\d+)', webpage)]
+            return self.playlist_result(
+                entries, course_id,
+                self._og_search_title(webpage, fatal=False),
+                self._og_search_description(webpage))
 
         if course.get('Status') == 'NotFound':
             raise ExtractorError(
@@ -283,7 +301,7 @@ class LyndaCourseIE(LyndaBaseIE):
                 if video_id:
                     entries.append({
                         '_type': 'url_transparent',
-                        'url': 'https://www.lynda.com/%s/%s-4.html' % (course_path, video_id),
+                        'url': item_template % video_id,
                         'ie_key': LyndaIE.ie_key(),
                         'chapter': chapter.get('Title'),
                         'chapter_number': int_or_none(chapter.get('ChapterIndex')),

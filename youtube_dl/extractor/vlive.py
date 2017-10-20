@@ -2,17 +2,23 @@
 from __future__ import unicode_literals
 
 import re
+import time
+import itertools
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse_urlencode,
+    compat_str,
+)
 from ..utils import (
     dict_get,
     ExtractorError,
     float_or_none,
     int_or_none,
     remove_start,
+    try_get,
     urlencode_postdata,
 )
-from ..compat import compat_urllib_parse_urlencode
 
 
 class VLiveIE(InfoExtractor):
@@ -43,6 +49,10 @@ class VLiveIE(InfoExtractor):
         },
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if VLivePlaylistIE.suitable(url) else super(VLiveIE, cls).suitable(url)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -64,9 +74,9 @@ class VLiveIE(InfoExtractor):
         status, long_video_id, key = params[2], params[5], params[6]
         status = remove_start(status, 'PRODUCT_')
 
-        if status == 'LIVE_ON_AIR' or status == 'BIG_EVENT_ON_AIR':
+        if status in ('LIVE_ON_AIR', 'BIG_EVENT_ON_AIR'):
             return self._live(video_id, webpage)
-        elif status == 'VOD_ON_AIR' or status == 'BIG_EVENT_INTRO':
+        elif status in ('VOD_ON_AIR', 'BIG_EVENT_INTRO'):
             if long_video_id and key:
                 return self._replay(video_id, webpage, long_video_id, key)
             else:
@@ -169,3 +179,145 @@ class VLiveIE(InfoExtractor):
             'subtitles': subtitles,
         })
         return info
+
+
+class VLiveChannelIE(InfoExtractor):
+    IE_NAME = 'vlive:channel'
+    _VALID_URL = r'https?://channels\.vlive\.tv/(?P<id>[0-9A-Z]+)'
+    _TEST = {
+        'url': 'http://channels.vlive.tv/FCD4B',
+        'info_dict': {
+            'id': 'FCD4B',
+            'title': 'MAMAMOO',
+        },
+        'playlist_mincount': 110
+    }
+    _APP_ID = '8c6cc7b45d2568fb668be6e05b6e5a3b'
+
+    def _real_extract(self, url):
+        channel_code = self._match_id(url)
+
+        webpage = self._download_webpage(
+            'http://channels.vlive.tv/%s/video' % channel_code, channel_code)
+
+        app_id = None
+
+        app_js_url = self._search_regex(
+            r'<script[^>]+src=(["\'])(?P<url>http.+?/app\.js.*?)\1',
+            webpage, 'app js', default=None, group='url')
+
+        if app_js_url:
+            app_js = self._download_webpage(
+                app_js_url, channel_code, 'Downloading app JS', fatal=False)
+            if app_js:
+                app_id = self._search_regex(
+                    r'Global\.VFAN_APP_ID\s*=\s*[\'"]([^\'"]+)[\'"]',
+                    app_js, 'app id', default=None)
+
+        app_id = app_id or self._APP_ID
+
+        channel_info = self._download_json(
+            'http://api.vfan.vlive.tv/vproxy/channelplus/decodeChannelCode',
+            channel_code, note='Downloading decode channel code',
+            query={
+                'app_id': app_id,
+                'channelCode': channel_code,
+                '_': int(time.time())
+            })
+
+        channel_seq = channel_info['result']['channelSeq']
+        channel_name = None
+        entries = []
+
+        for page_num in itertools.count(1):
+            video_list = self._download_json(
+                'http://api.vfan.vlive.tv/vproxy/channelplus/getChannelVideoList',
+                channel_code, note='Downloading channel list page #%d' % page_num,
+                query={
+                    'app_id': app_id,
+                    'channelSeq': channel_seq,
+                    # Large values of maxNumOfRows (~300 or above) may cause
+                    # empty responses (see [1]), e.g. this happens for [2] that
+                    # has more than 300 videos.
+                    # 1. https://github.com/rg3/youtube-dl/issues/13830
+                    # 2. http://channels.vlive.tv/EDBF.
+                    'maxNumOfRows': 100,
+                    '_': int(time.time()),
+                    'pageNo': page_num
+                }
+            )
+
+            if not channel_name:
+                channel_name = try_get(
+                    video_list,
+                    lambda x: x['result']['channelInfo']['channelName'],
+                    compat_str)
+
+            videos = try_get(
+                video_list, lambda x: x['result']['videoList'], list)
+            if not videos:
+                break
+
+            for video in videos:
+                video_id = video.get('videoSeq')
+                if not video_id:
+                    continue
+                video_id = compat_str(video_id)
+                entries.append(
+                    self.url_result(
+                        'http://www.vlive.tv/video/%s' % video_id,
+                        ie=VLiveIE.ie_key(), video_id=video_id))
+
+        return self.playlist_result(
+            entries, channel_code, channel_name)
+
+
+class VLivePlaylistIE(InfoExtractor):
+    IE_NAME = 'vlive:playlist'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<video_id>[0-9]+)/playlist/(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://www.vlive.tv/video/22867/playlist/22912',
+        'info_dict': {
+            'id': '22912',
+            'title': 'Valentine Day Message from TWICE'
+        },
+        'playlist_mincount': 9
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id, playlist_id = mobj.group('video_id', 'id')
+
+        VIDEO_URL_TEMPLATE = 'http://www.vlive.tv/video/%s'
+        if self._downloader.params.get('noplaylist'):
+            self.to_screen(
+                'Downloading just video %s because of --no-playlist' % video_id)
+            return self.url_result(
+                VIDEO_URL_TEMPLATE % video_id,
+                ie=VLiveIE.ie_key(), video_id=video_id)
+
+        self.to_screen(
+            'Downloading playlist %s - add --no-playlist to just download video'
+            % playlist_id)
+
+        webpage = self._download_webpage(
+            'http://www.vlive.tv/video/%s/playlist/%s'
+            % (video_id, playlist_id), playlist_id)
+
+        item_ids = self._parse_json(
+            self._search_regex(
+                r'playlistVideoSeqs\s*=\s*(\[[^]]+\])', webpage,
+                'playlist video seqs'),
+            playlist_id)
+
+        entries = [
+            self.url_result(
+                VIDEO_URL_TEMPLATE % item_id, ie=VLiveIE.ie_key(),
+                video_id=compat_str(item_id))
+            for item_id in item_ids]
+
+        playlist_name = self._html_search_regex(
+            r'<div[^>]+class="[^"]*multicam_playlist[^>]*>\s*<h3[^>]+>([^<]+)',
+            webpage, 'playlist title', fatal=False)
+
+        return self.playlist_result(entries, playlist_id, playlist_name)

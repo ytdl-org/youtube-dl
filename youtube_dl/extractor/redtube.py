@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -62,7 +63,23 @@ class RedTubeIE(InfoExtractor):
                         'format_id': format_id,
                         'height': int_or_none(format_id),
                     })
-        else:
+        medias = self._parse_json(
+            self._search_regex(
+                r'mediaDefinition\s*:\s*(\[.+?\])', webpage,
+                'media definitions', default='{}'),
+            video_id, fatal=False)
+        if medias and isinstance(medias, list):
+            for media in medias:
+                format_url = media.get('videoUrl')
+                if not format_url or not isinstance(format_url, compat_str):
+                    continue
+                format_id = media.get('quality')
+                formats.append({
+                    'url': format_url,
+                    'format_id': format_id,
+                    'height': int_or_none(format_id),
+                })
+        if not formats:
             video_url = self._html_search_regex(
                 r'<source src="(.+?)" type="video/mp4">', webpage, 'video URL')
             formats.append({'url': video_url})
@@ -73,7 +90,7 @@ class RedTubeIE(InfoExtractor):
             r'<span[^>]+class="added-time"[^>]*>ADDED ([^<]+)<',
             webpage, 'upload date', fatal=False))
         duration = int_or_none(self._search_regex(
-            r'videoDuration\s*:\s*(\d+)', webpage, 'duration', fatal=False))
+            r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
             r'<span[^>]*>VIEWS</span></td>\s*<td>([\d,.]+)',
             webpage, 'view count', fatal=False))

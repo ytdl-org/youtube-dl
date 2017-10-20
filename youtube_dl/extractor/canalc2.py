@@ -16,13 +16,10 @@ class Canalc2IE(InfoExtractor):
         'md5': '060158428b650f896c542dfbb3d6487f',
         'info_dict': {
             'id': '12163',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Terrasses du Numérique',
             'duration': 122,
         },
-        'params': {
-            'skip_download': True,  # Requires rtmpdump
-        }
     }, {
         'url': 'http://archives-canalc2.u-strasbg.fr/video.asp?idVideo=11427&voir=oui',
         'only_matching': True,

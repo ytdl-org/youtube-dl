@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    js_to_json,
     orderedSet,
     parse_duration,
     sanitized_Request,
@@ -17,7 +18,7 @@ class XTubeIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         (?:
                             xtube:|
-                            https?://(?:www\.)?xtube\.com/(?:watch\.php\?.*\bv=|video-watch/(?P<display_id>[^/]+)-)
+                            https?://(?:www\.)?xtube\.com/(?:watch\.php\?.*\bv=|video-watch/(?:embedded/)?(?P<display_id>[^/]+)-)
                         )
                         (?P<id>[^/?&#]+)
                     '''
@@ -38,11 +39,33 @@ class XTubeIE(InfoExtractor):
             'age_limit': 18,
         }
     }, {
+        # FLV videos with duplicated formats
+        'url': 'http://www.xtube.com/video-watch/A-Super-Run-Part-1-YT-9299752',
+        'md5': 'a406963eb349dd43692ec54631efd88b',
+        'info_dict': {
+            'id': '9299752',
+            'display_id': 'A-Super-Run-Part-1-YT',
+            'ext': 'flv',
+            'title': 'A Super Run - Part 1 (YT)',
+            'description': 'md5:ca0d47afff4a9b2942e4b41aa970fd93',
+            'uploader': 'tshirtguy59',
+            'duration': 579,
+            'view_count': int,
+            'comment_count': int,
+            'age_limit': 18,
+        },
+    }, {
         # new URL schema
         'url': 'http://www.xtube.com/video-watch/strange-erotica-625837',
         'only_matching': True,
     }, {
         'url': 'xtube:625837',
+        'only_matching': True,
+    }, {
+        'url': 'xtube:kVTUy_G222_',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.xtube.com/video-watch/embedded/milf-tara-and-teen-shared-and-cum-covered-extreme-bukkake-32203482?embedsize=big',
         'only_matching': True,
     }]
 
@@ -53,14 +76,21 @@ class XTubeIE(InfoExtractor):
 
         if not display_id:
             display_id = video_id
-            url = 'http://www.xtube.com/watch.php?v=%s' % video_id
 
-        req = sanitized_Request(url)
-        req.add_header('Cookie', 'age_verified=1; cookiesAccepted=1')
-        webpage = self._download_webpage(req, display_id)
+        if video_id.isdigit() and len(video_id) < 11:
+            url_pattern = 'http://www.xtube.com/video-watch/-%s'
+        else:
+            url_pattern = 'http://www.xtube.com/watch.php?v=%s'
+
+        webpage = self._download_webpage(
+            url_pattern % video_id, display_id, headers={
+                'Cookie': 'age_verified=1; cookiesAccepted=1',
+            })
 
         sources = self._parse_json(self._search_regex(
-            r'sources\s*:\s*({.+?}),', webpage, 'sources'), video_id)
+            r'(["\'])?sources\1?\s*:\s*(?P<sources>{.+?}),',
+            webpage, 'sources', group='sources'), video_id,
+            transform_source=js_to_json)
 
         formats = []
         for format_id, format_url in sources.items():
@@ -69,10 +99,11 @@ class XTubeIE(InfoExtractor):
                 'format_id': format_id,
                 'height': int_or_none(format_id),
             })
+        self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
         title = self._search_regex(
-            (r'<h1>(?P<title>[^<]+)</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
+            (r'<h1>\s*(?P<title>[^<]+?)\s*</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
             webpage, 'title', group='title')
         description = self._search_regex(
             r'</h1>\s*<p>([^<]+)', webpage, 'description', fatal=False)
@@ -81,10 +112,10 @@ class XTubeIE(InfoExtractor):
              r'<span[^>]+class="nickname"[^>]*>([^<]+)'),
             webpage, 'uploader', fatal=False)
         duration = parse_duration(self._search_regex(
-            r'<dt>Runtime:</dt>\s*<dd>([^<]+)</dd>',
+            r'<dt>Runtime:?</dt>\s*<dd>([^<]+)</dd>',
             webpage, 'duration', fatal=False))
         view_count = str_to_int(self._search_regex(
-            r'<dt>Views:</dt>\s*<dd>([\d,\.]+)</dd>',
+            r'<dt>Views:?</dt>\s*<dd>([\d,\.]+)</dd>',
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
             r'>Comments? \(([\d,\.]+)\)<',

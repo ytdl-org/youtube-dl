@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     get_element_by_attribute,
     int_or_none,
@@ -51,6 +52,33 @@ class InstagramIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        # multi video post
+        'url': 'https://www.instagram.com/p/BQ0eAlwhDrw/',
+        'playlist': [{
+            'info_dict': {
+                'id': 'BQ0dSaohpPW',
+                'ext': 'mp4',
+                'title': 'Video 1',
+            },
+        }, {
+            'info_dict': {
+                'id': 'BQ0dTpOhuHT',
+                'ext': 'mp4',
+                'title': 'Video 2',
+            },
+        }, {
+            'info_dict': {
+                'id': 'BQ0dT7RBFeF',
+                'ext': 'mp4',
+                'title': 'Video 3',
+            },
+        }],
+        'info_dict': {
+            'id': 'BQ0eAlwhDrw',
+            'title': 'Post by instagram',
+            'description': 'md5:0f9203fc6a2ce4d228da5754bcf54957',
+        },
+    }, {
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
         'only_matching': True,
     }, {
@@ -84,7 +112,8 @@ class InstagramIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         (video_url, description, thumbnail, timestamp, uploader,
-         uploader_id, like_count, comment_count, height, width) = [None] * 10
+         uploader_id, like_count, comment_count, comments, height,
+         width) = [None] * 11
 
         shared_data = self._parse_json(
             self._search_regex(
@@ -93,7 +122,10 @@ class InstagramIE(InfoExtractor):
             video_id, fatal=False)
         if shared_data:
             media = try_get(
-                shared_data, lambda x: x['entry_data']['PostPage'][0]['media'], dict)
+                shared_data,
+                (lambda x: x['entry_data']['PostPage'][0]['graphql']['shortcode_media'],
+                 lambda x: x['entry_data']['PostPage'][0]['media']),
+                dict)
             if media:
                 video_url = media.get('video_url')
                 height = int_or_none(media.get('dimensions', {}).get('height'))
@@ -113,6 +145,32 @@ class InstagramIE(InfoExtractor):
                     'timestamp': int_or_none(comment.get('created_at')),
                 } for comment in media.get(
                     'comments', {}).get('nodes', []) if comment.get('text')]
+                if not video_url:
+                    edges = try_get(
+                        media, lambda x: x['edge_sidecar_to_children']['edges'],
+                        list) or []
+                    if edges:
+                        entries = []
+                        for edge_num, edge in enumerate(edges, start=1):
+                            node = try_get(edge, lambda x: x['node'], dict)
+                            if not node:
+                                continue
+                            node_video_url = try_get(node, lambda x: x['video_url'], compat_str)
+                            if not node_video_url:
+                                continue
+                            entries.append({
+                                'id': node.get('shortcode') or node['id'],
+                                'title': 'Video %d' % edge_num,
+                                'url': node_video_url,
+                                'thumbnail': node.get('display_url'),
+                                'width': int_or_none(try_get(node, lambda x: x['dimensions']['width'])),
+                                'height': int_or_none(try_get(node, lambda x: x['dimensions']['height'])),
+                                'view_count': int_or_none(node.get('video_view_count')),
+                            })
+                        return self.playlist_result(
+                            entries, video_id,
+                            'Post by %s' % uploader_id if uploader_id else None,
+                            description)
 
         if not video_url:
             video_url = self._og_search_video_url(webpage, secure=False)
