@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import re
 from .common import InfoExtractor
 
 
@@ -11,7 +12,7 @@ class ParliamentLiveUKIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://parliamentlive.tv/Event/Index/c1e9d44d-fd6c-4263-b50f-97ed26cc998b',
         'info_dict': {
-            'id': 'c1e9d44d-fd6c-4263-b50f-97ed26cc998b',
+            'id': '1_af9nv9ym',
             'ext': 'mp4',
             'title': 'Home Affairs Committee',
             'uploader_id': 'FFMPEG-01',
@@ -29,13 +30,13 @@ class ParliamentLiveUKIE(InfoExtractor):
             'http://vodplayer.parliamentlive.tv/?mid=' + video_id, video_id)
         widget_config = self._parse_json(self._search_regex(
             r'kWidgetConfig\s*=\s*({.+});',
-            webpage, 'kaltura widget config'), video_id)
-        kaltura_url = 'kaltura:%s:%s' % (widget_config['wid'][1:], widget_config['entry_id'])
+            webpage, 'kaltura widget config', flags=re.DOTALL), video_id)
+        kaltura_url = 'kaltura:%s:%s' % (
+            widget_config['wid'][1:], widget_config['entry_id'])
         event_title = self._download_json(
             'http://parliamentlive.tv/Event/GetShareVideo/' + video_id, video_id)['event']['title']
         return {
             '_type': 'url_transparent',
-            'id': video_id,
             'title': event_title,
             'description': '',
             'url': kaltura_url,
