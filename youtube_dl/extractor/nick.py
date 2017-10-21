@@ -75,7 +75,7 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.(?:de|com\.pl)|nickelodeon\.(?:nl|at))/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.(?:de|com\.pl)|nickelodeon\.(?:nl|at|dk|no|se))/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
         'only_matching': True,
@@ -90,6 +90,15 @@ class NickDeIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.nick.com.pl/seriale/474-spongebob-kanciastoporty/wideo/17412-teatr-to-jest-to-rodeo-oszolom',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.no/program/2626-bulderhuset/videoer/90947-femteklasse-veronica-vs-vanzilla',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.dk/serier/2626-hojs-hus/videoer/761-tissepause',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.se/serier/2626-lugn-i-stormen/videos/998-',
         'only_matching': True,
     }]
 
