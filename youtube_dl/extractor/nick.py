@@ -147,12 +147,27 @@ class NickNightIE(NickDeIE):
 
 class NickRuIE(MTVServicesInfoExtractor):
     IE_NAME = 'nickelodeonru'
-    _VALID_URL = r'https?://(?:www\.)nickelodeon\.ru/(?:playlist|shows|videos)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)nickelodeon\.(?:ru|fr|es|pt|ro|hu)/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nickelodeon.ru/shows/henrydanger/videos/episodes/3-sezon-15-seriya-licenziya-na-polyot/pmomfb#playlist/7airc6',
         'only_matching': True,
     }, {
         'url': 'http://www.nickelodeon.ru/videos/smotri-na-nickelodeon-v-iyule/g9hvh7',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.fr/programmes/bob-l-eponge/videos/le-marathon-de-booh-kini-bottom-mardi-31-octobre/nfn7z0',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.es/videos/nickelodeon-consejos-tortitas/f7w7xy',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.pt/series/spongebob-squarepants/videos/a-bolha-de-tinta-gigante/xutq1b',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.ro/emisiuni/shimmer-si-shine/video/nahal-din-bomboane/uw5u2k',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.hu/musorok/spongyabob-kockanadrag/videok/episodes/buborekfujas-az-elszakadt-nadrag/q57iob#playlist/k6te4y',
         'only_matching': True,
     }]
 
