@@ -6,9 +6,10 @@ from ..compat import (
     compat_urllib_parse_unquote_plus
 )
 from ..utils import (
+    parse_duration,
     remove_end,
     unified_strdate,
-    parse_duration
+    urljoin
 )
 
 
@@ -89,8 +90,7 @@ class NDTVIE(InfoExtractor):
         filename = self._search_regex(
             r"(?:__)?filename\s*[:=]\s*'([^']+)'", webpage, 'video filename')
         # in "movies" sub-site pages, filename is URL
-        video_url = 'https://ndtvod.bc-ssl.cdn.bitgravity.com/23372/ndtv/%s' % filename \
-                if not (filename.startswith('http://') or filename.startswith('https://')) else filename
+        video_url = urljoin('https://ndtvod.bc-ssl.cdn.bitgravity.com/23372/ndtv/', filename.lstrip('/'))
 
         # "doctor" sub-site has MM:SS format
         duration = parse_duration(self._search_regex(
