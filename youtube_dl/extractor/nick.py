@@ -75,7 +75,7 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.(?:de|com\.pl|ch)|nickelodeon\.(?:nl|at|dk|no|se))/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.(?:de|com\.pl|ch)|nickelodeon\.(?:nl|be|at|dk|no|se))/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
         'only_matching': True,
@@ -102,6 +102,9 @@ class NickDeIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.nick.ch/shows/2304-adventure-time-abenteuerzeit-mit-finn-und-jake',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.be/afspeellijst/4530-top-videos/videos/episode/73917-inval-broodschapper-lariekoek-arie',
         'only_matching': True,
     }]
 
