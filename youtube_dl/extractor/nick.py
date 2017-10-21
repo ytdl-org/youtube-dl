@@ -75,7 +75,7 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'nick.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.(?:de|com\.pl)|nickelodeon\.(?:nl|at|dk|no|se))/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>nick\.(?:de|com\.pl|ch)|nickelodeon\.(?:nl|at|dk|no|se))/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nick.de/playlist/3773-top-videos/videos/episode/17306-zu-wasser-und-zu-land-rauchende-erdnusse',
         'only_matching': True,
@@ -99,6 +99,9 @@ class NickDeIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.nickelodeon.se/serier/2626-lugn-i-stormen/videos/998-',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nick.ch/shows/2304-adventure-time-abenteuerzeit-mit-finn-und-jake',
         'only_matching': True,
     }]
 
