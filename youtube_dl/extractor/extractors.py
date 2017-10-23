@@ -852,6 +852,7 @@ from .rai import (
     RaiPlayIE,
     RaiPlayLiveIE,
     RaiIE,
+    RaiPlaylistIE,
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
