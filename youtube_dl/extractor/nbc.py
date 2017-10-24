@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class NBCIE(AdobePassIE):
-    _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/[^/]+/video/[^/]+/(?P<id>n?\d+))'
+    _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/(?:classic-tv/|)[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
         {
