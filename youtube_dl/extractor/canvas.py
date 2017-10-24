@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import re
 import json
 
-from .common import InfoExtractor
+from .common import (
+    InfoExtractor,
+    GigyaBaseIE,
+)
+
 from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
@@ -11,7 +15,6 @@ from ..utils import (
     float_or_none,
     int_or_none,
     parse_iso8601,
-    urlencode_postdata,
 )
 
 
@@ -174,7 +177,7 @@ class CanvasEenIE(InfoExtractor):
         }
 
 
-class VrtNUIE(InfoExtractor):
+class VrtNUIE(GigyaBaseIE):
     IE_DESC = 'VrtNU.be'
     _VALID_URL = r'https?://(?:www\.)?vrt\.be/(?P<site_id>vrtnu)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
@@ -212,15 +215,7 @@ class VrtNUIE(InfoExtractor):
             'authMode': 'cookie',
         }
 
-        auth_info = self._download_json(
-            'https://accounts.eu1.gigya.com/accounts.login', None,
-            note='Logging in', errnote='Unable to log in',
-            data=urlencode_postdata(auth_data))
-
-        error_message = auth_info.get('errorDetails') or auth_info.get('errorMessage')
-        if error_message:
-            raise ExtractorError(
-                'Unable to login: %s' % error_message, expected=True)
+        auth_info = self._gigya_login(auth_data)
 
         # Sometimes authentication fails for no good reason, retry
         login_attempt = 1
