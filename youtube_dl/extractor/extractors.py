@@ -1275,6 +1275,7 @@ from .watchbox import WatchBoxIE
 from .watchindianporn import WatchIndianPornIE
 from .wdr import (
     WDRIE,
+    WDRElefantIE,
     WDRMobileIE,
 )
 from .webcaster import (
