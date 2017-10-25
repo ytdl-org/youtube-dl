@@ -469,7 +469,7 @@ class SchoolTVIE(NPODataMidEmbedIE):
 
 class HetKlokhuisIE(NPODataMidEmbedIE):
     IE_NAME = 'hetklokhuis'
-    _VALID_URL = r'https?://(?:www\.)?hetklokhuis.nl/[^/]+/\d+/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?hetklokhuis\.nl/[^/]+/\d+/(?P<id>[^/?#&]+)'
 
     _TEST = {
         'url': 'http://hetklokhuis.nl/tv-uitzending/3471/Zwaartekrachtsgolven',

@@ -338,7 +338,7 @@ class LivestreamOriginalIE(InfoExtractor):
                 info = {
                     'title': self._og_search_title(webpage),
                     'description': self._og_search_description(webpage),
-                    'thumbnail': self._search_regex(r'channelLogo.src\s*=\s*"([^"]+)"', webpage, 'thumbnail', None),
+                    'thumbnail': self._search_regex(r'channelLogo\.src\s*=\s*"([^"]+)"', webpage, 'thumbnail', None),
                 }
             video_data = self._download_json(stream_url, content_id)
             is_live = video_data.get('isLive')

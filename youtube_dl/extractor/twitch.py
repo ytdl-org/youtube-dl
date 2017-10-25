@@ -609,7 +609,7 @@ class TwitchClipsIE(InfoExtractor):
                 r'(?s)clipInfo\s*=\s*({.+?});', webpage, 'clip info'),
             video_id, transform_source=js_to_json)
 
-        title = clip.get('channel_title') or self._og_search_title(webpage)
+        title = clip.get('title') or clip.get('channel_title') or self._og_search_title(webpage)
 
         formats = [{
             'url': option['source'],

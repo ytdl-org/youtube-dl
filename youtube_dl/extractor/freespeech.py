@@ -27,7 +27,7 @@ class FreespeechIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
-        info_json = self._search_regex(r'jQuery.extend\(Drupal.settings, ({.*?})\);', webpage, 'info')
+        info_json = self._search_regex(r'jQuery\.extend\(Drupal\.settings, ({.*?})\);', webpage, 'info')
         info = json.loads(info_json)
 
         return {

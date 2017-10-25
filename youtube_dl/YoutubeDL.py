@@ -65,6 +65,7 @@ from .utils import (
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
+    orderedSet,
     PagedList,
     parse_filesize,
     PerRequestProxyHandler,
@@ -908,15 +909,25 @@ class YoutubeDL(object):
                                 yield int(item)
                         else:
                             yield int(string_segment)
-                playlistitems = iter_playlistitems(playlistitems_str)
+                playlistitems = orderedSet(iter_playlistitems(playlistitems_str))
 
             ie_entries = ie_result['entries']
+
+            def make_playlistitems_entries(list_ie_entries):
+                num_entries = len(list_ie_entries)
+                return [
+                    list_ie_entries[i - 1] for i in playlistitems
+                    if -num_entries <= i - 1 < num_entries]
+
+            def report_download(num_entries):
+                self.to_screen(
+                    '[%s] playlist %s: Downloading %d videos' %
+                    (ie_result['extractor'], playlist, num_entries))
+
             if isinstance(ie_entries, list):
                 n_all_entries = len(ie_entries)
                 if playlistitems:
-                    entries = [
-                        ie_entries[i - 1] for i in playlistitems
-                        if -n_all_entries <= i - 1 < n_all_entries]
+                    entries = make_playlistitems_entries(ie_entries)
                 else:
                     entries = ie_entries[playliststart:playlistend]
                 n_entries = len(entries)
@@ -934,20 +945,15 @@ class YoutubeDL(object):
                     entries = ie_entries.getslice(
                         playliststart, playlistend)
                 n_entries = len(entries)
-                self.to_screen(
-                    '[%s] playlist %s: Downloading %d videos' %
-                    (ie_result['extractor'], playlist, n_entries))
+                report_download(n_entries)
             else:  # iterable
                 if playlistitems:
-                    entry_list = list(ie_entries)
-                    entries = [entry_list[i - 1] for i in playlistitems]
+                    entries = make_playlistitems_entries(list(ie_entries))
                 else:
                     entries = list(itertools.islice(
                         ie_entries, playliststart, playlistend))
                 n_entries = len(entries)
-                self.to_screen(
-                    '[%s] playlist %s: Downloading %d videos' %
-                    (ie_result['extractor'], playlist, n_entries))
+                report_download(n_entries)
 
             if self.params.get('playlistreverse', False):
                 entries = entries[::-1]
@@ -1072,22 +1078,27 @@ class YoutubeDL(object):
         return _filter
 
     def _default_format_spec(self, info_dict, download=True):
-        req_format_list = []
 
-        def can_have_partial_formats():
-            if self.params.get('simulate', False):
-                return True
-            if not download:
-                return True
-            if self.params.get('outtmpl', DEFAULT_OUTTMPL) == '-':
-                return False
-            if info_dict.get('is_live'):
-                return False
+        def can_merge():
             merger = FFmpegMergerPP(self)
             return merger.available and merger.can_merge()
-        if can_have_partial_formats():
-            req_format_list.append('bestvideo+bestaudio')
-        req_format_list.append('best')
+
+        def prefer_best():
+            if self.params.get('simulate', False):
+                return False
+            if not download:
+                return False
+            if self.params.get('outtmpl', DEFAULT_OUTTMPL) == '-':
+                return True
+            if info_dict.get('is_live'):
+                return True
+            if not can_merge():
+                return True
+            return False
+
+        req_format_list = ['bestvideo+bestaudio', 'best']
+        if prefer_best():
+            req_format_list.reverse()
         return '/'.join(req_format_list)
 
     def build_format_selector(self, format_spec):

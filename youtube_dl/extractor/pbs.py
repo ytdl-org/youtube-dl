@@ -187,7 +187,7 @@ class PBSIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://
         (?:
            # Direct video URL
-           (?:%s)/(?:viralplayer|video)/(?P<id>[0-9]+)/? |
+           (?:%s)/(?:(?:vir|port)alplayer|video)/(?P<id>[0-9]+)(?:[?/]|$) |
            # Article with embedded player (or direct video)
            (?:www\.)?pbs\.org/(?:[^/]+/){1,5}(?P<presumptive_id>[^/]+?)(?:\.html)?/?(?:$|[?\#]) |
            # Player
@@ -366,6 +366,10 @@ class PBSIE(InfoExtractor):
         },
         {
             'url': 'http://watch.knpb.org/video/2365616055/',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://player.pbs.org/portalplayer/3004638221/?uid=',
             'only_matching': True,
         }
     ]

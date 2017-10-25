@@ -203,7 +203,7 @@ class PCMagIE(IGNIE):
     _VALID_URL = r'https?://(?:www\.)?pcmag\.com/(?P<type>videos|article2)(/.+)?/(?P<name_or_id>.+)'
     IE_NAME = 'pcmag'
 
-    _EMBED_RE = r'iframe.setAttribute\("src",\s*__util.objToUrlString\("http://widgets\.ign\.com/video/embed/content.html?[^"]*url=([^"]+)["&]'
+    _EMBED_RE = r'iframe\.setAttribute\("src",\s*__util.objToUrlString\("http://widgets\.ign\.com/video/embed/content\.html?[^"]*url=([^"]+)["&]'
 
     _TESTS = [{
         'url': 'http://www.pcmag.com/videos/2015/01/06/010615-whats-new-now-is-gogo-snooping-on-your-data',

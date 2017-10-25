@@ -40,7 +40,7 @@ class NiconicoIE(InfoExtractor):
             'uploader': 'takuya0301',
             'uploader_id': '2698420',
             'upload_date': '20131123',
-            'timestamp': 1385182762,
+            'timestamp': int,  # timestamp is unstable
             'description': '(c) copyright 2008, Blender Foundation / www.bigbuckbunny.org',
             'duration': 33,
             'view_count': int,
@@ -115,8 +115,8 @@ class NiconicoIE(InfoExtractor):
         'skip': 'Requires an account',
     }, {
         # "New" HTML5 video
+        # md5 is unstable
         'url': 'http://www.nicovideo.jp/watch/sm31464864',
-        'md5': '351647b4917660986dc0fa8864085135',
         'info_dict': {
             'id': 'sm31464864',
             'ext': 'mp4',
@@ -124,10 +124,29 @@ class NiconicoIE(InfoExtractor):
             'description': 'md5:e52974af9a96e739196b2c1ca72b5feb',
             'timestamp': 1498514060,
             'upload_date': '20170626',
-            'uploader': 'ゲス',
+            'uploader': 'ゲスト',
             'uploader_id': '40826363',
             'thumbnail': r're:https?://.*',
             'duration': 198,
+            'view_count': int,
+            'comment_count': int,
+        },
+        'skip': 'Requires an account',
+    }, {
+        # Video without owner
+        'url': 'http://www.nicovideo.jp/watch/sm18238488',
+        'md5': 'd265680a1f92bdcbbd2a507fc9e78a9e',
+        'info_dict': {
+            'id': 'sm18238488',
+            'ext': 'mp4',
+            'title': '【実写版】ミュータントタートルズ',
+            'description': 'md5:15df8988e47a86f9e978af2064bf6d8e',
+            'timestamp': 1341160408,
+            'upload_date': '20120701',
+            'uploader': None,
+            'uploader_id': None,
+            'thumbnail': r're:https?://.*',
+            'duration': 5271,
             'view_count': int,
             'comment_count': int,
         },
@@ -395,7 +414,9 @@ class NiconicoIE(InfoExtractor):
 
         webpage_url = get_video_info('watch_url') or url
 
-        owner = api_data.get('owner', {})
+        # Note: cannot use api_data.get('owner', {}) because owner may be set to "null"
+        # in the JSON, which will cause None to be returned instead of {}.
+        owner = try_get(api_data, lambda x: x.get('owner'), dict) or {}
         uploader_id = get_video_info(['ch_id', 'user_id']) or owner.get('id')
         uploader = get_video_info(['ch_name', 'user_nickname']) or owner.get('nickname')
 

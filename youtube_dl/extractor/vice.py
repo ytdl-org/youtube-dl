@@ -198,7 +198,7 @@ class ViceShowIE(InfoExtractor):
 
 class ViceArticleIE(InfoExtractor):
     IE_NAME = 'vice:article'
-    _VALID_URL = r'https://www.vice.com/[^/]+/article/(?P<id>[^?#]+)'
+    _VALID_URL = r'https://www\.vice\.com/[^/]+/article/(?P<id>[^?#]+)'
 
     _TESTS = [{
         'url': 'https://www.vice.com/en_us/article/on-set-with-the-woman-making-mormon-porn-in-utah',

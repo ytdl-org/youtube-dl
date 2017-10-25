@@ -43,7 +43,7 @@ class NaverIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        m_id = re.search(r'var rmcPlayer = new nhn.rmcnmv.RMCVideoPlayer\("(.+?)", "(.+?)"',
+        m_id = re.search(r'var rmcPlayer = new nhn\.rmcnmv\.RMCVideoPlayer\("(.+?)", "(.+?)"',
                          webpage)
         if m_id is None:
             error = self._html_search_regex(

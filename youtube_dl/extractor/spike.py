@@ -44,6 +44,7 @@ class SpikeIE(MTVServicesInfoExtractor):
     _FEED_URL = 'http://www.spike.com/feeds/mrss/'
     _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
     _CUSTOM_URL_REGEX = re.compile(r'spikenetworkapp://([^/]+/[-a-fA-F0-9]+)')
+    _GEO_COUNTRIES = ['US']
 
     def _extract_mgid(self, webpage):
         mgid = super(SpikeIE, self)._extract_mgid(webpage)

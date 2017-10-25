@@ -174,7 +174,7 @@ class TwitterCardIE(TwitterBaseIE):
         webpage = self._download_webpage(url, video_id)
 
         iframe_url = self._html_search_regex(
-            r'<iframe[^>]+src="((?:https?:)?//(?:www.youtube.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
+            r'<iframe[^>]+src="((?:https?:)?//(?:www\.youtube\.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
             webpage, 'video iframe', default=None)
         if iframe_url:
             return self.url_result(iframe_url)
