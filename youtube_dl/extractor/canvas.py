@@ -5,8 +5,6 @@ import json
 
 from .common import InfoExtractor
 from .gigya import GigyaBaseIE
-
-
 from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
@@ -192,7 +190,7 @@ class VrtNUIE(GigyaBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
-        # 'skip': 'This video is only available for registered users'
+        'skip': 'This video is only available for registered users'
     }]
     _NETRC_MACHINE = 'vrtnu'
     _APIKEY = '3_0Z2HujMtiWq_pkAjgnS2Md2E11a1AwZjYiBETtwNE-EoEHDINgtnvcAOpNgmrVGy'
@@ -204,7 +202,7 @@ class VrtNUIE(GigyaBaseIE):
     def _login(self):
         username, password = self._get_login_info()
         if username is None:
-            self.raise_login_required()
+            return
 
         auth_data = {
             'APIKey': self._APIKEY,
@@ -281,15 +279,21 @@ class VrtNUIE(GigyaBaseIE):
         clean_url = url.split('?')[0].split('#')[0].strip('/')
         securevideo_url = clean_url + '.mssecurevideo.json'
 
-        json = self._download_json(securevideo_url, display_id)
+        try:
+            video = self._download_json(securevideo_url, display_id)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                self.raise_login_required()
+            raise
+
         # We are dealing with a '../<show>.relevant' URL
-        redirect_url = json.get('url')
+        redirect_url = video.get('url')
         if redirect_url:
-            return self.url_result('https:' + redirect_url)
-        else:
-            # There is only one entry, but with an unknown key, so just get
-            # the first one
-            video_id = list(json.values())[0].get('videoid')
+            return self.url_result(self._proto_relative_url(redirect_url, 'https:'))
+
+        # There is only one entry, but with an unknown key, so just get
+        # the first one
+        video_id = list(video.values())[0].get('videoid')
 
         return {
             '_type': 'url_transparent',
