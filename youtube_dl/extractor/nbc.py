@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class NBCIE(AdobePassIE):
-    _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/[^/]+/video/[^/]+/(?P<id>n?\d+))'
+    _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/(?:classic-tv/)?[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
         {
@@ -67,7 +67,11 @@ class NBCIE(AdobePassIE):
                 'skip_download': True,
             },
             'skip': 'Only works from US',
-        }
+        },
+        {
+            'url': 'https://www.nbc.com/classic-tv/charles-in-charge/video/charles-in-charge-pilot/n3310',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
