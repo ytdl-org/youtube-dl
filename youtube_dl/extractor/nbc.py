@@ -67,23 +67,10 @@ class NBCIE(AdobePassIE):
                 'skip_download': True,
             },
             'skip': 'Only works from US',
-        }
+        },
         {
             'url': 'https://www.nbc.com/classic-tv/charles-in-charge/video/charles-in-charge-pilot/n3310',
-            'info_dict': {
-                'id': 'n3310',
-                'ext': 'mp4',
-                'title': 'Charles in Charge: Pilot',
-                'description': 'Charles\' attempt to impress the campus beauty goes awry.',
-                'timestamp': 465638400,
-                'upload_date': '19841003',
-                'uploader': 'NBCU-COM',
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            },
-            'skip': 'Only works from US',
+            'only_matching': True,
         },
     ]
 
