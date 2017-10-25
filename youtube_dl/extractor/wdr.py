@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class WDRBaseIE(InfoExtractor):
-    def _extract_wdr_video(self, webpage, display_id):
+    def _extract_jsonp_url(self, webpage, display_id):
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
         # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
         # for wdrmaus, in a tag with the class "videoButton" (previously a link
@@ -35,8 +35,9 @@ class WDRBaseIE(InfoExtractor):
 
         media_link_obj = self._parse_json(json_metadata, display_id,
                                           transform_source=js_to_json)
-        jsonp_url = media_link_obj['mediaObj']['url']
+        return media_link_obj['mediaObj']['url']
 
+    def _extract_wdr_video(self, jsonp_url, display_id):
         metadata = self._download_json(
             jsonp_url, display_id, transform_source=strip_jsonp)
 
@@ -206,7 +207,8 @@ class WDRIE(WDRBaseIE):
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
 
-        info_dict = self._extract_wdr_video(webpage, display_id)
+        jsonp_url = self._extract_jsonp_url(webpage, display_id)
+        info_dict = self._extract_wdr_video(jsonp_url, display_id)
 
         if not info_dict:
             entries = [
