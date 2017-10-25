@@ -3,10 +3,9 @@ from __future__ import unicode_literals
 import re
 import json
 
-from .common import (
-    InfoExtractor,
-    GigyaBaseIE,
-)
+from .common import InfoExtractor
+from .gigya import GigyaBaseIE
+
 
 from ..compat import compat_HTTPError
 from ..utils import (
