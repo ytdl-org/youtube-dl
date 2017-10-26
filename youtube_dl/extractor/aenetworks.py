@@ -131,7 +131,7 @@ class AENetworksIE(AENetworksBaseIE):
              r'data-media-url=(["\'])(?P<url>(?:(?!\1).)+?)\1'],
             webpage, 'video url', group='url')
         theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
-            r'https?://link.theplatform.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
+            r'https?://link\.theplatform\.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
         info = self._parse_theplatform_metadata(theplatform_metadata)
         if theplatform_metadata.get('AETN$isBehindWall'):
             requestor_id = self._DOMAIN_TO_REQUESTOR_ID[domain]

@@ -104,7 +104,7 @@ class HRTiIE(HRTiBaseIE):
                         (?:
                             hrti:(?P<short_id>[0-9]+)|
                             https?://
-                                hrti\.hrt\.hr/\#/video/show/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?
+                                hrti\.hrt\.hr/(?:\#/)?video/show/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?
                         )
                     '''
     _TESTS = [{
@@ -128,6 +128,9 @@ class HRTiIE(HRTiBaseIE):
         'only_matching': True,
     }, {
         'url': 'hrti:2181385',
+        'only_matching': True,
+    }, {
+        'url': 'https://hrti.hrt.hr/video/show/3873068/cuvar-dvorca-dramska-serija-14',
         'only_matching': True,
     }]
 
@@ -170,7 +173,7 @@ class HRTiIE(HRTiBaseIE):
 
 
 class HRTiPlaylistIE(HRTiBaseIE):
-    _VALID_URL = r'https?://hrti.hrt.hr/#/video/list/category/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?'
+    _VALID_URL = r'https?://hrti\.hrt\.hr/(?:#/)?video/list/category/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?'
     _TESTS = [{
         'url': 'https://hrti.hrt.hr/#/video/list/category/212/ekumena',
         'info_dict': {
@@ -181,6 +184,9 @@ class HRTiPlaylistIE(HRTiBaseIE):
         'skip': 'Requires account credentials',
     }, {
         'url': 'https://hrti.hrt.hr/#/video/list/category/212/',
+        'only_matching': True,
+    }, {
+        'url': 'https://hrti.hrt.hr/video/list/category/212/ekumena',
         'only_matching': True,
     }]
 

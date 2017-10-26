@@ -18,7 +18,13 @@ from ..utils import (
 
 
 class NexxIE(InfoExtractor):
-    _VALID_URL = r'https?://api\.nexx(?:\.cloud|cdn\.com)/v3/(?P<domain_id>\d+)/videos/byid/(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                        (?:
+                            https?://api\.nexx(?:\.cloud|cdn\.com)/v3/(?P<domain_id>\d+)/videos/byid/|
+                            nexx:(?P<domain_id_s>\d+):
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [{
         # movie
         'url': 'https://api.nexx.cloud/v3/748/videos/byid/128907',
@@ -62,7 +68,17 @@ class NexxIE(InfoExtractor):
     }, {
         'url': 'https://api.nexxcdn.com/v3/748/videos/byid/128907',
         'only_matching': True,
+    }, {
+        'url': 'nexx:748:128907',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_domain_id(webpage):
+        mobj = re.search(
+            r'<script\b[^>]+\bsrc=["\'](?:https?:)?//require\.nexx(?:\.cloud|cdn\.com)/(?P<id>\d+)',
+            webpage)
+        return mobj.group('id') if mobj else None
 
     @staticmethod
     def _extract_urls(webpage):
@@ -72,11 +88,8 @@ class NexxIE(InfoExtractor):
         entries = []
 
         # JavaScript Integration
-        mobj = re.search(
-            r'<script\b[^>]+\bsrc=["\']https?://require\.nexx(?:\.cloud|cdn\.com)/(?P<id>\d+)',
-            webpage)
-        if mobj:
-            domain_id = mobj.group('id')
+        domain_id = NexxIE._extract_domain_id(webpage)
+        if domain_id:
             for video_id in re.findall(
                     r'(?is)onPLAYReady.+?_play\.init\s*\(.+?\s*,\s*["\']?(\d+)',
                     webpage):
@@ -112,7 +125,8 @@ class NexxIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        domain_id, video_id = mobj.group('domain_id', 'id')
+        domain_id = mobj.group('domain_id') or mobj.group('domain_id_s')
+        video_id = mobj.group('id')
 
         # Reverse engineered from JS code (see getDeviceID function)
         device_id = '%d:%d:%d%d' % (

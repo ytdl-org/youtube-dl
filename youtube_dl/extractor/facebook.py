@@ -67,9 +67,9 @@ class FacebookIE(InfoExtractor):
             'uploader': 'Tennis on Facebook',
             'upload_date': '20140908',
             'timestamp': 1410199200,
-        }
+        },
+        'skip': 'Requires logging in',
     }, {
-        'note': 'Video without discernible title',
         'url': 'https://www.facebook.com/video.php?v=274175099429670',
         'info_dict': {
             'id': '274175099429670',
@@ -78,6 +78,7 @@ class FacebookIE(InfoExtractor):
             'uploader': 'Asif Nawab Butt',
             'upload_date': '20140506',
             'timestamp': 1399398998,
+            'thumbnail': r're:^https?://.*',
         },
         'expected_warnings': [
             'title'
@@ -94,6 +95,7 @@ class FacebookIE(InfoExtractor):
             'upload_date': '20160110',
             'timestamp': 1452431627,
         },
+        'skip': 'Requires logging in',
     }, {
         'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
         'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
@@ -121,7 +123,11 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '10153664894881749',
             'ext': 'mp4',
-            'title': 'Facebook video #10153664894881749',
+            'title': 'Average time to confirm recent Supreme Court nominees: 67 days Longest it\'s t...',
+            'thumbnail': r're:^https?://.*',
+            'timestamp': 1456259628,
+            'upload_date': '20160223',
+            'uploader': 'Barack Obama',
         },
     }, {
         # have 1080P, but only up to 720p in swf params
@@ -130,10 +136,11 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '10155529876156509',
             'ext': 'mp4',
-            'title': 'Holocaust survivor becomes US citizen',
+            'title': 'She survived the holocaust — and years later, she’s getting her citizenship s...',
             'timestamp': 1477818095,
             'upload_date': '20161030',
             'uploader': 'CNN',
+            'thumbnail': r're:^https?://.*',
         },
     }, {
         # bigPipe.onPageletArrive ... onPageletArrive pagelet_group_mall
@@ -158,6 +165,7 @@ class FacebookIE(InfoExtractor):
             'timestamp': 1477305000,
             'upload_date': '20161024',
             'uploader': 'La Guía Del Varón',
+            'thumbnail': r're:^https?://.*',
         },
         'params': {
             'skip_download': True,
@@ -376,6 +384,7 @@ class FacebookIE(InfoExtractor):
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
+        thumbnail = self._og_search_thumbnail(webpage)
 
         info_dict = {
             'id': video_id,
@@ -383,6 +392,7 @@ class FacebookIE(InfoExtractor):
             'formats': formats,
             'uploader': uploader,
             'timestamp': timestamp,
+            'thumbnail': thumbnail,
         }
 
         return webpage, info_dict

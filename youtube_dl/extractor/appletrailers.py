@@ -117,7 +117,7 @@ class AppleTrailersIE(InfoExtractor):
                             continue
                         formats.append({
                             'format_id': '%s-%s' % (version, size),
-                            'url': re.sub(r'_(\d+p.mov)', r'_h\1', src),
+                            'url': re.sub(r'_(\d+p\.mov)', r'_h\1', src),
                             'width': int_or_none(size_data.get('width')),
                             'height': int_or_none(size_data.get('height')),
                             'language': version[:2],
@@ -179,7 +179,7 @@ class AppleTrailersIE(InfoExtractor):
             formats = []
             for format in settings['metadata']['sizes']:
                 # The src is a file pointing to the real video file
-                format_url = re.sub(r'_(\d*p.mov)', r'_h\1', format['src'])
+                format_url = re.sub(r'_(\d*p\.mov)', r'_h\1', format['src'])
                 formats.append({
                     'url': format_url,
                     'format': format['type'],

@@ -59,7 +59,7 @@ class DramaFeverBaseIE(AMPIE):
         if all(logout_pattern not in response
                for logout_pattern in ['href="/accounts/logout/"', '>Log out<']):
             error = self._html_search_regex(
-                r'(?s)class="hidden-xs prompt"[^>]*>(.+?)<',
+                r'(?s)<h\d[^>]+\bclass="hidden-xs prompt"[^>]*>(.+?)</h\d',
                 response, 'error message', default=None)
             if error:
                 raise ExtractorError('Unable to login: %s' % error, expected=True)

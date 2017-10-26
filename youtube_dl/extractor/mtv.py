@@ -258,7 +258,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         if mgid is None or ':' not in mgid:
             mgid = self._search_regex(
-                [r'data-mgid="(.*?)"', r'swfobject.embedSWF\(".*?(mgid:.*?)"'],
+                [r'data-mgid="(.*?)"', r'swfobject\.embedSWF\(".*?(mgid:.*?)"'],
                 webpage, 'mgid', default=None)
 
         if not mgid:

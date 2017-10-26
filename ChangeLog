@@ -1,3 +1,105 @@
+version 2017.10.20
+
+Core
+* [downloader/fragment] Report warning instead of error on inconsistent
+  download state
+* [downloader/hls] Fix total fragments count when ad fragments exist
+
+Extractors
+* [parliamentliveuk] Fix extraction (#14524)
+* [soundcloud] Update client id (#14546)
++ [servus] Add support for servus.com (#14362)
++ [unity] Add support for unity3d.com (#14528)
+* [youtube] Replace youtube redirect URLs in description (#14517)
+* [pbs] Restrict direct video URL regular expression (#14519)
+* [drtv] Respect preference for direct HTTP formats (#14509)
++ [eporner] Add support for embed URLs (#14507)
+* [arte] Capture and output error message
+* [niconico] Improve uploader metadata extraction robustness (#14135)
+
+
+version 2017.10.15.1
+
+Core
+* [downloader/hls] Ignore anvato ad fragments (#14496)
+* [downloader/fragment] Output ad fragment count
+
+Extractors
+* [scrippsnetworks:watch] Bypass geo restriction
++ [anvato] Add ability to bypass geo restriction
+* [redditr] Fix extraction for URLs with query (#14495)
+
+
+version 2017.10.15
+
+Core
++ [common] Add support for jwplayer youtube embeds
+
+Extractors
+* [scrippsnetworks:watch] Fix extraction (#14389)
+* [anvato] Process master m3u8 manifests
+* [youtube] Fix relative URLs in description
+* [spike] Bypass geo restriction
++ [howstuffworks] Add support for more domains
+* [infoq] Fix http format downloading
++ [rtlnl] Add support for another type of embeds
++ [onionstudios] Add support for bulbs-video embeds
+* [udn] Fix extraction
+* [shahid] Fix extraction (#14448)
+* [kaltura] Ignore Widevine encrypted video (.wvm) (#14471)
+* [vh1] Fix extraction (#9613)
+
+
+version 2017.10.12
+
+Core
+* [YoutubeDL] Improve _default_format_spec (#14461)
+
+Extractors
+* [steam] Fix extraction (#14067)
++ [funk] Add support for funk.net (#14464)
++ [nexx] Add support for shortcuts and relax domain id extraction
++ [voxmedia] Add support for recode.net (#14173)
++ [once] Add support for vmap URLs
++ [generic] Add support for channel9 embeds (#14469)
+* [tva] Fix extraction (#14328)
++ [tubitv] Add support for new URL format (#14460)
+- [afreecatv:global] Remove extractor
+- [youtube:shared] Removed extractor (#14420)
++ [slideslive] Add support for slideslive.com (#2680)
++ [facebook] Support thumbnails (#14416)
+* [vvvvid] Fix episode number extraction (#14456)
+* [hrti:playlist] Relax URL regular expression
+* [wdr] Relax media link regular expression (#14447)
+* [hrti] Relax URL regular expression (#14443)
+* [fox] Delegate extraction to uplynk:preplay (#14147)
++ [youtube] Add support for hooktube.com (#14437)
+
+
+version 2017.10.07
+
+Core
+* [YoutubeDL] Ignore duplicates in --playlist-items
+* [YoutubeDL] Fix out of range --playlist-items for iterable playlists and
+  reduce code duplication (#14425)
++ [utils] Use cache in OnDemandPagedList by default
+* [postprocessor/ffmpeg] Convert to opus using libopus (#14381)
+
+Extractors
+* [reddit] Sort formats (#14430)
+* [lnkgo] Relax URL regular expression (#14423)
+* [pornflip] Extend URL regular expression (#14405, #14406)
++ [xtube] Add support for embed URLs (#14417)
++ [xvideos] Add support for embed URLs and improve extraction (#14409)
+* [beeg] Fix extraction (#14403)
+* [tvn24] Relax URL regular expression (#14395)
+* [nbc] Fix extraction (#13651, #13715, #14137, #14198, #14312, #14314, #14378,
+  #14392, #14414, #14419, #14431)
++ [ketnet] Add support for videos without direct sources (#14377)
+* [canvas] Generalize mediazone.vrt.be extractor and rework canvas and een
++ [afreecatv] Add support for adult videos (#14376)
+
+
 version 2017.10.01
 
 Core
@@ -752,7 +854,7 @@ version 2017.04.14
 
 Core
 + [downloader/hls] Add basic support for EXT-X-BYTERANGE tag (#10955)
-+ [adobepass] Improve Comcast and Verison login code (#10803)
++ [adobepass] Improve Comcast and Verizon login code (#10803)
 + [adobepass] Add support for Verizon (#10803)
 
 Extractors

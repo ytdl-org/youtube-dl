@@ -60,9 +60,13 @@ class BeegIE(InfoExtractor):
         beeg_version = beeg_version or '2185'
         beeg_salt = beeg_salt or 'pmweAkq8lAYKdfWcFCUj0yoVgoPlinamH5UE1CB3H'
 
-        video = self._download_json(
-            'https://api.beeg.com/api/v6/%s/video/%s' % (beeg_version, video_id),
-            video_id)
+        for api_path in ('', 'api.'):
+            video = self._download_json(
+                'https://%sbeeg.com/api/v6/%s/video/%s'
+                % (api_path, beeg_version, video_id), video_id,
+                fatal=api_path == 'api.')
+            if video:
+                break
 
         def split(o, e):
             def cut(s, x):

@@ -18,6 +18,7 @@ from ..utils import (
     int_or_none,
     strip_jsonp,
     unescapeHTML,
+    unsmuggle_url,
 )
 
 
@@ -197,12 +198,16 @@ class AnvatoIE(InfoExtractor):
                 'tbr': tbr if tbr != 0 else None,
             }
 
-            if ext == 'm3u8' or media_format in ('m3u8', 'm3u8-variant'):
-                if tbr is not None:
-                    a_format.update({
-                        'format_id': '-'.join(filter(None, ['hls', compat_str(tbr)])),
-                        'ext': 'mp4',
-                    })
+            if media_format == 'm3u8' and tbr is not None:
+                a_format.update({
+                    'format_id': '-'.join(filter(None, ['hls', compat_str(tbr)])),
+                    'ext': 'mp4',
+                })
+            elif media_format == 'm3u8-variant' or ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+                continue
             elif ext == 'mp3' or media_format == 'mp3':
                 a_format['vcodec'] = 'none'
             else:
@@ -271,6 +276,9 @@ class AnvatoIE(InfoExtractor):
             anvplayer_data['accessKey'], anvplayer_data['video'])
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+
         mobj = re.match(self._VALID_URL, url)
         access_key, video_id = mobj.group('access_key_or_mcp', 'id')
         if access_key not in self._ANVACK_TABLE:
