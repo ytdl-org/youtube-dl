@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
+from .youtube import YoutubeIE
 from .common import InfoExtractor
 from ..utils import ExtractorError, int_or_none
 
@@ -25,6 +26,16 @@ class GoodgameBaseIE(InfoExtractor):
                     '''
     _RE_TIMESTAMP = r'utc-timestamp=\"(?P<timestamp>\d+)\"'
 
+    def _extract_uploader(self, webpage):
+        uploader_match = re.search(self._RE_UPLOADER, webpage)
+        if uploader_match:
+            uploader = uploader_match.group('uploader')
+            uploader_id = uploader_match.group('uploader_id')
+        else:
+            uploader, uploader_id = None, None
+
+        return uploader, uploader_id
+
 
 class GoodgameStreamIE(GoodgameBaseIE):
     IE_NAME = 'goodgame:stream'
@@ -33,8 +44,9 @@ class GoodgameStreamIE(GoodgameBaseIE):
         'url': 'https://goodgame.ru/channel/rutony',
         'info_dict': {
             'id': 'rutony',
-            'stream_id': '2399',
             'title': 're:^.*',
+            'view_count': 're:^\d+',
+            'thumbnail': 're:^https?://.*\.jpg$',
             'ext': 'mp4',
             'is_live': True,
         },
@@ -45,8 +57,9 @@ class GoodgameStreamIE(GoodgameBaseIE):
         'url': 'https://goodgame.ru/player?9418',
         'info_dict': {
             'id': 'Artist.the',
-            'stream_id': '9418',
             'title': 're:^.*',
+            'view_count': 're:^\d+',
+            'thumbnail': 're:^https?://.*\.jpg$',
             'ext': 'mp4',
             'is_live': True,
         },
@@ -59,23 +72,29 @@ class GoodgameStreamIE(GoodgameBaseIE):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        channel_id = self._match_id(url)
         stream_info = next(
-            _ for _ in self._download_json('%s/getchannelstatus?id=%s&fmt=json' % (self._API_BASE, video_id),
-                                           video_id,
+            _ for _ in self._download_json('%s/getchannelstatus?id=%s&fmt=json' % (self._API_BASE, channel_id),
+                                           channel_id,
                                            note='Downloading stream JSON').values())
 
         if stream_info.get('status') == 'Dead':
-            raise ExtractorError('%s is offline' % video_id, expected=True)
+            raise ExtractorError('%s is offline' % channel_id, expected=True)
 
         # url with player and stream_id
         if stream_info.get('key') == stream_info.get('stream_id'):
-            video_id = self._download_json('%s/player?src=%s' % (self._API_BASE, video_id),
-                                           video_id,
-                                           note='Downloading streamer info JSON').get('streamer_name')
+            channel_id = self._download_json('%s/player?src=%s' % (self._API_BASE, channel_id),
+                                             channel_id,
+                                             note='Downloading streamer info JSON').get('streamer_name')
 
         _id = self._search_regex('src=\"https://goodgame.ru/player\?(?P<id>\d+)\"', stream_info.get('embed'), 'id')
-        thumbnails = [{'url': 'https:%s' % stream_info.get('thumb')}]
+        thumbnail = stream_info.get('thumb')
+        # goodgame.ru host thumbnail image
+        if thumbnail.startswith('//'):
+            thumbnail = 'https:%s' % thumbnail
+        else:
+            thumbnail = None
+
         formats = []
         for quality, suffix in self._QUALITIES.items():
             formats.append({
@@ -84,17 +103,13 @@ class GoodgameStreamIE(GoodgameBaseIE):
                 'ext': 'mp4',
                 'protocol': 'm3u8'
             })
-
         return {
-            'id': video_id,
-            'stream_id': stream_info.get('stream_id'),
+            'id': channel_id,
             'title': stream_info.get('title'),
-            'description': stream_info.get('description'),
-            'view_count': int(stream_info.get('viewers')),
-            'status': stream_info.get('status'),
-            'thumbnails': thumbnails,
-            'formats': formats,
+            'view_count': int_or_none(stream_info.get('viewers')),
+            'thumbnail': thumbnail,
             'is_live': True,
+            'formats': formats,
         }
 
 
@@ -111,10 +126,25 @@ class GoodgameVideoIE(GoodgameBaseIE):
             'uploader_id': '374',
             'timestamp': 1506862050,
             'upload_date': '20171001',
-            'ext': 'mp4',
+            'ext': 'flv',
         },
         'params': {
             'skip_download': True,
+        }
+    }, {
+        'url': 'https://goodgame.ru/video/49097/',
+        'info_dict': {
+            'id': '49097',
+            'title': 'GRAND FINAL Турнирa WCS Montreal 2017 по StarCraft 2',
+            'description': 'SUPER FINAL на WCS',
+            'uploader': 'ZERGTV',
+            'uploader_id': '48996',
+            'timestamp': 1505071700,
+            'upload_date': '20170910',
+            'ext': 'flv',
+        },
+        'params': {
+            'skip_download': True
         }
     }, {
         # Embedded youtube video
@@ -139,25 +169,23 @@ class GoodgameVideoIE(GoodgameBaseIE):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        matches = list(re.finditer(r'<div[^>]+class=\"title\"[^>]*>(?P<title>[^<]+)', webpage))
-        title = matches[1].group('title')
+        title = self._html_search_regex(
+            r'<div[^>]+class=([\"\'])[^\"\']*video-description[^\"\']*\1[^>]*>.*'
+            r'<div[^>]+class=\"title\"[^>]*>(?P<title>[^<]+)',
+            webpage, 'title', group='title', flags=re.DOTALL)
         description = self._html_search_regex(r'<div[^>]+class=\"description\"[^>]*>(?P<info>[^\0]*?)</div>',
-                                              webpage, 'info')
-        timestamp = int_or_none(self._html_search_regex(self._RE_TIMESTAMP, webpage, 'timestamp'))
-        uploader_match = re.search(self._RE_UPLOADER, webpage)
-        uploader = uploader_match.group('uploader')
-        uploader_id = uploader_match.group('uploader_id')
+                                              webpage, 'info', fatal=False, default=None)
+        timestamp = self._html_search_regex(self._RE_TIMESTAMP, webpage, 'timestamp', fatal=False, default=None)
+        uploader, uploader_id = self._extract_uploader(webpage)
 
-        embed_url = self._html_search_regex(
-            r'<iframe[^>]+src="((?:https?:)?//(?:www\.)?youtube\.com/embed[^"]+)"',
-            webpage, 'embed URL', default=None)
+        embed_url = YoutubeIE._extract_url(webpage)
         if embed_url:
             return {
                 '_type': 'url_transparent',
                 'url': embed_url,
                 'title': title,
                 'description': description,
-                'timestamp': timestamp,
+                'timestamp': int_or_none(timestamp),
                 'uploader': uploader,
                 'uploader_id': uploader_id
             }
@@ -169,15 +197,14 @@ class GoodgameVideoIE(GoodgameBaseIE):
             formats = [{
                 'format_id': 'rtmp',
                 'url': rtmp_url,
-                'protocol': 'rtmp',
-                'ext': 'mp4',
+                'ext': 'flv',
             }]
 
             return {
                 'id': video_id,
                 'title': title,
                 'description': description,
-                'timestamp': timestamp,
+                'timestamp': int_or_none(timestamp),
                 'uploader': uploader,
                 'uploader_id': uploader_id,
                 'formats': formats,
@@ -212,27 +239,20 @@ class GoodgameClipIE(GoodgameBaseIE):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
-        url = self._og_search_video_url(webpage)
-        timestamp = int_or_none(self._html_search_regex(self._RE_TIMESTAMP, webpage, 'timestamp'))
-        uploader_match = re.search(self._RE_UPLOADER, webpage)
-        uploader = uploader_match.group('uploader')
-        uploader_id = uploader_match.group('uploader_id')
+        timestamp = self._html_search_regex(self._RE_TIMESTAMP, webpage, 'timestamp')
+        uploader, uploader_id = self._extract_uploader(webpage)
 
         formats = [{
             'format_id': 'clip',
-            'url': url,
-            # http or https extraction
-            'protocol': url[:6].rstrip(':/'),
+            'url': self._og_search_video_url(webpage),
             'ext': 'mp4',
         }]
 
         return {
             'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'timestamp': timestamp,
+            'title': self._og_search_title(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'timestamp': int_or_none(timestamp),
             'uploader': uploader,
             'uploader_id': uploader_id,
             'formats': formats,
