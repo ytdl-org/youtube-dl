@@ -20,7 +20,7 @@ class FXNetworksIE(AdobePassIE):
             'ext': 'mp4',
             'title': 'September',
             'description': 'Sam has people over. An FX Original Series, Thursday 10PM on FX.',
-            'age_limit': 14,
+            'age_limit': 17,
             'uploader': 'NEWA-FNG-FX',
             'upload_date': '20170615',
             'timestamp': 1505453400,
