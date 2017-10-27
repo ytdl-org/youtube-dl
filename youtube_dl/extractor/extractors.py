@@ -177,7 +177,10 @@ from .cbsnews import (
     CBSNewsLiveVideoIE,
 )
 from .cbssports import CBSSportsIE
-from .ccc import CCCIE
+from .ccc import (
+    CCCIE,
+    CCCPlaylistIE,
+)
 from .ccma import CCMAIE
 from .cctv import CCTVIE
 from .cda import CDAIE
