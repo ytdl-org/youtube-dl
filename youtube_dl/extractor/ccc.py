@@ -75,3 +75,20 @@ class CCCIE(InfoExtractor):
             'tags': event_data.get('tags'),
             'formats': formats,
         }
+
+
+class CCCPlaylistIE(InfoExtractor):
+    IE_NAME = 'media.ccc.de:lists'
+    _VALID_URL = r'https?://(?:www\.)?media\.ccc\.de/c/(?P<id>[^/?#&]+)'
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url).lower()
+
+        all_conferences = self._download_json('https://media.ccc.de/public/conferences', display_id)
+        event = next(filter(lambda x: x.get('acronym').lower() == display_id, all_conferences['conferences']))
+        event_list = self._download_json(event['url'], display_id)['events']
+
+        return self.playlist_result(
+            [self.url_result(event['frontend_link']) for event in event_list],
+            display_id,
+        )
