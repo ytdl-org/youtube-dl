@@ -13,17 +13,21 @@ from ..utils import (
 class FXNetworksIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?(?:fxnetworks|simpsonsworld)\.com/video/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://www.fxnetworks.com/video/719841347694',
-        'md5': '1447d4722e42ebca19e5232ab93abb22',
+        'url': 'http://www.fxnetworks.com/video/1046477891799',
+        'md5': 'b5d9896b224e6c85f10e92fbac3a9115',
         'info_dict': {
-            'id': '719841347694',
+            'id': '1046477891799',
             'ext': 'mp4',
-            'title': 'Vanpage',
-            'description': 'F*ck settling down. You\'re the Worst returns for an all new season August 31st on FXX.',
+            'title': 'September',
+            'description': 'Sam has people over. An FX Original Series, Thursday 10PM on FX.',
             'age_limit': 14,
             'uploader': 'NEWA-FNG-FX',
-            'upload_date': '20160706',
-            'timestamp': 1467844741,
+            'upload_date': '20170615',
+            'timestamp': 1505453400,
+            'episode_number': 1,
+            'season_number': 2,
+            'series': 'Better Things',
+            
         },
         'add_ie': ['ThePlatform'],
     }, {
