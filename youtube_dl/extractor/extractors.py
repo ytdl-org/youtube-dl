@@ -927,6 +927,7 @@ from .sendtonews import SendtoNewsIE
 from .servingsys import ServingSysIE
 from .servus import ServusIE
 from .sexu import SexuIE
+from .seznamzpravy import SeznamZpravyIE
 from .shahid import ShahidIE
 from .shared import (
     SharedIE,
