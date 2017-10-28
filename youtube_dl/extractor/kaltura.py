@@ -117,6 +117,17 @@ class KalturaIE(InfoExtractor):
                         (?P<q1>['"])wid(?P=q1)\s*:\s*
                         (?P<q2>['"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
                         (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
+                        (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4),.*?
+                        (?P<q5>['"])ks(?P=q5)\s*:\s*
+                        (?P<q6>['"])(?P<ks>(?:(?!(?P=q6)).)+)(?P=q6)(?:,|\s*\})
+                """, webpage) or
+            re.search(
+                r"""(?xs)
+                    kWidget\.(?:thumb)?[Ee]mbed\(
+                    \{.*?
+                        (?P<q1>['"])wid(?P=q1)\s*:\s*
+                        (?P<q2>['"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
+                        (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
                         (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
                 """, webpage) or
             re.search(
@@ -142,12 +153,20 @@ class KalturaIE(InfoExtractor):
         if mobj:
             embed_info = mobj.groupdict()
             url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
+            smuggled_data = {}
+
+            if 'ks' in embed_info:
+                smuggled_data['ks'] = embed_info['ks']
+
             escaped_pid = re.escape(embed_info['partner_id'])
             service_url = re.search(
                 r'<script[^>]+src=["\']((?:https?:)?//.+?)/p/%s/sp/%s00/embedIframeJs' % (escaped_pid, escaped_pid),
                 webpage)
             if service_url:
-                url = smuggle_url(url, {'service_url': service_url.group(1)})
+                smuggled_data['service_url'] = service_url.group(1)
+
+            if smuggled_data:
+                url = smuggle_url(url, smuggled_data)
             return url
 
     def _kaltura_api_call(self, video_id, actions, service_url=None, *args, **kwargs):
@@ -168,7 +187,7 @@ class KalturaIE(InfoExtractor):
 
         return data
 
-    def _get_video_info(self, video_id, partner_id, service_url=None):
+    def _get_video_info(self, video_id, partner_id, service_url=None, ks=None):
         actions = [
             {
                 'action': 'null',
@@ -187,19 +206,19 @@ class KalturaIE(InfoExtractor):
                 'action': 'get',
                 'entryId': video_id,
                 'service': 'baseentry',
-                'ks': '{1:result:ks}',
+                'ks': ks or '{1:result:ks}',
             },
             {
                 'action': 'getbyentryid',
                 'entryId': video_id,
                 'service': 'flavorAsset',
-                'ks': '{1:result:ks}',
+                'ks': ks or '{1:result:ks}',
             },
             {
                 'action': 'list',
                 'filter:entryIdEqual': video_id,
                 'service': 'caption_captionasset',
-                'ks': '{1:result:ks}',
+                'ks': ks or '{1:result:ks}',
             },
         ]
         return self._kaltura_api_call(
@@ -210,10 +229,10 @@ class KalturaIE(InfoExtractor):
 
         mobj = re.match(self._VALID_URL, url)
         partner_id, entry_id = mobj.group('partner_id', 'id')
-        ks = None
+        ks = smuggled_data.get('ks')
         captions = None
         if partner_id and entry_id:
-            _, info, flavor_assets, captions = self._get_video_info(entry_id, partner_id, smuggled_data.get('service_url'))
+            _, info, flavor_assets, captions = self._get_video_info(entry_id, partner_id, smuggled_data.get('service_url'), ks)
         else:
             path, query = mobj.group('path', 'query')
             if not path and not query:
