@@ -13,21 +13,20 @@ from ..utils import (
 class FXNetworksIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?(?:fxnetworks|simpsonsworld)\.com/video/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://www.fxnetworks.com/video/1046477891799',
-        'md5': 'b5d9896b224e6c85f10e92fbac3a9115',
+        'url': 'http://www.fxnetworks.com/video/1032565827847',
+        'md5': '8d99b97b4aa7a202f55b6ed47ea7e703',
         'info_dict': {
-            'id': 'NFPnVIqjI5eS',
+            'id': 'dRzwHC_MMqIv',
             'ext': 'mp4',
-            'title': 'September',
-            'description': 'Sam has people over. An FX Original Series, Thursday 10PM on FX.',
-            'age_limit': 17,
+            'title': 'First Look: Better Things - Season 2',
+            'description': 'Because real life is like a fart. Watch this FIRST LOOK to see what inspired the new season of Better Things.',
+            'age_limit': 14,
             'uploader': 'NEWA-FNG-FX',
-            'upload_date': '20170915',
-            'timestamp': 1505453400,
-            'episode_number': 1,
+            'upload_date': '20170825',
+            'timestamp': 1503686274,
+            'episode_number': 0,
             'season_number': 2,
             'series': 'Better Things',
-            
         },
         'add_ie': ['ThePlatform'],
     }, {
