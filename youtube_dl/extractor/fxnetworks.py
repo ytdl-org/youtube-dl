@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 
 from .adobepass import AdobePassIE
 from ..utils import (
-    update_url_query,
     extract_attributes,
+    int_or_none,
     parse_age_limit,
     smuggle_url,
-    int_or_none,
+    update_url_query,
 )
 
 
