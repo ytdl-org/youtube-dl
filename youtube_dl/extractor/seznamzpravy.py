@@ -14,6 +14,7 @@ class SeznamZpravyIE(InfoExtractor):
     _MAGIC_SUFFIX = 'spl2,2,VOD'
 
     _TESTS = [{
+        # video with SDN URL
         'url': 'https://www.seznam.cz/zpravy/clanek/jejich-svet-na-nas-utoci-je-lepsi-branit-se-na-jejich-pisecku-rika-reziser-a-major-v-zaloze-marhoul-35990',
         'md5': '855f9fed87bd93e48775d59671a3a3e3',
         'info_dict': {
@@ -23,15 +24,7 @@ class SeznamZpravyIE(InfoExtractor):
             'description': 'O nasazení českých vojáků v zahraničí. Marhoul by na mise posílal i zálohy. „Nejdříve se ale musí vycvičit,“ říká.',
         }
     }, {
-        'url': 'https://www.seznam.cz/zpravy/clanek/vyzva-volicum-letos-se-na-to-klidne-vykaslete-kdyby-mohly-volby-neco-zmenit-davno-by-je-prece-zakazali-38474',
-        'md5': '542ebc27baa3b2dd99d1671c12f5b28c',
-        'info_dict': {
-            'id': '38474',
-            'ext': 'mp4',
-            'title': 'Šťastné pondělí Jindřicha Šídla.',
-            'description': 'Do voleb zbývají čtyři dny. Jindřich Šídlo proto přichází se zásadním doporučením voličům, jak se letos zachovat. Další díl satirického pořadu.',
-        }
-    }, {
+        # video with live stream URL
         'url': 'https://www.seznam.cz/zpravy/clanek/znovu-do-vlady-s-ano-pavel-belobradek-ve-volebnim-specialu-seznamu-38489',
         'md5': '3da261b41d776b2c860c191f47517057',
         'info_dict': {
@@ -44,28 +37,32 @@ class SeznamZpravyIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        api_url = self._API_URL + 'v1/documents/{}'.format(video_id)
-        data = self._download_json(api_url, video_id)
+        data = self._download_json(self._API_URL + 'v1/documents/' + video_id, video_id)
 
         if 'video' in data['caption']:
             sdn_url = data['caption']['video']['sdn'] + self._MAGIC_SUFFIX
         else:
-            location_url = data['caption']['liveStreamUrl'] + self._MAGIC_SUFFIX
-            sdn_url = self._download_json(location_url, video_id)['Location']
-
-        sdn_data = self._download_json(sdn_url, video_id)
+            sdn_url = self._download_json(data['caption']['liveStreamUrl'] + self._MAGIC_SUFFIX, video_id)['Location']
 
         formats = []
-        for fmt, fmtdata in sdn_data['data']['mp4'].items():
-            resolution = fmtdata.get('resolution')
+        for fmt, fmtdata in self._download_json(sdn_url, video_id)['data']['mp4'].items():
+            relative_url = fmtdata.get('url')
+            if not relative_url:
+                continue
+
+            try:
+                width, height = fmtdata.get('resolution')
+            except TypeError:
+                width, height = None, None
+
             formats.append({
                 'format_id': fmt,
-                'width': int_or_none(resolution[0]) if resolution is not None else None,
-                'height': int_or_none(resolution[1]) if resolution is not None else None,
-                'url': urljoin(sdn_url, fmtdata['url']),
+                'width': int_or_none(width),
+                'height': int_or_none(height),
+                'url': urljoin(sdn_url, relative_url),
             })
 
-        formats.sort(key=lambda x: x['height'])
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
