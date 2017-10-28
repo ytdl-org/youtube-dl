@@ -7,6 +7,7 @@ from ..utils import (
     extract_attributes,
     parse_age_limit,
     smuggle_url,
+    int_or_none,
 )
 
 
