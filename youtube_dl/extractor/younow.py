@@ -1,17 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
-from datetime import date, datetime
+
+import itertools
 
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import int_or_none, UnsupportedError
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    try_get,
+)
 
-MOMENT_URL_FORMAT = 'https://cdn.younow.com/php/api/moment/fetch/id=%s'
-STREAM_URL_FORMAT = 'https://hls.younow.com/momentsplaylists/live/%s/%s.m3u8'
+CDN_API_BASE = 'https://cdn.younow.com/php/api'
+MOMENT_URL_FORMAT = '%s/moment/fetch/id=%%s' % CDN_API_BASE
 
 
-class YouNowIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?younow\.com/(?P<id>[^/]+)'
+class YouNowLiveIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?younow\.com/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.younow.com/AmandaPadeezy',
         'info_dict': {
@@ -19,94 +24,95 @@ class YouNowIE(InfoExtractor):
             'ext': 'mp4',
             'is_live': True,
             'title': 'March 26, 2017',
-            'description': 'YouNow is the best way to broadcast live and get an audience to watch you.',
-            'thumbnail': 'https://ynassets.s3.amazonaws.com/broadcast/live/157869188/157869188.jpg',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'tags': ['girls'],
             'categories': ['girls'],
             'uploader': 'AmandaPadeezy',
             'uploader_id': '6716501',
             'uploader_url': 'https://www.younow.com/AmandaPadeezy',
             'creator': 'AmandaPadeezy',
-            'formats': [{
-                'url': 'https://cdn.younow.com/php/api/broadcast/videoPath/hls=1/broadcastId=157869188/channelId=6716501',
-                'ext': 'mp4',
-                'protocol': 'm3u8',
-            }],
-        }
+        },
+        'skip': True,
     }
+
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if YouNowChannelIE.suitable(url) or YouNowMomentIE.suitable(url)
+                else super(YouNowLiveIE, cls).suitable(url))
 
     def _real_extract(self, url):
         username = self._match_id(url)
-        data = self._download_json('https://api.younow.com/php/api/broadcast/info/curId=0/user=%s' % (username), username)
 
-        if data.get('media'):
-            stream_url = 'https://cdn.younow.com/php/api/broadcast/videoPath/hls=1/broadcastId=%s/channelId=%s' % (
-                data.get('broadcastId'),
-                data.get('userId'),
-            )
-        else:
-            raise UnsupportedError('Unsupported stream or user is not streaming at this time')
+        data = self._download_json(
+            'https://api.younow.com/php/api/broadcast/info/curId=0/user=%s'
+            % username, username)
 
-        webpage = self._download_webpage(url, username)
-        try:
-            uploader = data['user']['profileUrlString']
-        except KeyError:
-            uploader = username
-        try:
-            title = data['title']
-        except KeyError:
-            title = date.today().strftime('%B %d, %Y')
+        if data.get('errorCode') != 0:
+            raise ExtractorError(data['errorMsg'], expected=True)
+
+        uploader = try_get(
+            data, lambda x: x['user']['profileUrlString'],
+            compat_str) or username
 
         return {
             'id': uploader,
             'is_live': True,
-            'title': title,
-            'description': self._og_search_description(webpage),
+            'title': self._live_title(uploader),
             'thumbnail': data.get('awsUrl'),
             'tags': data.get('tags'),
             'categories': data.get('tags'),
             'uploader': uploader,
             'uploader_id': data.get('userId'),
-            'uploader_url': 'https://www.younow.com/%s' % (data['user']['profileUrlString'],),
+            'uploader_url': 'https://www.younow.com/%s' % username,
             'creator': uploader,
             'view_count': int_or_none(data.get('viewers')),
             'like_count': int_or_none(data.get('likes')),
             'formats': [{
-                'url': stream_url,
+                'url': '%s/broadcast/videoPath/hls=1/broadcastId=%s/channelId=%s'
+                       % (CDN_API_BASE, data['broadcastId'], data['userId']),
                 'ext': 'mp4',
                 'protocol': 'm3u8',
             }],
         }
 
 
-def _moment_to_entry(item):
+def _extract_moment(item, fatal=True):
+    moment_id = item.get('momentId')
+    if not moment_id:
+        if not fatal:
+            return
+        raise ExtractorError('Unable to extract moment id')
+
+    moment_id = compat_str(moment_id)
+
     title = item.get('text')
-    title_type = item.get('titleType')
     if not title:
-        if title_type:
-            title = 'YouNow %s' % item.get('titleType')
-        else:
-            title = 'YouNow moment'
+        title = 'YouNow %s' % (
+            item.get('momentType') or item.get('titleType') or 'moment')
+
+    uploader = try_get(item, lambda x: x['owner']['name'], compat_str)
+    uploader_id = try_get(item, lambda x: x['owner']['userId'])
+    uploader_url = 'https://www.younow.com/%s' % uploader if uploader else None
 
     entry = {
-        'id': compat_str(item['momentId']),
+        'extractor_key': 'YouNowMoment',
+        'id': moment_id,
         'title': title,
         'view_count': int_or_none(item.get('views')),
         'like_count': int_or_none(item.get('likes')),
         'timestamp': int_or_none(item.get('created')),
+        'creator': uploader,
+        'uploader': uploader,
+        'uploader_id': uploader_id,
+        'uploader_url': uploader_url,
         'formats': [{
-            'url': STREAM_URL_FORMAT % (item['momentId'], item['momentId']),
+            'url': 'https://hls.younow.com/momentsplaylists/live/%s/%s.m3u8'
+                   % (moment_id, moment_id),
             'ext': 'mp4',
-            'protocol': 'm3u8',
+            'protocol': 'm3u8_native',
         }],
     }
-
-    try:
-        entry['uploader'] = entry['creator'] = item['owner']['name']
-        entry['uploader_url'] = 'https://www.younow.com/%s' % (item['owner']['name'],)
-        entry['uploader_id'] = item['owner']['userId']
-    except KeyError:
-        pass
 
     return entry
 
@@ -114,84 +120,83 @@ def _moment_to_entry(item):
 class YouNowChannelIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?younow\.com/(?P<id>[^/]+)/channel'
     _TEST = {
-        'url': 'https://www.younow.com/Kate_Swiz/channel',
+        'url': 'https://www.younow.com/its_Kateee_/channel',
         'info_dict': {
-            'title': 'Kate_Swiz moments'
+            'id': '14629760',
+            'title': 'its_Kateee_ moments'
         },
-        'playlist_count': 6,
+        'playlist_mincount': 8,
     }
 
-    MOMENTS_URL_FORMAT = 'https://cdn.younow.com/php/api/moment/profile/channelId=%s/createdBefore=%d/records=20'
+    def _entries(self, username, channel_id):
+        created_before = 0
+        for page_num in itertools.count(1):
+            if created_before is None:
+                break
+            info = self._download_json(
+                '%s/moment/profile/channelId=%s/createdBefore=%d/records=20'
+                % (CDN_API_BASE, channel_id, created_before), username,
+                note='Downloading moments page %d' % page_num)
+            items = info.get('items')
+            if not items or not isinstance(items, list):
+                break
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                item_type = item.get('type')
+                if item_type == 'moment':
+                    entry = _extract_moment(item, fatal=False)
+                    if entry:
+                        yield entry
+                elif item_type == 'collection':
+                    moments = item.get('momentsIds')
+                    if isinstance(moments, list):
+                        for moment_id in moments:
+                            m = self._download_json(
+                                MOMENT_URL_FORMAT % moment_id, username,
+                                note='Downloading %s moment JSON' % moment_id,
+                                fatal=False)
+                            if m and isinstance(m, dict) and m.get('item'):
+                                entry = _extract_moment(m['item'])
+                                if entry:
+                                    yield entry
+                created_before = int_or_none(item.get('created'))
 
     def _real_extract(self, url):
-        entries = []
         username = self._match_id(url)
-        user_info = self._download_json('https://api.younow.com/php/api/broadcast/info/curId=0/user=%s' % (username), username, note='Downloading user information')
-        channel_id = user_info['userId']
-        created_before = 0
-        moment_ids = []
-        moment_ids_processed = []
-        err = False
-
-        while True:
-            if created_before:
-                cb = datetime.fromtimestamp(created_before)
-            else:
-                cb = datetime.now()
-            info = self._download_json(self.MOMENTS_URL_FORMAT % (channel_id, created_before), username, note='Downloading moments data (created before %s)' % (cb))
-
-            for item in info['items']:
-                if item['type'] == 'moment':
-                    entry = _moment_to_entry(item)
-                    moment_ids_processed.append(entry['id'])
-                    entries.append(entry)
-                elif item['type'] == 'collection':
-                    moment_ids += [compat_str(x) for x in item['momentsIds']]
-
-                try:
-                    created_before = int_or_none(item['created'])
-                except KeyError:
-                    err = True
-                    break
-
-            if (err or
-                    not info['hasMore'] or
-                    'items' not in info or
-                    not info['items']):
-                break
-
-        for mid in set(moment_ids):
-            if mid in moment_ids_processed:
-                continue
-            item = self._download_json(MOMENT_URL_FORMAT % (mid), mid)
-            entries.append(_moment_to_entry(item['item']))
-
-        return self.playlist_result(entries, playlist_title='%s moments' % (username))
+        channel_id = compat_str(self._download_json(
+            'https://api.younow.com/php/api/broadcast/info/curId=0/user=%s'
+            % username, username, note='Downloading user information')['userId'])
+        return self.playlist_result(
+            self._entries(username, channel_id), channel_id,
+            '%s moments' % username)
 
 
 class YouNowMomentIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?younow\.com/[^/]+/(?P<id>[^/]+)/[^/]+'
+    _VALID_URL = r'https?://(?:www\.)?younow\.com/[^/]+/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.younow.com/GABO.../20712117/36319236/3b316doc/m',
+        'md5': 'a30c70eadb9fb39a1aa3c8c0d22a0807',
         'info_dict': {
             'id': '20712117',
             'ext': 'mp4',
             'title': 'YouNow capture',
-            'view_count': 19,
-            'like_count': 0,
+            'view_count': int,
+            'like_count': int,
             'timestamp': 1490432040,
-            'formats': [{
-                'url': 'https://hls.younow.com/momentsplaylists/live/20712117/20712117.m3u8',
-                'ext': 'mp4',
-                'protocol': 'm3u8',
-            }],
             'upload_date': '20170325',
             'uploader': 'GABO...',
             'uploader_id': 35917228,
         },
     }
 
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if YouNowChannelIE.suitable(url)
+                else super(YouNowMomentIE, cls).suitable(url))
+
     def _real_extract(self, url):
-        mid = self._match_id(url)
-        item = self._download_json(MOMENT_URL_FORMAT % (mid), mid)
-        return _moment_to_entry(item['item'])
+        video_id = self._match_id(url)
+        item = self._download_json(MOMENT_URL_FORMAT % video_id, video_id)
+        return _extract_moment(item['item'])

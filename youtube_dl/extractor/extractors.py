@@ -1336,7 +1336,7 @@ from .youku import (
     YoukuShowIE,
 )
 from .younow import (
-    YouNowIE,
+    YouNowLiveIE,
     YouNowChannelIE,
     YouNowMomentIE,
 )
