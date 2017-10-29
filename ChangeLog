@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.10.29
 
 Core
 * [extractor/common] Prefix format id for audio only HLS formats
