@@ -22,7 +22,7 @@ class MangomoloBaseIE(InfoExtractor):
 
         format_url = self._html_search_regex(
             [
-                r'file\s*:\s*"(https?://[^"]+?/playlist.m3u8)',
+                r'file\s*:\s*"(https?://[^"]+?/playlist\.m3u8)',
                 r'<a[^>]+href="(rtsp://[^"]+)"'
             ], webpage, 'format url')
         formats = self._extract_wowza_formats(

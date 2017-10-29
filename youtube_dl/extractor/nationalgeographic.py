@@ -111,7 +111,7 @@ class NationalGeographicIE(ThePlatformIE, AdobePassIE):
         release_url = self._search_regex(
             r'video_auth_playlist_url\s*=\s*"([^"]+)"',
             webpage, 'release url')
-        theplatform_path = self._search_regex(r'https?://link.theplatform.com/s/([^?]+)', release_url, 'theplatform path')
+        theplatform_path = self._search_regex(r'https?://link\.theplatform\.com/s/([^?]+)', release_url, 'theplatform path')
         video_id = theplatform_path.split('/')[-1]
         query = {
             'mbr': 'true',

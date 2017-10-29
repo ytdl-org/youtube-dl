@@ -10,6 +10,7 @@ from ..compat import (
     compat_struct_unpack,
 )
 from ..utils import (
+    determine_ext,
     ExtractorError,
     float_or_none,
     remove_end,
@@ -85,6 +86,18 @@ class RTVEALaCartaIE(InfoExtractor):
         },
         'skip': 'The f4m manifest can\'t be used yet',
     }, {
+        'url': 'http://www.rtve.es/alacarta/videos/servir-y-proteger/servir-proteger-capitulo-104/4236788/',
+        'md5': 'e55e162379ad587e9640eda4f7353c0f',
+        'info_dict': {
+            'id': '4236788',
+            'ext': 'mp4',
+            'title': 'Servir y proteger - Capítulo 104 ',
+            'duration': 3222.0,
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        },
+    }, {
         'url': 'http://www.rtve.es/m/alacarta/videos/cuentame-como-paso/cuentame-como-paso-t16-ultimo-minuto-nuestra-vida-capitulo-276/2969138/?media=tve',
         'only_matching': True,
     }, {
@@ -107,15 +120,32 @@ class RTVEALaCartaIE(InfoExtractor):
             video_id)['page']['items'][0]
         if info['state'] == 'DESPU':
             raise ExtractorError('The video is no longer available', expected=True)
+        title = info['title']
         png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id)
         png_request = sanitized_Request(png_url)
         png_request.add_header('Referer', url)
         png = self._download_webpage(png_request, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
-        if not video_url.endswith('.f4m'):
+        ext = determine_ext(video_url)
+
+        formats = []
+        if not video_url.endswith('.f4m') and ext != 'm3u8':
             if '?' not in video_url:
                 video_url = video_url.replace('resources/', 'auth/resources/')
             video_url = video_url.replace('.net.rtve', '.multimedia.cdn.rtve')
+
+        if ext == 'm3u8':
+            formats.extend(self._extract_m3u8_formats(
+                video_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False))
+        elif ext == 'f4m':
+            formats.extend(self._extract_f4m_formats(
+                video_url, video_id, f4m_id='hds', fatal=False))
+        else:
+            formats.append({
+                'url': video_url,
+            })
+        self._sort_formats(formats)
 
         subtitles = None
         if info.get('sbtFile') is not None:
@@ -123,8 +153,8 @@ class RTVEALaCartaIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': info['title'],
-            'url': video_url,
+            'title': title,
+            'formats': formats,
             'thumbnail': info.get('image'),
             'page_url': url,
             'subtitles': subtitles,

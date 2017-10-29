@@ -22,8 +22,13 @@ class WDRBaseIE(InfoExtractor):
         # for wdrmaus, in a tag with the class "videoButton" (previously a link
         # to the page in a multiline "videoLink"-tag)
         json_metadata = self._html_search_regex(
-            r'class=(?:"(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b[^"]*"[^>]+|"videoLink\b[^"]*"[\s]*>\n[^\n]*)data-extension="([^"]+)"',
-            webpage, 'media link', default=None, flags=re.MULTILINE)
+            r'''(?sx)class=
+                    (?:
+                        (["\'])(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b.*?\1[^>]+|
+                        (["\'])videoLink\b.*?\2[\s]*>\n[^\n]*
+                    )data-extension=(["\'])(?P<data>(?:(?!\3).)+)\3
+            ''',
+            webpage, 'media link', default=None, group='data')
 
         if not json_metadata:
             return

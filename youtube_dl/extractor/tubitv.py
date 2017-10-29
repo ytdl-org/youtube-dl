@@ -13,11 +13,11 @@ from ..utils import (
 
 
 class TubiTvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tubitv\.com/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?tubitv\.com/(?:video|movies|tv-shows)/(?P<id>[0-9]+)'
     _LOGIN_URL = 'http://tubitv.com/login'
     _NETRC_MACHINE = 'tubitv'
     _GEO_COUNTRIES = ['US']
-    _TEST = {
+    _TESTS = [{
         'url': 'http://tubitv.com/video/283829/the_comedian_at_the_friday',
         'md5': '43ac06be9326f41912dc64ccf7a80320',
         'info_dict': {
@@ -27,7 +27,13 @@ class TubiTvIE(InfoExtractor):
             'description': 'A stand up comedian is forced to look at the decisions in his life while on a one week trip to the west coast.',
             'uploader_id': 'bc168bee0d18dd1cb3b86c68706ab434',
         },
-    }
+    }, {
+        'url': 'http://tubitv.com/tv-shows/321886/s01_e01_on_nom_stories',
+        'only_matching': True,
+    }, {
+        'url': 'http://tubitv.com/movies/383676/tracker',
+        'only_matching': True,
+    }]
 
     def _login(self):
         (username, password) = self._get_login_info()

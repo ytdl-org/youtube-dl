@@ -36,13 +36,13 @@
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
  - **afreecatv**: afreecatv.com
- - **afreecatv:global**: afreecatv.com
  - **AirMozilla**
  - **AliExpressLive**
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
  - **AMCNetworks**
+ - **AmericasTestKitchen**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
  - **anitube.se**
@@ -129,7 +129,8 @@
  - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
- - **Canvas**: canvas.be and een.be
+ - **Canvas**
+ - **CanvasEen**: canvas.be and een.be
  - **CarambaTV**
  - **CarambaTVPage**
  - **CartoonNetwork**
@@ -294,6 +295,7 @@
  - **freespeech.org**
  - **FreshLive**
  - **Funimation**
+ - **Funk**
  - **FunnyOrDie**
  - **Fusion**
  - **Fux**
@@ -378,6 +380,7 @@
  - **Jove**
  - **jpopsuki.tv**
  - **JWPlatform**
+ - **Kakao**
  - **Kaltura**
  - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
@@ -495,7 +498,6 @@
  - **MySpace:album**
  - **MySpass**
  - **Myvi**
- - **myvideo** (Currently broken)
  - **MyVidster**
  - **n-tv.de**
  - **natgeo**
@@ -593,6 +595,7 @@
  - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
+ - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
@@ -626,6 +629,7 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
+ - **PopcornTV**
  - **PornCom**
  - **PornerBros**
  - **PornFlip**
@@ -723,6 +727,7 @@
  - **SenateISVP**
  - **SendtoNews**
  - **ServingSys**
+ - **Servus**
  - **Sexu**
  - **Shahid**
  - **Shared**: shared.sx
@@ -733,6 +738,7 @@
  - **skynewsarabia:video**
  - **SkySports**
  - **Slideshare**
+ - **SlidesLive**
  - **Slutload**
  - **smotri**: Smotri.com
  - **smotri:broadcast**: Smotri.com broadcasts
@@ -881,6 +887,7 @@
  - **UDNEmbed**: 聯合影音
  - **UKTVPlay**
  - **Unistra**
+ - **Unity**
  - **uol.com.br**
  - **uplynk**
  - **uplynk:preplay**
@@ -964,10 +971,12 @@
  - **VoiceRepublic**
  - **Voot**
  - **VoxMedia**
+ - **VoxMediaVolume**
  - **Vporn**
  - **vpro**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **Vrak**
  - **VRT**: deredactie.be, sporza.be, cobra.be and cobra.canvas.be
+ - **VrtNU**: VrtNU.be
  - **vrv**
  - **vrv:series**
  - **VShare**
@@ -1026,6 +1035,9 @@
  - **YouJizz**
  - **youku**: 优酷
  - **youku:show**
+ - **YouNowChannel**
+ - **YouNowLive**
+ - **YouNowMoment**
  - **YouPorn**
  - **YourUpload**
  - **youtube**: YouTube.com
@@ -1039,7 +1051,6 @@
  - **youtube:search**: YouTube.com searches
  - **youtube:search:date**: YouTube.com searches, newest videos first
  - **youtube:search_url**: YouTube.com search URLs
- - **youtube:shared**
  - **youtube:show**: YouTube.com (multi-season) shows
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
  - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)

@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
+    js_to_json,
     smuggle_url,
     try_get,
 )
@@ -24,8 +25,6 @@ class NoovoIE(InfoExtractor):
             'timestamp': 1491399228,
             'upload_date': '20170405',
             'uploader_id': '618566855001',
-            'creator': 'vtele',
-            'view_count': int,
             'series': 'RPM+',
         },
         'params': {
@@ -37,13 +36,11 @@ class NoovoIE(InfoExtractor):
         'info_dict': {
             'id': '5395865725001',
             'title': 'Épisode 13 : Les retrouvailles',
-            'description': 'md5:336d5ebc5436534e61d16e63ddfca327',
+            'description': 'md5:888c3330f0c1b4476c5bc99a1c040473',
             'ext': 'mp4',
             'timestamp': 1492019320,
             'upload_date': '20170412',
             'uploader_id': '618566855001',
-            'creator': 'vtele',
-            'view_count': int,
             'series': "L'amour est dans le pré",
             'season_number': 5,
             'episode': 'Épisode 13',
@@ -58,40 +55,46 @@ class NoovoIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        data = self._download_json(
-            'http://api.noovo.ca/api/v1/pages/single-episode/%s' % video_id,
-            video_id)['data']
+        webpage = self._download_webpage(url, video_id)
 
-        content = try_get(data, lambda x: x['contents'][0])
+        bc_url = BrightcoveNewIE._extract_url(self, webpage)
 
-        brightcove_id = data.get('brightcoveId') or content['brightcoveId']
+        data = self._parse_json(
+            self._search_regex(
+                r'(?s)dataLayer\.push\(\s*({.+?})\s*\);', webpage, 'data',
+                default='{}'),
+            video_id, transform_source=js_to_json, fatal=False)
+
+        title = try_get(
+            data, lambda x: x['video']['nom'],
+            compat_str) or self._html_search_meta(
+            'dcterms.Title', webpage, 'title', fatal=True)
+
+        description = self._html_search_meta(
+            ('dcterms.Description', 'description'), webpage, 'description')
 
         series = try_get(
-            data, (
-                lambda x: x['show']['title'],
-                lambda x: x['season']['show']['title']),
-            compat_str)
+            data, lambda x: x['emission']['nom']) or self._search_regex(
+            r'<div[^>]+class="banner-card__subtitle h4"[^>]*>([^<]+)',
+            webpage, 'series', default=None)
 
-        episode = None
-        og = data.get('og')
-        if isinstance(og, dict) and og.get('type') == 'video.episode':
-            episode = og.get('title')
+        season_el = try_get(data, lambda x: x['emission']['saison'], dict) or {}
+        season = try_get(season_el, lambda x: x['nom'], compat_str)
+        season_number = int_or_none(try_get(season_el, lambda x: x['numero']))
 
-        video = content or data
+        episode_el = try_get(season_el, lambda x: x['episode'], dict) or {}
+        episode = try_get(episode_el, lambda x: x['nom'], compat_str)
+        episode_number = int_or_none(try_get(episode_el, lambda x: x['numero']))
 
         return {
             '_type': 'url_transparent',
             'ie_key': BrightcoveNewIE.ie_key(),
-            'url': smuggle_url(
-                self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id,
-                {'geo_countries': ['CA']}),
-            'id': brightcove_id,
-            'title': video.get('title'),
-            'creator': video.get('source'),
-            'view_count': int_or_none(video.get('viewsCount')),
+            'url': smuggle_url(bc_url, {'geo_countries': ['CA']}),
+            'title': title,
+            'description': description,
             'series': series,
-            'season_number': int_or_none(try_get(
-                data, lambda x: x['season']['seasonNumber'])),
+            'season': season,
+            'season_number': season_number,
             'episode': episode,
-            'episode_number': int_or_none(data.get('episodeNumber')),
+            'episode_number': episode_number,
         }

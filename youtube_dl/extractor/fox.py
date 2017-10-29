@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .adobepass import AdobePassIE
+from .uplynk import UplynkPreplayIE
+from ..compat import compat_str
 from ..utils import (
+    HEADRequest,
     int_or_none,
     parse_age_limit,
     parse_duration,
@@ -53,14 +56,7 @@ class FOXIE(AdobePassIE):
             })
 
         title = video['name']
-
-        m3u8_url = self._download_json(
-            video['videoRelease']['url'], video_id)['playURL']
-
-        formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4',
-            entry_protocol='m3u8_native', m3u8_id='hls')
-        self._sort_formats(formats)
+        release_url = video['videoRelease']['url']
 
         description = video.get('description')
         duration = int_or_none(video.get('durationInSeconds')) or int_or_none(
@@ -84,7 +80,7 @@ class FOXIE(AdobePassIE):
             # TODO: AP
             pass
 
-        return {
+        info = {
             'id': video_id,
             'title': title,
             'description': description,
@@ -97,5 +93,22 @@ class FOXIE(AdobePassIE):
             'episode': episode,
             'episode_number': episode_number,
             'release_year': release_year,
-            'formats': formats,
         }
+
+        urlh = self._request_webpage(HEADRequest(release_url), video_id)
+        video_url = compat_str(urlh.geturl())
+
+        if UplynkPreplayIE.suitable(video_url):
+            info.update({
+                '_type': 'url_transparent',
+                'url': video_url,
+                'ie_key': UplynkPreplayIE.ie_key(),
+            })
+        else:
+            m3u8_url = self._download_json(release_url, video_id)['playURL']
+            formats = self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id='hls')
+            self._sort_formats(formats)
+            info['formats'] = formats
+        return info

@@ -1401,7 +1401,7 @@ class InfoExtractor(object):
             media_url = media.get('URI')
             if media_url:
                 format_id = []
-                for v in (group_id, name):
+                for v in (m3u8_id, group_id, name):
                     if v:
                         format_id.append(v)
                 f = {
@@ -1920,7 +1920,7 @@ class InfoExtractor(object):
                             # can't be used at the same time
                             if '%(Number' in media_template and 's' not in representation_ms_info:
                                 segment_duration = None
-                                if 'total_number' not in representation_ms_info and 'segment_duration':
+                                if 'total_number' not in representation_ms_info and 'segment_duration' in representation_ms_info:
                                     segment_duration = float_or_none(representation_ms_info['segment_duration'], representation_ms_info['timescale'])
                                     representation_ms_info['total_number'] = int(math.ceil(float(period_duration) / segment_duration))
                                 representation_ms_info['fragments'] = [{
@@ -2322,7 +2322,6 @@ class InfoExtractor(object):
             formats = self._parse_jwplayer_formats(
                 video_data['sources'], video_id=this_video_id, m3u8_id=m3u8_id,
                 mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
-            self._sort_formats(formats)
 
             subtitles = {}
             tracks = video_data.get('tracks')
@@ -2339,16 +2338,25 @@ class InfoExtractor(object):
                         'url': self._proto_relative_url(track_url)
                     })
 
-            entries.append({
+            entry = {
                 'id': this_video_id,
-                'title': video_data['title'] if require_title else video_data.get('title'),
+                'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
                 'description': video_data.get('description'),
                 'thumbnail': self._proto_relative_url(video_data.get('image')),
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
                 'subtitles': subtitles,
-                'formats': formats,
-            })
+            }
+            # https://github.com/jwplayer/jwplayer/blob/master/src/js/utils/validator.js#L32
+            if len(formats) == 1 and re.search(r'^(?:http|//).*(?:youtube\.com|youtu\.be)/.+', formats[0]['url']):
+                entry.update({
+                    '_type': 'url_transparent',
+                    'url': formats[0]['url'],
+                })
+            else:
+                self._sort_formats(formats)
+                entry['formats'] = formats
+            entries.append(entry)
         if len(entries) == 1:
             return entries[0]
         else:
@@ -2449,10 +2457,12 @@ class InfoExtractor(object):
                 self._downloader.report_warning(msg)
         return res
 
-    def _set_cookie(self, domain, name, value, expire_time=None):
+    def _set_cookie(self, domain, name, value, expire_time=None, port=None,
+                    path='/', secure=False, discard=False, rest={}, **kwargs):
         cookie = compat_cookiejar.Cookie(
-            0, name, value, None, None, domain, None,
-            None, '/', True, False, expire_time, '', None, None, None)
+            0, name, value, port, port is not None, domain, True,
+            domain.startswith('.'), path, True, secure, expire_time,
+            discard, None, None, rest)
         self._downloader.cookiejar.set_cookie(cookie)
 
     def _get_cookies(self, url):

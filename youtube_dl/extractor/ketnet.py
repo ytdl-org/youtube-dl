@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from .canvas import CanvasIE
 from .common import InfoExtractor
 
 
@@ -7,7 +8,7 @@ class KetnetIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ketnet\.be/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.ketnet.be/kijken/zomerse-filmpjes',
-        'md5': 'd907f7b1814ef0fa285c0475d9994ed7',
+        'md5': '6bdeb65998930251bbd1c510750edba9',
         'info_dict': {
             'id': 'zomerse-filmpjes',
             'ext': 'mp4',
@@ -15,6 +16,20 @@ class KetnetIE(InfoExtractor):
             'description': 'Gluur mee met Ghost Rockers op de filmset',
             'thumbnail': r're:^https?://.*\.jpg$',
         }
+    }, {
+        # mzid in playerConfig instead of sources
+        'url': 'https://www.ketnet.be/kijken/nachtwacht/de-greystook',
+        'md5': '90139b746a0a9bd7bb631283f6e2a64e',
+        'info_dict': {
+            'id': 'md-ast-4ac54990-ce66-4d00-a8ca-9eac86f4c475',
+            'display_id': 'md-ast-4ac54990-ce66-4d00-a8ca-9eac86f4c475',
+            'ext': 'flv',
+            'title': 'Nachtwacht: De Greystook',
+            'description': 'md5:1db3f5dc4c7109c821261e7512975be7',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 1468.03,
+        },
+        'expected_warnings': ['is not a supported codec', 'Unknown MIME type'],
     }, {
         'url': 'https://www.ketnet.be/kijken/karrewiet/uitzending-8-september-2016',
         'only_matching': True,
@@ -37,6 +52,12 @@ class KetnetIE(InfoExtractor):
                 r'(?s)playerConfig\s*=\s*({.+?})\s*;', webpage,
                 'player config'),
             video_id)
+
+        mzid = config.get('mzid')
+        if mzid:
+            return self.url_result(
+                'https://mediazone.vrt.be/api/v1/ketnet/assets/%s' % mzid,
+                CanvasIE.ie_key(), video_id=mzid)
 
         title = config['title']
 

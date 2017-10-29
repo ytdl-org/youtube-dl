@@ -11,12 +11,12 @@ sudo: false
 env:
   - YTDL_TEST_SET=core
   - YTDL_TEST_SET=download
+matrix:
+  fast_finish: true
+  allow_failures:
+    - env: YTDL_TEST_SET=download
 script: ./devscripts/run_tests.sh
 notifications:
   email:
     - filippo.valsorda@gmail.com
     - yasoob.khld@gmail.com
-#  irc:
-#    channels:
-#      - "irc.freenode.org#youtube-dl"
-#    skip_join: true

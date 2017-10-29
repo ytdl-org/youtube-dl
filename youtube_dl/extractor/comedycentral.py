@@ -120,12 +120,15 @@ class ComedyCentralTVIE(MTVServicesInfoExtractor):
 
 
 class ComedyCentralShortnameIE(InfoExtractor):
-    _VALID_URL = r'^:(?P<id>tds|thedailyshow)$'
+    _VALID_URL = r'^:(?P<id>tds|thedailyshow|theopposition)$'
     _TESTS = [{
         'url': ':tds',
         'only_matching': True,
     }, {
         'url': ':thedailyshow',
+        'only_matching': True,
+    }, {
+        'url': ':theopposition',
         'only_matching': True,
     }]
 
@@ -134,5 +137,6 @@ class ComedyCentralShortnameIE(InfoExtractor):
         shortcut_map = {
             'tds': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
             'thedailyshow': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
+            'theopposition': 'http://www.cc.com/shows/the-opposition-with-jordan-klepper/full-episodes',
         }
         return self.url_result(shortcut_map[video_id])

@@ -105,7 +105,7 @@ class GameSpotIE(OnceIE):
             onceux_url = self._parse_json(unescapeHTML(onceux_json), page_id).get('metadataUri')
             if onceux_url:
                 formats.extend(self._extract_once_formats(re.sub(
-                    r'https?://[^/]+', 'http://once.unicornmedia.com', onceux_url).replace('ads/vmap/', '')))
+                    r'https?://[^/]+', 'http://once.unicornmedia.com', onceux_url)))
 
         if not formats:
             for quality in ['sd', 'hd']:

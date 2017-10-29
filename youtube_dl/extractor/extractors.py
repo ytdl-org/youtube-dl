@@ -31,14 +31,12 @@ from .aenetworks import (
     AENetworksIE,
     HistoryTopicIE,
 )
-from .afreecatv import (
-    AfreecaTVIE,
-    AfreecaTVGlobalIE,
-)
+from .afreecatv import AfreecaTVIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
 from .amcnetworks import AMCNetworksIE
+from .americastestkitchen import AmericasTestKitchenIE
 from .animeondemand import AnimeOnDemandIE
 from .anitube import AnitubeIE
 from .anvato import AnvatoIE
@@ -149,7 +147,11 @@ from .camdemy import (
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
-from .canvas import CanvasIE
+from .canvas import (
+    CanvasIE,
+    CanvasEenIE,
+    VrtNUIE,
+)
 from .carambatv import (
     CarambaTVIE,
     CarambaTVPageIE,
@@ -380,6 +382,7 @@ from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freshlive import FreshLiveIE
 from .funimation import FunimationIE
+from .funk import FunkIE
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
@@ -482,6 +485,7 @@ from .jove import JoveIE
 from .joj import JojIE
 from .jwplatform import JWPlatformIE
 from .jpopsukitv import JpopsukiIE
+from .kakao import KakaoIE
 from .kaltura import KalturaIE
 from .kamcord import KamcordIE
 from .kanalplay import KanalPlayIE
@@ -620,7 +624,6 @@ from .mwave import MwaveIE, MwaveMeetGreetIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvi import MyviIE
-from .myvideo import MyVideoIE
 from .myvidster import MyVidsterIE
 from .nationalgeographic import (
     NationalGeographicVideoIE,
@@ -768,6 +771,7 @@ from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
     ORFFM4IE,
+    ORFFM4StoryIE,
     ORFOE1IE,
     ORFIPTVIE,
 )
@@ -807,6 +811,7 @@ from .polskieradio import (
     PolskieRadioIE,
     PolskieRadioCategoryIE,
 )
+from .popcorntv import PopcornTVIE
 from .porn91 import Porn91IE
 from .porncom import PornComIE
 from .pornflip import PornFlipIE
@@ -920,6 +925,7 @@ from .seeker import SeekerIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
 from .servingsys import ServingSysIE
+from .servus import ServusIE
 from .sexu import SexuIE
 from .shahid import ShahidIE
 from .shared import (
@@ -936,6 +942,7 @@ from .skynewsarabia import (
 )
 from .skysports import SkySportsIE
 from .slideshare import SlideshareIE
+from .slideslive import SlidesLiveIE
 from .slutload import SlutloadIE
 from .smotri import (
     SmotriIE,
@@ -1132,6 +1139,7 @@ from .udn import UDNEmbedIE
 from .uktvplay import UKTVPlayIE
 from .digiteka import DigitekaIE
 from .unistra import UnistraIE
+from .unity import UnityIE
 from .uol import UOLIE
 from .uplynk import (
     UplynkIE,
@@ -1239,7 +1247,10 @@ from .vodpl import VODPlIE
 from .vodplatform import VODPlatformIE
 from .voicerepublic import VoiceRepublicIE
 from .voot import VootIE
-from .voxmedia import VoxMediaIE
+from .voxmedia import (
+    VoxMediaVolumeIE,
+    VoxMediaIE,
+)
 from .vporn import VpornIE
 from .vrt import VRTIE
 from .vrak import VrakIE
@@ -1324,6 +1335,11 @@ from .youku import (
     YoukuIE,
     YoukuShowIE,
 )
+from .younow import (
+    YouNowLiveIE,
+    YouNowChannelIE,
+    YouNowMomentIE,
+)
 from .youporn import YouPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
@@ -1338,7 +1354,6 @@ from .youtube import (
     YoutubeSearchDateIE,
     YoutubeSearchIE,
     YoutubeSearchURLIE,
-    YoutubeSharedVideoIE,
     YoutubeShowIE,
     YoutubeSubscriptionsIE,
     YoutubeTruncatedIDIE,
