@@ -31,7 +31,7 @@ class SeznamZpravyIE(InfoExtractor):
         'info_dict': {
             'id': '38489',
             'ext': 'mp4',
-            'title': 'ČSSD a ANO nás s elektronickou evidencí podrazily, říká šéf lidovců',
+            'title': 'ČSSD a ANO nás s\xa0elektronickou evidencí podrazily, říká šéf lidovců',
             'description': 'Předvolební rozhovory s lídry deseti hlavních stran pokračují. Ve Výzvě Jindřicha Šídla odpovídal předseda lidovců Pavel Bělobrádek.',
         }
     }]
