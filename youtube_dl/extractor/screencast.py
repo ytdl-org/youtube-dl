@@ -83,12 +83,12 @@ class ScreencastIE(InfoExtractor):
                 video_url = video_url_raw.replace('http%3A', 'http:')
 
         if video_url is None:
-            video_meta = self._html_search_meta(
+            video_url = self._html_search_meta(
                 'og:video', webpage, default=None)
-            if video_meta:
-                video_url = self._search_regex(
-                    r'src=(.*?)(?:$|&)', video_meta,
-                    'meta tag video URL', default=None)
+            
+        if video_url is None:
+            video_url = self._html_search_regex(
+                r'"MediaContentUrl":"([^"]+)"', webpage, 'embeds', default=None)
 
         if video_url is None:
             raise ExtractorError('Cannot find video')
