@@ -1401,7 +1401,7 @@ class InfoExtractor(object):
             media_url = media.get('URI')
             if media_url:
                 format_id = []
-                for v in (group_id, name):
+                for v in (m3u8_id, group_id, name):
                     if v:
                         format_id.append(v)
                 f = {
