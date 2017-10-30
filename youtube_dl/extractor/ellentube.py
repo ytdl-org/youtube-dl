@@ -1,10 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     int_or_none,
     urljoin,
 )
@@ -13,24 +12,21 @@ from ..utils import (
 class EllenTubeBaseIE(InfoExtractor):
     API_URL = 'https://api-prod.ellentube.com/'
 
-    def _extract_from_video_id(self, video_id, display_id=None):
-        video_data = self._download_json(
-            urljoin(self.API_URL, 'ellenapi/api/item/%s' % video_id), video_id)
-        title = video_data['title']
-        description = video_data.get('description')
-        publish_time = int_or_none(video_data.get('publishTime'))
-        thumbnail = video_data.get('thumbnail')
+    def _extract_video_from_json(self, data, video_id, display_id=None):
+        title = data['title']
+        description = data.get('description')
+        publish_time = int_or_none(data.get('publishTime'))
+        thumbnail = data.get('thumbnail')
 
         formats = []
         duration = None
-        for entry in video_data.get('media'):
+        for entry in data.get('media'):
             if entry.get('id') == 'm3u8':
-                formats = self._extract_m3u8_formats(entry.get(
-                    'url'), video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
+                formats = self._extract_m3u8_formats(
+                    entry.get('url'), video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
                 duration = int_or_none(entry.get('duration'))
                 break
         self._sort_formats(formats)
-
         return {
             'id': video_id,
             'title': title,
@@ -42,10 +38,31 @@ class EllenTubeBaseIE(InfoExtractor):
             'formats': formats,
         }
 
-    def _extract_video_ids_from_api_search(self, api_search, display_id):
-        feed_data = self._download_json(
+    def _extract_playlist_entries_from_json(self, data, display_id):
+        return [self._extract_video_from_json(elem, elem['id'])
+                for elem in data if elem.get('type') == 'VIDEO']
+
+    def _extract_from_video_id(self, video_id, display_id=None):
+        api_data = self._download_json(
+            urljoin(self.API_URL, 'ellenapi/api/item/%s' % video_id), video_id)
+        return self._extract_video_from_json(api_data, video_id, display_id)
+
+    def _extract_playlist(self, url, display_id, extract_description=True):
+        webpage = self._download_webpage(url, display_id)
+        playlist_data = self._html_search_regex(
+            r'<div\s+data-component\s*=\s*"Details"(.+)</div>', webpage, 'playlist data')
+        playlist_title = self._search_regex(
+            r'"title"\s*:\s*"(.+?)"', playlist_data, 'playlist title')
+        playlist_description = clean_html(self._search_regex(
+            r'"description"\s*:\s*"(.+?)"', playlist_data, 'playlist description',
+            fatal=False)) if extract_description else None
+        api_search = self._search_regex(
+            r'"filter"\s*:\s*"(.+?)"', playlist_data, 'playlist api request')
+        api_data = self._download_json(
             urljoin(self.API_URL, 'ellenapi/api/feed/?%s' % api_search), display_id)
-        return [entry.get('id') for entry in feed_data if entry.get('type') == 'VIDEO']
+        return self.playlist_result(
+            self._extract_playlist_entries_from_json(api_data, display_id),
+            display_id, playlist_title, playlist_description)
 
 
 class EllenTubeVideoIE(EllenTubeBaseIE):
@@ -74,41 +91,36 @@ class EllenTubeVideoIE(EllenTubeBaseIE):
         return self._extract_from_video_id(video_id, display_id)
 
 
-class EllenTubePlaylistIE(EllenTubeBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?ellentube\.com/(?:episode|studios)/(?P<id>.+)\.html'
+class EllenTubeEpisodeIE(EllenTubeBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?ellentube\.com/episode/(?P<id>.+)\.html'
 
-    _TESTS = [{
+    _TEST = {
         'url': 'https://www.ellentube.com/episode/dax-shepard-jordan-fisher-haim.html',
         'info_dict': {
             'id': 'dax-shepard-jordan-fisher-haim',
             'title': 'Dax Shepard, \'DWTS\' Team Jordan Fisher & Lindsay Arnold, HAIM',
+            'description': 'md5:aed85d42892f6126e71ec5ed2aea2a0d'
         },
         'playlist_count': 6,
-    }, {
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        return self._extract_playlist(url, display_id)
+
+
+class EllenTubeStudioIE(EllenTubeBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?ellentube\.com/studios/(?P<id>.+)\.html'
+
+    _TEST = {
         'url': 'https://www.ellentube.com/studios/macey-goes-rving0.html',
         'info_dict': {
             'id': 'macey-goes-rving0',
             'title': 'Macey Goes RVing',
         },
         'playlist_mincount': 3,
-    }]
+    }
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-
-        playlist_data = self._html_search_regex(
-            r'<div\s+data-component\s*=\s*"Details"(.+)</div>', webpage, 'episode data')
-        playlist_title = self._search_regex(
-            r'title"\s*:\s*"(.+?)"', playlist_data, 'playlist title')
-        entries = [self._extract_from_video_id(m.group('vid')) for m in re.finditer(
-            r'pid=(?P<vid>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})', playlist_data)]
-        if not entries:
-            api_search = self._search_regex(
-                r'filter"\s*:\s*"(.+?)"', playlist_data, 'api search')
-            video_ids = self._extract_video_ids_from_api_search(
-                api_search, display_id)
-            entries = [self._extract_from_video_id(
-                vid, display_id) for vid in video_ids]
-
-        return self.playlist_result(entries, display_id, playlist_title)
+        return self._extract_playlist(url, display_id, False)
