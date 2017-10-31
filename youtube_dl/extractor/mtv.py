@@ -481,3 +481,53 @@ class MTVDEIE(MTVServicesInfoExtractor):
             item_id = item.get('id')
             if item_id and compat_str(item_id) == video_id:
                 return self._get_videos_info_from_url(_mrss_url(item), video_id)
+
+ class MTVBASEIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtvbase'
+    _VALID_URL = r'https?://(?:www\.)?mtvbase\.com/music/videos/(?P<id>[^/?#.]+)'
+
+    _TESTS = [{
+        # Vevo Redirect
+        'url': 'http://www.mtvbase.com/music/videos/n81o96/Phases',
+        'info_dict': {
+            'id': 'FIPEB1700040',
+            'ext': 'mp4',
+            'title': 'French Montana - Phases (Lyric Video)',
+            'upload_date': '20170927',
+            'uploader': 'French Montana',
+            'timestamp': 1506549600,
+
+        },
+	    'params': {
+            # m3u8 download
+            'skip_download': True,
+         }
+    },{
+        # MTV Services Embed Redirect
+        'url': 'http://www.mtvbase.com/music/videos/ymjhpx/Self-Made',
+        'info_dict': {
+            'id': '3866ee82-b015-11e7-9a25-a4badb20dab5',
+            'ext': 'mp4',
+            'description': 'Self-Made',
+            'title': 'Self-Made',
+             },
+     	'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        title = url_basename(url)
+        webpage = self._download_webpage(url, title)
+        feed_url = re.search(r'data-tffeed="(.*?)"', webpage).group(1)
+        feed = self._download_json(feed_url, title, fatal=False)
+        #check for Vevo
+        m_vevo = try_get(feed, lambda x: x['result']['settings']['playerOverride']['type'], compat_str)
+        if m_vevo  == 'Vevo':
+            vevo_id = try_get(feed, lambda x: x['result']['settings']['playerOverride']['id'], compat_str)
+            if vevo_id:
+                self.to_screen('Vevo video detected: %s' % vevo_id)
+                return self.url_result('vevo:%s' % vevo_id, ie='Vevo')
+        mgid = try_get(feed, lambda x: x['result']['data']['id'], compat_str)
+        return self.url_result('http://media.mtvnservices.com/embed/%s' % mgid)
