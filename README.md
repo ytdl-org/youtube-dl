@@ -95,8 +95,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
                                      To enable experimental SOCKS proxy, specify
                                      a proper scheme. For example
-                                     socks5://127.0.0.1:1080/. Pass in an empty
-                                     string (--proxy "") for direct connection
+                                     socks5://hostname:port/ or 
+                                     socks5://username:password@hostname:port/
+                                     for username and password authentication.
+                                     Pass in an empty string (--proxy "") for
+                                     direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
     --source-address IP              Client-side IP address to bind to
     -4, --force-ipv4                 Make all connections via IPv4
