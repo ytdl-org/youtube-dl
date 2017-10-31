@@ -82,29 +82,22 @@ class DouyuTVIE(InfoExtractor):
             room_id = self._html_search_regex(
                 r'"room_id\\?"\s*:\s*(\d+),', page, 'room id')
 
-        # Grab metadata from mobile API
-        room = self._download_json(
-            'http://m.douyu.com/html5/live?roomId=%s' % room_id, video_id,
+        # Grab metadata from PC client API
+        api_url = "http://www.douyutv.com/api/v1/"
+        args = "room/%s?aid=wp&client_sys=wp&time=%d" % (room_id, int(time.time()))
+        auth_md5 = (args + "zNzMV1y4EMxOHS6I5WKm").encode("utf-8")
+        auth_str = hashlib.md5(auth_md5).hexdigest()
+        json_request_url = "%s%s&auth=%s" % (api_url, args, auth_str)
+
+        room = self._download_json(json_request_url, video_id,
             note='Downloading room info')['data']
 
         # 1 = live, 2 = offline
         if room.get('show_status') == '2':
             raise ExtractorError('Live stream is offline', expected=True)
 
-        # Grab the URL from PC client API
         # The m3u8 url from mobile API requires re-authentication every 5 minutes
-        tt = int(time.time())
-        signContent = 'lapi/live/thirdPart/getPlay/%s?aid=pcclient&rate=0&time=%d9TUk5fjjUjg9qIMH3sdnh' % (room_id, tt)
-        sign = hashlib.md5(signContent.encode('ascii')).hexdigest()
-        video_url = self._download_json(
-            'http://coapi.douyucdn.cn/lapi/live/thirdPart/getPlay/' + room_id,
-            video_id, note='Downloading video URL info',
-            query={'rate': 0}, headers={
-                'auth': sign,
-                'time': str(tt),
-                'aid': 'pcclient'
-            })['data']['live_url']
-
+        video_url = room.get('rtmp_url') + '/' + room.get('rtmp_live')
         title = self._live_title(unescapeHTML(room['room_name']))
         description = room.get('show_details')
         thumbnail = room.get('room_src')
