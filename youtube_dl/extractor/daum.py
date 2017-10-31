@@ -40,11 +40,11 @@ class DaumIE(InfoExtractor):
     }, {
         'url': 'http://m.tvpot.daum.net/v/65139429',
         'info_dict': {
-            'id': '65139429',
+            'id': 'v4e99Kd61HUKxI18xR87xRb',
             'ext': 'mp4',
             'title': '1297회, \'아빠 아들로 태어나길 잘 했어\' 민수, 감동의 눈물[아빠 어디가] 20150118',
-            'description': 'md5:79794514261164ff27e36a21ad229fc5',
-            'upload_date': '20150604',
+            'description': 'md5:4c1f30a96780bb3cb739f8878d623998',
+            'upload_date': '20150118',
             'thumbnail': r're:^https?://.*\.(?:jpg|png)',
             'duration': 154,
             'view_count': int,
@@ -73,9 +73,9 @@ class DaumIE(InfoExtractor):
         'info_dict': {
             'id': 's3794Uf1NZeZ1qMpGpeqeRU',
             'ext': 'mp4',
-            'title': '러블리즈 - Destiny (나의 지구) (Lovelyz - Destiny) [쇼! 음악중심] 508회 20160611',
+            'title': '러블리즈 - Destiny (나의 지구) (Lovelyz - Destiny)',
             'description': '러블리즈 - Destiny (나의 지구) (Lovelyz - Destiny)\n\n[쇼! 음악중심] 20160611, 507회',
-            'upload_date': '20160611',
+            'upload_date': '20170129',
         },
     }]
 
@@ -134,7 +134,7 @@ class DaumClipIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://tvpot.daum.net/clip/ClipView.do?clipid=52554690',
         'info_dict': {
-            'id': '52554690',
+            'id': 'v3280SFuC8mSOVu4S8uKV6O',
             'ext': 'mp4',
             'title': 'DOTA 2GETHER 시즌2 6회 - 2부',
             'description': 'DOTA 2GETHER 시즌2 6회 - 2부',
@@ -154,6 +154,15 @@ class DaumClipIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
+        # Try to use vid-based URL if found
+        webpage = self._download_webpage(url, video_id, 'Requesting webpage', fatal=False)
+        if webpage:
+            canonical = self._html_search_regex(
+                r'<link rel="canonical" href="(http://tvpot\.daum\.net/v/[a-zA-Z0-9]+)">', webpage, 'Canonical link', fatal=False)
+            if canonical:
+                return self.url_result(canonical)
+
         clip_info = self._download_json(
             'http://tvpot.daum.net/mypot/json/GetClipInfo.do?clipid=%s' % video_id,
             video_id, 'Downloading clip info')['clip_bean']
@@ -224,7 +233,7 @@ class DaumPlaylistIE(DaumListIE):
         'note': 'Playlist url with clipid - noplaylist',
         'url': 'http://tvpot.daum.net/mypot/View.do?playlistid=6213966&clipid=73806844',
         'info_dict': {
-            'id': '73806844',
+            'id': 'vd7b2Qo00SCVoY7Y9oVFVPV',
             'ext': 'mp4',
             'title': '151017 Airport',
             'upload_date': '20160117',
@@ -265,11 +274,11 @@ class DaumUserIE(DaumListIE):
     }, {
         'url': 'http://tvpot.daum.net/mypot/View.do?ownerid=o2scDLIVbHc0&clipid=73801156',
         'info_dict': {
-            'id': '73801156',
+            'id': 'v421acTB5c2UTMaMET2E2h2',
             'ext': 'mp4',
             'title': '[미공개] 김구라, 오만석이 부릅니다 \'오케피\' - 마이 리틀 텔레비전 20160116',
-            'upload_date': '20160117',
-            'description': 'md5:5e91d2d6747f53575badd24bd62b9f36'
+            'upload_date': '20160116',
+            'description': 'md5:0c56847079326aed96892d52db0399cc'
         },
         'params': {
             'noplaylist': True,
