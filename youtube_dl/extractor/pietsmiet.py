@@ -2,6 +2,8 @@
 
 from __future__ import unicode_literals
 
+import re
+
 from .once import OnceIE
 from ..compat import (
     compat_urllib_parse_unquote,
@@ -31,7 +33,8 @@ class PietsmietIE(OnceIE):
         page_id = self._match_id(url)
         webpage = self._download_webpage(url, page_id)
         data_video_config = self._search_regex(
-            r'var config=(.*?);var', webpage, 'video config')
+            r'var config =(.*?)\};\n', webpage, 'video config', flags=re.DOTALL)
+        data_video_config = data_video_config.replace(']', '],', 1) + '}'
         data_video = self._parse_json(js_to_json(unescapeHTML(data_video_config)), page_id)
 
         formats = []
