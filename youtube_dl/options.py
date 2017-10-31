@@ -204,11 +204,10 @@ def parseOpts(overrideArguments=None):
         '--proxy', dest='proxy',
         default=None, metavar='URL',
         help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable experimental '
-             'SOCKS proxy, specify a proper scheme. a proper scheme. '
-             'For example socks5://hostname:port/ or '
-             'socks5://username:password@hostname:port/ for username and '
-             'password authentication. Pass in an empty string (--proxy "") for '
-             'direct connection.')
+             'SOCKS proxy, specify a proper scheme. For example '
+             'socks5://hostname:port/ or socks5://username:password@hostname:port/ '
+             'for username and password authentication. Pass in an empty string '
+             '(--proxy "") for direct connection.')
     network.add_option(
         '--socket-timeout',
         dest='socket_timeout', type=float, default=None, metavar='SECONDS',
