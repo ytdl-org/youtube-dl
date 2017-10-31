@@ -482,7 +482,7 @@ class MTVDEIE(MTVServicesInfoExtractor):
             if item_id and compat_str(item_id) == video_id:
                 return self._get_videos_info_from_url(_mrss_url(item), video_id)
 
- class MTVBASEIE(MTVServicesInfoExtractor):
+class MTVBASEIE(MTVServicesInfoExtractor):
     IE_NAME = 'mtvbase'
     _VALID_URL = r'https?://(?:www\.)?mtvbase\.com/music/videos/(?P<id>[^/?#.]+)'
 
