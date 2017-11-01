@@ -47,3 +47,36 @@ class TeleQuebecIE(InfoExtractor):
                 media_data.get('durationInMilliseconds'), 1000),
             'ie_key': 'LimelightMedia',
         }
+
+class TeleQuebecEmissionsIE(InfoExtractor):
+    _VALID_URL = r'https?://[^.\s]+\.telequebec\.tv/emissions/(?P<id>[^/]+)'
+    _TEST = {
+        'url': 'http://lindicemcsween.telequebec.tv/emissions/100430013/des-soins-esthetiques-a-377-d-interets-annuels-ca-vous-tente',
+        'info_dict': {
+            'id': '66648a6aef914fe3badda25e81a4d50a',
+            'ext': 'mp4',
+            'title': 'Des soins esth\u00e9tiques \u00e0 377 % d\'int\u00e9r\u00eats annuels, \u00e7a vous tente?',
+            'description': 'Certains plans de financement peuvent assassiner votre portefeuille! D\u00e9monstration avec des soins esth\u00e9tiques. Louis T. aime le confort financier, mais n\'a pas h\u00e9sit\u00e9 \u00e0 laisser tomber la s\u00e9curit\u00e9 d\'emploi pour faire ce qu\'il aime le plus au monde. Les gens qui font de l\'argent au noir sont plus riches que les autres, mais ils appauvrissent notre soci\u00e9t\u00e9 et Pierre-Yves rencontre Diane Ch\u00eanevert, qui a utilis\u00e9 toutes ses \u00e9conomies pour fonder un centre d\'aide pour les enfants handicap\u00e9s.',
+            'upload_date': '20171024',
+            'timestamp': 1508862118,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url,display_id)
+        mediauid = self._search_regex(r'mediaUID:[\s]?["\']Limelight_(?P<mediauid>\w+)["\']',webpage,'mediaUID')
+        return {
+            '_type': 'url_transparent',
+            'id': mediauid,
+            'url': smuggle_url(
+                'limelight:media:' + mediauid,
+                {'geo_countries': ['CA']}),
+            'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
+            'ie_key': 'LimelightMedia',
+        }
