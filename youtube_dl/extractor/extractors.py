@@ -1110,10 +1110,6 @@ from .tvplayer import TVPlayerIE
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twentymin import TwentyMinutenIE
-from .twentytwotracks import (
-    TwentyTwoTracksIE,
-    TwentyTwoTracksGenreIE
-)
 from .twitch import (
     TwitchVideoIE,
     TwitchChapterIE,
