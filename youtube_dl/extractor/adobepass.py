@@ -1464,8 +1464,6 @@ class AdobePassIE(InfoExtractor):
                     # In general, if you're connecting from a Verizon-assigned IP,
                     # you will not actually pass your credentials.
                     provider_redirect_page, urlh = provider_redirect_page_res
-                    with open('provider_redirect_page.html', 'w') as outFile:
-                        outFile.write(provider_redirect_page)
                     #if 'Please wait ...' in provider_redirect_page: # window.onload=function redirect(){
                     # From non-Verizon IP, still gave 'Please wait', but noticed N==Y; will need to try on Verizon IP
                     if 'Please wait ...' in provider_redirect_page and "'N'== \"Y\"" not in provider_redirect_page:
