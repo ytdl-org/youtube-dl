@@ -2233,27 +2233,35 @@ class InfoExtractor(object):
         return formats
 
     def _extract_wowza_formats(self, url, video_id, m3u8_entry_protocol='m3u8_native', skip_protocols=[]):
+        query = compat_urlparse.urlparse(url).query
         url = re.sub(r'/(?:manifest|playlist|jwplayer)\.(?:m3u8|f4m|mpd|smil)', '', url)
         url_base = self._search_regex(
             r'(?:(?:https?|rtmp|rtsp):)?(//[^?]+)', url, 'format url')
         http_base_url = '%s:%s' % ('http', url_base)
         formats = []
+
+        def manifest_url(manifest):
+            m_url = '%s/%s' % (http_base_url, manifest)
+            if query:
+                m_url += '?%s' % query
+            return m_url
+
         if 'm3u8' not in skip_protocols:
             formats.extend(self._extract_m3u8_formats(
-                http_base_url + '/playlist.m3u8', video_id, 'mp4',
+                manifest_url('playlist.m3u8'), video_id, 'mp4',
                 m3u8_entry_protocol, m3u8_id='hls', fatal=False))
         if 'f4m' not in skip_protocols:
             formats.extend(self._extract_f4m_formats(
-                http_base_url + '/manifest.f4m',
+                manifest_url('manifest.f4m'),
                 video_id, f4m_id='hds', fatal=False))
         if 'dash' not in skip_protocols:
             formats.extend(self._extract_mpd_formats(
-                http_base_url + '/manifest.mpd',
+                manifest_url('manifest.mpd'),
                 video_id, mpd_id='dash', fatal=False))
         if re.search(r'(?:/smil:|\.smil)', url_base):
             if 'smil' not in skip_protocols:
                 rtmp_formats = self._extract_smil_formats(
-                    http_base_url + '/jwplayer.smil',
+                    manifest_url('jwplayer.smil'),
                     video_id, fatal=False)
                 for rtmp_format in rtmp_formats:
                     rtsp_format = rtmp_format.copy()

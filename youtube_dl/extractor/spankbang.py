@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class SpankBangIE(InfoExtractor):
@@ -32,6 +33,10 @@ class SpankBangIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        if re.search(r'<[^>]+\bid=["\']video_removed', webpage):
+            raise ExtractorError(
+                'Video %s is not available' % video_id, expected=True)
 
         stream_key = self._html_search_regex(
             r'''var\s+stream_key\s*=\s*['"](.+?)['"]''',
