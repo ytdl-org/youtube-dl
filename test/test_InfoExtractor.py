@@ -563,6 +563,23 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'height': 1080,
                 }]
             ),
+            (
+                # https://github.com/rg3/youtube-dl/issues/13784
+                'thisav',
+                'http://unknown/manifest.mpd',
+                [{
+                    'url': 'http://unknown/300708_dashinit.mp4',
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_note': 'DASH video',
+                    'protocol': None,
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.64001e',
+                    'tbr': 574.578,
+                    'width': 640,
+                    'height': 426,
+                }]
+            )
         ]
 
         for mpd_file, mpd_url, expected_formats in _TEST_CASES:

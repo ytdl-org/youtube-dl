@@ -1864,6 +1864,9 @@ class InfoExtractor(object):
                                 base_url = base_url_e.text + base_url
                                 if re.match(r'^https?://', base_url):
                                     break
+                        if mpd_base_url == '' and re.match(r'^https?://', mpd_url):
+                            mpd_base_url = "/".join(mpd_url.split("/")[0:-1])
+
                         if mpd_base_url and not re.match(r'^https?://', base_url):
                             if not mpd_base_url.endswith('/') and not base_url.startswith('/'):
                                 mpd_base_url += '/'
