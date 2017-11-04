@@ -29,7 +29,10 @@ from ..compat import (
     compat_urlparse,
     compat_xml_parse_error,
 )
-from ..downloader.f4m import remove_encrypted_media
+from ..downloader.f4m import (
+    get_base_url,
+    remove_encrypted_media,
+)
 from ..utils import (
     NO_DEFAULT,
     age_restricted,
@@ -1239,11 +1242,8 @@ class InfoExtractor(object):
         media_nodes = remove_encrypted_media(media_nodes)
         if not media_nodes:
             return formats
-        base_url = xpath_text(
-            manifest, ['{http://ns.adobe.com/f4m/1.0}baseURL', '{http://ns.adobe.com/f4m/2.0}baseURL'],
-            'base URL', default=None)
-        if base_url:
-            base_url = base_url.strip()
+
+        manifest_base_url = get_base_url(manifest)
 
         bootstrap_info = xpath_element(
             manifest, ['{http://ns.adobe.com/f4m/1.0}bootstrapInfo', '{http://ns.adobe.com/f4m/2.0}bootstrapInfo'],
@@ -1275,7 +1275,7 @@ class InfoExtractor(object):
                     continue
                 manifest_url = (
                     media_url if media_url.startswith('http://') or media_url.startswith('https://')
-                    else ((base_url or '/'.join(manifest_url.split('/')[:-1])) + '/' + media_url))
+                    else ((manifest_base_url or '/'.join(manifest_url.split('/')[:-1])) + '/' + media_url))
                 # If media_url is itself a f4m manifest do the recursive extraction
                 # since bitrates in parent manifest (this one) and media_url manifest
                 # may differ leading to inability to resolve the format by requested
