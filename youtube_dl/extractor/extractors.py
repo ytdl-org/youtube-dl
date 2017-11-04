@@ -34,6 +34,7 @@ from .aenetworks import (
 from .afreecatv import AfreecaTVIE
 from .airmozilla import AirMozillaIE
 from .aljazeera import AlJazeeraIE
+from .allmovie import AllmovieIE
 from .alphaporno import AlphaPornoIE
 from .amcnetworks import AMCNetworksIE
 from .americastestkitchen import AmericasTestKitchenIE
