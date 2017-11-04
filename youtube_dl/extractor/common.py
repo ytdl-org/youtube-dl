@@ -1310,6 +1310,7 @@ class InfoExtractor(object):
                 'url': manifest_url,
                 'manifest_url': manifest_url,
                 'ext': 'flv' if bootstrap_info is not None else None,
+                'protocol': 'f4m',
                 'tbr': tbr,
                 'width': width,
                 'height': height,
