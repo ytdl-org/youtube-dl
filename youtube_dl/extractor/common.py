@@ -29,7 +29,10 @@ from ..compat import (
     compat_urlparse,
     compat_xml_parse_error,
 )
-from ..downloader.f4m import remove_encrypted_media
+from ..downloader.f4m import (
+    get_base_url,
+    remove_encrypted_media,
+)
 from ..utils import (
     NO_DEFAULT,
     age_restricted,
@@ -1239,11 +1242,8 @@ class InfoExtractor(object):
         media_nodes = remove_encrypted_media(media_nodes)
         if not media_nodes:
             return formats
-        base_url = xpath_text(
-            manifest, ['{http://ns.adobe.com/f4m/1.0}baseURL', '{http://ns.adobe.com/f4m/2.0}baseURL'],
-            'base URL', default=None)
-        if base_url:
-            base_url = base_url.strip()
+
+        manifest_base_url = get_base_url(manifest)
 
         bootstrap_info = xpath_element(
             manifest, ['{http://ns.adobe.com/f4m/1.0}bootstrapInfo', '{http://ns.adobe.com/f4m/2.0}bootstrapInfo'],
@@ -1275,7 +1275,7 @@ class InfoExtractor(object):
                     continue
                 manifest_url = (
                     media_url if media_url.startswith('http://') or media_url.startswith('https://')
-                    else ((base_url or '/'.join(manifest_url.split('/')[:-1])) + '/' + media_url))
+                    else ((manifest_base_url or '/'.join(manifest_url.split('/')[:-1])) + '/' + media_url))
                 # If media_url is itself a f4m manifest do the recursive extraction
                 # since bitrates in parent manifest (this one) and media_url manifest
                 # may differ leading to inability to resolve the format by requested
@@ -1310,6 +1310,7 @@ class InfoExtractor(object):
                 'url': manifest_url,
                 'manifest_url': manifest_url,
                 'ext': 'flv' if bootstrap_info is not None else None,
+                'protocol': 'f4m',
                 'tbr': tbr,
                 'width': width,
                 'height': height,
@@ -1401,7 +1402,7 @@ class InfoExtractor(object):
             media_url = media.get('URI')
             if media_url:
                 format_id = []
-                for v in (group_id, name):
+                for v in (m3u8_id, group_id, name):
                     if v:
                         format_id.append(v)
                 f = {
@@ -2242,27 +2243,35 @@ class InfoExtractor(object):
         return formats
 
     def _extract_wowza_formats(self, url, video_id, m3u8_entry_protocol='m3u8_native', skip_protocols=[]):
+        query = compat_urlparse.urlparse(url).query
         url = re.sub(r'/(?:manifest|playlist|jwplayer)\.(?:m3u8|f4m|mpd|smil)', '', url)
         url_base = self._search_regex(
             r'(?:(?:https?|rtmp|rtsp):)?(//[^?]+)', url, 'format url')
         http_base_url = '%s:%s' % ('http', url_base)
         formats = []
+
+        def manifest_url(manifest):
+            m_url = '%s/%s' % (http_base_url, manifest)
+            if query:
+                m_url += '?%s' % query
+            return m_url
+
         if 'm3u8' not in skip_protocols:
             formats.extend(self._extract_m3u8_formats(
-                http_base_url + '/playlist.m3u8', video_id, 'mp4',
+                manifest_url('playlist.m3u8'), video_id, 'mp4',
                 m3u8_entry_protocol, m3u8_id='hls', fatal=False))
         if 'f4m' not in skip_protocols:
             formats.extend(self._extract_f4m_formats(
-                http_base_url + '/manifest.f4m',
+                manifest_url('manifest.f4m'),
                 video_id, f4m_id='hds', fatal=False))
         if 'dash' not in skip_protocols:
             formats.extend(self._extract_mpd_formats(
-                http_base_url + '/manifest.mpd',
+                manifest_url('manifest.mpd'),
                 video_id, mpd_id='dash', fatal=False))
         if re.search(r'(?:/smil:|\.smil)', url_base):
             if 'smil' not in skip_protocols:
                 rtmp_formats = self._extract_smil_formats(
-                    http_base_url + '/jwplayer.smil',
+                    manifest_url('jwplayer.smil'),
                     video_id, fatal=False)
                 for rtmp_format in rtmp_formats:
                     rtsp_format = rtmp_format.copy()

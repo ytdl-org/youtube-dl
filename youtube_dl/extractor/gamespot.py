@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class GameSpotIE(OnceIE):
-    _VALID_URL = r'https?://(?:www\.)?gamespot\.com/.*-(?P<id>\d+)/?'
+    _VALID_URL = r'https?://(?:www\.)?gamespot\.com/videos/(?:[^/]+/\d+-|embed/)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.gamespot.com/videos/arma-3-community-guide-sitrep-i/2300-6410818/',
         'md5': 'b2a30deaa8654fcccd43713a6b6a4825',
@@ -35,6 +35,9 @@ class GameSpotIE(OnceIE):
         'params': {
             'skip_download': True,  # m3u8 downloads
         },
+    }, {
+        'url': 'https://www.gamespot.com/videos/embed/6439218/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -52,7 +55,7 @@ class GameSpotIE(OnceIE):
             manifest_url = f4m_url
             formats.extend(self._extract_f4m_formats(
                 f4m_url + '?hdcore=3.7.0', page_id, f4m_id='hds', fatal=False))
-        m3u8_url = streams.get('m3u8_stream')
+        m3u8_url = dict_get(streams, ('m3u8_stream', 'adaptive_stream'))
         if m3u8_url:
             manifest_url = m3u8_url
             m3u8_formats = self._extract_m3u8_formats(
@@ -60,7 +63,7 @@ class GameSpotIE(OnceIE):
                 m3u8_id='hls', fatal=False)
             formats.extend(m3u8_formats)
         progressive_url = dict_get(
-            streams, ('progressive_hd', 'progressive_high', 'progressive_low'))
+            streams, ('progressive_hd', 'progressive_high', 'progressive_low', 'other_lr'))
         if progressive_url and manifest_url:
             qualities_basename = self._search_regex(
                 r'/([^/]+)\.csmil/',

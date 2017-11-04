@@ -1,3 +1,28 @@
+version 2017.10.29
+
+Core
+* [extractor/common] Prefix format id for audio only HLS formats
++ [utils] Add support for zero years and months in parse_duration
+
+Extractors
+* [egghead] Fix extraction (#14388)
++ [fxnetworks] Extract series metadata (#14603)
++ [younow] Add support for younow.com (#9255, #9432, #12436)
+* [dctptv] Fix extraction (#14599)
+* [youtube] Restrict embed regex (#14600)
+* [vimeo] Restrict iframe embed regex (#14600)
+* [soundgasm] Improve extraction (#14588)
+- [myvideo] Remove extractor (#8557)
++ [nbc] Add support for classic-tv videos (#14575)
++ [vrtnu] Add support for cookies authentication and simplify (#11873)
++ [canvas] Add support for vrt.be/vrtnu (#11873)
+* [twitch:clips] Fix title extraction (#14566)
++ [ndtv] Add support for sub-sites (#14534)
+* [dramafever] Fix login error message extraction
++ [nick] Add support for more nickelodeon sites (no, dk, se, ch, fr, es, pt,
+  ro, hu) (#14553)
+
+
 version 2017.10.20
 
 Core
