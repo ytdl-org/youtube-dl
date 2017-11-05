@@ -227,7 +227,7 @@ class QuicklineIE(QuicklineBaseIE):
 
 
 class QuicklineLiveIE(QuicklineBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?mobiltv\.quickline\.com/watch/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?mobiltv\.quickline\.com/watch/(?P<id>[^/]+)$'
 
     def _real_extract(self, url):
         channel_name = video_id = self._match_id(url)
@@ -249,7 +249,7 @@ class ZattooIE(ZattooBaseIE):
 
 
 class ZattooLiveIE(ZattooBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?zattoo\.com/watch/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?zattoo\.com/watch/(?P<id>[^/]+)$'
 
     _TEST = {
         'url': 'https://zattoo.com/watch/srf1',
