@@ -1418,5 +1418,11 @@ from .youtube import (
 )
 from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
+from .zattoo import (
+    QuicklineIE,
+    QuicklineLiveIE,
+    ZattooIE,
+    ZattooLiveIE,
+)
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
