@@ -432,7 +432,10 @@ from .hitbox import HitboxIE, HitboxLiveIE
 from .hitrecord import HitRecordIE
 from .hornbunny import HornBunnyIE
 from .hotnewhiphop import HotNewHipHopIE
-from .hotstar import HotStarIE
+from .hotstar import (
+    HotStarIE,
+    HotStarPlaylistIE,
+)
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .hrti import (
