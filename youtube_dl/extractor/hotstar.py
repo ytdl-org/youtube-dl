@@ -11,6 +11,7 @@ from ..utils import (
 
 class HotStarIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:.+?[/-])?(?P<id>\d{10})'
+    _GEO_COUNTRIES = ['IN']
     _TESTS = [{
         'url': 'http://www.hotstar.com/on-air-with-aib--english-1000076273',
         'info_dict': {
