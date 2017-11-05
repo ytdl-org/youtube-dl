@@ -50,14 +50,8 @@ from .YoutubeDL import YoutubeDL
 
 
 def _real_main(argv=None):
-    LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store",
-        Secret.SchemaFlags.DONT_MATCH_NAME,
-        {
-            "user-name": Secret.SchemaAttributeType.STRING,
-            "domain-name": Secret.SchemaAttributeType.STRING
-        }
-    )
-    
+    LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store", Secret.SchemaFlags.DONT_MATCH_NAME, {"user-name": Secret.SchemaAttributeType.STRING, "domain-name": Secret.SchemaAttributeType.STRING})
+
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
         # https://github.com/rg3/youtube-dl/issues/820
@@ -159,14 +153,14 @@ def _real_main(argv=None):
         if len(all_domains) > 1:
             parser.error('You passed URLs from more than one domain - supplying credentials from command line is not supported in this case.')
         domain_name = all_domains.pop()
-        password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, { "user-name": opts.username, "domain-name": domain_name }, None)
+        password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"user-name": opts.username, "domain-name": domain_name}, None)
         if password is None:
             print("Password for domain " + domain_name + " and user name " + opts.username + " not found in the keyring.")
             supplied_password = compat_getpass('Type account password and press [Return]: ')
-            attributes = { "user-name": opts.username, "domain-name": domain_name }
+            attributes = {"user-name": opts.username, "domain-name": domain_name}
             label = "Youtube-dl: " + domain_name + " password"
             Secret.password_store_sync(LIBSECRET_SCHEMA, attributes, Secret.COLLECTION_DEFAULT, label, supplied_password, None)
-        password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, { "user-name": opts.username, "domain-name": domain_name }, None)
+        password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"user-name": opts.username, "domain-name": domain_name}, None)
         opts.password = password
     if opts.username is not None and opts.password is None and opts.password_from_keyring is False:
         opts.password = compat_getpass('Type account password and press [Return]: ')
