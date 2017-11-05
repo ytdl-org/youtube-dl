@@ -1,18 +1,41 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    determine_ext,
-    int_or_none,
-)
 import re
 
+from .common import InfoExtractor
+from ..compat import compat_str
+from ..utils import (
+    determine_ext,
+    ExtractorError,
+    int_or_none,
+)
 
-class HotStarIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:.+?[/-])?(?P<id>\d{10})'
+
+class HotStarBaseIE(InfoExtractor):
     _GEO_COUNTRIES = ['IN']
+
+    def _download_json(self, *args, **kwargs):
+        response = super(HotStarBaseIE, self)._download_json(*args, **kwargs)
+        if response['resultCode'] != 'OK':
+            if kwargs.get('fatal'):
+                raise ExtractorError(
+                    response['errorDescription'], expected=True)
+            return None
+        return response['resultObj']
+
+    def _download_content_info(self, content_id):
+        return self._download_json(
+            'https://account.hotstar.com/AVS/besc', content_id, query={
+                'action': 'GetAggregatedContentDetails',
+                'appVersion': '5.0.40',
+                'channel': 'PCTV',
+                'contentId': content_id,
+            })['contentInfo'][0]
+
+
+class HotStarIE(HotStarBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:.+?[/-])?(?P<id>\d{10})'
     _TESTS = [{
         'url': 'http://www.hotstar.com/on-air-with-aib--english-1000076273',
         'info_dict': {
@@ -36,23 +59,11 @@ class HotStarIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _download_json(self, url_or_request, video_id, note='Downloading JSON metadata', fatal=True, query=None):
-        json_data = super(HotStarIE, self)._download_json(
-            url_or_request, video_id, note, fatal=fatal, query=query)
-        if json_data['resultCode'] != 'OK':
-            if fatal:
-                raise ExtractorError(json_data['errorDescription'])
-            return None
-        return json_data['resultObj']
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_data = self._download_json(
-            'http://account.hotstar.com/AVS/besc', video_id, query={
-                'action': 'GetAggregatedContentDetails',
-                'channel': 'PCTV',
-                'contentId': video_id,
-            })['contentInfo'][0]
+
+        video_data = self._download_content_info(video_id)
+
         title = video_data['episodeTitle']
 
         if video_data.get('encrypted') == 'Y':
@@ -103,56 +114,49 @@ class HotStarIE(InfoExtractor):
         }
 
 
-class HotStarPlaylistIE(InfoExtractor):
+class HotStarPlaylistIE(HotStarBaseIE):
     IE_NAME = 'hotstar:playlist'
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/tv/(?P<playlist_title>.+)/(?P<series_id>\d+)/episodes/(?P<playlist_id>\d{1,})'
-
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?hotstar\.com/tv/[^/]+/(?P<content_id>\d+))/(?P<type>[^/]+)/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://www.hotstar.com/tv/pow-bandi-yuddh-ke/10999/episodes/10856/9993',
+        'url': 'http://www.hotstar.com/tv/pratidaan/14982/episodes/14812/9993',
         'info_dict': {
-            'id': '10856',
-            'title': 'pow-bandi-yuddh-ke',
+            'id': '14812',
         },
-        'playlist_mincount': 0,
+        'playlist_mincount': 75,
     }, {
-        'url': 'http://www.hotstar.com/tv/pow-bandi-yuddh-ke/10999/episodes/10856/9993',
+        'url': 'http://www.hotstar.com/tv/pratidaan/14982/popular-clips/9998/9998',
         'only_matching': True,
     }]
-
-    def _extract_episode_info(self, series_id, playlist_title, video):
-
-        picture_url = video.get('urlPictures')
-        thumbnail = ''
-        if picture_url:
-            thumbnail = 'http://media0-starag.startv.in/r1/thumbs/PCTV/%s/%s/PCTV-%s-hs.jpg' % (picture_url[-2:], picture_url, picture_url)
-
-        episode_title = video.get('episodeTitle', '')
-        episode_title = episode_title.lower().replace(' ', '-')
-        url = "http://www.hotstar.com/tv/%s/%s/%s/%s" % (playlist_title, series_id, episode_title, video.get('contentId'))
-
-        info_dict = {
-            'id': video.get('contentId'),
-            'title': video.get('episodeTitle'),
-            'description': video.get('longDescription'),
-            'thumbnail': thumbnail,
-            'url': url,
-            '_type': 'url',
-        }
-        return info_dict
+    _ITEM_TYPES = {
+        'episodes': 'EPISODE',
+        'popular-clips': 'CLIPS',
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        series_id = mobj.group('series_id')
-        playlist_id = mobj.group('playlist_id')
-        playlist_title = mobj.group('playlist_title')
+        base_url = mobj.group('url')
+        content_id = mobj.group('content_id')
+        playlist_type = mobj.group('type')
+
+        content_info = self._download_content_info(content_id)
+        playlist_id = compat_str(content_info['categoryId'])
 
         collection = self._download_json(
-            "http://search.hotstar.com/AVS/besc?action=SearchContents&appVersion=5.0.39&channel=PCTV&moreFilters=series:%s;&query=*&searchOrder=last_broadcast_date+desc,year+asc,title+asc&type=EPISODE" % playlist_id,
-            playlist_id
-        )
+            'https://search.hotstar.com/AVS/besc', playlist_id, query={
+                'action': 'SearchContents',
+                'appVersion': '5.0.40',
+                'channel': 'PCTV',
+                'moreFilters': 'series:%s;' % playlist_id,
+                'query': '*',
+                'searchOrder': 'last_broadcast_date desc,year desc,title asc',
+                'type': self._ITEM_TYPES.get(playlist_type, 'EPISODE'),
+            })
 
-        videos = collection.get('resultObj', {}).get('response', {}).get('docs', [])
         entries = [
-            self._extract_episode_info(series_id, playlist_title, video)
-            for video in videos if video.get('contentId')]
-        return self.playlist_result(entries, playlist_id, playlist_title)
+            self.url_result(
+                '%s/_/%s' % (base_url, video['contentId']),
+                ie=HotStarIE.ie_key(), video_id=video['contentId'])
+            for video in collection['response']['docs']
+            if video.get('contentId')]
+
+        return self.playlist_result(entries, playlist_id)
