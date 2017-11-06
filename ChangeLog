@@ -1,3 +1,19 @@
+version <unreleased>
+
+Core
++ [extractor/common] Add protocol for f4m formats
+* [f4m] Prefer baseURL for relative URLs (#14660)
+* [extractor/common] Respect URL query in _extract_wowza_formats (14645)
+
+Extractors
++ [hotstar:playlist] Add support for playlists (#12465)
+* [hotstar] Bypass geo restriction (#14672)
+- [22tracks] Remove extractor (#11024, #14628)
++ [skysport] Sdd support ooyala videos protected with embed_token (#14641)
+* [gamespot] Extract formats referenced with new data fields (#14652)
+* [spankbang] Detect unavailable videos (#14644)
+
+
 version 2017.10.29
 
 Core
