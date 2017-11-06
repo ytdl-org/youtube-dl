@@ -155,13 +155,7 @@ def _real_main(argv=None):
         domain_name = all_domains.pop()
         password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"user-name": opts.username, "domain-name": domain_name}, None)
         if password is None:
-            print("Password for domain " + domain_name + " and user name " + opts.username + " not found in the keyring.")
-            supplied_password = compat_getpass('Type account password and press [Return]: ')
-            attributes = {"user-name": opts.username, "domain-name": domain_name}
-            label = "Youtube-dl: " + domain_name + " password"
-            Secret.password_store_sync(LIBSECRET_SCHEMA, attributes, Secret.COLLECTION_DEFAULT, label, supplied_password, None)
-        password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"user-name": opts.username, "domain-name": domain_name}, None)
-        opts.password = password
+            parser.error('Password not found in keyring/wallet')
     if opts.username is not None and opts.password is None and opts.keyring is False:
         opts.password = compat_getpass('Type account password and press [Return]: ')
     if opts.ap_username is not None and opts.ap_password is None:
