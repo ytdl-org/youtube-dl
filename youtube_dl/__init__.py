@@ -147,7 +147,7 @@ def _real_main(argv=None):
             parser.error('auto number start must be positive or 0')
     if opts.usetitle and opts.useid:
         parser.error('using title conflicts with using video ID')
-    if opts.username is not None and opts.password is None and opts.password_from_keyring is True:
+    if opts.username is not None and opts.password is None and opts.keyring is True:
         # extract domain names, check if all videos are from the same domain.
         all_domains = set(map(lambda url: compat_urllib_parse.urlparse(url).netloc, all_urls))
         if len(all_domains) > 1:
@@ -162,7 +162,7 @@ def _real_main(argv=None):
             Secret.password_store_sync(LIBSECRET_SCHEMA, attributes, Secret.COLLECTION_DEFAULT, label, supplied_password, None)
         password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"user-name": opts.username, "domain-name": domain_name}, None)
         opts.password = password
-    if opts.username is not None and opts.password is None and opts.password_from_keyring is False:
+    if opts.username is not None and opts.password is None and opts.keyring is False:
         opts.password = compat_getpass('Type account password and press [Return]: ')
     if opts.ap_username is not None and opts.ap_password is None:
         opts.ap_password = compat_getpass('Type TV provider account password and press [Return]: ')
