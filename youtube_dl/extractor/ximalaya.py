@@ -11,8 +11,10 @@ from ..compat import (
 
 from .common import InfoExtractor
 
+
 class XimalayaBaseIE(InfoExtractor):
-     _GEO_COUNTRIES = ['CN']
+    _GEO_COUNTRIES = ['CN']
+
 
 class XimalayaIE(XimalayaBaseIE):
     IE_NAME = 'ximalaya'
@@ -53,7 +55,7 @@ class XimalayaIE(XimalayaBaseIE):
 
         audio_id = self._match_id(url)
         webpage = self._download_webpage(url, audio_id,
-                                         note='Download sound page for %s'% audio_id ,
+                                         note='Download sound page for %s' % audio_id,
                                          errnote='Unable to get sound page')
 
         audio_info_file = 'http://m.ximalaya.com/tracks/%s.json' % audio_id
@@ -76,11 +78,9 @@ class XimalayaIE(XimalayaBaseIE):
         audio_uploader_id = audio_info.get('uid')
 
         if is_m:
-            intro = re.search(r'(?s)<section class=["\']content[^>]+>(.+)</section>'
-                              , webpage)
+            intro = re.search(r'(?s)<section class=["\']content[^>]+>(.+)</section>', webpage)
         else:
-            intro = re.search(r'(?s)<div class="rich_intro"[^>]*>(.+?</article>)',
-                              webpage)
+            intro = re.search(r'(?s)<div class="rich_intro"[^>]*>(.+?</article>)', webpage)
 
         if intro:
             audio_description = intro.group(1).strip()
@@ -155,8 +155,8 @@ class XimalayaAlbumIE(XimalayaBaseIE):
             if not mobj:
                 break
 
-            next_url = self._BASE_URL_TEMPL % mobj['more']
-            self.report_download_webpage(next_url)
+            next_url = self._BASE_URL_TEMPL % mobj.group('more')
+            self.report_download_webpage('%d %s' % (page_num, next_url))
             html = self._download_webpage(next_url, playlist_id)
             if not html.strip():
                 # Some webpages show a "Load more" button but they don't
@@ -166,8 +166,8 @@ class XimalayaAlbumIE(XimalayaBaseIE):
     def _process_page(self, html, uid):
         find_from = html.index('album_soundlist')
         for mobj in re.finditer(r'<a[^>]+?href="(?P<url>/' +
-                                        uid +
-                                        r'/sound/(?P<id>\d+)/?)"[^>]+?title="(?P<title>[^>]+)">',
+                                uid +
+                                r'/sound/(?P<id>\d+)/?)"[^>]+?title="(?P<title>[^>]+)">',
                                 html[find_from:]):
             if 'url' in mobj.groupdict():
                 yield self.url_result(self._BASE_URL_TEMPL % mobj.group('url'),
