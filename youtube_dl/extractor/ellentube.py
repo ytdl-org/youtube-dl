@@ -86,8 +86,9 @@ class EllenTubeVideoIE(EllenTubeBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_id_regex = r'data-config.+([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
-        video_id = self._search_regex(video_id_regex, webpage, 'video id')
+        video_id = self._html_search_regex(
+            r'(?s)<!--\s*CONTENT\s*-->.*data-config.+([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
+            webpage, 'video id')
         return self._extract_from_video_id(video_id, display_id)
 
 
