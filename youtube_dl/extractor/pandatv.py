@@ -8,6 +8,7 @@ from ..utils import (
 )
 import json
 
+
 class PandaTVIE(InfoExtractor):
     IE_DESC = '熊猫TV'
     _VALID_URL = r'https?://(?:www\.)?panda\.tv/(?P<id>[0-9]+)'
