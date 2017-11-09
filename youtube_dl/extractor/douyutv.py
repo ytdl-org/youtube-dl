@@ -83,11 +83,11 @@ class DouyuTVIE(InfoExtractor):
                 r'"room_id\\?"\s*:\s*(\d+),', page, 'room id')
 
         # Grab metadata from PC client API
-        api_url = "http://www.douyutv.com/api/v1/"
-        args = "room/%s?aid=wp&client_sys=wp&time=%d" % (room_id, int(time.time()))
-        auth_md5 = (args + "zNzMV1y4EMxOHS6I5WKm").encode("utf-8")
-        auth_str = hashlib.md5(auth_md5).hexdigest()
-        json_request_url = "%s%s&auth=%s" % (api_url, args, auth_str)
+        api_url = 'http://www.douyutv.com/api/v1/'
+        args = 'room/%s?aid=wp&client_sys=wp&time=%d' % (room_id, int(time.time()))
+        auth_str = (args + 'zNzMV1y4EMxOHS6I5WKm').encode('utf-8')
+        auth_md5 = hashlib.md5(auth_str).hexdigest()
+        json_request_url = '%s%s&auth=%s' % (api_url, args, auth_md5)
 
         room = self._download_json(json_request_url, video_id,
             note='Downloading room info')['data']
