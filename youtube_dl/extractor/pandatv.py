@@ -6,7 +6,6 @@ from ..utils import (
     ExtractorError,
     qualities,
 )
-import json
 
 
 class PandaTVIE(InfoExtractor):
@@ -67,10 +66,10 @@ class PandaTVIE(InfoExtractor):
             plflag1 = '4'
         live_panda = 'live_panda' if plflag0 < 1 else ''
 
-        plflag_auth = json.loads(video_info["plflag_list"])
-        sign = plflag_auth["auth"]["sign"]
-        ts = plflag_auth["auth"]["time"]
-        rid = plflag_auth["auth"]["rid"]
+        plflag_auth = self._parse_json(video_info['plflag_list'], video_id)
+        sign = plflag_auth['auth']['sign']
+        ts = plflag_auth['auth']['time']
+        rid = plflag_auth['auth']['rid']
 
         quality_key = qualities(['OD', 'HD', 'SD'])
         suffix = ['_small', '_mid', '']
