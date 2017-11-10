@@ -369,7 +369,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '--keyring',
         action='store_true', dest='usekeyring', default=False,
-        help='Retrieve password from keyring. Experimental.')
+        help='Retrieve authentication data from keyring. Experimental.')
 
     adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
     adobe_pass.add_option(

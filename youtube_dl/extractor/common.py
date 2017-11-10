@@ -826,24 +826,32 @@ class InfoExtractor(object):
             except (IOError, netrc.NetrcParseError) as err:
                 self._downloader.report_warning(
                     'parsing .netrc: %s' % error_to_compat_str(err))
-        
+
         if self._downloader.params.get('usekeyring', False):
             try:
                 import gi
                 gi.require_version('Secret', '1')
                 from gi.repository import Secret
-                LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store",Secret.SchemaFlags.DONT_MATCH_NAME,{"extractor": Secret.SchemaAttributeType.STRING,"app": Secret.SchemaAttributeType.STRING})
-                secret = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"extractor": "json", "app": "youtube-dl"}, None)
+                LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store",
+                                                     Secret.SchemaFlags.DONT_MATCH_NAME,
+                                                     {
+                                                         "extractor": Secret.SchemaAttributeType.STRING,
+                                                         "app": Secret.SchemaAttributeType.STRING
+                                                     })
+                secret = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"extractor": netrc_machine, "app": "youtube-dl"}, None)
                 if secret is None:
-                    raise netrc.NetrcParseError('Can\'t find credentials in keyring for "' + netrc_machine + '"')
-                print(str(secret))
+                    raise KeyError('Cannot find credentials in keyring for "' + netrc_machine + '"')
                 secret_dict = json.loads(secret)
-                print('JSON Parsed: ' + str(secret_json))
-                print('JSON User: ' + secret_json['u'])
-                print('JSON Password: ' + secret_json['p'])
-            except (IOError, netrc.NetrcParseError) as err:
+                username = secret_dict['user']
+                password = secret_dict['pass']
+            except KeyError as err:
                 self._downloader.report_warning(
                     'Libsecret: %s' % error_to_compat_str(err))
+            except json.decoder.JSONDecodeError:
+                self._downloader.report_warning(
+                    'JSON error, your JSON string in keyring is likely malformed')
+            except ImportError:
+                raise ImportError('Cannot import gi module. Check that you have python-gobject installed.')
 
         return username, password
 

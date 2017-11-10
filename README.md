@@ -362,6 +362,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      out, youtube-dl will ask interactively.
     -2, --twofactor TWOFACTOR        Two-factor authentication code
     -n, --netrc                      Use .netrc authentication data
+    --keyring                        Retrieve authentication data from keyring. Experimental.
     --video-password PASSWORD        Video password (vimeo, smotri, youku)
 
 ## Adobe Pass Options:
@@ -480,6 +481,29 @@ On Windows you may also need to setup the `%HOME%` environment variable manually
 ```
 set HOME=%USERPROFILE%
 ```
+
+### Authentication with keyring
+
+This option retrieves credentials for an extractor from keyring (typically gnome-keyring or kwallet) using libsecret.
+Check that you have python-gobject and libsecret installed.
+After that you can add credentials for an extractor to the keyring like this, where *extractor* is the name of the extractor in lowercase:
+```
+secret-tool store --label="Youtube-dl: <extractor> password" extractor "<extractor>" app "youtube-dl"
+```
+For example:
+```
+secret-tool store --label="Youtube-dl: youtube password" extractor "youtube" app "youtube-dl"
+```
+Both username and password need to be put into password prompt of the above command in JSON format as follows. There are 2 characters that need to be escaped with a backslash: " (double quote" and \ (backslash).
+```
+{"user":"<login>","pass":"<password>"}
+```
+For example, given that login is john.doe@gmail.com and password is Pass"wor\d :
+```
+{"user":"john.doe@gmail.com","pass":"Pass\"wor\\d"}
+```
+To activate authentication with keyring you should pass `--keyring` to youtube-dl or place it in the [configuration file](#configuration).
+
 
 # OUTPUT TEMPLATE
 
