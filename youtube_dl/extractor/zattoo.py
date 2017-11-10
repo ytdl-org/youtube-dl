@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import uuid
+from uuid import uuid4
 import re
 
 from .common import InfoExtractor
@@ -10,16 +10,17 @@ from ..utils import (
     ExtractorError,
     sanitized_Request,
     urlencode_postdata,
-    urljoin,
 )
 
 
 class ZattooBaseIE(InfoExtractor):
 
     _NETRC_MACHINE = 'zattoo'
-    _HOST_URL = 'https://zattoo.com/'
+    _HOST_URL = 'https://zattoo.com'
 
-    def _login(self, uuid, session_id, video_id):
+    _login_info = {}
+
+    def _login(self, uuid, session_id):
         (username, password) = self._get_login_info()
         if not username or not password:
             raise ExtractorError(
@@ -31,20 +32,19 @@ class ZattooBaseIE(InfoExtractor):
             'remember': True,
         }
         request = sanitized_Request(
-            urljoin(self._HOST_URL, '/zapi/v2/account/login'),
+            '%s/zapi/v2/account/login' % self._HOST_URL,
             urlencode_postdata(login_form))
         request.add_header(
-            'Referer', urljoin(self._HOST_URL, '/login'))
+            'Referer', '%s/login' % self._HOST_URL)
         request.add_header(
             'Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
         request.add_header(
             'Cookie', self._generate_cookie(uuid, session_id))
         response = self._request_webpage(
-            request, video_id, 'Logging in as %s' % login_form['login'])
+            request, None, 'Logging in as %s' % login_form['login'])
         cookie = response.headers.get('Set-Cookie')
         pzuid = self._search_regex(r'pzuid\s*=\s*(.+?);', cookie, 'pzuid')
-        data = self._parse_json(
-            response.read(), video_id)
+        data = self._parse_json(response.read(), None)
 
         return {
             'ppid': data['session']['ppid'],
@@ -54,16 +54,16 @@ class ZattooBaseIE(InfoExtractor):
             'session_id': session_id
         }
 
-    def _get_app_token_and_version(self, video_id):
+    def _get_app_token_and_version(self):
         host_webpage = self._download_webpage(
-            self._HOST_URL, video_id)
+            self._HOST_URL, None, 'Downloading %s' % self._HOST_URL)
         app_token = self._html_search_regex(
             r'<script.+window\.appToken\s*=\s*\'(.+)\'', host_webpage, 'app token')
         app_version = self._html_search_regex(
             r'<!--\w+-(.+?)-', host_webpage, 'app version')
         return app_token, app_version
 
-    def _say_hello(self, video_id, uuid, app_token, app_version):
+    def _say_hello(self, uuid, app_token, app_version):
         postdata = {
             'client_app_token': app_token,
             'uuid': uuid,
@@ -72,10 +72,10 @@ class ZattooBaseIE(InfoExtractor):
             'format': 'json',
         }
         request = sanitized_Request(
-            urljoin(self._HOST_URL, '/zapi/v2/session/hello'),
+            '%s/zapi/v2/session/hello' % self._HOST_URL,
             urlencode_postdata(postdata))
         response = self._request_webpage(
-            request, video_id, 'Say hello')
+            request, None, 'Say hello')
 
         cookie = response.headers.get('Set-Cookie')
         session_id = self._search_regex(
@@ -88,10 +88,12 @@ class ZattooBaseIE(InfoExtractor):
         return 'uuid=%s; beaker.session.id=%s; pzuid=%s' % (uuid, session_id, pzuid)
 
     def _get_channels_display_cid(self, login_info, video_id):
-        request_url = urljoin(self._HOST_URL,
-                              '/zapi/v2/cached/channels/%s&details=False' % login_info['powerhash'])
         data = self._download_json(
-            request_url, video_id, 'Downloading available channel list')
+            '%s/zapi/v2/cached/channels/%s' % (self._HOST_URL,
+                                               login_info['powerhash']),
+            video_id,
+            'Downloading available channel list',
+            query={'details': False})
         display_cid = {}
         for elem in data['channel_groups']:
             for channel in elem['channels']:
@@ -104,9 +106,13 @@ class ZattooBaseIE(InfoExtractor):
 
     def _extract_cid_and_video_info(self, video_id):
         data = self._download_json(
-            urljoin(self._HOST_URL,
-                    '/zapi/program/details?program_id=%s&complete=True' % video_id),
-            video_id, 'Downloading video information')
+            '%s/zapi/program/details' % self._HOST_URL,
+            video_id,
+            'Downloading video information',
+            query={
+                'program_id': video_id,
+                'complete': True
+            })
 
         info_dict = {
             'id': video_id,
@@ -117,55 +123,43 @@ class ZattooBaseIE(InfoExtractor):
         cid = data['program']['cid']
         return cid, info_dict
 
-    def _store_dash_format_properties(self, dash_formats, store_list):
-        for form in dash_formats:
-            if form.get('format_note') == 'DASH video':
-                store_list.append(
-                    {
-                        'ext': form.get('ext'),
-                        'width': form.get('width'),
-                        'height': form.get('height'),
-                        'tbr': form.get('tbr'),
-                        'fps': form.get('fps'),
-                    }
-                )
-
-    def _add_stored_information(self, store_list, hls_formats, i_dash):
-        for form in hls_formats:
-            if i_dash < len(store_list):
-                form.update(store_list[i_dash])
-                i_dash += 1
-        return i_dash
+    def _add_hls_format_information(self, formats):
+        hls_formats = list(filter(
+            lambda f: f.get('format_id').startswith('hls'), formats))
+        dash_formats = list(filter(
+            lambda f: f.get('format_id').startswith('dash') and
+            f.get('acodec') == 'none', formats))
+        if len(hls_formats) == len(dash_formats):
+            for hls, dash in zip(hls_formats, dash_formats):
+                hls['ext'] = dash.get('ext')
+                hls['fps'] = dash.get('fps')
+                hls['tbr'] = dash.get('tbr')
+                hls['width'] = dash.get('width')
+                hls['height'] = dash.get('height')
 
     def _extract_formats(self, cid, video_id, is_live=False):
         postdata = {
             'stream_type': 'dash',
             'https_watch_urls': True,
         }
-        url = urljoin(self._HOST_URL, '/zapi/watch/recall/%s/%s' %
-                      (cid, video_id))
+        url = '%s/zapi/watch/recall/%s/%s' % (self._HOST_URL, cid, video_id)
 
         if is_live:
             postdata.update({'timeshift': 10800})
-            url = urljoin(self._HOST_URL, '/zapi/watch/live/%s' % cid)
-
-        request = sanitized_Request(
-            url, urlencode_postdata(postdata))
+            url = '%s/zapi/watch/live/%s' % (self._HOST_URL, cid)
 
         data = self._download_json(
-            request, video_id, 'Downloading dash formats')
+            sanitized_Request(url, urlencode_postdata(postdata)),
+            video_id, 'Downloading dash formats')
 
         formats = []
-        format_info_list = []
         quality = 'hd'
         for elem in data['stream']['watch_urls']:
             if elem.get('audio_channel') == 'A':
-                dash_formats = self._extract_mpd_formats(
-                    elem['url'], video_id, mpd_id='dash-%s' % quality, fatal=False)
-
-                self._store_dash_format_properties(
-                    dash_formats, format_info_list)
-                formats.extend(dash_formats)
+                formats.extend(
+                    self._extract_mpd_formats(
+                        elem['url'], video_id,
+                        mpd_id='dash-%s' % quality, fatal=False))
                 quality = 'sd'
 
         postdata.update({'stream_type': 'hls'})
@@ -176,46 +170,43 @@ class ZattooBaseIE(InfoExtractor):
         data = self._download_json(
             request, video_id, 'Downloading hls formats')
         quality = 'hd'
-        i_dash = 0
         for elem in data['stream']['watch_urls']:
             if elem.get('audio_channel') == 'A':
-                hls_formats = self._extract_m3u8_formats(
-                    elem['url'], video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls-%s' % quality, fatal=False)
-                i_dash = self._add_stored_information(
-                    format_info_list, hls_formats, i_dash)
-                formats.extend(hls_formats)
+                formats.extend(
+                    self._extract_m3u8_formats(
+                        elem['url'], video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls-%s' % quality, fatal=False))
                 quality = 'sd'
 
+        self._add_hls_format_information(formats)
         self._sort_formats(formats)
         return formats
 
-    def _generate_uuid(self):
-        return compat_str(uuid.uuid4())
+    def _real_initialize(self):
+        uuid = compat_str(uuid4())
+        app_token, app_version = self._get_app_token_and_version()
+        session_id = self._say_hello(uuid, app_token, app_version)
+        self._login_info = self._login(uuid, session_id)
 
     def _extract_video(self, channel_name, video_id, is_live=False):
-        uuid = self._generate_uuid()
-        app_token, app_version = self._get_app_token_and_version(video_id)
-        session_id = self._say_hello(video_id, uuid, app_token, app_version)
-        login_info = self._login(uuid, session_id, video_id)
         if is_live:
-            cid = self._extract_cid(login_info, video_id, channel_name)
+            cid = self._extract_cid(self._login_info, video_id, channel_name)
             info_dict = {
                 'id': channel_name,
-                'title': '%s-%s' % (channel_name, 'live'),
+                'title': self._live_title(channel_name),
                 'is_live': True,
             }
         else:
             cid, info_dict = self._extract_cid_and_video_info(video_id)
         formats = self._extract_formats(
             cid, video_id, is_live=is_live)
-        info_dict.update({'formats': formats})
+        info_dict['formats'] = formats
         return info_dict
 
 
 class QuicklineBaseIE(ZattooBaseIE):
     _NETRC_MACHINE = 'quickline'
-    _HOST_URL = 'https://mobiltv.quickline.com/'
+    _HOST_URL = 'https://mobiltv.quickline.com'
 
 
 class QuicklineIE(QuicklineBaseIE):
