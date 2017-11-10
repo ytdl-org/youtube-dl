@@ -368,7 +368,7 @@ def parseOpts(overrideArguments=None):
         help='Video password (vimeo, smotri, youku)')
     authentication.add_option(
         '--keyring',
-        action='store_true', dest='keyring', default=False,
+        action='store_true', dest='usekeyring', default=False,
         help='Retrieve password from keyring. Experimental.')
 
     adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')

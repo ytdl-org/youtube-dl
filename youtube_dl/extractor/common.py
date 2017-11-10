@@ -826,6 +826,24 @@ class InfoExtractor(object):
             except (IOError, netrc.NetrcParseError) as err:
                 self._downloader.report_warning(
                     'parsing .netrc: %s' % error_to_compat_str(err))
+        
+        if self._downloader.params.get('usekeyring', False):
+            try:
+                import gi
+                gi.require_version('Secret', '1')
+                from gi.repository import Secret
+                LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store",Secret.SchemaFlags.DONT_MATCH_NAME,{"extractor": Secret.SchemaAttributeType.STRING,"app": Secret.SchemaAttributeType.STRING})
+                secret = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"extractor": "json", "app": "youtube-dl"}, None)
+                if secret is None:
+                    raise netrc.NetrcParseError('Can\'t find credentials in keyring for "' + netrc_machine + '"')
+                print(str(secret))
+                secret_dict = json.loads(secret)
+                print('JSON Parsed: ' + str(secret_json))
+                print('JSON User: ' + secret_json['u'])
+                print('JSON Password: ' + secret_json['p'])
+            except (IOError, netrc.NetrcParseError) as err:
+                self._downloader.report_warning(
+                    'Libsecret: %s' % error_to_compat_str(err))
 
         return username, password
 
@@ -843,7 +861,7 @@ class InfoExtractor(object):
 
         downloader_params = self._downloader.params
 
-        # Attempt to use provided username and password or .netrc data
+        # Attempt to use provided username and password or .netrc data or libsecret data
         if downloader_params.get(username_option) is not None:
             username = downloader_params[username_option]
             password = downloader_params[password_option]

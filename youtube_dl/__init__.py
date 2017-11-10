@@ -11,10 +11,6 @@ import os
 import random
 import sys
 
-import gi
-gi.require_version('Secret', '1')
-from gi.repository import Secret
-from .compat import compat_urllib_parse
 
 from .options import (
     parseOpts,
@@ -50,8 +46,6 @@ from .YoutubeDL import YoutubeDL
 
 
 def _real_main(argv=None):
-    LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store", Secret.SchemaFlags.DONT_MATCH_NAME, {"user-name": Secret.SchemaAttributeType.STRING, "domain-name": Secret.SchemaAttributeType.STRING})
-
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
         # https://github.com/rg3/youtube-dl/issues/820
@@ -133,6 +127,10 @@ def _real_main(argv=None):
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error('using .netrc conflicts with giving username/password')
+    if opts.usekeyring and (opts.username is not None or opts.password is not None):
+        parser.error('using keyring conflicts with giving username/password')
+    if opts.usekeyring and opts.usenetrc:
+        parser.error('using keyring conflicts with using .netrc')
     if opts.password is not None and opts.username is None:
         parser.error('account username missing\n')
     if opts.ap_password is not None and opts.ap_username is None:
@@ -147,16 +145,7 @@ def _real_main(argv=None):
             parser.error('auto number start must be positive or 0')
     if opts.usetitle and opts.useid:
         parser.error('using title conflicts with using video ID')
-    if opts.username is not None and opts.password is None and opts.keyring is True:
-        # extract domain names, check if all videos are from the same domain.
-        all_domains = set(map(lambda url: compat_urllib_parse.urlparse(url).netloc, all_urls))
-        if len(all_domains) > 1:
-            parser.error('You passed URLs from more than one domain - supplying credentials from command line is not supported in this case.')
-        domain_name = all_domains.pop()
-        password = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"user-name": opts.username, "domain-name": domain_name}, None)
-        if password is None:
-            parser.error('Password not found in keyring/wallet')
-    if opts.username is not None and opts.password is None and opts.keyring is False:
+    if opts.username is not None and opts.password is None:
         opts.password = compat_getpass('Type account password and press [Return]: ')
     if opts.ap_username is not None and opts.ap_password is None:
         opts.ap_password = compat_getpass('Type TV provider account password and press [Return]: ')
@@ -324,6 +313,7 @@ def _real_main(argv=None):
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
+        'usekeyring': opts.usekeyring,
         'username': opts.username,
         'password': opts.password,
         'twofactor': opts.twofactor,
