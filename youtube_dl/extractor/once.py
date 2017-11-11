@@ -11,7 +11,7 @@ class OnceIE(InfoExtractor):
     ADAPTIVE_URL_TEMPLATE = 'http://once.unicornmedia.com/now/master/playlist/%s/%s/%s/content.m3u8'
     PROGRESSIVE_URL_TEMPLATE = 'http://once.unicornmedia.com/now/media/progressive/%s/%s/%s/%s/content.mp4'
 
-    def _extract_once_formats(self, url):
+    def _extract_once_formats(self, url, skip_http_formats=False):
         domain_id, application_id, media_item_id = re.match(
             OnceIE._VALID_URL, url).groups()
         formats = self._extract_m3u8_formats(
@@ -27,7 +27,7 @@ class OnceIE(InfoExtractor):
             rendition_id = self._search_regex(
                 r'/now/media/playlist/[^/]+/[^/]+/([^/]+)',
                 adaptive_format['url'], 'redition id', default=None)
-            if rendition_id:
+            if rendition_id and not skip_http_formats:
                 progressive_format = adaptive_format.copy()
                 progressive_format.update({
                     'url': self.PROGRESSIVE_URL_TEMPLATE % (
