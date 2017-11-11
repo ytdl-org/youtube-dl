@@ -62,45 +62,13 @@ class ScreencastIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(
-            r'<embed name="Video".*?src="([^"]+)"', webpage,
-            'QuickTime embed', default=None)
-
-        if video_url is None:
-            flash_vars_s = self._html_search_regex(
-                r'<param name="flashVars" value="([^"]+)"', webpage, 'flash vars',
-                default=None)
-            if not flash_vars_s:
-                flash_vars_s = self._html_search_regex(
-                    r'<param name="initParams" value="([^"]+)"', webpage, 'flash vars',
-                    default=None)
-                if flash_vars_s:
-                    flash_vars_s = flash_vars_s.replace(',', '&')
-            if flash_vars_s:
-                flash_vars = compat_parse_qs(flash_vars_s)
-                video_url_raw = compat_urllib_request.quote(
-                    flash_vars['content'][0])
-                video_url = video_url_raw.replace('http%3A', 'http:')
-
-        if video_url is None:
-            video_url = self._html_search_meta(
-                'og:video', webpage, default=None)
-            
-        if video_url is None:
-            video_url = self._html_search_regex(
-                r'"MediaContentUrl":"([^"]+)"', webpage, 'embeds', default=None)
-
-        if video_url is None:
-            raise ExtractorError('Cannot find video')
-
-        title = self._og_search_title(webpage, default=None)
-        if title is None:
-            title = self._html_search_regex(
-                [r'<b>Title:</b> ([^<]+)</div>',
-                 r'class="tabSeperator">></span><span class="tabText">(.+?)<',
-                 r'<title>([^<]+)</title>'],
-                webpage, 'title')
-        thumbnail = self._og_search_thumbnail(webpage)
+        json_url = self._html_search_regex(
+            r'json\+oembed" href="([^"]+)"', webpage,
+            'json embed', default=None)
+        data = self._download_json(json_url,video_id)
+        video_url = data.get('url')
+        title = data.get('title') or self._og_search_title(webpage, default=None)
+        thumbnail = data.get('thumbnail_url') or self._og_search_thumbnail(webpage, default=None)
         description = self._og_search_description(webpage, default=None)
         if description is None:
             description = self._html_search_meta('description', webpage)
@@ -112,3 +80,4 @@ class ScreencastIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
         }
+
