@@ -57,7 +57,7 @@ class FunimationIE(InfoExtractor):
         try:
             data = self._download_json(
                 'https://prod-api-funimationnow.dadcdigital.com/api/auth/login/',
-                None, 'Logging in as %s' % username, data=urlencode_postdata({
+                None, 'Logging in', data=urlencode_postdata({
                     'username': username,
                     'password': password,
                 }))

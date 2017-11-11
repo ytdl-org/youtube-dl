@@ -78,7 +78,7 @@ class AnimeOnDemandIE(InfoExtractor):
             post_url = urljoin(self._LOGIN_URL, post_url)
 
         response = self._download_webpage(
-            post_url, None, 'Logging in as %s' % username,
+            post_url, None, 'Logging in',
             data=urlencode_postdata(login_form), headers={
                 'Referer': self._LOGIN_URL,
             })

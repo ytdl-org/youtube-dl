@@ -87,7 +87,7 @@ class AtresPlayerIE(InfoExtractor):
             self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            request, None, 'Logging in')
 
         error = self._html_search_regex(
             r'(?s)<ul[^>]+class="[^"]*\blist_error\b[^"]*">(.+?)</ul>',
