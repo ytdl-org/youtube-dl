@@ -830,28 +830,39 @@ class InfoExtractor(object):
         if self._downloader.params.get('usekeyring', False):
             try:
                 import gi
-                gi.require_version('Secret', '1')
-                from gi.repository import Secret
-                LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store",
-                                                     Secret.SchemaFlags.DONT_MATCH_NAME,
-                                                     {
-                                                         "extractor": Secret.SchemaAttributeType.STRING,
-                                                         "app": Secret.SchemaAttributeType.STRING
-                                                     })
-                secret = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"extractor": netrc_machine, "app": "youtube-dl"}, None)
-                if secret is None:
-                    raise KeyError('Cannot find credentials in keyring for "' + netrc_machine + '"')
-                secret_dict = json.loads(secret)
-                username = secret_dict['user']
-                password = secret_dict['pass']
-            except KeyError as err:
-                self._downloader.report_warning(
-                    'Libsecret: %s' % error_to_compat_str(err))
-            except json.decoder.JSONDecodeError:
-                self._downloader.report_warning(
-                    'JSON error, your JSON string in keyring is likely malformed')
+                can_use_gi = True 
             except ImportError:
-                raise ImportError('Cannot import gi module. Check that you have python-gobject installed.')
+                self._downloader.report_warning(
+                    'Problem while processing --keyring option: cannot import gi module. Check that you have python-gobject installed.')
+                can_use_gi = False
+            if can_use_gi:
+                try:
+                    gi.require_version('Secret', '1')
+                    from gi.repository import Secret
+                    LIBSECRET_SCHEMA = Secret.Schema.new("io.github.rg3.youtube-dl.Store",
+                                                         Secret.SchemaFlags.DONT_MATCH_NAME,
+                                                         {
+                                                             "extractor": Secret.SchemaAttributeType.STRING,
+                                                             "app": Secret.SchemaAttributeType.STRING
+                                                         })
+                    secret = Secret.password_lookup_sync(LIBSECRET_SCHEMA, {"extractor": netrc_machine, "app": "youtube-dl"}, None)
+                    if secret is None:
+                        raise KeyError('Cannot find credentials in keyring for "' + netrc_machine + '"')
+                    secret_dict = json.loads(secret)
+                    username = secret_dict['user']
+                    password = secret_dict['pass']
+                except ValueError as err:
+                    self._downloader.report_warning(
+                        'Looks like libsecret is not installed. Error: %s:' %  error_to_compat_str(err))
+                except gi.repository.GLib.GError as err:
+                    self._downloader.report_warning(
+                        'Something went wrong when invoking libsecret. Error: %s' % error_to_compat_str(err))
+                except KeyError as err:
+                    self._downloader.report_warning(
+                        'Libsecret: %s' % error_to_compat_str(err))
+                except json.decoder.JSONDecodeError:
+                    self._downloader.report_warning(
+                        'JSON error, your JSON string in keyring is likely malformed')
 
         return username, password
 
