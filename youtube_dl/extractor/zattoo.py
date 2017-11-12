@@ -87,22 +87,22 @@ class ZattooBaseIE(InfoExtractor):
             return 'uuid=%s; beaker.session.id=%s' % (uuid, session_id)
         return 'uuid=%s; beaker.session.id=%s; pzuid=%s' % (uuid, session_id, pzuid)
 
-    def _get_channels_display_cid(self, login_info, video_id):
-        data = self._download_json(
+    def _extract_cid(self, video_id, channel_name):
+        channel_groups = self._download_json(
             '%s/zapi/v2/cached/channels/%s' % (self._HOST_URL,
-                                               login_info['powerhash']),
+                                               self._login_info['powerhash']),
             video_id,
             'Downloading available channel list',
-            query={'details': False})
-        display_cid = {}
-        for elem in data['channel_groups']:
-            for channel in elem['channels']:
-                display_cid[channel['display_alias']] = channel['cid']
-        return display_cid
-
-    def _extract_cid(self, login_info, video_id, channel_name):
-        display_cid = self._get_channels_display_cid(login_info, video_id)
-        return display_cid[channel_name]
+            query={'details': False})['channel_groups']
+        channel_list = []
+        for chgrp in channel_groups:
+            channel_list.extend(chgrp['channels'])
+        try:
+            return next(chan['cid'] for chan in channel_list if
+                        chan['display_alias'] == channel_name or
+                        chan['cid'] == channel_name)
+        except StopIteration:
+            raise ExtractorError('Could not extract channel id')
 
     def _extract_cid_and_video_info(self, video_id):
         data = self._download_json(
@@ -190,7 +190,7 @@ class ZattooBaseIE(InfoExtractor):
 
     def _extract_video(self, channel_name, video_id, is_live=False):
         if is_live:
-            cid = self._extract_cid(self._login_info, video_id, channel_name)
+            cid = self._extract_cid(video_id, channel_name)
             info_dict = {
                 'id': channel_name,
                 'title': self._live_title(channel_name),
