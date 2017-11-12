@@ -41,7 +41,7 @@ class ZattooBaseIE(InfoExtractor):
         request.add_header(
             'Cookie', self._generate_cookie(uuid, session_id))
         response = self._request_webpage(
-            request, None, 'Logging in as %s' % login_form['login'])
+            request, None, 'Logging in')
         cookie = response.headers.get('Set-Cookie')
         pzuid = self._search_regex(r'pzuid\s*=\s*(.+?);', cookie, 'pzuid')
         data = self._parse_json(response.read(), None)
