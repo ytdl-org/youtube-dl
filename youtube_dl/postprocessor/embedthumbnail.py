@@ -55,7 +55,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 os.remove(encodeFilename(thumbnail_filename))
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-            os.utime(encodeFilename(filename, timestamp))
+            os.utime(encodeFilename(filename), (timestamp, timestamp))
 
         elif info['ext'] in ['m4a', 'mp4']:
             if not check_executable('AtomicParsley', ['-v']):
@@ -91,7 +91,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-                os.utime(encodeFilename(filename, timestamp))
+                os.utime(encodeFilename(filename), (timestamp, timestamp))
         else:
             raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 
