@@ -45,7 +45,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 '-c', 'copy', '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
-            timestamp = os.getmtime(encodeFilename(filename))
+            timestamp = os.path.getmtime(encodeFilename(filename))
 
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
@@ -61,7 +61,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             if not check_executable('AtomicParsley', ['-v']):
                 raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
 
-            timestamp = os.getmtime(encodeFilename(filename))
+            timestamp = os.path.getmtime(encodeFilename(filename))
 
             cmd = [encodeFilename('AtomicParsley', True),
                    encodeFilename(filename, True),
