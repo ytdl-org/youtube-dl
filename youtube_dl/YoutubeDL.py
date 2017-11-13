@@ -948,7 +948,8 @@ class YoutubeDL(object):
                 report_download(n_entries)
             else:  # iterable
                 if playlistitems:
-                    entries = make_playlistitems_entries(list(ie_entries))
+                    entries = make_playlistitems_entries(list(itertools.islice(
+                        ie_entries, 0, max(playlistitems))))
                 else:
                     entries = list(itertools.islice(
                         ie_entries, playliststart, playlistend))
