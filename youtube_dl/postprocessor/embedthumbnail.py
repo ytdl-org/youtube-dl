@@ -45,6 +45,8 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 '-c', 'copy', '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
+            timestamp = os.getmtime(encodeFilename(filename))
+
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
             self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
@@ -53,10 +55,13 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 os.remove(encodeFilename(thumbnail_filename))
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+            os.utime(encodeFilename(filename, timestamp))
 
         elif info['ext'] in ['m4a', 'mp4']:
             if not check_executable('AtomicParsley', ['-v']):
                 raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
+
+            timestamp = os.getmtime(encodeFilename(filename))
 
             cmd = [encodeFilename('AtomicParsley', True),
                    encodeFilename(filename, True),
@@ -86,6 +91,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+                os.utime(encodeFilename(filename, timestamp))
         else:
             raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 
