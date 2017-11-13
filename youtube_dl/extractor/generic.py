@@ -2879,6 +2879,16 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 channel9_urls, video_id, video_title, ie=Channel9IE.ie_key())
 
+        # Look for Mediasite embeds
+        mobj = re.search(r'''(?xi)
+                <iframe[^>]+src="((?:https?://[a-z0-9\-\.:\[\]]+)?
+                    /Mediasite/Play/[0-9a-f]{32,34}(?:\?.*?)?)"
+            ''', webpage)
+        if mobj is not None:
+            return self.url_result(smuggle_url(
+                compat_urlparse.urljoin(url, unescapeHTML(mobj.group(1))),
+                { 'UrlReferrer': url }), 'Livestream')
+
         def merge_dicts(dict1, dict2):
             merged = {}
             for k, v in dict1.items():
