@@ -32,6 +32,8 @@ class TVAIE(InfoExtractor):
         video_data = self._download_json(
             'https://videos.tva.ca/proxy/item/_' + video_id, video_id, headers={
                 'Accept': 'application/json',
+            }, query={
+                'appId': '5955fc5f23eec60006c951f1',
             })
 
         def get_attribute(key):
