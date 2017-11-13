@@ -109,7 +109,7 @@ class GameSpotIE(OnceIE):
             if onceux_url:
                 formats.extend(self._extract_once_formats(re.sub(
                     r'https?://[^/]+', 'http://once.unicornmedia.com', onceux_url),
-                    skip_http_formats=True))
+                    http_formats_preference=-1))
 
         if not formats:
             for quality in ['sd', 'hd']:
