@@ -38,6 +38,9 @@ class GameSpotIE(OnceIE):
     }, {
         'url': 'https://www.gamespot.com/videos/embed/6439218/',
         'only_matching': True,
+    }, {
+        'url': 'https://www.gamespot.com/articles/the-last-of-us-2-receives-new-ps4-trailer/1100-6454469/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
