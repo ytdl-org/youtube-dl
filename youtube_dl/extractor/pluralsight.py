@@ -116,7 +116,7 @@ class PluralsightIE(PluralsightBaseIE):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
         response = self._download_webpage(
-            post_url, None, 'Logging in as %s' % username,
+            post_url, None, 'Logging in',
             data=urlencode_postdata(login_form),
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
 

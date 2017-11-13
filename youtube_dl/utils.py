@@ -1835,10 +1835,20 @@ def parse_duration(s):
         days, hours, mins, secs, ms = m.groups()
     else:
         m = re.match(
-            r'''(?ix)(?:P?T)?
+            r'''(?ix)(?:P?
+                (?:
+                    [0-9]+\s*y(?:ears?)?\s*
+                )?
+                (?:
+                    [0-9]+\s*m(?:onths?)?\s*
+                )?
+                (?:
+                    [0-9]+\s*w(?:eeks?)?\s*
+                )?
                 (?:
                     (?P<days>[0-9]+)\s*d(?:ays?)?\s*
                 )?
+                T)?
                 (?:
                     (?P<hours>[0-9]+)\s*h(?:ours?)?\s*
                 )?

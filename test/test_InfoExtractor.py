@@ -574,6 +574,32 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
 
+    def test_parse_f4m_formats(self):
+        _TEST_CASES = [
+            (
+                # https://github.com/rg3/youtube-dl/issues/14660
+                'custom_base_url',
+                'http://api.new.livestream.com/accounts/6115179/events/6764928/videos/144884262.f4m',
+                [{
+                    'manifest_url': 'http://api.new.livestream.com/accounts/6115179/events/6764928/videos/144884262.f4m',
+                    'ext': 'flv',
+                    'format_id': '2148',
+                    'protocol': 'f4m',
+                    'tbr': 2148,
+                    'width': 1280,
+                    'height': 720,
+                }]
+            ),
+        ]
+
+        for f4m_file, f4m_url, expected_formats in _TEST_CASES:
+            with io.open('./test/testdata/f4m/%s.f4m' % f4m_file,
+                         mode='r', encoding='utf-8') as f:
+                formats = self.ie._parse_f4m_formats(
+                    compat_etree_fromstring(f.read().encode('utf-8')),
+                    f4m_url, None)
+                self.ie._sort_formats(formats)
+                expect_value(self, formats, expected_formats, None)
 
 if __name__ == '__main__':
     unittest.main()

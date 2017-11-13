@@ -101,7 +101,7 @@ class TwitchBaseIE(InfoExtractor):
             fail(clean_html(login_page))
 
         redirect_page, handle = login_step(
-            login_page, handle, 'Logging in as %s' % username, {
+            login_page, handle, 'Logging in', {
                 'username': username,
                 'password': password,
             })

@@ -67,7 +67,7 @@ class VKBaseIE(InfoExtractor):
 
         login_page = self._download_webpage(
             'https://login.vk.com/?act=login', None,
-            note='Logging in as %s' % username,
+            note='Logging in',
             data=urlencode_postdata(login_form))
 
         if re.search(r'onLoginFailed', login_page):

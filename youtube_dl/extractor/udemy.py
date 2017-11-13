@@ -164,7 +164,7 @@ class UdemyIE(InfoExtractor):
         })
 
         response = self._download_webpage(
-            self._LOGIN_URL, None, 'Logging in as %s' % username,
+            self._LOGIN_URL, None, 'Logging in',
             data=urlencode_postdata(login_form),
             headers={
                 'Referer': self._ORIGIN_URL,

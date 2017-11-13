@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -7,7 +8,6 @@ from ..compat import compat_str
 from ..utils import (
     get_element_by_attribute,
     int_or_none,
-    limit_length,
     lowercase_escape,
     try_get,
 )
@@ -212,7 +212,7 @@ class InstagramIE(InfoExtractor):
 
 
 class InstagramUserIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/?(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
     IE_NAME = 'instagram:user'
     _TEST = {
@@ -221,82 +221,79 @@ class InstagramUserIE(InfoExtractor):
             'id': 'porsche',
             'title': 'porsche',
         },
-        'playlist_mincount': 2,
-        'playlist': [{
-            'info_dict': {
-                'id': '614605558512799803_462752227',
-                'ext': 'mp4',
-                'title': '#Porsche Intelligent Performance.',
-                'thumbnail': r're:^https?://.*\.jpg',
-                'uploader': 'Porsche',
-                'uploader_id': 'porsche',
-                'timestamp': 1387486713,
-                'upload_date': '20131219',
-            },
-        }],
+        'playlist_count': 5,
         'params': {
             'extract_flat': True,
             'skip_download': True,
+            'playlistend': 5,
         }
     }
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        uploader_id = mobj.group('username')
+    def _entries(self, uploader_id):
+        query = {
+            '__a': 1,
+        }
 
-        entries = []
-        page_count = 0
-        media_url = 'http://instagram.com/%s/media' % uploader_id
-        while True:
+        def get_count(kind):
+            return int_or_none(try_get(
+                node, lambda x: x['%ss' % kind]['count']))
+
+        for page_num in itertools.count(1):
             page = self._download_json(
-                media_url, uploader_id,
-                note='Downloading page %d ' % (page_count + 1),
-            )
-            page_count += 1
+                'https://instagram.com/%s/' % uploader_id, uploader_id,
+                note='Downloading page %d' % page_num,
+                fatal=False, query=query)
+            if not page:
+                break
 
-            for it in page['items']:
-                if it.get('type') != 'video':
+            nodes = try_get(page, lambda x: x['user']['media']['nodes'], list)
+            if not nodes:
+                break
+
+            max_id = None
+
+            for node in nodes:
+                node_id = node.get('id')
+                if node_id:
+                    max_id = node_id
+
+                if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
                     continue
-                like_count = int_or_none(it.get('likes', {}).get('count'))
-                user = it.get('user', {})
+                video_id = node.get('code')
+                if not video_id:
+                    continue
 
-                formats = [{
-                    'format_id': k,
-                    'height': v.get('height'),
-                    'width': v.get('width'),
-                    'url': v['url'],
-                } for k, v in it['videos'].items()]
-                self._sort_formats(formats)
+                info = self.url_result(
+                    'https://instagram.com/p/%s/' % video_id,
+                    ie=InstagramIE.ie_key(), video_id=video_id)
 
-                thumbnails_el = it.get('images', {})
-                thumbnail = thumbnails_el.get('thumbnail', {}).get('url')
+                description = try_get(
+                    node, [lambda x: x['caption'], lambda x: x['text']['id']],
+                    compat_str)
+                thumbnail = node.get('thumbnail_src') or node.get('display_src')
+                timestamp = int_or_none(node.get('date'))
 
-                # In some cases caption is null, which corresponds to None
-                # in python. As a result, it.get('caption', {}) gives None
-                title = (it.get('caption') or {}).get('text', it['id'])
+                comment_count = get_count('comment')
+                like_count = get_count('like')
+                view_count = int_or_none(node.get('video_views'))
 
-                entries.append({
-                    'id': it['id'],
-                    'title': limit_length(title, 80),
-                    'formats': formats,
+                info.update({
+                    'description': description,
                     'thumbnail': thumbnail,
-                    'webpage_url': it.get('link'),
-                    'uploader': user.get('full_name'),
-                    'uploader_id': user.get('username'),
+                    'timestamp': timestamp,
+                    'comment_count': comment_count,
                     'like_count': like_count,
-                    'timestamp': int_or_none(it.get('created_time')),
+                    'view_count': view_count,
                 })
 
-            if not page['items']:
-                break
-            max_id = page['items'][-1]['id'].split('_')[0]
-            media_url = (
-                'http://instagram.com/%s/media?max_id=%s' % (
-                    uploader_id, max_id))
+                yield info
 
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'id': uploader_id,
-            'title': uploader_id,
-        }
+            if not max_id:
+                break
+
+            query['max_id'] = max_id
+
+    def _real_extract(self, url):
+        uploader_id = self._match_id(url)
+        return self.playlist_result(
+            self._entries(uploader_id), uploader_id, uploader_id)

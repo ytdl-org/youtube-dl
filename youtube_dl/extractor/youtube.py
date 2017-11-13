@@ -1391,7 +1391,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             )
             (["\'])
                 (?P<url>(?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
-                (?:embed|v|p)/.+?)
+                (?:embed|v|p)/[0-9A-Za-z_-]{11}.*?)
             \1''', webpage)]
 
         # lazyYT YouTube embed

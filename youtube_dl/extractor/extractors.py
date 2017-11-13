@@ -432,7 +432,10 @@ from .hitbox import HitboxIE, HitboxLiveIE
 from .hitrecord import HitRecordIE
 from .hornbunny import HornBunnyIE
 from .hotnewhiphop import HotNewHipHopIE
-from .hotstar import HotStarIE
+from .hotstar import (
+    HotStarIE,
+    HotStarPlaylistIE,
+)
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .hrti import (
@@ -1110,10 +1113,6 @@ from .tvplayer import TVPlayerIE
 from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twentymin import TwentyMinutenIE
-from .twentytwotracks import (
-    TwentyTwoTracksIE,
-    TwentyTwoTracksGenreIE
-)
 from .twitch import (
     TwitchVideoIE,
     TwitchChapterIE,
@@ -1334,6 +1333,11 @@ from .youjizz import YouJizzIE
 from .youku import (
     YoukuIE,
     YoukuShowIE,
+)
+from .younow import (
+    YouNowLiveIE,
+    YouNowChannelIE,
+    YouNowMomentIE,
 )
 from .youporn import YouPornIE
 from .yourupload import YourUploadIE
