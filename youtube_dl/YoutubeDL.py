@@ -253,6 +253,7 @@ class YoutubeDL(object):
                        Progress hooks are guaranteed to be called at least once
                        (with status "finished") if the download is successful.
     merge_output_format: Extension to use when merging formats.
+    outputformat:      Extension and format to use when using an external downloader
     fixup:             Automatically correct known faults of the file.
                        One of:
                        - "never": do nothing
@@ -635,6 +636,8 @@ class YoutubeDL(object):
                     template_dict['resolution'] = '%sp' % template_dict['height']
                 elif template_dict.get('width'):
                     template_dict['resolution'] = '%dx?' % template_dict['width']
+            if self.params.get('outputformat'):
+                template_dict['ext'] = self.params.get('outputformat')
 
             sanitize = lambda k, v: sanitize_filename(
                 compat_str(v),
@@ -1864,6 +1867,8 @@ class YoutubeDL(object):
                         if filename_real_ext == info_dict['ext']
                         else filename)
                     requested_formats = info_dict['requested_formats']
+                    if self.params.get('outputformat'):
+                        info_dict['ext'] = self.params.get('outputformat')
                     if self.params.get('merge_output_format') is None and not compatible_formats(requested_formats):
                         info_dict['ext'] = 'mkv'
                         self.report_warning(

@@ -516,6 +516,10 @@ def parseOpts(overrideArguments=None):
         '--external-downloader-args',
         dest='external_downloader_args', metavar='ARGS',
         help='Give these arguments to the external downloader')
+    downloader.add_option(
+        '-O', '--output-format',
+        metavar='FORMAT', dest='outputformat', default='',
+        help='Ask the downloader to encode the specified video format')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(

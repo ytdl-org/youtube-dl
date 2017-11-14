@@ -292,17 +292,25 @@ class FFmpegFD(ExternalFD):
         if self.params.get('test', False):
             args += ['-fs', compat_str(self._TEST_FILE_SIZE)]
 
-        if protocol in ('m3u8', 'm3u8_native'):
+        if self.params.get('outputformat'):
+            args += ['-f', EXT_TO_OUT_FORMATS.get(self.params.get('outputformat'),
+                                                  self.params.get('outputformat'))]
+        elif protocol in ('m3u8', 'm3u8_native'):
             if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
                 args += ['-f', 'mpegts']
             else:
                 args += ['-f', 'mp4']
-                if (ffpp.basename == 'ffmpeg' and is_outdated_version(ffpp._versions['ffmpeg'], '3.2', False)) and (not info_dict.get('acodec') or info_dict['acodec'].split('.')[0] in ('aac', 'mp4a')):
-                    args += ['-bsf:a', 'aac_adtstoasc']
         elif protocol == 'rtmp':
             args += ['-f', 'flv']
         else:
             args += ['-f', EXT_TO_OUT_FORMATS.get(info_dict['ext'], info_dict['ext'])]
+
+        if (protocol in ('m3u8', 'm3u8_native') and
+           (ffpp.basename == 'ffmpeg' and
+           is_outdated_version(ffpp._versions['ffmpeg'], '3.2', False)) and
+           (not info_dict.get('acodec') or
+           info_dict['acodec'].split('.')[0] in ('aac', 'mp4a'))):
+                    args += ['-bsf:a', 'aac_adtstoasc']
 
         args = [encodeArgument(opt) for opt in args]
         args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
