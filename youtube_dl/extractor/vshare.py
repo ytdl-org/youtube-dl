@@ -1,14 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..compat import compat_chr
+from ..utils import decode_packed_codes
 
 
 class VShareIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vshare\.io/[dv]/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://vshare.io/d/0f64ce6',
-        'md5': '16d7b8fef58846db47419199ff1ab3e7',
+        'md5': '17b39f55b5497ae8b59f5fbce8e35886',
         'info_dict': {
             'id': '0f64ce6',
             'title': 'vl14062007715967',
@@ -19,20 +23,36 @@ class VShareIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    def _extract_packed(self, webpage):
+        packed = self._search_regex(r'(eval\(function.+)', webpage, 'packed code')
+        unpacked = decode_packed_codes(packed)
+        digits = self._search_regex(r'\[((?:\d+,?)+)\]', unpacked, 'digits')
+        digits = digits.split(',')
+        digits = [int(digit) for digit in digits]
+        key_digit = self._search_regex(r'fromCharCode\(.+?(\d+)\)}', unpacked, 'key digit')
+        chars = [compat_chr(d - int(key_digit)) for d in digits]
+        return ''.join(chars)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'https://vshare.io/d/%s' % video_id, video_id)
+            'https://vshare.io/v/%s/width-650/height-430/1' % video_id, video_id)
 
-        title = self._html_search_regex(
-            r'(?s)<div id="root-container">(.+?)<br/>', webpage, 'title')
-        video_url = self._search_regex(
-            r'<a[^>]+href=(["\'])(?P<url>(?:https?:)?//.+?)\1[^>]*>[Cc]lick\s+here',
-            webpage, 'video url', group='url')
+        title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+        title = title.split(' - ')[0]
 
+        unpacked = self._extract_packed(webpage)
+        video_urls = re.findall(r'<source src="([^"]+)', unpacked)
+        formats = [{'url': video_url} for video_url in video_urls]
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'formats': formats,
         }
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?vshare\.io/v/[^/?#&]+)',
+            webpage)
