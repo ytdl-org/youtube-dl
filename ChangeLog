@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.11.15
 
 Core
 * [common] Skip Apple FairPlay m3u8 manifests (#14741)
