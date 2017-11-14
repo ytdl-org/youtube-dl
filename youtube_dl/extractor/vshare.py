@@ -5,7 +5,10 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_chr
-from ..utils import decode_packed_codes
+from ..utils import (
+    decode_packed_codes,
+    ExtractorError,
+)
 
 
 class VShareIE(InfoExtractor):
@@ -41,6 +44,12 @@ class VShareIE(InfoExtractor):
 
         title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
         title = title.split(' - ')[0]
+
+        error = self._html_search_regex(
+            r'(?s)<div[^>]+\bclass=["\']xxx-error[^>]+>(.+?)</div', webpage,
+            'error', default=None)
+        if error:
+            raise ExtractorError(error, expected=True)
 
         unpacked = self._extract_packed(webpage)
         video_urls = re.findall(r'<source src="([^"]+)', unpacked)
