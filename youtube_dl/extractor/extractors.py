@@ -309,6 +309,7 @@ from .eighttracks import EightTracksIE
 from .einthusan import EinthusanIE
 from .eitb import EitbIE
 from .ellentube import (
+    EllenTubeIE,
     EllenTubeEpisodeIE,
     EllenTubeStudioIE,
     EllenTubeVideoIE,
