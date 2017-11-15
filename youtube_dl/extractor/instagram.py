@@ -130,13 +130,21 @@ class InstagramIE(InfoExtractor):
                 video_url = media.get('video_url')
                 height = int_or_none(media.get('dimensions', {}).get('height'))
                 width = int_or_none(media.get('dimensions', {}).get('width'))
-                description = media.get('caption')
+                description = try_get(
+                    media, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
+                    compat_str) or media.get('caption')
                 thumbnail = media.get('display_src')
-                timestamp = int_or_none(media.get('date'))
+                timestamp = int_or_none(media.get('taken_at_timestamp') or media.get('date'))
                 uploader = media.get('owner', {}).get('full_name')
                 uploader_id = media.get('owner', {}).get('username')
-                like_count = int_or_none(media.get('likes', {}).get('count'))
-                comment_count = int_or_none(media.get('comments', {}).get('count'))
+
+                def get_count(key, kind):
+                    return int_or_none(try_get(
+                        media, (lambda x: x['edge_media_%s' % key]['count'],
+                                lambda x: x['%ss' % kind]['count'])))
+                like_count = get_count('preview_like', 'like')
+                comment_count = get_count('to_comment', 'comment')
+
                 comments = [{
                     'author': comment.get('user', {}).get('username'),
                     'author_id': comment.get('user', {}).get('id'),
