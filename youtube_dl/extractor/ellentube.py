@@ -78,7 +78,7 @@ class EllenTubeVideoIE(InfoExtractor):
         video_id = self._html_search_regex(
             r'(?s)<!--\s*CONTENT\s*-->.*data-config.+([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
             webpage, 'video id')
-        return self.url_result('ellentube:%s' % video_id)
+        return self.url_result('ellentube:%s' % video_id, 'EllenTube')
 
 
 class EllenTubePlaylistIE(InfoExtractor):
