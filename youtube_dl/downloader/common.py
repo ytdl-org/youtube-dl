@@ -49,7 +49,7 @@ class FileDownloader(object):
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
     hls_use_mpegts:     Use the mpegts container for HLS videos.
-    outputformat:       Output format for downloader to use
+    ffmpeg_format:       Output format for the ffmpeg downloader to use
 
     Subclasses of this one must re-define the real_download method.
     """
