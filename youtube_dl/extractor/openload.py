@@ -140,7 +140,7 @@ class PhantomJSwrapper(object):
         for name in self._TMP_FILE_NAMES:
             try:
                 os.remove(self._TMP_FILES[name].name)
-            except:
+            except (OSError, TypeError):
                 pass
 
     def _save_cookies(self, url):
@@ -242,7 +242,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:openload\.(?:co|io)|oload\.tv)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.tv)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
