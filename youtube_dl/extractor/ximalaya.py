@@ -109,7 +109,7 @@ class XimalayaAlbumIE(XimalayaBaseIE):
     _VALID_URL = r'https?://(?:www\.|m\.)?ximalaya\.com/(?P<uid>[0-9]+)/album/(?P<id>[0-9]+)/?'
     _TEMPLATE_URL = 'http://www.ximalaya.com/%s/album/%s/'
     _BASE_URL_TEMPL = 'http://www.ximalaya.com%s'
-    _LIST_VIDEO_RE = r'<a[^>]+?href="(?P<url>/%d/sound/(?P<id>\d+)/?)"[^>]+?title="(?P<title>[^>]+)">'
+    _LIST_VIDEO_RE = r'<a[^>]+?href="(?P<url>/%s/sound/(?P<id>\d+)/?)"[^>]+?title="(?P<title>[^>]+)">'
     _TESTS = [{
         'url': 'http://www.ximalaya.com/61425525/album/5534601/',
         'info_dict': {
