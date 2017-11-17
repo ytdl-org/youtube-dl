@@ -61,33 +61,26 @@ class VidliiIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # extract basic properties of video
-        title_1 = str_or_none(
+        title = str_or_none(
             self._html_search_regex(r'<h1>(.+?)</h1>', webpage,
-                                    'title', default=None))
-        title_2 = str_or_none(
+                                    'title', default=None)) or str_or_none(
             self._html_search_regex(r'<title>([^<]+?)</title>', webpage,
                                     'title', default=None)).replace(
-            " - VidLii", "")
-        title_3 = str_or_none(
+            " - VidLii", "") or str_or_none(
             self._html_search_meta('twitter:title', webpage, 'title',
                                    default=False)).replace(" - VidLii", "")
-        # assert title_1 == title_2 == title_3, "TITLE fallback is not working"
-        title = title_1 or title_2 or title_3
 
         description = strip_or_none(
             get_element_by_id('des_text', webpage).strip())
 
-        uploader_1 = str_or_none(
+        uploader = str_or_none(
             self._html_search_regex(
                 r'<div[^>]+class="wt_person"[^>]*>(?:[^<]+)<a href="\/user\/[^>]*?>([^<]*?)<',
                 webpage,
-                'uploader', default=None))
-        uploader_2 = str_or_none(
+                'uploader', default=None)) or str_or_none(
             self._html_search_regex(
                 r'<img src="[^>]+?class=["\']avt2\s*["\'][^>]+?alt=["\']([^"\']+?)["\']',
                 webpage, 'uploader', default=None))
-        # assert uploader_1 == uploader_2, "UPLOADER fallback is not working"
-        uploader = uploader_1 or uploader_2
 
         url = self._html_search_regex(
             r'videoInfo[\s]*=[\s]*{[^}]*src:[\s]*(?:"|\')([^"]*?)(?:"|\')',
@@ -108,35 +101,27 @@ class VidliiIE(InfoExtractor):
             'categories', default=None)
         tags = re.findall(r'<a href="/results\?q=[^>]*>[\s]*([^<]*)</a>',
                           webpage) or None
-        duration_1 = int_or_none(
+        duration = int_or_none(
             self._html_search_meta('video:duration', webpage, 'duration',
-                                   default=False))
-        duration_2 = int_or_none(
+                                   default=False)) or int_or_none(
             self._html_search_regex(
                 r'videoInfo[^=]*=[^{]*{[^}]*dur:([^,}]*?),', webpage,
                 'duration', default=None))
-        # assert duration_1 == duration_2, "DURATION fallback is not working"
-        duration = duration_1 or duration_2
 
-        view_count_1 = int_or_none(self._html_search_regex(
+        view_count_fb = re.findall(r'<strong>([^<]*?)</strong>',
+                                   get_element_by_class("w_views",
+                                                        webpage))
+        view_count_fb = view_count_fb[0] if view_count_fb else None
+        view_count = int_or_none(self._html_search_regex(
             r'Views:[^<]*<strong>([^<]*?)<\/strong>', webpage,
-            'view_count', default=None))
-        view_count_2 = re.findall(r'<strong>([^<]*?)</strong>',
-                                  get_element_by_class("w_views",
-                                                       webpage))
-        view_count_2 = int_or_none(view_count_2[0]) if view_count_2 else None
-        # assert view_count_1 == view_count_2, "VIEW COUNT fallback is not working"
-        view_count = view_count_1 or view_count_2
+            'view_count', default=None)) or int_or_none(view_count_fb)
 
-        comment_count_1 = int_or_none(self._html_search_regex(
+        comment_count = int_or_none(self._html_search_regex(
             r'Comments:[^<]*<strong>([^<]*?)<\/strong>', webpage,
-            'comment_count', default=None))
-        comment_count_2 = int_or_none(
+            'comment_count', default=None)) or int_or_none(
             self._html_search_regex(
                 r'<span[^>]+id="cmt_num"[^>]*>([^<]+?)<\/span>', webpage,
                 'comment_count', default=None))
-        # assert comment_count_1 == comment_count_2, "COMMENT COUNT fallback is not working"
-        comment_count = comment_count_1 or comment_count_2
 
         average_rating = float_or_none(
             self._html_search_regex(
