@@ -57,9 +57,7 @@ class VidliiIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        # get required video properties
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
 
         title_1 = str_or_none(
