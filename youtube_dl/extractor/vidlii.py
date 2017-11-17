@@ -27,53 +27,32 @@ class VidliiIE(InfoExtractor):
             'categories': 'News & Politics',
             'tags': ['Vidlii', 'Jan', 'Videogames'],
             'duration': 212,
-            # TODO this might change in future, how to handle?
-            'view_count': 233,
-            # TODO this might change in future, how to handle?
-            'comment_count': 13,
-            'average_rating': 1.8571428571429,
+            'view_count': int,
+            'comment_count': int,
+            'average_rating': float,
             'type': 'video',
             'ext': 'mp4'
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         }
-    },  {
+    }, {
         'url': 'https://www.vidlii.com/watch?v=vBo2IcrwOkO',
         'md5': 'b42640a596b4dc986702567d49268963',
         'info_dict': {
             'id': 'vBo2IcrwOkO',
-            'ext': 'mp4',
             'title': '(OLD VIDEO) i like youtube!!',
+            'description': 'Original upload date:<br />\nMarch 10th 2011<br />\nCredit goes to people who own content in the video',
             'thumbnail': 'https://www.vidlii.com/usfi/thmp/vBo2IcrwOkO.jpg',
+            'uploader': 'MyEditedVideoSpartan',
+            'url': 'https://cdn.vidlii.com/videos/vBo2IcrwOkO.mp4',
+            'uploader_url': 'https://www.vidlii.com/user/MyEditedVideoSpartan',
             'upload_date': '20171011',
-            'description':'Original upload date:<br />\nMarch 10th 2011<br />\nCredit goes to people who own content in the video',
-            'uploader': 'MyEditedVideoSpartan'
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
-
-        }
-
-    },  {
-        'url': 'https://www.vidlii.com/watch?v=E8SeUE3J5EV',
-        'md5': 'f202427f9b31171f0fdd0ddeacb24720',
-        'info_dict': {
-            'id': 'E8SeUE3J5EV',
-            'ext': 'mp4',
-            'title': 'Games make you violent',
-            'thumbnail': 'https://www.vidlii.com/usfi/thmp/E8SeUE3J5EV.jpg',
-            'upload_date': '20171116',
-            'description':'Games are made by the communistic feminist fbi cia jews and they control your mind and make you want to kill',
-            'uploader': 'APPle5auc31995'
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'categories': 'Film & Animation',
+            'tags': None,
+            'duration': 34,
+            'view_count': int,
+            'comment_count': int,
+            'average_rating': float,
+            'type': 'video',
+            'ext': 'mp4'
         }
     }]
 
@@ -83,24 +62,33 @@ class VidliiIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = str_or_none(
+        title_1 = str_or_none(
             self._html_search_regex(r'<h1>(.+?)</h1>', webpage,
-                                    'title', default=None)) or str_or_none(
+                                    'title', default=None))
+        title_2 = str_or_none(
             self._html_search_regex(r'<title>([^<]+?)</title>', webpage,
-                                    'title', default=None)) or str_or_none(
+                                    'title', default=None)).replace(
+            " - VidLii", "")
+        title_3 = str_or_none(
             self._html_search_meta('twitter:title', webpage, 'title',
-                                   default=False))
+                                   default=False)).replace(" - VidLii", "")
+        # assert title_1 == title_2 == title_3, "TITLE fallback is not working"
+        title = title_1 or title_2 or title_3
+
         description = strip_or_none(
             get_element_by_id('des_text', webpage).strip())
 
-        uploader = str_or_none(
+        uploader_1 = str_or_none(
             self._html_search_regex(
                 r'<div[^>]+class="wt_person"[^>]*>(?:[^<]+)<a href="\/user\/[^>]*?>([^<]*?)<',
                 webpage,
-                'uploader', default=None)) or str_or_none(
+                'uploader', default=None))
+        uploader_2 = str_or_none(
             self._html_search_regex(
                 r'<img src="[^>]+?class=["\']avt2\s*["\'][^>]+?alt=["\']([^"\']+?)["\']',
                 webpage, 'uploader', default=None))
+        # assert uploader_1 == uploader_2, "UPLOADER fallback is not working"
+        uploader = uploader_1 or uploader_2
 
         url = self._html_search_regex(
             r'videoInfo[\s]*=[\s]*{[^}]*src:[\s]*(?:"|\')([^"]*?)(?:"|\')',
@@ -109,41 +97,49 @@ class VidliiIE(InfoExtractor):
         # get additional properties
         uploader_url = "https://www.vidlii.com/user/%s" % uploader
 
+        # returns date as YYYYMMDD
         upload_date = str_or_none(
             self._html_search_meta('datePublished', webpage, 'upload_date',
                                    default=False).replace("-",
-                                                          "")) or str_or_none(
-            self._html_search_regex(r'<date>(.+?)</date>', webpage,
-                                    'upload_date', default="").replace("-",
-                                                                       ""))
+                                                          ""))
+
         categories = self._html_search_regex(
             r'<div>Category:\s*<\/div>[\s\r]*<div>[\s\r]*<a href="\/videos\?c=[^>]*>([^<]*?)<\/a>',
             webpage,
             'categories', default=None)
         tags = re.findall(r'<a href="/results\?q=[^>]*>[\s]*([^<]*)</a>',
                           webpage) or None
-        duration = int_or_none(
+        duration_1 = int_or_none(
             self._html_search_meta('video:duration', webpage, 'duration',
-                                   default=False)) or int_or_none(
+                                   default=False))
+        duration_2 = int_or_none(
             self._html_search_regex(
                 r'videoInfo[^=]*=[^{]*{[^}]*dur:([^,}]*?),', webpage,
                 'duration', default=None))
-        view_count_fallback = re.findall(r'<strong>([^<]*?)</strong>',
-                                         get_element_by_class("w_views",
-                                                              webpage))
-        view_count_fallback = view_count_fallback[
-            0] if view_count_fallback else None
-        view_count = int_or_none(self._html_search_regex(
-            r'Views:[^<]*<strong>([^<]*?)<\/strong>', webpage,
-            'view_count', default=None)) or int_or_none(
-            view_count_fallback)
+        # assert duration_1 == duration_2, "DURATION fallback is not working"
+        duration = duration_1 or duration_2
 
-        comment_count = int_or_none(self._html_search_regex(
+        view_count_1 = int_or_none(self._html_search_regex(
+            r'Views:[^<]*<strong>([^<]*?)<\/strong>', webpage,
+            'view_count', default=None))
+        view_count_2 = re.findall(r'<strong>([^<]*?)</strong>',
+                                  get_element_by_class("w_views",
+                                                       webpage))
+        view_count_2 = int_or_none(view_count_2[
+                                       0]) if view_count_2 else None
+        # assert view_count_1 == view_count_2, "VIEW COUNT fallback is not working"
+        view_count = view_count_1 or view_count_2
+
+        comment_count_1 = int_or_none(self._html_search_regex(
             r'Comments:[^<]*<strong>([^<]*?)<\/strong>', webpage,
-            'comment_count', default=None)) or int_or_none(
+            'comment_count', default=None))
+        comment_count_2 = int_or_none(
             self._html_search_regex(
                 r'<span[^>]+id="cmt_num"[^>]*>([^<]+?)<\/span>', webpage,
                 'comment_count', default=None))
+        # assert comment_count_1 == comment_count_2, "COMMENT COUNT fallback is not working"
+        comment_count = comment_count_1 or comment_count_2
+
         average_rating = float_or_none(
             self._html_search_regex(
                 r'{[\s\r]*\$\("#rateYo"\).rateYo\({[^}]*rating:\s*([^,]*?),[^}.]*}',
