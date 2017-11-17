@@ -14,15 +14,19 @@ from ..utils import (
 )
 
 
-class XHamsterIE(InfoExtractor):
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:.+?\.)?xhamster\.com/
-                        (?:
-                            movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
-                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
-                        )
-                    '''
+class XHamsterBase(InfoExtractor):
+    _VALID_URL_TEMPLATE = r'''(?x)
+                            https?://
+                                (?:(?:www|[a-z]{2})\.)?%sxhamster\.com/
+                                (?:
+                                    movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
+                                    videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
+                                )
+                            '''
+
+
+class XHamsterIE(XHamsterBase):
+    _VALID_URL = XHamsterBase._VALID_URL_TEMPLATE % ''
 
     _TESTS = [{
         'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
@@ -148,8 +152,8 @@ class XHamsterIE(InfoExtractor):
             webpage, 'uploader', default='anonymous')
 
         thumbnail = self._search_regex(
-            [r'''thumb\s*:\s*(?P<q>["'])(?P<thumbnail>.+?)(?P=q)''',
-             r'''<video[^>]+poster=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
+            [r'''["']thumbUrl["']\s*:\s*(?P<q>["'])(?P<thumbnail>.+?)(?P=q)''',
+             r'''<video[^>]+"poster"=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
             webpage, 'thumbnail', fatal=False, group='thumbnail')
 
         duration = parse_duration(self._search_regex(
@@ -195,7 +199,7 @@ class XHamsterIE(InfoExtractor):
 
 
 class XHamsterEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?xhamster\.com/xembed\.php\?video=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:(?:www|[a-z]{2})\.)?xhamster\.com/xembed\.php\?video=(?P<id>\d+)'
     _TEST = {
         'url': 'http://xhamster.com/xembed.php?video=3328539',
         'info_dict': {
@@ -203,7 +207,7 @@ class XHamsterEmbedIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Pen Masturbation',
             'upload_date': '20140728',
-            'uploader_id': 'anonymous',
+            'uploader': 'ManyakisArt',
             'duration': 5,
             'age_limit': 18,
         }
@@ -231,3 +235,30 @@ class XHamsterEmbedIE(InfoExtractor):
             video_url = dict_get(vars, ('downloadLink', 'homepageLink', 'commentsLink', 'shareUrl'))
 
         return self.url_result(video_url, 'XHamster')
+
+
+class XHamsterMobileIE(XHamsterBase):
+    _VALID_URL = XHamsterBase._VALID_URL_TEMPLATE % 'm\.'
+
+    _TEST = {
+        'url': 'https://m.xhamster.com/videos/cute-teen-jacqueline-solo-masturbation-8559111',
+        'md5': 'e863ca8b0cc2e3d03ba3ef3c6288207c',
+        'info_dict': {
+            'id': '8559111',
+            'display_id': 'cute-teen-jacqueline-solo-masturbation',
+            'ext': 'mp4',
+            'title': 'Cute Teen Jacqueline Solo Masturbation',
+            'description': str,
+            'upload_date': '20171117',
+            'uploader': '10tz4d0114r5',
+            'duration': 395,
+            'age_limit': 18,
+            'categories': ['Teen Dreams Channel', 'Amateur', 'Fingering', 'HD Videos', 'Masturbation', 'Small Tits',
+                           'Teens', 'Cute Teen', 'Solo', 'Solo Masturbation']
+        }
+    }
+
+    def _real_extract(self, url):
+        desktop_url = re.sub(r'^(https?://(?:(?:www|[a-z]{2})\.)?)m\.', r'\1', url)
+
+        return self.url_result(desktop_url, 'XHamster')
