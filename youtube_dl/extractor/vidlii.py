@@ -12,7 +12,7 @@ from ..utils import (
 
 class VidliiIE(InfoExtractor):
     _VALID_URL = r'(?:https*?:\/\/)*(?:www\.)*vidlii.com\/watch\?v=(?P<id>[^?\s]{11})'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.vidlii.com/watch?v=tJluaH4BJ3v',
         'md5': '9bf7d1e005dfa909b6efb0a1ff5175e2',
         'info_dict': {
@@ -28,7 +28,7 @@ class VidliiIE(InfoExtractor):
             'tags': ['Vidlii', 'Jan', 'Videogames'],
             'duration': 212,
             # TODO this might change in future, how to handle?
-            'view_count': 230,
+            'view_count': 233,
             # TODO this might change in future, how to handle?
             'comment_count': 13,
             'average_rating': 1.8571428571429,
@@ -39,7 +39,43 @@ class VidliiIE(InfoExtractor):
             # * A regular expression; start the string with re:
             # * Any Python type (for example int or float)
         }
-    }
+    },  {
+        'url': 'https://www.vidlii.com/watch?v=vBo2IcrwOkO',
+        'md5': 'b42640a596b4dc986702567d49268963',
+        'info_dict': {
+            'id': 'vBo2IcrwOkO',
+            'ext': 'mp4',
+            'title': '(OLD VIDEO) i like youtube!!',
+            'thumbnail': 'https://www.vidlii.com/usfi/thmp/vBo2IcrwOkO.jpg',
+            'upload_date': '20171011',
+            'description':'Original upload date:<br />\nMarch 10th 2011<br />\nCredit goes to people who own content in the video',
+            'uploader': 'MyEditedVideoSpartan'
+            # TODO more properties, either as:
+            # * A value
+            # * MD5 checksum; start the string with md5:
+            # * A regular expression; start the string with re:
+            # * Any Python type (for example int or float)
+
+        }
+
+    },  {
+        'url': 'https://www.vidlii.com/watch?v=E8SeUE3J5EV',
+        'md5': 'f202427f9b31171f0fdd0ddeacb24720',
+        'info_dict': {
+            'id': 'E8SeUE3J5EV',
+            'ext': 'mp4',
+            'title': 'Games make you violent',
+            'thumbnail': 'https://www.vidlii.com/usfi/thmp/E8SeUE3J5EV.jpg',
+            'upload_date': '20171116',
+            'description':'Games are made by the communistic feminist fbi cia jews and they control your mind and make you want to kill',
+            'uploader': 'APPle5auc31995'
+            # TODO more properties, either as:
+            # * A value
+            # * MD5 checksum; start the string with md5:
+            # * A regular expression; start the string with re:
+            # * Any Python type (for example int or float)
+        }
+    }]
 
     def _real_extract(self, url):
         # get required video properties
