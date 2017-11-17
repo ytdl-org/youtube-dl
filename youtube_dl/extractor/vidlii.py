@@ -57,11 +57,10 @@ class VidliiIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        # get required video properties
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
 
+        # extract basic properties of video
         title_1 = str_or_none(
             self._html_search_regex(r'<h1>(.+?)</h1>', webpage,
                                     'title', default=None))
@@ -125,8 +124,7 @@ class VidliiIE(InfoExtractor):
         view_count_2 = re.findall(r'<strong>([^<]*?)</strong>',
                                   get_element_by_class("w_views",
                                                        webpage))
-        view_count_2 = int_or_none(view_count_2[
-                                       0]) if view_count_2 else None
+        view_count_2 = int_or_none(view_count_2[0]) if view_count_2 else None
         # assert view_count_1 == view_count_2, "VIEW COUNT fallback is not working"
         view_count = view_count_1 or view_count_2
 
