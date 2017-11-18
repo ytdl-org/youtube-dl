@@ -1,7 +1,25 @@
-version <unreleased>
+version 2017.11.15
+
+Core
+* [common] Skip Apple FairPlay m3u8 manifests (#14741)
+* [YoutubeDL] Fix playlist range optimization for --playlist-items (#14740)
 
 Extractors
+* [vshare] Capture and output error message
+* [vshare] Fix extraction (#14473)
+* [crunchyroll] Extract old RTMP formats
+* [tva] Fix extraction (#14736)
+* [gamespot] Lower preference of HTTP formats (#14652)
+* [instagram:user] Fix extraction (#14699)
+* [ccma] Fix typo (#14730)
+- Remove sensitive data from logging in messages
+* [instagram:user] Fix extraction (#14699)
++ [gamespot] Add support for article URLs (#14652)
+* [gamespot] Skip Brightcove Once HTTP formats (#14652)
+* [cartoonnetwork] Update tokenizer_src (#14666)
 + [wsj] Recognize another URL pattern (#14704)
+* [pandatv] Update API URL and sign format URLs (#14693)
+* [crunchyroll] Use old login method (#11572)
 
 
 version 2017.11.06

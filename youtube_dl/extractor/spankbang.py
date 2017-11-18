@@ -7,7 +7,7 @@ from ..utils import ExtractorError
 
 
 class SpankBangIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/video'
+    _VALID_URL = r'https?://(?:(?:www|m|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/video'
     _TESTS = [{
         'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
         'md5': '1cc433e1d6aa14bc376535b8679302f7',
@@ -15,7 +15,7 @@ class SpankBangIE(InfoExtractor):
             'id': '3vvn',
             'ext': 'mp4',
             'title': 'fantasy solo',
-            'description': 'Watch fantasy solo free HD porn video - 05 minutes - dillion harper masturbates on a bed free adult movies.',
+            'description': 'Watch fantasy solo free HD porn video - 05 minutes -  Babe,Masturbation,Solo,Toy  - dillion harper masturbates on a bed free adult movies sexy clips.',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'silly2587',
             'age_limit': 18,
@@ -27,6 +27,10 @@ class SpankBangIE(InfoExtractor):
     }, {
         # no uploader
         'url': 'http://spankbang.com/lklg/video/sex+with+anyone+wedding+edition+2',
+        'only_matching': True,
+    }, {
+        # mobile page
+        'url': 'http://m.spankbang.com/1o2de/video/can+t+remember+her+name',
         'only_matching': True,
     }]
 
