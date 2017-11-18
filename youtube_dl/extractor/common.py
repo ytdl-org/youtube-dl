@@ -592,19 +592,11 @@ class InfoExtractor(object):
         if not encoding:
             encoding = self._guess_encoding_from_content(content_type, webpage_bytes)
         if self._downloader.params.get('dump_intermediate_pages', False):
-            try:
-                url = url_or_request.get_full_url()
-            except AttributeError:
-                url = url_or_request
-            self.to_screen('Dumping request to ' + url)
+            self.to_screen('Dumping request to ' + urlh.geturl())
             dump = base64.b64encode(webpage_bytes).decode('ascii')
             self._downloader.to_screen(dump)
         if self._downloader.params.get('write_pages', False):
-            try:
-                url = url_or_request.get_full_url()
-            except AttributeError:
-                url = url_or_request
-            basen = '%s_%s' % (video_id, url)
+            basen = '%s_%s' % (video_id, urlh.geturl())
             if len(basen) > 240:
                 h = '___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
                 basen = basen[:240 - len(h)] + h
