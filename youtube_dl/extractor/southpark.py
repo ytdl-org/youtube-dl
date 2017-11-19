@@ -6,7 +6,7 @@ from .mtv import MTVServicesInfoExtractor
 
 class SouthParkIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.cc.com'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/(?:clips|(?:full-)?episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/(?:clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
@@ -41,7 +41,7 @@ class SouthParkEsIE(SouthParkIE):
 
 class SouthParkDeIE(SouthParkIE):
     IE_NAME = 'southpark.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:clips|alle-episoden|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.de/feeds/video-player/mrss/'
 
     _TESTS = [{
@@ -75,7 +75,7 @@ class SouthParkDeIE(SouthParkIE):
 
 class SouthParkNlIE(SouthParkIE):
     IE_NAME = 'southpark.nl'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.nl/(?:clips|(?:full-)?episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.nl/(?:clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.nl/feeds/video-player/mrss/'
 
     _TESTS = [{
@@ -90,7 +90,7 @@ class SouthParkNlIE(SouthParkIE):
 
 class SouthParkDkIE(SouthParkIE):
     IE_NAME = 'southparkstudios.dk'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.dk/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.dk/(?:clips|full-episodes|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southparkstudios.dk/feeds/video-player/mrss/'
 
     _TESTS = [{
