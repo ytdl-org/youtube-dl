@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import io
+import json
 import os
 import subprocess
 import time
@@ -9,9 +10,6 @@ import re
 
 from .common import AudioConversionError, PostProcessor
 
-from ..compat import (
-    compat_subprocess_get_DEVNULL,
-)
 from ..utils import (
     encodeArgument,
     encodeFilename,
@@ -151,28 +149,31 @@ class FFmpegPostProcessor(PostProcessor):
     def probe_executable(self):
         return self._paths[self.probe_basename]
 
-    def get_audio_codec(self, path):
+    def run_ffprobe_json(self, path, opts):
         if not self.probe_available:
             raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
-        try:
-            cmd = [
-                encodeFilename(self.probe_executable, True),
-                encodeArgument('-show_streams'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)]
-            if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
-            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            output = handle.communicate()[0]
-            if handle.wait() != 0:
-                return None
-        except (IOError, OSError):
-            return None
-        audio_codec = None
-        for line in output.decode('ascii', 'ignore').split('\n'):
-            if line.startswith('codec_name='):
-                audio_codec = line.split('=')[1].strip()
-            elif line.strip() == 'codec_type=audio' and audio_codec is not None:
-                return audio_codec
+
+        # json output format is available since ffmpeg 0.9 and avconv 9_beta1
+        # don't need another check_version() for ffprobe
+        self.check_version()
+
+        options = ['-of', 'json'] + opts
+        cmd = ([encodeFilename(self.probe_executable, True)] +
+               [encodeArgument(o) for o in options] +
+               [encodeFilename(self._ffmpeg_filename_argument(path), True)])
+        if self._downloader.params.get('verbose', False):
+            self._downloader.to_screen('[debug] %s command line: %s' % (self.probe_basename, shell_quote(cmd)))
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        if p.returncode != 0:
+            return {}
+        return json.loads(stdout.decode('utf-8', 'replace'))
+
+    def get_audio_codec(self, path):
+        streams_info = self.run_ffprobe_json(path, ['-show_streams'])
+        for stream in streams_info.get('streams', []):
+            if 'audio' == stream.get('codec_type'):
+                return stream.get('codec_name')
         return None
 
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
