@@ -1778,7 +1778,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         def _extract_count(count_name):
             return str_to_int(self._search_regex(
-                r'-%s-button[^>]+><span[^>]+class="yt-uix-button-content"[^>]*>([\d,]+)</span>'
+                r'"%s this video along with ([\d,]+) other'
                 % re.escape(count_name),
                 video_webpage, count_name, default=None))
 
