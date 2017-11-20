@@ -14,19 +14,15 @@ from ..utils import (
 )
 
 
-class XHamsterBase(InfoExtractor):
-    _VALID_URL_TEMPLATE = r'''(?x)
-                            https?://
-                                (?:(?:www|[a-z]{2})\.)?%sxhamster\.com/
-                                (?:
-                                    movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
-                                    videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
-                                )
-                            '''
-
-
-class XHamsterIE(XHamsterBase):
-    _VALID_URL = XHamsterBase._VALID_URL_TEMPLATE % ''
+class XHamsterIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:.+?\.)?xhamster\.com/
+                        (?:
+                            movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
+                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
+                        )
+                    '''
 
     _TESTS = [{
         'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
@@ -75,6 +71,25 @@ class XHamsterIE(XHamsterBase):
             'skip_download': True,
         },
     }, {
+        # mobile site
+        'url': 'https://m.xhamster.com/videos/cute-teen-jacqueline-solo-masturbation-8559111',
+        'info_dict': {
+            'id': '8559111',
+            'display_id': 'cute-teen-jacqueline-solo-masturbation',
+            'ext': 'mp4',
+            'title': 'Cute Teen Jacqueline Solo Masturbation',
+            'description': str,
+            'upload_date': '20171117',
+            'uploader': '10tz4d0114r5',
+            'duration': 395,
+            'age_limit': 18,
+            'categories': ['Teen Dreams Channel', 'Amateur', 'Fingering', 'HD Videos', 'Masturbation', 'Small Tits',
+                           'Teens', 'Cute Teen', 'Solo', 'Solo Masturbation']
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://xhamster.com/movies/2272726/amber_slayed_by_the_knight.html',
         'only_matching': True,
     }, {
@@ -92,7 +107,8 @@ class XHamsterIE(XHamsterBase):
         video_id = mobj.group('id') or mobj.group('id_2')
         display_id = mobj.group('display_id') or mobj.group('display_id_2')
 
-        webpage = self._download_webpage(url, video_id)
+        desktop_url = re.sub(r'^(https?://(?:.+?\.)?)m\.', r'\1', url)
+        webpage = self._download_webpage(desktop_url, video_id)
 
         error = self._html_search_regex(
             r'<div[^>]+id=["\']videoClosed["\'][^>]*>(.+?)</div>',
@@ -199,7 +215,7 @@ class XHamsterIE(XHamsterBase):
 
 
 class XHamsterEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|[a-z]{2})\.)?xhamster\.com/xembed\.php\?video=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:.+?\.)?xhamster\.com/xembed\.php\?video=(?P<id>\d+)'
     _TEST = {
         'url': 'http://xhamster.com/xembed.php?video=3328539',
         'info_dict': {
@@ -235,30 +251,3 @@ class XHamsterEmbedIE(InfoExtractor):
             video_url = dict_get(vars, ('downloadLink', 'homepageLink', 'commentsLink', 'shareUrl'))
 
         return self.url_result(video_url, 'XHamster')
-
-
-class XHamsterMobileIE(XHamsterBase):
-    _VALID_URL = XHamsterBase._VALID_URL_TEMPLATE % 'm\.'
-
-    _TEST = {
-        'url': 'https://m.xhamster.com/videos/cute-teen-jacqueline-solo-masturbation-8559111',
-        'md5': 'e863ca8b0cc2e3d03ba3ef3c6288207c',
-        'info_dict': {
-            'id': '8559111',
-            'display_id': 'cute-teen-jacqueline-solo-masturbation',
-            'ext': 'mp4',
-            'title': 'Cute Teen Jacqueline Solo Masturbation',
-            'description': str,
-            'upload_date': '20171117',
-            'uploader': '10tz4d0114r5',
-            'duration': 395,
-            'age_limit': 18,
-            'categories': ['Teen Dreams Channel', 'Amateur', 'Fingering', 'HD Videos', 'Masturbation', 'Small Tits',
-                           'Teens', 'Cute Teen', 'Solo', 'Solo Masturbation']
-        }
-    }
-
-    def _real_extract(self, url):
-        desktop_url = re.sub(r'^(https?://(?:(?:www|[a-z]{2})\.)?)m\.', r'\1', url)
-
-        return self.url_result(desktop_url, 'XHamster')
