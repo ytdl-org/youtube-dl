@@ -133,8 +133,8 @@ class ABCIViewIE(InfoExtractor):
         time_str = str(int(time.time()))
         house_number = video_params.get('episodeHouseNumber')
         path = '/auth/hls/sign?ts={0}&hn={1}&d=android-mobile'.format(
-            time_str, house_number).encode('utf-8')
-        sig = hmac.new(key, path, hashlib.sha256).hexdigest()
+            time_str, house_number)
+        sig = hmac.new(key, path.encode('utf-8'), hashlib.sha256).hexdigest()
         auth_url = 'http://iview.abc.net.au{0}&sig={1}'.format(path, sig)
         token = self._download_webpage(auth_url, video_id)
 
