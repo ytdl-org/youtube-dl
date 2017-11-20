@@ -157,7 +157,7 @@ class ABCIViewIE(InfoExtractor):
         for format_url in format_urls:
             if format_url:
                 formats.extend(
-                    self._extract_akamai_formats(format_url, video_id))
+                    self._extract_m3u8_formats(format_url, video_id, 'mp4'))
         self._sort_formats(formats)
 
         subtitles = {}
