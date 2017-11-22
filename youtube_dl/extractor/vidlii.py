@@ -6,8 +6,8 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    get_element_by_id, str_or_none, get_element_by_class, strip_or_none,
-    float_or_none)
+    get_element_by_id, get_element_by_class, strip_or_none,
+    float_or_none, urljoin)
 
 
 class VidliiIE(InfoExtractor):
@@ -18,7 +18,10 @@ class VidliiIE(InfoExtractor):
         'info_dict': {
             'id': 'tJluaH4BJ3v',
             'title': 'Vidlii is against me',
-            'description': 'I have HAD it. Vidlii does not like me. I have tried to uplaod videos and submit them to the contest and no ne of my videos show up so maybe it is broken for everyone else but this one was trying to submit it because I wanted to submit to the contest :) Tanks I hope the website is fixed PS: Jan you are cool please add my video',
+            'description': 'I have HAD it. Vidlii does not like me. I have tried to uplaod videos and submit them to the '
+                           'contest and no ne of my videos show up so maybe it is broken for everyone else but this one was '
+                           'trying to submit it because I wanted to submit to the contest :) Tanks I hope the website is '
+                           'fixed PS: Jan you are cool please add my video',
             'thumbnail': 'https://www.vidlii.com/usfi/thmp/tJluaH4BJ3v.jpg',
             'uploader': 'APPle5auc31995',
             'url': 'https://cdn.vidlii.com/videos/tJluaH4BJ3v.mp4',
@@ -61,76 +64,50 @@ class VidliiIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # extract basic properties of video
-        title = str_or_none(
-            self._html_search_regex(r'<h1>(.+?)</h1>', webpage,
-                                    'title', default=None)) or str_or_none(
-            self._html_search_regex(r'<title>([^<]+?)</title>', webpage,
-                                    'title', default=None)).replace(
-            " - VidLii", "") or str_or_none(
-            self._html_search_meta('twitter:title', webpage, 'title',
-                                   default=False)).replace(" - VidLii", "")
+        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title', default=None) or self._html_search_regex(
+            r'<title>([^<]+?)</title>', webpage, 'title', default="").replace(
+            " - VidLii", "") or self._html_search_meta('twitter:title', webpage, 'title',
+                                                       default="").replace(" - VidLii", "")
 
-        description = strip_or_none(
-            get_element_by_id('des_text', webpage).strip())
+        description = strip_or_none(get_element_by_id('des_text', webpage))
 
-        uploader = str_or_none(
-            self._html_search_regex(
-                r'<div[^>]+class="wt_person"[^>]*>(?:[^<]+)<a href="\/user\/[^>]*?>([^<]*?)<',
-                webpage,
-                'uploader', default=None)) or str_or_none(
-            self._html_search_regex(
-                r'<img src="[^>]+?class=["\']avt2\s*["\'][^>]+?alt=["\']([^"\']+?)["\']',
-                webpage, 'uploader', default=None))
+        uploader = self._html_search_regex(r'<div[^>]+class="wt_person"[^>]*>(?:[^<]+)<a href="\/user\/[^>]*?>([^<]*?)<',
+                                           webpage, 'uploader', default=None) or self._html_search_regex(
+            r'<img src="[^>]+?class=["\']avt2\s*["\'][^>]+?alt=["\']([^"\']+?)["\']',
+            webpage, 'uploader', default=None)
 
-        url = self._html_search_regex(
-            r'videoInfo[\s]*=[\s]*{[^}]*src:[\s]*(?:"|\')([^"]*?)(?:"|\')',
-            webpage, 'url', default=None)
+        url = self._html_search_regex(r'videoInfo[\s]*=[\s]*{[^}]*src:[\s]*(?:"|\')([^"]*?)(?:"|\')', webpage, 'url',
+                                      default=None)
 
         # get additional properties
-        uploader_url = "https://www.vidlii.com/user/%s" % uploader
+        uploader_url = urljoin("https://www.vidlii.com/user/", uploader)
 
         # returns date as YYYYMMDD
-        upload_date = str_or_none(
-            self._html_search_meta('datePublished', webpage, 'upload_date',
-                                   default=False).replace("-",
-                                                          ""))
+        upload_date = self._html_search_meta('datePublished', webpage, 'upload_date', default="").replace("-", "")
 
         categories = self._html_search_regex(
-            r'<div>Category:\s*<\/div>[\s\r]*<div>[\s\r]*<a href="\/videos\?c=[^>]*>([^<]*?)<\/a>',
-            webpage,
-            'categories', default=None)
-        tags = re.findall(r'<a href="/results\?q=[^>]*>[\s]*([^<]*)</a>',
-                          webpage) or None
-        duration = int_or_none(
-            self._html_search_meta('video:duration', webpage, 'duration',
-                                   default=False)) or int_or_none(
-            self._html_search_regex(
-                r'videoInfo[^=]*=[^{]*{[^}]*dur:([^,}]*?),', webpage,
-                'duration', default=None))
+            r'<div>Category:\s*<\/div>[\s\r]*<div>[\s\r]*<a href="\/videos\?c=[^>]*>([^<]*?)<\/a>', webpage, 'categories',
+            default=None)
+        tags = re.findall(r'<a href="/results\?q=[^>]*>[\s]*([^<]*)</a>', webpage) or None
+        duration = int_or_none(self._html_search_meta('video:duration', webpage, 'duration', default=False)) or int_or_none(
+            self._html_search_regex(r'videoInfo[^=]*=[^{]*{[^}]*dur:([^,}]*?),', webpage, 'duration', default=None))
 
-        view_count_fb = re.findall(r'<strong>([^<]*?)</strong>',
-                                   get_element_by_class("w_views",
-                                                        webpage))
+        view_count_fb = re.findall(r'<strong>([^<]*?)</strong>', get_element_by_class("w_views", webpage))
         view_count_fb = view_count_fb[0] if view_count_fb else None
-        view_count = int_or_none(self._html_search_regex(
-            r'Views:[^<]*<strong>([^<]*?)<\/strong>', webpage,
-            'view_count', default=None)) or int_or_none(view_count_fb)
+        view_count = int_or_none(self._html_search_regex(r'Views:[^<]*<strong>([^<]*?)<\/strong>', webpage, 'view_count',
+                                                         default=None)) or int_or_none(view_count_fb)
 
-        comment_count = int_or_none(self._html_search_regex(
-            r'Comments:[^<]*<strong>([^<]*?)<\/strong>', webpage,
-            'comment_count', default=None)) or int_or_none(
-            self._html_search_regex(
-                r'<span[^>]+id="cmt_num"[^>]*>([^<]+?)<\/span>', webpage,
-                'comment_count', default=None))
+        comment_count = int_or_none(
+            self._html_search_regex(r'Comments:[^<]*<strong>([^<]*?)<\/strong>', webpage, 'comment_count',
+                                    default=None) or
+            self._html_search_regex(r'<span[^>]+id="cmt_num"[^>]*>([^<]+?)<\/span>', webpage, 'comment_count', default=None))
 
         average_rating = float_or_none(
-            self._html_search_regex(
-                r'{[\s\r]*\$\("#rateYo"\).rateYo\({[^}]*rating:\s*([^,]*?),[^}.]*}',
-                webpage, 'average_rating', default=None))
-        thumbnail_link = self._html_search_regex(
-            r'videoInfo[\s]*=[\s]*{[^}]*img:[\s]*(?:"|\')([^"]*?)(?:"|\')',
-            webpage, 'thumbnail', default=None)
-        thumbnail = 'https://www.vidlii.com%s' % thumbnail_link
+            self._html_search_regex(r'{[\s\r]*\$\("#rateYo"\).rateYo\({[^}]*rating:\s*([^,]*?),[^}.]*}',
+                                    webpage, 'average_rating', default=None))
+        thumbnail_link = self._html_search_regex(r'videoInfo[\s]*=[\s]*{[^}]*img:[\s]*(?:"|\')([^"]*?)(?:"|\')', webpage,
+                                                 'thumbnail', default=None)
+        thumbnail = urljoin("https://www.vidlii.com/", thumbnail_link)
         video_type = self._og_search_property('type', webpage, 'type')
 
         return {
