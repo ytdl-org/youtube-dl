@@ -1137,6 +1137,18 @@ class GenericIE(InfoExtractor):
             }
         },
         {
+            # JWPlatform iframe
+            'url': 'https://www.mediaite.com/tv/dem-senator-claims-gary-cohn-faked-a-bad-connection-during-trump-call-to-get-him-off-the-phone/',
+            'md5': 'ca00a040364b5b439230e7ebfd02c4e9',
+            'info_dict': {
+                'id': 'O0c5JcKT',
+                'ext': 'mp4',
+                'upload_date': '20171122',
+                'timestamp': 1511366290,
+                'title': 'Dem Senator Claims Gary Cohn Faked a Bad Connection During Trump Call to Get Him Off the Phone',
+            },
+        },
+        {
             # Video.js embed, multiple formats
             'url': 'http://ortcam.com/solidworks-урок-6-настройка-чертежа_33f9b7351.html',
             'info_dict': {
