@@ -1098,9 +1098,9 @@ class GenericIE(InfoExtractor):
         },
         # jwplayer rtmp
         {
-            'url': 'http://www.suffolk.edu/sjc/',
+            'url': 'http://www.suffolk.edu/sjc/live.php',
             'info_dict': {
-                'id': 'sjclive',
+                'id': 'live',
                 'ext': 'flv',
                 'title': 'Massachusetts Supreme Judicial Court Oral Arguments',
                 'uploader': 'www.suffolk.edu',
@@ -1108,7 +1108,7 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
-            'skip': 'does not contain a video anymore',
+            'skip': 'Only has video a few mornings per month, see http://www.suffolk.edu/sjc/',
         },
         # Complex jwplayer
         {
