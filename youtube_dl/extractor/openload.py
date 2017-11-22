@@ -140,7 +140,7 @@ class PhantomJSwrapper(object):
         for name in self._TMP_FILE_NAMES:
             try:
                 os.remove(self._TMP_FILES[name].name)
-            except (OSError, TypeError):
+            except OSError:
                 pass
 
     def _save_cookies(self, url):
