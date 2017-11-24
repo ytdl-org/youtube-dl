@@ -2,7 +2,7 @@ version <unreleased>
 
 Extractors
 * [youku] Fix extraction; update ccode (#14815)
-
++ [JWPlatform] support iframes (#14828)
 
 version 2017.11.15
 
