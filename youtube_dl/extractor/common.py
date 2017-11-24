@@ -597,9 +597,9 @@ class InfoExtractor(object):
             self._downloader.to_screen(dump)
         if self._downloader.params.get('write_pages', False):
             basen = '%s_%s' % (video_id, urlh.geturl())
-            if len(basen) > 240:
+            if len(basen) > 237:
                 h = '___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
-                basen = basen[:240 - len(h)] + h
+                basen = basen[:237 - len(h)] + h
             raw_filename = basen + '.dump'
             filename = sanitize_filename(raw_filename, restricted=True)
             self.to_screen('Saving request to ' + filename)
