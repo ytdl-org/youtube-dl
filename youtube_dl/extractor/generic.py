@@ -1146,6 +1146,7 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1511366290,
                 'title': 'Dem Senator Claims Gary Cohn Faked a Bad Connection During Trump Call to Get Him Off the Phone',
             },
+            'add_ie': [JWPlatformIE.ie_key()],
         },
         {
             # Video.js embed, multiple formats
