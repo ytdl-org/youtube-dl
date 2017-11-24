@@ -10,7 +10,7 @@ from ..utils import (
 
 class SeznamZpravyIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?seznam\.cz/zpravy/clanek/(?:[-a-z0-9]+)-(?P<id>[0-9]+)'
-    _API_URL = 'https://apiclanky.seznam.cz/'
+    _API_URL = 'https://apizpravy.seznam.cz/'
     _MAGIC_SUFFIX = 'spl2,2,VOD'
 
     _TESTS = [{
