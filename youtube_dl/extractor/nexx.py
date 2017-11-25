@@ -198,18 +198,15 @@ class NexxIE(InfoExtractor):
 
         AZURE_URL = 'http://nx%s%02d.akamaized.net/'
 
-        def get_cdn_base(cdn, prefix='-p'):
-            azure_base = None
+        def get_cdn_shield_base(shield_type='', prefix='-p'):
             for secure in ('', 's'):
-                cdn_shield = stream_data.get('cdn%sHTTP%s' % (cdn, secure.upper()))
+                cdn_shield = stream_data.get('cdnShield%sHTTP%s' % (shield_type, secure.upper()))
                 if cdn_shield:
-                    azure_base = 'http%s://%s' % (secure, cdn_shield)
-                    break
+                    return 'http%s://%s' % (secure, cdn_shield)
             else:
-                azure_base = AZURE_URL % (prefix, int(stream_data['azureAccount'].replace('nexxplayplus', '')))
-            return azure_base
+                return AZURE_URL % (prefix, int(stream_data['azureAccount'].replace('nexxplayplus', '')))
 
-        azure_stream_base = get_cdn_base('Shield')
+        azure_stream_base = get_cdn_shield_base()
         is_ml = ',' in language
         azure_manifest_url = '%s%s/%s_src%s.ism/Manifest' % (
             azure_stream_base, azure_locator, video_id, ('_manifest' if is_ml else '')) + '%s'
@@ -229,7 +226,7 @@ class NexxIE(InfoExtractor):
         formats.extend(self._extract_ism_formats(
             azure_manifest_url % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
 
-        azure_progressive_base = get_cdn_base('ShieldProg', '-d')
+        azure_progressive_base = get_cdn_shield_base('Prog', '-d')
         azure_file_distribution = stream_data.get('azureFileDistribution')
         if azure_file_distribution:
             fds = azure_file_distribution.split(',')
@@ -242,7 +239,7 @@ class NexxIE(InfoExtractor):
                             f = {
                                 'url': '%s%s/%s_src_%s_%d.mp4' % (
                                     azure_progressive_base, azure_locator, video_id, ss[1], tbr),
-                                'format_id': 'http-%d' % tbr,
+                                'format_id': '%s-http-%d' % (cdn, tbr),
                                 'tbr': tbr,
                             }
                             width_height = ss[1].split('x')
