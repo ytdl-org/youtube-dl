@@ -348,7 +348,6 @@ from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
 from .fivetv import FiveTVIE
-from .fktv import FKTVIE
 from .flickr import FlickrIE
 from .flipagram import FlipagramIE
 from .folketinget import FolketingetIE
@@ -432,7 +431,10 @@ from .hitbox import HitboxIE, HitboxLiveIE
 from .hitrecord import HitRecordIE
 from .hornbunny import HornBunnyIE
 from .hotnewhiphop import HotNewHipHopIE
-from .hotstar import HotStarIE
+from .hotstar import (
+    HotStarIE,
+    HotStarPlaylistIE,
+)
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
 from .hrti import (
@@ -569,6 +571,7 @@ from .mangomolo import (
     MangomoloLiveIE,
 )
 from .manyvids import ManyVidsIE
+from .massengeschmacktv import MassengeschmackTVIE
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .mediaset import MediasetIE
@@ -786,6 +789,7 @@ from .patreon import PatreonIE
 from .pbs import PBSIE
 from .pearvideo import PearVideoIE
 from .people import PeopleIE
+from .performgroup import PerformGroupIE
 from .periscope import (
     PeriscopeIE,
     PeriscopeUserIE,

@@ -102,6 +102,7 @@ from .joj import JojIE
 from .megaphone import MegaphoneIE
 from .vzaar import VzaarIE
 from .channel9 import Channel9IE
+from .vshare import VShareIE
 
 
 class GenericIE(InfoExtractor):
@@ -1098,9 +1099,9 @@ class GenericIE(InfoExtractor):
         },
         # jwplayer rtmp
         {
-            'url': 'http://www.suffolk.edu/sjc/',
+            'url': 'http://www.suffolk.edu/sjc/live.php',
             'info_dict': {
-                'id': 'sjclive',
+                'id': 'live',
                 'ext': 'flv',
                 'title': 'Massachusetts Supreme Judicial Court Oral Arguments',
                 'uploader': 'www.suffolk.edu',
@@ -1108,7 +1109,7 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
-            'skip': 'does not contain a video anymore',
+            'skip': 'Only has video a few mornings per month, see http://www.suffolk.edu/sjc/',
         },
         # Complex jwplayer
         {
@@ -1134,6 +1135,19 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             }
+        },
+        {
+            # JWPlatform iframe
+            'url': 'https://www.mediaite.com/tv/dem-senator-claims-gary-cohn-faked-a-bad-connection-during-trump-call-to-get-him-off-the-phone/',
+            'md5': 'ca00a040364b5b439230e7ebfd02c4e9',
+            'info_dict': {
+                'id': 'O0c5JcKT',
+                'ext': 'mp4',
+                'upload_date': '20171122',
+                'timestamp': 1511366290,
+                'title': 'Dem Senator Claims Gary Cohn Faked a Bad Connection During Trump Call to Get Him Off the Phone',
+            },
+            'add_ie': [JWPlatformIE.ie_key()],
         },
         {
             # Video.js embed, multiple formats
@@ -1921,6 +1935,16 @@ class GenericIE(InfoExtractor):
                 'title': 'Rescue Kit 14 Free Edition - Getting started',
             },
             'playlist_count': 4,
+        },
+        {
+            # vshare embed
+            'url': 'https://youtube-dl-demo.neocities.org/vshare.html',
+            'md5': '17b39f55b5497ae8b59f5fbce8e35886',
+            'info_dict': {
+                'id': '0f64ce6',
+                'title': 'vl14062007715967',
+                'ext': 'mp4',
+            }
         }
         # {
         #     # TODO: find another test
@@ -2878,6 +2902,11 @@ class GenericIE(InfoExtractor):
         if channel9_urls:
             return self.playlist_from_matches(
                 channel9_urls, video_id, video_title, ie=Channel9IE.ie_key())
+
+        vshare_urls = VShareIE._extract_urls(webpage)
+        if vshare_urls:
+            return self.playlist_from_matches(
+                vshare_urls, video_id, video_title, ie=VShareIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}

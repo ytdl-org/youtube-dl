@@ -61,7 +61,7 @@ class SafariBaseIE(InfoExtractor):
         request = sanitized_Request(
             self._LOGIN_URL, urlencode_postdata(login_form), headers=headers)
         login_page = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            request, None, 'Logging in')
 
         if not is_logged(login_page):
             raise ExtractorError(

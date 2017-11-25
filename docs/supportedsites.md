@@ -3,8 +3,6 @@
  - **1up.com**
  - **20min**
  - **220.ro**
- - **22tracks:genre**
- - **22tracks:track**
  - **24video**
  - **3qsdn**: 3Q SDN
  - **3sat**
@@ -342,6 +340,7 @@
  - **HornBunny**
  - **HotNewHipHop**
  - **HotStar**
+ - **hotstar:playlist**
  - **Howcast**
  - **HowStuffWorks**
  - **HRTi**
