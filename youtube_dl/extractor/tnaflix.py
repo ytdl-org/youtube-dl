@@ -201,18 +201,21 @@ class TNAFlixNetworkEmbedIE(TNAFlixNetworkBaseIE):
             webpage)]
 
 
-class TNAFlixIE(TNAFlixNetworkBaseIE):
+class TNAEMPFlixBaseIE(TNAFlixNetworkBaseIE):
+    _DESCRIPTION_REGEX = r'(?s)>Description:</[^>]+>(.+?)<'
+    _UPLOADER_REGEX = r'<span>by\s*<a[^>]+\bhref=["\']/profile/[^>]+>([^<]+)<'
+    _CATEGORIES_REGEX = r'(?s)<span[^>]*>Categories:</span>(.+?)</div>'
+
+
+class TNAFlixIE(TNAEMPFlixBaseIE):
     _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/[^/]+/(?P<display_id>[^/]+)/video(?P<id>\d+)'
 
     _TITLE_REGEX = r'<title>(.+?) - (?:TNAFlix Porn Videos|TNAFlix\.com)</title>'
-    _DESCRIPTION_REGEX = r'(?s)>Description:</[^>]+>(.+?)<'
-    _UPLOADER_REGEX = r'<i>\s*Verified Member\s*</i>\s*<h\d+>(.+?)<'
-    _CATEGORIES_REGEX = r'(?s)<span[^>]*>Categories:</span>(.+?)</div>'
 
     _TESTS = [{
         # anonymous uploader, no categories
         'url': 'http://www.tnaflix.com/porn-stars/Carmella-Decesare-striptease/video553878',
-        'md5': 'ecf3498417d09216374fc5907f9c6ec0',
+        'md5': '7e569419fe6d69543d01e6be22f5f7c4',
         'info_dict': {
             'id': '553878',
             'display_id': 'Carmella-Decesare-striptease',
@@ -237,7 +240,7 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
             'duration': 164,
             'age_limit': 18,
             'uploader': 'bobwhite39',
-            'categories': ['Amateur Porn', 'Squirting Videos', 'Teen Girls 18+'],
+            'categories': list,
         }
     }, {
         'url': 'https://www.tnaflix.com/amateur-porn/bunzHD-Ms.Donk/video358632',
@@ -245,16 +248,15 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
     }]
 
 
-class EMPFlixIE(TNAFlixNetworkBaseIE):
+class EMPFlixIE(TNAEMPFlixBaseIE):
     _VALID_URL = r'https?://(?:www\.)?empflix\.com/(?:videos/(?P<display_id>.+?)-|[^/]+/(?P<display_id_2>[^/]+)/video)(?P<id>[0-9]+)'
 
     _HOST = 'emp'
     _VKEY_SUFFIX = '-1'
-    _UPLOADER_REGEX = r'<span[^>]+class="infoTitle"[^>]*>Uploaded By:</span>(.+?)</li>'
 
     _TESTS = [{
         'url': 'http://www.empflix.com/videos/Amateur-Finger-Fuck-33051.html',
-        'md5': 'b1bc15b6412d33902d6e5952035fcabc',
+        'md5': 'bc30d48b91a7179448a0bda465114676',
         'info_dict': {
             'id': '33051',
             'display_id': 'Amateur-Finger-Fuck',
