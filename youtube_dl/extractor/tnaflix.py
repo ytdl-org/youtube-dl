@@ -74,7 +74,13 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id') if 'display_id' in mobj.groupdict() else video_id
+        for display_id_key in ('display_id', 'display_id_2'):
+            if display_id_key in mobj.groupdict():
+                display_id = mobj.group(display_id_key)
+                if display_id:
+                    break
+        else:
+            display_id = video_id
 
         webpage = self._download_webpage(url, display_id)
 
@@ -240,7 +246,7 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
 
 
 class EMPFlixIE(TNAFlixNetworkBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?empflix\.com/videos/(?P<display_id>.+?)-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?empflix\.com/(?:videos/(?P<display_id>.+?)-|[^/]+/(?P<display_id_2>[^/]+)/video)(?P<id>[0-9]+)'
 
     _HOST = 'emp'
     _VKEY_SUFFIX = '-1'
@@ -263,6 +269,9 @@ class EMPFlixIE(TNAFlixNetworkBaseIE):
         }
     }, {
         'url': 'http://www.empflix.com/videos/[AROMA][ARMD-718]-Aoi-Yoshino-Sawa-25826.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.empflix.com/amateur-porn/Amateur-Finger-Fuck/video33051',
         'only_matching': True,
     }]
 
