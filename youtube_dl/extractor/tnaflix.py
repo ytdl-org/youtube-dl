@@ -91,7 +91,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         formats = []
 
         def extract_video_url(vl):
-            return re.sub(r'speed=\d+', 'speed=', unescapeHTML(vl.text))
+            # Any URL modification now results in HTTP Error 403: Forbidden
+            return unescapeHTML(vl.text)
 
         video_link = cfg_xml.find('./videoLink')
         if video_link is not None:
