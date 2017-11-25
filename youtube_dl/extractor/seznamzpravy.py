@@ -16,7 +16,9 @@ class SeznamZpravyIE(InfoExtractor):
     _TESTS = [{
         # two videos on one page, with SDN URL
         'url': 'https://www.seznam.cz/zpravy/clanek/jejich-svet-na-nas-utoci-je-lepsi-branit-se-na-jejich-pisecku-rika-reziser-a-major-v-zaloze-marhoul-35990',
-        'file_minsize': 1586,
+        'params': {'skip_download': True},
+        # ^ this is here instead of 'file_minsize': 1586, which does not work because
+        #   test_download.py forces expected_minsize to at least 10k when test is running
         'info_dict': {
             'id': '35990',
             'ext': 'mp4',
