@@ -2,9 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     urljoin,
     int_or_none,
+    try_get,
 )
 
 
@@ -39,7 +41,8 @@ class SeznamZpravyIE(InfoExtractor):
     def _extract_sdn_formats(self, sdn_url, video_id):
         sdn_data = self._download_json(sdn_url, video_id)
         formats = []
-        for fmt, fmtdata in sdn_data.get('data', {}).get('mp4', {}).items():
+        mp4_formats = try_get(sdn_data, lambda x: x['data']['mp4'], dict) or {}
+        for fmt, fmtdata in mp4_formats.items():
             relative_url = fmtdata.get('url')
             if not relative_url:
                 continue
@@ -57,11 +60,11 @@ class SeznamZpravyIE(InfoExtractor):
             })
 
         playlists = sdn_data.get('pls', {})
-        dash_rel_url = playlists.get('dash', {}).get('url')
+        dash_rel_url = try_get(playlists, lambda x: x['dash']['url'], compat_str)
         if dash_rel_url:
             formats.extend(self._extract_mpd_formats(urljoin(sdn_url, dash_rel_url), video_id, mpd_id='dash', fatal=False))
 
-        hls_rel_url = playlists.get('hls', {}).get('url')
+        hls_rel_url = try_get(playlists, lambda x: x['hls']['url'], compat_str)
         if hls_rel_url:
             formats.extend(self._extract_m3u8_formats(urljoin(sdn_url, hls_rel_url), video_id, ext='mp4', m3u8_id='hls', fatal=False))
 
