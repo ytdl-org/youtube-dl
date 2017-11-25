@@ -21,6 +21,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         r'flashvars\.config\s*=\s*escape\("([^"]+)"',
         r'<input[^>]+name="config\d?" value="([^"]+)"',
     ]
+    _HOST = 'tna'
+    _VKEY_SUFFIX = ''
     _TITLE_REGEX = r'<input[^>]+name="title" value="([^"]+)"'
     _DESCRIPTION_REGEX = r'<input[^>]+name="description" value="([^"]+)"'
     _UPLOADER_REGEX = r'<input[^>]+name="username" value="([^"]+)"'
@@ -81,8 +83,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
 
         if not cfg_url:
             inputs = self._hidden_inputs(webpage)
-            cfg_url = ('https://cdn-fck.tnaflix.com/tnaflix/%s.fid?key=%s&VID=%s&premium=1&vip=1&alpha'
-                       % (inputs['vkey'], inputs['nkey'], video_id))
+            cfg_url = ('https://cdn-fck.%sflix.com/%sflix/%s%s.fid?key=%s&VID=%s&premium=1&vip=1&alpha'
+                       % (self._HOST, self._HOST, inputs['vkey'], self._VKEY_SUFFIX, inputs['nkey'], video_id))
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, 'Downloading metadata',
@@ -240,6 +242,8 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
 class EMPFlixIE(TNAFlixNetworkBaseIE):
     _VALID_URL = r'https?://(?:www\.)?empflix\.com/videos/(?P<display_id>.+?)-(?P<id>[0-9]+)\.html'
 
+    _HOST = 'emp'
+    _VKEY_SUFFIX = '-1'
     _UPLOADER_REGEX = r'<span[^>]+class="infoTitle"[^>]*>Uploaded By:</span>(.+?)</li>'
 
     _TESTS = [{
