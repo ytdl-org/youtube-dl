@@ -240,7 +240,7 @@ class YoukuShowIE(InfoExtractor):
     }, {
         # Ongoing playlist. The initial page is the last one
         'url': 'http://list.youku.com/show/id_za7c275ecd7b411e1a19e.html',
-        'only_matchine': True,
+        'only_matching': True,
     }]
 
     def _extract_entries(self, playlist_data_url, show_id, note, query):
