@@ -1,8 +1,31 @@
 version <unreleased>
 
+Core
+* [extractor/common] Use final URL when dumping request (#14769)
+
 Extractors
+* [fczenit] Fix extraction
+- [firstpost] Remove extractor
+* [freespeech] Fix extraction
+* [nexx] Extract more formats
++ [openload] Add support for openload.link (#14763)
+* [empflix] Relax URL regular expression
+* [empflix] Fix extractrion
+* [tnaflix] Don't modify download URLs (#14811)
+- [gamersyde] Remove extractor
+* [francetv:generationwhat] Fix extraction
++ [massengeschmacktv] Add support for Massengeschmack TV
+* [fox9] Fix extraction
+* [faz] Fix extraction and add support for Perform Group embeds (#14714)
++ [performgroup] Add support for performgroup.com
++ [jwplatform] Add support for iframes (#14828)
+* [culturebox] Fix extraction (#14827)
 * [youku] Fix extraction; update ccode (#14815)
-+ [JWPlatform] support iframes (#14828)
+* [livestream] Make SMIL extraction non fatal (#14792)
++ [drtuber] Add support for mobile URLs (#14772)
++ [spankbang] Add support for mobile URLs (#14771)
+* [instagram] Fix description, timestamp and counters extraction (#14755)
+
 
 version 2017.11.15
 
