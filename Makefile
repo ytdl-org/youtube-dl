@@ -110,7 +110,6 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude '*~' \
 		--exclude '__pycache__' \
 		--exclude '.git' \
-		--exclude 'testdata' \
 		--exclude 'docs/_build' \
 		-- \
 		bin devscripts test youtube_dl docs \
