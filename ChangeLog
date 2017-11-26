@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.11.26
 
 Core
 * [extractor/common] Use final URL when dumping request (#14769)
