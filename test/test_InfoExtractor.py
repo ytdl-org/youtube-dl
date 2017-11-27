@@ -601,5 +601,6 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
 
+
 if __name__ == '__main__':
     unittest.main()
