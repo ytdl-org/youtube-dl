@@ -36,8 +36,17 @@ test:
 
 ot: offlinetest
 
+# Keep this list in sync with devscripts/run_tests.sh
 offlinetest: codetest
-	$(PYTHON) -m nose --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py --exclude test_socks.py
+	$(PYTHON) -m nose --verbose test \
+		--exclude test_age_restriction.py \
+		--exclude test_download.py \
+		--exclude test_iqiyi_sdk_interpreter.py \
+		--exclude test_socks.py \
+		--exclude test_subtitles.py \
+		--exclude test_write_annotations.py \
+		--exclude test_youtube_lists.py \
+		--exclude test_youtube_signature.py
 
 tar: youtube-dl.tar.gz
 
