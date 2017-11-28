@@ -55,7 +55,7 @@ class XimalayaIE(XimalayaBaseIE):
                 'uploader_id': 61425525,
                 'uploader_url': 'http://www.ximalaya.com/zhubo/61425525/',
                 'title': '261.唐诗三百首.卷八.送孟浩然之广陵.李白',
-                'description': 'contains:孤帆远影碧空尽，惟见长江天际流。',
+                'description': "contains:《送孟浩然之广陵》\n作者：李白\n故人西辞黄鹤楼，烟花三月下扬州。\n孤帆远影碧空尽，惟见长江天际流。",
                 'thumbnails': [
                     {
                         'name': 'cover_url',
@@ -181,14 +181,14 @@ class XimalayaAlbumIE(XimalayaBaseIE):
     _TESTS = [{
         'url': 'http://www.ximalaya.com/61425525/album/5534601/',
         'info_dict': {
-            'title': 'contains:唐诗三百首（含赏析）',
+            'title': '唐诗三百首（含赏析）',
             'id': '5534601',
         },
         'playlist_count': 312,
     }, {
         'url': 'http://m.ximalaya.com/61425525/album/5534601',
         'info_dict': {
-            'title': 'contains:唐诗三百首（含赏析）',
+            'title': '唐诗三百首（含赏析）',
             'id': '5534601',
         },
         'playlist_count': 312,
@@ -207,7 +207,6 @@ class XimalayaAlbumIE(XimalayaBaseIE):
 
         title = self._html_search_regex(r'detailContent_title(?:[^>]+)?><h1(?:[^>]+)?>([^<]+)</h1>',
                                         webpage, 'title',fatal=False, group=1)
-        title = title or self._html_search_meta('title')
 
         return self.playlist_result(self._entries(webpage, playlist_id, uid), playlist_id, title)
 
