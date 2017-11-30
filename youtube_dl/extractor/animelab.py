@@ -13,34 +13,7 @@ from ..utils import (
 from ..compat import compat_HTTPError
 
 
-class AnimeLabIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/(?P<id>[^/]+)'
-
-    # the following tests require authentication, but a free account will suffice
-    # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
-    # or you can set 'username' and 'password' there
-    # the tests also select a specific format so that the same video is downloaded
-    # regardless of whether the user is premium or not (needs testing on a premium account)
-    _TEST = {
-        'url': 'https://www.animelab.com/player/fullmetal-alchemist-brotherhood-episode-42',
-        'md5': '05bde4b91a5d1ff46ef5b94df05b0f7f',
-        'info_dict': {
-            'id': '383',
-            'ext': 'mp4',
-            'display_id': 'fullmetal-alchemist-brotherhood-episode-42',
-            'title': 'Fullmetal Alchemist: Brotherhood - Episode 42 - Signs of a Counteroffensive',
-            'description': 'md5:103eb61dd0a56d3dfc5dbf748e5e83f4',
-            'series': 'Fullmetal Alchemist: Brotherhood',
-            'episode': 'Signs of a Counteroffensive',
-            'episode_number': 42,
-            'duration': 1469,
-        },
-        'params': {
-            'format': '[format_id=21711_yeshardsubbed_ja-JP][height=480]',
-        },
-        'skip': 'All AnimeLab content requires authentication',
-    }
-
+class AnimeLabBaseIE(InfoExtractor):
     _LOGIN_REQUIRED = True
     _LOGIN_URL = 'https://www.animelab.com/login'
     _NETRC_MACHINE = 'animelab'
@@ -91,6 +64,35 @@ class AnimeLabIE(InfoExtractor):
 
     def _real_initialize(self):
         self._login()
+
+
+class AnimeLabIE(AnimeLabBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/(?P<id>[^/]+)'
+
+    # the following tests require authentication, but a free account will suffice
+    # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
+    # or you can set 'username' and 'password' there
+    # the tests also select a specific format so that the same video is downloaded
+    # regardless of whether the user is premium or not (needs testing on a premium account)
+    _TEST = {
+        'url': 'https://www.animelab.com/player/fullmetal-alchemist-brotherhood-episode-42',
+        'md5': '05bde4b91a5d1ff46ef5b94df05b0f7f',
+        'info_dict': {
+            'id': '383',
+            'ext': 'mp4',
+            'display_id': 'fullmetal-alchemist-brotherhood-episode-42',
+            'title': 'Fullmetal Alchemist: Brotherhood - Episode 42 - Signs of a Counteroffensive',
+            'description': 'md5:103eb61dd0a56d3dfc5dbf748e5e83f4',
+            'series': 'Fullmetal Alchemist: Brotherhood',
+            'episode': 'Signs of a Counteroffensive',
+            'episode_number': 42,
+            'duration': 1469,
+        },
+        'params': {
+            'format': '[format_id=21711_yeshardsubbed_ja-JP][height=480]',
+        },
+        'skip': 'All AnimeLab content requires authentication',
+    }
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -196,4 +198,8 @@ class AnimeLabIE(InfoExtractor):
             'formats': formats,
         }
 
-# TODO implement shows and myqueue (playlists)
+
+class AnimeLabShowsIE(AnimeLabBaseIE):
+    pass
+
+# TODO implement myqueue
