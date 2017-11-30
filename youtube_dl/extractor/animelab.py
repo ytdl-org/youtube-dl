@@ -96,6 +96,11 @@ class AnimeLabBaseIE(InfoExtractor):
             'height': image_data.get('height'),
         }]
 
+        season_data = raw_data.get('season', {})
+        season = str_or_none(season_data.get('name'))
+        season_number = int_or_none(season_data.get('seasonNumber'))
+        season_id = str_or_none(season_data.get('id'))
+
         formats = []
         for video_data in raw_data['videoList']:
             current_video_list = {}
@@ -159,6 +164,9 @@ class AnimeLabBaseIE(InfoExtractor):
             'thumbnails': thumbnails,
             'duration': duration,
             'formats': formats,
+            'season': season,
+            'season_number': season_number,
+            'season_id': season_id,
         }
 
 
@@ -183,6 +191,9 @@ class AnimeLabIE(AnimeLabBaseIE):
             'episode': 'Signs of a Counteroffensive',
             'episode_number': 42,
             'duration': 1469,
+            'season': 'Season 1',
+            'season_number': 1,
+            'season_id': '38',
         },
         'params': {
             'format': '[format_id=21711_yeshardsubbed_ja-JP][height=480]',
