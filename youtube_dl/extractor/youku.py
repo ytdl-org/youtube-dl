@@ -154,7 +154,7 @@ class YoukuIE(InfoExtractor):
         # request basic data
         basic_data_params = {
             'vid': video_id,
-            'ccode': '0502',
+            'ccode': '0501',
             'client_ip': '192.168.1.1',
             'utid': cna,
             'client_ts': time.time() / 1000,
