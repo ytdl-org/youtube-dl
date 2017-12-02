@@ -563,6 +563,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'height': 1080,
                 }]
             ), (
+                # https://github.com/rg3/youtube-dl/pull/14844
                 'urls_only',
                 'http://unknown/manifest.mpd',
                 [{

@@ -1978,6 +1978,7 @@ class InfoExtractor(object):
                         elif 'segment_urls' in representation_ms_info:
                             # Segment URLs with no SegmentTimeline
                             # Example: https://www.seznam.cz/zpravy/clanek/cesko-zasahne-vitr-o-sile-vichrice-muze-byt-i-zivotu-nebezpecny-39091
+                            # https://github.com/rg3/youtube-dl/pull/14844
                             fragments = []
                             segment_duration = float_or_none(
                                 representation_ms_info['segment_duration'],
