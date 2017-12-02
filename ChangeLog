@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.12.02
 
 Core
 + [downloader/fragment] Commit part file after each fragment

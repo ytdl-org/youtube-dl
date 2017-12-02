@@ -112,11 +112,12 @@
  - **BokeCC**
  - **BostonGlobe**
  - **Bpb**: Bundeszentrale für politische Bildung
- - **BR**: Bayerischer Rundfunk Mediathek
+ - **BR**: Bayerischer Rundfunk
  - **BravoTV**
  - **Break**
  - **brightcove:legacy**
  - **brightcove:new**
+ - **BRMediathek**: Bayerischer Rundfunk Mediathek
  - **bt:article**: Bergens Tidende Articles
  - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
  - **BuzzFeed**
@@ -198,8 +199,8 @@
  - **dailymotion:playlist**
  - **dailymotion:user**
  - **DailymotionCloud**
- - **Daisuki**
- - **DaisukiPlaylist**
+ - **DaisukiMotto**
+ - **DaisukiMottoPlaylist**
  - **daum.net**
  - **daum.net:clip**
  - **daum.net:playlist**
