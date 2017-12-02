@@ -1979,10 +1979,16 @@ class InfoExtractor(object):
                             # Segment URLs with no SegmentTimeline
                             # Example: https://www.seznam.cz/zpravy/clanek/cesko-zasahne-vitr-o-sile-vichrice-muze-byt-i-zivotu-nebezpecny-39091
                             fragments = []
+                            segment_duration = float_or_none(
+                                representation_ms_info['segment_duration'],
+                                representation_ms_info['timescale']) if 'segment_duration' in representation_ms_info else None
                             for segment_url in representation_ms_info['segment_urls']:
-                                fragments.append({
+                                fragment = {
                                     location_key(segment_url): segment_url,
-                                })
+                                }
+                                if segment_duration:
+                                    fragment['duration'] = segment_duration
+                                fragments.append(fragment)
                             representation_ms_info['fragments'] = fragments
                         # NB: MPD manifest may contain direct URLs to unfragmented media.
                         # No fragments key is present in this case.
