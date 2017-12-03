@@ -49,7 +49,7 @@ class AnimeLabBaseIE(InfoExtractor):
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
                 page = e.cause.read().decode('utf-8')
                 js_error = self._search_regex(
-                    r'Utils\.notify\( *?[\'"]error[\'"] *?, *?[\'"](.*?)[\'"]',
+                    r'Utils\.notify\(\s*?[\'"]error[\'"]\s*?,\s*?[\'"](.*?)[\'"]',
                     page, 'Trying to get error message in js', default=None)
                 if js_error:
                     raise ExtractorError('Unable to log in: %s' % js_error, expected=True)
@@ -109,7 +109,7 @@ class AnimeLabIE(AnimeLabBaseIE):
         webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
 
         video_collection = self.get_data_from_js(webpage, 'VideoCollection', display_id)
-        position = int_or_none(self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position'))
+        position = int_or_none(self._search_regex(r'playlistPosition\s*?=\s*?(\d+)', webpage, 'Playlist Position'))
 
         raw_data = video_collection[position]['videoEntry']
 
