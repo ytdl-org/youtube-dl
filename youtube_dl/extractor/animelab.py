@@ -12,6 +12,8 @@ from ..utils import (
 
 from ..compat import compat_HTTPError
 
+import re
+
 
 class AnimeLabBaseIE(InfoExtractor):
     _LOGIN_REQUIRED = True
@@ -64,6 +66,10 @@ class AnimeLabBaseIE(InfoExtractor):
 
     def _real_initialize(self):
         self._login()
+
+    def get_data_from_js(self, webpage, name, display_id):
+        data_str = self._search_regex(r'new\s+?%s\s*?\((.*?)\);' % name, webpage, 'AnimeLab %s' % name)
+        return self._parse_json(data_str, display_id)
 
     def get_video_info(self, raw_data, webpage='', display_id=None):
         video_id = str_or_none(raw_data['id'])
@@ -206,8 +212,7 @@ class AnimeLabIE(AnimeLabBaseIE):
 
         webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
 
-        video_collection_str = self._search_regex(r'new\s+?VideoCollection\s*?\((.*?)\);', webpage, 'AnimeLab VideoCollection')
-        video_collection = self._parse_json(video_collection_str, display_id)
+        video_collection = self.get_data_from_js(webpage, 'VideoCollection', display_id)
         position = int_or_none(self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position'))
 
         raw_data = video_collection[position]['videoEntry']
@@ -216,6 +221,65 @@ class AnimeLabIE(AnimeLabBaseIE):
 
 
 class AnimeLabShowsIE(AnimeLabBaseIE):
-    pass
+    _VALID_URL = r'https?://(?:www\.)?animelab\.com/shows/(?P<id>[^/]+)'
+
+    _TEST = {
+        'url': 'https://www.animelab.com/shows/attack-on-titan',
+        'info_dict': {
+            'id': '45',
+            'title': 'Attack on Titan',
+            'description': 'md5:989d95a2677e9309368d5cf39ba91469',
+        },
+        'playlist_count': 37,
+        'skip': 'All AnimeLab content requires authentication',
+    }
+
+    def _real_extract(self, url):
+        _BASE_URL = 'http://www.animelab.com'
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
+
+        show_data = self.get_data_from_js(webpage, 'Show', display_id)
+
+        show_id = str_or_none(show_data.get('id'))
+        title = show_data.get('name')
+        description = show_data.get('shortSynopsis') or show_data.get('longSynopsis')
+
+        season_strs = re.findall(r'new\s+?VideoEntryCollection\s*?\((.*?)\)', webpage)
+        seasons = []
+        for season_str in season_strs:
+            seasons.append(self._parse_json(season_str, display_id))
+
+        if not seasons:
+            raise ExtractorError('No seasons found!')
+
+        entries = []
+        for season in seasons:
+            get_data = urlencode_postdata({
+                'seasonId': season['params']['seasonId'],
+                'limit': 1000,
+            })
+            # despite using urlencode_postdata, we are sending a GET request
+            target_url = _BASE_URL + season['url'] + "?" + get_data.decode('utf-8')
+            response = self._download_webpage(
+                target_url,
+                None, 'Season id %s' % season['params']['seasonId'])
+
+            season_data = self._parse_json(response, display_id)
+
+            for video_data in season_data['list']:
+                entries.append(self.url_result(
+                    _BASE_URL + '/player/' + video_data['slug'], 'AnimeLab',
+                    video_data.get('id'), video_data.get('name')
+                ))
+
+        return {
+            '_type': 'playlist',
+            'id': show_id,
+            'title': title,
+            'description': description,
+            'entries': entries,
+        }
 
 # TODO implement myqueue
