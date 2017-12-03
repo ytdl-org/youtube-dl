@@ -352,6 +352,7 @@ from .fivemin import FiveMinIE
 from .fivetv import FiveTVIE
 from .flickr import FlickrIE
 from .flipagram import FlipagramIE
+from .flixel import FlixelIE
 from .folketinget import FolketingetIE
 from .footyroom import FootyRoomIE
 from .formula1 import Formula1IE
