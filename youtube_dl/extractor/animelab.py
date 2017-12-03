@@ -71,10 +71,49 @@ class AnimeLabBaseIE(InfoExtractor):
         data_str = self._search_regex(r'new\s+?%s\s*?\((.*?)\);' % name, webpage, 'AnimeLab %s' % name)
         return self._parse_json(data_str, display_id)
 
-    def get_video_info(self, raw_data, webpage='', display_id=None):
+
+class AnimeLabIE(AnimeLabBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/(?P<id>[^/]+)'
+
+    # the following tests require authentication, but a free account will suffice
+    # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
+    # or you can set 'username' and 'password' there
+    # the tests also select a specific format so that the same video is downloaded
+    # regardless of whether the user is premium or not (needs testing on a premium account)
+    _TEST = {
+        'url': 'https://www.animelab.com/player/fullmetal-alchemist-brotherhood-episode-42',
+        'md5': '05bde4b91a5d1ff46ef5b94df05b0f7f',
+        'info_dict': {
+            'id': '383',
+            'ext': 'mp4',
+            'display_id': 'fullmetal-alchemist-brotherhood-episode-42',
+            'title': 'Fullmetal Alchemist: Brotherhood - Episode 42 - Signs of a Counteroffensive',
+            'description': 'md5:103eb61dd0a56d3dfc5dbf748e5e83f4',
+            'series': 'Fullmetal Alchemist: Brotherhood',
+            'episode': 'Signs of a Counteroffensive',
+            'episode_number': 42,
+            'duration': 1469,
+            'season': 'Season 1',
+            'season_number': 1,
+            'season_id': '38',
+        },
+        'params': {
+            'format': '[format_id=21711_yeshardsubbed_ja-JP][height=480]',
+        },
+        'skip': 'All AnimeLab content requires authentication',
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
+
+        video_collection = self.get_data_from_js(webpage, 'VideoCollection', display_id)
+        position = int_or_none(self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position'))
+
+        raw_data = video_collection[position]['videoEntry']
+
         video_id = str_or_none(raw_data['id'])
-        if display_id is None:
-            display_id = str_or_none(raw_data['slug'])
 
         # create a title from many sources (while grabbing other info)
         # TODO use more fallback sources to get some of these
@@ -175,49 +214,6 @@ class AnimeLabBaseIE(InfoExtractor):
             'season_id': season_id,
         }
 
-
-class AnimeLabIE(AnimeLabBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/(?P<id>[^/]+)'
-
-    # the following tests require authentication, but a free account will suffice
-    # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
-    # or you can set 'username' and 'password' there
-    # the tests also select a specific format so that the same video is downloaded
-    # regardless of whether the user is premium or not (needs testing on a premium account)
-    _TEST = {
-        'url': 'https://www.animelab.com/player/fullmetal-alchemist-brotherhood-episode-42',
-        'md5': '05bde4b91a5d1ff46ef5b94df05b0f7f',
-        'info_dict': {
-            'id': '383',
-            'ext': 'mp4',
-            'display_id': 'fullmetal-alchemist-brotherhood-episode-42',
-            'title': 'Fullmetal Alchemist: Brotherhood - Episode 42 - Signs of a Counteroffensive',
-            'description': 'md5:103eb61dd0a56d3dfc5dbf748e5e83f4',
-            'series': 'Fullmetal Alchemist: Brotherhood',
-            'episode': 'Signs of a Counteroffensive',
-            'episode_number': 42,
-            'duration': 1469,
-            'season': 'Season 1',
-            'season_number': 1,
-            'season_id': '38',
-        },
-        'params': {
-            'format': '[format_id=21711_yeshardsubbed_ja-JP][height=480]',
-        },
-        'skip': 'All AnimeLab content requires authentication',
-    }
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
-
-        video_collection = self.get_data_from_js(webpage, 'VideoCollection', display_id)
-        position = int_or_none(self._search_regex(r'playlistPosition *?= *?(\d+)', webpage, 'Playlist Position'))
-
-        raw_data = video_collection[position]['videoEntry']
-
-        return self.get_video_info(raw_data, webpage, display_id)
 
 
 class AnimeLabShowsIE(AnimeLabBaseIE):
