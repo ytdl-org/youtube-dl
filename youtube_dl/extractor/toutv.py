@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -41,7 +43,7 @@ class TouTvIE(InfoExtractor):
         email, password = self._get_login_info()
         if email is None:
             return
-        state = 'http://ici.tou.tv//'
+        state = 'http://ici.tou.tv/'
         webpage = self._download_webpage(state, None, 'Downloading homepage')
         toutvlogin = self._parse_json(self._search_regex(
             r'(?s)toutvlogin\s*=\s*({.+?});', webpage, 'toutvlogin'), None, js_to_json)
@@ -54,16 +56,30 @@ class TouTvIE(InfoExtractor):
                 'scope': 'media-drmt openid profile email id.write media-validation.read.privileged',
                 'state': state,
             })
-        login_form = self._search_regex(
-            r'(?s)(<form[^>]+(?:id|name)="Form-login".+?</form>)', login_webpage, 'login form')
-        form_data = self._hidden_inputs(login_form)
+
+        def extract_form_url_and_data(wp, default_form_url, form_spec_re=''):
+            form, form_elem = re.search(
+                r'(?s)((<form[^>]+?%s[^>]*?>).+?</form>)' % form_spec_re, wp).groups()
+            form_data = self._hidden_inputs(form)
+            form_url = extract_attributes(form_elem).get('action') or default_form_url
+            return form_url, form_data
+
+        post_url, form_data = extract_form_url_and_data(
+            login_webpage,
+            'https://services.radio-canada.ca/auth/oauth/v2/authorize/login',
+            r'(?:id|name)="Form-login"')
         form_data.update({
             'login-email': email,
             'login-password': password,
         })
-        post_url = extract_attributes(login_form).get('action') or authorize_url
-        _, urlh = self._download_webpage_handle(
+        consent_webpage = self._download_webpage(
             post_url, None, 'Logging in', data=urlencode_postdata(form_data))
+        post_url, form_data = extract_form_url_and_data(
+            consent_webpage,
+            'https://services.radio-canada.ca/auth/oauth/v2/authorize/consent')
+        _, urlh = self._download_webpage_handle(
+            post_url, None, 'Following Redirection',
+            data=urlencode_postdata(form_data))
         self._access_token = self._search_regex(
             r'access_token=([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
             urlh.geturl(), 'access token')

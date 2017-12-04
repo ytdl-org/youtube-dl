@@ -115,10 +115,17 @@ class MTVServicesInfoExtractor(InfoExtractor):
             if transcript.get('kind') != 'captions':
                 continue
             lang = transcript.get('srclang')
-            subtitles[lang] = [{
-                'url': compat_str(typographic.get('src')),
-                'ext': typographic.get('format')
-            } for typographic in transcript.findall('./typographic')]
+            for typographic in transcript.findall('./typographic'):
+                sub_src = typographic.get('src')
+                if not sub_src:
+                    continue
+                ext = typographic.get('format')
+                if ext == 'cea-608':
+                    ext = 'scc'
+                subtitles.setdefault(lang, []).append({
+                    'url': compat_str(sub_src),
+                    'ext': ext
+                })
         return subtitles
 
     def _get_video_info(self, itemdoc, use_hls=True):

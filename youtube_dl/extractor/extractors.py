@@ -127,7 +127,10 @@ from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
 from .bostonglobe import BostonGlobeIE
 from .bpb import BpbIE
-from .br import BRIE
+from .br import (
+    BRIE,
+    BRMediathekIE,
+)
 from .bravotv import BravoTVIE
 from .breakcom import BreakIE
 from .brightcove import (
@@ -246,8 +249,8 @@ from .dailymotion import (
     DailymotionCloudIE,
 )
 from .daisuki import (
-    DaisukiIE,
-    DaisukiPlaylistIE,
+    DaisukiMottoIE,
+    DaisukiMottoPlaylistIE,
 )
 from .daum import (
     DaumIE,
@@ -344,7 +347,6 @@ from .filmon import (
     FilmOnIE,
     FilmOnChannelIE,
 )
-from .firstpost import FirstpostIE
 from .firsttv import FirstTVIE
 from .fivemin import FiveMinIE
 from .fivetv import FiveTVIE
@@ -374,7 +376,7 @@ from .francetv import (
     FranceTVIE,
     FranceTVEmbedIE,
     FranceTVInfoIE,
-    GenerationQuoiIE,
+    GenerationWhatIE,
     CultureboxIE,
 )
 from .freesound import FreesoundIE
@@ -390,7 +392,6 @@ from .gameone import (
     GameOneIE,
     GameOnePlaylistIE,
 )
-from .gamersyde import GamersydeIE
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE

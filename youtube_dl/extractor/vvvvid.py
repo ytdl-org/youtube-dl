@@ -22,6 +22,9 @@ class VVVVIDIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ping Pong',
         },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         # video_type == 'video/rcs'
         'url': 'https://www.vvvvid.it/#!show/376/death-note-live-action/377/482493/episodio-01',
@@ -30,6 +33,9 @@ class VVVVIDIE(InfoExtractor):
             'id': '482493',
             'ext': 'mp4',
             'title': 'Episodio 01',
+        },
+        'params': {
+            'skip_download': True,
         },
     }]
     _conn_id = None
@@ -116,8 +122,20 @@ class VVVVIDIE(InfoExtractor):
             embed_code = ds(embed_code)
             video_type = video_data.get('video_type')
             if video_type in ('video/rcs', 'video/kenc'):
-                formats.extend(self._extract_akamai_formats(
-                    embed_code, video_id))
+                embed_code = re.sub(r'https?://([^/]+)/z/', r'https://\1/i/', embed_code).replace('/manifest.f4m', '/master.m3u8')
+                if video_type == 'video/kenc':
+                    kenc = self._download_json(
+                        'https://www.vvvvid.it/kenc', video_id, query={
+                            'action': 'kt',
+                            'conn_id': self._conn_id,
+                            'url': embed_code,
+                        }, fatal=False) or {}
+                    kenc_message = kenc.get('message')
+                    if kenc_message:
+                        embed_code += '?' + ds(kenc_message)
+                formats.extend(self._extract_m3u8_formats(
+                    embed_code, video_id, 'mp4',
+                    m3u8_id='hls', fatal=False))
             else:
                 formats.extend(self._extract_wowza_formats(
                     'http://sb.top-ix.org/videomg/_definst_/mp4:%s/playlist.m3u8' % embed_code, video_id))

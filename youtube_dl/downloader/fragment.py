@@ -107,6 +107,7 @@ class FragmentFD(FileDownloader):
     def _append_fragment(self, ctx, frag_content):
         try:
             ctx['dest_stream'].write(frag_content)
+            ctx['dest_stream'].flush()
         finally:
             if self.__do_ytdl_file(ctx):
                 self._write_ytdl_file(ctx)

@@ -562,7 +562,89 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'width': 1920,
                     'height': 1080,
                 }]
-            ),
+            ), (
+                # https://github.com/rg3/youtube-dl/pull/14844
+                'urls_only',
+                'http://unknown/manifest.mpd',
+                [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_144p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 200,
+                    'width': 256,
+                    'height': 144,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_240p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 400,
+                    'width': 424,
+                    'height': 240,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_360p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 800,
+                    'width': 640,
+                    'height': 360,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_480p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 1200,
+                    'width': 856,
+                    'height': 480,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_576p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 1600,
+                    'width': 1024,
+                    'height': 576,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_720p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 2400,
+                    'width': 1280,
+                    'height': 720,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_1080p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 4400,
+                    'width': 1920,
+                    'height': 1080,
+                }]
+            )
         ]
 
         for mpd_file, mpd_url, expected_formats in _TEST_CASES:
@@ -600,6 +682,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     f4m_url, None)
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
+
 
 if __name__ == '__main__':
     unittest.main()

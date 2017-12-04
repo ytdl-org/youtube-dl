@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import uuid
 import xml.etree.ElementTree as etree
 import json
+import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -142,9 +143,9 @@ class ITVIE(InfoExtractor):
                 f['url'] = rtmp_url
             formats.append(f)
 
-        ios_playlist_url = params.get('data-video-playlist')
+        ios_playlist_url = params.get('data-video-playlist') or params.get('data-video-id')
         hmac = params.get('data-video-hmac')
-        if ios_playlist_url and hmac:
+        if ios_playlist_url and hmac and re.match(r'https?://', ios_playlist_url):
             headers = self.geo_verification_headers()
             headers.update({
                 'Accept': 'application/vnd.itv.vod.playlist.v2+json',
@@ -159,12 +160,12 @@ class ITVIE(InfoExtractor):
                         'token': ''
                     },
                     'device': {
-                        'manufacturer': 'Apple',
-                        'model': 'iPad',
+                        'manufacturer': 'Safari',
+                        'model': '5',
                         'os': {
-                            'name': 'iPhone OS',
-                            'version': '9.3',
-                            'type': 'ios'
+                            'name': 'Windows NT',
+                            'version': '6.1',
+                            'type': 'desktop'
                         }
                     },
                     'client': {
@@ -173,10 +174,10 @@ class ITVIE(InfoExtractor):
                     },
                     'variantAvailability': {
                         'featureset': {
-                            'min': ['hls', 'aes'],
-                            'max': ['hls', 'aes']
+                            'min': ['hls', 'aes', 'outband-webvtt'],
+                            'max': ['hls', 'aes', 'outband-webvtt']
                         },
-                        'platformTag': 'mobile'
+                        'platformTag': 'dotcom'
                     }
                 }).encode(), headers=headers, fatal=False)
             if ios_playlist:
