@@ -13,8 +13,7 @@ from ..utils import (
 class MailRuIE(InfoExtractor):
     IE_NAME = 'mailru'
     IE_DESC = 'Видео@Mail.Ru'
-    _VALID_URL = r'https?://(?:(?:www|m)\.)?my\.mail\.ru/(?:video/.*#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|(?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html)'
-
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?my\.mail\.ru/(?:video/.*#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|(?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html|video/embed/(?P<meta_id>\d+))'
     _TESTS = [
         {
             'url': 'http://my.mail.ru/video/top#video=/mail/sonypicturesrus/75/76',
@@ -65,25 +64,34 @@ class MailRuIE(InfoExtractor):
         {
             'url': 'http://m.my.mail.ru/mail/3sktvtr/video/_myvideo/138.html',
             'only_matching': True,
+        },
+        {
+            'url': 'https://my.mail.ru/video/embed/7949340477499637815',
+            'only_matching': True,
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('idv1')
-
-        if not video_id:
-            video_id = mobj.group('idv2prefix') + mobj.group('idv2suffix')
-
-        webpage = self._download_webpage(url, video_id)
-
+        meta_id = mobj.group('meta_id')
+        page_config = None
         video_data = None
+        video_id = None
+        if not meta_id:
+            video_id = mobj.group('idv1')
+            if not video_id:
+                video_id = mobj.group('idv2prefix') + mobj.group('idv2suffix')
 
-        page_config = self._parse_json(self._search_regex(
-            r'(?s)<script[^>]+class="sp-video__page-config"[^>]*>(.+?)</script>',
-            webpage, 'page config', default='{}'), video_id, fatal=False)
-        if page_config:
-            meta_url = page_config.get('metaUrl') or page_config.get('video', {}).get('metaUrl')
+            webpage = self._download_webpage(url, video_id)
+
+            page_config = self._parse_json(self._search_regex(
+                r'(?s)<script[^>]+class="sp-video__page-config"[^>]*>(.+?)</script>',
+                webpage, 'page config', default='{}'), video_id, fatal=False)
+        if page_config or meta_id:
+            if page_config:
+                meta_url = page_config.get('metaUrl') or page_config.get('video', {}).get('metaUrl')
+            elif meta_id:
+                meta_url = 'https://my.mail.ru/+/video/meta/' + meta_id
             if meta_url:
                 video_data = self._download_json(
                     meta_url, video_id, 'Downloading video meta JSON', fatal=False)
