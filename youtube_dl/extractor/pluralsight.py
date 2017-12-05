@@ -131,6 +131,13 @@ class PluralsightIE(PluralsightBaseIE):
             if BLOCKED in response:
                 raise ExtractorError(
                     'Unable to login: %s' % BLOCKED, expected=True)
+            MUST_AGREE = 'To continue using Pluralsight, you must agree to'
+            if any(p in response for p in (MUST_AGREE, '>Disagree<', '>Agree<')):
+                raise ExtractorError(
+                    'Unable to login: %s some documents. Go to pluralsight.com, '
+                    'log in and agree with what Pluralsight requires.'
+                    % MUST_AGREE, expected=True)
+
             raise ExtractorError('Unable to log in')
 
     def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
