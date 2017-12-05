@@ -31,7 +31,8 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
 
         if not info.get('thumbnails'):
-            raise EmbedThumbnailPPError('Thumbnail was not found. Nothing to do.')
+            self._downloader.to_screen('[embedthumbnail] Thumbnail was not found. Nothing to do.')
+            return [], info
 
         thumbnail_filename = info['thumbnails'][-1]['filename']
 
