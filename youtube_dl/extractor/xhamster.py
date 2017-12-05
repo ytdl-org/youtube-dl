@@ -78,23 +78,7 @@ class XHamsterIE(InfoExtractor):
     }, {
         # mobile site
         'url': 'https://m.xhamster.com/videos/cute-teen-jacqueline-solo-masturbation-8559111',
-        'info_dict': {
-            'id': '8559111',
-            'display_id': 'cute-teen-jacqueline-solo-masturbation',
-            'ext': 'mp4',
-            'title': 'Cute Teen Jacqueline Solo Masturbation',
-            'timestamp': 1510899603,
-            'description': str,
-            'upload_date': '20171117',
-            'uploader': '10tz4d0114r5',
-            'duration': 395,
-            'age_limit': 18,
-            'categories': ['Teen Dreams Channel', 'Amateur', 'Fingering', 'HD Videos', 'Masturbation', 'Small Tits',
-                           'Teens', 'Cute Teen', 'Solo', 'Solo Masturbation']
-        },
-        'params': {
-            'skip_download': True,
-        },
+        'only_matching': True,
     }, {
         'url': 'https://xhamster.com/movies/2272726/amber_slayed_by_the_knight.html',
         'only_matching': True,
