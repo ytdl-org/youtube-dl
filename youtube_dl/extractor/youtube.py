@@ -1558,9 +1558,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                # el=detailpage makes the resulting extracted urls ignore the 'title' parameter, thus, omiting the content-disposition: Attachment header
-                # that's why it should be the last option:
-                for el in ('info', 'embedded', 'vevo', '', 'detailpage'):
+                if self._downloader.params.get('youtube_prefer_get_video_info', True):
+                    # el=detailpage makes the resulting extracted urls ignore the 'title' parameter, thus, omiting the content-disposition: Attachment header
+                    # that's why it should be the last option:
+                    el_order = ('info', 'embedded', 'vevo', '', 'detailpage')
+                else:
+                    el_order = ('info', 'embedded', 'detailpage', 'vevo', ''):
+                for el in el_order:
                     query = {
                         'video_id': video_id,
                         'ps': 'default',
