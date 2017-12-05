@@ -2195,7 +2195,7 @@ class GenericIE(InfoExtractor):
                 return self.playlist_result(self._parse_xspf(doc, video_id), video_id)
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
-                    doc, video_id,
+                    doc,
                     mpd_base_url=compat_str(full_response.geturl()).rpartition('/')[0],
                     mpd_url=url)
                 self._sort_formats(info_dict['formats'])
