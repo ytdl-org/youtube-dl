@@ -1550,7 +1550,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
                 sts = ytplayer_config.get('sts')
-            if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+            if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True) or self._downloader.params.get('youtube_prefer_get_video_info', True):                
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
                 # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
@@ -1558,7 +1558,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
+                # el=detailpage makes the resulting extracted urls ignore the 'title' parameter, thus, omiting the content-disposition: Attachment header
+                # that's why it should be the last option:
+                for el in ('info', 'embedded', 'vevo', '', 'detailpage'):
                     query = {
                         'video_id': video_id,
                         'ps': 'default',
@@ -1593,7 +1595,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         # due to YouTube measures against IP ranges of hosting providers.
                         # Working around by preferring the first succeeded video_info containing
                         # the token if no such video_info yet was found.
-                        if 'token' not in video_info:
+                        if 'token' not in video_info  or self._downloader.params.get('youtube_prefer_get_video_info', True):
                             video_info = get_video_info
                         break
         if 'token' not in video_info:
