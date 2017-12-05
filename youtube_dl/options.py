@@ -563,7 +563,15 @@ def parseOpts(overrideArguments=None):
             'Upper bound of a range for randomized sleep before each download '
             '(maximum possible number of seconds to sleep). Must only be used '
             'along with --min-sleep-interval.'))
-
+    workarounds.add_option(
+        '--youtube-prefer-get-video-info',
+        action='store_true', dest='youtube_prefer_get_video_info', default=False,
+        help=(
+            'By prefering a Youtube link extracted from get_video_info instead '
+            'of the video\'s webpage, Youtube is likely to send a link with the '
+            '"content-disposition: Attachment" header added (provided you add the '
+            '"&title=...." option to the link)'))
+    
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
         '-q', '--quiet',
