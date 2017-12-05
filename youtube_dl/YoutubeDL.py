@@ -272,6 +272,11 @@ class YoutubeDL(object):
                        Must only be used along with sleep_interval.
                        Actual sleep time will be a random float from range
                        [sleep_interval; max_sleep_interval].
+    youtube_prefer_get_video_info: By prefering a Youtube link extracted from
+                       get_video_info instead of the video's webpage, Youtube
+                       is likely to send a link with the
+                       'content-disposition: Attachment' header added (provided
+                       you add the '&title=....' option to the link)
     listformats:       Print an overview of available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
     match_filter:      A function that gets called with the info_dict of

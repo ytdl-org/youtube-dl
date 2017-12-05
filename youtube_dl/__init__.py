@@ -408,6 +408,7 @@ def _real_main(argv=None):
         'call_home': opts.call_home,
         'sleep_interval': opts.sleep_interval,
         'max_sleep_interval': opts.max_sleep_interval,
+        'youtube_prefer_get_video_info': opts.youtube_prefer_get_video_info,
         'external_downloader': opts.external_downloader,
         'list_thumbnails': opts.list_thumbnails,
         'playlist_items': opts.playlist_items,
