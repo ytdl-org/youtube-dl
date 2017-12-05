@@ -1099,9 +1099,9 @@ class GenericIE(InfoExtractor):
         },
         # jwplayer rtmp
         {
-            'url': 'http://www.suffolk.edu/sjc/',
+            'url': 'http://www.suffolk.edu/sjc/live.php',
             'info_dict': {
-                'id': 'sjclive',
+                'id': 'live',
                 'ext': 'flv',
                 'title': 'Massachusetts Supreme Judicial Court Oral Arguments',
                 'uploader': 'www.suffolk.edu',
@@ -1109,7 +1109,7 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
-            'skip': 'does not contain a video anymore',
+            'skip': 'Only has video a few mornings per month, see http://www.suffolk.edu/sjc/',
         },
         # Complex jwplayer
         {
@@ -1135,6 +1135,19 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             }
+        },
+        {
+            # JWPlatform iframe
+            'url': 'https://www.mediaite.com/tv/dem-senator-claims-gary-cohn-faked-a-bad-connection-during-trump-call-to-get-him-off-the-phone/',
+            'md5': 'ca00a040364b5b439230e7ebfd02c4e9',
+            'info_dict': {
+                'id': 'O0c5JcKT',
+                'ext': 'mp4',
+                'upload_date': '20171122',
+                'timestamp': 1511366290,
+                'title': 'Dem Senator Claims Gary Cohn Faked a Bad Connection During Trump Call to Get Him Off the Phone',
+            },
+            'add_ie': [JWPlatformIE.ie_key()],
         },
         {
             # Video.js embed, multiple formats

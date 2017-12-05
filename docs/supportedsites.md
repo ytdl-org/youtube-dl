@@ -112,11 +112,12 @@
  - **BokeCC**
  - **BostonGlobe**
  - **Bpb**: Bundeszentrale für politische Bildung
- - **BR**: Bayerischer Rundfunk Mediathek
+ - **BR**: Bayerischer Rundfunk
  - **BravoTV**
  - **Break**
  - **brightcove:legacy**
  - **brightcove:new**
+ - **BRMediathek**: Bayerischer Rundfunk Mediathek
  - **bt:article**: Bergens Tidende Articles
  - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
  - **BuzzFeed**
@@ -198,8 +199,8 @@
  - **dailymotion:playlist**
  - **dailymotion:user**
  - **DailymotionCloud**
- - **Daisuki**
- - **DaisukiPlaylist**
+ - **DaisukiMotto**
+ - **DaisukiMottoPlaylist**
  - **daum.net**
  - **daum.net:clip**
  - **daum.net:playlist**
@@ -266,10 +267,8 @@
  - **fc2**
  - **fc2:embed**
  - **Fczenit**
- - **fernsehkritik.tv**
  - **filmon**
  - **filmon:channel**
- - **Firstpost**
  - **FiveTV**
  - **Flickr**
  - **Flipagram**
@@ -283,7 +282,7 @@
  - **foxnews:article**
  - **foxnews:insider**
  - **FoxSports**
- - **france2.fr:generation-quoi**
+ - **france2.fr:generation-what**
  - **FranceCulture**
  - **FranceInter**
  - **FranceTV**
@@ -301,7 +300,6 @@
  - **GameInformer**
  - **GameOne**
  - **gameone:playlist**
- - **Gamersyde**
  - **GameSpot**
  - **GameStar**
  - **Gaskrank**
@@ -441,6 +439,7 @@
  - **mangomolo:live**
  - **mangomolo:video**
  - **ManyVids**
+ - **massengeschmack.tv**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
@@ -608,6 +607,7 @@
  - **pcmag**
  - **PearVideo**
  - **People**
+ - **PerformGroup**
  - **periscope**: Periscope
  - **periscope:user**: Periscope user videos
  - **PhilharmonieDeParis**: Philharmonie de Paris

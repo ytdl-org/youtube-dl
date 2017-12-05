@@ -14,6 +14,7 @@ from ..utils import (
     int_or_none,
     qualities,
     unescapeHTML,
+    urlencode_postdata,
 )
 
 
@@ -56,7 +57,7 @@ class OdnoklassnikiIE(InfoExtractor):
         'url': 'http://ok.ru/video/64211978996595-1',
         'md5': '2f206894ffb5dbfcce2c5a14b909eea5',
         'info_dict': {
-            'id': '64211978996595-1',
+            'id': 'V_VztHT5BzY',
             'ext': 'mp4',
             'title': 'Космическая среда от 26 августа 2015',
             'description': 'md5:848eb8b85e5e3471a3a803dae1343ed0',
@@ -127,9 +128,14 @@ class OdnoklassnikiIE(InfoExtractor):
         if metadata:
             metadata = self._parse_json(metadata, video_id)
         else:
+            data = {}
+            st_location = flashvars.get('location')
+            if st_location:
+                data['st.location'] = st_location
             metadata = self._download_json(
                 compat_urllib_parse_unquote(flashvars['metadataUrl']),
-                video_id, 'Downloading metadata JSON')
+                video_id, 'Downloading metadata JSON',
+                data=urlencode_postdata(data))
 
         movie = metadata['movie']
 

@@ -28,10 +28,10 @@ class VidziIE(InfoExtractor):
         },
     }, {
         'url': 'http://vidzi.tv/embed-4z2yb0rzphe9-600x338.html',
-        'skip_download': True,
+        'only_matching': True,
     }, {
         'url': 'http://vidzi.cc/cghql9yq6emu.html',
-        'skip_download': True,
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

@@ -592,19 +592,11 @@ class InfoExtractor(object):
         if not encoding:
             encoding = self._guess_encoding_from_content(content_type, webpage_bytes)
         if self._downloader.params.get('dump_intermediate_pages', False):
-            try:
-                url = url_or_request.get_full_url()
-            except AttributeError:
-                url = url_or_request
-            self.to_screen('Dumping request to ' + url)
+            self.to_screen('Dumping request to ' + urlh.geturl())
             dump = base64.b64encode(webpage_bytes).decode('ascii')
             self._downloader.to_screen(dump)
         if self._downloader.params.get('write_pages', False):
-            try:
-                url = url_or_request.get_full_url()
-            except AttributeError:
-                url = url_or_request
-            basen = '%s_%s' % (video_id, url)
+            basen = '%s_%s' % (video_id, urlh.geturl())
             if len(basen) > 240:
                 h = '___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
                 basen = basen[:240 - len(h)] + h
@@ -1982,6 +1974,22 @@ class InfoExtractor(object):
                                         'duration': duration,
                                     })
                                     segment_index += 1
+                            representation_ms_info['fragments'] = fragments
+                        elif 'segment_urls' in representation_ms_info:
+                            # Segment URLs with no SegmentTimeline
+                            # Example: https://www.seznam.cz/zpravy/clanek/cesko-zasahne-vitr-o-sile-vichrice-muze-byt-i-zivotu-nebezpecny-39091
+                            # https://github.com/rg3/youtube-dl/pull/14844
+                            fragments = []
+                            segment_duration = float_or_none(
+                                representation_ms_info['segment_duration'],
+                                representation_ms_info['timescale']) if 'segment_duration' in representation_ms_info else None
+                            for segment_url in representation_ms_info['segment_urls']:
+                                fragment = {
+                                    location_key(segment_url): segment_url,
+                                }
+                                if segment_duration:
+                                    fragment['duration'] = segment_duration
+                                fragments.append(fragment)
                             representation_ms_info['fragments'] = fragments
                         # NB: MPD manifest may contain direct URLs to unfragmented media.
                         # No fragments key is present in this case.

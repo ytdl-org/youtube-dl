@@ -49,13 +49,13 @@ class ORFTVthekIE(InfoExtractor):
         'params': {
             'skip_download': True,  # rtsp downloads
         },
-        '_skip': 'Blocked outside of Austria / Germany',
+        'skip': 'Blocked outside of Austria / Germany',
     }, {
         'url': 'http://tvthek.orf.at/topic/Fluechtlingskrise/10463081/Heimat-Fremde-Heimat/13879132/Senioren-betreuen-Migrantenkinder/13879141',
-        'skip_download': True,
+        'only_matching': True,
     }, {
         'url': 'http://tvthek.orf.at/profile/Universum/35429',
-        'skip_download': True,
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
