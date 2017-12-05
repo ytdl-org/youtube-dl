@@ -1563,7 +1563,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # that's why it should be the last option:
                     el_order = ('info', 'embedded', 'vevo', '', 'detailpage')
                 else:
-                    el_order = ('info', 'embedded', 'detailpage', 'vevo', ''):
+                    el_order = ('info', 'embedded', 'detailpage', 'vevo', '')
                 for el in el_order:
                     query = {
                         'video_id': video_id,
