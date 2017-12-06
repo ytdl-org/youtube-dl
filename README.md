@@ -77,8 +77,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      repairs broken URLs, but emits an error if
                                      this is not possible instead of searching.
     --ignore-config                  Do not read configuration files. When given
-                                     in the global configuration file
-                                     /etc/youtube-dl.conf: Do not read the user
+                                     in the global configuration file /etc
+                                     /youtube-dl.conf: Do not read the user
                                      configuration in ~/.config/youtube-
                                      dl/config (%APPDATA%/youtube-dl/config.txt
                                      on Windows)
@@ -108,8 +108,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      proxy specified by --proxy (or none, if the
                                      options is not present) is used for the
                                      actual downloading.
-    --geo-bypass                     Bypass geographic restriction via faking
-                                     X-Forwarded-For HTTP header (experimental)
+    --geo-bypass                     Bypass geographic restriction via faking X
+                                     -Forwarded-For HTTP header (experimental)
     --no-geo-bypass                  Do not bypass geographic restriction via
                                      faking X-Forwarded-For HTTP header
                                      (experimental)
@@ -249,12 +249,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      jar in
     --cache-dir DIR                  Location in the filesystem where youtube-dl
                                      can store some downloaded information
-                                     permanently. By default
-                                     $XDG_CACHE_HOME/youtube-dl or
-                                     ~/.cache/youtube-dl . At the moment, only
-                                     YouTube player files (for videos with
-                                     obfuscated signatures) are cached, but that
-                                     may change.
+                                     permanently. By default $XDG_CACHE_HOME
+                                     /youtube-dl or ~/.cache/youtube-dl . At the
+                                     moment, only YouTube player files (for
+                                     videos with obfuscated signatures) are
+                                     cached, but that may change.
     --no-cache-dir                   Disable filesystem caching
     --rm-cache-dir                   Delete all filesystem cache files
 
