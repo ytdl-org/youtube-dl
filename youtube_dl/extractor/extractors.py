@@ -246,7 +246,6 @@ from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
     DailymotionUserIE,
-    DailymotionCloudIE,
 )
 from .daisuki import (
     DaisukiMottoIE,

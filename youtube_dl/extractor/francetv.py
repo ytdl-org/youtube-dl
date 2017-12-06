@@ -13,10 +13,7 @@ from ..utils import (
     parse_duration,
     determine_ext,
 )
-from .dailymotion import (
-    DailymotionIE,
-    DailymotionCloudIE,
-)
+from .dailymotion import DailymotionIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
@@ -289,10 +286,6 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
-
-        dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
-        if dmcloud_url:
-            return self.url_result(dmcloud_url, DailymotionCloudIE.ie_key())
 
         dailymotion_urls = DailymotionIE._extract_urls(webpage)
         if dailymotion_urls:

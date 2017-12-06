@@ -59,10 +59,7 @@ from .tnaflix import TNAFlixNetworkEmbedIE
 from .drtuber import DrTuberIE
 from .redtube import RedTubeIE
 from .vimeo import VimeoIE
-from .dailymotion import (
-    DailymotionIE,
-    DailymotionCloudIE,
-)
+from .dailymotion import DailymotionIE
 from .dailymail import DailyMailIE
 from .onionstudios import OnionStudiosIE
 from .viewlift import ViewLiftEmbedIE
@@ -1472,23 +1469,6 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1432570283,
             },
         },
-        # Dailymotion Cloud video
-        {
-            'url': 'http://replay.publicsenat.fr/vod/le-debat/florent-kolandjian,dominique-cena,axel-decourtye,laurence-abeille,bruno-parmentier/175910',
-            'md5': 'dcaf23ad0c67a256f4278bce6e0bae38',
-            'info_dict': {
-                'id': 'x2uy8t3',
-                'ext': 'mp4',
-                'title': 'Sauvons les abeilles ! - Le débat',
-                'description': 'md5:d9082128b1c5277987825d684939ca26',
-                'thumbnail': r're:^https?://.*\.jpe?g$',
-                'timestamp': 1434970506,
-                'upload_date': '20150622',
-                'uploader': 'Public Sénat',
-                'uploader_id': 'xa9gza',
-            },
-            'skip': 'File not found.',
-        },
         # OnionStudios embed
         {
             'url': 'http://www.clickhole.com/video/dont-understand-bitcoin-man-will-mumble-explanatio-2537',
@@ -2703,11 +2683,6 @@ class GenericIE(InfoExtractor):
         senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
         if senate_isvp_url:
             return self.url_result(senate_isvp_url, 'SenateISVP')
-
-        # Look for Dailymotion Cloud videos
-        dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
-        if dmcloud_url:
-            return self.url_result(dmcloud_url, 'DailymotionCloud')
 
         # Look for OnionStudios embeds
         onionstudios_url = OnionStudiosIE._extract_url(webpage)
