@@ -34,6 +34,14 @@ class BloombergIE(InfoExtractor):
             'format': 'best[format_id^=hds]',
         },
     }, {
+        'url':'https://www.bloomberg.com/news/videos/2017-12-04/humes-cryptocurrency-an-option-for-venezuela-video',
+        'info_dict':{
+            "id": "~EiNJNLwSCKD~FuCPpgGzA",
+            'ext':'mp4',
+            'title':'Greylock\'s Humes: Cryptocurrency an Option for Venezuela ',
+            'description':"Hans Humes, chairman and chief executive officer at Greylock Capital Management, explains how cryptocurrencies can help Venezuela work around sanctions. He speaks with Bloomberg's Francine Lacqua on \"Bloomberg Surveillance.\" (Source: Bloomberg)"
+        }
+    },{
         # data-bmmrid=
         'url': 'https://www.bloomberg.com/politics/articles/2017-02-08/le-pen-aide-briefed-french-central-banker-on-plan-to-print-money',
         'only_matching': True,
@@ -51,7 +59,8 @@ class BloombergIE(InfoExtractor):
         video_id = self._search_regex(
             (r'["\']bmmrId["\']\s*:\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
              r'videoId\s*:\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
-             r'data-bmmrid=(["\'])(?P<id>(?:(?!\1).)+)\1'),
+             r'data-bmmrid=(["\'])(?P<id>(?:(?!\1).)+)\1',
+             r'"video"\s*:\s*{\s*"compressedIds"\s*:"\s*(?P<id>.+?)"'),
             webpage, 'id', group='id', default=None)
         if not video_id:
             bplayer_data = self._parse_json(self._search_regex(
