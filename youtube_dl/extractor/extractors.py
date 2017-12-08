@@ -313,9 +313,8 @@ from .einthusan import EinthusanIE
 from .eitb import EitbIE
 from .ellentube import (
     EllenTubeIE,
-    EllenTubeEpisodeIE,
-    EllenTubeStudioIE,
     EllenTubeVideoIE,
+    EllenTubePlaylistIE,
 )
 from .elpais import ElPaisIE
 from .embedly import EmbedlyIE
