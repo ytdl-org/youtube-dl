@@ -311,9 +311,11 @@ from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .einthusan import EinthusanIE
 from .eitb import EitbIE
-from .ellentv import (
-    EllenTVIE,
-    EllenTVClipsIE,
+from .ellentube import (
+    EllenTubeIE,
+    EllenTubeEpisodeIE,
+    EllenTubeStudioIE,
+    EllenTubeVideoIE,
 )
 from .elpais import ElPaisIE
 from .embedly import EmbedlyIE
