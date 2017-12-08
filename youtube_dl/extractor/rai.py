@@ -491,3 +491,29 @@ class RaiIE(RaiBaseIE):
         info.update(relinker_info)
 
         return info
+
+
+class RaiPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/programmi/(?P<id>[^/]+)'
+    _TESTS = [{
+        'url': 'http://www.raiplay.it/programmi/nondirloalmiocapo/',
+        'info_dict': {
+            'id': 'nondirloalmiocapo',
+            'title': 'Non dirlo al mio capo',
+        },
+        'playlist_mincount': 12,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+        title = self._html_search_meta('programma', webpage, default=None)
+        video_urls = re.findall(' href="(/raiplay/video.+)"', webpage)
+        video_urls = [urljoin(url, video_url) for video_url in video_urls]
+        entries = [
+            self.url_result(
+                video_url,
+                RaiPlayIE.ie_key())
+            for video_url in video_urls if RaiPlayIE.suitable(video_url)
+        ]
+        return self.playlist_result(entries, playlist_id, title)
