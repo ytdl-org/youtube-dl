@@ -257,6 +257,11 @@ class UdemyIE(InfoExtractor):
                 video_url = source.get('file') or source.get('src')
                 if not video_url or not isinstance(video_url, compat_str):
                     continue
+                if source.get('type') == 'application/x-mpegURL' or determine_ext(video_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
+                    continue
                 format_id = source.get('label')
                 f = {
                     'url': video_url,
