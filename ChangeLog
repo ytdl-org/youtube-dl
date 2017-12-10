@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.12.10
 
 Core
 + [utils] Add sami mimetype to mimetype2ext
