@@ -356,6 +356,7 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
             raise ExtractorError('Video %s is not available' % name, expected=True)
 
         video_id, catalogue = self._search_regex(
-            r'"https?://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
+            r'["\'>]https?://videos\.francetv\.fr/video/([^@]+@.+?)["\'<]',
+            webpage, 'video id').split('@')
 
         return self._extract_video(video_id, catalogue)
