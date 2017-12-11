@@ -722,10 +722,6 @@ from .nowness import (
     NownessPlaylistIE,
     NownessSeriesIE,
 )
-from .nowtv import (
-    NowTVIE,
-    NowTVListIE,
-)
 from .noz import NozIE
 from .npo import (
     AndereTijdenIE,
@@ -1105,6 +1101,10 @@ from .tvigle import TvigleIE
 from .tvland import TVLandIE
 from .tvn24 import TVN24IE
 from .tvnoe import TVNoeIE
+from .tvnow import (
+    TVNowIE,
+    TVNowListIE,
+)
 from .tvp import (
     TVPEmbedIE,
     TVPIE,
