@@ -154,7 +154,7 @@ class YoukuIE(InfoExtractor):
         # request basic data
         basic_data_params = {
             'vid': video_id,
-            'ccode': '0402' if 'tudou.com' in url else '0401',
+            'ccode': '0501',
             'client_ip': '192.168.1.1',
             'utid': cna,
             'client_ts': time.time() / 1000,
@@ -240,7 +240,7 @@ class YoukuShowIE(InfoExtractor):
     }, {
         # Ongoing playlist. The initial page is the last one
         'url': 'http://list.youku.com/show/id_za7c275ecd7b411e1a19e.html',
-        'only_matchine': True,
+        'only_matching': True,
     }]
 
     def _extract_entries(self, playlist_data_url, show_id, note, query):

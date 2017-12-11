@@ -57,10 +57,10 @@ class ThisAVIE(InfoExtractor):
                 info_dict = self._extract_jwplayer_data(
                     webpage, video_id, require_title=False)
         uploader = self._html_search_regex(
-            r': <a href="http://www.thisav.com/user/[0-9]+/(?:[^"]+)">([^<]+)</a>',
+            r': <a href="http://www\.thisav\.com/user/[0-9]+/(?:[^"]+)">([^<]+)</a>',
             webpage, 'uploader name', fatal=False)
         uploader_id = self._html_search_regex(
-            r': <a href="http://www.thisav.com/user/[0-9]+/([^"]+)">(?:[^<]+)</a>',
+            r': <a href="http://www\.thisav\.com/user/[0-9]+/([^"]+)">(?:[^<]+)</a>',
             webpage, 'uploader id', fatal=False)
 
         info_dict.update({

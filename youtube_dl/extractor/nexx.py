@@ -18,11 +18,17 @@ from ..utils import (
 
 
 class NexxIE(InfoExtractor):
-    _VALID_URL = r'https?://api\.nexx(?:\.cloud|cdn\.com)/v3/(?P<domain_id>\d+)/videos/byid/(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                        (?:
+                            https?://api\.nexx(?:\.cloud|cdn\.com)/v3/(?P<domain_id>\d+)/videos/byid/|
+                            nexx:(?P<domain_id_s>\d+):
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [{
         # movie
         'url': 'https://api.nexx.cloud/v3/748/videos/byid/128907',
-        'md5': '16746bfc28c42049492385c989b26c4a',
+        'md5': '828cea195be04e66057b846288295ba1',
         'info_dict': {
             'id': '128907',
             'ext': 'mp4',
@@ -35,9 +41,6 @@ class NexxIE(InfoExtractor):
             'duration': 2509,
             'timestamp': 1384264416,
             'upload_date': '20131112',
-        },
-        'params': {
-            'format': 'bestvideo',
         },
     }, {
         # episode
@@ -56,13 +59,22 @@ class NexxIE(InfoExtractor):
             'season_number': 2,
         },
         'params': {
-            'format': 'bestvideo',
             'skip_download': True,
         },
     }, {
         'url': 'https://api.nexxcdn.com/v3/748/videos/byid/128907',
         'only_matching': True,
+    }, {
+        'url': 'nexx:748:128907',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_domain_id(webpage):
+        mobj = re.search(
+            r'<script\b[^>]+\bsrc=["\'](?:https?:)?//require\.nexx(?:\.cloud|cdn\.com)/(?P<id>\d+)',
+            webpage)
+        return mobj.group('id') if mobj else None
 
     @staticmethod
     def _extract_urls(webpage):
@@ -72,11 +84,8 @@ class NexxIE(InfoExtractor):
         entries = []
 
         # JavaScript Integration
-        mobj = re.search(
-            r'<script\b[^>]+\bsrc=["\']https?://require\.nexx(?:\.cloud|cdn\.com)/(?P<id>\d+)',
-            webpage)
-        if mobj:
-            domain_id = mobj.group('id')
+        domain_id = NexxIE._extract_domain_id(webpage)
+        if domain_id:
             for video_id in re.findall(
                     r'(?is)onPLAYReady.+?_play\.init\s*\(.+?\s*,\s*["\']?(\d+)',
                     webpage):
@@ -112,7 +121,8 @@ class NexxIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        domain_id, video_id = mobj.group('domain_id', 'id')
+        domain_id = mobj.group('domain_id') or mobj.group('domain_id_s')
+        video_id = mobj.group('id')
 
         # Reverse engineered from JS code (see getDeviceID function)
         device_id = '%d:%d:%d%d' % (
@@ -179,35 +189,67 @@ class NexxIE(InfoExtractor):
         stream_data = video['streamdata']
         language = general.get('language_raw') or ''
 
-        # TODO: reverse more cdns and formats
+        # TODO: reverse more cdns
 
         cdn = stream_data['cdnType']
         assert cdn == 'azure'
 
         azure_locator = stream_data['azureLocator']
 
-        AZURE_URL = 'http://nx-p%02d.akamaized.net/'
+        AZURE_URL = 'http://nx%s%02d.akamaized.net/'
 
-        for secure in ('s', ''):
-            cdn_shield = stream_data.get('cdnShieldHTTP%s' % secure.upper())
-            if cdn_shield:
-                azure_base = 'http%s://%s' % (secure, cdn_shield)
-                break
-        else:
-            azure_base = AZURE_URL % int(stream_data['azureAccount'].replace('nexxplayplus', ''))
+        def get_cdn_shield_base(shield_type='', prefix='-p'):
+            for secure in ('', 's'):
+                cdn_shield = stream_data.get('cdnShield%sHTTP%s' % (shield_type, secure.upper()))
+                if cdn_shield:
+                    return 'http%s://%s' % (secure, cdn_shield)
+            else:
+                return AZURE_URL % (prefix, int(stream_data['azureAccount'].replace('nexxplayplus', '')))
 
+        azure_stream_base = get_cdn_shield_base()
         is_ml = ',' in language
-        azure_m3u8_url = '%s%s/%s_src%s.ism/Manifest(format=m3u8-aapl)' % (
-            azure_base, azure_locator, video_id, ('_manifest' if is_ml else ''))
+        azure_manifest_url = '%s%s/%s_src%s.ism/Manifest' % (
+            azure_stream_base, azure_locator, video_id, ('_manifest' if is_ml else '')) + '%s'
 
         protection_token = try_get(
             video, lambda x: x['protectiondata']['token'], compat_str)
         if protection_token:
-            azure_m3u8_url += '?hdnts=%s' % protection_token
+            azure_manifest_url += '?hdnts=%s' % protection_token
 
         formats = self._extract_m3u8_formats(
-            azure_m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
-            m3u8_id='%s-hls' % cdn)
+            azure_manifest_url % '(format=m3u8-aapl)',
+            video_id, 'mp4', 'm3u8_native',
+            m3u8_id='%s-hls' % cdn, fatal=False)
+        formats.extend(self._extract_mpd_formats(
+            azure_manifest_url % '(format=mpd-time-csf)',
+            video_id, mpd_id='%s-dash' % cdn, fatal=False))
+        formats.extend(self._extract_ism_formats(
+            azure_manifest_url % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
+
+        azure_progressive_base = get_cdn_shield_base('Prog', '-d')
+        azure_file_distribution = stream_data.get('azureFileDistribution')
+        if azure_file_distribution:
+            fds = azure_file_distribution.split(',')
+            if fds:
+                for fd in fds:
+                    ss = fd.split(':')
+                    if len(ss) == 2:
+                        tbr = int_or_none(ss[0])
+                        if tbr:
+                            f = {
+                                'url': '%s%s/%s_src_%s_%d.mp4' % (
+                                    azure_progressive_base, azure_locator, video_id, ss[1], tbr),
+                                'format_id': '%s-http-%d' % (cdn, tbr),
+                                'tbr': tbr,
+                            }
+                            width_height = ss[1].split('x')
+                            if len(width_height) == 2:
+                                f.update({
+                                    'width': int_or_none(width_height[0]),
+                                    'height': int_or_none(width_height[1]),
+                                })
+                            formats.append(f)
+
         self._sort_formats(formats)
 
         return {

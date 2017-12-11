@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
@@ -14,10 +13,7 @@ from ..utils import (
     parse_duration,
     determine_ext,
 )
-from .dailymotion import (
-    DailymotionIE,
-    DailymotionCloudIE,
-)
+from .dailymotion import DailymotionIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
@@ -291,10 +287,6 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
 
-        dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
-        if dmcloud_url:
-            return self.url_result(dmcloud_url, DailymotionCloudIE.ie_key())
-
         dailymotion_urls = DailymotionIE._extract_urls(webpage)
         if dailymotion_urls:
             return self.playlist_result([
@@ -308,31 +300,32 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
         return self._extract_video(video_id, catalogue)
 
 
-class GenerationQuoiIE(InfoExtractor):
-    IE_NAME = 'france2.fr:generation-quoi'
-    _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<id>[^/?#]+)'
+class GenerationWhatIE(InfoExtractor):
+    IE_NAME = 'france2.fr:generation-what'
+    _VALID_URL = r'https?://generation-what\.francetv\.fr/[^/]+/video/(?P<id>[^/?#]+)'
 
-    _TEST = {
-        'url': 'http://generation-quoi.france2.fr/portrait/garde-a-vous',
+    _TESTS = [{
+        'url': 'http://generation-what.francetv.fr/portrait/video/present-arms',
         'info_dict': {
-            'id': 'k7FJX8VBcvvLmX4wA5Q',
+            'id': 'wtvKYUG45iw',
             'ext': 'mp4',
-            'title': 'Génération Quoi - Garde à Vous',
-            'uploader': 'Génération Quoi',
+            'title': 'Generation What - Garde à vous - FRA',
+            'uploader': 'Generation What',
+            'uploader_id': 'UCHH9p1eetWCgt4kXBYCb3_w',
+            'upload_date': '20160411',
         },
-        'params': {
-            # It uses Dailymotion
-            'skip_download': True,
-        },
-    }
+    }, {
+        'url': 'http://generation-what.francetv.fr/europe/video/present-arms',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        info_url = compat_urlparse.urljoin(url, '/medias/video/%s.json' % display_id)
-        info_json = self._download_webpage(info_url, display_id)
-        info = json.loads(info_json)
-        return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
-                               ie='Dailymotion')
+        webpage = self._download_webpage(url, display_id)
+        youtube_id = self._search_regex(
+            r"window\.videoURL\s*=\s*'([0-9A-Za-z_-]{11})';",
+            webpage, 'youtube id')
+        return self.url_result(youtube_id, 'Youtube', youtube_id)
 
 
 class CultureboxIE(FranceTVBaseInfoExtractor):
@@ -363,6 +356,7 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
             raise ExtractorError('Video %s is not available' % name, expected=True)
 
         video_id, catalogue = self._search_regex(
-            r'"http://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
+            r'["\'>]https?://videos\.francetv\.fr/video/([^@]+@.+?)["\'<]',
+            webpage, 'video id').split('@')
 
         return self._extract_video(video_id, catalogue)

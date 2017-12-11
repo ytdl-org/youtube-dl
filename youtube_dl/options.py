@@ -847,7 +847,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
-        help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
+        help='Convert the subtitles to other format (currently supported: srt|ass|vtt|lrc)')
 
     parser.add_option_group(general)
     parser.add_option_group(network)

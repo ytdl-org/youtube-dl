@@ -18,46 +18,32 @@ from ..utils import (
 
 class ShahidIE(InfoExtractor):
     _NETRC_MACHINE = 'shahid'
-    _VALID_URL = r'https?://shahid\.mbc\.net/ar/(?P<type>episode|movie)/(?P<id>\d+)'
+    _VALID_URL = r'https?://shahid\.mbc\.net/ar/(?:serie|show|movie)s/[^/]+/(?P<type>episode|clip|movie)-(?P<id>\d+)'
     _TESTS = [{
-        'url': 'https://shahid.mbc.net/ar/episode/90574/%D8%A7%D9%84%D9%85%D9%84%D9%83-%D8%B9%D8%A8%D8%AF%D8%A7%D9%84%D9%84%D9%87-%D8%A7%D9%84%D8%A5%D9%86%D8%B3%D8%A7%D9%86-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-1-%D9%83%D9%84%D9%8A%D8%A8-3.html',
+        'url': 'https://shahid.mbc.net/ar/shows/%D9%85%D8%AC%D9%84%D8%B3-%D8%A7%D9%84%D8%B4%D8%A8%D8%A7%D8%A8-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-1-%D9%83%D9%84%D9%8A%D8%A8-1/clip-275286',
         'info_dict': {
-            'id': '90574',
+            'id': '275286',
             'ext': 'mp4',
-            'title': 'الملك عبدالله الإنسان الموسم 1 كليب 3',
-            'description': 'الفيلم الوثائقي - الملك عبد الله الإنسان',
-            'duration': 2972,
-            'timestamp': 1422057420,
-            'upload_date': '20150123',
+            'title': 'مجلس الشباب الموسم 1 كليب 1',
+            'timestamp': 1506988800,
+            'upload_date': '20171003',
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         }
     }, {
-        'url': 'https://shahid.mbc.net/ar/movie/151746/%D8%A7%D9%84%D9%82%D9%86%D8%A7%D8%B5%D8%A9.html',
+        'url': 'https://shahid.mbc.net/ar/movies/%D8%A7%D9%84%D9%82%D9%86%D8%A7%D8%B5%D8%A9/movie-151746',
         'only_matching': True
     }, {
         # shahid plus subscriber only
-        'url': 'https://shahid.mbc.net/ar/episode/90511/%D9%85%D8%B1%D8%A7%D9%8A%D8%A7-2011-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1.html',
+        'url': 'https://shahid.mbc.net/ar/series/%D9%85%D8%B1%D8%A7%D9%8A%D8%A7-2011-%D8%A7%D9%84%D9%85%D9%88%D8%B3%D9%85-1-%D8%A7%D9%84%D8%AD%D9%84%D9%82%D8%A9-1/episode-90511',
         'only_matching': True
     }]
 
-    def _real_initialize(self):
-        email, password = self._get_login_info()
-        if email is None:
-            return
-
+    def _api2_request(self, *args, **kwargs):
         try:
-            user_data = self._download_json(
-                'https://shahid.mbc.net/wd/service/users/login',
-                None, 'Logging in', data=json.dumps({
-                    'email': email,
-                    'password': password,
-                    'basic': 'false',
-                }).encode('utf-8'), headers={
-                    'Content-Type': 'application/json; charset=UTF-8',
-                })['user']
+            return self._download_json(*args, **kwargs)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
                 fail_data = self._parse_json(
@@ -68,6 +54,21 @@ class ShahidIE(InfoExtractor):
                     if faults_message:
                         raise ExtractorError(faults_message, expected=True)
             raise
+
+    def _real_initialize(self):
+        email, password = self._get_login_info()
+        if email is None:
+            return
+
+        user_data = self._api2_request(
+            'https://shahid.mbc.net/wd/service/users/login',
+            None, 'Logging in', data=json.dumps({
+                'email': email,
+                'password': password,
+                'basic': 'false',
+            }).encode('utf-8'), headers={
+                'Content-Type': 'application/json; charset=UTF-8',
+            })['user']
 
         self._download_webpage(
             'https://shahid.mbc.net/populateContext',
@@ -93,15 +94,17 @@ class ShahidIE(InfoExtractor):
 
     def _real_extract(self, url):
         page_type, video_id = re.match(self._VALID_URL, url).groups()
+        if page_type == 'clip':
+            page_type = 'episode'
 
-        player = self._get_api_data(self._download_json(
-            'https://shahid.mbc.net/arContent/getPlayerContent-param-.id-%s.type-player.html' % video_id,
-            video_id, 'Downloading player JSON'))
+        playout = self._api2_request(
+            'https://api2.shahid.net/proxy/v2/playout/url/' + video_id,
+            video_id, 'Downloading player JSON')['playout']
 
-        if player.get('drm'):
+        if playout.get('drm'):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
-        formats = self._extract_m3u8_formats(player['url'], video_id, 'mp4')
+        formats = self._extract_m3u8_formats(playout['url'], video_id, 'mp4')
         self._sort_formats(formats)
 
         video = self._get_api_data(self._download_json(

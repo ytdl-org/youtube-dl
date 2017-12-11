@@ -18,8 +18,31 @@ from ..utils import (
 
 
 class TurnerBaseIE(AdobePassIE):
+    _AKAMAI_SPE_TOKEN_CACHE = {}
+
     def _extract_timestamp(self, video_data):
         return int_or_none(xpath_attr(video_data, 'dateCreated', 'uts'))
+
+    def _add_akamai_spe_token(self, tokenizer_src, video_url, content_id, ap_data):
+        secure_path = self._search_regex(r'https?://[^/]+(.+/)', video_url, 'secure path') + '*'
+        token = self._AKAMAI_SPE_TOKEN_CACHE.get(secure_path)
+        if not token:
+            query = {
+                'path': secure_path,
+                'videoId': content_id,
+            }
+            if ap_data.get('auth_required'):
+                query['accessToken'] = self._extract_mvpd_auth(ap_data['url'], content_id, ap_data['site_name'], ap_data['site_name'])
+            auth = self._download_xml(
+                tokenizer_src, content_id, query=query)
+            error_msg = xpath_text(auth, 'error/msg')
+            if error_msg:
+                raise ExtractorError(error_msg, expected=True)
+            token = xpath_text(auth, 'token')
+            if not token:
+                return video_url
+            self._AKAMAI_SPE_TOKEN_CACHE[secure_path] = token
+        return video_url + '?hdnea=' + token
 
     def _extract_cvp_info(self, data_src, video_id, path_data={}, ap_data={}):
         video_data = self._download_xml(data_src, video_id)
@@ -33,7 +56,6 @@ class TurnerBaseIE(AdobePassIE):
         #         rtmp_src = splited_rtmp_src[1]
         # aifp = xpath_text(video_data, 'akamai/aifp', default='')
 
-        tokens = {}
         urls = []
         formats = []
         rex = re.compile(
@@ -67,26 +89,10 @@ class TurnerBaseIE(AdobePassIE):
                 secure_path_data = path_data.get('secure')
                 if not secure_path_data:
                     continue
-                video_url = secure_path_data['media_src'] + video_url
-                secure_path = self._search_regex(r'https?://[^/]+(.+/)', video_url, 'secure path') + '*'
-                token = tokens.get(secure_path)
-                if not token:
-                    query = {
-                        'path': secure_path,
-                        'videoId': content_id,
-                    }
-                    if ap_data.get('auth_required'):
-                        query['accessToken'] = self._extract_mvpd_auth(ap_data['url'], video_id, ap_data['site_name'], ap_data['site_name'])
-                    auth = self._download_xml(
-                        secure_path_data['tokenizer_src'], video_id, query=query)
-                    error_msg = xpath_text(auth, 'error/msg')
-                    if error_msg:
-                        raise ExtractorError(error_msg, expected=True)
-                    token = xpath_text(auth, 'token')
-                    if not token:
-                        continue
-                    tokens[secure_path] = token
-                video_url = video_url + '?hdnea=' + token
+                video_url = self._add_akamai_spe_token(
+                    secure_path_data['tokenizer_src'],
+                    secure_path_data['media_src'] + video_url,
+                    content_id, ap_data)
             elif not re.match('https?://', video_url):
                 base_path_data = path_data.get(ext, path_data.get('default', {}))
                 media_src = base_path_data.get('media_src')

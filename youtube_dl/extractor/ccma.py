@@ -93,7 +93,7 @@ class CCMAIE(InfoExtractor):
             'description': clean_html(informacio.get('descripcio')),
             'duration': duration,
             'timestamp': timestamp,
-            'thumnails': thumbnails,
+            'thumbnails': thumbnails,
             'subtitles': subtitles,
             'formats': formats,
         }

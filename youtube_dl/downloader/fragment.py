@@ -107,6 +107,7 @@ class FragmentFD(FileDownloader):
     def _append_fragment(self, ctx, frag_content):
         try:
             ctx['dest_stream'].write(frag_content)
+            ctx['dest_stream'].flush()
         finally:
             if self.__do_ytdl_file(ctx):
                 self._write_ytdl_file(ctx)
@@ -117,9 +118,15 @@ class FragmentFD(FileDownloader):
     def _prepare_frag_download(self, ctx):
         if 'live' not in ctx:
             ctx['live'] = False
+        if not ctx['live']:
+            total_frags_str = '%d' % ctx['total_frags']
+            ad_frags = ctx.get('ad_frags', 0)
+            if ad_frags:
+                total_frags_str += ' (not including %d ad)' % ad_frags
+        else:
+            total_frags_str = 'unknown (live)'
         self.to_screen(
-            '[%s] Total fragments: %s'
-            % (self.FD_NAME, ctx['total_frags'] if not ctx['live'] else 'unknown (live)'))
+            '[%s] Total fragments: %s' % (self.FD_NAME, total_frags_str))
         self.report_destination(ctx['filename'])
         dl = HttpQuietDownloader(
             self.ydl,
@@ -151,10 +158,15 @@ class FragmentFD(FileDownloader):
         if self.__do_ytdl_file(ctx):
             if os.path.isfile(encodeFilename(self.ytdl_filename(ctx['filename']))):
                 self._read_ytdl_file(ctx)
+                if ctx['fragment_index'] > 0 and resume_len == 0:
+                    self.report_warning(
+                        'Inconsistent state of incomplete fragment download. '
+                        'Restarting from the beginning...')
+                    ctx['fragment_index'] = resume_len = 0
+                    self._write_ytdl_file(ctx)
             else:
                 self._write_ytdl_file(ctx)
-            if ctx['fragment_index'] > 0:
-                assert resume_len > 0
+                assert ctx['fragment_index'] == 0
 
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 

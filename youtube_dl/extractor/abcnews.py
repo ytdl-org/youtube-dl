@@ -7,6 +7,7 @@ import time
 
 from .amp import AMPIE
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..compat import compat_urlparse
 
 
@@ -108,9 +109,7 @@ class AbcNewsIE(InfoExtractor):
             r'window\.abcnvideo\.url\s*=\s*"([^"]+)"', webpage, 'video URL')
         full_video_url = compat_urlparse.urljoin(url, video_url)
 
-        youtube_url = self._html_search_regex(
-            r'<iframe[^>]+src="(https://www\.youtube\.com/embed/[^"]+)"',
-            webpage, 'YouTube URL', default=None)
+        youtube_url = YoutubeIE._extract_url(webpage)
 
         timestamp = None
         date_str = self._html_search_regex(
@@ -140,7 +139,7 @@ class AbcNewsIE(InfoExtractor):
         }
 
         if youtube_url:
-            entries = [entry, self.url_result(youtube_url, 'Youtube')]
+            entries = [entry, self.url_result(youtube_url, ie=YoutubeIE.ie_key())]
             return self.playlist_result(entries)
 
         return entry

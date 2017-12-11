@@ -116,16 +116,16 @@ class CondeNastIE(InfoExtractor):
         entries = [self.url_result(build_url(path), 'CondeNast') for path in paths]
         return self.playlist_result(entries, playlist_title=title)
 
-    def _extract_video_params(self, webpage):
-        query = {}
-        params = self._search_regex(
-            r'(?s)var params = {(.+?)}[;,]', webpage, 'player params', default=None)
-        if params:
-            query.update({
-                'videoId': self._search_regex(r'videoId: [\'"](.+?)[\'"]', params, 'video id'),
-                'playerId': self._search_regex(r'playerId: [\'"](.+?)[\'"]', params, 'player id'),
-                'target': self._search_regex(r'target: [\'"](.+?)[\'"]', params, 'target'),
-            })
+    def _extract_video_params(self, webpage, display_id):
+        query = self._parse_json(
+            self._search_regex(
+                r'(?s)var\s+params\s*=\s*({.+?})[;,]', webpage, 'player params',
+                default='{}'),
+            display_id, transform_source=js_to_json, fatal=False)
+        if query:
+            query['videoId'] = self._search_regex(
+                r'(?:data-video-id=|currentVideoId\s*=\s*)["\']([\da-f]+)',
+                webpage, 'video id', default=None)
         else:
             params = extract_attributes(self._search_regex(
                 r'(<[^>]+data-js="video-player"[^>]+>)',
@@ -141,17 +141,27 @@ class CondeNastIE(InfoExtractor):
         video_id = params['videoId']
 
         video_info = None
-        if params.get('playerId'):
-            info_page = self._download_json(
-                'http://player.cnevids.com/player/video.js',
-                video_id, 'Downloading video info', fatal=False, query=params)
-            if info_page:
-                video_info = info_page.get('video')
-            if not video_info:
-                info_page = self._download_webpage(
-                    'http://player.cnevids.com/player/loader.js',
-                    video_id, 'Downloading loader info', query=params)
-        else:
+
+        # New API path
+        query = params.copy()
+        query['embedType'] = 'inline'
+        info_page = self._download_json(
+            'http://player.cnevids.com/embed-api.json', video_id,
+            'Downloading embed info', fatal=False, query=query)
+
+        # Old fallbacks
+        if not info_page:
+            if params.get('playerId'):
+                info_page = self._download_json(
+                    'http://player.cnevids.com/player/video.js', video_id,
+                    'Downloading video info', fatal=False, query=params)
+        if info_page:
+            video_info = info_page.get('video')
+        if not video_info:
+            info_page = self._download_webpage(
+                'http://player.cnevids.com/player/loader.js',
+                video_id, 'Downloading loader info', query=params)
+        if not video_info:
             info_page = self._download_webpage(
                 'https://player.cnevids.com/inline/video/%s.js' % video_id,
                 video_id, 'Downloading inline info', query={
@@ -215,7 +225,7 @@ class CondeNastIE(InfoExtractor):
         if url_type == 'series':
             return self._extract_series(url, webpage)
         else:
-            params = self._extract_video_params(webpage)
+            params = self._extract_video_params(webpage, display_id)
             info = self._search_json_ld(
                 webpage, display_id, fatal=False)
             info.update(self._extract_video(params))

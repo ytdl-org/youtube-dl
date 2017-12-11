@@ -18,7 +18,7 @@ class TV4IE(InfoExtractor):
             tv4\.se/(?:[^/]+)/klipp/(?:.*)-|
             tv4play\.se/
             (?:
-                (?:program|barn)/(?:[^\?]+)\?video_id=|
+                (?:program|barn)/(?:[^/]+/|(?:[^\?]+)\?video_id=)|
                 iframe/video/|
                 film/|
                 sport/|
@@ -63,6 +63,10 @@ class TV4IE(InfoExtractor):
             'url': 'http://www.tv4play.se/barn/looney-tunes?video_id=3062412',
             'only_matching': True,
         },
+        {
+            'url': 'http://www.tv4play.se/program/farang/3922081',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
