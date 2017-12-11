@@ -10,7 +10,7 @@ from ..utils import update_url_query
 class NickIE(MTVServicesInfoExtractor):
     # None of videos on the website are still alive?
     IE_NAME = 'nick.com'
-    _VALID_URL = r'https?://(?:(?:www|beta)\.)?nick(?:jr)?\.com/(?:[^/]+/)?(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?P<domain>(?:(?:www|beta)\.)?nick(?:jr)?\.com)/(?:[^/]+/)?(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://udat.mtvnservices.com/service1/dispatch.htm'
     _GEO_COUNTRIES = ['US']
     _TESTS = [{
@@ -69,8 +69,14 @@ class NickIE(MTVServicesInfoExtractor):
             'mgid': uri,
         }
 
-    def _extract_mgid(self, webpage):
-        return self._search_regex(r'data-contenturi="([^"]+)', webpage, 'mgid')
+    def _real_extract(self, url):
+        domain, display_id = re.match(self._VALID_URL, url).groups()
+        video_data = self._download_json(
+            'http://%s/data/video.endLevel.json' % domain,
+            display_id, query={
+                'urlKey': display_id,
+            })
+        return self._get_videos_info(video_data['player'] + video_data['id'])
 
 
 class NickDeIE(MTVServicesInfoExtractor):
