@@ -5,24 +5,19 @@ from .common import InfoExtractor
 
 from urllib.request import Request
 from urllib.parse import urlencode
+from urllib import parse
 import json
 import random as rnd
+from os import path
 
 class WeiboIE(InfoExtractor):
     _VALID_URL = r'https?://weibo\.com/[0-9]+/(?P<id>[a-zA-Z0-9]+)'
     _TEST = {
-            'url': 'https://weibo.com/6275294458/Fp6RGfbff?from=page_1005056275294458_profile&wvr=6&mod=weibotime&type=comment',
-            'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+            'url': 'https://weibo.com/6275294458/Fp6RGfbff?type=comment',
             'info_dict': {
-                'id': '42',
+                'id': 'Fp6RGfbff',
                 'ext': 'mp4',
-                'title': 'Video title goes here',
-                'thumbnail': r're:^https?://.*\.jpg$',
-                # TODO more properties, either as:
-                # * A value
-                # * MD5 checksum; start the string with md5:
-                # * A regular expression; start the string with re:
-                # * Any Python type (for example int or float)
+                'title': 'You should have servants to massage you,... 来自Hosico_猫 - 微博',
                 }
             }
 
@@ -78,20 +73,34 @@ class WeiboIE(InfoExtractor):
             })
         gencallback_url = "https://passport.weibo.com/visitor/visitor?" + param
         webpage,urlh = self._download_webpage_handle(gencallback_url, video_id, note="gen callback")
-        print("webpage", webpage)
 
         webpage,urlh = self._download_webpage_handle(url, video_id, headers=headers, note="retry to visit the page")
-        print("webpage", webpage)
 
         # TODO more code goes here, for example ...
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
-        video_sources = self._search_regex(r'video-sources=(.+?)', webpage, 'video_sources')
-        print("video_sources:", video_sources)
+        video_sources_text = self._search_regex("video-sources=\\\\\"(.+?)\"", webpage, 'video_sources')
+        
+        video_formats = parse.parse_qs(video_sources_text)
+
+        formats = []
+        supported_resolutions = ['720', '480']
+        for res in supported_resolutions:
+            f = video_formats.get(res)
+            if isinstance(f, list):
+                if len(f) > 0:
+                    vid_url = f[0]
+                    print("%s:%s" % (res, vid_url))
+                    formats.append({
+                        'url': vid_url
+                        })
+        self._sort_formats(formats)
+        uploader = self._og_search_property('nick-name', webpage, 'uploader', default = None)
+        print(title, uploader)
         return {
                 'id': video_id,
                 'title': title,
-                'description': self._og_search_description(webpage),
-                'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
+                'uploader': uploader,
+                'formats': formats
                 # TODO more properties (see youtube_dl/extractor/common.py)
                 }
