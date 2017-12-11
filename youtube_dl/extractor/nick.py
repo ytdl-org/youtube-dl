@@ -79,7 +79,7 @@ class NickIE(MTVServicesInfoExtractor):
         return self._get_videos_info(video_data['player'] + video_data['id'])
 
 
-class NickBeIE(MTVServicesInfoExtractor):
+class NickBrIE(MTVServicesInfoExtractor):
     IE_NAME = 'nickelodeon:br'
     _VALID_URL = r'https?://(?P<domain>(?:www\.)?nickjr|mundonick\.uol)\.com\.br/(?:programas/)?[^/]+/videos/(?:episodios/)?(?P<id>[^/?#.]+)'
     _TESTS = [{
