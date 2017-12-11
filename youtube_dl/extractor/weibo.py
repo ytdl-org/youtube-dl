@@ -52,7 +52,6 @@ class WeiboIE(InfoExtractor):
             method = 'POST'
             )
         webpage,urlh = self._download_webpage_handle(r_genvisitor, video_id, note="gen visitor")
-        print("webpage", webpage)
 
         p = webpage.split("&&")[1] # split "gen_callback && gen_callback(...)"
         i1 = p.find('{')
@@ -90,13 +89,13 @@ class WeiboIE(InfoExtractor):
             if isinstance(f, list):
                 if len(f) > 0:
                     vid_url = f[0]
-                    print("%s:%s" % (res, vid_url))
                     formats.append({
-                        'url': vid_url
+                        'url': vid_url,
+                        'format': 'mp4',
+                        'height': int(res),
                         })
         self._sort_formats(formats)
         uploader = self._og_search_property('nick-name', webpage, 'uploader', default = None)
-        print(title, uploader)
         return {
                 'id': video_id,
                 'title': title,
