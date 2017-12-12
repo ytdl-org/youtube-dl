@@ -246,7 +246,6 @@ from .dailymotion import (
     DailymotionIE,
     DailymotionPlaylistIE,
     DailymotionUserIE,
-    DailymotionCloudIE,
 )
 from .daisuki import (
     DaisukiMottoIE,
@@ -312,9 +311,10 @@ from .ehow import EHowIE
 from .eighttracks import EightTracksIE
 from .einthusan import EinthusanIE
 from .eitb import EitbIE
-from .ellentv import (
-    EllenTVIE,
-    EllenTVClipsIE,
+from .ellentube import (
+    EllenTubeIE,
+    EllenTubeVideoIE,
+    EllenTubePlaylistIE,
 )
 from .elpais import ElPaisIE
 from .embedly import EmbedlyIE
@@ -689,6 +689,7 @@ from .nhl import (
 )
 from .nick import (
     NickIE,
+    NickBrIE,
     NickDeIE,
     NickNightIE,
     NickRuIE,
@@ -720,10 +721,6 @@ from .nowness import (
     NownessIE,
     NownessPlaylistIE,
     NownessSeriesIE,
-)
-from .nowtv import (
-    NowTVIE,
-    NowTVListIE,
 )
 from .noz import NozIE
 from .npo import (
@@ -857,6 +854,7 @@ from .radiofrance import RadioFranceIE
 from .rai import (
     RaiPlayIE,
     RaiPlayLiveIE,
+    RaiPlayPlaylistIE,
     RaiIE,
 )
 from .rbmaradio import RBMARadioIE
@@ -1004,6 +1002,7 @@ from .streamango import StreamangoIE
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
 from .streetvoice import StreetVoiceIE
+from .stretchinternet import StretchInternetIE
 from .sunporno import SunPornoIE
 from .svt import (
     SVTIE,
@@ -1106,6 +1105,10 @@ from .tvigle import TvigleIE
 from .tvland import TVLandIE
 from .tvn24 import TVN24IE
 from .tvnoe import TVNoeIE
+from .tvnow import (
+    TVNowIE,
+    TVNowListIE,
+)
 from .tvp import (
     TVPEmbedIE,
     TVPIE,

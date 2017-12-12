@@ -77,12 +77,14 @@ class PornComIE(InfoExtractor):
         self._sort_formats(formats)
 
         view_count = str_to_int(self._search_regex(
-            r'class=["\']views["\'][^>]*><p>([\d,.]+)', webpage,
+            (r'Views:\s*</span>\s*<span>\s*([\d,.]+)',
+             r'class=["\']views["\'][^>]*><p>([\d,.]+)'), webpage,
             'view count', fatal=False))
 
         def extract_list(kind):
             s = self._search_regex(
-                r'(?s)<p[^>]*>%s:(.+?)</p>' % kind.capitalize(),
+                (r'(?s)%s:\s*</span>\s*<span>(.+?)</span>' % kind.capitalize(),
+                 r'(?s)<p[^>]*>%s:(.+?)</p>' % kind.capitalize()),
                 webpage, kind, fatal=False)
             return re.findall(r'<a[^>]+>([^<]+)</a>', s or '')
 

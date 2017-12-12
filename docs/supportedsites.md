@@ -198,7 +198,6 @@
  - **dailymotion**
  - **dailymotion:playlist**
  - **dailymotion:user**
- - **DailymotionCloud**
  - **DaisukiMotto**
  - **DaisukiMottoPlaylist**
  - **daum.net**
@@ -243,8 +242,9 @@
  - **eHow**
  - **Einthusan**
  - **eitb.tv**
- - **EllenTV**
- - **EllenTV:clips**
+ - **EllenTube**
+ - **EllenTubePlaylist**
+ - **EllenTubeVideo**
  - **ElPais**: El País
  - **Embedly**
  - **EMPFlix**
@@ -662,6 +662,7 @@
  - **Rai**
  - **RaiPlay**
  - **RaiPlayLive**
+ - **RaiPlayPlaylist**
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
@@ -781,6 +782,7 @@
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
+ - **StretchInternet**
  - **SunPorno**
  - **SVT**
  - **SVTPlay**: SVT Play and Öppet arkiv

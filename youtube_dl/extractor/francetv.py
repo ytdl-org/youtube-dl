@@ -13,10 +13,7 @@ from ..utils import (
     parse_duration,
     determine_ext,
 )
-from .dailymotion import (
-    DailymotionIE,
-    DailymotionCloudIE,
-)
+from .dailymotion import DailymotionIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
@@ -290,10 +287,6 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
         page_title = mobj.group('title')
         webpage = self._download_webpage(url, page_title)
 
-        dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
-        if dmcloud_url:
-            return self.url_result(dmcloud_url, DailymotionCloudIE.ie_key())
-
         dailymotion_urls = DailymotionIE._extract_urls(webpage)
         if dailymotion_urls:
             return self.playlist_result([
@@ -363,6 +356,7 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
             raise ExtractorError('Video %s is not available' % name, expected=True)
 
         video_id, catalogue = self._search_regex(
-            r'"https?://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
+            r'["\'>]https?://videos\.francetv\.fr/video/([^@]+@.+?)["\'<]',
+            webpage, 'video id').split('@')
 
         return self._extract_video(video_id, catalogue)
