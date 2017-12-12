@@ -36,8 +36,7 @@ class TBSIE(TurnerBaseIE):
     }]
 
     def _real_extract(self, url):
-        domain, display_id = re.match(self._VALID_URL, url).groups()
-        site = domain[:3]
+        site, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
         video_data = self._parse_json(self._search_regex(
             r'<script[^>]+?data-drupal-selector="drupal-settings-json"[^>]*?>({.+?})</script>',
@@ -62,7 +61,7 @@ class TBSIE(TurnerBaseIE):
                     'http://www.%s.com/service/token_spe' % site,
                     m3u8_url, media_id, {
                         'url': url,
-                        'site_name': site.upper(),
+                        'site_name': site[:3].upper(),
                         'auth_required': video_data.get('authRequired') == '1',
                     })
             formats.extend(self._extract_m3u8_formats(
