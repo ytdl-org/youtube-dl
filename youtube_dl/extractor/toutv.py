@@ -16,7 +16,7 @@ from ..utils import (
 class TouTvIE(InfoExtractor):
     _NETRC_MACHINE = 'toutv'
     IE_NAME = 'tou.tv'
-    _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+(?:/S[0-9]+E[0-9]+)?)'
+    _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+(?:/S[0-9]+[EC][0-9]+)?)'
     _access_token = None
     _claims = None
 
@@ -36,6 +36,9 @@ class TouTvIE(InfoExtractor):
         'skip': '404 Not Found',
     }, {
         'url': 'http://ici.tou.tv/hackers',
+        'only_matching': True,
+    }, {
+        'url': 'https://ici.tou.tv/l-age-adulte/S01C501',
         'only_matching': True,
     }]
 
