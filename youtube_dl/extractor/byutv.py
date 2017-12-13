@@ -39,10 +39,10 @@ class BYUtvIE(InfoExtractor):
             'https://api.byutv.org/api3/catalog/getvideosforcontent', video_id,
             query={
                 'contentid': video_id,
-                'channel': 'byutv_global',
-                'x-byutv-context': 'web$Global',
+                'channel': 'byutv',
+                'x-byutv-context': 'web$US',
             }, headers={
-                'x-byutv-context': 'web$Global',
+                'x-byutv-context': 'web$US',
                 'x-byutv-platformkey': 'xsaaw9c7y5',
             })['ooyalaVOD']
 
