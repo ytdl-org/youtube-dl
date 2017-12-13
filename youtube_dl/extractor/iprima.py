@@ -16,7 +16,7 @@ class IPrimaIE(InfoExtractor):
     _GEO_BYPASS = False
 
     _TESTS = [{
-        'url': 'http://play.iprima.cz/gondici-s-r-o-33',
+        'url': 'http://play.iprima.cz/gondici-s-r-o/gondici-s-r-o-34',
         'info_dict': {
             'id': 'p136534',
             'ext': 'mp4',
@@ -31,7 +31,8 @@ class IPrimaIE(InfoExtractor):
         'only_matching': True,
     }, {
         # geo restricted
-        'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady-iv-1',
+        'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady/closer-nove-pripady-'
+               'iv-1/closer-nove-pripady-iv-1-upoutavka',
         'only_matching': True,
     }]
 
