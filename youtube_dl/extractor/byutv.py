@@ -7,9 +7,9 @@ from ..utils import ExtractorError
 
 
 class BYUtvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?byutv\.org/watch/(?!event/)(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
+    _VALID_URL = r'https?://(?:www\.)?byutv\.org/player/(?!event/)(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
     _TESTS = [{
-        'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
+        'url': 'http://www.byutv.org/player/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
         'info_dict': {
             'id': '6587b9a3-89d2-42a6-a7f7-fd2f81840a7d',
             'display_id': 'studio-c-season-5-episode-5',
@@ -24,7 +24,7 @@ class BYUtvIE(InfoExtractor):
         },
         'add_ie': ['Ooyala'],
     }, {
-        'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d',
+        'url': 'http://www.byutv.org/player/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d',
         'only_matching': True,
     }]
 
@@ -57,7 +57,7 @@ class BYUtvIE(InfoExtractor):
 
 
 class BYUtvEventIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?byutv\.org/watch/event/(?P<id>[0-9a-f-]+)'
+    _VALID_URL = r'https?://(?:www\.)?byutv\.org/player/event/(?P<id>[0-9a-f-]+)'
     _TEST = {
         'url': 'http://www.byutv.org/watch/event/29941b9b-8bf6-48d2-aebf-7a87add9e34b',
         'info_dict': {
