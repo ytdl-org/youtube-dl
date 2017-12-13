@@ -34,6 +34,28 @@ class IPrimaIE(InfoExtractor):
         'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady/closer-nove-pripady-'
                'iv-1/closer-nove-pripady-iv-1-upoutavka',
         'only_matching': True,
+    }, {
+        'url': 'http://prima.iprima.cz/zpravodajstvi/10122017-0',
+        'info_dict': {
+            'id': 'p407787',
+            'ext': 'mp4',
+            'title': 'Zpravodajství FTV Prima, Zpravodajství FTV Prima 10.12.2017 | Prima',
+            'description': 'md5:d3640eaccd3a66423c86f8942d79d5ce',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 download
+        },
+    }, {
+        'url': 'http://cool.iprima.cz/porady/tezka-drina/pila-0',
+        'info_dict': {
+            'id': 'p32629',
+            'ext': 'mp4',
+            'title': 'Těžká dřina, 5. epizoda - Pila | Prima Cool',
+            'description': 'md5:ab9ad7b8af739fed79185c4e58bc599d',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 download
+        },
     }]
 
     def _real_extract(self, url):
