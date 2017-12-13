@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.12.14
 
 Core
 * [postprocessor/xattr] Clarify NO_SPACE message (#14970)
