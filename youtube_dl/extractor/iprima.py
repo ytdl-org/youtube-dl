@@ -12,11 +12,11 @@ from ..utils import (
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://(?:prima|cool|max|zoom|love|play)\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
     _GEO_BYPASS = False
 
     _TESTS = [{
-        'url': 'http://play.iprima.cz/gondici-s-r-o-33',
+        'url': 'http://play.iprima.cz/gondici-s-r-o/gondici-s-r-o-34',
         'info_dict': {
             'id': 'p136534',
             'ext': 'mp4',
@@ -31,8 +31,31 @@ class IPrimaIE(InfoExtractor):
         'only_matching': True,
     }, {
         # geo restricted
-        'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady-iv-1',
+        'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady/closer-nove-pripady-'
+               'iv-1/closer-nove-pripady-iv-1-upoutavka',
         'only_matching': True,
+    }, {
+        'url': 'http://prima.iprima.cz/zpravodajstvi/10122017-0',
+        'info_dict': {
+            'id': 'p407787',
+            'ext': 'mp4',
+            'title': 'Zpravodajství FTV Prima, Zpravodajství FTV Prima 10.12.2017 | Prima',
+            'description': 'md5:d3640eaccd3a66423c86f8942d79d5ce',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 download
+        },
+    }, {
+        'url': 'http://cool.iprima.cz/porady/tezka-drina/pila-0',
+        'info_dict': {
+            'id': 'p32629',
+            'ext': 'mp4',
+            'title': 'Těžká dřina, 5. epizoda - Pila | Prima Cool',
+            'description': 'md5:ab9ad7b8af739fed79185c4e58bc599d',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 download
+        },
     }]
 
     def _real_extract(self, url):
@@ -40,15 +63,16 @@ class IPrimaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
+        video_id = self._search_regex(r'(?:prehravac/embedded\?id=|productId: \')(p[0-9]+)', webpage, 'real id')
 
         playerpage = self._download_webpage(
-            'http://play.iprima.cz/prehravac/init',
+            'http://api.play-backend.iprima.cz/prehravac/init-embed',
             video_id, note='Downloading player', query={
                 '_infuse': 1,
                 '_ts': round(time.time()),
                 'productId': video_id,
-            }, headers={'Referer': url})
+                'embed': 'true',
+            }, headers={'Referer': 'http://api.play-backend.iprima.cz/prehravac/embedded?id=' + video_id})
 
         formats = []
 
