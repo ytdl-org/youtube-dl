@@ -170,6 +170,9 @@ class NPOIE(NPOBaseIE):
             transform_source=strip_jsonp,
         )
 
+        if 'error' in metadata and metadata['code'] == 440:
+            raise ExtractorError('Video gone')
+
         # For some videos actual video id (prid) is different (e.g. for
         # http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698
         # video id is POMS_WNL_853698 but prid is POW_00996502)
