@@ -419,6 +419,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         add(('description', 'comment'), 'description')
         add('purl', 'webpage_url')
         add('track', 'track_number')
+        if metadata.get('track') is None:
+            add('track', 'playlist_index')
         add('artist', ('artist', 'creator', 'uploader', 'uploader_id'))
         add('genre')
         add('album')
