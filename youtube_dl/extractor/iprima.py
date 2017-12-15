@@ -40,15 +40,16 @@ class IPrimaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
+        video_id = self._search_regex(r'(?:prehravac/embedded\?id=|productId: \')(p[0-9]+)', webpage, 'real id')
 
         playerpage = self._download_webpage(
-            'http://play.iprima.cz/prehravac/init',
+            'http://api.play-backend.iprima.cz/prehravac/init-embed',
             video_id, note='Downloading player', query={
                 '_infuse': 1,
                 '_ts': round(time.time()),
                 'productId': video_id,
-            }, headers={'Referer': url})
+                'embed': 'true',
+            }, headers={'Referer': 'http://api.play-backend.iprima.cz/prehravac/embedded?id=' + video_id})
 
         formats = []
 
