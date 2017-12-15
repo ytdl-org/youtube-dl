@@ -92,7 +92,8 @@ class CBSLocalIE(AnvatoIE):
         info_dict = self._extract_anvato_videos(webpage, display_id)
 
         time_str = self._html_search_regex(
-            r'class="entry-date">([^<]+)<', webpage, 'released date', default=None)
+            r'class="post-date">([^<]+)<', webpage, 'released date', default=None)
+        time_str = time_str.replace(' at ', ' ')
         if time_str:
             timestamp = unified_timestamp(time_str)
         else:
