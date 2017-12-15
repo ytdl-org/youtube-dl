@@ -62,7 +62,8 @@ class VootIE(InfoExtractor):
         title = media['MediaName']
         formats = self._extract_m3u8_formats(
             'https://cdnapisec.kaltura.com/p/1982551/playManifest/pt/https/f/applehttp/t/web/e/' + media['EntryId'],
-            video_id, 'mp4', m3u8_id='hls', fatal=False)
+            video_id, 'mp4', m3u8_id='hls')
+        self._sort_formats(formats)
 
         description, series, season_number, episode, episode_number = [None] * 5
 
