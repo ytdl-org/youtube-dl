@@ -32,19 +32,29 @@ class AtresPlayerIE(InfoExtractor):
                 'duration': 5527.6,
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
-            'skip': 'This video is only available for registered users'
+            'skip': 'This video is only available for registered users',
         },
         {
             'url': 'http://www.atresplayer.com/television/especial/videoencuentros/temporada-1/capitulo-112-david-bustamante_2014121600375.html',
-            'md5': '6e52cbb513c405e403dbacb7aacf8747',
+            'md5': '7812821cc8e4106378c13f86736d2ffd',
             'info_dict': {
                 'id': 'capitulo-112-david-bustamante',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'David Bustamante',
                 'description': 'md5:f33f1c0a05be57f6708d4dd83a3b81c6',
                 'duration': 1439.0,
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
+        },
+        {
+            'url': 'http://www.atresplayer.com/television/series/la-casa-de-papel/temporada-1/capitulo-1-captulo_2017043000846.html',
+            'info_dict': {
+                'id': 'capitulo-1-captulo',
+                'ext': 'mp4',
+                'title': 'Cap\u00edtulo 1',
+                'description': 'md5:5a87db666262a9c88f6802e97ea8b5ea',
+            },
+            'skip': 'This video is only available for registered users',
         },
         {
             'url': 'http://www.atresplayer.com/television/series/el-secreto-de-puente-viejo/el-chico-de-los-tres-lunares/capitulo-977-29-12-14_2014122400174.html',
@@ -57,7 +67,7 @@ class AtresPlayerIE(InfoExtractor):
     _TIMESTAMP_SHIFT = 30000
 
     _TIME_API_URL = 'http://servicios.atresplayer.com/api/admin/time.json'
-    _URL_VIDEO_TEMPLATE = 'https://servicios.atresplayer.com/api/urlVideo/{1}/{0}/{1}|{2}|{3}.json'
+    _URL_VIDEO_TEMPLATE = 'https://servicios.atresplayer.com/api/urlVideo/{0}/{1}/{0}.json'
     _PLAYER_URL_TEMPLATE = 'https://servicios.atresplayer.com/episode/getplayer.json?episodePk=%s'
     _EPISODE_URL_TEMPLATE = 'http://www.atresplayer.com/episodexml/%s'
 
@@ -131,17 +141,8 @@ class AtresPlayerIE(InfoExtractor):
                 })
             formats.append(format_info)
 
-        timestamp = int_or_none(self._download_webpage(
-            self._TIME_API_URL,
-            video_id, 'Downloading timestamp', fatal=False), 1000, time.time())
-        timestamp_shifted = compat_str(timestamp + self._TIMESTAMP_SHIFT)
-        token = hmac.new(
-            self._MAGIC.encode('ascii'),
-            (episode_id + timestamp_shifted).encode('utf-8'), hashlib.md5
-        ).hexdigest()
-
         request = sanitized_Request(
-            self._URL_VIDEO_TEMPLATE.format('windows', episode_id, timestamp_shifted, token),
+            self._URL_VIDEO_TEMPLATE.format('html5', episode_id),
             headers={'User-Agent': self._USER_AGENT})
 
         fmt_json = self._download_json(
@@ -152,21 +153,11 @@ class AtresPlayerIE(InfoExtractor):
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, result), expected=True)
 
-        for format_id, video_url in fmt_json['resultObject'].items():
-            if format_id == 'token' or not video_url.startswith('http'):
+        for format_id, video_urls in fmt_json['resultObject'].items():
+            if format_id == 'token':
                 continue
-            if 'geodeswowsmpra3player' in video_url:
-                # f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
-                # f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
-                # this videos are protected by DRM, the f4m downloader doesn't support them
-                continue
-            video_url_hd = video_url.replace('free_es', 'es')
-            formats.extend(self._extract_f4m_formats(
-                video_url_hd[:-9] + '/manifest.f4m', video_id, f4m_id='hds',
-                fatal=False))
             formats.extend(self._extract_mpd_formats(
-                video_url_hd[:-9] + '/manifest.mpd', video_id, mpd_id='dash',
-                fatal=False))
+                video_urls['DASH'], video_id, mpd_id='dash', fatal=False))
         self._sort_formats(formats)
 
         path_data = player.get('pathData')
