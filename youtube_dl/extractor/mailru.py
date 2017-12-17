@@ -13,7 +13,15 @@ from ..utils import (
 class MailRuIE(InfoExtractor):
     IE_NAME = 'mailru'
     IE_DESC = 'Видео@Mail.Ru'
-    _VALID_URL = r'https?://(?:(?:www|m)\.)?my\.mail\.ru/(?:video/.*#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|(?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html|video/embed/(?P<meta_id>\d+))'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:(?:www|m)\.)?my\.mail\.ru/
+                        (?:
+                            video/.*\#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|
+                            (?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html|
+                            (?:video/embed|\+/video/meta)/(?P<metaid>\d+)
+                        )
+                    '''
     _TESTS = [
         {
             'url': 'http://my.mail.ru/video/top#video=/mail/sonypicturesrus/75/76',
@@ -22,7 +30,7 @@ class MailRuIE(InfoExtractor):
                 'id': '46301138_76',
                 'ext': 'mp4',
                 'title': 'Новый Человек-Паук. Высокое напряжение. Восстание Электро',
-                'timestamp': 1393232740,
+                'timestamp': 1393235077,
                 'upload_date': '20140224',
                 'uploader': 'sonypicturesrus',
                 'uploader_id': 'sonypicturesrus@mail.ru',
@@ -39,7 +47,7 @@ class MailRuIE(InfoExtractor):
                 'title': 'Samsung Galaxy S5 Hammer Smash Fail Battery Explosion',
                 'timestamp': 1397039888,
                 'upload_date': '20140409',
-                'uploader': 'hitech@corp.mail.ru',
+                'uploader': 'hitech',
                 'uploader_id': 'hitech@corp.mail.ru',
                 'duration': 245,
             },
@@ -68,33 +76,38 @@ class MailRuIE(InfoExtractor):
         {
             'url': 'https://my.mail.ru/video/embed/7949340477499637815',
             'only_matching': True,
+        },
+        {
+            'url': 'http://my.mail.ru/+/video/meta/7949340477499637815',
+            'only_matching': True,
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        meta_id = mobj.group('meta_id')
-        page_config = None
-        video_data = None
+        meta_id = mobj.group('metaid')
+
         video_id = None
-        if not meta_id:
+        if meta_id:
+            meta_url = 'https://my.mail.ru/+/video/meta/%s' % meta_id
+        else:
             video_id = mobj.group('idv1')
             if not video_id:
                 video_id = mobj.group('idv2prefix') + mobj.group('idv2suffix')
-
             webpage = self._download_webpage(url, video_id)
-
             page_config = self._parse_json(self._search_regex(
                 r'(?s)<script[^>]+class="sp-video__page-config"[^>]*>(.+?)</script>',
                 webpage, 'page config', default='{}'), video_id, fatal=False)
-        if page_config or meta_id:
             if page_config:
                 meta_url = page_config.get('metaUrl') or page_config.get('video', {}).get('metaUrl')
-            elif meta_id:
-                meta_url = 'https://my.mail.ru/+/video/meta/' + meta_id
-            if meta_url:
-                video_data = self._download_json(
-                    meta_url, video_id, 'Downloading video meta JSON', fatal=False)
+            else:
+                meta_url = None
+
+        video_data = None
+        if meta_url:
+            video_data = self._download_json(
+                meta_url, video_id or meta_id, 'Downloading video meta JSON',
+                fatal=not video_id)
 
         # Fallback old approach
         if not video_data:
