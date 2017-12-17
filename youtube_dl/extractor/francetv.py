@@ -364,20 +364,22 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
 
 class JeunesseBaseIE(FranceTVBaseInfoExtractor):
     def _real_extract(self, url):
-        id = self._match_id(url)
+        video_id = self._match_id(url)
         entries = []
 
-        playlist = self._download_json(url.split(id)[0] + id + '/playlist', id)
+        playlist = self._download_json(url.split(video_id)[0] + video_id + '/playlist', video_id)
 
-        if not playlist.get("count"):
+        if not playlist.get('count'):
             raise ExtractorError('%s is not available' % id, expected=True)
 
-        for item in playlist.get("items"):
+        for item in playlist.get('items'):
             video_id, catalogue = item['identity'].split('@')
-            try:
-                entries.append(self._extract_video(video_id, catalogue))
-            except ExtractorError:
-                self.report_warning('%s cannot be extracted' % video_id)
+            
+            if not video_id.startswith('NI_'):
+                try:
+                    entries.append(self._extract_video(video_id, catalogue))
+                except ExtractorError:
+                    self.report_warning('%s cannot be extracted' % video_id)
 
         return self.playlist_result(entries)
 
@@ -386,18 +388,39 @@ class ZouzousIE(JeunesseBaseIE):
     IE_NAME = 'zouzous.fr'
     _VALID_URL = r'https?://(?:www\.)?zouzous\.fr/heros/(?P<id>[^/?#]+)'
 
-    _TEST = {
-        'url': 'https://www.zouzous.fr/heros/simon',
-        'info_dict': {
-            'id': '168705537',
-            'ext': 'mp4',
-            'title': 'Simon - P\xeache au crabe',
-            'description': 'md5:bea0164b69beb12acfe156773599ef50',
-            'timestamp': 1513322100,
-            'duration': 318,
-            'upload_date': '20171215'
+    _TESTS = [
+        {
+            'url': 'https://www.zouzous.fr/heros/simon',
+            'info_dict': {
+                'id': '170796386',
+                'ext': 'mp4',
+                'title': 'Simon - Bon anniversaire Maman',
+                'description': 'md5:c0f5384a9420e136c9c70734a0ac3fe9',
+                'timestamp': 1516432200,
+                'duration': 318,
+                'upload_date': '20180120'
+            },
+            'params': {
+                'skip_download': True
+            }
+        },
+        {
+            'url': 'https://www.zouzous.fr/heros/simon?abc',
+            'info_dict': {
+                'id': '168705537',
+                'ext': 'mp4',
+                'title': 'Simon - P\xeache au crabe',
+                'description': 'md5:bea0164b69beb12acfe156773599ef50',
+                'timestamp': 1513322100,
+                'duration': 318,
+                'upload_date': '20171215'
+            },
+            'only_matching': True,
+            'params': {
+                'skip_download': True
+            }
         }
-    }
+    ]
 
 
 class LudoIE(JeunesseBaseIE):
@@ -407,12 +430,15 @@ class LudoIE(JeunesseBaseIE):
     _TEST = {
         'url': 'https://www.ludo.fr/heros/ninjago',
         'info_dict': {
-            'id': '165736400',
+            'id': '171475502',
             'ext': 'mp4',
-            'title': 'Ninjago - La lame du temps',
+            'title': 'Ninjago - Les mains du temps',
             'description': 'md5:8e5155ac376581abdffc38fb574a40a6',
-            'timestamp': 1508771400,
+            'timestamp': 1516808100,
             'duration': 1320,
-            'upload_date': '20171023'
+            'upload_date': '20180124'
+        },
+        'params': {
+            'skip_download': True,
         }
     }
