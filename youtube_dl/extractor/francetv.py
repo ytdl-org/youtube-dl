@@ -360,3 +360,59 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
             webpage, 'video id').split('@')
 
         return self._extract_video(video_id, catalogue)
+
+
+class JeunesseBaseIE(FranceTVBaseInfoExtractor):
+    def _real_extract(self, url):
+        id = self._match_id(url)
+        entries = []
+
+        playlist = self._download_json(url.split(id)[0] + id + '/playlist', id)
+
+        if not playlist.get("count"):
+            raise ExtractorError('%s is not available' % id, expected=True)
+
+        for item in playlist.get("items"):
+            video_id, catalogue = item['identity'].split('@')
+            try:
+                entries.append(self._extract_video(video_id, catalogue))
+            except ExtractorError:
+                self.report_warning('%s cannot be extracted' % video_id)
+
+        return self.playlist_result(entries)
+
+
+class ZouzousIE(JeunesseBaseIE):
+    IE_NAME = 'zouzous.fr'
+    _VALID_URL = r'https?://(?:www\.)?zouzous\.fr/heros/(?P<id>[^/?#]+)'
+
+    _TEST = {
+        'url': 'https://www.zouzous.fr/heros/simon',
+        'info_dict': {
+            'id': '168705537',
+            'ext': 'mp4',
+            'title': 'Simon - P\xeache au crabe',
+            'description': 'md5:bea0164b69beb12acfe156773599ef50',
+            'timestamp': 1513322100,
+            'duration': 318,
+            'upload_date': '20171215'
+        }
+    }
+
+
+class LudoIE(JeunesseBaseIE):
+    IE_NAME = 'ludo.fr'
+    _VALID_URL = r'https?://(?:www\.)?ludo\.fr/heros/(?P<id>[^/?#]+)'
+
+    _TEST = {
+        'url': 'https://www.ludo.fr/heros/ninjago',
+        'info_dict': {
+            'id': '165736400',
+            'ext': 'mp4',
+            'title': 'Ninjago - La lame du temps',
+            'description': 'md5:8e5155ac376581abdffc38fb574a40a6',
+            'timestamp': 1508771400,
+            'duration': 1320,
+            'upload_date': '20171023'
+        }
+    }

@@ -377,6 +377,8 @@ from .francetv import (
     FranceTVInfoIE,
     GenerationWhatIE,
     CultureboxIE,
+    ZouzousIE,
+    LudoIE,
 )
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
