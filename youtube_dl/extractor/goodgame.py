@@ -3,9 +3,12 @@ from __future__ import unicode_literals
 
 import re
 
-from .youtube import YoutubeIE
 from .common import InfoExtractor
-from ..utils import ExtractorError, int_or_none
+from .youtube import YoutubeIE
+from ..utils import (
+    ExtractorError,
+    int_or_none
+)
 
 
 class GoodgameBaseIE(InfoExtractor):
@@ -13,10 +16,10 @@ class GoodgameBaseIE(InfoExtractor):
     _API_BASE = 'https://goodgame.ru/api'
     _HLS_BASE = 'https://hls.goodgame.ru/hls'
     _QUALITIES = {
+        'Source': '',
         '240p': '_240',
         '480p': '_480',
         '720p': '_720',
-        'Source': ''
     }
     _RE_UPLOADER = r'''(?x)
                         <a[^>]+
@@ -103,6 +106,7 @@ class GoodgameStreamIE(GoodgameBaseIE):
                 'ext': 'mp4',
                 'protocol': 'm3u8'
             })
+        self._prefer_source(formats)
         return {
             'id': channel_id,
             'title': stream_info.get('title'),
@@ -111,6 +115,14 @@ class GoodgameStreamIE(GoodgameBaseIE):
             'is_live': True,
             'formats': formats,
         }
+
+    def _prefer_source(self, formats):
+        try:
+            source = next(f for f in formats if f['format_id'] == 'Source')
+            source['preference'] = 10
+        except StopIteration:
+            pass
+        self._sort_formats(formats)
 
 
 class GoodgameVideoIE(GoodgameBaseIE):
