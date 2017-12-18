@@ -301,8 +301,9 @@ class InfoExtractor(object):
     There must be a key "entries", which is a list, an iterable, or a PagedList
     object, each element of which is a valid dictionary by this specification.
 
-    Additionally, playlists can have "title", "description" and "id" attributes
-    with the same semantics as videos (see above).
+    Additionally, playlists can have "id", "title", "description", "uploader",
+    "uploader_id", "uploader_url" attributes with the same semantics as videos
+    (see above).
 
 
     _type "multi_video" indicates that there are multiple videos that
