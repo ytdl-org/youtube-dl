@@ -8,11 +8,12 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     xpath_text,
+    re,
 )
 
 
 class HeiseIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.|m\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
     _TESTS = [{
         'url': 'http://www.heise.de/video/artikel/Podcast-c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2404147.html',
         'md5': 'ffed432483e922e88545ad9f2f15d30e',
@@ -54,6 +55,9 @@ class HeiseIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        url = re.sub(r'https?://(?:www\.|m\.)?heise\.de/',
+                     'https://m.heise.de/',
+                     url)
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
@@ -97,7 +101,7 @@ class HeiseIE(InfoExtractor):
 
         description = self._og_search_description(
             webpage, default=None) or self._html_search_meta(
-            'description', webpage)
+            'description', webpage, default=None)
 
         return {
             'id': video_id,
@@ -106,6 +110,6 @@ class HeiseIE(InfoExtractor):
             'thumbnail': (xpath_text(doc, './/{http://rss.jwpcdn.com/}image') or
                           self._og_search_thumbnail(webpage)),
             'timestamp': parse_iso8601(
-                self._html_search_meta('date', webpage)),
+                self._html_search_meta('date', webpage, default=None)),
             'formats': formats,
         }
