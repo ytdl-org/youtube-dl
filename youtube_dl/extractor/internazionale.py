@@ -12,18 +12,8 @@ class InternazionaleIE(InfoExtractor):
         'info_dict': {
             'id': '265968',
             'ext': 'mp4',
-            'description': 'Il regista statunitense Richard Linklater ci racconta una scena del film Boyhood e la sua passione per l’imprecisione della memoria. Il film è un’avventura durata 12 anni, durante la quale Linklater ha seguito il protagonista dal 2002 al 2014 per raccontare la sua crescita e il rapporto con i genitori divorziati. Leggi',
+            'description': 'md5:efb7e5bbfb1a54ae2ed5a4a015f0e665',
             'title': 'Richard Linklater racconta una scena di Boyhood',
-            'thumbnail': r're:^https?://.*\.jpg$',
-        }
-    }, {
-        'url': 'https://www.internazionale.it/video/2017/10/18/storie-italiani-senza-cittadinanza',
-        'md5': '4c6feb9658b22c95e3fa4b5c070d69ba',
-        'info_dict': {
-            'id': '648175',
-            'ext': 'mp4',
-            'description': 'Tre ragazzi raccontano quanto è difficile essere italiani di fatto ma non di diritto: una vita fatta di burocrazia, opportunità negate e grandi contraddizioni. Leggi',
-            'title': 'Storie di italiani senza cittadinanza',
             'thumbnail': r're:^https?://.*\.jpg$',
         }
     }]
@@ -32,20 +22,25 @@ class InternazionaleIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        video_container = self._html_search_regex(r'<div class="video-container" (.*)>', webpage, 'video_container')
+        data_job_id = self._html_search_regex(r'data-job-id="([^"]+)"', webpage, 'data-job-id')
+        data_video_path = self._html_search_regex(r'data-video-path="([^"]+)"', webpage, 'data-video-path')
 
-        id = self._html_search_regex(r'data-job-id="([^"]+)"', video_container, 'id')
-        video_path = self._html_search_regex(r'data-video-path="([^"]+)"', video_container, 'video_path')
+        formats = []
+
+        formats.extend(self._extract_m3u8_formats(
+            'https://video.internazionale.it/%s/%s.m3u8' % (data_video_path, data_job_id),
+            video_id))
+
+        formats.extend(self._extract_mpd_formats(
+            'https://video.internazionale.it/%s/%s.mpd' % (data_video_path, data_job_id),
+            video_id))
+
+        self._sort_formats(formats)
 
         return {
-            'id': id,
+            'id': data_job_id,
             'title': self._og_search_title(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': self._og_search_description(webpage),
-            'formats': [{
-                'url': 'https://video.internazionale.it/%s/%s.m3u8'
-                       % (video_path, id),
-                'ext': 'mp4',
-                'protocol': 'm3u8',
-            }]
+            'formats': formats,
         }
