@@ -931,7 +931,7 @@ from .servingsys import ServingSysIE
 from .servus import ServusIE
 from .sexu import SexuIE
 from .seznamzpravy import (
-    SeznamZpravyIframeIE,
+    SeznamZpravyIE,
     SeznamZpravyArticleIE,
 )
 from .shahid import ShahidIE

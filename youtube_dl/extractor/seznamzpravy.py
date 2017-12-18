@@ -5,19 +5,31 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_str,
-    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     urljoin,
     int_or_none,
     try_get,
+    update_url_query,
 )
 
 
-class SeznamZpravyGenericIE(InfoExtractor):
-    _API_URL = 'https://apizpravy.seznam.cz/'
-    _MAGIC_SUFFIX = 'spl2,2,VOD'
+def _raw_id(src_url):
+    return compat_urllib_parse_urlparse(src_url).path.split('/')[-1]
+
+
+class SeznamZpravyIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?(?:seznam\.cz/zpravy|seznamzpravy\.cz)/iframe/player\?.*\bsrc='
+    _TESTS = [{
+        'url': r'https://www.seznamzpravy.cz/iframe/player?duration=241&serviceSlug=zpravy&src=https%3A%2F%2Fv39-a.sdn.szn.cz%2Fv_39%2Fvmd%2F5999c902ea707c67d8e267a9%3Ffl%3Dmdk%2C432f65a0%7C&itemType=video&autoPlay=false&title=Sv%C4%9Bt%20bez%20obalu%3A%20%C4%8Ce%C5%A1t%C3%AD%20voj%C3%A1ci%20na%20mis%C3%ADch%20(kr%C3%A1tk%C3%A1%20verze)&series=Sv%C4%9Bt%20bez%20obalu&serviceName=Seznam%20Zpr%C3%A1vy&poster=%2F%2Fd39-a.sdn.szn.cz%2Fd_39%2Fc_img_F_I%2FR5puJ.jpeg%3Ffl%3Dcro%2C0%2C0%2C1920%2C1080%7Cres%2C1200%2C%2C1%7Cjpg%2C80%2C%2C1&width=1920&height=1080&cutFrom=0&cutTo=0&splVersion=VOD&contentId=170889&contextId=35990&showAdvert=true&collocation=&autoplayPossible=true&embed=&isVideoTooShortForPreroll=false&isVideoTooLongForPostroll=true&videoCommentOpKey=&videoCommentId=&version=4.0.76&dotService=zpravy&gemiusPrismIdentifier=bVc1ZIb_Qax4W2v5xOPGpMeCP31kFfrTzj0SqPTLh_b.Z7&zoneIdPreroll=seznam.pack.videospot&skipOffsetPreroll=5&sectionPrefixPreroll=%2Fzpravy',
+        'params': {'skip_download': True},  # 'file_minsize': 1586 seems to get killed in test_download.py
+        'info_dict': {
+            'id': '170889',
+            'ext': 'mp4',
+            'title': 'Svět bez obalu: Čeští vojáci na misích (krátká verze)',
+        }
+    }]
 
     def _extract_sdn_formats(self, sdn_url, video_id):
         sdn_data = self._download_json(sdn_url, video_id)
@@ -52,36 +64,22 @@ class SeznamZpravyGenericIE(InfoExtractor):
         self._sort_formats(formats)
         return formats
 
-    def _raw_id(self, src_url):
-        return compat_urllib_parse_urlparse(src_url).path.split('/')[-1]
-
-
-class SeznamZpravyIframeIE(SeznamZpravyGenericIE):
-    _VALID_URL = r'https?://(?:www\.)?(?:seznam\.cz/zpravy|seznamzpravy\.cz)/iframe/player\?.*\bsrc='
-    _TESTS = [{
-        'url': r'https://www.seznamzpravy.cz/iframe/player?duration=241&serviceSlug=zpravy&src=https%3A%2F%2Fv39-a.sdn.szn.cz%2Fv_39%2Fvmd%2F5999c902ea707c67d8e267a9%3Ffl%3Dmdk%2C432f65a0%7C&itemType=video&autoPlay=false&title=Sv%C4%9Bt%20bez%20obalu%3A%20%C4%8Ce%C5%A1t%C3%AD%20voj%C3%A1ci%20na%20mis%C3%ADch%20(kr%C3%A1tk%C3%A1%20verze)&series=Sv%C4%9Bt%20bez%20obalu&serviceName=Seznam%20Zpr%C3%A1vy&poster=%2F%2Fd39-a.sdn.szn.cz%2Fd_39%2Fc_img_F_I%2FR5puJ.jpeg%3Ffl%3Dcro%2C0%2C0%2C1920%2C1080%7Cres%2C1200%2C%2C1%7Cjpg%2C80%2C%2C1&width=1920&height=1080&cutFrom=0&cutTo=0&splVersion=VOD&contentId=170889&contextId=35990&showAdvert=true&collocation=&autoplayPossible=true&embed=&isVideoTooShortForPreroll=false&isVideoTooLongForPostroll=true&videoCommentOpKey=&videoCommentId=&version=4.0.76&dotService=zpravy&gemiusPrismIdentifier=bVc1ZIb_Qax4W2v5xOPGpMeCP31kFfrTzj0SqPTLh_b.Z7&zoneIdPreroll=seznam.pack.videospot&skipOffsetPreroll=5&sectionPrefixPreroll=%2Fzpravy',
-        'params': {'skip_download': True},  # 'file_minsize': 1586 seems to get killed in test_download.py
-        'info_dict': {
-            'id': '170889',
-            'ext': 'mp4',
-            'title': 'Svět bez obalu: Čeští vojáci na misích (krátká verze)',
-        }
-    }]
-
     def _real_extract(self, url):
         params = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
         src = params['src'][0]
-        video_id = params.get('contentId', [self._raw_id(src)])[0]
+        video_id = params.get('contentId', [_raw_id(src)])[0]
 
         return {
             'id': video_id,
             'title': params['title'][0],
-            'formats': self._extract_sdn_formats(src + self._MAGIC_SUFFIX, video_id),
+            'formats': self._extract_sdn_formats(src + 'spl2,2,VOD', video_id),
         }
 
 
-class SeznamZpravyArticleIE(SeznamZpravyGenericIE):
+class SeznamZpravyArticleIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:seznam\.cz/zpravy|seznamzpravy\.cz)/clanek/(?:[-a-z0-9]+)-(?P<id>[0-9]+)'
+    _API_URL = 'https://apizpravy.seznam.cz/'
+
     _TESTS = [{
         # two videos on one page, with SDN URL
         'url': 'https://www.seznamzpravy.cz/clanek/jejich-svet-na-nas-utoci-je-lepsi-branit-se-na-jejich-pisecku-rika-reziser-a-major-v-zaloze-marhoul-35990',
@@ -124,7 +122,7 @@ class SeznamZpravyArticleIE(SeznamZpravyGenericIE):
 
     def _extract_content(self, api_data):
         entries = []
-        for num, item in enumerate(api_data.get('content', [])):
+        for item in api_data.get('content', []):
             media = item.get('properties', {}).get('media', {})
             src_url = media.get('video', {}).get('sdn')
             title = media.get('title')
@@ -140,14 +138,14 @@ class SeznamZpravyArticleIE(SeznamZpravyGenericIE):
         return entries
 
     def _iframe_result(self, info_dict):
-        video_id = info_dict['id'] or self._raw_id(info_dict['src'])
-        url = 'https://www.seznam.cz/zpravy/iframe/player?%s' % compat_urllib_parse_urlencode({
+        video_id = info_dict['id'] or _raw_id(info_dict['src'])
+        url = update_url_query('https://www.seznam.cz/zpravy/iframe/player', {
             'src': info_dict['src'],
             'title': info_dict['title'],
             'contentId': video_id,
             'serviceName': 'Seznam Zprávy',
         })
-        return self.url_result(url, ie='SeznamZpravyIframe', video_id=video_id, video_title=info_dict['title'])
+        return self.url_result(url, ie='SeznamZpravy', video_id=video_id, video_title=info_dict['title'])
 
     def _real_extract(self, url):
         article_id = self._match_id(url)
