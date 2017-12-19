@@ -56,11 +56,9 @@ class HeiseIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        url = re.sub(r'^https?://(?:www\.)?heise\.de/',
-                     'https://m.heise.de/',
-                     url)
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        mobile_url = re.sub(r'^https?://(?:www\.)?heise\.de/', 'https://m.heise.de/', url)
+        video_id = self._match_id(mobile_url)
+        webpage = self._download_webpage(mobile_url, video_id)
 
         title = self._html_search_meta('fulltitle', webpage, default=None)
         if not title or title == "c't":
