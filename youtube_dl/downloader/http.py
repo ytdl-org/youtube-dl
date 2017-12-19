@@ -284,8 +284,7 @@ class HttpFD(FileDownloader):
         while count <= retries:
             try:
                 establish_connection()
-                download()
-                return True
+                return download()
             except RetryDownload as e:
                 count += 1
                 if count <= retries:

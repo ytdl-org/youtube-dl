@@ -392,7 +392,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'Downloading subtitles for ' + sub_name, data={
                     'subtitle_script_id': sub_id,
                 })
-            if not sub_doc:
+            if sub_doc is None:
                 continue
             sid = sub_doc.get('id')
             iv = xpath_text(sub_doc, 'iv', 'subtitle iv')
@@ -479,9 +479,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     'video_quality': stream_quality,
                     'current_page': url,
                 })
-            if streamdata:
+            if streamdata is not None:
                 stream_info = streamdata.find('./{default}preload/stream_info')
-                if stream_info:
+                if stream_info is not None:
                     stream_infos.append(stream_info)
             stream_info = self._call_rpc_api(
                 'VideoEncode_GetStreamInfo', video_id,
@@ -490,7 +490,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     'video_format': stream_format,
                     'video_encode_quality': stream_quality,
                 })
-            if stream_info:
+            if stream_info is not None:
                 stream_infos.append(stream_info)
             for stream_info in stream_infos:
                 video_encode_id = xpath_text(stream_info, './video_encode_id')

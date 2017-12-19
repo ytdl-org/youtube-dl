@@ -26,7 +26,7 @@ from ..utils import (
 class ITVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?itv\.com/hub/[^/]+/(?P<id>[0-9a-zA-Z]+)'
     _GEO_COUNTRIES = ['GB']
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.itv.com/hub/mr-bean-animated-series/2a2936a0053',
         'info_dict': {
             'id': '2a2936a0053',
@@ -37,7 +37,11 @@ class ITVIE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         },
-    }
+    }, {
+        # unavailable via data-playlist-url
+        'url': 'https://www.itv.com/hub/through-the-keyhole/2a2271a0033',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -101,6 +105,18 @@ class ITVIE(InfoExtractor):
             'Content-Type': 'text/xml; charset=utf-8',
             'SOAPAction': 'http://tempuri.org/PlaylistService/GetPlaylist',
         })
+
+        info = self._search_json_ld(webpage, video_id, default={})
+        formats = []
+        subtitles = {}
+
+        def extract_subtitle(sub_url):
+            ext = determine_ext(sub_url, 'ttml')
+            subtitles.setdefault('en', []).append({
+                'url': sub_url,
+                'ext': 'ttml' if ext == 'xml' else ext,
+            })
+
         resp_env = self._download_xml(
             params['data-playlist-url'], video_id,
             headers=headers, data=etree.tostring(req_env))
@@ -111,37 +127,55 @@ class ITVIE(InfoExtractor):
             if fault_code == 'InvalidGeoRegion':
                 self.raise_geo_restricted(
                     msg=fault_string, countries=self._GEO_COUNTRIES)
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, fault_string))
-        title = xpath_text(playlist, 'EpisodeTitle', fatal=True)
-        video_element = xpath_element(playlist, 'VideoEntries/Video', fatal=True)
-        media_files = xpath_element(video_element, 'MediaFiles', fatal=True)
-        rtmp_url = media_files.attrib['base']
+            elif fault_code != 'InvalidEntity':
+                raise ExtractorError(
+                    '%s said: %s' % (self.IE_NAME, fault_string), expected=True)
+            info.update({
+                'title': self._og_search_title(webpage),
+                'episode_title': params.get('data-video-episode'),
+                'series': params.get('data-video-title'),
+            })
+        else:
+            title = xpath_text(playlist, 'EpisodeTitle', default=None)
+            info.update({
+                'title': title,
+                'episode_title': title,
+                'episode_number': int_or_none(xpath_text(playlist, 'EpisodeNumber')),
+                'series': xpath_text(playlist, 'ProgrammeTitle'),
+                'duration': parse_duration(xpath_text(playlist, 'Duration')),
+            })
+            video_element = xpath_element(playlist, 'VideoEntries/Video', fatal=True)
+            media_files = xpath_element(video_element, 'MediaFiles', fatal=True)
+            rtmp_url = media_files.attrib['base']
 
-        formats = []
-        for media_file in media_files.findall('MediaFile'):
-            play_path = xpath_text(media_file, 'URL')
-            if not play_path:
-                continue
-            tbr = int_or_none(media_file.get('bitrate'), 1000)
-            f = {
-                'format_id': 'rtmp' + ('-%d' % tbr if tbr else ''),
-                'play_path': play_path,
-                # Providing this swfVfy allows to avoid truncated downloads
-                'player_url': 'http://www.itv.com/mercury/Mercury_VideoPlayer.swf',
-                'page_url': url,
-                'tbr': tbr,
-                'ext': 'flv',
-            }
-            app = self._search_regex(
-                'rtmpe?://[^/]+/(.+)$', rtmp_url, 'app', default=None)
-            if app:
-                f.update({
-                    'url': rtmp_url.split('?', 1)[0],
-                    'app': app,
-                })
-            else:
-                f['url'] = rtmp_url
-            formats.append(f)
+            for media_file in media_files.findall('MediaFile'):
+                play_path = xpath_text(media_file, 'URL')
+                if not play_path:
+                    continue
+                tbr = int_or_none(media_file.get('bitrate'), 1000)
+                f = {
+                    'format_id': 'rtmp' + ('-%d' % tbr if tbr else ''),
+                    'play_path': play_path,
+                    # Providing this swfVfy allows to avoid truncated downloads
+                    'player_url': 'http://www.itv.com/mercury/Mercury_VideoPlayer.swf',
+                    'page_url': url,
+                    'tbr': tbr,
+                    'ext': 'flv',
+                }
+                app = self._search_regex(
+                    'rtmpe?://[^/]+/(.+)$', rtmp_url, 'app', default=None)
+                if app:
+                    f.update({
+                        'url': rtmp_url.split('?', 1)[0],
+                        'app': app,
+                    })
+                else:
+                    f['url'] = rtmp_url
+                formats.append(f)
+
+            for caption_url in video_element.findall('ClosedCaptioningURIs/URL'):
+                if caption_url.text:
+                    extract_subtitle(caption_url.text)
 
         ios_playlist_url = params.get('data-video-playlist') or params.get('data-video-id')
         hmac = params.get('data-video-hmac')
@@ -198,27 +232,22 @@ class ITVIE(InfoExtractor):
                         formats.append({
                             'url': href,
                         })
+                subs = video_data.get('Subtitles')
+                if isinstance(subs, list):
+                    for sub in subs:
+                        if not isinstance(sub, dict):
+                            continue
+                        href = sub.get('Href')
+                        if isinstance(href, compat_str):
+                            extract_subtitle(href)
+                if not info.get('duration'):
+                    info['duration'] = parse_duration(video_data.get('Duration'))
+
         self._sort_formats(formats)
 
-        subtitles = {}
-        for caption_url in video_element.findall('ClosedCaptioningURIs/URL'):
-            if not caption_url.text:
-                continue
-            ext = determine_ext(caption_url.text, 'ttml')
-            subtitles.setdefault('en', []).append({
-                'url': caption_url.text,
-                'ext': 'ttml' if ext == 'xml' else ext,
-            })
-
-        info = self._search_json_ld(webpage, video_id, default={})
         info.update({
             'id': video_id,
-            'title': title,
             'formats': formats,
             'subtitles': subtitles,
-            'episode_title': title,
-            'episode_number': int_or_none(xpath_text(playlist, 'EpisodeNumber')),
-            'series': xpath_text(playlist, 'ProgrammeTitle'),
-            'duartion': parse_duration(xpath_text(playlist, 'Duration')),
         })
         return info

@@ -5,6 +5,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    determine_ext,
     extract_attributes,
     ExtractorError,
     int_or_none,
@@ -73,7 +74,11 @@ class DiscoveryGoBaseIE(InfoExtractor):
                         not subtitle_url.startswith('http')):
                     continue
                 lang = caption.get('fileLang', 'en')
-                subtitles.setdefault(lang, []).append({'url': subtitle_url})
+                ext = determine_ext(subtitle_url)
+                subtitles.setdefault(lang, []).append({
+                    'url': subtitle_url,
+                    'ext': 'ttml' if ext == 'xml' else ext,
+                })
 
         return {
             'id': video_id,
