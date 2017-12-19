@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..utils import (
@@ -8,7 +10,6 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     xpath_text,
-    re,
 )
 
 
