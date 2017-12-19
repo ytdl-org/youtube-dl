@@ -55,7 +55,7 @@ class HeiseIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        url = re.sub(r'https?://(?:www\.|m\.)?heise\.de/',
+        url = re.sub(r'https?://(?:www\.)?heise\.de/',
                      'https://m.heise.de/',
                      url)
         video_id = self._match_id(url)
