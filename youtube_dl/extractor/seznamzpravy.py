@@ -44,12 +44,21 @@ class SeznamZpravyIE(InfoExtractor):
                 width, height = fmtdata.get('resolution')
             except (TypeError, ValueError):
                 width, height = None, None
+            tbr = int_or_none(fmtdata['bandwidth'])
+            if tbr:
+                tbr = int(tbr / 1000)
+            duration = int_or_none(fmtdata['duration'])
+            if duration:
+                duration = int(duration / 1000)
 
             formats.append({
                 'format_id': fmt,
                 'width': int_or_none(width),
                 'height': int_or_none(height),
                 'url': urljoin(sdn_url, relative_url),
+                'vcodec': fmtdata.get('codec'),
+                'tbr': tbr,
+                'duration': duration,
             })
 
         playlists = sdn_data.get('pls', {})
