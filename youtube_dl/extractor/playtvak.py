@@ -95,7 +95,7 @@ class PlaytvakIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         info_url = self._html_search_regex(
-            r'Misc\.videoFLV\(\s*{\s*data\s*:\s*"([^"]+)"', webpage, 'info url')
+            r'Misc\.video(?:FLV)?\(\s*{\s*data\s*:\s*"([^"]+)"', webpage, 'info url')
 
         parsed_url = compat_urlparse.urlparse(info_url)
 
