@@ -44,12 +44,6 @@ class SeznamZpravyIE(InfoExtractor):
                 width, height = fmtdata.get('resolution')
             except (TypeError, ValueError):
                 width, height = None, None
-            tbr = int_or_none(fmtdata['bandwidth'])
-            if tbr:
-                tbr = int(tbr / 1000)
-            duration = int_or_none(fmtdata['duration'])
-            if duration:
-                duration = int(duration / 1000)
 
             formats.append({
                 'format_id': fmt,
@@ -57,8 +51,8 @@ class SeznamZpravyIE(InfoExtractor):
                 'height': int_or_none(height),
                 'url': urljoin(sdn_url, relative_url),
                 'vcodec': fmtdata.get('codec'),
-                'tbr': tbr,
-                'duration': duration,
+                'tbr': int_or_none(fmtdata.get('bandwidth'), scale=1000),
+                'duration': int_or_none(fmtdata.get('duration'), scale=1000),
             })
 
         playlists = sdn_data.get('pls', {})
