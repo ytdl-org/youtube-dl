@@ -36,11 +36,11 @@ class PanoptoIE(PanoptoBaseIE):
     _TESTS = [
         {
             'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=26b3ae9e-4a48-4dcc-96ba-0befba08a0fb',
-            'md5': '06fb292a3510aa5bc5f0c950fe58c9f7',
+            'md5': 'e8e6ef6b0572dd5985f5f8c3e096f717',
             'info_dict': {
                 'id': '26b3ae9e-4a48-4dcc-96ba-0befba08a0fb',
                 'ext': 'mp4',
-                'title': 'Panopto for Business',
+                'title': 'Panopto for Business - Use Cases',
                 'uploader': 'Ari Bixhorn',
                 'upload_date': '20160328',
                 'timestamp': 1459184200.3759995,
@@ -64,7 +64,7 @@ class PanoptoIE(PanoptoBaseIE):
                     },
                 },
                 {
-                    'md5': '4396cbff07e7b883ca522a6783dc6a70',
+                    'md5': 'a483b8116abbb04a7112a9a3ccc835ce',
                     'info_dict': {
                         'id': '7668d6b2-dc81-421d-9853-20653689e2e8',
                         'ext': 'mp4',
@@ -199,32 +199,13 @@ class PanoptoFolderIE(PanoptoBaseIE):
     _VALID_URL = r'^https?://(?P<org>[a-z0-9]+)\.hosted\.panopto.com/Panopto/Pages/Sessions/List\.aspx#folderID=(?:"|%22)(?P<id>[a-f0-9-]+)'
     _TESTS = [
         {
-            'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID=%222a0546e0-c6c0-4ab1-bc79-5c0b0e801c4f%22',
+            'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID=%224540f269-8bb1-4352-b5dc-64e5919d1c40%22',
             'info_dict': {
-                'id': '2a0546e0-c6c0-4ab1-bc79-5c0b0e801c4f',
-                'title': 'End-to-End Demo',
+                'id': '4540f269-8bb1-4352-b5dc-64e5919d1c40',
+                'title': 'Demo',
             },
-            'playlist': [
-                {
-                    'info_dict': {
-                        'id': '70f7441d-01b5-4319-b399-6591e456b935',
-                        # Fails before download with this line (it claims it needs an ext field)
-                        # but fails after download when it's included because 'ext' should be None
-                        'ext': 'a',
-                        'title': 'b',
-                    },
-                    'playlist': [
-                        {
-                            'info_dict': {
-                                'id': 'c',
-                                'ext': 'd',
-                                'title': 'e',
-                            }
-                        }
-                    ],
-                },
-            ],
-        },
+            'playlist_count': 4,
+        }
     ]
 
     def _real_extract(self, url):
