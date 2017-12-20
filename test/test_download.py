@@ -56,9 +56,9 @@ class YoutubeDL(youtube_dl.YoutubeDL):
         return super(YoutubeDL, self).process_info(info_dict)
 
 
-def _file_md5(fn):
+def _file_md5(fn, size=-1):
     with open(fn, 'rb') as f:
-        return hashlib.md5(f.read()).hexdigest()
+        return hashlib.md5(f.read(size)).hexdigest()
 
 
 defs = gettestcases()
@@ -224,8 +224,8 @@ def generator(test_case, tname):
                             (tc_filename, format_bytes(expected_minsize),
                                 format_bytes(got_fsize)))
                     if 'md5' in tc:
-                        md5_for_file = _file_md5(tc_filename)
-                        self.assertEqual(tc['md5'], md5_for_file)
+                        if tc['md5'] != _file_md5(tc_filename):
+                            self.assertEqual(tc['md5'], _file_md5(tc_filename, 10241))
                 # Finally, check test cases' data again but this time against
                 # extracted data from info JSON file written during processing
                 info_json_fn = os.path.splitext(tc_filename)[0] + '.info.json'
