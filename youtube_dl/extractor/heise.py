@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class HeiseIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|m\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
     _TESTS = [{
         'url': 'http://www.heise.de/video/artikel/Podcast-c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2404147.html',
         'md5': 'ffed432483e922e88545ad9f2f15d30e',
