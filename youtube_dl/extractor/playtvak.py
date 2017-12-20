@@ -24,7 +24,7 @@ class PlaytvakIE(InfoExtractor):
             'id': 'A150730_150323_hodinovy-manzel_kuko',
             'ext': 'mp4',
             'title': 'Vyžeňte vosy a sršně ze zahrady',
-            'description': 'md5:f93d398691044d303bc4a3de62f3e976',
+            'description': 'md5:4436e61b7df227a093778efb7e373571',
             'thumbnail': r're:(?i)^https?://.*\.(?:jpg|png)$',
             'duration': 279,
             'timestamp': 1438732860,
@@ -36,9 +36,8 @@ class PlaytvakIE(InfoExtractor):
         'info_dict': {
             'id': 'A150624_164934_planespotting_cat',
             'ext': 'flv',
-            'title': 're:^Přímý přenos iDNES.cz [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'title': 're:^Planespotting [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'description': 'Sledujte provoz na ranveji Letiště Václava Havla v Praze',
-            'thumbnail': r're:(?i)^https?://.*\.(?:jpg|png)$',
             'is_live': True,
         },
         'params': {
