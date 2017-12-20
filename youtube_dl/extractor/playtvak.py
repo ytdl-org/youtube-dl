@@ -158,7 +158,7 @@ class PlaytvakIE(InfoExtractor):
         if is_live:
             title = self._live_title(title)
         description = self._og_search_description(webpage, default=None) or self._html_search_meta(
-            'description', webpage, 'description')
+            'description', webpage, 'description', default=None)
         timestamp = None
         duration = None
         if not is_live:
