@@ -85,7 +85,7 @@ class AnimeOnDemandIE(InfoExtractor):
 
         if all(p not in response for p in ('>Logout<', 'href="/users/sign_out"')):
             error = self._search_regex(
-                r'<p[^>]+\bclass=(["\'])(?:(?!\1).)*\balert\s(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</p>',
+                r'<p[^>]+\bclass=(["\'])(?:(?!\1).)*\balert\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</p>',
                 response, 'error', default=None, group='error')
             if error:
                 raise ExtractorError('Unable to login: %s' % error, expected=True)
