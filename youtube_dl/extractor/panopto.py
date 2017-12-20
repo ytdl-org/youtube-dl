@@ -196,7 +196,7 @@ class PanoptoIE(PanoptoBaseIE):
 class PanoptoFolderIE(PanoptoBaseIE):
     """Recursively extracts a folder of Panopto videos, digging as far as possible into subfolders."""
 
-    _VALID_URL = r'^https?://(?P<org>[a-z0-9]+)\.hosted\.panopto.com/Panopto/Pages/Sessions/List\.aspx#folderID=(?:"|%22)(?P<id>[a-f0-9-]+)'
+    _VALID_URL = r'^https?://(?P<org>[a-z0-9]+)\.hosted\.panopto.com/Panopto/Pages/Sessions/List\.aspx(?:\?.*)?#(?:.*&)?folderID=(?:"|%22)(?P<id>[a-f0-9-]+)'
     _TESTS = [
         {
             'url': 'https://demo.hosted.panopto.com/Panopto/Pages/Sessions/List.aspx#folderID=%224540f269-8bb1-4352-b5dc-64e5919d1c40%22',
