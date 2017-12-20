@@ -57,7 +57,7 @@ class HeiseIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobile_url = re.sub(r'^(https?://)(?:www\.)?', r'\1m.', url)
-        video_id = self._match_id(mobile_url)
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         mobile_webpage = self._download_webpage(mobile_url, video_id)
 
