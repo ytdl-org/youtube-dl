@@ -32,11 +32,12 @@ class PlaytvakIE(InfoExtractor):
             'is_live': False,
         }
     }, {  # live video test
-        'url': 'https://slowtv.playtvak.cz/zive-sledujte-vlaky-v-primem-prenosu-dwi-/hlavni-nadrazi.aspx?c=A151218_145728_hlavni-nadrazi_plap',
+        'url': 'http://slowtv.playtvak.cz/planespotting-0pr-/planespotting.aspx?c=A150624_164934_planespotting_cat',
         'info_dict': {
-            'id': 'A151218_145728_hlavni-nadrazi_plap',
+            'id': 'A150624_164934_planespotting_cat',
             'ext': 'flv',
-            'title': 're:^Hlavní nádraží [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'title': 're:^Planespotting [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'Sledujte provoz na ranveji Letiště Václava Havla v Praze',
             'is_live': True,
         },
         'params': {
