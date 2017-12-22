@@ -43,6 +43,17 @@ class PlaytvakIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires rtmpdump
         },
+    }, {  # another live stream, this one without Misc.videoFLV
+        'url': 'https://slowtv.playtvak.cz/zive-sledujte-vlaky-v-primem-prenosu-dwi-/hlavni-nadrazi.aspx?c=A151218_145728_hlavni-nadrazi_plap',
+        'info_dict': {
+            'id': 'A151218_145728_hlavni-nadrazi_plap',
+            'ext': 'flv',
+            'title': 're:^Hlavní nádraží [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,  # requires rtmpdump
+        },
     }, {  # idnes.cz
         'url': 'http://zpravy.idnes.cz/pes-zavreny-v-aute-rozbijeni-okynek-v-aute-fj5-/domaci.aspx?c=A150809_104116_domaci_pku',
         'md5': '819832ba33cd7016e58a6658577fe289',
