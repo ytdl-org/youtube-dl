@@ -276,9 +276,9 @@ class YoukuShowIE(InfoExtractor):
             r'<div[^>]+id="(reload_\d+)', first_page, 'first page reload id')
         # The first reload_id has the same items as first_page
         reload_ids = re.findall('<li[^>]+data-id="([^"]+)">', first_page)
+        entries.extend(initial_entries)
         for idx, reload_id in enumerate(reload_ids):
             if reload_id == first_page_reload_id:
-                entries.extend(initial_entries)
                 continue
             _, new_entries = self._extract_entries(
                 'http://list.youku.com/show/episode', show_id,
