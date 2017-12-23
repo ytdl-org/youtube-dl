@@ -129,7 +129,7 @@ class KalturaIE(InfoExtractor):
                             entry_?[Ii]d|
                             (?P<q2>["'])entry_?[Ii]d(?P=q2)
                         )\s*:\s*|
-                        \[\s*(?P<q2_1>["'])entry_?[Ii]d(?P=q2_1)\s*\]?\s*=\s*
+                        \[\s*(?P<q2_1>["'])entry_?[Ii]d(?P=q2_1)\s*\]\s*=\s*
                     )
                     (?P<q3>["'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage) or
