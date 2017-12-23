@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class CCMAIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:www\.)?ccma\.cat/(?:[^/]+/)*?(?P<type>video|audio)/(?P<id1>\d+).*$|^https?://(?:www\.)?ccma\.cat/(?P<channel>tv3|catradio)/(?:[^/]+/)*?(?P<id2>\d+)/?$'
+    _VALID_URL = r'^https?://(?:www\.)?ccma\.cat/((?:[^/]+/)*?(?P<type>video|audio)/(?P<id1>\d+)|(?P<channel>tv3|catradio)/(?:[^/]+/)*?(?P<id2>\d+)/?$)'
     _TESTS = [{
         'url': 'http://www.ccma.cat/tv3/alacarta/lespot-de-la-marato-de-tv3/lespot-de-la-marato-de-tv3/video/5630208/',
         'md5': '7296ca43977c8ea4469e719c609b0871',
@@ -44,6 +44,17 @@ class CCMAIE(InfoExtractor):
             'ext': 'mp4',
             'description': 'md5:feca2bcac2bace0c37395f625ea4065e',
             'title': 'Arrimadas (Cs): "Hem guanyat les eleccions al Parlament de Catalunya"'
+        }
+    }, {
+        'url': 'http://www.ccma.cat/catradio/alacarta/lendema-del-21d/sabria-erc-no-ens-podem-entretenir-ni-un-moment-per-formar-govern/coleccio/11011/986031/',
+        'md5': '471586ce88bcbbdd031afafe75ec72e0',
+        'info_dict': {
+            'id': '986031',
+            'ext': 'mp3',
+            'upload_date': '20181210',
+            'title': 'Sabrià (ERC): "No ens podem entretenir ni un moment per formar govern"',
+            'description': 'md5:faf8ec9faf2115fbf462ad3f7ad175df',
+            'timestamp': 1544424300,
         }
     }]
 
