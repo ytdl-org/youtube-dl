@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class CCMAIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ccma\.cat/(?P<channel>tv3|catradio|[^/*])(?:[^/]+/)*?(?P<type>audio|video|[^/]*)/(?P<id>\d+)/?$'
+    _VALID_URL = r'^https?://(?:www\.)?ccma\.cat/(?:[^/]+/)*?(?P<type>video|audio)/(?P<id1>\d+).*$|^https?://(?:www\.)?ccma\.cat/(?P<channel>tv3|catradio)/(?:[^/]+/)*?(?P<id2>\d+)/?$'
     _TESTS = [{
         'url': 'http://www.ccma.cat/tv3/alacarta/lespot-de-la-marato-de-tv3/lespot-de-la-marato-de-tv3/video/5630208/',
         'md5': '7296ca43977c8ea4469e719c609b0871',
@@ -49,20 +49,13 @@ class CCMAIE(InfoExtractor):
 
     def _real_extract(self, url):
         m = re.match(self._VALID_URL, url)
-        url_channel = m.group('channel')
-        url_type = m.group('type')
-        # Heuristics to guess media type
-        if url_type == 'video':
-            media_type = 'video'
-        elif url_type == 'audio':
-            media_type = 'audio'
-        elif url_channel == 'tv3':
-            media_type = 'video'
-        elif url_channel == 'catradio':
-            media_type = 'audio'
-        else:
-            media_type = 'video'
-        media_id = m.group('id')
+        if m.group('type'):
+            media_type = m.group('type')
+            media_id   = m.group('id1')
+        elif m.group('channel'):
+            channel_to_type = {'tv3':'video','catradio':'audio'}
+            media_type = channel_to_type[m.group('channel')]
+            media_id = m.group('id2')
         media_data = {}
         formats = []
         profiles = ['pc'] if media_type == 'audio' else ['mobil', 'pc']
