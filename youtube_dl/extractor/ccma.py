@@ -62,9 +62,9 @@ class CCMAIE(InfoExtractor):
         m = re.match(self._VALID_URL, url)
         if m.group('type'):
             media_type = m.group('type')
-            media_id   = m.group('id1')
+            media_id = m.group('id1')
         elif m.group('channel'):
-            channel_to_type = {'tv3':'video','catradio':'audio'}
+            channel_to_type = {'tv3': 'video', 'catradio': 'audio'}
             media_type = channel_to_type[m.group('channel')]
             media_id = m.group('id2')
         media_data = {}
