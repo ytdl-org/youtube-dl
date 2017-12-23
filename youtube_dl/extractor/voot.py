@@ -16,7 +16,7 @@ class VootIE(InfoExtractor):
     _TESTS = [{
         'url': 'https://www.voot.com/shows/ishq-ka-rang-safed/1/360558/is-this-the-end-of-kamini-/441353',
         'info_dict': {
-            'id': '441353',
+            'id': '0_8ledb18o',
             'ext': 'mp4',
             'title': 'Ishq Ka Rang Safed - Season 01 - Episode 340',
             'description': 'md5:06291fbbbc4dcbe21235c40c262507c1',
@@ -59,9 +59,10 @@ class VootIE(InfoExtractor):
 
         media = media_info['assets']
 
+        entry_id = media['EntryId']
         title = media['MediaName']
         formats = self._extract_m3u8_formats(
-            'https://cdnapisec.kaltura.com/p/1982551/playManifest/pt/https/f/applehttp/t/web/e/' + media['EntryId'],
+            'https://cdnapisec.kaltura.com/p/1982551/playManifest/pt/https/f/applehttp/t/web/e/' + entry_id,
             video_id, 'mp4', m3u8_id='hls')
         self._sort_formats(formats)
 
@@ -83,7 +84,8 @@ class VootIE(InfoExtractor):
                 episode_number = int_or_none(value)
 
         return {
-            'id': video_id,
+            'extractor_key': 'Kaltura',
+            'id': entry_id,
             'title': title,
             'description': description,
             'series': series,
