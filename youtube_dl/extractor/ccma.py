@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class CCMAIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ccma\.cat/(?:[^/]+/)*?(?P<type>video|audio)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ccma\.cat/(?P<channel>tv3|catradio|[^/*])(?:[^/]+/)*?(?P<type>audio|video|[^/]*)/(?P<id>\d+)/?$'
     _TESTS = [{
         'url': 'http://www.ccma.cat/tv3/alacarta/lespot-de-la-marato-de-tv3/lespot-de-la-marato-de-tv3/video/5630208/',
         'md5': '7296ca43977c8ea4469e719c609b0871',
@@ -36,10 +36,33 @@ class CCMAIE(InfoExtractor):
             'upload_date': '20171205',
             'timestamp': 1512507300,
         }
+    }, {
+        'url': 'http://www.ccma.cat/tv3/alacarta/e17-tots-els-videos-de-les-eleccions-del-21d/arrimadas-cs-hem-guanyat-les-eleccions-al-parlament-de-catalunya/coleccio/10970/5711075/',
+        'md5': '4cab47c2c3eb1312ab17771b1848c1ad',
+        'info_dict': {
+            'id': '5711075',
+            'ext': 'mp4',
+            'description': 'md5:feca2bcac2bace0c37395f625ea4065e',
+            'title': 'Arrimadas (Cs): "Hem guanyat les eleccions al Parlament de Catalunya"'
+        }
     }]
 
     def _real_extract(self, url):
-        media_type, media_id = re.match(self._VALID_URL, url).groups()
+        m = re.match(self._VALID_URL, url)
+        url_channel = m.group('channel')
+        url_type = m.group('type')
+        # Heuristics to guess media type
+        if url_type == 'video':
+            media_type = 'video'
+        elif url_type == 'audio':
+            media_type = 'audio'
+        elif url_channel == 'tv3':
+            media_type = 'video'
+        elif url_channel == 'catradio':
+            media_type = 'audio'
+        else:
+            media_type = 'video'
+        media_id = m.group('id')
         media_data = {}
         formats = []
         profiles = ['pc'] if media_type == 'audio' else ['mobil', 'pc']
