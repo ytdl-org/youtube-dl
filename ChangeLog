@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.12.23
 
 Core
 * [extractor/common] Move X-Forwarded-For setup code into _request_webpage

@@ -10,6 +10,7 @@
  - **56.com**
  - **5min**
  - **6play**
+ - **7plus**
  - **8tracks**
  - **91porn**
  - **9c9media**
@@ -728,6 +729,7 @@
  - **Servus**
  - **Sexu**
  - **Shahid**
+ - **ShahidShow**
  - **Shared**: shared.sx
  - **ShowRoomLive**
  - **Sina**
