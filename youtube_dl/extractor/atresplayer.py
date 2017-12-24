@@ -132,9 +132,11 @@ class AtresPlayerIE(InfoExtractor):
                 'url': video_url,
                 'format_id': 'http',
             }
-            mobj = re.search(r'(?P<bitrate>\d+)K_(?P<width>\d+)x(?P<height>\d+)', video_url)
+            mobj = re.search(r'(?P<bitrate>\d+)K_(?P<width>\d+)x(?P<height>\d+)', video_url)\
+                    or re.search(r'video_(?P<width>\d+)(x(?P<height>\d+))?_(?P<bitrate>\d+)', video_url)
             if mobj:
                 format_info.update({
+                    'preference': -40,
                     'width': int_or_none(mobj.group('width')),
                     'height': int_or_none(mobj.group('height')),
                     'tbr': int_or_none(mobj.group('bitrate')),
