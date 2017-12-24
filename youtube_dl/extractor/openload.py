@@ -112,6 +112,8 @@ class PhantomJSwrapper(object):
         return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
 
     def __init__(self, extractor, required_version=None, timeout=10000):
+        self._TMP_FILES = {}
+
         self.exe = check_executable('phantomjs', ['-v'])
         if not self.exe:
             raise ExtractorError('PhantomJS executable not found in PATH, '
@@ -130,7 +132,6 @@ class PhantomJSwrapper(object):
         self.options = {
             'timeout': timeout,
         }
-        self._TMP_FILES = {}
         for name in self._TMP_FILE_NAMES:
             tmp = tempfile.NamedTemporaryFile(delete=False)
             tmp.close()
@@ -140,7 +141,7 @@ class PhantomJSwrapper(object):
         for name in self._TMP_FILE_NAMES:
             try:
                 os.remove(self._TMP_FILES[name].name)
-            except (IOError, OSError):
+            except (IOError, OSError, KeyError):
                 pass
 
     def _save_cookies(self, url):
