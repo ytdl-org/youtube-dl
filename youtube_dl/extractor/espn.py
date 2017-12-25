@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from .once import OnceIE
 from ..compat import compat_str
 from ..utils import (
     determine_ext,
@@ -9,22 +12,27 @@ from ..utils import (
 )
 
 
-class ESPNIE(InfoExtractor):
+class ESPNIE(OnceIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:(?:\w+\.)+)?espn\.go|
-                            (?:www\.)?espn
-                        )\.com/
-                        (?:
                             (?:
-                                video/clip|
-                                watch/player
-                            )
-                            (?:
-                                \?.*?\bid=|
-                                /_/id/
-                            )
+                                (?:
+                                    (?:(?:\w+\.)+)?espn\.go|
+                                    (?:www\.)?espn
+                                )\.com/
+                                (?:
+                                    (?:
+                                        video/(?:clip|iframe/twitter)|
+                                        watch/player
+                                    )
+                                    (?:
+                                        .*?\?.*?\bid=|
+                                        /_/id/
+                                    )
+                                )
+                            )|
+                            (?:www\.)espnfc\.(?:com|us)/(?:video/)?[^/]+/\d+/video/
                         )
                         (?P<id>\d+)
                     '''
@@ -77,6 +85,15 @@ class ESPNIE(InfoExtractor):
     }, {
         'url': 'http://www.espn.com/video/clip/_/id/17989860',
         'only_matching': True,
+    }, {
+        'url': 'https://espn.go.com/video/iframe/twitter/?cms=espn&id=10365079',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espnfc.us/video/espn-fc-tv/86/video/3319154/nashville-unveiled-as-the-newest-club-in-mls',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espnfc.com/english-premier-league/23/video/3324163/premier-league-in-90-seconds-golden-tweets',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -93,7 +110,9 @@ class ESPNIE(InfoExtractor):
 
         def traverse_source(source, base_source_id=None):
             for source_id, source in source.items():
-                if isinstance(source, compat_str):
+                if source_id == 'alert':
+                    continue
+                elif isinstance(source, compat_str):
                     extract_source(source, base_source_id)
                 elif isinstance(source, dict):
                     traverse_source(
@@ -106,7 +125,9 @@ class ESPNIE(InfoExtractor):
                 return
             format_urls.add(source_url)
             ext = determine_ext(source_url)
-            if ext == 'smil':
+            if OnceIE.suitable(source_url):
+                formats.extend(self._extract_once_formats(source_url))
+            elif ext == 'smil':
                 formats.extend(self._extract_smil_formats(
                     source_url, video_id, fatal=False))
             elif ext == 'f4m':
@@ -117,12 +138,24 @@ class ESPNIE(InfoExtractor):
                     source_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id=source_id, fatal=False))
             else:
-                formats.append({
+                f = {
                     'url': source_url,
                     'format_id': source_id,
-                })
+                }
+                mobj = re.search(r'(\d+)p(\d+)_(\d+)k\.', source_url)
+                if mobj:
+                    f.update({
+                        'height': int(mobj.group(1)),
+                        'fps': int(mobj.group(2)),
+                        'tbr': int(mobj.group(3)),
+                    })
+                if source_id == 'mezzanine':
+                    f['preference'] = 1
+                formats.append(f)
 
-        traverse_source(clip['links']['source'])
+        links = clip.get('links', {})
+        traverse_source(links.get('source', {}))
+        traverse_source(links.get('mobile', {}))
         self._sort_formats(formats)
 
         description = clip.get('caption') or clip.get('description')
@@ -144,9 +177,6 @@ class ESPNIE(InfoExtractor):
 class ESPNArticleIE(InfoExtractor):
     _VALID_URL = r'https?://(?:espn\.go|(?:www\.)?espn)\.com/(?:[^/]+/)*(?P<id>[^/]+)'
     _TESTS = [{
-        'url': 'https://espn.go.com/video/iframe/twitter/?cms=espn&id=10365079',
-        'only_matching': True,
-    }, {
         'url': 'http://espn.go.com/nba/recap?gameId=400793786',
         'only_matching': True,
     }, {
