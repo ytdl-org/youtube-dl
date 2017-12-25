@@ -1,7 +1,8 @@
 version <unreleased>
 
 Extractors
-* [youku] Update ccode
+* [youku] Update ccode (#14880)
+* [youku] Fix list extraction (#15065)
 
 
 version 2017.12.23
