@@ -3,14 +3,16 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from urllib.request import Request
-from urllib.parse import urlencode
-from urllib import parse
 import json
 import random as rnd
 from os import path
 import re
 
+from ..compat import (
+    compat_urllib_parse_urlencode as urlencode,
+    compat_urllib_request as Request,
+    compat_urlparse as parse,
+)
 from ..utils import (
     js_to_json,
 )
