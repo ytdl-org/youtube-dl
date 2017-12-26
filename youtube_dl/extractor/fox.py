@@ -11,6 +11,7 @@ from ..utils import (
     parse_duration,
     try_get,
     unified_timestamp,
+    update_url_query,
 )
 
 
@@ -62,7 +63,8 @@ class FOXIE(AdobePassIE):
         duration = int_or_none(video.get('durationInSeconds')) or int_or_none(
             video.get('duration')) or parse_duration(video.get('duration'))
         timestamp = unified_timestamp(video.get('datePublished'))
-        age_limit = parse_age_limit(video.get('contentRating'))
+        rating = video.get('contentRating')
+        age_limit = parse_age_limit(rating)
 
         data = try_get(
             video, lambda x: x['trackingData']['properties'], dict) or {}
@@ -77,8 +79,24 @@ class FOXIE(AdobePassIE):
         release_year = int_or_none(video.get('releaseYear'))
 
         if data.get('authRequired'):
-            # TODO: AP
-            pass
+            resource = self._get_mvpd_resource(
+                'fbc-fox', title, video.get('guid'), rating)
+            release_url = update_url_query(
+                release_url, {
+                    'auth': self._extract_mvpd_auth(
+                        url, video_id, 'fbc-fox', resource)
+                })
+
+        subtitles = {}
+        for doc_rel in video.get('documentReleases', []):
+            rel_url = doc_rel.get('url')
+            if not url or doc_rel.get('format') != 'SCC':
+                continue
+            subtitles['en'] = [{
+                'url': rel_url,
+                'ext': 'scc',
+            }]
+            break
 
         info = {
             'id': video_id,
@@ -93,6 +111,7 @@ class FOXIE(AdobePassIE):
             'episode': episode,
             'episode_number': episode_number,
             'release_year': release_year,
+            'subtitles': subtitles,
         }
 
         urlh = self._request_webpage(HEADRequest(release_url), video_id)

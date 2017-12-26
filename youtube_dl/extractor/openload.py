@@ -112,6 +112,8 @@ class PhantomJSwrapper(object):
         return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
 
     def __init__(self, extractor, required_version=None, timeout=10000):
+        self._TMP_FILES = {}
+
         self.exe = check_executable('phantomjs', ['-v'])
         if not self.exe:
             raise ExtractorError('PhantomJS executable not found in PATH, '
@@ -130,7 +132,6 @@ class PhantomJSwrapper(object):
         self.options = {
             'timeout': timeout,
         }
-        self._TMP_FILES = {}
         for name in self._TMP_FILE_NAMES:
             tmp = tempfile.NamedTemporaryFile(delete=False)
             tmp.close()
@@ -140,7 +141,7 @@ class PhantomJSwrapper(object):
         for name in self._TMP_FILE_NAMES:
             try:
                 os.remove(self._TMP_FILES[name].name)
-            except (IOError, OSError):
+            except (IOError, OSError, KeyError):
                 pass
 
     def _save_cookies(self, url):
@@ -242,7 +243,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.tv)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -288,6 +289,9 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.openload.link/f/KnG-kKZdcfY',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.stream/f/KnG-kKZdcfY',
         'only_matching': True,
     }]
 

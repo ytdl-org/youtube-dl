@@ -464,7 +464,7 @@ class BrightcoveNewIE(AdobePassIE):
             'timestamp': 1441391203,
             'upload_date': '20150904',
             'uploader_id': '929656772001',
-            'formats': 'mincount:22',
+            'formats': 'mincount:20',
         },
     }, {
         # with rtmp streams
@@ -478,7 +478,7 @@ class BrightcoveNewIE(AdobePassIE):
             'timestamp': 1433556729,
             'upload_date': '20150606',
             'uploader_id': '4036320279001',
-            'formats': 'mincount:41',
+            'formats': 'mincount:39',
         },
         'params': {
             # m3u8 download
@@ -564,59 +564,7 @@ class BrightcoveNewIE(AdobePassIE):
 
         return entries
 
-    def _real_extract(self, url):
-        url, smuggled_data = unsmuggle_url(url, {})
-        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
-
-        account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
-
-        webpage = self._download_webpage(
-            'http://players.brightcove.net/%s/%s_%s/index.min.js'
-            % (account_id, player_id, embed), video_id)
-
-        policy_key = None
-
-        catalog = self._search_regex(
-            r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
-        if catalog:
-            catalog = self._parse_json(
-                js_to_json(catalog), video_id, fatal=False)
-            if catalog:
-                policy_key = catalog.get('policyKey')
-
-        if not policy_key:
-            policy_key = self._search_regex(
-                r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
-                webpage, 'policy key', group='pk')
-
-        api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id)
-        try:
-            json_data = self._download_json(api_url, video_id, headers={
-                'Accept': 'application/json;pk=%s' % policy_key
-            })
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                json_data = self._parse_json(e.cause.read().decode(), video_id)[0]
-                message = json_data.get('message') or json_data['error_code']
-                if json_data.get('error_subcode') == 'CLIENT_GEO':
-                    self.raise_geo_restricted(msg=message)
-                raise ExtractorError(message, expected=True)
-            raise
-
-        errors = json_data.get('errors')
-        if errors and errors[0].get('error_subcode') == 'TVE_AUTH':
-            custom_fields = json_data['custom_fields']
-            tve_token = self._extract_mvpd_auth(
-                smuggled_data['source_url'], video_id,
-                custom_fields['bcadobepassrequestorid'],
-                custom_fields['bcadobepassresourceid'])
-            json_data = self._download_json(
-                api_url, video_id, headers={
-                    'Accept': 'application/json;pk=%s' % policy_key
-                }, query={
-                    'tveToken': tve_token,
-                })
-
+    def _parse_brightcove_metadata(self, json_data, video_id):
         title = json_data['name'].strip()
 
         formats = []
@@ -682,6 +630,7 @@ class BrightcoveNewIE(AdobePassIE):
                     })
                 formats.append(f)
 
+        errors = json_data.get('errors')
         if not formats and errors:
             error = errors[0]
             raise ExtractorError(
@@ -708,9 +657,64 @@ class BrightcoveNewIE(AdobePassIE):
             'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
             'duration': duration,
             'timestamp': parse_iso8601(json_data.get('published_at')),
-            'uploader_id': account_id,
+            'uploader_id': json_data.get('account_id'),
             'formats': formats,
             'subtitles': subtitles,
             'tags': json_data.get('tags', []),
             'is_live': is_live,
         }
+
+    def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+
+        account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
+
+        webpage = self._download_webpage(
+            'http://players.brightcove.net/%s/%s_%s/index.min.js'
+            % (account_id, player_id, embed), video_id)
+
+        policy_key = None
+
+        catalog = self._search_regex(
+            r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
+        if catalog:
+            catalog = self._parse_json(
+                js_to_json(catalog), video_id, fatal=False)
+            if catalog:
+                policy_key = catalog.get('policyKey')
+
+        if not policy_key:
+            policy_key = self._search_regex(
+                r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
+                webpage, 'policy key', group='pk')
+
+        api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id)
+        try:
+            json_data = self._download_json(api_url, video_id, headers={
+                'Accept': 'application/json;pk=%s' % policy_key
+            })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                json_data = self._parse_json(e.cause.read().decode(), video_id)[0]
+                message = json_data.get('message') or json_data['error_code']
+                if json_data.get('error_subcode') == 'CLIENT_GEO':
+                    self.raise_geo_restricted(msg=message)
+                raise ExtractorError(message, expected=True)
+            raise
+
+        errors = json_data.get('errors')
+        if errors and errors[0].get('error_subcode') == 'TVE_AUTH':
+            custom_fields = json_data['custom_fields']
+            tve_token = self._extract_mvpd_auth(
+                smuggled_data['source_url'], video_id,
+                custom_fields['bcadobepassrequestorid'],
+                custom_fields['bcadobepassresourceid'])
+            json_data = self._download_json(
+                api_url, video_id, headers={
+                    'Accept': 'application/json;pk=%s' % policy_key
+                }, query={
+                    'tveToken': tve_token,
+                })
+
+        return self._parse_brightcove_metadata(json_data, video_id)

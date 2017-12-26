@@ -511,6 +511,9 @@ The basic usage is not to set any template arguments when downloading a single f
  - `average_rating` (numeric): Average rating give by users, the scale used depends on the webpage
  - `comment_count` (numeric): Number of comments on the video
  - `age_limit` (numeric): Age restriction for the video (years)
+ - `is_live` (boolean): Whether this video is a live stream or a fixed-length video
+ - `start_time` (numeric): Time in seconds where the reproduction should start, as specified in the URL
+ - `end_time` (numeric): Time in seconds where the reproduction should end, as specified in the URL
  - `format` (string): A human-readable description of the format 
  - `format_id` (string): Format code specified by `--format`
  - `format_note` (string): Additional info about the format
@@ -536,6 +539,8 @@ The basic usage is not to set any template arguments when downloading a single f
  - `playlist_index` (numeric): Index of the video in the playlist padded with leading zeros according to the total length of the playlist
  - `playlist_id` (string): Playlist identifier
  - `playlist_title` (string): Playlist title
+ - `playlist_uploader` (string): Full name of the playlist uploader
+ - `playlist_uploader_id` (string): Nickname or id of the playlist uploader
 
 Available for the video that belongs to some logical chapter or section:
 

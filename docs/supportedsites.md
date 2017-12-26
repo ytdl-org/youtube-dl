@@ -10,6 +10,7 @@
  - **56.com**
  - **5min**
  - **6play**
+ - **7plus**
  - **8tracks**
  - **91porn**
  - **9c9media**
@@ -122,7 +123,6 @@
  - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
  - **BuzzFeed**
  - **BYUtv**
- - **BYUtvEvent**
  - **Camdemy**
  - **CamdemyFolder**
  - **CamWithHer**
@@ -198,7 +198,6 @@
  - **dailymotion**
  - **dailymotion:playlist**
  - **dailymotion:user**
- - **DailymotionCloud**
  - **DaisukiMotto**
  - **DaisukiMottoPlaylist**
  - **daum.net**
@@ -243,8 +242,9 @@
  - **eHow**
  - **Einthusan**
  - **eitb.tv**
- - **EllenTV**
- - **EllenTV:clips**
+ - **EllenTube**
+ - **EllenTubePlaylist**
+ - **EllenTubeVideo**
  - **ElPais**: El País
  - **Embedly**
  - **EMPFlix**
@@ -538,6 +538,7 @@
  - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
  - **nick.de**
+ - **nickelodeon:br**
  - **nickelodeonru**
  - **nicknight**
  - **niconico**: ニコニコ動画
@@ -556,8 +557,6 @@
  - **nowness**
  - **nowness:playlist**
  - **nowness:series**
- - **NowTV** (Currently broken)
- - **NowTVList**
  - **nowvideo**: NowVideo
  - **Noz**
  - **npo**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
@@ -662,6 +661,7 @@
  - **Rai**
  - **RaiPlay**
  - **RaiPlayLive**
+ - **RaiPlayPlaylist**
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
@@ -729,6 +729,7 @@
  - **Servus**
  - **Sexu**
  - **Shahid**
+ - **ShahidShow**
  - **Shared**: shared.sx
  - **ShowRoomLive**
  - **Sina**
@@ -781,6 +782,7 @@
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
+ - **StretchInternet**
  - **SunPorno**
  - **SVT**
  - **SVTPlay**: SVT Play and Öppet arkiv
@@ -792,7 +794,7 @@
  - **tagesschau:player**
  - **Tass**
  - **TastyTrade**
- - **TBS** (Currently broken)
+ - **TBS**
  - **TDSLifeway**
  - **teachertube**: teachertube.com videos
  - **teachertube:user:collection**: teachertube.com user and collection videos
@@ -863,6 +865,8 @@
  - **tvland.com**
  - **TVN24**
  - **TVNoe**
+ - **TVNow**
+ - **TVNowList**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
  - **tvp:series**

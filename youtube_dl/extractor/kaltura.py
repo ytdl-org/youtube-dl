@@ -125,9 +125,12 @@ class KalturaIE(InfoExtractor):
                         (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
-                        entry_?[Ii]d|
-                        (?P<q2>["'])entry_?[Ii]d(?P=q2)
-                    )\s*:\s*
+                        (?:
+                            entry_?[Ii]d|
+                            (?P<q2>["'])entry_?[Ii]d(?P=q2)
+                        )\s*:\s*|
+                        \[\s*(?P<q2_1>["'])entry_?[Ii]d(?P=q2_1)\s*\]\s*=\s*
+                    )
                     (?P<q3>["'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage) or
             re.search(

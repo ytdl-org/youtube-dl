@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .kaltura import KalturaIE
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -21,7 +20,6 @@ class VootIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ishq Ka Rang Safed - Season 01 - Episode 340',
             'description': 'md5:06291fbbbc4dcbe21235c40c262507c1',
-            'uploader_id': 'batchUser',
             'timestamp': 1472162937,
             'upload_date': '20160825',
             'duration': 1146,
@@ -63,6 +61,10 @@ class VootIE(InfoExtractor):
 
         entry_id = media['EntryId']
         title = media['MediaName']
+        formats = self._extract_m3u8_formats(
+            'https://cdnapisec.kaltura.com/p/1982551/playManifest/pt/https/f/applehttp/t/web/e/' + entry_id,
+            video_id, 'mp4', m3u8_id='hls')
+        self._sort_formats(formats)
 
         description, series, season_number, episode, episode_number = [None] * 5
 
@@ -82,9 +84,8 @@ class VootIE(InfoExtractor):
                 episode_number = int_or_none(value)
 
         return {
-            '_type': 'url_transparent',
-            'url': 'kaltura:1982551:%s' % entry_id,
-            'ie_key': KalturaIE.ie_key(),
+            'extractor_key': 'Kaltura',
+            'id': entry_id,
             'title': title,
             'description': description,
             'series': series,
@@ -95,4 +96,5 @@ class VootIE(InfoExtractor):
             'duration': int_or_none(media.get('Duration')),
             'view_count': int_or_none(media.get('ViewCounter')),
             'like_count': int_or_none(media.get('like_counter')),
+            'formats': formats,
         }
