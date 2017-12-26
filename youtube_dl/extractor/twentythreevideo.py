@@ -1,45 +1,77 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class TwentyThreeVideoIE(InfoExtractor):
     IE_NAME = '23video'
-    _VALID_URL = r'https?://(?:www\.)?(?P<client>[\w-]+)\.23video\.com/v.ihtml/player.html.*photo_id=(?P<id>\d+)'
-    _TEST = {}
-
-    _URL_TEMPLATE = 'https://%s.23video.com/%s/%s/%s/%s/download-video.mp4'
-    _FORMATS = {
-        'video_hd': {
-            'width': 1280,
-            'height': 720,
-        },
-        'video_medium': {
-            'width': 640,
-            'height': 360,
-        },
-        'video_mobile_high': {
-            'width': 320,
-            'height': 180,
+    _VALID_URL = r'https?://video\.(?P<domain>twentythree\.net|23video\.com|filmweb\.no)/v\.ihtml/player\.html\?(?P<query>.*?\bphoto(?:_|%5f)id=(?P<id>\d+).*)'
+    _TEST = {
+        'url': 'https://video.twentythree.net/v.ihtml/player.html?showDescriptions=0&source=site&photo%5fid=20448876&autoPlay=1',
+        'md5': '75fcf216303eb1dae9920d651f85ced4',
+        'info_dict': {
+            'id': '20448876',
+            'ext': 'mp4',
+            'title': 'Video Marketing Minute: Personalized Video',
+            'timestamp': 1513855354,
+            'upload_date': '20171221',
+            'uploader_id': '12258964',
+            'uploader': 'Rasmus Bysted',
         }
     }
 
-    def _extract_formats(self, url, client_id):
-        client_name = self._search_regex(r'([a-z]+)\.23video\.com', url, 'client name')
-        video_id = self._search_regex(r'photo%5fid=([^?&]+)', url, 'video id')
-        token = self._search_regex(r'token=([^?&]+)', url, 'token')
+    def _real_extract(self, url):
+        domain, query, photo_id = re.match(self._VALID_URL, url).groups()
+        base_url = 'https://video.%s' % domain
+        photo_data = self._download_json(
+            base_url + '/api/photo/list?' + query, photo_id, query={
+                'format': 'json',
+            }, transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'photo data'))['photo']
+        title = photo_data['title']
 
         formats = []
-        for format_key in self._FORMATS.keys():
+
+        audio_path = photo_data.get('audio_download')
+        if audio_path:
             formats.append({
-                'url': self._URL_TEMPLATE % (client_name, client_id, video_id,
-                    token, format_key),
-                'width': self._FORMATS.get(format_key, {}).get('width'),
-                'height': self._FORMATS.get(format_key, {}).get('height'),
+                'format_id': 'audio',
+                'url': base_url + audio_path,
+                'filesize': int_or_none(photo_data.get('audio_size')),
+                'vcodec': 'none',
             })
 
-        return formats
+        def add_common_info_to_list(l, template, id_field, id_value):
+            f_base = template % id_value
+            f_path = photo_data.get(f_base + 'download')
+            if not f_path:
+                return
+            l.append({
+                id_field: id_value,
+                'url': base_url + f_path,
+                'width': int_or_none(photo_data.get(f_base + 'width')),
+                'height': int_or_none(photo_data.get(f_base + 'height')),
+                'filesize': int_or_none(photo_data.get(f_base + 'size')),
+            })
 
-    def _real_extract(self, url):
-        # TODO: Find out how to extract client_id
-        raise NotImplementedError('Not able to extract the `client_id`')
+        for f in ('mobile_high', 'medium', 'hd', '1080p', '4k'):
+            add_common_info_to_list(formats, 'video_%s_', 'format_id', f)
+
+        thumbnails = []
+        for t in ('quad16', 'quad50', 'quad75', 'quad100', 'small', 'portrait', 'standard', 'medium', 'large', 'original'):
+            add_common_info_to_list(thumbnails, '%s_', 'id', t)
+
+        return {
+            'id': photo_id,
+            'title': title,
+            'timestamp': int_or_none(photo_data.get('creation_date_epoch')),
+            'duration': int_or_none(photo_data.get('video_length')),
+            'view_count': int_or_none(photo_data.get('view_count')),
+            'comment_count': int_or_none(photo_data.get('number_of_comments')),
+            'uploader_id': photo_data.get('user_id'),
+            'uploader': photo_data.get('display_name'),
+            'thumbnails': thumbnails,
+            'formats': formats,
+        }
