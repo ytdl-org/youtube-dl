@@ -9,6 +9,11 @@ from urllib import parse
 import json
 import random as rnd
 from os import path
+import re
+
+from ..utils import (
+    js_to_json,
+)
 
 class WeiboIE(InfoExtractor):
     _VALID_URL = r'https?://weibo\.com/[0-9]+/(?P<id>[a-zA-Z0-9]+)'
@@ -96,6 +101,47 @@ class WeiboIE(InfoExtractor):
                         })
         self._sort_formats(formats)
         uploader = self._og_search_property('nick-name', webpage, 'uploader', default = None)
+        return {
+                'id': video_id,
+                'title': title,
+                'uploader': uploader,
+                'formats': formats
+                # TODO more properties (see youtube_dl/extractor/common.py)
+                }
+
+class WeiboMobileIE(InfoExtractor):
+    _VALID_URL = r'https?://m.weibo.cn/status/(?P<id>[0-9]+)(\?.+)?'
+    _TEST = {
+            'url': 'https://m.weibo.cn/status/4189191225395228?wm=3333_2001&sourcetype=weixin&featurecode=newtitle&from=singlemessage&isappinstalled=0',
+            'info_dict': {
+                'id': '4189191225395228',
+                'ext': 'mp4',
+                'title': '午睡当然是要甜甜蜜蜜的啦',
+                'uploader': '柴犬柴犬'
+                }
+            }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
+            'Upgrade-Insecure-Requests': '1',
+        }
+        # to get Referer url for genvisitor
+        webpage,urlh = self._download_webpage_handle(url, video_id, headers=headers, note="visit the page")
+        js_code = self._search_regex(r'var\s+\$render_data\s*=\s*\[({.*})\]\[0\] \|\| {};', webpage, 'js_code', flags = re.DOTALL)
+        weibo_info = self._parse_json(js_code, video_id, transform_source=js_to_json)
+        page_info = weibo_info['status']['page_info']
+        title = weibo_info['status']['status_title']
+        format = {
+            'url': page_info['media_info']['stream_url'],
+            'format': 'mp4', 
+                  }
+        formats = [format]
+        uploader = weibo_info['status']['user']['screen_name']
+
         return {
                 'id': video_id,
                 'title': title,
