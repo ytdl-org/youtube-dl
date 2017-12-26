@@ -322,6 +322,7 @@ from .escapist import EscapistIE
 from .espn import (
     ESPNIE,
     ESPNArticleIE,
+    FiveThirtyEightIE,
 )
 from .esri import EsriVideoIE
 from .etonline import ETOnlineIE
