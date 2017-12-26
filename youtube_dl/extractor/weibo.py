@@ -9,7 +9,7 @@ import re
 
 from ..compat import (
     compat_urllib_parse_urlencode as urlencode,
-    compat_urllib_request as Request,
+    compat_urllib_request as request,
     compat_urlparse as parse,
 )
 from ..utils import (
@@ -52,11 +52,10 @@ class WeiboIE(InfoExtractor):
             'Referer': visitor_url,
         }
 
-        r_genvisitor = Request(
+        r_genvisitor = request.Request(
             'https://passport.weibo.com/visitor/genvisitor',
             data=data,
             headers=headers,
-            method='POST'
         )
         webpage, urlh = self._download_webpage_handle(r_genvisitor, video_id, note="gen visitor")
 
@@ -85,7 +84,7 @@ class WeiboIE(InfoExtractor):
         # TODO more code goes here, for example ...
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
-        video_sources_text = self._search_regex("video-sources=\\\\\"(.+?)\"", webpage, 'video_sources')
+        video_sources_text = self._search_regex(r'video-sources=\\\"(.+?)\"', webpage, 'video_sources')
 
         video_formats = parse.parse_qs(video_sources_text)
 
