@@ -21,11 +21,11 @@ class AWSIE(InfoExtractor):
             'Accept': 'application/json',
             'Host': self._AWS_PROXY_HOST,
             'X-Amz-Date': amz_date,
+            'X-Api-Key': self._AWS_API_KEY
         }
         session_token = aws_dict.get('session_token')
         if session_token:
             headers['X-Amz-Security-Token'] = session_token
-        headers['X-Api-Key'] = self._AWS_API_KEY
 
         def aws_hash(s):
             return hashlib.sha256(s.encode('utf-8')).hexdigest()
@@ -33,9 +33,9 @@ class AWSIE(InfoExtractor):
         # Task 1: http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
         canonical_querystring = compat_urllib_parse_urlencode(query)
         canonical_headers = ''
-        for header_name, header_value in headers.items():
+        for header_name, header_value in sorted(headers.items()):
             canonical_headers += '%s:%s\n' % (header_name.lower(), header_value)
-        signed_headers = ';'.join([header.lower() for header in headers.keys()])
+        signed_headers = ';'.join([header.lower() for header in sorted(headers.keys())])
         canonical_request = '\n'.join([
             'GET',
             aws_dict['uri'],
