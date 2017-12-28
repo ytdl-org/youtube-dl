@@ -1,4 +1,4 @@
-version <unreleased>
+version 2017.12.28
 
 Extractors
 + [internazionale] Add support for internazionale.it (#14973)

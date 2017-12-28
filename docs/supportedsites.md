@@ -3,6 +3,7 @@
  - **1up.com**
  - **20min**
  - **220.ro**
+ - **23video**
  - **24video**
  - **3qsdn**: 3Q SDN
  - **3sat**
@@ -269,6 +270,8 @@
  - **Fczenit**
  - **filmon**
  - **filmon:channel**
+ - **Filmweb**
+ - **FiveThirtyEight**
  - **FiveTV**
  - **Flickr**
  - **Flipagram**
@@ -359,6 +362,7 @@
  - **InfoQ**
  - **Instagram**
  - **instagram:user**: Instagram user profile
+ - **Internazionale**
  - **InternetVideoArchive**
  - **IPrima**
  - **iqiyi**: 爱奇艺
@@ -889,6 +893,7 @@
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
  - **UKTVPlay**
+ - **umg:de**: Universal Music Deutschland
  - **Unistra**
  - **Unity**
  - **uol.com.br**
