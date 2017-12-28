@@ -485,6 +485,19 @@ class BrightcoveNewIE(AdobePassIE):
             'skip_download': True,
         }
     }, {
+        # xilinx.com url embed
+        'url': 'https://www.xilinx.com/video/soc/how-to-use-the-zynq-7000-verification-ip-verify-debug-simulation.html',
+        'info_dict': {
+            'id': '5607699465001',
+            'ext': 'mp4',
+            'title': 'How to use the Zynq 7000 Verification IP to verify and debug using simulation',
+            'description': 'Learn how to efficiently verify designs that use Zynq 7000 Processing System using the Zynq 7000 VIP. This video introduces you to how to configure and how to simulate with the example project.',
+            'duration': 456.66,
+            'timestamp': 1507851806,
+            'upload_date': '20171012',
+            'uploader_id': '17209957001',
+        },
+    }, {
         # ref: prefixed video id
         'url': 'http://players.brightcove.net/3910869709001/21519b5c-4b3b-4363-accb-bdc8f358f823_default/index.html?videoId=ref:7069442',
         'only_matching': True,
@@ -561,6 +574,29 @@ class BrightcoveNewIE(AdobePassIE):
                 continue
 
             entries.append(bc_url)
+
+        for account_id, player_id, embed in re.findall(
+                r'''<script[^>]+src=["\'](?:https?:)?//players\.brightcove\.net/(\d+)/([^/]+)_([^/]+)/index(?:\.min)?\.js''', webpage):
+            for video_id in re.findall(r'''<div[^>]*data-video-id=['"](\d+)['"]''', webpage):
+
+                if not video_id:
+                    continue
+
+                if not account_id:
+                    continue
+
+                player_id = player_id or 'default'
+
+                embed = embed or 'default'
+
+                bc_url = 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s' % (
+                    account_id, player_id, embed, video_id)
+
+                if not ie._is_valid_url(
+                        bc_url, video_id, 'possible brightcove video'):
+                    continue
+
+                entries.append(bc_url)
 
         return entries
 
