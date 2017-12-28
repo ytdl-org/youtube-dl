@@ -1,7 +1,16 @@
 version <unreleased>
 
 Extractors
++ [internazionale] Add support for internazionale.it (#14973)
+* [playtvak] Relax video regular expression and make description optional
+  (#15037)
++ [filmweb] Add support for filmweb.no (#8773, #10368)
++ [23video] Add support for 23video.com
++ [espn] Add support for fivethirtyeight.com (#6864)
++ [umg:de] Add support for universal-music.de (#11582, #11584)
++ [espn] Add support for espnfc and extract more formats (#8053)
 * [youku] Update ccode (#14880)
++ [openload] Add support for oload.stream (#15070)
 * [youku] Fix list extraction (#15065)
 
 
