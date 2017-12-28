@@ -11,20 +11,16 @@ from ..utils import (
 
 
 class VidliiIE(InfoExtractor):
-    _VALID_URL = r'(?:https*?:\/\/)*(?:www\.)*vidlii.com\/watch\?v=(?P<id>[^?\s]{11})'
+    _VALID_URL = r'https?://(?:www\.)?vidlii.com/watch\?v=(?P<id>.{11})'
     _TESTS = [{
         'url': 'https://www.vidlii.com/watch?v=tJluaH4BJ3v',
         'md5': '9bf7d1e005dfa909b6efb0a1ff5175e2',
         'info_dict': {
             'id': 'tJluaH4BJ3v',
             'title': 'Vidlii is against me',
-            'description': 'I have HAD it. Vidlii does not like me. I have tried to uplaod videos and submit them to the '
-                           'contest and no ne of my videos show up so maybe it is broken for everyone else but this one was '
-                           'trying to submit it because I wanted to submit to the contest :) Tanks I hope the website is '
-                           'fixed PS: Jan you are cool please add my video',
-            'thumbnail': 'https://www.vidlii.com/usfi/thmp/tJluaH4BJ3v.jpg',
+            'description': 'md5:de24ab8a9a310976d66bebb824aa2420',
+            'thumbnail': 're:https://.*.jpg',
             'uploader': 'APPle5auc31995',
-            'url': 'https://cdn.vidlii.com/videos/tJluaH4BJ3v.mp4',
             'uploader_url': 'https://www.vidlii.com/user/APPle5auc31995',
             'upload_date': '20171107',
             'categories': 'News & Politics',
@@ -33,7 +29,6 @@ class VidliiIE(InfoExtractor):
             'view_count': int,
             'comment_count': int,
             'average_rating': float,
-            'type': 'video',
             'ext': 'mp4'
         }
     }, {
@@ -43,9 +38,8 @@ class VidliiIE(InfoExtractor):
             'id': 'vBo2IcrwOkO',
             'title': '(OLD VIDEO) i like youtube!!',
             'description': 'Original upload date:<br />\nMarch 10th 2011<br />\nCredit goes to people who own content in the video',
-            'thumbnail': 'https://www.vidlii.com/usfi/thmp/vBo2IcrwOkO.jpg',
+            'thumbnail': 're:https://.*.jpg',
             'uploader': 'MyEditedVideoSpartan',
-            'url': 'https://cdn.vidlii.com/videos/vBo2IcrwOkO.mp4',
             'uploader_url': 'https://www.vidlii.com/user/MyEditedVideoSpartan',
             'upload_date': '20171011',
             'categories': 'Film & Animation',
@@ -54,7 +48,6 @@ class VidliiIE(InfoExtractor):
             'view_count': int,
             'comment_count': int,
             'average_rating': float,
-            'type': 'video',
             'ext': 'mp4'
         }
     }]
@@ -64,23 +57,23 @@ class VidliiIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         # extract videoInfo variable for further use
-        videoInfo_dict = self._parse_json(js_to_json(self._html_search_regex(r'var videoInfo\s*=\s*({[^}]*})', webpage,
-                                                                             'videoInfo', fatal=False)), video_id)
+        videoInfo_dict = self._parse_json(js_to_json(self._html_search_regex(r'var\s*videoInfo\s*=\s*({[^}]*})', webpage,
+                                                                             'videoInfo', fatal=True)), video_id)
 
         # extract basic properties of video
-        title = (self._html_search_regex(r'<title>([^<]+?)</title>', webpage, 'title', default='') or
-                 self._html_search_meta('twitter:title', webpage, 'title', default='')).replace(" - VidLii",
-                                                                                                "") or self._html_search_regex(
-            r'<h1>(.+?)</h1>', webpage, 'title', default=None)
+        title = (self._html_search_regex(r'<title>([^<]+?)</title>', webpage, 'title', default='', fatal=True) or
+                 self._html_search_meta('twitter:title', webpage, 'title', default='', fatal=True)).replace(' - VidLii', '') \
+                or self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title', default=None, fatal=True)
 
         description = strip_or_none(get_element_by_id('des_text', webpage))
 
-        uploader = self._html_search_regex(
-            r'<div[^>]+class="wt_person"[^>]*>(?:[^<]+)<a href="/user/[^>]*?>([^<]*?)<|<img src="[^>]+?class=('
-            r'?:"avt2\s*"|\'avt2\s*\')[^>]+?alt=(?:"([^"]+?)"|\'([^\']+?)\')>', webpage, 'uploader', default=None,
-            fatal=False)
+        uploader_patterns = [r'<div[^>]+class="wt_person"[^>]*>(?:[^<]+)<a href="/user/[^>]*?>([^<]*?)<',
+                             r'<img src="[^>]+?class=(?:"avt2\s*"',
+                             r'\'avt2\s*\')[^>]+?alt=(?:"([^"]+?)"',
+                             r'\'([^\']+?)\')>']
+        uploader = self._html_search_regex(uploader_patterns, webpage, 'uploader', fatal=False)
 
-        video_url = videoInfo_dict.get("src")
+        video_url = videoInfo_dict.get('src')
 
         # get additional properties
         uploader_url = urljoin('https://www.vidlii.com/user/', uploader)
@@ -93,29 +86,28 @@ class VidliiIE(InfoExtractor):
                                                                            default=None, fatal=False))
 
         categories = self._html_search_regex(
-            r'<div>Category:\s*<\/div>[\s\r]*<div>[\s\r]*<a href="\/videos\?c=[^>]*>([^<]*?)<\/a>', webpage, 'categories',
+            r'<div>Category:\s*</div>[\s\r]*<div>[\s\r]*<a href="/videos\?c=[^>]*>([^<]*?)</a>', webpage, 'categories',
             default=None, fatal=False)
         tags = re.findall(r'<a href="/results\?q=[^>]*>\s*([^<]*)</a>', webpage) or None
         duration = int_or_none(
             self._html_search_meta('video:duration', webpage, 'duration', default=False, fatal=False) or
-            videoInfo_dict.get("dur"))
+            videoInfo_dict.get('dur'))
 
-        view_count_fb = re.findall(r'<strong>([^<]*?)</strong>', get_element_by_class("w_views", webpage))
+        view_count_fb = re.findall(r'<strong>([^<]*?)</strong>', get_element_by_class('w_views', webpage) or '')
         view_count_fb = view_count_fb[0] if view_count_fb else None
-        view_count = int_or_none(self._html_search_regex(r'Views:[^<]*<strong>([^<]*?)<\/strong>', webpage, 'view_count',
+        view_count = int_or_none(self._html_search_regex(r'Views:[^<]*<strong>([^<]*?)</strong>', webpage, 'view_count',
                                                          default=None, fatal=False)) or int_or_none(view_count_fb)
 
+        comment_count_patterns = [r'Comments:[^<]*<strong>([^<]*?)</strong>',
+                                  r'<span[^>]+id="cmt_num"[^>]*>([^<]+?)</span>']
         comment_count = int_or_none(
-            self._html_search_regex(r'Comments:[^<]*<strong>([^<]*?)<\/strong>|<span[^>]+id="cmt_num"[^>]*>(['
-                                    r'^<]+?)<\/span>', webpage, 'comment_count',
-                                    default=None, fatal=False))
+            self._html_search_regex(comment_count_patterns, webpage, 'comment_count', default=None, fatal=False))
 
         average_rating = float_or_none(
-            self._html_search_regex(r'{[\s\r]*\$\("#rateYo"\).rateYo\({[^}]*rating:\s*([^,]*?),[^}.]*}',
+            self._html_search_regex(r'rating:\s*([^,]*),',
                                     webpage, 'average_rating', default=None, fatal=False))
-        thumbnail_link = videoInfo_dict.get("img")
+        thumbnail_link = videoInfo_dict.get('img')
         thumbnail = urljoin('https://www.vidlii.com/', thumbnail_link)
-        video_type = self._og_search_property('type', webpage, 'type')
 
         return {
             'id': video_id,
@@ -132,5 +124,4 @@ class VidliiIE(InfoExtractor):
             'comment_count': comment_count,
             'average_rating': average_rating,
             'thumbnail': thumbnail,
-            'type': video_type
         }
