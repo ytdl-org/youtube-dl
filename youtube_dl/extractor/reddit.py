@@ -7,6 +7,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
+    unescapeHTML,
 )
 
 
@@ -71,6 +72,23 @@ class RedditRIE(InfoExtractor):
         'url': 'https://www.reddit.com/r/videos/comments/6rrwyj',
         'only_matching': True,
     }, {
+        # i.redd.it
+        'url': 'https://www.reddit.com/r/WatchPeopleDieInside/comments/7kb915/first_of_all/',
+        'md5': 'c7ba64917206b64ab30b834149d15301',
+        'info_dict': {
+            'id': '7kb915',
+            'ext': 'mp4',
+            'title': 'First of all...',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1513476847,
+            'upload_date': '20171217',
+            'uploader': 'UmamiUnagi',
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 0,
+        },
+    }, {
         # imgur
         'url': 'https://www.reddit.com/r/MadeMeSmile/comments/6t7wi5/wait_for_it/',
         'only_matching': True,
@@ -99,6 +117,37 @@ class RedditRIE(InfoExtractor):
         if 'reddit.com/' in video_url and '/%s/' % video_id in video_url:
             raise ExtractorError('No media found', expected=True)
 
+        formats = []
+        if '/i.redd.it/' in video_url:
+            try:
+                all_variants = data['preview']['images'][0]['variants']
+            except LookupError:
+                all_variants = {}
+            for fmt, fmt_variants in all_variants.items():
+                variants = []
+                try:
+                    variants += [fmt_variants['source']]
+                except LookupError:
+                    pass
+                variants += fmt_variants.get('resolutions', [])
+                for variant in variants:
+                    try:
+                        url = variant['url']
+                    except LookupError:
+                        continue
+                    else:
+                        url = unescapeHTML(url)
+                    formats.append({
+                        'url': url,
+                        'format_id': '{0}-{1}'.format(fmt, variant.get('height')),
+                        'ext': fmt,
+                        'quality': fmt != 'gif',
+                        'width': int_or_none(variant.get('width')),
+                        'height': int_or_none(variant.get('height')),
+                    })
+        if formats:
+            self._sort_formats(formats)
+
         over_18 = data.get('over_18')
         if over_18 is True:
             age_limit = 18
@@ -107,9 +156,7 @@ class RedditRIE(InfoExtractor):
         else:
             age_limit = None
 
-        return {
-            '_type': 'url_transparent',
-            'url': video_url,
+        info = {
             'title': data.get('title'),
             'thumbnail': data.get('thumbnail'),
             'timestamp': float_or_none(data.get('created_utc')),
@@ -119,3 +166,14 @@ class RedditRIE(InfoExtractor):
             'comment_count': int_or_none(data.get('num_comments')),
             'age_limit': age_limit,
         }
+        if formats:
+            info.update({
+                'id': video_id,
+                'formats': formats,
+            })
+        else:
+            info.update({
+                '_type': 'url_transparent',
+                'url': video_url,
+            })
+        return info
