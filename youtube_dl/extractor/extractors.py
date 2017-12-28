@@ -420,6 +420,7 @@ from .hbo import (
     HBOIE,
     HBOEpisodeIE,
 )
+from .hclips import HclipsIE
 from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
 from .hellporno import HellPornoIE
