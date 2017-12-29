@@ -285,6 +285,11 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://openload.co/embed/Sxz5sADo82g/',
         'only_matching': True,
     }, {
+        # unavailable via https://openload.co/embed/e-Ixz9ZR5L0/ but available
+        # via https://openload.co/f/e-Ixz9ZR5L0/
+        'url': 'https://openload.co/f/e-Ixz9ZR5L0/',
+        'only_matching': True,
+    }, {
         'url': 'https://oload.tv/embed/KnG-kKZdcfY/',
         'only_matching': True,
     }, {
@@ -305,18 +310,27 @@ class OpenloadIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'https://openload.co/embed/%s/' % video_id
+        url_pattern = 'https://openload.co/%%s/%s/' % video_id
         headers = {
             'User-Agent': self._USER_AGENT,
         }
 
-        webpage = self._download_webpage(url, video_id, headers=headers)
-
-        if 'File not found' in webpage or 'deleted by the owner' in webpage:
-            raise ExtractorError('File not found', expected=True, video_id=video_id)
+        for path in ('embed', 'f'):
+            page_url = url_pattern % path
+            last = path == 'f'
+            webpage = self._download_webpage(
+                page_url, video_id, 'Downloading %s webpage' % path,
+                headers=headers, fatal=last)
+            if not webpage:
+                continue
+            if 'File not found' in webpage or 'deleted by the owner' in webpage:
+                if not last:
+                    continue
+                raise ExtractorError('File not found', expected=True, video_id=video_id)
+            break
 
         phantom = PhantomJSwrapper(self, required_version='2.0')
-        webpage, _ = phantom.get(url, html=webpage, video_id=video_id, headers=headers)
+        webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
 
         decoded_id = get_element_by_id('streamurl', webpage)
 
@@ -327,7 +341,7 @@ class OpenloadIE(InfoExtractor):
             'title', default=None) or self._html_search_meta(
             'description', webpage, 'title', fatal=True)
 
-        entries = self._parse_html5_media_entries(url, webpage, video_id)
+        entries = self._parse_html5_media_entries(page_url, webpage, video_id)
         entry = entries[0] if entries else {}
         subtitles = entry.get('subtitles')
 
