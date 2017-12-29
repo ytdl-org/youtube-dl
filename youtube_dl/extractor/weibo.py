@@ -8,11 +8,11 @@ import random
 import re
 
 from ..compat import (
-    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
     js_to_json,
+    urlencode_postdata,
 )
 
 
@@ -44,10 +44,10 @@ class WeiboIE(InfoExtractor):
             "screenInfo": "1440*900*24",
             "plugins": ""
         }
-        data = compat_urllib_parse_urlencode({
+        data = urlencode_postdata({
             "cb": "gen_callback",
             "fp": json.dumps(fp),
-        }).encode()
+        })
 
         genvisitor_url = 'https://passport.weibo.com/visitor/genvisitor'
         webpage, _ = self._download_webpage_handle(genvisitor_url, video_id, data=data, headers=headers, note="gen visitor")
