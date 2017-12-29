@@ -1320,6 +1320,7 @@ from .xiami import (
     XiamiArtistIE,
     XiamiCollectionIE
 )
+from .xilinx import XilinxIE
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE
