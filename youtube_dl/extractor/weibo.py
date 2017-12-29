@@ -51,7 +51,7 @@ class WeiboIE(InfoExtractor):
         })
 
         genvisitor_url = 'https://passport.weibo.com/visitor/genvisitor'
-        webpage, _ = self._download_webpage_handle(genvisitor_url, video_id, data=data, headers=headers, note="gen visitor")
+        webpage = self._download_webpage(genvisitor_url, video_id, data=data, headers=headers, note="gen visitor")
 
         p = strip_jsonp(webpage)
         i1 = p.find('{')
@@ -71,9 +71,9 @@ class WeiboIE(InfoExtractor):
             '_rand': random.random()
         }
         gencallback_url = "https://passport.weibo.com/visitor/visitor"
-        self._download_webpage_handle(gencallback_url, video_id, note="gen callback", query=query)
+        self._download_webpage(gencallback_url, video_id, note="gen callback", query=query)
 
-        webpage, _ = self._download_webpage_handle(url, video_id, note="retry to visit the page")
+        webpage = self._download_webpage(url, video_id, note="retry to visit the page")
 
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
@@ -118,7 +118,7 @@ class WeiboMobileIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         # to get Referer url for genvisitor
-        webpage, _ = self._download_webpage_handle(url, video_id, note="visit the page")
+        webpage = self._download_webpage(url, video_id, note="visit the page")
         js_code = self._search_regex(r'var\s+\$render_data\s*=\s*\[({.*})\]\[0\] \|\| {};', webpage, 'js_code', flags=re.DOTALL)
         weibo_info = self._parse_json(js_code, video_id, transform_source=js_to_json)
         page_info = weibo_info['status']['page_info']
