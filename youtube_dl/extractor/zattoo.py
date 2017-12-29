@@ -137,12 +137,15 @@ class ZattooBaseIE(InfoExtractor):
                 hls['width'] = dash.get('width')
                 hls['height'] = dash.get('height')
 
-    def _extract_formats(self, cid, video_id, is_live=False):
+    def _extract_formats(self, cid, video_id, record_id=None, is_live=False):
         postdata = {
             'stream_type': 'dash',
             'https_watch_urls': True,
         }
-        url = '%s/zapi/watch/recall/%s/%s' % (self._HOST_URL, cid, video_id)
+        if record_id:
+            url = '%s/zapi/watch/recording/%s' % (self._HOST_URL, record_id)
+        else:
+            url = '%s/zapi/watch/recall/%s/%s' % (self._HOST_URL, cid, video_id)
 
         if is_live:
             postdata.update({'timeshift': 10800})
@@ -188,7 +191,7 @@ class ZattooBaseIE(InfoExtractor):
         session_id = self._say_hello(uuid, app_token, app_version)
         self._login_info = self._login(uuid, session_id)
 
-    def _extract_video(self, channel_name, video_id, is_live=False):
+    def _extract_video(self, channel_name, video_id, record_id=None, is_live=False):
         if is_live:
             cid = self._extract_cid(video_id, channel_name)
             info_dict = {
@@ -199,7 +202,7 @@ class ZattooBaseIE(InfoExtractor):
         else:
             cid, info_dict = self._extract_cid_and_video_info(video_id)
         formats = self._extract_formats(
-            cid, video_id, is_live=is_live)
+            cid, video_id, record_id=record_id, is_live=is_live)
         info_dict['formats'] = formats
         return info_dict
 
@@ -226,17 +229,21 @@ class QuicklineLiveIE(QuicklineBaseIE):
 
 
 class ZattooIE(ZattooBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?zattoo\.com/watch/(?P<channel>[^/]+)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?zattoo\.com/watch/(?P<channel>[^/]+?)/(?P<id>[0-9]+)[^/]+(?:/(?P<recid>[0-9]+))?'
 
-    # Since videos are only available for 7 days, we cannot have detailed tests.
-    _TEST = {
+    # Since regular videos are only available for 7 days and recorded videos
+    # are only available for a specific user, we cannot have detailed tests.
+    _TESTS = [{
         'url': 'https://zattoo.com/watch/prosieben/130671867-maze-runner-die-auserwaehlten-in-der-brandwueste',
         'only_matching': True,
-    }
+    }, {
+        'url': 'https://zattoo.com/watch/srf_zwei/132905652-eishockey-spengler-cup/102791477/1512211800000/1514433500000/92000',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        channel_name, video_id = re.match(self._VALID_URL, url).groups()
-        return self._extract_video(channel_name, video_id)
+        channel_name, video_id, record_id = re.match(self._VALID_URL, url).groups()
+        return self._extract_video(channel_name, video_id, record_id)
 
 
 class ZattooLiveIE(ZattooBaseIE):
