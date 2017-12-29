@@ -2007,16 +2007,14 @@ class InfoExtractor(object):
                                     f['url'] = initialization_url
                                 f['fragments'].append({location_key(initialization_url): initialization_url})
                             f['fragments'].extend(representation_ms_info['fragments'])
-                        try:
-                            existing_format = next(
-                                fo for fo in formats
-                                if fo['format_id'] == representation_id)
-                        except StopIteration:
-                            full_info = formats_dict.get(representation_id, {}).copy()
-                            full_info.update(f)
-                            formats.append(full_info)
-                        else:
-                            existing_format.update(f)
+                        # According to [1, 5.3.5.2, Table 7, page 35] @id of Representation
+                        # is not necessarily unique within a Period thus formats with
+                        # the same `format_id` are quite possible. There are numerous examples
+                        # of such manifests (see https://github.com/rg3/youtube-dl/issues/15111,
+                        # https://github.com/rg3/youtube-dl/issues/13919)
+                        full_info = formats_dict.get(representation_id, {}).copy()
+                        full_info.update(f)
+                        formats.append(full_info)
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats

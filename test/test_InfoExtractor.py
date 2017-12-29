@@ -493,9 +493,20 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
         _TEST_CASES = [
             (
                 # https://github.com/rg3/youtube-dl/issues/13919
+                # Also tests duplicate representation ids, see
+                # https://github.com/rg3/youtube-dl/issues/15111
                 'float_duration',
                 'http://unknown/manifest.mpd',
                 [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'm4a',
+                    'format_id': '318597',
+                    'format_note': 'DASH audio',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'none',
+                    'tbr': 61.587,
+                }, {
                     'manifest_url': 'http://unknown/manifest.mpd',
                     'ext': 'mp4',
                     'format_id': '318597',
