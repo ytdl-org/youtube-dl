@@ -306,6 +306,7 @@ class OpenloadIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         url = 'https://openload.co/embed/%s/' % video_id
+        url2 = 'https://openload.co/f/%s/' % video_id
         headers = {
             'User-Agent': self._USER_AGENT,
         }
@@ -313,7 +314,10 @@ class OpenloadIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id, headers=headers)
 
         if 'File not found' in webpage or 'deleted by the owner' in webpage:
-            raise ExtractorError('File not found', expected=True, video_id=video_id)
+            url = url2
+            webpage = self._download_webpage(url, video_id, headers=headers)
+            if 'File not found' in webpage or 'deleted by the owner' in webpage:
+                raise ExtractorError('File not found', expected=True, video_id=video_id)
 
         phantom = PhantomJSwrapper(self, required_version='2.0')
         webpage, _ = phantom.get(url, html=webpage, video_id=video_id, headers=headers)
