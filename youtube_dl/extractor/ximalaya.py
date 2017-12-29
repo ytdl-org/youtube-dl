@@ -31,11 +31,11 @@ class XimalayaIE(XimalayaBaseIE):
                 'thumbnails': [
                     {
                         'name': 'cover_url',
-                        'url': 'http://fdfs.xmcdn.com/group18/M03/7F/61/wKgJJVgCaNzAIs-KAAC415nhLZs762.jpg',
+                        'url': r're:^https?://.*\.jpg$',
                     },
                     {
                         'name': 'cover_url_142',
-                        'url': 'http://fdfs.xmcdn.com/group18/M03/7F/61/wKgJJVgCaNzAIs-KAAC415nhLZs762_web_large.jpg',
+                        'url': r're:^https?://.*\.jpg$',
                         'width': 180,
                         'height': 180
                     }
@@ -59,11 +59,15 @@ class XimalayaIE(XimalayaBaseIE):
                 'thumbnails': [
                     {
                         'name': 'cover_url',
-                        'url': 'http://fdfs.xmcdn.com/group18/M03/7F/61/wKgJJVgCaNzAIs-KAAC415nhLZs762.jpg',
+                        'url': r're:^https?://.*\.jpg$',
                     },
                     {
                         'name': 'cover_url_142',
-                        'url': 'http://fdfs.xmcdn.com/group18/M03/7F/61/wKgJJVgCaNzAIs-KAAC415nhLZs762_web_large.jpg',
+                        'url': r're:^https?://.*\.jpg$',
+                    },
+                    {
+                        'name': 'cover_url_142',
+                        'url': r're:^https?://.*\.jpg$',
                         'width': 180,
                         'height': 180
                     }
@@ -88,11 +92,11 @@ class XimalayaIE(XimalayaBaseIE):
                 'thumbnails': [
                     {
                         'name': 'cover_url',
-                        'url': 'http://fdfs.xmcdn.com/group11/M07/5A/F9/wKgDa1c2gfyzJFVqAAFKjzSOBug106.jpg',
+                        'url': r're:^https?://.*\.jpg$',
                     },
                     {
                         'name': 'cover_url_142',
-                        'url': 'http://fdfs.xmcdn.com/group11/M07/5A/F9/wKgDa1c2gfyzJFVqAAFKjzSOBug106_web_large.jpg',
+                        'url': r're:^https?://.*\.jpg$',
                         'width': 180,
                         'height': 180
                     }
@@ -142,10 +146,10 @@ class XimalayaIE(XimalayaBaseIE):
 
         if is_m:
             audio_description= self._html_search_regex(r'(?s)<section\s+class=["\']content[^>]+>(.+?)</section>',
-                                            webpage, 'audio_description', fatal=False, group=1)
+                                            webpage, 'audio_description', fatal=False)
         else:
             audio_description= self._html_search_regex(r'(?s)<div\s+class=["\']rich_intro[^>]*>(.+?</article>)',
-                                            webpage, 'audio_description', fatal=False, group=1)
+                                            webpage, 'audio_description', fatal=False)
 
         if not audio_description:
             audio_description_file = '%s://www.ximalaya.com/sounds/%s/rich_intro' % (scheme, audio_id)
@@ -205,8 +209,8 @@ class XimalayaAlbumIE(XimalayaBaseIE):
                                          note='Download album page for %s' % playlist_id,
                                          errnote='Unable to get album info')
 
-        title = self._html_search_regex(r'detailContent_title(?:[^>]+)?><h1(?:[^>]+)?>([^<]+)</h1>',
-                                        webpage, 'title',fatal=False, group=1)
+        title = self._html_search_regex(r'detailContent_title[^>]*><h1(?:[^>]+)?>([^<]+)</h1>',
+                                        webpage, 'title',fatal=False)
 
         return self.playlist_result(self._entries(webpage, playlist_id, uid), playlist_id, title)
 
