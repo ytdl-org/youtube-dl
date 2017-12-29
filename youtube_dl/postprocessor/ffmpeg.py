@@ -126,11 +126,11 @@ class FFmpegPostProcessor(PostProcessor):
 
         if prefer_ffmpeg is None:
             if not is_outdated_version(self._versions['avconv'],
-                self._avconv_required_version):
+                                       self._avconv_required_version):
                 prefer_ffmpeg = False
                 print("preferring avconv")
             elif not is_outdated_version(self._versions['ffmpeg'],
-                self._ffmpeg_required_version):
+                                         self._ffmpeg_required_version):
                 prefer_ffmpeg = True
                 print("preferring ffmpeg")
 
