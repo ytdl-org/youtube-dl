@@ -12,6 +12,7 @@ from ..compat import (
 )
 from ..utils import (
     js_to_json,
+    strip_jsonp,
     urlencode_postdata,
 )
 
@@ -52,7 +53,7 @@ class WeiboIE(InfoExtractor):
         genvisitor_url = 'https://passport.weibo.com/visitor/genvisitor'
         webpage, _ = self._download_webpage_handle(genvisitor_url, video_id, data=data, headers=headers, note="gen visitor")
 
-        p = webpage.split("&&")[1]  # split "gen_callback && gen_callback(...)"
+        p = strip_jsonp(webpage)
         i1 = p.find('{')
         i2 = p.rfind('}')
         j = p[i1:i2 + 1]  # get JSON object
