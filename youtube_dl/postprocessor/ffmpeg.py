@@ -55,6 +55,9 @@ class FFmpegPostProcessorError(PostProcessingError):
 
 
 class FFmpegPostProcessor(PostProcessor):
+    _avconv_required_version = '10-0'
+    _ffmpeg_required_version = '1.0'
+
     def __init__(self, downloader=None):
         PostProcessor.__init__(self, downloader)
         self._determine_executables()
@@ -63,7 +66,11 @@ class FFmpegPostProcessor(PostProcessor):
         if not self.available:
             raise FFmpegPostProcessorError('ffmpeg or avconv not found. Please install one.')
 
-        required_version = '10-0' if self.basename == 'avconv' else '1.0'
+        if self.basename == 'avconv':
+            required_version = self._avconv_required_version
+        else:
+            required_version = self._ffmpeg_required_version
+
         if is_outdated_version(
                 self._versions[self.basename], required_version):
             warning = 'Your copy of %s is outdated, update %s to version %s or newer if you encounter any errors.' % (
@@ -85,7 +92,7 @@ class FFmpegPostProcessor(PostProcessor):
         self._paths = None
         self._versions = None
         if self._downloader:
-            prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', False)
+            prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', None)
             location = self._downloader.params.get('ffmpeg_location')
             if location is not None:
                 if not os.path.exists(location):
@@ -116,6 +123,16 @@ class FFmpegPostProcessor(PostProcessor):
             self._versions = dict(
                 (p, get_exe_version(p, args=['-version'])) for p in programs)
             self._paths = dict((p, p) for p in programs)
+
+        if prefer_ffmpeg is None:
+            if not is_outdated_version(self._versions['avconv'],
+                self._avconv_required_version):
+                prefer_ffmpeg = False
+                print("preferring avconv")
+            elif not is_outdated_version(self._versions['ffmpeg'],
+                self._ffmpeg_required_version):
+                prefer_ffmpeg = True
+                print("preferring ffmpeg")
 
         if prefer_ffmpeg:
             prefs = ('ffmpeg', 'avconv')
