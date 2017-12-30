@@ -4,8 +4,11 @@ import datetime
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
+    InAdvancePagedList,
+    orderedSet,
     str_to_int,
     unified_strdate,
 )
@@ -113,4 +116,74 @@ class MotherlessIE(InfoExtractor):
             'comment_count': comment_count,
             'age_limit': age_limit,
             'url': video_url,
+        }
+
+
+class MotherlessGroupIE(InfoExtractor):
+    _VALID_URL = 'https?://(?:www\.)?motherless\.com/gv?/(?P<id>[a-z0-9_]+)'
+    _TESTS = [{
+        'url': 'http://motherless.com/g/movie_scenes',
+        'info_dict': {
+            'id': 'movie_scenes',
+            'title': 'Movie Scenes',
+            'description': 'Hot and sexy scenes from "regular" movies... '
+                           'Beautiful actresses fully nude... A looot of '
+                           'skin! :)Enjoy!',
+        },
+        'playlist_mincount': 662,
+    }, {
+        'url': 'http://motherless.com/gv/sex_must_be_funny',
+        'info_dict': {
+            'id': 'sex_must_be_funny',
+            'title': 'Sex must be funny',
+            'description': 'Sex can be funny. Wide smiles,laugh, games, fun of '
+                           'any kind!'
+        },
+        'playlist_mincount': 9,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False if MotherlessIE.suitable(url)
+                else super(MotherlessGroupIE, cls).suitable(url))
+
+    def _extract_entries(self, webpage, base):
+        return [
+            self.url_result(
+                compat_urlparse.urljoin(base, video_path),
+                MotherlessIE.ie_key(), video_title=title)
+            for video_path, title in orderedSet(re.findall(
+                r'href="/([^"]+)"[^>]+>\s+<img[^>]+alt="[^-]+-\s([^"]+)"',
+                webpage))
+        ]
+
+    def _real_extract(self, url):
+        group_id = self._match_id(url)
+        page_url = compat_urlparse.urljoin(url, '/gv/%s' % group_id)
+        webpage = self._download_webpage(page_url, group_id)
+        title = self._search_regex(
+            r'<title>([\w\s]+\w)\s+-', webpage, 'title', fatal=False)
+        description = self._html_search_meta(
+            'description', webpage, fatal=False)
+        page_count = self._int(self._search_regex(
+            r'(\d+)</(?:a|span)><(?:a|span)[^>]+>\s*NEXT',
+            webpage, 'page_count'), 'page_count')
+        PAGE_SIZE = 80
+
+        def _get_page(idx):
+            webpage = self._download_webpage(
+                page_url, group_id, query={'page': idx + 1},
+                note='Downloading page %d/%d' % (idx + 1, page_count)
+            )
+            for entry in self._extract_entries(webpage, url):
+                yield entry
+
+        playlist = InAdvancePagedList(_get_page, page_count, PAGE_SIZE)
+
+        return {
+            '_type': 'playlist',
+            'id': group_id,
+            'title': title,
+            'description': description,
+            'entries': playlist
         }
