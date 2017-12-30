@@ -160,7 +160,7 @@ class SoundcloudIE(InfoExtractor):
         name = full_title or track_id
         if quiet:
             self.report_extraction(name)
-        thumbnail = info.get('artwork_url')
+        thumbnail = info.get('artwork_url') or info.get('user', {}).get('avatar_url')
         if isinstance(thumbnail, compat_str):
             thumbnail = thumbnail.replace('-large', '-t500x500')
         ext = 'mp3'
