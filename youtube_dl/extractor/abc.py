@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 
+import hashlib
+import hmac
 import re
+import time
 
 from .common import InfoExtractor
 from ..compat import compat_str
@@ -126,20 +129,35 @@ class ABCIViewIE(InfoExtractor):
         title = video_params.get('title') or video_params['seriesTitle']
         stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
 
-        format_urls = [
-            try_get(stream, lambda x: x['hds-unmetered'], compat_str)]
+        key = 'android.content.res.Resources'.encode('utf-8')
+        time_str = str(int(time.time()))
+        house_number = video_params.get('episodeHouseNumber')
+        path = '/auth/hls/sign?ts={0}&hn={1}&d=android-mobile'.format(
+            time_str, house_number)
+        sig = hmac.new(key, path.encode('utf-8'), hashlib.sha256).hexdigest()
+        auth_url = 'http://iview.abc.net.au{0}&sig={1}'.format(path, sig)
+        token = self._download_webpage(auth_url, video_id)
+
+        format_urls = []
+
+        def tokenize_url(url, token):
+            return ''.join([url, '?hdnea=', token])
 
         # May have higher quality video
         sd_url = try_get(
-            stream, lambda x: x['streams']['hds']['sd'], compat_str)
+            stream, lambda x: x['streams']['hls']['sd'], compat_str)
         if sd_url:
-            format_urls.append(sd_url.replace('metered', 'um'))
+            format_urls.append(tokenize_url(sd_url, token))
+        else:
+            sd_low_url = try_get(
+                stream, lambda x: x['streams']['hls']['sd-low'], compat_str)
+            format_urls.append(tokenize_url(sd_low_url, token))
 
         formats = []
         for format_url in format_urls:
             if format_url:
                 formats.extend(
-                    self._extract_akamai_formats(format_url, video_id))
+                    self._extract_m3u8_formats(format_url, video_id, 'mp4'))
         self._sort_formats(formats)
 
         subtitles = {}
