@@ -13,23 +13,14 @@ class SlutloadIE(InfoExtractor):
         'info_dict': {
             'id': 'TD73btpBqSxc',
             'ext': 'mp4',
-            'age_limit': 18,
             'title': 'virginie baisee en cam',
+            'age_limit': 18,
             'thumbnail': r're:https?://.*?\.jpg'
         }
     }, {
         # mobile site
         'url': 'http://mobile.slutload.com/video/masturbation-solo/fviFLmc6kzJ/',
-        'info_dict': {
-            'id': 'fviFLmc6kzJ',
-            'ext': 'mp4',
-            'age_limit': 18,
-            'title': 'Masturbation Solo',
-            'thumbnail': r're:https?://.*?\.jpg'
-        },
-        'params': {
-            'skip_download': True,
-        },
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
