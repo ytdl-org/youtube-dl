@@ -171,7 +171,6 @@
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
- - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
  - **ComedyCentralFullEpisodes**
@@ -449,6 +448,7 @@
  - **media.ccc.de**
  - **Medialaan**
  - **Mediaset**
+ - **Mediasite**
  - **Medici**
  - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
@@ -717,7 +717,6 @@
  - **safari**: safaribooksonline.com online video
  - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
- - **Sandia**: Sandia National Laboratories
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
@@ -892,6 +891,7 @@
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
+ - **UFCTV**
  - **UKTVPlay**
  - **umg:de**: Universal Music Deutschland
  - **Unistra**
