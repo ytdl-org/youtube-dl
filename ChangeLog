@@ -1,7 +1,28 @@
 version <unreleased>
 
+Core
++ [extractor/common] Add container meta field for formats extracted
+  in _parse_mpd_formats (#13616)
++ [downloader/hls] Use HTTP headers for key request
+* [common] Use AACL as the default fourcc when AudioTag is 255
+* [extractor/common] Fix extraction of DASH formats with the same
+  representation id (#15111)
+
 Extractors
++ [slutload] Add support for mobile URLs (#14806)
+* [abc:iview] Bypass geo restriction
+* [abc:iview] Fix extraction (#14711, #14782, #14838, #14917, #14963, #14985,
+  #15035, #15057, #15061, #15071, #15095, #15106)
 * [openload] Fix extraction (#15118)
+- [sandia] Remove extractor
+- [collegerama] Remove extractor
++ [mediasite] Add support for sites based on Mediasite Video Platform (#5428,
+  #11185, #14343)
++ [ufctv] Add support for ufc.tv (#14520)
+* [pluralsight] Fix missing first line of subtitles (#11118)
+* [openload] Fallback on f-page extraction (#14665, #14879)
+* [vimeo] Improve password protected videos extraction (#15114)
+* [aws] Fix canonical/signed headers generation on python 2 (#15102)
 
 
 version 2017.12.28
