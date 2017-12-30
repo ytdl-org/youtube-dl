@@ -5,21 +5,22 @@ import re
 import json
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
-    unsmuggle_url,
-    mimetype2ext,
     float_or_none,
+    mimetype2ext,
+    unescapeHTML,
+    unsmuggle_url,
+    urljoin,
 )
 
 
 class MediasiteIE(InfoExtractor):
-    _VALID_URL = r'''(?xi)
-        https?://[a-z0-9\-\.:\[\]]+/Mediasite/Play/
-        (?P<id>[0-9a-f]{32,34})
-        (?P<QueryString>\?[^#]+|)
-    '''
+    _VALID_URL = r'(?xi)https?://[^/]+/Mediasite/Play/(?P<id>[0-9a-f]{32,34})(?P<query>\?[^#]+|)'
     _TESTS = [
         {
             'url': 'https://hitsmediaweb.h-its.org/mediasite/Play/2db6c271681e4f199af3c60d1f82869b1d',
@@ -87,67 +88,96 @@ class MediasiteIE(InfoExtractor):
 
     # look in Mediasite.Core.js (Mediasite.ContentStreamType[*])
     _STREAM_TYPES = {
-        0: 'video1', # the main video
+        0: 'video1',  # the main video
         2: 'slide',
         3: 'presentation',
-        4: 'video2', # screencast?
+        4: 'video2',  # screencast?
         5: 'video3',
     }
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [
+            unescapeHTML(mobj.group('url'))
+            for mobj in re.finditer(
+                r'(?xi)<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:(?:https?:)?//[^/]+)?/Mediasite/Play/[0-9a-f]{32,34}(?:\?.*?)?)\1',
+                webpage)]
 
     def _real_extract(self, url):
         url, data = unsmuggle_url(url, {})
         mobj = re.match(self._VALID_URL, url)
-        ResourceId = mobj.group('id')
-        QueryString = mobj.group('QueryString')
+        resource_id = mobj.group('id')
+        query = mobj.group('query')
 
-        webpage = self._download_webpage(url, ResourceId) # XXX: add UrlReferrer?
+        webpage, urlh = self._download_webpage_handle(url, resource_id)  # XXX: add UrlReferrer?
+        redirect_url = compat_str(urlh.geturl())
 
         # XXX: might have also extracted UrlReferrer and QueryString from the html
-        ServicePath = compat_urlparse.urljoin(url, self._html_search_regex(
-            r'<div id="ServicePath">(.+?)</div>', webpage, ResourceId,
+        service_path = compat_urlparse.urljoin(redirect_url, self._html_search_regex(
+            r'<div[^>]+\bid=["\']ServicePath[^>]+>(.+?)</div>', webpage, resource_id,
             default='/Mediasite/PlayerService/PlayerService.svc/json'))
 
-        PlayerOptions = self._download_json(
-            '%s/GetPlayerOptions' % (ServicePath), ResourceId,
+        player_options = self._download_json(
+            '%s/GetPlayerOptions' % service_path, resource_id,
             headers={
                 'Content-type': 'application/json; charset=utf-8',
                 'X-Requested-With': 'XMLHttpRequest',
             },
             data=json.dumps({
                 'getPlayerOptionsRequest': {
-                    'ResourceId': ResourceId,
-                    'QueryString': QueryString,
+                    'ResourceId': resource_id,
+                    'QueryString': query,
                     'UrlReferrer': data.get('UrlReferrer', ''),
                     'UseScreenReader': False,
                 }
-            }).encode('utf-8'))
-        Presentation = PlayerOptions['d']['Presentation']
-        if Presentation is None:
-            raise ExtractorError('Mediasite says: %s' %
-                (PlayerOptions['d']['PlayerPresentationStatusMessage'],),
+            }).encode('utf-8'))['d']
+
+        presentation = player_options['Presentation']
+        title = presentation['Title']
+
+        if presentation is None:
+            raise ExtractorError(
+                'Mediasite says: %s' % player_options['PlayerPresentationStatusMessage'],
                 expected=True)
 
         thumbnails = []
         formats = []
-        for snum, Stream in enumerate(Presentation['Streams']):
-            stream_type = self._STREAM_TYPES.get(
-                Stream['StreamType'], 'type%u' % Stream['StreamType'])
+        for snum, Stream in enumerate(presentation['Streams']):
+            stream_type = Stream.get('StreamType')
+            if stream_type is None:
+                continue
+
+            video_urls = Stream.get('VideoUrls')
+            if not isinstance(video_urls, list):
+                video_urls = []
+
+            stream_id = self._STREAM_TYPES.get(
+                stream_type, 'type%u' % stream_type)
 
             stream_formats = []
-            for unum, VideoUrl in enumerate(Stream['VideoUrls']):
-                url = VideoUrl['Location']
+            for unum, VideoUrl in enumerate(video_urls):
+                video_url = VideoUrl.get('Location')
+                if not video_url or not isinstance(video_url, compat_str):
+                    continue
                 # XXX: if Stream.get('CanChangeScheme', False), switch scheme to HTTP/HTTPS
 
-                if VideoUrl['MediaType'] == 'SS':
+                media_type = VideoUrl.get('MediaType')
+                if media_type == 'SS':
                     stream_formats.extend(self._extract_ism_formats(
-                        url, ResourceId, ism_id='%s-%u.%u' % (stream_type, snum, unum)))
-                    continue
-
-                stream_formats.append({
-                    'format_id': '%s-%u.%u' % (stream_type, snum, unum),
-                    'url': url,
-                    'ext': mimetype2ext(VideoUrl['MimeType']),
-                })
+                        video_url, resource_id,
+                        ism_id='%s-%u.%u' % (stream_id, snum, unum),
+                        fatal=False))
+                elif media_type == 'Dash':
+                    stream_formats.extend(self._extract_mpd_formats(
+                        video_url, resource_id,
+                        mpd_id='%s-%u.%u' % (stream_id, snum, unum),
+                        fatal=False))
+                else:
+                    stream_formats.append({
+                        'format_id': '%s-%u.%u' % (stream_id, snum, unum),
+                        'url': video_url,
+                        'ext': mimetype2ext(VideoUrl.get('MimeType')),
+                    })
 
             # TODO: if Stream['HasSlideContent']:
             # synthesise an MJPEG video stream '%s-%u.slides' % (stream_type, snum)
@@ -155,16 +185,16 @@ class MediasiteIE(InfoExtractor):
             # this will require writing a custom downloader...
 
             # disprefer 'secondary' streams
-            if Stream['StreamType'] != 0:
+            if stream_type != 0:
                 for fmt in stream_formats:
                     fmt['preference'] = -1
 
-            ThumbnailUrl = Stream.get('ThumbnailUrl')
-            if ThumbnailUrl:
+            thumbnail_url = Stream.get('ThumbnailUrl')
+            if thumbnail_url:
                 thumbnails.append({
-                    'id': '%s-%u' % (stream_type, snum),
-                    'url': compat_urlparse.urljoin(url, ThumbnailUrl),
-                    'preference': -1 if Stream['StreamType'] != 0 else 0,
+                    'id': '%s-%u' % (stream_id, snum),
+                    'url': urljoin(redirect_url, thumbnail_url),
+                    'preference': -1 if stream_type != 0 else 0,
                 })
             formats.extend(stream_formats)
 
@@ -174,11 +204,11 @@ class MediasiteIE(InfoExtractor):
         # XXX: Presentation['Transcript']
 
         return {
-            'id': ResourceId,
-            'title': Presentation['Title'],
-            'description': Presentation.get('Description'),
-            'duration': float_or_none(Presentation.get('Duration'), 1000),
-            'timestamp': float_or_none(Presentation.get('UnixTime'), 1000),
+            'id': resource_id,
+            'title': title,
+            'description': presentation.get('Description'),
+            'duration': float_or_none(presentation.get('Duration'), 1000),
+            'timestamp': float_or_none(presentation.get('UnixTime'), 1000),
             'formats': formats,
             'thumbnails': thumbnails,
         }
