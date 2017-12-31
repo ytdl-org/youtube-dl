@@ -12,11 +12,11 @@ from ..utils import (
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://(play|prima)\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
     _GEO_BYPASS = False
 
     _TESTS = [{
-        'url': 'http://play.iprima.cz/gondici-s-r-o-33',
+        'url': 'http://play.iprima.cz/gondici-s-r-o/gondici-s-r-o-34',
         'info_dict': {
             'id': 'p136534',
             'ext': 'mp4',
@@ -36,6 +36,7 @@ class IPrimaIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        url = re.sub(r'prima.iprima.cz', 'play.iprima.cz', url)
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
