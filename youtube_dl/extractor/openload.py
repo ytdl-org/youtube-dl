@@ -332,7 +332,8 @@ class OpenloadIE(InfoExtractor):
         phantom = PhantomJSwrapper(self, required_version='2.0')
         webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
 
-        decoded_id = get_element_by_id('streamurl', webpage)
+        decoded_id = (get_element_by_id('streamurl', webpage) or
+                      get_element_by_id('streamuri', webpage))
 
         video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
 

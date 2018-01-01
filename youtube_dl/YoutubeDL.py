@@ -2233,8 +2233,16 @@ class YoutubeDL(object):
                 sys.exc_clear()
             except Exception:
                 pass
-        self._write_string('[debug] Python version %s - %s\n' % (
-            platform.python_version(), platform_name()))
+
+        def python_implementation():
+            impl_name = platform.python_implementation()
+            if impl_name == 'PyPy' and hasattr(sys, 'pypy_version_info'):
+                return impl_name + ' version %d.%d.%d' % sys.pypy_version_info[:3]
+            return impl_name
+
+        self._write_string('[debug] Python version %s (%s) - %s\n' % (
+            platform.python_version(), python_implementation(),
+            platform_name()))
 
         exe_versions = FFmpegPostProcessor.get_versions(self)
         exe_versions['rtmpdump'] = rtmpdump_version()
