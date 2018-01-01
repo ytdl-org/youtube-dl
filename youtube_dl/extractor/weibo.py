@@ -121,7 +121,7 @@ class WeiboMobileIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id, note="visit the page")
         js_code = self._search_regex(r'var\s+\$render_data\s*=\s*\[({.*})\]\[0\] \|\| {};', webpage, 'js_code', flags=re.DOTALL)
         weibo_info = self._parse_json(js_code, video_id, transform_source=js_to_json)
-        page_info = weibo_info['status']['page_info']
+        page_info = weibo_info.get('status').get('page_info')
         title = weibo_info.get('status').get('status_title')
         uploader = weibo_info.get('status').get('user').get('screen_name')
 
