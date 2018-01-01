@@ -7,6 +7,8 @@ python:
   - "3.4"
   - "3.5"
   - "3.6"
+  - "pypy"
+  - "pypy3"
 sudo: false
 env:
   - YTDL_TEST_SET=core
