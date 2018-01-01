@@ -14,11 +14,14 @@ env:
   - YTDL_TEST_SET=core
   - YTDL_TEST_SET=download
 matrix:
+  include:
+    - env: JYTHON=true; YTDL_TEST_SET=core
+    - env: JYTHON=true; YTDL_TEST_SET=download
   fast_finish: true
   allow_failures:
     - env: YTDL_TEST_SET=download
+    - env: JYTHON=true; YTDL_TEST_SET=core
+    - env: JYTHON=true; YTDL_TEST_SET=download
+before_install:
+  - if [ "$JYTHON" == "true" ]; then ./devscripts/install_jython.sh; export PATH="$HOME/jython/bin:$PATH"; fi
 script: ./devscripts/run_tests.sh
-notifications:
-  email:
-    - filippo.valsorda@gmail.com
-    - yasoob.khld@gmail.com
