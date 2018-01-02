@@ -8,7 +8,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
-    parse_iso8601,
+    unified_timestamp,
     OnDemandPagedList,
 )
 
@@ -56,7 +56,7 @@ class ACastIE(InfoExtractor):
             'title': e['name'],
             'description': e.get('description'),
             'thumbnail': e.get('image'),
-            'timestamp': parse_iso8601(e.get('publishingDate')),
+            'timestamp': unified_timestamp(e.get('publishingDate')),
             'duration': int_or_none(e.get('duration')),
         }
 
