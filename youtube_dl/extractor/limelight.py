@@ -283,7 +283,7 @@ class LimelightMediaIE(LimelightBaseIE):
             smuggled_data.get('source_url'))
 
         return self._extract_info(
-            pc['playlistItems'][0].get('streams', []),
+            pc['playlistItems'][0].get('streams', []) if pc else [],
             mobile['mediaList'][0].get('mobileUrls', []) if mobile else [],
             metadata)
 
