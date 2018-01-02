@@ -366,8 +366,7 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
             video_id = 'v%s' % TwitchVodIE._match_id(url)
             return self.url_result(url, TwitchVodIE.ie_key(), video_id=video_id)
         except AssertionError:
-            self.to_screen('Unable to match video ID from URL: %s' % url)
-        return self.url_result(url)
+            return self.url_result(url)
 
     def _extract_playlist_page(self, response):
         videos = response.get('videos')
