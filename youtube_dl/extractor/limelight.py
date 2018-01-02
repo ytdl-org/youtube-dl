@@ -327,7 +327,7 @@ class LimelightChannelIE(LimelightBaseIE):
 
         entries = [
             self._extract_info(
-                pc['playlistItems'][i].get('streams', []),
+                pc['playlistItems'][i].get('streams', []) if pc else [],
                 mobile['mediaList'][i].get('mobileUrls', []) if mobile else [],
                 medias['media_list'][i])
             for i in range(len(medias['media_list']))]
