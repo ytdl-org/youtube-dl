@@ -95,7 +95,7 @@ class PhantomJSwrapper(object):
           phantom.exit();
         }};
         page.onLoadFinished = function(status) {{
-          if(page.url === "") {{
+          if(page.url === "" || page.url === "about:blank") {{
             page.setContent(fs.read("{html}", read), "{url}");
           }}
           else {{
