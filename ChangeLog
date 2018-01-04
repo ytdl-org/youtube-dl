@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
+* [youku] Fix list extraction (#15135)
 * [openload] Fix extraction (#15166)
 * [rtve.es:alacarta] Fix extraction of some new URLs
 
