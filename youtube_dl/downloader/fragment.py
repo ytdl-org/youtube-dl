@@ -107,11 +107,12 @@ class FragmentFD(FileDownloader):
     def _append_fragment(self, ctx, frag_content):
         try:
             ctx['dest_stream'].write(frag_content)
+            ctx['dest_stream'].flush()
         finally:
             if self.__do_ytdl_file(ctx):
                 self._write_ytdl_file(ctx)
             if not self.params.get('keep_fragments', False):
-                os.remove(ctx['fragment_filename_sanitized'])
+                os.remove(encodeFilename(ctx['fragment_filename_sanitized']))
             del ctx['fragment_filename_sanitized']
 
     def _prepare_frag_download(self, ctx):

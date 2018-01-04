@@ -112,6 +112,8 @@ class PhantomJSwrapper(object):
         return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
 
     def __init__(self, extractor, required_version=None, timeout=10000):
+        self._TMP_FILES = {}
+
         self.exe = check_executable('phantomjs', ['-v'])
         if not self.exe:
             raise ExtractorError('PhantomJS executable not found in PATH, '
@@ -130,7 +132,6 @@ class PhantomJSwrapper(object):
         self.options = {
             'timeout': timeout,
         }
-        self._TMP_FILES = {}
         for name in self._TMP_FILE_NAMES:
             tmp = tempfile.NamedTemporaryFile(delete=False)
             tmp.close()
@@ -140,7 +141,7 @@ class PhantomJSwrapper(object):
         for name in self._TMP_FILE_NAMES:
             try:
                 os.remove(self._TMP_FILES[name].name)
-            except:
+            except (IOError, OSError, KeyError):
                 pass
 
     def _save_cookies(self, url):
@@ -242,7 +243,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:openload\.(?:co|io)|oload\.tv)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -284,7 +285,18 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://openload.co/embed/Sxz5sADo82g/',
         'only_matching': True,
     }, {
+        # unavailable via https://openload.co/embed/e-Ixz9ZR5L0/ but available
+        # via https://openload.co/f/e-Ixz9ZR5L0/
+        'url': 'https://openload.co/f/e-Ixz9ZR5L0/',
+        'only_matching': True,
+    }, {
         'url': 'https://oload.tv/embed/KnG-kKZdcfY/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.openload.link/f/KnG-kKZdcfY',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.stream/f/KnG-kKZdcfY',
         'only_matching': True,
     }]
 
@@ -298,20 +310,34 @@ class OpenloadIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'https://openload.co/embed/%s/' % video_id
+        url_pattern = 'https://openload.co/%%s/%s/' % video_id
         headers = {
             'User-Agent': self._USER_AGENT,
         }
 
-        webpage = self._download_webpage(url, video_id, headers=headers)
-
-        if 'File not found' in webpage or 'deleted by the owner' in webpage:
-            raise ExtractorError('File not found', expected=True, video_id=video_id)
+        for path in ('embed', 'f'):
+            page_url = url_pattern % path
+            last = path == 'f'
+            webpage = self._download_webpage(
+                page_url, video_id, 'Downloading %s webpage' % path,
+                headers=headers, fatal=last)
+            if not webpage:
+                continue
+            if 'File not found' in webpage or 'deleted by the owner' in webpage:
+                if not last:
+                    continue
+                raise ExtractorError('File not found', expected=True, video_id=video_id)
+            break
 
         phantom = PhantomJSwrapper(self, required_version='2.0')
-        webpage, _ = phantom.get(url, html=webpage, video_id=video_id, headers=headers)
+        webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
 
-        decoded_id = get_element_by_id('streamurl', webpage)
+        decoded_id = (get_element_by_id('streamurl', webpage) or
+                      get_element_by_id('streamuri', webpage) or
+                      get_element_by_id('streamurj', webpage))
+
+        if not decoded_id:
+            raise ExtractorError('Can\'t find stream URL', video_id=video_id)
 
         video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
 
@@ -320,7 +346,7 @@ class OpenloadIE(InfoExtractor):
             'title', default=None) or self._html_search_meta(
             'description', webpage, 'title', fatal=True)
 
-        entries = self._parse_html5_media_entries(url, webpage, video_id)
+        entries = self._parse_html5_media_entries(page_url, webpage, video_id)
         entry = entries[0] if entries else {}
         subtitles = entry.get('subtitles')
 

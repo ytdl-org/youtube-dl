@@ -421,6 +421,7 @@ class PBSIE(InfoExtractor):
                 r'class="coveplayerid">([^<]+)<',                       # coveplayer
                 r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
                 r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([0-9]+)"/>',  # jwplayer
+                r"(?s)window\.PBS\.playerConfig\s*=\s*{.*?id\s*:\s*'([0-9]+)',",
             ]
 
             media_id = self._search_regex(

@@ -468,11 +468,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
         request = sanitized_Request(url, headers=headers)
         try:
             webpage, urlh = self._download_webpage_handle(request, video_id)
+            redirect_url = compat_str(urlh.geturl())
             # Some URLs redirect to ondemand can't be extracted with
             # this extractor right away thus should be passed through
             # ondemand extractor (e.g. https://vimeo.com/73445910)
-            if VimeoOndemandIE.suitable(urlh.geturl()):
-                return self.url_result(urlh.geturl(), VimeoOndemandIE.ie_key())
+            if VimeoOndemandIE.suitable(redirect_url):
+                return self.url_result(redirect_url, VimeoOndemandIE.ie_key())
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
                 errmsg = ee.cause.read()
@@ -541,15 +542,15 @@ class VimeoIE(VimeoBaseInfoExtractor):
             if re.search(r'<form[^>]+?id="pw_form"', webpage) is not None:
                 if '_video_password_verified' in data:
                     raise ExtractorError('video password verification failed!')
-                self._verify_video_password(url, video_id, webpage)
+                self._verify_video_password(redirect_url, video_id, webpage)
                 return self._real_extract(
-                    smuggle_url(url, {'_video_password_verified': 'verified'}))
+                    smuggle_url(redirect_url, {'_video_password_verified': 'verified'}))
             else:
                 raise ExtractorError('Unable to extract info section',
                                      cause=e)
         else:
             if config.get('view') == 4:
-                config = self._verify_player_video_password(url, video_id)
+                config = self._verify_player_video_password(redirect_url, video_id)
 
         def is_rented():
             if '>You rented this title.<' in webpage:

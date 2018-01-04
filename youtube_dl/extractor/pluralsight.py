@@ -131,6 +131,13 @@ class PluralsightIE(PluralsightBaseIE):
             if BLOCKED in response:
                 raise ExtractorError(
                     'Unable to login: %s' % BLOCKED, expected=True)
+            MUST_AGREE = 'To continue using Pluralsight, you must agree to'
+            if any(p in response for p in (MUST_AGREE, '>Disagree<', '>Agree<')):
+                raise ExtractorError(
+                    'Unable to login: %s some documents. Go to pluralsight.com, '
+                    'log in and agree with what Pluralsight requires.'
+                    % MUST_AGREE, expected=True)
+
             raise ExtractorError('Unable to log in')
 
     def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
@@ -164,12 +171,12 @@ class PluralsightIE(PluralsightBaseIE):
         for num, current in enumerate(subs):
             current = subs[num]
             start, text = (
-                float_or_none(dict_get(current, TIME_OFFSET_KEYS)),
+                float_or_none(dict_get(current, TIME_OFFSET_KEYS, skip_false_values=False)),
                 dict_get(current, TEXT_KEYS))
             if start is None or text is None:
                 continue
             end = duration if num == len(subs) - 1 else float_or_none(
-                dict_get(subs[num + 1], TIME_OFFSET_KEYS))
+                dict_get(subs[num + 1], TIME_OFFSET_KEYS, skip_false_values=False))
             if end is None:
                 continue
             srt += os.linesep.join(

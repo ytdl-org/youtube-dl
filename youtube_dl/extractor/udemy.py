@@ -62,11 +62,11 @@ class UdemyIE(InfoExtractor):
     def _extract_course_info(self, webpage, video_id):
         course = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'ng-init=["\'].*\bcourse=({.+?});', webpage, 'course', default='{}')),
+                r'ng-init=["\'].*\bcourse=({.+?})[;"\']',
+                webpage, 'course', default='{}')),
             video_id, fatal=False) or {}
         course_id = course.get('id') or self._search_regex(
-            (r'&quot;id&quot;\s*:\s*(\d+)', r'data-course-id=["\'](\d+)'),
-            webpage, 'course id')
+            r'data-course-id=["\'](\d+)', webpage, 'course id')
         return course_id, course.get('title')
 
     def _enroll_course(self, base_url, webpage, course_id):
@@ -256,6 +256,11 @@ class UdemyIE(InfoExtractor):
             for source in source_list:
                 video_url = source.get('file') or source.get('src')
                 if not video_url or not isinstance(video_url, compat_str):
+                    continue
+                if source.get('type') == 'application/x-mpegURL' or determine_ext(video_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
                     continue
                 format_id = source.get('label')
                 f = {

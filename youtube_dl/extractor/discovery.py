@@ -1,14 +1,18 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
+import random
+import re
+import string
+
+from .discoverygo import DiscoveryGoBaseIE
 from ..utils import (
-    parse_duration,
-    parse_iso8601,
+    ExtractorError,
+    update_url_query,
 )
-from ..compat import compat_str
+from ..compat import compat_HTTPError
 
 
-class DiscoveryIE(InfoExtractor):
+class DiscoveryIE(DiscoveryGoBaseIE):
     _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
             discovery|
             investigationdiscovery|
@@ -19,79 +23,65 @@ class DiscoveryIE(InfoExtractor):
             sciencechannel|
             tlc|
             velocity
-        )\.com/(?:[^/]+/)*(?P<id>[^./?#]+)'''
+        )\.com(?P<path>/tv-shows/[^/]+/(?:video|full-episode)s/(?P<id>[^./?#]+))'''
     _TESTS = [{
-        'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
+        'url': 'https://www.discovery.com/tv-shows/cash-cab/videos/dave-foley',
         'info_dict': {
-            'id': '20769',
+            'id': '5a2d9b4d6b66d17a5026e1fd',
             'ext': 'mp4',
-            'title': 'Mission Impossible Outtakes',
-            'description': ('Watch Jamie Hyneman and Adam Savage practice being'
-                            ' each other -- to the point of confusing Jamie\'s dog -- and '
-                            'don\'t miss Adam moon-walking as Jamie ... behind Jamie\'s'
-                            ' back.'),
-            'duration': 156,
-            'timestamp': 1302032462,
-            'upload_date': '20110405',
-            'uploader_id': '103207',
+            'title': 'Dave Foley',
+            'description': 'md5:4b39bcafccf9167ca42810eb5f28b01f',
+            'duration': 608,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg
         }
     }, {
-        'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mythbusters-the-simpsons',
-        'info_dict': {
-            'id': 'mythbusters-the-simpsons',
-            'title': 'MythBusters: The Simpsons',
-        },
-        'playlist_mincount': 10,
-    }, {
-        'url': 'http://www.animalplanet.com/longfin-eels-maneaters/',
-        'info_dict': {
-            'id': '78326',
-            'ext': 'mp4',
-            'title': 'Longfin Eels: Maneaters?',
-            'description': 'Jeremy Wade tests whether or not New Zealand\'s longfin eels are man-eaters by covering himself in fish guts and getting in the water with them.',
-            'upload_date': '20140725',
-            'timestamp': 1406246400,
-            'duration': 116,
-            'uploader_id': '103207',
-        },
-        'params': {
-            'skip_download': True,  # requires ffmpeg
-        }
+        'url': 'https://www.investigationdiscovery.com/tv-shows/final-vision/full-episodes/final-vision',
+        'only_matching': True,
     }]
+    _GEO_COUNTRIES = ['US']
+    _GEO_BYPASS = False
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        info = self._download_json(url + '?flat=1', display_id)
+        path, display_id = re.match(self._VALID_URL, url).groups()
+        webpage = self._download_webpage(url, display_id)
 
-        video_title = info.get('playlist_title') or info.get('video_title')
+        react_data = self._parse_json(self._search_regex(
+            r'window\.__reactTransmitPacket\s*=\s*({.+?});',
+            webpage, 'react data'), display_id)
+        content_blocks = react_data['layout'][path]['contentBlocks']
+        video = next(cb for cb in content_blocks if cb.get('type') == 'video')['content']['items'][0]
+        video_id = video['id']
 
-        entries = []
+        access_token = self._download_json(
+            'https://www.discovery.com/anonymous', display_id, query={
+                'authLink': update_url_query(
+                    'https://login.discovery.com/v1/oauth2/authorize', {
+                        'client_id': react_data['application']['apiClientId'],
+                        'redirect_uri': 'https://fusion.ddmcdn.com/app/mercury-sdk/180/redirectHandler.html',
+                        'response_type': 'anonymous',
+                        'state': 'nonce,' + ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
+                    })
+            })['access_token']
 
-        for idx, video_info in enumerate(info['playlist']):
-            subtitles = {}
-            caption_url = video_info.get('captionsUrl')
-            if caption_url:
-                subtitles = {
-                    'en': [{
-                        'url': caption_url,
-                    }]
-                }
+        try:
+            stream = self._download_json(
+                'https://api.discovery.com/v1/streaming/video/' + video_id,
+                display_id, headers={
+                    'Authorization': 'Bearer ' + access_token,
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                e_description = self._parse_json(
+                    e.cause.read().decode(), display_id)['description']
+                if 'resource not available for country' in e_description:
+                    self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
+                if 'Authorized Networks' in e_description:
+                    raise ExtractorError(
+                        'This video is only available via cable service provider subscription that'
+                        ' is not currently supported. You may want to use --cookies.', expected=True)
+                raise ExtractorError(e_description)
+            raise
 
-            entries.append({
-                '_type': 'url_transparent',
-                'url': 'http://players.brightcove.net/103207/default_default/index.html?videoId=ref:%s' % video_info['referenceId'],
-                'id': compat_str(video_info['id']),
-                'title': video_info['title'],
-                'description': video_info.get('description'),
-                'duration': parse_duration(video_info.get('video_length')),
-                'webpage_url': video_info.get('href') or video_info.get('url'),
-                'thumbnail': video_info.get('thumbnailURL'),
-                'alt_title': video_info.get('secondary_title'),
-                'timestamp': parse_iso8601(video_info.get('publishedDate')),
-                'subtitles': subtitles,
-            })
-
-        return self.playlist_result(entries, display_id, video_title)
+        return self._extract_video_info(video, stream, display_id)

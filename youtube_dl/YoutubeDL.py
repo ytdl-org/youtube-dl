@@ -948,7 +948,8 @@ class YoutubeDL(object):
                 report_download(n_entries)
             else:  # iterable
                 if playlistitems:
-                    entries = make_playlistitems_entries(list(ie_entries))
+                    entries = make_playlistitems_entries(list(itertools.islice(
+                        ie_entries, 0, max(playlistitems))))
                 else:
                     entries = list(itertools.islice(
                         ie_entries, playliststart, playlistend))
@@ -974,6 +975,8 @@ class YoutubeDL(object):
                     'playlist': playlist,
                     'playlist_id': ie_result.get('id'),
                     'playlist_title': ie_result.get('title'),
+                    'playlist_uploader': ie_result.get('uploader'),
+                    'playlist_uploader_id': ie_result.get('uploader_id'),
                     'playlist_index': i + playliststart,
                     'extractor': ie_result['extractor'],
                     'webpage_url': ie_result['webpage_url'],
@@ -2262,8 +2265,16 @@ class YoutubeDL(object):
                 sys.exc_clear()
             except Exception:
                 pass
-        self._write_string('[debug] Python version %s - %s\n' % (
-            platform.python_version(), platform_name()))
+
+        def python_implementation():
+            impl_name = platform.python_implementation()
+            if impl_name == 'PyPy' and hasattr(sys, 'pypy_version_info'):
+                return impl_name + ' version %d.%d.%d' % sys.pypy_version_info[:3]
+            return impl_name
+
+        self._write_string('[debug] Python version %s (%s) - %s\n' % (
+            platform.python_version(), python_implementation(),
+            platform_name()))
 
         exe_versions = FFmpegPostProcessor.get_versions(self)
         exe_versions['rtmpdump'] = rtmpdump_version()

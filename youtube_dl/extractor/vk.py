@@ -414,7 +414,7 @@ class VKIE(VKBaseIE):
 
         view_count = str_to_int(self._search_regex(
             r'class=["\']mv_views_count[^>]+>\s*([\d,.]+)',
-            info_page, 'view count', fatal=False))
+            info_page, 'view count', default=None))
 
         formats = []
         for format_id, format_url in data.items():

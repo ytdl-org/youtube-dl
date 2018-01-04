@@ -40,9 +40,12 @@ class XiamiBaseIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
-    def _extract_tracks(self, item_id, typ=None):
+    def _extract_tracks(self, item_id, referer, typ=None):
         playlist = self._download_json(
-            '%s/%s%s' % (self._API_BASE_URL, item_id, '/type/%s' % typ if typ else ''), item_id)
+            '%s/%s%s' % (self._API_BASE_URL, item_id, '/type/%s' % typ if typ else ''),
+            item_id, headers={
+                'Referer': referer,
+            })
         return [
             self._extract_track(track, item_id)
             for track in playlist['data']['trackList']]
@@ -135,13 +138,13 @@ class XiamiSongIE(XiamiBaseIE):
     }]
 
     def _real_extract(self, url):
-        return self._extract_tracks(self._match_id(url))[0]
+        return self._extract_tracks(self._match_id(url), url)[0]
 
 
 class XiamiPlaylistBaseIE(XiamiBaseIE):
     def _real_extract(self, url):
         item_id = self._match_id(url)
-        return self.playlist_result(self._extract_tracks(item_id, self._TYPE), item_id)
+        return self.playlist_result(self._extract_tracks(item_id, url, self._TYPE), item_id)
 
 
 class XiamiAlbumIE(XiamiPlaylistBaseIE):
