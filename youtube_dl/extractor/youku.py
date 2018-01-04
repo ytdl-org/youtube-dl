@@ -253,11 +253,10 @@ class YoukuShowIE(InfoExtractor):
 
     def _extract_entries(self, playlist_data_url, show_id, note, query):
         query['callback'] = 'cb'
-        try:
-            playlist_data = self._download_json(
-                playlist_data_url, show_id, query=query, note=note,
-                transform_source=lambda s: js_to_json(strip_jsonp(s)))['html']
-        except KeyError:
+        playlist_data = self._download_json(
+            playlist_data_url, show_id, query=query, note=note,
+            transform_source=lambda s: js_to_json(strip_jsonp(s))).get('html')
+        if playlist_data is None:
             return [None, None]
         drama_list = (get_element_by_class('p-drama-grid', playlist_data) or
                       get_element_by_class('p-drama-half-row', playlist_data))
