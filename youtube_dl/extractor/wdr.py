@@ -253,7 +253,10 @@ class WDRElefantIE(WDRBaseIE):
                 'id': 'mdb-1008774',
                 'ext': 'mp4',
                 'age_limit': None,
-                'upload_date': '20091119'
+                'upload_date': '20091119',
+            },
+            'params': {
+                'skip_download' : True,
             },
         },
         {
@@ -264,6 +267,9 @@ class WDRElefantIE(WDRBaseIE):
                 'ext': 'mp4',
                 'age_limit': None,
                 'upload_date': '20150406'
+            },
+            'params': {
+                'skip_download' : True,
             },
         },
     ]
