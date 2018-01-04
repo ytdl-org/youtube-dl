@@ -245,13 +245,19 @@ class YoukuShowIE(InfoExtractor):
         #  No data-id value.
         'url': 'http://list.youku.com/show/id_zefbfbd61237fefbfbdef.html',
         'only_matching': True,
+    }, {
+        #  Wrong number of reload_id.
+        'url': 'http://list.youku.com/show/id_z20eb4acaf5c211e3b2ad.html',
+        'only_matching': True,
     }]
 
     def _extract_entries(self, playlist_data_url, show_id, note, query):
         query['callback'] = 'cb'
         playlist_data = self._download_json(
             playlist_data_url, show_id, query=query, note=note,
-            transform_source=lambda s: js_to_json(strip_jsonp(s)))['html']
+            transform_source=lambda s: js_to_json(strip_jsonp(s))).get('html')
+        if playlist_data is None:
+            return [None, None]
         drama_list = (get_element_by_class('p-drama-grid', playlist_data) or
                       get_element_by_class('p-drama-half-row', playlist_data))
         if drama_list is None:
@@ -291,8 +297,8 @@ class YoukuShowIE(InfoExtractor):
                     'id': page_config['showid'],
                     'stage': reload_id,
                 })
-            entries.extend(new_entries)
-
+            if new_entries is not None:
+                entries.extend(new_entries)
         desc = self._html_search_meta('description', webpage, fatal=False)
         playlist_title = desc.split(',')[0] if desc else None
         detail_li = get_element_by_class('p-intro', webpage)
