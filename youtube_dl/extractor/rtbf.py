@@ -24,6 +24,7 @@ class RTBFIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Les Diables au coeur (épisode 2)',
             'description': 'Football - Diables Rouges',
+            'subtitle': 'Football - Diables Rouges'
             'duration': 3099,
             'upload_date': '20140425',
             'timestamp': 1398456336,
@@ -89,6 +90,7 @@ class RTBFIE(InfoExtractor):
             'formats': formats,
             'title': data['title'],
             'description': data.get('description') or data.get('subtitle'),
+            'subtitle': data.get('subtitle'),
             'thumbnails': thumbnails,
             'duration': data.get('duration') or data.get('realDuration'),
             'timestamp': int_or_none(data.get('created')),
