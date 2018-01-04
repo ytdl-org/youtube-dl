@@ -24,7 +24,7 @@ class RTBFIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Les Diables au coeur (épisode 2)',
             'description': 'Football - Diables Rouges',
-            'subtitle': 'Football - Diables Rouges'
+            'subtitle': 'Football - Diables Rouges',
             'duration': 3099,
             'upload_date': '20140425',
             'timestamp': 1398456336,
