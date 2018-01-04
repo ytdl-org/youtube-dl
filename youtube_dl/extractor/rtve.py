@@ -31,6 +31,9 @@ def _decrypt_url(png):
     hash_index = data.index('#')
     alphabet_data = data[:hash_index]
     url_data = data[hash_index + 1:]
+    if url_data[0] == 'H' and url_data[3] == '%':
+        # remove useless HQ%% at the start
+        url_data = url_data[4:]
 
     alphabet = []
     e = 0

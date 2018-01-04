@@ -333,7 +333,11 @@ class OpenloadIE(InfoExtractor):
         webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
 
         decoded_id = (get_element_by_id('streamurl', webpage) or
-                      get_element_by_id('streamuri', webpage))
+                      get_element_by_id('streamuri', webpage) or
+                      get_element_by_id('streamurj', webpage))
+
+        if not decoded_id:
+            raise ExtractorError('Can\'t find stream URL', video_id=video_id)
 
         video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
 
