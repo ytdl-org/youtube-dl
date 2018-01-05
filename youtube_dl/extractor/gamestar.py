@@ -9,21 +9,27 @@ from ..utils import (
 
 
 class GameStarIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gamestar\.de/videos/.*,(?P<id>[0-9]+)\.html'
-    _TEST = {
-        'url': 'http://www.gamestar.de/videos/trailer,3/hobbit-3-die-schlacht-der-fuenf-heere,76110.html',
-        'md5': '96974ecbb7fd8d0d20fca5a00810cea7',
-        'info_dict': {
-            'id': '76110',
-            'ext': 'mp4',
-            'title': 'Hobbit 3: Die Schlacht der Fünf Heere - Teaser-Trailer zum dritten Teil',
-            'description': 'Der Teaser-Trailer zu Hobbit 3: Die Schlacht der Fünf Heere zeigt einige Szenen aus dem dritten Teil der Saga und kündigt den...',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'timestamp': 1406542020,
-            'upload_date': '20140728',
-            'duration': 17
-        }
-    }
+    _VALID_URL = r'https?://(?:www\.)?game(?:pro|star)\.de/videos/.*,(?P<id>[0-9]+)\.html'
+    _TESTS = [
+        {
+            'url': 'http://www.gamestar.de/videos/trailer,3/hobbit-3-die-schlacht-der-fuenf-heere,76110.html',
+            'md5': 'ee782f1f8050448c95c5cacd63bc851c',
+            'info_dict': {
+                'id': '76110',
+                'ext': 'mp4',
+                'title': 'Hobbit 3: Die Schlacht der Fünf Heere - Teaser-Trailer zum dritten Teil',
+                'description': 'Der Teaser-Trailer zu Hobbit 3: Die Schlacht der Fünf Heere zeigt einige Szenen aus dem dritten Teil der Saga und kündigt den...',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'timestamp': 1406542380,
+                'upload_date': '20140728',
+                'duration': 17,
+            }
+        },
+        {
+            'url': 'http://www.gamepro.de/videos/top-10-indie-spiele-fuer-nintendo-switch-video-tolle-nindies-games-zum-download,95316.html',
+            'only_matching': True,
+        },
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -38,6 +44,7 @@ class GameStarIE(InfoExtractor):
             webpage, 'JSON-LD', group='json_ld'), video_id)
         info_dict = self._json_ld(json_ld, video_id)
         info_dict['title'] = remove_end(info_dict['title'], ' - GameStar')
+        info_dict['title'] = remove_end(info_dict['title'], ' - GamePro')
 
         view_count = int_or_none(json_ld.get('interactionCount'))
         comment_count = int_or_none(self._html_search_regex(
