@@ -136,22 +136,6 @@ class SoundcloudIE(InfoExtractor):
                 'license': 'all-rights-reserved',
             },
         },
-        # use album art for thumbnail
-        {
-            'url': 'https://soundcloud.com/postmalone/rockstar-feat-21-savage',
-            'md5': '631b6b41bdfb5c1e466e207a7afaf3ed',
-            'info_dict': {
-                'id': '341546259',
-                'ext': 'mp3',
-                'title': 'rockstar (feat. 21 Savage)',
-                'description': None,
-                'uploader': 'Post Malone',
-                'upload_date': '20170908',
-                'duration': 218,
-                'thumbnail': 'https://i1.sndcdn.com/artworks-JbxEN7x8VfRc-0-t500x500.jpg',
-                'license': 'all-rights-reserved',
-            },
-        },
         # no album art, use avatar pic for thumbnail
         {
             'url': 'https://soundcloud.com/garyvee/sideways-prod-mad-real',
@@ -164,8 +148,11 @@ class SoundcloudIE(InfoExtractor):
                 'uploader': 'garyvee',
                 'upload_date': '20170226',
                 'duration': 207,
-                'thumbnail': 'https://i1.sndcdn.com/avatars-000298106657-ogrgmg-t500x500.jpg',
+                'thumbnail': r're:https?://.*\.jpg',
                 'license': 'all-rights-reserved',
+            },
+            'params': {
+                'skip_download': True,
             },
         },
     ]
