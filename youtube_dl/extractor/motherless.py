@@ -153,7 +153,7 @@ class MotherlessGroupIE(InfoExtractor):
                 compat_urlparse.urljoin(base, video_path),
                 MotherlessIE.ie_key(), video_title=title)
             for video_path, title in orderedSet(re.findall(
-                r'href="/([^"]+)"[^>]+>\s+<img[^>]+alt="[^-]+-\s([^"]+)"',
+                r'href="(/[^"]+)"[^>]+>\s+<img[^>]+alt="[^-]+-\s([^"]+)"',
                 webpage))
         ]
 
