@@ -15,7 +15,6 @@ from ..utils import (
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<blog_name>[^/?#&]+)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
     _NETRC_MACHINE = 'tumblr'
-    _LOGIN_REQUIRED = False
     _LOGIN_URL = 'https://www.tumblr.com/login'
     _TESTS = [{
         'url': 'http://tatianamaslanydaily.tumblr.com/post/54196191430/orphan-black-dvd-extra-behind-the-scenes',
@@ -119,16 +118,16 @@ class TumblrIE(InfoExtractor):
             'user[email]': username,
             'user[password]': password
         })
-        post_data = urlencode_postdata(form)
-        login_request = sanitized_Request(self._LOGIN_URL, post_data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        login_request.add_header('Referer', self._LOGIN_URL)
-        login_response = self._download_webpage(login_request, None, False, 'Wrong login info')
+        login_response = self._download_webpage(
+            sanitized_Request(self._LOGIN_URL, urlencode_postdata(form), {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': self._LOGIN_URL
+            }), None, False, 'Wrong login info')
 
         # Check the login response from Tumblr for an error message and fail the extraction if we find one.
-        login_errors = self._search_regex(r'Tumblr\.RegistrationForm\.errors = \[(.*)\]', login_response, 'login errors', False, False)
+        login_errors = self._search_regex(r'Tumblr\.RegistrationForm\.errors\s*=\s*\[[\"|\'](.+)[\"|\']\]', login_response, 'login errors', False)
         if login_errors:
-            raise ExtractorError("Error logging in: %s" % login_errors)
+            raise ExtractorError('Error logging in: %s' % login_errors, expected=True)
 
     def _real_extract(self, url):
         m_url = re.match(self._VALID_URL, url)
