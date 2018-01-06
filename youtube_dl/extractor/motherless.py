@@ -148,14 +148,27 @@ class MotherlessGroupIE(InfoExtractor):
                 else super(MotherlessGroupIE, cls).suitable(url))
 
     def _extract_entries(self, webpage, base):
-        return [
-            self.url_result(
-                compat_urlparse.urljoin(base, video_path),
-                MotherlessIE.ie_key(), video_title=title)
-            for video_path, title in orderedSet(re.findall(
-                r'href="(/[^"]+)"[^>]+>\s+<img[^>]+alt="[^-]+-\s([^"]+)"',
-                webpage))
-        ]
+        entries = []
+        for mobj in re.finditer(
+                r'href="(?P<href>/[^"]+)"[^>]*>(?:\s*<img[^>]+alt="[^-]+-\s(?P<title>[^"]+)")?',
+                webpage):
+            video_url = compat_urlparse.urljoin(base, mobj.group('href'))
+            if not MotherlessIE.suitable(video_url):
+                continue
+            video_id = MotherlessIE._match_id(video_url)
+            title = mobj.group('title')
+            entries.append(self.url_result(
+                video_url, ie=MotherlessIE.ie_key(), video_id=video_id,
+                video_title=title))
+        # Alternative fallback
+        if not entries:
+            entries = [
+                self.url_result(
+                    compat_urlparse.urljoin(base, '/' + video_id),
+                    ie=MotherlessIE.ie_key(), video_id=video_id)
+                for video_id in orderedSet(re.findall(
+                    r'data-codename=["\']([A-Z0-9]+)', webpage))]
+        return entries
 
     def _real_extract(self, url):
         group_id = self._match_id(url)
