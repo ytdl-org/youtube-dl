@@ -2708,9 +2708,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(viewlift_url)
 
         # Look for JWPlatform embeds
-        jwplatform_url = JWPlatformIE._extract_url(webpage)
-        if jwplatform_url:
-            return self.url_result(jwplatform_url, 'JWPlatform')
+        jwplatform_urls = JWPlatformIE._extract_urls(webpage)
+        if jwplatform_urls:
+            return self.playlist_from_matches(jwplatform_urls, video_id, video_title, ie=JWPlatformIE.ie_key())
 
         # Look for Digiteka embeds
         digiteka_url = DigitekaIE._extract_url(webpage)
