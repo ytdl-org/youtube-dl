@@ -4,23 +4,24 @@ import re
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
+from .adobepass import AdobePassIE
 from ..utils import (
     find_xpath_attr,
-    lowercase_escape,
     smuggle_url,
     unescapeHTML,
     update_url_query,
+    int_or_none,
 )
 
 
-class NBCIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nbc\.com/(?:[^/]+/)+(?P<id>n?\d+)'
+class NBCIE(AdobePassIE):
+    _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/(?:classic-tv/)?[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
         {
-            'url': 'http://www.nbc.com/the-tonight-show/segments/112966',
+            'url': 'http://www.nbc.com/the-tonight-show/video/jimmy-fallon-surprises-fans-at-ben-jerrys/2848237',
             'info_dict': {
-                'id': '112966',
+                'id': '2848237',
                 'ext': 'mp4',
                 'title': 'Jimmy Fallon Surprises Fans at Ben & Jerry\'s',
                 'description': 'Jimmy gives out free scoops of his new "Tonight Dough" ice cream flavor by surprising customers at the Ben & Jerry\'s scoop shop.',
@@ -32,16 +33,6 @@ class NBCIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
-        },
-        {
-            'url': 'http://www.nbc.com/the-tonight-show/episodes/176',
-            'info_dict': {
-                'id': '176',
-                'ext': 'flv',
-                'title': 'Ricky Gervais, Steven Van Zandt, ILoveMakonnen',
-                'description': 'A brand new episode of The Tonight Show welcomes Ricky Gervais, Steven Van Zandt and ILoveMakonnen.',
-            },
-            'skip': '404 Not Found',
         },
         {
             'url': 'http://www.nbc.com/saturday-night-live/video/star-wars-teaser/2832821',
@@ -61,15 +52,10 @@ class NBCIE(InfoExtractor):
             'skip': 'Only works from US',
         },
         {
-            # This video has expired but with an escaped embedURL
-            'url': 'http://www.nbc.com/parenthood/episode-guide/season-5/just-like-at-home/515',
-            'only_matching': True,
-        },
-        {
             # HLS streams requires the 'hdnea3' cookie
             'url': 'http://www.nbc.com/Kings/video/goliath/n1806',
             'info_dict': {
-                'id': 'n1806',
+                'id': '101528f5a9e8127b107e98c5e6ce4638',
                 'ext': 'mp4',
                 'title': 'Goliath',
                 'description': 'When an unknown soldier saves the life of the King\'s son in battle, he\'s thrust into the limelight and politics of the kingdom.',
@@ -81,26 +67,46 @@ class NBCIE(InfoExtractor):
                 'skip_download': True,
             },
             'skip': 'Only works from US',
-        }
+        },
+        {
+            'url': 'https://www.nbc.com/classic-tv/charles-in-charge/video/charles-in-charge-pilot/n3310',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        theplatform_url = unescapeHTML(lowercase_escape(self._html_search_regex(
-            [
-                r'(?:class="video-player video-player-full" data-mpx-url|class="player" src)="(.*?)"',
-                r'<iframe[^>]+src="((?:https?:)?//player\.theplatform\.com/[^"]+)"',
-                r'"embedURL"\s*:\s*"([^"]+)"'
-            ],
-            webpage, 'theplatform url').replace('_no_endcard', '').replace('\\/', '/')))
-        if theplatform_url.startswith('//'):
-            theplatform_url = 'http:' + theplatform_url
+        permalink, video_id = re.match(self._VALID_URL, url).groups()
+        permalink = 'http' + permalink
+        video_data = self._download_json(
+            'https://api.nbc.com/v3/videos', video_id, query={
+                'filter[permalink]': permalink,
+            })['data'][0]['attributes']
+        query = {
+            'mbr': 'true',
+            'manifest': 'm3u',
+        }
+        video_id = video_data['guid']
+        title = video_data['title']
+        if video_data.get('entitlement') == 'auth':
+            resource = self._get_mvpd_resource(
+                'nbcentertainment', title, video_id,
+                video_data.get('vChipRating'))
+            query['auth'] = self._extract_mvpd_auth(
+                url, video_id, 'nbcentertainment', resource)
+        theplatform_url = smuggle_url(update_url_query(
+            'http://link.theplatform.com/s/NnzsPC/media/guid/2410887629/' + video_id,
+            query), {'force_smil_url': True})
         return {
             '_type': 'url_transparent',
-            'ie_key': 'ThePlatform',
-            'url': smuggle_url(theplatform_url, {'source_url': url}),
             'id': video_id,
+            'title': title,
+            'url': theplatform_url,
+            'description': video_data.get('description'),
+            'keywords': video_data.get('keywords'),
+            'season_number': int_or_none(video_data.get('seasonNumber')),
+            'episode_number': int_or_none(video_data.get('episodeNumber')),
+            'series': video_data.get('showName'),
+            'ie_key': 'ThePlatform',
         }
 
 
@@ -108,10 +114,10 @@ class NBCSportsVPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
 
     _TESTS = [{
-        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_share/select/9CsDKds0kvHI',
+        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/9CsDKds0kvHI',
         'info_dict': {
             'id': '9CsDKds0kvHI',
-            'ext': 'flv',
+            'ext': 'mp4',
             'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
             'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
             'timestamp': 1426270238,
@@ -119,7 +125,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
             'uploader': 'NBCU-SPORTS',
         }
     }, {
-        'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
+        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/media/_hqLjQ95yx8Z',
         'only_matching': True,
     }]
 
@@ -133,7 +139,8 @@ class NBCSportsVPlayerIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = self._og_search_video_url(webpage)
+        theplatform_url = self._og_search_video_url(webpage).replace(
+            'vplayer.nbcsports.com', 'player.theplatform.com')
         return self.url_result(theplatform_url, 'ThePlatform')
 
 

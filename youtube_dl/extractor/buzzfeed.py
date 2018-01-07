@@ -84,9 +84,10 @@ class BuzzFeedIE(InfoExtractor):
                 continue
             entries.append(self.url_result(video['url']))
 
-        facebook_url = FacebookIE._extract_url(webpage)
-        if facebook_url:
-            entries.append(self.url_result(facebook_url))
+        facebook_urls = FacebookIE._extract_urls(webpage)
+        entries.extend([
+            self.url_result(facebook_url)
+            for facebook_url in facebook_urls])
 
         return {
             '_type': 'playlist',

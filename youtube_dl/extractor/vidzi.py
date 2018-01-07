@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     decode_packed_codes,
     js_to_json,
@@ -12,8 +12,8 @@ from ..utils import (
 )
 
 
-class VidziIE(JWPlatformBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?vidzi\.tv/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
+class VidziIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?vidzi\.(?:tv|cc)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
     _TESTS = [{
         'url': 'http://vidzi.tv/cghql9yq6emu.html',
         'md5': '4f16c71ca0c8c8635ab6932b5f3f1660',
@@ -28,7 +28,10 @@ class VidziIE(JWPlatformBaseIE):
         },
     }, {
         'url': 'http://vidzi.tv/embed-4z2yb0rzphe9-600x338.html',
-        'skip_download': True,
+        'only_matching': True,
+    }, {
+        'url': 'http://vidzi.cc/cghql9yq6emu.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -39,14 +42,15 @@ class VidziIE(JWPlatformBaseIE):
         title = self._html_search_regex(
             r'(?s)<h2 class="video-title">(.*?)</h2>', webpage, 'title')
 
-        packed_codes = [mobj.group(0) for mobj in re.finditer(
-            PACKED_CODES_RE, webpage)]
-        for num, pc in enumerate(packed_codes, 1):
-            code = decode_packed_codes(pc).replace('\\\'', '\'')
+        codes = [webpage]
+        codes.extend([
+            decode_packed_codes(mobj.group(0)).replace('\\\'', '\'')
+            for mobj in re.finditer(PACKED_CODES_RE, webpage)])
+        for num, code in enumerate(codes, 1):
             jwplayer_data = self._parse_json(
                 self._search_regex(
                     r'setup\(([^)]+)\)', code, 'jwplayer data',
-                    default=NO_DEFAULT if num == len(packed_codes) else '{}'),
+                    default=NO_DEFAULT if num == len(codes) else '{}'),
                 video_id, transform_source=js_to_json)
             if jwplayer_data:
                 break

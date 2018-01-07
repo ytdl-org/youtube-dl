@@ -13,12 +13,36 @@ from ..utils import (
     xpath_attr,
     update_url_query,
     ExtractorError,
+    strip_or_none,
 )
 
 
 class TurnerBaseIE(AdobePassIE):
+    _AKAMAI_SPE_TOKEN_CACHE = {}
+
     def _extract_timestamp(self, video_data):
         return int_or_none(xpath_attr(video_data, 'dateCreated', 'uts'))
+
+    def _add_akamai_spe_token(self, tokenizer_src, video_url, content_id, ap_data):
+        secure_path = self._search_regex(r'https?://[^/]+(.+/)', video_url, 'secure path') + '*'
+        token = self._AKAMAI_SPE_TOKEN_CACHE.get(secure_path)
+        if not token:
+            query = {
+                'path': secure_path,
+                'videoId': content_id,
+            }
+            if ap_data.get('auth_required'):
+                query['accessToken'] = self._extract_mvpd_auth(ap_data['url'], content_id, ap_data['site_name'], ap_data['site_name'])
+            auth = self._download_xml(
+                tokenizer_src, content_id, query=query)
+            error_msg = xpath_text(auth, 'error/msg')
+            if error_msg:
+                raise ExtractorError(error_msg, expected=True)
+            token = xpath_text(auth, 'token')
+            if not token:
+                return video_url
+            self._AKAMAI_SPE_TOKEN_CACHE[secure_path] = token
+        return video_url + '?hdnea=' + token
 
     def _extract_cvp_info(self, data_src, video_id, path_data={}, ap_data={}):
         video_data = self._download_xml(data_src, video_id)
@@ -32,7 +56,6 @@ class TurnerBaseIE(AdobePassIE):
         #         rtmp_src = splited_rtmp_src[1]
         # aifp = xpath_text(video_data, 'akamai/aifp', default='')
 
-        tokens = {}
         urls = []
         formats = []
         rex = re.compile(
@@ -66,26 +89,10 @@ class TurnerBaseIE(AdobePassIE):
                 secure_path_data = path_data.get('secure')
                 if not secure_path_data:
                     continue
-                video_url = secure_path_data['media_src'] + video_url
-                secure_path = self._search_regex(r'https?://[^/]+(.+/)', video_url, 'secure path') + '*'
-                token = tokens.get(secure_path)
-                if not token:
-                    query = {
-                        'path': secure_path,
-                        'videoId': content_id,
-                    }
-                    if ap_data.get('auth_required'):
-                        query['accessToken'] = self._extract_mvpd_auth(ap_data['url'], video_id, ap_data['site_name'], ap_data['site_name'])
-                    auth = self._download_xml(
-                        secure_path_data['tokenizer_src'], video_id, query=query)
-                    error_msg = xpath_text(auth, 'error/msg')
-                    if error_msg:
-                        raise ExtractorError(error_msg, expected=True)
-                    token = xpath_text(auth, 'token')
-                    if not token:
-                        continue
-                    tokens[secure_path] = token
-                video_url = video_url + '?hdnea=' + token
+                video_url = self._add_akamai_spe_token(
+                    secure_path_data['tokenizer_src'],
+                    secure_path_data['media_src'] + video_url,
+                    content_id, ap_data)
             elif not re.match('https?://', video_url):
                 base_path_data = path_data.get(ext, path_data.get('default', {}))
                 media_src = base_path_data.get('media_src')
@@ -100,9 +107,13 @@ class TurnerBaseIE(AdobePassIE):
                 formats.extend(self._extract_smil_formats(
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                m3u8_formats = self._extract_m3u8_formats(
                     video_url, video_id, 'mp4',
-                    m3u8_id=format_id or 'hls', fatal=False))
+                    m3u8_id=format_id or 'hls', fatal=False)
+                if '/secure/' in video_url and '?hdnea=' in video_url:
+                    for f in m3u8_formats:
+                        f['_seekable'] = False
+                formats.extend(m3u8_formats)
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     update_url_query(video_url, {'hdcore': '3.7.0'}),
@@ -159,17 +170,21 @@ class TurnerBaseIE(AdobePassIE):
             'height': int_or_none(image.get('height')),
         } for image in video_data.findall('images/image')]
 
+        is_live = xpath_text(video_data, 'isLive') == 'true'
+
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'formats': formats,
             'subtitles': subtitles,
             'thumbnails': thumbnails,
-            'description': xpath_text(video_data, 'description'),
+            'thumbnail': xpath_text(video_data, 'poster'),
+            'description': strip_or_none(xpath_text(video_data, 'description')),
             'duration': parse_duration(xpath_text(video_data, 'length') or xpath_text(video_data, 'trt')),
             'timestamp': self._extract_timestamp(video_data),
             'upload_date': xpath_attr(video_data, 'metas', 'version'),
             'series': xpath_text(video_data, 'showTitle'),
             'season_number': int_or_none(xpath_text(video_data, 'seasonNumber')),
             'episode_number': int_or_none(xpath_text(video_data, 'episodeNumber')),
+            'is_live': is_live,
         }

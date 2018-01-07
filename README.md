@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rg3/youtube-dl.svg?branch=master)](https://travis-ci.org/rg3/youtube-dl)
+
 youtube-dl - download videos from youtube.com or other video platforms
 
 - [INSTALLATION](#installation)
@@ -25,7 +27,7 @@ If you do not have curl, you can alternatively use a recent wget:
     sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
-Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](http://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
+Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
 
 You can also use pip:
 
@@ -33,7 +35,7 @@ You can also use pip:
     
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
-OS X users can install youtube-dl with [Homebrew](http://brew.sh/):
+OS X users can install youtube-dl with [Homebrew](https://brew.sh/):
 
     brew install youtube-dl
 
@@ -88,8 +90,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --mark-watched                   Mark videos watched (YouTube only)
     --no-mark-watched                Do not mark videos watched (YouTube only)
     --no-color                       Do not emit color codes in output
-    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
-                                     available
 
 ## Network Options:
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
@@ -99,16 +99,23 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      string (--proxy "") for direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
     --source-address IP              Client-side IP address to bind to
-                                     (experimental)
     -4, --force-ipv4                 Make all connections via IPv4
-                                     (experimental)
     -6, --force-ipv6                 Make all connections via IPv6
-                                     (experimental)
+
+## Geo Restriction:
     --geo-verification-proxy URL     Use this proxy to verify the IP address for
                                      some geo-restricted sites. The default
                                      proxy specified by --proxy (or none, if the
                                      options is not present) is used for the
-                                     actual downloading. (experimental)
+                                     actual downloading.
+    --geo-bypass                     Bypass geographic restriction via faking
+                                     X-Forwarded-For HTTP header (experimental)
+    --no-geo-bypass                  Do not bypass geographic restriction via
+                                     faking X-Forwarded-For HTTP header
+                                     (experimental)
+    --geo-bypass-country CODE        Force bypass geographic restriction with
+                                     explicitly provided two-letter ISO 3166-2
+                                     country code (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          Playlist video to start at (default is 1)
@@ -139,17 +146,19 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      COUNT views
     --max-views COUNT                Do not download any videos with more than
                                      COUNT views
-    --match-filter FILTER            Generic video filter (experimental).
-                                     Specify any key (see help for -o for a list
-                                     of available keys) to match if the key is
+    --match-filter FILTER            Generic video filter. Specify any key (see
+                                     the "OUTPUT TEMPLATE" for a list of
+                                     available keys) to match if the key is
                                      present, !key to check if the key is not
-                                     present,key > NUMBER (like "comment_count >
-                                     12", also works with >=, <, <=, !=, =) to
-                                     compare against a number, and & to require
-                                     multiple matches. Values which are not
-                                     known are excluded unless you put a
-                                     question mark (?) after the operator.For
-                                     example, to only match videos that have
+                                     present, key > NUMBER (like "comment_count
+                                     > 12", also works with >=, <, <=, !=, =) to
+                                     compare against a number, key = 'LITERAL'
+                                     (like "uploader = 'Mike Smith'", also works
+                                     with !=) to match against a string literal
+                                     and & to require multiple matches. Values
+                                     which are not known are excluded unless you
+                                     put a question mark (?) after the operator.
+                                     For example, to only match videos that have
                                      been liked more than 100 times and disliked
                                      less than 50 times (or the dislike
                                      functionality is not available at the given
@@ -174,10 +183,15 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -R, --retries RETRIES            Number of retries (default is 10), or
                                      "infinite".
     --fragment-retries RETRIES       Number of retries for a fragment (default
-                                     is 10), or "infinite" (DASH and hlsnative
-                                     only)
-    --skip-unavailable-fragments     Skip unavailable fragments (DASH and
-                                     hlsnative only)
+                                     is 10), or "infinite" (DASH, hlsnative and
+                                     ISM)
+    --skip-unavailable-fragments     Skip unavailable fragments (DASH, hlsnative
+                                     and ISM)
+    --abort-on-unavailable-fragment  Abort downloading when some fragment is not
+                                     available
+    --keep-fragments                 Keep downloaded fragments on disk after
+                                     downloading is finished; fragments are
+                                     erased by default
     --buffer-size SIZE               Size of download buffer (e.g. 1024 or 16K)
                                      (default is 1024)
     --no-resize-buffer               Do not automatically adjust the buffer
@@ -185,6 +199,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      automatically resized from an initial value
                                      of SIZE.
     --playlist-reverse               Download playlist videos in reverse order
+    --playlist-random                Download playlist videos in random order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
                                      expected file size (experimental)
     --hls-prefer-native              Use the native HLS downloader instead of
@@ -207,19 +222,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --id                             Use only video ID in file name
     -o, --output TEMPLATE            Output filename template, see the "OUTPUT
                                      TEMPLATE" for all the info
-    --autonumber-size NUMBER         Specify the number of digits in
-                                     %(autonumber)s when it is present in output
-                                     filename template or --auto-number option
-                                     is given
+    --autonumber-start NUMBER        Specify the start value for %(autonumber)s
+                                     (default is 1)
     --restrict-filenames             Restrict filenames to only ASCII
                                      characters, and avoid "&" and spaces in
                                      filenames
-    -A, --auto-number                [deprecated; use -o
-                                     "%(autonumber)s-%(title)s.%(ext)s" ] Number
-                                     downloaded files starting from 00000
-    -t, --title                      [deprecated] Use title in file name
-                                     (default)
-    -l, --literal                    [deprecated] Alias of --title
     -w, --no-overwrites              Do not overwrite files
     -c, --continue                   Force resume of partially downloaded files.
                                      By default, youtube-dl will resume
@@ -272,8 +279,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --get-filename                   Simulate, quiet but print output filename
     --get-format                     Simulate, quiet but print output format
     -j, --dump-json                  Simulate, quiet but print JSON information.
-                                     See --output for a description of available
-                                     keys.
+                                     See the "OUTPUT TEMPLATE" for a description
+                                     of available keys.
     -J, --dump-single-json           Simulate, quiet but print JSON information
                                      for each command-line argument. If the URL
                                      refers to a playlist, dump the whole
@@ -373,8 +380,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      (requires ffmpeg or avconv and ffprobe or
                                      avprobe)
     --audio-format FORMAT            Specify audio format: "best", "aac",
-                                     "vorbis", "mp3", "m4a", "opus", or "wav";
-                                     "best" by default
+                                     "flac", "mp3", "m4a", "opus", "vorbis", or
+                                     "wav"; "best" by default; No effect without
+                                     -x
     --audio-quality QUALITY          Specify ffmpeg/avconv audio quality, insert
                                      a value between 0 (better) and 9 (worse)
                                      for VBR or a specific bitrate like 128K
@@ -394,12 +402,14 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --add-metadata                   Write metadata to the video file
     --metadata-from-title FORMAT     Parse additional metadata like song title /
                                      artist from the video title. The format
-                                     syntax is the same as --output, the parsed
-                                     parameters replace existing values.
-                                     Additional templates: %(album)s,
-                                     %(artist)s. Example: --metadata-from-title
-                                     "%(artist)s - %(title)s" matches a title
-                                     like "Coldplay - Paradise"
+                                     syntax is the same as --output. Regular
+                                     expression with named capture groups may
+                                     also be used. The parsed parameters replace
+                                     existing values. Example: --metadata-from-
+                                     title "%(artist)s - %(title)s" matches a
+                                     title like "Coldplay - Paradise". Example
+                                     (regex): --metadata-from-title
+                                     "(?P<artist>.+?) - (?P<title>.+)"
     --xattrs                         Write metadata to the video file's xattrs
                                      (using dublin core and xdg standards)
     --fixup POLICY                   Automatically correct known faults of the
@@ -419,7 +429,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      syntax. Example: --exec 'adb push {}
                                      /sdcard/Music/ && rm {}'
     --convert-subs FORMAT            Convert the subtitles to other format
-                                     (currently supported: srt|ass|vtt)
+                                     (currently supported: srt|ass|vtt|lrc)
 
 # CONFIGURATION
 
@@ -450,7 +460,7 @@ You can also use `--config-location` if you want to use custom configuration fil
 
 ### Authentication with `.netrc` file
 
-You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](http://stackoverflow.com/tags/.netrc/info) on a per extractor basis. For that you will need to create a `.netrc` file in your `$HOME` and restrict permissions to read/write by only you:
+You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](https://stackoverflow.com/tags/.netrc/info) on a per extractor basis. For that you will need to create a `.netrc` file in your `$HOME` and restrict permissions to read/write by only you:
 ```
 touch $HOME/.netrc
 chmod a-rwx,u+rw $HOME/.netrc
@@ -466,7 +476,10 @@ machine twitch login my_twitch_account_name password my_twitch_password
 ```
 To activate authentication with the `.netrc` file you should pass `--netrc` to youtube-dl or place it in the [configuration file](#configuration).
 
-On Windows you may also need to setup the `%HOME%` environment variable manually.
+On Windows you may also need to setup the `%HOME%` environment variable manually. For example:
+```
+set HOME=%USERPROFILE%
+```
 
 # OUTPUT TEMPLATE
 
@@ -474,86 +487,95 @@ The `-o` option allows users to indicate a template for the output file names.
 
 **tl;dr:** [navigate me to examples](#output-template-examples).
 
-The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "http://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences have the format `%(NAME)s`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a lowercase S. Allowed names are:
+The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "https://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences may be formatted according to [python string formatting operations](https://docs.python.org/2/library/stdtypes.html#string-formatting). For example, `%(NAME)s` or `%(NAME)05d`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a formatting operations. Allowed names along with sequence type are:
 
- - `id`: Video identifier
- - `title`: Video title
- - `url`: Video URL
- - `ext`: Video filename extension
- - `alt_title`: A secondary title of the video
- - `display_id`: An alternative identifier for the video
- - `uploader`: Full name of the video uploader
- - `license`: License name the video is licensed under
- - `creator`: The creator of the video
- - `release_date`: The date (YYYYMMDD) when the video was released
- - `timestamp`: UNIX timestamp of the moment the video became available
- - `upload_date`: Video upload date (YYYYMMDD)
- - `uploader_id`: Nickname or id of the video uploader
- - `location`: Physical location where the video was filmed
- - `duration`: Length of the video in seconds
- - `view_count`: How many users have watched the video on the platform
- - `like_count`: Number of positive ratings of the video
- - `dislike_count`: Number of negative ratings of the video
- - `repost_count`: Number of reposts of the video
- - `average_rating`: Average rating give by users, the scale used depends on the webpage
- - `comment_count`: Number of comments on the video
- - `age_limit`: Age restriction for the video (years)
- - `format`: A human-readable description of the format 
- - `format_id`: Format code specified by `--format`
- - `format_note`: Additional info about the format
- - `width`: Width of the video
- - `height`: Height of the video
- - `resolution`: Textual description of width and height
- - `tbr`: Average bitrate of audio and video in KBit/s
- - `abr`: Average audio bitrate in KBit/s
- - `acodec`: Name of the audio codec in use
- - `asr`: Audio sampling rate in Hertz
- - `vbr`: Average video bitrate in KBit/s
- - `fps`: Frame rate
- - `vcodec`: Name of the video codec in use
- - `container`: Name of the container format
- - `filesize`: The number of bytes, if known in advance
- - `filesize_approx`: An estimate for the number of bytes
- - `protocol`: The protocol that will be used for the actual download
- - `extractor`: Name of the extractor
- - `extractor_key`: Key name of the extractor
- - `epoch`: Unix epoch when creating the file
- - `autonumber`: Five-digit number that will be increased with each download, starting at zero
- - `playlist`: Name or id of the playlist that contains the video
- - `playlist_index`: Index of the video in the playlist padded with leading zeros according to the total length of the playlist
- - `playlist_id`: Playlist identifier
- - `playlist_title`: Playlist title
-
+ - `id` (string): Video identifier
+ - `title` (string): Video title
+ - `url` (string): Video URL
+ - `ext` (string): Video filename extension
+ - `alt_title` (string): A secondary title of the video
+ - `display_id` (string): An alternative identifier for the video
+ - `uploader` (string): Full name of the video uploader
+ - `license` (string): License name the video is licensed under
+ - `creator` (string): The creator of the video
+ - `release_date` (string): The date (YYYYMMDD) when the video was released
+ - `timestamp` (numeric): UNIX timestamp of the moment the video became available
+ - `upload_date` (string): Video upload date (YYYYMMDD)
+ - `uploader_id` (string): Nickname or id of the video uploader
+ - `location` (string): Physical location where the video was filmed
+ - `duration` (numeric): Length of the video in seconds
+ - `view_count` (numeric): How many users have watched the video on the platform
+ - `like_count` (numeric): Number of positive ratings of the video
+ - `dislike_count` (numeric): Number of negative ratings of the video
+ - `repost_count` (numeric): Number of reposts of the video
+ - `average_rating` (numeric): Average rating give by users, the scale used depends on the webpage
+ - `comment_count` (numeric): Number of comments on the video
+ - `age_limit` (numeric): Age restriction for the video (years)
+ - `is_live` (boolean): Whether this video is a live stream or a fixed-length video
+ - `start_time` (numeric): Time in seconds where the reproduction should start, as specified in the URL
+ - `end_time` (numeric): Time in seconds where the reproduction should end, as specified in the URL
+ - `format` (string): A human-readable description of the format 
+ - `format_id` (string): Format code specified by `--format`
+ - `format_note` (string): Additional info about the format
+ - `width` (numeric): Width of the video
+ - `height` (numeric): Height of the video
+ - `resolution` (string): Textual description of width and height
+ - `tbr` (numeric): Average bitrate of audio and video in KBit/s
+ - `abr` (numeric): Average audio bitrate in KBit/s
+ - `acodec` (string): Name of the audio codec in use
+ - `asr` (numeric): Audio sampling rate in Hertz
+ - `vbr` (numeric): Average video bitrate in KBit/s
+ - `fps` (numeric): Frame rate
+ - `vcodec` (string): Name of the video codec in use
+ - `container` (string): Name of the container format
+ - `filesize` (numeric): The number of bytes, if known in advance
+ - `filesize_approx` (numeric): An estimate for the number of bytes
+ - `protocol` (string): The protocol that will be used for the actual download
+ - `extractor` (string): Name of the extractor
+ - `extractor_key` (string): Key name of the extractor
+ - `epoch` (numeric): Unix epoch when creating the file
+ - `autonumber` (numeric): Five-digit number that will be increased with each download, starting at zero
+ - `playlist` (string): Name or id of the playlist that contains the video
+ - `playlist_index` (numeric): Index of the video in the playlist padded with leading zeros according to the total length of the playlist
+ - `playlist_id` (string): Playlist identifier
+ - `playlist_title` (string): Playlist title
+ - `playlist_uploader` (string): Full name of the playlist uploader
+ - `playlist_uploader_id` (string): Nickname or id of the playlist uploader
 
 Available for the video that belongs to some logical chapter or section:
- - `chapter`: Name or title of the chapter the video belongs to
- - `chapter_number`: Number of the chapter the video belongs to
- - `chapter_id`: Id of the chapter the video belongs to
+
+ - `chapter` (string): Name or title of the chapter the video belongs to
+ - `chapter_number` (numeric): Number of the chapter the video belongs to
+ - `chapter_id` (string): Id of the chapter the video belongs to
 
 Available for the video that is an episode of some series or programme:
- - `series`: Title of the series or programme the video episode belongs to
- - `season`: Title of the season the video episode belongs to
- - `season_number`: Number of the season the video episode belongs to
- - `season_id`: Id of the season the video episode belongs to
- - `episode`: Title of the video episode
- - `episode_number`: Number of the video episode within a season
- - `episode_id`: Id of the video episode
+
+ - `series` (string): Title of the series or programme the video episode belongs to
+ - `season` (string): Title of the season the video episode belongs to
+ - `season_number` (numeric): Number of the season the video episode belongs to
+ - `season_id` (string): Id of the season the video episode belongs to
+ - `episode` (string): Title of the video episode
+ - `episode_number` (numeric): Number of the video episode within a season
+ - `episode_id` (string): Id of the video episode
 
 Available for the media that is a track or a part of a music album:
- - `track`: Title of the track
- - `track_number`: Number of the track within an album or a disc
- - `track_id`: Id of the track
- - `artist`: Artist(s) of the track
- - `genre`: Genre(s) of the track
- - `album`: Title of the album the track belongs to
- - `album_type`: Type of the album
- - `album_artist`: List of all artists appeared on the album
- - `disc_number`: Number of the disc or other physical medium the track belongs to
- - `release_year`: Year (YYYY) when the album was released
+
+ - `track` (string): Title of the track
+ - `track_number` (numeric): Number of the track within an album or a disc
+ - `track_id` (string): Id of the track
+ - `artist` (string): Artist(s) of the track
+ - `genre` (string): Genre(s) of the track
+ - `album` (string): Title of the album the track belongs to
+ - `album_type` (string): Type of the album
+ - `album_artist` (string): List of all artists appeared on the album
+ - `disc_number` (numeric): Number of the disc or other physical medium the track belongs to
+ - `release_year` (numeric): Year (YYYY) when the album was released
 
 Each aforementioned sequence when referenced in an output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by a particular extractor. Such sequences will be replaced with `NA`.
 
 For example for `-o %(title)s-%(id)s.%(ext)s` and an mp4 video with title `youtube-dl test video` and id `BaW_jenozKcj`, this will result in a `youtube-dl test video-BaW_jenozKcj.mp4` file created in the current directory.
+
+For numeric sequences you can use numeric related formatting, for example, `%(view_count)05d` will result in a string with view count padded with zeros up to 5 characters, like in `00042`.
 
 Output templates can also contain arbitrary hierarchical path, e.g. `-o '%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s'` which will result in downloading each video in a directory corresponding to this path template. Any missing directory will be automatically created for you.
 
@@ -569,7 +591,7 @@ If you are using an output template inside a Windows batch file then you must es
 
 #### Output template examples
 
-Note on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single.
 
 ```bash
 $ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc
@@ -588,7 +610,7 @@ $ youtube-dl -o '%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)
 $ youtube-dl -u user -p password -o '~/MyVideos/%(playlist)s/%(chapter_number)s - %(chapter)s/%(title)s.%(ext)s' https://www.udemy.com/java-tutorial/
 
 # Download entire series season keeping each series and each season in separate directory under C:/MyVideos
-$ youtube-dl -o "C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode_number)s - %(episode)s.%(ext)s" http://videomore.ru/kino_v_detalayah/5_sezon/367617
+$ youtube-dl -o "C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode_number)s - %(episode)s.%(ext)s" https://videomore.ru/kino_v_detalayah/5_sezon/367617
 
 # Stream the video being downloaded to stdout
 $ youtube-dl -o - BaW_jenozKc
@@ -639,7 +661,7 @@ Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begin
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
  - `container`: Name of the container format
- - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `m3u8`, or `m3u8_native`)
+ - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `http_dash_segments`, `m3u8`, or `m3u8_native`)
  - `format_id`: A short description of the format
 
 Note that none of the aforementioned meta fields are guaranteed to be present since this solely depends on the metadata obtained by particular extractor, i.e. the metadata offered by the video hoster.
@@ -656,7 +678,7 @@ If you want to preserve the old format selection behavior (prior to youtube-dl 2
 
 #### Format selection examples
 
-Note on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single.
 
 ```bash
 # Download best mp4 format available or any other best if no mp4 available
@@ -701,17 +723,17 @@ $ youtube-dl --dateafter 20000101 --datebefore 20091231
 
 ### How do I update youtube-dl?
 
-If you've followed [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html), you can simply run `youtube-dl -U` (or, on Linux, `sudo youtube-dl -U`).
+If you've followed [our manual installation instructions](https://rg3.github.io/youtube-dl/download.html), you can simply run `youtube-dl -U` (or, on Linux, `sudo youtube-dl -U`).
 
 If you have used pip, a simple `sudo pip install -U youtube-dl` is sufficient to update.
 
-If you have installed youtube-dl using a package manager like *apt-get* or *yum*, use the standard system update mechanism to update. Note that distribution packages are often outdated. As a rule of thumb, youtube-dl releases at least once a month, and often weekly or even daily. Simply go to http://yt-dl.org/ to find out the current version. Unfortunately, there is nothing we youtube-dl developers can do if your distribution serves a really outdated version. You can (and should) complain to your distribution in their bugtracker or support forum.
+If you have installed youtube-dl using a package manager like *apt-get* or *yum*, use the standard system update mechanism to update. Note that distribution packages are often outdated. As a rule of thumb, youtube-dl releases at least once a month, and often weekly or even daily. Simply go to https://yt-dl.org to find out the current version. Unfortunately, there is nothing we youtube-dl developers can do if your distribution serves a really outdated version. You can (and should) complain to your distribution in their bugtracker or support forum.
 
 As a last resort, you can also uninstall the version installed by your package manager and follow our manual installation instructions. For that, remove the distribution's package, with a line like
 
     sudo apt-get remove -y youtube-dl
 
-Afterwards, simply follow [our manual installation instructions](http://rg3.github.io/youtube-dl/download.html):
+Afterwards, simply follow [our manual installation instructions](https://rg3.github.io/youtube-dl/download.html):
 
 ```
 sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
@@ -751,11 +773,11 @@ Apparently YouTube requires you to pass a CAPTCHA test if you download too much.
 
 youtube-dl works fine on its own on most sites. However, if you want to convert video/audio, you'll need [avconv](https://libav.org/) or [ffmpeg](https://www.ffmpeg.org/). On some sites - most notably YouTube - videos can be retrieved in a higher quality format without sound. youtube-dl will detect whether avconv/ffmpeg is present and automatically pick the best option.
 
-Videos or video formats streamed via RTMP protocol can only be downloaded when [rtmpdump](https://rtmpdump.mplayerhq.hu/) is installed. Downloading MMS and RTSP videos requires either [mplayer](http://mplayerhq.hu/) or [mpv](https://mpv.io/) to be installed.
+Videos or video formats streamed via RTMP protocol can only be downloaded when [rtmpdump](https://rtmpdump.mplayerhq.hu/) is installed. Downloading MMS and RTSP videos requires either [mplayer](https://mplayerhq.hu/) or [mpv](https://mpv.io/) to be installed.
 
 ### I have downloaded a video but how can I play it?
 
-Once the video is fully downloaded, use any video player, such as [mpv](https://mpv.io/), [vlc](http://www.videolan.org/) or [mplayer](http://www.mplayerhq.hu/).
+Once the video is fully downloaded, use any video player, such as [mpv](https://mpv.io/), [vlc](https://www.videolan.org/) or [mplayer](https://www.mplayerhq.hu/).
 
 ### I extracted a video URL with `-g`, but it does not play on another machine / in my web browser.
 
@@ -830,10 +852,10 @@ Use the `-o` to specify an [output template](#output-template), for example `-o 
 
 ### How do I download a video starting with a `-`?
 
-Either prepend `http://www.youtube.com/watch?v=` or separate the ID from the options with `--`:
+Either prepend `https://www.youtube.com/watch?v=` or separate the ID from the options with `--`:
 
     youtube-dl -- -wNyEUrxzFU
-    youtube-dl "http://www.youtube.com/watch?v=-wNyEUrxzFU"
+    youtube-dl "https://www.youtube.com/watch?v=-wNyEUrxzFU"
 
 ### How do I pass cookies to youtube-dl?
 
@@ -841,15 +863,15 @@ Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`.
 
 In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [cookies.txt](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg) (for Chrome) or [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies/) (for Firefox).
 
-Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows, `LF` (`\n`) for Linux and `CR` (`\r`) for Mac OS. `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
+Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows and `LF` (`\n`) for Unix and Unix-like systems (Linux, Mac OS, etc.). `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
 
 Passing cookies to youtube-dl is a good way to workaround login when a particular extractor does not implement it explicitly. Another use case is working around [CAPTCHA](https://en.wikipedia.org/wiki/CAPTCHA) some websites require you to solve in particular cases in order to get access (e.g. YouTube, CloudFlare).
 
 ### How do I stream directly to media player?
 
-You will first need to tell youtube-dl to stream media to stdout with `-o -`, and also tell your media player to read from stdin (it must be capable of this for streaming) and then pipe former to latter. For example, streaming to [vlc](http://www.videolan.org/) can be achieved with:
+You will first need to tell youtube-dl to stream media to stdout with `-o -`, and also tell your media player to read from stdin (it must be capable of this for streaming) and then pipe former to latter. For example, streaming to [vlc](https://www.videolan.org/) can be achieved with:
 
-    youtube-dl -o - "http://www.youtube.com/watch?v=BaW_jenozKcj" | vlc -
+    youtube-dl -o - "https://www.youtube.com/watch?v=BaW_jenozKcj" | vlc -
 
 ### How do I download only new videos from a playlist?
 
@@ -869,7 +891,7 @@ When youtube-dl detects an HLS video, it can download it either with the built-i
 
 When youtube-dl knows that one particular downloader works better for a given website, that downloader will be picked. Otherwise, youtube-dl will pick the best downloader for general compatibility, which at the moment happens to be ffmpeg. This choice may change in future versions of youtube-dl, with improvements of the built-in downloader and/or ffmpeg.
 
-In particular, the generic extractor (used when your website is not in the [list of supported sites by youtube-dl](http://rg3.github.io/youtube-dl/supportedsites.html) cannot mandate one specific downloader.
+In particular, the generic extractor (used when your website is not in the [list of supported sites by youtube-dl](https://rg3.github.io/youtube-dl/supportedsites.html) cannot mandate one specific downloader.
 
 If you put either `--hls-prefer-native` or `--hls-prefer-ffmpeg` into your configuration, a different subset of videos will fail to download correctly. Instead, it is much better to [file an issue](https://yt-dl.org/bug) or a pull request which details why the native or the ffmpeg HLS downloader is a better choice for your use case.
 
@@ -895,7 +917,7 @@ Feel free to bump the issue from time to time by writing a small comment ("Issue
 
 ### How can I detect whether a given URL is supported by youtube-dl?
 
-For one, have a look at the [list of supported sites](docs/supportedsites.md). Note that it can sometimes happen that the site changes its URL scheme (say, from http://example.com/video/1234567 to http://example.com/v/1234567 ) and youtube-dl reports an URL of a service in that list as unsupported. In that case, simply report a bug.
+For one, have a look at the [list of supported sites](docs/supportedsites.md). Note that it can sometimes happen that the site changes its URL scheme (say, from https://example.com/video/1234567 to https://example.com/v/1234567 ) and youtube-dl reports an URL of a service in that list as unsupported. In that case, simply report a bug.
 
 It is *not* possible to detect whether a URL is supported or not. That's because youtube-dl contains a generic extractor which matches **all** URLs. You may be tempted to disable, exclude, or remove the generic extractor, but the generic extractor not only allows users to extract videos from lots of websites that embed a video from another service, but may also be used to extract video from a service that it's hosting itself. Therefore, we neither recommend nor support disabling, excluding, or removing the generic extractor.
 
@@ -909,7 +931,7 @@ youtube-dl is an open-source project manned by too few volunteers, so we'd rathe
 
 # DEVELOPER INSTRUCTIONS
 
-Most users do not need to build youtube-dl and can [download the builds](http://rg3.github.io/youtube-dl/download.html) or get them from their distribution.
+Most users do not need to build youtube-dl and can [download the builds](https://rg3.github.io/youtube-dl/download.html) or get them from their distribution.
 
 To run youtube-dl as a developer, you don't need to build anything either. Simply execute
 
@@ -920,6 +942,8 @@ To run the test, simply invoke your favorite test runner, or execute a test file
     python -m unittest discover
     python test/test_download.py
     nosetests
+
+See item 6 of [new extractor tutorial](#adding-support-for-a-new-site) for how to run extractor specific test cases.
 
 If you want to create a build of youtube-dl yourself, you'll need
 
@@ -957,7 +981,7 @@ After you have ensured this site is distributing its content legally, you can fo
     class YourExtractorIE(InfoExtractor):
         _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
         _TEST = {
-            'url': 'http://yourextractor.com/watch/42',
+            'url': 'https://yourextractor.com/watch/42',
             'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
             'info_dict': {
                 'id': '42',
@@ -988,10 +1012,10 @@ After you have ensured this site is distributing its content legally, you can fo
             }
     ```
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
-6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc.
+6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc. Note that tests with `only_matching` key in test's dict are not counted in.
 7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/extractor/common.py#L74-L252). Add tests and code for as many as you want.
-8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](http://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
-9. When the tests pass, [add](http://git-scm.com/docs/git-add) the new files and [commit](http://git-scm.com/docs/git-commit) them and [push](http://git-scm.com/docs/git-push) the result, like this:
+8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://pypi.python.org/pypi/flake8). Also make sure your code works under all [Python](https://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
+9. When the tests pass, [add](https://git-scm.com/docs/git-add) the new files and [commit](https://git-scm.com/docs/git-commit) them and [push](https://git-scm.com/docs/git-push) the result, like this:
 
         $ git add youtube_dl/extractor/extractors.py
         $ git add youtube_dl/extractor/yourextractor.py
@@ -1147,10 +1171,10 @@ import youtube_dl
 
 ydl_opts = {}
 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-    ydl.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])
+    ydl.download(['https://www.youtube.com/watch?v=BaW_jenozKc'])
 ```
 
-Most likely, you'll want to use various options. For a list of options available, have a look at [`youtube_dl/YoutubeDL.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L129-L279). For a start, if you want to intercept youtube-dl's output, set a `logger` object.
+Most likely, you'll want to use various options. For a list of options available, have a look at [`youtube_dl/YoutubeDL.py`](https://github.com/rg3/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/YoutubeDL.py#L137-L312). For a start, if you want to intercept youtube-dl's output, set a `logger` object.
 
 Here's a more complete example of a program that outputs only errors (and a short message after the download is finished), and downloads/converts the video to an mp3 file:
 
@@ -1186,19 +1210,19 @@ ydl_opts = {
     'progress_hooks': [my_hook],
 }
 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-    ydl.download(['http://www.youtube.com/watch?v=BaW_jenozKc'])
+    ydl.download(['https://www.youtube.com/watch?v=BaW_jenozKc'])
 ```
 
 # BUGS
 
-Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>. Unless you were prompted to or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](http://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
+Bugs and suggestions should be reported at: <https://github.com/rg3/youtube-dl/issues>. Unless you were prompted to or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](https://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
 
 **Please include the full output of youtube-dl when run with `-v`**, i.e. **add** `-v` flag to **your command line**, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
 ```
 $ youtube-dl -v <your command line>
 [debug] System config: []
 [debug] User config: []
-[debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
+[debug] Command-line args: [u'-v', u'https://www.youtube.com/watch?v=BaW_jenozKcj']
 [debug] Encodings: locale cp1251, fs mbcs, out cp866, pref cp1251
 [debug] youtube-dl version 2015.12.06
 [debug] Git HEAD: 135392e
@@ -1229,7 +1253,7 @@ For bug reports, this means that your report should contain the *complete* outpu
 
 If your server has multiple IPs or you suspect censorship, adding `--call-home` may be a good idea to get more diagnostics. If the error is `ERROR: Unable to extract ...` and you cannot reproduce it from multiple countries, add `--dump-pages` (warning: this will yield a rather large output, redirect it to the file `log.txt` by adding `>log.txt 2>&1` to your command-line) or upload the `.dump` files you get when you add `--write-pages` [somewhere](https://gist.github.com/).
 
-**Site support requests must contain an example URL**. An example URL is a URL you might want to download, like `http://www.youtube.com/watch?v=BaW_jenozKc`. There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. `http://www.youtube.com/`) is *not* an example URL.
+**Site support requests must contain an example URL**. An example URL is a URL you might want to download, like `https://www.youtube.com/watch?v=BaW_jenozKc`. There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. `https://www.youtube.com/`) is *not* an example URL.
 
 ###  Are you using the latest version?
 

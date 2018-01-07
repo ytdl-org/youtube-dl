@@ -15,6 +15,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    js_to_json,
     sanitized_Request,
     unescapeHTML,
     urlencode_postdata,
@@ -52,16 +53,20 @@ class UdemyIE(InfoExtractor):
         # new URL schema
         'url': 'https://www.udemy.com/electric-bass-right-from-the-start/learn/v4/t/lecture/4580906',
         'only_matching': True,
+    }, {
+        # no url in outputs format entry
+        'url': 'https://www.udemy.com/learn-web-development-complete-step-by-step-guide-to-success/learn/v4/t/lecture/4125812',
+        'only_matching': True,
     }]
 
     def _extract_course_info(self, webpage, video_id):
         course = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'ng-init=["\'].*\bcourse=({.+?});', webpage, 'course', default='{}')),
+                r'ng-init=["\'].*\bcourse=({.+?})[;"\']',
+                webpage, 'course', default='{}')),
             video_id, fatal=False) or {}
         course_id = course.get('id') or self._search_regex(
-            (r'&quot;id&quot;\s*:\s*(\d+)', r'data-course-id=["\'](\d+)'),
-            webpage, 'course id')
+            r'data-course-id=["\'](\d+)', webpage, 'course id')
         return course_id, course.get('title')
 
     def _enroll_course(self, base_url, webpage, course_id):
@@ -69,7 +74,7 @@ class UdemyIE(InfoExtractor):
             return compat_urlparse.urljoin(base_url, url) if not url.startswith('http') else url
 
         checkout_url = unescapeHTML(self._search_regex(
-            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/payment/checkout/.+?)\1',
+            r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/(?:payment|cart)/checkout/.+?)\1',
             webpage, 'checkout url', group='url', default=None))
         if checkout_url:
             raise ExtractorError(
@@ -159,7 +164,7 @@ class UdemyIE(InfoExtractor):
         })
 
         response = self._download_webpage(
-            self._LOGIN_URL, None, 'Logging in as %s' % username,
+            self._LOGIN_URL, None, 'Logging in',
             data=urlencode_postdata(login_form),
             headers={
                 'Referer': self._ORIGIN_URL,
@@ -212,12 +217,15 @@ class UdemyIE(InfoExtractor):
         thumbnail = asset.get('thumbnail_url') or asset.get('thumbnailUrl')
         duration = float_or_none(asset.get('data', {}).get('duration'))
 
+        subtitles = {}
+        automatic_captions = {}
+
         formats = []
 
-        def extract_output_format(src):
+        def extract_output_format(src, f_id):
             return {
-                'url': src['url'],
-                'format_id': '%sp' % (src.get('height') or format_id),
+                'url': src.get('url'),
+                'format_id': '%sp' % (src.get('height') or f_id),
                 'width': int_or_none(src.get('width')),
                 'height': int_or_none(src.get('height')),
                 'vbr': int_or_none(src.get('video_bitrate_in_kbps')),
@@ -237,30 +245,57 @@ class UdemyIE(InfoExtractor):
         def add_output_format_meta(f, key):
             output = outputs.get(key)
             if isinstance(output, dict):
-                output_format = extract_output_format(output)
+                output_format = extract_output_format(output, key)
                 output_format.update(f)
                 return output_format
             return f
 
+        def extract_formats(source_list):
+            if not isinstance(source_list, list):
+                return
+            for source in source_list:
+                video_url = source.get('file') or source.get('src')
+                if not video_url or not isinstance(video_url, compat_str):
+                    continue
+                if source.get('type') == 'application/x-mpegURL' or determine_ext(video_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
+                    continue
+                format_id = source.get('label')
+                f = {
+                    'url': video_url,
+                    'format_id': '%sp' % format_id,
+                    'height': int_or_none(format_id),
+                }
+                if format_id:
+                    # Some videos contain additional metadata (e.g.
+                    # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
+                    f = add_output_format_meta(f, format_id)
+                formats.append(f)
+
+        def extract_subtitles(track_list):
+            if not isinstance(track_list, list):
+                return
+            for track in track_list:
+                if not isinstance(track, dict):
+                    continue
+                if track.get('kind') != 'captions':
+                    continue
+                src = track.get('src')
+                if not src or not isinstance(src, compat_str):
+                    continue
+                lang = track.get('language') or track.get(
+                    'srclang') or track.get('label')
+                sub_dict = automatic_captions if track.get(
+                    'autogenerated') is True else subtitles
+                sub_dict.setdefault(lang, []).append({
+                    'url': src,
+                })
+
         download_urls = asset.get('download_urls')
         if isinstance(download_urls, dict):
-            video = download_urls.get('Video')
-            if isinstance(video, list):
-                for format_ in video:
-                    video_url = format_.get('file')
-                    if not video_url:
-                        continue
-                    format_id = format_.get('label')
-                    f = {
-                        'url': format_['file'],
-                        'format_id': '%sp' % format_id,
-                        'height': int_or_none(format_id),
-                    }
-                    if format_id:
-                        # Some videos contain additional metadata (e.g.
-                        # https://www.udemy.com/ios9-swift/learn/#/lecture/3383208)
-                        f = add_output_format_meta(f, format_id)
-                    formats.append(f)
+            extract_formats(download_urls.get('Video'))
 
         view_html = lecture.get('view_html')
         if view_html:
@@ -294,6 +329,28 @@ class UdemyIE(InfoExtractor):
                         'height': height,
                     }, res))
 
+            # react rendition since 2017.04.15 (see
+            # https://github.com/rg3/youtube-dl/issues/12744)
+            data = self._parse_json(
+                self._search_regex(
+                    r'videojs-setup-data=(["\'])(?P<data>{.+?})\1', view_html,
+                    'setup data', default='{}', group='data'), video_id,
+                transform_source=unescapeHTML, fatal=False)
+            if data and isinstance(data, dict):
+                extract_formats(data.get('sources'))
+                if not duration:
+                    duration = int_or_none(data.get('duration'))
+                extract_subtitles(data.get('tracks'))
+
+            if not subtitles and not automatic_captions:
+                text_tracks = self._parse_json(
+                    self._search_regex(
+                        r'text-tracks=(["\'])(?P<data>\[.+?\])\1', view_html,
+                        'text tracks', default='{}', group='data'), video_id,
+                    transform_source=lambda s: js_to_json(unescapeHTML(s)),
+                    fatal=False)
+                extract_subtitles(text_tracks)
+
         self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
         return {
@@ -302,7 +359,9 @@ class UdemyIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'duration': duration,
-            'formats': formats
+            'formats': formats,
+            'subtitles': subtitles,
+            'automatic_captions': automatic_captions,
         }
 
 

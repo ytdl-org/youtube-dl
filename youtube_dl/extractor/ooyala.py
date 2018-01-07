@@ -3,12 +3,14 @@ import re
 import base64
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    int_or_none,
-    float_or_none,
-    ExtractorError,
-    unsmuggle_url,
     determine_ext,
+    ExtractorError,
+    float_or_none,
+    int_or_none,
+    try_get,
+    unsmuggle_url,
 )
 from ..compat import compat_urllib_parse_urlencode
 
@@ -18,7 +20,7 @@ class OoyalaBaseIE(InfoExtractor):
     _CONTENT_TREE_BASE = _PLAYER_BASE + 'player_api/v1/content_tree/'
     _AUTHORIZATION_URL_TEMPLATE = _PLAYER_BASE + 'sas/player_api/v2/authorization/embed_code/%s/%s?'
 
-    def _extract(self, content_tree_url, video_id, domain='example.org', supportedformats=None):
+    def _extract(self, content_tree_url, video_id, domain='example.org', supportedformats=None, embed_token=None):
         content_tree = self._download_json(content_tree_url, video_id)['content_tree']
         metadata = content_tree[list(content_tree)[0]]
         embed_code = metadata['embed_code']
@@ -29,7 +31,8 @@ class OoyalaBaseIE(InfoExtractor):
             self._AUTHORIZATION_URL_TEMPLATE % (pcode, embed_code) +
             compat_urllib_parse_urlencode({
                 'domain': domain,
-                'supportedFormats': supportedformats or 'mp4,rtmp,m3u8,hds',
+                'supportedFormats': supportedformats or 'mp4,rtmp,m3u8,hds,dash,smooth',
+                'embedToken': embed_token,
             }), video_id)
 
         cur_auth_data = auth_data['authorization_data'][embed_code]
@@ -38,13 +41,15 @@ class OoyalaBaseIE(InfoExtractor):
         formats = []
         if cur_auth_data['authorized']:
             for stream in cur_auth_data['streams']:
-                s_url = base64.b64decode(
-                    stream['url']['data'].encode('ascii')).decode('utf-8')
-                if s_url in urls:
+                url_data = try_get(stream, lambda x: x['url']['data'], compat_str)
+                if not url_data:
+                    continue
+                s_url = base64.b64decode(url_data.encode('ascii')).decode('utf-8')
+                if not s_url or s_url in urls:
                     continue
                 urls.append(s_url)
                 ext = determine_ext(s_url, None)
-                delivery_type = stream['delivery_type']
+                delivery_type = stream.get('delivery_type')
                 if delivery_type == 'hls' or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
                         re.sub(r'/ip(?:ad|hone)/', '/all/', s_url), embed_code, 'mp4', 'm3u8_native',
@@ -52,13 +57,19 @@ class OoyalaBaseIE(InfoExtractor):
                 elif delivery_type == 'hds' or ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
                         s_url + '?hdcore=3.7.0', embed_code, f4m_id='hds', fatal=False))
+                elif delivery_type == 'dash' or ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        s_url, embed_code, mpd_id='dash', fatal=False))
+                elif delivery_type == 'smooth':
+                    self._extract_ism_formats(
+                        s_url, embed_code, ism_id='mss', fatal=False)
                 elif ext == 'smil':
                     formats.extend(self._extract_smil_formats(
                         s_url, embed_code, fatal=False))
                 else:
                     formats.append({
                         'url': s_url,
-                        'ext': ext or stream.get('delivery_type'),
+                        'ext': ext or delivery_type,
                         'vcodec': stream.get('video_codec'),
                         'format_id': delivery_type,
                         'width': int_or_none(stream.get('width')),
@@ -129,6 +140,11 @@ class OoyalaIE(OoyalaBaseIE):
                 'title': 'Divide Tool Path.mp4',
                 'duration': 204.405,
             }
+        },
+        {
+            # empty stream['url']['data']
+            'url': 'http://player.ooyala.com/player.js?embedCode=w2bnZtYjE6axZ_dw1Cd0hQtXd_ige2Is',
+            'only_matching': True,
         }
     ]
 
@@ -146,8 +162,9 @@ class OoyalaIE(OoyalaBaseIE):
         embed_code = self._match_id(url)
         domain = smuggled_data.get('domain')
         supportedformats = smuggled_data.get('supportedformats')
+        embed_token = smuggled_data.get('embed_token')
         content_tree_url = self._CONTENT_TREE_BASE + 'embed_code/%s/%s' % (embed_code, embed_code)
-        return self._extract(content_tree_url, embed_code, domain, supportedformats)
+        return self._extract(content_tree_url, embed_code, domain, supportedformats, embed_token)
 
 
 class OoyalaExternalIE(OoyalaBaseIE):

@@ -3,20 +3,19 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
 
 
 class BYUtvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?byutv\.org/watch/(?!event/)(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
+    _VALID_URL = r'https?://(?:www\.)?byutv\.org/(?:watch|player)/(?!event/)(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
     _TESTS = [{
         'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
         'info_dict': {
-            'id': '6587b9a3-89d2-42a6-a7f7-fd2f81840a7d',
+            'id': 'ZvanRocTpW-G5_yZFeltTAMv6jxOU9KH',
             'display_id': 'studio-c-season-5-episode-5',
             'ext': 'mp4',
             'title': 'Season 5 Episode 5',
-            'description': 'md5:e07269172baff037f8e8bf9956bc9747',
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': 'md5:1d31dc18ef4f075b28f6a65937d22c65',
+            'thumbnail': r're:^https?://.*',
             'duration': 1486.486,
         },
         'params': {
@@ -26,6 +25,9 @@ class BYUtvIE(InfoExtractor):
     }, {
         'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d',
         'only_matching': True,
+    }, {
+        'url': 'https://www.byutv.org/player/27741493-dc83-40b0-8420-e7ae38a2ae98/byu-football-toledo-vs-byu-93016?listid=4fe0fee5-0d3c-4a29-b725-e4948627f472&listindex=0&q=toledo',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -33,16 +35,16 @@ class BYUtvIE(InfoExtractor):
         video_id = mobj.group('id')
         display_id = mobj.group('display_id') or video_id
 
-        webpage = self._download_webpage(url, display_id)
-        episode_code = self._search_regex(
-            r'(?s)episode:(.*?\}),\s*\n', webpage, 'episode information')
-
-        ep = self._parse_json(
-            episode_code, display_id, transform_source=lambda s:
-            re.sub(r'(\n\s+)([a-zA-Z]+):\s+\'(.*?)\'', r'\1"\2": "\3"', s))
-
-        if ep['providerType'] != 'Ooyala':
-            raise ExtractorError('Unsupported provider %s' % ep['provider'])
+        ep = self._download_json(
+            'https://api.byutv.org/api3/catalog/getvideosforcontent', video_id,
+            query={
+                'contentid': video_id,
+                'channel': 'byutv',
+                'x-byutv-context': 'web$US',
+            }, headers={
+                'x-byutv-context': 'web$US',
+                'x-byutv-platformkey': 'xsaaw9c7y5',
+            })['ooyalaVOD']
 
         return {
             '_type': 'url_transparent',
@@ -50,44 +52,7 @@ class BYUtvIE(InfoExtractor):
             'url': 'ooyala:%s' % ep['providerId'],
             'id': video_id,
             'display_id': display_id,
-            'title': ep['title'],
+            'title': ep.get('title'),
             'description': ep.get('description'),
             'thumbnail': ep.get('imageThumbnail'),
-        }
-
-
-class BYUtvEventIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?byutv\.org/watch/event/(?P<id>[0-9a-f-]+)'
-    _TEST = {
-        'url': 'http://www.byutv.org/watch/event/29941b9b-8bf6-48d2-aebf-7a87add9e34b',
-        'info_dict': {
-            'id': '29941b9b-8bf6-48d2-aebf-7a87add9e34b',
-            'ext': 'mp4',
-            'title': 'Toledo vs. BYU (9/30/16)',
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': ['Ooyala'],
-    }
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
-
-        ooyala_id = self._search_regex(
-            r'providerId\s*:\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
-            webpage, 'ooyala id', group='id')
-
-        title = self._search_regex(
-            r'class=["\']description["\'][^>]*>\s*<h1>([^<]+)</h1>', webpage,
-            'title').strip()
-
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'Ooyala',
-            'url': 'ooyala:%s' % ooyala_id,
-            'id': video_id,
-            'title': title,
         }

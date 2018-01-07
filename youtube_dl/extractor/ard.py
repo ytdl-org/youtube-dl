@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from .generic import GenericIE
+from ..compat import compat_str
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -93,6 +94,7 @@ class ARDMediathekIE(InfoExtractor):
 
         duration = int_or_none(media_info.get('_duration'))
         thumbnail = media_info.get('_previewImage')
+        is_live = media_info.get('_isLive') is True
 
         subtitles = {}
         subtitle_url = media_info.get('_subtitleUrl')
@@ -106,6 +108,7 @@ class ARDMediathekIE(InfoExtractor):
             'id': video_id,
             'duration': duration,
             'thumbnail': thumbnail,
+            'is_live': is_live,
             'formats': formats,
             'subtitles': subtitles,
         }
@@ -124,6 +127,8 @@ class ARDMediathekIE(InfoExtractor):
                 quality = stream.get('_quality')
                 server = stream.get('_server')
                 for stream_url in stream_urls:
+                    if not isinstance(stream_url, compat_str) or '//' not in stream_url:
+                        continue
                     ext = determine_ext(stream_url)
                     if quality != 'auto' and ext in ('f4m', 'm3u8'):
                         continue
@@ -144,13 +149,11 @@ class ARDMediathekIE(InfoExtractor):
                                 'play_path': stream_url,
                                 'format_id': 'a%s-rtmp-%s' % (num, quality),
                             }
-                        elif stream_url.startswith('http'):
+                        else:
                             f = {
                                 'url': stream_url,
                                 'format_id': 'a%s-%s-%s' % (num, ext, quality)
                             }
-                        else:
-                            continue
                         m = re.search(r'_(?P<width>\d+)x(?P<height>\d+)\.mp4$', stream_url)
                         if m:
                             f.update({
@@ -166,9 +169,11 @@ class ARDMediathekIE(InfoExtractor):
         # determine video id from url
         m = re.match(self._VALID_URL, url)
 
+        document_id = None
+
         numid = re.search(r'documentId=([0-9]+)', url)
         if numid:
-            video_id = numid.group(1)
+            document_id = video_id = numid.group(1)
         else:
             video_id = m.group('video_id')
 
@@ -191,7 +196,7 @@ class ARDMediathekIE(InfoExtractor):
 
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
-             r'<meta name="dcterms.title" content="(.*?)"/>',
+             r'<meta name="dcterms\.title" content="(.*?)"/>',
              r'<h4 class="headline">(.*?)</h4>'],
             webpage, 'title')
         description = self._html_search_meta(
@@ -228,12 +233,16 @@ class ARDMediathekIE(InfoExtractor):
                 'formats': formats,
             }
         else:  # request JSON file
+            if not document_id:
+                video_id = self._search_regex(
+                    r'/play/(?:config|media)/(\d+)', webpage, 'media id')
             info = self._extract_media_info(
-                'http://www.ardmediathek.de/play/media/%s' % video_id, webpage, video_id)
+                'http://www.ardmediathek.de/play/media/%s' % video_id,
+                webpage, video_id)
 
         info.update({
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if info.get('is_live') else title,
             'description': description,
             'thumbnail': thumbnail,
         })

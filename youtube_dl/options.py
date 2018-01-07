@@ -20,6 +20,24 @@ from .utils import (
 from .version import __version__
 
 
+def _hide_login_info(opts):
+    PRIVATE_OPTS = set(['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username'])
+    eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
+
+    def _scrub_eq(o):
+        m = eqre.match(o)
+        if m:
+            return m.group('key') + '=PRIVATE'
+        else:
+            return o
+
+    opts = list(map(_scrub_eq, opts))
+    for idx, opt in enumerate(opts):
+        if opt in PRIVATE_OPTS and idx + 1 < len(opts):
+            opts[idx + 1] = 'PRIVATE'
+    return opts
+
+
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes, default=[]):
         try:
@@ -92,26 +110,6 @@ def parseOpts(overrideArguments=None):
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
-
-    def _hide_login_info(opts):
-        PRIVATE_OPTS = ['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username']
-        eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
-
-        def _scrub_eq(o):
-            m = eqre.match(o)
-            if m:
-                return m.group('key') + '=PRIVATE'
-            else:
-                return o
-
-        opts = list(map(_scrub_eq, opts))
-        for private_opt in PRIVATE_OPTS:
-            try:
-                i = opts.index(private_opt)
-                opts[i + 1] = 'PRIVATE'
-            except ValueError:
-                pass
-        return opts
 
     # No need to wrap help messages if we're on a wide console
     columns = compat_get_terminal_size().columns
@@ -216,29 +214,41 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--source-address',
         metavar='IP', dest='source_address', default=None,
-        help='Client-side IP address to bind to (experimental)',
+        help='Client-side IP address to bind to',
     )
     network.add_option(
         '-4', '--force-ipv4',
         action='store_const', const='0.0.0.0', dest='source_address',
-        help='Make all connections via IPv4 (experimental)',
+        help='Make all connections via IPv4',
     )
     network.add_option(
         '-6', '--force-ipv6',
         action='store_const', const='::', dest='source_address',
-        help='Make all connections via IPv6 (experimental)',
+        help='Make all connections via IPv6',
     )
-    network.add_option(
+
+    geo = optparse.OptionGroup(parser, 'Geo Restriction')
+    geo.add_option(
         '--geo-verification-proxy',
         dest='geo_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some geo-restricted sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading. (experimental)'
-    )
-    network.add_option(
+        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.')
+    geo.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
-        help=optparse.SUPPRESS_HELP,
-    )
+        help=optparse.SUPPRESS_HELP)
+    geo.add_option(
+        '--geo-bypass',
+        action='store_true', dest='geo_bypass', default=True,
+        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--no-geo-bypass',
+        action='store_false', dest='geo_bypass', default=True,
+        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+    geo.add_option(
+        '--geo-bypass-country', metavar='CODE',
+        dest='geo_bypass_country', default=None,
+        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
@@ -297,15 +307,17 @@ def parseOpts(overrideArguments=None):
         '--match-filter',
         metavar='FILTER', dest='match_filter', default=None,
         help=(
-            'Generic video filter (experimental). '
-            'Specify any key (see help for -o for a list of available keys) to'
-            ' match if the key is present, '
-            '!key to check if the key is not present,'
+            'Generic video filter. '
+            'Specify any key (see the "OUTPUT TEMPLATE" for a list of available keys) to '
+            'match if the key is present, '
+            '!key to check if the key is not present, '
             'key > NUMBER (like "comment_count > 12", also works with '
-            '>=, <, <=, !=, =) to compare against a number, and '
-            '& to require multiple matches. '
-            'Values which are not known are excluded unless you'
-            ' put a question mark (?) after the operator.'
+            '>=, <, <=, !=, =) to compare against a number, '
+            'key = \'LITERAL\' (like "uploader = \'Mike Smith\'", also works with !=) '
+            'to match against a string literal '
+            'and & to require multiple matches. '
+            'Values which are not known are excluded unless you '
+            'put a question mark (?) after the operator. '
             'For example, to only match videos that have been liked more than '
             '100 times and disliked less than 50 times (or the dislike '
             'functionality is not available at the given service), but who '
@@ -445,15 +457,19 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--fragment-retries',
         dest='fragment_retries', metavar='RETRIES', default=10,
-        help='Number of retries for a fragment (default is %default), or "infinite" (DASH and hlsnative only)')
+        help='Number of retries for a fragment (default is %default), or "infinite" (DASH, hlsnative and ISM)')
     downloader.add_option(
         '--skip-unavailable-fragments',
         action='store_true', dest='skip_unavailable_fragments', default=True,
-        help='Skip unavailable fragments (DASH and hlsnative only)')
-    general.add_option(
+        help='Skip unavailable fragments (DASH, hlsnative and ISM)')
+    downloader.add_option(
         '--abort-on-unavailable-fragment',
         action='store_false', dest='skip_unavailable_fragments',
         help='Abort downloading when some fragment is not available')
+    downloader.add_option(
+        '--keep-fragments',
+        action='store_true', dest='keep_fragments', default=False,
+        help='Keep downloaded fragments on disk after downloading is finished; fragments are erased by default')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
@@ -470,6 +486,10 @@ def parseOpts(overrideArguments=None):
         '--playlist-reverse',
         action='store_true',
         help='Download playlist videos in reverse order')
+    downloader.add_option(
+        '--playlist-random',
+        action='store_true',
+        help='Download playlist videos in random order')
     downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',
@@ -596,7 +616,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '-j', '--dump-json',
         action='store_true', dest='dumpjson', default=False,
-        help='Simulate, quiet but print JSON information. See --output for a description of available keys.')
+        help='Simulate, quiet but print JSON information. See the "OUTPUT TEMPLATE" for a description of available keys.')
     verbosity.add_option(
         '-J', '--dump-single-json',
         action='store_true', dest='dump_single_json', default=False,
@@ -661,8 +681,12 @@ def parseOpts(overrideArguments=None):
         help=('Output filename template, see the "OUTPUT TEMPLATE" for all the info'))
     filesystem.add_option(
         '--autonumber-size',
-        dest='autonumber_size', metavar='NUMBER',
-        help='Specify the number of digits in %(autonumber)s when it is present in output filename template or --auto-number option is given')
+        dest='autonumber_size', metavar='NUMBER', type=int,
+        help=optparse.SUPPRESS_HELP)
+    filesystem.add_option(
+        '--autonumber-start',
+        dest='autonumber_start', metavar='NUMBER', default=1, type=int,
+        help='Specify the start value for %(autonumber)s (default is %default)')
     filesystem.add_option(
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
@@ -670,15 +694,15 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
-        help='[deprecated; use -o "%(autonumber)s-%(title)s.%(ext)s" ] Number downloaded files starting from 00000')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
-        help='[deprecated] Use title in file name (default)')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-l', '--literal', default=False,
         action='store_true', dest='usetitle',
-        help='[deprecated] Alias of --title')
+        help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
         '-w', '--no-overwrites',
         action='store_true', dest='nooverwrites', default=False,
@@ -751,7 +775,7 @@ def parseOpts(overrideArguments=None):
         help='Convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
     postproc.add_option(
         '--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-        help='Specify audio format: "best", "aac", "vorbis", "mp3", "m4a", "opus", or "wav"; "%default" by default')
+        help='Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "%default" by default; No effect without -x')
     postproc.add_option(
         '--audio-quality', metavar='QUALITY',
         dest='audioquality', default='5',
@@ -788,11 +812,12 @@ def parseOpts(overrideArguments=None):
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
         help='Parse additional metadata like song title / artist from the video title. '
-             'The format syntax is the same as --output, '
-             'the parsed parameters replace existing values. '
-             'Additional templates: %(album)s, %(artist)s. '
+             'The format syntax is the same as --output. Regular expression with '
+             'named capture groups may also be used. '
+             'The parsed parameters replace existing values. '
              'Example: --metadata-from-title "%(artist)s - %(title)s" matches a title like '
-             '"Coldplay - Paradise"')
+             '"Coldplay - Paradise". '
+             'Example (regex): --metadata-from-title "(?P<artist>.+?) - (?P<title>.+)"')
     postproc.add_option(
         '--xattrs',
         action='store_true', dest='xattrs', default=False,
@@ -822,10 +847,11 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
-        help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
+        help='Convert the subtitles to other format (currently supported: srt|ass|vtt|lrc)')
 
     parser.add_option_group(general)
     parser.add_option_group(network)
+    parser.add_option_group(geo)
     parser.add_option_group(selection)
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)
@@ -867,7 +893,7 @@ def parseOpts(overrideArguments=None):
             if '--ignore-config' not in system_conf:
                 user_conf = _readUserConf()
 
-        argv = system_conf + user_conf + command_line_conf
+        argv = system_conf + user_conf + custom_conf + command_line_conf
         opts, args = parser.parse_args(argv)
         if opts.verbose:
             for conf_label, conf in (

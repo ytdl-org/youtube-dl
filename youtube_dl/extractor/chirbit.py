@@ -19,6 +19,7 @@ class ChirbitIE(InfoExtractor):
             'title': 'md5:f542ea253f5255240be4da375c6a5d7e',
             'description': 'md5:f24a4e22a71763e32da5fed59e47c770',
             'duration': 306,
+            'uploader': 'Gerryaudio',
         },
         'params': {
             'skip_download': True,
@@ -54,6 +55,9 @@ class ChirbitIE(InfoExtractor):
         duration = parse_duration(self._search_regex(
             r'class=["\']c-length["\'][^>]*>([^<]+)',
             webpage, 'duration', fatal=False))
+        uploader = self._search_regex(
+            r'id=["\']chirbit-username["\'][^>]*>([^<]+)',
+            webpage, 'uploader', fatal=False)
 
         return {
             'id': audio_id,
@@ -61,6 +65,7 @@ class ChirbitIE(InfoExtractor):
             'title': title,
             'description': description,
             'duration': duration,
+            'uploader': uploader,
         }
 
 

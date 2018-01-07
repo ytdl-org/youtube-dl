@@ -2,7 +2,15 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import parse_iso8601
+from ..compat import compat_urlparse
+from ..utils import (
+    clean_html,
+    get_element_by_class,
+    int_or_none,
+    parse_iso8601,
+    remove_start,
+    unified_timestamp,
+)
 
 
 class NextMediaIE(InfoExtractor):
@@ -30,6 +38,12 @@ class NextMediaIE(InfoExtractor):
         return self._extract_from_nextmedia_page(news_id, url, page)
 
     def _extract_from_nextmedia_page(self, news_id, url, page):
+        redirection_url = self._search_regex(
+            r'window\.location\.href\s*=\s*([\'"])(?P<url>(?!\1).+)\1',
+            page, 'redirection URL', default=None, group='url')
+        if redirection_url:
+            return self.url_result(compat_urlparse.urljoin(url, redirection_url))
+
         title = self._fetch_title(page)
         video_url = self._search_regex(self._URL_PATTERN, page, 'video url')
 
@@ -93,7 +107,7 @@ class NextMediaActionNewsIE(NextMediaIE):
 
 class AppleDailyIE(NextMediaIE):
     IE_DESC = '臺灣蘋果日報'
-    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/(?:animation|appledaily|enews|realtimenews|actionnews)/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
+    _VALID_URL = r'https?://(www|ent)\.appledaily\.com\.tw/[^/]+/[^/]+/[^/]+/(?P<date>\d+)/(?P<id>\d+)(/.*)?'
     _TESTS = [{
         'url': 'http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694',
         'md5': 'a843ab23d150977cc55ef94f1e2c1e4d',
@@ -157,6 +171,10 @@ class AppleDailyIE(NextMediaIE):
     }, {
         'url': 'http://www.appledaily.com.tw/actionnews/appledaily/7/20161003/960588/',
         'only_matching': True,
+    }, {
+        # Redirected from http://ent.appledaily.com.tw/enews/article/entertainment/20150128/36354694
+        'url': 'http://ent.appledaily.com.tw/section/article/headline/20150128/36354694',
+        'only_matching': True,
     }]
 
     _URL_PATTERN = r'\{url: \'(.+)\'\}'
@@ -173,3 +191,48 @@ class AppleDailyIE(NextMediaIE):
 
     def _fetch_description(self, page):
         return self._html_search_meta('description', page, 'news description')
+
+
+class NextTVIE(InfoExtractor):
+    IE_DESC = '壹電視'
+    _VALID_URL = r'https?://(?:www\.)?nexttv\.com\.tw/(?:[^/]+/)+(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'http://www.nexttv.com.tw/news/realtime/politics/11779671',
+        'info_dict': {
+            'id': '11779671',
+            'ext': 'mp4',
+            'title': '「超收稅」近4千億！　藍議員籲發消費券',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1484825400,
+            'upload_date': '20170119',
+            'view_count': int,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        title = self._html_search_regex(
+            r'<h1[^>]*>([^<]+)</h1>', webpage, 'title')
+
+        data = self._hidden_inputs(webpage)
+
+        video_url = data['ntt-vod-src-detailview']
+
+        date_str = get_element_by_class('date', webpage)
+        timestamp = unified_timestamp(date_str + '+0800') if date_str else None
+
+        view_count = int_or_none(remove_start(
+            clean_html(get_element_by_class('click', webpage)), '點閱：'))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'url': video_url,
+            'thumbnail': data.get('ntt-vod-img-src'),
+            'timestamp': timestamp,
+            'view_count': view_count,
+        }

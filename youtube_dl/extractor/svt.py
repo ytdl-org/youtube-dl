@@ -13,6 +13,8 @@ from ..utils import (
 
 
 class SVTBaseIE(InfoExtractor):
+    _GEO_COUNTRIES = ['SE']
+
     def _extract_video(self, video_info, video_id):
         formats = []
         for vr in video_info['videoReferences']:
@@ -38,7 +40,9 @@ class SVTBaseIE(InfoExtractor):
                     'url': vurl,
                 })
         if not formats and video_info.get('rights', {}).get('geoBlockedSweden'):
-            self.raise_geo_restricted('This video is only available in Sweden')
+            self.raise_geo_restricted(
+                'This video is only available in Sweden',
+                countries=self._GEO_COUNTRIES)
         self._sort_formats(formats)
 
         subtitles = {}
@@ -177,7 +181,8 @@ class SVTPlayIE(SVTBaseIE):
 
         if video_id:
             data = self._download_json(
-                'http://www.svt.se/videoplayer-api/video/%s' % video_id, video_id)
+                'https://api.svt.se/videoplayer-api/video/%s' % video_id,
+                video_id, headers=self.geo_verification_headers())
             info_dict = self._extract_video(data, video_id)
             if not info_dict.get('title'):
                 info_dict['title'] = re.sub(

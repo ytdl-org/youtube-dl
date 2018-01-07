@@ -26,7 +26,7 @@ class StreamCZIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.stream.cz/peklonataliri/765767-ecka-pro-deti',
-        'md5': '6d3ca61a8d0633c9c542b92fcb936b0c',
+        'md5': '934bb6a6d220d99c010783c9719960d5',
         'info_dict': {
             'id': '765767',
             'ext': 'mp4',
@@ -37,7 +37,7 @@ class StreamCZIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.stream.cz/blanik/10002447-tri-roky-pro-mazanka',
-        'md5': 'e54a254fb8b871968fd8403255f28589',
+        'md5': '849a88c1e1ca47d41403c2ba5e59e261',
         'info_dict': {
             'id': '10002447',
             'ext': 'mp4',
@@ -85,6 +85,14 @@ class StreamCZIE(InfoExtractor):
         else:
             title = data['name']
 
+        subtitles = {}
+        srt_url = data.get('subtitles_srt')
+        if srt_url:
+            subtitles['cs'] = [{
+                'ext': 'srt',
+                'url': srt_url,
+            }]
+
         return {
             'id': video_id,
             'title': title,
@@ -93,4 +101,5 @@ class StreamCZIE(InfoExtractor):
             'description': data.get('web_site_text'),
             'duration': int_or_none(data.get('duration')),
             'view_count': int_or_none(data.get('views')),
+            'subtitles': subtitles,
         }

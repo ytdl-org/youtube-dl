@@ -1,7 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     clean_html,
     get_element_by_class,
@@ -9,7 +9,7 @@ from ..utils import (
 )
 
 
-class TVNoeIE(JWPlatformBaseIE):
+class TVNoeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tvnoe\.cz/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.tvnoe.cz/video/10362',
@@ -31,9 +31,8 @@ class TVNoeIE(JWPlatformBaseIE):
             r'<iframe[^>]+src="([^"]+)"', webpage, 'iframe URL')
 
         ifs_page = self._download_webpage(iframe_url, video_id)
-        jwplayer_data = self._parse_json(
-            self._find_jwplayer_data(ifs_page),
-            video_id, transform_source=js_to_json)
+        jwplayer_data = self._find_jwplayer_data(
+            ifs_page, video_id, transform_source=js_to_json)
         info_dict = self._parse_jwplayer_data(
             jwplayer_data, video_id, require_title=False, base_url=iframe_url)
 

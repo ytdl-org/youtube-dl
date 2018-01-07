@@ -48,17 +48,8 @@ class ComedyCentralFullEpisodesIE(MTVServicesInfoExtractor):
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
-
-        feed_json = self._search_regex(r'var triforceManifestFeed\s*=\s*(\{.+?\});\n', webpage, 'triforce feeed')
-        feed = self._parse_json(feed_json, playlist_id)
-        zones = feed['manifest']['zones']
-
-        video_zone = zones['t2_lc_promo1']
-        feed = self._download_json(video_zone['feed'], playlist_id)
-        mgid = feed['result']['data']['id']
-
+        mgid = self._extract_triforce_mgid(webpage, data_zone='t2_lc_promo1')
         videos_info = self._get_videos_info(mgid)
-
         return videos_info
 
 
@@ -93,12 +84,6 @@ class ToshIE(MTVServicesInfoExtractor):
         'url': 'http://tosh.cc.com/video-collections/x2iz7k/just-plain-foul/m5q4fp',
         'only_matching': True,
     }]
-
-    @classmethod
-    def _transform_rtmp_url(cls, rtmp_video_url):
-        new_urls = super(ToshIE, cls)._transform_rtmp_url(rtmp_video_url)
-        new_urls['rtmp'] = rtmp_video_url.replace('viacomccstrm', 'viacommtvstrm')
-        return new_urls
 
 
 class ComedyCentralTVIE(MTVServicesInfoExtractor):
@@ -135,12 +120,15 @@ class ComedyCentralTVIE(MTVServicesInfoExtractor):
 
 
 class ComedyCentralShortnameIE(InfoExtractor):
-    _VALID_URL = r'^:(?P<id>tds|thedailyshow)$'
+    _VALID_URL = r'^:(?P<id>tds|thedailyshow|theopposition)$'
     _TESTS = [{
         'url': ':tds',
         'only_matching': True,
     }, {
         'url': ':thedailyshow',
+        'only_matching': True,
+    }, {
+        'url': ':theopposition',
         'only_matching': True,
     }]
 
@@ -149,5 +137,6 @@ class ComedyCentralShortnameIE(InfoExtractor):
         shortcut_map = {
             'tds': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
             'thedailyshow': 'http://www.cc.com/shows/the-daily-show-with-trevor-noah/full-episodes',
+            'theopposition': 'http://www.cc.com/shows/the-opposition-with-jordan-klepper/full-episodes',
         }
         return self.url_result(shortcut_map[video_id])

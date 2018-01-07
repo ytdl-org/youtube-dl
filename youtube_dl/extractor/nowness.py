@@ -28,7 +28,7 @@ class NownessBaseIE(InfoExtractor):
                         bc_url = BrightcoveLegacyIE._extract_brightcove_url(player_code)
                         if bc_url:
                             return self.url_result(bc_url, BrightcoveLegacyIE.ie_key())
-                        bc_url = BrightcoveNewIE._extract_url(player_code)
+                        bc_url = BrightcoveNewIE._extract_url(self, player_code)
                         if bc_url:
                             return self.url_result(bc_url, BrightcoveNewIE.ie_key())
                         raise ExtractorError('Could not find player definition')

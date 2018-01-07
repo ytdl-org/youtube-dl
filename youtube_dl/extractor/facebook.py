@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -12,14 +13,16 @@ from ..compat import (
     compat_urllib_parse_unquote_plus,
 )
 from ..utils import (
+    clean_html,
     error_to_compat_str,
     ExtractorError,
+    get_element_by_id,
     int_or_none,
+    js_to_json,
     limit_length,
     sanitized_Request,
+    try_get,
     urlencode_postdata,
-    get_element_by_id,
-    clean_html,
 )
 
 
@@ -64,17 +67,18 @@ class FacebookIE(InfoExtractor):
             'uploader': 'Tennis on Facebook',
             'upload_date': '20140908',
             'timestamp': 1410199200,
-        }
+        },
+        'skip': 'Requires logging in',
     }, {
-        'note': 'Video without discernible title',
         'url': 'https://www.facebook.com/video.php?v=274175099429670',
         'info_dict': {
             'id': '274175099429670',
             'ext': 'mp4',
-            'title': 'Facebook video #274175099429670',
+            'title': 'Asif Nawab Butt posted a video to his Timeline.',
             'uploader': 'Asif Nawab Butt',
             'upload_date': '20140506',
             'timestamp': 1399398998,
+            'thumbnail': r're:^https?://.*',
         },
         'expected_warnings': [
             'title'
@@ -91,6 +95,7 @@ class FacebookIE(InfoExtractor):
             'upload_date': '20160110',
             'timestamp': 1452431627,
         },
+        'skip': 'Requires logging in',
     }, {
         'url': 'https://www.facebook.com/maxlayn/posts/10153807558977570',
         'md5': '037b1fa7f3c2d02b7a0d7bc16031ecc6',
@@ -118,7 +123,11 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '10153664894881749',
             'ext': 'mp4',
-            'title': 'Facebook video #10153664894881749',
+            'title': 'Average time to confirm recent Supreme Court nominees: 67 days Longest it\'s t...',
+            'thumbnail': r're:^https?://.*',
+            'timestamp': 1456259628,
+            'upload_date': '20160223',
+            'uploader': 'Barack Obama',
         },
     }, {
         # have 1080P, but only up to 720p in swf params
@@ -127,10 +136,52 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '10155529876156509',
             'ext': 'mp4',
-            'title': 'Holocaust survivor becomes US citizen',
+            'title': 'She survived the holocaust — and years later, she’s getting her citizenship s...',
             'timestamp': 1477818095,
             'upload_date': '20161030',
             'uploader': 'CNN',
+            'thumbnail': r're:^https?://.*',
+        },
+    }, {
+        # bigPipe.onPageletArrive ... onPageletArrive pagelet_group_mall
+        'url': 'https://www.facebook.com/yaroslav.korpan/videos/1417995061575415/',
+        'info_dict': {
+            'id': '1417995061575415',
+            'ext': 'mp4',
+            'title': 'md5:a7b86ca673f51800cd54687b7f4012fe',
+            'timestamp': 1486648217,
+            'upload_date': '20170209',
+            'uploader': 'Yaroslav Korpan',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.facebook.com/LaGuiaDelVaron/posts/1072691702860471',
+        'info_dict': {
+            'id': '1072691702860471',
+            'ext': 'mp4',
+            'title': 'md5:ae2d22a93fbb12dad20dc393a869739d',
+            'timestamp': 1477305000,
+            'upload_date': '20161024',
+            'uploader': 'La Guía Del Varón',
+            'thumbnail': r're:^https?://.*',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.facebook.com/groups/1024490957622648/permalink/1396382447100162/',
+        'info_dict': {
+            'id': '1396382447100162',
+            'ext': 'mp4',
+            'title': 'md5:e2d2700afdf84e121f5d0f999bad13a3',
+            'timestamp': 1486035494,
+            'upload_date': '20170202',
+            'uploader': 'Elisabeth Ahtn',
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'https://www.facebook.com/video.php?v=10204634152394104',
@@ -153,22 +204,26 @@ class FacebookIE(InfoExtractor):
     }, {
         'url': 'https://www.facebookcorewwwi.onion/video.php?v=274175099429670',
         'only_matching': True,
+    }, {
+        # no title
+        'url': 'https://www.facebook.com/onlycleverentertainment/videos/1947995502095005/',
+        'only_matching': True,
     }]
 
     @staticmethod
-    def _extract_url(webpage):
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https://www\.facebook\.com/video/embed.+?)\1', webpage)
-        if mobj is not None:
-            return mobj.group('url')
-
+    def _extract_urls(webpage):
+        urls = []
+        for mobj in re.finditer(
+                r'<iframe[^>]+?src=(["\'])(?P<url>https?://www\.facebook\.com/(?:video/embed|plugins/video\.php).+?)\1',
+                webpage):
+            urls.append(mobj.group('url'))
         # Facebook API embed
         # see https://developers.facebook.com/docs/plugins/embedded-video-player
-        mobj = re.search(r'''(?x)<div[^>]+
+        for mobj in re.finditer(r'''(?x)<div[^>]+
                 class=(?P<q1>[\'"])[^\'"]*\bfb-(?:video|post)\b[^\'"]*(?P=q1)[^>]+
-                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage)
-        if mobj is not None:
-            return mobj.group('url')
+                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage):
+            urls.append(mobj.group('url'))
+        return urls
 
     def _login(self):
         (useremail, password) = self._get_login_info()
@@ -243,14 +298,30 @@ class FacebookIE(InfoExtractor):
 
         video_data = None
 
+        def extract_video_data(instances):
+            for item in instances:
+                if item[1][0] == 'VideoConfig':
+                    video_item = item[2][0]
+                    if video_item.get('video_id'):
+                        return video_item['videoData']
+
         server_js_data = self._parse_json(self._search_regex(
-            r'handleServerJS\(({.+})(?:\);|,")', webpage, 'server js data', default='{}'), video_id)
-        for item in server_js_data.get('instances', []):
-            if item[1][0] == 'VideoConfig':
-                video_item = item[2][0]
-                if video_item.get('video_id') == video_id:
-                    video_data = video_item['videoData']
-                    break
+            r'handleServerJS\(({.+})(?:\);|,")', webpage,
+            'server js data', default='{}'), video_id, fatal=False)
+
+        if server_js_data:
+            video_data = extract_video_data(server_js_data.get('instances', []))
+
+        if not video_data:
+            server_js_data = self._parse_json(
+                self._search_regex(
+                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:stream_pagelet|pagelet_group_mall|permalink_video_pagelet)',
+                    webpage, 'js data', default='{}'),
+                video_id, transform_source=js_to_json, fatal=False)
+            if server_js_data:
+                video_data = extract_video_data(try_get(
+                    server_js_data, lambda x: x['jsmods']['instances'],
+                    list) or [])
 
         if not video_data:
             if not fatal_if_no_video:
@@ -294,19 +365,26 @@ class FacebookIE(InfoExtractor):
         self._sort_formats(formats)
 
         video_title = self._html_search_regex(
-            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage, 'title',
-            default=None)
+            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
+            'title', default=None)
         if not video_title:
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
-            video_title = limit_length(video_title, 80)
         if not video_title:
+            video_title = self._html_search_meta(
+                'description', webpage, 'title', default=None)
+        if video_title:
+            video_title = limit_length(video_title, 80)
+        else:
             video_title = 'Facebook video #%s' % video_id
-        uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
+        uploader = clean_html(get_element_by_id(
+            'fbPhotoPageAuthorName', webpage)) or self._search_regex(
+            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader', fatal=False)
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
+        thumbnail = self._og_search_thumbnail(webpage)
 
         info_dict = {
             'id': video_id,
@@ -314,6 +392,7 @@ class FacebookIE(InfoExtractor):
             'formats': formats,
             'uploader': uploader,
             'timestamp': timestamp,
+            'thumbnail': thumbnail,
         }
 
         return webpage, info_dict

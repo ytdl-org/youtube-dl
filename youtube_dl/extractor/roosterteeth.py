@@ -68,7 +68,7 @@ class RoosterTeethIE(InfoExtractor):
 
         login_request = self._download_webpage(
             self._LOGIN_URL, None,
-            note='Logging in as %s' % username,
+            note='Logging in',
             data=urlencode_postdata(login_form),
             headers={
                 'Referer': self._LOGIN_URL,

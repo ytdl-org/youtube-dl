@@ -7,12 +7,21 @@ import time
 
 from .amp import AMPIE
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..compat import compat_urlparse
 
 
 class AbcNewsVideoIE(AMPIE):
     IE_NAME = 'abcnews:video'
-    _VALID_URL = r'https?://abcnews\.go\.com/[^/]+/video/(?P<display_id>[0-9a-z-]+)-(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        abcnews\.go\.com/
+                        (?:
+                            [^/]+/video/(?P<display_id>[0-9a-z-]+)-|
+                            video/embed\?.*?\bid=
+                        )
+                        (?P<id>\d+)
+                    '''
 
     _TESTS = [{
         'url': 'http://abcnews.go.com/ThisWeek/video/week-exclusive-irans-foreign-minister-zarif-20411932',
@@ -29,6 +38,9 @@ class AbcNewsVideoIE(AMPIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://abcnews.go.com/video/embed?id=46979033',
+        'only_matching': True,
     }, {
         'url': 'http://abcnews.go.com/2020/video/2020-husband-stands-teacher-jail-student-affairs-26119478',
         'only_matching': True,
@@ -97,9 +109,7 @@ class AbcNewsIE(InfoExtractor):
             r'window\.abcnvideo\.url\s*=\s*"([^"]+)"', webpage, 'video URL')
         full_video_url = compat_urlparse.urljoin(url, video_url)
 
-        youtube_url = self._html_search_regex(
-            r'<iframe[^>]+src="(https://www\.youtube\.com/embed/[^"]+)"',
-            webpage, 'YouTube URL', default=None)
+        youtube_url = YoutubeIE._extract_url(webpage)
 
         timestamp = None
         date_str = self._html_search_regex(
@@ -129,7 +139,7 @@ class AbcNewsIE(InfoExtractor):
         }
 
         if youtube_url:
-            entries = [entry, self.url_result(youtube_url, 'Youtube')]
+            entries = [entry, self.url_result(youtube_url, ie=YoutubeIE.ie_key())]
             return self.playlist_result(entries)
 
         return entry

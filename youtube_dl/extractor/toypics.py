@@ -6,42 +6,48 @@ import re
 
 
 class ToypicsIE(InfoExtractor):
-    IE_DESC = 'Toypics user profile'
-    _VALID_URL = r'https?://videos\.toypics\.net/view/(?P<id>[0-9]+)/.*'
+    IE_DESC = 'Toypics video'
+    _VALID_URL = r'https?://videos\.toypics\.net/view/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://videos.toypics.net/view/514/chancebulged,-2-1/',
         'md5': '16e806ad6d6f58079d210fe30985e08b',
         'info_dict': {
             'id': '514',
             'ext': 'mp4',
-            'title': 'Chance-Bulge\'d, 2',
+            'title': "Chance-Bulge'd, 2",
             'age_limit': 18,
             'uploader': 'kidsune',
         }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        page = self._download_webpage(url, video_id)
-        video_url = self._html_search_regex(
-            r'src:\s+"(http://static[0-9]+\.toypics\.net/flvideo/[^"]+)"', page, 'video URL')
-        title = self._html_search_regex(
-            r'<title>Toypics - ([^<]+)</title>', page, 'title')
-        username = self._html_search_regex(
-            r'toypics.net/([^/"]+)" class="user-name">', page, 'username')
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        formats = self._parse_html5_media_entries(
+            url, webpage, video_id)[0]['formats']
+        title = self._html_search_regex([
+            r'<h1[^>]+class=["\']view-video-title[^>]+>([^<]+)</h',
+            r'<title>([^<]+) - Toypics</title>',
+        ], webpage, 'title')
+
+        uploader = self._html_search_regex(
+            r'More videos from <strong>([^<]+)</strong>', webpage, 'uploader',
+            fatal=False)
+
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
-            'uploader': username,
+            'uploader': uploader,
             'age_limit': 18,
         }
 
 
 class ToypicsUserIE(InfoExtractor):
     IE_DESC = 'Toypics user profile'
-    _VALID_URL = r'https?://videos\.toypics\.net/(?P<username>[^/?]+)(?:$|[?#])'
+    _VALID_URL = r'https?://videos\.toypics\.net/(?!view)(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'http://videos.toypics.net/Mikey',
         'info_dict': {
@@ -51,8 +57,7 @@ class ToypicsUserIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        username = mobj.group('username')
+        username = self._match_id(url)
 
         profile_page = self._download_webpage(
             url, username, note='Retrieving profile page')
@@ -71,7 +76,7 @@ class ToypicsUserIE(InfoExtractor):
                 note='Downloading page %d/%d' % (n, page_count))
             urls.extend(
                 re.findall(
-                    r'<p class="video-entry-title">\s+<a href="(https?://videos.toypics.net/view/[^"]+)">',
+                    r'<div[^>]+class=["\']preview[^>]+>\s*<a[^>]+href="(https?://videos\.toypics\.net/view/[^"]+)"',
                     lpage))
 
         return {

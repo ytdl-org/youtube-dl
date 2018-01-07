@@ -32,8 +32,9 @@ class SexuIE(InfoExtractor):
         formats = [{
             'url': source['file'].replace('\\', ''),
             'format_id': source.get('label'),
-            'height': self._search_regex(
-                r'^(\d+)[pP]', source.get('label', ''), 'height', default=None),
+            'height': int(self._search_regex(
+                r'^(\d+)[pP]', source.get('label', ''), 'height',
+                default=None)),
         } for source in sources if source.get('file')]
         self._sort_formats(formats)
 

@@ -12,10 +12,10 @@ from ..utils import (
 
 
 class NaverIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?tvcast\.naver\.com/v/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:m\.)?tv(?:cast)?\.naver\.com/v/(?P<id>\d+)'
 
     _TESTS = [{
-        'url': 'http://tvcast.naver.com/v/81652',
+        'url': 'http://tv.naver.com/v/81652',
         'info_dict': {
             'id': '81652',
             'ext': 'mp4',
@@ -24,7 +24,7 @@ class NaverIE(InfoExtractor):
             'upload_date': '20130903',
         },
     }, {
-        'url': 'http://tvcast.naver.com/v/395837',
+        'url': 'http://tv.naver.com/v/395837',
         'md5': '638ed4c12012c458fefcddfd01f173cd',
         'info_dict': {
             'id': '395837',
@@ -34,13 +34,16 @@ class NaverIE(InfoExtractor):
             'upload_date': '20150519',
         },
         'skip': 'Georestricted',
+    }, {
+        'url': 'http://tvcast.naver.com/v/81652',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        m_id = re.search(r'var rmcPlayer = new nhn.rmcnmv.RMCVideoPlayer\("(.+?)", "(.+?)"',
+        m_id = re.search(r'var rmcPlayer = new nhn\.rmcnmv\.RMCVideoPlayer\("(.+?)", "(.+?)"',
                          webpage)
         if m_id is None:
             error = self._html_search_regex(

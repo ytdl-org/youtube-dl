@@ -21,7 +21,7 @@ from youtube_dl.extractor import (
     NPOIE,
     ComedyCentralIE,
     NRKTVIE,
-    RaiTVIE,
+    RaiPlayIE,
     VikiIE,
     ThePlatformIE,
     ThePlatformFeedIE,
@@ -258,9 +258,9 @@ class TestNRKSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['no']), '544fa917d3197fcbee64634559221cc2')
 
 
-class TestRaiSubtitles(BaseTestSubtitles):
-    url = 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-cb27157f-9dd0-4aee-b788-b1f67643a391.html'
-    IE = RaiTVIE
+class TestRaiPlaySubtitles(BaseTestSubtitles):
+    url = 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html'
+    IE = RaiPlayIE
 
     def test_allsubtitles(self):
         self.DL.params['writesubtitles'] = True

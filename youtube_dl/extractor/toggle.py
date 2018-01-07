@@ -17,7 +17,7 @@ from ..utils import (
 
 class ToggleIE(InfoExtractor):
     IE_NAME = 'toggle'
-    _VALID_URL = r'https?://video\.toggle\.sg/(?:en|zh)/(?:series|clips|movies)/(?:[^/]+/)+(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://video\.toggle\.sg/(?:en|zh)/(?:[^/]+/){2,}(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://video.toggle.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
         'info_dict': {
@@ -72,6 +72,12 @@ class ToggleIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://video.toggle.sg/en/movies/seven-days/321936',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.toggle.sg/en/tv-show/news/may-2017-cna-singapore-tonight/fri-19-may-2017/512456',
+        'only_matching': True,
+    }, {
+        'url': 'http://video.toggle.sg/en/channels/eleven-plus/401585',
         'only_matching': True,
     }]
 

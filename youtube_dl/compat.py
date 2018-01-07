@@ -3,11 +3,14 @@ from __future__ import unicode_literals
 
 import binascii
 import collections
+import ctypes
 import email
 import getpass
 import io
+import itertools
 import optparse
 import os
+import platform
 import re
 import shlex
 import shutil
@@ -15,7 +18,6 @@ import socket
 import struct
 import subprocess
 import sys
-import itertools
 import xml.etree.ElementTree
 
 
@@ -2322,6 +2324,19 @@ try:
 except ImportError:  # Python 2
     from HTMLParser import HTMLParser as compat_HTMLParser
 
+try:  # Python 2
+    from HTMLParser import HTMLParseError as compat_HTMLParseError
+except ImportError:  # Python <3.4
+    try:
+        from html.parser import HTMLParseError as compat_HTMLParseError
+    except ImportError:  # Python >3.4
+
+        # HTMLParseError has been deprecated in Python 3.3 and removed in
+        # Python 3.5. Introducing dummy exception for Python >3.5 for compatible
+        # and uniform cross-version exceptiong handling
+        class compat_HTMLParseError(Exception):
+            pass
+
 try:
     from subprocess import DEVNULL
     compat_subprocess_get_DEVNULL = lambda: DEVNULL
@@ -2529,6 +2544,24 @@ else:
                 el.text = el.text.decode('utf-8')
         return doc
 
+if hasattr(etree, 'register_namespace'):
+    compat_etree_register_namespace = etree.register_namespace
+else:
+    def compat_etree_register_namespace(prefix, uri):
+        """Register a namespace prefix.
+        The registry is global, and any existing mapping for either the
+        given prefix or the namespace URI will be removed.
+        *prefix* is the namespace prefix, *uri* is a namespace uri. Tags and
+        attributes in this namespace will be serialized with prefix if possible.
+        ValueError is raised if prefix is reserved or is invalid.
+        """
+        if re.match(r"ns\d+$", prefix):
+            raise ValueError("Prefix format reserved for internal use")
+        for k, v in list(etree._namespace_map.items()):
+            if k == uri or v == prefix:
+                del etree._namespace_map[k]
+        etree._namespace_map[uri] = prefix
+
 if sys.version_info < (2, 7):
     # Here comes the crazy part: In 2.6, if the xpath is a unicode,
     # .//node does not match if a node is a direct child of . !
@@ -2586,14 +2619,22 @@ except ImportError:  # Python 2
                 parsed_result[name] = [value]
         return parsed_result
 
-try:
-    from shlex import quote as compat_shlex_quote
-except ImportError:  # Python < 3.3
+
+compat_os_name = os._name if os.name == 'java' else os.name
+
+
+if compat_os_name == 'nt':
     def compat_shlex_quote(s):
-        if re.match(r'^[-_\w./]+$', s):
-            return s
-        else:
-            return "'" + s.replace("'", "'\"'\"'") + "'"
+        return s if re.match(r'^[-_\w./]+$', s) else '"%s"' % s.replace('"', '\\"')
+else:
+    try:
+        from shlex import quote as compat_shlex_quote
+    except ImportError:  # Python < 3.3
+        def compat_shlex_quote(s):
+            if re.match(r'^[-_\w./]+$', s):
+                return s
+            else:
+                return "'" + s.replace("'", "'\"'\"'") + "'"
 
 
 try:
@@ -2616,9 +2657,6 @@ def compat_ord(c):
         return c
     else:
         return ord(c)
-
-
-compat_os_name = os._name if os.name == 'java' else os.name
 
 
 if sys.version_info >= (3, 0):
@@ -2674,7 +2712,7 @@ else:
                 userhome = pwent.pw_dir
             userhome = userhome.rstrip('/')
             return (userhome + path[i:]) or '/'
-    elif compat_os_name == 'nt' or compat_os_name == 'ce':
+    elif compat_os_name in ('nt', 'ce'):
         def compat_expanduser(path):
             """Expand ~ and ~user constructs.
 
@@ -2740,6 +2778,12 @@ except TypeError:
         return dict((bytes(k), v) for k, v in kwargs.items())
 else:
     compat_kwargs = lambda kwargs: kwargs
+
+
+try:
+    compat_numeric_types = (int, float, long, complex)
+except NameError:  # Python 3
+    compat_numeric_types = (int, float, complex)
 
 
 if sys.version_info < (2, 7):
@@ -2856,15 +2900,43 @@ else:
     compat_struct_pack = struct.pack
     compat_struct_unpack = struct.unpack
 
+try:
+    from future_builtins import zip as compat_zip
+except ImportError:  # not 2.6+ or is 3.x
+    try:
+        from itertools import izip as compat_zip  # < 2.5 or 3.x
+    except ImportError:
+        compat_zip = zip
+
+if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4, 0):
+    # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
+    # names, see the original PyPy issue [1] and the youtube-dl one [2].
+    # 1. https://bitbucket.org/pypy/pypy/issues/2360/windows-ctypescdll-typeerror-function-name
+    # 2. https://github.com/rg3/youtube-dl/pull/4392
+    def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
+        real = ctypes.WINFUNCTYPE(*args, **kwargs)
+
+        def resf(tpl, *args, **kwargs):
+            funcname, dll = tpl
+            return real((str(funcname), dll), *args, **kwargs)
+
+        return resf
+else:
+    def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
+        return ctypes.WINFUNCTYPE(*args, **kwargs)
+
 
 __all__ = [
+    'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
     'compat_cookies',
+    'compat_ctypes_WINFUNCTYPE',
     'compat_etree_fromstring',
+    'compat_etree_register_namespace',
     'compat_expanduser',
     'compat_get_terminal_size',
     'compat_getenv',
@@ -2876,6 +2948,7 @@ __all__ = [
     'compat_input',
     'compat_itertools_count',
     'compat_kwargs',
+    'compat_numeric_types',
     'compat_ord',
     'compat_os_name',
     'compat_parse_qs',
@@ -2903,5 +2976,6 @@ __all__ = [
     'compat_urlretrieve',
     'compat_xml_parse_error',
     'compat_xpath',
+    'compat_zip',
     'workaround_optparse_bug9161',
 ]

@@ -89,6 +89,11 @@ class IGNIE(InfoExtractor):
             'url': 'http://me.ign.com/ar/angry-birds-2/106533/video/lrd-ldyy-lwl-lfylm-angry-birds',
             'only_matching': True,
         },
+        {
+            # videoId pattern
+            'url': 'http://www.ign.com/articles/2017/06/08/new-ducktales-short-donalds-birthday-doesnt-go-as-planned',
+            'only_matching': True,
+        },
     ]
 
     def _find_video_id(self, webpage):
@@ -98,6 +103,8 @@ class IGNIE(InfoExtractor):
             r'data-video-id="(.+?)"',
             r'<object id="vid_(.+?)"',
             r'<meta name="og:image" content=".*/(.+?)-(.+?)/.+.jpg"',
+            r'videoId&quot;\s*:\s*&quot;(.+?)&quot;',
+            r'videoId["\']\s*:\s*["\']([^"\']+?)["\']',
         ]
         return self._search_regex(res_id, webpage, 'video id', default=None)
 
@@ -196,7 +203,7 @@ class PCMagIE(IGNIE):
     _VALID_URL = r'https?://(?:www\.)?pcmag\.com/(?P<type>videos|article2)(/.+)?/(?P<name_or_id>.+)'
     IE_NAME = 'pcmag'
 
-    _EMBED_RE = r'iframe.setAttribute\("src",\s*__util.objToUrlString\("http://widgets\.ign\.com/video/embed/content.html?[^"]*url=([^"]+)["&]'
+    _EMBED_RE = r'iframe\.setAttribute\("src",\s*__util.objToUrlString\("http://widgets\.ign\.com/video/embed/content\.html?[^"]*url=([^"]+)["&]'
 
     _TESTS = [{
         'url': 'http://www.pcmag.com/videos/2015/01/06/010615-whats-new-now-is-gogo-snooping-on-your-data',

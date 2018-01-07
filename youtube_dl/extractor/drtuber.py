@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class DrTuberIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?drtuber\.com/(?:video|embed)/(?P<id>\d+)(?:/(?P<display_id>[\w-]+))?'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?drtuber\.com/(?:video|embed)/(?P<id>\d+)(?:/(?P<display_id>[\w-]+))?'
     _TESTS = [{
         'url': 'http://www.drtuber.com/video/1740434/hot-perky-blonde-naked-golf',
         'md5': '93e680cf2536ad0dfb7e74d94a89facd',
@@ -28,6 +28,9 @@ class DrTuberIE(InfoExtractor):
     }, {
         'url': 'http://www.drtuber.com/embed/489939',
         'only_matching': True,
+    }, {
+        'url': 'http://m.drtuber.com/video/3893529/lingerie-blowjob-from-beautiful-teen',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -44,8 +47,23 @@ class DrTuberIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.drtuber.com/video/%s' % video_id, display_id)
 
-        video_url = self._html_search_regex(
-            r'<source src="([^"]+)"', webpage, 'video URL')
+        video_data = self._download_json(
+            'http://www.drtuber.com/player_config_json/', video_id, query={
+                'vid': video_id,
+                'embed': 0,
+                'aid': 0,
+                'domain_id': 0,
+            })
+
+        formats = []
+        for format_id, video_url in video_data['files'].items():
+            if video_url:
+                formats.append({
+                    'format_id': format_id,
+                    'quality': 2 if format_id == 'hq' else 1,
+                    'url': video_url
+                })
+        self._sort_formats(formats)
 
         title = self._html_search_regex(
             (r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
@@ -75,7 +93,7 @@ class DrTuberIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
             'thumbnail': thumbnail,
             'like_count': like_count,

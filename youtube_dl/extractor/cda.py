@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import codecs
 import re
 
 from .common import InfoExtractor
@@ -8,7 +9,10 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    multipart_encode,
     parse_duration,
+    random_birthday,
+    urljoin,
 )
 
 
@@ -26,7 +30,8 @@ class CDAIE(InfoExtractor):
             'description': 'md5:269ccd135d550da90d1662651fcb9772',
             'thumbnail': r're:^https?://.*\.jpg$',
             'average_rating': float,
-            'duration': 39
+            'duration': 39,
+            'age_limit': 0,
         }
     }, {
         'url': 'http://www.cda.pl/video/57413289',
@@ -40,12 +45,40 @@ class CDAIE(InfoExtractor):
             'uploader': 'crash404',
             'view_count': int,
             'average_rating': float,
-            'duration': 137
+            'duration': 137,
+            'age_limit': 0,
         }
+    }, {
+        # Age-restricted
+        'url': 'http://www.cda.pl/video/1273454c4',
+        'info_dict': {
+            'id': '1273454c4',
+            'ext': 'mp4',
+            'title': 'Bronson (2008) napisy HD 1080p',
+            'description': 'md5:1b6cb18508daf2dc4e0fa4db77fec24c',
+            'height': 1080,
+            'uploader': 'boniek61',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 5554,
+            'age_limit': 18,
+            'view_count': int,
+            'average_rating': float,
+        },
     }, {
         'url': 'http://ebd.cda.pl/0x0/5749950c',
         'only_matching': True,
     }]
+
+    def _download_age_confirm_page(self, url, video_id, *args, **kwargs):
+        form_data = random_birthday('rok', 'miesiac', 'dzien')
+        form_data.update({'return': url, 'module': 'video', 'module_id': video_id})
+        data, content_type = multipart_encode(form_data)
+        return self._download_webpage(
+            urljoin(url, '/a/validatebirth'), video_id, *args,
+            data=data, headers={
+                'Referer': url,
+                'Content-Type': content_type,
+            }, **kwargs)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -55,6 +88,13 @@ class CDAIE(InfoExtractor):
 
         if 'Ten film jest dostępny dla użytkowników premium' in webpage:
             raise ExtractorError('This video is only available for premium users.', expected=True)
+
+        need_confirm_age = False
+        if self._html_search_regex(r'(<form[^>]+action="/a/validatebirth")',
+                                   webpage, 'birthday validate form', default=None):
+            webpage = self._download_age_confirm_page(
+                url, video_id, note='Confirming age')
+            need_confirm_age = True
 
         formats = []
 
@@ -80,10 +120,11 @@ class CDAIE(InfoExtractor):
             'thumbnail': self._og_search_thumbnail(webpage),
             'formats': formats,
             'duration': None,
+            'age_limit': 18 if need_confirm_age else 0,
         }
 
         def extract_format(page, version):
-            json_str = self._search_regex(
+            json_str = self._html_search_regex(
                 r'player_data=(\\?["\'])(?P<player_data>.+?)\1', page,
                 '%s player_json' % version, fatal=False, group='player_data')
             if not json_str:
@@ -96,6 +137,10 @@ class CDAIE(InfoExtractor):
             if not video or 'file' not in video:
                 self.report_warning('Unable to extract %s version information' % version)
                 return
+            if video['file'].startswith('uggc'):
+                video['file'] = codecs.decode(video['file'], 'rot_13')
+                if video['file'].endswith('adc.mp4'):
+                    video['file'] = video['file'].replace('adc.mp4', '.mp4')
             f = {
                 'url': video['file'],
             }
@@ -116,7 +161,12 @@ class CDAIE(InfoExtractor):
         for href, resolution in re.findall(
                 r'<a[^>]+data-quality="[^"]+"[^>]+href="([^"]+)"[^>]+class="quality-btn"[^>]*>([0-9]+p)',
                 webpage):
-            webpage = self._download_webpage(
+            if need_confirm_age:
+                handler = self._download_age_confirm_page
+            else:
+                handler = self._download_webpage
+
+            webpage = handler(
                 self._BASE_URL + href, video_id,
                 'Downloading %s version information' % resolution, fatal=False)
             if not webpage:
@@ -124,6 +174,7 @@ class CDAIE(InfoExtractor):
                 # invalid version is requested.
                 self.report_warning('Unable to download %s version information' % resolution)
                 continue
+
             extract_format(webpage, resolution)
 
         self._sort_formats(formats)

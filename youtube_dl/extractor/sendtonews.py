@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     parse_iso8601,
@@ -14,7 +14,7 @@ from ..utils import (
 )
 
 
-class SendtoNewsIE(JWPlatformBaseIE):
+class SendtoNewsIE(InfoExtractor):
     _VALID_URL = r'https?://embed\.sendtonews\.com/player2/embedplayer\.php\?.*\bSC=(?P<id>[0-9A-Za-z-]+)'
 
     _TEST = {

@@ -122,7 +122,7 @@ class NBAIE(TurnerBaseIE):
         playlist_title = self._og_search_title(webpage, fatal=False)
         entries = OnDemandPagedList(
             functools.partial(self._fetch_page, team, video_id),
-            self._PAGE_SIZE, use_cache=True)
+            self._PAGE_SIZE)
 
         return self.playlist_result(entries, team, playlist_title)
 

@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from .once import OnceIE
 from ..compat import compat_str
 from ..utils import (
     determine_ext,
@@ -9,8 +12,31 @@ from ..utils import (
 )
 
 
-class ESPNIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:espn\.go|(?:www\.)?espn)\.com/video/clip(?:\?.*?\bid=|/_/id/)(?P<id>\d+)'
+class ESPNIE(OnceIE):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:
+                                (?:
+                                    (?:(?:\w+\.)+)?espn\.go|
+                                    (?:www\.)?espn
+                                )\.com/
+                                (?:
+                                    (?:
+                                        video/(?:clip|iframe/twitter)|
+                                        watch/player
+                                    )
+                                    (?:
+                                        .*?\?.*?\bid=|
+                                        /_/id/
+                                    )
+                                )
+                            )|
+                            (?:www\.)espnfc\.(?:com|us)/(?:video/)?[^/]+/\d+/video/
+                        )
+                        (?P<id>\d+)
+                    '''
+
     _TESTS = [{
         'url': 'http://espn.go.com/video/clip?id=10365079',
         'info_dict': {
@@ -25,25 +51,48 @@ class ESPNIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # intl video, from http://www.espnfc.us/video/mls-highlights/150/video/2743663/must-see-moments-best-of-the-mls-season
-        'url': 'http://espn.go.com/video/clip?id=2743663',
+        'url': 'https://broadband.espn.go.com/video/clip?id=18910086',
         'info_dict': {
-            'id': '2743663',
+            'id': '18910086',
             'ext': 'mp4',
-            'title': 'Must-See Moments: Best of the MLS season',
-            'description': 'md5:4c2d7232beaea572632bec41004f0aeb',
-            'timestamp': 1449446454,
-            'upload_date': '20151207',
+            'title': 'Kyrie spins around defender for two',
+            'description': 'md5:2b0f5bae9616d26fba8808350f0d2b9b',
+            'timestamp': 1489539155,
+            'upload_date': '20170315',
         },
         'params': {
             'skip_download': True,
         },
         'expected_warnings': ['Unable to download f4m manifest'],
     }, {
+        'url': 'http://nonredline.sports.espn.go.com/video/clip?id=19744672',
+        'only_matching': True,
+    }, {
+        'url': 'https://cdn.espn.go.com/video/clip/_/id/19771774',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/watch/player?id=19141491',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/watch/player?bucketId=257&id=19505875',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/watch/player/_/id/19141491',
+        'only_matching': True,
+    }, {
         'url': 'http://www.espn.com/video/clip?id=10365079',
         'only_matching': True,
     }, {
         'url': 'http://www.espn.com/video/clip/_/id/17989860',
+        'only_matching': True,
+    }, {
+        'url': 'https://espn.go.com/video/iframe/twitter/?cms=espn&id=10365079',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espnfc.us/video/espn-fc-tv/86/video/3319154/nashville-unveiled-as-the-newest-club-in-mls',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espnfc.com/english-premier-league/23/video/3324163/premier-league-in-90-seconds-golden-tweets',
         'only_matching': True,
     }]
 
@@ -61,7 +110,9 @@ class ESPNIE(InfoExtractor):
 
         def traverse_source(source, base_source_id=None):
             for source_id, source in source.items():
-                if isinstance(source, compat_str):
+                if source_id == 'alert':
+                    continue
+                elif isinstance(source, compat_str):
                     extract_source(source, base_source_id)
                 elif isinstance(source, dict):
                     traverse_source(
@@ -74,7 +125,9 @@ class ESPNIE(InfoExtractor):
                 return
             format_urls.add(source_url)
             ext = determine_ext(source_url)
-            if ext == 'smil':
+            if OnceIE.suitable(source_url):
+                formats.extend(self._extract_once_formats(source_url))
+            elif ext == 'smil':
                 formats.extend(self._extract_smil_formats(
                     source_url, video_id, fatal=False))
             elif ext == 'f4m':
@@ -85,12 +138,24 @@ class ESPNIE(InfoExtractor):
                     source_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id=source_id, fatal=False))
             else:
-                formats.append({
+                f = {
                     'url': source_url,
                     'format_id': source_id,
-                })
+                }
+                mobj = re.search(r'(\d+)p(\d+)_(\d+)k\.', source_url)
+                if mobj:
+                    f.update({
+                        'height': int(mobj.group(1)),
+                        'fps': int(mobj.group(2)),
+                        'tbr': int(mobj.group(3)),
+                    })
+                if source_id == 'mezzanine':
+                    f['preference'] = 1
+                formats.append(f)
 
-        traverse_source(clip['links']['source'])
+        links = clip.get('links', {})
+        traverse_source(links.get('source', {}))
+        traverse_source(links.get('mobile', {}))
         self._sort_formats(formats)
 
         description = clip.get('caption') or clip.get('description')
@@ -112,9 +177,6 @@ class ESPNIE(InfoExtractor):
 class ESPNArticleIE(InfoExtractor):
     _VALID_URL = r'https?://(?:espn\.go|(?:www\.)?espn)\.com/(?:[^/]+/)*(?P<id>[^/]+)'
     _TESTS = [{
-        'url': 'https://espn.go.com/video/iframe/twitter/?cms=espn&id=10365079',
-        'only_matching': True,
-    }, {
         'url': 'http://espn.go.com/nba/recap?gameId=400793786',
         'only_matching': True,
     }, {
@@ -139,6 +201,37 @@ class ESPNArticleIE(InfoExtractor):
 
         video_id = self._search_regex(
             r'class=(["\']).*?video-play-button.*?\1[^>]+data-id=["\'](?P<id>\d+)',
+            webpage, 'video id', group='id')
+
+        return self.url_result(
+            'http://espn.go.com/video/clip?id=%s' % video_id, ESPNIE.ie_key())
+
+
+class FiveThirtyEightIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?fivethirtyeight\.com/features/(?P<id>[^/?#]+)'
+    _TEST = {
+        'url': 'http://fivethirtyeight.com/features/how-the-6-8-raiders-can-still-make-the-playoffs/',
+        'info_dict': {
+            'id': '21846851',
+            'ext': 'mp4',
+            'title': 'FiveThirtyEight: The Raiders can still make the playoffs',
+            'description': 'Neil Paine breaks down the simplest scenario that will put the Raiders into the playoffs at 8-8.',
+            'timestamp': 1513960621,
+            'upload_date': '20171222',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        video_id = self._search_regex(
+            r'data-video-id=["\'](?P<id>\d+)',
             webpage, 'video id', group='id')
 
         return self.url_result(

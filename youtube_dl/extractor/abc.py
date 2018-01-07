@@ -1,13 +1,19 @@
 from __future__ import unicode_literals
 
+import hashlib
+import hmac
 import re
+import time
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     js_to_json,
     int_or_none,
     parse_iso8601,
+    try_get,
+    update_url_query,
 )
 
 
@@ -99,21 +105,24 @@ class ABCIE(InfoExtractor):
 class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
     _VALID_URL = r'https?://iview\.abc\.net\.au/programs/[^/]+/(?P<id>[^/?#]+)'
+    _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'http://iview.abc.net.au/programs/diaries-of-a-broken-mind/ZX9735A001S00',
+        'url': 'http://iview.abc.net.au/programs/call-the-midwife/ZW0898A003S00',
         'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
         'info_dict': {
-            'id': 'ZX9735A001S00',
+            'id': 'ZW0898A003S00',
             'ext': 'mp4',
-            'title': 'Diaries Of A Broken Mind',
-            'description': 'md5:7de3903874b7a1be279fe6b68718fc9e',
-            'upload_date': '20161010',
-            'uploader_id': 'abc2',
-            'timestamp': 1476064920,
+            'title': 'Series 5 Ep 3',
+            'description': 'md5:e0ef7d4f92055b86c4f33611f180ed79',
+            'upload_date': '20171228',
+            'uploader_id': 'abc1',
+            'timestamp': 1514499187,
         },
-        'skip': 'Video gone',
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -124,7 +133,30 @@ class ABCIViewIE(InfoExtractor):
         title = video_params.get('title') or video_params['seriesTitle']
         stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
 
-        formats = self._extract_akamai_formats(stream['hds-unmetered'], video_id)
+        house_number = video_params.get('episodeHouseNumber')
+        path = '/auth/hls/sign?ts={0}&hn={1}&d=android-mobile'.format(
+            int(time.time()), house_number)
+        sig = hmac.new(
+            'android.content.res.Resources'.encode('utf-8'),
+            path.encode('utf-8'), hashlib.sha256).hexdigest()
+        token = self._download_webpage(
+            'http://iview.abc.net.au{0}&sig={1}'.format(path, sig), video_id)
+
+        def tokenize_url(url, token):
+            return update_url_query(url, {
+                'hdnea': token,
+            })
+
+        for sd in ('sd', 'sd-low'):
+            sd_url = try_get(
+                stream, lambda x: x['streams']['hls'][sd], compat_str)
+            if not sd_url:
+                continue
+            formats = self._extract_m3u8_formats(
+                tokenize_url(sd_url, token), video_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
+            if formats:
+                break
         self._sort_formats(formats)
 
         subtitles = {}

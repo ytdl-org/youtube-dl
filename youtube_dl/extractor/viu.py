@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_kwargs,
+    compat_str,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -36,7 +39,8 @@ class ViuBaseIE(InfoExtractor):
         headers.update(kwargs.get('headers', {}))
         kwargs['headers'] = headers
         response = self._download_json(
-            'https://www.viu.com/api/' + path, *args, **kwargs)['response']
+            'https://www.viu.com/api/' + path, *args,
+            **compat_kwargs(kwargs))['response']
         if response.get('status') != 'success':
             raise ExtractorError('%s said: %s' % (
                 self.IE_NAME, response['message']), expected=True)
@@ -44,7 +48,7 @@ class ViuBaseIE(InfoExtractor):
 
 
 class ViuIE(ViuBaseIE):
-    _VALID_URL = r'(?:viu:|https?://www\.viu\.com/[a-z]{2}/media/)(?P<id>\d+)'
+    _VALID_URL = r'(?:viu:|https?://[^/]+\.viu\.com/[a-z]{2}/media/)(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.viu.com/en/media/1116705532?containerId=playlist-22168059',
         'info_dict': {
@@ -69,6 +73,9 @@ class ViuIE(ViuBaseIE):
             'skip_download': 'm3u8 download',
         },
         'skip': 'Geo-restricted to Indonesia',
+    }, {
+        'url': 'https://india.viu.com/en/media/1126286865',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

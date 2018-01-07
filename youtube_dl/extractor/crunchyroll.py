@@ -38,11 +38,32 @@ class CrunchyrollBaseIE(InfoExtractor):
     _LOGIN_FORM = 'login_form'
     _NETRC_MACHINE = 'crunchyroll'
 
+    def _call_rpc_api(self, method, video_id, note=None, data=None):
+        data = data or {}
+        data['req'] = 'RpcApi' + method
+        data = compat_urllib_parse_urlencode(data).encode('utf-8')
+        return self._download_xml(
+            'http://www.crunchyroll.com/xml/',
+            video_id, note, fatal=False, data=data, headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+            })
+
     def _login(self):
         (username, password) = self._get_login_info()
         if username is None:
             return
 
+        self._download_webpage(
+            'https://www.crunchyroll.com/?a=formhandler',
+            None, 'Logging in', 'Wrong login info',
+            data=urlencode_postdata({
+                'formname': 'RpcApiUser_Login',
+                'next_url': 'https://www.crunchyroll.com/acct/membership',
+                'name': username,
+                'password': password,
+            }))
+
+        '''
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
@@ -86,6 +107,7 @@ class CrunchyrollBaseIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         raise ExtractorError('Unable to log in')
+        '''
 
     def _real_initialize(self):
         self._login()
@@ -123,7 +145,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
             'id': '645513',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Wanna be the Strongest in the World Episode 1 – An Idol-Wrestler is Born!',
             'description': 'md5:2d17137920c64f2f49981a7797d275ef',
             'thumbnail': 'http://img1.ak.crunchyroll.com/i/spire1-tmb/20c6b5e10f1a47b10516877d3c039cae1380951166_full.jpg',
@@ -167,12 +189,79 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'skip_download': True,
         },
     }, {
+        'url': 'http://www.crunchyroll.com/konosuba-gods-blessing-on-this-wonderful-world/episode-1-give-me-deliverance-from-this-judicial-injustice-727589',
+        'info_dict': {
+            'id': '727589',
+            'ext': 'mp4',
+            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance From This Judicial Injustice!",
+            'description': 'md5:cbcf05e528124b0f3a0a419fc805ea7d',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'Kadokawa Pictures Inc.',
+            'upload_date': '20170118',
+            'series': "KONOSUBA -God's blessing on this wonderful world!",
+            'season': "KONOSUBA -God's blessing on this wonderful world! 2",
+            'season_number': 2,
+            'episode': 'Give Me Deliverance From This Judicial Injustice!',
+            'episode_number': 1,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://www.crunchyroll.fr/girl-friend-beta/episode-11-goodbye-la-mode-661697',
         'only_matching': True,
     }, {
         # geo-restricted (US), 18+ maturity wall, non-premium available
         'url': 'http://www.crunchyroll.com/cosplay-complex-ova/episode-1-the-birth-of-the-cosplay-club-565617',
         'only_matching': True,
+    }, {
+        # A description with double quotes
+        'url': 'http://www.crunchyroll.com/11eyes/episode-1-piros-jszaka-red-night-535080',
+        'info_dict': {
+            'id': '535080',
+            'ext': 'mp4',
+            'title': '11eyes Episode 1 – Piros éjszaka - Red Night',
+            'description': 'Kakeru and Yuka are thrown into an alternate nightmarish world they call "Red Night".',
+            'uploader': 'Marvelous AQL Inc.',
+            'upload_date': '20091021',
+        },
+        'params': {
+            # Just test metadata extraction
+            'skip_download': True,
+        },
+    }, {
+        # make sure we can extract an uploader name that's not a link
+        'url': 'http://www.crunchyroll.com/hakuoki-reimeiroku/episode-1-dawn-of-the-divine-warriors-606899',
+        'info_dict': {
+            'id': '606899',
+            'ext': 'mp4',
+            'title': 'Hakuoki Reimeiroku Episode 1 – Dawn of the Divine Warriors',
+            'description': 'Ryunosuke was left to die, but Serizawa-san asked him a simple question "Do you want to live?"',
+            'uploader': 'Geneon Entertainment',
+            'upload_date': '20120717',
+        },
+        'params': {
+            # just test metadata extraction
+            'skip_download': True,
+        },
+    }, {
+        # A video with a vastly different season name compared to the series name
+        'url': 'http://www.crunchyroll.com/nyarko-san-another-crawling-chaos/episode-1-test-590532',
+        'info_dict': {
+            'id': '590532',
+            'ext': 'mp4',
+            'title': 'Haiyoru! Nyaruani (ONA) Episode 1 – Test',
+            'description': 'Mahiro and Nyaruko talk about official certification.',
+            'uploader': 'TV TOKYO',
+            'upload_date': '20120305',
+            'series': 'Nyarko-san: Another Crawling Chaos',
+            'season': 'Haiyoru! Nyaruani (ONA)',
+        },
+        'params': {
+            # Just test metadata extraction
+            'skip_download': True,
+        },
     }]
 
     _FORMAT_IDS = {
@@ -236,8 +325,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         output += 'WrapStyle: %s\n' % sub_root.attrib['wrap_style']
         output += 'PlayResX: %s\n' % sub_root.attrib['play_res_x']
         output += 'PlayResY: %s\n' % sub_root.attrib['play_res_y']
-        output += """ScaledBorderAndShadow: no
-
+        output += """
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 """
@@ -299,15 +387,19 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     def _get_subtitles(self, video_id, webpage):
         subtitles = {}
         for sub_id, sub_name in re.findall(r'\bssid=([0-9]+)"[^>]+?\btitle="([^"]+)', webpage):
-            sub_page = self._download_webpage(
-                'http://www.crunchyroll.com/xml/?req=RpcApiSubtitle_GetXml&subtitle_script_id=' + sub_id,
-                video_id, note='Downloading subtitles for ' + sub_name)
-            id = self._search_regex(r'id=\'([0-9]+)', sub_page, 'subtitle_id', fatal=False)
-            iv = self._search_regex(r'<iv>([^<]+)', sub_page, 'subtitle_iv', fatal=False)
-            data = self._search_regex(r'<data>([^<]+)', sub_page, 'subtitle_data', fatal=False)
-            if not id or not iv or not data:
+            sub_doc = self._call_rpc_api(
+                'Subtitle_GetXml', video_id,
+                'Downloading subtitles for ' + sub_name, data={
+                    'subtitle_script_id': sub_id,
+                })
+            if sub_doc is None:
                 continue
-            subtitle = self._decrypt_subtitles(data, iv, id).decode('utf-8')
+            sid = sub_doc.get('id')
+            iv = xpath_text(sub_doc, 'iv', 'subtitle iv')
+            data = xpath_text(sub_doc, 'data', 'subtitle data')
+            if not sid or not iv or not data:
+                continue
+            subtitle = self._decrypt_subtitles(data, iv, sid).decode('utf-8')
             lang_code = self._search_regex(r'lang_code=["\']([^"\']+)', subtitle, 'subtitle_lang_code', fatal=False)
             if not lang_code:
                 continue
@@ -324,7 +416,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         else:
             webpage_url = 'http://www.' + mobj.group('url')
 
-        webpage = self._download_webpage(self._add_skip_wall(webpage_url), video_id, 'Downloading webpage')
+        webpage = self._download_webpage(
+            self._add_skip_wall(webpage_url), video_id,
+            headers=self.geo_verification_headers())
         note_m = self._html_search_regex(
             r'<div class="showmedia-trailer-notice">(.+?)</div>',
             webpage, 'trailer-notice', default='')
@@ -344,9 +438,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
             webpage, 'video_title')
         video_title = re.sub(r' {2,}', ' ', video_title)
-        video_description = self._html_search_regex(
-            r'<script[^>]*>\s*.+?\[media_id=%s\].+?"description"\s*:\s*"([^"]+)' % video_id,
-            webpage, 'description', default=None)
+        video_description = self._parse_json(self._html_search_regex(
+            r'<script[^>]*>\s*.+?\[media_id=%s\].+?({.+?"description"\s*:.+?})\);' % video_id,
+            webpage, 'description', default='{}'), video_id).get('description')
         if video_description:
             video_description = lowercase_escape(video_description.replace(r'\r\n', '\n'))
         video_upload_date = self._html_search_regex(
@@ -355,8 +449,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if video_upload_date:
             video_upload_date = unified_strdate(video_upload_date)
         video_uploader = self._html_search_regex(
-            r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', webpage,
-            'video_uploader', fatal=False)
+            # try looking for both an uploader that's a link and one that's not
+            [r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', r'<div>\s*Publisher:\s*<span>\s*(.+?)\s*</span>\s*</div>'],
+            webpage, 'video_uploader', fatal=False)
 
         available_fmts = []
         for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
@@ -375,69 +470,96 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for fmt in available_fmts:
             stream_quality, stream_format = self._FORMAT_IDS[fmt]
             video_format = fmt + 'p'
-            streamdata_req = sanitized_Request(
-                'http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&media_id=%s&video_format=%s&video_quality=%s'
-                % (video_id, stream_format, stream_quality),
-                compat_urllib_parse_urlencode({'current_page': url}).encode('utf-8'))
-            streamdata_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
-            streamdata = self._download_xml(
-                streamdata_req, video_id,
-                note='Downloading media info for %s' % video_format)
-            stream_info = streamdata.find('./{default}preload/stream_info')
-            video_encode_id = xpath_text(stream_info, './video_encode_id')
-            if video_encode_id in video_encode_ids:
-                continue
-            video_encode_ids.append(video_encode_id)
+            stream_infos = []
+            streamdata = self._call_rpc_api(
+                'VideoPlayer_GetStandardConfig', video_id,
+                'Downloading media info for %s' % video_format, data={
+                    'media_id': video_id,
+                    'video_format': stream_format,
+                    'video_quality': stream_quality,
+                    'current_page': url,
+                })
+            if streamdata is not None:
+                stream_info = streamdata.find('./{default}preload/stream_info')
+                if stream_info is not None:
+                    stream_infos.append(stream_info)
+            stream_info = self._call_rpc_api(
+                'VideoEncode_GetStreamInfo', video_id,
+                'Downloading stream info for %s' % video_format, data={
+                    'media_id': video_id,
+                    'video_format': stream_format,
+                    'video_encode_quality': stream_quality,
+                })
+            if stream_info is not None:
+                stream_infos.append(stream_info)
+            for stream_info in stream_infos:
+                video_encode_id = xpath_text(stream_info, './video_encode_id')
+                if video_encode_id in video_encode_ids:
+                    continue
+                video_encode_ids.append(video_encode_id)
 
-            video_file = xpath_text(stream_info, './file')
-            if not video_file:
-                continue
-            if video_file.startswith('http'):
-                formats.extend(self._extract_m3u8_formats(
-                    video_file, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
-                continue
-
-            video_url = xpath_text(stream_info, './host')
-            if not video_url:
-                continue
-            metadata = stream_info.find('./metadata')
-            format_info = {
-                'format': video_format,
-                'format_id': video_format,
-                'height': int_or_none(xpath_text(metadata, './height')),
-                'width': int_or_none(xpath_text(metadata, './width')),
-            }
-
-            if '.fplive.net/' in video_url:
-                video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
-                parsed_video_url = compat_urlparse.urlparse(video_url)
-                direct_video_url = compat_urlparse.urlunparse(parsed_video_url._replace(
-                    netloc='v.lvlt.crcdn.net',
-                    path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_file.split(':')[-1])))
-                if self._is_valid_url(direct_video_url, video_id, video_format):
-                    format_info.update({
-                        'url': direct_video_url,
-                    })
-                    formats.append(format_info)
+                video_file = xpath_text(stream_info, './file')
+                if not video_file:
+                    continue
+                if video_file.startswith('http'):
+                    formats.extend(self._extract_m3u8_formats(
+                        video_file, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
                     continue
 
-            format_info.update({
-                'url': video_url,
-                'play_path': video_file,
-                'ext': 'flv',
-            })
-            formats.append(format_info)
-        self._sort_formats(formats)
+                video_url = xpath_text(stream_info, './host')
+                if not video_url:
+                    continue
+                metadata = stream_info.find('./metadata')
+                format_info = {
+                    'format': video_format,
+                    'height': int_or_none(xpath_text(metadata, './height')),
+                    'width': int_or_none(xpath_text(metadata, './width')),
+                }
 
-        metadata = self._download_xml(
-            'http://www.crunchyroll.com/xml', video_id,
-            note='Downloading media info', query={
-                'req': 'RpcApiVideoPlayer_GetMediaMetadata',
+                if '.fplive.net/' in video_url:
+                    video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
+                    parsed_video_url = compat_urlparse.urlparse(video_url)
+                    direct_video_url = compat_urlparse.urlunparse(parsed_video_url._replace(
+                        netloc='v.lvlt.crcdn.net',
+                        path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_file.split(':')[-1])))
+                    if self._is_valid_url(direct_video_url, video_id, video_format):
+                        format_info.update({
+                            'format_id': 'http-' + video_format,
+                            'url': direct_video_url,
+                        })
+                        formats.append(format_info)
+                        continue
+
+                format_info.update({
+                    'format_id': 'rtmp-' + video_format,
+                    'url': video_url,
+                    'play_path': video_file,
+                    'ext': 'flv',
+                })
+                formats.append(format_info)
+        self._sort_formats(formats, ('height', 'width', 'tbr', 'fps'))
+
+        metadata = self._call_rpc_api(
+            'VideoPlayer_GetMediaMetadata', video_id,
+            note='Downloading media info', data={
                 'media_id': video_id,
             })
 
         subtitles = self.extract_subtitles(video_id, webpage)
+
+        # webpage provide more accurate data than series_title from XML
+        series = self._html_search_regex(
+            r'(?s)<h\d[^>]+\bid=["\']showmedia_about_episode_num[^>]+>(.+?)</h\d',
+            webpage, 'series', fatal=False)
+        season = xpath_text(metadata, 'series_title')
+
+        episode = xpath_text(metadata, 'episode_title')
+        episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
+
+        season_number = int_or_none(self._search_regex(
+            r'(?s)<h\d[^>]+id=["\']showmedia_about_episode_num[^>]+>.+?</h\d>\s*<h4>\s*Season (\d+)',
+            webpage, 'season number', default=None))
 
         return {
             'id': video_id,
@@ -446,9 +568,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'thumbnail': xpath_text(metadata, 'episode_image_url'),
             'uploader': video_uploader,
             'upload_date': video_upload_date,
-            'series': xpath_text(metadata, 'series_title'),
-            'episode': xpath_text(metadata, 'episode_title'),
-            'episode_number': int_or_none(xpath_text(metadata, 'episode_number')),
+            'series': series,
+            'season': season,
+            'season_number': season_number,
+            'episode': episode,
+            'episode_number': episode_number,
             'subtitles': subtitles,
             'formats': formats,
         }
@@ -483,16 +607,18 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
     def _real_extract(self, url):
         show_id = self._match_id(url)
 
-        webpage = self._download_webpage(self._add_skip_wall(url), show_id)
+        webpage = self._download_webpage(
+            self._add_skip_wall(url), show_id,
+            headers=self.geo_verification_headers())
         title = self._html_search_regex(
             r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
             webpage, 'title')
         episode_paths = re.findall(
-            r'(?s)<li id="showview_videos_media_[0-9]+"[^>]+>.*?<a href="([^"]+)"',
+            r'(?s)<li id="showview_videos_media_(\d+)"[^>]+>.*?<a href="([^"]+)"',
             webpage)
         entries = [
-            self.url_result('http://www.crunchyroll.com' + ep, 'Crunchyroll')
-            for ep in episode_paths
+            self.url_result('http://www.crunchyroll.com' + ep, 'Crunchyroll', ep_id)
+            for ep_id, ep in episode_paths
         ]
         entries.reverse()
 

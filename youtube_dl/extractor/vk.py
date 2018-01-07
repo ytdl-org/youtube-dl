@@ -25,6 +25,7 @@ from ..utils import (
 from .dailymotion import DailymotionIE
 from .pladform import PladformIE
 from .vimeo import VimeoIE
+from .youtube import YoutubeIE
 
 
 class VKBaseIE(InfoExtractor):
@@ -66,7 +67,7 @@ class VKBaseIE(InfoExtractor):
 
         login_page = self._download_webpage(
             'https://login.vk.com/?act=login', None,
-            note='Logging in as %s' % username,
+            note='Logging in',
             data=urlencode_postdata(login_form))
 
         if re.search(r'onLoginFailed', login_page):
@@ -281,6 +282,11 @@ class VKIE(VKBaseIE):
         {
             'url': 'http://new.vk.com/video205387401_165548505',
             'only_matching': True,
+        },
+        {
+            # This video is no longer available, because its author has been blocked.
+            'url': 'https://vk.com/video-10639516_456240611',
+            'only_matching': True,
         }
     ]
 
@@ -328,17 +334,21 @@ class VKIE(VKBaseIE):
 
             r'<!>Access denied':
             'Access denied to video %s.',
+
+            r'<!>Видеозапись недоступна, так как её автор был заблокирован.':
+            'Video %s is no longer available, because its author has been blocked.',
+
+            r'<!>This video is no longer available, because its author has been blocked.':
+            'Video %s is no longer available, because its author has been blocked.',
         }
 
         for error_re, error_msg in ERRORS.items():
             if re.search(error_re, info_page):
                 raise ExtractorError(error_msg % video_id, expected=True)
 
-        youtube_url = self._search_regex(
-            r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
-            info_page, 'youtube iframe', default=None)
+        youtube_url = YoutubeIE._extract_url(info_page)
         if youtube_url:
-            return self.url_result(youtube_url, 'Youtube')
+            return self.url_result(youtube_url, ie=YoutubeIE.ie_key())
 
         vimeo_url = VimeoIE._extract_url(url, info_page)
         if vimeo_url is not None:
@@ -404,7 +414,7 @@ class VKIE(VKBaseIE):
 
         view_count = str_to_int(self._search_regex(
             r'class=["\']mv_views_count[^>]+>\s*([\d,.]+)',
-            info_page, 'view count', fatal=False))
+            info_page, 'view count', default=None))
 
         formats = []
         for format_id, format_url in data.items():
@@ -421,8 +431,7 @@ class VKIE(VKBaseIE):
                 })
             elif format_id == 'hls':
                 formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4',
-                    entry_protocol='m3u8' if is_live else 'm3u8_native',
+                    format_url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id=format_id, fatal=False, live=is_live))
             elif format_id == 'rtmp':
                 formats.append({
