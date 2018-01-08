@@ -247,19 +247,6 @@ class WDRElefantIE(WDRBaseIE):
 
     _TESTS = [
         {
-            'url': 'http://www.wdrmaus.de/elefantenseite/#lieder_geburtstagslied',
-            'info_dict': {
-                'title': 'Ich bin schon 1-2-3',
-                'id': 'mdb-1008774',
-                'ext': 'mp4',
-                'age_limit': None,
-                'upload_date': '20091119',
-            },
-            'params': {
-                'skip_download' : True,
-            },
-        },
-        {
             'url': 'http://www.wdrmaus.de/elefantenseite/#folge_ostern_2015',
             'info_dict': {
                 'title': 'Folge Oster-Spezial 2015',
