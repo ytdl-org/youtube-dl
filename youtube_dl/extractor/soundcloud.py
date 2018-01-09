@@ -136,6 +136,25 @@ class SoundcloudIE(InfoExtractor):
                 'license': 'all-rights-reserved',
             },
         },
+        # no album art, use avatar pic for thumbnail
+        {
+            'url': 'https://soundcloud.com/garyvee/sideways-prod-mad-real',
+            'md5': '59c7872bc44e5d99b7211891664760c2',
+            'info_dict': {
+                'id': '309699954',
+                'ext': 'mp3',
+                'title': 'Sideways (Prod. Mad Real)',
+                'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+                'uploader': 'garyvee',
+                'upload_date': '20170226',
+                'duration': 207,
+                'thumbnail': r're:https?://.*\.jpg',
+                'license': 'all-rights-reserved',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     _CLIENT_ID = 'c6CU49JDMapyrQo06UxU9xouB9ZVzqCn'
@@ -160,7 +179,7 @@ class SoundcloudIE(InfoExtractor):
         name = full_title or track_id
         if quiet:
             self.report_extraction(name)
-        thumbnail = info.get('artwork_url')
+        thumbnail = info.get('artwork_url') or info.get('user', {}).get('avatar_url')
         if isinstance(thumbnail, compat_str):
             thumbnail = thumbnail.replace('-large', '-t500x500')
         ext = 'mp3'

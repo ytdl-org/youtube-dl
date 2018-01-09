@@ -1,9 +1,28 @@
 version <unreleased>
 
 Extractors
++ [weibo] Add extractor (#15079)
+* [bilibili] fix extraction (#15188) 
+
+
+version 2018.01.07
+
+Core
+* [utils] Fix youtube-dl under PyPy3 on Windows
+* [YoutubeDL] Output python implementation in debug header
+
+Extractors
++ [jwplatform] Add support for multiple embeds (#15192)
+* [mitele] Fix extraction (#15186)
++ [motherless] Add support for groups (#15124)
+* [lynda] Relax URL regular expression (#15185)
+* [soundcloud] Fallback to avatar picture for thumbnail (#12878)
 * [youku] Fix list extraction (#15135)
 * [openload] Fix extraction (#15166)
+* [lynda] Skip invalid subtitles (#15159)
+* [twitch] Pass video id to url_result when extracting playlist (#15139)
 * [rtve.es:alacarta] Fix extraction of some new URLs
+* [acast] Fix extraction (#15147)
 
 
 version 2017.12.31

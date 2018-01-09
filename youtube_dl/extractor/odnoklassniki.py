@@ -19,11 +19,11 @@ from ..utils import (
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m|mobile)\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
+    _VALID_URL = r'https?://(?:(?:www|m|mobile)\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?|web-api/video/moviePlayer|live)/(?P<id>[\d-]+)'
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
-        'md5': '6ba728d85d60aa2e6dd37c9e70fdc6bc',
+        'md5': '0b62089b479e06681abaaca9d204f152',
         'info_dict': {
             'id': '20079905452',
             'ext': 'mp4',
@@ -35,7 +35,6 @@ class OdnoklassnikiIE(InfoExtractor):
             'like_count': int,
             'age_limit': 0,
         },
-        'skip': 'Video has been blocked',
     }, {
         # metadataUrl
         'url': 'http://ok.ru/video/63567059965189-0?fromTime=5',
@@ -98,6 +97,9 @@ class OdnoklassnikiIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://mobile.ok.ru/video/20079905452',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ok.ru/live/484531969818',
         'only_matching': True,
     }]
 
@@ -184,6 +186,10 @@ class OdnoklassnikiIE(InfoExtractor):
             })
             return info
 
+        assert title
+        if provider == 'LIVE_TV_APP':
+            info['title'] = self._live_title(title)
+
         quality = qualities(('4', '0', '1', '2', '3', '5'))
 
         formats = [{
@@ -209,6 +215,20 @@ class OdnoklassnikiIE(InfoExtractor):
                 'format type', default=None)
             if fmt_type:
                 fmt['quality'] = quality(fmt_type)
+
+        # Live formats
+        m3u8_url = metadata.get('hlsMasterPlaylistUrl')
+        if m3u8_url:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol='m3u8',
+                m3u8_id='hls', fatal=False))
+        rtmp_url = metadata.get('rtmpUrl')
+        if rtmp_url:
+            formats.append({
+                'url': rtmp_url,
+                'format_id': 'rtmp',
+                'ext': 'flv',
+            })
 
         self._sort_formats(formats)
 
