@@ -1298,6 +1298,10 @@ from .webofstories import (
     WebOfStoriesIE,
     WebOfStoriesPlaylistIE,
 )
+from .weibo import (
+    WeiboIE, 
+    WeiboMobileIE
+)
 from .weiqitv import WeiqiTVIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
