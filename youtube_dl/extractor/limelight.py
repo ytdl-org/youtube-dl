@@ -283,7 +283,7 @@ class LimelightMediaIE(LimelightBaseIE):
             smuggled_data.get('source_url'))
 
         return self._extract_info(
-            pc['playlistItems'][0].get('streams', []),
+            pc['playlistItems'][0].get('streams', []) if pc else [],
             mobile['mediaList'][0].get('mobileUrls', []) if mobile else [],
             metadata)
 
@@ -327,7 +327,7 @@ class LimelightChannelIE(LimelightBaseIE):
 
         entries = [
             self._extract_info(
-                pc['playlistItems'][i].get('streams', []),
+                pc['playlistItems'][i].get('streams', []) if pc else [],
                 mobile['mediaList'][i].get('mobileUrls', []) if mobile else [],
                 medias['media_list'][i])
             for i in range(len(medias['media_list']))]
