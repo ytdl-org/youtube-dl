@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import js_to_json
 
 
 class DiggIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?digg\.com/video/(?P<id>[^/?#&]+)'
-    _TEST = {
+    _TESTS = [{
+        # JWPlatform via provider
         'url': 'http://digg.com/video/sci-fi-short-jonah-daniel-kaluuya-get-out',
         'info_dict': {
             'id': 'LcqvmS0b',
@@ -18,24 +20,37 @@ class DiggIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-    }
+    }, {
+        # Youtube via provider
+        'url': 'http://digg.com/video/dog-boat-seal-play',
+        'only_matching': True,
+    }, {
+        # vimeo as regular embed
+        'url': 'http://digg.com/video/dream-girl-short-film',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
 
-        jwplatform_id = self._search_regex(
-            r'video_id\s*:\s*["\']([a-zA-Z0-9]{8})', webpage, 'jwplatform id',
-            default=None)
+        info = self._parse_json(
+            self._search_regex(
+                r'(?s)video_info\s*=\s*({.+?});\n', webpage, 'video info',
+                default='{}'), display_id, transform_source=js_to_json,
+            fatal=False)
 
-        if not jwplatform_id:
-            return self.url_result(url, 'Generic')
+        video_id = info.get('video_id')
 
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'JWPlatform',
-            'url': 'jwplatform:%s' % jwplatform_id,
-            'id': jwplatform_id,
-            'display_id': display_id,
-        }
+        if video_id:
+            provider = info.get('provider_name')
+            if provider == 'youtube':
+                return self.url_result(
+                    video_id, ie='Youtube', video_id=video_id)
+            elif provider == 'jwplayer':
+                return self.url_result(
+                    'jwplatform:%s' % video_id, ie='JWPlatform',
+                    video_id=video_id)
+
+        return self.url_result(url, 'Generic')
