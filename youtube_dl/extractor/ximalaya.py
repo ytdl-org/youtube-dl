@@ -64,10 +64,6 @@ class XimalayaIE(XimalayaBaseIE):
                     {
                         'name': 'cover_url_142',
                         'url': r're:^https?://.*\.jpg$',
-                    },
-                    {
-                        'name': 'cover_url_142',
-                        'url': r're:^https?://.*\.jpg$',
                         'width': 180,
                         'height': 180
                     }
@@ -145,17 +141,17 @@ class XimalayaIE(XimalayaBaseIE):
         audio_uploader_id = audio_info.get('uid')
 
         if is_m:
-            audio_description= self._html_search_regex(r'(?s)<section\s+class=["\']content[^>]+>(.+?)</section>',
-                                            webpage, 'audio_description', fatal=False)
+            audio_description = self._html_search_regex(r'(?s)<section\s+class=["\']content[^>]+>(.+?)</section>',
+                                                        webpage, 'audio_description', fatal=False)
         else:
-            audio_description= self._html_search_regex(r'(?s)<div\s+class=["\']rich_intro[^>]*>(.+?</article>)',
-                                            webpage, 'audio_description', fatal=False)
+            audio_description = self._html_search_regex(r'(?s)<div\s+class=["\']rich_intro[^>]*>(.+?</article>)',
+                                                        webpage, 'audio_description', fatal=False)
 
         if not audio_description:
             audio_description_file = '%s://www.ximalaya.com/sounds/%s/rich_intro' % (scheme, audio_id)
             audio_description = self._download_webpage(audio_description_file, audio_id,
                                                        note='Downloading description file %s' % audio_description_file,
-                                                       errnote='Unable to download descrip file, try to parse web page',
+                                                       errnote='Unable to download descrip file',
                                                        fatal=False)
             audio_description = audio_description.strip() if audio_description else None
 
@@ -163,11 +159,11 @@ class XimalayaIE(XimalayaBaseIE):
             'id': audio_id,
             'uploader': audio_info.get('nickname'),
             'uploader_id': audio_uploader_id,
-            'uploader_url': self._USER_URL_FORMAT % (scheme, audio_uploader_id),
+            'uploader_url': self._USER_URL_FORMAT % (scheme, audio_uploader_id) if audio_uploader_id else None,
             'title': audio_info['title'],
             'thumbnails': thumbnails,
             'description': audio_description,
-            'categories': list((audio_info.get('category_name'), audio_info.get('category_title'))),
+            'categories': list(filter(None, (audio_info.get('category_name'), audio_info.get('category_title')))),
             'duration': audio_info.get('duration'),
             'view_count': audio_info.get('play_count'),
             'like_count': audio_info.get('favorites_count'),
@@ -210,7 +206,7 @@ class XimalayaAlbumIE(XimalayaBaseIE):
                                          errnote='Unable to get album info')
 
         title = self._html_search_regex(r'detailContent_title[^>]*><h1(?:[^>]+)?>([^<]+)</h1>',
-                                        webpage, 'title',fatal=False)
+                                        webpage, 'title', fatal=False)
 
         return self.playlist_result(self._entries(webpage, playlist_id, uid), playlist_id, title)
 
@@ -235,5 +231,3 @@ class XimalayaAlbumIE(XimalayaBaseIE):
                                   XimalayaIE.ie_key(),
                                   mobj.group('id'),
                                   mobj.group('title'))
-
-
