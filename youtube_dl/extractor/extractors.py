@@ -631,6 +631,7 @@ from .musicplayon import MusicPlayOnIE
 from .mwave import MwaveIE, MwaveMeetGreetIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
+from .mytaratata import MyTaratataIE
 from .myvi import MyviIE
 from .myvidster import MyVidsterIE
 from .nationalgeographic import (
