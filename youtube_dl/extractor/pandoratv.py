@@ -24,7 +24,8 @@ class PandoraTVIE(InfoExtractor):
                         https?://
                             (?:
                                 (?:www\.)?pandora\.tv/view/(?P<user_id>[^/]+)/(?P<id>\d+)|  # new format
-                                (?:.+?\.)?channel\.pandora\.tv/channel/video\.ptv\?         # old format
+                                (?:.+?\.)?channel\.pandora\.tv/channel/video\.ptv\?|        # old format
+                                m\.pandora\.tv/?\?                                          # mobile
                             )
                     '''
     _TESTS = [{
@@ -63,6 +64,9 @@ class PandoraTVIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.pandora.tv/view/mikakim/53294230#36797454_new',
+        'only_matching': True,
+    }, {
+        'url': 'http://m.pandora.tv/?c=view&ch_userid=mikakim&prgid=54600346',
         'only_matching': True,
     }]
 
