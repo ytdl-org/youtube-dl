@@ -1,6 +1,7 @@
 version <unreleased>
 
 Extractors
++ [ximalaya] Add extractor (#14687)
 + [weibo] Add extractor (#15079)
 * [bilibili] fix extraction (#15188) 
 
