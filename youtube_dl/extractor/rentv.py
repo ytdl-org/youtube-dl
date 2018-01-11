@@ -26,9 +26,20 @@ class RENTVIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage('http://ren.tv/player/' + video_id, video_id)
-        jw_config = self._parse_json(self._search_regex(
-            r'config\s*=\s*({.+});', webpage, 'jw config'), video_id)
-        return self._parse_jwplayer_data(jw_config, video_id, m3u8_id='hls')
+        config = self._parse_json(self._search_regex(
+            r'config\s*=\s*({.+});', webpage, 'config'), video_id)
+        formats = []
+        for video in config['src']:
+            formats.append({
+                'url': video['src']
+            })
+        self._sort_formats(formats)
+        return {
+            'id': video_id,
+            'formats': formats,
+            'title': config['title'],
+            'thumbnail': config['image']
+        }
 
 
 class RENTVArticleIE(InfoExtractor):
