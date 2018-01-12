@@ -18,12 +18,7 @@ class MyTaratataIE(InfoExtractor):
             'title': u'TARATATA N°519 - Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
             'uploader': 'Taratata',
             'description': 'Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
-            # 'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'thumbnail': 'http://static.mytaratata.com/content/image/5a2562a1a5ee5.jpeg',
         }
     }
 
@@ -41,6 +36,8 @@ class MyTaratataIE(InfoExtractor):
             r'/mytaratata/Taratata[^"]+\.mp4)"'
         )
 
+        # The first videos are the live videos, coming in 2 formats. The next videos are
+        # bonuses, multi-cams... that we won't download.
         last_vid = None
         for url in video_source_re.findall(webpage):
             info_m = re.match(r'.*/(?P<vid>[0-9]+)-[a-f0-9]+-(?P<w>[0-9]+)x(?P<h>[0-9]+)\.mp4', url)
@@ -49,9 +46,12 @@ class MyTaratataIE(InfoExtractor):
             vid = info_m.group('vid')
             w = info_m.group('w')
             h = info_m.group('h')
+
             if last_vid is None:
                 last_vid = vid
+
             if vid != last_vid:
+                # We found a new video, not another format of the same. Stops here.
                 break
 
             formats.append({
@@ -66,10 +66,7 @@ class MyTaratataIE(InfoExtractor):
             'id': last_vid,
             'title': '%s - %s' % (title, description),
             'description': description,
-            # TODO Improve the filename, id, title.
             'uploader': "Taratata",
             'formats': formats,
-            'thumbnails': [
-                {'url': self._og_search_thumbnail(webpage)},
-            ],
+            'thumbnail': self._og_search_thumbnail(webpage),
         }
