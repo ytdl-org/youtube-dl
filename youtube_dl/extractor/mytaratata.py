@@ -11,11 +11,11 @@ class MyTaratataIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?mytaratata\.com/taratata/(?P<id>[a-zA-Z0-9_\-/]+)'
     _TEST = {
         'url': 'http://mytaratata.com/taratata/519/shaka-ponk-camille-et-julie-berthollet-smells-like-teen-spirit-nirvana',
-        'md5': 'c2876e18716b350c9de69cfda2662919',
+        'md5': '99657330eb7dec6d63a329d7f26ec93e',
         'info_dict': {
-            'id': '519/shaka-ponk-camille-et-julie-berthollet-smells-like-teen-spirit-nirvana',
+            'id': '7174',
             'ext': 'mp4',
-            'title': 'Taratata - Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
+            'title': u'TARATATA N°519 - Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
             'uploader': 'Taratata',
             'description': 'Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
             # 'thumbnail': r're:^https?://.*\.jpg$',
@@ -31,8 +31,8 @@ class MyTaratataIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        # TODO more code goes here, for example ...
-        title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
 
         formats = []
 
@@ -43,7 +43,7 @@ class MyTaratataIE(InfoExtractor):
 
         last_vid = None
         for url in video_source_re.findall(webpage):
-            info_m = re.match(r'.*(?P<vid>[0-9]+)-[a-f0-9]+-(?P<w>[0-9]+)x(?P<h>[0-9]+)\.mp4', url)
+            info_m = re.match(r'.*/(?P<vid>[0-9]+)-[a-f0-9]+-(?P<w>[0-9]+)x(?P<h>[0-9]+)\.mp4', url)
             if info_m is None:
                 continue
             vid = info_m.group('vid')
@@ -54,15 +54,22 @@ class MyTaratataIE(InfoExtractor):
             if vid != last_vid:
                 break
 
-            formats.append({'url': url, 'width': int(w), 'height': int(h)})
+            formats.append({
+                'url': url,
+                'width': int(w),
+                'height': int(h),
+            })
 
         formats = list(sorted(formats, key=lambda f: f['width']))
 
         return {
-            'id': video_id,
-            'title': title,
-            'description': self._og_search_description(webpage),
+            'id': last_vid,
+            'title': '%s - %s' % (title, description),
+            'description': description,
+            # TODO Improve the filename, id, title.
             'uploader': "Taratata",
-            # TODO more properties (see youtube_dl/extractor/common.py)
             'formats': formats,
+            'thumbnails': [
+                {'url': self._og_search_thumbnail(webpage)},
+            ],
         }
