@@ -21,10 +21,8 @@ class WeeklyBeatsIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._search_regex(r'https://weeklybeats.com/[^/]+/music/([^/]*)/?', url, 'video_id')
-        print(video_id)
         webpage = self._download_webpage(url, video_id)
 
-        # TODO more code goes here, for example ...
         return {
             'id': video_id,
             'title': self._search_regex(r'<meta[^>]+property="og:title"[^>]+content="([^\"]+)"[^>]*>', webpage, 'title', fatal=False),
