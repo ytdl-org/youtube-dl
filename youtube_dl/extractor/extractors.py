@@ -1299,8 +1299,9 @@ from .webofstories import (
     WebOfStoriesIE,
     WebOfStoriesPlaylistIE,
 )
+from .weeklybeats import WeeklyBeatsIE
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
