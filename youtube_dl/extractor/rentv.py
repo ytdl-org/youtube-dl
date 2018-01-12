@@ -29,16 +29,16 @@ class RENTVIE(InfoExtractor):
         config = self._parse_json(self._search_regex(
             r'config\s*=\s*({.+});', webpage, 'config'), video_id)
         formats = []
-        for video in config['src']:
+        for video in config.get('src', ''):
             formats.append({
-                'url': video['src']
+                'url': video.get('src', '')
             })
         self._sort_formats(formats)
         return {
             'id': video_id,
             'formats': formats,
-            'title': config['title'],
-            'thumbnail': config['image']
+            'title': config.get('title', ''),
+            'thumbnail': config.get('image', '')
         }
 
 
