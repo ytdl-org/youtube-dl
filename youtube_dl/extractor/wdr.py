@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class WDRBaseIE(InfoExtractor):
-    def _extract_wdr_video(self, webpage, display_id):
+    def _extract_jsonp_url(self, webpage, display_id):
         # for wdr.de the data-extension is in a tag with the class "mediaLink"
         # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
         # for wdrmaus, in a tag with the class "videoButton" (previously a link
@@ -35,8 +35,9 @@ class WDRBaseIE(InfoExtractor):
 
         media_link_obj = self._parse_json(json_metadata, display_id,
                                           transform_source=js_to_json)
-        jsonp_url = media_link_obj['mediaObj']['url']
+        return media_link_obj['mediaObj']['url']
 
+    def _extract_wdr_video(self, jsonp_url, display_id):
         metadata = self._download_json(
             jsonp_url, display_id, transform_source=strip_jsonp)
 
@@ -206,7 +207,8 @@ class WDRIE(WDRBaseIE):
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
 
-        info_dict = self._extract_wdr_video(webpage, display_id)
+        jsonp_url = self._extract_jsonp_url(webpage, display_id)
+        info_dict = self._extract_wdr_video(jsonp_url, display_id)
 
         if not info_dict:
             entries = [
@@ -236,6 +238,52 @@ class WDRIE(WDRBaseIE):
             'is_live': is_live,
         })
 
+        return info_dict
+
+
+class WDRElefantIE(WDRBaseIE):
+    _VALID_URL = r'https?://(?:www\.)wdrmaus.de/elefantenseite/#(?P<display_id>.+)'
+    IE_NAME = 'wdr:elefant'
+
+    _TESTS = [
+        {
+            'url': 'http://www.wdrmaus.de/elefantenseite/#folge_ostern_2015',
+            'info_dict': {
+                'title': 'Folge Oster-Spezial 2015',
+                'id': 'mdb-1088195',
+                'ext': 'mp4',
+                'age_limit': None,
+                'upload_date': '20150406'
+            },
+            'params': {
+                'skip_download' : True,
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('display_id')
+
+        # Table of Contents seems to always be at this address, so fetch it directly.
+        # The website fetches configurationJS.php5, which links to tableOfContentsJS.php5.
+        table_of_contents = self._download_json(
+            'https://www.wdrmaus.de/elefantenseite/data/tableOfContentsJS.php5', display_id)
+        if display_id not in table_of_contents:
+            raise ExtractorError(
+                'No entry in site\'s table of contents for this URL. '
+                'Is the fragment part of the URL (after the #) correct?',
+                expected=True)
+        xml_metadata_path = table_of_contents[display_id]['xmlPath']
+        xml_metadata = self._download_xml(
+            'https://www.wdrmaus.de/elefantenseite/' + xml_metadata_path, display_id)
+        zmdb_url_element = xml_metadata.find('./movie/zmdb_url')
+        if zmdb_url_element is None:
+            raise ExtractorError(
+                'The URL looks valid, but no video was found. Note that download only works '
+                'on pages showing a single video, not on video selection pages.',
+                expected=True)
+        info_dict = self._extract_wdr_video(zmdb_url_element.text, display_id)
         return info_dict
 
 
