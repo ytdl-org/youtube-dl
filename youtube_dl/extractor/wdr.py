@@ -22,6 +22,7 @@ from ..utils import (
 
 class WDRIE(InfoExtractor):
     _VALID_URL = r'https?://deviceids-medp\.wdr\.de/ondemand/\d+/(?P<id>\d+)\.js'
+    _GEO_COUNTRIES = ['DE']
     _TEST = {
         'url': 'http://deviceids-medp.wdr.de/ondemand/155/1557833.js',
         'info_dict': {
