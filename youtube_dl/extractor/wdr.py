@@ -26,14 +26,11 @@ class WDRIE(InfoExtractor):
     _TEST = {
         'url': 'http://deviceids-medp.wdr.de/ondemand/155/1557833.js',
         'info_dict': {
-            'id': 'mdb-1140188',
-            'display_id': 'dfb-team-geht-gut-gelaunt-ins-spiel-gegen-polen-100',
+            'id': 'mdb-1557833',
             'ext': 'mp4',
-            'title': 'DFB-Team geht gut gelaunt ins Spiel gegen Polen',
-            'description': 'Vor dem zweiten Gruppenspiel gegen Polen herrscht gute Stimmung im deutschen Team. Insbesondere Bastian Schweinsteiger strotzt vor Optimismus nach seinem Tor gegen die Ukraine.',
-            'upload_date': '20160615',
+            'title': 'Biathlon-Staffel verpasst Podest bei Olympia-Generalprobe',
+            'upload_date': '20180112',
         },
-        'skip': 'Geo-restricted to Germany',
     }
 
     def _real_extract(self, url):
