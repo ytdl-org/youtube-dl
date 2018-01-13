@@ -128,7 +128,7 @@
  - **CamdemyFolder**
  - **CamWithHer**
  - **canalc2.tv**
- - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
+ - **Canalplus**: mycanal.fr and piwiplus.fr
  - **Canvas**
  - **CanvasEen**: canvas.be and een.be
  - **CarambaTV**
@@ -210,6 +210,7 @@
  - **defense.gouv.fr**
  - **democracynow**
  - **DHM**: Filmarchiv - Deutsches Historisches Museum
+ - **Digg**
  - **DigitallySpeaking**
  - **Digiteka**
  - **Discovery**
@@ -773,7 +774,6 @@
  - **Sport5**
  - **SportBoxEmbed**
  - **SportDeutschland**
- - **Sportschau**
  - **Sprout**
  - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**
@@ -1002,10 +1002,14 @@
  - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**
  - **wdr:mobile**
+ - **WDRElefant**
+ - **WDRPage**
  - **Webcaster**
  - **WebcasterFeed**
  - **WebOfStories**
  - **WebOfStoriesPlaylist**
+ - **Weibo**
+ - **WeiboMobile**
  - **WeiqiTV**: WQTV
  - **wholecloud**: WholeCloud
  - **Wimp**
@@ -1025,6 +1029,8 @@
  - **xiami:artist**: 虾米音乐 - 歌手
  - **xiami:collection**: 虾米音乐 - 精选集
  - **xiami:song**: 虾米音乐
+ - **ximalaya**: 喜马拉雅FM
+ - **ximalaya:album**: 喜马拉雅FM 专辑
  - **XMinus**
  - **XNXX**
  - **Xstream**
