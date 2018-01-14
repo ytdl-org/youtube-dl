@@ -15,7 +15,7 @@ class MyTaratataIE(InfoExtractor):
         'info_dict': {
             'id': '7174',
             'ext': 'mp4',
-            'title': u'TARATATA N°519 - Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
+            'title': 'TARATATA N°519 - Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
             'uploader': 'Taratata',
             'description': 'Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
             'thumbnail': 'http://static.mytaratata.com/content/image/5a2562a1a5ee5.jpeg',
@@ -26,21 +26,25 @@ class MyTaratataIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
+        # The title contains only the program name and episode number.
+        # Each episode containts many videos
         title = self._og_search_title(webpage)
+        # The description is the title of the video within the episode.
         description = self._og_search_description(webpage)
 
         formats = []
 
         video_source_re = re.compile(
-            r'data-source="(?P<url>http://videos.air-productions.cdn.sfr.net'
-            r'/mytaratata/Taratata[^"]+\.mp4)"'
+            r'data-source="(?P<url>http://[^/]*/mytaratata/Taratata[^"]+\.mp4)"'
         )
 
         # The first videos are the live videos, coming in 2 formats. The next videos are
         # bonuses, multi-cams... that we won't download.
         last_vid = None
-        for url in video_source_re.findall(webpage):
-            info_m = re.match(r'.*/(?P<vid>[0-9]+)-[a-f0-9]+-(?P<w>[0-9]+)x(?P<h>[0-9]+)\.mp4', url)
+        for video_url in video_source_re.findall(webpage):
+            info_m = re.match(
+                r'.*/(?P<vid>[0-9]+)-[a-f0-9]+-(?P<w>[0-9]+)x(?P<h>[0-9]+)\.mp4',
+                video_url)
             if info_m is None:
                 continue
             vid = info_m.group('vid')
@@ -55,12 +59,12 @@ class MyTaratataIE(InfoExtractor):
                 break
 
             formats.append({
-                'url': url,
+                'url': video_url,
                 'width': int(w),
                 'height': int(h),
             })
 
-        formats = list(sorted(formats, key=lambda f: f['width']))
+        self._sort_formats(formats)
 
         return {
             'id': last_vid,
