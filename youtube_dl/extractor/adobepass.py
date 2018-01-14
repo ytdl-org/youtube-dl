@@ -1561,7 +1561,7 @@ class AdobePassIE(InfoExtractor):
                                                 .replace('ACTION', 'action')
                                                 .replace('HIDDEN', 'hidden')
                                                 .replace('FORM', 'form'),
-                        *mvpd_confirm_page_res[1:])
+                        ) + mvpd_confirm_page_res[1:]
                     post_form(complete_login_res, 'Confirming Login')
                 else:
                     # Some providers (e.g. DIRECTV NOW) have another meta refresh
