@@ -27,7 +27,7 @@ class WeeklyBeatsIE(InfoExtractor):
             'id': video_id,
             'title': self._search_regex(r'<div[^>]+id=(["\'])item_title\1>[^>]*<h3>(?P<title>[^<]+)', webpage, 'title', group='title'),
             'description': self._og_search_description(webpage),
-            'uploader': self._search_regex(r'<a[^>]+class=(["\'])[^"\']+artist\1[^>]*>View by:(?P<uploader>[^<]+)', webpage, 'uploader', group='uploader'),
+            'uploader': self._search_regex(r'<a[^>]+class=(["\'])[^"\']+artist\1[^>]*>View by:(?P<uploader>[^<]+)', webpage, 'uploader', group='uploader', fatal=False),
             'url': self._search_regex(r'<a[^>]+id=(["\'])item_download\1[^>]+href=\1(?P<url>[^"\']+)\?', webpage, 'url', group="url"),
             # TODO more properties (see youtube_dl/extractor/common.py)
         }
