@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class WeeklyBeatsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?weeklybeats\.com/(.+)/music/(.+)'
+    _VALID_URL = r'https?://(?:www\.)?weeklybeats\.com/(.+)/music/(?P<id>.+)'
     _TEST = {
         'url': 'https://weeklybeats.com/pulsn/music/week-1-bass-drop',
         'md5': '03465d0fa355147822d2ba1100a82c7c',
@@ -20,14 +20,14 @@ class WeeklyBeatsIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        video_id = self._search_regex(r'https://weeklybeats.com/[^/]+/music/([^/]*)/?', url, 'video_id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         return {
             'id': video_id,
-            'title': self._search_regex(r'<meta[^>]+property="og:title"[^>]+content="([^\"]+)"[^>]*>', webpage, 'title', fatal=False),
-            'description': self._search_regex(r'<meta[^>]+property="og:description"[^>]+content="([^\"]*)"[^>]*>', webpage, 'description', fatal=False),
-            'uploader': self._search_regex(r'<a[^>]+class="form_popular_tags ?artist"[^>]*>View by:([^<]+)<', webpage, 'uploader', fatal=False),
-            'url': self._search_regex(r'mp3: \'([^\']+)\'', webpage, 'url')
+            'title': self._search_regex(r'<div[^>]+id=(["\'])item_title\1>[^>]*<h3>(?P<title>[^<]+)', webpage, 'title', group='title'),
+            'description': self._og_search_description(webpage),
+            'uploader': self._search_regex(r'<a[^>]+class=(["\'])[^"\']+artist\1[^>]*>View by:(?P<uploader>[^<]+)', webpage, 'uploader', group='uploader'),
+            'url': self._search_regex(r'<a[^>]+id=(["\'])item_download\1[^>]+href=\1(?P<url>[^"\']+)\?', webpage, 'url', group="url"),
             # TODO more properties (see youtube_dl/extractor/common.py)
         }
