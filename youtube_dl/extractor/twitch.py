@@ -88,7 +88,10 @@ class TwitchBaseIE(InfoExtractor):
                     fail(response['message'])
                 raise
 
-            redirect_url = urljoin(post_url, response['redirect'])
+            redirect_url = urljoin(post_url, response.get('redirect'))
+            if redirect_url is None:
+                redirect_url = urljoin(post_url, response.get('redirect_path'))
+
             return self._download_webpage_handle(
                 redirect_url, None, 'Downloading login redirect page',
                 headers=headers)
