@@ -259,6 +259,7 @@ from .deezer import DeezerPlaylistIE
 from .democracynow import DemocracynowIE
 from .dfb import DFBIE
 from .dhm import DHMIE
+from .digg import DiggIE
 from .dotsub import DotsubIE
 from .douyutv import (
     DouyuShowIE,
@@ -990,7 +991,6 @@ from .stitcher import StitcherIE
 from .sport5 import Sport5IE
 from .sportbox import SportBoxEmbedIE
 from .sportdeutschland import SportDeutschlandIE
-from .sportschau import SportschauIE
 from .sprout import SproutIE
 from .srgssr import (
     SRGSSRIE,
@@ -1288,6 +1288,8 @@ from .watchbox import WatchBoxIE
 from .watchindianporn import WatchIndianPornIE
 from .wdr import (
     WDRIE,
+    WDRPageIE,
+    WDRElefantIE,
     WDRMobileIE,
 )
 from .webcaster import (
@@ -1326,6 +1328,10 @@ from .xiami import (
     XiamiAlbumIE,
     XiamiArtistIE,
     XiamiCollectionIE
+)
+from .ximalaya import (
+    XimalayaIE,
+    XimalayaAlbumIE
 )
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
