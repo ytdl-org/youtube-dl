@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class RtvsExtractorIE(InfoExtractor):
+class RtvsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rtvs\.sk/.*/archiv/[0-9]*/(?P<id>[0-9]+)'
     _TESTS = [{
         # radio archive
@@ -32,7 +32,6 @@ class RtvsExtractorIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         playlist_url = self._search_regex(r'"playlist": "(https?:.*)&', webpage, 'playlist_url')
-        self.to_screen("%s: Playlist URL: %s" % (video_id, playlist_url))
-        playlist = self._download_json(playlist_url, video_id, "Downloading playlist")
+        playlist = self._download_json(playlist_url, video_id, 'Downloading playlist')
         jwplayer_data = playlist[0]
         return self._parse_jwplayer_data(jwplayer_data, video_id=video_id)
