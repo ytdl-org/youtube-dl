@@ -60,12 +60,20 @@ class IFengIE(InfoExtractor):
             r'"createdate": "(?P<value>(.+?))"',
             webpage, 'createdate', group='value', fatal=False))
 
+        formats = [
+            {
+                'url': video_url,
+                'ext': video_url[video_url.rfind('.') + 1:],
+            }
+        ]
+        self._sort_formats(formats)
+
         return {
             'id': video_id,
             'title': title,
             'duration': int(duration),
             'uploader': uploader,
             'upload_date': upload_date,
-            'url': video_url,
-            'thumbnail': thumbnail
+            'thumbnail': thumbnail,
+            'formats': formats,
         }
