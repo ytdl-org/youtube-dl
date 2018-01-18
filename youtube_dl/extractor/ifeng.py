@@ -6,7 +6,9 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     unified_strdate,
+    int_or_none
 )
+import re
 
 
 class IFengIE(InfoExtractor):
@@ -37,28 +39,14 @@ class IFengIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(
-            r'"name": "(?P<value>(.+?))"',
-            webpage, 'title', group='value')
-        video_url = self._html_search_regex(
-            r'"videoPlayUrl": "(?P<value>(.+?))"',
-            webpage, 'url', group='value')
+        video_info = self._parse_json(self._html_search_regex(
+            r'var videoinfo = (?P<value>({.+?}));',
+            webpage, 'video_info', flags=re.DOTALL, group='value'), video_id)
+
+        video_url = video_info.get('videoPlayUrl')
 
         if not video_url:
-            self._report_error(title)
-
-        thumbnail = self._html_search_regex(
-            r'"videoLargePoster": "(?P<value>(.+?))"',
-            webpage, 'thumbnail', group='value', fatal=False)
-        uploader = self._html_search_regex(
-            r'"columnName":"(?P<value>(.+?))"',
-            webpage, 'uploader', group='value', fatal=False)
-        duration = self._html_search_regex(
-            r'"duration": "(?P<value>(.+?))"',
-            webpage, 'duration', group='value', fatal=False)
-        upload_date = unified_strdate(self._html_search_regex(
-            r'"createdate": "(?P<value>(.+?))"',
-            webpage, 'createdate', group='value', fatal=False))
+            self._report_error(video_url)
 
         formats = [
             {
@@ -70,10 +58,10 @@ class IFengIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
-            'duration': int(duration),
-            'uploader': uploader,
-            'upload_date': upload_date,
-            'thumbnail': thumbnail,
+            'title': video_info.get('name'),
+            'duration': int_or_none(video_info.get('duration')),
+            'uploader': video_info.get('columnName'),
+            'upload_date': unified_strdate(video_info.get('createdate')),
+            'thumbnail': video_info.get('videoLargePoster'),
             'formats': formats,
         }
