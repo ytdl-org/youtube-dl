@@ -881,7 +881,6 @@ from .revision3 import (
     Revision3IE,
 )
 from .rice import RICEIE
-from .ringtv import RingTVIE
 from .rmcdecouverte import RMCDecouverteIE
 from .ro220 import Ro220IE
 from .rockstargames import RockstarGamesIE
