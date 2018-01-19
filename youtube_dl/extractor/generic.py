@@ -101,6 +101,7 @@ from .vzaar import VzaarIE
 from .channel9 import Channel9IE
 from .vshare import VShareIE
 from .mediasite import MediasiteIE
+from .springboardplatform import SpringboardPlatformIE
 
 
 class GenericIE(InfoExtractor):
@@ -1938,6 +1939,21 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1474354800,
                 'upload_date': '20160920',
             }
+        },
+        {
+            'url': 'http://www.kidzworld.com/article/30935-trolls-the-beat-goes-on-interview-skylar-astin-and-amanda-leighton',
+            'info_dict': {
+                'id': '1731611',
+                'ext': 'mp4',
+                'title': 'Official Trailer | TROLLS: THE BEAT GOES ON!',
+                'description': 'md5:eb5f23826a027ba95277d105f248b825',
+                'timestamp': 1516100691,
+                'upload_date': '20180116',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': [SpringboardPlatformIE.ie_key()],
         }
         # {
         #     # TODO: find another test
@@ -2905,6 +2921,12 @@ class GenericIE(InfoExtractor):
                     {'UrlReferrer': url}), ie=MediasiteIE.ie_key())
                 for mediasite_url in mediasite_urls]
             return self.playlist_result(entries, video_id, video_title)
+
+        springboardplatform_urls = SpringboardPlatformIE._extract_urls(webpage)
+        if springboardplatform_urls:
+            return self.playlist_from_matches(
+                springboardplatform_urls, video_id, video_title,
+                ie=SpringboardPlatformIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}
