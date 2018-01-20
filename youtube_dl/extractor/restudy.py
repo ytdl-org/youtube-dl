@@ -29,7 +29,7 @@ class RestudyIE(InfoExtractor):
         description = self._og_search_description(webpage).strip()
 
         formats = self._extract_smil_formats(
-            'https://www.restudy.dk/awsmedia/SmilDirectory/video_%s.xml' % video_id,
+            'https://cdn.portal.restudy.dk/dynamic/themes/front/awsmedia/SmilDirectory/video_%s.xml' % video_id,
             video_id)
         self._sort_formats(formats)
 
