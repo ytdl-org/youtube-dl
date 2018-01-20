@@ -891,6 +891,10 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{42:4.2e1}')
         self.assertEqual(json.loads(on), {'42': 42.0})
 
+    def test_js_to_json_malformed(self):
+        self.assertEqual(js_to_json('42a1'), '42"a1"')
+        self.assertEqual(js_to_json('42a-1'), '42"a"-1')
+
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
         self.assertEqual(extract_attributes("<e x='y'>"), {'x': 'y'})
