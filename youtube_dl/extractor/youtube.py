@@ -2530,10 +2530,11 @@ class YoutubeLiveIE(YoutubeBaseInfoExtractor):
         webpage = self._download_webpage(url, channel_id, fatal=False)
         if webpage:
             page_type = self._og_search_property(
-                'type', webpage, 'page type', default=None)
+                'type', webpage, 'page type', default='')
             video_id = self._html_search_meta(
                 'videoId', webpage, 'video id', default=None)
-            if page_type == 'video' and video_id and re.match(r'^[0-9A-Za-z_-]{11}$', video_id):
+            if page_type.startswith('video') and video_id and re.match(
+                    r'^[0-9A-Za-z_-]{11}$', video_id):
                 return self.url_result(video_id, YoutubeIE.ie_key())
         return self.url_result(base_url)
 
