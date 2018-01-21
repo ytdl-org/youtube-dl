@@ -92,8 +92,8 @@ class TestDownload(unittest.TestCase):
 def generator(test_case, tname):
 
     def test_template(self):
-        ie = youtube_dl.extractor.get_info_extractor(test_case['name'])
-        other_ies = [get_info_extractor(ie_key) for ie_key in test_case.get('add_ie', [])]
+        ie = youtube_dl.extractor.get_info_extractor(test_case['name'])()
+        other_ies = [get_info_extractor(ie_key)() for ie_key in test_case.get('add_ie', [])]
         is_playlist = any(k.startswith('playlist') for k in test_case)
         test_cases = test_case.get(
             'playlist', [] if is_playlist else [test_case])
