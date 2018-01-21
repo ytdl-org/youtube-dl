@@ -2404,7 +2404,7 @@ class InfoExtractor(object):
                 formats.extend(self._extract_m3u8_formats(
                     source_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id=m3u8_id, fatal=False))
-            elif ext == 'mpd':
+            elif source_type == 'dash' or ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     source_url, video_id, mpd_id=mpd_id, fatal=False))
             elif ext == 'smil':
