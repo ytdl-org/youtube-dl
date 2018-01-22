@@ -35,7 +35,7 @@ class MyTaratataIE(InfoExtractor):
         formats = []
 
         video_source_re = re.compile(
-            r'<div [^>]*class="jwplayer" [^\>]*data-source="(?P<url>https?://.*/Taratata[^"]+\.mp4)"'
+            r'<div [^>]*class="jwplayer" [^\>]*data-source="(?P<url>[^"]+)"'
         )
 
         # The first videos are the live videos, coming in 2 formats. The next videos are
