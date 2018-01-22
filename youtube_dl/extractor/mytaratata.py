@@ -16,7 +16,6 @@ class MyTaratataIE(InfoExtractor):
             'id': '7174',
             'ext': 'mp4',
             'title': 'TARATATA N°519 - Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
-            'uploader': 'Taratata',
             'description': 'Shaka Ponk / Camille et Julie Berthollet "Smells Like Teen Spirit" (Nirvana)',
             'thumbnail': 're:https?://.*\.jpeg$',
         }
@@ -70,7 +69,6 @@ class MyTaratataIE(InfoExtractor):
             'id': last_vid,
             'title': '%s - %s' % (title, description),
             'description': description,
-            'uploader': "Taratata",
             'formats': formats,
             'thumbnail': self._og_search_thumbnail(webpage),
         }
