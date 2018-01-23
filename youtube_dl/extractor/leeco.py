@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import datetime
 import hashlib
 import re
@@ -9,6 +8,7 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_b64decode,
     compat_ord,
     compat_str,
     compat_urllib_parse_urlencode,
@@ -329,7 +329,7 @@ class LetvCloudIE(InfoExtractor):
                 raise ExtractorError('Letv cloud returned an unknwon error')
 
         def b64decode(s):
-            return base64.b64decode(s.encode('utf-8')).decode('utf-8')
+            return compat_b64decode(s).decode('utf-8')
 
         formats = []
         for media in play_json['data']['video_info']['media'].values():
