@@ -85,10 +85,15 @@ class TwitchBaseIE(InfoExtractor):
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
                     response = self._parse_json(
                         e.cause.read().decode('utf-8'), None)
-                    fail(response['message'])
+                    fail(response.get('message') or response['errors'][0])
                 raise
 
-            redirect_url = urljoin(post_url, response['redirect'])
+            if 'Authenticated successfully' in response.get('message', ''):
+                return None, None
+
+            redirect_url = urljoin(
+                post_url,
+                response.get('redirect') or response['redirect_path'])
             return self._download_webpage_handle(
                 redirect_url, None, 'Downloading login redirect page',
                 headers=headers)
@@ -105,6 +110,10 @@ class TwitchBaseIE(InfoExtractor):
                 'username': username,
                 'password': password,
             })
+
+        # Successful login
+        if not redirect_page:
+            return
 
         if re.search(r'(?i)<form[^>]+id="two-factor-submit"', redirect_page) is not None:
             # TODO: Add mechanism to request an SMS or phone call

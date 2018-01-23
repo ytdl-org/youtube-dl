@@ -1,3 +1,31 @@
+version 2018.01.21
+
+Core
+* [extractor/common] Improve jwplayer DASH formats extraction (#9242, #15187)
+* [utils] Improve scientific notation handling in js_to_json (#14789)
+
+Extractors
++ [southparkdk] Add support for southparkstudios.nu
++ [southpark] Add support for collections (#14803)
+* [franceinter] Fix upload date extraction (#14996)
++ [rtvs] Add support for rtvs.sk (#9242, #15187)
+* [restudy] Fix extraction and extend URL regular expression (#15347)
+* [youtube:live] Improve live detection (#15365)
++ [springboardplatform] Add support for springboardplatform.com
+* [prosiebensat1] Add another clip id regular expression (#15290)
+- [ringtv] Remove extractor (#15345)
+
+
+version 2018.01.18
+
+Extractors
+* [soundcloud] Update client id (#15306)
+- [kamcord] Remove extractor (#15322)
++ [spiegel] Add support for nexx videos (#15285)
+* [twitch] Fix authentication and error capture (#14090, #15264)
+* [vk] Detect more errors due to copyright complaints (#15259)
+
+
 version 2018.01.14
 
 Extractors

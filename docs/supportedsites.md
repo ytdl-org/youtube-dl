@@ -383,7 +383,6 @@
  - **JWPlatform**
  - **Kakao**
  - **Kaltura**
- - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
  - **Kankan**
  - **Karaoketv**
@@ -683,7 +682,6 @@
  - **revision**
  - **revision3:embed**
  - **RICE**
- - **RingTV**
  - **RMCDecouverte**
  - **RockstarGames**
  - **RoosterTeeth**
@@ -704,6 +702,7 @@
  - **rtve.es:live**: RTVE.es live streams
  - **rtve.es:television**
  - **RTVNH**
+ - **RTVS**
  - **Rudo**
  - **RUHD**
  - **RulePorn**
@@ -774,6 +773,7 @@
  - **Sport5**
  - **SportBoxEmbed**
  - **SportDeutschland**
+ - **SpringboardPlatform**
  - **Sprout**
  - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**

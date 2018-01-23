@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .nexx import NexxEmbedIE
+from .nexx import (
+    NexxIE,
+    NexxEmbedIE,
+)
 from .spiegeltv import SpiegeltvIE
 from ..compat import compat_urlparse
 from ..utils import (
@@ -51,6 +54,10 @@ class SpiegelIE(InfoExtractor):
     }, {
         'url': 'http://www.spiegel.de/video/astronaut-alexander-gerst-von-der-iss-station-beantwortet-fragen-video-1519126-iframe.html',
         'only_matching': True,
+    }, {
+        # nexx video
+        'url': 'http://www.spiegel.de/video/spiegel-tv-magazin-ueber-guellekrise-in-schleswig-holstein-video-99012776.html',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -60,6 +67,14 @@ class SpiegelIE(InfoExtractor):
         # 302 to spiegel.tv, like http://www.spiegel.de/video/der-film-zum-wochenende-die-wahrheit-ueber-maenner-video-99003272.html
         if SpiegeltvIE.suitable(handle.geturl()):
             return self.url_result(handle.geturl(), 'Spiegeltv')
+
+        nexx_id = self._search_regex(
+            r'nexxOmniaId\s*:\s*(\d+)', webpage, 'nexx id', default=None)
+        if nexx_id:
+            domain_id = NexxIE._extract_domain_id(webpage) or '748'
+            return self.url_result(
+                'nexx:%s:%s' % (domain_id, nexx_id), ie=NexxIE.ie_key(),
+                video_id=nexx_id)
 
         video_data = extract_attributes(self._search_regex(r'(<div[^>]+id="spVideoElements"[^>]+>)', webpage, 'video element', default=''))
 
