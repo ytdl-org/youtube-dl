@@ -8,7 +8,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
-    parse_iso8601,
+    unified_timestamp,
     OnDemandPagedList,
 )
 
@@ -32,7 +32,7 @@ class ACastIE(InfoExtractor):
     }, {
         # test with multiple blings
         'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
-        'md5': '55c0097badd7095f494c99a172f86501',
+        'md5': 'e87d5b8516cd04c0d81b6ee1caca28d0',
         'info_dict': {
             'id': '2a92b283-1a75-4ad8-8396-499c641de0d9',
             'ext': 'mp3',
@@ -40,23 +40,24 @@ class ACastIE(InfoExtractor):
             'timestamp': 1477346700,
             'upload_date': '20161024',
             'description': 'md5:4f81f6d8cf2e12ee21a321d8bca32db4',
-            'duration': 2797,
+            'duration': 2766,
         }
     }]
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
         cast_data = self._download_json(
-            'https://embed.acast.com/api/acasts/%s/%s' % (channel, display_id), display_id)
+            'https://play-api.acast.com/splash/%s/%s' % (channel, display_id), display_id)
+        e = cast_data['result']['episode']
         return {
-            'id': compat_str(cast_data['id']),
+            'id': compat_str(e['id']),
             'display_id': display_id,
-            'url': [b['audio'] for b in cast_data['blings'] if b['type'] == 'BlingAudio'][0],
-            'title': cast_data['name'],
-            'description': cast_data.get('description'),
-            'thumbnail': cast_data.get('image'),
-            'timestamp': parse_iso8601(cast_data.get('publishingDate')),
-            'duration': int_or_none(cast_data.get('duration')),
+            'url': e['mediaUrl'],
+            'title': e['name'],
+            'description': e.get('description'),
+            'thumbnail': e.get('image'),
+            'timestamp': unified_timestamp(e.get('publishingDate')),
+            'duration': int_or_none(e.get('duration')),
         }
 
 

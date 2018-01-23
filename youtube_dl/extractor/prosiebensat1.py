@@ -344,6 +344,8 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'clip[iI]d=(\d+)',
         r'clip[iI]d\s*=\s*["\'](\d+)',
         r"'itemImageUrl'\s*:\s*'/dynamic/thumbnails/full/\d+/(\d+)",
+        r'proMamsId&quot;\s*:\s*&quot;(\d+)',
+        r'proMamsId"\s*:\s*"(\d+)',
     ]
     _TITLE_REGEXES = [
         r'<h2 class="subtitle" itemprop="name">\s*(.+?)</h2>',

@@ -190,10 +190,12 @@ class NDREmbedBaseIE(InfoExtractor):
             ext = determine_ext(src, None)
             if ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
-                    src + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id, f4m_id='hds'))
+                    src + '?hdcore=3.7.0&plugin=aasp-3.7.0.39.44', video_id,
+                    f4m_id='hds', fatal=False))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    src, video_id, 'mp4', m3u8_id='hls', entry_protocol='m3u8_native'))
+                    src, video_id, 'mp4', m3u8_id='hls',
+                    entry_protocol='m3u8_native', fatal=False))
             else:
                 quality = f.get('quality')
                 ff = {

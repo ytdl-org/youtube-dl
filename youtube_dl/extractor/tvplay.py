@@ -273,6 +273,8 @@ class TVPlayIE(InfoExtractor):
                     'ext': ext,
                 }
                 if video_url.startswith('rtmp'):
+                    if smuggled_data.get('skip_rtmp'):
+                        continue
                     m = re.search(
                         r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
                     if not m:
@@ -434,6 +436,10 @@ class ViafreeIE(InfoExtractor):
         return self.url_result(
             smuggle_url(
                 'mtg:%s' % video_id,
-                {'geo_countries': [
-                    compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1]]}),
+                {
+                    'geo_countries': [
+                        compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1]],
+                    # rtmp host mtgfs.fplive.net for viafree is unresolvable
+                    'skip_rtmp': True,
+                }),
             ie=TVPlayIE.ie_key(), video_id=video_id)

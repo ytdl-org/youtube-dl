@@ -814,6 +814,9 @@ class TestUtil(unittest.TestCase):
         inp = '''{"duration": "00:01:07"}'''
         self.assertEqual(js_to_json(inp), '''{"duration": "00:01:07"}''')
 
+        inp = '''{segments: [{"offset":-3.885780586188048e-16,"duration":39.75000000000001}]}'''
+        self.assertEqual(js_to_json(inp), '''{"segments": [{"offset":-3.885780586188048e-16,"duration":39.75000000000001}]}''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
@@ -884,6 +887,13 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json('{/*comment\n*/42/*comment\n*/:/*comment\n*/42/*comment\n*/}')
         self.assertEqual(json.loads(on), {'42': 42})
+
+        on = js_to_json('{42:4.2e1}')
+        self.assertEqual(json.loads(on), {'42': 42.0})
+
+    def test_js_to_json_malformed(self):
+        self.assertEqual(js_to_json('42a1'), '42"a1"')
+        self.assertEqual(js_to_json('42a-1'), '42"a"-1')
 
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})

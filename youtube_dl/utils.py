@@ -39,6 +39,7 @@ from .compat import (
     compat_HTMLParser,
     compat_basestring,
     compat_chr,
+    compat_ctypes_WINFUNCTYPE,
     compat_etree_fromstring,
     compat_expanduser,
     compat_html_entities,
@@ -1330,24 +1331,24 @@ def _windows_write_string(s, out):
     if fileno not in WIN_OUTPUT_IDS:
         return False
 
-    GetStdHandle = ctypes.WINFUNCTYPE(
+    GetStdHandle = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
-        (b'GetStdHandle', ctypes.windll.kernel32))
+        ('GetStdHandle', ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
-    WriteConsoleW = ctypes.WINFUNCTYPE(
+    WriteConsoleW = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
-        ctypes.wintypes.LPVOID)((b'WriteConsoleW', ctypes.windll.kernel32))
+        ctypes.wintypes.LPVOID)(('WriteConsoleW', ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b'GetFileType', ctypes.windll.kernel32))
+    GetFileType = compat_ctypes_WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)(('GetFileType', ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
-    GetConsoleMode = ctypes.WINFUNCTYPE(
+    GetConsoleMode = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
-        (b'GetConsoleMode', ctypes.windll.kernel32))
+        ('GetConsoleMode', ctypes.windll.kernel32))
     INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
 
     def not_a_console(handle):
@@ -2266,7 +2267,7 @@ def js_to_json(code):
         "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
         '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
         {comment}|,(?={skip}[\]}}])|
-        [a-zA-Z_][.a-zA-Z_0-9]*|
+        (?:(?<![0-9])[eE]|[a-df-zA-DF-Z_])[.a-zA-Z_0-9]*|
         \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
         [0-9]+(?={skip}:)
         '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)

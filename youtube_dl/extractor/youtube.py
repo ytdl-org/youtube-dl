@@ -1810,7 +1810,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'url': video_info['conn'][0],
                 'player_url': player_url,
             }]
-        elif len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1:
+        elif not is_live and (len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
@@ -2530,10 +2530,11 @@ class YoutubeLiveIE(YoutubeBaseInfoExtractor):
         webpage = self._download_webpage(url, channel_id, fatal=False)
         if webpage:
             page_type = self._og_search_property(
-                'type', webpage, 'page type', default=None)
+                'type', webpage, 'page type', default='')
             video_id = self._html_search_meta(
                 'videoId', webpage, 'video id', default=None)
-            if page_type == 'video' and video_id and re.match(r'^[0-9A-Za-z_-]{11}$', video_id):
+            if page_type.startswith('video') and video_id and re.match(
+                    r'^[0-9A-Za-z_-]{11}$', video_id):
                 return self.url_result(video_id, YoutubeIE.ie_key())
         return self.url_result(base_url)
 

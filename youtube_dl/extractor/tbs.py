@@ -58,7 +58,7 @@ class TBSIE(TurnerBaseIE):
                 continue
             if stream_data.get('playlistProtection') == 'spe':
                 m3u8_url = self._add_akamai_spe_token(
-                    'http://www.%s.com/service/token_spe' % site,
+                    'http://token.vgtf.net/token/token_spe',
                     m3u8_url, media_id, {
                         'url': url,
                         'site_name': site[:3].upper(),

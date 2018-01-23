@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 import re
 import json
-import base64
 import zlib
 
 from hashlib import sha1
 from math import pow, sqrt, floor
 from .common import InfoExtractor
 from ..compat import (
+    compat_b64decode,
     compat_etree_fromstring,
     compat_urllib_parse_urlencode,
     compat_urllib_request,
@@ -272,8 +272,8 @@ class CrunchyrollIE(CrunchyrollBaseIE):
     }
 
     def _decrypt_subtitles(self, data, iv, id):
-        data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
-        iv = bytes_to_intlist(base64.b64decode(iv.encode('utf-8')))
+        data = bytes_to_intlist(compat_b64decode(data))
+        iv = bytes_to_intlist(compat_b64decode(iv))
         id = int(id)
 
         def obfuscate_key_aux(count, modulo, start):

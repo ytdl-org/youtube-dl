@@ -171,12 +171,12 @@ class PluralsightIE(PluralsightBaseIE):
         for num, current in enumerate(subs):
             current = subs[num]
             start, text = (
-                float_or_none(dict_get(current, TIME_OFFSET_KEYS)),
+                float_or_none(dict_get(current, TIME_OFFSET_KEYS, skip_false_values=False)),
                 dict_get(current, TEXT_KEYS))
             if start is None or text is None:
                 continue
             end = duration if num == len(subs) - 1 else float_or_none(
-                dict_get(subs[num + 1], TIME_OFFSET_KEYS))
+                dict_get(subs[num + 1], TIME_OFFSET_KEYS, skip_false_values=False))
             if end is None:
                 continue
             srt += os.linesep.join(

@@ -102,6 +102,7 @@ class BiliBiliIE(InfoExtractor):
                     video_id, anime_id, compat_urlparse.urljoin(url, '//bangumi.bilibili.com/anime/%s' % anime_id)))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'Referer': url
             }
             headers.update(self.geo_verification_headers())
 
@@ -116,10 +117,15 @@ class BiliBiliIE(InfoExtractor):
         payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
         sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
 
+        headers = {
+            'Referer': url
+        }
+        headers.update(self.geo_verification_headers())
+
         video_info = self._download_json(
             'http://interface.bilibili.com/playurl?%s&sign=%s' % (payload, sign),
             video_id, note='Downloading video info page',
-            headers=self.geo_verification_headers())
+            headers=headers)
 
         if 'durl' not in video_info:
             self._report_error(video_info)

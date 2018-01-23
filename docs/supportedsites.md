@@ -3,6 +3,7 @@
  - **1up.com**
  - **20min**
  - **220.ro**
+ - **23video**
  - **24video**
  - **3qsdn**: 3Q SDN
  - **3sat**
@@ -10,6 +11,7 @@
  - **56.com**
  - **5min**
  - **6play**
+ - **7plus**
  - **8tracks**
  - **91porn**
  - **9c9media**
@@ -126,7 +128,7 @@
  - **CamdemyFolder**
  - **CamWithHer**
  - **canalc2.tv**
- - **Canalplus**: canalplus.fr, piwiplus.fr and d8.tv
+ - **Canalplus**: mycanal.fr and piwiplus.fr
  - **Canvas**
  - **CanvasEen**: canvas.be and een.be
  - **CarambaTV**
@@ -169,7 +171,6 @@
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
- - **CollegeRama**
  - **ComCarCoff**
  - **ComedyCentral**
  - **ComedyCentralFullEpisodes**
@@ -209,6 +210,7 @@
  - **defense.gouv.fr**
  - **democracynow**
  - **DHM**: Filmarchiv - Deutsches Historisches Museum
+ - **Digg**
  - **DigitallySpeaking**
  - **Digiteka**
  - **Discovery**
@@ -268,6 +270,8 @@
  - **Fczenit**
  - **filmon**
  - **filmon:channel**
+ - **Filmweb**
+ - **FiveThirtyEight**
  - **FiveTV**
  - **Flickr**
  - **Flipagram**
@@ -358,6 +362,7 @@
  - **InfoQ**
  - **Instagram**
  - **instagram:user**: Instagram user profile
+ - **Internazionale**
  - **InternetVideoArchive**
  - **IPrima**
  - **iqiyi**: 爱奇艺
@@ -378,7 +383,6 @@
  - **JWPlatform**
  - **Kakao**
  - **Kaltura**
- - **Kamcord**
  - **KanalPlay**: Kanal 5/9/11 Play
  - **Kankan**
  - **Karaoketv**
@@ -444,6 +448,7 @@
  - **media.ccc.de**
  - **Medialaan**
  - **Mediaset**
+ - **Mediasite**
  - **Medici**
  - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
@@ -473,6 +478,7 @@
  - **Moniker**: allmyvideos.net and vidspot.net
  - **Morningstar**: morningstar.com
  - **Motherless**
+ - **MotherlessGroup**
  - **Motorsport**: motorsport.com
  - **MovieClips**
  - **MovieFap**
@@ -676,7 +682,6 @@
  - **revision**
  - **revision3:embed**
  - **RICE**
- - **RingTV**
  - **RMCDecouverte**
  - **RockstarGames**
  - **RoosterTeeth**
@@ -697,6 +702,7 @@
  - **rtve.es:live**: RTVE.es live streams
  - **rtve.es:television**
  - **RTVNH**
+ - **RTVS**
  - **Rudo**
  - **RUHD**
  - **RulePorn**
@@ -712,7 +718,6 @@
  - **safari**: safaribooksonline.com online video
  - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
- - **Sandia**: Sandia National Laboratories
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
@@ -728,6 +733,7 @@
  - **Servus**
  - **Sexu**
  - **Shahid**
+ - **ShahidShow**
  - **Shared**: shared.sx
  - **ShowRoomLive**
  - **Sina**
@@ -767,7 +773,7 @@
  - **Sport5**
  - **SportBoxEmbed**
  - **SportDeutschland**
- - **Sportschau**
+ - **SpringboardPlatform**
  - **Sprout**
  - **sr:mediathek**: Saarländischer Rundfunk
  - **SRGSSR**
@@ -886,7 +892,9 @@
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
+ - **UFCTV**
  - **UKTVPlay**
+ - **umg:de**: Universal Music Deutschland
  - **Unistra**
  - **Unity**
  - **uol.com.br**
@@ -994,10 +1002,14 @@
  - **WatchIndianPorn**: Watch Indian Porn
  - **WDR**
  - **wdr:mobile**
+ - **WDRElefant**
+ - **WDRPage**
  - **Webcaster**
  - **WebcasterFeed**
  - **WebOfStories**
  - **WebOfStoriesPlaylist**
+ - **Weibo**
+ - **WeiboMobile**
  - **WeiqiTV**: WQTV
  - **wholecloud**: WholeCloud
  - **Wimp**
@@ -1017,6 +1029,8 @@
  - **xiami:artist**: 虾米音乐 - 歌手
  - **xiami:collection**: 虾米音乐 - 精选集
  - **xiami:song**: 虾米音乐
+ - **ximalaya**: 喜马拉雅FM
+ - **ximalaya:album**: 喜马拉雅FM 专辑
  - **XMinus**
  - **XNXX**
  - **Xstream**
