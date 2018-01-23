@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import binascii
 import collections
 import ctypes
@@ -2908,6 +2909,16 @@ except ImportError:  # not 2.6+ or is 3.x
     except ImportError:
         compat_zip = zip
 
+
+if sys.version_info < (3, 3):
+    def compat_b64decode(s, *args, **kwargs):
+        if isinstance(s, compat_str):
+            s = s.encode('ascii')
+        return base64.b64decode(s, *args, **kwargs)
+else:
+    compat_b64decode = base64.b64decode
+
+
 if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4, 0):
     # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
     # names, see the original PyPy issue [1] and the youtube-dl one [2].
@@ -2930,6 +2941,7 @@ __all__ = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
+    'compat_b64decode',
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
