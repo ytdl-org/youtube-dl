@@ -193,7 +193,7 @@ class MedialaanIE(GigyaBaseIE):
             sso = get('vod', 'gigyaDatabase') or 'vtm-sso'
 
             data = self._download_json(
-                'http://vod.medialaan.io/api/1.0/item/%s/video' % vod_id,
+                'https://vod.medialaan.io/api/1.0/item/%s/video' % vod_id,
                 video_id, query={
                     'app_id': app_id,
                     'user_network': sso,
@@ -218,7 +218,7 @@ class MedialaanIE(GigyaBaseIE):
 
             if api_key:
                 videos = self._download_json(
-                    'http://vod.medialaan.io/vod/v2/videos', video_id, fatal=False,
+                    'https://vod.medialaan.io/vod/v2/videos', video_id, fatal=False,
                     query={
                         'channels': channel,
                         'ids': vod_id,
