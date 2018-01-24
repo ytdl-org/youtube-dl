@@ -5,8 +5,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    qualities,
     determine_ext,
+    ExtractorError,
+    qualities,
 )
 
 
@@ -46,6 +47,12 @@ class TeacherTubeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        error = self._search_regex(
+            r'<div\b[^>]+\bclass=["\']msgBox error[^>]+>([^<]+)', webpage,
+            'error', default=None)
+        if error:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
 
         title = self._html_search_meta('title', webpage, 'title', fatal=True)
         TITLE_SUFFIX = ' - TeacherTube'
