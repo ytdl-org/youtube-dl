@@ -17,6 +17,7 @@ class TeacherTubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?teachertube\.com/(viewVideo\.php\?video_id=|music\.php\?music_id=|video/(?:[\da-z-]+-)?|audio/)(?P<id>\d+)'
 
     _TESTS = [{
+        # flowplayer
         'url': 'http://www.teachertube.com/viewVideo.php?video_id=339997',
         'md5': 'f9434ef992fd65936d72999951ee254c',
         'info_dict': {
@@ -24,19 +25,10 @@ class TeacherTubeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Measures of dispersion from a frequency table',
             'description': 'Measures of dispersion from a frequency table',
-            'thumbnail': r're:http://.*\.jpg',
+            'thumbnail': r're:https?://.*\.(?:jpg|png)',
         },
     }, {
-        'url': 'http://www.teachertube.com/viewVideo.php?video_id=340064',
-        'md5': '0d625ec6bc9bf50f70170942ad580676',
-        'info_dict': {
-            'id': '340064',
-            'ext': 'mp4',
-            'title': 'How to Make Paper Dolls _ Paper Art Projects',
-            'description': 'Learn how to make paper dolls in this simple',
-            'thumbnail': r're:http://.*\.jpg',
-        },
-    }, {
+        # jwplayer
         'url': 'http://www.teachertube.com/music.php?music_id=8805',
         'md5': '01e8352006c65757caf7b961f6050e21',
         'info_dict': {
@@ -46,14 +38,9 @@ class TeacherTubeIE(InfoExtractor):
             'description': 'RADIJSKA EMISIJA ZRAKOPLOVNE TEHNI?KE ?KOLE P',
         },
     }, {
+        # unavailable video
         'url': 'http://www.teachertube.com/video/intro-video-schleicher-297790',
-        'md5': '9c79fbb2dd7154823996fc28d4a26998',
-        'info_dict': {
-            'id': '297790',
-            'ext': 'mp4',
-            'title': 'Intro Video - Schleicher',
-            'description': 'Intro Video - Why to flip, how flipping will',
-        },
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -84,12 +71,16 @@ class TeacherTubeIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        thumbnail = self._og_search_thumbnail(
+            webpage, default=None) or self._html_search_meta(
+            'thumbnail', webpage)
+
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': self._html_search_regex(r'\'image\'\s*:\s*["\']([^"\']+)["\']', webpage, 'thumbnail'),
-            'formats': formats,
             'description': description,
+            'thumbnail': thumbnail,
+            'formats': formats,
         }
 
 
