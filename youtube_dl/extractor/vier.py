@@ -13,6 +13,7 @@ from ..utils import (
 
 from .cognito import CognitoBaseIE
 
+
 class VierVijfKijkOnlineIE(CognitoBaseIE):
     IE_NAME = 'viervijfkijkonline'
     IE_DESC = 'vier.be and vijf.be - Kijk Online'
@@ -24,7 +25,7 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
             'ext': 'mp4',
             'title': 'Hotel Römantiek - Seizoen 1 - Aflevering 1',
             'series': 'Hotel Römantiek',
-            'season_number' : 1,
+            'season_number': 1,
             'episode_number': 1,
         },
         'skip': 'This video is only available for registered users'
@@ -39,7 +40,6 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
     _POOL_ID = 'eu-west-1_dViSsKM5Y'
     _CLIENT_ID = '6s1h851s8uplco5h6mqh1jac8m'
 
-
     def _real_initialize(self):
         self._logged_in = False
         self.id_token = ''
@@ -51,8 +51,8 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
             self.raise_login_required()
 
         auth_data = {
-            'PoolId' : self._POOL_ID,
-            'ClientId' : self._CLIENT_ID,
+            'PoolId': self._POOL_ID,
+            'ClientId': self._CLIENT_ID,
             'Username': username,
             'Password': password,
         }
@@ -62,9 +62,6 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
         self._logged_in = True
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        site = mobj.group('site')
-
         if not self._logged_in:
             self._login()
 
@@ -89,12 +86,12 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
 
         api_url = 'https://api.viervijfzes.be/content/%s' % (video_id)
         api_headers = {
-            'authorization' : self.id_token,
+            'authorization': self.id_token,
         }
         api = self._download_json(
             api_url,
             None, note='Peforming API Call', errnote='API Call Failed',
-            headers = api_headers,
+            headers=api_headers,
         )
 
         formats = []
@@ -106,10 +103,11 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
             'id': video_id,
             'title': title,
             'series': series,
-            'season_number' : int_or_none(season),
+            'season_number': int_or_none(season),
             'episode_number': int_or_none(episode),
             'formats': formats,
         }
+
 
 class VierIE(InfoExtractor):
     IE_NAME = 'vier'
@@ -294,6 +292,7 @@ class VierIE(InfoExtractor):
             'tags': tags,
             'formats': formats,
         }
+
 
 class VierVideosIE(InfoExtractor):
     IE_NAME = 'vier:videos'
