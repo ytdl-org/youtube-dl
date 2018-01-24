@@ -1212,7 +1212,7 @@ from .vidme import (
     VidmeUserLikesIE,
 )
 from .vidzi import VidziIE
-from .vier import VierIE, VierVideosIE
+from .vier import VierIE, VierVideosIE, VierVijfKijkOnlineIE
 from .viewlift import (
     ViewLiftIE,
     ViewLiftEmbedIE,
@@ -1300,7 +1300,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
