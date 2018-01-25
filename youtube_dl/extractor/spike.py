@@ -6,10 +6,10 @@ from .mtv import MTVServicesInfoExtractor
 
 
 class SpikeIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+\.)?spike\.com/[^/]+/[\da-z]{6}(?:[/?#&]|$)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?paramountnetwork\.com/[^/]+/[\da-z]{6}(?:[/?#&]|$)'
     _TESTS = [{
         'url': 'http://www.paramountnetwork.com/video-clips/e1ktem/nobodies-gangbanged',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'md5': 'f53ab001b5c1c6fee01bc9f00e2859d1',
         'info_dict': {
             'id': 'e1ktem',
             'ext': 'mp4',
