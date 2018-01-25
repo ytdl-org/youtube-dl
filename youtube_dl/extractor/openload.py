@@ -108,13 +108,18 @@ class PhantomJSwrapper(object):
     _TMP_FILE_NAMES = ['script', 'html', 'cookies']
 
     @staticmethod
-    def _version():
-        return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
+    def _get_path(downloader):
+        location = downloader.params.get('phantomjs_location') or 'phantomjs'
+        return location
+
+    @staticmethod
+    def _version(downloader):
+        return get_exe_version(PhantomJSwrapper._get_path(downloader), version_re=r'([0-9.]+)')
 
     def __init__(self, extractor, required_version=None, timeout=10000):
         self._TMP_FILES = {}
 
-        self.exe = check_executable('phantomjs', ['-v'])
+        self.exe = check_executable(self._get_path(extractor._downloader), ['-v'])
         if not self.exe:
             raise ExtractorError('PhantomJS executable not found in PATH, '
                                  'download it from http://phantomjs.org',
@@ -123,7 +128,7 @@ class PhantomJSwrapper(object):
         self.extractor = extractor
 
         if required_version:
-            version = self._version()
+            version = self._version(self.extractor._downloader)
             if is_outdated_version(version, required_version):
                 self.extractor._downloader.report_warning(
                     'Your copy of PhantomJS is outdated, update it to version '
