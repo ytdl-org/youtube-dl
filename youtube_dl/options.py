@@ -516,6 +516,10 @@ def parseOpts(overrideArguments=None):
         '--external-downloader-args',
         dest='external_downloader_args', metavar='ARGS',
         help='Give these arguments to the external downloader')
+    downloader.add_option(
+        '--phantomjs-location', metavar='PATH',
+        dest='phantomjs_location',
+        help='Path to the phantomjs binary')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(
