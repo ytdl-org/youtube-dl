@@ -1,3 +1,10 @@
+version <unreleased>
+
+Extractors
+
+* [youtube] Extract precise error messages (#15284)
+
+
 version 2018.01.21
 
 Core
