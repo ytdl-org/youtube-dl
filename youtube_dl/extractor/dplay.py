@@ -26,7 +26,7 @@ from ..utils import (
 
 
 class DPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?P<domain>www\.(?P<host>dplay\.(?:dk|se|no)))/(?:videoer/)?(?P<id>[^/]+/[^/?#]+)'
+    _VALID_URL = r'https?://(?P<domain>www\.(?P<host>dplay\.(?P<country>dk|se|no)))/(?:videoer/)?(?P<id>[^/]+/[^/?#]+)'
 
     _TESTS = [{
         # non geo restricted, via secure api, unsigned download hls URL
@@ -88,12 +88,18 @@ class DPlayIE(InfoExtractor):
             'format': 'bestvideo',
             'skip_download': True,
         },
+    }, {
+        # geo restricted, bypassable via X-Forwarded-For
+        'url': 'https://www.dplay.dk/videoer/singleliv/season-5-episode-3',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('id')
         domain = mobj.group('domain')
+
+        self._initialize_geo_bypass([mobj.group('country').upper()])
 
         webpage = self._download_webpage(url, display_id)
 
