@@ -1027,7 +1027,7 @@ class InfoExtractor(object):
                     part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
                     if isinstance(part_of_series, dict) and part_of_series.get('@type') in ('TVSeries', 'Series', 'CreativeWorkSeries'):
                         info['series'] = unescapeHTML(part_of_series.get('name'))
-                elif item_type == 'Article':
+                elif item_type in ('Article', 'NewsArticle'):
                     info.update({
                         'timestamp': parse_iso8601(e.get('datePublished')),
                         'title': unescapeHTML(e.get('headline')),
