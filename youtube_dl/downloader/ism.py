@@ -1,25 +1,27 @@
 from __future__ import unicode_literals
 
 import time
-import struct
 import binascii
 import io
 
 from .fragment import FragmentFD
-from ..compat import compat_urllib_error
+from ..compat import (
+    compat_Struct,
+    compat_urllib_error,
+)
 
 
-u8 = struct.Struct(b'>B')
-u88 = struct.Struct(b'>Bx')
-u16 = struct.Struct(b'>H')
-u1616 = struct.Struct(b'>Hxx')
-u32 = struct.Struct(b'>I')
-u64 = struct.Struct(b'>Q')
+u8 = compat_Struct('>B')
+u88 = compat_Struct('>Bx')
+u16 = compat_Struct('>H')
+u1616 = compat_Struct('>Hxx')
+u32 = compat_Struct('>I')
+u64 = compat_Struct('>Q')
 
-s88 = struct.Struct(b'>bx')
-s16 = struct.Struct(b'>h')
-s1616 = struct.Struct(b'>hxx')
-s32 = struct.Struct(b'>i')
+s88 = compat_Struct('>bx')
+s16 = compat_Struct('>h')
+s1616 = compat_Struct('>hxx')
+s32 = compat_Struct('>i')
 
 unity_matrix = (s32.pack(0x10000) + s32.pack(0) * 3) * 2 + s32.pack(0x40000000)
 
