@@ -19,15 +19,17 @@ from ..utils import (
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
+    unified_strdate,
 )
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/'\
+                 r'(?:video/av|anime/(?P<anime_id>\d+)/play#|bangumi/play/ep)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
-        'md5': '9fa226fe2b8a9a4d5a69b4c6a183417e',
+        'md5': '4f555e8de705b99b22215fcc774b0f9b',
         'info_dict': {
             'id': '1074402',
             'ext': 'mp4',
@@ -51,7 +53,8 @@ class BiliBiliIE(InfoExtractor):
             'id': '100643',
             'ext': 'mp4',
             'title': 'CHAOS;CHILD',
-            'description': '如果你是神明，并且能够让妄想成为现实。那你会进行怎么样的妄想？是淫靡的世界？独裁社会？毁灭性的制裁？还是……2015年，涩谷。从6年前发生的大灾害“涩谷地震”之后复兴了的这个街区里新设立的私立高中...',
+            'description': '如果你是神明，并且能够让妄想成为现实。那你会进行怎么样的妄想？是淫靡的世界？独裁社会？毁灭性的制裁？'\
+                           '还是……2015年，涩谷。从6年前发生的大灾害“涩谷地震”之后复兴了的这个街区里新设立的私立高中...',
         },
         'skip': 'Geo-restricted to China',
     }, {
@@ -70,7 +73,37 @@ class BiliBiliIE(InfoExtractor):
         'params': {
             'skip_download': True,  # Test metadata only
         },
-    }]
+    }, {
+        # Another type of webpage
+        'url': 'https://www.bilibili.com/video/av16492411/',
+        'info_dict': {
+            'id': '16492411',
+            'ext': 'mp4',
+            'title': '【游戏混剪】各种妹子',
+            'description': 'md5:4729a611536a756821ab59ca217f0328',
+            'duration': 187.65,
+            'timestamp': 1511129709,
+            'upload_date': '20171119',
+            'release_date': '20171119',
+            'thumbnail': r're:^https?://.+\.jpg',
+            'uploader': '丁克Whovian',
+            'uploader_id': '242283',
+        },
+    }, {
+        'url': 'https://www.bilibili.com/bangumi/play/ep40062',
+        'info_dict': {
+            'id': '40062',
+            'ext': 'mp4',
+            'title': '混沌武士：第1话 疾风怒涛 Tempestuous Temperaments',
+            'description': 'md5:f51e94a84b78f1cd6a9642807aad63b9',
+            'duration': 1401.758,
+            'timestamp': None,
+            'upload_date': None,
+            'thumbnail': r're:^https?://.+\.jpg',
+            'uploader': '哔哩哔哩番剧',
+            'uploader_id': None,
+        },
+    }, ]
 
     _APP_KEY = '84956560bc028eb7'
     _BILIBILI_KEY = '94aba54af9065f71de72f5508f1cd42e'
@@ -88,18 +121,16 @@ class BiliBiliIE(InfoExtractor):
 
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        anime_id = mobj.group('anime_id')
         webpage = self._download_webpage(url, video_id)
+        anime_id = mobj.group('anime_id') or self._search_regex(
+            r'["\']media_id["\']:(\d+)', webpage, 'anime_id', default=None)
 
-        if 'anime/' not in url:
-            cid = compat_parse_qs(self._search_regex(
-                [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-                 r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
-                webpage, 'player parameters'))['cid'][0]
-        else:
+        if ('bangumi/' in url) or ('anime/' in url):
             if 'no_bangumi_tip' not in smuggled_data:
-                self.to_screen('Downloading episode %s. To download all videos in anime %s, re-run youtube-dl with %s' % (
-                    video_id, anime_id, compat_urlparse.urljoin(url, '//bangumi.bilibili.com/anime/%s' % anime_id)))
+                tip_url = compat_urlparse.urljoin(url, '//bangumi.bilibili.com/anime/%s' % anime_id)
+                self.to_screen(
+                    'Downloading episode %s. To download all videos in anime %s, re-run youtube-dl with %s' % (
+                        video_id, anime_id, tip_url))
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 'Referer': url
@@ -113,6 +144,12 @@ class BiliBiliIE(InfoExtractor):
             if 'result' not in js:
                 self._report_error(js)
             cid = js['result']['cid']
+        else:
+            cid = self._search_regex(r'["\']cid["\']:(\d+)', webpage, 'cid', default=None) or\
+                compat_parse_qs(
+                    self._search_regex([r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
+                                        r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                                       webpage, 'player parameters'))['cid'][0]
 
         payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
         sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
@@ -157,30 +194,50 @@ class BiliBiliIE(InfoExtractor):
                 'formats': formats,
             })
 
-        title = self._html_search_regex('<h1[^>]*>([^<]+)</h1>', webpage, 'title')
-        description = self._html_search_meta('description', webpage)
-        timestamp = unified_timestamp(self._html_search_regex(
-            r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', default=None))
-        thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage)
+        if ('bangumi/' in url) or ('anime/' in url):
+            description = self._html_search_meta('description', webpage, default=None)
+        else:
+            description = self._download_json(
+                'https://api.bilibili.com/x/web-interface/archive/desc?aid=%s' %
+                video_id, video_id, note='Downloading description', fatal=False, headers=headers).get('data') or\
+                self._html_search_meta('description', webpage, default=None)
+
+        title = self._html_search_regex(['<h1[^>]*>([^<]+)</h1>', r'<h1 title=["\']([^>]+)["\']>'], webpage, 'title')
+        thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage, default=None)
+        upload_date = self._html_search_meta('uploadDate', webpage, default=None)
+        release_date = self._html_search_meta('datePublished', webpage, default=None)
+        uploader = self._html_search_meta('author', webpage) or\
+            self._search_regex(r'["\'](?:(?:upData)|(?:owner))["\']:.*["\']name["\']:["\']([^"\']+)["\']',
+                               webpage, 'uploader', default=None)
+
+        uploader_id = self._html_search_regex(
+            r'["\'](?:(?:upData)|(?:owner))["\']:{["\']mid["\']:["\']?(\d+)(?:["\']|,)',
+            webpage, 'uploader_id', default=None)
+
+        timestamp = self._html_search_regex(r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', default=None) or\
+            release_date or upload_date
+
+        # For older webpage type
+        uploader_mobj = re.search(
+            r'<a[^>]+href="(?:https?:)?//space\.bilibili\.com/(?P<id>\d+)"[^>]+title="(?P<name>[^"]+)"',
+            webpage)
+        if uploader_mobj:
+            uploader = uploader_mobj.group('name')
+            uploader_id = uploader_mobj.group('id')
 
         # TODO 'view_count' requires deobfuscating Javascript
         info = {
             'id': video_id,
             'title': title,
             'description': description,
-            'timestamp': timestamp,
+            'timestamp': unified_timestamp(timestamp),
             'thumbnail': thumbnail,
             'duration': float_or_none(video_info.get('timelength'), scale=1000),
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'upload_date': unified_strdate(upload_date),
+            'release_date': unified_strdate(release_date),
         }
-
-        uploader_mobj = re.search(
-            r'<a[^>]+href="(?:https?:)?//space\.bilibili\.com/(?P<id>\d+)"[^>]+title="(?P<name>[^"]+)"',
-            webpage)
-        if uploader_mobj:
-            info.update({
-                'uploader': uploader_mobj.group('name'),
-                'uploader_id': uploader_mobj.group('id'),
-            })
 
         for entry in entries:
             entry.update(info)
@@ -222,16 +279,18 @@ class BiliBiliBangumiIE(InfoExtractor):
             'description': 'md5:6a9622b911565794c11f25f81d6a97d2',
         },
         'playlist': [{
-            'md5': '91da8621454dd58316851c27c68b0c13',
+            'md5': '94ae439d229fecd90888ce810204f0aa',
             'info_dict': {
                 'id': '40062',
                 'ext': 'mp4',
-                'title': '混沌武士',
-                'description': '故事发生在日本的江户时代。风是一个小酒馆的打工女。一日，酒馆里来了一群恶霸，虽然他们的举动令风十分不满，但是毕竟风只是一届女流，无法对他们采取什么行动，只能在心里嘟哝。这时，酒家里又进来了个“不良份子...',
+                'title': '混沌武士：第1话 疾风怒涛 Tempestuous Temperaments',
+                'description': 'md5:f51e94a84b78f1cd6a9642807aad63b9',
                 'timestamp': 1414538739,
                 'upload_date': '20141028',
                 'episode': '疾风怒涛 Tempestuous Temperaments',
                 'episode_number': 1,
+                'uploader': '哔哩哔哩番剧',
+                'uploader_id': None,
             },
         }],
         'params': {
@@ -246,9 +305,8 @@ class BiliBiliBangumiIE(InfoExtractor):
     def _real_extract(self, url):
         bangumi_id = self._match_id(url)
 
-        # Sometimes this API returns a JSONP response
         season_info = self._download_json(
-            'http://bangumi.bilibili.com/jsonp/seasoninfo/%s.ver' % bangumi_id,
+            'http://bangumi.bilibili.com/jsonp/seasoninfo/%s.ver?callback=seasonListCallback&jsonp=jsonp' % bangumi_id,
             bangumi_id, transform_source=strip_jsonp)['result']
 
         entries = [{
