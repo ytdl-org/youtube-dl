@@ -732,6 +732,8 @@
  - **ServingSys**
  - **Servus**
  - **Sexu**
+ - **SeznamZpravy**
+ - **SeznamZpravyArticle**
  - **Shahid**
  - **ShahidShow**
  - **Shared**: shared.sx
@@ -822,7 +824,6 @@
  - **ThePlatform**
  - **ThePlatformFeed**
  - **TheScene**
- - **TheSixtyOne**
  - **TheStar**
  - **TheSun**
  - **TheWeatherChannel**
