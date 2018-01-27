@@ -17,7 +17,8 @@ from .cognito import CognitoBaseIE
 class VierVijfKijkOnlineIE(CognitoBaseIE):
     IE_NAME = 'viervijfkijkonline'
     IE_DESC = 'vier.be and vijf.be - Kijk Online'
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/video/(?P<series>[^/]+)/(?P<season>[^/]+)/(?P<episode>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/video/(?P<series>(?!v3)[^/]+)/(?P<season>[^/]+)(/(?P<episode>[^/]+)|)'
+    _NETRC_MACHINE = 'vier'
     _TESTS = [{
         'url': 'https://www.vier.be/video/hotel-romantiek/2017/hotel-romantiek-aflevering-1',
         'info_dict': {
@@ -29,7 +30,6 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
             'episode_number': 1,
         },
         'skip': 'This video is only available for registered users'
-
     }, {
         'url': 'https://www.vier.be/video/blockbusters/in-juli-en-augustus-summer-classics',
         'only_matching': True,
