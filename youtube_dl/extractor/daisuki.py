@@ -10,6 +10,7 @@ from ..aes import (
     aes_cbc_decrypt,
     aes_cbc_encrypt,
 )
+from ..compat import compat_b64decode
 from ..utils import (
     bytes_to_intlist,
     bytes_to_long,
@@ -93,7 +94,7 @@ class DaisukiMottoIE(InfoExtractor):
 
         rtn = self._parse_json(
             intlist_to_bytes(aes_cbc_decrypt(bytes_to_intlist(
-                base64.b64decode(encrypted_rtn)),
+                compat_b64decode(encrypted_rtn)),
                 aes_key, iv)).decode('utf-8').rstrip('\0'),
             video_id)
 

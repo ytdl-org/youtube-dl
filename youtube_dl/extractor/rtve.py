@@ -7,6 +7,7 @@ import time
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_b64decode,
     compat_struct_unpack,
 )
 from ..utils import (
@@ -21,7 +22,7 @@ from ..utils import (
 
 
 def _decrypt_url(png):
-    encrypted_data = base64.b64decode(png.encode('utf-8'))
+    encrypted_data = compat_b64decode(png)
     text_index = encrypted_data.find(b'tEXt')
     text_chunk = encrypted_data[text_index - 4:]
     length = compat_struct_unpack('!I', text_chunk[:4])[0]

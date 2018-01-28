@@ -1,13 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import json
 import os
 
 from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
-from ..compat import compat_ord
+from ..compat import (
+    compat_b64decode,
+    compat_ord,
+)
 from ..utils import (
     bytes_to_intlist,
     ExtractorError,
@@ -48,9 +50,9 @@ class ADNIE(InfoExtractor):
 
         # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
-            bytes_to_intlist(base64.b64decode(enc_subtitles[24:])),
+            bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
             bytes_to_intlist(b'\x1b\xe0\x29\x61\x38\x94\x24\x00\x12\xbd\xc5\x80\xac\xce\xbe\xb0'),
-            bytes_to_intlist(base64.b64decode(enc_subtitles[:24]))
+            bytes_to_intlist(compat_b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
             dec_subtitles[:-compat_ord(dec_subtitles[-1])].decode(),

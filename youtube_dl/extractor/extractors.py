@@ -933,6 +933,10 @@ from .servingsys import ServingSysIE
 from .servus import ServusIE
 from .sevenplus import SevenPlusIE
 from .sexu import SexuIE
+from .seznamzpravy import (
+    SeznamZpravyIE,
+    SeznamZpravyArticleIE,
+)
 from .shahid import (
     ShahidIE,
     ShahidShowIE,

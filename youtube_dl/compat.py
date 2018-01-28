@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import binascii
 import collections
 import ctypes
@@ -2896,9 +2897,24 @@ except TypeError:
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
         return struct.unpack(spec, *args)
+
+    class compat_Struct(struct.Struct):
+        def __init__(self, fmt):
+            if isinstance(fmt, compat_str):
+                fmt = fmt.encode('ascii')
+            super(compat_Struct, self).__init__(fmt)
 else:
     compat_struct_pack = struct.pack
     compat_struct_unpack = struct.unpack
+    if platform.python_implementation() == 'IronPython' and sys.version_info < (2, 7, 8):
+        class compat_Struct(struct.Struct):
+            def unpack(self, string):
+                if not isinstance(string, buffer):
+                    string = buffer(string)
+                return super(compat_Struct, self).unpack(string)
+    else:
+        compat_Struct = struct.Struct
+
 
 try:
     from future_builtins import zip as compat_zip
@@ -2907,6 +2923,16 @@ except ImportError:  # not 2.6+ or is 3.x
         from itertools import izip as compat_zip  # < 2.5 or 3.x
     except ImportError:
         compat_zip = zip
+
+
+if sys.version_info < (3, 3):
+    def compat_b64decode(s, *args, **kwargs):
+        if isinstance(s, compat_str):
+            s = s.encode('ascii')
+        return base64.b64decode(s, *args, **kwargs)
+else:
+    compat_b64decode = base64.b64decode
+
 
 if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4, 0):
     # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
@@ -2930,6 +2956,8 @@ __all__ = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
+    'compat_Struct',
+    'compat_b64decode',
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',

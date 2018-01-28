@@ -1,12 +1,12 @@
 from __future__ import division, unicode_literals
 
-import base64
 import io
 import itertools
 import time
 
 from .fragment import FragmentFD
 from ..compat import (
+    compat_b64decode,
     compat_etree_fromstring,
     compat_urlparse,
     compat_urllib_error,
@@ -312,7 +312,7 @@ class F4mFD(FragmentFD):
             boot_info = self._get_bootstrap_from_url(bootstrap_url)
         else:
             bootstrap_url = None
-            bootstrap = base64.b64decode(node.text.encode('ascii'))
+            bootstrap = compat_b64decode(node.text)
             boot_info = read_bootstrap_info(bootstrap)
         return boot_info, bootstrap_url
 
@@ -349,7 +349,7 @@ class F4mFD(FragmentFD):
         live = boot_info['live']
         metadata_node = media.find(_add_ns('metadata'))
         if metadata_node is not None:
-            metadata = base64.b64decode(metadata_node.text.encode('ascii'))
+            metadata = compat_b64decode(metadata_node.text)
         else:
             metadata = None
 
