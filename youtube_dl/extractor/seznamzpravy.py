@@ -159,7 +159,6 @@ class SeznamZpravyArticleIE(InfoExtractor):
         webpage = self._download_webpage(url, article_id)
 
         info = self._search_json_ld(webpage, article_id, default={})
-        print(info)
 
         title = info.get('title') or self._og_search_title(webpage, fatal=False)
         description = info.get('description') or self._og_search_description(webpage)
