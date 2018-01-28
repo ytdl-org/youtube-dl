@@ -74,7 +74,7 @@ class BiliBiliIE(InfoExtractor):
             'skip_download': True,  # Test metadata only
         },
     }, {
-        # Another type of webpage
+        # Another type of webpage 
         'url': 'https://www.bilibili.com/video/av16492411/',
         'info_dict': {
             'id': '16492411',
@@ -82,9 +82,8 @@ class BiliBiliIE(InfoExtractor):
             'title': '【游戏混剪】各种妹子',
             'description': 'md5:4729a611536a756821ab59ca217f0328',
             'duration': 187.65,
-            'timestamp': 1511129709,
+            'timestamp': 1511129700,
             'upload_date': '20171119',
-            'release_date': '20171119',
             'thumbnail': r're:^https?://.+\.jpg',
             'uploader': '丁克Whovian',
             'uploader_id': '242283',
@@ -205,7 +204,6 @@ class BiliBiliIE(InfoExtractor):
         title = self._html_search_regex(['<h1[^>]*>([^<]+)</h1>', r'<h1 title=["\']([^>]+)["\']>'], webpage, 'title')
         thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage, default=None)
         upload_date = self._html_search_meta('uploadDate', webpage, default=None)
-        release_date = self._html_search_meta('datePublished', webpage, default=None)
         uploader = self._html_search_meta('author', webpage) or\
             self._search_regex(r'["\'](?:(?:upData)|(?:owner))["\']:.*["\']name["\']:["\']([^"\']+)["\']',
                                webpage, 'uploader', default=None)
@@ -214,8 +212,7 @@ class BiliBiliIE(InfoExtractor):
             r'["\'](?:(?:upData)|(?:owner))["\']:{["\']mid["\']:["\']?(\d+)(?:["\']|,)',
             webpage, 'uploader_id', default=None)
 
-        timestamp = self._html_search_regex(r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', default=None) or\
-            release_date or upload_date
+        timestamp = self._html_search_regex(r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', default=None)
 
         # For older webpage type
         uploader_mobj = re.search(
@@ -236,7 +233,6 @@ class BiliBiliIE(InfoExtractor):
             'uploader': uploader,
             'uploader_id': uploader_id,
             'upload_date': unified_strdate(upload_date),
-            'release_date': unified_strdate(release_date),
         }
 
         for entry in entries:
