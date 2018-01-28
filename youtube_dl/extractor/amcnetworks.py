@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class AMCNetworksIE(ThePlatformIE):
-    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies|shows(?:/[^/]+)+)/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|(?:we|sundance)tv)\.com/(?:movies|shows(?:/[^/]+)+)/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.ifc.com/shows/maron/season-04/episode-01/step-1',
         'md5': '',
@@ -50,6 +50,9 @@ class AMCNetworksIE(ThePlatformIE):
         'only_matching': True,
     }, {
         'url': 'http://www.wetv.com/shows/la-hair/videos/season-05/episode-09-episode-9-2/episode-9-sneak-peek-3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.sundancetv.com/shows/riviera/full-episodes/season-1/episode-01-episode-1',
         'only_matching': True,
     }]
 
