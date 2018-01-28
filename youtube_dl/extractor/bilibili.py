@@ -74,7 +74,7 @@ class BiliBiliIE(InfoExtractor):
             'skip_download': True,  # Test metadata only
         },
     }, {
-        # Another type of webpage 
+        # Another type of webpage
         'url': 'https://www.bilibili.com/video/av16492411/',
         'info_dict': {
             'id': '16492411',
