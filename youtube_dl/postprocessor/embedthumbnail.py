@@ -41,7 +41,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             return [], info
 
         if info['ext'] not in ['mp3', 'mkv', 'm4a', 'mp4']:
-        	raise EmbedThumbnailPPError('Only mp3, m4a/mp4 and mkv are supported for thumbnail embedding for now.')
+        	raise EmbedThumbnailPPError('Only mp3, mkv and m4a/mp4 are supported for thumbnail embedding for now.')
 
         if info['ext'] == 'mp3':
             options = [
@@ -74,7 +74,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 '-metadata:s:t', 'title=Thumbnail']
             input_paths = [filename]
 
-        if info['ext'] in ['mkv', 'mp3']:
+        if info['ext'] in ['mp3', 'mkv']:
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
             self.run_ffmpeg_multiple_files(input_paths, temp_filename, options)
