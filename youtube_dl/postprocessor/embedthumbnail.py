@@ -40,6 +40,9 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 'Skipping embedding the thumbnail because the file is missing.')
             return [], info
 
+        if info['ext'] not in ['mp3', 'mkv', 'm4a', 'mp4']:
+        	raise EmbedThumbnailPPError('Only mp3, m4a/mp4 and mkv are supported for thumbnail embedding for now.')
+
         if info['ext'] == 'mkv':
             if thumbnail_filename.endswith(('.jpe', '.jpeg', '.jpg', '.jfif')):
                 mimetype = 'image/jpeg'
@@ -59,35 +62,29 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 # No orientation detection nor dimensions checking/convertion
                 '-metadata:s:t', 'filename=cover_land.{}'.format(extension),
                 # If not given : "[matroska @ 000001458de38840] Attachment stream 2 has no mimetype tag and it cannot be deduced from the codec id."
-                '-metadata:s:t', 'mimetype={}'.format(mimetype),
+                '-metadata:s:t', 'mimetype=%s' % mimetype,
                 # Use metadata "title" so it is set as MATROSKA_ID_FILEDESC - optional
                 # https://github.com/FFmpeg/FFmpeg/blob/9cfdf0e3322b9a451277cf36406ac4a8e4e3da74/libavformat/matroskaenc.c#L1762
                 '-metadata:s:t', 'title=Thumbnail']
-
-            self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
-
-            self.run_ffmpeg(filename, temp_filename, options)
-
-            if not self._already_have_thumbnail:
-                os.remove(encodeFilename(thumbnail_filename))
-            os.remove(encodeFilename(filename))
-            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+            input_paths = [filename]
 
         elif info['ext'] == 'mp3':
             options = [
                 '-c', 'copy', '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
+            input_paths = [filename, thumbnail_filename]
 
+        if info['ext'] in ['mkv', 'mp3']:
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
-            self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
+            self.run_ffmpeg_multiple_files(input_paths, temp_filename, options)
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-        elif info['ext'] in ['m4a', 'mp4']:
+        if info['ext'] in ['m4a', 'mp4']:
             if not check_executable('AtomicParsley', ['-v']):
                 raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
 
@@ -119,7 +116,5 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-        else:
-            raise EmbedThumbnailPPError('Only mp3, m4a/mp4 and mkv are supported for thumbnail embedding for now.')
 
         return [], info
