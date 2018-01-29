@@ -66,7 +66,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 '-attach', thumbnail_filename,
                 # https://matroska.org/technical/cover_art/index.html as pointed in #6046
                 # No orientation detection nor dimensions checking/convertion
-                '-metadata:s:t', 'filename=cover_land.{}'.format(extension),
+                '-metadata:s:t', 'filename=cover_land.%s' % extension,
                 # If not given : "[matroska @ 000001458de38840] Attachment stream 2 has no mimetype tag and it cannot be deduced from the codec id."
                 '-metadata:s:t', 'mimetype=%s' % mimetype,
                 # Use metadata "title" so it is set as MATROSKA_ID_FILEDESC - optional
