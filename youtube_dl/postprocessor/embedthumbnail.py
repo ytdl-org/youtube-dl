@@ -43,7 +43,13 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
         if info['ext'] not in ['mp3', 'mkv', 'm4a', 'mp4']:
         	raise EmbedThumbnailPPError('Only mp3, m4a/mp4 and mkv are supported for thumbnail embedding for now.')
 
-        if info['ext'] == 'mkv':
+        if info['ext'] == 'mp3':
+            options = [
+                '-c', 'copy', '-map', '0', '-map', '1',
+                '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
+            input_paths = [filename, thumbnail_filename]
+
+        elif info['ext'] == 'mkv':
             if thumbnail_filename.endswith(('.jpe', '.jpeg', '.jpg', '.jfif')):
                 mimetype = 'image/jpeg'
                 extension = 'jpg'
@@ -67,12 +73,6 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 # https://github.com/FFmpeg/FFmpeg/blob/9cfdf0e3322b9a451277cf36406ac4a8e4e3da74/libavformat/matroskaenc.c#L1762
                 '-metadata:s:t', 'title=Thumbnail']
             input_paths = [filename]
-
-        elif info['ext'] == 'mp3':
-            options = [
-                '-c', 'copy', '-map', '0', '-map', '1',
-                '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
-            input_paths = [filename, thumbnail_filename]
 
         if info['ext'] in ['mkv', 'mp3']:
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
