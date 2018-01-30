@@ -4,6 +4,7 @@ import random
 import re
 import string
 
+from ..compat import compat_urllib_parse_unquote
 from .discoverygo import DiscoveryGoBaseIE
 from ..utils import (
     ExtractorError,
@@ -54,16 +55,27 @@ class DiscoveryIE(DiscoveryGoBaseIE):
         video = next(cb for cb in content_blocks if cb.get('type') == 'video')['content']['items'][0]
         video_id = video['id']
 
-        access_token = self._download_json(
-            'https://www.discovery.com/anonymous', display_id, query={
-                'authLink': update_url_query(
-                    'https://login.discovery.com/v1/oauth2/authorize', {
-                        'client_id': react_data['application']['apiClientId'],
-                        'redirect_uri': 'https://fusion.ddmcdn.com/app/mercury-sdk/180/redirectHandler.html',
-                        'response_type': 'anonymous',
-                        'state': 'nonce,' + ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
-                    })
-            })['access_token']
+        access_token = None
+        cookies = self._get_cookies(url)
+        cookie = cookies.get('eosAn')
+        if not cookie:
+            cookie = cookies.get('eosAf')
+        if cookie:
+            json = self._parse_json(compat_urllib_parse_unquote(compat_urllib_parse_unquote(cookie.value)), video_id)
+            access_token = json['access_token']
+
+        if not access_token:
+            self.report_warning('Cookies not found in header')
+            access_token = self._download_json(
+                'https://www.discovery.com/anonymous', display_id, query={
+                    'authLink': update_url_query(
+                        'https://login.discovery.com/v1/oauth2/authorize', {
+                            'client_id': react_data['application']['apiClientId'],
+                            'redirect_uri': 'https://fusion.ddmcdn.com/app/mercury-sdk/180/redirectHandler.html',
+                            'response_type': 'anonymous',
+                            'state': 'nonce,' + ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
+                        })
+                })['access_token']
 
         try:
             stream = self._download_json(
