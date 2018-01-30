@@ -1,8 +1,9 @@
 # coding: utf-8
+import re
+
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
 
 class PicartoVodIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?picarto\.tv/videopopout/(?P<id>[a-zA-Z_\-.0-9]+).flv'
@@ -21,18 +22,20 @@ class PicartoVodIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        vod_regex = "<script[^<]*>[^<]*riot.mount\(([^<]+)\)[^<]*<\/"
-        vod_script = self._html_search_regex(vod_regex, webpage, "vod_script")
-        vod_url = self._search_regex('vod: \\"([^\\"]*)\\"', vod_script, "vod_url")
-        vod_thumb = self._search_regex('vodThumb: \\"([^\\"]*)\\"', vod_script, "vod_thumb")
-
+        vod_regex = r'<script[^<]*>[^<]*riot\.mount\([^<]+({[^<]+})\)[^<]*<\/script>'
+        script = self._html_search_regex(vod_regex, webpage, 'vod_script')
+        
+        print("penis", script)
+        
+        params = self._parse_json(script, video_id, lambda x : re.sub(r'(\w+)(:\s+)', '"$1"$2', x));
+        
         title = video_id
+        url = params.vod
+        thumb = params.vodThumb
         
         return {
             'id': video_id,
             'title': title,
-            'description': "",
-            'uploader': "",
-            'url' : vod_url,
-            'thumbnail' : vod_thumb
+            'url' : url,
+            'thumbnail' : thumb
         }
