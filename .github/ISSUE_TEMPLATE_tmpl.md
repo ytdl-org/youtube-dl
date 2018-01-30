@@ -12,6 +12,7 @@
 ### Before submitting an *issue* make sure you have:
 - [ ] At least skimmed through the [README](https://github.com/rg3/youtube-dl/blob/master/README.md), **most notably** the [FAQ](https://github.com/rg3/youtube-dl#faq) and [BUGS](https://github.com/rg3/youtube-dl#bugs) sections
 - [ ] [Searched](https://github.com/rg3/youtube-dl/search?type=Issues) the bugtracker for similar issues including closed ones
+- [ ] Checked that provided video/audio/playlist URLs (if any) are alive and playable in a browser
 
 ### What is the purpose of your *issue*?
 - [ ] Bug report (encountered problems with youtube-dl)
