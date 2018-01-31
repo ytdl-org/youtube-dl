@@ -68,7 +68,7 @@ class NationalGeographicVideoIE(InfoExtractor):
 
 class NationalGeographicIE(ThePlatformIE, AdobePassIE):
     IE_NAME = 'natgeo'
-    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:wild/)?[^/]+/(?:videos|episodes)/(?P<id>[^/?]+)'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:(?:wild/)?[^/]+/)?(?:videos|episodes)/(?P<id>[^/?]+)'
 
     _TESTS = [
         {
@@ -101,6 +101,10 @@ class NationalGeographicIE(ThePlatformIE, AdobePassIE):
         },
         {
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episodes/the-power-of-miracles/',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/videos/treasures-rediscovered/',
             'only_matching': True,
         }
     ]
