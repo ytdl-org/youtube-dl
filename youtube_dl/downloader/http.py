@@ -42,8 +42,6 @@ class HttpFD(FileDownloader):
         add_headers = info_dict.get('http_headers')
         if add_headers:
             headers.update(add_headers)
-        basic_request = sanitized_Request(url, None, headers)
-        request = sanitized_Request(url, None, headers)
 
         is_test = self.params.get('test', False)
         chunk_size = self._TEST_FILE_SIZE if is_test else (
@@ -98,6 +96,7 @@ class HttpFD(FileDownloader):
                 range_end = ctx.data_len - 1
             has_range = range_start is not None
             ctx.has_range = has_range
+            request = sanitized_Request(url, None, headers)
             if has_range:
                 set_range(request, range_start, range_end)
             # Establish connection
@@ -140,7 +139,8 @@ class HttpFD(FileDownloader):
                     # Unable to resume (requested range not satisfiable)
                     try:
                         # Open the connection again without the range header
-                        ctx.data = self.ydl.urlopen(basic_request)
+                        ctx.data = self.ydl.urlopen(
+                            sanitized_Request(url, None, headers))
                         content_length = ctx.data.info()['Content-Length']
                     except (compat_urllib_error.HTTPError, ) as err:
                         if err.code < 500 or err.code >= 600:
@@ -171,12 +171,6 @@ class HttpFD(FileDownloader):
                             ctx.resume_len = 0
                             ctx.open_mode = 'wb'
                             return
-                elif err.code == 302:
-                    if not chunk_size:
-                        raise
-                    # HTTP Error 302: The HTTP server returned a redirect error that would lead to an infinite loop.
-                    # may happen during chunk downloading. This is usually fixed
-                    # with a retry.
                 elif err.code < 500 or err.code >= 600:
                     # Unexpected HTTP error
                     raise
