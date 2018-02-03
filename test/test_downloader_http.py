@@ -9,6 +9,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from test.helper import try_rm
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server
 from youtube_dl.downloader.http import HttpFD
@@ -100,11 +101,12 @@ class TestHttpFD(unittest.TestCase):
         ydl = YoutubeDL(params)
         downloader = HttpFD(ydl, params)
         filename = 'testfile.mp4'
+        try_rm(encodeFilename(filename))
         self.assertTrue(downloader.real_download(filename, {
             'url': 'http://127.0.0.1:%d/%s' % (self.port, ep),
         }))
         self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE)
-        os.remove(encodeFilename(filename))
+        try_rm(encodeFilename(filename))
 
     def download_all(self, params):
         for ep in ('regular', 'no-content-length', 'no-range', 'no-range-no-content-length'):
