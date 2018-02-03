@@ -1,3 +1,22 @@
+version 2018.02.03
+
+Core
++ Introduce --http-chunk-size for chunk-based HTTP downloading
++ Add support for IronPython
+* [downloader/ism] Fix Python 3.2 support
+
+Extractors
+* [redbulltv] Fix extraction (#15481)
+* [redtube] Fix metadata extraction (#15472)
+* [pladform] Respect platform id and extract HLS formats (#15468)
+- [rtlnl] Remove progressive formats (#15459)
+* [6play] Do no modify asset URLs with a token (#15248)
+* [nationalgeographic] Relax URL regular expression
+* [dplay] Relax URL regular expression (#15458)
+* [cbsinteractive] Fix data extraction (#15451)
++ [amcnetworks] Add support for sundancetv.com (#9260)
+
+
 version 2018.01.27
 
 Core

@@ -26,7 +26,7 @@ from ..utils import (
 
 
 class DPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?P<domain>www\.(?P<host>dplay\.(?P<country>dk|se|no)))/(?:videoer/)?(?P<id>[^/]+/[^/?#]+)'
+    _VALID_URL = r'https?://(?P<domain>www\.(?P<host>dplay\.(?P<country>dk|se|no)))/(?:video(?:er|s)/)?(?P<id>[^/]+/[^/?#]+)'
 
     _TESTS = [{
         # non geo restricted, via secure api, unsigned download hls URL
@@ -89,8 +89,11 @@ class DPlayIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # geo restricted, bypassable via X-Forwarded-For
+
         'url': 'https://www.dplay.dk/videoer/singleliv/season-5-episode-3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.dplay.se/videos/sofias-anglar/sofias-anglar-1001',
         'only_matching': True,
     }]
 

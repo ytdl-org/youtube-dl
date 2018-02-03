@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_parse_qs,
+    compat_str,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     determine_ext,
     int_or_none,
@@ -57,7 +61,7 @@ class SixPlayIE(InfoExtractor):
             container = asset.get('video_container')
             ext = determine_ext(asset_url)
             if container == 'm3u8' or ext == 'm3u8':
-                if protocol == 'usp':
+                if protocol == 'usp' and not compat_parse_qs(compat_urllib_parse_urlparse(asset_url).query).get('token', [None])[0]:
                     asset_url = re.sub(r'/([^/]+)\.ism/[^/]*\.m3u8', r'/\1.ism/\1.m3u8', asset_url)
                     formats.extend(self._extract_m3u8_formats(
                         asset_url, video_id, 'mp4', 'm3u8_native',

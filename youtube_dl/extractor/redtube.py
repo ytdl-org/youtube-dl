@@ -46,9 +46,10 @@ class RedTubeIE(InfoExtractor):
             raise ExtractorError('Video %s has been removed' % video_id, expected=True)
 
         title = self._html_search_regex(
-            (r'<h1 class="videoTitle[^"]*">(?P<title>.+?)</h1>',
-             r'videoTitle\s*:\s*(["\'])(?P<title>)\1'),
-            webpage, 'title', group='title')
+            (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
+             r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
+            webpage, 'title', group='title',
+            default=None) or self._og_search_title(webpage)
 
         formats = []
         sources = self._parse_json(
@@ -87,12 +88,13 @@ class RedTubeIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._search_regex(
-            r'<span[^>]+class="added-time"[^>]*>ADDED ([^<]+)<',
+            r'<span[^>]+>ADDED ([^<]+)<',
             webpage, 'upload date', fatal=False))
         duration = int_or_none(self._search_regex(
             r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
-            r'<span[^>]*>VIEWS</span></td>\s*<td>([\d,.]+)',
+            (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
+             r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
             webpage, 'view count', fatal=False))
 
         # No self-labeling, but they describe themselves as
