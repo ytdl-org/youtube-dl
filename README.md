@@ -198,6 +198,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      size. By default, the buffer size is
                                      automatically resized from an initial value
                                      of SIZE.
+    --http-chunk-size SIZE           Size of a chunk for chunk-based HTTP
+                                     downloading (e.g. 10485760 or 10M) (default
+                                     is disabled). May be useful for bypassing
+                                     bandwidth throttling imposed by a webserver
+                                     (experimental)
     --playlist-reverse               Download playlist videos in reverse order
     --playlist-random                Download playlist videos in random order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with

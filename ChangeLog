@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.02.03
 
 Core
 + Introduce --http-chunk-size for chunk-based HTTP downloading
