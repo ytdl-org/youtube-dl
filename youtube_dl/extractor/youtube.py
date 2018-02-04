@@ -1944,6 +1944,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                     break
                             if codecs:
                                 dct.update(parse_codecs(codecs))
+                if dct.get('acodec') == 'none' or dct.get('vcodec') == 'none':
+                    dct['downloader_options'] = {
+                        # Youtube throttles chunks >~10M
+                        'http_chunk_size': 10485760,
+                    }
                 formats.append(dct)
         elif video_info.get('hlsvp'):
             manifest_url = video_info['hlsvp'][0]
