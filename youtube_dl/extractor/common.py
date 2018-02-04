@@ -174,6 +174,8 @@ class InfoExtractor(object):
                                  width : height ratio as float.
                     * no_resume  The server does not support resuming the
                                  (HTTP or RTMP) download. Boolean.
+                    * downloader_options  A dictionary of downloader options as
+                                 described in FileDownloader
 
     url:            Final video URL.
     ext:            Video filename extension.
