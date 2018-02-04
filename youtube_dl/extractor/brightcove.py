@@ -690,10 +690,17 @@ class BrightcoveNewIE(AdobePassIE):
                 webpage, 'policy key', group='pk')
 
         api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id)
-        try:
-            json_data = self._download_json(api_url, video_id, headers={
-                'Accept': 'application/json;pk=%s' % policy_key
+        headers = {
+            'Accept': 'application/json;pk=%s' % policy_key,
+        }
+        referrer = smuggled_data.get('referrer')
+        if referrer:
+            headers.update({
+                'Referer': referrer,
+                'Origin': re.search(r'https?://[^/]+', referrer).group(0),
             })
+        try:
+            json_data = self._download_json(api_url, video_id, headers=headers)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 json_data = self._parse_json(e.cause.read().decode(), video_id)[0]
