@@ -4,6 +4,7 @@ import errno
 import os
 import socket
 import time
+import random
 import re
 
 from .common import FileDownloader
@@ -53,6 +54,7 @@ class HttpFD(FileDownloader):
         ctx.data_len = None
         ctx.block_size = self.params.get('buffersize', 1024)
         ctx.start_time = time.time()
+        ctx.chunk_size = None
 
         if self.params.get('continuedl', True):
             # Establish possible resume length
@@ -82,17 +84,19 @@ class HttpFD(FileDownloader):
             req.add_header('Range', range_header)
 
         def establish_connection():
+            ctx.chunk_size = (random.randint(int(chunk_size * 0.95), chunk_size)
+                              if not is_test and chunk_size else chunk_size)
             if ctx.resume_len > 0:
                 range_start = ctx.resume_len
                 if ctx.is_resume:
                     self.report_resuming_byte(ctx.resume_len)
                 ctx.open_mode = 'ab'
-            elif chunk_size > 0:
+            elif ctx.chunk_size > 0:
                 range_start = 0
             else:
                 range_start = None
             ctx.is_resume = False
-            range_end = range_start + chunk_size - 1 if chunk_size else None
+            range_end = range_start + ctx.chunk_size - 1 if ctx.chunk_size else None
             if range_end and ctx.data_len is not None and range_end >= ctx.data_len:
                 range_end = ctx.data_len - 1
             has_range = range_start is not None
@@ -119,7 +123,7 @@ class HttpFD(FileDownloader):
                                 content_len = int_or_none(content_range_m.group(3))
                                 accept_content_len = (
                                     # Non-chunked download
-                                    not chunk_size or
+                                    not ctx.chunk_size or
                                     # Chunked download and requested piece or
                                     # its part is promised to be served
                                     content_range_end == range_end or
@@ -297,7 +301,7 @@ class HttpFD(FileDownloader):
                 if is_test and byte_counter == data_len:
                     break
 
-            if not is_test and chunk_size and ctx.data_len is not None and byte_counter < ctx.data_len:
+            if not is_test and ctx.chunk_size and ctx.data_len is not None and byte_counter < ctx.data_len:
                 ctx.resume_len = byte_counter
                 # ctx.block_size = block_size
                 raise NextFragment()
