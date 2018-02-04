@@ -1,3 +1,16 @@
+version <unreleased>
+
+Core
+* [downloader/http] Randomize HTTP chunk size
++ [downloader/http] Add ability to pass downloader options via info dict
+* [downloader/http] Fix 302 infinite loops by not reusing requests
++ Document http_chunk_size
+
+Extractors
++ [brightcove] Pass embed page URL as referrer (#15486)
++ [youtube] Enforce using chunked HTTP downloading for DASH formats
+
+
 version 2018.02.03
 
 Core
