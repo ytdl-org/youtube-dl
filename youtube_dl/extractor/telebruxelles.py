@@ -38,13 +38,14 @@ class TeleBruxellesIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         article_id = self._html_search_regex(
-            r"<article id=\"post-(\d+)\"", webpage, 'article ID', default=None)
+            r'<article[^>]+\bid=["\']post-(\d+)', webpage, 'article ID', default=None)
         title = self._html_search_regex(
-            r'<h1 class=\"entry-title\">(.*?)</h1>', webpage, 'title')
+            r'<h1[^>]*>(.+?)</h1>', webpage, 'title',
+            default=None) or self._og_search_title(webpage)
         description = self._og_search_description(webpage, default=None)
 
         rtmp_url = self._html_search_regex(
-            r'file\s*:\s*"(rtmp://[^/]+/vod/mp4:"\s*\+\s*"[^"]+"\s*\+\s*".mp4)"',
+            r'file\s*:\s*"(rtmps?://[^/]+/vod/mp4:"\s*\+\s*"[^"]+"\s*\+\s*".mp4)"',
             webpage, 'RTMP url')
         rtmp_url = re.sub(r'"\s*\+\s*"', '', rtmp_url)
         formats = self._extract_wowza_formats(rtmp_url, article_id or display_id)
