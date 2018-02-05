@@ -24,7 +24,5 @@ class GameInformerIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        regex = ["getVideo\('[^']+video_id=(\d+)", "<p><div id=\"bc_(\d+)"]
-        brightcove_id = self._search_regex(regex, webpage, 'brightcove id')
+        brightcove_id = self._search_regex(["getVideo\('[^']+video_id=(\d+)", "<p><div id=\"bc_(\d+)"], webpage, 'brightcove id')
         return self.url_result(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id)
-
