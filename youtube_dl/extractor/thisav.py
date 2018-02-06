@@ -42,11 +42,11 @@ class ThisAVIE(InfoExtractor):
             r'<title>([^<]+)</title>', webpage, 'title'),
             ' - 視頻 - ThisAV.com-世界第一中文成人娛樂網站')
         video_url = self._html_search_regex(
-            r"addVariable\('file','([^']+)'\);", webpage, 'video url', default=None)
+            r"source src=.(https?:\/\/.+\d+(_high|_low)?)", webpage, 'video url', default=None)
         if video_url:
             info_dict = {
                 'formats': [{
-                    'url': video_url,
+                    'url': video_url + '_dashinit.mp4',
                 }],
             }
         else:
