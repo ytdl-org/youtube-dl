@@ -177,7 +177,9 @@ class AfreecaTVIE(InfoExtractor):
 
         video_xml = self._download_xml(
             'http://afbbs.afreecatv.com:8080/api/video/get_video_info.php',
-            video_id, query={
+            video_id, headers={
+                'Referer': 'http://vod.afreecatv.com/embed.php',
+            }, query={
                 'nTitleNo': video_id,
                 'partialView': 'SKIP_ADULT',
             })
