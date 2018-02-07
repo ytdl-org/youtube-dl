@@ -23,7 +23,8 @@ class GameInformerIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
+        webpage = self._download_webpage(
+            url, display_id, headers=self.geo_verification_headers())
         brightcove_id = self._search_regex(
             [r'<[^>]+\bid=["\']bc_(\d+)', r"getVideo\('[^']+video_id=(\d+)"],
             webpage, 'brightcove id')
