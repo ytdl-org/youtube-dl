@@ -12,14 +12,18 @@ class MyviIE(SprutoBaseIE):
                         (?:
                             https?://
                                 (?:www\.)?
-                                myvi\.(?:ru/player|tv)/
+                                myvi\.
                                 (?:
+                                    (?:ru/player|tv)/
                                     (?:
-                                        embed/html|
-                                        flash|
-                                        api/Video/Get
-                                    )/|
-                                    content/preloader\.swf\?.*\bid=
+                                        (?:
+                                            embed/html|
+                                            flash|
+                                            api/Video/Get
+                                        )/|
+                                        content/preloader\.swf\?.*\bid=
+                                    )|
+                                    ru/watch/
                                 )|
                             myvi:
                         )
@@ -46,6 +50,9 @@ class MyviIE(SprutoBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://myvi.ru/player/flash/ocp2qZrHI-eZnHKQBK4cZV60hslH8LALnk0uBfKsB-Q4WnY26SeGoYPi8HWHxu0O30',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.myvi.ru/watch/YwbqszQynUaHPn_s82sx0Q2',
         'only_matching': True,
     }, {
         'url': 'myvi:YwbqszQynUaHPn_s82sx0Q2',
