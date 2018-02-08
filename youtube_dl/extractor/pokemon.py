@@ -58,7 +58,7 @@ class PokemonIE(InfoExtractor):
             webpage, 'video data element'))
         video_id = video_data['data-video-id']
         title = video_data.get('data-video-title') or self._html_search_meta(
-            'pkm-title', webpage,' title', default=None) or self._search_regex(
+            'pkm-title', webpage, ' title', default=None) or self._search_regex(
             r'<h1[^>]+\bclass=["\']us-title[^>]+>([^<]+)', webpage, 'title')
         return {
             '_type': 'url_transparent',
