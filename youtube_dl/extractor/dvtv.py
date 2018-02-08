@@ -104,8 +104,8 @@ class DVTVIE(InfoExtractor):
     def _parse_video_metadata(self, js, video_id, live_js=None):
         data = self._parse_json(js, video_id, transform_source=js_to_json)
         if live_js:
-            data.update(
-                self._parse_json(live_js, video_id, transform_source=js_to_json))
+            data.update(self._parse_json(
+                live_js, video_id, transform_source=js_to_json))
 
         title = unescapeHTML(data['title'])
 
@@ -156,12 +156,12 @@ class DVTVIE(InfoExtractor):
         # live content
         live_item = self._search_regex(
             r'(?s)embedData[0-9a-f]{32}\.asset\.liveStarter\s*=\s*(\{.+?\});',
-            webpage, 'video', default=None, fatal=False)
+            webpage, 'video', default=None)
 
         # single video
         item = self._search_regex(
             r'(?s)embedData[0-9a-f]{32}\[["\']asset["\']\]\s*=\s*(\{.+?\});',
-            webpage, 'video', default=None, fatal=False)
+            webpage, 'video', default=None)
 
         if item:
             return self._parse_video_metadata(item, video_id, live_item)
