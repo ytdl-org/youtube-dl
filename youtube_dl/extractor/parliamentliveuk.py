@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from re import DOTALL
+
 from .common import InfoExtractor
 
 
@@ -29,7 +31,7 @@ class ParliamentLiveUKIE(InfoExtractor):
             'http://vodplayer.parliamentlive.tv/?mid=' + video_id, video_id)
         widget_config = self._parse_json(self._search_regex(
             r'(?s)kWidgetConfig\s*=\s*({.+});',
-            webpage, 'kaltura widget config'), video_id)
+            webpage, 'kaltura widget config', flags=DOTALL), video_id)
         kaltura_url = 'kaltura:%s:%s' % (
             widget_config['wid'][1:], widget_config['entry_id'])
         event_title = self._download_json(
