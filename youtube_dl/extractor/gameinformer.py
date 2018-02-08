@@ -31,4 +31,3 @@ class GameInformerIE(InfoExtractor):
         return self.url_result(
             self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew',
             brightcove_id)
-    
