@@ -129,6 +129,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                     https?://
                         (?:www\.)?
                         (?:
+                            (?:beta\.)?
                             (?:
                                 prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv|advopedia
                             )\.(?:de|at|ch)|
