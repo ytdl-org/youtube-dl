@@ -175,12 +175,23 @@ class AfreecaTVIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        webpage = self._download_webpage(url, video_id)
+
+        station_id = self._search_regex(
+            r'nStationNo\s*=\s*(\d+)', webpage, 'station')
+        bbs_id = self._search_regex(
+            r'nBbsNo\s*=\s*(\d+)', webpage, 'bbs')
+        video_id = self._search_regex(
+            r'nTitleNo\s*=\s*(\d+)', webpage, 'title', default=video_id)
+
         video_xml = self._download_xml(
             'http://afbbs.afreecatv.com:8080/api/video/get_video_info.php',
             video_id, headers={
                 'Referer': 'http://vod.afreecatv.com/embed.php',
             }, query={
                 'nTitleNo': video_id,
+                'nStationNo': station_id,
+                'nBbsNo': bbs_id,
                 'partialView': 'SKIP_ADULT',
             })
 
