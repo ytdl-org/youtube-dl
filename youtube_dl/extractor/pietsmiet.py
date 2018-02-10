@@ -63,9 +63,9 @@ class PietsmietIE(OnceIE):
                 format_width = float(format_height) * (16 / 9)
 
                 formats.append({
+                    'format_id': 'http-{0}'.format(label),
                     'url': "https:{0}".format(http_video['file']),
                     'ext': http_video.get('type'),
-                    'format_id': 'http-{0}'.format(label),
                     'width': int_or_none(format_width),
                     'height': format_height,
                     'fps': 30.0,
