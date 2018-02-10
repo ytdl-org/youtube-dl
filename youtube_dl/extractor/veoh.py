@@ -12,10 +12,20 @@ from ..utils import (
 
 
 class VeohIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?veoh\.com/(?:watch|iphone/#_Watch)/(?P<id>(?:v|e|yapi-)[\da-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?veoh\.com/(?:watch|embed|iphone/#_Watch)/(?P<id>(?:v|e|yapi-)[\da-zA-Z]+)'
 
     _TESTS = [{
         'url': 'http://www.veoh.com/watch/v56314296nk7Zdmz3',
+        'md5': '620e68e6a3cff80086df3348426c9ca3',
+        'info_dict': {
+            'id': '56314296',
+            'ext': 'mp4',
+            'title': 'Straight Backs Are Stronger',
+            'uploader': 'LUMOback',
+            'description': 'At LUMOback, we believe straight backs are stronger.  The LUMOback Posture & Movement Sensor:  It gently vibrates when you slouch, inspiring improved posture and mobility.  Use the app to track your data and improve your posture over time. ',
+        },
+    }, {
+        'url': 'http://www.veoh.com/embed/v56314296nk7Zdmz3',
         'md5': '620e68e6a3cff80086df3348426c9ca3',
         'info_dict': {
             'id': '56314296',
