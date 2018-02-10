@@ -99,6 +99,9 @@ class DVTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Babiš a Zeman nesou vinu za to, že nemáme jasno v tom, kdo bude vládnout, říká Pekarová Adamová',
         },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _parse_video_metadata(self, js, video_id, live_js=None):
