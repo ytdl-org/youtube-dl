@@ -207,6 +207,22 @@ class InfoExtractor(object):
     timestamp:      UNIX timestamp of the moment the video became available.
     upload_date:    Video upload date (YYYYMMDD).
                     If not explicitly set, calculated from timestamp.
+    upload_year:    Year the video was uploaded (YYYY).
+    upload_month:   Month the video was uploaded (MM).
+    upload_day:     Day the video was uploaded (DD).
+    upload_dyofyr:  Day of year the video was uploaded (DDD).
+    upload_wkofyr:  Week of year the video was uploaded (WW).
+    upload_dyn:     Localized day of the week the video was uploaded (Monday).
+    upload_dyna:    Localized abbreviated day of the week the video was uploaded (Mon).
+    upload_mntn:    Localized month of the year the video was uploaded (September).
+    upload_mntna:   Localized abbreviated month of the year the video was uploaded (Sep).
+    upload_hour24:  Hour of the day (24 hour clock) the video was uploaded (HH).
+    upload_hour12:  Hour of the day (12 hour clock) the video was uploaded (hh).
+    upload_minute:  Minute of the hour the video was uploaded (mm).
+    upload_second:  Second of the minute the video was uploaded (ss).
+    upload_ampm:    Localized AM/PM indicator of when video was uploaded (PP).
+    upload_time24:  Time of day (24 hour clock) the video was uploaded (HHmmss).
+    upload_time12:  Time of day (12 hour clock) the video was uploaded (hhmmssPP).
     uploader_id:    Nickname or id of the video uploader.
     uploader_url:   Full URL to a personal webpage of the video uploader.
     location:       Physical location where the video was filmed.
