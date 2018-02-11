@@ -11,10 +11,11 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    determine_ext,
     ExtractorError,
     int_or_none,
     parse_duration,
-    determine_ext,
+    try_get,
 )
 from .dailymotion import DailymotionIE
 
@@ -77,6 +78,14 @@ class FranceTVIE(InfoExtractor):
     }, {
         'url': 'francetv:NI_657393@Regions',
         'only_matching': True,
+    }, {
+        # france-3 live
+        'url': 'https://www.france.tv/france-3/direct.html',
+        'only_matching': True,
+    }, {
+        # france-3 live
+        'url': 'francetv:SIM_France3',
+        'only_matching': True,
     }]
 
     def _extract_video(self, video_id, catalogue=None):
@@ -121,6 +130,8 @@ class FranceTVIE(InfoExtractor):
                     return signed_url
             return manifest_url
 
+        is_live = None
+
         formats = []
         for video in info['videos']:
             if video['statut'] != 'ONLINE':
@@ -128,6 +139,10 @@ class FranceTVIE(InfoExtractor):
             video_url = video['url']
             if not video_url:
                 continue
+            if is_live is None:
+                is_live = (try_get(
+                    video, lambda x: x['plages_ouverture'][0]['direct'],
+                    bool) is True) or '/live.francetv.fr/' in video_url
             format_id = video['format']
             ext = determine_ext(video_url)
             if ext == 'f4m':
@@ -173,11 +188,12 @@ class FranceTVIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
             'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
+            'is_live': is_live,
             'formats': formats,
             'subtitles': subtitles,
         }
