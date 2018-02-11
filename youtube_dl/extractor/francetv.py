@@ -5,7 +5,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     clean_html,
     ExtractorError,
@@ -27,7 +30,8 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
 
         if info.get('status') == 'NOK':
             raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, info['message']), expected=True)
+                '%s returned error: %s' % (self.IE_NAME, info['message']),
+                expected=True)
         allowed_countries = info['videos'][0].get('geoblocage')
         if allowed_countries:
             georestricted = True
@@ -41,6 +45,19 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     expected=True)
         else:
             georestricted = False
+
+        def sign(manifest_url, manifest_id):
+            for host in ('hdfauthftv-a.akamaihd.net', 'hdfauth.francetv.fr'):
+                signed_url = self._download_webpage(
+                    'https://%s/esi/TA' % host, video_id,
+                    'Downloading signed %s manifest URL' % manifest_id,
+                    fatal=False, query={
+                        'url': manifest_url,
+                    })
+                if (signed_url and isinstance(signed_url, compat_str) and
+                        re.search(r'^(?:https?:)?//', signed_url)):
+                    return signed_url
+            return manifest_url
 
         formats = []
         for video in info['videos']:
@@ -56,21 +73,14 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     # See https://github.com/rg3/youtube-dl/issues/3963
                     # m3u8 urls work fine
                     continue
-                f4m_url = self._download_webpage(
-                    'http://hdfauth.francetv.fr/esi/TA?url=%s' % video_url,
-                    video_id, 'Downloading f4m manifest token', fatal=False)
-                if f4m_url:
-                    formats.extend(self._extract_f4m_formats(
-                        f4m_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
-                        video_id, f4m_id=format_id, fatal=False))
+                formats.extend(self._extract_f4m_formats(
+                    sign(video_url, format_id) + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
+                    video_id, f4m_id=format_id, fatal=False))
             elif ext == 'm3u8':
-                m3u8_url = self._download_webpage(
-                    'http://hdfauth.francetv.fr/esi/TA?url=%s' % video_url,
-                    video_id, 'Downloading m3u8 token', fatal=False)
-                if m3u8_url:
-                    formats.extend(self._extract_m3u8_formats(
-                        m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                        m3u8_id=format_id, fatal=False))
+                formats.extend(self._extract_m3u8_formats(
+                    sign(video_url, format_id), video_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id=format_id,
+                    fatal=False))
             elif video_url.startswith('rtmp'):
                 formats.append({
                     'url': video_url,
