@@ -80,10 +80,6 @@ class FranceTVIE(InfoExtractor):
         'only_matching': True,
     }, {
         # france-3 live
-        'url': 'https://www.france.tv/france-3/direct.html',
-        'only_matching': True,
-    }, {
-        # france-3 live
         'url': 'francetv:SIM_France3',
         'only_matching': True,
     }]
@@ -261,6 +257,10 @@ class FranceTVSiteIE(FranceTVBaseInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.france.tv/142749-rouge-sang.html',
+        'only_matching': True,
+    }, {
+        # france-3 live
+        'url': 'https://www.france.tv/france-3/direct.html',
         'only_matching': True,
     }]
 
