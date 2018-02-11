@@ -20,12 +20,13 @@ from .dailymotion import DailymotionIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
-    def _make_url_result(self, video_id, catalog=None):
-        full_id = 'francetv:%s' % video_id
-        if catalog:
+    def _make_url_result(self, video_or_full_id, catalog=None):
+        full_id = 'francetv:%s' % video_or_full_id
+        if '@' not in video_or_full_id and catalog:
             full_id += '@%s' % catalog
         return self.url_result(
-            full_id, ie=FranceTVIE.ie_key(), video_id=video_id)
+            full_id, ie=FranceTVIE.ie_key(),
+            video_id=video_or_full_id.split('@')[0])
 
 
 class FranceTVIE(InfoExtractor):
@@ -431,3 +432,43 @@ class CultureboxIE(FranceTVBaseInfoExtractor):
             webpage, 'video id').split('@')
 
         return self._make_url_result(video_id, catalogue)
+
+
+class FranceTVJeunesseIE(FranceTVBaseInfoExtractor):
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?(?:zouzous|ludo)\.fr/heros/(?P<id>[^/?#&]+))'
+
+    _TESTS = [{
+        'url': 'https://www.zouzous.fr/heros/simon',
+        'info_dict': {
+            'id': 'simon',
+        },
+        'playlist_count': 9,
+    }, {
+        'url': 'https://www.ludo.fr/heros/ninjago',
+        'info_dict': {
+            'id': 'ninjago',
+        },
+        'playlist_count': 10,
+    }, {
+        'url': 'https://www.zouzous.fr/heros/simon?abc',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+
+        playlist = self._download_json(
+            '%s/%s' % (mobj.group('url'), 'playlist'), playlist_id)
+
+        if not playlist.get('count'):
+            raise ExtractorError(
+                '%s is not available' % playlist_id, expected=True)
+
+        entries = []
+        for item in playlist['items']:
+            identity = item.get('identity')
+            if identity and isinstance(identity, compat_str):
+                entries.append(self._make_url_result(identity))
+
+        return self.playlist_result(entries, playlist_id)
