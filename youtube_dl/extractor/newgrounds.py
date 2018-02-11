@@ -87,21 +87,19 @@ class NewgroundsIE(InfoExtractor):
         self._check_formats(formats, media_id)
         self._sort_formats(formats)
 
-        uploader = self._html_search_regex(
-            (r'(?s)<h4[^>]*>(.+?)</h4>.*?<em>\s*Author\s*</em>',
-             r'(?:Author|Writer)\s*<a[^>]+>([^<]+)'), webpage, 'uploader',
+        uploader = self._search_regex(
+            r'(?:Author|Writer)\s*<a[^>]+>([^<]+)', webpage, 'uploader',
             fatal=False)
 
-        timestamp = unified_timestamp(self._html_search_regex(
-            (r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+</dd>\s*<dd>[^<]+)',
-             r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+)'), webpage, 'timestamp',
+        timestamp = unified_timestamp(self._search_regex(
+            r'<dt>Uploaded</dt>\s*<dd>([^<]+)', webpage, 'timestamp',
             default=None))
         duration = parse_duration(self._search_regex(
-            r'(?s)<dd>\s*Song\s*</dd>\s*<dd>.+?</dd>\s*<dd>([^<]+)', webpage,
-            'duration', default=None))
+            r'<dd>Song\s*</dd><dd>.+?</dd><dd>([^<]+)', webpage, 'duration',
+            default=None))
 
         filesize_approx = parse_filesize(self._html_search_regex(
-            r'(?s)<dd>\s*Song\s*</dd>\s*<dd>(.+?)</dd>', webpage, 'filesize',
+            r'<dd>Song\s*</dd><dd>(.+?)</dd>', webpage, 'filesize',
             default=None))
         if len(formats) == 1:
             formats[0]['filesize_approx'] = filesize_approx

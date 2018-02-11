@@ -5,16 +5,15 @@ import re
 import string
 
 from .discoverygo import DiscoveryGoBaseIE
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
-    try_get,
+    update_url_query,
 )
 from ..compat import compat_HTTPError
 
 
 class DiscoveryIE(DiscoveryGoBaseIE):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?(?P<site>
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
             discovery|
             investigationdiscovery|
             discoverylife|
@@ -45,7 +44,7 @@ class DiscoveryIE(DiscoveryGoBaseIE):
     _GEO_BYPASS = False
 
     def _real_extract(self, url):
-        site, path, display_id = re.match(self._VALID_URL, url).groups()
+        path, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
 
         react_data = self._parse_json(self._search_regex(
@@ -56,13 +55,14 @@ class DiscoveryIE(DiscoveryGoBaseIE):
         video_id = video['id']
 
         access_token = self._download_json(
-            'https://www.%s.com/anonymous' % site, display_id, query={
-                'authRel': 'authorization',
-                'client_id': try_get(
-                    react_data, lambda x: x['application']['apiClientId'],
-                    compat_str) or '3020a40c2356a645b4b4',
-                'nonce': ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
-                'redirectUri': 'https://fusion.ddmcdn.com/app/mercury-sdk/180/redirectHandler.html?https://www.%s.com' % site,
+            'https://www.discovery.com/anonymous', display_id, query={
+                'authLink': update_url_query(
+                    'https://login.discovery.com/v1/oauth2/authorize', {
+                        'client_id': react_data['application']['apiClientId'],
+                        'redirect_uri': 'https://fusion.ddmcdn.com/app/mercury-sdk/180/redirectHandler.html',
+                        'response_type': 'anonymous',
+                        'state': 'nonce,' + ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
+                    })
             })['access_token']
 
         try:

@@ -174,8 +174,6 @@ class InfoExtractor(object):
                                  width : height ratio as float.
                     * no_resume  The server does not support resuming the
                                  (HTTP or RTMP) download. Boolean.
-                    * downloader_options  A dictionary of downloader options as
-                                 described in FileDownloader
 
     url:            Final video URL.
     ext:            Video filename extension.
@@ -2266,10 +2264,9 @@ class InfoExtractor(object):
     def _extract_wowza_formats(self, url, video_id, m3u8_entry_protocol='m3u8_native', skip_protocols=[]):
         query = compat_urlparse.urlparse(url).query
         url = re.sub(r'/(?:manifest|playlist|jwplayer)\.(?:m3u8|f4m|mpd|smil)', '', url)
-        mobj = re.search(
-            r'(?:(?:http|rtmp|rtsp)(?P<s>s)?:)?(?P<url>//[^?]+)', url)
-        url_base = mobj.group('url')
-        http_base_url = '%s%s:%s' % ('http', mobj.group('s') or '', url_base)
+        url_base = self._search_regex(
+            r'(?:(?:https?|rtmp|rtsp):)?(//[^?]+)', url, 'format url')
+        http_base_url = '%s:%s' % ('http', url_base)
         formats = []
 
         def manifest_url(manifest):

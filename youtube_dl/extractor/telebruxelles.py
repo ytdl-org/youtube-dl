@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class TeleBruxellesIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:telebruxelles|bx1)\.be/(?:[^/]+/)*(?P<id>[^/#?]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:telebruxelles|bx1)\.be/(news|sport|dernier-jt|emission)/?(?P<id>[^/#?]+)'
     _TESTS = [{
         'url': 'http://bx1.be/news/que-risque-lauteur-dune-fausse-alerte-a-la-bombe/',
         'md5': 'a2a67a5b1c3e8c9d33109b902f474fd9',
@@ -31,16 +31,6 @@ class TeleBruxellesIE(InfoExtractor):
     }, {
         'url': 'http://bx1.be/emission/bxenf1-gastronomie/',
         'only_matching': True,
-    }, {
-        'url': 'https://bx1.be/berchem-sainte-agathe/personnel-carrefour-de-berchem-sainte-agathe-inquiet/',
-        'only_matching': True,
-    }, {
-        'url': 'https://bx1.be/dernier-jt/',
-        'only_matching': True,
-    }, {
-        # live stream
-        'url': 'https://bx1.be/lives/direct-tv/',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -48,29 +38,22 @@ class TeleBruxellesIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         article_id = self._html_search_regex(
-            r'<article[^>]+\bid=["\']post-(\d+)', webpage, 'article ID', default=None)
+            r"<article id=\"post-(\d+)\"", webpage, 'article ID', default=None)
         title = self._html_search_regex(
-            r'<h1[^>]*>(.+?)</h1>', webpage, 'title',
-            default=None) or self._og_search_title(webpage)
+            r'<h1 class=\"entry-title\">(.*?)</h1>', webpage, 'title')
         description = self._og_search_description(webpage, default=None)
 
         rtmp_url = self._html_search_regex(
-            r'file["\']?\s*:\s*"(r(?:tm|mt)ps?://[^/]+/(?:vod/mp4:"\s*\+\s*"[^"]+"\s*\+\s*"\.mp4|stream/live))"',
+            r'file\s*:\s*"(rtmp://[^/]+/vod/mp4:"\s*\+\s*"[^"]+"\s*\+\s*".mp4)"',
             webpage, 'RTMP url')
-        # Yes, they have a typo in scheme name for live stream URLs (e.g.
-        # https://bx1.be/lives/direct-tv/)
-        rtmp_url = re.sub(r'^rmtp', 'rtmp', rtmp_url)
         rtmp_url = re.sub(r'"\s*\+\s*"', '', rtmp_url)
         formats = self._extract_wowza_formats(rtmp_url, article_id or display_id)
         self._sort_formats(formats)
 
-        is_live = 'stream/live' in rtmp_url
-
         return {
             'id': article_id or display_id,
             'display_id': display_id,
-            'title': self._live_title(title) if is_live else title,
+            'title': title,
             'description': description,
             'formats': formats,
-            'is_live': is_live,
         }

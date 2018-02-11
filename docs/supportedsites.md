@@ -502,7 +502,6 @@
  - **MySpass**
  - **Myvi**
  - **MyVidster**
- - **MyviEmbed**
  - **n-tv.de**
  - **natgeo**
  - **natgeo:episodeguide**

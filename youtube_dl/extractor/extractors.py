@@ -373,7 +373,6 @@ from .franceculture import FranceCultureIE
 from .franceinter import FranceInterIE
 from .francetv import (
     FranceTVIE,
-    FranceTVSiteIE,
     FranceTVEmbedIE,
     FranceTVInfoIE,
     GenerationWhatIE,
@@ -631,10 +630,7 @@ from .musicplayon import MusicPlayOnIE
 from .mwave import MwaveIE, MwaveMeetGreetIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
-from .myvi import (
-    MyviIE,
-    MyviEmbedIE,
-)
+from .myvi import MyviIE
 from .myvidster import MyVidsterIE
 from .nationalgeographic import (
     NationalGeographicVideoIE,
@@ -648,7 +644,6 @@ from .nbc import (
     NBCIE,
     NBCNewsIE,
     NBCOlympicsIE,
-    NBCOlympicsStreamIE,
     NBCSportsIE,
     NBCSportsVPlayerIE,
 )

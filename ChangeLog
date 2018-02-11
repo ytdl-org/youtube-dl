@@ -1,33 +1,3 @@
-version 2018.02.08
-
-Extractors
-+ [myvi] Extend URL regular expression
-+ [myvi:embed] Add support for myvi.tv embeds (#15521)
-+ [prosiebensat1] Extend URL regular expression (#15520)
-* [pokemon] Relax URL regular expression and extend title extraction (#15518)
-+ [gameinformer] Use geo verification headers
-* [la7] Fix extraction (#15501, #15502)
-* [gameinformer] Fix brightcove id extraction (#15416)
-+ [afreecatv] Pass referrer to video info request (#15507)
-+ [telebruxelles] Add support for live streams
-* [telebruxelles] Relax URL regular expression
-* [telebruxelles] Fix extraction (#15504)
-* [extractor/common] Respect secure schemes in _extract_wowza_formats
-
-
-version 2018.02.04
-
-Core
-* [downloader/http] Randomize HTTP chunk size
-+ [downloader/http] Add ability to pass downloader options via info dict
-* [downloader/http] Fix 302 infinite loops by not reusing requests
-+ Document http_chunk_size
-
-Extractors
-+ [brightcove] Pass embed page URL as referrer (#15486)
-+ [youtube] Enforce using chunked HTTP downloading for DASH formats
-
-
 version 2018.02.03
 
 Core

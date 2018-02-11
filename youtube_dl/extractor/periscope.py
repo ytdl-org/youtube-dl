@@ -56,16 +56,18 @@ class PeriscopeIE(PeriscopeBaseIE):
     def _real_extract(self, url):
         token = self._match_id(url)
 
-        stream = self._call_api(
-            'accessVideoPublic', {'broadcast_id': token}, token)
+        broadcast_data = self._call_api(
+            'getBroadcastPublic', {'broadcast_id': token}, token)
+        broadcast = broadcast_data['broadcast']
+        status = broadcast['status']
 
-        broadcast = stream['broadcast']
-        title = broadcast['status']
+        user = broadcast_data.get('user', {})
 
-        uploader = broadcast.get('user_display_name') or broadcast.get('username')
-        uploader_id = (broadcast.get('user_id') or broadcast.get('username'))
+        uploader = broadcast.get('user_display_name') or user.get('display_name')
+        uploader_id = (broadcast.get('username') or user.get('username') or
+                       broadcast.get('user_id') or user.get('id'))
 
-        title = '%s - %s' % (uploader, title) if uploader else title
+        title = '%s - %s' % (uploader, status) if uploader else status
         state = broadcast.get('state').lower()
         if state == 'running':
             title = self._live_title(title)
@@ -74,6 +76,9 @@ class PeriscopeIE(PeriscopeBaseIE):
         thumbnails = [{
             'url': broadcast[image],
         } for image in ('image_url', 'image_url_small') if broadcast.get(image)]
+
+        stream = self._call_api(
+            'getAccessPublic', {'broadcast_id': token}, token)
 
         video_urls = set()
         formats = []
