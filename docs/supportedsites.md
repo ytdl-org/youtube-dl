@@ -189,7 +189,7 @@
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **CTVNews**
- - **culturebox.francetvinfo.fr**
+ - **Culturebox**
  - **CultureUnplugged**
  - **curiositystream**
  - **curiositystream:collection**
@@ -291,6 +291,8 @@
  - **FranceTV**
  - **FranceTVEmbed**
  - **francetvinfo.fr**
+ - **FranceTVJeunesse**
+ - **FranceTVSite**
  - **Freesound**
  - **freespeech.org**
  - **FreshLive**
@@ -511,7 +513,8 @@
  - **NBA**
  - **NBC**
  - **NBCNews**
- - **NBCOlympics**
+ - **nbcolympics**
+ - **nbcolympics:stream**
  - **NBCSports**
  - **NBCSportsVPlayer**
  - **ndr**: NDR.de - Norddeutscher Rundfunk
