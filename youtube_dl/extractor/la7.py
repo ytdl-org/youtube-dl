@@ -10,9 +10,10 @@ from ..utils import (
 
 class LA7IE(InfoExtractor):
     IE_NAME = 'la7.it'
-    _VALID_URL = r'''(?x)(https?://)?(?:
-        (?:www\.)?la7\.it/([^/]+)/(?:rivedila7|video)/|
-        tg\.la7\.it/repliche-tgla7\?id=
+    _VALID_URL = r'''(?x)(?:https?://)(?:www\.|tg\.)?la7\.it/(?:
+        [^/]+/(?:rivedila7|video)/|
+        embedded/la7[^/]*(?:&|\?)content=|
+        repliche-tgla7\?id=
     )(?P<id>.+)'''
 
     _TESTS = [{
@@ -20,7 +21,7 @@ class LA7IE(InfoExtractor):
         'url': 'http://www.la7.it/crozza/video/inccool8-02-10-2015-163722',
         'md5': '8b613ffc0c4bf9b9e377169fc19c214c',
         'info_dict': {
-            'id': 'inccool8-02-10-2015-163722',
+            'id': '0_42j6wd36',
             'ext': 'mp4',
             'title': 'Inc.Cool8',
             'description': 'Benvenuti nell\'incredibile mondo della INC. COOL. 8. dove “INC.” sta per “Incorporated” “COOL” sta per “fashion” ed Eight sta per il gesto  atletico',
@@ -30,16 +31,16 @@ class LA7IE(InfoExtractor):
             'upload_date': '20151002',
         },
     }, {
-        # 'src' is a dictionary
-        'url': 'http://tg.la7.it/repliche-tgla7?id=189080',
-        'md5': '6b0d8888d286e39870208dfeceaf456b',
-        'info_dict': {
-            'id': '189080',
-            'ext': 'mp4',
-            'title': 'TG LA7',
-        },
+        # embedded
+        'url': 'http://www.la7.it/embedded/la7?w=640&h=360&tid=player&content=229887',
+        'only_matching': True,
     }, {
+        # rivedila7
         'url': 'http://www.la7.it/omnibus/rivedila7/omnibus-news-02-07-2016-189077',
+        'only_matching': True,
+    }, {
+        # tg (expires quickly, check "le ultime edizioni" on http://tg.la7.it/)
+        'url': 'http://tg.la7.it/repliche-tgla7?id=233847',
         'only_matching': True,
     }]
 
