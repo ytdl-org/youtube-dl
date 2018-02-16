@@ -292,9 +292,6 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
             'id': 'povd',
         },
         'playlist_mincount': 293,
-        'params': {
-            'skip_download': True,
-        },
     }, {
         # Top Rated Videos
         'url': 'https://www.pornhub.com/channels/povd/videos?o=ra',
