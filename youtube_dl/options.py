@@ -816,10 +816,10 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--metadata',
         metavar='METADATA', dest='metafromuser', default=False,
-        help='Allows the user to specify key/value pairs for encoding metadata, sepatated by equal sign.'
-             'Example: --metadata "album = Movie Title artist = Various artists year = "2010"'
-             'Note:- Should be used with --add-metadata to write the specified data to the video/audio file'
-             'Also tries to capture artist information from the file description, if otherwise not available')
+        help='Allows the user to specify key/value pairs for encoding metadata, sepatated by equal sign. '
+             'Example: --metadata "album = Movie Title artist = Various Artists". '
+             'Note:- Should be used with --add-metadata to write the specified data into a video/audio file. '
+             'Also tries to capture artist information from the file description, if otherwise not available.')
     postproc.add_option(
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
