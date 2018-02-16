@@ -275,7 +275,7 @@ class PornHubPlaylistIE(PornHubPlaylistBaseIE):
 
 
 class PornHubUserVideosIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/users/(?P<id>[^/]+)/videos'
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/(?:user|channel)s/(?P<id>[^/]+)/videos'
     _TESTS = [{
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'info_dict': {
@@ -284,6 +284,25 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'playlist_mincount': 171,
     }, {
         'url': 'http://www.pornhub.com/users/rushandlia/videos',
+        'only_matching': True,
+    }, {
+        # default sorting as Top Rated Videos
+        'url': 'https://www.pornhub.com/channels/povd/videos',
+        'info_dict': {
+            'id': 'povd',
+        },
+        'playlist_mincount': 293,
+    }, {
+        # Top Rated Videos
+        'url': 'https://www.pornhub.com/channels/povd/videos?o=ra',
+        'only_matching': True,
+    }, {
+        # Most Recent Videos
+        'url': 'https://www.pornhub.com/channels/povd/videos?o=da',
+        'only_matching': True,
+    }, {
+        # Most Viewed Videos
+        'url': 'https://www.pornhub.com/channels/povd/videos?o=vi',
         'only_matching': True,
     }]
 
