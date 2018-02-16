@@ -114,7 +114,7 @@ class BiliBiliIE(InfoExtractor):
                 self._report_error(js)
             cid = js['result']['cid']
 
-        payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
+        payload = 'appkey=%s&cid=%s&otype=json' % (self._APP_KEY, cid)
         sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
 
         headers = {
