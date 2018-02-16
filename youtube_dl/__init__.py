@@ -256,8 +256,7 @@ def _real_main(argv=None):
     if opts.metafromuser:
         postprocessors.append({
             'key': 'MetadataFromUser',
-            'metadata': opts.metafromuser
-                
+            'metadata': opts.metafromuser                
         })
     
     if opts.extractaudio:
