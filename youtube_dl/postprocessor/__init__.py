@@ -16,6 +16,7 @@ from .ffmpeg import (
 from .xattrpp import XAttrMetadataPP
 from .execafterdownload import ExecAfterDownloadPP
 from .metadatafromtitle import MetadataFromTitlePP
+from .metadatafromuser import MetadataFromUserPP
 
 
 def get_postprocessor(key):
@@ -37,4 +38,5 @@ __all__ = [
     'FFmpegVideoConvertorPP',
     'MetadataFromTitlePP',
     'XAttrMetadataPP',
+    'MetadataFromUserPP'
 ]
