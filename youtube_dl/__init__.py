@@ -252,6 +252,14 @@ def _real_main(argv=None):
             'key': 'MetadataFromTitle',
             'titleformat': opts.metafromtitle
         })
+    
+    if opts.metafromuser:
+        postprocessors.append({
+            'key': 'MetadataFromUser',
+            'metadata': opts.metafromuser
+                
+        })
+    
     if opts.extractaudio:
         postprocessors.append({
             'key': 'FFmpegExtractAudio',
