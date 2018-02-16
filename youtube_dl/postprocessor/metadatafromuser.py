@@ -1,11 +1,6 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
 """
 Created on Fri Feb  9 16:23:16 2018
-
-@author: Niras C. Vayalil
 """
-
 from __future__ import unicode_literals
 from .common import PostProcessor
 import re
