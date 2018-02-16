@@ -306,3 +306,23 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
             entries.extend(page_entries)
 
         return self.playlist_result(entries, user_id)
+
+
+class PornHubChannelVideosIE(PornHubUserVideosIE):
+    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/channels/(?P<id>[^/]+)/videos'
+    _TESTS = [{
+        # sorted as Top Rated Videos
+        'url': 'https://www.pornhub.com/channels/povd/videos?o=ra',
+        'info_dict': {
+            'id': 'povd',
+        },
+        'playlist_mincount': 293,
+    }, {
+        # Most Recent Videos
+        'url': 'https://www.pornhub.com/channels/povd/videos?o=da',
+        'only_matching': True,
+    }, {
+        # Most Viewed Videos
+        'url': 'https://www.pornhub.com/channels/povd/videos?o=vi',
+        'only_matching': True,
+    }]

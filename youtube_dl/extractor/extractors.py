@@ -829,6 +829,7 @@ from .pornflip import PornFlipIE
 from .pornhd import PornHdIE
 from .pornhub import (
     PornHubIE,
+    PornHubChannelVideosIE,
     PornHubPlaylistIE,
     PornHubUserVideosIE,
 )
