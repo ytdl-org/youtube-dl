@@ -5,7 +5,7 @@ from .ooyala import OoyalaIE
 
 
 class FusionIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?fusion\.tv/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?fusion\.(?:net|tv)/video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://fusion.tv/video/201781/u-s-and-panamanian-forces-work-together-to-stop-a-vessel-smuggling-drugs/',
         'info_dict': {
