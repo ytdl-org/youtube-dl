@@ -49,7 +49,7 @@ class FileDownloader(object):
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
     hls_use_mpegts:     Use the mpegts container for HLS videos.
-    http_chunk_size:    Size of a chunk for chunk-based HTTP downloading.May be
+    http_chunk_size:    Size of a chunk for chunk-based HTTP downloading. May be
                         useful for bypassing bandwidth throttling imposed by
                         a webserver (experimental)
 
