@@ -38,7 +38,7 @@ class NPOIE(NPOBaseIE):
                                 npo\.nl/(?!(?:live|radio)/)(?:[^/]+/){2}|
                                 ntr\.nl/(?:[^/]+/){2,}|
                                 omroepwnl\.nl/video/fragment/[^/]+__|
-                                (?:zapp|npo3)\.nl/(?:[^/]+/){2}
+                                (?:zapp|npo3)\.nl/(?:[^/]+/){2,3}
                             )
                         )
                         (?P<id>[^/?#]+)
@@ -169,6 +169,9 @@ class NPOIE(NPOBaseIE):
             # We have to remove the javascript callback
             transform_source=strip_jsonp,
         )
+
+        if 'error' in metadata and metadata['code'] == 440:
+            raise ExtractorError('Video gone')
 
         # For some videos actual video id (prid) is different (e.g. for
         # http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698
