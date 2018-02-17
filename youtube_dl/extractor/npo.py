@@ -170,6 +170,10 @@ class NPOIE(NPOBaseIE):
             transform_source=strip_jsonp,
         )
 
+        error = metadata.get('error')
+        if error:
+            raise ExtractorError(error, expected=True)
+
         # For some videos actual video id (prid) is different (e.g. for
         # http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698
         # video id is POMS_WNL_853698 but prid is POW_00996502)
