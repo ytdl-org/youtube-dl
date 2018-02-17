@@ -144,8 +144,16 @@ class AtresPlayerIE(InfoExtractor):
             self._URL_VIDEO_TEMPLATE.format('windows', episode_id, timestamp_shifted, token),
             headers={'User-Agent': self._USER_AGENT})
 
-        fmt_json = self._download_json(
-            request, video_id, 'Downloading windows video JSON')
+        try:
+            fmt_json = self._download_json(
+                request, video_id, 'Downloading windows video JSON')
+        except ExtractorError as e:
+            fmt_json = {'resultObject': {}}
+        else:
+            result = fmt_json.get('resultDes')
+            if result.lower() != 'ok':
+                raise ExtractorError(
+                    '%s returned error: %s' % (self.IE_NAME, result), expected=True)
 
         result = fmt_json.get('resultDes')
         if result.lower() != 'ok':
