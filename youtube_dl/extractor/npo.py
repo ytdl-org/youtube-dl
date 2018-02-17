@@ -38,7 +38,7 @@ class NPOIE(NPOBaseIE):
                                 npo\.nl/(?!(?:live|radio)/)(?:[^/]+/){2}|
                                 ntr\.nl/(?:[^/]+/){2,}|
                                 omroepwnl\.nl/video/fragment/[^/]+__|
-                                (?:zapp|npo3)\.nl/(?:[^/]+/){2}
+                                (?:zapp|npo3)\.nl/(?:[^/]+/){2,}
                             )
                         )
                         (?P<id>[^/?#]+)
@@ -155,6 +155,9 @@ class NPOIE(NPOBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://www.npo.nl/radio-gaga/13-06-2017/BNN_101383373',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.zapp.nl/1803-skelterlab/instructie-video-s/740-instructievideo-s/POMS_AT_11736927',
         'only_matching': True,
     }]
 
