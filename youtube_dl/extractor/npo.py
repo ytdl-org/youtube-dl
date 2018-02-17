@@ -11,6 +11,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     fix_xml_ampersands,
+    int_or_none,
     orderedSet,
     parse_duration,
     qualities,
@@ -194,7 +195,11 @@ class NPOIE(NPOBaseIE):
         formats = []
         urls = set()
 
-        quality = qualities(['adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std'])
+        QUALITY_LABELS = ('Laag', 'Normaal', 'Hoog')
+        QUALITY_FORMATS = ('adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std')
+
+        quality_from_label = qualities(QUALITY_LABELS)
+        quality_from_format_id = qualities(QUALITY_FORMATS)
         items = self._download_json(
             'http://ida.omroep.nl/app.php/%s' % video_id, video_id,
             'Downloading formats JSON', query={
@@ -210,11 +215,27 @@ class NPOIE(NPOBaseIE):
                 r'video/ida/([^/]+)', item_url, 'format id',
                 default=None)
 
+            item_label = item.get('label')
+
             def add_format_url(format_url):
+                width = int_or_none(self._search_regex(
+                    r'(\d+)[xX]\d+', format_url, 'width', default=None))
+                height = int_or_none(self._search_regex(
+                    r'\d+[xX](\d+)', format_url, 'height', default=None))
+                if item_label in QUALITY_LABELS:
+                    quality = quality_from_label(item_label)
+                    f_id = item_label
+                elif item_label in QUALITY_FORMATS:
+                    quality = quality_from_format_id(format_id)
+                    f_id = format_id
+                else:
+                    quality, f_id = None
                 formats.append({
                     'url': format_url,
-                    'format_id': format_id,
-                    'quality': quality(format_id),
+                    'format_id': f_id,
+                    'width': width,
+                    'height': height,
+                    'quality': quality,
                 })
 
             # Example: http://www.npo.nl/de-nieuwe-mens-deel-1/21-07-2010/WO_VPRO_043706
@@ -226,7 +247,7 @@ class NPOIE(NPOBaseIE):
                 stream_info = self._download_json(
                     item_url + '&type=json', video_id,
                     'Downloading %s stream JSON'
-                    % item.get('label') or item.get('format') or format_id or num)
+                    % item_label or item.get('format') or format_id or num)
             except ExtractorError as ee:
                 if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
                     error = (self._parse_json(
