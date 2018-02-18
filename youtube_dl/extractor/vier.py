@@ -20,13 +20,16 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
     _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/video/(?P<series>(?!v3)[^/]+)/(?P<season>[^/]+)(/(?P<episode>[^/]+)|)'
     _NETRC_MACHINE = 'vier'
     _TESTS = [{
-        'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
-        'md5': 'e4ae2054a6b040ef1e289e20d111b46e',
+        'url': 'https://www.vier.be/video/hotel-romantiek/2017/hotel-romantiek-aflevering-1',
         'info_dict': {
             'id': 'ebcd3c39-10a2-4730-b137-b0e7aaed247c',
+            'ext': 'mp4',
             'title': 'Hotel Römantiek - Seizoen 1 - Aflevering 1',
             'series': 'Hotel Römantiek',
+            'season_number': 1,
+            'episode_number': 1,
         },
+        'skip': 'This video is only available for registered users'
     }, {
         'url': 'https://www.vier.be/video/blockbusters/in-juli-en-augustus-summer-classics',
         'only_matching': True,
