@@ -534,7 +534,7 @@ def parseOpts(overrideArguments=None):
     workarounds.add_option(
         '--prefer-insecure',
         '--prefer-unsecure', action='store_true', dest='prefer_insecure',
-        help='Use an unencrypted connection to retrieve information about the video. (Currently supported only for YouTube)')
+        help='Use an unencrypted connection to retrieve information whenever possible')
     workarounds.add_option(
         '--user-agent',
         metavar='UA', dest='user_agent',
