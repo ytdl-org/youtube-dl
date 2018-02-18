@@ -155,11 +155,6 @@ class AtresPlayerIE(InfoExtractor):
                 raise ExtractorError(
                     '%s returned error: %s' % (self.IE_NAME, result), expected=True)
 
-        result = fmt_json.get('resultDes')
-        if result.lower() != 'ok':
-            raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, result), expected=True)
-
         for format_id, video_url in fmt_json['resultObject'].items():
             if format_id == 'token' or not video_url.startswith('http'):
                 continue
