@@ -564,7 +564,7 @@ class BrightcoveNewIE(AdobePassIE):
 
         return entries
 
-    def _parse_brightcove_metadata(self, json_data, video_id):
+    def _parse_brightcove_metadata(self, json_data, video_id, headers={}):
         title = json_data['name'].strip()
 
         formats = []
@@ -637,6 +637,9 @@ class BrightcoveNewIE(AdobePassIE):
                 error.get('message') or error.get('error_subcode') or error['error_code'], expected=True)
 
         self._sort_formats(formats)
+
+        for f in formats:
+            f.setdefault('http_headers', {}).update(headers)
 
         subtitles = {}
         for text_track in json_data.get('text_tracks', []):
@@ -724,4 +727,5 @@ class BrightcoveNewIE(AdobePassIE):
                     'tveToken': tve_token,
                 })
 
-        return self._parse_brightcove_metadata(json_data, video_id)
+        return self._parse_brightcove_metadata(
+            json_data, video_id, headers=headers)
