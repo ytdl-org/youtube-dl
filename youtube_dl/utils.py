@@ -538,10 +538,22 @@ def sanitize_path(s):
     return os.path.join(*sanitized_path)
 
 
-# Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
-# unwanted failures due to missing protocol
 def sanitize_url(url):
-    return 'http:%s' % url if url.startswith('//') else url
+    # Prepend protocol-less URLs with `http:` scheme in order to mitigate
+    # the number of unwanted failures due to missing protocol
+    if url.startswith('//'):
+        return 'http:%s' % url
+    # Fix some common typos seen so far
+    COMMON_TYPOS = (
+        # https://github.com/rg3/youtube-dl/issues/15649
+        (r'^httpss://', r'https://'),
+        # https://bx1.be/lives/direct-tv/
+        (r'^rmtp([es]?)://', r'rtmp\1://'),
+    )
+    for mistake, fixup in COMMON_TYPOS:
+        if re.match(mistake, url):
+            return re.sub(mistake, fixup, url)
+    return url
 
 
 def sanitized_Request(url, *args, **kwargs):
