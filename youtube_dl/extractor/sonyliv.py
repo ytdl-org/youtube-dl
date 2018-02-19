@@ -33,5 +33,8 @@ class SonyLIVIE(InfoExtractor):
     def _real_extract(self, url):
         brightcove_id = self._match_id(url)
         return self.url_result(
-            smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, {'geo_countries': ['IN']}),
+            smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, {
+                'geo_countries': ['IN'],
+                'referrer': url,
+            }),
             'BrightcoveNew', brightcove_id)
