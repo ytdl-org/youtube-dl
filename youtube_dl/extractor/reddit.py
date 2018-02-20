@@ -15,7 +15,7 @@ class RedditIE(InfoExtractor):
     _TEST = {
         # from https://www.reddit.com/r/videos/comments/6rrwyj/that_small_heart_attack/
         'url': 'https://v.redd.it/zv89llsvexdz',
-        'md5': '655d06ace653ea3b87bccfb1b27ec99d',
+        'md5': '0a070c53eba7ec4534d95a5a1259e253',
         'info_dict': {
             'id': 'zv89llsvexdz',
             'ext': 'mp4',
