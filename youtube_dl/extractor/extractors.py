@@ -1311,7 +1311,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE,
+    WeiboIE, 
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
