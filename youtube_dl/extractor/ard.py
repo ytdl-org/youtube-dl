@@ -24,13 +24,13 @@ class ARDMediathekIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
-        'url': 'http://www.ardmediathek.de/tv/Der-Blaue-Planet/Der-Blaue-Planet-1/Das-Erste/Video?bcastId=49529922&documentId=50144564',
+        'url': 'http://www.ardmediathek.de/tv/S%C3%9CDLICHT/Was-ist-die-Kunst-der-Zukunft-liebe-Ann/BR-Fernsehen/Video?bcastId=34633636&documentId=44726822',
         'info_dict': {
-            'id': '50144564',
+            'id': '44726822',
             'ext': 'mp4',
-            'title': 'Der Blaue Planet (1)',
-            'description': 'md5:e028897573e395b442e4ef1ec0f0fb85',
-            'duration': 2608,
+            'title': 'Was ist die Kunst der Zukunft, liebe Anna McCarthy?',
+            'description': 'md5:4ada28b3e3b5df01647310e41f3a62f5',
+            'duration': 1740,
         },
         'params': {
             # m3u8 download
