@@ -39,7 +39,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'Ruseful2011',
             'duration': 893,
             'age_limit': 18,
-            'categories': ['Fake Hub', 'Amateur', 'MILFs', 'POV', 'Boss', 'Office', 'Oral', 'Reality', 'Sexy'],
+            'categories': ['Fake Hub', 'Amateur', 'MILFs', 'POV', 'Beauti', 'Beauties', 'Beautiful', 'Boss', 'Office', 'Oral', 'Reality', 'Sexy', 'Taking'],
         },
     }, {
         'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
@@ -93,6 +93,7 @@ class XHamsterIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        #print("COME ON WTF")
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id') or mobj.group('id_2')
         display_id = mobj.group('display_id') or mobj.group('display_id_2')
