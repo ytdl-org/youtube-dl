@@ -93,7 +93,6 @@ class XHamsterIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        #print("COME ON WTF")
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id') or mobj.group('id_2')
         display_id = mobj.group('display_id') or mobj.group('display_id_2')
