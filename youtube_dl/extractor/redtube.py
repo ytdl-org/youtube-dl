@@ -90,8 +90,9 @@ class RedTubeIE(InfoExtractor):
         upload_date = unified_strdate(self._search_regex(
             r'<span[^>]+>ADDED ([^<]+)<',
             webpage, 'upload date', fatal=False))
-        duration = int_or_none(self._search_regex(
-            '<meta.*property="og:video:duration".*content="(.*)".*\/>', webpage, 'duration', default=None))
+        duration = int_or_none(self._og_search_property(
+            'video:duration', webpage, default=None) or self._search_regex(
+                r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
             (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
              r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
