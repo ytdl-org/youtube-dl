@@ -52,20 +52,6 @@ class ZDFIE(ZDFBaseIE):
             'timestamp': 1519030800,
             'upload_date': '20180219',
         }
-    },{
-        'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
-        'info_dict': {
-            'id': 'zdfmediathek-trailer-100',
-            'ext': 'mp4',
-            'title': 'Die neue ZDFmediathek',
-            'description': 'md5:3003d36487fb9a5ea2d1ff60beb55e8d',
-            'duration': 30,
-            'timestamp': 1477627200,
-            'upload_date': '20161028',
-        }
-    }, {
-        'url': 'https://www.zdf.de/filme/taunuskrimi/die-lebenden-und-die-toten-1---ein-taunuskrimi-100.html',
-        'only_matching': True,
     }, {
         'url': 'https://www.zdf.de/dokumentation/planet-e/planet-e-uebersichtsseite-weitere-dokumentationen-von-planet-e-100.html',
         'only_matching': True,
