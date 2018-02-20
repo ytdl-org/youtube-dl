@@ -24,6 +24,20 @@ class ARDMediathekIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
+        'url': 'http://www.ardmediathek.de/tv/Der-Blaue-Planet/Der-Blaue-Planet-1/Das-Erste/Video?bcastId=49529922&documentId=50144564',
+        'info_dict': {
+            'id': '50144564',
+            'ext': 'mp4',
+            'title': 'Der Blaue Planet (1)',
+            'description': 'md5:e028897573e395b442e4ef1ec0f0fb85',
+            'duration': 2608,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    },
+    {
         'url': 'http://www.ardmediathek.de/tv/Dokumentation-und-Reportage/Ich-liebe-das-Leben-trotzdem/rbb-Fernsehen/Video?documentId=29582122&bcastId=3822114',
         'info_dict': {
             'id': '29582122',
