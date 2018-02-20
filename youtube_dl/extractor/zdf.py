@@ -42,6 +42,17 @@ class ZDFIE(ZDFBaseIE):
     _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
 
     _TESTS = [{
+        'url': 'https://www.zdf.de/dokumentation/zdfinfo-doku/polenzwei-102.html',
+        'info_dict': {
+            'id': 'polenzwei-102',
+            'ext': 'mp4',
+            'title': 'Polenfeldzug (2)',
+            'description': 'md5:4771d08c3a0ce235a5477fe39ab5e72a',
+            'duration': 2699,
+            'timestamp': 1519030800,
+            'upload_date': '20180219',
+        }
+    },{
         'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
         'info_dict': {
             'id': 'zdfmediathek-trailer-100',
