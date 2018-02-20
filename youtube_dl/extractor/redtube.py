@@ -22,7 +22,7 @@ class RedTubeIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sucked on a toilet',
             'upload_date': '20110811',
-            'duration': None,
+            'duration': 596,
             'view_count': int,
             'age_limit': 18,
         }
@@ -91,7 +91,7 @@ class RedTubeIE(InfoExtractor):
             r'<span[^>]+>ADDED ([^<]+)<',
             webpage, 'upload date', fatal=False))
         duration = int_or_none(self._search_regex(
-            r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
+            '<meta.*property="og:video:duration".*content="(.*)".*\/>', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
             (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
              r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
