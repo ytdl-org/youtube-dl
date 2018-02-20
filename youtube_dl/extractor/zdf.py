@@ -42,15 +42,15 @@ class ZDFIE(ZDFBaseIE):
     _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
 
     _TESTS = [{
-        'url': 'https://www.zdf.de/dokumentation/zdfinfo-doku/polenzwei-102.html',
+        'url': 'https://www.zdf.de/dokumentation/terra-x/die-magie-der-farben-von-koenigspurpur-und-jeansblau-100.html',
         'info_dict': {
-            'id': 'polenzwei-102',
+            'id': 'die-magie-der-farben-von-koenigspurpur-und-jeansblau-100',
             'ext': 'mp4',
-            'title': 'Polenfeldzug (2)',
-            'description': 'md5:4771d08c3a0ce235a5477fe39ab5e72a',
-            'duration': 2699,
-            'timestamp': 1519030800,
-            'upload_date': '20180219',
+            'title': 'Die Magie der Farben (2/2)',
+            'description': 'md5:a89da10c928c6235401066b60a6d5c1a',
+            'duration': 2615,
+            'timestamp': 1465021200,
+            'upload_date': '20160604',
         }
     }, {
         'url': 'https://www.zdf.de/dokumentation/planet-e/planet-e-uebersichtsseite-weitere-dokumentationen-von-planet-e-100.html',
