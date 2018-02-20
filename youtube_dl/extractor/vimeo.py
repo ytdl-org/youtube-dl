@@ -218,7 +218,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'id': '56015672',
                 'ext': 'mp4',
                 'title': "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
-                'description': 'md5:2d3305bad981a06ff79f027f19865021',
+                'description': 'md5:509a9ad5c9bf97c60faee9203aca4479',
                 'timestamp': 1355990239,
                 'upload_date': '20121220',
                 'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user7108434',
