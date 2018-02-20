@@ -39,7 +39,7 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'Ruseful2011',
             'duration': 893,
             'age_limit': 18,
-            'categories': ['Fake Hub', 'Amateur', 'MILFs', 'POV', 'Boss', 'Office', 'Oral', 'Reality', 'Sexy'],
+            'categories': ['Fake Hub', 'Amateur', 'MILFs', 'POV', 'Beauti', 'Beauties', 'Beautiful', 'Boss', 'Office', 'Oral', 'Reality', 'Sexy', 'Taking'],
         },
     }, {
         'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
