@@ -16,12 +16,12 @@ class RedTubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.redtube.com/66418',
-        'md5': '7b8c22b5e7098a3e1c09709df1126d2d',
+        'md5': 'fc08071233725f26b8f014dba9590005',
         'info_dict': {
             'id': '66418',
             'ext': 'mp4',
             'title': 'Sucked on a toilet',
-            'upload_date': '20120831',
+            'upload_date': '20110811',
             'duration': 596,
             'view_count': int,
             'age_limit': 18,
@@ -90,8 +90,9 @@ class RedTubeIE(InfoExtractor):
         upload_date = unified_strdate(self._search_regex(
             r'<span[^>]+>ADDED ([^<]+)<',
             webpage, 'upload date', fatal=False))
-        duration = int_or_none(self._search_regex(
-            r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
+        duration = int_or_none(self._og_search_property(
+            'video:duration', webpage, default=None) or self._search_regex(
+                r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
             (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
              r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
