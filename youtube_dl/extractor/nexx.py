@@ -15,8 +15,8 @@ from ..utils import (
 class NexxIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         (?:
-                            https?://api\.nexx(?:\.cloud|cdn\.com)/v3/(?P<domain_id>\d+)/videos/byid/|
-                            nexx:(?P<domain_id_s>\d+):
+                            https?://api\.nexx(?:\.cloud|cdn\.com)/v3/\d+/videos/byid/|
+                            nexx:(?:\d+:)?
                         )
                         (?P<id>\d+)
                     '''
@@ -61,6 +61,9 @@ class NexxIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'nexx:748:128907',
+        'only_matching': True,
+    }, {
+        'url': 'nexx:128907',
         'only_matching': True,
     }]
 
