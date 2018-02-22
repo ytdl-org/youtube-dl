@@ -1,19 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import hashlib
-import random
 import re
-import time
 
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    ExtractorError,
     int_or_none,
     parse_duration,
     try_get,
-    urlencode_postdata,
 )
 
 
@@ -101,87 +96,12 @@ class NexxIE(InfoExtractor):
     def _extract_url(webpage):
         return NexxIE._extract_urls(webpage)[0]
 
-    def _handle_error(self, response):
-        status = int_or_none(try_get(
-            response, lambda x: x['metadata']['status']) or 200)
-        if 200 <= status < 300:
-            return
-        raise ExtractorError(
-            '%s said: %s' % (self.IE_NAME, response['metadata']['errorhint']),
-            expected=True)
-
-    def _call_api(self, domain_id, path, video_id, data=None, headers={}):
-        headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'
-        result = self._download_json(
-            'https://api.nexx.cloud/v3/%s/%s' % (domain_id, path), video_id,
-            'Downloading %s JSON' % path, data=urlencode_postdata(data),
-            headers=headers)
-        self._handle_error(result)
-        return result['result']
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        domain_id = mobj.group('domain_id') or mobj.group('domain_id_s')
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        # Reverse engineered from JS code (see getDeviceID function)
-        device_id = '%d:%d:%d%d' % (
-            random.randint(1, 4), int(time.time()),
-            random.randint(1e4, 99999), random.randint(1, 9))
-
-        result = self._call_api(domain_id, 'session/init', video_id, data={
-            'nxp_devh': device_id,
-            'nxp_userh': '',
-            'precid': '0',
-            'playlicense': '0',
-            'screenx': '1920',
-            'screeny': '1080',
-            'playerversion': '6.0.00',
-            'gateway': 'html5',
-            'adGateway': '',
-            'explicitlanguage': 'en-US',
-            'addTextTemplates': '1',
-            'addDomainData': '1',
-            'addAdModel': '1',
-        }, headers={
-            'X-Request-Enable-Auth-Fallback': '1',
-        })
-
-        cid = result['general']['cid']
-
-        # As described in [1] X-Request-Token generation algorithm is
-        # as follows:
-        #   md5( operation + domain_id + domain_secret )
-        # where domain_secret is a static value that will be given by nexx.tv
-        # as per [1]. Here is how this "secret" is generated (reversed
-        # from _play.api.init function, search for clienttoken). So it's
-        # actually not static and not that much of a secret.
-        # 1. https://nexxtvstorage.blob.core.windows.net/files/201610/27.pdf
-        secret = result['device']['clienttoken'][int(device_id[0]):]
-        secret = secret[0:len(secret) - int(device_id[-1])]
-
-        op = 'byid'
-
-        # Reversed from JS code for _play.api.call function (search for
-        # X-Request-Token)
-        request_token = hashlib.md5(
-            ''.join((op, domain_id, secret)).encode('utf-8')).hexdigest()
-
-        video = self._call_api(
-            domain_id, 'videos/%s/%s' % (op, video_id), video_id, data={
-                'additionalfields': 'language,channel,actors,studio,licenseby,slug,subtitle,teaser,description',
-                'addInteractionOptions': '1',
-                'addStatusDetails': '1',
-                'addStreamDetails': '1',
-                'addCaptions': '1',
-                'addScenes': '1',
-                'addHotSpots': '1',
-                'addBumpers': '1',
-                'captionFormat': 'data',
-            }, headers={
-                'X-Request-CID': cid,
-                'X-Request-Token': request_token,
-            })
+        video = self._download_json(
+            'https://arc.nexx.cloud/api/video/%s.json' % video_id,
+            video_id)['result']
 
         general = video['general']
         title = general['title']
