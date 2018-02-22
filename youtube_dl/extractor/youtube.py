@@ -76,6 +76,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             self.url_result(vid_id, 'Youtube', video_id=vid_id)
             for vid_id in ids]
 
+    def _ids_to_results2(self, id_objects):
+        return [
+            self.url_result(curr_id_obj["vid_id"], 'Youtube', video_id=curr_id_obj["vid_id"], video_title=curr_id_obj["title"])
+            for curr_id_obj in id_objects]
+
     def _login(self):
         """
         Attempt to log in to YouTube.
@@ -2617,8 +2622,23 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
                 raise ExtractorError(
                     '[youtube] No video results', expected=True)
 
-            new_videos = self._ids_to_results(orderedSet(re.findall(
-                r'href="/watch\?v=(.{11})', html_content)))
+            video_ids = orderedSet(re.findall(
+                r'href="/watch\?v=(.{11})', html_content))
+            video_id_objects = []
+            regex_pre = '(?s)class\s*=\s*"\s*yt-lockup-title\s*"[^<].+?(?=a\s*href="/watch\?v='
+            regex_post = ').+?(?=title)title\s*=\s*"([^"]+)"[^>]+'
+            for curr_id in video_ids:
+                regex_combined = r''+regex_pre+curr_id+regex_post
+                extracted_title = self._html_search_regex(
+                regex_combined,
+                html_content,'title')
+                video_id_objects.append({
+                'vid_id': curr_id,
+                'title': extracted_title.encode('utf-8')
+                })
+
+            new_videos = self._ids_to_results2(video_id_objects)
+
             videos += new_videos
             if not new_videos or len(videos) > limit:
                 break
