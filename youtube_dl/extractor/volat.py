@@ -14,7 +14,7 @@ class VolAtIE(InfoExtractor):
             'ext': 'mp4',
             'title': '"Blau ist mysteriös": Die Blue Man Group im Interview',
         }
-    },{
+    }, {
         'url': 'http://www.vol.at/umbenennung-lustenauer-reichshofstadion-das-sagen-die-lustenauer/5678401',
         'md5': '2e256451e94d661e0eca9af9f3349460',
         'info_dict': {
@@ -27,7 +27,7 @@ class VolAtIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        title =  self._og_search_title(webpage)
+        title = self._og_search_title(webpage)
 
         video_url_embedded = self._html_search_regex(r'iframe\s*class\s*="vodl-video__iframe"\s*src=\s*"([^"]+)"', webpage, 'videoInfo', fatal=True)
         webpage_embedded = self._download_webpage(video_url_embedded, video_id)
