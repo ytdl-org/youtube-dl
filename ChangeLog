@@ -1,3 +1,25 @@
+version <unreleased>
+
+Core
++ [utils] Fixup some common URL typos in sanitize_url (#15649)
+* Respect --prefer-insecure while updating (#15497)
+
+Extractors
+* [vidio] Fix HLS URL extraction (#15675)
++ [nexx] Add support for arc.nexx.cloud URLs
+* [nexx] Switch to arc API (#15652)
+* [redtube] Fix duration extraction (#15659)
++ [sonyliv] Respect referrer (#15648)
++ [brightcove:new] Use referrer for formats' HTTP headers
++ [cbc] Add support for olympics.cbc.ca (#15535)
++ [fusion] Add support for fusion.tv (#15628)
+* [npo] Improve quality metadata extraction
+* [npo] Relax URL regular expression (#14987, #14994)
++ [npo] Capture and output error message
++ [pornhub] Add support for channels (#15613)
+* [youtube] Handle shared URLs with generic extractor (#14303)
+
+
 version 2018.02.11
 
 Core
