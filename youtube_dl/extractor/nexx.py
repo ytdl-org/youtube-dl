@@ -16,7 +16,8 @@ class NexxIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         (?:
                             https?://api\.nexx(?:\.cloud|cdn\.com)/v3/\d+/videos/byid/|
-                            nexx:(?:\d+:)?
+                            nexx:(?:\d+:)?|
+                            https?://arc\.nexx\.cloud/api/video/
                         )
                         (?P<id>\d+)
                     '''
@@ -64,6 +65,9 @@ class NexxIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'nexx:128907',
+        'only_matching': True,
+    }, {
+        'url': 'https://arc.nexx.cloud/api/video/128907.json',
         'only_matching': True,
     }]
 
