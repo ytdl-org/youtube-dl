@@ -2628,13 +2628,11 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
             regex_pre = '(?s)class\s*=\s*"\s*yt-lockup-title\s*"[^<].+?(?=a\s*href="/watch\?v='
             regex_post = ').+?(?=title)title\s*=\s*"([^"]+)"[^>]+'
             for curr_id in video_ids:
-                regex_combined = r''+regex_pre+curr_id+regex_post
-                extracted_title = self._html_search_regex(
-                regex_combined,
-                html_content,'title')
+                regex_combined = r'' + regex_pre + curr_id + regex_post
+                extracted_title = self._html_search_regex(regex_combined, html_content, 'title')
                 video_id_objects.append({
-                'vid_id': curr_id,
-                'title': extracted_title.encode('utf-8')
+                    'vid_id': curr_id,
+                    'title': extracted_title.encode('utf-8')
                 })
 
             new_videos = self._ids_to_results_with_title(video_id_objects)
