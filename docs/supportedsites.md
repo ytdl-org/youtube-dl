@@ -135,6 +135,7 @@
  - **CarambaTVPage**
  - **CartoonNetwork**
  - **cbc.ca**
+ - **cbc.ca:olympics**
  - **cbc.ca:player**
  - **cbc.ca:watch**
  - **cbc.ca:watch:video**
