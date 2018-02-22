@@ -76,7 +76,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             self.url_result(vid_id, 'Youtube', video_id=vid_id)
             for vid_id in ids]
 
-    def _ids_to_results2(self, id_objects):
+    def _ids_to_results_with_title(self, id_objects):
         return [
             self.url_result(curr_id_obj["vid_id"], 'Youtube', video_id=curr_id_obj["vid_id"], video_title=curr_id_obj["title"])
             for curr_id_obj in id_objects]
@@ -2637,7 +2637,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubePlaylistIE):
                 'title': extracted_title.encode('utf-8')
                 })
 
-            new_videos = self._ids_to_results2(video_id_objects)
+            new_videos = self._ids_to_results_with_title(video_id_objects)
 
             videos += new_videos
             if not new_videos or len(videos) > limit:
