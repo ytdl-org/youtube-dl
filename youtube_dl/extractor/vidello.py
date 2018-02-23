@@ -33,7 +33,7 @@ class VidelloIE(InfoExtractor):
         for curr_entry in video_sources:
             if curr_entry['type'] == "video/mp4":
                 video_url = "http://" + curr_entry["src"][2:]
-        title = vidello_settings.get('cta')[0].get('values').get('product_title')
+        title = vidello_settings['cta'][0]['values']['product_title']
         description = clean_html(vidello_settings.get('cta')[0].get('values').get('product_desc'))
 
         return {
