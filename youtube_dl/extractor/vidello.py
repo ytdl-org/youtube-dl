@@ -7,6 +7,7 @@ from ..utils import (
     clean_html
 )
 
+
 class VidelloIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?embed.vidello\.com/[0-9]/(?P<id>[a-zA-Z0-9]+)/player.html'
     _TEST = {
@@ -25,13 +26,13 @@ class VidelloIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         vidello_settings = self._parse_json(self._search_regex(
-            r'vidello_'+video_id+'_settings\s*=\s*({.+});', webpage, 'vidello settings'), video_id)
+            r'vidello_' + video_id + '_settings\s*=\s*({.+});', webpage, 'vidello settings'), video_id)
 
         video_url = ""
         video_sources = vidello_settings.get('player').get('clip').get('sources') or {}
         for curr_entry in video_sources:
             if curr_entry['type'] == "video/mp4":
-                video_url = "http://"+curr_entry["src"][2:]
+                video_url = "http://" + curr_entry["src"][2:]
         title = vidello_settings.get('cta')[0].get('values').get('product_title')
         description = clean_html(vidello_settings.get('cta')[0].get('values').get('product_desc'))
 
