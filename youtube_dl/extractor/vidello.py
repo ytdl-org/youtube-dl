@@ -26,7 +26,7 @@ class VidelloIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         vidello_settings = self._parse_json(self._search_regex(
-            r'settings=({.+});', webpage, 'vidello settings'), video_id)
+            r'settings\s*=\s*({.+?});', webpage, 'vidello settings'), video_id)
 
         video_url = ""
         video_sources = vidello_settings['player']['clip']['sources']
