@@ -47,3 +47,43 @@ class TeleQuebecIE(InfoExtractor):
                 media_data.get('durationInMilliseconds'), 1000),
             'ie_key': 'LimelightMedia',
         }
+
+
+class TeleQuebecLiveIE(InfoExtractor):
+    _VALID_URL = r'https?://zonevideo\.telequebec\.tv/(?P<id>endirect)'
+    _TEST = {
+        'url': 'http://zonevideo.telequebec.tv/endirect/',
+        'info_dict': {
+            'id': 'endirect',
+            'ext': 'mp4',
+            'title': 're:^Télé-Québec - En direct [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        m3u8_url = None
+        webpage = self._download_webpage(
+            'https://player.telequebec.tv/Tq_VideoPlayer.js', video_id,
+            fatal=False)
+        if webpage:
+            m3u8_url = self._search_regex(
+                r'm3U8Url\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+                'm3u8 url', default=None, group='url')
+        if not m3u8_url:
+            m3u8_url = 'https://teleqmmd.mmdlive.lldns.net/teleqmmd/f386e3b206814e1f8c8c1c71c0f8e748/manifest.m3u8'
+        formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', m3u8_id='hls')
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': self._live_title('Télé-Québec - En direct'),
+            'is_live': True,
+            'formats': formats,
+        }
