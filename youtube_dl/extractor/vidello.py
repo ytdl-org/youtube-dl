@@ -28,11 +28,11 @@ class VidelloIE(InfoExtractor):
         vidello_settings = self._parse_json(self._search_regex(
             r'settings\s*=\s*({.+?});', webpage, 'vidello settings'), video_id)
 
-        video_url = ""
+        video_url = ''
         video_sources = vidello_settings['player']['clip']['sources']
         for curr_entry in video_sources:
-            if curr_entry['type'] == "video/mp4":
-                video_url = "http://" + curr_entry["src"][2:]
+            if curr_entry['type'] == 'video/mp4':
+                video_url = 'http://' + curr_entry['src'][2:]
         title = vidello_settings['cta'][0]['values']['product_title']
         description = clean_html(vidello_settings.get('cta')[0].get('values').get('product_desc'))
 
