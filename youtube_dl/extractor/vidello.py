@@ -29,7 +29,7 @@ class VidelloIE(InfoExtractor):
             r'vidello_' + video_id + '_settings\s*=\s*({.+});', webpage, 'vidello settings'), video_id)
 
         video_url = ""
-        video_sources = vidello_settings.get('player').get('clip').get('sources') or {}
+        video_sources = vidello_settings['player']['clip']['sources']
         for curr_entry in video_sources:
             if curr_entry['type'] == "video/mp4":
                 video_url = "http://" + curr_entry["src"][2:]
