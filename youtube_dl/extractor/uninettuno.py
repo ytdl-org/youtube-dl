@@ -1,4 +1,4 @@
-import re
+from __future__ import unicode_literals
 from .common import InfoExtractor
 class UninettunoIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:www\.)?uninettuno\.tv/Video.aspx\?v\=(?P<id>\w+)'
