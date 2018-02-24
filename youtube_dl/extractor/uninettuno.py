@@ -8,7 +8,7 @@ class UninettunoIE(InfoExtractor):
         webpage_url = 'https://www.uninettuno.tv/Video.aspx?v=' + video_id
         webpage = self._download_webpage(webpage_url, video_id)
         self.report_extraction(video_id)
-        video_url = self._html_search_regex(r'[{sources: [{ file: "//(.+?)" ,type: "mp4" }]', webpage, u'video URL')
+        video_url = self._html_search_regex(r'[{sources: [{ file: "//(.+?)" ,type: "mp4" }]', webpage, 'video URL')
         return [{
             'id':        video_id,
             'url':       video_url,
