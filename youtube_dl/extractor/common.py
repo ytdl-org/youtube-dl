@@ -2353,7 +2353,10 @@ class InfoExtractor(object):
                 for track in tracks:
                     if not isinstance(track, dict):
                         continue
-                    if track.get('kind') != 'captions':
+                    track_kind = track.get('kind')
+                    if not track_kind or not isinstance(track_kind, compat_str):
+                        continue
+                    if track_kind.lower() not in ('captions', 'subtitles'):
                         continue
                     track_url = urljoin(base_url, track.get('file'))
                     if not track_url:
