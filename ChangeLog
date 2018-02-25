@@ -1,3 +1,21 @@
+version <unreleased>
+
+Core
+* [postprocessor/embedthumbnail] Skip embedding when there aren't any
+  thumbnails (#12573)
+* [extractor/common] Improve jwplayer subtitles extraction (#15695)
+
+Extractors
++ [vidlii] Add support for vidlii.com (#14472, #14512, #14779)
++ [streamango] Capture and output error messages
+* [streamango] Fix extraction (#14160, #14256)
++ [telequebec] Add support for emissions (#14649, #14655)
++ [telequebec:live] Add support for live streams (#15688)
++ [mailru:music] Add support for mail.ru/music (#15618)
+* [aenetworks] Switch to akamai HLS formats (#15612)
+* [ytsearch] Fix flat title extraction (#11260, #15681)
+
+
 version 2018.02.22
 
 Core
