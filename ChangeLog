@@ -1,3 +1,9 @@
+version <unreleased>
+
+Extractors
+* [udemy] Use custom User-Agent (#15571)
+
+
 version 2018.02.25
 
 Core
