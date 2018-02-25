@@ -1225,6 +1225,7 @@ from .videomore import (
 from .videopremium import VideoPremiumIE
 from .videopress import VideoPressIE
 from .vidio import VidioIE
+from .vidlii import VidLiiIE
 from .vidme import (
     VidmeIE,
     VidmeUserIE,
