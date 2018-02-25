@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_chr
 from ..utils import (
     determine_ext,
     int_or_none,
@@ -38,26 +39,26 @@ class StreamangoIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        def decrypt_src(str_, val):
-            k = '=/+9876543210zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA'
-            str_ = re.sub(r'[^A-Za-z0-9+/=]', '', str_)
-            src = ''
+        def decrypt_src(encoded, val):
+            ALPHABET = '=/+9876543210zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA'
+            encoded = re.sub(r'[^A-Za-z0-9+/=]', '', encoded)
+            decoded = ''
             sm = [None] * 4
             i = 0
-            str_len = len(str_)
+            str_len = len(encoded)
             while i < str_len:
                 for j in range(4):
-                    sm[j % 4] = k.index(str_[i])
+                    sm[j % 4] = ALPHABET.index(encoded[i])
                     i += 1
-                charCode = ((sm[0] << 0x2) | (sm[1] >> 0x4)) ^ val
-                src += chr(charCode)
-                if (sm[2] != 0x40):
-                    charCode = ((sm[1] & 0xf) << 0x4) | (sm[2] >> 0x2)
-                    src += chr(charCode)
-                if (sm[3] != 0x40):
-                    charCode = ((sm[2] & 0x3) << 0x6) | sm[3]
-                    src += chr(charCode)
-            return src
+                char_code = ((sm[0] << 0x2) | (sm[1] >> 0x4)) ^ val
+                decoded += compat_chr(char_code)
+                if sm[2] != 0x40:
+                    char_code = ((sm[1] & 0xf) << 0x4) | (sm[2] >> 0x2)
+                    decoded += compat_chr(char_code)
+                if sm[3] != 0x40:
+                    char_code = ((sm[2] & 0x3) << 0x6) | sm[3]
+                    decoded += compat_chr(char_code)
+            return decoded
 
         video_id = self._match_id(url)
 
@@ -66,22 +67,27 @@ class StreamangoIE(InfoExtractor):
         title = self._og_search_title(webpage, default=video_id)
 
         formats = []
-        for format_ in re.findall(r'\(\s*({[^}]*\bsrc\s*:\s*[^}]*})', webpage):
-            mobj = re.search(r'(src\s*:\s*[^(]\(([^)]*)\)[\s,]*)', format_)
+        for format_ in re.findall(r'({[^}]*\bsrc\s*:\s*[^}]*})', webpage):
+            mobj = re.search(r'(src\s*:\s*[^(]+\(([^)]*)\)[\s,]*)', format_)
             if mobj is None:
                 continue
+
             format_ = format_.replace(mobj.group(0), '')
 
             video = self._parse_json(
-                format_, video_id, transform_source=js_to_json, fatal=False)
-            if not video:
-                continue
+                format_, video_id, transform_source=js_to_json,
+                fatal=False) or {}
 
-            mobj = re.search(r'[\'"](?P<src>[^\'"]+)[\'"]\s*,\s*(?P<val>\d+)', mobj.group(1))
+            mobj = re.search(
+                r'([\'"])(?P<src>(?:(?!\1).)+)\1\s*,\s*(?P<val>\d+)',
+                mobj.group(1))
             if mobj is None:
                 continue
 
             src = decrypt_src(mobj.group('src'), int_or_none(mobj.group('val')))
+            if not src:
+                continue
+
             ext = determine_ext(src, default_ext=None)
             if video.get('type') == 'application/dash+xml' or ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
