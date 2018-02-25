@@ -62,7 +62,14 @@ class TeleQuebecIE(TeleQuebecBaseIE):
 
 
 class TeleQuebecEmissionIE(TeleQuebecBaseIE):
-    _VALID_URL = r'https?://[^/]+\.telequebec\.tv/emissions/(?P<id>[^?#&]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            [^/]+\.telequebec\.tv/emissions/|
+                            (?:www\.)?telequebec\.tv/
+                        )
+                        (?P<id>[^?#&]+)
+                    '''
     _TESTS = [{
         'url': 'http://lindicemcsween.telequebec.tv/emissions/100430013/des-soins-esthetiques-a-377-d-interets-annuels-ca-vous-tente',
         'info_dict': {
@@ -78,6 +85,12 @@ class TeleQuebecEmissionIE(TeleQuebecBaseIE):
         },
     }, {
         'url': 'http://bancpublic.telequebec.tv/emissions/emission-49/31986/jeunes-meres-sous-pression',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.telequebec.tv/masha-et-michka/epi059masha-et-michka-3-053-078',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.telequebec.tv/documentaire/bebes-sur-mesure/',
         'only_matching': True,
     }]
 
