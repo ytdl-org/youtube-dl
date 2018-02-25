@@ -212,6 +212,7 @@ class XHamsterIE(InfoExtractor):
         video_url = self._search_regex(
             [r'''file\s*:\s*(?P<q>["'])(?P<mp4>.+?)(?P=q)''',
              r'''<a\s+href=(?P<q>["'])(?P<mp4>.+?)(?P=q)\s+class=["']mp4Thumb''',
+             r'''<a\s+class=["']download["']\s+id=["']video_download["']\s+href=(?P<q>\S+?)(?P<mp4>.+?)["']''',
              r'''<video[^>]+file=(?P<q>["'])(?P<mp4>.+?)(?P=q)[^>]*>'''],
             webpage, 'video url', group='mp4', default=None)
         if video_url and video_url not in format_urls:
