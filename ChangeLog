@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.02.25
 
 Core
 * [postprocessor/embedthumbnail] Skip embedding when there aren't any
