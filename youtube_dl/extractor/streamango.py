@@ -34,6 +34,7 @@ class StreamangoIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'skip': 'gone',
     }, {
         'url': 'https://streamango.com/embed/clapasobsptpkdfe/20170315_150006_mp4',
         'only_matching': True,
