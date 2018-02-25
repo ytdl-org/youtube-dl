@@ -81,12 +81,15 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickBrIE(MTVServicesInfoExtractor):
     IE_NAME = 'nickelodeon:br'
-    _VALID_URL = r'https?://(?P<domain>(?:www\.)?nickjr|mundonick\.uol)\.com\.br/(?:programas/)?[^/]+/videos/(?:episodios/)?(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?P<domain>(?:www\.)?(?:nickjr|nickelodeon)|mundonick\.uol)\.com\.(?:br|tr)/(?:(?:programas|programlar)/)?[^/]+/(?:videolar|videos)/(?:episodios/)?(?P<id>[^/?#.]+)'
     _TESTS = [{
         'url': 'http://www.nickjr.com.br/patrulha-canina/videos/210-labirinto-de-pipoca/',
         'only_matching': True,
     }, {
         'url': 'http://mundonick.uol.com.br/programas/the-loud-house/videos/muitas-irmas/7ljo9j',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.com.tr/programlar/sunger-bob/videolar/kayip-yatak/mgqbjy',
         'only_matching': True,
     }]
 
@@ -111,6 +114,7 @@ class NickBrIE(MTVServicesInfoExtractor):
             content_domain = {
                 'mundonick.uol': 'mundonick.com.br',
                 'nickjr': 'br.nickelodeonjunior.tv',
+                'nickelodeon': 'nickelodeon.com.tr'
             }[domain]
             query = {
                 'mgid': uri,
