@@ -24,6 +24,20 @@ class ARDMediathekIE(InfoExtractor):
     _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
+        'url': 'http://www.ardmediathek.de/tv/S%C3%9CDLICHT/Was-ist-die-Kunst-der-Zukunft-liebe-Ann/BR-Fernsehen/Video?bcastId=34633636&documentId=44726822',
+        'info_dict': {
+            'id': '44726822',
+            'ext': 'mp4',
+            'title': 'Was ist die Kunst der Zukunft, liebe Anna McCarthy?',
+            'description': 'md5:4ada28b3e3b5df01647310e41f3a62f5',
+            'duration': 1740,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    },
+    {
         'url': 'http://www.ardmediathek.de/tv/Dokumentation-und-Reportage/Ich-liebe-das-Leben-trotzdem/rbb-Fernsehen/Video?documentId=29582122&bcastId=3822114',
         'info_dict': {
             'id': '29582122',
@@ -252,7 +266,20 @@ class ARDMediathekIE(InfoExtractor):
 
 class ARDIE(InfoExtractor):
     _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
-    _TEST = {
+    _TESTS = [{
+        'url': 'http://www.daserste.de/information/talk/maischberger/videos/das-groko-drama-zerlegen-sich-die-volksparteien-video-102.html',
+        'md5': '8e4ec85f31be7c7fc08a26cdbc5a1f49',
+        'info_dict': {
+            'display_id': 'das-groko-drama-zerlegen-sich-die-volksparteien-video',
+            'id': '102',
+            'ext': 'mp4',
+            'duration': 4435.0,
+            'title': 'Das GroKo-Drama: Zerlegen sich die Volksparteien?',
+            'upload_date': '20180214',
+            'thumbnail': r're:^https?://.*\.jpg$',
+        },
+    },
+    {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
         'md5': 'd216c3a86493f9322545e045ddc3eb35',
         'info_dict': {
@@ -265,7 +292,7 @@ class ARDIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$',
         },
         'skip': 'HTTP Error 404: Not Found',
-    }
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
