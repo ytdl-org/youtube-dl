@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import compat_chr
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
     js_to_json,
 )
@@ -100,6 +101,16 @@ class StreamangoIE(InfoExtractor):
                     'height': int_or_none(video.get('height')),
                     'tbr': int_or_none(video.get('bitrate')),
                 })
+
+        if not formats:
+            error = self._search_regex(
+                r'<p[^>]+\bclass=["\']lead[^>]+>(.+?)</p>', webpage,
+                'error', default=None)
+            if not error and '>Sorry' in webpage:
+                error = 'Video %s is not available' % video_id
+            if error:
+                raise ExtractorError(error, expected=True)
+
         self._sort_formats(formats)
 
         return {
