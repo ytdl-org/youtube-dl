@@ -94,20 +94,19 @@ class BreakIE(InfoExtractor):
 
         if not video_id:
             video_id = self._search_regex(
-                (r'src=["\'](?:https?://(?:www\.)?break\.com)?/embed/(\d+)', 
+                (r'src=["\'](?:https?://(?:www\.)?break\.com)?/embed/(\d+)',
                     r'data-video-content-id=["\'](\d+)'),
                 webpage, 'video id')
 
         embed_url = self._html_search_meta('embed_video_url', webpage, default=None)
         if not embed_url:
-            playerHost = self._search_regex(r'playerHost: "(.*?)"', 
-                webpage, 'video embed host', 
-                default='http://www.%s.com' % site)
+            playerHost = self._search_regex(r'playerHost: "(.*?)"',
+                                            webpage, 'video embed host',
+                                            default='http://www.%s.com' % site)
             embed_url = playerHost + '/embed/' + video_id
 
-        embed_page = self._download_webpage(
-                    embed_url,
-                    display_id, 'Downloading video embed page')
+        embed_page = self._download_webpage(embed_url,
+                                            display_id, 'Downloading video embed page')
         embed_vars = self._parse_json(
             self._search_regex(
                 r'(?s)embedVars\s*=\s*({.+?})\s*</script>', embed_page, 'embed vars'),
