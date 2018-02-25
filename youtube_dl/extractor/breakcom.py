@@ -2,6 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from .youtube import YoutubeIE
+
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -11,7 +13,7 @@ from ..utils import (
 
 
 class BreakIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>break|screenjunkies)\.com/video/(?P<display_id>[^/]+?)(?:-(?P<id>\d+))?(?:[/?#&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>break|screenjunkies|smosh)\.com(?:/videos?)?/(?P<display_id>[^/]+?)(?:-(?P<id>\d+))?(?:[/?#&]|$)'
     _TESTS = [{
         'url': 'http://www.break.com/video/when-girls-act-like-guys-2468056',
         'info_dict': {
@@ -60,6 +62,27 @@ class BreakIE(InfoExtractor):
     }, {
         'url': 'http://www.break.com/video/ugc/baby-flex-2773063',
         'only_matching': True,
+    }, {
+        'url': 'http://www.smosh.com/videos/breaking-habit-alternate-ending',
+        'md5': '7d479b013dd7a15c8f45c7e60aeffe1b',
+        'info_dict': {
+            'id': '2600992',
+            'ext': 'mp4',
+            'title': 'Breaking the Habit Alternate Ending',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'age_limit': 10,
+        }
+    }, {
+        'note': 'oldest working Smosh video',
+        'url': 'http://www.smosh.com/cat-soup-extras',
+        'md5': '2559839e1b37c292d59976f9251b0a00',
+        'info_dict': {
+            'id': '2600936',
+            'ext': 'mp4',
+            'title': 'Cat Soup Extras',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'age_limit': 10,
+        }
     }]
 
     _DEFAULT_BITRATES = (48, 150, 320, 496, 864, 2240, 3264)
@@ -67,23 +90,34 @@ class BreakIE(InfoExtractor):
     def _real_extract(self, url):
         site, display_id, video_id = re.match(self._VALID_URL, url).groups()
 
+        webpage = self._download_webpage(url, display_id)
+
         if not video_id:
-            webpage = self._download_webpage(url, display_id)
             video_id = self._search_regex(
-                (r'src=["\']/embed/(\d+)', r'data-video-content-id=["\'](\d+)'),
+                (r'src=["\'](?:https?://(?:www\.)?break\.com)?/embed/(\d+)', 
+                    r'data-video-content-id=["\'](\d+)'),
                 webpage, 'video id')
 
-        webpage = self._download_webpage(
-            'http://www.%s.com/embed/%s' % (site, video_id),
-            display_id, 'Downloading video embed page')
+        embed_url = self._html_search_meta('embed_video_url', webpage, default=None)
+        if not embed_url:
+            playerHost = self._search_regex(r'playerHost: "(.*?)"', 
+                webpage, 'video embed host', 
+                default='http://www.%s.com' % site)
+            embed_url = playerHost + '/embed/' + video_id
+
+        embed_page = self._download_webpage(
+                    embed_url,
+                    display_id, 'Downloading video embed page')
         embed_vars = self._parse_json(
             self._search_regex(
-                r'(?s)embedVars\s*=\s*({.+?})\s*</script>', webpage, 'embed vars'),
+                r'(?s)embedVars\s*=\s*({.+?})\s*</script>', embed_page, 'embed vars'),
             display_id)
 
         youtube_id = embed_vars.get('youtubeId')
         if youtube_id:
-            return self.url_result(youtube_id, 'Youtube')
+            # On Smosh, it's not a valid Youtube ID, it's just some md5
+            if re.search(YoutubeIE._VALID_URL, youtube_id):
+                return self.url_result(youtube_id, 'Youtube')
 
         title = embed_vars['contentName']
 
