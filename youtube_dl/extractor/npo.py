@@ -195,6 +195,10 @@ class NPOIE(NPOBaseIE):
         formats = []
         urls = set()
 
+        def is_legal_url(format_url):
+            return format_url and format_url not in urls and re.match(
+                r'^(?:https?:)?//', format_url)
+
         QUALITY_LABELS = ('Laag', 'Normaal', 'Hoog')
         QUALITY_FORMATS = ('adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std')
 
@@ -208,7 +212,7 @@ class NPOIE(NPOBaseIE):
             })['items'][0]
         for num, item in enumerate(items):
             item_url = item.get('url')
-            if not item_url or item_url in urls:
+            if not is_legal_url(item_url):
                 continue
             urls.add(item_url)
             format_id = self._search_regex(
@@ -279,7 +283,7 @@ class NPOIE(NPOBaseIE):
         if not is_live:
             for num, stream in enumerate(metadata.get('streams', [])):
                 stream_url = stream.get('url')
-                if not stream_url or stream_url in urls:
+                if not is_legal_url(stream_url):
                     continue
                 urls.add(stream_url)
                 # smooth streaming is not supported
