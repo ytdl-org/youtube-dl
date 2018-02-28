@@ -51,7 +51,7 @@ class ADNIE(InfoExtractor):
         # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
-            bytes_to_intlist(b'\x1b\xe0\x29\x61\x38\x94\x24\x00\x12\xbd\xc5\x80\xac\xce\xbe\xb0'),
+            bytes_to_intlist(b'\xc8\x6e\x06\xbc\xbe\xc6\x49\xf5\x88\x0d\xc8\x47\xc4\x27\x0c\x60'),
             bytes_to_intlist(compat_b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
@@ -107,15 +107,18 @@ class ADNIE(InfoExtractor):
 
         options = player_config.get('options') or {}
         metas = options.get('metas') or {}
-        title = metas.get('title') or video_info['title']
         links = player_config.get('links') or {}
+        sub_path = player_config.get('subtitles')
         error = None
         if not links:
-            links_url = player_config['linksurl']
+            links_url = player_config.get('linksurl') or options['videoUrl']
             links_data = self._download_json(urljoin(
                 self._BASE_URL, links_url), video_id)
             links = links_data.get('links') or {}
+            metas = metas or links_data.get('meta') or {}
+            sub_path = sub_path or links_data.get('subtitles')
             error = links_data.get('error')
+        title = metas.get('title') or video_info['title']
 
         formats = []
         for format_id, qualities in links.items():
@@ -146,7 +149,7 @@ class ADNIE(InfoExtractor):
             'description': strip_or_none(metas.get('summary') or video_info.get('resume')),
             'thumbnail': video_info.get('image'),
             'formats': formats,
-            'subtitles': self.extract_subtitles(player_config.get('subtitles'), video_id),
+            'subtitles': self.extract_subtitles(sub_path, video_id),
             'episode': metas.get('subtitle') or video_info.get('videoTitle'),
             'series': video_info.get('playlistTitle'),
         }
