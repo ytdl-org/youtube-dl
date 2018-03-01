@@ -3,11 +3,14 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
+from .kaltura import KalturaIE
 from ..utils import (
     determine_ext,
     int_or_none,
     parse_iso8601,
     xpath_text,
+    smuggle_url,
+    ExtractorError,
 )
 
 
@@ -43,6 +46,16 @@ class HeiseIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'https://www.heise.de/video/artikel/nachgehakt-Wie-sichert-das-c-t-Tool-Restric-tor-Windows-10-ab-3700244.html',
+        'md5': '4b58058b46625bdbd841fc2804df95fc',
+        'info_dict': {
+            'id': '1_ntrmio2s',
+            'timestamp': 1512470717,
+            'upload_date': '20171205',
+            'ext': 'mp4',
+            'title': 'ct10 nachgehakt hos restrictor',
+        },
+    }, {
         'url': 'http://www.heise.de/ct/artikel/c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2403911.html',
         'only_matching': True,
     }, {
@@ -67,9 +80,16 @@ class HeiseIE(InfoExtractor):
         if yt_urls:
             return self.playlist_from_matches(yt_urls, video_id, title, ie=YoutubeIE.ie_key())
 
-        container_id = self._search_regex(
-            r'<div class="videoplayerjw"[^>]+data-container="([0-9]+)"',
-            webpage, 'container ID')
+        try:
+            container_id = self._search_regex(
+                r'<div class="videoplayerjw"[^>]+data-container="([0-9]+)"',
+                webpage, 'container ID')
+
+        except ExtractorError:
+            kaltura_url = KalturaIE._extract_url(webpage)
+            if kaltura_url:
+                return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
+
         sequenz_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-sequenz="([0-9]+)"',
             webpage, 'sequenz ID')
