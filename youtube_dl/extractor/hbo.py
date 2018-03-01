@@ -55,7 +55,7 @@ class HBOBaseIE(InfoExtractor):
 
     def _extract_from_id(self, video_id):
         video_data = self._download_xml(
-            'http://render.lv3.hbo.com/data/content/global/videos/data/%s.xml' % video_id, video_id)
+            'https://www.hbo.com/services/hbo/video.xml/vpath=/content/hbodata/en/%s.xml' % video_id, video_id)
         title = xpath_text(video_data, 'title', 'title', True)
 
         formats = []
@@ -139,18 +139,40 @@ class HBOBaseIE(InfoExtractor):
 
 class HBOIE(HBOBaseIE):
     IE_NAME = 'hbo'
-    _VALID_URL = r'https?://(?:www\.)?hbo\.com/video/video\.html\?.*vid=(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://www.hbo.com/video/video.html?autoplay=true&g=u&vid=1437839',
-        'md5': '2c6a6bc1222c7e91cb3334dad1746e5a',
+    _VALID_URL = r'https?://(?:www\.)?hbo\.com/video/(?P<id>(specials|movies|boxing)[0-9a-z-/]+)'
+    _TESTS = [{
+        'url': 'https://www.hbo.com/video/movies/notes-from-the-field/videos/trailer',
+        'md5': 'c8779130d9b458caa52f670f2ee28084',
         'info_dict': {
-            'id': '1437839',
+            'id': 'movies/notes-from-the-field/videos/trailer',
             'ext': 'mp4',
-            'title': 'Ep. 64 Clip: Encryption',
+            'title': 'Trailer',
             'thumbnail': r're:https?://.*\.jpg$',
-            'duration': 1072,
-        }
-    }
+            'duration': 65,
+            }
+        },
+        {
+        'url': 'https://www.hbo.com/video/specials/tour-de-pharmacy/videos/trailer',
+        'md5': 'd8cd9aca78fa3a01bd883a403dc7da9c',
+        'info_dict': {
+            'id': 'specials/tour-de-pharmacy/videos/trailer',
+            'ext': 'mp4',
+            'title': 'Trailer',
+            'thumbnail': r're:https?://.*\.jpg$',
+            'duration': 107,
+            }
+        },
+        {
+        'url': 'https://www.hbo.com/video/boxing/2018/event/2018-03-03-kovalev-vs-mikhalkin/videos/kovalev-vs-mikhalkin-preview',
+        'md5': '3beea848a5b7c8eebe8654ae85daa8e6',
+        'info_dict': {
+            'id': 'boxing/2018/event/2018-03-03-kovalev-vs-mikhalkin/videos/kovalev-vs-mikhalkin-preview',
+            'ext': 'mp4',
+            'title': 'Kovalev vs. Mikhalkin Preview',
+            'thumbnail': r're:https?://.*\.jpg$',
+            'duration': 46,
+            }
+        }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -159,37 +181,21 @@ class HBOIE(HBOBaseIE):
 
 class HBOEpisodeIE(HBOBaseIE):
     IE_NAME = 'hbo:episode'
-    _VALID_URL = r'https?://(?:www\.)?hbo\.com/(?P<path>(?!video)(?:(?:[^/]+/)+video|watch-free-episodes)/(?P<id>[0-9a-z-]+))(?:\.html)?'
+    _VALID_URL = r'https?://(?:www\.)?hbo\.com/video/(?P<id>(?!specials|movies|boxing)[0-9a-z-/]+)'
 
     _TESTS = [{
-        'url': 'http://www.hbo.com/girls/episodes/5/52-i-love-you-baby/video/ep-52-inside-the-episode.html?autoplay=true',
-        'md5': '61ead79b9c0dfa8d3d4b07ef4ac556fb',
+        'url': 'https://www.hbo.com/video/girls/seasons/season-05/episodes/1-wedding-day/videos/s5-ep-1-wedding-day-recap',
+        'md5': 'e580d9ab668f5bff196af43c068de850',
         'info_dict': {
-            'id': '1439518',
-            'display_id': 'ep-52-inside-the-episode',
+            'id': 'series/girls/seasons/season-05/episodes/1-wedding-day/videos/s5-ep-1-wedding-day-recap',
             'ext': 'mp4',
-            'title': 'Ep. 52: Inside the Episode',
+            'title': 'S5 Ep 1: Wedding Day - Recap',
             'thumbnail': r're:https?://.*\.jpg$',
-            'duration': 240,
-        },
-    }, {
-        'url': 'http://www.hbo.com/game-of-thrones/about/video/season-5-invitation-to-the-set.html?autoplay=true',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.hbo.com/watch-free-episodes/last-week-tonight-with-john-oliver',
-        'only_matching': True,
+            'duration': 40,
+            }
     }]
 
+
     def _real_extract(self, url):
-        path, display_id = re.match(self._VALID_URL, url).groups()
-
-        content = self._download_json(
-            'http://www.hbo.com/api/content/' + path, display_id)['content']
-
-        video_id = compat_str((content.get('parsed', {}).get(
-            'common:FullBleedVideo', {}) or content['selectedEpisode'])['videoId'])
-
-        info_dict = self._extract_from_id(video_id)
-        info_dict['display_id'] = display_id
-
-        return info_dict
+        video_id = 'series/' + self._match_id(url)
+        return self._extract_from_id(video_id)
