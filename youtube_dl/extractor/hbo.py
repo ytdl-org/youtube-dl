@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     xpath_text,
     xpath_element,
@@ -149,8 +148,8 @@ class HBOIE(HBOBaseIE):
             'title': 'Trailer',
             'thumbnail': r're:https?://.*\.jpg$',
             'duration': 65,
-            }
-        },
+        }
+    },
         {
         'url': 'https://www.hbo.com/video/specials/tour-de-pharmacy/videos/trailer',
         'md5': 'd8cd9aca78fa3a01bd883a403dc7da9c',
@@ -160,8 +159,8 @@ class HBOIE(HBOBaseIE):
             'title': 'Trailer',
             'thumbnail': r're:https?://.*\.jpg$',
             'duration': 107,
-            }
-        },
+        }
+    },
         {
         'url': 'https://www.hbo.com/video/boxing/2018/event/2018-03-03-kovalev-vs-mikhalkin/videos/kovalev-vs-mikhalkin-preview',
         'md5': '3beea848a5b7c8eebe8654ae85daa8e6',
@@ -171,8 +170,8 @@ class HBOIE(HBOBaseIE):
             'title': 'Kovalev vs. Mikhalkin Preview',
             'thumbnail': r're:https?://.*\.jpg$',
             'duration': 46,
-            }
-        }]
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -192,9 +191,8 @@ class HBOEpisodeIE(HBOBaseIE):
             'title': 'S5 Ep 1: Wedding Day - Recap',
             'thumbnail': r're:https?://.*\.jpg$',
             'duration': 40,
-            }
+        }
     }]
-
 
     def _real_extract(self, url):
         video_id = 'series/' + self._match_id(url)
