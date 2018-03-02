@@ -102,6 +102,7 @@ from .channel9 import Channel9IE
 from .vshare import VShareIE
 from .mediasite import MediasiteIE
 from .springboardplatform import SpringboardPlatformIE
+from .yapfiles import YapFilesIE
 
 
 class GenericIE(InfoExtractor):
@@ -1970,6 +1971,18 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'https://www.yapfiles.ru/show/1872528/690b05d3054d2dbe1e69523aa21bb3b1.mp4.html',
+            'info_dict': {
+                'id': 'vMDE4NzI1Mjgt690b',
+                'ext': 'mp4',
+                'title': 'Котята',
+            },
+            'add_ie': [YapFilesIE.ie_key()],
+            'params': {
+                'skip_download': True,
+            },
         }
         # {
         #     # TODO: find another test
@@ -2946,6 +2959,11 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 springboardplatform_urls, video_id, video_title,
                 ie=SpringboardPlatformIE.ie_key())
+
+        yapfiles_urls = YapFilesIE._extract_urls(webpage)
+        if yapfiles_urls:
+            return self.playlist_from_matches(
+                yapfiles_urls, video_id, video_title, ie=YapFilesIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}
