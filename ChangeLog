@@ -1,3 +1,18 @@
+version <unreleased>
+
+Core
++ [utils] Add parse_resolution
+Revert respect --prefer-insecure while updating
+
+Extractors
++ [yapfiles] Add support for yapfiles.ru (#15726, #11085)
+* [spankbang] Fix formats extraction (#15727)
+* [adn] Fix extraction (#15716)
++ [toggle] Extract DASH and ISM formats (#15721)
++ [nickelodeon] Add support for nickelodeon.com.tr (#15706)
+* [npo] Validate and filter format URLs (#15709)
+
+
 version 2018.02.26
 
 Extractors
