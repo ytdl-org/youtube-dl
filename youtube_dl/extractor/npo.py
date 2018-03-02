@@ -233,7 +233,7 @@ class NPOIE(NPOBaseIE):
                     quality = quality_from_format_id(format_id)
                     f_id = format_id
                 else:
-                    quality, f_id = None
+                    quality, f_id = [None] * 2
                 formats.append({
                     'url': format_url,
                     'format_id': f_id,
