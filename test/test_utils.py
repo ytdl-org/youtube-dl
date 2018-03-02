@@ -53,6 +53,7 @@ from youtube_dl.utils import (
     parse_filesize,
     parse_count,
     parse_iso8601,
+    parse_resolution,
     pkcs1pad,
     read_batch_urls,
     sanitize_filename,
@@ -981,6 +982,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_count('1.1kk'), 1100000)
         self.assertEqual(parse_count('1.1kk '), 1100000)
         self.assertEqual(parse_count('1.1kk views'), 1100000)
+
+    def test_parse_resolution(self):
+        self.assertEqual(parse_resolution(None), {})
+        self.assertEqual(parse_resolution(''), {})
+        self.assertEqual(parse_resolution('1920x1080'), {'width': 1920, 'height': 1080})
+        self.assertEqual(parse_resolution('1920×1080'), {'width': 1920, 'height': 1080})
+        self.assertEqual(parse_resolution('1920 x 1080'), {'width': 1920, 'height': 1080})
+        self.assertEqual(parse_resolution('720p'), {'height': 720})
+        self.assertEqual(parse_resolution('4k'), {'height': 2160})
+        self.assertEqual(parse_resolution('8K'), {'height': 4320})
 
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
