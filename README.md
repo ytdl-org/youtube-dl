@@ -310,7 +310,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --encoding ENCODING              Force the specified encoding (experimental)
     --no-check-certificate           Suppress HTTPS certificate validation
     --prefer-insecure                Use an unencrypted connection to retrieve
-                                     information whenever possible
+                                     information about the video. (Currently
+                                     supported only for YouTube)
     --user-agent UA                  Specify a custom user agent
     --referer URL                    Specify a custom referer, use if the video
                                      access is restricted to one domain

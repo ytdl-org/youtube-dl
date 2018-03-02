@@ -1055,6 +1055,7 @@
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек
+ - **YapFiles**
  - **YesJapan**
  - **yinyuetai:video**: 音悦Tai
  - **Ynet**
