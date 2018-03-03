@@ -75,8 +75,9 @@ class HlsFD(FragmentFD):
                 fd.add_progress_hook(ph)
             return fd.real_download(filename, info_dict)
 
-        def anvato_ad(s):
-            return s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s
+        def is_ad_fragment(s):
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s or
+                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
 
         media_frags = 0
         ad_frags = 0
@@ -86,7 +87,7 @@ class HlsFD(FragmentFD):
             if not line:
                 continue
             if line.startswith('#'):
-                if anvato_ad(line):
+                if is_ad_fragment(line):
                     ad_frags += 1
                     ad_frag_next = True
                 continue
@@ -195,7 +196,7 @@ class HlsFD(FragmentFD):
                         'start': sub_range_start,
                         'end': sub_range_start + int(splitted_byte_range[0]),
                     }
-                elif anvato_ad(line):
+                elif is_ad_fragment(line):
                     ad_frag_next = True
 
         self._finish_frag_download(ctx)
