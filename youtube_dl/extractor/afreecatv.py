@@ -200,7 +200,7 @@ class AfreecaTVIE(InfoExtractor):
             raise ExtractorError(
                 '%s said: %s' % (self.IE_NAME, flag), expected=True)
 
-        video_element = video_xml.findall(compat_xpath('./track/video'))[1]
+        video_element = video_xml.findall(compat_xpath('./track/video'))[-1]
         if video_element is None or video_element.text is None:
             raise ExtractorError('Specified AfreecaTV video does not exist',
                                  expected=True)
