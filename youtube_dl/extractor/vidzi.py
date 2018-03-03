@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class VidziIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vidzi\.(?:tv|cc)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?vidzi\.(?:tv|cc|si)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
     _TESTS = [{
         'url': 'http://vidzi.tv/cghql9yq6emu.html',
         'md5': '4f16c71ca0c8c8635ab6932b5f3f1660',
@@ -31,6 +31,9 @@ class VidziIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://vidzi.cc/cghql9yq6emu.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://vidzi.si/rph9gztxj1et.html',
         'only_matching': True,
     }]
 
