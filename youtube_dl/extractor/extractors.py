@@ -1210,7 +1210,6 @@ from .vice import (
     ViceArticleIE,
     ViceShowIE,
 )
-from .viceland import VicelandIE
 from .vidbit import VidbitIE
 from .viddler import ViddlerIE
 from .videa import VideaIE
