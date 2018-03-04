@@ -30,7 +30,6 @@ class HiDiveIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-            'proxy': '192.99.245.228:3128',
         },
     }]
 
