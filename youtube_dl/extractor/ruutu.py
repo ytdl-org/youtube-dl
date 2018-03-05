@@ -16,6 +16,19 @@ class RuutuIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla)/(?P<id>\d+)'
     _TESTS = [
         {
+            'url': 'http://www.ruutu.fi/video/3193728',
+            'md5': '285a06ce136bc4fdb4d48b02bf3ce5f6',
+            'info_dict': {
+                'id': '3193728',
+                'ext': 'mp4',
+                'title': 'Poliisit - Kausi 10 - Jakso 11',
+                'description': 'md5:5154e593a0a138baeeb1caaabcbe13cb',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 1283,
+                'age_limit': 0,
+            },
+        },
+        {
             'url': 'http://www.ruutu.fi/video/2058907',
             'md5': 'ab2093f39be1ca8581963451b3c0234f',
             'info_dict': {
@@ -72,7 +85,7 @@ class RuutuIE(InfoExtractor):
                     video_url = child.text
                     if (not video_url or video_url in processed_urls or
                             any(p in video_url for p in ('NOT_USED', 'NOT-USED'))):
-                        return
+                        continue
                     processed_urls.append(video_url)
                     ext = determine_ext(video_url)
                     if ext == 'm3u8':
