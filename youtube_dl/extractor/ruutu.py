@@ -57,16 +57,6 @@ class RuutuIE(InfoExtractor):
         # downloadable sources available.
         {
             'url': 'http://www.ruutu.fi/video/3193728',
-            'md5': '285a06ce136bc4fdb4d48b02bf3ce5f6',
-            'info_dict': {
-                'id': '3193728',
-                'ext': 'mp4',
-                'title': 'Poliisit - Kausi 10 - Jakso 11',
-                'description': 'md5:5154e593a0a138baeeb1caaabcbe13cb',
-                'thumbnail': r're:^https?://.*\.jpg$',
-                'duration': 1283,
-                'age_limit': 0,
-            },
             'only_matching': True,
         },
     ]
