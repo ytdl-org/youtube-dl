@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from ..utils import (
@@ -54,8 +56,10 @@ class HeiseIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        mobile_url = re.sub(r'^(https?://)(?:www\.)?', r'\1m.', url)
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+        mobile_webpage = self._download_webpage(mobile_url, video_id)
 
         title = self._html_search_meta('fulltitle', webpage, default=None)
         if not title or title == "c't":
@@ -69,10 +73,10 @@ class HeiseIE(InfoExtractor):
 
         container_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-container="([0-9]+)"',
-            webpage, 'container ID')
+            mobile_webpage, 'container ID')
         sequenz_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-sequenz="([0-9]+)"',
-            webpage, 'sequenz ID')
+            mobile_webpage, 'sequenz ID')
 
         doc = self._download_xml(
             'http://www.heise.de/videout/feed', video_id, query={
