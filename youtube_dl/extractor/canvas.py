@@ -246,7 +246,7 @@ class VrtNUIE(GigyaBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, display_id)
+        webpage, urlh = self._download_webpage_handle(url, display_id)
 
         title = self._html_search_regex(
             r'(?ms)<h1 class="content__heading">(.+?)</h1>',
@@ -276,7 +276,7 @@ class VrtNUIE(GigyaBaseIE):
             webpage, 'release_date', default=None))
 
         # If there's a ? or a # in the URL, remove them and everything after
-        clean_url = url.split('?')[0].split('#')[0].strip('/')
+        clean_url = urlh.geturl().split('?')[0].split('#')[0].strip('/')
         securevideo_url = clean_url + '.mssecurevideo.json'
 
         try:
