@@ -277,6 +277,12 @@ class VrtNUIE(GigyaBaseIE):
 
         # If there's a ? or a # in the URL, remove them and everything after
         clean_url = url.split('?')[0].split('#')[0].strip('/')
+
+        # Check if we are dealing with a '../<show>.relevant' URL / redirect
+        if clean_url.endswith(".relevant"):
+            redirect_url = self._downloader.urlopen(clean_url + "/").geturl()
+            clean_url = redirect_url.split('?')[0].split('#')[0].strip('/')
+
         securevideo_url = clean_url + '.mssecurevideo.json'
 
         try:
@@ -285,11 +291,6 @@ class VrtNUIE(GigyaBaseIE):
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
                 self.raise_login_required()
             raise
-
-        # We are dealing with a '../<show>.relevant' URL
-        redirect_url = video.get('url')
-        if redirect_url:
-            return self.url_result(self._proto_relative_url(redirect_url, 'https:'))
 
         # There is only one entry, but with an unknown key, so just get
         # the first one
