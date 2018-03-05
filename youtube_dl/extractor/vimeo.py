@@ -41,21 +41,30 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             if self._LOGIN_REQUIRED:
                 raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
             return
-        self.report_login()
-        webpage = self._download_webpage(self._LOGIN_URL, None, False)
+        webpage = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata({
+        data = {
             'action': 'login',
             'email': username,
             'password': password,
             'service': 'vimeo',
             'token': token,
-        })
-        login_request = sanitized_Request(self._LOGIN_URL, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        login_request.add_header('Referer', self._LOGIN_URL)
+        }
         self._set_vimeo_cookie('vuid', vuid)
-        self._download_webpage(login_request, None, False, 'Wrong login info')
+        try:
+            self._download_webpage(
+                self._LOGIN_URL, None, 'Logging in',
+                data=urlencode_postdata(data), headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Referer': self._LOGIN_URL,
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 418:
+                raise ExtractorError(
+                    'Unable to log in: bad username or password',
+                    expected=True)
+            raise ExtractorError('Unable to log in')
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword')
