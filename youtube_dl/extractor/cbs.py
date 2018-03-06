@@ -79,10 +79,13 @@ class CBSIE(CBSBaseIE):
                 tp_formats, tp_subtitles = self._extract_theplatform_smil(
                     update_url_query(tp_release_url, query), content_id,
                     'Downloading %s SMIL data' % asset_type)
+                formats.extend(tp_formats)
+                subtitles = self._merge_subtitles(subtitles, tp_subtitles)
             except ExtractorError:
+                print("WARNING: Failed to download %s SMTL data" % asset_type)
                 continue
-            formats.extend(tp_formats)
-            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+
+
         self._sort_formats(formats)
 
         info = self._extract_theplatform_metadata(tp_path, content_id)
