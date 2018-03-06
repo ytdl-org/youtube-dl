@@ -70,15 +70,18 @@ class CBSIE(CBSBaseIE):
                 'mbr': 'true',
                 'assetTypes': asset_type,
             }
-            if asset_type.startswith('HLS') or asset_type in ('OnceURL', 'StreamPack'):
+            if asset_type.startswith('HLS') or asset_type in ('StreamPack'):
                 query['formats'] = 'MPEG4,M3U'
             elif asset_type in ('RTMP', 'WIFI', '3G'):
                 query['formats'] = 'MPEG4,FLV'
+            else:
+                continue
             tp_formats, tp_subtitles = self._extract_theplatform_smil(
                 update_url_query(tp_release_url, query), content_id,
                 'Downloading %s SMIL data' % asset_type)
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+            
         self._sort_formats(formats)
 
         info = self._extract_theplatform_metadata(tp_path, content_id)
