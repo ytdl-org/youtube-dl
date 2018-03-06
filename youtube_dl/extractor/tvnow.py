@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     ExtractorError,
+    int_or_none,
     parse_iso8601,
     parse_duration,
     update_url_query,
@@ -16,8 +17,9 @@ from ..utils import (
 class TVNowBaseIE(InfoExtractor):
     _VIDEO_FIELDS = (
         'id', 'title', 'free', 'geoblocked', 'articleLong', 'articleShort',
-        'broadcastStartDate', 'isDrm', 'duration', 'manifest.dashclear',
-        'format.defaultImage169Format', 'format.defaultImage169Logo')
+        'broadcastStartDate', 'isDrm', 'duration', 'season', 'episode',
+        'manifest.dashclear', 'format.title', 'format.defaultImage169Format',
+        'format.defaultImage169Logo')
 
     def _call_api(self, path, video_id, query):
         return self._download_json(
@@ -66,6 +68,10 @@ class TVNowBaseIE(InfoExtractor):
             'thumbnail': thumbnail,
             'timestamp': timestamp,
             'duration': duration,
+            'series': f.get('title'),
+            'season_number': int_or_none(info.get('season')),
+            'episode_number': int_or_none(info.get('episode')),
+            'episode': title,
             'formats': formats,
         }
 
@@ -74,18 +80,21 @@ class TVNowIE(TVNowBaseIE):
     _VALID_URL = r'https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/(?:(?:list/[^/]+|jahr/\d{4}/\d{1,2})/)?(?P<id>[^/]+)/(?:player|preview)'
 
     _TESTS = [{
-        # rtl
-        'url': 'https://www.tvnow.de/rtl/alarm-fuer-cobra-11/freier-fall/player?return=/rtl',
+        'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/der-neue-porsche-911-gt-3/player',
         'info_dict': {
-            'id': '385314',
-            'display_id': 'alarm-fuer-cobra-11/freier-fall',
+            'id': '331082',
+            'display_id': 'grip-das-motormagazin/der-neue-porsche-911-gt-3',
             'ext': 'mp4',
-            'title': 'Freier Fall',
-            'description': 'md5:8c2d8f727261adf7e0dc18366124ca02',
+            'title': 'Der neue Porsche 911 GT 3',
+            'description': 'md5:6143220c661f9b0aae73b245e5d898bb',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'timestamp': 1512677700,
-            'upload_date': '20171207',
-            'duration': 2862.0,
+            'timestamp': 1495994400,
+            'upload_date': '20170528',
+            'duration': 5283,
+            'series': 'GRIP - Das Motormagazin',
+            'season_number': 14,
+            'episode_number': 405,
+            'episode': 'Der neue Porsche 911 GT 3',
         },
     }, {
         # rtl2
