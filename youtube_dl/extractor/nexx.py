@@ -21,7 +21,7 @@ class NexxIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         (?:
                             https?://api\.nexx(?:\.cloud|cdn\.com)/v3/(?P<domain_id>\d+)/videos/byid/|
-                            nexx:(?P<domain_id_s>\d+)?:|
+                            nexx:(?:(?P<domain_id_s>\d+):)?|
                             https?://arc\.nexx\.cloud/api/video/
                         )
                         (?P<id>\d+)
