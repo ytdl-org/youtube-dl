@@ -70,13 +70,11 @@ class HeiseIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_meta('fulltitle', webpage, default=None)
-        if not title or title == "c't":
+        title = self._og_search_title(webpage)
+        if not title:
             title = self._search_regex(
                 r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
                 webpage, 'title', default=None)
-        if not title:
-            title = self._og_search_title(webpage)
 
         yt_urls = YoutubeIE._extract_urls(webpage)
         if yt_urls:
