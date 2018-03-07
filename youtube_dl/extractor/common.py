@@ -1700,9 +1700,9 @@ class InfoExtractor(object):
             'Unable to download xspf manifest', fatal=fatal)
         if xspf is False:
             return []
-        return self._parse_xspf(xspf, playlist_id)
+        return self._parse_xspf(xspf, playlist_id, base_url(playlist_url))
 
-    def _parse_xspf(self, playlist, playlist_id):
+    def _parse_xspf(self, playlist, playlist_id, playlist_base_url=''):
         NS_MAP = {
             'xspf': 'http://xspf.org/ns/0/',
             's1': 'http://static.streamone.nl/player/ns/0',
@@ -1720,7 +1720,7 @@ class InfoExtractor(object):
                 xpath_text(track, xpath_with_ns('./xspf:duration', NS_MAP), 'duration'), 1000)
 
             formats = [{
-                'url': location.text,
+                'url': urljoin(playlist_base_url, location.text),
                 'format_id': location.get(xpath_with_ns('s1:label', NS_MAP)),
                 'width': int_or_none(location.get(xpath_with_ns('s1:width', NS_MAP))),
                 'height': int_or_none(location.get(xpath_with_ns('s1:height', NS_MAP))),
