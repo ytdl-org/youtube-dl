@@ -81,7 +81,6 @@ class CBSIE(CBSBaseIE):
                 'Downloading %s SMIL data' % asset_type)
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
-            
         self._sort_formats(formats)
 
         info = self._extract_theplatform_metadata(tp_path, content_id)
