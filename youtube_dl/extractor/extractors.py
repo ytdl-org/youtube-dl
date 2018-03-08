@@ -326,6 +326,7 @@ from .espn import (
     FiveThirtyEightIE,
 )
 from .esri import EsriVideoIE
+from .estream import EstreamIE
 from .etonline import ETOnlineIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
