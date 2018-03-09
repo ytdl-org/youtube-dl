@@ -116,11 +116,11 @@ class PornHubIE(InfoExtractor):
         video_id = self._match_id(url)
 
         def dl_webpage(platform):
+            self._set_cookie('pornhub.com', 'age_verified', '1')
+            self._set_cookie('pornhub.com', 'platform', platform)
             return self._download_webpage(
                 'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id,
-                video_id, headers={
-                    'Cookie': 'age_verified=1; platform=%s' % platform,
-                })
+                video_id)
 
         webpage = dl_webpage('pc')
 
