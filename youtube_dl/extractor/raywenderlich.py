@@ -75,7 +75,7 @@ class RayWenderlichIE(InfoExtractor):
             'Downloading playlist %s - add --no-playlist to just download video'
             % course_id)
 
-        lesson_ids = [lesson_id]
+        lesson_ids = set((lesson_id, ))
         for lesson in re.findall(
                 r'(<a[^>]+\bclass=["\']lesson-link[^>]+>)', webpage):
             attrs = extract_attributes(lesson)
@@ -88,10 +88,10 @@ class RayWenderlichIE(InfoExtractor):
                 r'/lessons/(\d+)', lesson_url, 'lesson id', default=None)
             if not lesson_id:
                 continue
-            lesson_ids.append(lesson_id)
+            lesson_ids.add(lesson_id)
 
         entries = []
-        for lesson_id in orderedSet(lesson_ids):
+        for lesson_id in sorted(lesson_ids):
             entries.append(self.url_result(
                 smuggle_url(urljoin(url, lesson_id), {'force_video': True}),
                 ie=RayWenderlichIE.ie_key()))
