@@ -298,7 +298,8 @@
  - **freespeech.org**
  - **FreshLive**
  - **Funimation**
- - **Funk**
+ - **FunkChannel**
+ - **FunkMix**
  - **FunnyOrDie**
  - **Fusion**
  - **Fux**
@@ -336,6 +337,7 @@
  - **HentaiStigma**
  - **hetklokhuis**
  - **hgtv.com:show**
+ - **HiDive**
  - **HistoricFilms**
  - **history:topic**: History.com Topic
  - **hitbox**
@@ -674,6 +676,7 @@
  - **RaiPlay**
  - **RaiPlayLive**
  - **RaiPlayPlaylist**
+ - **RayWenderlich**
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
@@ -934,7 +937,6 @@
  - **vice**
  - **vice:article**
  - **vice:show**
- - **Viceland**
  - **Vidbit**
  - **Viddler**
  - **Videa**
