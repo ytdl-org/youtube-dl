@@ -11,6 +11,13 @@ MANDIR ?= $(PREFIX)/man
 SHAREDIR ?= $(PREFIX)/share
 PYTHON ?= /usr/bin/env python
 
+COMPILE ?= no
+COMPILEFLAGS := -q
+# Write to legacy location for python >=3.2, instead of __pycache__
+ifneq ($(shell $(PYTHON) --version 2>&1 | grep '^Python 3\.[2-9]'),)
+COMPILEFLAGS += -b
+endif
+
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 SYSCONFDIR = $(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi)
 
@@ -62,7 +69,10 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	done
 	touch -t 200001010101 zip/youtube_dl/*.py zip/youtube_dl/*/*.py
 	mv zip/youtube_dl/__main__.py zip/
-	cd zip ; zip -q ../youtube-dl youtube_dl/*.py youtube_dl/*/*.py __main__.py
+	if [ "$(COMPILE)" = yes ] ; then \
+	  $(PYTHON) -m compileall $(COMPILEFLAGS) zip/ ;\
+	fi
+	cd zip ; zip -q ../youtube-dl youtube_dl/*.py* youtube_dl/*/*.py* __main__.py*
 	rm -rf zip
 	echo '#!$(PYTHON)' > youtube-dl
 	cat youtube-dl.zip >> youtube-dl
