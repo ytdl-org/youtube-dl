@@ -114,7 +114,7 @@ class PornHubIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        
+
         self._set_cookie('pornhub.com', 'age_verified', '1')
 
         def dl_webpage(platform):
