@@ -85,7 +85,6 @@ class CBSIE(CBSBaseIE):
                 print("WARNING: Failed to download %s SMTL data" % asset_type)
                 continue
 
-
         self._sort_formats(formats)
 
         info = self._extract_theplatform_metadata(tp_path, content_id)
