@@ -7,7 +7,6 @@ from .vimeo import VimeoIE
 from ..utils import (
     extract_attributes,
     ExtractorError,
-    orderedSet,
     smuggle_url,
     unsmuggle_url,
     urljoin,
