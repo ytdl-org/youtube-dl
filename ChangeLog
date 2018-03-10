@@ -1,3 +1,27 @@
+version 2018.03.10
+
+Core
+* [downloader/hls] Skip uplynk ad fragments (#15748)
+
+Extractors
+* [pornhub] Don't override session cookies (#15697)
++ [raywenderlich] Add support for videos.raywenderlich.com (#15251)
+* [funk] Fix extraction and rework extractors (#15792)
+* [nexx] Restore reverse engineered approach
++ [heise] Add support for kaltura embeds (#14961, #15728)
++ [tvnow] Extract series metadata (#15774)
+* [ruutu] Continue formats extraction on NOT-USED URLs (#15775)
+* [vrtnu] Use redirect URL for building video JSON URL (#15767, #15769)
+* [vimeo] Modernize login code and improve error messaging
+* [archiveorg] Fix extraction (#15770, #15772)
++ [hidive] Add support for hidive.com (#15494)
+* [afreecatv] Detect deleted videos
+* [afreecatv] Fix extraction (#15755)
+* [vice] Fix extraction and rework extractors (#11101, #13019, #13622, #13778)
++ [vidzi] Add support for vidzi.si (#15751)
+* [npo] Fix typo
+
+
 version 2018.03.03
 
 Core
