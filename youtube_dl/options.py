@@ -853,6 +853,14 @@ def parseOpts(overrideArguments=None):
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
         help='Convert the subtitles to other format (currently supported: srt|ass|vtt|lrc)')
+    postproc.add_option(
+        '--start-time',
+        metavar='TIME', dest='starttime', default=None,
+        help='Cuts the video/audio starting at start-time')
+    postproc.add_option(
+        '--end-time',
+        metavar='TIME', dest='endtime', default=None,
+        help='Cuts the vidoe/audio up to end-time')
 
     parser.add_option_group(general)
     parser.add_option_group(network)

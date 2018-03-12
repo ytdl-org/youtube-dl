@@ -283,6 +283,13 @@ def _real_main(argv=None):
         postprocessors.append({
             'key': 'FFmpegEmbedSubtitle',
         })
+    if opts.starttime or opts.endtime:
+        d = {'key': 'FFmpegCutVideo'}
+        if opts.starttime:
+            d['startTime'] = int(opts.starttime)
+        if opts.endtime:
+            d['endTime'] = int(opts.endtime)
+        postprocessors.append(d)
     if opts.embedthumbnail:
         already_have_thumbnail = opts.writethumbnail or opts.write_all_thumbnails
         postprocessors.append({
