@@ -182,3 +182,43 @@ class TVNowListIE(TVNowBaseIE):
 
         return self.playlist_result(
             entries, compat_str(season.get('id') or season_id), title)
+
+
+class TVNowListChannelIE(TVNowBaseIE):
+    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+))$'
+
+    _SHOW_FIELDS = ('id', 'title', )
+    _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
+
+    _TESTS = [{
+        'url': 'https://www.tvnow.at/vox/ab-ins-beet',
+        'info_dict': {
+            'id': '172',
+            'title': 'Ab ins Beet!',
+        },
+        'playlist_mincount': 1,
+    }]
+
+    def _real_extract(self, url):
+        base_url, show_id = re.match(self._VALID_URL, url).groups()
+
+        fields = []
+        fields.extend(self._SHOW_FIELDS)
+        fields.extend('formatTabs.%s' % field for field in self._SEASON_FIELDS)
+
+        list_info = self._call_api(
+            'formats/seo', show_id, query={
+                'fields': ','.join(fields),
+                'name': show_id + '.php'
+            })
+
+        entries = []
+        for season_info in list_info['formatTabs']['items']:
+            season_url = season_info.get('seoheadline')
+            if not season_url:
+                continue
+            entries.append(self.url_result(
+                base_url + "/list/" + season_url, 'TVNowList', compat_str(season_info.get('id')), season_info.get('headline')))
+
+        return self.playlist_result(
+            entries, compat_str(list_info['id']), compat_str(list_info['title'] or show_id))
