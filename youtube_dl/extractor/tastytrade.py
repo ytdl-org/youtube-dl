@@ -2,12 +2,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from .ooyala import OoyalaIE
-from youtube_dl.utils import (
-    ExtractorError,
-)
 
-import json
-import re
 import sys
 
 
@@ -56,22 +51,28 @@ class TastyTradeIE(InfoExtractor):
 
         info = {'id': None, 'title': None, 'description': None}
 
-        try:
-            info = self._search_json_ld(webpage, display_id, fatal=False)
-        except ExtractorError as ex:
-            json_string_match = re.search(
-                r'var episodeData = \$.parseJSON\("(?P<episode_json>.*)"\)', webpage, 0)
+        json_ld_info = self._search_json_ld(
+            webpage, display_id, default=None, fatal=False)
 
-            if (json_string_match):
-                escaped_json_string = json_string_match.group('episode_json')
+        if (json_ld_info):
+            info = json_ld_info
+        else:
+            escaped_json_string = self._search_regex(
+                r'var episodeData = \$.parseJSON\("(?P<episode_json>.*)"\)',
+                webpage,
+                'episode json',
+                fatal=False,
+                group='episode_json'
+            )
 
+            if (escaped_json_string):
                 if sys.version_info[0] >= 3:
                     unescaped_json_string = bytes(
                         escaped_json_string, "utf-8").decode('unicode_escape')
                 else:
                     unescaped_json_string = escaped_json_string.decode(
                         'string_escape')
-                metadata = json.loads(unescaped_json_string)
+                metadata = self._parse_json(unescaped_json_string, ooyala_code)
                 info = {
                     'id': metadata.get('mediaId'),
                     'title': metadata.get('title'),
