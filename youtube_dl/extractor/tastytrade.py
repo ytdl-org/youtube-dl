@@ -12,7 +12,7 @@ import sys
 
 
 class TastyTradeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tastytrade\.com/tt/(shows|daily_recaps)/[^/]+/episodes/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?tastytrade\.com/tt/(?:shows|daily_recaps)/[^/]+/episodes/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'https://www.tastytrade.com/tt/shows/market-measures/episodes/correlation-in-short-volatility-06-28-2017',
