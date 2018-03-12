@@ -178,7 +178,7 @@ class TVNowListIE(TVNowBaseIE):
                 if not seo_url:
                     continue
                 entries.append(self.url_result(
-                    base_url + seo_url + '/player', 'TVNow', info.get('id')))
+                    base_url + seo_url + '/player', 'TVNow', compat_str(info.get('id'))))
 
         return self.playlist_result(
             entries, compat_str(season.get('id') or season_id), title)
