@@ -215,6 +215,59 @@ class FFmpegPostProcessor(PostProcessor):
         return 'file:' + fn if fn != '-' else fn
 
 
+class FFmpegCutVideoPP(FFmpegPostProcessor):
+    def __init__(self, downloader=None, startTime=0, endTime=None):
+        FFmpegPostProcessor.__init__(self, downloader)
+        self._startTime = startTime
+        self._endTime = endTime
+
+    def toTime(self, seconds):
+        m, s = divmod(seconds, 60)
+        h, m = divmod(m, 60)
+        return "%d:%02d:%02d" % (h, m, s)
+
+    def run(self, information):
+        if not self._startTime and not self._endTime:
+            self._downloader.to_screen('[ffmpeg] No startTime or endTime. Keeping original')
+            return [], information
+
+        if self._endTime <= self._startTime:
+            raise PostProcessingError("WARNING: endTime smaller than startTime")
+
+        duration = information['duration']
+        if self._endTime and self._endTime > duration:
+            self._downloader.to_screen('WARNING: endTime greater than video duration')
+            self._endTime = None
+
+        options = ['-c', 'copy']
+        message = '[ffmpeg] Cutting video  '
+
+        if self._startTime:
+            start = self.toTime(self._startTime)
+            options.extend(['-ss', start])
+            message += 'from %s ' % (start)
+            duration -= self._startTime
+
+        if self._endTime and self._endTime < duration:
+            end = self.toTime(self._endTime)
+            options.extend(['-to', end])
+            message += 'to %s' % (end)
+            duration -= self._endTime
+
+        if '-to' not in options and '-ss' not in options:
+            self._downloader.to_screen('[ffmpeg] Nothing to cut. Keeping original')
+            return [], information
+
+        path = information['filepath']
+        temp_filename = prepend_extension(path, 'temp')
+        self._downloader.to_screen(message)
+        information['duration'] = duration
+        self.run_ffmpeg(path, temp_filename, options)
+        os.remove(encodeFilename(path))
+        os.rename(encodeFilename(temp_filename), encodeFilename(path))
+        return [], information
+
+
 class FFmpegExtractAudioPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
         FFmpegPostProcessor.__init__(self, downloader)

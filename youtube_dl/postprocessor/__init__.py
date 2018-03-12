@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from .embedthumbnail import EmbedThumbnailPP
 from .ffmpeg import (
     FFmpegPostProcessor,
+    FFmpegCutVideoPP,
     FFmpegEmbedSubtitlePP,
     FFmpegExtractAudioPP,
     FFmpegFixupStretchedPP,
@@ -26,6 +27,7 @@ __all__ = [
     'EmbedThumbnailPP',
     'ExecAfterDownloadPP',
     'FFmpegEmbedSubtitlePP',
+    'FFmpegCutVideoPP',
     'FFmpegExtractAudioPP',
     'FFmpegFixupM3u8PP',
     'FFmpegFixupM4aPP',
