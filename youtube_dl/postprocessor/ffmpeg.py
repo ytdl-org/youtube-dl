@@ -221,6 +221,11 @@ class FFmpegCutVideoPP(FFmpegPostProcessor):
         self._startTime = startTime
         self._endTime = endTime
 
+        if self._endTime and self._endTime <= self._startTime:
+            raise PostProcessingError("end time smaller or equal to the start time")
+        if self._endTime == 0:
+            raise PostProcessingError("end time can't be zero")
+
     def toTime(self, seconds):
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
@@ -231,16 +236,10 @@ class FFmpegCutVideoPP(FFmpegPostProcessor):
             self._downloader.to_screen('[ffmpeg] No start time or end time. Keeping original')
             return [], information
 
-        if self._endTime and self._endTime <= self._startTime:
-            raise PostProcessingError("end time smaller or equal to the start time")
-
-        if self._endTime == 0:
-            raise PostProcessingError("end time can't be zero")
-
         duration = information.get('duration')
 
         if self._endTime and duration and self._endTime >= duration:
-            self._downloader.to_screen('WARNING: end time greater than video duration')
+            self._downloader.to_screen('WARNING: end time greater or equal to duration')
             self._endTime = None
 
         options = ['-c', 'copy']
@@ -258,7 +257,7 @@ class FFmpegCutVideoPP(FFmpegPostProcessor):
             options.extend(['-to', end])
             message += 'to %s' % (end)
             if duration:
-                duration -= self._endTime
+                duration = self._endTime - (duration - self._endTime)
 
         if '-to' not in options and '-ss' not in options:
             self._downloader.to_screen('[ffmpeg] Nothing to cut. Keeping original')
