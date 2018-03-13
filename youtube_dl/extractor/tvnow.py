@@ -26,6 +26,24 @@ class TVNowBaseIE(InfoExtractor):
             'https://api.tvnow.de/v3/' + path,
             video_id, query=query)
 
+    def _extend_query(self, show, season, video=None):
+        fields = []
+        fields.extend(show)
+        fields.extend('formatTabs.%s' % field for field in season)
+        if video:
+            fields.extend(
+                'formatTabs.formatTabPages.container.movies.%s' % field
+                for field in video)
+
+        return fields
+
+    def _tvnow_list_info(self, list_id, show_id, fields):
+        return self._call_api(
+            'formats/seo', list_id, query={
+                'fields': ','.join(fields),
+                'name': show_id + '.php'
+            })
+
     def _extract_video(self, info, display_id):
         video_id = compat_str(info['id'])
         title = info['title']
@@ -152,18 +170,8 @@ class TVNowListIE(TVNowBaseIE):
     def _real_extract(self, url):
         base_url, show_id, season_id = re.match(self._VALID_URL, url).groups()
 
-        fields = []
-        fields.extend(self._SHOW_FIELDS)
-        fields.extend('formatTabs.%s' % field for field in self._SEASON_FIELDS)
-        fields.extend(
-            'formatTabs.formatTabPages.container.movies.%s' % field
-            for field in self._VIDEO_FIELDS)
-
-        list_info = self._call_api(
-            'formats/seo', season_id, query={
-                'fields': ','.join(fields),
-                'name': show_id + '.php'
-            })
+        fields = self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS, self._VIDEO_FIELDS)
+        list_info = self._tvnow_list_info(season_id, show_id, fields)
 
         season = next(
             season for season in list_info['formatTabs']['items']
@@ -185,7 +193,7 @@ class TVNowListIE(TVNowBaseIE):
 
 
 class TVNowListChannelIE(TVNowBaseIE):
-    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+))$'
+    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+))'
 
     _SHOW_FIELDS = ('id', 'title', )
     _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
@@ -193,7 +201,7 @@ class TVNowListChannelIE(TVNowBaseIE):
     _TESTS = [{
         'url': 'https://www.tvnow.at/vox/ab-ins-beet',
         'info_dict': {
-            'id': '172',
+            'id': 172,
             'title': 'Ab ins Beet!',
         },
         'playlist_mincount': 1,
@@ -202,15 +210,8 @@ class TVNowListChannelIE(TVNowBaseIE):
     def _real_extract(self, url):
         base_url, show_id = re.match(self._VALID_URL, url).groups()
 
-        fields = []
-        fields.extend(self._SHOW_FIELDS)
-        fields.extend('formatTabs.%s' % field for field in self._SEASON_FIELDS)
-
-        list_info = self._call_api(
-            'formats/seo', show_id, query={
-                'fields': ','.join(fields),
-                'name': show_id + '.php'
-            })
+        fields = self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS, self._VIDEO_FIELDS)
+        list_info = self._tvnow_list_info(show_id, show_id, fields)
 
         entries = []
         for season_info in list_info['formatTabs']['items']:
@@ -221,4 +222,4 @@ class TVNowListChannelIE(TVNowBaseIE):
                 base_url + "/list/" + season_url, 'TVNowList', compat_str(season_info.get('id')), season_info.get('headline')))
 
         return self.playlist_result(
-            entries, compat_str(list_info['id']), compat_str(list_info['title'] or show_id))
+            entries, list_info['id'], list_info['title'])
