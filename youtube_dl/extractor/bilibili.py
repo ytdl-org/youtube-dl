@@ -94,6 +94,7 @@ class BiliBiliIE(InfoExtractor):
         if 'anime/' not in url:
             cid = compat_parse_qs(self._search_regex(
                 [r'EmbedPlayer\([^)]+,[^)]+,\s*\\"([^"]+)\\"\)',
+                 r'EmbedPlayer\([^)]+,[^)]+,\s*"([^"]+)"\)',
                  r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
                 webpage, 'player parameters'))['cid'][0]
         else:
