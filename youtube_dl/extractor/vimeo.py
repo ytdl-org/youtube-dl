@@ -27,6 +27,7 @@ from ..utils import (
     urlencode_postdata,
     unescapeHTML,
     parse_filesize,
+    xpath_text,
 )
 
 
@@ -833,9 +834,16 @@ class VimeoAlbumIE(VimeoChannelIE):
         'url': 'https://vimeo.com/album/2632481',
         'info_dict': {
             'id': '2632481',
-            'title': 'Staff Favorites: November 2013',
+            'title': 'Vimeo / Staff Favorites: November 2013',
         },
         'playlist_mincount': 13,
+    }, {
+        'url': 'https://vimeo.com/album/4786409',
+        'info_dict': {
+            'id': '4786409',
+            'title': 'Vimeo / NSSpain 2017',
+        },
+        'playlist_mincount': 25,
     }, {
         'note': 'Password-protected album',
         'url': 'https://vimeo.com/album/3253534',
@@ -861,7 +869,34 @@ class VimeoAlbumIE(VimeoChannelIE):
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
-        return self._extract_videos(album_id, 'https://vimeo.com/album/%s' % album_id)
+        rss_url = url + '/rss'
+
+        doc = self._download_xml(rss_url, album_id, fatal=True)
+
+        playlist_title = doc.find('./channel/title').text
+        playlist_desc_el = doc.find('./channel/description')
+        playlist_desc = None if playlist_desc_el is None else playlist_desc_el.text
+
+        entries = []
+        for it in doc.findall('./channel/item'):
+            next_title = it.find('title').text
+            next_url = xpath_text(it, 'link', fatal=False)
+            if not next_url:
+                continue
+
+            entries.append({
+                '_type': 'url_transparent',
+                'url': next_url,
+                'title': next_title,
+            })
+
+        return {
+            '_type': 'playlist',
+            'id': album_id,
+            'title': playlist_title,
+            'description': playlist_desc,
+            'entries': entries,
+        }
 
 
 class VimeoGroupsIE(VimeoAlbumIE):
