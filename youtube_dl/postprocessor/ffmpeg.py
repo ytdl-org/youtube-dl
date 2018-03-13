@@ -190,6 +190,7 @@ class FFmpegPostProcessor(PostProcessor):
                 encodeFilename(self._ffmpeg_filename_argument(path), True)
             ])
         cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
+               ['-loglevel', 'repeat+info'] +
                files_cmd +
                [encodeArgument(o) for o in opts] +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
@@ -379,6 +380,8 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # Don't copy the existing subtitles, we may be running the
             # postprocessor a second time
             '-map', '-0:s',
+            # Don't copy Apple TV subtitles format, bin_data
+            '-map', '-0:d',
         ]
         if information['ext'] == 'mp4':
             opts += ['-c:s', 'mov_text']
