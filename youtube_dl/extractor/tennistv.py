@@ -104,7 +104,6 @@ class TennisTVIE(InfoExtractor):
             'title': title,
             'description': description,
             'formats': formats,
-            'timestamp': timestamp,
             'thumbnail': thumbnail,
             'timestamp': timestamp,
             'series': series,
