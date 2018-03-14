@@ -193,7 +193,7 @@ class TVNowListIE(TVNowBaseIE):
 
 
 class TVNowListChannelIE(TVNowBaseIE):
-    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+))'
+    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)$)'
 
     _SHOW_FIELDS = ('id', 'title', )
     _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
