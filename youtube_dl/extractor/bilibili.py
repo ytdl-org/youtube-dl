@@ -93,7 +93,8 @@ class BiliBiliIE(InfoExtractor):
 
         if 'anime/' not in url:
             cid = compat_parse_qs(self._search_regex(
-                [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
+                [r'EmbedPlayer\([^)]+,[^)]+,\s*\\"([^"]+)\\"\)',
+                 r'EmbedPlayer\([^)]+,[^)]+,\s*"([^"]+)"\)',
                  r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
                 webpage, 'player parameters'))['cid'][0]
         else:
@@ -114,7 +115,9 @@ class BiliBiliIE(InfoExtractor):
                 self._report_error(js)
             cid = js['result']['cid']
 
-        payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
+
+        # payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
+        payload = 'appkey=%s&cid=%s&otype=json&qn=0&quality=0&type=' % (self._APP_KEY, cid)
         sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
 
         headers = {
@@ -123,7 +126,7 @@ class BiliBiliIE(InfoExtractor):
         headers.update(self.geo_verification_headers())
 
         video_info = self._download_json(
-            'http://interface.bilibili.com/playurl?%s&sign=%s' % (payload, sign),
+            'http://interface.bilibili.com/v2/playurl?%s&sign=%s' % (payload, sign),
             video_id, note='Downloading video info page',
             headers=headers)
 
@@ -157,7 +160,7 @@ class BiliBiliIE(InfoExtractor):
                 'formats': formats,
             })
 
-        title = self._html_search_regex('<h1[^>]*>([^<]+)</h1>', webpage, 'title')
+        title = self._html_search_regex('<title[^>]*>([^<]+)</title>', webpage, 'title')
         description = self._html_search_meta('description', webpage)
         timestamp = unified_timestamp(self._html_search_regex(
             r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time', default=None))
