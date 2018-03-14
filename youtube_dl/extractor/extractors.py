@@ -885,6 +885,7 @@ from .rentv import (
     RENTVIE,
     RENTVArticleIE,
 )
+from .requestforcomments import RequestForCommentsIE
 from .restudy import RestudyIE
 from .reuters import ReutersIE
 from .reverbnation import ReverbNationIE
