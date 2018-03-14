@@ -40,7 +40,7 @@ class TennisTVIE(InfoExtractor):
             'Email': username,
             'Password': password,
         }
-        login_json = json.dumps(login_form)
+        login_json = json.dumps(login_form).encode('utf-8')
         headers = {
             'content-type': 'application/json',
             'Referer': 'https://www.tennistv.com/login',
@@ -81,7 +81,7 @@ class TennisTVIE(InfoExtractor):
             'videoID': internal_id,
             'VideoUrlType': 'HLSV3',
         }
-        check_json = json.dumps(check_data)
+        check_json = json.dumps(check_data).encode('utf-8')
         check_result = self._download_json(
             'https://www.tennistv.com/api/users/v1/entitlementchecknondiva',
             video_id, note='Checking video authorization', headers=headers, data=check_json)

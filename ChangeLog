@@ -2,7 +2,7 @@ version <unreleased>
 
 Extractors
 + [line] Add support for tv.line.me (#9427)
-
++ [tennistv] Add support for tennistv.com
 
 version 2018.03.10
 
