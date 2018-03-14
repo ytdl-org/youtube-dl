@@ -178,7 +178,7 @@ class MetaebeneIE(InfoExtractor):
 
         # The "Die Gesellschafter" series is discontinued and the description can't be extracted easily.
         # This is a workaround to suppress the warning and thus make it testable and avoid bug reports.
-        if re.match(r'https?://(?:www\.)?diegesellschafter.metaebene.me/(?P<id>[^-]+)[^\s]*', url):
+        if re.match(r'https?://(?:www\.)?diegesellschafter.metaebene.me[^\s]*', url):
             description = None
         else:
             description = self._og_search_description(webpage)
