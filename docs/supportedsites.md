@@ -427,6 +427,7 @@
  - **limelight**
  - **limelight:channel**
  - **limelight:channel_list**
+ - **LineTV**
  - **LiTV**
  - **LiveLeak**
  - **LiveLeakEmbed**
@@ -829,6 +830,7 @@
  - **TeleQuebecLive**
  - **TeleTask**
  - **Telewebion**
+ - **TennisTV**
  - **TF1**
  - **TFO**
  - **TheIntercept**
