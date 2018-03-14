@@ -1292,6 +1292,7 @@ from .vrv import (
 )
 from .vshare import VShareIE
 from .medialaan import MedialaanIE
+from .metaebene import MetaebeneIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vvvvid import VVVVIDIE
