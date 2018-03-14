@@ -1235,6 +1235,7 @@ from .vidme import (
     VidmeUserIE,
     VidmeUserLikesIE,
 )
+from .vidtodo import VidtodoIE
 from .vidzi import VidziIE
 from .vier import VierIE, VierVideosIE
 from .viewlift import (
