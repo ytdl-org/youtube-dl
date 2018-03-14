@@ -34,10 +34,7 @@ class VidtodoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Watch 343291981 mp4',
         },
-    }, {
-        'url': 'https://vidtodo.com/embed-4c8rx0tt8ek4.html',
-        'only_matching': True,
-    }]
+    },]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
