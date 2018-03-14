@@ -1,8 +1,12 @@
 version <unreleased>
 
 Extractors
-+ [line] Add support for tv.line.me (#9427)
+* [soundcloud] Update client id (#15866)
 + [tennistv] Add support for tennistv.com
++ [line] Add support for tv.line.me (#9427)
+* [xnxx] Fix extraction (#15817)
+* [njpwworld] Fix authentication (#15815)
+
 
 version 2018.03.10
 
