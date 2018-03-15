@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-import itertools
+import json
 import re
 
 from .common import InfoExtractor
@@ -238,70 +238,58 @@ class InstagramUserIE(InfoExtractor):
     }
 
     def _entries(self, uploader_id):
-        query = {
-            '__a': 1,
-        }
-
-        def get_count(kind):
+        def get_count(suffix):
             return int_or_none(try_get(
-                node, lambda x: x['%ss' % kind]['count']))
+                node, lambda x: x['edge_media_' + suffix]['count']))
 
-        for page_num in itertools.count(1):
-            page = self._download_json(
-                'https://instagram.com/%s/' % uploader_id, uploader_id,
-                note='Downloading page %d' % page_num,
-                fatal=False, query=query)
-            if not page:
-                break
-
-            nodes = try_get(page, lambda x: x['user']['media']['nodes'], list)
-            if not nodes:
-                break
-
-            max_id = None
-
-            for node in nodes:
-                node_id = node.get('id')
-                if node_id:
-                    max_id = node_id
-
-                if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
-                    continue
-                video_id = node.get('code')
-                if not video_id:
-                    continue
-
-                info = self.url_result(
-                    'https://instagram.com/p/%s/' % video_id,
-                    ie=InstagramIE.ie_key(), video_id=video_id)
-
-                description = try_get(
-                    node, [lambda x: x['caption'], lambda x: x['text']['id']],
-                    compat_str)
-                thumbnail = node.get('thumbnail_src') or node.get('display_src')
-                timestamp = int_or_none(node.get('date'))
-
-                comment_count = get_count('comment')
-                like_count = get_count('like')
-                view_count = int_or_none(node.get('video_views'))
-
-                info.update({
-                    'description': description,
-                    'thumbnail': thumbnail,
-                    'timestamp': timestamp,
-                    'comment_count': comment_count,
-                    'like_count': like_count,
-                    'view_count': view_count,
+        edges = self._download_json(
+            'https://www.instagram.com/graphql/query/', uploader_id, query={
+                'query_hash': '472f257a40c653c64c666ce877d59d2b',
+                'variables': json.dumps({
+                    'id': uploader_id,
+                    'first': 999999999,
                 })
+            })['data']['user']['edge_owner_to_timeline_media']['edges']
 
-                yield info
+        for edge in edges:
+            node = edge['node']
 
-            if not max_id:
-                break
+            if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
+                continue
+            video_id = node.get('shortcode')
+            if not video_id:
+                continue
 
-            query['max_id'] = max_id
+            info = self.url_result(
+                'https://instagram.com/p/%s/' % video_id,
+                ie=InstagramIE.ie_key(), video_id=video_id)
+
+            description = try_get(
+                node, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
+                compat_str)
+            thumbnail = node.get('thumbnail_src') or node.get('display_src')
+            timestamp = int_or_none(node.get('taken_at_timestamp'))
+
+            comment_count = get_count('to_comment')
+            like_count = get_count('preview_like')
+            view_count = int_or_none(node.get('video_view_count'))
+
+            info.update({
+                'description': description,
+                'thumbnail': thumbnail,
+                'timestamp': timestamp,
+                'comment_count': comment_count,
+                'like_count': like_count,
+                'view_count': view_count,
+            })
+
+            yield info
 
     def _real_extract(self, url):
-        uploader_id = self._match_id(url)
+        username = self._match_id(url)
+        uploader_id = self._download_json(
+            'https://instagram.com/%s/' % username, username, query={
+                '__a': 1,
+            })['graphql']['user']['id']
         return self.playlist_result(
-            self._entries(uploader_id), uploader_id, uploader_id)
+            self._entries(uploader_id), username, username)
