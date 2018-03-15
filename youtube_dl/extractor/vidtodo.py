@@ -5,70 +5,64 @@ import re
 from .common import InfoExtractor
 
 from ..utils import (
-    determine_ext,
     decode_packed_codes,
-    std_headers,
     ExtractorError,
+    js_to_json,
 )
-
-
-def xpro(encoded_url):
-    decoded_url = ''
-    alphabet = 'abcdefghijklmnopqrstuvwxyz'
-    betalpha = 'nopqrstuvwxyzabcdefghijklm'
-    for char in encoded_url:
-        if char.isalpha():
-            decoded_url += alphabet[betalpha.find(char)]
-        else:
-            decoded_url += char
-    return decoded_url
 
 
 class VidtodoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?(vidtod|vidtodo).me/(?:embed-)?(?P<id>\w+)'
     _TESTS = [{
         'url': 'https://vidtodo.me/4c8rx0tt8ek4',
-        'md5': '10a0195a5855df8050bd2a0d6692f7c5',
+        'md5': 'cfd8415e586d59a4de942757eeb7145f',
         'info_dict': {
             'id': '4c8rx0tt8ek4',
             'ext': 'mp4',
             'title': 'Watch 343291981 mp4',
         },
-    },]
+    }, ]
+    _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
+
+    @staticmethod
+    def xpro(encoded_url):
+        decoded_url = ''
+        alphabet = 'abcdefghijklmnopqrstuvwxyz'
+        betalpha = 'nopqrstuvwxyzabcdefghijklm'
+        for char in encoded_url:
+            if char.isalpha():
+                decoded_url += alphabet[betalpha.find(char)]
+            else:
+                decoded_url += char
+        return decoded_url
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        std_headers['referer'] = 'https://rg3.github.io/youtube-dl/'
-        webpage = self._download_webpage('http://vidtod.me/%s' % video_id, video_id, headers=std_headers)
+        headers = {
+            'User-Agent': self._USER_AGENT,
+            'Connection': 'keep-alive',
+            'referer': 'https://vidtodo.com',
+        }
+
+        webpage = self._download_webpage('http://vidtod.me/%s' % video_id, video_id, headers=headers)
 
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
-        data = re.search(r"}\('.+.split\('\|'\)", webpage).group(0)
-
+        data = re.search(r"}\('.+\.split\('\|'\)", webpage).group(0)
         if data:
             codes = decode_packed_codes(data)
         else:
             raise ExtractorError('File not found', expected=True, video_id=video_id)
 
-        source = re.search(r'\.setup\((.+?\],image:.+?\")', codes).group(1) + '}'
-        source_keys = ['sources', 'file', 'label', 'image']
-        for key_ in source_keys:
-            source = source.replace(key_, '"' + key_ + '"')
-        source = eval(source)
+        source = self._search_regex(r'setup\(([^)].+\.jpg\")', codes, 'jwplayer data', fatal=False) + '}'
+        encoded_url = self._search_regex(r'xpro\((.+?)\)', source, 'encoded url', fatal=False)
+        if encoded_url:
+            source = source.replace('xpro(' + encoded_url + ')', self.xpro(encoded_url))
 
-        formats = []
-        for format_ in source['sources']:
-            ext = determine_ext(format_['file'], default_ext=None)
-            formats.append({
-                'url': format_['file'],
-                'ext': ext or 'mp4',
-                'resolution': format_['label']
-            })
+        jwplayer_data = self._parse_json(source, video_id, transform_source=js_to_json)
 
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': source['image'],
-            'formats': formats,
-        }
+        info_dict = self._parse_jwplayer_data(jwplayer_data, video_id, require_title=False)
+        info_dict['title'] = title
+
+        return info_dict
