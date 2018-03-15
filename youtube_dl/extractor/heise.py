@@ -17,16 +17,14 @@ class HeiseIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
     _TESTS = [{
         'url': 'http://www.heise.de/video/artikel/Podcast-c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2404147.html',
-        'md5': 'ffed432483e922e88545ad9f2f15d30e',
+        'md5': '0b0c0bc1e960d188982b2491ec2d7e76',
         'info_dict': {
-            'id': '2404147',
+            'id': '1_kkrq94sm',
             'ext': 'mp4',
-            'title': "Podcast: c't uplink 3.3 – Owncloud / Tastaturen / Peilsender Smartphone",
-            'format_id': 'mp4_720p',
-            'timestamp': 1411812600,
-            'upload_date': '20140927',
-            'description': 'md5:c934cbfb326c669c2bcabcbe3d3fcd20',
-            'thumbnail': r're:^https?://.*/gallery/$',
+            'title': "ct uplink 33",
+            'format_id': 'mp4-2957',
+            'timestamp': 1512734959,
+            'upload_date': '20171208',
         }
     }, {
         # YouTube embed
@@ -72,11 +70,11 @@ class HeiseIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_meta('fulltitle', webpage, default=None)
-        if not title or title == "c't":
+        title = self._og_search_title(webpage)
+        if not title:
             title = self._search_regex(
                 r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
-                webpage, 'title')
+                webpage, 'title', default=None)
 
         yt_urls = YoutubeIE._extract_urls(webpage)
         if yt_urls:
