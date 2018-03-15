@@ -27,13 +27,12 @@ class BiliBiliIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
-        'md5': '9fa226fe2b8a9a4d5a69b4c6a183417e',
         'info_dict': {
             'id': '1074402',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': '【金坷垃】金泡沫',
             'description': 'md5:ce18c2a2d2193f0df2917d270f2e5923',
-            'duration': 308.315,
+            'duration': 308.067,
             'timestamp': 1398012660,
             'upload_date': '20140420',
             'thumbnail': r're:^https?://.+\.jpg',
@@ -46,10 +45,9 @@ class BiliBiliIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://bangumi.bilibili.com/anime/5802/play#100643',
-        'md5': '3f721ad1e75030cc06faf73587cfec57',
         'info_dict': {
             'id': '100643',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'CHAOS;CHILD',
             'description': '如果你是神明，并且能够让妄想成为现实。那你会进行怎么样的妄想？是淫靡的世界？独裁社会？毁灭性的制裁？还是……2015年，涩谷。从6年前发生的大灾害“涩谷地震”之后复兴了的这个街区里新设立的私立高中...',
         },
@@ -59,7 +57,7 @@ class BiliBiliIE(InfoExtractor):
         'url': 'http://www.bilibili.com/video/av8903802/',
         'info_dict': {
             'id': '8903802',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': '阿滴英文｜英文歌分享#6 "Closer',
             'description': '滴妹今天唱Closer給你聽! 有史以来，被推最多次也是最久的歌曲，其实歌词跟我原本想像差蛮多的，不过还是好听！ 微博@阿滴英文',
             'uploader': '阿滴英文',
@@ -114,7 +112,7 @@ class BiliBiliIE(InfoExtractor):
                 self._report_error(js)
             cid = js['result']['cid']
 
-        payload = 'appkey=%s&cid=%s&otype=json&quality=2&type=mp4' % (self._APP_KEY, cid)
+        payload = 'appkey=%s&cid=%s&otype=json&quality=0&type=flv' % (self._APP_KEY, cid)
         sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
 
         headers = {
