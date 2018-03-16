@@ -109,16 +109,22 @@ class QQMusicIE(InfoExtractor):
 
         guid = self.m_r_get_ruin()
 
-        vkey = self._download_json(
+        vkeyinfo = self._download_json(
             'http://base.music.qq.com/fcgi-bin/fcg_musicexpress.fcg?json=3&guid=%s' % guid,
             mid, note='Retrieve vkey', errnote='Unable to get vkey',
-            transform_source=strip_jsonp)['key']
+            transform_source=strip_jsonp)
+
+        try:
+            vkey = vkeyinfo['key']
+            durl = vkeyinfo['sip'][0]
+        except:
+            return {}
 
         formats = []
         for format_id, details in self._FORMATS.items():
             formats.append({
-                'url': 'http://cc.stream.qqmusic.qq.com/%s%s.%s?vkey=%s&guid=%s&fromtag=0'
-                       % (details['prefix'], mid, details['ext'], vkey, guid),
+                'url': '%s%s%s.%s?vkey=%s&guid=%s'
+                       % (durl, details['prefix'], mid, details['ext'], vkey, guid),
                 'format': format_id,
                 'format_id': format_id,
                 'preference': details['preference'],
