@@ -1706,22 +1706,24 @@ class InfoExtractor(object):
             })
         return subtitles
 
-    def _extract_xspf_playlist(self, playlist_url, playlist_id, fatal=True):
+    def _extract_xspf_playlist(self, xspf_url, playlist_id, fatal=True):
         xspf = self._download_xml(
-            playlist_url, playlist_id, 'Downloading xpsf playlist',
+            xspf_url, playlist_id, 'Downloading xpsf playlist',
             'Unable to download xspf manifest', fatal=fatal)
         if xspf is False:
             return []
-        return self._parse_xspf(xspf, playlist_id, base_url(playlist_url))
+        return self._parse_xspf(
+            xspf, playlist_id, xspf_url=xspf_url,
+            xspf_base_url=base_url(xspf_url))
 
-    def _parse_xspf(self, playlist, playlist_id, playlist_base_url=''):
+    def _parse_xspf(self, xspf_doc, playlist_id, xspf_url=None, xspf_base_url=None):
         NS_MAP = {
             'xspf': 'http://xspf.org/ns/0/',
             's1': 'http://static.streamone.nl/player/ns/0',
         }
 
         entries = []
-        for track in playlist.findall(xpath_with_ns('./xspf:trackList/xspf:track', NS_MAP)):
+        for track in xspf_doc.findall(xpath_with_ns('./xspf:trackList/xspf:track', NS_MAP)):
             title = xpath_text(
                 track, xpath_with_ns('./xspf:title', NS_MAP), 'title', default=playlist_id)
             description = xpath_text(
@@ -1731,12 +1733,18 @@ class InfoExtractor(object):
             duration = float_or_none(
                 xpath_text(track, xpath_with_ns('./xspf:duration', NS_MAP), 'duration'), 1000)
 
-            formats = [{
-                'url': urljoin(playlist_base_url, location.text),
-                'format_id': location.get(xpath_with_ns('s1:label', NS_MAP)),
-                'width': int_or_none(location.get(xpath_with_ns('s1:width', NS_MAP))),
-                'height': int_or_none(location.get(xpath_with_ns('s1:height', NS_MAP))),
-            } for location in track.findall(xpath_with_ns('./xspf:location', NS_MAP))]
+            formats = []
+            for location in track.findall(xpath_with_ns('./xspf:location', NS_MAP)):
+                format_url = urljoin(xspf_base_url, location.text)
+                if not format_url:
+                    continue
+                formats.append({
+                    'url': format_url,
+                    'manifest_url': xspf_url,
+                    'format_id': location.get(xpath_with_ns('s1:label', NS_MAP)),
+                    'width': int_or_none(location.get(xpath_with_ns('s1:width', NS_MAP))),
+                    'height': int_or_none(location.get(xpath_with_ns('s1:height', NS_MAP))),
+                })
             self._sort_formats(formats)
 
             entries.append({
@@ -1750,18 +1758,18 @@ class InfoExtractor(object):
         return entries
 
     def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}):
-        res = self._download_webpage_handle(
+        res = self._download_xml_handle(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
             errnote=errnote or 'Failed to download MPD manifest',
             fatal=fatal)
         if res is False:
             return []
-        mpd, urlh = res
+        mpd_doc, urlh = res
         mpd_base_url = base_url(urlh.geturl())
 
         return self._parse_mpd_formats(
-            compat_etree_fromstring(mpd.encode('utf-8')), mpd_id, mpd_base_url,
+            mpd_doc, mpd_id=mpd_id, mpd_base_url=mpd_base_url,
             formats_dict=formats_dict, mpd_url=mpd_url)
 
     def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}, mpd_url=None):
@@ -2035,17 +2043,16 @@ class InfoExtractor(object):
         return formats
 
     def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True):
-        res = self._download_webpage_handle(
+        res = self._download_xml_handle(
             ism_url, video_id,
             note=note or 'Downloading ISM manifest',
             errnote=errnote or 'Failed to download ISM manifest',
             fatal=fatal)
         if res is False:
             return []
-        ism, urlh = res
+        ism_doc, urlh = res
 
-        return self._parse_ism_formats(
-            compat_etree_fromstring(ism.encode('utf-8')), urlh.geturl(), ism_id)
+        return self._parse_ism_formats(ism_doc, urlh.geturl(), ism_id)
 
     def _parse_ism_formats(self, ism_doc, ism_url, ism_id=None):
         """
