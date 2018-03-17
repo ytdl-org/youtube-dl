@@ -11,7 +11,7 @@ class MetaebeneIE(InfoExtractor):
                     (?:cre\.fm/
                     |logbuch-netzpolitik\.de/
                     |forschergeist\.de/podcast/
-                    |freakshow\.fm/podcast/
+                    |freakshow\.fm/
                     |raumzeit-podcast.de/([^/]+/){3}
                     |fokus-europa.de/podcast/
                     |not-safe-for-work.de/
@@ -43,6 +43,20 @@ class MetaebeneIE(InfoExtractor):
             'title': 'LNP247 Lastesel mit Glasfaseranschluss',
             'description': 'md5:9319166b6cfb8054f2875790a77cae09',
             'site_name': 'Logbuch:Netzpolitik',
+            'thumbnail': r're:^https?://.*\.jpg$',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://freakshow.fm/fs214-hoert-euch-doch-mal-zu/',
+        'info_dict': {
+            'id': 'fs214',
+            'ext': 'oga',
+            'formats': 'mincount:4',
+            'title': 'FS214 Hört Euch doch mal zu!',
+            'description': 'md5:fee96be2577e32c420ea33b5c189a1be',
+            'site_name': 'Freak Show',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
