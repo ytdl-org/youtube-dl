@@ -644,19 +644,31 @@ class InfoExtractor(object):
             content, _ = res
             return content
 
+    def _download_xml_handle(
+            self, url_or_request, video_id, note='Downloading XML',
+            errnote='Unable to download XML', transform_source=None,
+            fatal=True, encoding=None, data=None, headers={}, query={}):
+        """Return a tuple (xml as an xml.etree.ElementTree.Element, URL handle)"""
+        res = self._download_webpage_handle(
+            url_or_request, video_id, note, errnote, fatal=fatal,
+            encoding=encoding, data=data, headers=headers, query=query)
+        if res is False:
+            return res
+        xml_string, urlh = res
+        return self._parse_xml(
+            xml_string, video_id, transform_source=transform_source,
+            fatal=fatal), urlh
+
     def _download_xml(self, url_or_request, video_id,
                       note='Downloading XML', errnote='Unable to download XML',
                       transform_source=None, fatal=True, encoding=None,
                       data=None, headers={}, query={}):
         """Return the xml as an xml.etree.ElementTree.Element"""
-        xml_string = self._download_webpage(
-            url_or_request, video_id, note, errnote, fatal=fatal,
-            encoding=encoding, data=data, headers=headers, query=query)
-        if xml_string is False:
-            return xml_string
-        return self._parse_xml(
-            xml_string, video_id, transform_source=transform_source,
-            fatal=fatal)
+        res = self._download_xml_handle(
+            url_or_request, video_id, note=note, errnote=errnote,
+            transform_source=transform_source, fatal=fatal, encoding=encoding,
+            data=data, headers=headers, query=query)
+        return res if res is False else res[0]
 
     def _parse_xml(self, xml_string, video_id, transform_source=None, fatal=True):
         if transform_source:
