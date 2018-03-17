@@ -104,6 +104,7 @@ from .mediasite import MediasiteIE
 from .springboardplatform import SpringboardPlatformIE
 from .yapfiles import YapFilesIE
 from .vice import ViceIE
+from .xfileshare import XFileShareIE
 
 
 class GenericIE(InfoExtractor):
@@ -2970,6 +2971,11 @@ class GenericIE(InfoExtractor):
         if vice_urls:
             return self.playlist_from_matches(
                 vice_urls, video_id, video_title, ie=ViceIE.ie_key())
+
+        xfileshare_urls = XFileShareIE._extract_urls(webpage)
+        if xfileshare_urls:
+            return self.playlist_from_matches(
+                xfileshare_urls, video_id, video_title, ie=XFileShareIE.ie_key())
 
         def merge_dicts(dict1, dict2):
             merged = {}
