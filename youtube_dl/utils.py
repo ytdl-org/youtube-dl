@@ -881,7 +881,42 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
         kwargs['strict'] = True
     hc = http_class(*args, **compat_kwargs(kwargs))
     source_address = ydl_handler._params.get('source_address')
+
     if source_address is not None:
+        filter_for = socket.AF_INET
+        if '.' not in source_address:
+            filter_for = socket.AF_INET6
+        # This is to workaround _create_connection() from socket where it will try all
+        # address data from getaddrinfo() including IPv6. This filters the result from
+        # getaddrinfo() based on the source_address value.
+        # This is based on the cpython socket.create_connection() function.
+        # https://github.com/python/cpython/blob/master/Lib/socket.py#L691
+        def _create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
+            host, port = address
+            err = None
+            addrs = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
+            ipv4_addrs = [addr for addr in addrs if addr[0] == filter_for]
+            for res in ipv4_addrs:
+                af, socktype, proto, canonname, sa = res
+                sock = None
+                try:
+                    sock = socket.socket(af, socktype, proto)
+                    if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                        sock.settimeout(timeout)
+                    sock.bind(source_address)
+                    sock.connect(sa)
+                    err = None  # Explicitly break reference cycle
+                    return sock
+                except socket.error as _:
+                    err = _
+                    if sock is not None:
+                        sock.close()
+            if err is not None:
+                raise err
+            else:
+                raise socket.error("getaddrinfo returns an empty list")
+        hc._create_connection = _create_connection
+
         sa = (source_address, 0)
         if hasattr(hc, 'source_address'):  # Python 2.7+
             hc.source_address = sa
