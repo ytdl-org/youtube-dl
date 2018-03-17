@@ -27,6 +27,22 @@ class SevenPlusIE(BrightcoveNewIE):
             'skip_download': True,
         }
     }, {
+        'url': 'https://7plus.com.au/MDAY?episode-id=MDAY5-001',
+        'info_dict': {
+            'id': 'MDAY5-001',
+            'ext': 'mp4',
+            'title': 'S5 E1 - Invisible Killer',
+            'description': 'md5:bea06aef0fe4bdefb2dce2e6af873fab',
+            'uploader_id': '5303576322001',
+            'upload_date': '20180219',
+            'timestamp': 1519012651,
+            'series': 'Air Crash Investigations',
+        },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': True,
+        }
+    }, {
         'url': 'https://7plus.com.au/UUUU?episode-id=AUMS43-001',
         'only_matching': True,
     }]
@@ -65,8 +81,7 @@ class SevenPlusIE(BrightcoveNewIE):
                     if value:
                         info[dst_key] = value
 
-        if info['title'] is None:
-            webpage = self._download_webpage(url, episode_id)
-            info['title'] = self._search_regex(r'<title>([^>]+)</title>', webpage, 'title')
+        webpage = self._download_webpage(url, episode_id)
+        info['series'] = self._search_regex(r'<title>([^>|]+) | 7plus</title>', webpage, 'title')
 
         return info
