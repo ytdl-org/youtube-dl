@@ -39,6 +39,20 @@ class XVideosIE(InfoExtractor):
     }, {
         'url': 'http://static-hw.xvideos.com/swf/xv-player.swf?id_video=4588838',
         'only_matching': True,
+    }, {
+        'url': 'https://www.xvideos.com/video299069/diesel_sfw_xxx_video',
+        'md5': 'c0cec3673a7b74a0ed871945c03ab935',
+        'info_dict': {
+            'id': '299069',
+            'ext': 'mp4',
+            'title': 'DIESEL SFW XXX Video',
+            'thumbnail': r're:https?://.*\.jpg',
+            'duration': 80,
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        }
     }]
 
     def _real_extract(self, url):
@@ -58,7 +72,7 @@ class XVideosIE(InfoExtractor):
             group='title') or self._og_search_title(webpage)
 
         thumbnail = self._search_regex(
-            r'url_bigthumb=(.+?)&amp', webpage, 'thumbnail', fatal=False)
+            r'html5player\.setThumbUrl\(\'(.+?)\'\);', webpage, 'thumbnail', fatal=False)
         duration = int_or_none(self._og_search_property(
             'duration', webpage, default=None)) or parse_duration(
             self._search_regex(
