@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from .brightcove import BrightcoveNewIE
 from ..utils import update_url_query
 
@@ -82,6 +81,6 @@ class SevenPlusIE(BrightcoveNewIE):
                         info[dst_key] = value
 
         webpage = self._download_webpage(url, episode_id)
-        info['series'] = self._search_regex(r'<title>([^>|]+) | 7plus</title>', webpage, 'title')
+        info['series'] = self._search_regex(r'<title>(.+?) +\| +7 ?[pP]lus ?</title>', webpage, 'title', fatal=False)
 
         return info
