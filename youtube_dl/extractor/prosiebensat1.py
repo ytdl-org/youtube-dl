@@ -133,7 +133,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                             (?:
                                 prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv|advopedia
                             )\.(?:de|at|ch)|
-                            ran\.de|fem\.com|advopedia\.de|galileo.tv/video
+                            ran\.de|fem\.com|advopedia\.de|galileo\.tv/video
                         )
                         /(?P<id>.+)
                     '''
