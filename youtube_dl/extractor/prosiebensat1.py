@@ -133,7 +133,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                             (?:
                                 prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv|advopedia
                             )\.(?:de|at|ch)|
-                            ran\.de|fem\.com|advopedia\.de
+                            ran\.de|fem\.com|advopedia\.de|galileo\.tv/video
                         )
                         /(?P<id>.+)
                     '''
@@ -327,6 +327,11 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'only_matching': True,
         },
         {
+            # geo restricted to Germany
+            'url': 'https://www.galileo.tv/video/diese-emojis-werden-oft-missverstanden',
+            'only_matching': True,
+        },
+        {
             'url': 'http://www.sat1gold.de/tv/edel-starck/playlist/die-gesamte-1-staffel',
             'only_matching': True,
         },
@@ -343,7 +348,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
         r'clip[iI]d=(\d+)',
-        r'clip[iI]d\s*=\s*["\'](\d+)',
+        r'clip[iI][dD]\s*=\s*["\'](\d+)',
         r"'itemImageUrl'\s*:\s*'/dynamic/thumbnails/full/\d+/(\d+)",
         r'proMamsId&quot;\s*:\s*&quot;(\d+)',
         r'proMamsId"\s*:\s*"(\d+)',
