@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class VidtodoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(vidtod|vidtodo).me/(?:embed-)?(?P<id>\w+)'
+    _VALID_URL = r'https?://(?:www\.)?vidt.d?.+\.(?:me|com)/(?:embed-)?(?P<id>\w+)'
     _TESTS = [{
         'url': 'https://vidtodo.me/4c8rx0tt8ek4',
         'md5': 'cfd8415e586d59a4de942757eeb7145f',
