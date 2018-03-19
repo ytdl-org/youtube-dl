@@ -39,6 +39,7 @@ class ThePlatformBaseIE(OnceIE):
         error_element = find_xpath_attr(meta, _x('.//smil:ref'), 'src')
         if error_element is not None and error_element.attrib['src'].startswith(
                 'http://link.theplatform.com/s/errorFiles/Unavailable.'):
+            self.errorattrib_title = error_element.attrib['title']
             raise ExtractorError(error_element.attrib['abstract'], expected=True)
 
         smil_formats = self._parse_smil_formats(
