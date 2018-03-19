@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.03.20
 
 Core
 * [extractor/common] Improve thumbnail extraction for HTML5 entries
