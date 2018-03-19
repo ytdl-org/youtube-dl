@@ -32,7 +32,9 @@ class Canalc2IE(InfoExtractor):
             'http://www.canalc2.tv/video/%s' % video_id, video_id)
 
         formats = []
-        for _, video_url in re.findall(r'file\s*=\s*(["\'])(.+?)\1', webpage):
+        file_links = re.findall(r'file\s*=\s*(["\'])(.+?)\1', webpage)
+        src_links = re.findall(r'<video.+src\s*=\s*(["\'])(.+?)\1', webpage)
+        for _, video_url in file_links + src_links:
             if video_url.startswith('rtmp://'):
                 rtmp = re.search(
                     r'^(?P<url>rtmp://[^/]+/(?P<app>.+/))(?P<play_path>mp4:.+)$', video_url)
