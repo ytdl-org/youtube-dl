@@ -2150,8 +2150,8 @@ class InfoExtractor(object):
         return formats
 
     def _parse_html5_media_entries(self, base_url, webpage, video_id, m3u8_id=None, m3u8_entry_protocol='m3u8', mpd_id=None, preference=None):
-        def absolute_url(video_url):
-            return compat_urlparse.urljoin(base_url, video_url)
+        def absolute_url(item_url):
+            return urljoin(base_url, item_url)
 
         def parse_content_type(content_type):
             if not content_type:
@@ -2208,7 +2208,7 @@ class InfoExtractor(object):
             if src:
                 _, formats = _media_formats(src, media_type)
                 media_info['formats'].extend(formats)
-            media_info['thumbnail'] = media_attributes.get('poster')
+            media_info['thumbnail'] = absolute_url(media_attributes.get('poster'))
             if media_content:
                 for source_tag in re.findall(r'<source[^>]+>', media_content):
                     source_attributes = extract_attributes(source_tag)
