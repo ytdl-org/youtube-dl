@@ -26,24 +26,6 @@ class TVNowBaseIE(InfoExtractor):
             'https://api.tvnow.de/v3/' + path,
             video_id, query=query)
 
-    def _extend_query(self, show, season, video=None):
-        fields = []
-        fields.extend(show)
-        fields.extend('formatTabs.%s' % field for field in season)
-        if video:
-            fields.extend(
-                'formatTabs.formatTabPages.container.movies.%s' % field
-                for field in video)
-
-        return fields
-
-    def _tvnow_list_info(self, list_id, show_id, fields):
-        return self._call_api(
-            'formats/seo', list_id, query={
-                'fields': ','.join(fields),
-                'name': show_id + '.php'
-            })
-
     def _extract_video(self, info, display_id):
         video_id = compat_str(info['id'])
         title = info['title']
@@ -151,7 +133,27 @@ class TVNowIE(TVNowBaseIE):
         return self._extract_video(info, display_id)
 
 
-class TVNowListIE(TVNowBaseIE):
+class TVNowListBaseIE(TVNowBaseIE):
+    def _extend_query(self, show, season, video=None):
+        fields = []
+        fields.extend(show)
+        fields.extend('formatTabs.%s' % field for field in season)
+        if video:
+            fields.extend(
+                'formatTabs.formatTabPages.container.movies.%s' % field
+                for field in video)
+
+        return fields
+
+    def _tvnow_list_info(self, list_id, show_id, fields):
+        return self._call_api(
+            'formats/seo', list_id, query={
+                'fields': ','.join(fields),
+                'name': show_id + '.php'
+            })
+
+
+class TVNowListIE(TVNowListBaseIE):
     _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/)list/(?P<id>[^?/#&]+)$'
 
     _SHOW_FIELDS = ('title', )
@@ -192,7 +194,7 @@ class TVNowListIE(TVNowBaseIE):
             entries, compat_str(season.get('id') or season_id), title)
 
 
-class TVNowListChannelIE(TVNowBaseIE):
+class TVNowListChannelIE(TVNowListBaseIE):
     _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)$)'
 
     _SHOW_FIELDS = ('id', 'title', )
