@@ -12,7 +12,7 @@ import time
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_urlencode,
-    compat_urlparse,
+    compat_urllib_parse,
 )
 from ..utils import (
     float_or_none,
@@ -39,11 +39,11 @@ class VRVBaseIE(InfoExtractor):
             data = json.dumps(data).encode()
             headers['Content-Type'] = 'application/json'
         method = 'POST' if data else 'GET'
-        base_string = '&'.join([method, compat_urlparse.quote(base_url, ''), compat_urlparse.quote(encoded_query, '')])
+        base_string = '&'.join([method, compat_urllib_parse.quote(base_url, ''), compat_urllib_parse.quote(encoded_query, '')])
         oauth_signature = base64.b64encode(hmac.new(
             (self._API_PARAMS['oAuthSecret'] + '&').encode('ascii'),
             base_string.encode(), hashlib.sha1).digest()).decode()
-        encoded_query += '&oauth_signature=' + compat_urlparse.quote(oauth_signature, '')
+        encoded_query += '&oauth_signature=' + compat_urllib_parse.quote(oauth_signature, '')
         return self._download_json(
             '?'.join([base_url, encoded_query]), video_id,
             note='Downloading %s JSON metadata' % note, headers=headers, data=data)
