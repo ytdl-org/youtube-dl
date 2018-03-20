@@ -222,5 +222,4 @@ class TVNowListChannelIE(TVNowBaseIE):
             entries.append(self.url_result(
                 base_url + "/list/" + season_url, 'TVNowList', compat_str(season_info.get('id')), season_info.get('headline')))
 
-        return self.playlist_result(
-            entries, list_info['id'], list_info['title'])
+        return self.playlist_result(entries)
