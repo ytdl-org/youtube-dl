@@ -52,12 +52,22 @@ class CCMAIE(InfoExtractor):
             if md:
                 media_data = md
                 media_url = media_data.get('media', {}).get('url')
-                if media_url:
+                if media_url and isinstance(media_url, list):
+                    q = 0
+                    for _url in media_url:
+                        formats.append({
+                            'format_id': profile,
+                            'url': _url['file'],
+                            'quality': q,
+                        })
+                        q += 1
+                elif media_url and isinstance(media_url, str):
                     formats.append({
                         'format_id': profile,
                         'url': media_url,
-                        'quality': i,
+                        'quality': 0,
                     })
+
         self._sort_formats(formats)
 
         informacio = media_data['informacio']
