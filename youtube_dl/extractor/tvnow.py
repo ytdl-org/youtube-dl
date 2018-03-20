@@ -170,8 +170,7 @@ class TVNowListIE(TVNowBaseIE):
     def _real_extract(self, url):
         base_url, show_id, season_id = re.match(self._VALID_URL, url).groups()
 
-        fields = self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS, self._VIDEO_FIELDS)
-        list_info = self._tvnow_list_info(season_id, show_id, fields)
+        list_info = self._tvnow_list_info(season_id, show_id, self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS, self._VIDEO_FIELDS))
 
         season = next(
             season for season in list_info['formatTabs']['items']
@@ -185,7 +184,7 @@ class TVNowListIE(TVNowBaseIE):
                 seo_url = info.get('seoUrl')
                 if not seo_url:
                     continue
-                
+
                 entries.append(self.url_result(
                     base_url + seo_url + '/player', 'TVNow', str(info.get('id', seo_url))))
 
@@ -211,8 +210,7 @@ class TVNowListChannelIE(TVNowBaseIE):
     def _real_extract(self, url):
         base_url, show_id = re.match(self._VALID_URL, url).groups()
 
-        fields = self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS, self._VIDEO_FIELDS)
-        list_info = self._tvnow_list_info(show_id, show_id, fields)
+        list_info = self._tvnow_list_info(show_id, show_id, self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS))
 
         entries = []
         for season_info in list_info['formatTabs']['items']:
