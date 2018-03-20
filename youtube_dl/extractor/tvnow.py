@@ -195,19 +195,19 @@ class TVNowListIE(TVNowListBaseIE):
 
 
 class TVNowListChannelIE(TVNowListBaseIE):
-    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)$)'
+    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+))'
 
     _SHOW_FIELDS = ('id', 'title', )
     _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
 
     _TESTS = [{
         'url': 'https://www.tvnow.at/vox/ab-ins-beet',
-        'info_dict': {
-            'id': 172,
-            'title': 'Ab ins Beet!',
-        },
-        'playlist_mincount': 1,
+        'only_matching': 'True',
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if TVNowIE.suitable(url) or TVNowListIE.suitable(url) else super(TVNowListChannelIE, cls).suitable(url)
 
     def _real_extract(self, url):
         base_url, show_id = re.match(self._VALID_URL, url).groups()
