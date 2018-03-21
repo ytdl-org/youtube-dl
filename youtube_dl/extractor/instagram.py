@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import itertools
 import json
 import re
 
@@ -242,48 +243,69 @@ class InstagramUserIE(InfoExtractor):
             return int_or_none(try_get(
                 node, lambda x: x['edge_media_' + suffix]['count']))
 
-        edges = self._download_json(
-            'https://www.instagram.com/graphql/query/', uploader_id, query={
-                'query_hash': '472f257a40c653c64c666ce877d59d2b',
-                'variables': json.dumps({
-                    'id': uploader_id,
-                    'first': 999999999,
+        cursor = ''
+        for page_num in itertools.count(1):
+            media = self._download_json(
+                'https://www.instagram.com/graphql/query/', uploader_id,
+                'Downloading JSON page %d' % page_num, query={
+                    'query_hash': '472f257a40c653c64c666ce877d59d2b',
+                    'variables': json.dumps({
+                        'id': uploader_id,
+                        'first': 100,
+                        'after': cursor,
+                    })
+                })['data']['user']['edge_owner_to_timeline_media']
+
+            edges = media.get('edges')
+            if not edges or not isinstance(edges, list):
+                break
+
+            for edge in edges:
+                node = edge.get('node')
+                if not node or not isinstance(node, dict):
+                    continue
+                if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
+                    continue
+                video_id = node.get('shortcode')
+                if not video_id:
+                    continue
+
+                info = self.url_result(
+                    'https://instagram.com/p/%s/' % video_id,
+                    ie=InstagramIE.ie_key(), video_id=video_id)
+
+                description = try_get(
+                    node, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
+                    compat_str)
+                thumbnail = node.get('thumbnail_src') or node.get('display_src')
+                timestamp = int_or_none(node.get('taken_at_timestamp'))
+
+                comment_count = get_count('to_comment')
+                like_count = get_count('preview_like')
+                view_count = int_or_none(node.get('video_view_count'))
+
+                info.update({
+                    'description': description,
+                    'thumbnail': thumbnail,
+                    'timestamp': timestamp,
+                    'comment_count': comment_count,
+                    'like_count': like_count,
+                    'view_count': view_count,
                 })
-            })['data']['user']['edge_owner_to_timeline_media']['edges']
 
-        for edge in edges:
-            node = edge['node']
+                yield info
 
-            if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
-                continue
-            video_id = node.get('shortcode')
-            if not video_id:
-                continue
+            page_info = media.get('page_info')
+            if not page_info or not isinstance(page_info, dict):
+                break
 
-            info = self.url_result(
-                'https://instagram.com/p/%s/' % video_id,
-                ie=InstagramIE.ie_key(), video_id=video_id)
+            has_next_page = page_info.get('has_next_page')
+            if not has_next_page:
+                break
 
-            description = try_get(
-                node, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
-                compat_str)
-            thumbnail = node.get('thumbnail_src') or node.get('display_src')
-            timestamp = int_or_none(node.get('taken_at_timestamp'))
-
-            comment_count = get_count('to_comment')
-            like_count = get_count('preview_like')
-            view_count = int_or_none(node.get('video_view_count'))
-
-            info.update({
-                'description': description,
-                'thumbnail': thumbnail,
-                'timestamp': timestamp,
-                'comment_count': comment_count,
-                'like_count': like_count,
-                'view_count': view_count,
-            })
-
-            yield info
+            cursor = page_info.get('end_cursor')
+            if not cursor or not isinstance(cursor, compat_str):
+                break
 
     def _real_extract(self, url):
         username = self._match_id(url)
