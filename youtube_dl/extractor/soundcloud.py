@@ -157,7 +157,7 @@ class SoundcloudIE(InfoExtractor):
         },
     ]
 
-    _CLIENT_ID = 'DQskPX1pntALRzMp4HSxya3Mc0AO66Ro'
+    _CLIENT_ID = 'LvWovRaJZlWCHql0bISuum8Bd2KX79mb'
 
     @staticmethod
     def _extract_urls(webpage):
