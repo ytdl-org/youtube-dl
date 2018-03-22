@@ -1270,24 +1270,6 @@ class GenericIE(InfoExtractor):
             },
             'add_ie': ['Kaltura'],
         },
-        # EaglePlatform embed (generic URL)
-        {
-            'url': 'http://lenta.ru/news/2015/03/06/navalny/',
-            # Not checking MD5 as sometimes the direct HTTP link results in 404 and HLS is used
-            'info_dict': {
-                'id': '227304',
-                'ext': 'mp4',
-                'title': 'Навальный вышел на свободу',
-                'description': 'md5:d97861ac9ae77377f3f20eaf9d04b4f5',
-                'thumbnail': r're:^https?://.*\.jpg$',
-                'duration': 87,
-                'view_count': int,
-                'age_limit': 0,
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
         # referrer protected EaglePlatform embed
         {
             'url': 'https://tvrain.ru/lite/teleshow/kak_vse_nachinalos/namin-418921/',

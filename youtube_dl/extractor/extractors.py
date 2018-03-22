@@ -532,13 +532,14 @@ from .lcp import (
 )
 from .learnr import LearnrIE
 from .lecture2go import Lecture2GoIE
-from .lego import LEGOIE
-from .lemonde import LemondeIE
 from .leeco import (
     LeIE,
     LePlaylistIE,
     LetvCloudIE,
 )
+from .lego import LEGOIE
+from .lemonde import LemondeIE
+from .lenta import LentaIE
 from .libraryofcongress import LibraryOfCongressIE
 from .libsyn import LibsynIE
 from .lifenews import (
