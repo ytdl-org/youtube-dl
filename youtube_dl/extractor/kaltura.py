@@ -117,18 +117,9 @@ class KalturaIE(InfoExtractor):
                         (?P<q1>['"])wid(?P=q1)\s*:\s*
                         (?P<q2>['"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
                         (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4),.*?
+                        (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,.*?
                         (?P<q5>['"])ks(?P=q5)\s*:\s*
-                        (?P<q6>['"])(?P<ks>(?:(?!(?P=q6)).)+)(?P=q6)(?:,|\s*\})
-                """, webpage) or
-            re.search(
-                r"""(?xs)
-                    kWidget\.(?:thumb)?[Ee]mbed\(
-                    \{.*?
-                        (?P<q1>['"])wid(?P=q1)\s*:\s*
-                        (?P<q2>['"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
-                        (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
-                        (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
+                        (?P<q6>['"])(?P<ks>(?:(?!(?P=q6)).)+)(?P=q6))?(?:,|\s*\})
                 """, webpage) or
             re.search(
                 r'''(?xs)
