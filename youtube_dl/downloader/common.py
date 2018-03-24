@@ -249,11 +249,10 @@ class FileDownloader(object):
             if self.params.get('noprogress', False):
                 self.to_screen('[download] Download completed')
             else:
+                msg_template = '100%%'
                 if s.get('total_bytes') is not None:
                     s['_total_bytes_str'] = format_bytes(s['total_bytes'])
-                    msg_template = '100%% of %(_total_bytes_str)s'
-                else:
-                    msg_template = 'Completed'
+                    msg_template += ' of %(_total_bytes_str)s'
                 if s.get('elapsed') is not None:
                     s['_elapsed_str'] = self.format_seconds(s['elapsed'])
                     msg_template += ' in %(_elapsed_str)s'
