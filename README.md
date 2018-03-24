@@ -224,6 +224,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 ## Filesystem Options:
     -a, --batch-file FILE            File containing URLs to download ('-' for
                                      stdin)
+                                     Lines starting with '#' are comments
     --id                             Use only video ID in file name
     -o, --output TEMPLATE            Output filename template, see the "OUTPUT
                                      TEMPLATE" for all the info
