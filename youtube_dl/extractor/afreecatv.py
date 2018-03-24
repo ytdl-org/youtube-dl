@@ -187,11 +187,11 @@ class AfreecaTVIE(InfoExtractor):
             r'nBbsNo\s*=\s*(\d+)', webpage, 'bbs')
         video_id = self._search_regex(
             r'nTitleNo\s*=\s*(\d+)', webpage, 'title', default=video_id)
-
+        print(video_id, station_id, bbs_id)
         video_xml = self._download_xml(
             'http://afbbs.afreecatv.com:8080/api/video/get_video_info.php',
             video_id, headers={
-                'Referer': 'http://vod.afreecatv.com/embed.php',
+                'Referer': url,
             }, query={
                 'nTitleNo': video_id,
                 'nStationNo': station_id,
