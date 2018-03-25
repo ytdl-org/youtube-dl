@@ -22,7 +22,7 @@ class TorrinsIE(InfoExtractor):
     _ORIGIN_URL = 'https://www.torrins.com'
     _NETRC_MACHINE = 'torrins'
 
-    _TESTS = [{
+    _TEST = {
         'url': 'https://www.torrins.com/guitar-lessons/song-lessons/english-songs/another-brick-in-the-wall/song-demo.html',
         'info_dict': {
             'id': 'another-brick-in-the-wall',
@@ -33,15 +33,7 @@ class TorrinsIE(InfoExtractor):
             'duration': 579.29,
         },
         'skip': 'Requires torrins premium account credentials',
-    }, {
-        # new URL schema
-        'url': 'https://www.torrins.com/guitar-lessons/song-lessons/english-songs/another-brick-in-the-wall/song-demo.html',
-        'only_matching': True,
-    }, {
-        # no url in outputs format entry
-        'url': 'https://www.torrins.com/guitar-lessons/style-genre/fingerstyle/tone-production.html',
-        'only_matching': True,
-    }]
+    }
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
