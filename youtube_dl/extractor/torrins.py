@@ -4,21 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_HTTPError,
     compat_kwargs,
-    compat_str,
-    compat_urllib_request,
-    compat_urlparse,
 )
 from ..utils import (
-    determine_ext,
-    extract_attributes,
     ExtractorError,
-    float_or_none,
-    int_or_none,
-    js_to_json,
-    sanitized_Request,
-    unescapeHTML,
     urlencode_postdata,
 )
 
@@ -78,7 +67,7 @@ class TorrinsIE(InfoExtractor):
         if username is None:
             return
 
-        login_popup = self._download_webpage(
+        self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login popup')
 
         def is_logged(reason):
@@ -91,8 +80,6 @@ class TorrinsIE(InfoExtractor):
         # already logged in
         if is_logged('Checking if already logged in'):
             return
-
-        #login_form = self._form_hidden_inputs('login-form', login_popup)
 
         login_form = {
             'email': username,
@@ -122,7 +109,7 @@ class TorrinsIE(InfoExtractor):
 
         title = self._og_search_title(webpage)
 
-        video_json = self._html_search_regex(r"<div id=\"video\" idata='(.+?)'", webpage, u'video formats')
+        video_json = self._html_search_regex(r"<div id=\"video\" idata='(.+?)'", webpage, 'video formats')
 
         video_json = self._parse_json(video_json, course_id)
 
@@ -149,7 +136,6 @@ class TorrinsIE(InfoExtractor):
                 'ext': 'mp4'
             }
         ]
-
 
         return {
             'id': video_id,
