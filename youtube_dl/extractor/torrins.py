@@ -105,24 +105,24 @@ class TorrinsIE(InfoExtractor):
 
         video_json = self._parse_json(video_json, course_id)
 
-        title = video_json.get('title')
-        video_id = video_json.get('id')
+        title = video_json['title']
+        video_id = video_json['id']
 
         formats = [
             {
-                'url': video_json.get('low'),
+                'url': video_json['low'],
                 'format_id': 'low',
                 'height': 240,
                 'ext': 'mp4'
             },
             {
-                'url': video_json.get('medium'),
+                'url': video_json['medium'],
                 'format_id': 'medium',
                 'height': 360,
                 'ext': 'mp4'
             },
             {
-                'url': video_json.get('high'),
+                'url': video_json['high'],
                 'format_id': 'high',
                 'height': 480,
                 'ext': 'mp4'
