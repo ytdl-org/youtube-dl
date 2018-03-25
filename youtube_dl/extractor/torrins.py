@@ -35,8 +35,6 @@ class TorrinsIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://www.torrins.com/guitar-lessons/song-lessons/english-songs/another-brick-in-the-wall/song-demo.html',
-        'username': 'anirudha1987@gmail.com',
-        'password': 'hello123',
         'info_dict': {
             'id': 'another-brick-in-the-wall',
             'lesson_id': 'song-demo',
