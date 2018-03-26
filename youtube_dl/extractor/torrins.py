@@ -101,26 +101,31 @@ class TorrinsIE(InfoExtractor):
         title = video_json.get('title') or self._og_search_title(webpage)
         video_id = video_json['id']
 
-        formats = [
-            {
+        formats = []
+
+        if 'low' in video_json:
+            formats.append({
                 'url': video_json['low'],
                 'format_id': 'low',
                 'height': 240,
                 'ext': 'mp4'
-            },
-            {
+            })
+
+        if 'medium' in video_json:
+            formats.append({
                 'url': video_json['medium'],
                 'format_id': 'medium',
                 'height': 360,
                 'ext': 'mp4'
-            },
-            {
+            })
+
+        if 'high' in video_json:
+            formats.append({
                 'url': video_json['high'],
                 'format_id': 'high',
                 'height': 480,
                 'ext': 'mp4'
-            }
-        ]
+            })
 
         return {
             'id': video_id,
