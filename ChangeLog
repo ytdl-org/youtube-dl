@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.03.26.1
 
 Core
 + [downloader/external] Add elapsed time to progress hook (#10876)
