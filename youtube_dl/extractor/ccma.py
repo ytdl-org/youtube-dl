@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -52,20 +53,28 @@ class CCMAIE(InfoExtractor):
             if md:
                 media_data = md
                 media_url = media_data.get('media', {}).get('url')
+                ext = media_data.get('media', {}).get('format')
+                if ext:
+                    ext = ext.lower()
+
                 if media_url and isinstance(media_url, list):
-                    q = 0
                     for _url in media_url:
+                        if 'label' in _url:
+                            height = int_or_none(_url.get('label').replace('p', ''))
+                        else:
+                            height = None
+
                         formats.append({
                             'format_id': profile,
-                            'url': _url['file'],
-                            'quality': q,
+                            'url': _url.get('file'),
+                            'height': height,
+                            'ext': ext
                         })
-                        q += 1
-                elif media_url and isinstance(media_url, str):
+                elif media_url and isinstance(media_url, compat_str):
                     formats.append({
                         'format_id': profile,
                         'url': media_url,
-                        'quality': 0,
+                        'ext': ext
                     })
 
         self._sort_formats(formats)
@@ -83,8 +92,8 @@ class CCMAIE(InfoExtractor):
             if sub_url:
                 subtitles.setdefault(
                     subtitols.get('iso') or subtitols.get('text') or 'ca', []).append({
-                        'url': sub_url,
-                    })
+                    'url': sub_url,
+                })
 
         thumbnails = []
         imatges = media_data.get('imatges', {})
