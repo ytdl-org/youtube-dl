@@ -16,7 +16,7 @@ class TorrinsIE(InfoExtractor):
     IE_NAME = 'torrins'
     _VALID_URL = r'''(?x)
                     https?://
-                        www\.torrins\.com/(?:guitar|piano|bass)-lessons/(?:song-lessons|style-genre)/[^/]+/(?P<id>[^/]+)/(?P<lesson_id>[^(\.)]+)\.html
+                        www\.torrins\.com/(?:guitar|piano|bass)-lessons/(?:song-lessons|style-genre)/[^/]+/(?P<id>[^/]+)/[^\.]+\.html
                     '''
     _LOGIN_URL = 'https://www.torrins.com/services/user/sign-in'
     _ORIGIN_URL = 'https://www.torrins.com'
@@ -26,7 +26,6 @@ class TorrinsIE(InfoExtractor):
         'url': 'https://www.torrins.com/guitar-lessons/song-lessons/english-songs/another-brick-in-the-wall/song-demo.html',
         'info_dict': {
             'id': 'another-brick-in-the-wall',
-            'lesson_id': 'song-demo',
             'ext': 'mp4',
             'title': 'Another Brick in the Wall Guitar - Song Demo',
             'description': 'md5:c0d51f6f21ef4ec65f091055a5eef876',
@@ -38,12 +37,12 @@ class TorrinsIE(InfoExtractor):
     def _handle_error(self, response):
         if not isinstance(response, dict):
             return
-        error = response.get('error')
+        error = response['error']
         if error:
-            error_str = 'Torrins returned error #%s: %s' % (error.get('code'), error.get('message'))
-            error_data = error.get('data')
+            error_str = 'Torrins returned error #%s: %s' % (error['code'], error.get['message'])
+            error_data = error['data']
             if error_data:
-                error_str += ' - %s' % error_data.get('formErrors')
+                error_str += ' - %s' % error_data['formErrors']
             raise ExtractorError(error_str, expected=True)
 
     def _download_webpage(self, *args, **kwargs):
@@ -58,9 +57,6 @@ class TorrinsIE(InfoExtractor):
         (username, password) = self._get_login_info()
         if username is None:
             return
-
-        self._download_webpage(
-            self._LOGIN_URL, None, 'Downloading login popup')
 
         def is_logged(reason):
             webpage = self._download_webpage(self._ORIGIN_URL, None, reason)
@@ -99,13 +95,10 @@ class TorrinsIE(InfoExtractor):
 
         webpage = self._download_webpage(url, course_id)
 
-        title = self._og_search_title(webpage)
-
         video_json = self._html_search_regex(r"<div id=\"video\" idata='(.+?)'", webpage, 'video formats')
-
         video_json = self._parse_json(video_json, course_id)
 
-        title = video_json['title']
+        title = video_json.get('title') or self._og_search_title(webpage)
         video_id = video_json['id']
 
         formats = [
