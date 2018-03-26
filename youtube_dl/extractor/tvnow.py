@@ -19,7 +19,7 @@ class TVNowBaseIE(InfoExtractor):
         'id', 'title', 'free', 'geoblocked', 'articleLong', 'articleShort',
         'broadcastStartDate', 'isDrm', 'duration', 'season', 'episode',
         'manifest.dashclear', 'format.title', 'format.defaultImage169Format',
-        'format.defaultImage169Logo')
+        'format.defaultImage169Logo', 'replaceMovieInformation')
 
     def _call_api(self, path, video_id, query):
         return self._download_json(
@@ -58,7 +58,7 @@ class TVNowBaseIE(InfoExtractor):
         duration = parse_duration(info.get('duration'))
 
         f = info.get('format', {})
-        thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
+        thumbnail = ('https://aistvnow-a.akamaihd.net/tvnow/movie/%s' % info.get('replaceMovieInformation')) or f.get('defaultImage169Format') or f.get('defaultImage169Logo')
 
         return {
             'id': video_id,
