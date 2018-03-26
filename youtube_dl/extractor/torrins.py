@@ -103,29 +103,14 @@ class TorrinsIE(InfoExtractor):
 
         formats = []
 
-        if 'low' in video_json:
-            formats.append({
-                'url': video_json['low'],
-                'format_id': 'low',
-                'height': 240,
-                'ext': 'mp4'
-            })
-
-        if 'medium' in video_json:
-            formats.append({
-                'url': video_json['medium'],
-                'format_id': 'medium',
-                'height': 360,
-                'ext': 'mp4'
-            })
-
-        if 'high' in video_json:
-            formats.append({
-                'url': video_json['high'],
-                'format_id': 'high',
-                'height': 480,
-                'ext': 'mp4'
-            })
+        for format, height in {'low': 240, 'medium': 360, 'high': 480}.items():
+            if format in video_json:
+                formats.append({
+                    'url': video_json['low'],
+                    'format_id': format,
+                    'height': height,
+                    'ext': 'mp4'
+                })
 
         return {
             'id': video_id,
