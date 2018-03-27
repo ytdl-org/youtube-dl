@@ -13,6 +13,7 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     try_get,
+    unescapeHTML,
     update_url_query,
 )
 
@@ -109,16 +110,17 @@ class ABCIViewIE(InfoExtractor):
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'http://iview.abc.net.au/programs/call-the-midwife/ZW0898A003S00',
+        'url': 'https://iview.abc.net.au/programs/ben-and-hollys-little-kingdom/ZY9247A021S00',
         'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
         'info_dict': {
-            'id': 'ZW0898A003S00',
+            'id': 'ZY9247A021S00',
             'ext': 'mp4',
-            'title': 'Series 5 Ep 3',
-            'description': 'md5:e0ef7d4f92055b86c4f33611f180ed79',
-            'upload_date': '20171228',
-            'uploader_id': 'abc1',
-            'timestamp': 1514499187,
+            'title': "Gaston's Visit",
+            'series': "Ben And Holly's Little Kingdom",
+            'description': 'md5:18db170ad71cf161e006a4c688e33155',
+            'upload_date': '20180318',
+            'uploader_id': 'abc4kids',
+            'timestamp': 1521400959,
         },
         'params': {
             'skip_download': True,
@@ -169,12 +171,12 @@ class ABCIViewIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
+            'title': unescapeHTML(title),
             'description': self._html_search_meta(['og:description', 'twitter:description'], webpage),
             'thumbnail': self._html_search_meta(['og:image', 'twitter:image:src'], webpage),
             'duration': int_or_none(video_params.get('eventDuration')),
             'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
-            'series': video_params.get('seriesTitle'),
+            'series': unescapeHTML(video_params.get('seriesTitle')),
             'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
             'episode_number': int_or_none(self._html_search_meta('episodeNumber', webpage, default=None)),
             'episode': self._html_search_meta('episode_title', webpage, default=None),
