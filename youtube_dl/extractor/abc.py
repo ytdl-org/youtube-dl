@@ -115,8 +115,8 @@ class ABCIViewIE(InfoExtractor):
         'info_dict': {
             'id': 'ZY9247A021S00',
             'ext': 'mp4',
-            'title': 'Gaston\'s Visit',
-            'series': 'Ben And Holly\'s Little Kingdom',
+            'title': "Gaston's Visit",
+            'series': "Ben And Holly's Little Kingdom",
             'description': 'md5:18db170ad71cf161e006a4c688e33155',
             'upload_date': '20180318',
             'uploader_id': 'abc4kids',
