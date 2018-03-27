@@ -3,9 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_kwargs,
-)
+
 from ..utils import (
     ExtractorError,
     urlencode_postdata,
@@ -44,11 +42,6 @@ class TorrinsIE(InfoExtractor):
             if error_data:
                 error_str += ' - %s' % error_data['formErrors']
             raise ExtractorError(error_str, expected=True)
-
-    def _download_webpage(self, *args, **kwargs):
-        kwargs.setdefault('headers', {})['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4'
-        return super(TorrinsIE, self)._download_webpage(
-            *args, **compat_kwargs(kwargs))
 
     def _real_initialize(self):
         self._login()
