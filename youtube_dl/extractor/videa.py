@@ -31,7 +31,7 @@ class VideaIE(InfoExtractor):
             'id': '8YfIAjxwWGwT8HVQ',
             'ext': 'mp4',
             'title': 'Az őrült kígyász 285 kígyót enged szabadon',
-            'thumbnail': r're:^http://videa.hu/static/still/1.4.5.1007274.1204470.3.*',
+            'thumbnail': r're:^https?://.*',
             'duration': 21,
         },
     }, {
