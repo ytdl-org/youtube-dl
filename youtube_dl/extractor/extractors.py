@@ -430,6 +430,7 @@ from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
 from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
+from .hentaihaven import HentaiHavenIE
 from .hentaistigma import HentaiStigmaIE
 from .hgtv import HGTVComShowIE
 from .hidive import HiDiveIE
