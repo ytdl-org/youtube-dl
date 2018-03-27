@@ -1,3 +1,22 @@
+version 2018.03.26.1
+
+Core
++ [downloader/external] Add elapsed time to progress hook (#10876)
+* [downloader/external,fragment] Fix download finalization when writing file
+  to stdout (#10809, #10876, #15799)
+
+Extractors
+* [vrv] Fix extraction on python2 (#15928)
+* [afreecatv] Update referrer (#15947)
++ [24video] Add support for 24video.sexy (#15973)
+* [crackle] Bypass geo restriction
+* [crackle] Fix extraction (#15969)
++ [lenta] Add support for lenta.ru (#15953)
++ [instagram:user] Add pagination (#15934)
+* [youku] Update ccode (#15939)
+* [libsyn] Adapt to new page structure
+
+
 version 2018.03.20
 
 Core
