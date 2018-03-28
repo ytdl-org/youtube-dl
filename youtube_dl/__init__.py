@@ -433,6 +433,7 @@ def _real_main(argv=None):
         # just for deprecation check
         'autonumber': opts.autonumber if opts.autonumber is True else None,
         'usetitle': opts.usetitle if opts.usetitle is True else None,
+        'web_driver': opts.web_driver,
     }
 
     with YoutubeDL(ydl_opts) as ydl:

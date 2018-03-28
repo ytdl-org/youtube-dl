@@ -4,6 +4,7 @@ import os.path
 import optparse
 import re
 import sys
+import platform
 
 from .downloader.external import list_external_downloaders
 from .compat import (
@@ -445,7 +446,16 @@ def parseOpts(overrideArguments=None):
         default=[], callback=_comma_separated_values_options_callback,
         help='Languages of the subtitles to download (optional) separated by commas, use --list-subs for available language tags')
 
+    default_driver = 'chrome' #Default webdriver is Chrome, except on the Mac
+    if platform.system()=="Darwin":
+        default_driver = 'safari'
+
     downloader = optparse.OptionGroup(parser, 'Download Options')
+    downloader.add_option(
+        '--browser',
+        action='store', dest='web_driver', choices=['safari', 'chrome', 'firefox', 'edge', 'ie',  'opera', 'webkitgtk', 'android'],
+        default=default_driver,
+        help='Browser to use for websites requiring interaction. See Selenium for more information.')
     downloader.add_option(
         '-r', '--limit-rate', '--rate-limit',
         dest='ratelimit', metavar='RATE',
