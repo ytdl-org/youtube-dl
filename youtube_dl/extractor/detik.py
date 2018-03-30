@@ -38,7 +38,7 @@ class DuaPuluhDetikIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        upload_date, video_id, slug = mobj.group('date', 'id', 'slug')
+        upload_date, video_id = mobj.group('date', 'id')
         embed_url = 'https://20.detik.com/embed/%s' % video_id
         display_id = "%s-%s" % (upload_date, video_id)
         webpage = self._download_webpage(embed_url, video_id)
@@ -57,7 +57,6 @@ class DuaPuluhDetikIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'slug': slug,
             'upload_date': upload_date,
             'title': title,
             'description': description,
