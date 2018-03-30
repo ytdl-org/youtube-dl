@@ -975,6 +975,7 @@ from .skysports import SkySportsIE
 from .slideshare import SlideshareIE
 from .slideslive import SlidesLiveIE
 from .slutload import SlutloadIE
+from .smashcustommusic import SmashcustommusicIE
 from .smotri import (
     SmotriIE,
     SmotriCommunityIE,
