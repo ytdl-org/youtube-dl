@@ -61,6 +61,5 @@ class DuaPuluhDetikIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'ext': 'mp4',
             'formats': formats
         }
