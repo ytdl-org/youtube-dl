@@ -43,7 +43,7 @@ class DuaPuluhDetikIE(InfoExtractor):
         display_id = "%s-%s" % (upload_date, video_id)
         webpage = self._download_webpage(embed_url, video_id)
         m3u8_url = self._html_search_regex(
-            r'''["\']videoUrl["\']\s*:\s*["\'](?P<m3u8_url>.*?)["\']''',
+            r'''["\']videoUrl["\']\s*:\s*["\'](?P<m3u8_url>.+)["\']''',
             webpage, 'm3u8_url', group='m3u8_url', default='')
         if len(m3u8_url) == 0:
             raise ExtractorError('Video not found')
