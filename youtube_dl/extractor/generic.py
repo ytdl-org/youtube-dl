@@ -1967,6 +1967,15 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            # 20detik embed
+            'url': 'https://20.detik.com/detikflash/20180328-180328002/dramatis-polisi-selamatkan-pria-yang-coba-bunuh-diri',
+            'info_dict': {
+                'id': '180328002',
+                'title': 'md5:92c18d820d8937f259007e9c6ce40e6b',
+                'ext': 'mp4'
+            }
         }
         # {
         #     # TODO: find another test
@@ -2829,6 +2838,13 @@ class GenericIE(InfoExtractor):
                 })
             return info
 
+        # Look for 20detik (https://20.detik.com) embeds
+        mobj = re.search(
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://20\.detik\.com/embed/(\d+)[^"\']+?)\1',
+            webpage)
+        if mobj is not None:
+            return self.url_result(mobj.group('url'))
+
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
         if instagram_embed_url is not None:
@@ -3138,6 +3154,11 @@ class GenericIE(InfoExtractor):
             embed_url = self._html_search_meta('twitter:player', webpage, default=None)
             if embed_url and embed_url != url:
                 return self.url_result(embed_url)
+
+        if not found:
+            # DetikFlow: It's basically a 'modified' FlowPlayer used in https://20.detik.com
+            found = re.findall(
+                r'["\']videoUrl["\']\s*:\s*["\']([^"\']+)["\']', webpage)
 
         if not found:
             raise UnsupportedError(url)
