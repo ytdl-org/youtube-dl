@@ -68,11 +68,25 @@ class NationalGeographicVideoIE(InfoExtractor):
 
 class NationalGeographicIE(ThePlatformIE, AdobePassIE):
     IE_NAME = 'natgeo'
-    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:(?:wild/)?[^/]+/)?(?:videos|episodes)/(?P<id>[^/?]+)'
+    _VALID_URL = r'https?://channel\.nationalgeographic\.com/(?:(?:(?:wild/)?[^/]+/)?(?:videos|episodes)|u)/(?P<id>[^/?]+)'
 
     _TESTS = [
         {
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/videos/uncovering-a-universal-knowledge/',
+            'md5': '518c9aa655686cf81493af5cc21e2a04',
+            'info_dict': {
+                'id': 'vKInpacll2pC',
+                'ext': 'mp4',
+                'title': 'Uncovering a Universal Knowledge',
+                'description': 'md5:1a89148475bf931b3661fcd6ddb2ae3a',
+                'timestamp': 1458680907,
+                'upload_date': '20160322',
+                'uploader': 'NEWA-FNG-NGTV',
+            },
+            'add_ie': ['ThePlatform'],
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/u/kdi9Ld0PN2molUUIMSBGxoeDhD729KRjQcnxtetilWPMevo8ZwUBIDuPR0Q3D2LVaTsk0MPRkRWDB8ZhqWVeyoxfsZZm36yRp1j-zPfsHEyI_EgAeFY/',
             'md5': '518c9aa655686cf81493af5cc21e2a04',
             'info_dict': {
                 'id': 'vKInpacll2pC',
@@ -100,11 +114,33 @@ class NationalGeographicIE(ThePlatformIE, AdobePassIE):
             'add_ie': ['ThePlatform'],
         },
         {
+            'url': 'http://channel.nationalgeographic.com/u/kdvOstqYaBY-vSBPyYgAZRUL4sWUJ5XUUPEhc7ISyBHqoIO4_dzfY3K6EjHIC0hmFXoQ7Cpzm6RkET7S3oMlm6CFnrQwSUwo/',
+            'md5': 'c4912f656b4cbe58f3e000c489360989',
+            'info_dict': {
+                'id': 'Pok5lWCkiEFA',
+                'ext': 'mp4',
+                'title': 'The Stunning Red Bird of Paradise',
+                'description': 'md5:7bc8cd1da29686be4d17ad1230f0140c',
+                'timestamp': 1459362152,
+                'upload_date': '20160330',
+                'uploader': 'NEWA-FNG-NGTV',
+            },
+            'add_ie': ['ThePlatform'],
+        },
+        {
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episodes/the-power-of-miracles/',
             'only_matching': True,
         },
         {
+            'url': 'http://channel.nationalgeographic.com/u/kdi9Ld0PN2molUUIMSBGxoeDhD729KRjQcnxtetilWPMevo8ZwUSXkSTKeZRprWH4EnGTzTX5XvTLIf_ZJ84eqa9CkXL7ve9qquErlA/',
+            'only_matching': True,
+        },
+        {
             'url': 'http://channel.nationalgeographic.com/videos/treasures-rediscovered/',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/u/kdpkrVDqVLq3UmWBm6HFX3ZlQR7Mxof8CYI8cN88MvXkTJviZipx/',
             'only_matching': True,
         }
     ]
