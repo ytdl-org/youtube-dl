@@ -9,7 +9,6 @@ import random
 import json
 
 from ..aes import (
-    aes_cbc_decrypt,
     aes_cbc_encrypt,
 )
 from .common import InfoExtractor
