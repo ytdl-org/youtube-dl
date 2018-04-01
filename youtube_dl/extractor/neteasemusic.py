@@ -5,7 +5,13 @@ from hashlib import md5
 from base64 import b64encode
 from datetime import datetime
 import re
+import random
+import json
 
+from ..aes import (
+    aes_cbc_decrypt,
+    aes_cbc_encrypt,
+)
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_urlencode,
@@ -15,13 +21,36 @@ from ..compat import (
 from ..utils import (
     sanitized_Request,
     float_or_none,
+    ohdave_rsa_encrypt,
+    bytes_to_intlist as b2l,
+    intlist_to_bytes as l2b,
 )
 
 
 class NetEaseMusicBaseIE(InfoExtractor):
-    _FORMATS = ['bMusic', 'mMusic', 'hMusic']
+    _FORMATS = ['b', 'm', 'h', 'bMusic', 'mMusic', 'hMusic']
     _NETEASE_SALT = '3go8&$8*3*3h0k(2)2'
-    _API_BASE = 'http://music.163.com/api/'
+    _API_BASE = 'http://music.163.com/'
+    _NONCE_ = b'0CoJUm6Qyw8W8jud'
+    _MODULUS_ = 0x00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7
+    _PUBKEY_ = 0x010001
+    _AGENTS_ = [
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1",
+        "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36",
+        "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36",
+        "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Mobile Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) Mobile/14F89;GameHelper",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/10.0 Mobile/14A300 Safari/602.1",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:46.0) Gecko/20100101 Firefox/46.0", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:46.0) Gecko/20100101 Firefox/46.0",
+        "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0)", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
+        "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Win64; x64; Trident/6.0)", "Mozilla/5.0 (Windows NT 6.3; Win64, x64; Trident/7.0; rv:11.0) like Gecko",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/13.10586",
+        "Mozilla/5.0 (iPad; CPU OS 10_0 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/10.0 Mobile/14A300 Safari/602.1"
+    ]
 
     @classmethod
     def _encrypt(cls, dfsid):
@@ -41,24 +70,19 @@ class NetEaseMusicBaseIE(InfoExtractor):
             details = info.get(song_format)
             if not details:
                 continue
-            song_file_path = '/%s/%s.%s' % (
-                self._encrypt(details['dfsId']), details['dfsId'], details['extension'])
 
-            # 203.130.59.9, 124.40.233.182, 115.231.74.139, etc is a reverse proxy-like feature
-            # from NetEase's CDN provider that can be used if m5.music.126.net does not
-            # work, especially for users outside of Mainland China
-            # via: https://github.com/JixunMoe/unblock-163/issues/3#issuecomment-163115880
-            for host in ('http://m5.music.126.net', 'http://115.231.74.139/m1.music.126.net',
-                         'http://124.40.233.182/m1.music.126.net', 'http://203.130.59.9/m1.music.126.net'):
-                song_url = host + song_file_path
-                if self._is_valid_url(song_url, info['id'], 'song'):
+            params = {'ids': [str(info['id'])], 'br': int(details.get('br', details.get('bitrate', 128000))), 'csrf_token': ''}
+            url_info = self.query_api('weapi/song/enhance/player/url', params, info['id'], 'Fetching song url')['data'][0]
+            url = url_info.get('url', None)
+
+            if url:
+                if self._is_valid_url(url, info['id'], 'song'):
                     formats.append({
-                        'url': song_url,
-                        'ext': details.get('extension'),
-                        'abr': float_or_none(details.get('bitrate'), scale=1000),
+                        'url': url,
+                        'ext': url_info.get('type'),
+                        'abr': float_or_none(url_info.get('br'), scale=1000),
                         'format_id': song_format,
-                        'filesize': details.get('size'),
-                        'asr': details.get('sr')
+                        'filesize': url_info.get('size'),
                     })
                     break
         return formats
@@ -67,9 +91,39 @@ class NetEaseMusicBaseIE(InfoExtractor):
     def convert_milliseconds(cls, ms):
         return int(round(ms / 1000.0))
 
-    def query_api(self, endpoint, video_id, note):
+    @classmethod
+    def create_secretkey(cls, size):
+        keys = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        return ''.join(list(keys[int(random.random() * len(keys))] for x in range(size)))
+
+    def aes_crypt(self, params):
+        plain_text = bytes(json.dumps(params, ensure_ascii=True).replace(' ', ''), 'utf-8')
+        if len(plain_text) % 16 == 0:
+            plain_text = plain_text + bytes([0x10] * 16)
+
+        sec_key = bytes(self.create_secretkey(16), 'utf-8')
+        lv = b'0102030405060708'
+        part_one = b64encode(l2b(aes_cbc_encrypt(b2l(plain_text), b2l(self._NONCE_), lv)))
+
+        if len(part_one) % 16 == 0:
+            part_one = part_one + bytes([0x10] * 16)
+        enc_text = b64encode(l2b(aes_cbc_encrypt(b2l(part_one), b2l(sec_key), lv)))
+
+        enc_seckey = ohdave_rsa_encrypt(sec_key, self._PUBKEY_, self._MODULUS_)
+        return {'params': enc_text, 'encSecKey': enc_seckey}
+
+    def query_api(self, endpoint, params, video_id, note):
         req = sanitized_Request('%s%s' % (self._API_BASE, endpoint))
-        req.add_header('Referer', self._API_BASE)
+        for key, value in {
+                'Referer': self._API_BASE,
+                'Accept': '*/*',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': random.choice(self._AGENTS_),
+        }.items():
+            req.add_header(key, value)
+        self.to_screen(params)
+        req.method = 'POST'
+        req.data = compat_urllib_parse_urlencode(self.aes_crypt(params))
         return self._download_json(req, video_id, note)
 
 
@@ -78,19 +132,6 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
     IE_DESC = '网易云音乐'
     _VALID_URL = r'https?://music\.163\.com/(#/)?song\?id=(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://music.163.com/#/song?id=32102397',
-        'md5': 'f2e97280e6345c74ba9d5677dd5dcb45',
-        'info_dict': {
-            'id': '32102397',
-            'ext': 'mp3',
-            'title': 'Bad Blood (feat. Kendrick Lamar)',
-            'creator': 'Taylor Swift / Kendrick Lamar',
-            'upload_date': '20150517',
-            'timestamp': 1431878400,
-            'description': 'md5:a10a54589c2860300d02e1de821eb2ef',
-        },
-        'skip': 'Blocked outside Mainland China',
-    }, {
         'note': 'No lyrics translation.',
         'url': 'http://music.163.com/#/song?id=29822014',
         'info_dict': {
@@ -102,7 +143,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'timestamp': 1419523200,
             'description': 'md5:a4d8d89f44656af206b7b2555c0bce6c',
         },
-        'skip': 'Blocked outside Mainland China',
+        'skip': 'VIP required'
     }, {
         'note': 'No lyrics.',
         'url': 'http://music.163.com/song?id=17241424',
@@ -140,46 +181,34 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
 
         lyrics_expr = r'(\[[0-9]{2}:[0-9]{2}\.[0-9]{2,}\])([^\n]+)'
         original_ts_texts = re.findall(lyrics_expr, original)
-        translation_ts_dict = dict(
-            (time_stamp, text) for time_stamp, text in re.findall(lyrics_expr, translated)
-        )
-        lyrics = '\n'.join([
-            '%s%s / %s' % (time_stamp, text, translation_ts_dict.get(time_stamp, ''))
-            for time_stamp, text in original_ts_texts
-        ])
+        translation_ts_dict = dict((time_stamp, text) for time_stamp, text in re.findall(lyrics_expr, translated))
+        lyrics = '\n'.join(['%s%s / %s' % (time_stamp, text, translation_ts_dict.get(time_stamp, '')) for time_stamp, text in original_ts_texts])
         return lyrics
 
     def _real_extract(self, url):
         song_id = self._match_id(url)
 
-        params = {
-            'id': song_id,
-            'ids': '[%s]' % song_id
-        }
-        info = self.query_api(
-            'song/detail?' + compat_urllib_parse_urlencode(params),
-            song_id, 'Downloading song info')['songs'][0]
+        params = {'c': json.dumps([{'id': int(song_id)}]), 'ids': '[%s]' % song_id, 'csrf_token': ''}
+        info = self.query_api('weapi/v3/song/detail', params, song_id, 'Downloading song info')['songs'][0]
 
         formats = self.extract_formats(info)
         self._sort_formats(formats)
 
-        lyrics_info = self.query_api(
-            'song/lyric?id=%s&lv=-1&tv=-1' % song_id,
-            song_id, 'Downloading lyrics data')
+        lyrics_info = self.query_api('weapi/song/lyric?os=osx&id=%s&lv=-1&tv=-1&kv=-1' % song_id, {}, song_id, 'Downloading lyrics data')
         lyrics = self._process_lyrics(lyrics_info)
 
         alt_title = None
-        if info.get('transNames'):
-            alt_title = '/'.join(info.get('transNames'))
+        if info.get('tns'):
+            alt_title = '/'.join(info.get('tns'))
 
         return {
             'id': song_id,
             'title': info['name'],
             'alt_title': alt_title,
-            'creator': ' / '.join([artist['name'] for artist in info.get('artists', [])]),
-            'timestamp': self.convert_milliseconds(info.get('album', {}).get('publishTime')),
-            'thumbnail': info.get('album', {}).get('picUrl'),
-            'duration': self.convert_milliseconds(info.get('duration', 0)),
+            'creator': ' / '.join([artist['name'] for artist in info.get('ar', [])]),
+            'timestamp': self.convert_milliseconds(info.get('publishTime')),
+            'thumbnail': info.get('al', {}).get('picUrl'),
+            'duration': self.convert_milliseconds(info.get('dt', 0)),
             'description': lyrics,
             'formats': formats,
         }
@@ -194,6 +223,7 @@ class NetEaseMusicAlbumIE(NetEaseMusicBaseIE):
         'info_dict': {
             'id': '220780',
             'title': 'B\'day',
+            'description': 'Japanese pressing of 2006 album features 15 tracks including bonus international versions, 2 hidden tracks and the Japan only track \'Creole\'. Sony.\n\n'
         },
         'playlist_count': 23,
         'skip': 'Blocked outside Mainland China',
@@ -202,17 +232,13 @@ class NetEaseMusicAlbumIE(NetEaseMusicBaseIE):
     def _real_extract(self, url):
         album_id = self._match_id(url)
 
-        info = self.query_api(
-            'album/%s?id=%s' % (album_id, album_id),
-            album_id, 'Downloading album data')['album']
+        params = {'csrf_token': ''}
+        info = self.query_api('weapi/v1/album/%s' % album_id, params, album_id, 'Downloading album data')
 
-        name = info['name']
-        desc = info.get('description')
-        entries = [
-            self.url_result('http://music.163.com/#/song?id=%s' % song['id'],
-                            'NetEaseMusic', song['id'])
-            for song in info['songs']
-        ]
+        name = info['album']['name']
+        desc = info['album']['description']
+        entries = [self.url_result('http://music.163.com/#/song?id=%s' % song['id'], 'NetEaseMusic', song['id']) for song in info['songs']]
+
         return self.playlist_result(entries, album_id, name, desc)
 
 
@@ -243,9 +269,9 @@ class NetEaseMusicSingerIE(NetEaseMusicBaseIE):
     def _real_extract(self, url):
         singer_id = self._match_id(url)
 
-        info = self.query_api(
-            'artist/%s?id=%s' % (singer_id, singer_id),
-            singer_id, 'Downloading singer data')
+        params = {'csrf_token': ''}
+
+        info = self.query_api('weapi/v1/artist/%s' % singer_id, params, singer_id, 'Downloading singer data')
 
         name = info['artist']['name']
         if info['artist']['trans']:
@@ -253,11 +279,7 @@ class NetEaseMusicSingerIE(NetEaseMusicBaseIE):
         if info['artist']['alias']:
             name = '%s - %s' % (name, ';'.join(info['artist']['alias']))
 
-        entries = [
-            self.url_result('http://music.163.com/#/song?id=%s' % song['id'],
-                            'NetEaseMusic', song['id'])
-            for song in info['hotSongs']
-        ]
+        entries = [self.url_result('http://music.163.com/#/song?id=%s' % song['id'], 'NetEaseMusic', song['id']) for song in info['hotSongs']]
         return self.playlist_result(entries, singer_id, name)
 
 
@@ -272,7 +294,7 @@ class NetEaseMusicListIE(NetEaseMusicBaseIE):
             'title': 'Billboard 2007 Top 100',
             'description': 'md5:12fd0819cab2965b9583ace0f8b7b022'
         },
-        'playlist_count': 99,
+        'playlist_count': 97,
         'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'Toplist/Charts sample',
@@ -289,23 +311,18 @@ class NetEaseMusicListIE(NetEaseMusicBaseIE):
     def _real_extract(self, url):
         list_id = self._match_id(url)
 
-        info = self.query_api(
-            'playlist/detail?id=%s&lv=-1&tv=-1' % list_id,
-            list_id, 'Downloading playlist data')['result']
+        params = {'id': str(list_id), 'n': 100000, 'csrf_token': ''}
+
+        info = self.query_api('api/playlist/detail?id=%s' % list_id, params, list_id, 'Downloading playlist data')['result']
 
         name = info['name']
         desc = info.get('description')
 
         if info.get('specialType') == 10:  # is a chart/toplist
-            datestamp = datetime.fromtimestamp(
-                self.convert_milliseconds(info['updateTime'])).strftime('%Y-%m-%d')
+            datestamp = datetime.fromtimestamp(self.convert_milliseconds(info['updateTime'])).strftime('%Y-%m-%d')
             name = '%s %s' % (name, datestamp)
 
-        entries = [
-            self.url_result('http://music.163.com/#/song?id=%s' % song['id'],
-                            'NetEaseMusic', song['id'])
-            for song in info['tracks']
-        ]
+        entries = [self.url_result('http://music.163.com/#/song?id=%s' % song['id'], 'NetEaseMusic', song['id']) for song in info['tracks']]
         return self.playlist_result(entries, list_id, name, desc)
 
 
@@ -320,7 +337,7 @@ class NetEaseMusicMvIE(NetEaseMusicBaseIE):
             'ext': 'mp4',
             'title': '이럴거면 그러지말지',
             'description': '白雅言自作曲唱甜蜜爱情',
-            'creator': '白雅言',
+            'creator': '白娥娟',
             'upload_date': '20150520',
         },
         'skip': 'Blocked outside Mainland China',
@@ -329,14 +346,13 @@ class NetEaseMusicMvIE(NetEaseMusicBaseIE):
     def _real_extract(self, url):
         mv_id = self._match_id(url)
 
-        info = self.query_api(
-            'mv/detail?id=%s&type=mp4' % mv_id,
-            mv_id, 'Downloading mv info')['data']
+        params = {
+            'id': str(mv_id),
+        }
 
-        formats = [
-            {'url': mv_url, 'ext': 'mp4', 'format_id': '%sp' % brs, 'height': int(brs)}
-            for brs, mv_url in info['brs'].items()
-        ]
+        info = self.query_api('weapi/mv/detail', params, mv_id, 'Downloading mv info')['data']
+
+        formats = [{'url': mv_url, 'ext': 'mp4', 'format_id': '%sp' % brs, 'height': int(brs)} for brs, mv_url in info['brs'].items()]
         self._sort_formats(formats)
 
         return {
@@ -398,18 +414,14 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
     def _real_extract(self, url):
         program_id = self._match_id(url)
 
-        info = self.query_api(
-            'dj/program/detail?id=%s' % program_id,
-            program_id, 'Downloading program info')['program']
+        info = self.query_api('dj/program/detail?id=%s' % program_id, program_id, 'Downloading program info')['program']
 
         name = info['name']
         description = info['description']
 
         if not info['songs'] or self._downloader.params.get('noplaylist'):
             if info['songs']:
-                self.to_screen(
-                    'Downloading just the main audio %s because of --no-playlist'
-                    % info['mainSong']['id'])
+                self.to_screen('Downloading just the main audio %s because of --no-playlist' % info['mainSong']['id'])
 
             formats = self.extract_formats(info['mainSong'])
             self._sort_formats(formats)
@@ -425,17 +437,11 @@ class NetEaseMusicProgramIE(NetEaseMusicBaseIE):
                 'formats': formats,
             }
 
-        self.to_screen(
-            'Downloading playlist %s - add --no-playlist to just download the main audio %s'
-            % (program_id, info['mainSong']['id']))
+        self.to_screen('Downloading playlist %s - add --no-playlist to just download the main audio %s' % (program_id, info['mainSong']['id']))
 
         song_ids = [info['mainSong']['id']]
         song_ids.extend([song['id'] for song in info['songs']])
-        entries = [
-            self.url_result('http://music.163.com/#/song?id=%s' % song_id,
-                            'NetEaseMusic', song_id)
-            for song_id in song_ids
-        ]
+        entries = [self.url_result('http://music.163.com/#/song?id=%s' % song_id, 'NetEaseMusic', song_id) for song_id in song_ids]
         return self.playlist_result(entries, program_id, name, description)
 
 
@@ -458,21 +464,13 @@ class NetEaseMusicDjRadioIE(NetEaseMusicBaseIE):
     def _real_extract(self, url):
         dj_id = self._match_id(url)
 
-        name = None
-        desc = None
+        params = {'radioId': str(dj_id), 'csrf_token': '', 'asc': None, 'limit': None, 'offset': None}
+
         entries = []
         for offset in compat_itertools_count(start=0, step=self._PAGE_SIZE):
-            info = self.query_api(
-                'dj/program/byradio?asc=false&limit=%d&radioId=%s&offset=%d'
-                % (self._PAGE_SIZE, dj_id, offset),
-                dj_id, 'Downloading dj programs - %d' % offset)
+            info = self.query_api('weapi/dj/program/byradio', params, dj_id, 'Downloading dj programs - %d' % offset)
 
-            entries.extend([
-                self.url_result(
-                    'http://music.163.com/#/program?id=%s' % program['id'],
-                    'NetEaseMusicProgram', program['id'])
-                for program in info['programs']
-            ])
+            entries.extend([self.url_result('http://music.163.com/#/program?id=%s' % program['id'], 'NetEaseMusicProgram', program['']) for program in info['programs']])
 
             if name is None:
                 radio = info['programs'][0]['radio']
