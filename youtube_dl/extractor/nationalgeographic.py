@@ -100,25 +100,15 @@ class NationalGeographicIE(ThePlatformIE, AdobePassIE):
             'add_ie': ['ThePlatform'],
         },
         {
-            'url': 'http://channel.nationalgeographic.com/u/kcOIVhcWjca1n65QtmFg_5vIMZ9j1S1CXT46o65HkAANx6SUvJvQAQfYjGC0CkQwGNSgnX54f2aoFg/',
-            'md5': '8727ce6610e8d54dfa523ec8dbc12d02',
-            'info_dict': {
-                'id': '7U3oHGsUo9DI',
-                'ext': 'mp4',
-                'title': 'One Strange Rock Trailer',
-                'description': 'md5:27c87bc04f2f1c41dd49a4456175c1ec',
-                'timestamp': 1519162181,
-                'upload_date': '20180220',
-                'uploader': 'NEWA-FNG-NGTV',
-            },
-            'add_ie': ['ThePlatform'],
-        },
-        {
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/episodes/the-power-of-miracles/',
             'only_matching': True,
         },
         {
             'url': 'http://channel.nationalgeographic.com/videos/treasures-rediscovered/',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://channel.nationalgeographic.com/u/kcOIVhcWjca1n65QtmFg_5vIMZ9j1S1CXT46o65HkAANx6SUvJvQAQfYjGC0CkQwGNSgnX54f2aoFg/',
             'only_matching': True,
         }
     ]
