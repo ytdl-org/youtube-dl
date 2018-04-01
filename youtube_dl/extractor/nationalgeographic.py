@@ -108,10 +108,6 @@ class NationalGeographicIE(ThePlatformIE, AdobePassIE):
             'only_matching': True,
         },
         {
-            'url': 'http://channel.nationalgeographic.com/u/kcOIVhcWjca1n65QtmFg_5vIMZ9j1S1CXT46o65HkAANx6SUvJvQAQfYjGC0CkQwGNSgnX54f2aoFg/',
-            'only_matching': True,
-        },
-        {
             'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/videos/uncovering-a-universal-knowledge/',
             'only_matching': True,
         },
