@@ -72,7 +72,7 @@ class NationalGeographicIE(ThePlatformIE, AdobePassIE):
 
     _TESTS = [
         {
-            'url': 'http://channel.nationalgeographic.com/the-story-of-god-with-morgan-freeman/videos/uncovering-a-universal-knowledge/',
+            'url': 'http://channel.nationalgeographic.com/u/kdi9Ld0PN2molUUIMSBGxoeDhD729KRjQcnxtetilWPMevo8ZwUBIDuPR0Q3D2LVaTsk0MPRkRWDB8ZhqWVeyoxfsZZm36yRp1j-zPfsHEyI_EgAeFY/',
             'md5': '518c9aa655686cf81493af5cc21e2a04',
             'info_dict': {
                 'id': 'vKInpacll2pC',
@@ -86,7 +86,7 @@ class NationalGeographicIE(ThePlatformIE, AdobePassIE):
             'add_ie': ['ThePlatform'],
         },
         {
-            'url': 'http://channel.nationalgeographic.com/wild/destination-wild/videos/the-stunning-red-bird-of-paradise/',
+            'url': 'http://channel.nationalgeographic.com/u/kdvOstqYaBY-vSBPyYgAZRUL4sWUJ5XUUPEhc7ISyBHqoIO4_dzfY3K6EjHIC0hmFXoQ7Cpzm6RkET7S3oMlm6CFnrQwSUwo/',
             'md5': 'c4912f656b4cbe58f3e000c489360989',
             'info_dict': {
                 'id': 'Pok5lWCkiEFA',
