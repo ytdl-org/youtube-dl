@@ -1136,7 +1136,7 @@ from .tvnoe import TVNoeIE
 from .tvnow import (
     TVNowIE,
     TVNowListIE,
-    TVNowListChannelIE,
+    TVNowShowIE,
 )
 from .tvp import (
     TVPEmbedIE,

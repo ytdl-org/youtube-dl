@@ -10,6 +10,7 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     parse_duration,
+    try_get,
     update_url_query,
 )
 
@@ -19,7 +20,7 @@ class TVNowBaseIE(InfoExtractor):
         'id', 'title', 'free', 'geoblocked', 'articleLong', 'articleShort',
         'broadcastStartDate', 'isDrm', 'duration', 'season', 'episode',
         'manifest.dashclear', 'format.title', 'format.defaultImage169Format',
-        'format.defaultImage169Logo', 'replaceMovieInformation')
+        'format.defaultImage169Logo')
 
     def _call_api(self, path, video_id, query):
         return self._download_json(
@@ -58,14 +59,22 @@ class TVNowBaseIE(InfoExtractor):
         duration = parse_duration(info.get('duration'))
 
         f = info.get('format', {})
-        thumbnail = ('https://aistvnow-a.akamaihd.net/tvnow/movie/%s' % info.get('replaceMovieInformation')) or f.get('defaultImage169Format') or f.get('defaultImage169Logo')
+
+        thumbnails = [{
+            'url': 'https://aistvnow-a.akamaihd.net/tvnow/movie/%s' % video_id,
+        }]
+        thumbnail = f.get('defaultImage169Format') or f.get('defaultImage169Logo')
+        if thumbnail:
+            thumbnails.append({
+                'url': thumbnail,
+            })
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
             'timestamp': timestamp,
             'duration': duration,
             'series': f.get('title'),
@@ -77,7 +86,12 @@ class TVNowBaseIE(InfoExtractor):
 
 
 class TVNowIE(TVNowBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/(?:(?:list/[^/]+|jahr/\d{4}/\d{1,2})/)?(?P<id>[^/]+)/(?:player|preview)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?tvnow\.(?:de|at|ch)/[^/]+/
+                        (?P<show_id>[^/]+)/
+                        (?!(?:list|jahr)(?:/|$))(?P<id>[^/?\#&]+)
+                    '''
 
     _TESTS = [{
         'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/der-neue-porsche-911-gt-3/player',
@@ -99,27 +113,30 @@ class TVNowIE(TVNowBaseIE):
     }, {
         # rtl2
         'url': 'https://www.tvnow.de/rtl2/armes-deutschland/episode-0008/player',
-        'only_matching': 'True',
+        'only_matching': True,
     }, {
         # rtlnitro
         'url': 'https://www.tvnow.de/nitro/alarm-fuer-cobra-11-die-autobahnpolizei/auf-eigene-faust-pilot/player',
-        'only_matching': 'True',
+        'only_matching': True,
     }, {
         # superrtl
         'url': 'https://www.tvnow.de/superrtl/die-lustigsten-schlamassel-der-welt/u-a-ketchup-effekt/player',
-        'only_matching': 'True',
+        'only_matching': True,
     }, {
         # ntv
         'url': 'https://www.tvnow.de/ntv/startup-news/goetter-in-weiss/player',
-        'only_matching': 'True',
+        'only_matching': True,
     }, {
         # vox
         'url': 'https://www.tvnow.de/vox/auto-mobil/neues-vom-automobilmarkt-2017-11-19-17-00-00/player',
-        'only_matching': 'True',
+        'only_matching': True,
     }, {
         # rtlplus
         'url': 'https://www.tvnow.de/rtlplus/op-ruft-dr-bruckner/die-vernaehte-frau/player',
-        'only_matching': 'True',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/der-neue-porsche-911-gt-3',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -134,27 +151,29 @@ class TVNowIE(TVNowBaseIE):
 
 
 class TVNowListBaseIE(TVNowBaseIE):
-    def _extend_query(self, show, season, video=None):
-        fields = []
-        fields.extend(show)
-        fields.extend('formatTabs.%s' % field for field in season)
-        if video:
-            fields.extend(
-                'formatTabs.formatTabPages.container.movies.%s' % field
-                for field in video)
+    _SHOW_VALID_URL = r'''(?x)
+                    (?P<base_url>
+                        https?://
+                            (?:www\.)?tvnow\.(?:de|at|ch)/[^/]+/
+                            (?P<show_id>[^/]+)
+                    )
+                    '''
 
-        return fields
-
-    def _tvnow_list_info(self, list_id, show_id, fields):
+    def _extract_list_info(self, display_id, show_id):
+        fields = list(self._SHOW_FIELDS)
+        fields.extend('formatTabs.%s' % field for field in self._SEASON_FIELDS)
+        fields.extend(
+            'formatTabs.formatTabPages.container.movies.%s' % field
+            for field in self._VIDEO_FIELDS)
         return self._call_api(
-            'formats/seo', list_id, query={
+            'formats/seo', display_id, query={
                 'fields': ','.join(fields),
                 'name': show_id + '.php'
             })
 
 
 class TVNowListIE(TVNowListBaseIE):
-    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+)/)list/(?P<id>[^?/#&]+)$'
+    _VALID_URL = r'%s/(?:list|jahr)/(?P<id>[^?\#&]+)' % TVNowListBaseIE._SHOW_VALID_URL
 
     _SHOW_FIELDS = ('title', )
     _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
@@ -167,59 +186,94 @@ class TVNowListIE(TVNowListBaseIE):
             'title': '30 Minuten Deutschland - Aktuell',
         },
         'playlist_mincount': 1,
+    }, {
+        'url': 'https://www.tvnow.de/vox/ab-ins-beet/list/staffel-14',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/jahr/2018/3',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False if TVNowIE.suitable(url)
+                else super(TVNowListIE, cls).suitable(url))
 
     def _real_extract(self, url):
         base_url, show_id, season_id = re.match(self._VALID_URL, url).groups()
 
-        list_info = self._tvnow_list_info(season_id, show_id, self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS, self._VIDEO_FIELDS))
+        list_info = self._extract_list_info(season_id, show_id)
 
         season = next(
             season for season in list_info['formatTabs']['items']
             if season.get('seoheadline') == season_id)
 
-        title = '%s - %s' % (list_info['title'], season['headline'])
+        title = list_info.get('title')
+        headline = season.get('headline')
+        if title and headline:
+            title = '%s - %s' % (title, headline)
+        else:
+            title = headline or title
 
         entries = []
         for container in season['formatTabPages']['items']:
-            for info in ((container.get('container') or {}).get('movies') or {}).get('items') or []:
+            items = try_get(
+                container, lambda x: x['container']['movies']['items'],
+                list) or []
+            for info in items:
                 seo_url = info.get('seoUrl')
                 if not seo_url:
                     continue
-
+                video_id = info.get('id')
                 entries.append(self.url_result(
-                    base_url + seo_url + '/player', 'TVNow', str(info.get('id', seo_url))))
+                    '%s/%s/player' % (base_url, seo_url), TVNowIE.ie_key(),
+                    compat_str(video_id) if video_id else None))
 
         return self.playlist_result(
             entries, compat_str(season.get('id') or season_id), title)
 
 
-class TVNowListChannelIE(TVNowListBaseIE):
-    _VALID_URL = r'(?P<base_url>https?://(?:www\.)?tvnow\.(?:de|at|ch)/(?:rtl(?:2|plus)?|nitro|superrtl|ntv|vox)/(?P<show_id>[^/]+))'
+class TVNowShowIE(TVNowListBaseIE):
+    _VALID_URL = TVNowListBaseIE._SHOW_VALID_URL
 
     _SHOW_FIELDS = ('id', 'title', )
     _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
+    _VIDEO_FIELDS = ()
 
     _TESTS = [{
         'url': 'https://www.tvnow.at/vox/ab-ins-beet',
-        'only_matching': 'True',
+        'info_dict': {
+            'id': 'ab-ins-beet',
+            'title': 'Ab ins Beet!',
+        },
+        'playlist_mincount': 7,
+    }, {
+        'url': 'https://www.tvnow.at/vox/ab-ins-beet/list',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/jahr/',
+        'only_matching': True,
     }]
 
     @classmethod
     def suitable(cls, url):
-        return False if TVNowIE.suitable(url) or TVNowListIE.suitable(url) else super(TVNowListChannelIE, cls).suitable(url)
+        return (False if TVNowIE.suitable(url) or TVNowListIE.suitable(url)
+                else super(TVNowShowIE, cls).suitable(url))
 
     def _real_extract(self, url):
         base_url, show_id = re.match(self._VALID_URL, url).groups()
 
-        list_info = self._tvnow_list_info(show_id, show_id, self._extend_query(self._SHOW_FIELDS, self._SEASON_FIELDS))
+        list_info = self._extract_list_info(show_id, show_id)
 
         entries = []
         for season_info in list_info['formatTabs']['items']:
             season_url = season_info.get('seoheadline')
             if not season_url:
                 continue
+            season_id = season_info.get('id')
             entries.append(self.url_result(
-                base_url + "/list/" + season_url, 'TVNowList', compat_str(season_info.get('id')), season_info.get('headline')))
+                '%s/list/%s' % (base_url, season_url), TVNowListIE.ie_key(),
+                compat_str(season_id) if season_id else None,
+                season_info.get('headline')))
 
-        return self.playlist_result(entries)
+        return self.playlist_result(entries, show_id, list_info.get('title'))
