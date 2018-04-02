@@ -491,6 +491,7 @@ from .jamendo import (
     JamendoAlbumIE,
 )
 from .jeuxvideo import JeuxVideoIE
+from .joox import JooxIE
 from .jove import JoveIE
 from .joj import JojIE
 from .jwplatform import JWPlatformIE
@@ -1328,7 +1329,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
