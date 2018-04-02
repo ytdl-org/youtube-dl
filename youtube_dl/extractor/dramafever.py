@@ -2,9 +2,11 @@
 from __future__ import unicode_literals
 
 import itertools
+import json
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_str,
     compat_urlparse,
 )
@@ -14,14 +16,11 @@ from ..utils import (
     int_or_none,
     parse_age_limit,
     parse_duration,
-    sanitized_Request,
     unified_timestamp,
-    urlencode_postdata
 )
 
 
 class DramaFeverBaseIE(InfoExtractor):
-    _LOGIN_URL = 'https://www.dramafever.com/accounts/login/'
     _NETRC_MACHINE = 'dramafever'
 
     _CONSUMER_SECRET = 'DA59dtVXYLxajktV'
@@ -39,8 +38,8 @@ class DramaFeverBaseIE(InfoExtractor):
             'consumer secret', default=self._CONSUMER_SECRET)
 
     def _real_initialize(self):
-        self._login()
         self._consumer_secret = self._get_consumer_secret()
+        self._login()
 
     def _login(self):
         (username, password) = self._get_login_info()
@@ -52,19 +51,29 @@ class DramaFeverBaseIE(InfoExtractor):
             'password': password,
         }
 
-        request = sanitized_Request(
-            self._LOGIN_URL, urlencode_postdata(login_form))
-        response = self._download_webpage(
-            request, None, 'Logging in')
+        try:
+            response = self._download_json(
+                'https://www.dramafever.com/api/users/login', None, 'Logging in',
+                data=json.dumps(login_form).encode('utf-8'), headers={
+                    'x-consumer-key': self._consumer_secret,
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (403, 404):
+                response = self._parse_json(
+                    e.cause.read().decode('utf-8'), None)
+            else:
+                raise
 
-        if all(logout_pattern not in response
-               for logout_pattern in ['href="/accounts/logout/"', '>Log out<']):
-            error = self._html_search_regex(
-                r'(?s)<h\d[^>]+\bclass="hidden-xs prompt"[^>]*>(.+?)</h\d',
-                response, 'error message', default=None)
-            if error:
-                raise ExtractorError('Unable to login: %s' % error, expected=True)
-            raise ExtractorError('Unable to log in')
+        # Successful login
+        if response.get('result') or response.get('guid') or response.get('user_guid'):
+            return
+
+        errors = response.get('errors')
+        if errors and isinstance(errors, list):
+            error = errors[0]
+            message = error.get('message') or error['reason']
+            raise ExtractorError('Unable to login: %s' % message, expected=True)
+        raise ExtractorError('Unable to log in')
 
 
 class DramaFeverIE(DramaFeverBaseIE):
