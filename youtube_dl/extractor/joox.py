@@ -12,6 +12,8 @@ from ..compat import (
     compat_urllib_parse_urlencode,
 )
 
+from ..utils import ExtractorError
+
 
 class JooxIE(InfoExtractor):
     IE_NAME = 'jooxmusic:single'
@@ -31,15 +33,14 @@ class JooxIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        _VALID_URL = r'https?://www\.joox\.com/(?P<country>[a-z]*)/(?P<language>[a-z]*_?[a-z]*)/single/(?P<id>[a-zA-z0-9+]*==)'
         song_id = self._match_id(url)
-        p = re.compile(_VALID_URL)
+        p = re.compile(self._VALID_URL)
         m = p.search(url)
         _country = m.group('country')
         _lang = m.group('language')
         _code = int(time.time() * 1000)
 
-        query = {
+        parameter = {
             'songid': song_id,
             'lang': _lang,
             'country': _country,
@@ -49,15 +50,18 @@ class JooxIE(InfoExtractor):
         }
 
         detail_info_page = self._download_webpage(
-            "http://api.joox.com/web-fcgi-bin/web_get_songinfo?" + compat_urllib_parse_urlencode(query), song_id)
+            "http://api.joox.com/web-fcgi-bin/web_get_songinfo?" + compat_urllib_parse_urlencode(parameter), song_id)
         detail_info_page = detail_info_page[18:-1]
         song_json = self._parse_json(detail_info_page, song_id)
+        if song_json.get('code') != 0:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, "invalid songid"), expected=True)
+
         song320mp3 = song_json.get('r320Url')
         song192mp3 = song_json.get('r192Url')
         songmp3 = song_json.get('mp3Url')
         songm4a = song_json.get('m4aUrl')
         song_title = song_json.get('msong')
-        _duration = song_json.get('minterval')
+        duration = song_json.get('minterval')
         album_thumbnail = song_json.get('album_url')
         size128 = song_json.get('size128')
         size320 = song_json.get('size320')
@@ -67,28 +71,20 @@ class JooxIE(InfoExtractor):
         publish_time = song_json.get('public_time')
         publish_time = publish_time.replace('-', '')
         formats = []
-        _FORMATS = {
-            '128m4a': {'url': song192mp3, 'abr': 128},
-            'm4a': {'url': songm4a},
-            'mp3': {'url': songmp3, 'abr': 128, 'filesize': size128},
-            '320mp3': {'url': song320mp3, 'preference': -1, 'abr': 320, 'filesize': size320},
-        }
-        for format_id, details in _FORMATS.items():
-            formats.append({
-                'url': details['url'],
-                'format': format_id,
-                'format_id': format_id,
-                'preference': details.get('preference'),
-                'abr': details.get('abr'),
-                'filesize': details.get('filesize'),
-                'resolution': 'audio only'
-            })
+        formats.extend([
+            {'url': song192mp3, 'format_id': '128m4a', 'abr': 128, },
+            {'url': songm4a, 'format_id': 'm4a', },
+            {'url': songmp3, 'format_id': 'mp3', 'abr': 128, 'filesize': int(size128)},
+            {'url': song320mp3, 'format_id': '320mp3', 'abr': 320, 'preference': -1, 'filesize': int(size320), }
+        ])
+        formats = [x for x in formats if x['url'] != '']
+
         return {
             'id': song_id,
             'title': song_title,
             'formats': formats,
             'thumbnail': album_thumbnail,
             'release_date': publish_time,
-            'duration': _duration,
-            'creator': singer,
+            'duration': int(duration),
+            'artist': singer,
         }
