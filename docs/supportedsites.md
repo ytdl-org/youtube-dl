@@ -887,6 +887,7 @@
  - **TVNoe**
  - **TVNow**
  - **TVNowList**
+ - **TVNowShow**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
  - **tvp:series**

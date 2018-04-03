@@ -1,3 +1,20 @@
+version 2018.04.03
+
+Extractors
++ [tvnow] Add support for shows (#15837)
+* [dramafever] Fix authentication (#16067)
+* [afreecatv] Use partial view only when necessary (#14450)
++ [afreecatv] Add support for authentication (#14450)
++ [nationalgeographic] Add support for new URL schema (#16001, #16054)
+* [xvideos] Fix thumbnail extraction (#15978, #15979)
+* [medialaan] Fix vod id (#16038)
++ [openload] Add support for oload.site (#16039)
+* [naver] Fix extraction (#16029)
+* [dramafever] Partially switch to API v5 (#16026)
+* [abc:iview] Unescape title and series meta fields (#15994)
+* [videa] Extend URL regular expression (#16003)
+
+
 version 2018.03.26.1
 
 Core
