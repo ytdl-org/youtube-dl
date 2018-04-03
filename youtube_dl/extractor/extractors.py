@@ -796,9 +796,7 @@ from .orf import (
     ORFOE1IE,
     ORFIPTVIE,
 )
-from .orfium import (
-    OrfiumTrackIE,
-)
+from .orfium import OrfiumTrackIE
 from .packtpub import (
     PacktPubIE,
     PacktPubCourseIE,

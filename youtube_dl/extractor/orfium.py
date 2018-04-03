@@ -10,7 +10,7 @@ from ..utils import ExtractorError
 class OrfiumTrackIE(InfoExtractor):
     _VALID_URL = r'https?://(www\.)?orfium\.com/track/(?P<id>\d+)'
     IE_NAME = 'orfium'
-    _TESTS = [{
+    _TEST = {
         'url': 'https://www.orfium.com/track/694466/misery-aciou/',
         'md5': 'ceae78f12a22b05d7f796e04de5f6cae',
         'info_dict': {
@@ -21,7 +21,7 @@ class OrfiumTrackIE(InfoExtractor):
             'url': 'https://cdn.orfium.com/tracks%2Fa281276f-8126-48aa-98ad-9121c282e6eb-1522252307.mp3',
             'ext': 'mp3'
         }
-    }]
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
