@@ -33,7 +33,7 @@ class DuaPuluhDetikIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return [m.group('url') for m in re.finditer(
-            r'[^\']<iframe[^>]+?src=(["\'])(?P<url>https?://20\.detik\.com/embed/(\d+)[^"\']+?)\1',
+            r'<iframe[^>]+?src\s*=\s*(["\'])(?P<url>https?://20\.detik\.com/embed/\d+).+?\1',
             webpage)]
 
     def _real_extract(self, url):
