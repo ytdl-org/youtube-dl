@@ -3156,11 +3156,6 @@ class GenericIE(InfoExtractor):
                 return self.url_result(embed_url)
 
         if not found:
-            # DetikFlow: It's basically a 'modified' FlowPlayer used in https://20.detik.com
-            found = re.findall(
-                r'["\']videoUrl["\']\s*:\s*["\']([^"\']+)["\']', webpage)
-
-        if not found:
             raise UnsupportedError(url)
 
         entries = []
