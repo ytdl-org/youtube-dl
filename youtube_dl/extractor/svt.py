@@ -9,6 +9,8 @@ from ..utils import (
     dict_get,
     int_or_none,
     try_get,
+    urljoin,
+    compat_str,
 )
 
 
@@ -189,3 +191,58 @@ class SVTPlayIE(SVTBaseIE):
                     r'\s*\|\s*.+?$', '',
                     info_dict.get('episode') or self._og_search_title(webpage))
             return info_dict
+
+
+class SVTPlaylistIE(InfoExtractor):
+    IE_DESC = 'SVT Play serie'
+    _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)'
+    IE_NAME = 'svtplay:serie'
+    _TESTS = [{
+        'url': 'https://www.svtplay.se/rederiet',
+        'info_dict': {
+            'id': 'rederiet',
+            'title': 'Rederiet',
+            'description': 'md5:505d491a58f4fcf6eb418ecab947e69e',
+        },
+        'playlist_mincount': 318,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if SVTIE.suitable(url) or SVTPlayIE.suitable(url) else super(SVTPlaylistIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        page = self._download_webpage(
+            url, video_id,
+            note='Downloading serie page',
+            errnote='unable to fetch serie page')
+
+        root_json = self._search_regex(
+            r'root\[\'__svtplay\'\]\s*=(.+);\n',
+            page, 'root')
+        root = self._parse_json(root_json, video_id)
+
+        metadata = root.get('metaData', {})
+        related_videos_accordion = root['relatedVideoContent']['relatedVideosAccordion']
+
+        entries = []
+        for season in related_videos_accordion:
+            videos = season.get('videos')
+            if not isinstance(videos, list):
+                continue
+
+            for video in videos:
+                content_url = video.get('contentUrl')
+                if not isinstance(content_url, compat_str):
+                    continue
+                entries.append(
+                    self.url_result(
+                        urljoin(url, content_url),
+                        ie=SVTPlayIE.ie_key(),
+                        video_title=video.get('title')
+                    ))
+
+        return self.playlist_result(
+            entries, video_id, metadata.get('title'), metadata.get('description'))
