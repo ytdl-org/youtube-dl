@@ -15,7 +15,7 @@ class DuaPuluhDetikIE(InfoExtractor):
         'info_dict': {
             'id': '180403001',
             'title': 'Dahsyatnya Rudal Anti-balistik yang Diuji Coba Rusia',
-            'description': '',
+            'description': 'md5:909c645cc494f5d9d7089963c13a695d',
             'thumbnail': r're:^https?://.*\.jpg(\?.*)?$',
             'ext': 'mp4'
         }
@@ -29,6 +29,12 @@ class DuaPuluhDetikIE(InfoExtractor):
             'ext': 'mp4'
         }
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [m.group('url') for m in re.finditer(
+            r'[^\']<iframe[^>]+?src=(["\'])(?P<url>https?://20\.detik\.com/embed/(\d+)[^"\']+?)\1',
+            webpage)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

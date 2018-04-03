@@ -105,6 +105,7 @@ from .springboardplatform import SpringboardPlatformIE
 from .yapfiles import YapFilesIE
 from .vice import ViceIE
 from .xfileshare import XFileShareIE
+from .detik import DuaPuluhDetikIE
 
 
 class GenericIE(InfoExtractor):
@@ -2839,11 +2840,9 @@ class GenericIE(InfoExtractor):
             return info
 
         # Look for 20detik (https://20.detik.com) embeds
-        mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://20\.detik\.com/embed/(\d+)[^"\']+?)\1',
-            webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'))
+        duapuluhdetik_urls = DuaPuluhDetikIE._extract_urls(webpage)
+        if duapuluhdetik_urls:
+            return self.playlist_from_matches(duapuluhdetik_urls, video_id, video_title, getter=unescapeHTML, ie=DuaPuluhDetikIE.ie_key())
 
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
