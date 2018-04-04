@@ -193,10 +193,8 @@ class SVTPlayIE(SVTBaseIE):
             return info_dict
 
 
-class SVTPlaylistIE(InfoExtractor):
-    IE_DESC = 'SVT Play serie'
+class SVTSeriesIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)'
-    IE_NAME = 'svtplay:serie'
     _TESTS = [{
         'url': 'https://www.svtplay.se/rederiet',
         'info_dict': {
@@ -209,33 +207,28 @@ class SVTPlaylistIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if SVTIE.suitable(url) or SVTPlayIE.suitable(url) else super(SVTPlaylistIE, cls).suitable(url)
+        return False if SVTIE.suitable(url) or SVTPlayIE.suitable(url) else super(SVTSeriesIE, cls).suitable(url)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        page = self._download_webpage(
-            url, video_id,
-            note='Downloading serie page',
-            errnote='unable to fetch serie page')
+        webpage = self._download_webpage(
+            url, video_id, 'Downloading serie page')
 
-        root_json = self._search_regex(
-            r'root\[\'__svtplay\'\]\s*=(.+);\n',
-            page, 'root')
-        root = self._parse_json(root_json, video_id)
-
-        metadata = root.get('metaData', {})
-        related_videos_accordion = root['relatedVideoContent']['relatedVideosAccordion']
+        root = self._parse_json(
+            self._search_regex(
+                r'root\[\s*(["\'])_*svtplay\1\s*\]\s*=\s*(?P<json>{.+?})\s*;\s*\n',
+                webpage, 'content', group='json'),
+            video_id)
 
         entries = []
-        for season in related_videos_accordion:
+        for season in root['relatedVideoContent']['relatedVideosAccordion']:
             videos = season.get('videos')
             if not isinstance(videos, list):
                 continue
-
             for video in videos:
                 content_url = video.get('contentUrl')
-                if not isinstance(content_url, compat_str):
+                if not content_url or not isinstance(content_url, compat_str):
                     continue
                 entries.append(
                     self.url_result(
@@ -244,5 +237,10 @@ class SVTPlaylistIE(InfoExtractor):
                         video_title=video.get('title')
                     ))
 
+        metadata = root.get('metaData')
+        if not isinstance(metadata, dict):
+            metadata = {}
+
         return self.playlist_result(
-            entries, video_id, metadata.get('title'), metadata.get('description'))
+            entries, video_id, metadata.get('title'),
+            metadata.get('description'))
