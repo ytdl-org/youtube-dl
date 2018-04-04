@@ -128,7 +128,11 @@ class SVTIE(SVTBaseIE):
         return info_dict
 
 
-class SVTPlayIE(SVTBaseIE):
+class SVTPlayBaseIE(SVTBaseIE):
+    _SVTPLAY_RE = r'root\s*\[\s*(["\'])_*svtplay\1\s*\]\s*=\s*(?P<json>{.+?})\s*;\s*\n'
+
+
+class SVTPlayIE(SVTPlayBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
     _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp)/(?P<id>[0-9]+)'
     _TESTS = [{
@@ -163,8 +167,8 @@ class SVTPlayIE(SVTBaseIE):
 
         data = self._parse_json(
             self._search_regex(
-                r'root\["__svtplay"\]\s*=\s*([^;]+);',
-                webpage, 'embedded data', default='{}'),
+                self._SVTPLAY_RE, webpage, 'embedded data', default='{}',
+                group='json'),
             video_id, fatal=False)
 
         thumbnail = self._og_search_thumbnail(webpage)
@@ -197,7 +201,7 @@ class SVTPlayIE(SVTBaseIE):
             return info_dict
 
 
-class SVTSeriesIE(InfoExtractor):
+class SVTSeriesIE(SVTPlayBaseIE):
     _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)'
     _TESTS = [{
         'url': 'https://www.svtplay.se/rederiet',
@@ -235,8 +239,7 @@ class SVTSeriesIE(InfoExtractor):
 
         root = self._parse_json(
             self._search_regex(
-                r'root\[\s*(["\'])_*svtplay\1\s*\]\s*=\s*(?P<json>{.+?})\s*;\s*\n',
-                webpage, 'content', group='json'),
+                self._SVTPLAY_RE, webpage, 'content', group='json'),
             series_id)
 
         season_name = None
