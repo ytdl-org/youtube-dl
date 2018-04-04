@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     determine_ext,
     dict_get,
@@ -203,6 +207,14 @@ class SVTSeriesIE(InfoExtractor):
             'description': 'md5:505d491a58f4fcf6eb418ecab947e69e',
         },
         'playlist_mincount': 318,
+    }, {
+        'url': 'https://www.svtplay.se/rederiet?tab=sasong2',
+        'info_dict': {
+            'id': 'rederiet-sasong2',
+            'title': 'Rederiet - Säsong 2',
+            'description': 'md5:505d491a58f4fcf6eb418ecab947e69e',
+        },
+        'playlist_count': 12,
     }]
 
     @classmethod
@@ -210,19 +222,33 @@ class SVTSeriesIE(InfoExtractor):
         return False if SVTIE.suitable(url) or SVTPlayIE.suitable(url) else super(SVTSeriesIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        series_id = self._match_id(url)
+
+        qs = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        season_slug = qs.get('tab', [None])[0]
+
+        if season_slug:
+            series_id += '-%s' % season_slug
 
         webpage = self._download_webpage(
-            url, video_id, 'Downloading serie page')
+            url, series_id, 'Downloading series page')
 
         root = self._parse_json(
             self._search_regex(
                 r'root\[\s*(["\'])_*svtplay\1\s*\]\s*=\s*(?P<json>{.+?})\s*;\s*\n',
                 webpage, 'content', group='json'),
-            video_id)
+            series_id)
+
+        season_name = None
 
         entries = []
         for season in root['relatedVideoContent']['relatedVideosAccordion']:
+            if not isinstance(season, dict):
+                continue
+            if season_slug:
+                if season.get('slug') != season_slug:
+                    continue
+                season_name = season.get('name')
             videos = season.get('videos')
             if not isinstance(videos, list):
                 continue
@@ -241,6 +267,13 @@ class SVTSeriesIE(InfoExtractor):
         if not isinstance(metadata, dict):
             metadata = {}
 
+        title = metadata.get('title')
+        season_name = season_name or season_slug
+
+        if title and season_name:
+            title = '%s - %s' % (title, season_name)
+        elif season_slug:
+            title = season_slug
+
         return self.playlist_result(
-            entries, video_id, metadata.get('title'),
-            metadata.get('description'))
+            entries, series_id, title, metadata.get('description'))
