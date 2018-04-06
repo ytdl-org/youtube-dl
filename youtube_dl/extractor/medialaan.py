@@ -64,8 +64,6 @@ class MedialaanIE(GigyaBaseIE):
             'ext': 'mp4',
             'title': '"Veronique liegt!"',
             'description': 'md5:1385e2b743923afe54ba4adc38476155',
-            'timestamp': 1489002029,
-            'upload_date': '20170308',
             'duration': 96,
         },
     }, {
@@ -147,21 +145,14 @@ class MedialaanIE(GigyaBaseIE):
 
         # clip, no authentication required
         if not vod_id:
-            player = self._parse_json(
-                self._search_regex(
-                    r'vmmaplayer\(({.+?})\);', webpage, 'vmma player',
-                    default=''),
-                video_id, transform_source=lambda s: '[%s]' % s, fatal=False)
-            if player:
-                video = player[-1]
-                if video['videoUrl'] in ('http', 'https'):
-                    return self.url_result(video['url'], MedialaanIE.ie_key())
+            video = self._parse_json(self._search_regex(r'"video":({.+?}}]})', webpage, 'video', default='{}'), video_id)
+            metadata = self._parse_json(self._search_regex(r'{"metadata":({.+?})', webpage, 'metadata', default='{}'), video_id)
+            if video:
                 info = {
                     'id': video_id,
-                    'url': video['videoUrl'],
-                    'title': video['title'],
-                    'thumbnail': video.get('imageUrl'),
-                    'timestamp': int_or_none(video.get('createdDate')),
+                    'url': video.get('formats')[0].get('url'),
+                    'title': metadata.get('videoTitle'),
+                    'thumbnail': video.get('poster'),
                     'duration': int_or_none(video.get('duration')),
                 }
             else:
