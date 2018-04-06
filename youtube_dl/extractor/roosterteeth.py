@@ -2,13 +2,13 @@
 from __future__ import unicode_literals
 
 import re
+import time
 
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    int_or_none,
-    strip_or_none,
-    unescapeHTML,
+    str_or_none,
+    unified_timestamp,
     urlencode_postdata,
 )
 
@@ -21,15 +21,14 @@ class RoosterTeethIE(InfoExtractor):
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
         'md5': 'e2bd7764732d785ef797700a2489f212',
         'info_dict': {
-            'id': '26576',
+            'id': '9156',
             'display_id': 'million-dollars-but-season-2-million-dollars-but-the-game-announcement',
             'ext': 'mp4',
-            'title': 'Million Dollars, But...: Million Dollars, But... The Game Announcement',
+            'title': 'Million Dollars, But... The Game Announcement',
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
             'thumbnail': r're:^https?://.*\.png$',
             'series': 'Million Dollars, But...',
-            'episode': 'Million Dollars, But... The Game Announcement',
-            'comment_count': int,
+            'episode': 'S2:E10 - Million Dollars, But... The Game Announcement',
         },
     }, {
         'url': 'http://achievementhunter.roosterteeth.com/episode/off-topic-the-achievement-hunter-podcast-2016-i-didn-t-think-it-would-pass-31',
@@ -78,7 +77,7 @@ class RoosterTeethIE(InfoExtractor):
                 r'href=["\']https?://(?:www\.)?roosterteeth\.com/logout"',
                 r'>Sign Out<')):
             error = self._html_search_regex(
-                r'(?s)<div[^>]+class=(["\']).*?\balert-danger\b.*?\1[^>]*>(?:\s*<button[^>]*>.*?</button>)?(?P<error>.+?)</div>',
+                r'(?s)<span[^>]+class=(["\']).*?\bmessage\b.+\1[^>]*>(?P<error>.+?)</span>',
                 login_request, 'alert', default=None, group='error')
             if error:
                 raise ExtractorError('Unable to login: %s' % error, expected=True)
@@ -90,28 +89,59 @@ class RoosterTeethIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, display_id)
+        api_path = "https://svod-be.roosterteeth.com/api/v1/episodes/{}"
+        video_path = api_path + "/videos"
 
-        episode = strip_or_none(unescapeHTML(self._search_regex(
-            (r'videoTitle\s*=\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
-             r'<title>(?P<title>[^<]+)</title>'), webpage, 'title',
-            default=None, group='title')))
+        api_response = self._download_json(
+            api_path.format(display_id),
+            display_id
+        )
 
-        title = strip_or_none(self._og_search_title(
-            webpage, default=None)) or episode
+        if api_response.get('data') is None:
+            raise ExtractorError('Unable to get API response')
 
-        m3u8_url = self._search_regex(
-            r'file\s*:\s*(["\'])(?P<url>http.+?\.m3u8.*?)\1',
-            webpage, 'm3u8 url', default=None, group='url')
+        if len(api_response.get('data', [])) == 0:
+            raise ExtractorError('Unable to get API response')
 
+        data = api_response.get('data')[0]
+
+        attributes = data.get('attributes', {})
+        episode = str_or_none(attributes.get('display_title'))
+        title = str_or_none(attributes.get('title'))
+        description = str_or_none(attributes.get('caption'))
+        series = str_or_none(attributes.get('show_title'))
+        thumbnail = self.get_thumbnail(data.get('included', {}).get('images'))
+
+        video_response = self._download_json(
+            video_path.format(display_id),
+            display_id
+        )
+
+        if video_response.get('access') is not None:
+            now = time.time()
+            sponsor_golive = unified_timestamp(attributes.get('sponsor_golive_at'))
+            member_golive = unified_timestamp(attributes.get('member_golive_at'))
+            public_golive = unified_timestamp(attributes.get('public_golive_at'))
+
+            if attributes.get('is_sponsors_only'):
+                if now < sponsor_golive:
+                    self.golive_error(display_id, 'FIRST members')
+                else:
+                    self.raise_login_required('{0} is only available for FIRST members'.format(display_id))
+            else:
+                if now < member_golive:
+                    self.golive_error(display_id, 'site members')
+                elif now < public_golive:
+                    self.golive_error(display_id, 'the public')
+                else:
+                    raise ExtractorError('Video is not available')
+        if len(video_response.get('data', [])) > 0:
+            video_attributes = video_response.get('data')[0].get('attributes')
+        else:
+            raise ExtractorError('Unable to get API response')
+
+        m3u8_url = video_attributes.get('url')
         if not m3u8_url:
-            if re.search(r'<div[^>]+class=["\']non-sponsor', webpage):
-                self.raise_login_required(
-                    '%s is only available for FIRST members' % display_id)
-
-            if re.search(r'<div[^>]+class=["\']golive-gate', webpage):
-                self.raise_login_required('%s is not available yet' % display_id)
-
             raise ExtractorError('Unable to extract m3u8 URL')
 
         formats = self._extract_m3u8_formats(
@@ -119,21 +149,7 @@ class RoosterTeethIE(InfoExtractor):
             entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
-        description = strip_or_none(self._og_search_description(webpage))
-        thumbnail = self._proto_relative_url(self._og_search_thumbnail(webpage))
-
-        series = self._search_regex(
-            (r'<h2>More ([^<]+)</h2>', r'<a[^>]+>See All ([^<]+) Videos<'),
-            webpage, 'series', fatal=False)
-
-        comment_count = int_or_none(self._search_regex(
-            r'>Comments \((\d+)\)<', webpage,
-            'comment count', fatal=False))
-
-        video_id = self._search_regex(
-            (r'containerId\s*=\s*["\']episode-(\d+)\1',
-             r'<div[^<]+id=["\']episode-(\d+)'), webpage,
-            'video id', default=display_id)
+        video_id = str_or_none(video_attributes.get('content_id'))
 
         return {
             'id': video_id,
@@ -143,6 +159,15 @@ class RoosterTeethIE(InfoExtractor):
             'thumbnail': thumbnail,
             'series': series,
             'episode': episode,
-            'comment_count': comment_count,
             'formats': formats,
         }
+
+    def golive_error(self, video_id, member_level):
+        raise ExtractorError('{0} is not yet live for {1}'.format(video_id, member_level))
+
+    def get_thumbnail(self, images):
+        if not images or len(images) == 0:
+            return None
+
+        images = images[0]
+        return images.get('attributes', {}).get('thumb')
