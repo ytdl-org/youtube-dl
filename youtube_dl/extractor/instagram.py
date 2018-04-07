@@ -243,6 +243,8 @@ class InstagramUserIE(InfoExtractor):
             return int_or_none(try_get(
                 node, lambda x: x['edge_media_' + suffix]['count']))
 
+        self._set_cookie('instagram.com', 'ig_pr', '1')
+
         cursor = ''
         for page_num in itertools.count(1):
             media = self._download_json(
