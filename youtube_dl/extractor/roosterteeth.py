@@ -96,7 +96,11 @@ class RoosterTeethIE(InfoExtractor):
         title = attributes.get('title')
         description = attributes.get('caption')
         series = attributes.get('show_title')
-        thumbnail = self._get_thumbnail(data.get('included', {}).get('images'))
+
+        images = data.get('included', {}).get('images')
+        if images and len(images) > 0:
+            images = images[0]
+        thumbnail = images.get('attributes', {}).get('thumb')
 
         video_response = self._call_api(
             display_id,
@@ -153,13 +157,6 @@ class RoosterTeethIE(InfoExtractor):
 
     def _golive_error(self, video_id, member_level):
         raise ExtractorError('{0} is not yet live for {1}'.format(video_id, member_level))
-
-    def _get_thumbnail(self, images):
-        if not images or len(images) == 0:
-            return None
-
-        images = images[0]
-        return images.get('attributes', {}).get('thumb')
 
     def _call_api(self, video_id, path=None, **kwargs):
         url = self._API_URL + video_id
