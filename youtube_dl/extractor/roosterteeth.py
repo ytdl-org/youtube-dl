@@ -106,10 +106,10 @@ class RoosterTeethIE(InfoExtractor):
         data = api_response.get('data')[0]
 
         attributes = data.get('attributes', {})
-        episode = str_or_none(attributes.get('display_title'))
-        title = str_or_none(attributes.get('title'))
-        description = str_or_none(attributes.get('caption'))
-        series = str_or_none(attributes.get('show_title'))
+        episode = attributes.get('display_title')
+        title = attributes.get('title')
+        description = attributes.get('caption')
+        series = attributes.get('show_title')
         thumbnail = self.get_thumbnail(data.get('included', {}).get('images'))
 
         video_response = self._download_json(
