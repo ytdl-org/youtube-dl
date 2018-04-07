@@ -1025,7 +1025,7 @@ class InfoExtractor(object):
             })
 
         for e in json_ld:
-            if e.get('@context') == 'http://schema.org':
+            if isinstance(e.get('@context'), compat_str) and re.match(r'^https?://schema.org/?$', e.get('@context')):
                 item_type = e.get('@type')
                 if expected_type is not None and expected_type != item_type:
                     return info
