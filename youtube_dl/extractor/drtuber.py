@@ -66,10 +66,11 @@ class DrTuberIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = self._html_search_regex(
-            (r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
+            (r'<h1[^>]+class=["\']title[^>]+>([^<]+)',
+             r'<title>([^<]+)\s*@\s+DrTuber',
+             r'class="title_watch"[^>]*><(?:p|h\d+)[^>]*>([^<]+)<',
              r'<p[^>]+class="title_substrate">([^<]+)</p>',
-             r'<title>([^<]+) - \d+',
-             r'<h1[^>]+class="title">([^<]+)</h1>'),
+             r'<title>([^<]+) - \d+'),
             webpage, 'title')
 
         thumbnail = self._html_search_regex(
