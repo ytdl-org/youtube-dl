@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import time
 
 from .common import InfoExtractor
@@ -15,7 +14,9 @@ from ..utils import (
 
 class RoosterTeethIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/episode/(?P<id>[^/?#&]+)'
-    _LOGIN_URL = 'https://roosterteeth.com/login'
+    _LOGIN_URL = 'https://auth.roosterteeth.com/oauth/token'
+    _API_URL = "https://svod-be.roosterteeth.com/api/v1/episodes/"
+    _ACCESS_TOKEN = None
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
@@ -53,34 +54,20 @@ class RoosterTeethIE(InfoExtractor):
         if username is None:
             return
 
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
-
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
-            'username': username,
-            'password': password,
-        })
-
-        login_request = self._download_webpage(
+        response = self._download_json(
             self._LOGIN_URL, None,
             note='Logging in',
-            data=urlencode_postdata(login_form),
-            headers={
-                'Referer': self._LOGIN_URL,
+            errnote='Unable to log in',
+            data=urlencode_postdata({
+                'username': username,
+                'password': password,
+                'client_id': '4338d2b4bdc8db1239360f28e72f0d9ddb1fd01e7a38fbb07b4b1f4ba4564cc5',
+                'grant_type': 'password',
             })
+        )
 
-        if not any(re.search(p, login_request) for p in (
-                r'href=["\']https?://(?:www\.)?roosterteeth\.com/logout"',
-                r'>Sign Out<')):
-            error = self._html_search_regex(
-                r'(?s)<span[^>]+class=(["\']).*?\bmessage\b.+\1[^>]*>(?P<error>.+?)</span>',
-                login_request, 'alert', default=None, group='error')
-            if error:
-                raise ExtractorError('Unable to login: %s' % error, expected=True)
+        self._ACCESS_TOKEN = response.get('access_token')
+        if not self._ACCESS_TOKEN:
             raise ExtractorError('Unable to log in')
 
     def _real_initialize(self):
@@ -89,20 +76,19 @@ class RoosterTeethIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        api_path = "https://svod-be.roosterteeth.com/api/v1/episodes/{}"
-        video_path = api_path + "/videos"
+        headers = {}
+        if self._ACCESS_TOKEN:
+            headers["Authorization"] = "Bearer {}".format(self._ACCESS_TOKEN)
 
-        api_response = self._download_json(
-            api_path.format(display_id),
-            display_id
+        api_response = self._call_api(
+            display_id,
+            note='Downloading video information (1/2)',
+            errnote='Unable to download video information (1/2)',
+            headers=headers,
         )
 
-        if api_response.get('data') is None:
-            raise ExtractorError('Unable to get API response')
-
         if len(api_response.get('data', [])) == 0:
-            raise ExtractorError('Unable to get API response')
-
+            raise ExtractorError('Unable to download video information')
         data = api_response.get('data')[0]
 
         attributes = data.get('attributes', {})
@@ -110,11 +96,14 @@ class RoosterTeethIE(InfoExtractor):
         title = attributes.get('title')
         description = attributes.get('caption')
         series = attributes.get('show_title')
-        thumbnail = self.get_thumbnail(data.get('included', {}).get('images'))
+        thumbnail = self._get_thumbnail(data.get('included', {}).get('images'))
 
-        video_response = self._download_json(
-            video_path.format(display_id),
-            display_id
+        video_response = self._call_api(
+            display_id,
+            path='/videos',
+            note='Downloading video information (2/2)',
+            errnote='Unable to download video information (2/2)',
+            headers=headers,
         )
 
         if video_response.get('access') is not None:
@@ -123,22 +112,22 @@ class RoosterTeethIE(InfoExtractor):
             member_golive = unified_timestamp(attributes.get('member_golive_at'))
             public_golive = unified_timestamp(attributes.get('public_golive_at'))
 
-            if attributes.get('is_sponsors_only'):
+            if attributes.get('is_sponsors_only', False):
                 if now < sponsor_golive:
-                    self.golive_error(display_id, 'FIRST members')
+                    self._golive_error(display_id, 'FIRST members')
                 else:
                     self.raise_login_required('{0} is only available for FIRST members'.format(display_id))
             else:
                 if now < member_golive:
-                    self.golive_error(display_id, 'site members')
+                    self._golive_error(display_id, 'site members')
                 elif now < public_golive:
-                    self.golive_error(display_id, 'the public')
+                    self._golive_error(display_id, 'the public')
                 else:
                     raise ExtractorError('Video is not available')
-        if len(video_response.get('data', [])) > 0:
-            video_attributes = video_response.get('data')[0].get('attributes')
-        else:
-            raise ExtractorError('Unable to get API response')
+
+        if len(video_response.get('data', [])) == 0:
+            raise ExtractorError('Unable to download video information')
+        video_attributes = video_response.get('data')[0].get('attributes')
 
         m3u8_url = video_attributes.get('url')
         if not m3u8_url:
@@ -162,12 +151,23 @@ class RoosterTeethIE(InfoExtractor):
             'formats': formats,
         }
 
-    def golive_error(self, video_id, member_level):
+    def _golive_error(self, video_id, member_level):
         raise ExtractorError('{0} is not yet live for {1}'.format(video_id, member_level))
 
-    def get_thumbnail(self, images):
+    def _get_thumbnail(self, images):
         if not images or len(images) == 0:
             return None
 
         images = images[0]
         return images.get('attributes', {}).get('thumb')
+
+    def _call_api(self, video_id, path=None, **kwargs):
+        url = self._API_URL + video_id
+        if path:
+            url = url + path
+
+        return self._download_json(
+            url,
+            video_id,
+            **kwargs
+        )
