@@ -7,7 +7,7 @@ import functools
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    int_or_none,
+    float_or_none,
     unified_timestamp,
     OnDemandPagedList,
 )
@@ -46,18 +46,22 @@ class ACastIE(InfoExtractor):
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
+        s = self._download_json(
+            'https://play-api.acast.com/stitch/%s/%s' % (channel, display_id),
+            display_id)['result']
+        media_url = s['url']
         cast_data = self._download_json(
             'https://play-api.acast.com/splash/%s/%s' % (channel, display_id), display_id)
         e = cast_data['result']['episode']
         return {
             'id': compat_str(e['id']),
             'display_id': display_id,
-            'url': e['mediaUrl'],
+            'url': media_url,
             'title': e['name'],
             'description': e.get('description'),
             'thumbnail': e.get('image'),
             'timestamp': unified_timestamp(e.get('publishingDate')),
-            'duration': int_or_none(e.get('duration')),
+            'duration': float_or_none(s.get('duration') or e.get('duration')),
         }
 
 
