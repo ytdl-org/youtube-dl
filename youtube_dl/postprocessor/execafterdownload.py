@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
 import subprocess
-import sys
-import numbers
 
 from .common import PostProcessor
 from ..compat import compat_shlex_quote
