@@ -20,7 +20,11 @@ class ExecAfterDownloadPP(PostProcessor):
         if '{}' not in cmd:
             cmd += ' {}'
 
+        # expose the playlist_index and title variables to exec argument
+        # youtube-dl -x -o "%(playlist_index)s - %(title)s.%(ext)s" --exec "id3v2 -T {playlist_index} -t {title} {}" PLAYLIST_ID
         cmd = cmd.replace('{}', compat_shlex_quote(information['filepath']))
+        cmd = cmd.replace('{title}', compat_shlex_quote(information['title']))
+        cmd = cmd.replace('{playlist_index}', str(information['playlist_index']))
 
         self._downloader.to_screen('[exec] Executing command: %s' % cmd)
         retCode = subprocess.call(encodeArgument(cmd), shell=True)
