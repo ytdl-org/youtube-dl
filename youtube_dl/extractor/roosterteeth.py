@@ -15,7 +15,7 @@ from ..utils import (
 class RoosterTeethIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/episode/(?P<id>[^/?#&]+)'
     _LOGIN_URL = 'https://auth.roosterteeth.com/oauth/token'
-    _API_URL = "https://svod-be.roosterteeth.com/api/v1/episodes/"
+    _API_URL = 'https://svod-be.roosterteeth.com/api/v1/episodes/'
     _ACCESS_TOKEN = None
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
@@ -78,7 +78,7 @@ class RoosterTeethIE(InfoExtractor):
 
         headers = {}
         if self._ACCESS_TOKEN:
-            headers["Authorization"] = "Bearer {}".format(self._ACCESS_TOKEN)
+            headers['Authorization'] = 'Bearer {}'.format(self._ACCESS_TOKEN)
 
         api_response = self._call_api(
             display_id,
