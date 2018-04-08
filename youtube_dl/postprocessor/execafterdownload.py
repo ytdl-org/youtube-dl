@@ -20,13 +20,13 @@ class ExecAfterDownloadPP(PostProcessor):
         cmd = self.exec_cmd
 
         # expose info to exec argument
-        # youtube-dl -x -o "%(playlist_index)s - %(title)s.%(ext)s" --exec "id3v2 -T {0[playlist_index]} -t {0[title]} {0[filepath]}" PLAYLIST_ID
+        # youtube-dl -x -o "%(playlist_index)s - %(title)s.%(ext)s" --exec "id3v2 -T %(playlist_index)s -t %(title)s %(filepath)s" PLAYLIST_ID
         str_types = (str) if sys.version_info.major > 2 else (str, unicode)
         info = {}
         for key in information:
             value = information[key]
             info[key] = compat_shlex_quote(value) if isinstance(value, str_types) else value
-        cmd = cmd.format(info)
+        cmd = cmd % info
 
         self._downloader.to_screen('[exec] Executing command: %s' % cmd)
         retCode = subprocess.call(encodeArgument(cmd), shell=True)
