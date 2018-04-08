@@ -10,6 +10,7 @@ from ..utils import (
     parse_duration,
     parse_iso8601,
     clean_html,
+    parse_resolution
 )
 
 
@@ -44,7 +45,7 @@ class CCMAIE(InfoExtractor):
         media_data = {}
         formats = []
         profiles = ['pc'] if media_type == 'audio' else ['mobil', 'pc']
-        for i, profile in enumerate(profiles):
+        for profile in profiles:
             md = self._download_json('http://dinamics.ccma.cat/pvideo/media.jsp', media_id, query={
                 'media': media_type,
                 'idint': media_id,
@@ -53,28 +54,21 @@ class CCMAIE(InfoExtractor):
             if md:
                 media_data = md
                 media_url = media_data.get('media', {}).get('url')
-                ext = media_data.get('media', {}).get('format')
-                if ext:
-                    ext = ext.lower()
 
                 if media_url and isinstance(media_url, list):
                     for _url in media_url:
-                        if 'label' in _url:
-                            height = int_or_none(_url.get('label').replace('p', ''))
-                        else:
-                            height = None
+                        resolution = parse_resolution(_url.get('label'))
 
-                        formats.append({
-                            'format_id': profile,
-                            'url': _url.get('file'),
-                            'height': height,
-                            'ext': ext
-                        })
+                        if _url.get('file'):
+                            formats.append({
+                                'format_id': profile,
+                                'url': _url.get('file'),
+                                'height': resolution.get('height'),
+                            })
                 elif media_url and isinstance(media_url, compat_str):
                     formats.append({
                         'format_id': profile,
                         'url': media_url,
-                        'ext': ext
                     })
 
         self._sort_formats(formats)
@@ -92,8 +86,8 @@ class CCMAIE(InfoExtractor):
             if sub_url:
                 subtitles.setdefault(
                     subtitols.get('iso') or subtitols.get('text') or 'ca', []).append({
-                    'url': sub_url,
-                })
+                        'url': sub_url,
+                    })
 
         thumbnails = []
         imatges = media_data.get('imatges', {})
