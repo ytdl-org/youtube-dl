@@ -2990,7 +2990,7 @@ class GenericIE(InfoExtractor):
 
         # Look for Share-Videos.se embeds
         sharevideosse_urls = [m.group('url') for m in re.finditer(
-            r'<iframe[^>]+?src\s*=\s*(["\'])(?P<url>https?://embed\.share-videos\.se/auto/embed/\d+\?.+)\1',
+            r'<iframe[^>]+?src\s*=\s*(["\'])(?P<url>https?://embed\.share-videos\.se/auto/embed/\d+.+?)\1',
             webpage)]
         if sharevideosse_urls:
             return self.playlist_from_matches(
