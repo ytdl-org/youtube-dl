@@ -105,6 +105,7 @@ from .springboardplatform import SpringboardPlatformIE
 from .yapfiles import YapFilesIE
 from .vice import ViceIE
 from .xfileshare import XFileShareIE
+from .detik import DuaPuluhDetikIE
 
 
 class GenericIE(InfoExtractor):
@@ -1967,6 +1968,15 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            # 20detik embed
+            'url': 'https://20.detik.com/detikflash/20180328-180328002/dramatis-polisi-selamatkan-pria-yang-coba-bunuh-diri',
+            'info_dict': {
+                'id': '180328002',
+                'title': 'md5:92c18d820d8937f259007e9c6ce40e6b',
+                'ext': 'mp4'
+            }
         }
         # {
         #     # TODO: find another test
@@ -2828,6 +2838,11 @@ class GenericIE(InfoExtractor):
                     'id': mobj.group('channel_id'),
                 })
             return info
+
+        # Look for 20detik (https://20.detik.com) embeds
+        duapuluhdetik_urls = DuaPuluhDetikIE._extract_urls(webpage)
+        if duapuluhdetik_urls:
+            return self.playlist_from_matches(duapuluhdetik_urls, video_id, video_title, getter=unescapeHTML, ie=DuaPuluhDetikIE.ie_key())
 
         # Look for Instagram embeds
         instagram_embed_url = InstagramIE._extract_embed_url(webpage)
