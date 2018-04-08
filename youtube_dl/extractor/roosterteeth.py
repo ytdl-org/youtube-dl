@@ -54,6 +54,11 @@ class RoosterTeethIE(InfoExtractor):
         if username is None:
             return
 
+        cookie = self._get_cookie('rt_access_token')
+        if cookie and not cookie.is_expired():
+            self._ACCESS_TOKEN = cookie.value
+            return
+
         response = self._download_json(
             self._LOGIN_URL, None,
             note='Logging in',
@@ -69,6 +74,16 @@ class RoosterTeethIE(InfoExtractor):
         self._ACCESS_TOKEN = response.get('access_token')
         if not self._ACCESS_TOKEN:
             raise ExtractorError('Unable to log in')
+
+        created_at = response.get('created_at', 0)
+        expires_in = response.get('expires_in', 0)
+
+        self._set_cookie(
+            '.roosterteeth.com',
+            'rt_access_token',
+            self._ACCESS_TOKEN,
+            created_at + expires_in
+        )
 
     def _real_initialize(self):
         self._login()
@@ -168,3 +183,9 @@ class RoosterTeethIE(InfoExtractor):
             video_id,
             **kwargs
         )
+
+    def _get_cookie(self, name):
+        for cookie in self._downloader.cookiejar:
+            if cookie.name == name:
+                return cookie
+        return None
