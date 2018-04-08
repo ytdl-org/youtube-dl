@@ -58,6 +58,7 @@ from .xhamster import XHamsterEmbedIE
 from .tnaflix import TNAFlixNetworkEmbedIE
 from .drtuber import DrTuberIE
 from .redtube import RedTubeIE
+from .tube8 import Tube8IE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionIE
 from .dailymail import DailyMailIE
@@ -2555,6 +2556,11 @@ class GenericIE(InfoExtractor):
         redtube_urls = RedTubeIE._extract_urls(webpage)
         if redtube_urls:
             return self.playlist_from_matches(redtube_urls, video_id, video_title, ie=RedTubeIE.ie_key())
+
+        # Look for embedded Tube8 player
+        tube8_urls = Tube8IE._extract_urls(webpage)
+        if tube8_urls:
+            return self.playlist_from_matches(tube8_urls, video_id, video_title, ie=Tube8IE.ie_key())
 
         # Look for embedded Tvigle player
         mobj = re.search(
