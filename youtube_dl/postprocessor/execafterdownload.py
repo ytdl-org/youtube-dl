@@ -21,6 +21,7 @@ class ExecAfterDownloadPP(PostProcessor):
         str_types = (str) if sys.version_info.major > 2 else (str, unicode)
         info = {}
 
+        cmd = cmd.replace('{}', '%(filepath)s')
         if '%(filepath)s' not in cmd:
             cmd += ' %(filepath)s'
 
