@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m|mobile)\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?/|web-api/video/moviePlayer/|live/|dk\?.*st\.mvId=)(?P<id>[\d-]+)'
+    _VALID_URL = r'https?://(?:(?:www|m|mobile)\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?/|web-api/video/moviePlayer/|live/|dk\?.*?st\.mvId=)(?P<id>[\d-]+)'
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
