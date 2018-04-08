@@ -1967,6 +1967,16 @@ class GenericIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'http://share-videos.se/auto/video/83645793?uid=13',
+            'md5': 'b68d276de422ab07ee1d49388103f457',
+            'info_dict': {
+                'id': '83645793',
+                'title': 'Lock up and get excited',
+                'thumbnail': r're:^https?://.*\.jpg(\?.*)?$',
+                'ext': 'mp4'
+            }
         }
         # {
         #     # TODO: find another test
@@ -2977,6 +2987,14 @@ class GenericIE(InfoExtractor):
                             not merged[k])):
                     merged[k] = v
             return merged
+
+        # Look for Share-Videos.se embeds
+        sharevideosse_urls = [m.group('url') for m in re.finditer(
+            r'<iframe[^>]+?src\s*=\s*(["\'])(?P<url>https?://embed\.share-videos\.se/auto/embed/\d+.+?)\1',
+            webpage)]
+        if sharevideosse_urls:
+            return self.playlist_from_matches(
+                sharevideosse_urls, video_id, video_title)
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
