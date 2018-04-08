@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import subprocess
+import sys
+import numbers
 
 from .common import PostProcessor
 from ..compat import compat_shlex_quote
@@ -17,14 +19,15 @@ class ExecAfterDownloadPP(PostProcessor):
 
     def run(self, information):
         cmd = self.exec_cmd
-        if '{}' not in cmd:
-            cmd += ' {}'
+        info = {}
 
-        # expose the playlist_index and title variables to exec argument
-        # youtube-dl -x -o "%(playlist_index)s - %(title)s.%(ext)s" --exec "id3v2 -T {playlist_index} -t {title} {}" PLAYLIST_ID
-        cmd = cmd.replace('{}', compat_shlex_quote(information['filepath']))
-        cmd = cmd.replace('{title}', compat_shlex_quote(information['title']))
-        cmd = cmd.replace('{playlist_index}', str(information['playlist_index']))
+        for key in information:
+            value = information[key]
+            info[key] = compat_shlex_quote(value) if isinstance(value, (str, unicode)) else value
+
+        # expose info to exec argument
+        # youtube-dl -x -o "%(playlist_index)s - %(title)s.%(ext)s" --exec "id3v2 -T {0[playlist_index]} -t {0[title]} {0[filepath]}" PLAYLIST_ID
+        cmd = cmd.format(info)
 
         self._downloader.to_screen('[exec] Executing command: %s' % cmd)
         retCode = subprocess.call(encodeArgument(cmd), shell=True)
