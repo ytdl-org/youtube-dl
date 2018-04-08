@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.04.09
 
 Core
 * [YoutubeDL] Do not save/restore console title while simulate (#16103)
