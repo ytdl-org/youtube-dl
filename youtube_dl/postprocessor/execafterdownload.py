@@ -23,7 +23,6 @@ from ..utils import (
     PostProcessingError,
 )
 
-
 class ExecAfterDownloadPP(PostProcessor):
     def __init__(self, downloader, exec_cmd):
         super(ExecAfterDownloadPP, self).__init__(downloader)
@@ -118,7 +117,7 @@ class ExecAfterDownloadPP(PostProcessor):
                 cmd = encodeFilename(cmd, True).decode(preferredencoding())
             return cmd
         except ValueError as err:
-            raise PostProcessingError(err)
+            raise PostProcessingError(err.message)
 
     def run(self, information):
         extras = dict(information['pp_extras'])
