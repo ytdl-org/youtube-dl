@@ -1,17 +1,13 @@
 from __future__ import unicode_literals
 
 import itertools
+import hashlib
 import json
-import os
 import re
-import subprocess
-import tempfile
 
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    check_executable,
-    ExtractorError,
     get_element_by_attribute,
     int_or_none,
     lowercase_escape,
@@ -244,99 +240,6 @@ class InstagramUserIE(InfoExtractor):
         }
     }
 
-    _SIGN_CODE = '''
-"use strict";
-function i(e, t) {
-    var r = (65535 & e) + (65535 & t);
-    return (e >> 16) + (t >> 16) + (r >> 16) << 16 | 65535 & r
-}
-function a(e, t, r, n, o, a) {
-    return i((s = i(i(t, e), i(n, a))) << (c = o) | s >>> 32 - c, r);
-    var s, c
-}
-function s(e, t, r, n, o, i, s) {
-    return a(t & r | ~t & n, e, t, o, i, s)
-}
-function c(e, t, r, n, o, i, s) {
-    return a(t & n | r & ~n, e, t, o, i, s)
-}
-function u(e, t, r, n, o, i, s) {
-    return a(t ^ r ^ n, e, t, o, i, s)
-}
-function l(e, t, r, n, o, i, s) {
-    return a(r ^ (t | ~n), e, t, o, i, s)
-}
-function p(e, t) {
-    var r, n, o, a, p;
-    e[t >> 5] |= 128 << t % 32,
-    e[14 + (t + 64 >>> 9 << 4)] = t;
-    var d = 1732584193
-      , f = -271733879
-      , h = -1732584194
-      , g = 271733878;
-    for (r = 0; r < e.length; r += 16)
-        n = d,
-        o = f,
-        a = h,
-        p = g,
-        f = l(f = l(f = l(f = l(f = u(f = u(f = u(f = u(f = c(f = c(f = c(f = c(f = s(f = s(f = s(f = s(f, h = s(h, g = s(g, d = s(d, f, h, g, e[r], 7, -680876936), f, h, e[r + 1], 12, -389564586), d, f, e[r + 2], 17, 606105819), g, d, e[r + 3], 22, -1044525330), h = s(h, g = s(g, d = s(d, f, h, g, e[r + 4], 7, -176418897), f, h, e[r + 5], 12, 1200080426), d, f, e[r + 6], 17, -1473231341), g, d, e[r + 7], 22, -45705983), h = s(h, g = s(g, d = s(d, f, h, g, e[r + 8], 7, 1770035416), f, h, e[r + 9], 12, -1958414417), d, f, e[r + 10], 17, -42063), g, d, e[r + 11], 22, -1990404162), h = s(h, g = s(g, d = s(d, f, h, g, e[r + 12], 7, 1804603682), f, h, e[r + 13], 12, -40341101), d, f, e[r + 14], 17, -1502002290), g, d, e[r + 15], 22, 1236535329), h = c(h, g = c(g, d = c(d, f, h, g, e[r + 1], 5, -165796510), f, h, e[r + 6], 9, -1069501632), d, f, e[r + 11], 14, 643717713), g, d, e[r], 20, -373897302), h = c(h, g = c(g, d = c(d, f, h, g, e[r + 5], 5, -701558691), f, h, e[r + 10], 9, 38016083), d, f, e[r + 15], 14, -660478335), g, d, e[r + 4], 20, -405537848), h = c(h, g = c(g, d = c(d, f, h, g, e[r + 9], 5, 568446438), f, h, e[r + 14], 9, -1019803690), d, f, e[r + 3], 14, -187363961), g, d, e[r + 8], 20, 1163531501), h = c(h, g = c(g, d = c(d, f, h, g, e[r + 13], 5, -1444681467), f, h, e[r + 2], 9, -51403784), d, f, e[r + 7], 14, 1735328473), g, d, e[r + 12], 20, -1926607734), h = u(h, g = u(g, d = u(d, f, h, g, e[r + 5], 4, -378558), f, h, e[r + 8], 11, -2022574463), d, f, e[r + 11], 16, 1839030562), g, d, e[r + 14], 23, -35309556), h = u(h, g = u(g, d = u(d, f, h, g, e[r + 1], 4, -1530992060), f, h, e[r + 4], 11, 1272893353), d, f, e[r + 7], 16, -155497632), g, d, e[r + 10], 23, -1094730640), h = u(h, g = u(g, d = u(d, f, h, g, e[r + 13], 4, 681279174), f, h, e[r], 11, -358537222), d, f, e[r + 3], 16, -722521979), g, d, e[r + 6], 23, 76029189), h = u(h, g = u(g, d = u(d, f, h, g, e[r + 9], 4, -640364487), f, h, e[r + 12], 11, -421815835), d, f, e[r + 15], 16, 530742520), g, d, e[r + 2], 23, -995338651), h = l(h, g = l(g, d = l(d, f, h, g, e[r], 6, -198630844), f, h, e[r + 7], 10, 1126891415), d, f, e[r + 14], 15, -1416354905), g, d, e[r + 5], 21, -57434055), h = l(h, g = l(g, d = l(d, f, h, g, e[r + 12], 6, 1700485571), f, h, e[r + 3], 10, -1894986606), d, f, e[r + 10], 15, -1051523), g, d, e[r + 1], 21, -2054922799), h = l(h, g = l(g, d = l(d, f, h, g, e[r + 8], 6, 1873313359), f, h, e[r + 15], 10, -30611744), d, f, e[r + 6], 15, -1560198380), g, d, e[r + 13], 21, 1309151649), h = l(h, g = l(g, d = l(d, f, h, g, e[r + 4], 6, -145523070), f, h, e[r + 11], 10, -1120210379), d, f, e[r + 2], 15, 718787259), g, d, e[r + 9], 21, -343485551),
-        d = i(d, n),
-        f = i(f, o),
-        h = i(h, a),
-        g = i(g, p);
-    return [d, f, h, g]
-}
-function d(e) {
-    var t, r = "", n = 32 * e.length;
-    for (t = 0; t < n; t += 8)
-        r += String.fromCharCode(e[t >> 5] >>> t % 32 & 255);
-    return r
-}
-function f(e) {
-    var t, r = [];
-    for (r[(e.length >> 2) - 1] = void 0,
-    t = 0; t < r.length; t += 1)
-        r[t] = 0;
-    var n = 8 * e.length;
-    for (t = 0; t < n; t += 8)
-        r[t >> 5] |= (255 & e.charCodeAt(t / 8)) << t % 32;
-    return r
-}
-function h(e) {
-    var t, r, n = "";
-    for (r = 0; r < e.length; r += 1)
-        t = e.charCodeAt(r),
-        n += "0123456789abcdef".charAt(t >>> 4 & 15) + "0123456789abcdef".charAt(15 & t);
-    return n
-}
-function g(e) {
-    return unescape(encodeURIComponent(e))
-}
-function b(e) {
-    return function(e) {
-        return d(p(f(e), 8 * e.length))
-    }(g(e))
-}
-function m(e, t) {
-    return function(e, t) {
-        var r, n, o = f(e), i = [], a = [];
-        for (i[15] = a[15] = void 0,
-        o.length > 16 && (o = p(o, 8 * e.length)),
-        r = 0; r < 16; r += 1)
-            i[r] = 909522486 ^ o[r],
-            a[r] = 1549556828 ^ o[r];
-        return n = p(i.concat(f(t)), 512 + 8 * t.length),
-        d(p(a.concat(n), 640))
-    }(g(e), g(t))
-}
-function v(e, t, r) {
-    return t ? r ? m(t, e) : h(m(t, e)) : r ? b(e) : h(b(e))
-}
-function sign(s) {
-    return v(s);
-}
-'''
-
     def _entries(self, data):
         def get_count(suffix):
             return int_or_none(try_get(
@@ -348,18 +251,6 @@ function sign(s) {
 
         self._set_cookie('instagram.com', 'ig_pr', '1')
 
-        def sign(s):
-            js_code = self._SIGN_CODE + "console.log(sign('%s')); phantom.exit();" % s
-            with open(self._phantomjs_script.name, 'w') as f:
-                f.write(js_code)
-            p = subprocess.Popen(
-                ['phantomjs', '--ssl-protocol=any', f.name],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            gis, err = p.communicate()
-            if p.returncode != 0:
-                raise ExtractorError('Failed to sign request\n:' + err.decode('utf-8'))
-            return gis.decode('utf-8').strip()
-
         cursor = ''
         for page_num in itertools.count(1):
             variables = json.dumps({
@@ -367,14 +258,12 @@ function sign(s) {
                 'first': 100,
                 'after': cursor,
             })
-            gis = sign(
-                '%s:%s:%s:%s'
-                % (rhx_gis, csrf_token, std_headers['User-Agent'], variables))
+            s = '%s:%s:%s:%s' % (rhx_gis, csrf_token, std_headers['User-Agent'], variables)
             media = self._download_json(
                 'https://www.instagram.com/graphql/query/', uploader_id,
                 'Downloading JSON page %d' % page_num, headers={
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-Instagram-GIS': gis,
+                    'X-Instagram-GIS': hashlib.md5(s.encode('utf-8')).hexdigest(),
                 }, query={
                     'query_hash': '472f257a40c653c64c666ce877d59d2b',
                     'variables': variables,
@@ -430,17 +319,6 @@ function sign(s) {
             cursor = page_info.get('end_cursor')
             if not cursor or not isinstance(cursor, compat_str):
                 break
-
-    def _real_initialize(self):
-        if not check_executable('phantomjs', ['-v']):
-            raise ExtractorError(
-                'PhantomJS executable not found in PATH, download it from http://phantomjs.org',
-                expected=True)
-        self._phantomjs_script = tempfile.NamedTemporaryFile(delete=False)
-        self._phantomjs_script.close()
-
-    def __del__(self):
-        os.unlink(self._phantomjs_script.name)
 
     def _real_extract(self, url):
         username = self._match_id(url)
