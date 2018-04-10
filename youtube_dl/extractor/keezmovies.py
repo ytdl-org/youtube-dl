@@ -55,7 +55,7 @@ class KeezMoviesIE(InfoExtractor):
         encrypted = False
 
         def extract_format(format_url, height=None):
-            if not isinstance(format_url, compat_str) or not format_url.startswith('http'):
+            if not isinstance(format_url, compat_str):
                 return
             if format_url in format_urls:
                 return
@@ -105,7 +105,8 @@ class KeezMoviesIE(InfoExtractor):
                 raise ExtractorError(
                     'Video %s is no longer available' % video_id, expected=True)
 
-        self._sort_formats(formats)
+        if len(formats) > 0:
+            self._sort_formats(formats)
 
         if not title:
             title = self._html_search_regex(
@@ -123,6 +124,10 @@ class KeezMoviesIE(InfoExtractor):
 
     def _real_extract(self, url):
         webpage, info = self._extract_info(url)
+        if len(info['formats']) == 0:
+            embed_url = self._search_regex(
+                r'<iframe\s+id="embedPlayer"\s+src="//(.+?)"', webpage, 'embed url', fatal=False)
+            return self.url_result(embed_url or url, 'Generic')
         info['view_count'] = str_to_int(self._search_regex(
             r'<b>([\d,.]+)</b> Views?', webpage, 'view count', fatal=False))
         return info
