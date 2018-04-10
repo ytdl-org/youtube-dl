@@ -14,7 +14,6 @@ class SeneddIE(InfoExtractor):
     # TODO: some old links which redirect: http://www.senedd.tv/cy/4251?startPos=6&amp;l=cy
     _TEST = {
         'url': 'http://senedd.tv/Meeting/Clip/f2a274d3-a15a-4dec-b92b-be233eed9601?inPoint=00:50:35&outPoint=02:39:16',
-	# http://senedd.tv/Meeting/Archive/f2a274d3-a15a-4dec-b92b-be233eed9601?autostart=True
         'md5': '673307fe76d3c885bf02d8b146f10a2f',
         'info_dict': {
             'id': 'f2a274d3-a15a-4dec-b92b-be233eed9601',
@@ -27,7 +26,6 @@ class SeneddIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-	# http://player.nafw.cloud.vualto.com/Player/Index/f2a274d3-a15a-4dec-b92b-be233eed9601?autostart=True&captionsOn=False
         webpage = self._download_webpage(url, video_id)
         inverted_language = self._html_search_regex(r'<a class="language-selector" data-language-code="(..)"', webpage, u'language selector')
 
