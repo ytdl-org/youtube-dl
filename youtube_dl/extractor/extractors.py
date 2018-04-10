@@ -947,6 +947,7 @@ from .scrippsnetworks import ScrippsNetworksWatchIE
 from .seeker import SeekerIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
+from .senedd import SeneddIE
 from .servingsys import ServingSysIE
 from .servus import ServusIE
 from .sevenplus import SevenPlusIE
