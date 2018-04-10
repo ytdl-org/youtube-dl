@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import itertools
+import hashlib
 import json
 import re
 
@@ -10,6 +11,7 @@ from ..utils import (
     get_element_by_attribute,
     int_or_none,
     lowercase_escape,
+    std_headers,
     try_get,
 )
 
@@ -238,24 +240,33 @@ class InstagramUserIE(InfoExtractor):
         }
     }
 
-    def _entries(self, uploader_id):
+    def _entries(self, data):
         def get_count(suffix):
             return int_or_none(try_get(
                 node, lambda x: x['edge_media_' + suffix]['count']))
+
+        uploader_id = data['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+        csrf_token = data['config']['csrf_token']
+        rhx_gis = data.get('rhx_gis') or '3c7ca9dcefcf966d11dacf1f151335e8'
 
         self._set_cookie('instagram.com', 'ig_pr', '1')
 
         cursor = ''
         for page_num in itertools.count(1):
+            variables = json.dumps({
+                'id': uploader_id,
+                'first': 100,
+                'after': cursor,
+            })
+            s = '%s:%s:%s:%s' % (rhx_gis, csrf_token, std_headers['User-Agent'], variables)
             media = self._download_json(
                 'https://www.instagram.com/graphql/query/', uploader_id,
-                'Downloading JSON page %d' % page_num, query={
+                'Downloading JSON page %d' % page_num, headers={
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-Instagram-GIS': hashlib.md5(s.encode('utf-8')).hexdigest(),
+                }, query={
                     'query_hash': '472f257a40c653c64c666ce877d59d2b',
-                    'variables': json.dumps({
-                        'id': uploader_id,
-                        'first': 100,
-                        'after': cursor,
-                    })
+                    'variables': variables,
                 })['data']['user']['edge_owner_to_timeline_media']
 
             edges = media.get('edges')
@@ -311,9 +322,13 @@ class InstagramUserIE(InfoExtractor):
 
     def _real_extract(self, url):
         username = self._match_id(url)
-        uploader_id = self._download_json(
-            'https://instagram.com/%s/' % username, username, query={
-                '__a': 1,
-            })['graphql']['user']['id']
+
+        webpage = self._download_webpage(url, username)
+
+        data = self._parse_json(
+            self._search_regex(
+                r'sharedData\s*=\s*({.+?})\s*;\s*[<\n]', webpage, 'data'),
+            username)
+
         return self.playlist_result(
-            self._entries(uploader_id), username, username)
+            self._entries(data), username, username)
