@@ -5,7 +5,10 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_HTTPError,
+)
 from ..utils import (
     js_to_json,
     smuggle_url,
@@ -206,30 +209,48 @@ class CBCWatchBaseIE(InfoExtractor):
 
     def _call_api(self, path, video_id):
         url = path if path.startswith('http') else self._API_BASE_URL + path
-        result = self._download_xml(url, video_id, headers={
-            'X-Clearleap-DeviceId': self._device_id,
-            'X-Clearleap-DeviceToken': self._device_token,
-        })
+        for _ in range(2):
+            try:
+                result = self._download_xml(url, video_id, headers={
+                    'X-Clearleap-DeviceId': self._device_id,
+                    'X-Clearleap-DeviceToken': self._device_token,
+                })
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                    # Device token has expired, re-acquiring device token
+                    self._register_device()
+                    continue
+                raise
         error_message = xpath_text(result, 'userMessage') or xpath_text(result, 'systemMessage')
         if error_message:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message))
         return result
 
     def _real_initialize(self):
-        if not self._device_id or not self._device_token:
-            device = self._downloader.cache.load('cbcwatch', 'device') or {}
-            self._device_id, self._device_token = device.get('id'), device.get('token')
-            if not self._device_id or not self._device_token:
-                result = self._download_xml(
-                    self._API_BASE_URL + 'device/register',
-                    None, data=b'<device><type>web</type></device>')
-                self._device_id = xpath_text(result, 'deviceId', fatal=True)
-                self._device_token = xpath_text(result, 'deviceToken', fatal=True)
-                self._downloader.cache.store(
-                    'cbcwatch', 'device', {
-                        'id': self._device_id,
-                        'token': self._device_token,
-                    })
+        if self._valid_device_token():
+            return
+        device = self._downloader.cache.load('cbcwatch', 'device') or {}
+        self._device_id, self._device_token = device.get('id'), device.get('token')
+        if self._valid_device_token():
+            return
+        self._register_device()
+
+    def _valid_device_token(self):
+        return self._device_id and self._device_token
+
+    def _register_device(self):
+        self._device_id = self._device_token = None
+        result = self._download_xml(
+            self._API_BASE_URL + 'device/register',
+            None, 'Acquiring device token',
+            data=b'<device><type>web</type></device>')
+        self._device_id = xpath_text(result, 'deviceId', fatal=True)
+        self._device_token = xpath_text(result, 'deviceToken', fatal=True)
+        self._downloader.cache.store(
+            'cbcwatch', 'device', {
+                'id': self._device_id,
+                'token': self._device_token,
+            })
 
     def _parse_rss_feed(self, rss):
         channel = xpath_element(rss, 'channel', fatal=True)
