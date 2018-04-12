@@ -36,15 +36,21 @@ class KeezMoviesIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _extract_info(self, url):
+    def _get_ids(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         display_id = (mobj.group('display_id')
                       if 'display_id' in mobj.groupdict()
                       else None) or mobj.group('id')
+        return video_id, display_id
 
-        webpage = self._download_webpage(
+    def _download_webpage_age_verified(self, url, display_id):
+        return self._download_webpage(
             url, display_id, headers={'Cookie': 'age_verified=1'})
+
+    def _extract_info(self, url, require_http_prefix=True):
+        video_id, display_id = self._get_ids(url)
+        webpage = self._download_webpage_age_verified(url, display_id)
 
         formats = []
         format_urls = set()
@@ -54,9 +60,13 @@ class KeezMoviesIE(InfoExtractor):
         duration = None
         encrypted = False
 
-        def extract_format(format_url, height=None):
-            if not isinstance(format_url, compat_str):
-                return
+        def extract_format(format_url, height=None, require_http_prefix=True):
+            if require_http_prefix:
+                if not isinstance(format_url, compat_str) or not format_url.startswith('http'):
+                    return
+            else:
+                if not isinstance(format_url, compat_str):
+                    return
             if format_url in format_urls:
                 return
             format_urls.add(format_url)
@@ -89,24 +99,23 @@ class KeezMoviesIE(InfoExtractor):
             for key, value in flashvars.items():
                 mobj = re.search(r'quality_(\d+)[pP]', key)
                 if mobj:
-                    extract_format(value, int(mobj.group(1)))
+                    extract_format(value, int(mobj.group(1)), require_http_prefix=require_http_prefix)
             video_url = flashvars.get('video_url')
             if video_url and determine_ext(video_url, None):
-                extract_format(video_url)
+                extract_format(video_url, require_http_prefix=require_http_prefix)
 
         video_url = self._html_search_regex(
             r'flashvars\.video_url\s*=\s*(["\'])(?P<url>http.+?)\1',
             webpage, 'video url', default=None, group='url')
         if video_url:
-            extract_format(compat_urllib_parse_unquote(video_url))
+            extract_format(compat_urllib_parse_unquote(video_url), require_http_prefix=require_http_prefix)
 
         if not formats:
             if 'title="This video is no longer available"' in webpage:
                 raise ExtractorError(
                     'Video %s is no longer available' % video_id, expected=True)
 
-        if len(formats) > 0:
-            self._sort_formats(formats)
+        self._sort_formats(formats)
 
         if not title:
             title = self._html_search_regex(
@@ -123,11 +132,13 @@ class KeezMoviesIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
-        webpage, info = self._extract_info(url)
-        if len(info['formats']) == 0:
-            embed_url = self._search_regex(
-                r'<iframe\s+id="embedPlayer"\s+src="//(.+?)"', webpage, 'embed url', fatal=False)
-            return self.url_result(embed_url or url, 'Generic')
+        video_id, display_id = self._get_ids(url)
+        webpage = self._download_webpage_age_verified(url, display_id)
+        embed_url = self._search_regex(
+            r'<iframe\s+id="embedPlayer"\s+src="//(.+?)"', webpage, 'embed url', fatal=False)
+        if embed_url is not None:
+            return self.url_result(embed_url, 'Generic')
+        webpage, info = self._extract_info(url, require_http_prefix=False)
         info['view_count'] = str_to_int(self._search_regex(
             r'<b>([\d,.]+)</b> Views?', webpage, 'view count', fatal=False))
         return info
