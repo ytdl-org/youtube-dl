@@ -135,7 +135,7 @@ class KeezMoviesIE(InfoExtractor):
         video_id, display_id = self._get_ids(url)
         webpage = self._download_webpage_age_verified(url, display_id)
         embed_url = self._search_regex(
-            r'<iframe\s+id="embedPlayer"\s+src="//(.+?)"', webpage, 'embed url', fatal=False)
+            r'<iframe\s+id="embedPlayer"\s+src="//(.+?)"', webpage, 'embed url', default=None)
         if embed_url is not None:
             return self.url_result(embed_url, 'Generic')
         webpage, info = self._extract_info(url, require_http_prefix=False)
