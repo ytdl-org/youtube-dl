@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from urllib.parse import urlsplit, urlunsplit, urlencode, parse_qsl
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -58,7 +60,8 @@ class IndavideoEmbedIE(InfoExtractor):
             if flv_url not in video_urls:
                 video_urls.append(flv_url)
 
-        formats = [self.video_url_to_format(video_url) for video_url in video_urls]
+        filesh = video.get('filesh')
+        formats = [self.video_url_to_format(video_url, filesh) for video_url in video_urls]
         self._sort_formats(formats)
 
         timestamp = video.get('date')
@@ -86,11 +89,18 @@ class IndavideoEmbedIE(InfoExtractor):
             'formats': formats,
         }
 
-    def video_url_to_format(self, video_url):
+    def video_url_to_format(self, video_url, filesh):
+        height = int_or_none(self._search_regex(
+            r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None))
+        if height is not None and filesh is not None:
+            token = filesh.get(str(height))
+            if token is not None:
+                us = urlsplit(video_url)
+                query = urlencode(parse_qsl(us.query) + [('token', token)])
+                video_url = urlunsplit((us.scheme, us.netloc, us.path, query, us.fragment))
         return {
             'url': video_url,
-            'height': int_or_none(self._search_regex(
-                r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None)),
+            'height': height,
         }
 
 
