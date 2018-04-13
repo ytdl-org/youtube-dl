@@ -11,11 +11,11 @@ import re
 
 
 class SeneddIE(InfoExtractor):
-    _VALID_URL = r'http://senedd\.tv/Meeting/(?:Archive|Clip)/(?P<id>[0-9a-f\-]+)'
+    _VALID_URL = r'http://(?:www\.)?senedd\.tv/Meeting/(?:Archive|Clip)/(?P<id>[0-9a-f\-]+)'
     # TODO: some old links which redirect: http://www.senedd.tv/cy/4251?startPos=6&amp;l=cy
     _TEST = {
         'url': 'http://senedd.tv/Meeting/Clip/f2a274d3-a15a-4dec-b92b-be233eed9601?inPoint=00:50:35&outPoint=02:39:16',
-        'md5': 'b4c66ce851d67dcccc2a2deb2871707c',
+        'md5': '57e83ed0b3816d6661f0b51e74818765',
         'info_dict': {
             'id': 'f2a274d3-a15a-4dec-b92b-be233eed9601',
             'ext': 'mp4',
