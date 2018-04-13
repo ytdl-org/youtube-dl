@@ -7,6 +7,7 @@ from ..compat import (
     compat_parse_qs,
     compat_urllib_parse_urlparse,
 )
+import re
 
 
 class SeneddIE(InfoExtractor):
@@ -14,7 +15,7 @@ class SeneddIE(InfoExtractor):
     # TODO: some old links which redirect: http://www.senedd.tv/cy/4251?startPos=6&amp;l=cy
     _TEST = {
         'url': 'http://senedd.tv/Meeting/Clip/f2a274d3-a15a-4dec-b92b-be233eed9601?inPoint=00:50:35&outPoint=02:39:16',
-        'md5': '673307fe76d3c885bf02d8b146f10a2f',
+        'md5': 'b4c66ce851d67dcccc2a2deb2871707c',
         'info_dict': {
             'id': 'f2a274d3-a15a-4dec-b92b-be233eed9601',
             'ext': 'mp4',
@@ -27,16 +28,12 @@ class SeneddIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        inverted_language = self._html_search_regex(r'<a class="language-selector" data-language-code="(..)"', webpage, u'language selector')
 
-        m3u8 = None
-        language = None
-        if inverted_language == 'cy':
-            language = 'en'
-            m3u8 = 'http://nafw-live.hls.adaptive.level3.net/c/%s/interpretation/interpretation.isml/interpretation.m3u8' % video_id
-        else:
-            language = 'cy'
-            m3u8 = 'http://nafw-live.hls.adaptive.level3.net/c/%s/verbatim/verbatim.isml/verbatim.m3u8' % video_id
+        iframe_src = self._html_search_regex(r'(?:<iframe src=|var src = )"([^"]*)"', webpage, 'iframe source')
+        iframe = self._download_webpage(iframe_src, video_id)
+
+        m3u8 = self._html_search_regex(r'var file = "([^"]*)"', iframe, 'm3u8 source')
+        language = 'cy' if re.search(r'verbatim', m3u8) else 'en'
 
         formats = self._extract_m3u8_formats(m3u8, video_id, 'mp4', entry_protocol='m3u8_native')
         self._sort_formats(formats)
