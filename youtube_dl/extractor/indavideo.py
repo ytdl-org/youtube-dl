@@ -1,7 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from urllib.parse import urlsplit, urlunsplit, urlencode, parse_qsl
+try:
+    # Python 3
+    from urllib.parse import urlsplit, urlunsplit, urlencode, parse_qsl
+except ImportError:
+    # Python 2
+    from urlparse import urlsplit, urlunsplit, parse_qsl
+    from urllib import urlencode
 
 from .common import InfoExtractor
 from ..utils import (
