@@ -18,6 +18,7 @@ from .acast import (
     ACastIE,
     ACastChannelIE,
 )
+from .acorntv import AcornTVIE
 from .addanime import AddAnimeIE
 from .adn import ADNIE
 from .adobetv import (
