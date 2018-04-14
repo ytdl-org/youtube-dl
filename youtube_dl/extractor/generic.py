@@ -2009,6 +2009,7 @@ class GenericIE(InfoExtractor):
 
         entries = []
         for it in doc.findall('./channel/item'):
+            next_url = None
             enclosure_nodes = it.findall('./enclosure')
             for e in enclosure_nodes:
                 next_url = e.attrib.get('url')
@@ -2018,7 +2019,7 @@ class GenericIE(InfoExtractor):
             if not enclosure_nodes:
                 next_url = xpath_text(it, 'link', fatal=False)
 
-            if not next_url:
+            if next_url is None:
                 continue
 
             entries.append({
