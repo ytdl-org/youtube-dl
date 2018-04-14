@@ -2019,7 +2019,7 @@ class GenericIE(InfoExtractor):
             if not enclosure_nodes:
                 next_url = xpath_text(it, 'link', fatal=False)
 
-            if next_url is None:
+            if not next_url:
                 continue
 
             entries.append({
