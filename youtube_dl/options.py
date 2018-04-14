@@ -805,7 +805,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--embed-subs',
         action='store_true', dest='embedsubtitles', default=False,
-        help='Embed subtitles in the video (only for mp4, webm and mkv videos)')
+        help='Embed subtitles in the video (only for mp4, webm and mkv videos), implies --write-sub')
     postproc.add_option(
         '--embed-thumbnail',
         action='store_true', dest='embedthumbnail', default=False,

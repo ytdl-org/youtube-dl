@@ -280,6 +280,7 @@ def _real_main(argv=None):
             'format': opts.convertsubtitles,
         })
     if opts.embedsubtitles:
+        opts.writesubtitles = True # Required to generate a final file with embed subtitles
         postprocessors.append({
             'key': 'FFmpegEmbedSubtitle',
         })
