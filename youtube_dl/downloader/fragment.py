@@ -241,12 +241,16 @@ class FragmentFD(FileDownloader):
             if os.path.isfile(ytdl_filename):
                 os.remove(ytdl_filename)
         elapsed = time.time() - ctx['started']
-        self.try_rename(ctx['tmpfilename'], ctx['filename'])
-        fsize = os.path.getsize(encodeFilename(ctx['filename']))
+
+        if ctx['tmpfilename'] == '-':
+            downloaded_bytes = ctx['complete_frags_downloaded_bytes']
+        else:
+            self.try_rename(ctx['tmpfilename'], ctx['filename'])
+            downloaded_bytes = os.path.getsize(encodeFilename(ctx['filename']))
 
         self._hook_progress({
-            'downloaded_bytes': fsize,
-            'total_bytes': fsize,
+            'downloaded_bytes': downloaded_bytes,
+            'total_bytes': downloaded_bytes,
             'filename': ctx['filename'],
             'status': 'finished',
             'elapsed': elapsed,

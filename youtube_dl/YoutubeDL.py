@@ -532,12 +532,16 @@ class YoutubeDL(object):
     def save_console_title(self):
         if not self.params.get('consoletitle', False):
             return
+        if self.params.get('simulate', False):
+            return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Save the title on stack
             self._write_string('\033[22;0t', self._screen_file)
 
     def restore_console_title(self):
         if not self.params.get('consoletitle', False):
+            return
+        if self.params.get('simulate', False):
             return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Restore the title from stack

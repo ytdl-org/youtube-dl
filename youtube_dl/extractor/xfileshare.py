@@ -118,6 +118,15 @@ class XFileShareIE(InfoExtractor):
         'only_matching': True
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return [
+            mobj.group('url')
+            for mobj in re.finditer(
+                r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:%s)/embed-[0-9a-zA-Z]+.*?)\1'
+                % '|'.join(site for site in list(zip(*XFileShareIE._SITES))[0]),
+                webpage)]
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')

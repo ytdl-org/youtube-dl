@@ -14,7 +14,7 @@ from ..utils import (
 
 class TwentyFourVideoIE(InfoExtractor):
     IE_NAME = '24video'
-    _VALID_URL = r'https?://(?P<host>(?:www\.)?24video\.(?:net|me|xxx|sex|tube|adult))/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?P<host>(?:www\.)?24video\.(?:net|me|xxx|sexy?|tube|adult))/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.24video.net/video/view/1044982',

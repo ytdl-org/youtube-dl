@@ -1,3 +1,84 @@
+version 2018.04.09
+
+Core
+* [YoutubeDL] Do not save/restore console title while simulate (#16103)
+* [extractor/common] Relax JSON-LD context check (#16006)
+
+Extractors
++ [generic] Add support for tube8 embeds
++ [generic] Add support for share-videos.se embeds (#16089, #16115)
+* [odnoklassniki] Extend URL regular expression (#16081)
+* [steam] Bypass mature content check (#16113)
++ [acast] Extract more metadata
+* [acast] Fix extraction (#16118)
+* [instagram:user] Fix extraction (#16119)
+* [drtuber] Fix title extraction (#16107, #16108)
+* [liveleak] Extend URL regular expression (#16117)
++ [openload] Add support for oload.xyz
+* [openload] Relax stream URL regular expression
+* [openload] Fix extraction (#16099)
++ [svtplay:series] Add support for season URLs
++ [svtplay:series] Add support for series (#11130, #16059)
+
+
+version 2018.04.03
+
+Extractors
++ [tvnow] Add support for shows (#15837)
+* [dramafever] Fix authentication (#16067)
+* [afreecatv] Use partial view only when necessary (#14450)
++ [afreecatv] Add support for authentication (#14450)
++ [nationalgeographic] Add support for new URL schema (#16001, #16054)
+* [xvideos] Fix thumbnail extraction (#15978, #15979)
+* [medialaan] Fix vod id (#16038)
++ [openload] Add support for oload.site (#16039)
+* [naver] Fix extraction (#16029)
+* [dramafever] Partially switch to API v5 (#16026)
+* [abc:iview] Unescape title and series meta fields (#15994)
+* [videa] Extend URL regular expression (#16003)
+
+
+version 2018.03.26.1
+
+Core
++ [downloader/external] Add elapsed time to progress hook (#10876)
+* [downloader/external,fragment] Fix download finalization when writing file
+  to stdout (#10809, #10876, #15799)
+
+Extractors
+* [vrv] Fix extraction on python2 (#15928)
+* [afreecatv] Update referrer (#15947)
++ [24video] Add support for 24video.sexy (#15973)
+* [crackle] Bypass geo restriction
+* [crackle] Fix extraction (#15969)
++ [lenta] Add support for lenta.ru (#15953)
++ [instagram:user] Add pagination (#15934)
+* [youku] Update ccode (#15939)
+* [libsyn] Adapt to new page structure
+
+
+version 2018.03.20
+
+Core
+* [extractor/common] Improve thumbnail extraction for HTML5 entries
+* Generalize XML manifest processing code and improve XSPF parsing
++ [extractor/common] Add _download_xml_handle
++ [extractor/common] Add support for relative URIs in _parse_xspf (#15794)
+
+Extractors
++ [7plus] Extract series metadata (#15862, #15906)
+* [9now] Bypass geo restriction (#15920)
+* [cbs] Skip unavailable assets (#13490, #13506, #15776)
++ [canalc2] Add support for HTML5 videos (#15916, #15919)
++ [ceskatelevize] Add support for iframe embeds (#15918)
++ [prosiebensat1] Add support for galileo.tv (#15894)
++ [generic] Add support for xfileshare embeds (#15879)
+* [bilibili] Switch to v2 playurl API
+* [bilibili] Fix and improve extraction (#15048, #15430, #15622, #15863)
+* [heise] Improve extraction (#15496, #15784, #15026)
+* [instagram] Fix user videos extraction (#15858)
+
+
 version 2018.03.14
 
 Extractors
