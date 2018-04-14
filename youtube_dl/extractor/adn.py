@@ -11,6 +11,7 @@ from ..compat import (
     compat_ord,
 )
 from ..utils import (
+    ass_subtitles_timecode,
     bytes_to_intlist,
     ExtractorError,
     float_or_none,
@@ -51,7 +52,7 @@ class ADNIE(InfoExtractor):
         # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
-            bytes_to_intlist(b'\xc8\x6e\x06\xbc\xbe\xc6\x49\xf5\x88\x0d\xc8\x47\xc4\x27\x0c\x60'),
+            bytes_to_intlist(b'\x09\x36\x8b\x97\xe7\xcc\x6c\x31\x1b\xad\x31\x24\xd3\x79\xc8\xd4'),
             bytes_to_intlist(compat_b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
@@ -60,14 +61,40 @@ class ADNIE(InfoExtractor):
         if not subtitles_json:
             return None
 
+        ass = os.linesep.join(
+            (
+                '[Script Info]',
+                'ScriptType: v4.00+',
+                'WrapStyle: 0',
+                os.linesep,
+                '[Aegisub Project Garbage]',
+                'Last Style Storage: Default',
+                os.linesep,
+                '[V4+ Styles]',
+                'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
+                'Style: Default,Verdana,16,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,1,0.8,0.5,2,20,20,20,1',
+                'Style: ST_BAS_GAUCHE,Verdana,16,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,1,0.8,0.5,1,41,20,30,1',
+                'Style: ST_BAS_DROITE,Verdana,16,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,1,0.8,0.5,3,20,41,30,1',
+                'Style: ST_HAUT,Verdana,16,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,1,0.8,0.5,8,20,20,30,1',
+                'Style: ST_HAUT_GAUCHE,Verdana,16,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,1,0.8,0.5,7,41,20,30,1',
+                'Style: ST_HAUT_ALT,Verdana,16,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,1,0.8,0.5,2,20,20,40,1',
+                'Style: ST_HAUT_DROITE,Verdana,16,&H00FFFFFF,&H000000FF,&H00000000,&HAA000000,-1,0,0,0,100,100,0,0,1,0.8,0.5,9,20,41,30,1',
+                os.linesep,
+                '[Events]',
+                'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
+                '',
+            )
+        )
         subtitles = {}
         for sub_lang, sub in subtitles_json.items():
             srt = ''
             for num, current in enumerate(sub):
-                start, end, text = (
+                start, end, text, lineAlign, positionAlign = (
                     float_or_none(current.get('startTime')),
                     float_or_none(current.get('endTime')),
-                    current.get('text'))
+                    current.get('text'),
+                    current.get('lineAlign'),
+                    current.get('positionAlign'))
                 if start is None or end is None or text is None:
                     continue
                 srt += os.linesep.join(
@@ -80,6 +107,34 @@ class ADNIE(InfoExtractor):
                         os.linesep,
                     ))
 
+                if (lineAlign == 'start' and positionAlign == 'middle'):
+                    position = 'Default'
+                elif (lineAlign == 'end' and positionAlign == 'middle'):
+                    position = 'ST_HAUT'
+                elif (lineAlign == 'end' and positionAlign == 'start'):
+                    position = 'ST_HAUT_GAUCHE'
+                elif (lineAlign == 'end' and positionAlign == 'end'):
+                    position = 'ST_HAUT_DROITE'
+                elif (lineAlign == 'start' and positionAlign == 'start'):
+                    position = 'ST_BAS_GAUCHE'
+                elif (lineAlign == 'start' and positionAlign == 'end'):
+                    position = 'ST_BAS_DROITE'
+                elif (lineAlign == 'middle' and positionAlign == 'middle'):
+                    position = 'ST_HAUT_ALT'
+                else:
+                    position = 'Default'
+
+                ass += os.linesep.join(
+                    (
+                        'Dialogue: 0,%s,%s,%s,,0,0,0,,%s' % (
+                            ass_subtitles_timecode(start),
+                            ass_subtitles_timecode(end),
+                            position,
+                            text.replace("\n", "\\N").replace("<i>", "{\\i1}").replace("</i>", "{\\i0}")
+                        ),
+                        '',
+                    ))
+
             if sub_lang == 'vostf':
                 sub_lang = 'fr'
             subtitles.setdefault(sub_lang, []).extend([{
@@ -88,6 +143,9 @@ class ADNIE(InfoExtractor):
             }, {
                 'ext': 'srt',
                 'data': srt,
+            }, {
+                'ext': 'ass',
+                'data': ass,
             }])
         return subtitles
 
