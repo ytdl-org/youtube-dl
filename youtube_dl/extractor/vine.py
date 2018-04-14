@@ -140,7 +140,7 @@ class VineUserIE(InfoExtractor):
         user_id = profile_data['data']['userId']
         user_archive = self._download_json(
             'https://archive.vine.co/profiles/%s.json' % user_id, user_id)
-        posts = user_archive.get('posts')
+        posts = user_archive['posts']
         entries = [
             self.url_result('https://vine.co/v/%s' % post_id)
             for post_id in posts]
