@@ -29,10 +29,12 @@ class SeneddIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        iframe_src = self._html_search_regex(r'(?:<iframe src=|var src = )"([^"]*)"', webpage, 'iframe source')
+        title = self._og_search_title(webpage) 
+
+        iframe_src = self._html_search_regex(r'(?:<iframe src=|var src = )"(.+)"', webpage, 'iframe source')
         iframe = self._download_webpage(iframe_src, video_id)
 
-        m3u8 = self._html_search_regex(r'var file = "([^"]*)"', iframe, 'm3u8 source')
+        m3u8 = self._html_search_regex(r'var file = "(.+)"', iframe, 'm3u8 source')
         language = 'cy' if re.search(r'verbatim', m3u8) else 'en'
 
         formats = self._extract_m3u8_formats(m3u8, video_id, 'mp4', entry_protocol='m3u8_native')
@@ -49,7 +51,7 @@ class SeneddIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
+            'title': title,
             'formats': formats,
             'language': language,
             'thumbnail': 'http://static.content.nafw.vualto.com/meeting/%s/thumb/default.jpg' % video_id,
