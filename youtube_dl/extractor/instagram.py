@@ -11,7 +11,6 @@ from ..utils import (
     get_element_by_attribute,
     int_or_none,
     lowercase_escape,
-    std_headers,
     try_get,
 )
 
@@ -258,7 +257,7 @@ class InstagramUserIE(InfoExtractor):
                 'first': 100,
                 'after': cursor,
             })
-            s = '%s:%s:%s:%s' % (rhx_gis, csrf_token, std_headers['User-Agent'], variables)
+            s = '%s:%s:%s' % (rhx_gis, csrf_token, variables)
             media = self._download_json(
                 'https://www.instagram.com/graphql/query/', uploader_id,
                 'Downloading JSON page %d' % page_num, headers={
