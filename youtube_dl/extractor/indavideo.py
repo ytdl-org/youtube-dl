@@ -1,20 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-try:
-    # Python 3
-    from urllib.parse import urlsplit, urlunsplit, urlencode, parse_qsl
-except ImportError:
-    # Python 2
-    from urlparse import urlsplit, urlunsplit, parse_qsl
-    from urllib import urlencode
-
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_age_limit,
     parse_iso8601,
+    update_url_query,
 )
 
 
@@ -102,9 +95,7 @@ class IndavideoEmbedIE(InfoExtractor):
         if height and filesh:
             token = filesh.get(compat_str(height))
             if token is not None:
-                us = urlsplit(video_url)
-                query = urlencode(parse_qsl(us.query) + [('token', token)])
-                video_url = urlunsplit((us.scheme, us.netloc, us.path, query, us.fragment))
+                video_url = update_url_query(video_url, {'token': token})
         return {
             'url': video_url,
             'height': height,
