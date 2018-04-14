@@ -10,6 +10,7 @@ except ImportError:
     from urllib import urlencode
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_age_limit,
@@ -99,7 +100,7 @@ class IndavideoEmbedIE(InfoExtractor):
         height = int_or_none(self._search_regex(
             r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None))
         if height and filesh:
-            token = filesh.get(str(height))
+            token = filesh.get(compat_str(height))
             if token is not None:
                 us = urlsplit(video_url)
                 query = urlencode(parse_qsl(us.query) + [('token', token)])
