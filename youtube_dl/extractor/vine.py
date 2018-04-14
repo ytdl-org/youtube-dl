@@ -142,6 +142,6 @@ class VineUserIE(InfoExtractor):
             'https://archive.vine.co/profiles/%s.json' % user_id, user_id)
         posts = user_archive['posts']
         entries = [
-            self.url_result('https://vine.co/v/%s' % post_id)
+            self.url_result('https://vine.co/v/%s' % post_id, 'Vine')
             for post_id in posts]
         return self.playlist_result(entries, user)
