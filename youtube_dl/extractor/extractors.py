@@ -941,6 +941,7 @@ from .safari import (
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
 from .sbs import SBSIE
+from .scientology import ScientologyIE
 from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
 from .scrippsnetworks import ScrippsNetworksWatchIE
