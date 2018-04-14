@@ -98,7 +98,7 @@ class IndavideoEmbedIE(InfoExtractor):
     def video_url_to_format(self, video_url, filesh):
         height = int_or_none(self._search_regex(
             r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None))
-        if height is not None and filesh is not None:
+        if height and filesh:
             token = filesh.get(str(height))
             if token is not None:
                 us = urlsplit(video_url)
