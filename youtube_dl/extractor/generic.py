@@ -2016,7 +2016,7 @@ class GenericIE(InfoExtractor):
                 if next_url:
                     break
 
-            if not enclosure_nodes:
+            if not next_url:
                 next_url = xpath_text(it, 'link', fatal=False)
 
             if not next_url:
