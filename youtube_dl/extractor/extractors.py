@@ -816,8 +816,8 @@ from .philharmoniedeparis import PhilharmonieDeParisIE
 from .phoenix import PhoenixIE
 from .photobucket import PhotobucketIE
 from .picarto import (
-    PicartoVodIE,
     PicartoIE,
+    PicartoVodIE,
 )
 from .piksel import PikselIE
 from .pinkbike import PinkbikeIE
