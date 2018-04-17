@@ -128,7 +128,7 @@ class KeezMoviesIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
-        webpage, info = self._extract_info(url)
+        webpage, info = self._extract_info(url, fatal=False)
         if not info['formats']:
             embed_url = self._search_regex(
                 r'<iframe\s+id="embedPlayer"\s+src="//(.+?)"', webpage, 'embed url', default=None)
