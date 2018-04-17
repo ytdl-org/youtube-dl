@@ -1220,7 +1220,7 @@ class GenericIE(InfoExtractor):
                 'title': '35871',
                 'timestamp': 1355743100,
                 'upload_date': '20121217',
-                'uploader_id': 'batchUser',
+                'uploader_id': 'cplapp@learn360.com',
             },
             'add_ie': ['Kaltura'],
         },
@@ -1268,6 +1268,22 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20170403',
                 'uploader_id': 'batchUser',
                 'timestamp': 1491232186,
+            },
+            'add_ie': ['Kaltura'],
+        },
+        {
+            # meta twitter:player
+            'url': 'http://thechive.com/2017/12/08/all-i-want-for-christmas-is-more-twerk/',
+            'info_dict': {
+                'id': '0_01b42zps',
+                'ext': 'mp4',
+                'title': 'Main Twerk (Video)',
+                'upload_date': '20171208',
+                'uploader_id': 'sebastian.salinas@thechive.com',
+                'timestamp': 1512713057,
+            },
+            'params': {
+                'skip_download': True,
             },
             'add_ie': ['Kaltura'],
         },
