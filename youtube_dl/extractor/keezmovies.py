@@ -107,11 +107,9 @@ class KeezMoviesIE(InfoExtractor):
 
         try:
             self._sort_formats(formats)
-        except ExtractorError as e:
+        except ExtractorError:
             if fatal:
-                raise ExtractorError(e, expected=True)
-            else:
-                self._downloader.report_warning(e)
+                raise
 
         if not title:
             title = self._html_search_regex(
@@ -130,9 +128,7 @@ class KeezMoviesIE(InfoExtractor):
     def _real_extract(self, url):
         webpage, info = self._extract_info(url, fatal=False)
         if not info['formats']:
-            embed_url = self._search_regex(
-                r'<iframe\s+id="embedPlayer"\s+src="//(.+?)"', webpage, 'embed url', default=None)
-            return self.url_result(embed_url or url, 'Generic')
+            return self.url_result(url, 'Generic')
         info['view_count'] = str_to_int(self._search_regex(
             r'<b>([\d,.]+)</b> Views?', webpage, 'view count', fatal=False))
         return info
