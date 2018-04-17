@@ -36,7 +36,7 @@ class KeezMoviesIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _extract_info(self, url):
+    def _extract_info(self, url, fatal=True):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         display_id = (mobj.group('display_id')
@@ -105,7 +105,13 @@ class KeezMoviesIE(InfoExtractor):
                 raise ExtractorError(
                     'Video %s is no longer available' % video_id, expected=True)
 
-        self._sort_formats(formats, fatal=False)
+        try:
+            self._sort_formats(formats)
+        except ExtractorError as e:
+            if fatal:
+                raise ExtractorError(e, expected=True)
+            else:
+                self._downloader.report_warning(e)
 
         if not title:
             title = self._html_search_regex(

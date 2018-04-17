@@ -1078,14 +1078,9 @@ class InfoExtractor(object):
             html, '%s form' % form_id, group='form')
         return self._hidden_inputs(form)
 
-    def _sort_formats(self, formats, field_preference=None, fatal=True):
+    def _sort_formats(self, formats, field_preference=None):
         if not formats:
-            msg = 'No video formats found'
-            if fatal:
-                raise ExtractorError(msg)
-            else:
-                self._downloader.report_warning(msg)
-                return None
+            raise ExtractorError('No video formats found')
 
         for f in formats:
             # Automatically determine tbr when missing based on abr and vbr (improves
