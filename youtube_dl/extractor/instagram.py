@@ -6,11 +6,16 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_HTTPError,
+)
 from ..utils import (
+    ExtractorError,
     get_element_by_attribute,
     int_or_none,
     lowercase_escape,
+    std_headers,
     try_get,
 )
 
@@ -239,6 +244,8 @@ class InstagramUserIE(InfoExtractor):
         }
     }
 
+    _gis_tmpl = None
+
     def _entries(self, data):
         def get_count(suffix):
             return int_or_none(try_get(
@@ -257,16 +264,36 @@ class InstagramUserIE(InfoExtractor):
                 'first': 100,
                 'after': cursor,
             })
-            s = '%s:%s:%s' % (rhx_gis, csrf_token, variables)
-            media = self._download_json(
-                'https://www.instagram.com/graphql/query/', uploader_id,
-                'Downloading JSON page %d' % page_num, headers={
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-Instagram-GIS': hashlib.md5(s.encode('utf-8')).hexdigest(),
-                }, query={
-                    'query_hash': '472f257a40c653c64c666ce877d59d2b',
-                    'variables': variables,
-                })['data']['user']['edge_owner_to_timeline_media']
+
+            if self._gis_tmpl:
+                gis_tmpls = [self._gis_tmpl]
+            else:
+                gis_tmpls = [
+                    '%s' % rhx_gis,
+                    '',
+                    '%s:%s' % (rhx_gis, csrf_token),
+                    '%s:%s:%s' % (rhx_gis, csrf_token, std_headers['User-Agent']),
+                ]
+
+            for gis_tmpl in gis_tmpls:
+                try:
+                    media = self._download_json(
+                        'https://www.instagram.com/graphql/query/', uploader_id,
+                        'Downloading JSON page %d' % page_num, headers={
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-Instagram-GIS': hashlib.md5(
+                                ('%s:%s' % (gis_tmpl, variables)).encode('utf-8')).hexdigest(),
+                        }, query={
+                            'query_hash': '42323d64886122307be10013ad2dcc44',
+                            'variables': variables,
+                        })['data']['user']['edge_owner_to_timeline_media']
+                    self._gis_tmpl = gis_tmpl
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                        if gis_tmpl != gis_tmpls[-1]:
+                            continue
+                    raise
 
             edges = media.get('edges')
             if not edges or not isinstance(edges, list):

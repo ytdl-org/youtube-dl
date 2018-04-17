@@ -1,3 +1,16 @@
+version 2018.04.16
+
+Extractors
+* [smotri:broadcast] Fix extraction (#16180)
++ [picarto] Add support for picarto.tv (#6205, #12514, #15276, #15551)
+* [vine:user] Fix extraction (#15514, #16190)
+* [pornhub] Relax URL regular expression (#16165)
+* [cbc:watch] Re-acquire device token when expired (#16160)
++ [fxnetworks] Add support for https theplatform URLs (#16125, #16157)
++ [instagram:user] Add request signing (#16119)
++ [twitch] Add support for mobile URLs (#16146)
+
+
 version 2018.04.09
 
 Core

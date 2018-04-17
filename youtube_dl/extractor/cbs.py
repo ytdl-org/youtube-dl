@@ -65,7 +65,7 @@ class CBSIE(CBSBaseIE):
         last_e = None
         for item in items_data.findall('.//item'):
             asset_type = xpath_text(item, 'assetType')
-            if not asset_type or asset_type in asset_types:
+            if not asset_type or asset_type in asset_types or asset_type in ('HLS_FPS', 'DASH_CENC'):
                 continue
             asset_types.append(asset_type)
             query = {
