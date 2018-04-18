@@ -261,7 +261,7 @@ class InstagramUserIE(InfoExtractor):
         for page_num in itertools.count(1):
             variables = json.dumps({
                 'id': uploader_id,
-                'first': 100,
+                'first': 12,
                 'after': cursor,
             })
 
