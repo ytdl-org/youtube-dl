@@ -230,15 +230,18 @@ class NexxIE(InfoExtractor):
 
         azure_locator = stream_data['azureLocator']
 
-        AZURE_URL = 'http://nx%s%02d.akamaized.net/'
-
-        def get_cdn_shield_base(shield_type='', prefix='-p'):
+        def get_cdn_shield_base(shield_type='', static=False):
             for secure in ('', 's'):
                 cdn_shield = stream_data.get('cdnShield%sHTTP%s' % (shield_type, secure.upper()))
                 if cdn_shield:
                     return 'http%s://%s' % (secure, cdn_shield)
             else:
-                return AZURE_URL % (prefix, int(stream_data['azureAccount'].replace('nexxplayplus', '')))
+                if 'fb' in stream_data['azureAccount']:
+                    prefix = 'df' if static else 'f'
+                else:
+                    prefix = 'd' if static else 'p'
+                account = int(stream_data['azureAccount'].replace('nexxplayplus', '').replace('nexxplayfb', ''))
+                return 'http://nx-%s%02d.akamaized.net/' % (prefix, account)
 
         azure_stream_base = get_cdn_shield_base()
         is_ml = ',' in language
@@ -260,7 +263,7 @@ class NexxIE(InfoExtractor):
         formats.extend(self._extract_ism_formats(
             azure_manifest_url % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
 
-        azure_progressive_base = get_cdn_shield_base('Prog', '-d')
+        azure_progressive_base = get_cdn_shield_base('Prog', True)
         azure_file_distribution = stream_data.get('azureFileDistribution')
         if azure_file_distribution:
             fds = azure_file_distribution.split(',')
