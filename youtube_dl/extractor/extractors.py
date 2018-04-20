@@ -696,6 +696,7 @@ from .nick import (
     NickDeIE,
     NickNightIE,
     NickRuIE,
+    NickJrNLIE,
 )
 from .niconico import NiconicoIE, NiconicoPlaylistIE
 from .ninecninemedia import (

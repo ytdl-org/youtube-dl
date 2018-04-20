@@ -227,3 +227,35 @@ class NickRuIE(MTVServicesInfoExtractor):
         webpage = self._download_webpage(url, video_id)
         mgid = self._extract_mgid(webpage)
         return self.url_result('http://media.mtvnservices.com/embed/%s' % mgid)
+
+
+class NickJrNLIE(NickBrIE):
+    IE_NAME = 'nickjrnl'
+    _VALID_URL = r'https?://www\.nickjr\.nl/(?:program/)?[^/]+/videos/(?:episode/)?(?P<id>[^/?#.]+)'
+    _TESTS = [{
+        'url': 'http://www.nickjr.nl/paw-patrol/videos/73315dc1-dc28-4a1e-b2ba-4a9b0e05b1b0/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickjr.nl/paw-patrol/videos/311-ge-wol-dig-om-terug-te-zijn/',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        display_id = re.match(self._VALID_URL, url)
+        webpage = self._download_webpage(url, display_id)
+        uri = self._search_regex(
+            r'data-contenturi="([^"]+)"', webpage, 'mgid')
+        print uri
+        video_id = self._id_from_uri(uri)
+        print video_id
+        config = self._download_json(
+            'http://media.mtvnservices.com/pmt/e1/access/index.html',
+            video_id, query={
+                'uri': uri,
+                'configtype': 'edge',
+            }, headers={
+                'Referer': url,
+            })
+        info_url = self._remove_template_parameter(config['feedWithQueryParams'])
+        print info_url
+        return self._get_videos_info_from_url(info_url, video_id)
