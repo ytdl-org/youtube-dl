@@ -3,8 +3,11 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from urllib import urlencode
-from urlparse import urlparse, urlunparse, urljoin
+try:
+    from urllib import urlencode
+    from urlparse import urlparse, urlunparse, urljoin
+except ImportError:
+    from urllib.parse import urlencode, urlparse, urlunparse, urljoin
 
 
 class MakoTVIE(InfoExtractor):
