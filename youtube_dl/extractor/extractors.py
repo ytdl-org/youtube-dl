@@ -579,6 +579,7 @@ from .mailru import (
 )
 from .makerschannel import MakersChannelIE
 from .makertv import MakerTVIE
+from .makotv import MakoTVIE
 from .mangomolo import (
     MangomoloVideoIE,
     MangomoloLiveIE,
