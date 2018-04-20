@@ -245,9 +245,7 @@ class NickJrNLIE(NickBrIE):
         webpage = self._download_webpage(url, display_id)
         uri = self._search_regex(
             r'data-contenturi="([^"]+)"', webpage, 'mgid')
-        print uri
         video_id = self._id_from_uri(uri)
-        print video_id
         config = self._download_json(
             'http://media.mtvnservices.com/pmt/e1/access/index.html',
             video_id, query={
@@ -257,5 +255,4 @@ class NickJrNLIE(NickBrIE):
                 'Referer': url,
             })
         info_url = self._remove_template_parameter(config['feedWithQueryParams'])
-        print info_url
         return self._get_videos_info_from_url(info_url, video_id)
