@@ -137,7 +137,7 @@ class SVTPlayBaseIE(SVTBaseIE):
 
 class SVTPlayIE(SVTPlayBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
-    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp|kanaler)/(?P<id>\w+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp|kanaler)/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
         'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
@@ -179,6 +179,10 @@ class SVTPlayIE(SVTPlayBaseIE):
 
         thumbnail = self._og_search_thumbnail(webpage)
 
+        def adjust_title(info):
+            if info['is_live']:
+                info['title'] = self._live_title(info['title'])
+
         if data:
             video_info = try_get(
                 data, lambda x: x['context']['dispatcher']['stores']['VideoTitlePageStore']['data']['video'],
@@ -189,8 +193,7 @@ class SVTPlayIE(SVTPlayBaseIE):
                     'title': data['context']['dispatcher']['stores']['MetaStore']['title'],
                     'thumbnail': thumbnail,
                 })
-                if info_dict['is_live']:
-                    info_dict['title'] = self._live_title(info_dict['title'])
+                adjust_title(info_dict)
                 return info_dict
 
         video_id = self._search_regex(
@@ -206,8 +209,7 @@ class SVTPlayIE(SVTPlayBaseIE):
                 info_dict['title'] = re.sub(
                     r'\s*\|\s*.+?$', '',
                     info_dict.get('episode') or self._og_search_title(webpage))
-            if info_dict['is_live']:
-                info_dict['title'] = self._live_title(info_dict['title'])
+            adjust_title(info_dict)
             return info_dict
 
 
