@@ -32,5 +32,7 @@ class CBSSportsIE(CBSBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_id= self._search_regex([r'(?:=|%26)pcid%3D(\d+)', r'embedVideo(?:Container)?_(\d+)'], webpage, 'video id')
+        video_id = self._search_regex(
+            [r'(?:=|%26)pcid%3D(\d+)', r'embedVideo(?:Container)?_(\d+)'],
+            webpage, 'video id')
         return self._extract_video_info('byId=%s' % video_id, video_id)
