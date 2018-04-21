@@ -22,6 +22,8 @@ class SVTBaseIE(InfoExtractor):
     _GEO_COUNTRIES = ['SE']
 
     def _extract_video(self, video_info, video_id):
+        is_live = dict_get(video_info, ('live', 'simulcast'), default=False)
+        m3u8_protocol = 'm3u8' if is_live else 'm3u8_native'
         formats = []
         for vr in video_info['videoReferences']:
             player_type = vr.get('playerType') or vr.get('format')
@@ -30,7 +32,7 @@ class SVTBaseIE(InfoExtractor):
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     vurl, video_id,
-                    ext='mp4', entry_protocol='m3u8_native',
+                    ext='mp4', entry_protocol=m3u8_protocol,
                     m3u8_id=player_type, fatal=False))
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
@@ -90,6 +92,7 @@ class SVTBaseIE(InfoExtractor):
             'season_number': season_number,
             'episode': episode,
             'episode_number': episode_number,
+            'is_live': is_live,
         }
 
 
@@ -134,7 +137,7 @@ class SVTPlayBaseIE(SVTBaseIE):
 
 class SVTPlayIE(SVTPlayBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
-    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp|kanaler)/(?P<id>\w+)'
     _TESTS = [{
         'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
         'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
@@ -157,6 +160,9 @@ class SVTPlayIE(SVTPlayBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://www.svtplay.se/klipp/9023742/stopptid-om-bjorn-borg',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.svtplay.se/kanaler/svt1',
         'only_matching': True,
     }]
 
@@ -183,6 +189,8 @@ class SVTPlayIE(SVTPlayBaseIE):
                     'title': data['context']['dispatcher']['stores']['MetaStore']['title'],
                     'thumbnail': thumbnail,
                 })
+                if info_dict['is_live']:
+                    info_dict['title'] = self._live_title(info_dict['title'])
                 return info_dict
 
         video_id = self._search_regex(
@@ -198,6 +206,8 @@ class SVTPlayIE(SVTPlayBaseIE):
                 info_dict['title'] = re.sub(
                     r'\s*\|\s*.+?$', '',
                     info_dict.get('episode') or self._og_search_title(webpage))
+            if info_dict['is_live']:
+                info_dict['title'] = self._live_title(info_dict['title'])
             return info_dict
 
 
