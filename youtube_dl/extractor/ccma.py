@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
     clean_html,
+    parse_resolution
 )
 
 
@@ -43,7 +45,7 @@ class CCMAIE(InfoExtractor):
         media_data = {}
         formats = []
         profiles = ['pc'] if media_type == 'audio' else ['mobil', 'pc']
-        for i, profile in enumerate(profiles):
+        for profile in profiles:
             md = self._download_json('http://dinamics.ccma.cat/pvideo/media.jsp', media_id, query={
                 'media': media_type,
                 'idint': media_id,
@@ -52,12 +54,23 @@ class CCMAIE(InfoExtractor):
             if md:
                 media_data = md
                 media_url = media_data.get('media', {}).get('url')
-                if media_url:
+
+                if media_url and isinstance(media_url, list):
+                    for _url in media_url:
+                        resolution = parse_resolution(_url.get('label'))
+
+                        if _url.get('file'):
+                            formats.append({
+                                'format_id': profile,
+                                'url': _url.get('file'),
+                                'height': resolution.get('height'),
+                            })
+                elif media_url and isinstance(media_url, compat_str):
                     formats.append({
                         'format_id': profile,
                         'url': media_url,
-                        'quality': i,
                     })
+
         self._sort_formats(formats)
 
         informacio = media_data['informacio']
