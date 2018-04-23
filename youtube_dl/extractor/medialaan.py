@@ -10,6 +10,7 @@ from ..utils import (
     parse_duration,
     try_get,
     unified_timestamp,
+    unified_strdate
 )
 
 
@@ -60,11 +61,13 @@ class MedialaanIE(GigyaBaseIE):
         # clip
         'url': 'http://vtm.be/video?aid=168332',
         'info_dict': {
-            'id': '168332',
+            'id': 'vtm_168332',
             'ext': 'mp4',
             'title': '"Veronique liegt!"',
             'description': 'md5:1385e2b743923afe54ba4adc38476155',
             'duration': 96,
+            'timestamp': 1489002029,
+            'upload_date': '20170308',
         },
     }, {
         # vod
@@ -145,15 +148,31 @@ class MedialaanIE(GigyaBaseIE):
 
         # clip, no authentication required
         if not vod_id:
-            video = self._parse_json(self._search_regex(r'"video":({.+?}}]})', webpage, 'video', default='{}'), video_id)
-            metadata = self._parse_json(self._search_regex(r'{"metadata":({.+?})', webpage, 'metadata', default='{}'), video_id)
+            settings = self._parse_json(
+                self._search_regex(
+                    r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
+                    webpage, 'drupal settings', default='{}'),
+                video_id)
+
+            if not re.match(video_id, 'vtm_[0-9]*'):
+                video_id = settings.get('medialaan_player').keys()[0]
+            config = try_get(settings, lambda x: x['medialaan_player'][video_id]['videoConfig'], None)
+
+            video = config.get('video')
+            metadata = config.get('tracking').get('metadata')
+            pubdate = metadata.get('pubDate') or self._search_regex(
+                        r'"%s"\s*:\s*"([^"]+)' % 'pubDate', webpage, 'pubDate',
+                        default=None)
+
             if video:
                 info = {
                     'id': video_id,
                     'url': video.get('formats')[0].get('url'),
                     'title': metadata.get('videoTitle'),
                     'thumbnail': video.get('poster'),
+                    'timestamp': unified_timestamp(pubdate),
                     'duration': int_or_none(video.get('duration')),
+                    'upload_date': unified_strdate(pubdate)
                 }
             else:
                 info = self._parse_html5_media_entries(
