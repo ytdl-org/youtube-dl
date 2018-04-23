@@ -308,6 +308,26 @@ class LyndaCourseIE(LyndaBaseIE):
 
         unaccessible_videos = 0
         entries = []
+        
+        templateVars = {}
+        date = course.get('DateReleasedUtc')
+        if date:
+            date = date[6:10] + '-' + date[0:2] + '-' + date[3:5]
+            templateVars.update({'release_date': date})
+
+        authors = course.get("Authors")
+        if authors:
+            authorString = ''
+            for author in authors:
+                authorString += author.get("Fullname") + ", "
+            authorString = authorString[:-2]
+            templateVars.update({'creator': authorString})
+
+        tags = course.get('Tags')
+        if tags:
+            for tag in tags:
+                if tag.get('TypeName') == 'Level':
+                    templateVars.update({'skill_level': tag.get('Name')})
 
         # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
         # by single video API anymore
@@ -319,14 +339,16 @@ class LyndaCourseIE(LyndaBaseIE):
                     continue
                 video_id = video.get('ID')
                 if video_id:
-                    entries.append({
+                    entry = {
                         '_type': 'url_transparent',
                         'url': item_template % video_id,
                         'ie_key': LyndaIE.ie_key(),
                         'chapter': chapter.get('Title'),
                         'chapter_number': int_or_none(chapter.get('ChapterIndex')),
                         'chapter_id': compat_str(chapter.get('ID')),
-                    })
+                    }
+                    entry.update(templateVars)
+                    entries.append(entry)
 
         if unaccessible_videos > 0:
             self._downloader.report_warning(
