@@ -312,7 +312,7 @@ class LyndaCourseIE(LyndaBaseIE):
         templateVars = {}
         date = course.get('DateReleasedUtc')
         if date:
-            date = date[6:10] + '-' + date[0:2] + '-' + date[3:5]
+            date = date[6:10] + date[0:2] + date[3:5]
             templateVars.update({'release_date': date})
 
         authors = course.get("Authors")
