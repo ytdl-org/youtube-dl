@@ -860,6 +860,10 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
+from .puhutv import (
+    PuhuTVIE,
+    PuhuTVSerieIE,
+)
 from .presstv import PressTVIE
 from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
