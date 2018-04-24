@@ -1,3 +1,32 @@
+version <unreleased>
+
+Core
+* [utils] Fix match_str for boolean meta fields
++ [Makefile] Add support for pandoc 2 and disable smart extension (#16251)
+* [YoutubeDL] Fix typo in media extension compatibility checker (#16215)
+
+Extractors
++ [openload] Recognize IPv6 stream URLs (#16136, #16137, #16205, #16246,
+  #16250)
++ [twitch] Extract is_live according to status (#16259)
+* [pornflip] Relax URL regular expression (#16258)
+- [etonline] Remove extractor (#16256)
+* [breakcom] Fix extraction (#16254)
++ [youtube] Add ability to authenticate with cookies
+* [youtube:feed] Implement lazy playlist extraction (#10184)
++ [svt] Add support for TV channel live streams (#15279, #15809)
+* [ccma] Fix video extraction (#15931)
+* [rentv] Fix extraction (#15227)
++ [nick] Add support for nickjr.nl (#16230)
+* [extremetube] Fix metadata extraction
++ [keezmovies] Add support for generic embeds (#16134, #16154)
+* [nexx] Extract new azure URLs (#16223)
+* [cbssports] Fix extraction (#16217)
+* [kaltura] Improve embeds detection (#16201)
+* [instagram:user] Fix extraction (#16119)
+* [cbs] Skip DRM asset types (#16104)
+
+
 version 2018.04.16
 
 Extractors
