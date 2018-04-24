@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.04.25
 
 Core
 * [utils] Fix match_str for boolean meta fields
