@@ -15,7 +15,7 @@ from ..utils import (
 class PuhuTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?puhutv\.com/(?P<id>[a-z0-9-]+)-izle'
     _TESTS = [
-        {
+        { # A Film
             'url': 'https://puhutv.com/sut-kardesler-izle',
             'md5': '51f11ccdeef908753b4e3a99d19be939',
             'info_dict': {
@@ -30,19 +30,19 @@ class PuhuTVIE(InfoExtractor):
                 'upload_date': '20160729',
             },
         },
-        {
+        { # A Episode
             'url': 'https://puhutv.com/jet-sosyete-1-bolum-izle',
-            'md5': '51f11ccdeef908753b4e3a99d19be939',
+            'md5': 'e47096511f5ee1fee3586a5714955a25',
             'info_dict': {
                 'id': '18501',
-                'display_id': 'jet-sosyete',
+                'display_id': 'jet-sosyete-1-bolum',
                 'ext': 'mp4',
-                'title': 'Süt Kardeşler',
+                'title': 'Jet Sosyete 1. Sezon 1. Bölüm',
                 'thumbnail': r're:^https?://.*\.jpg$',
-                'uploader': 'Arzu Film',
-                'description': 'md5:405fd024df916ca16731114eb18e511a',
-                'uploader_id': '43',
-                'upload_date': '20160729',
+                'uploader': 'BKM',
+                'description': 'md5:0312864b87d6b9b917694a5742fffabd',
+                'uploader_id': '269',
+                'upload_date': '20180220',
             },
         }
     ]
