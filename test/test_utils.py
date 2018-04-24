@@ -1072,6 +1072,18 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+        self.assertTrue(match_str('is_live', {'is_live': True}))
+        self.assertFalse(match_str('is_live', {'is_live': False}))
+        self.assertFalse(match_str('is_live', {'is_live': None}))
+        self.assertFalse(match_str('is_live', {}))
+        self.assertFalse(match_str('!is_live', {'is_live': True}))
+        self.assertTrue(match_str('!is_live', {'is_live': False}))
+        self.assertTrue(match_str('!is_live', {'is_live': None}))
+        self.assertTrue(match_str('!is_live', {}))
+        self.assertTrue(match_str('title', {'title': 'abc'}))
+        self.assertTrue(match_str('title', {'title': ''}))
+        self.assertFalse(match_str('!title', {'title': 'abc'}))
+        self.assertFalse(match_str('!title', {'title': ''}))
 
     def test_parse_dfxp_time_expr(self):
         self.assertEqual(parse_dfxp_time_expr(None), None)
