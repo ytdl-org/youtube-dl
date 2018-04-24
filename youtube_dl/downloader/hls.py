@@ -30,7 +30,7 @@ class HlsFD(FragmentFD):
     @staticmethod
     def can_download(manifest, info_dict):
         UNSUPPORTED_FEATURES = (
-            r'#EXT-X-KEY:METHOD=(?!NONE|AES-128)',  # encrypted streams [1]
+            r'#EXT-X-KEY:METHOD=(?!NONE|AES-128|SAMPLE-AES)',  # encrypted streams [1]
             # r'#EXT-X-BYTERANGE',  # playlists composed of byte ranges of media files [2]
 
             # Live streams heuristic does not always work (e.g. geo restricted to Germany
