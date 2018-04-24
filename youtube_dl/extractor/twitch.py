@@ -168,6 +168,13 @@ class TwitchItemBaseIE(TwitchBaseIE):
         return self.playlist_result(entries, info['id'], info['title'])
 
     def _extract_info(self, info):
+        status = info.get('status')
+        if status == 'recording':
+            is_live = True
+        elif status == 'recorded':
+            is_live = False
+        else:
+            is_live = None
         return {
             'id': info['_id'],
             'title': info.get('title') or 'Untitled Broadcast',
@@ -178,6 +185,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
             'uploader_id': info.get('channel', {}).get('name'),
             'timestamp': parse_iso8601(info.get('recorded_at')),
             'view_count': int_or_none(info.get('views')),
+            'is_live': is_live,
         }
 
     def _real_extract(self, url):
