@@ -5,6 +5,11 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str
 )
+from ..utils import (
+    int_or_none,
+    ExtractorError,
+    float_or_none
+)
 
 
 class PuhuTVIE(InfoExtractor):
@@ -15,17 +20,30 @@ class PuhuTVIE(InfoExtractor):
             'md5': '51f11ccdeef908753b4e3a99d19be939',
             'info_dict': {
                 'id': '5085',
-                'slug_id': 'sut-kardesler',
+                'display_id': 'sut-kardesler',
                 'ext': 'mp4',
                 'title': 'Süt Kardeşler',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'uploader': 'Arzu Film',
                 'description': 'md5:405fd024df916ca16731114eb18e511a',
+                'uploader_id': '43',
+                'upload_date': '20160729',
             },
         },
         {
             'url': 'https://puhutv.com/jet-sosyete-1-bolum-izle',
-            'only_matching': True,
+            'md5': '51f11ccdeef908753b4e3a99d19be939',
+            'info_dict': {
+                'id': '18501',
+                'display_id': 'jet-sosyete',
+                'ext': 'mp4',
+                'title': 'Süt Kardeşler',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'uploader': 'Arzu Film',
+                'description': 'md5:405fd024df916ca16731114eb18e511a',
+                'uploader_id': '43',
+                'upload_date': '20160729',
+            },
         }
     ]
     IE_NAME = 'puhutv'
@@ -40,6 +58,25 @@ class PuhuTVIE(InfoExtractor):
         title = info.get('title').get('name')
         if(info.get('display_name')):
             title += ' ' + info.get('display_name')
+        description = info.get('title').get('description')
+        upload_date = info.get('created_at').split('T')[0].replace('-', '')
+        uploader = info.get('title').get('producer').get('name')
+        uploader_id = compat_str(info.get('title').get('producer').get('id'))
+        view_count = int_or_none(info.get('content').get('watch_count'))
+        duration = float_or_none(info.get('content').get('duration_in_ms'), scale=1000)
+        thumbnail = 'https://%s' % info.get('content').get('images').get('wide').get('main')
+        release_year = int_or_none(info.get('title').get('released_at'))
+        webpage_url = info.get('web_url')
+
+        # for series
+        season_number = int_or_none(info.get('season_number'))
+        season_id = int_or_none(info.get('season_id'))
+        episode_number = int_or_none(info.get('episode_number'))
+
+
+        tags = []
+        for tag in info.get('title').get('genres'):
+            tags.append(tag.get('name'))
 
         thumbnails = []
         for key,image in info.get('content').get('images').get('wide').items():
@@ -50,7 +87,7 @@ class PuhuTVIE(InfoExtractor):
 
         format_dict = self._download_json(
             'https://puhutv.com/api/assets/%s/videos' % id,
-            id, 'Downloading sources').get('data').get('videos')
+            video_id, 'Downloading sources').get('data').get('videos')
         if not format_dict:
             raise ExtractorError('This video not available in your country')
 
@@ -62,7 +99,7 @@ class PuhuTVIE(InfoExtractor):
             if ext == 'hls':
                 format_id = 'hls-%s' % quality
                 formats.extend(self._extract_m3u8_formats(
-                    media_url, id, 'm3u8', preference=-1,
+                    media_url, video_id, 'm3u8', preference=-1,
                     m3u8_id=format_id, fatal=False))
             else:
                 if format.get('is_playlist') == False:
@@ -75,14 +112,21 @@ class PuhuTVIE(InfoExtractor):
 
         return {
             'id': id,
-            'slug_id': video_id,
+            'display_id': video_id,
             'title': title,
-            'description': info.get('title').get('description'),
-            'uploader': info.get('title').get('producer').get('name'),
-            'view_count': info.get('content').get('watch_count'),
-            'follower_count': info.get('title').get('follower_count'),
-            'thumbnail': 'https://%s' % info.get('content').get('images').get('wide').get('main'),
+            'description': description,
+            'season_id': season_id,
+            'season_number': season_number,
+            'episode_number': episode_number,
+            'release_year': release_year,
+            'upload_date': upload_date,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'view_count': view_count,
+            'duration': duration,
+            'tags': tags,
+            'webpage_url': webpage_url,
+            'thumbnail': thumbnail,
             'thumbnails': thumbnails,
-            'loop_thumbnails': info.get('content').get('loop_thumbnails'),
             'formats': formats
         }
