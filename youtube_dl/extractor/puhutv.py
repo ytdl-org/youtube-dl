@@ -30,7 +30,7 @@ class PuhuTVIE(InfoExtractor):
                 'upload_date': '20160729',
             },
         },
-        { # A Episode
+        { # An Episode
             'url': 'https://puhutv.com/jet-sosyete-1-bolum-izle',
             'md5': 'e47096511f5ee1fee3586a5714955a25',
             'info_dict': {
