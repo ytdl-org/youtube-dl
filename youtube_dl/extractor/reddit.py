@@ -75,6 +75,10 @@ class RedditRIE(InfoExtractor):
         'url': 'https://www.reddit.com/r/MadeMeSmile/comments/6t7wi5/wait_for_it/',
         'only_matching': True,
     }, {
+        # imgur @ old reddit
+        'url': 'https://old.reddit.com/r/MadeMeSmile/comments/6t7wi5/wait_for_it/',
+        'only_matching': True,
+    }, {
         # streamable
         'url': 'https://www.reddit.com/r/videos/comments/6t7sg9/comedians_hilarious_joke_about_the_guam_flag/',
         'only_matching': True,
