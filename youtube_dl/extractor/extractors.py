@@ -384,6 +384,7 @@ from .francetv import (
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freshlive import FreshLiveIE
+from .frontendmaster import FrontEndMasterIE
 from .funimation import FunimationIE
 from .funk import (
     FunkMixIE,
@@ -1421,3 +1422,5 @@ from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
+
+
