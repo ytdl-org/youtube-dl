@@ -390,6 +390,10 @@ from .francetv import (
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freshlive import FreshLiveIE
+from .frontendmaster import (
+    FrontEndMasterIE,
+    FrontEndMasterCourseIE
+)
 from .funimation import FunimationIE
 from .funk import (
     FunkMixIE,
