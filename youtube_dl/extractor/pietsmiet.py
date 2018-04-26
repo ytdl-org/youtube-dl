@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class PietsmietIE(OnceIE):
-    _VALID_URL = r'https?://(?:www\.)?pietsmiet\.de/gallery/categories/[\w-]+/(?P<id>\d+)-.*/?'
+    _VALID_URL = r'https?://(?:www\.)?pietsmiet\.de/gallery/(categories|playlists)/[\w-]+/(?P<id>\d+)-.*/?'
     _TEST = {
         'url': 'http://www.pietsmiet.de/gallery/categories/8-frag-pietsmiet/29844-fps-912',
         'info_dict': {
