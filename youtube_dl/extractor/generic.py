@@ -23,6 +23,7 @@ from ..utils import (
     is_html,
     js_to_json,
     KNOWN_EXTENSIONS,
+    merge_dicts,
     mimetype2ext,
     orderedSet,
     sanitized_Request,
@@ -3001,21 +3002,6 @@ class GenericIE(InfoExtractor):
         if sharevideos_urls:
             return self.playlist_from_matches(
                 sharevideos_urls, video_id, video_title)
-
-        def merge_dicts(dict1, dict2):
-            merged = {}
-            for k, v in dict1.items():
-                if v is not None:
-                    merged[k] = v
-            for k, v in dict2.items():
-                if v is None:
-                    continue
-                if (k not in merged or
-                        (isinstance(v, compat_str) and v and
-                            isinstance(merged[k], compat_str) and
-                            not merged[k])):
-                    merged[k] = v
-            return merged
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
