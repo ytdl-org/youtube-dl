@@ -682,18 +682,30 @@ class InfoExtractor(object):
             else:
                 self.report_warning(errmsg + str(ve))
 
-    def _download_json(self, url_or_request, video_id,
-                       note='Downloading JSON metadata',
-                       errnote='Unable to download JSON metadata',
-                       transform_source=None,
-                       fatal=True, encoding=None, data=None, headers={}, query={}):
-        json_string = self._download_webpage(
+    def _download_json_handle(
+            self, url_or_request, video_id, note='Downloading JSON metadata',
+            errnote='Unable to download JSON metadata', transform_source=None,
+            fatal=True, encoding=None, data=None, headers={}, query={}):
+        """Return a tuple (JSON object, URL handle)"""
+        res = self._download_webpage_handle(
             url_or_request, video_id, note, errnote, fatal=fatal,
             encoding=encoding, data=data, headers=headers, query=query)
-        if (not fatal) and json_string is False:
-            return None
+        if res is False:
+            return res
+        json_string, urlh = res
         return self._parse_json(
-            json_string, video_id, transform_source=transform_source, fatal=fatal)
+            json_string, video_id, transform_source=transform_source,
+            fatal=fatal), urlh
+
+    def _download_json(
+            self, url_or_request, video_id, note='Downloading JSON metadata',
+            errnote='Unable to download JSON metadata', transform_source=None,
+            fatal=True, encoding=None, data=None, headers={}, query={}):
+        res = self._download_json_handle(
+            url_or_request, video_id, note=note, errnote=errnote,
+            transform_source=transform_source, fatal=fatal, encoding=encoding,
+            data=data, headers=headers, query=query)
+        return res if res is False else res[0]
 
     def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
         if transform_source:
