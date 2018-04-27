@@ -452,6 +452,7 @@ from .huajiao import HuajiaoIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE
+from .ifunny import IFunnyIE
 from .ign import (
     IGNIE,
     OneUPIE,
