@@ -16,6 +16,7 @@ from ..utils import (
     ExtractorError,
     InAdvancePagedList,
     int_or_none,
+    merge_dicts,
     NO_DEFAULT,
     RegexNotFoundError,
     sanitized_Request,
@@ -639,16 +640,18 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             'preference': 1,
                         })
 
-        info_dict = self._parse_config(config, video_id)
-        formats.extend(info_dict['formats'])
+        info_dict_config = self._parse_config(config, video_id)
+        formats.extend(info_dict_config['formats'])
         self._vimeo_sort_formats(formats)
+
+        json_ld = self._search_json_ld(webpage, video_id, default={})
 
         if not cc_license:
             cc_license = self._search_regex(
                 r'<link[^>]+rel=["\']license["\'][^>]+href=(["\'])(?P<license>(?:(?!\1).)+)\1',
                 webpage, 'license', default=None, group='license')
 
-        info_dict.update({
+        info_dict = {
             'id': video_id,
             'formats': formats,
             'timestamp': unified_timestamp(timestamp),
@@ -658,7 +661,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'like_count': like_count,
             'comment_count': comment_count,
             'license': cc_license,
-        })
+        }
+
+        info_dict = merge_dicts(info_dict, info_dict_config, json_ld)
 
         return info_dict
 
