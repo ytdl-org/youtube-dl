@@ -1,5 +1,6 @@
 from .common import InfoExtractor
 
+
 class IFunnyIE(InfoExtractor):
     _VALID_URL = r'(?:https?:\/\/)?(?:www\.)?ifunny\.co\/fun\/(?P<id>\w+)'
 
