@@ -18,10 +18,11 @@ from ..utils import (
 
 
 class AtresPlayerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/television/[^/]+/[^/]+/[^/]+/(?P<id>.+?)_\d+\.html'
+    _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/[^/]+/[^/]+/[^/]+/[^/]+/[^/_]+_(?P<id>[A-z0-9]+)/?'
     _NETRC_MACHINE = 'atresplayer'
     _TESTS = [
         {
+            # TODO:
             'url': 'http://www.atresplayer.com/television/programas/el-club-de-la-comedia/temporada-4/capitulo-10-especial-solidario-nochebuena_2014122100174.html',
             'md5': 'efd56753cda1bb64df52a3074f62e38a',
             'info_dict': {
@@ -35,6 +36,7 @@ class AtresPlayerIE(InfoExtractor):
             'skip': 'This video is only available for registered users'
         },
         {
+            # TODO:
             'url': 'http://www.atresplayer.com/television/especial/videoencuentros/temporada-1/capitulo-112-david-bustamante_2014121600375.html',
             'md5': '6e52cbb513c405e403dbacb7aacf8747',
             'info_dict': {
@@ -58,7 +60,8 @@ class AtresPlayerIE(InfoExtractor):
 
     _TIME_API_URL = 'http://servicios.atresplayer.com/api/admin/time.json'
     _URL_VIDEO_TEMPLATE = 'https://servicios.atresplayer.com/api/urlVideo/{1}/{0}/{1}|{2}|{3}.json'
-    _PLAYER_URL_TEMPLATE = 'https://servicios.atresplayer.com/episode/getplayer.json?episodePk=%s'
+    # _PLAYER_URL_TEMPLATE = 'https://servicios.atresplayer.com/episode/getplayer.json?episodePk=%s'
+    _PLAYER_URL_TEMPLATE = 'https://api.atresplayer.com/client/v1/page/episode/%s'
     _EPISODE_URL_TEMPLATE = 'http://www.atresplayer.com/episodexml/%s'
 
     _LOGIN_URL = 'https://servicios.atresplayer.com/j_spring_security_check'
@@ -101,8 +104,10 @@ class AtresPlayerIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        episode_id = self._search_regex(
-            r'episode="([^"]+)"', webpage, 'episode id')
+        # episode_id = self._search_regex(
+        #     r'episode="([^"]+)"', webpage, 'episode id')
+
+        episode_id = video_id
 
         request = sanitized_Request(
             self._PLAYER_URL_TEMPLATE % episode_id,
@@ -117,89 +122,106 @@ class AtresPlayerIE(InfoExtractor):
 
         formats = []
         video_url = player.get('urlVideo')
-        if video_url:
-            format_info = {
-                'url': video_url,
-                'format_id': 'http',
-            }
-            mobj = re.search(r'(?P<bitrate>\d+)K_(?P<width>\d+)x(?P<height>\d+)', video_url)
-            if mobj:
-                format_info.update({
-                    'width': int_or_none(mobj.group('width')),
-                    'height': int_or_none(mobj.group('height')),
-                    'tbr': int_or_none(mobj.group('bitrate')),
-                })
-            formats.append(format_info)
-
-        timestamp = int_or_none(self._download_webpage(
-            self._TIME_API_URL,
-            video_id, 'Downloading timestamp', fatal=False), 1000, time.time())
-        timestamp_shifted = compat_str(timestamp + self._TIMESTAMP_SHIFT)
-        token = hmac.new(
-            self._MAGIC.encode('ascii'),
-            (episode_id + timestamp_shifted).encode('utf-8'), hashlib.md5
-        ).hexdigest()
 
         request = sanitized_Request(
-            self._URL_VIDEO_TEMPLATE.format('windows', episode_id, timestamp_shifted, token),
+            video_url,
             headers={'User-Agent': self._USER_AGENT})
+        video_data = self._download_json(request, episode_id, 'Downloading video JSON')
 
-        try:
-            fmt_json = self._download_json(
-                request, video_id, 'Downloading windows video JSON')
-        except ExtractorError as e:
-            fmt_json = {'resultObject': {}}
-        else:
-            result = fmt_json.get('resultDes')
-            if result.lower() != 'ok':
-                raise ExtractorError(
-                    '%s returned error: %s' % (self.IE_NAME, result), expected=True)
+        for source in video_data['sources']:
+            if source['type'] == "application/dash+xml":
+                formats.extend(self._extract_mpd_formats(
+                    source['src'], video_id, mpd_id='dash',
+                    fatal=False))
+            elif source['type'] == "application/vnd.apple.mpegurl":
+                formats.extend(self._extract_m3u8_formats(
+                    source['src'], video_id,
+                    fatal=False))
 
-        for format_id, video_url in fmt_json['resultObject'].items():
-            if format_id == 'token' or not video_url.startswith('http'):
-                continue
-            if 'geodeswowsmpra3player' in video_url:
-                # f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
-                # f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
-                # this videos are protected by DRM, the f4m downloader doesn't support them
-                continue
-            video_url_hd = video_url.replace('free_es', 'es')
-            formats.extend(self._extract_f4m_formats(
-                video_url_hd[:-9] + '/manifest.f4m', video_id, f4m_id='hds',
-                fatal=False))
-            formats.extend(self._extract_mpd_formats(
-                video_url_hd[:-9] + '/manifest.mpd', video_id, mpd_id='dash',
-                fatal=False))
+        # if video_url:
+        #     format_info = {
+        #         'url': video_url,
+        #         'format_id': 'http',
+        #     }
+        #     mobj = re.search(r'(?P<bitrate>\d+)K_(?P<width>\d+)x(?P<height>\d+)', video_url)
+        #     if mobj:
+        #         format_info.update({
+        #             'width': int_or_none(mobj.group('width')),
+        #             'height': int_or_none(mobj.group('height')),
+        #             'tbr': int_or_none(mobj.group('bitrate')),
+        #         })
+        #     formats.append(format_info)
+
+        # timestamp = int_or_none(self._download_webpage(
+        #     self._TIME_API_URL,
+        #     video_id, 'Downloading timestamp', fatal=False), 1000, time.time())
+        # timestamp_shifted = compat_str(timestamp + self._TIMESTAMP_SHIFT)
+        # token = hmac.new(
+        #     self._MAGIC.encode('ascii'),
+        #     (episode_id + timestamp_shifted).encode('utf-8'), hashlib.md5
+        # ).hexdigest()
+        #
+        # request = sanitized_Request(
+        #     self._URL_VIDEO_TEMPLATE.format('windows', episode_id, timestamp_shifted, token),
+        #     headers={'User-Agent': self._USER_AGENT})
+        #
+        # try:
+        #     fmt_json = self._download_json(
+        #         request, video_id, 'Downloading windows video JSON')
+        # except ExtractorError as e:
+        #     fmt_json = {'resultObject': {}}
+        # else:
+        #     result = fmt_json.get('resultDes')
+        #     if result.lower() != 'ok':
+        #         raise ExtractorError(
+        #             '%s returned error: %s' % (self.IE_NAME, result), expected=True)
+
+        # for format_id, video_url in fmt_json['resultObject'].items():
+        #     if format_id == 'token' or not video_url.startswith('http'):
+        #         continue
+        #     if 'geodeswowsmpra3player' in video_url:
+        #         # f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
+        #         # f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
+        #         # this videos are protected by DRM, the f4m downloader doesn't support them
+        #         continue
+        #     video_url_hd = video_url.replace('free_es', 'es')
+        #     formats.extend(self._extract_f4m_formats(
+        #         video_url_hd[:-9] + '/manifest.f4m', video_id, f4m_id='hds',
+        #         fatal=False))
+        #     formats.extend(self._extract_mpd_formats(
+        #         video_url_hd[:-9] + '/manifest.mpd', video_id, mpd_id='dash',
+        #         fatal=False))
         self._sort_formats(formats)
 
         path_data = player.get('pathData')
 
-        episode = self._download_xml(
-            self._EPISODE_URL_TEMPLATE % path_data, video_id,
-            'Downloading episode XML')
-
-        duration = float_or_none(xpath_text(
-            episode, './media/asset/info/technical/contentDuration', 'duration'))
-
-        art = episode.find('./media/asset/info/art')
-        title = xpath_text(art, './name', 'title')
-        description = xpath_text(art, './description', 'description')
-        thumbnail = xpath_text(episode, './media/asset/files/background', 'thumbnail')
-
-        subtitles = {}
-        subtitle_url = xpath_text(episode, './media/asset/files/subtitle', 'subtitle')
-        if subtitle_url:
-            subtitles['es'] = [{
-                'ext': 'srt',
-                'url': subtitle_url,
-            }]
+        # episode = self._download_xml(
+        #     self._EPISODE_URL_TEMPLATE % path_data, video_id,
+        #     'Downloading episode XML')
+        #
+        # duration = float_or_none(xpath_text(
+        #     episode, './media/asset/info/technical/contentDuration', 'duration'))
+        #
+        # art = episode.find('./media/asset/info/art')
+        # title = xpath_text(art, './name', 'title')
+        # description = xpath_text(art, './description', 'description')
+        # thumbnail = xpath_text(episode, './media/asset/files/background', 'thumbnail')
+        #
+        # subtitles = {}
+        # subtitle_url = xpath_text(episode, './media/asset/files/subtitle', 'subtitle')
+        # if subtitle_url:
+        #     subtitles['es'] = [{
+        #         'ext': 'srt',
+        #         'url': subtitle_url,
+        #     }]
 
         return {
             'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
+            'title': video_data['titulo'],
+            # 'title': title,
+            # 'description': description,
+            # 'thumbnail': thumbnail,
+            # 'duration': duration,
             'formats': formats,
-            'subtitles': subtitles,
+            # 'subtitles': subtitles,
         }
