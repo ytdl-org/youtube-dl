@@ -8,7 +8,8 @@ from ..compat import (
 from ..utils import (
     int_or_none,
     ExtractorError,
-    float_or_none
+    float_or_none,
+    determine_ext
 )
 
 
@@ -44,9 +45,32 @@ class PuhuTVIE(InfoExtractor):
                 'uploader_id': '269',
                 'upload_date': '20180220',
             },
+        },
+        { # Has subtitle
+            'url': 'https://puhutv.com/dip-1-bolum-izle',
+            'md5': 'ef912104860ad0496b73c57d7f03bf8e',
+            'info_dict': {
+                'id': '18944',
+                'display_id': 'dip-1-bolum',
+                'ext': 'mp4',
+                'title': 'Dip 1. Sezon 1. Bölüm',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'uploader': 'TMC',
+                'description': 'md5:8459001a7decfdc4104ca38a979a41fd',
+                'uploader_id': '25',
+                'upload_date': '20180330',
+            },
+            'params': {
+                'skip_download': True,
+            }
         }
     ]
     IE_NAME = 'puhutv'
+    _SUBTITLE_LANGS = { # currently supported for some series
+        'English':'en',
+        'Deutsch':'de',
+        'عربى':'ar'
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -84,6 +108,15 @@ class PuhuTVIE(InfoExtractor):
                 'url': image,
                 'id': key
             })
+
+        subtitles = {}
+        for subtitle in info.get('content').get('subtitles'):
+            lang = subtitle.get('language')
+            sub_url = subtitle.get('url')
+            subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = [{
+                'url': sub_url,
+                'ext': determine_ext(sub_url)
+            }]
 
         format_dict = self._download_json(
             'https://puhutv.com/api/assets/%s/videos' % id,
@@ -125,6 +158,7 @@ class PuhuTVIE(InfoExtractor):
             'view_count': view_count,
             'duration': duration,
             'tags': tags,
+            'subtitles': subtitles,
             'webpage_url': webpage_url,
             'thumbnail': thumbnail,
             'thumbnails': thumbnails,
