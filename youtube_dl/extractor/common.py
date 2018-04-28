@@ -682,18 +682,30 @@ class InfoExtractor(object):
             else:
                 self.report_warning(errmsg + str(ve))
 
-    def _download_json(self, url_or_request, video_id,
-                       note='Downloading JSON metadata',
-                       errnote='Unable to download JSON metadata',
-                       transform_source=None,
-                       fatal=True, encoding=None, data=None, headers={}, query={}):
-        json_string = self._download_webpage(
+    def _download_json_handle(
+            self, url_or_request, video_id, note='Downloading JSON metadata',
+            errnote='Unable to download JSON metadata', transform_source=None,
+            fatal=True, encoding=None, data=None, headers={}, query={}):
+        """Return a tuple (JSON object, URL handle)"""
+        res = self._download_webpage_handle(
             url_or_request, video_id, note, errnote, fatal=fatal,
             encoding=encoding, data=data, headers=headers, query=query)
-        if (not fatal) and json_string is False:
-            return None
+        if res is False:
+            return res
+        json_string, urlh = res
         return self._parse_json(
-            json_string, video_id, transform_source=transform_source, fatal=fatal)
+            json_string, video_id, transform_source=transform_source,
+            fatal=fatal), urlh
+
+    def _download_json(
+            self, url_or_request, video_id, note='Downloading JSON metadata',
+            errnote='Unable to download JSON metadata', transform_source=None,
+            fatal=True, encoding=None, data=None, headers={}, query={}):
+        res = self._download_json_handle(
+            url_or_request, video_id, note=note, errnote=errnote,
+            transform_source=transform_source, fatal=fatal, encoding=encoding,
+            data=data, headers=headers, query=query)
+        return res if res is False else res[0]
 
     def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
         if transform_source:
@@ -1008,6 +1020,40 @@ class InfoExtractor(object):
         if isinstance(json_ld, dict):
             json_ld = [json_ld]
 
+        INTERACTION_TYPE_MAP = {
+            'CommentAction': 'comment',
+            'AgreeAction': 'like',
+            'DisagreeAction': 'dislike',
+            'LikeAction': 'like',
+            'DislikeAction': 'dislike',
+            'ListenAction': 'view',
+            'WatchAction': 'view',
+            'ViewAction': 'view',
+        }
+
+        def extract_interaction_statistic(e):
+            interaction_statistic = e.get('interactionStatistic')
+            if not isinstance(interaction_statistic, list):
+                return
+            for is_e in interaction_statistic:
+                if not isinstance(is_e, dict):
+                    continue
+                if is_e.get('@type') != 'InteractionCounter':
+                    continue
+                interaction_type = is_e.get('interactionType')
+                if not isinstance(interaction_type, compat_str):
+                    continue
+                interaction_count = int_or_none(is_e.get('userInteractionCount'))
+                if interaction_count is None:
+                    continue
+                count_kind = INTERACTION_TYPE_MAP.get(interaction_type.split('/')[-1])
+                if not count_kind:
+                    continue
+                count_key = '%s_count' % count_kind
+                if info.get(count_key) is not None:
+                    continue
+                info[count_key] = interaction_count
+
         def extract_video_object(e):
             assert e['@type'] == 'VideoObject'
             info.update({
@@ -1023,6 +1069,7 @@ class InfoExtractor(object):
                 'height': int_or_none(e.get('height')),
                 'view_count': int_or_none(e.get('interactionCount')),
             })
+            extract_interaction_statistic(e)
 
         for e in json_ld:
             if isinstance(e.get('@context'), compat_str) and re.match(r'^https?://schema.org/?$', e.get('@context')):

@@ -8,12 +8,12 @@ class ExtremeTubeIE(KeezMoviesIE):
     _VALID_URL = r'https?://(?:www\.)?extremetube\.com/(?:[^/]+/)?video/(?P<id>[^/#?&]+)'
     _TESTS = [{
         'url': 'http://www.extremetube.com/video/music-video-14-british-euro-brit-european-cumshots-swallow-652431',
-        'md5': '1fb9228f5e3332ec8c057d6ac36f33e0',
+        'md5': '92feaafa4b58e82f261e5419f39c60cb',
         'info_dict': {
             'id': 'music-video-14-british-euro-brit-european-cumshots-swallow-652431',
             'ext': 'mp4',
             'title': 'Music Video 14 british euro brit european cumshots swallow',
-            'uploader': 'unknown',
+            'uploader': 'anonim',
             'view_count': int,
             'age_limit': 18,
         }
@@ -36,10 +36,10 @@ class ExtremeTubeIE(KeezMoviesIE):
                 r'<h1[^>]+title="([^"]+)"[^>]*>', webpage, 'title')
 
         uploader = self._html_search_regex(
-            r'Uploaded by:\s*</strong>\s*(.+?)\s*</div>',
+            r'Uploaded by:\s*</[^>]+>\s*<a[^>]+>(.+?)</a>',
             webpage, 'uploader', fatal=False)
         view_count = str_to_int(self._search_regex(
-            r'Views:\s*</strong>\s*<span>([\d,\.]+)</span>',
+            r'Views:\s*</[^>]+>\s*<[^>]+>([\d,\.]+)</',
             webpage, 'view count', fatal=False))
 
         info.update({

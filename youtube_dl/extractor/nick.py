@@ -81,12 +81,22 @@ class NickIE(MTVServicesInfoExtractor):
 
 class NickBrIE(MTVServicesInfoExtractor):
     IE_NAME = 'nickelodeon:br'
-    _VALID_URL = r'https?://(?P<domain>(?:www\.)?nickjr|mundonick\.uol)\.com\.br/(?:programas/)?[^/]+/videos/(?:episodios/)?(?P<id>[^/?#.]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?P<domain>(?:www\.)?nickjr|mundonick\.uol)\.com\.br|
+                            (?:www\.)?nickjr\.nl
+                        )
+                        /(?:programas/)?[^/]+/videos/(?:episodios/)?(?P<id>[^/?\#.]+)
+                    '''
     _TESTS = [{
         'url': 'http://www.nickjr.com.br/patrulha-canina/videos/210-labirinto-de-pipoca/',
         'only_matching': True,
     }, {
         'url': 'http://mundonick.uol.com.br/programas/the-loud-house/videos/muitas-irmas/7ljo9j',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickjr.nl/paw-patrol/videos/311-ge-wol-dig-om-terug-te-zijn/',
         'only_matching': True,
     }]
 
