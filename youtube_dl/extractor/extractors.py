@@ -1332,7 +1332,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
@@ -1420,3 +1420,6 @@ from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
+
+from .cheekyvideosnet import CheekyVideosIE
+from .pewtube import PewTubeIE

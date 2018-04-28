@@ -1,17 +1,17 @@
 # coding: utf-8
 from __future__ import unicode_literals
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 import subprocess as sp
 import time
 
 from .common import InfoExtractor
-from ..utils import CloudFlareSimpleJSChallengeMixin, int_or_none
+from ..utils import int_or_none
 
 
-class PewTubeIE(InfoExtractor, CloudFlareSimpleJSChallengeMixin):
-    _VALID_URL = r'https?://(?:www\.)?pew\.tube/user/[^/]+/(?P<id>[^/]+)'
+class PewTubeIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?pewtube\.com/user/[^/]+/(?P<id>[^/]+)'
     _TEST = {
         'url': 'https://pew.tube/user/MrBond/4jLJf06',
         'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
@@ -28,24 +28,18 @@ class PewTubeIE(InfoExtractor, CloudFlareSimpleJSChallengeMixin):
         }
     }
 
-    def set_downloader(self, downloader):
-        self._downloader = downloader
-        if downloader:
-            class Handle503:
-                def http_error_503(self, request, response, code, msg, hdrs):
-                    return response
-            self._downloader._opener.handle_error['http'][503] = [Handle503()]
-
     def _real_extract(self, url):
-        self._do_cloudflare_challenge('pew.tube', url, secure=True)
-
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, video_id, tries=5, timeout=15)
 
         title = self._html_search_regex(r'<h2 .*upload\-title\-value[^>]+>([^<]+)</h2>', webpage, 'title')
         thumbnail = self._html_search_regex(r'<video .*poster="(https[^"]+)"', webpage, 'thumbnail', fatal=False)
+        if not thumbnail:
+            thumbnail = self._og_search_thumbnail(webpage)
         video_url = self._html_search_regex(r'<(?:audio|video)[^>]+>.*<source.*src="([^"]+)".*</(?:audio|video)>', webpage, 'video URL')
-        uploader = self._html_search_regex(r'<h3 .*class="uploader\-name"[^>]+>by \&nbsp;?<a[^>]+>([^<]+)</a>', webpage, 'uploader')
+        if not video_url:
+            video_url = self._og_search_video_url(webpage)
+        uploader = self._html_search_regex(r'<h3.*class="uploader-name"[^>]+>.*<a href="/user[^>]+>([^<]+)', webpage, 'uploader')
         description = self._html_search_meta('description', webpage, 'description')
         view_count = self._html_search_regex(r'<h3(?:[^>]+)?>(\d+)(?:\s+)[vV]iews</h3>', webpage, 'view count')
 
@@ -65,13 +59,25 @@ class PewTubeIE(InfoExtractor, CloudFlareSimpleJSChallengeMixin):
         if not description:
             description = self._og_search_description(webpage)
 
-        # TODO Parse fuzzy upload date
-        #upload_date_s = self._html_search_regex(r'<h4>Uploaded ([^<]+)</h4>', webpage, 'upload date')
-        #today = datetime.today()
-        #upload_date_s = re.sub(r'(?:\s+)ago$', '', upload_date_s)
-        #n, unit = re.search('^(?P<n>\d+)\s(?:\s+)?(?P<unit>.*)').groups()
-        #unit = unit.lower()
-        #if unit == 'month':
+        upload_date_s = ou = self._html_search_regex(r'<h4>Uploaded ([^<]+)</h4>', webpage, 'upload date')
+        today = datetime.today()
+        upload_date_s = re.sub(r'(?:\s+)ago\s+\&nbsp;?$', '', upload_date_s)
+        n, unit = re.search('^(?P<n>\d+)\s(?:\s+)?(?P<unit>.*)', upload_date_s).groups()
+        n = int(n)
+        unit = unit.lower()
+        total_seconds = 0
+        if not unit.endswith('s'):
+            unit += 's'
+        if unit == 'months':
+            total_seconds = n * 86400 * 30
+        elif unit == 'weeks':
+            total_seconds = n * 86400 * 7
+        elif unit in ('days', 'hours', 'minutes', 'seconds'):
+            if unit == 'days' and n >= 1:
+                total_seconds = n * 86400
+        else:
+            raise ValueError('Unhandled string: "{}" from "{}"'.format(unit, ou))
+        upload_date = (today - timedelta(seconds=total_seconds)).strftime('%Y%m%d')
 
         return {
             'id': video_id,
@@ -84,5 +90,6 @@ class PewTubeIE(InfoExtractor, CloudFlareSimpleJSChallengeMixin):
             'view_count': int_or_none(view_count),
             'like_count': like_count,
             'dislike_count': dislike_count,
+            'upload_date': upload_date,
             'url': video_url,
         }
