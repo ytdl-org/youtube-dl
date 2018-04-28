@@ -18,7 +18,7 @@ class ZattooBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'zattoo'
     _HOST_URL = 'https://zattoo.com'
 
-    _login_info = {}
+    _power_guide_hash = None
 
     def _login(self, uuid, session_id):
         (username, password) = self._get_login_info()
@@ -39,20 +39,11 @@ class ZattooBaseIE(InfoExtractor):
         request.add_header(
             'Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
         request.add_header(
-            'Cookie', self._generate_cookie(uuid, session_id))
+            'Cookie', 'uuid=%s; beaker.session.id=%s' % (uuid, session_id))
         response = self._request_webpage(
             request, None, 'Logging in')
-        cookie = response.headers.get('Set-Cookie')
-        pzuid = self._search_regex(r'pzuid\s*=\s*(.+?);', cookie, 'pzuid')
         data = self._parse_json(response.read(), None)
-
-        return {
-            'ppid': data['session']['ppid'],
-            'powerhash': data['session']['power_guide_hash'],
-            'pzuid': pzuid,
-            'uuid': uuid,
-            'session_id': session_id
-        }
+        return data['session']['power_guide_hash']
 
     def _get_app_token_and_version(self):
         host_webpage = self._download_webpage(
@@ -60,7 +51,7 @@ class ZattooBaseIE(InfoExtractor):
         app_token = self._html_search_regex(
             r'<script.+window\.appToken\s*=\s*\'(.+)\'', host_webpage, 'app token')
         app_version = self._html_search_regex(
-            r'<!--\w+-(.+?)-', host_webpage, 'app version')
+            r'<!--\w+-(.+?)-', host_webpage, 'app version', default='2.8.2')
         return app_token, app_version
 
     def _say_hello(self, uuid, app_token, app_version):
@@ -82,15 +73,10 @@ class ZattooBaseIE(InfoExtractor):
             r'beaker\.session\.id\s*=\s*(.+?);', cookie, 'session id')
         return session_id
 
-    def _generate_cookie(self, uuid, session_id, pzuid=None):
-        if not pzuid:
-            return 'uuid=%s; beaker.session.id=%s' % (uuid, session_id)
-        return 'uuid=%s; beaker.session.id=%s; pzuid=%s' % (uuid, session_id, pzuid)
-
     def _extract_cid(self, video_id, channel_name):
         channel_groups = self._download_json(
             '%s/zapi/v2/cached/channels/%s' % (self._HOST_URL,
-                                               self._login_info['powerhash']),
+                                               self._power_guide_hash),
             video_id,
             'Downloading available channel list',
             query={'details': False})['channel_groups']
@@ -98,9 +84,9 @@ class ZattooBaseIE(InfoExtractor):
         for chgrp in channel_groups:
             channel_list.extend(chgrp['channels'])
         try:
-            return next(chan['cid'] for chan in channel_list if
-                        chan['display_alias'] == channel_name or
-                        chan['cid'] == channel_name)
+            return next(
+                chan['cid'] for chan in channel_list
+                if chan['display_alias'] == channel_name or chan['cid'] == channel_name)
         except StopIteration:
             raise ExtractorError('Could not extract channel id')
 
@@ -123,20 +109,6 @@ class ZattooBaseIE(InfoExtractor):
         cid = data['program']['cid']
         return cid, info_dict
 
-    def _add_hls_format_information(self, formats):
-        hls_formats = list(filter(
-            lambda f: f.get('format_id').startswith('hls'), formats))
-        dash_formats = list(filter(
-            lambda f: f.get('format_id').startswith('dash') and
-            f.get('acodec') == 'none', formats))
-        if len(hls_formats) == len(dash_formats):
-            for hls, dash in zip(hls_formats, dash_formats):
-                hls['ext'] = dash.get('ext')
-                hls['fps'] = dash.get('fps')
-                hls['tbr'] = dash.get('tbr')
-                hls['width'] = dash.get('width')
-                hls['height'] = dash.get('height')
-
     def _extract_formats(self, cid, video_id, record_id=None, is_live=False):
         postdata = {
             'stream_type': 'dash',
@@ -156,32 +128,35 @@ class ZattooBaseIE(InfoExtractor):
             video_id, 'Downloading dash formats')
 
         formats = []
-        quality = 'hd'
         for elem in data['stream']['watch_urls']:
-            if elem.get('audio_channel') == 'A':
-                formats.extend(
-                    self._extract_mpd_formats(
-                        elem['url'], video_id,
-                        mpd_id='dash-%s' % quality, fatal=False))
-                quality = 'sd'
+            audio_channel = elem.get('audio_channel')
+            maxrate = elem.get('maxrate')
+            formats.extend(
+                self._extract_mpd_formats(
+                    elem['url'], video_id,
+                    mpd_id='dash-maxrate-%s-channel-%s' % (maxrate, audio_channel), fatal=False))
 
         postdata.update({'stream_type': 'hls'})
-        if is_live:
-            postdata.update({'timeshift': 10800})
         request = sanitized_Request(
             url, urlencode_postdata(postdata))
         data = self._download_json(
             request, video_id, 'Downloading hls formats')
-        quality = 'hd'
         for elem in data['stream']['watch_urls']:
-            if elem.get('audio_channel') == 'A':
-                formats.extend(
-                    self._extract_m3u8_formats(
-                        elem['url'], video_id, 'mp4', entry_protocol='m3u8_native',
-                        m3u8_id='hls-%s' % quality, fatal=False))
-                quality = 'sd'
+            audio_channel = elem.get('audio_channel')
+            preference = None
 
-        self._add_hls_format_information(formats)
+            # Prefer audio channel A:
+            if audio_channel == 'A':
+                preference = 1
+
+            maxrate = elem.get('maxrate')
+            formats.extend(
+                self._extract_m3u8_formats(
+                    elem['url'], video_id, 'mp4', entry_protocol='m3u8_native',
+                    preference=preference,
+                    m3u8_id='hls-maxrate-%s-channel-%s' % (maxrate, audio_channel),
+                    fatal=False))
+
         self._sort_formats(formats)
         return formats
 
@@ -189,7 +164,7 @@ class ZattooBaseIE(InfoExtractor):
         uuid = compat_str(uuid4())
         app_token, app_version = self._get_app_token_and_version()
         session_id = self._say_hello(uuid, app_token, app_version)
-        self._login_info = self._login(uuid, session_id)
+        self._power_guide_hash = self._login(uuid, session_id)
 
     def _extract_video(self, channel_name, video_id, record_id=None, is_live=False):
         if is_live:
