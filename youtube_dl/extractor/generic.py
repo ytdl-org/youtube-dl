@@ -203,7 +203,7 @@ class GenericIE(InfoExtractor):
                     'id': '101',
                     'ext': 'mp3',
                     'upload_date': '20180426',
-                    'title': u'    \u200d      \u200d      ',
+                    'title': '    \u200d      \u200d      ',
                 },
             }],
             'playlist_mincount': 99,
