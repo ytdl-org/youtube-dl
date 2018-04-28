@@ -7,7 +7,7 @@ import subprocess as sp
 import time
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import compat_str, int_or_none
 
 
 class PewTubeIE(InfoExtractor):
@@ -62,22 +62,25 @@ class PewTubeIE(InfoExtractor):
         upload_date_s = ou = self._html_search_regex(r'<h4>Uploaded ([^<]+)</h4>', webpage, 'upload date')
         today = datetime.today()
         upload_date_s = re.sub(r'(?:\s+)ago\s+\&nbsp;?$', '', upload_date_s)
-        n, unit = re.search('^(?P<n>\d+)\s(?:\s+)?(?P<unit>.*)', upload_date_s).groups()
-        n = int(n)
-        unit = unit.lower()
+        n, unit = re.search('^(?P<n>(?:\d+|a))\s(?:\s+)?(?P<unit>.*)', upload_date_s).groups()
+        if n == 'a':
+            n = 1
+        else:
+            n = int(n)
+        unit = unit.lower().encode('utf-8')
         total_seconds = 0
         if not unit.endswith('s'):
             unit += 's'
         if unit == 'months':
-            total_seconds = n * 86400 * 30
-        elif unit == 'weeks':
-            total_seconds = n * 86400 * 7
-        elif unit in ('days', 'hours', 'minutes', 'seconds'):
-            if unit == 'days' and n >= 1:
-                total_seconds = n * 86400
-        else:
-            raise ValueError('Unhandled string: "{}" from "{}"'.format(unit, ou))
-        upload_date = (today - timedelta(seconds=total_seconds)).strftime('%Y%m%d')
+            unit = 'weeks'
+            n *= 4
+        elif unit == 'years':
+            unit = 'weeks'
+            n *= 52
+        kwargs = dict()
+        kwargs[unit] = n
+        td = timedelta(**kwargs)
+        upload_date = (today - td).strftime('%Y%m%d')
 
         return {
             'id': video_id,
