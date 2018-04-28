@@ -1314,6 +1314,9 @@ MSO_INFO = {
     'cou060': {
         'name': 'Zito Media'
     },
+    'TempPass_fx_60min': {
+        'name': 'FX Preview Pass'
+    },
 }
 
 
@@ -1407,9 +1410,11 @@ class AdobePassIE(InfoExtractor):
                 mso_id = self._downloader.params.get('ap_mso')
                 if not mso_id:
                     raise_mvpd_required()
-                username, password = self._get_login_info('ap_username', 'ap_password', mso_id)
-                if not username or not password:
-                    raise_mvpd_required()
+                if mso_id != 'TempPass_fx_60min':
+                    # FX Preview Pass doesn't need credentials
+                    username, password = self._get_login_info('ap_username', 'ap_password', mso_id)
+                    if not username or not password:
+                        raise_mvpd_required()
                 mso_info = MSO_INFO[mso_id]
 
                 provider_redirect_page_res = self._download_webpage_handle(
@@ -1491,6 +1496,9 @@ class AdobePassIE(InfoExtractor):
                         }), headers={
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
+                elif mso_id == 'TempPass_fx_60min':
+                    # FX Preview Pass doesn't require a login
+                    pass
                 else:
                     # Some providers (e.g. DIRECTV NOW) have another meta refresh
                     # based redirect that should be followed.
