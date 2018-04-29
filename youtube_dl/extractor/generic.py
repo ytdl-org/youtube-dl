@@ -190,7 +190,7 @@ class GenericIE(InfoExtractor):
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
         },
-        # RSS feed with enclosures and unsupported rss urls
+        # RSS feed with enclosures and unsupported link URLs
         {
             'url': 'http://www.hellointernet.fm/podcast?format=rss',
             'info_dict': {
@@ -198,18 +198,7 @@ class GenericIE(InfoExtractor):
                 'description': 'CGP Grey and Brady Haran talk about YouTube, life, work, whatever.',
                 'title': 'Hello Internet',
             },
-            'playlist': [{
-                'info_dict': {
-                    'id': '101',
-                    'ext': 'mp3',
-                    'upload_date': '20180426',
-                    'title': '    \u200d      \u200d      ',
-                },
-            }],
-            'playlist_mincount': 99,
-            'params': {
-                'skip_download': True,
-            },
+            'playlist_mincount': 100,
         },
         # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
         {
