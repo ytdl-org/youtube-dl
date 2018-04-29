@@ -122,21 +122,31 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
                                                     url=url,
                                                     display_id=course_id)
 
+        # Necessary to get mandatory informations like title and video_url
         lesson_index = course_json_content.get('lessonSlugs').index(video_id)
         lesson_hash = course_json_content.get('lessonHashes')[lesson_index]
-        lesson_section_elements = course_json_content.get('lessonElements')
         lesson_data = course_json_content.get('lessonData')[lesson_hash]
-        lesson_source_base = lesson_data.get('sourceBase')
-        course_sections_pairing = self._pair_section_with_video_elemen_index(
-            lesson_section_elements)
+        # This is necessary to get the link for the video
+        lesson_source_base = lesson_data['sourceBase']
 
-        lesson_title = lesson_data.get('title')
+        lesson_title = lesson_data['title']
+
+        # Some optional fields
         lesson_description = lesson_data.get('description')
         lesson_index = lesson_data.get('index')
         lesson_slug = lesson_data.get('slug')
         lesson_thumbnail_url = lesson_data.get('thumbnail')
-        lesson_section = course_sections_pairing.get(lesson_index)[0]
-        lesson_section_number = course_sections_pairing.get(lesson_index)[1]
+        lesson_section_elements = course_json_content.get('lessonElements')
+
+        try:
+            course_sections_pairing = self._pair_section_with_video_elemen_index(
+                lesson_section_elements)
+            lesson_section = course_sections_pairing.get(lesson_index)[0]
+            lesson_section_number = course_sections_pairing.get(lesson_index)[1]
+        except Exception:
+            lesson_section = None
+            lesson_section_number = None
+
 
         QUALITIES_PREFERENCE = ('low', 'medium', 'high')
         quality_key = qualities(QUALITIES_PREFERENCE)
