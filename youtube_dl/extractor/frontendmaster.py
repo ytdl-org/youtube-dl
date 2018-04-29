@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import collections
+import random
 import sys
 
 import re
@@ -14,54 +16,19 @@ from ..compat import (
 
 from ..utils import (
     ExtractorError,
-    urlencode_postdata
+    urlencode_postdata,
+    qualities
 )
 
 
 class FrontEndMasterBaseIE(InfoExtractor):
     _API_BASE = 'https://api.frontendmasters.com/v1/kabuki/courses'
+    _VIDEO_BASE = 'http://www.frontendmasters.com/courses'
     _COOKIES_BASE = 'https://api.frontendmasters.com'
-
-    _supported_resolutions = {
-        'low': 360,
-        'mid': 720,
-        'high': 1080
-    }
-
-    _supported_formats = ['mp4', 'webm']
-
-    def _match_course_id(self, url):
-        if '_VALID_URL_RE' not in self.__dict__:
-            self._VALID_URL_RE = re.compile(self._VALID_URL)
-        m = self._VALID_URL_RE.match(url)
-        assert m
-        return compat_str(m.group('courseid'))
-
-    def _download_course(self, course_id, url, display_id):
-        response = self._download_json(
-            '%s/%s' % (self._API_BASE, course_id), course_id,
-            'Downloading course JSON',
-            headers={
-                'Content-Type': 'application/json;charset=utf-8',
-                'Referer': url,
-            })
-        return response
-
-
-class FrontEndMasterIE(FrontEndMasterBaseIE):
-    IE_NAME = 'frontend-masters'
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)/?'
     _LOGIN_URL = 'https://frontendmasters.com/login/'
-    _NETRC_MACHINE = 'frontend-masters'
-    _TEST = {
-        'url': 'https://frontendmasters.com/courses/content-strategy/introduction/',
-        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
-        'info_dict': {
-            'id': 'introduction',
-            'courseid': 'content-strategy',
-            'ext': 'mp4',
-            'title': 'Introduction'
-        }
+    _SUPPORTED_MEAN = {
+        "resolution": [360, 720, 1080],
+        "format": ['webm', 'mp4']
     }
 
     def _real_initialize(self):
@@ -99,24 +66,102 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         if not logout_link:
             raise ExtractorError('Unable to login', expected=True)
 
+    def _match_course_id(self, url):
+        if '_VALID_URL_RE' not in self.__dict__:
+            self._VALID_URL_RE = re.compile(self._VALID_URL)
+        m = self._VALID_URL_RE.match(url)
+        assert m
+        return compat_str(m.group('courseid'))
+
+    def _download_course(self, course_id, url, display_id):
+        response = self._download_json(
+            '%s/%s' % (self._API_BASE, course_id), course_id,
+            'Downloading course JSON',
+            headers={
+                'Content-Type': 'application/json;charset=utf-8',
+                'Referer': url,
+            })
+        return response
+
+    def _pair_section_with_video_elemen_index(self, lesson_elements):
+        sections = {}
+        current_section = None
+        current_section_number = 0
+        for elem in lesson_elements:
+            if isinstance(elem, unicode):
+                (current_section, current_section_number) = (elem.encode('utf-8'), current_section_number + 1)
+            else:
+                if current_section:
+                    sections[elem] = (current_section, current_section_number)
+
+        return sections
+
+
+class FrontEndMasterIE(FrontEndMasterBaseIE):
+    IE_NAME = 'frontend-masters'
+
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)/?'
+    _NETRC_MACHINE = 'frontend-masters'
+    _TEST = {
+        'url': 'https://frontendmasters.com/courses/content-strategy/introduction/',
+        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'info_dict': {
+            'id': 'introduction',
+            'title': 'Introduction',
+            'display_id': 'content-strategy',
+            'ext': 'mp4'
+        }
+    }
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         course_id = self._match_course_id(url)
-        json_content = self._download_course(course_id=course_id, url=url, display_id=None)
+        course_json_content = self._download_course(course_id=course_id, url=url, display_id=course_id)
+
+        # Course details
+        # course_name = course_json_content.get('title')
+        # course_description = course_json_content.get('description')
+        # course_display_id = course_json_content.get('slug')
+        # course_thumbnail = course_json_content.get('thumbnail')
 
         # TODO more code goes here, for example ...
-        lesson_index = json_content['lessonSlugs'].index(video_id)
-        lesson_hash = json_content['lessonHashes'][lesson_index]
-        lesson_data = json_content['lessonData'][lesson_hash]
-        lesson_source_base = lesson_data['sourceBase']
+        lesson_index = course_json_content.get('lessonSlugs').index(video_id)
+        lesson_hash = course_json_content.get('lessonHashes')[lesson_index]
+        lesson_section_elements = course_json_content.get('lessonElements')
+        lesson_data = course_json_content.get('lessonData')[lesson_hash]
+        lesson_source_base = lesson_data.get('sourceBase')
+        course_sections_pairing = self._pair_section_with_video_elemen_index(lesson_section_elements)
+
+        lesson_title = lesson_data.get('title')
+        lesson_description = lesson_data.get('description')
+        lesson_index = lesson_data.get('index')
+        lesson_slug = lesson_data.get('slug')
+        lesson_thumbnail_url = lesson_data.get('thumbnail')
+        # lesson_element_index = lesson_data.get('elementIndex')
+        lesson_section = course_sections_pairing.get(lesson_index)[0]
+        lesson_section_number = course_sections_pairing.get(lesson_index)[1]
+
+        # Get instructors informations
+        # instructors = course_json_content.get('instructors')
+        # authors = "; ".join([author.name for author in instructors])
+
+        QUALITIES_PREFERENCE = ('low', 'medium', 'high')
+        quality_key = qualities(QUALITIES_PREFERENCE)
+        QUALITIES = {
+            'low': {'width': 480, 'height': 360},
+            'medium': {'width': 1280, 'height': 720},
+            'high': {'width': 1920, 'height': 1080}
+        }
+
+        AllowedQuality = collections.namedtuple('AllowedQuality', ['ext', 'qualities'])
+        ALLOWED_QUALITIES = [
+            AllowedQuality('webm', ['low', 'medium', 'high']),
+            AllowedQuality('mp4', ['low', 'medium', 'high'])
+        ]
 
         cookies = self._get_cookies(self._COOKIES_BASE)
         cookies_str = ";".join(["%s=%s" % (cookie.key, cookie.value) for cookie in cookies.values()])
         video_request_url = "%s/source"
-        video_request_params = {
-            'r': 720,
-            'f': 'mp4'
-        }
         video_request_headers = {
             "origin": "https://frontendmasters.com",
             "referer": lesson_source_base,
@@ -124,17 +169,105 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36"
         }
 
-        video_response = self._download_json(video_request_url % lesson_source_base, video_id, query=video_request_params, headers=video_request_headers)
+        if self._downloader.params.get('listformats', False):
+            allowed_qualities = ALLOWED_QUALITIES
+        else:
+            def guess_allowed_qualities():
+                req_format = self._downloader.params.get('format') or 'best'
+                req_format_split = req_format.split('-', 1)
+                if len(req_format_split) > 1:
+                    req_ext, req_quality = req_format_split
+                    req_quality = '-'.join(req_quality.split('-')[:2])
+                    for allowed_quality in ALLOWED_QUALITIES:
+                        if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
+                            return (AllowedQuality(req_ext, (req_quality, )), )
+                req_ext = 'webm' if self._downloader.params.get('prefer_free_formats') else 'mp4'
+                return (AllowedQuality(req_ext, ('high', )), )
+            allowed_qualities = guess_allowed_qualities()
 
-        title = lesson_data['title']
-        description = json_content['description']
-        video_url = video_response['url']
+        formats = []
+        for ext, qualities_ in allowed_qualities:
+            for quality in qualities_:
+                f = QUALITIES[quality].copy()
+                video_request_params = {
+                    'r': f['height'],
+                    'f': ext
+                }
+                video_response = self._download_json(video_request_url % lesson_source_base, video_id,
+                                                     query=video_request_params, headers=video_request_headers)
+
+                # To avoid the possibility of problems with multiple sequential calls to ViewClip API and start
+                # to return 429 HTTP errors after some time (see the problem Pluralsight has on
+                # https://github.com/rg3/youtube-dl/pull/6989) and avoid also the risk of
+                # account ban (see https://github.com/rg3/youtube-dl/issues/6842),
+                # we will sleep random amount of time before each call to ViewClip.
+
+                # self._sleep(
+                #     random.randint(2, 5), lesson_slug,
+                #     '%(video_id)s: Waiting for %(timeout)s seconds to avoid throttling')
+                #
+                # if not video_response:
+                #     continue
+
+                video_url = video_response.get('url')
+                clip_f = f.copy()
+                clip_f.update({
+                    'url': video_url,
+                    'ext': ext,
+                    'format_id': '%s-%s' % (ext, quality),
+                    'quality': quality_key(quality),
+                    'height': f['height']
+                })
+                formats.append(clip_f)
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': title,
-            'courseid': course_id,
-            'url': video_url
-
-            # TODO more properties (see youtube_dl/extractor/common.py)
+            'display_id': lesson_slug,
+            'title': lesson_title,
+            'description': lesson_description,
+            'chapter': lesson_section,
+            'chapter_number': lesson_section_number,
+            'thumbnail': lesson_thumbnail_url,
+            'formats': formats
         }
+
+
+class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
+    IE_NAME = 'frontend-masters:course'
+    IE_DESC = "frontendmasters.com online courses"
+
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<id>[a-z\-]+)/?'
+    _NETRC_MACHINE = 'frontend-masters'
+    _TEST = {
+        'url': 'https://frontendmasters.com/courses/content-strategy/',
+        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'info_dict': {
+            'id': 'content-strategy',
+            'title': 'Content Strategy'
+        }
+    }
+
+    def _real_extract(self, url):
+        course_id = self._match_id(url)
+        course_json_content = self._download_course(course_id=course_id, url=url, display_id=None)
+
+        title = course_json_content.get('title')
+        description = course_json_content.get('description')
+        course_display_id = course_json_content.get('slug')
+
+        videos_data = course_json_content.get('lessonData').values()
+        videos_data = sorted(videos_data, key=lambda video: video.get('index'))
+
+        entries = []
+        for video in videos_data:
+            video_slug = video.get('slug')
+            clip_url = "%s/%s/%s" % (self._VIDEO_BASE, course_display_id, video_slug)
+            entries.append({
+                '_type': 'url_transparent',
+                'url': clip_url,
+                'ie_key': FrontEndMasterIE.ie_key()
+            })
+
+        return self.playlist_result(entries, course_id, title, description)
