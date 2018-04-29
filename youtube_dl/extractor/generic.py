@@ -191,6 +191,16 @@ class GenericIE(InfoExtractor):
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
         },
+        # RSS feed with enclosures and unsupported link URLs
+        {
+            'url': 'http://www.hellointernet.fm/podcast?format=rss',
+            'info_dict': {
+                'id': 'http://www.hellointernet.fm/podcast?format=rss',
+                'description': 'CGP Grey and Brady Haran talk about YouTube, life, work, whatever.',
+                'title': 'Hello Internet',
+            },
+            'playlist_mincount': 100,
+        },
         # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
         {
             'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/video/1/smil.xml',
@@ -2026,13 +2036,15 @@ class GenericIE(InfoExtractor):
 
         entries = []
         for it in doc.findall('./channel/item'):
-            next_url = xpath_text(it, 'link', fatal=False)
+            next_url = None
+            enclosure_nodes = it.findall('./enclosure')
+            for e in enclosure_nodes:
+                next_url = e.attrib.get('url')
+                if next_url:
+                    break
+
             if not next_url:
-                enclosure_nodes = it.findall('./enclosure')
-                for e in enclosure_nodes:
-                    next_url = e.attrib.get('url')
-                    if next_url:
-                        break
+                next_url = xpath_text(it, 'link', fatal=False)
 
             if not next_url:
                 continue
