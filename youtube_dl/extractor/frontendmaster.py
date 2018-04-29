@@ -170,10 +170,7 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         video_request_headers = {
             "origin": "https://frontendmasters.com",
             "referer": lesson_source_base,
-            "cookie": cookies_str,
-            'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) "
-                          "Chrome/66.0.3359.117 Safari/537.36"
+            "cookie": cookies_str
         }
 
         if self._downloader.params.get('listformats', False):
