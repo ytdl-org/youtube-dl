@@ -115,9 +115,9 @@ class UdemyIE(InfoExtractor):
                 error_str += ' - %s' % error_data.get('formErrors')
             raise ExtractorError(error_str, expected=True)
 
-    def _download_webpage(self, *args, **kwargs):
+    def _download_webpage_handle(self, *args, **kwargs):
         kwargs.setdefault('headers', {})['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4'
-        return super(UdemyIE, self)._download_webpage(
+        return super(UdemyIE, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
 
     def _download_json(self, url_or_request, *args, **kwargs):

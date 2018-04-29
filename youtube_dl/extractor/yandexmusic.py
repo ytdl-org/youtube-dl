@@ -34,8 +34,8 @@ class YandexMusicBaseIE(InfoExtractor):
             'youtube-dl with --cookies',
             expected=True)
 
-    def _download_webpage(self, *args, **kwargs):
-        webpage = super(YandexMusicBaseIE, self)._download_webpage(*args, **kwargs)
+    def _download_webpage_handle(self, *args, **kwargs):
+        webpage = super(YandexMusicBaseIE, self)._download_webpage_handle(*args, **kwargs)
         if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
             self._raise_captcha()
         return webpage
