@@ -22,10 +22,6 @@ class FrontEndMasterBaseIE(InfoExtractor):
     _VIDEO_BASE = 'http://www.frontendmasters.com/courses'
     _COOKIES_BASE = 'https://api.frontendmasters.com'
     _LOGIN_URL = 'https://frontendmasters.com/login/'
-    _SUPPORTED_MEAN = {
-        "resolution": [360, 720, 1080],
-        "format": ['webm', 'mp4']
-    }
 
     def _real_initialize(self):
         self._login()
