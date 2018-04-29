@@ -805,6 +805,7 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .pearvideo import PearVideoIE
+from .peertube import PeertubeIE
 from .people import PeopleIE
 from .performgroup import PerformGroupIE
 from .periscope import (
@@ -1332,7 +1333,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
