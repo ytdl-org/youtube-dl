@@ -47,7 +47,7 @@ class RedditIE(InfoExtractor):
 
 
 class RedditRIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?reddit\.com/r/[^/]+/comments/(?P<id>[^/?#&]+))'
+    _VALID_URL = r'(?P<url>https?://(?:(?:www|old)\.)?reddit\.com/r/[^/]+/comments/(?P<id>[^/?#&]+))'
     _TESTS = [{
         'url': 'https://www.reddit.com/r/videos/comments/6rrwyj/that_small_heart_attack/',
         'info_dict': {
@@ -73,6 +73,10 @@ class RedditRIE(InfoExtractor):
     }, {
         # imgur
         'url': 'https://www.reddit.com/r/MadeMeSmile/comments/6t7wi5/wait_for_it/',
+        'only_matching': True,
+    }, {
+        # imgur @ old reddit
+        'url': 'https://old.reddit.com/r/MadeMeSmile/comments/6t7wi5/wait_for_it/',
         'only_matching': True,
     }, {
         # streamable
