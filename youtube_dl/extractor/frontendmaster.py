@@ -2,15 +2,11 @@
 from __future__ import unicode_literals
 
 import collections
-import random
-import sys
 
 import re
 
-from youtube_dl.utils import try_get
 from .common import InfoExtractor
 from ..compat import (
-    # compat_str,
     compat_urlparse,
     compat_str)
 
@@ -62,7 +58,8 @@ class FrontEndMasterBaseIE(InfoExtractor):
             headers={'Content-Type': 'application/x-www-form-urlencoded'}
         )
 
-        logout_link = self._search_regex('(Logout .*)', response, 'logout-link')
+        logout_link = self._search_regex('(Logout .*)',
+                                         response, 'logout-link')
         if not logout_link:
             raise ExtractorError('Unable to login', expected=True)
 
@@ -89,7 +86,8 @@ class FrontEndMasterBaseIE(InfoExtractor):
         current_section_number = 0
         for elem in lesson_elements:
             if isinstance(elem, unicode):
-                (current_section, current_section_number) = (elem.encode('utf-8'), current_section_number + 1)
+                (current_section, current_section_number) = \
+                    (elem.encode('utf-8'), current_section_number + 1)
             else:
                 if current_section:
                     sections[elem] = (current_section, current_section_number)
@@ -104,27 +102,23 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
     _NETRC_MACHINE = 'frontend-masters'
     _TEST = {
         'url': 'https://frontendmasters.com/courses/content-strategy/introduction/',
-        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'md5': '5f176d4f170778524f40a06307a929f6',
         'info_dict': {
             'id': 'introduction',
             'title': 'Introduction',
             'display_id': 'content-strategy',
             'ext': 'mp4'
-        }
+        },
+        'skip': 'Requires FrontendMasters account credentials'
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         course_id = self._match_course_id(url)
-        course_json_content = self._download_course(course_id=course_id, url=url, display_id=course_id)
+        course_json_content = self._download_course(course_id=course_id,
+                                                    url=url,
+                                                    display_id=course_id)
 
-        # Course details
-        # course_name = course_json_content.get('title')
-        # course_description = course_json_content.get('description')
-        # course_display_id = course_json_content.get('slug')
-        # course_thumbnail = course_json_content.get('thumbnail')
-
-        # TODO more code goes here, for example ...
         lesson_index = course_json_content.get('lessonSlugs').index(video_id)
         lesson_hash = course_json_content.get('lessonHashes')[lesson_index]
         lesson_section_elements = course_json_content.get('lessonElements')
@@ -137,13 +131,9 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         lesson_index = lesson_data.get('index')
         lesson_slug = lesson_data.get('slug')
         lesson_thumbnail_url = lesson_data.get('thumbnail')
-        # lesson_element_index = lesson_data.get('elementIndex')
         lesson_section = course_sections_pairing.get(lesson_index)[0]
         lesson_section_number = course_sections_pairing.get(lesson_index)[1]
 
-        # Get instructors informations
-        # instructors = course_json_content.get('instructors')
-        # authors = "; ".join([author.name for author in instructors])
 
         QUALITIES_PREFERENCE = ('low', 'medium', 'high')
         quality_key = qualities(QUALITIES_PREFERENCE)
@@ -160,13 +150,16 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         ]
 
         cookies = self._get_cookies(self._COOKIES_BASE)
-        cookies_str = ";".join(["%s=%s" % (cookie.key, cookie.value) for cookie in cookies.values()])
+        cookies_str = ";".join(["%s=%s" % (cookie.key, cookie.value)
+                                for cookie in cookies.values()])
         video_request_url = "%s/source"
         video_request_headers = {
             "origin": "https://frontendmasters.com",
             "referer": lesson_source_base,
             "cookie": cookies_str,
-            'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36"
+            'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) "
+                          "AppleWebKit/537.36 (KHTML, like Gecko) "
+                          "Chrome/66.0.3359.117 Safari/537.36"
         }
 
         if self._downloader.params.get('listformats', False):
@@ -240,18 +233,27 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
 
     _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<id>[a-z\-]+)/?'
     _NETRC_MACHINE = 'frontend-masters'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://frontendmasters.com/courses/content-strategy/',
-        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
             'id': 'content-strategy',
-            'title': 'Content Strategy'
-        }
-    }
+            'title': 'Content Strategy',
+            'description': 'md5:7916149d4539c5d6fa86ff43a5df213b'
+        },
+        'playlist_count': 31,
+    }, {
+        'url': 'https://frontendmasters.com/courses/sql-fundamentals/',
+        'only_matching': True,
+    }, {
+        'url': 'https://frontendmasters.com/courses/introduction-to-javascript-jquery/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         course_id = self._match_id(url)
-        course_json_content = self._download_course(course_id=course_id, url=url, display_id=None)
+        course_json_content = self._download_course(course_id=course_id,
+                                                    url=url,
+                                                    display_id=None)
 
         title = course_json_content.get('title')
         description = course_json_content.get('description')
