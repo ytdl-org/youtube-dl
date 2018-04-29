@@ -54,10 +54,13 @@ class FrontEndMasterBaseIE(InfoExtractor):
             headers={'Content-Type': 'application/x-www-form-urlencoded'}
         )
 
-        logout_link = self._search_regex('(Logout .*)',
-                                         response, 'logout-link')
-        if not logout_link:
-            raise ExtractorError('Unable to login', expected=True)
+        error = self._search_regex(
+            r'<div[^>]+class=["\']Message MessageAlert["\'][^>]*>([^<]+)</div>',
+            response, 'error message', default=None)
+
+        if error:
+            raise ExtractorError('Unable to login: check username and password',
+                                 expected=True)
 
     def _match_course_id(self, url):
         if '_VALID_URL_RE' not in self.__dict__:
@@ -81,9 +84,13 @@ class FrontEndMasterBaseIE(InfoExtractor):
         current_section = None
         current_section_number = 0
         for elem in lesson_elements:
-            if isinstance(elem, unicode):
+            if not isinstance(elem, int):
+                elem_name = elem
+                if not isinstance(elem_name, str):
+                    # convert unicode to str
+                    elem_name = elem.encode('utf-8')
                 (current_section, current_section_number) = \
-                    (elem.encode('utf-8'), current_section_number + 1)
+                    (elem_name, current_section_number + 1)
             else:
                 if current_section:
                     sections[elem] = (current_section, current_section_number)
@@ -120,7 +127,8 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         lesson_section_elements = course_json_content.get('lessonElements')
         lesson_data = course_json_content.get('lessonData')[lesson_hash]
         lesson_source_base = lesson_data.get('sourceBase')
-        course_sections_pairing = self._pair_section_with_video_elemen_index(lesson_section_elements)
+        course_sections_pairing = self._pair_section_with_video_elemen_index(
+            lesson_section_elements)
 
         lesson_title = lesson_data.get('title')
         lesson_description = lesson_data.get('description')
@@ -130,7 +138,6 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         lesson_section = course_sections_pairing.get(lesson_index)[0]
         lesson_section_number = course_sections_pairing.get(lesson_index)[1]
 
-
         QUALITIES_PREFERENCE = ('low', 'medium', 'high')
         quality_key = qualities(QUALITIES_PREFERENCE)
         QUALITIES = {
@@ -139,7 +146,8 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             'high': {'width': 1920, 'height': 1080}
         }
 
-        AllowedQuality = collections.namedtuple('AllowedQuality', ['ext', 'qualities'])
+        AllowedQuality = collections.namedtuple('AllowedQuality',
+                                                ['ext', 'qualities'])
         ALLOWED_QUALITIES = [
             AllowedQuality('webm', ['low', 'medium', 'high']),
             AllowedQuality('mp4', ['low', 'medium', 'high'])
@@ -169,9 +177,11 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
                     req_quality = '-'.join(req_quality.split('-')[:2])
                     for allowed_quality in ALLOWED_QUALITIES:
                         if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
-                            return (AllowedQuality(req_ext, (req_quality, )), )
-                req_ext = 'webm' if self._downloader.params.get('prefer_free_formats') else 'mp4'
-                return (AllowedQuality(req_ext, ('high', )), )
+                            return (AllowedQuality(req_ext, (req_quality,)),)
+                req_ext = 'webm' if self._downloader.params.get(
+                    'prefer_free_formats') else 'mp4'
+                return (AllowedQuality(req_ext, ('high',)),)
+
             allowed_qualities = guess_allowed_qualities()
 
         formats = []
@@ -182,8 +192,9 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
                     'r': f['height'],
                     'f': ext
                 }
-                video_response = self._download_json(video_request_url % lesson_source_base, video_id,
-                                                     query=video_request_params, headers=video_request_headers)
+                video_response = self._download_json(
+                    video_request_url % lesson_source_base, video_id,
+                    query=video_request_params, headers=video_request_headers)
 
                 # To avoid the possibility of problems with multiple sequential calls to ViewClip API and start
                 # to return 429 HTTP errors after some time (see the problem Pluralsight has on
@@ -261,7 +272,8 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
         entries = []
         for video in videos_data:
             video_slug = video.get('slug')
-            clip_url = "%s/%s/%s" % (self._VIDEO_BASE, course_display_id, video_slug)
+            clip_url = "%s/%s/%s" % (
+                self._VIDEO_BASE, course_display_id, video_slug)
             entries.append({
                 '_type': 'url_transparent',
                 'url': clip_url,
