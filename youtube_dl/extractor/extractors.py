@@ -450,6 +450,10 @@ from .hrti import (
 from .huajiao import HuajiaoIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
+from .ibm_think import (
+    IbmThinkIE,
+    IbmThinkPlaylistIE,
+)
 from .iconosquare import IconosquareIE
 from .ign import (
     IGNIE,
