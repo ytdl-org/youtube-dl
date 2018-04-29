@@ -18,7 +18,7 @@ class PuhuTVIE(InfoExtractor):
     _TESTS = [
         { # A Film
             'url': 'https://puhutv.com/sut-kardesler-izle',
-            'md5': '51f11ccdeef908753b4e3a99d19be939',
+            'md5': 'a347470371d56e1585d1b2c8dab01c96',
             'info_dict': {
                 'id': '5085',
                 'display_id': 'sut-kardesler',
@@ -33,7 +33,7 @@ class PuhuTVIE(InfoExtractor):
         },
         { # An Episode
             'url': 'https://puhutv.com/jet-sosyete-1-bolum-izle',
-            'md5': 'e47096511f5ee1fee3586a5714955a25',
+            'md5': '3cd1f4b931cff5e009dfa46a3b88a42a',
             'info_dict': {
                 'id': '18501',
                 'display_id': 'jet-sosyete-1-bolum',
@@ -48,7 +48,7 @@ class PuhuTVIE(InfoExtractor):
         },
         { # Has subtitle
             'url': 'https://puhutv.com/dip-1-bolum-izle',
-            'md5': 'ef912104860ad0496b73c57d7f03bf8e',
+            'md5': 'f27792b1169f42ab318c38887ad5b28e',
             'info_dict': {
                 'id': '18944',
                 'display_id': 'dip-1-bolum',
@@ -129,19 +129,12 @@ class PuhuTVIE(InfoExtractor):
             media_url = format.get('url')
             ext = format.get('video_format')
             quality = format.get('quality')
-            if ext == 'hls':
-                format_id = 'hls-%s' % quality
-                formats.extend(self._extract_m3u8_formats(
-                    media_url, video_id, 'm3u8', preference=-1,
-                    m3u8_id=format_id, fatal=False))
-            else:
-                if format.get('is_playlist') == False:
-                    formats.append({
-                        'url': media_url,
-                        'format_id': 'http-%s' % quality,
-                        'ext': ext
-                    })
-        self._sort_formats(formats)
+            if ext == 'mp4' and format.get('is_playlist') == False:
+                formats.append({
+                    'url': media_url,
+                    'format_id': 'http-%s' % quality,
+                    'ext': ext
+                })
 
         return {
             'id': id,
