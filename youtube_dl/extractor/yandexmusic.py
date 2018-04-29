@@ -57,14 +57,14 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
         'info_dict': {
             'id': '4878838',
             'ext': 'mp3',
-            'title': 'Carlo Ambrosio & Fabio Di Bari, Carlo Ambrosio - Gypsy Eyes 1',
+            'title': 'Carlo Ambrosio, Carlo Ambrosio & Fabio Di Bari - Gypsy Eyes 1',
             'filesize': 4628061,
             'duration': 193.04,
             'track': 'Gypsy Eyes 1',
             'album': 'Gypsy Soul',
             'album_artist': 'Carlo Ambrosio',
-            'artist': 'Carlo Ambrosio & Fabio Di Bari, Carlo Ambrosio',
-            'release_year': '2009',
+            'artist': 'Carlo Ambrosio, Carlo Ambrosio & Fabio Di Bari',
+            'release_year': 2009,
         },
         'skip': 'Travis CI servers blocked by YandexMusic',
     }
@@ -120,7 +120,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
                 track_info.update({
                     'album': album.get('title'),
                     'album_artist': extract_artist(album.get('artists')),
-                    'release_year': compat_str(year) if year else None,
+                    'release_year': int_or_none(year),
                 })
 
         track_artist = extract_artist(track.get('artists'))
