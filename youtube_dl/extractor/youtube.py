@@ -246,9 +246,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         return True
 
-    def _download_webpage(self, *args, **kwargs):
+    def _download_webpage_handle(self, *args, **kwargs):
         kwargs.setdefault('query', {})['disable_polymer'] = 'true'
-        return super(YoutubeBaseInfoExtractor, self)._download_webpage(
+        return super(YoutubeBaseInfoExtractor, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
 
     def _real_initialize(self):
