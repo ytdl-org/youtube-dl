@@ -104,12 +104,12 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
     _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)/?'
     _NETRC_MACHINE = 'frontend-masters'
     _TEST = {
-        'url': 'https://frontendmasters.com/courses/content-strategy/introduction/',
-        'md5': '5f176d4f170778524f40a06307a929f6',
+        'url': 'https://frontendmasters.com/courses/javascript-basics/introduction/',
+        'md5': 'a47be6ea0a384cbbb10fab10061f43d6',
         'info_dict': {
             'id': 'introduction',
             'title': 'Introduction',
-            'display_id': 'content-strategy',
+            'display_id': 'javascript-basics',
             'ext': 'mp4'
         },
         'skip': 'Requires FrontendMasters account credentials'
@@ -247,21 +247,14 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
 
     _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<id>[a-z\-]+)/?'
     _NETRC_MACHINE = 'frontend-masters'
-    _TESTS = [{
-        'url': 'https://frontendmasters.com/courses/content-strategy/',
+    _TEST = {
+        'url': 'https://frontendmasters.com/courses/javascript-basics/',
         'info_dict': {
             'id': 'content-strategy',
-            'title': 'Content Strategy',
-            'description': 'md5:7916149d4539c5d6fa86ff43a5df213b'
+            'title': 'Introduction to JavaScript Programming',
         },
-        'playlist_count': 31,
-    }, {
-        'url': 'https://frontendmasters.com/courses/sql-fundamentals/',
-        'only_matching': True,
-    }, {
-        'url': 'https://frontendmasters.com/courses/introduction-to-javascript-jquery/',
-        'only_matching': True,
-    }]
+        'playlist_count': 19,
+    }
 
     def _real_extract(self, url):
         course_id = self._match_id(url)
