@@ -20,8 +20,8 @@ class PuhuTVIE(InfoExtractor):
             'url': 'https://puhutv.com/sut-kardesler-izle',
             'md5': 'a347470371d56e1585d1b2c8dab01c96',
             'info_dict': {
-                'id': '5085',
-                'display_id': 'sut-kardesler',
+                'id': 'sut-kardesler',
+                'display_id': '5085',
                 'ext': 'mp4',
                 'title': 'Süt Kardeşler',
                 'thumbnail': r're:^https?://.*\.jpg$',
@@ -35,8 +35,8 @@ class PuhuTVIE(InfoExtractor):
             'url': 'https://puhutv.com/jet-sosyete-1-bolum-izle',
             'md5': '3cd1f4b931cff5e009dfa46a3b88a42a',
             'info_dict': {
-                'id': '18501',
-                'display_id': 'jet-sosyete-1-bolum',
+                'id': 'jet-sosyete-1-bolum',
+                'display_id': '18501',
                 'ext': 'mp4',
                 'title': 'Jet Sosyete 1. Sezon 1. Bölüm',
                 'thumbnail': r're:^https?://.*\.jpg$',
@@ -50,8 +50,8 @@ class PuhuTVIE(InfoExtractor):
             'url': 'https://puhutv.com/dip-1-bolum-izle',
             'md5': 'f27792b1169f42ab318c38887ad5b28e',
             'info_dict': {
-                'id': '18944',
-                'display_id': 'dip-1-bolum',
+                'id': 'dip-1-bolum',
+                'display_id': '18944',
                 'ext': 'mp4',
                 'title': 'Dip 1. Sezon 1. Bölüm',
                 'thumbnail': r're:^https?://.*\.jpg$',
@@ -78,7 +78,7 @@ class PuhuTVIE(InfoExtractor):
             'https://puhutv.com/api/slug/%s-izle' % video_id,
             video_id).get('data')
 
-        id = compat_str(info.get('id'))
+        display_id = compat_str(info.get('id'))
         title = info.get('title').get('name')
         if(info.get('display_name')):
             title += ' ' + info.get('display_name')
@@ -119,7 +119,7 @@ class PuhuTVIE(InfoExtractor):
             }]
 
         format_dict = self._download_json(
-            'https://puhutv.com/api/assets/%s/videos' % id,
+            'https://puhutv.com/api/assets/%s/videos' % display_id,
             video_id, 'Downloading sources').get('data').get('videos')
         if not format_dict:
             raise ExtractorError('This video not available in your country')
@@ -137,8 +137,8 @@ class PuhuTVIE(InfoExtractor):
                 })
 
         return {
-            'id': id,
-            'display_id': video_id,
+            'id': video_id,
+            'display_id': display_id,
             'title': title,
             'description': description,
             'season_id': season_id,
