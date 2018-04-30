@@ -834,14 +834,14 @@ class VimeoAlbumIE(VimeoChannelIE):
         'url': 'https://vimeo.com/album/2632481',
         'info_dict': {
             'id': '2632481',
-            'title': 'Vimeo / Staff Favorites: November 2013',
+            'title': 'Staff Favorites: November 2013',
         },
         'playlist_mincount': 13,
     }, {
         'url': 'https://vimeo.com/album/4786409',
         'info_dict': {
             'id': '4786409',
-            'title': 'Vimeo / NSSpain 2017',
+            'title': 'NSSpain 2017',
         },
         'playlist_mincount': 25,
     }, {
@@ -871,16 +871,19 @@ class VimeoAlbumIE(VimeoChannelIE):
         album_id = self._match_id(url)
         rss_url = url + '/rss'
 
-        doc = self._download_xml(rss_url, album_id, fatal=True)
+        doc = self._download_xml(rss_url, album_id, fatal=False)
 
         playlist_title = doc.find('./channel/title').text
+        re_clean_title = re.compile('(?:Vimeo / )(.*)')
+        playlist_title = re_clean_title.findall(playlist_title)[0]
+
         playlist_desc_el = doc.find('./channel/description')
         playlist_desc = None if playlist_desc_el is None else playlist_desc_el.text
 
         entries = []
         for it in doc.findall('./channel/item'):
             next_title = it.find('title').text
-            next_url = xpath_text(it, 'link', fatal=False)
+            next_url = xpath_text(it, 'link')
             if not next_url:
                 continue
 
