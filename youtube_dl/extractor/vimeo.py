@@ -838,6 +838,20 @@ class VimeoAlbumIE(VimeoChannelIE):
         },
         'playlist_mincount': 13,
     }, {
+        'url': 'https://vimeo.com/album/2632481/sort:plays/format:thumbnail',
+        'info_dict': {
+            'id': '2632481',
+            'title': 'Staff Favorites: November 2013',
+        },
+        'playlist_mincount': 13,
+    }, {
+        'url': 'https://vimeo.com/album/2632481/page:2/sort:plays/format:thumbnail',
+        'info_dict': {
+            'id': '2632481',
+            'title': 'Staff Favorites: November 2013',
+        },
+        'playlist_mincount': 13,
+    }, {
         'url': 'https://vimeo.com/album/4786409',
         'info_dict': {
             'id': '4786409',
@@ -869,7 +883,12 @@ class VimeoAlbumIE(VimeoChannelIE):
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
-        rss_url = url + '/rss'
+
+        # we only want the base url with the id, excluding possibly appended
+        # options like e.g 'sort:plays'.
+        re_clean_url = re.compile(r'https://vimeo\.com/album/\d+')
+        clean_url = re_clean_url.findall(url)[0]
+        rss_url = clean_url + '/rss'
 
         doc = self._download_xml(rss_url, album_id, fatal=False)
 
