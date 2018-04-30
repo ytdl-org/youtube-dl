@@ -8,18 +8,19 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
+    compat_basestring,
     compat_str)
 
 from ..utils import (
     ExtractorError,
     urlencode_postdata,
-    qualities
-)
+    qualities, unescapeHTML)
 
 
 class FrontEndMasterBaseIE(InfoExtractor):
     _API_BASE = 'https://api.frontendmasters.com/v1/kabuki/courses'
     _VIDEO_BASE = 'http://www.frontendmasters.com/courses'
+    _CAPTIONS_BASE = 'https://api.frontendmasters.com/v1/kabuki/transcripts'
     _COOKIES_BASE = 'https://api.frontendmasters.com'
     _LOGIN_URL = 'https://frontendmasters.com/login/'
 
@@ -59,17 +60,15 @@ class FrontEndMasterBaseIE(InfoExtractor):
             response, 'error message', default=None)
 
         if error:
-            raise ExtractorError('Unable to login: check username and password',
+            raise ExtractorError('Unable to login: %s' % unescapeHTML(error),
                                  expected=True)
 
     def _match_course_id(self, url):
-        if '_VALID_URL_RE' not in self.__dict__:
-            self._VALID_URL_RE = re.compile(self._VALID_URL)
-        m = self._VALID_URL_RE.match(url)
+        m = re.match(self._VALID_URL, url)
         assert m
         return compat_str(m.group('courseid'))
 
-    def _download_course(self, course_id, url, display_id):
+    def _download_course(self, course_id, url):
         response = self._download_json(
             '%s/%s' % (self._API_BASE, course_id), course_id,
             'Downloading course JSON',
@@ -79,7 +78,8 @@ class FrontEndMasterBaseIE(InfoExtractor):
             })
         return response
 
-    def _pair_section_with_video_elemen_index(self, lesson_elements):
+    @staticmethod
+    def _pair_section_with_video_elemen_index(lesson_elements):
         sections = {}
         current_section = None
         current_section_number = 0
@@ -100,7 +100,7 @@ class FrontEndMasterBaseIE(InfoExtractor):
 
 class FrontEndMasterIE(FrontEndMasterBaseIE):
     IE_NAME = 'frontend-masters'
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)/?'
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)'
 
     _NETRC_MACHINE = 'frontend-masters'
 
@@ -116,6 +116,29 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         },
         'skip': 'Requires FrontendMasters account credentials',
     }
+
+    @staticmethod
+    def _convert_subtitles(captions):
+        if captions and isinstance(captions, compat_basestring):
+            if captions.startswith('WEBVTT'):
+                # Assumes captions are in WEBVTT format
+                captions = captions.replace('WEBVTT', '')
+                captions = captions.replace('.', ',')
+        return captions
+
+    def _get_subtitles(self, video_hash, video_id):
+        captions = self._download_webpage(
+            '%s/%s.vtt' % (self._CAPTIONS_BASE, video_hash), video_id,
+            fatal=False)
+        srt_captions = FrontEndMasterIE._convert_subtitles(captions)
+
+        if srt_captions:
+            return {
+                'en': [{
+                    'ext': 'srt',
+                    'data': srt_captions
+                }]
+            }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -150,7 +173,6 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         except Exception:
             lesson_section = None
             lesson_section_number = None
-
 
         QUALITIES_PREFERENCE = ('low', 'medium', 'high')
         quality_key = qualities(QUALITIES_PREFERENCE)
@@ -220,6 +242,8 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
 
         self._sort_formats(formats)
 
+        subtitles = self.extract_subtitles(lesson_hash, video_id)
+
         return {
             'id': video_id,
             'display_id': lesson_slug,
@@ -228,7 +252,8 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             'chapter': lesson_section,
             'chapter_number': lesson_section_number,
             'thumbnail': lesson_thumbnail_url,
-            'formats': formats
+            'formats': formats,
+            'subtitles': subtitles
         }
 
 
