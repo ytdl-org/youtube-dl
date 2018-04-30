@@ -104,16 +104,16 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
     _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)/?'
     _NETRC_MACHINE = 'frontend-masters'
     _TEST = {
-        'url': 'https://frontendmasters.com/courses/javascript-basics/introduction/',
-        'md5': 'a47be6ea0a384cbbb10fab10061f43d6',
+        'url': 'https://frontendmasters.com/courses/web-development/tools',
+        'md5': '7f161159710d6b7016a4f4af6fcb05e2',
         'info_dict': {
-            'id': 'introduction',
-            'title': 'Introduction',
-            'display_id': 'introduction',
-            'description': 'md5:319818bc390d42f937399befeedf7947',
+            'id': 'tools',
+            'title': 'Tools',
+            'display_id': 'tools',
+            'description': 'md5:82c1ea6472e88ed5acd1829fe992e4f7',
             'ext': 'mp4'
         },
-        'skip': 'Requires FrontendMasters account credentials'
+        'skip': 'Requires FrontendMasters account credentials',
     }
 
     def _real_extract(self, url):
