@@ -109,7 +109,8 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         'info_dict': {
             'id': 'introduction',
             'title': 'Introduction',
-            'display_id': 'javascript-basics',
+            'display_id': 'introduction',
+            'description': 'md5:319818bc390d42f937399befeedf7947',
             'ext': 'mp4'
         },
         'skip': 'Requires FrontendMasters account credentials'
@@ -250,10 +251,12 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
     _TEST = {
         'url': 'https://frontendmasters.com/courses/javascript-basics/',
         'info_dict': {
-            'id': 'content-strategy',
+            'id': 'javascript-basics',
             'title': 'Introduction to JavaScript Programming',
+            'description': 'md5:269412fbb76d86954761599ad8e4cbc9'
         },
         'playlist_count': 19,
+        'skip': 'Requires FrontendMasters account credentials'
     }
 
     def _real_extract(self, url):
