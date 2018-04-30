@@ -38,8 +38,8 @@ class FrontEndMasterBaseIE(InfoExtractor):
         login_form = self._hidden_inputs(login_page)
 
         login_form.update({
-            "username": username,
-            "password": password
+            'username': username,
+            'password': password
         })
 
         post_url = self._search_regex(
