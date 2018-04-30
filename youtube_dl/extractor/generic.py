@@ -1283,6 +1283,23 @@ class GenericIE(InfoExtractor):
             'add_ie': ['Kaltura'],
         },
         {
+            # Kaltura iframe embed, more sophisticated
+            'url': 'http://www.cns.nyu.edu/~eero/math-tools/Videos/lecture-05sep2017.html',
+            'info_dict': {
+                'id': '1_9gzouybz',
+                'ext': 'mp4',
+                'title': 'lecture-05sep2017',
+                'description': 'md5:40f347d91fd4ba047e511c5321064b49',
+                'upload_date': '20170913',
+                'uploader_id': 'eps2',
+                'timestamp': 1505340777,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['Kaltura'],
+        },
+        {
             # meta twitter:player
             'url': 'http://thechive.com/2017/12/08/all-i-want-for-christmas-is-more-twerk/',
             'info_dict': {
