@@ -81,14 +81,14 @@ class IzleseneIE(InfoExtractor):
             webpage, 'comment_count', fatal=False)
 
         streams = self._parse_json(self._html_search_regex(
-            r'_videoObj\s*=\s*(.*);', webpage, 'streams', default=''), video_id)
+            r'_videoObj\s*=\s*(.*);', webpage, 'streams'), video_id)
         formats = []
         for stream in streams.get('media').get('level'):
             url = stream.get('source')
             ext = determine_ext(url)
             quality = stream.get('value')
             formats.append({
-                'format_id': '%sp' % quality if quality else 'sd',
+                'format_id': '%sp' % quality,
                 'url': compat_urllib_parse_unquote(url),
                 'ext': ext,
             })
