@@ -100,20 +100,11 @@ class FrontEndMasterBaseIE(InfoExtractor):
 
 class FrontEndMasterIE(FrontEndMasterBaseIE):
     IE_NAME = 'frontend-masters'
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/?(?P<id>[a-z\-]+)?/?'
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)/?'
 
     _NETRC_MACHINE = 'frontend-masters'
 
-    _TESTS = [{
-        'url': 'https://frontendmasters.com/courses/javascript-basics/',
-        'info_dict': {
-            'id': 'javascript-basics',
-            'title': 'Introduction to JavaScript Programming',
-            'description': 'md5:269412fbb76d86954761599ad8e4cbc9'
-        },
-        'playlist_count': 19,
-        'skip': 'Requires FrontendMasters account credentials'
-    }, {
+    _TEST = {
         'url': 'https://frontendmasters.com/courses/web-development/tools',
         'md5': '7f161159710d6b7016a4f4af6fcb05e2',
         'info_dict': {
@@ -124,9 +115,13 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             'ext': 'mp4'
         },
         'skip': 'Requires FrontendMasters account credentials',
-    }]
+    }
 
-    def _download_single_video(self, url, course_id, video_id):
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        course_id = mobj.group('courseid')
+
         course_json_content = self._download_course(course_id=course_id,
                                                     url=url,
                                                     display_id=course_id)
@@ -212,19 +207,6 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
                     video_request_url % lesson_source_base, video_id,
                     query=video_request_params, headers=video_request_headers)
 
-                # To avoid the possibility of problems with multiple sequential calls to ViewClip API and start
-                # to return 429 HTTP errors after some time (see the problem Pluralsight has on
-                # https://github.com/rg3/youtube-dl/pull/6989) and avoid also the risk of
-                # account ban (see https://github.com/rg3/youtube-dl/issues/6842),
-                # we will sleep random amount of time before each call to ViewClip.
-
-                # self._sleep(
-                #     random.randint(2, 5), lesson_slug,
-                #     '%(video_id)s: Waiting for %(timeout)s seconds to avoid throttling')
-                #
-                # if not video_response:
-                #     continue
-
                 video_url = video_response.get('url')
                 clip_f = f.copy()
                 clip_f.update({
@@ -249,8 +231,27 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             'formats': formats
         }
 
-    def _download_entire_course(self, url, course_id):
 
+class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
+    IE_NAME = 'frontend-masters:course'
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/?$'
+
+    _NETRC_MACHINE = 'frontend-masters'
+
+    _TEST = {
+        'url': 'https://frontendmasters.com/courses/javascript-basics/',
+        'info_dict': {
+            'id': 'javascript-basics',
+            'title': 'Introduction to JavaScript Programming',
+            'description': 'md5:269412fbb76d86954761599ad8e4cbc9'
+        },
+        'playlist_count': 19,
+        'skip': 'Requires FrontendMasters account credentials'
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        course_id = mobj.group('courseid')
         course_json_content = self._download_course(course_id=course_id,
                                                     url=url,
                                                     display_id=None)
@@ -274,15 +275,3 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             })
 
         return self.playlist_result(entries, course_id, title, description)
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        course_id = mobj.group('courseid')
-        if video_id:
-            return self._download_single_video(url, course_id, video_id)
-        else:
-            return self._download_entire_course(url, course_id)
-
-
-
