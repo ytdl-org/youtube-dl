@@ -450,10 +450,7 @@ from .hrti import (
 from .huajiao import HuajiaoIE
 from .huffpost import HuffPostIE
 from .hypem import HypemIE
-from .ibm_think import (
-    IbmThinkIE,
-    IbmThinkPlaylistIE,
-)
+from .ibm_think import IbmThinkPlaylistIE
 from .iconosquare import IconosquareIE
 from .ign import (
     IGNIE,
@@ -1336,7 +1333,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
