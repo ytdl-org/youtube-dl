@@ -849,7 +849,10 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
-from .puhutv import PuhuTVIE
+from .puhutv import (
+    PuhuTVIE,
+    PuhuTVSeasonIE,
+)
 from .presstv import PressTVIE
 from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
@@ -1333,7 +1336,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE,
+    WeiboIE, 
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE

@@ -2,9 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str
-)
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     ExtractorError,
@@ -97,7 +95,6 @@ class PuhuTVIE(InfoExtractor):
         season_id = int_or_none(info.get('season_id'))
         episode_number = int_or_none(info.get('episode_number'))
 
-
         tags = []
         for tag in info.get('title').get('genres'):
             tags.append(tag.get('name'))
@@ -156,4 +153,60 @@ class PuhuTVIE(InfoExtractor):
             'thumbnail': thumbnail,
             'thumbnails': thumbnails,
             'formats': formats
+        }
+
+
+class PuhuTVSeasonIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?puhutv\.com/(?P<id>[a-z0-9-]+)-detay'
+    IE_NAME = 'puhutv:season'
+    _TESTS = [{
+        'url': 'https://puhutv.com/deniz-yildizi-detay',
+        'info_dict': {
+            'title': 'Deniz Yıldızı',
+            'id': 'deniz-yildizi',
+        },
+        'playlist_mincount': 10,
+    }]
+
+    def _extract_entries(self, playlist_id, seasons):
+        for season in seasons:
+            season_id = season.get('id')
+            season_number = season.get('position')
+            pagenum = 1
+            has_more = True
+            while has_more == True:
+                query = {
+                    'page': pagenum,
+                    'per': 40,
+                }
+                season_info = self._download_json(
+                    'https://galadriel.puhutv.com/seasons/%s' % season_id,
+                     playlist_id, 'Downloading season %s page %s' % (season_number, pagenum), query=query)
+                for episode in season_info.get('episodes'):
+                    video_id = episode.get('slugPath').replace('-izle', '')
+                    yield self.url_result(
+                        'https://puhutv.com/%s-izle' % video_id,
+                        PuhuTVIE.ie_key(), video_id)
+                pagenum = pagenum + 1
+                has_more = season_info.get('hasMore')
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        info = self._download_json(
+            'https://puhutv.com/api/slug/%s-detay' % playlist_id,
+             playlist_id).get('data')
+
+        title = info.get('name')
+        uploader = info.get('producer').get('name')
+        uploader_id = info.get('producer').get('id')
+        seasons = info.get('seasons')
+
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'title': title,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'entries': self._extract_entries(playlist_id, seasons),
         }
