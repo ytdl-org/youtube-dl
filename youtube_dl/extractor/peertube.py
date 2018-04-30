@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from ..compat import compat_urlparse
+from ..utils import urljoin
 from .common import InfoExtractor
 
 
@@ -24,12 +25,13 @@ class PeertubeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         url_data = compat_urlparse.urlparse(url)
-        api_url = "%s://%s/api/v1/videos/%s" % (url_data.scheme, url_data.hostname, video_id)
+        base_url = "%s://%s" % (url_data.scheme, url_data.hostname)
+        api_url = urljoin(urljoin(base_url, "/api/v1/videos/"), video_id)
         details = self._download_json(api_url, video_id)
         return {
             'id': video_id,
-            'title': details['name'],
-            'description': details['description'],
+            'title': details.get('name'),
+            'description': details.get('description'),
             'url': details['files'][-1]['fileUrl'],
-            'thumbnail': url_data.scheme + '://' + url_data.hostname + details['thumbnailPath']
+            'thumbnail': urljoin(base_url, details['thumbnailPath'])
         }
