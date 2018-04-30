@@ -100,10 +100,20 @@ class FrontEndMasterBaseIE(InfoExtractor):
 
 class FrontEndMasterIE(FrontEndMasterBaseIE):
     IE_NAME = 'frontend-masters'
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/?(?P<id>[a-z\-]+)?/?'
 
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)/?'
     _NETRC_MACHINE = 'frontend-masters'
-    _TEST = {
+
+    _TESTS = [{
+        'url': 'https://frontendmasters.com/courses/javascript-basics/',
+        'info_dict': {
+            'id': 'javascript-basics',
+            'title': 'Introduction to JavaScript Programming',
+            'description': 'md5:269412fbb76d86954761599ad8e4cbc9'
+        },
+        'playlist_count': 19,
+        'skip': 'Requires FrontendMasters account credentials'
+    }, {
         'url': 'https://frontendmasters.com/courses/web-development/tools',
         'md5': '7f161159710d6b7016a4f4af6fcb05e2',
         'info_dict': {
@@ -114,11 +124,9 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             'ext': 'mp4'
         },
         'skip': 'Requires FrontendMasters account credentials',
-    }
+    }]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        course_id = self._match_course_id(url)
+    def _download_single_video(self, url, course_id, video_id):
         course_json_content = self._download_course(course_id=course_id,
                                                     url=url,
                                                     display_id=course_id)
@@ -241,26 +249,8 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             'formats': formats
         }
 
+    def _download_entire_course(self, url, course_id):
 
-class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
-    IE_NAME = 'frontend-masters:course'
-    IE_DESC = "frontendmasters.com online courses"
-
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<id>[a-z\-]+)/?'
-    _NETRC_MACHINE = 'frontend-masters'
-    _TEST = {
-        'url': 'https://frontendmasters.com/courses/javascript-basics/',
-        'info_dict': {
-            'id': 'javascript-basics',
-            'title': 'Introduction to JavaScript Programming',
-            'description': 'md5:269412fbb76d86954761599ad8e4cbc9'
-        },
-        'playlist_count': 19,
-        'skip': 'Requires FrontendMasters account credentials'
-    }
-
-    def _real_extract(self, url):
-        course_id = self._match_id(url)
         course_json_content = self._download_course(course_id=course_id,
                                                     url=url,
                                                     display_id=None)
@@ -284,3 +274,15 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
             })
 
         return self.playlist_result(entries, course_id, title, description)
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        course_id = mobj.group('courseid')
+        if video_id:
+            return self._download_single_video(url, course_id, video_id)
+        else:
+            return self._download_entire_course(url, course_id)
+
+
+
