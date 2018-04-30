@@ -12,7 +12,7 @@ class PeertubeIE(InfoExtractor):
     _VALID_URL = r'https?:\/\/peertube\.touhoppai\.moe\/videos\/watch\/(?P<id>[0-9|\-|a-z]+)'
     _TEST = {
         'url': 'https://peertube.touhoppai.moe/videos/watch/7f3421ae-6161-4a4a-ae38-d167aec51683',
-        'md5': '051ef9823d237416d5a6fc0bd8d67812',
+        'md5': 'a5e1e4a978e6b789553198d1739f5643',
         'info_dict': {
             'id': '7f3421ae-6161-4a4a-ae38-d167aec51683',
             'ext': 'mp4',
@@ -32,6 +32,6 @@ class PeertubeIE(InfoExtractor):
             'id': video_id,
             'title': details.get('name'),
             'description': details.get('description'),
-            'url': details['files'][-1]['fileUrl'],
+            'formats': [{'url': file_data['fileUrl'], 'filesize': file_data['size']} for file_data in sorted(details['files'], key=lambda x: x['size'])],
             'thumbnail': urljoin(base_url, details['thumbnailPath'])
         }
