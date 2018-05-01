@@ -29,7 +29,7 @@ class PuhuTVIE(InfoExtractor):
                 'upload_date': '20160729',
             },
         },
-        { # An Episode
+        { # An Episode and geo restricted
             'url': 'https://puhutv.com/jet-sosyete-1-bolum-izle',
             'md5': '3cd1f4b931cff5e009dfa46a3b88a42a',
             'info_dict': {
@@ -39,7 +39,7 @@ class PuhuTVIE(InfoExtractor):
                 'title': 'Jet Sosyete 1. Sezon 1. Bölüm',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'uploader': 'BKM',
-                'description': 'md5:0312864b87d6b9b917694a5742fffabd',
+                'description': 'md5:18ba5abe6d19f8063a8348445c41e28f',
                 'uploader_id': '269',
                 'upload_date': '20180220',
             },
@@ -54,7 +54,7 @@ class PuhuTVIE(InfoExtractor):
                 'title': 'Dip 1. Sezon 1. Bölüm',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'uploader': 'TMC',
-                'description': 'md5:8459001a7decfdc4104ca38a979a41fd',
+                'description': 'md5:e8ddb56738b093b4eae0a536e2ea02c2',
                 'uploader_id': '25',
                 'upload_date': '20180330',
             },
@@ -72,23 +72,33 @@ class PuhuTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        # API call
         info = self._download_json(
             'https://puhutv.com/api/slug/%s-izle' % video_id,
-            video_id).get('data')
+            video_id, fatal=False)
 
+        info = info.get('data')
         display_id = compat_str(info.get('id'))
-        title = info.get('title').get('name')
-        if(info.get('display_name')):
+        title = info.get('title', {}).get('name')
+        if(info.get('display_name') and title is not None):
             title += ' ' + info.get('display_name')
-        description = info.get('title').get('description')
-        upload_date = info.get('created_at').split('T')[0].replace('-', '')
-        uploader = info.get('title').get('producer').get('name')
-        uploader_id = compat_str(info.get('title').get('producer').get('id'))
-        view_count = int_or_none(info.get('content').get('watch_count'))
-        duration = float_or_none(info.get('content').get('duration_in_ms'), scale=1000)
-        thumbnail = 'https://%s' % info.get('content').get('images').get('wide').get('main')
-        release_year = int_or_none(info.get('title').get('released_at'))
+        description = info.get('title', {}).get('description')
+
+        upload_date = info.get('created_at', '').split('T')[0].replace('-', '')
+        if upload_date is '':
+            upload_date = None
+        uploader = info.get('title', {}).get('producer', {}).get('name')
+        uploader_id = info.get('title', {}).get('producer', {}).get('id')
+        if uploader_id is not None:
+            uploader_id = compat_str(uploader_id)
+        view_count = int_or_none(info.get('content', {}).get('watch_count'))
+        duration = float_or_none(info.get('content', {}).get('duration_in_ms'), scale=1000)
+        thumbnail = 'https://%s' % info.get('content', {}).get('images', {}).get('wide', {}).get('main')
+        release_year = int_or_none(info.get('title', {}).get('released_at'))
         webpage_url = info.get('web_url')
+        tags_list = info.get('title', {}).get('genres', {})
+        thumbnails_list = info.get('content', {}).get('images', {}).get('wide', {})
+        subtitles_list = info.get('content', {}).get('subtitles', {})
 
         # for series
         season_number = int_or_none(info.get('season_number'))
@@ -96,18 +106,18 @@ class PuhuTVIE(InfoExtractor):
         episode_number = int_or_none(info.get('episode_number'))
 
         tags = []
-        for tag in info.get('title').get('genres'):
+        for tag in tags_list:
             tags.append(tag.get('name'))
 
         thumbnails = []
-        for key,image in info.get('content').get('images').get('wide').items():
+        for id,url in thumbnails_list.items():
             thumbnails.append({
-                'url': image,
-                'id': key
+                'url': url,
+                'id': id
             })
 
         subtitles = {}
-        for subtitle in info.get('content').get('subtitles'):
+        for subtitle in subtitles_list:
             lang = subtitle.get('language')
             sub_url = subtitle.get('url')
             subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = [{
@@ -117,9 +127,9 @@ class PuhuTVIE(InfoExtractor):
 
         format_dict = self._download_json(
             'https://puhutv.com/api/assets/%s/videos' % display_id,
-            video_id, 'Downloading sources').get('data').get('videos')
+            video_id, 'Downloading video JSON').get('data').get('videos')
         if not format_dict:
-            raise ExtractorError('This video not available in your country')
+            self.raise_geo_restricted()
 
         formats = []
         for format in format_dict:
@@ -156,17 +166,31 @@ class PuhuTVIE(InfoExtractor):
         }
 
 
-class PuhuTVSeasonIE(InfoExtractor):
+class PuhuTVSerieIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?puhutv\.com/(?P<id>[a-z0-9-]+)-detay'
-    IE_NAME = 'puhutv:season'
-    _TESTS = [{
-        'url': 'https://puhutv.com/deniz-yildizi-detay',
-        'info_dict': {
-            'title': 'Deniz Yıldızı',
-            'id': 'deniz-yildizi',
+    IE_NAME = 'puhutv:serie'
+    _TESTS = [
+        {
+            'url': 'https://puhutv.com/deniz-yildizi-detay',
+            'info_dict': {
+                'title': 'Deniz Yıldızı',
+                'id': 'deniz-yildizi',
+                'uploader': 'Focus Film',
+                'uploader_id': 61,
+            },
+            'playlist_mincount': 10,
         },
-        'playlist_mincount': 10,
-    }]
+        { # a film detail page which is using same url with serie page
+            'url': 'https://puhutv.com/kaybedenler-kulubu-detay',
+            'info_dict': {
+                'title': 'Kaybedenler Kulübü',
+                'id': 'kaybedenler-kulubu',
+                'uploader': 'Tolga Örnek, Murat Dörtbudak, Neslihan Dörtbudak, Kemal Kaplanoğlu',
+                'uploader_id': 248,
+            },
+            'playlist_mincount': 1,
+        },
+    ]
 
     def _extract_entries(self, playlist_id, seasons):
         for season in seasons:
@@ -198,9 +222,17 @@ class PuhuTVSeasonIE(InfoExtractor):
              playlist_id).get('data')
 
         title = info.get('name')
-        uploader = info.get('producer').get('name')
-        uploader_id = info.get('producer').get('id')
+        uploader = info.get('producer', {}).get('name')
+        uploader_id = info.get('producer', {}).get('id')
         seasons = info.get('seasons')
+        if seasons:
+            entries = self._extract_entries(playlist_id, seasons)
+        else:
+            # For films, these are using same url with series
+            video_id = info.get('assets')[0].get('slug')
+            return self.url_result(
+                'https://puhutv.com/%s-izle' % video_id,
+                PuhuTVIE.ie_key(), video_id)
 
         return {
             '_type': 'playlist',
@@ -208,5 +240,5 @@ class PuhuTVSeasonIE(InfoExtractor):
             'title': title,
             'uploader': uploader,
             'uploader_id': uploader_id,
-            'entries': self._extract_entries(playlist_id, seasons),
+            'entries': entries,
         }

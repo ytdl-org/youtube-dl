@@ -851,7 +851,7 @@ from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
 from .puhutv import (
     PuhuTVIE,
-    PuhuTVSeasonIE,
+    PuhuTVSerieIE,
 )
 from .presstv import PressTVIE
 from .primesharetv import PrimeShareTVIE
