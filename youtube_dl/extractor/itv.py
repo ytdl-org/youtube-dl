@@ -41,6 +41,14 @@ class ITVIE(InfoExtractor):
         # unavailable via data-playlist-url
         'url': 'https://www.itv.com/hub/through-the-keyhole/2a2271a0033',
         'only_matching': True,
+    }, {
+        # InvalidVodcrid
+        'url': 'https://www.itv.com/hub/james-martins-saturday-morning/2a5159a0034',
+        'only_matching': True,
+    }, {
+        # ContentUnavailable
+        'url': 'https://www.itv.com/hub/whos-doing-the-dishes/2a2898a0024',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -127,7 +135,8 @@ class ITVIE(InfoExtractor):
             if fault_code == 'InvalidGeoRegion':
                 self.raise_geo_restricted(
                     msg=fault_string, countries=self._GEO_COUNTRIES)
-            elif fault_code != 'InvalidEntity':
+            elif fault_code not in (
+                    'InvalidEntity', 'InvalidVodcrid', 'ContentUnavailable'):
                 raise ExtractorError(
                     '%s said: %s' % (self.IE_NAME, fault_string), expected=True)
             info.update({
