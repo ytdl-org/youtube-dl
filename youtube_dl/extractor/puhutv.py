@@ -5,7 +5,6 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
-    ExtractorError,
     float_or_none,
     determine_ext
 )
@@ -14,7 +13,7 @@ from ..utils import (
 class PuhuTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?puhutv\.com/(?P<id>[a-z0-9-]+)-izle'
     _TESTS = [
-        { # A Film
+        {  # A Film
             'url': 'https://puhutv.com/sut-kardesler-izle',
             'md5': 'a347470371d56e1585d1b2c8dab01c96',
             'info_dict': {
@@ -29,7 +28,7 @@ class PuhuTVIE(InfoExtractor):
                 'upload_date': '20160729',
             },
         },
-        { # An Episode and geo restricted
+        {  # An Episode and geo restricted
             'url': 'https://puhutv.com/jet-sosyete-1-bolum-izle',
             'md5': '3cd1f4b931cff5e009dfa46a3b88a42a',
             'info_dict': {
@@ -44,7 +43,7 @@ class PuhuTVIE(InfoExtractor):
                 'upload_date': '20180220',
             },
         },
-        { # Has subtitle
+        {  # Has subtitle
             'url': 'https://puhutv.com/dip-1-bolum-izle',
             'md5': 'f27792b1169f42ab318c38887ad5b28e',
             'info_dict': {
@@ -64,10 +63,10 @@ class PuhuTVIE(InfoExtractor):
         }
     ]
     IE_NAME = 'puhutv'
-    _SUBTITLE_LANGS = { # currently supported for some series
-        'English':'en',
-        'Deutsch':'de',
-        'عربى':'ar'
+    _SUBTITLE_LANGS = {  # currently supported for some series
+        'English': 'en',
+        'Deutsch': 'de',
+        'عربى': 'ar'
     }
 
     def _real_extract(self, url):
@@ -110,7 +109,7 @@ class PuhuTVIE(InfoExtractor):
             tags.append(tag.get('name'))
 
         thumbnails = []
-        for id,url in thumbnails_list.items():
+        for id, url in thumbnails_list.items():
             thumbnails.append({
                 'url': url,
                 'id': id
@@ -136,7 +135,7 @@ class PuhuTVIE(InfoExtractor):
             media_url = format.get('url')
             ext = format.get('video_format')
             quality = format.get('quality')
-            if ext == 'mp4' and format.get('is_playlist') == False:
+            if ext == 'mp4' and format.get('is_playlist') is False:
                 formats.append({
                     'url': media_url,
                     'format_id': 'http-%s' % quality,
@@ -180,7 +179,7 @@ class PuhuTVSerieIE(InfoExtractor):
             },
             'playlist_mincount': 10,
         },
-        { # a film detail page which is using same url with serie page
+        {  # a film detail page which is using same url with serie page
             'url': 'https://puhutv.com/kaybedenler-kulubu-detay',
             'info_dict': {
                 'title': 'Kaybedenler Kulübü',
@@ -198,14 +197,14 @@ class PuhuTVSerieIE(InfoExtractor):
             season_number = season.get('position')
             pagenum = 1
             has_more = True
-            while has_more == True:
+            while has_more is True:
                 query = {
                     'page': pagenum,
                     'per': 40,
                 }
                 season_info = self._download_json(
                     'https://galadriel.puhutv.com/seasons/%s' % season_id,
-                     playlist_id, 'Downloading season %s page %s' % (season_number, pagenum), query=query)
+                    playlist_id, 'Downloading season %s page %s' % (season_number, pagenum), query=query)
                 for episode in season_info.get('episodes'):
                     video_id = episode.get('slugPath').replace('-izle', '')
                     yield self.url_result(
@@ -219,7 +218,7 @@ class PuhuTVSerieIE(InfoExtractor):
 
         info = self._download_json(
             'https://puhutv.com/api/slug/%s-detay' % playlist_id,
-             playlist_id).get('data')
+            playlist_id).get('data')
 
         title = info.get('name')
         uploader = info.get('producer', {}).get('name')
