@@ -2638,6 +2638,10 @@ def srt_subtitles_timecode(seconds):
     return '%02d:%02d:%02d,%03d' % (seconds / 3600, (seconds % 3600) / 60, seconds % 60, (seconds % 1) * 1000)
 
 
+def ass_subtitles_timecode(seconds):
+    return '%01d:%02d:%02d.%02d' % (seconds / 3600, (seconds % 3600) / 60, seconds % 60, (seconds % 1) * 100)
+
+
 def dfxp2srt(dfxp_data):
     '''
     @param dfxp_data A bytes-like object containing DFXP data
