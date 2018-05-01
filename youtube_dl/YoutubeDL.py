@@ -532,12 +532,16 @@ class YoutubeDL(object):
     def save_console_title(self):
         if not self.params.get('consoletitle', False):
             return
+        if self.params.get('simulate', False):
+            return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Save the title on stack
             self._write_string('\033[22;0t', self._screen_file)
 
     def restore_console_title(self):
         if not self.params.get('consoletitle', False):
+            return
+        if self.params.get('simulate', False):
             return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Restore the title from stack
@@ -1849,7 +1853,7 @@ class YoutubeDL(object):
                     def compatible_formats(formats):
                         video, audio = formats
                         # Check extension
-                        video_ext, audio_ext = audio.get('ext'), video.get('ext')
+                        video_ext, audio_ext = video.get('ext'), audio.get('ext')
                         if video_ext and audio_ext:
                             COMPATIBLE_EXTS = (
                                 ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'ismv', 'isma'),

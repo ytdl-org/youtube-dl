@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
+    determine_ext,
     mimetype2ext,
     qualities,
     remove_end,
@@ -73,19 +75,25 @@ class ImdbIE(InfoExtractor):
             video_info_list = format_info.get('videoInfoList')
             if not video_info_list or not isinstance(video_info_list, list):
                 continue
-            video_info = video_info_list[0]
-            if not video_info or not isinstance(video_info, dict):
-                continue
-            video_url = video_info.get('videoUrl')
-            if not video_url:
-                continue
-            format_id = format_info.get('ffname')
-            formats.append({
-                'format_id': format_id,
-                'url': video_url,
-                'ext': mimetype2ext(video_info.get('videoMimeType')),
-                'quality': quality(format_id),
-            })
+            for video_info in video_info_list:
+                if not video_info or not isinstance(video_info, dict):
+                    continue
+                video_url = video_info.get('videoUrl')
+                if not video_url or not isinstance(video_url, compat_str):
+                    continue
+                if (video_info.get('videoMimeType') == 'application/x-mpegURL' or
+                        determine_ext(video_url) == 'm3u8'):
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
+                    continue
+                format_id = format_info.get('ffname')
+                formats.append({
+                    'format_id': format_id,
+                    'url': video_url,
+                    'ext': mimetype2ext(video_info.get('videoMimeType')),
+                    'quality': quality(format_id),
+                })
         self._sort_formats(formats)
 
         return {

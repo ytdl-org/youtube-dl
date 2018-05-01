@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from .theplatform import ThePlatformFeedIE
 from ..utils import (
+    ExtractorError,
     int_or_none,
     find_xpath_attr,
     xpath_element,
@@ -61,9 +62,10 @@ class CBSIE(CBSBaseIE):
         asset_types = []
         subtitles = {}
         formats = []
+        last_e = None
         for item in items_data.findall('.//item'):
             asset_type = xpath_text(item, 'assetType')
-            if not asset_type or asset_type in asset_types:
+            if not asset_type or asset_type in asset_types or asset_type in ('HLS_FPS', 'DASH_CENC'):
                 continue
             asset_types.append(asset_type)
             query = {
@@ -74,11 +76,17 @@ class CBSIE(CBSBaseIE):
                 query['formats'] = 'MPEG4,M3U'
             elif asset_type in ('RTMP', 'WIFI', '3G'):
                 query['formats'] = 'MPEG4,FLV'
-            tp_formats, tp_subtitles = self._extract_theplatform_smil(
-                update_url_query(tp_release_url, query), content_id,
-                'Downloading %s SMIL data' % asset_type)
+            try:
+                tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                    update_url_query(tp_release_url, query), content_id,
+                    'Downloading %s SMIL data' % asset_type)
+            except ExtractorError as e:
+                last_e = e
+                continue
             formats.extend(tp_formats)
             subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        if last_e and not formats:
+            raise last_e
         self._sort_formats(formats)
 
         info = self._extract_theplatform_metadata(tp_path, content_id)

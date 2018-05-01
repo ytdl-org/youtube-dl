@@ -77,7 +77,7 @@ class LineTVIE(InfoExtractor):
         title = self._og_search_title(webpage)
 
         # like_count requires an additional API request https://tv.line.me/api/likeit/getCount
-        
+
         return {
             'id': video_id,
             'title': title,
