@@ -74,7 +74,7 @@ class PuhuTVIE(InfoExtractor):
         # API call
         info = self._download_json(
             'https://puhutv.com/api/slug/%s-izle' % video_id,
-            video_id, fatal=False)
+            video_id)
 
         info = info.get('data')
         display_id = compat_str(info.get('id'))
