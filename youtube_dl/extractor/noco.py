@@ -70,7 +70,7 @@ class NocoIE(InfoExtractor):
             return
 
         login = self._download_json(
-            self._LOGIN_URL, None, 'Logging in as %s' % username,
+            self._LOGIN_URL, None, 'Logging in',
             data=urlencode_postdata({
                 'a': 'login',
                 'cookie': '1',

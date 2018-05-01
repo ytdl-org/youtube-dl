@@ -132,7 +132,7 @@ class ToggleIE(InfoExtractor):
         formats = []
         for video_file in info.get('Files', []):
             video_url, vid_format = video_file.get('URL'), video_file.get('Format')
-            if not video_url or not vid_format:
+            if not video_url or video_url == 'NA' or not vid_format:
                 continue
             ext = determine_ext(video_url)
             vid_format = vid_format.replace(' ', '')
@@ -142,6 +142,18 @@ class ToggleIE(InfoExtractor):
                     video_url, video_id, ext='mp4', m3u8_id=vid_format,
                     note='Downloading %s m3u8 information' % vid_format,
                     errnote='Failed to download %s m3u8 information' % vid_format,
+                    fatal=False))
+            elif ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    video_url, video_id, mpd_id=vid_format,
+                    note='Downloading %s MPD manifest' % vid_format,
+                    errnote='Failed to download %s MPD manifest' % vid_format,
+                    fatal=False))
+            elif ext == 'ism':
+                formats.extend(self._extract_ism_formats(
+                    video_url, video_id, ism_id=vid_format,
+                    note='Downloading %s ISM manifest' % vid_format,
+                    errnote='Failed to download %s ISM manifest' % vid_format,
                     fatal=False))
             elif ext in ('mp4', 'wvm'):
                 # wvm are drm-protected files

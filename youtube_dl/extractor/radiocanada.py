@@ -20,20 +20,37 @@ from ..utils import (
 class RadioCanadaIE(InfoExtractor):
     IE_NAME = 'radiocanada'
     _VALID_URL = r'(?:radiocanada:|https?://ici\.radio-canada\.ca/widgets/mediaconsole/)(?P<app_code>[^:/]+)[:/](?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7184272',
-        'info_dict': {
-            'id': '7184272',
-            'ext': 'mp4',
-            'title': 'Le parcours du tireur capté sur vidéo',
-            'description': 'Images des caméras de surveillance fournies par la GRC montrant le parcours du tireur d\'Ottawa',
-            'upload_date': '20141023',
+    _TESTS = [
+        {
+            'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7184272',
+            'info_dict': {
+                'id': '7184272',
+                'ext': 'mp4',
+                'title': 'Le parcours du tireur capté sur vidéo',
+                'description': 'Images des caméras de surveillance fournies par la GRC montrant le parcours du tireur d\'Ottawa',
+                'upload_date': '20141023',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            }
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }
+        {
+            # empty Title
+            'url': 'http://ici.radio-canada.ca/widgets/mediaconsole/medianet/7754998/',
+            'info_dict': {
+                'id': '7754998',
+                'ext': 'mp4',
+                'title': 'letelejournal22h',
+                'description': 'INTEGRALE WEB 22H-TJ',
+                'upload_date': '20170720',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        }
+    ]
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -59,6 +76,7 @@ class RadioCanadaIE(InfoExtractor):
             device_types.append('android')
 
         formats = []
+        error = None
         # TODO: extract f4m formats
         # f4m formats can be extracted using flashhd device_type but they produce unplayable file
         for device_type in device_types:
@@ -84,8 +102,8 @@ class RadioCanadaIE(InfoExtractor):
             if not v_url:
                 continue
             if v_url == 'null':
-                raise ExtractorError('%s said: %s' % (
-                    self.IE_NAME, xpath_text(v_data, 'message')), expected=True)
+                error = xpath_text(v_data, 'message')
+                continue
             ext = determine_ext(v_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
@@ -129,6 +147,9 @@ class RadioCanadaIE(InfoExtractor):
                             formats.extend(self._extract_f4m_formats(
                                 base_url + '/manifest.f4m', video_id,
                                 f4m_id='hds', fatal=False))
+        if not formats and error:
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, error), expected=True)
         self._sort_formats(formats)
 
         subtitles = {}
@@ -141,7 +162,7 @@ class RadioCanadaIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': get_meta('Title'),
+            'title': get_meta('Title') or get_meta('AV-nomEmission'),
             'description': get_meta('Description') or get_meta('ShortDescription'),
             'thumbnail': get_meta('imageHR') or get_meta('imageMR') or get_meta('imageBR'),
             'duration': int_or_none(get_meta('length')),

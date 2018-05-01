@@ -1,13 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import uuid
 
 from .common import InfoExtractor
 from .ooyala import OoyalaIE
 from ..compat import (
     compat_str,
-    compat_urllib_parse_urlencode,
     compat_urlparse,
 )
 from ..utils import (
@@ -42,31 +42,33 @@ class MiTeleBaseIE(InfoExtractor):
                 duration = int_or_none(mmc.get('duration'))
             for location in mmc['locations']:
                 gat = self._proto_relative_url(location.get('gat'), 'http:')
-                bas = location.get('bas')
-                loc = location.get('loc')
+                gcp = location.get('gcp')
                 ogn = location.get('ogn')
-                if None in (gat, bas, loc, ogn):
+                if None in (gat, gcp, ogn):
                     continue
                 token_data = {
-                    'bas': bas,
-                    'icd': loc,
+                    'gcp': gcp,
                     'ogn': ogn,
-                    'sta': '0',
+                    'sta': 0,
                 }
                 media = self._download_json(
-                    '%s/?%s' % (gat, compat_urllib_parse_urlencode(token_data)),
-                    video_id, 'Downloading %s JSON' % location['loc'])
-                file_ = media.get('file')
-                if not file_:
+                    gat, video_id, data=json.dumps(token_data).encode('utf-8'),
+                    headers={
+                        'Content-Type': 'application/json;charset=utf-8',
+                        'Referer': url,
+                    })
+                stream = media.get('stream') or media.get('file')
+                if not stream:
                     continue
-                ext = determine_ext(file_)
+                ext = determine_ext(stream)
                 if ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
-                        file_ + '&hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
+                        stream + '&hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
                         video_id, f4m_id='hds', fatal=False))
                 elif ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        file_, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+                        stream, video_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
         self._sort_formats(formats)
 
         return {

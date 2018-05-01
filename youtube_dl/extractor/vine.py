@@ -2,9 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-import itertools
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     determine_ext,
     int_or_none,
@@ -112,21 +112,24 @@ class VineIE(InfoExtractor):
 
 class VineUserIE(InfoExtractor):
     IE_NAME = 'vine:user'
-    _VALID_URL = r'(?:https?://)?vine\.co/(?P<u>u/)?(?P<user>[^/]+)/?(\?.*)?$'
+    _VALID_URL = r'https?://vine\.co/(?P<u>u/)?(?P<user>[^/]+)'
     _VINE_BASE_URL = 'https://vine.co/'
-    _TESTS = [
-        {
-            'url': 'https://vine.co/Visa',
-            'info_dict': {
-                'id': 'Visa',
-            },
-            'playlist_mincount': 46,
+    _TESTS = [{
+        'url': 'https://vine.co/itsruthb',
+        'info_dict': {
+            'id': 'itsruthb',
+            'title': 'Ruth B',
+            'description': '| Instagram/Twitter: itsruthb | still a lost boy from neverland',
         },
-        {
-            'url': 'https://vine.co/u/941705360593584128',
-            'only_matching': True,
-        },
-    ]
+        'playlist_mincount': 611,
+    }, {
+        'url': 'https://vine.co/u/942914934646415360',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if VineIE.suitable(url) else super(VineUserIE, cls).suitable(url)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -138,17 +141,14 @@ class VineUserIE(InfoExtractor):
         profile_data = self._download_json(
             profile_url, user, note='Downloading user profile data')
 
-        user_id = profile_data['data']['userId']
-        timeline_data = []
-        for pagenum in itertools.count(1):
-            timeline_url = '%sapi/timelines/users/%s?page=%s&size=100' % (
-                self._VINE_BASE_URL, user_id, pagenum)
-            timeline_page = self._download_json(
-                timeline_url, user, note='Downloading page %d' % pagenum)
-            timeline_data.extend(timeline_page['data']['records'])
-            if timeline_page['data']['nextPage'] is None:
-                break
-
+        data = profile_data['data']
+        user_id = data.get('userId') or data['userIdStr']
+        profile = self._download_json(
+            'https://archive.vine.co/profiles/%s.json' % user_id, user_id)
         entries = [
-            self.url_result(e['permalinkUrl'], 'Vine') for e in timeline_data]
-        return self.playlist_result(entries, user)
+            self.url_result(
+                'https://vine.co/v/%s' % post_id, ie='Vine', video_id=post_id)
+            for post_id in profile['posts']
+            if post_id and isinstance(post_id, compat_str)]
+        return self.playlist_result(
+            entries, user, profile.get('username'), profile.get('description'))

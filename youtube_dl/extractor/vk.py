@@ -25,6 +25,7 @@ from ..utils import (
 from .dailymotion import DailymotionIE
 from .pladform import PladformIE
 from .vimeo import VimeoIE
+from .youtube import YoutubeIE
 
 
 class VKBaseIE(InfoExtractor):
@@ -66,7 +67,7 @@ class VKBaseIE(InfoExtractor):
 
         login_page = self._download_webpage(
             'https://login.vk.com/?act=login', None,
-            note='Logging in as %s' % username,
+            note='Logging in',
             data=urlencode_postdata(login_form))
 
         if re.search(r'onLoginFailed', login_page):
@@ -98,10 +99,10 @@ class VKIE(VKBaseIE):
     _TESTS = [
         {
             'url': 'http://vk.com/videos-77521?z=video-77521_162222515%2Fclub77521',
-            'md5': '0deae91935c54e00003c2a00646315f0',
+            'md5': '7babad3b85ea2e91948005b1b8b0cb84',
             'info_dict': {
                 'id': '162222515',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
                 'duration': 195,
@@ -317,9 +318,14 @@ class VKIE(VKBaseIE):
                 'You are trying to log in from an unusual location. You should confirm ownership at vk.com to log in with this IP.',
                 expected=True)
 
+        ERROR_COPYRIGHT = 'Video %s has been removed from public access due to rightholder complaint.'
+
         ERRORS = {
             r'>Видеозапись .*? была изъята из публичного доступа в связи с обращением правообладателя.<':
-            'Video %s has been removed from public access due to rightholder complaint.',
+            ERROR_COPYRIGHT,
+
+            r'>The video .*? was removed from public access by request of the copyright holder.<':
+            ERROR_COPYRIGHT,
 
             r'<!>Please log in or <':
             'Video %s is only available for registered users, '
@@ -345,11 +351,9 @@ class VKIE(VKBaseIE):
             if re.search(error_re, info_page):
                 raise ExtractorError(error_msg % video_id, expected=True)
 
-        youtube_url = self._search_regex(
-            r'<iframe[^>]+src="((?:https?:)?//www.youtube.com/embed/[^"]+)"',
-            info_page, 'youtube iframe', default=None)
+        youtube_url = YoutubeIE._extract_url(info_page)
         if youtube_url:
-            return self.url_result(youtube_url, 'Youtube')
+            return self.url_result(youtube_url, ie=YoutubeIE.ie_key())
 
         vimeo_url = VimeoIE._extract_url(url, info_page)
         if vimeo_url is not None:
@@ -415,7 +419,7 @@ class VKIE(VKBaseIE):
 
         view_count = str_to_int(self._search_regex(
             r'class=["\']mv_views_count[^>]+>\s*([\d,.]+)',
-            info_page, 'view count', fatal=False))
+            info_page, 'view count', default=None))
 
         formats = []
         for format_id, format_url in data.items():

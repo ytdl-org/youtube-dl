@@ -7,6 +7,7 @@ import time
 
 from .amp import AMPIE
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..compat import compat_urlparse
 
 
@@ -65,7 +66,7 @@ class AbcNewsIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://abcnews.go.com/Blotter/News/dramatic-video-rare-death-job-america/story?id=10498713#.UIhwosWHLjY',
         'info_dict': {
-            'id': '10498713',
+            'id': '10505354',
             'ext': 'flv',
             'display_id': 'dramatic-video-rare-death-job-america',
             'title': 'Occupational Hazards',
@@ -78,7 +79,7 @@ class AbcNewsIE(InfoExtractor):
     }, {
         'url': 'http://abcnews.go.com/Entertainment/justin-timberlake-performs-stop-feeling-eurovision-2016/story?id=39125818',
         'info_dict': {
-            'id': '39125818',
+            'id': '38897857',
             'ext': 'mp4',
             'display_id': 'justin-timberlake-performs-stop-feeling-eurovision-2016',
             'title': 'Justin Timberlake Drops Hints For Secret Single',
@@ -108,9 +109,7 @@ class AbcNewsIE(InfoExtractor):
             r'window\.abcnvideo\.url\s*=\s*"([^"]+)"', webpage, 'video URL')
         full_video_url = compat_urlparse.urljoin(url, video_url)
 
-        youtube_url = self._html_search_regex(
-            r'<iframe[^>]+src="(https://www\.youtube\.com/embed/[^"]+)"',
-            webpage, 'YouTube URL', default=None)
+        youtube_url = YoutubeIE._extract_url(webpage)
 
         timestamp = None
         date_str = self._html_search_regex(
@@ -140,7 +139,7 @@ class AbcNewsIE(InfoExtractor):
         }
 
         if youtube_url:
-            entries = [entry, self.url_result(youtube_url, 'Youtube')]
+            entries = [entry, self.url_result(youtube_url, ie=YoutubeIE.ie_key())]
             return self.playlist_result(entries)
 
         return entry

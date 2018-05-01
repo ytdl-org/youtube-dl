@@ -1,37 +1,34 @@
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
 
 
 class FreespeechIE(InfoExtractor):
     IE_NAME = 'freespeech.org'
-    _VALID_URL = r'https?://(?:www\.)?freespeech\.org/video/(?P<title>.+)'
+    _VALID_URL = r'https?://(?:www\.)?freespeech\.org/stories/(?P<id>.+)'
     _TEST = {
         'add_ie': ['Youtube'],
-        'url': 'https://www.freespeech.org/video/obama-romney-campaign-colorado-ahead-debate-0',
+        'url': 'http://www.freespeech.org/stories/fcc-announces-net-neutrality-rollback-whats-stake/',
         'info_dict': {
-            'id': 'poKsVCZ64uU',
-            'ext': 'webm',
-            'title': 'Obama, Romney Campaign in Colorado Ahead of Debate',
-            'description': 'Obama, Romney Campaign in Colorado Ahead of Debate',
-            'uploader': 'freespeechtv',
+            'id': 'waRk6IPqyWM',
+            'ext': 'mp4',
+            'title': 'What\'s At Stake - Net Neutrality Special',
+            'description': 'Presented by MNN and FSTV',
+            'upload_date': '20170728',
             'uploader_id': 'freespeechtv',
-            'upload_date': '20121002',
+            'uploader': 'freespeechtv',
         },
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        title = mobj.group('title')
-        webpage = self._download_webpage(url, title)
-        info_json = self._search_regex(r'jQuery.extend\(Drupal.settings, ({.*?})\);', webpage, 'info')
-        info = json.loads(info_json)
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        youtube_url = self._search_regex(
+            r'data-video-url="([^"]+)"',
+            webpage, 'youtube url')
 
         return {
             '_type': 'url',
-            'url': info['jw_player']['basic_video_node_player']['file'],
+            'url': youtube_url,
             'ie_key': 'Youtube',
         }

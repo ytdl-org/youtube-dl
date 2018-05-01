@@ -6,15 +6,18 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    ExtractorError,
     find_xpath_attr,
-    unified_strdate,
     get_element_by_attribute,
     int_or_none,
     NO_DEFAULT,
     qualities,
+    try_get,
+    unified_strdate,
 )
 
 # There are different sources of video in arte.tv, the extraction process
@@ -79,6 +82,16 @@ class ArteTVBaseIE(InfoExtractor):
         info = self._download_json(json_url, video_id)
         player_info = info['videoJsonPlayer']
 
+        vsr = try_get(player_info, lambda x: x['VSR'], dict)
+        if not vsr:
+            error = None
+            if try_get(player_info, lambda x: x['custom_msg']['type']) == 'error':
+                error = try_get(
+                    player_info, lambda x: x['custom_msg']['msg'], compat_str)
+            if not error:
+                error = 'Video %s is not available' % player_info.get('VID') or video_id
+            raise ExtractorError(error, expected=True)
+
         upload_date_str = player_info.get('shootingDate')
         if not upload_date_str:
             upload_date_str = (player_info.get('VRA') or player_info.get('VDA') or '').split(' ')[0]
@@ -107,7 +120,7 @@ class ArteTVBaseIE(InfoExtractor):
         langcode = LANGS.get(lang, lang)
 
         formats = []
-        for format_id, format_dict in player_info['VSR'].items():
+        for format_id, format_dict in vsr.items():
             f = dict(format_dict)
             versionCode = f.get('versionCode')
             l = re.escape(langcode)

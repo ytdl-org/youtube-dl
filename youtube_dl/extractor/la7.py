@@ -49,7 +49,9 @@ class LA7IE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         player_data = self._parse_json(
-            self._search_regex(r'videoLa7\(({[^;]+})\);', webpage, 'player data'),
+            self._search_regex(
+                [r'(?s)videoParams\s*=\s*({.+?});', r'videoLa7\(({[^;]+})\);'],
+                webpage, 'player data'),
             video_id, transform_source=js_to_json)
 
         return {

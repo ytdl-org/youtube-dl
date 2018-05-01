@@ -94,7 +94,15 @@ class LyndaBaseIE(InfoExtractor):
 class LyndaIE(LyndaBaseIE):
     IE_NAME = 'lynda'
     IE_DESC = 'lynda.com videos'
-    _VALID_URL = r'https?://(?:www\.)?lynda\.com/(?:[^/]+/[^/]+/(?P<course_id>\d+)|player/embed)/(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?(?:lynda\.com|educourse\.ga)/
+                        (?:
+                            (?:[^/]+/){2,3}(?P<course_id>\d+)|
+                            player/embed
+                        )/
+                        (?P<id>\d+)
+                    '''
 
     _TIMECODE_REGEX = r'\[(?P<timecode>\d+:\d+:\d+[\.,]\d+)\]'
 
@@ -109,6 +117,12 @@ class LyndaIE(LyndaBaseIE):
         }
     }, {
         'url': 'https://www.lynda.com/player/embed/133770?tr=foo=1;bar=g;fizz=rt&fs=0',
+        'only_matching': True,
+    }, {
+        'url': 'https://educourse.ga/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.lynda.com/de/Graphic-Design-tutorials/Willkommen-Grundlagen-guten-Gestaltung/393570/393572-4.html',
         'only_matching': True,
     }]
 
@@ -241,8 +255,9 @@ class LyndaIE(LyndaBaseIE):
     def _get_subtitles(self, video_id):
         url = 'https://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
         subs = self._download_json(url, None, False)
-        if subs:
-            return {'en': [{'ext': 'srt', 'data': self._fix_subtitles(subs)}]}
+        fixed_subs = self._fix_subtitles(subs)
+        if fixed_subs:
+            return {'en': [{'ext': 'srt', 'data': fixed_subs}]}
         else:
             return {}
 
@@ -253,7 +268,15 @@ class LyndaCourseIE(LyndaBaseIE):
 
     # Course link equals to welcome/introduction video link of same course
     # We will recognize it as course link
-    _VALID_URL = r'https?://(?:www|m)\.lynda\.com/(?P<coursepath>[^/]+/[^/]+/(?P<courseid>\d+))-\d\.html'
+    _VALID_URL = r'https?://(?:www|m)\.(?:lynda\.com|educourse\.ga)/(?P<coursepath>(?:[^/]+/){2,3}(?P<courseid>\d+))-2\.html'
+
+    _TESTS = [{
+        'url': 'https://www.lynda.com/Graphic-Design-tutorials/Grundlagen-guten-Gestaltung/393570-2.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.lynda.com/de/Graphic-Design-tutorials/Grundlagen-guten-Gestaltung/393570-2.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

@@ -42,6 +42,7 @@ from youtube_dl.utils import (
     is_html,
     js_to_json,
     limit_length,
+    merge_dicts,
     mimetype2ext,
     month_by_name,
     multipart_encode,
@@ -53,10 +54,12 @@ from youtube_dl.utils import (
     parse_filesize,
     parse_count,
     parse_iso8601,
+    parse_resolution,
     pkcs1pad,
     read_batch_urls,
     sanitize_filename,
     sanitize_path,
+    sanitize_url,
     expand_path,
     prepend_extension,
     replace_extension,
@@ -219,6 +222,12 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_path('./abc'), 'abc')
         self.assertEqual(sanitize_path('./../abc'), '..\\abc')
 
+    def test_sanitize_url(self):
+        self.assertEqual(sanitize_url('//foo.bar'), 'http://foo.bar')
+        self.assertEqual(sanitize_url('httpss://foo.bar'), 'https://foo.bar')
+        self.assertEqual(sanitize_url('rmtps://foo.bar'), 'rtmps://foo.bar')
+        self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
+
     def test_expand_path(self):
         def env(var):
             return '%{0}%'.format(var) if sys.platform == 'win32' else '${0}'.format(var)
@@ -279,6 +288,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unescapeHTML('&#47;'), '/')
         self.assertEqual(unescapeHTML('&eacute;'), 'é')
         self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
+        self.assertEqual(unescapeHTML('&a&quot;'), '&a"')
         # HTML5 entities
         self.assertEqual(unescapeHTML('&period;&apos;'), '.\'')
 
@@ -342,6 +352,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_timestamp('Feb 7, 2016 at 6:35 pm'), 1454870100)
         self.assertEqual(unified_timestamp('2017-03-30T17:52:41Q'), 1490896361)
         self.assertEqual(unified_timestamp('Sep 11, 2013 | 5:49 AM'), 1378878540)
+        self.assertEqual(unified_timestamp('December 15, 2017 at 7:49 am'), 1513324140)
+        self.assertEqual(unified_timestamp('2018-03-14T08:32:43.1493874+00:00'), 1521016363)
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
@@ -539,6 +551,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_duration('87 Min.'), 5220)
         self.assertEqual(parse_duration('PT1H0.040S'), 3600.04)
         self.assertEqual(parse_duration('PT00H03M30SZ'), 210)
+        self.assertEqual(parse_duration('P0Y0M0DT0H4M20.880S'), 260.88)
 
     def test_fix_xml_ampersands(self):
         self.assertEqual(
@@ -656,6 +669,17 @@ class TestUtil(unittest.TestCase):
         for key, false_value in FALSE_VALUES.items():
             self.assertEqual(dict_get(d, ('b', 'c', key, )), None)
             self.assertEqual(dict_get(d, ('b', 'c', key, ), skip_false_values=False), false_value)
+
+    def test_merge_dicts(self):
+        self.assertEqual(merge_dicts({'a': 1}, {'b': 2}), {'a': 1, 'b': 2})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': 2}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': None}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': ''}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': None}, {'a': 1}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 1}), {'a': ''})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 'abc'}), {'a': 'abc'})
+        self.assertEqual(merge_dicts({'a': None}, {'a': ''}, {'a': 'abc'}), {'a': 'abc'})
 
     def test_encode_compat_str(self):
         self.assertEqual(encode_compat_str(b'\xd1\x82\xd0\xb5\xd1\x81\xd1\x82', 'utf-8'), 'тест')
@@ -811,6 +835,9 @@ class TestUtil(unittest.TestCase):
         inp = '''{"duration": "00:01:07"}'''
         self.assertEqual(js_to_json(inp), '''{"duration": "00:01:07"}''')
 
+        inp = '''{segments: [{"offset":-3.885780586188048e-16,"duration":39.75000000000001}]}'''
+        self.assertEqual(js_to_json(inp), '''{"segments": [{"offset":-3.885780586188048e-16,"duration":39.75000000000001}]}''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
@@ -881,6 +908,13 @@ class TestUtil(unittest.TestCase):
 
         on = js_to_json('{/*comment\n*/42/*comment\n*/:/*comment\n*/42/*comment\n*/}')
         self.assertEqual(json.loads(on), {'42': 42})
+
+        on = js_to_json('{42:4.2e1}')
+        self.assertEqual(json.loads(on), {'42': 42.0})
+
+    def test_js_to_json_malformed(self):
+        self.assertEqual(js_to_json('42a1'), '42"a1"')
+        self.assertEqual(js_to_json('42a-1'), '42"a"-1')
 
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
@@ -962,6 +996,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_count('1.1kk '), 1100000)
         self.assertEqual(parse_count('1.1kk views'), 1100000)
 
+    def test_parse_resolution(self):
+        self.assertEqual(parse_resolution(None), {})
+        self.assertEqual(parse_resolution(''), {})
+        self.assertEqual(parse_resolution('1920x1080'), {'width': 1920, 'height': 1080})
+        self.assertEqual(parse_resolution('1920×1080'), {'width': 1920, 'height': 1080})
+        self.assertEqual(parse_resolution('1920 x 1080'), {'width': 1920, 'height': 1080})
+        self.assertEqual(parse_resolution('720p'), {'height': 720})
+        self.assertEqual(parse_resolution('4k'), {'height': 2160})
+        self.assertEqual(parse_resolution('8K'), {'height': 4320})
+
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
         self.assertEqual(version_tuple('10.23.344'), (10, 23, 344))
@@ -1040,6 +1084,18 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+        self.assertTrue(match_str('is_live', {'is_live': True}))
+        self.assertFalse(match_str('is_live', {'is_live': False}))
+        self.assertFalse(match_str('is_live', {'is_live': None}))
+        self.assertFalse(match_str('is_live', {}))
+        self.assertFalse(match_str('!is_live', {'is_live': True}))
+        self.assertTrue(match_str('!is_live', {'is_live': False}))
+        self.assertTrue(match_str('!is_live', {'is_live': None}))
+        self.assertTrue(match_str('!is_live', {}))
+        self.assertTrue(match_str('title', {'title': 'abc'}))
+        self.assertTrue(match_str('title', {'title': ''}))
+        self.assertFalse(match_str('!title', {'title': 'abc'}))
+        self.assertFalse(match_str('!title', {'title': ''}))
 
     def test_parse_dfxp_time_expr(self):
         self.assertEqual(parse_dfxp_time_expr(None), None)
@@ -1063,7 +1119,7 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
                     <p begin="3" dur="-1">Ignored, three</p>
                 </div>
             </body>
-            </tt>'''
+            </tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:00,000 --> 00:00:01,000
 The following line contains Chinese characters and special symbols
@@ -1088,7 +1144,7 @@ Line
                     <p begin="0" end="1">The first line</p>
                 </div>
             </body>
-            </tt>'''
+            </tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:00,000 --> 00:00:01,000
 The first line
@@ -1114,7 +1170,7 @@ The first line
       <p style="s1" tts:textDecoration="underline" begin="00:00:09.56" id="p2" end="00:00:12.36"><span style="s2" tts:color="lime">inner<br /> </span>style</p>
     </div>
   </body>
-</tt>'''
+</tt>'''.encode('utf-8')
         srt_data = '''1
 00:00:02,080 --> 00:00:05,839
 <font color="white" face="sansSerif" size="16">default style<font color="red">custom style</font></font>
@@ -1136,6 +1192,26 @@ part 3</font></u>
 
 '''
         self.assertEqual(dfxp2srt(dfxp_data_with_style), srt_data)
+
+        dfxp_data_non_utf8 = '''<?xml version="1.0" encoding="UTF-16"?>
+            <tt xmlns="http://www.w3.org/ns/ttml" xml:lang="en" xmlns:tts="http://www.w3.org/ns/ttml#parameter">
+            <body>
+                <div xml:lang="en">
+                    <p begin="0" end="1">Line 1</p>
+                    <p begin="1" end="2">第二行</p>
+                </div>
+            </body>
+            </tt>'''.encode('utf-16')
+        srt_data = '''1
+00:00:00,000 --> 00:00:01,000
+Line 1
+
+2
+00:00:01,000 --> 00:00:02,000
+第二行
+
+'''
+        self.assertEqual(dfxp2srt(dfxp_data_non_utf8), srt_data)
 
     def test_cli_option(self):
         self.assertEqual(cli_option({'proxy': '127.0.0.1:3128'}, '--proxy', 'proxy'), ['--proxy', '127.0.0.1:3128'])

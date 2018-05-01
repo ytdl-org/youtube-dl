@@ -67,7 +67,7 @@ class PatreonIE(InfoExtractor):
             'https://www.patreon.com/processLogin',
             compat_urllib_parse_urlencode(login_form).encode('utf-8')
         )
-        login_page = self._download_webpage(request, None, note='Logging in as %s' % username)
+        login_page = self._download_webpage(request, None, note='Logging in')
 
         if re.search(r'onLoginFailed', login_page):
             raise ExtractorError('Unable to login, incorrect username and/or password', expected=True)

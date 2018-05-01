@@ -18,6 +18,7 @@ from ..utils import (
     parse_duration,
     qualities,
     srt_subtitles_timecode,
+    try_get,
     update_url_query,
     urlencode_postdata,
 )
@@ -25,6 +26,39 @@ from ..utils import (
 
 class PluralsightBaseIE(InfoExtractor):
     _API_BASE = 'https://app.pluralsight.com'
+
+    def _download_course(self, course_id, url, display_id):
+        try:
+            return self._download_course_rpc(course_id, url, display_id)
+        except ExtractorError:
+            # Old API fallback
+            return self._download_json(
+                'https://app.pluralsight.com/player/user/api/v1/player/payload',
+                display_id, data=urlencode_postdata({'courseId': course_id}),
+                headers={'Referer': url})
+
+    def _download_course_rpc(self, course_id, url, display_id):
+        response = self._download_json(
+            '%s/player/functions/rpc' % self._API_BASE, display_id,
+            'Downloading course JSON',
+            data=json.dumps({
+                'fn': 'bootstrapPlayer',
+                'payload': {
+                    'courseId': course_id,
+                },
+            }).encode('utf-8'),
+            headers={
+                'Content-Type': 'application/json;charset=utf-8',
+                'Referer': url,
+            })
+
+        course = try_get(response, lambda x: x['payload']['course'], dict)
+        if course:
+            return course
+
+        raise ExtractorError(
+            '%s said: %s' % (self.IE_NAME, response['error']['message']),
+            expected=True)
 
 
 class PluralsightIE(PluralsightBaseIE):
@@ -82,7 +116,7 @@ class PluralsightIE(PluralsightBaseIE):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
         response = self._download_webpage(
-            post_url, None, 'Logging in as %s' % username,
+            post_url, None, 'Logging in',
             data=urlencode_postdata(login_form),
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
@@ -97,6 +131,13 @@ class PluralsightIE(PluralsightBaseIE):
             if BLOCKED in response:
                 raise ExtractorError(
                     'Unable to login: %s' % BLOCKED, expected=True)
+            MUST_AGREE = 'To continue using Pluralsight, you must agree to'
+            if any(p in response for p in (MUST_AGREE, '>Disagree<', '>Agree<')):
+                raise ExtractorError(
+                    'Unable to login: %s some documents. Go to pluralsight.com, '
+                    'log in and agree with what Pluralsight requires.'
+                    % MUST_AGREE, expected=True)
+
             raise ExtractorError('Unable to log in')
 
     def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
@@ -130,12 +171,12 @@ class PluralsightIE(PluralsightBaseIE):
         for num, current in enumerate(subs):
             current = subs[num]
             start, text = (
-                float_or_none(dict_get(current, TIME_OFFSET_KEYS)),
+                float_or_none(dict_get(current, TIME_OFFSET_KEYS, skip_false_values=False)),
                 dict_get(current, TEXT_KEYS))
             if start is None or text is None:
                 continue
             end = duration if num == len(subs) - 1 else float_or_none(
-                dict_get(subs[num + 1], TIME_OFFSET_KEYS))
+                dict_get(subs[num + 1], TIME_OFFSET_KEYS, skip_false_values=False))
             if end is None:
                 continue
             srt += os.linesep.join(
@@ -162,10 +203,7 @@ class PluralsightIE(PluralsightBaseIE):
 
         display_id = '%s-%s' % (name, clip_id)
 
-        course = self._download_json(
-            'https://app.pluralsight.com/player/user/api/v1/player/payload',
-            display_id, data=urlencode_postdata({'courseId': course_name}),
-            headers={'Referer': url})
+        course = self._download_course(course_name, url, display_id)
 
         collection = course['modules']
 
@@ -331,18 +369,7 @@ class PluralsightCourseIE(PluralsightBaseIE):
 
         # TODO: PSM cookie
 
-        course = self._download_json(
-            '%s/player/functions/rpc' % self._API_BASE, course_id,
-            'Downloading course JSON',
-            data=json.dumps({
-                'fn': 'bootstrapPlayer',
-                'payload': {
-                    'courseId': course_id,
-                }
-            }).encode('utf-8'),
-            headers={
-                'Content-Type': 'application/json;charset=utf-8'
-            })['payload']['course']
+        course = self._download_course(course_id, url, course_id)
 
         title = course['title']
         course_name = course['name']

@@ -23,9 +23,9 @@ class VikiBaseIE(InfoExtractor):
     _API_QUERY_TEMPLATE = '/v4/%sapp=%s&t=%s&site=www.viki.com'
     _API_URL_TEMPLATE = 'http://api.viki.io%s&sig=%s'
 
-    _APP = '65535a'
+    _APP = '100005a'
     _APP_VERSION = '2.2.5.1428709186'
-    _APP_SECRET = '-$iJ}@p7!G@SyU/je1bEyWg}upLu-6V6-Lg9VD(]siH,r.,m-r|ulZ,U4LC/SeR)'
+    _APP_SECRET = 'MM_d*yP@`&1@]@!AVrXf_o-HVEnoTnm$O-ti4[G~$JDI/Dc-&piU&z&5.;:}95=Iad'
 
     _GEO_BYPASS = False
     _NETRC_MACHINE = 'viki'
@@ -99,7 +99,7 @@ class VikiBaseIE(InfoExtractor):
 
         login = self._call_api(
             'sessions.json', None,
-            'Logging in as %s' % username, post_data=login_form)
+            'Logging in', post_data=login_form)
 
         self._token = login.get('token')
         if not self._token:

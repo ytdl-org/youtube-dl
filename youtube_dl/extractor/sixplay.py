@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_parse_qs,
+    compat_str,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     determine_ext,
     int_or_none,
@@ -48,6 +52,7 @@ class SixPlayIE(InfoExtractor):
         urls = []
         quality_key = qualities(['lq', 'sd', 'hq', 'hd'])
         formats = []
+        subtitles = {}
         for asset in clip_data['assets']:
             asset_url = asset.get('full_physical_path')
             protocol = asset.get('protocol')
@@ -56,8 +61,11 @@ class SixPlayIE(InfoExtractor):
             urls.append(asset_url)
             container = asset.get('video_container')
             ext = determine_ext(asset_url)
+            if protocol == 'http_subtitle' or ext == 'vtt':
+                subtitles.setdefault('fr', []).append({'url': asset_url})
+                continue
             if container == 'm3u8' or ext == 'm3u8':
-                if protocol == 'usp':
+                if protocol == 'usp' and not compat_parse_qs(compat_urllib_parse_urlparse(asset_url).query).get('token', [None])[0]:
                     asset_url = re.sub(r'/([^/]+)\.ism/[^/]*\.m3u8', r'/\1.ism/\1.m3u8', asset_url)
                     formats.extend(self._extract_m3u8_formats(
                         asset_url, video_id, 'mp4', 'm3u8_native',
@@ -98,4 +106,5 @@ class SixPlayIE(InfoExtractor):
             'duration': int_or_none(clip_data.get('duration')),
             'series': get(lambda x: x['program']['title']),
             'formats': formats,
+            'subtitles': subtitles,
         }

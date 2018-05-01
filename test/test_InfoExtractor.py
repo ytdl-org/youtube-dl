@@ -10,6 +10,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL, expect_dict, expect_value
+from youtube_dl.compat import compat_etree_fromstring
 from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.extractor import YoutubeIE, get_info_extractor
 from youtube_dl.utils import encode_data_uri, strip_jsonp, ExtractorError, RegexNotFoundError
@@ -487,6 +488,260 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     f.read(), m3u8_url, ext='mp4')
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
+
+    def test_parse_mpd_formats(self):
+        _TEST_CASES = [
+            (
+                # https://github.com/rg3/youtube-dl/issues/13919
+                # Also tests duplicate representation ids, see
+                # https://github.com/rg3/youtube-dl/issues/15111
+                'float_duration',
+                'http://unknown/manifest.mpd',
+                [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'm4a',
+                    'format_id': '318597',
+                    'format_note': 'DASH audio',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'none',
+                    'tbr': 61.587,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '318597',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.42001f',
+                    'tbr': 318.597,
+                    'width': 340,
+                    'height': 192,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '638590',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.42001f',
+                    'tbr': 638.59,
+                    'width': 512,
+                    'height': 288,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '1022565',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4d001f',
+                    'tbr': 1022.565,
+                    'width': 688,
+                    'height': 384,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '2046506',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4d001f',
+                    'tbr': 2046.506,
+                    'width': 1024,
+                    'height': 576,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '3998017',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.640029',
+                    'tbr': 3998.017,
+                    'width': 1280,
+                    'height': 720,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': '5997485',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.640032',
+                    'tbr': 5997.485,
+                    'width': 1920,
+                    'height': 1080,
+                }]
+            ), (
+                # https://github.com/rg3/youtube-dl/pull/14844
+                'urls_only',
+                'http://unknown/manifest.mpd',
+                [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_144p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 200,
+                    'width': 256,
+                    'height': 144,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_240p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 400,
+                    'width': 424,
+                    'height': 240,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_360p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 800,
+                    'width': 640,
+                    'height': 360,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_480p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 1200,
+                    'width': 856,
+                    'height': 480,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_576p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 1600,
+                    'width': 1024,
+                    'height': 576,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_720p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 2400,
+                    'width': 1280,
+                    'height': 720,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_1080p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 4400,
+                    'width': 1920,
+                    'height': 1080,
+                }]
+            )
+        ]
+
+        for mpd_file, mpd_url, expected_formats in _TEST_CASES:
+            with io.open('./test/testdata/mpd/%s.mpd' % mpd_file,
+                         mode='r', encoding='utf-8') as f:
+                formats = self.ie._parse_mpd_formats(
+                    compat_etree_fromstring(f.read().encode('utf-8')),
+                    mpd_url=mpd_url)
+                self.ie._sort_formats(formats)
+                expect_value(self, formats, expected_formats, None)
+
+    def test_parse_f4m_formats(self):
+        _TEST_CASES = [
+            (
+                # https://github.com/rg3/youtube-dl/issues/14660
+                'custom_base_url',
+                'http://api.new.livestream.com/accounts/6115179/events/6764928/videos/144884262.f4m',
+                [{
+                    'manifest_url': 'http://api.new.livestream.com/accounts/6115179/events/6764928/videos/144884262.f4m',
+                    'ext': 'flv',
+                    'format_id': '2148',
+                    'protocol': 'f4m',
+                    'tbr': 2148,
+                    'width': 1280,
+                    'height': 720,
+                }]
+            ),
+        ]
+
+        for f4m_file, f4m_url, expected_formats in _TEST_CASES:
+            with io.open('./test/testdata/f4m/%s.f4m' % f4m_file,
+                         mode='r', encoding='utf-8') as f:
+                formats = self.ie._parse_f4m_formats(
+                    compat_etree_fromstring(f.read().encode('utf-8')),
+                    f4m_url, None)
+                self.ie._sort_formats(formats)
+                expect_value(self, formats, expected_formats, None)
+
+    def test_parse_xspf(self):
+        _TEST_CASES = [
+            (
+                'foo_xspf',
+                'https://example.org/src/foo_xspf.xspf',
+                [{
+                    'id': 'foo_xspf',
+                    'title': 'Pandemonium',
+                    'description': 'Visit http://bigbrother404.bandcamp.com',
+                    'duration': 202.416,
+                    'formats': [{
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.org/src/cd1/track%201.mp3',
+                    }],
+                }, {
+                    'id': 'foo_xspf',
+                    'title': 'Final Cartridge (Nichico Twelve Remix)',
+                    'description': 'Visit http://bigbrother404.bandcamp.com',
+                    'duration': 255.857,
+                    'formats': [{
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.org/%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%80%80%EF%BC%92.mp3',
+                    }],
+                }, {
+                    'id': 'foo_xspf',
+                    'title': 'Rebuilding Nightingale',
+                    'description': 'Visit http://bigbrother404.bandcamp.com',
+                    'duration': 287.915,
+                    'formats': [{
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.org/src/track3.mp3',
+                    }, {
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.com/track3.mp3',
+                    }]
+                }]
+            ),
+        ]
+
+        for xspf_file, xspf_url, expected_entries in _TEST_CASES:
+            with io.open('./test/testdata/xspf/%s.xspf' % xspf_file,
+                         mode='r', encoding='utf-8') as f:
+                entries = self.ie._parse_xspf(
+                    compat_etree_fromstring(f.read().encode('utf-8')),
+                    xspf_file, xspf_url=xspf_url, xspf_base_url=xspf_url)
+                expect_value(self, entries, expected_entries, None)
+                for i in range(len(entries)):
+                    expect_dict(self, entries[i], expected_entries[i])
 
 
 if __name__ == '__main__':

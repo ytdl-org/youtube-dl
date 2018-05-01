@@ -479,6 +479,11 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='noresizebuffer', default=False,
         help='Do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.')
     downloader.add_option(
+        '--http-chunk-size',
+        dest='http_chunk_size', metavar='SIZE', default=None,
+        help='Size of a chunk for chunk-based HTTP downloading (e.g. 10485760 or 10M) (default is disabled). '
+             'May be useful for bypassing bandwidth throttling imposed by a webserver (experimental)')
+    downloader.add_option(
         '--test',
         action='store_true', dest='test', default=False,
         help=optparse.SUPPRESS_HELP)
@@ -671,7 +676,8 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-a', '--batch-file',
         dest='batchfile', metavar='FILE',
-        help='File containing URLs to download (\'-\' for stdin)')
+        help="File containing URLs to download ('-' for stdin), one URL per line. "
+             "Lines starting with '#', ';' or ']' are considered as comments and ignored.")
     filesystem.add_option(
         '--id', default=False,
         action='store_true', dest='useid', help='Use only video ID in file name')
@@ -847,7 +853,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
-        help='Convert the subtitles to other format (currently supported: srt|ass|vtt)')
+        help='Convert the subtitles to other format (currently supported: srt|ass|vtt|lrc)')
 
     parser.add_option_group(general)
     parser.add_option_group(network)

@@ -28,7 +28,7 @@ from ..utils import (
 
 
 class TwitchBaseIE(InfoExtractor):
-    _VALID_URL_BASE = r'https?://(?:www\.)?twitch\.tv'
+    _VALID_URL_BASE = r'https?://(?:(?:www|go|m)\.)?twitch\.tv'
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
@@ -85,10 +85,15 @@ class TwitchBaseIE(InfoExtractor):
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
                     response = self._parse_json(
                         e.cause.read().decode('utf-8'), None)
-                    fail(response['message'])
+                    fail(response.get('message') or response['errors'][0])
                 raise
 
-            redirect_url = urljoin(post_url, response['redirect'])
+            if 'Authenticated successfully' in response.get('message', ''):
+                return None, None
+
+            redirect_url = urljoin(
+                post_url,
+                response.get('redirect') or response['redirect_path'])
             return self._download_webpage_handle(
                 redirect_url, None, 'Downloading login redirect page',
                 headers=headers)
@@ -101,10 +106,14 @@ class TwitchBaseIE(InfoExtractor):
             fail(clean_html(login_page))
 
         redirect_page, handle = login_step(
-            login_page, handle, 'Logging in as %s' % username, {
+            login_page, handle, 'Logging in', {
                 'username': username,
                 'password': password,
             })
+
+        # Successful login
+        if not redirect_page:
+            return
 
         if re.search(r'(?i)<form[^>]+id="two-factor-submit"', redirect_page) is not None:
             # TODO: Add mechanism to request an SMS or phone call
@@ -159,6 +168,13 @@ class TwitchItemBaseIE(TwitchBaseIE):
         return self.playlist_result(entries, info['id'], info['title'])
 
     def _extract_info(self, info):
+        status = info.get('status')
+        if status == 'recording':
+            is_live = True
+        elif status == 'recorded':
+            is_live = False
+        else:
+            is_live = None
         return {
             'id': info['_id'],
             'title': info.get('title') or 'Untitled Broadcast',
@@ -169,6 +185,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
             'uploader_id': info.get('channel', {}).get('name'),
             'timestamp': parse_iso8601(info.get('recorded_at')),
             'view_count': int_or_none(info.get('views')),
+            'is_live': is_live,
         }
 
     def _real_extract(self, url):
@@ -217,7 +234,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?twitch\.tv/(?:[^/]+/v|videos)/|
+                            (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v|videos)/|
                             player\.twitch\.tv/\?.*?\bvideo=v
                         )
                         (?P<id>\d+)
@@ -269,6 +286,9 @@ class TwitchVodIE(TwitchItemBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.twitch.tv/videos/6528877',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.twitch.tv/beagsandjam/v/247478721',
         'only_matching': True,
     }]
 
@@ -358,8 +378,15 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
                 break
             offset += limit
         return self.playlist_result(
-            [self.url_result(entry) for entry in orderedSet(entries)],
+            [self._make_url_result(entry) for entry in orderedSet(entries)],
             channel_id, channel_name)
+
+    def _make_url_result(self, url):
+        try:
+            video_id = 'v%s' % TwitchVodIE._match_id(url)
+            return self.url_result(url, TwitchVodIE.ie_key(), video_id=video_id)
+        except AssertionError:
+            return self.url_result(url)
 
     def _extract_playlist_page(self, response):
         videos = response.get('videos')
@@ -374,14 +401,17 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
     _VALID_URL = r'%s/(?P<id>[^/]+)/profile/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
     _PLAYLIST_TYPE = 'profile'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.twitch.tv/vanillatv/profile',
         'info_dict': {
             'id': 'vanillatv',
             'title': 'VanillaTV',
         },
         'playlist_mincount': 412,
-    }
+    }, {
+        'url': 'http://m.twitch.tv/vanillatv/profile',
+        'only_matching': True,
+    }]
 
 
 class TwitchVideosBaseIE(TwitchPlaylistBaseIE):
@@ -395,14 +425,17 @@ class TwitchAllVideosIE(TwitchVideosBaseIE):
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive,upload,highlight'
     _PLAYLIST_TYPE = 'all videos'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/all',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 869,
-    }
+    }, {
+        'url': 'https://m.twitch.tv/spamfish/videos/all',
+        'only_matching': True,
+    }]
 
 
 class TwitchUploadsIE(TwitchVideosBaseIE):
@@ -411,14 +444,17 @@ class TwitchUploadsIE(TwitchVideosBaseIE):
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'upload'
     _PLAYLIST_TYPE = 'uploads'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/uploads',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
-    }
+    }, {
+        'url': 'https://m.twitch.tv/spamfish/videos/uploads',
+        'only_matching': True,
+    }]
 
 
 class TwitchPastBroadcastsIE(TwitchVideosBaseIE):
@@ -427,14 +463,17 @@ class TwitchPastBroadcastsIE(TwitchVideosBaseIE):
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive'
     _PLAYLIST_TYPE = 'past broadcasts'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/past-broadcasts',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
-    }
+    }, {
+        'url': 'https://m.twitch.tv/spamfish/videos/past-broadcasts',
+        'only_matching': True,
+    }]
 
 
 class TwitchHighlightsIE(TwitchVideosBaseIE):
@@ -443,14 +482,17 @@ class TwitchHighlightsIE(TwitchVideosBaseIE):
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'highlight'
     _PLAYLIST_TYPE = 'highlights'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/highlights',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 805,
-    }
+    }, {
+        'url': 'https://m.twitch.tv/spamfish/videos/highlights',
+        'only_matching': True,
+    }]
 
 
 class TwitchStreamIE(TwitchBaseIE):
@@ -458,7 +500,7 @@ class TwitchStreamIE(TwitchBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?twitch\.tv/|
+                            (?:(?:www|go|m)\.)?twitch\.tv/|
                             player\.twitch\.tv/\?.*?\bchannel=
                         )
                         (?P<id>[^/#?]+)
@@ -488,6 +530,12 @@ class TwitchStreamIE(TwitchBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://player.twitch.tv/?channel=lotsofs',
+        'only_matching': True,
+    }, {
+        'url': 'https://go.twitch.tv/food',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.twitch.tv/food',
         'only_matching': True,
     }]
 
@@ -606,7 +654,7 @@ class TwitchClipsIE(InfoExtractor):
                 r'(?s)clipInfo\s*=\s*({.+?});', webpage, 'clip info'),
             video_id, transform_source=js_to_json)
 
-        title = clip.get('channel_title') or self._og_search_title(webpage)
+        title = clip.get('title') or clip.get('channel_title') or self._og_search_title(webpage)
 
         formats = [{
             'url': option['source'],

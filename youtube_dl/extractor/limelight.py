@@ -10,6 +10,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     smuggle_url,
+    try_get,
     unsmuggle_url,
     ExtractorError,
 )
@@ -26,14 +27,16 @@ class LimelightBaseIE(InfoExtractor):
             'Channel': 'channel',
             'ChannelList': 'channel_list',
         }
+
+        def smuggle(url):
+            return smuggle_url(url, {'source_url': source_url})
+
         entries = []
         for kind, video_id in re.findall(
                 r'LimelightPlayer\.doLoad(Media|Channel|ChannelList)\(["\'](?P<id>[a-z0-9]{32})',
                 webpage):
             entries.append(cls.url_result(
-                smuggle_url(
-                    'limelight:%s:%s' % (lm[kind], video_id),
-                    {'source_url': source_url}),
+                smuggle('limelight:%s:%s' % (lm[kind], video_id)),
                 'Limelight%s' % kind, video_id))
         for mobj in re.finditer(
                 # As per [1] class attribute should be exactly equal to
@@ -49,10 +52,15 @@ class LimelightBaseIE(InfoExtractor):
                 ''', webpage):
             kind, video_id = mobj.group('kind'), mobj.group('id')
             entries.append(cls.url_result(
-                smuggle_url(
-                    'limelight:%s:%s' % (kind, video_id),
-                    {'source_url': source_url}),
+                smuggle('limelight:%s:%s' % (kind, video_id)),
                 'Limelight%s' % kind.capitalize(), video_id))
+        # http://support.3playmedia.com/hc/en-us/articles/115009517327-Limelight-Embedding-the-Audio-Description-Plugin-with-the-Limelight-Player-on-Your-Web-Page)
+        for video_id in re.findall(
+                r'(?s)LimelightPlayerUtil\.embed\s*\(\s*{.*?\bmediaId["\']\s*:\s*["\'](?P<id>[a-z0-9]{32})',
+                webpage):
+            entries.append(cls.url_result(
+                smuggle('limelight:media:%s' % video_id),
+                LimelightMediaIE.ie_key(), video_id))
         return entries
 
     def _call_playlist_service(self, item_id, method, fatal=True, referer=None):
@@ -213,6 +221,12 @@ class LimelightBaseIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
+    def _extract_info_helper(self, pc, mobile, i, metadata):
+        return self._extract_info(
+            try_get(pc, lambda x: x['playlistItems'][i]['streams'], list) or [],
+            try_get(mobile, lambda x: x['mediaList'][i]['mobileUrls'], list) or [],
+            metadata)
+
 
 class LimelightMediaIE(LimelightBaseIE):
     IE_NAME = 'limelight'
@@ -275,10 +289,7 @@ class LimelightMediaIE(LimelightBaseIE):
             'getMobilePlaylistByMediaId', 'properties',
             smuggled_data.get('source_url'))
 
-        return self._extract_info(
-            pc['playlistItems'][0].get('streams', []),
-            mobile['mediaList'][0].get('mobileUrls', []) if mobile else [],
-            metadata)
+        return self._extract_info_helper(pc, mobile, 0, metadata)
 
 
 class LimelightChannelIE(LimelightBaseIE):
@@ -319,10 +330,7 @@ class LimelightChannelIE(LimelightBaseIE):
             'media', smuggled_data.get('source_url'))
 
         entries = [
-            self._extract_info(
-                pc['playlistItems'][i].get('streams', []),
-                mobile['mediaList'][i].get('mobileUrls', []) if mobile else [],
-                medias['media_list'][i])
+            self._extract_info_helper(pc, mobile, i, medias['media_list'][i])
             for i in range(len(medias['media_list']))]
 
         return self.playlist_result(entries, channel_id, pc['title'])

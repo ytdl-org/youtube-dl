@@ -1,60 +1,119 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .adobepass import AdobePassIE
+import json
+import hashlib
+import re
+
+from .aws import AWSIE
+from .anvato import AnvatoIE
 from ..utils import (
-    int_or_none,
     smuggle_url,
-    update_url_query,
+    urlencode_postdata,
+    xpath_text,
 )
 
 
-class ScrippsNetworksWatchIE(AdobePassIE):
+class ScrippsNetworksWatchIE(AWSIE):
     IE_NAME = 'scrippsnetworks:watch'
-    _VALID_URL = r'https?://watch\.(?:hgtv|foodnetwork|travelchannel|diynetwork|cookingchanneltv)\.com/player\.[A-Z0-9]+\.html#(?P<id>\d+)'
-    _TEST = {
-        'url': 'http://watch.hgtv.com/player.HNT.html#0256538',
+    _VALID_URL = r'''(?x)
+                    https?://
+                        watch\.
+                        (?P<site>hgtv|foodnetwork|travelchannel|diynetwork|cookingchanneltv|geniuskitchen)\.com/
+                        (?:
+                            player\.[A-Z0-9]+\.html\#|
+                            show/(?:[^/]+/){2}|
+                            player/
+                        )
+                        (?P<id>\d+)
+                    '''
+    _TESTS = [{
+        'url': 'http://watch.hgtv.com/show/HGTVE/Best-Ever-Treehouses/2241515/Best-Ever-Treehouses/',
         'md5': '26545fd676d939954c6808274bdb905a',
         'info_dict': {
-            'id': '0256538',
+            'id': '4173834',
             'ext': 'mp4',
-            'title': 'Seeking a Wow House',
-            'description': 'Buyers retiring in Palm Springs, California, want a modern house with major wow factor. They\'re also looking for a pool and a large, open floorplan with tall windows looking out at the views.',
-            'uploader': 'SCNI',
-            'upload_date': '20170207',
-            'timestamp': 1486450493,
+            'title': 'Best Ever Treehouses',
+            'description': "We're searching for the most over the top treehouses.",
+            'uploader': 'ANV',
+            'upload_date': '20170922',
+            'timestamp': 1506056400,
         },
-        'skip': 'requires TV provider authentication',
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [AnvatoIE.ie_key()],
+    }, {
+        'url': 'http://watch.diynetwork.com/show/DSAL/Salvage-Dawgs/2656646/Covington-Church/',
+        'only_matching': True,
+    }, {
+        'url': 'http://watch.diynetwork.com/player.HNT.html#2656646',
+        'only_matching': True,
+    }, {
+        'url': 'http://watch.geniuskitchen.com/player/3787617/Ample-Hills-Ice-Cream-Bike/',
+        'only_matching': True,
+    }]
+
+    _SNI_TABLE = {
+        'hgtv': 'hgtv',
+        'diynetwork': 'diy',
+        'foodnetwork': 'food',
+        'cookingchanneltv': 'cook',
+        'travelchannel': 'trav',
+        'geniuskitchen': 'genius',
     }
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        channel = self._parse_json(self._search_regex(
-            r'"channels"\s*:\s*(\[.+\])',
-            webpage, 'channels'), video_id)[0]
-        video_data = next(v for v in channel['videos'] if v.get('nlvid') == video_id)
-        title = video_data['title']
-        release_url = video_data['releaseUrl']
-        if video_data.get('restricted'):
-            requestor_id = self._search_regex(
-                r'requestorId\s*=\s*"([^"]+)";', webpage, 'requestor id')
-            resource = self._get_mvpd_resource(
-                requestor_id, title, video_id,
-                video_data.get('ratings', [{}])[0].get('rating'))
-            auth = self._extract_mvpd_auth(
-                url, video_id, requestor_id, resource)
-            release_url = update_url_query(release_url, {'auth': auth})
+    _AWS_API_KEY = 'E7wSQmq0qK6xPrF13WmzKiHo4BQ7tip4pQcSXVl1'
+    _AWS_PROXY_HOST = 'web.api.video.snidigital.com'
 
-        return {
-            '_type': 'url_transparent',
-            'id': video_id,
-            'title': title,
-            'url': smuggle_url(release_url, {'force_smil_url': True}),
-            'description': video_data.get('description'),
-            'thumbnail': video_data.get('thumbnailUrl'),
-            'series': video_data.get('showTitle'),
-            'season_number': int_or_none(video_data.get('season')),
-            'episode_number': int_or_none(video_data.get('episodeNumber')),
-            'ie_key': 'ThePlatform',
-        }
+    _AWS_USER_AGENT = 'aws-sdk-js/2.80.0 callback'
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        site_id, video_id = mobj.group('site', 'id')
+
+        aws_identity_id_json = json.dumps({
+            'IdentityId': '%s:7655847c-0ae7-4d9b-80d6-56c062927eb3' % self._AWS_REGION
+        }).encode('utf-8')
+        token = self._download_json(
+            'https://cognito-identity.%s.amazonaws.com/' % self._AWS_REGION, video_id,
+            data=aws_identity_id_json,
+            headers={
+                'Accept': '*/*',
+                'Content-Type': 'application/x-amz-json-1.1',
+                'Referer': url,
+                'X-Amz-Content-Sha256': hashlib.sha256(aws_identity_id_json).hexdigest(),
+                'X-Amz-Target': 'AWSCognitoIdentityService.GetOpenIdToken',
+                'X-Amz-User-Agent': self._AWS_USER_AGENT,
+            })['Token']
+
+        sts = self._download_xml(
+            'https://sts.amazonaws.com/', video_id, data=urlencode_postdata({
+                'Action': 'AssumeRoleWithWebIdentity',
+                'RoleArn': 'arn:aws:iam::710330595350:role/Cognito_WebAPIUnauth_Role',
+                'RoleSessionName': 'web-identity',
+                'Version': '2011-06-15',
+                'WebIdentityToken': token,
+            }), headers={
+                'Referer': url,
+                'X-Amz-User-Agent': self._AWS_USER_AGENT,
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+            })
+
+        def get(key):
+            return xpath_text(
+                sts, './/{https://sts.amazonaws.com/doc/2011-06-15/}%s' % key,
+                fatal=True)
+
+        mcp_id = self._aws_execute_api({
+            'uri': '/1/web/brands/%s/episodes/scrid/%s' % (self._SNI_TABLE[site_id], video_id),
+            'access_key': get('AccessKeyId'),
+            'secret_key': get('SecretAccessKey'),
+            'session_token': get('SessionToken'),
+        }, video_id)['results'][0]['mcpId']
+
+        return self.url_result(
+            smuggle_url(
+                'anvato:anvato_scripps_app_web_prod_0837996dbe373629133857ae9eb72e740424d80a:%s' % mcp_id,
+                {'geo_countries': ['US']}),
+            AnvatoIE.ie_key(), video_id=mcp_id)

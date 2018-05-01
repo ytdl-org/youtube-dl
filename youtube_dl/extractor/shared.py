@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-import base64
-
 from .common import InfoExtractor
+from ..compat import compat_b64decode
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -22,8 +21,8 @@ class SharedBaseIE(InfoExtractor):
 
         video_url = self._extract_video_url(webpage, video_id, url)
 
-        title = base64.b64decode(self._html_search_meta(
-            'full:title', webpage, 'title').encode('utf-8')).decode('utf-8')
+        title = compat_b64decode(self._html_search_meta(
+            'full:title', webpage, 'title')).decode('utf-8')
         filesize = int_or_none(self._html_search_meta(
             'full:size', webpage, 'file size', fatal=False))
 
@@ -92,5 +91,4 @@ class VivoIE(SharedBaseIE):
                 r'InitializeStream\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
                 webpage, 'stream', group='url'),
             video_id,
-            transform_source=lambda x: base64.b64decode(
-                x.encode('ascii')).decode('utf-8'))[0]
+            transform_source=lambda x: compat_b64decode(x).decode('utf-8'))[0]

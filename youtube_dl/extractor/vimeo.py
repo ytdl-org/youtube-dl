@@ -16,6 +16,7 @@ from ..utils import (
     ExtractorError,
     InAdvancePagedList,
     int_or_none,
+    merge_dicts,
     NO_DEFAULT,
     RegexNotFoundError,
     sanitized_Request,
@@ -41,21 +42,30 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             if self._LOGIN_REQUIRED:
                 raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
             return
-        self.report_login()
-        webpage = self._download_webpage(self._LOGIN_URL, None, False)
+        webpage = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
         token, vuid = self._extract_xsrft_and_vuid(webpage)
-        data = urlencode_postdata({
+        data = {
             'action': 'login',
             'email': username,
             'password': password,
             'service': 'vimeo',
             'token': token,
-        })
-        login_request = sanitized_Request(self._LOGIN_URL, data)
-        login_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        login_request.add_header('Referer', self._LOGIN_URL)
+        }
         self._set_vimeo_cookie('vuid', vuid)
-        self._download_webpage(login_request, None, False, 'Wrong login info')
+        try:
+            self._download_webpage(
+                self._LOGIN_URL, None, 'Logging in',
+                data=urlencode_postdata(data), headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Referer': self._LOGIN_URL,
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 418:
+                raise ExtractorError(
+                    'Unable to log in: bad username or password',
+                    expected=True)
+            raise ExtractorError('Unable to log in')
 
     def _verify_video_password(self, url, video_id, webpage):
         password = self._downloader.params.get('videopassword')
@@ -218,7 +228,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'id': '56015672',
                 'ext': 'mp4',
                 'title': "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
-                'description': 'md5:2d3305bad981a06ff79f027f19865021',
+                'description': 'md5:509a9ad5c9bf97c60faee9203aca4479',
                 'timestamp': 1355990239,
                 'upload_date': '20121220',
                 'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user7108434',
@@ -412,7 +422,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         urls = []
         # Look for embedded (iframe) Vimeo player
         for mobj in re.finditer(
-                r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/.+?)\1',
+                r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/\d+.*?)\1',
                 webpage):
             urls.append(VimeoIE._smuggle_referrer(unescapeHTML(mobj.group('url')), url))
         PLAIN_EMBED_RE = (
@@ -468,11 +478,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
         request = sanitized_Request(url, headers=headers)
         try:
             webpage, urlh = self._download_webpage_handle(request, video_id)
+            redirect_url = compat_str(urlh.geturl())
             # Some URLs redirect to ondemand can't be extracted with
             # this extractor right away thus should be passed through
             # ondemand extractor (e.g. https://vimeo.com/73445910)
-            if VimeoOndemandIE.suitable(urlh.geturl()):
-                return self.url_result(urlh.geturl(), VimeoOndemandIE.ie_key())
+            if VimeoOndemandIE.suitable(redirect_url):
+                return self.url_result(redirect_url, VimeoOndemandIE.ie_key())
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
                 errmsg = ee.cause.read()
@@ -541,15 +552,15 @@ class VimeoIE(VimeoBaseInfoExtractor):
             if re.search(r'<form[^>]+?id="pw_form"', webpage) is not None:
                 if '_video_password_verified' in data:
                     raise ExtractorError('video password verification failed!')
-                self._verify_video_password(url, video_id, webpage)
+                self._verify_video_password(redirect_url, video_id, webpage)
                 return self._real_extract(
-                    smuggle_url(url, {'_video_password_verified': 'verified'}))
+                    smuggle_url(redirect_url, {'_video_password_verified': 'verified'}))
             else:
                 raise ExtractorError('Unable to extract info section',
                                      cause=e)
         else:
             if config.get('view') == 4:
-                config = self._verify_player_video_password(url, video_id)
+                config = self._verify_player_video_password(redirect_url, video_id)
 
         def is_rented():
             if '>You rented this title.<' in webpage:
@@ -629,16 +640,18 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             'preference': 1,
                         })
 
-        info_dict = self._parse_config(config, video_id)
-        formats.extend(info_dict['formats'])
+        info_dict_config = self._parse_config(config, video_id)
+        formats.extend(info_dict_config['formats'])
         self._vimeo_sort_formats(formats)
+
+        json_ld = self._search_json_ld(webpage, video_id, default={})
 
         if not cc_license:
             cc_license = self._search_regex(
                 r'<link[^>]+rel=["\']license["\'][^>]+href=(["\'])(?P<license>(?:(?!\1).)+)\1',
                 webpage, 'license', default=None, group='license')
 
-        info_dict.update({
+        info_dict = {
             'id': video_id,
             'formats': formats,
             'timestamp': unified_timestamp(timestamp),
@@ -648,7 +661,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'like_count': like_count,
             'comment_count': comment_count,
             'license': cc_license,
-        })
+        }
+
+        info_dict = merge_dicts(info_dict, info_dict_config, json_ld)
 
         return info_dict
 

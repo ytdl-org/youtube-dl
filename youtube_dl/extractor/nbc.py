@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import re
+import base64
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
@@ -15,7 +16,7 @@ from ..utils import (
 
 
 class NBCIE(AdobePassIE):
-    _VALID_URL = r'(?P<permalink>https?://(?:www\.)?nbc\.com/[^/]+/video/[^/]+/(?P<id>n?\d+))'
+    _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/(?:classic-tv/)?[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
         {
@@ -67,11 +68,16 @@ class NBCIE(AdobePassIE):
                 'skip_download': True,
             },
             'skip': 'Only works from US',
-        }
+        },
+        {
+            'url': 'https://www.nbc.com/classic-tv/charles-in-charge/video/charles-in-charge-pilot/n3310',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
+        permalink = 'http' + permalink
         video_data = self._download_json(
             'https://api.nbc.com/v3/videos', video_id, query={
                 'filter[permalink]': permalink,
@@ -109,10 +115,10 @@ class NBCSportsVPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
 
     _TESTS = [{
-        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_share/select/9CsDKds0kvHI',
+        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/9CsDKds0kvHI',
         'info_dict': {
             'id': '9CsDKds0kvHI',
-            'ext': 'flv',
+            'ext': 'mp4',
             'description': 'md5:df390f70a9ba7c95ff1daace988f0d8d',
             'title': 'Tyler Kalinoski hits buzzer-beater to lift Davidson',
             'timestamp': 1426270238,
@@ -120,7 +126,7 @@ class NBCSportsVPlayerIE(InfoExtractor):
             'uploader': 'NBCU-SPORTS',
         }
     }, {
-        'url': 'http://vplayer.nbcsports.com/p/BxmELC/nbc_embedshare/select/_hqLjQ95yx8Z',
+        'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/media/_hqLjQ95yx8Z',
         'only_matching': True,
     }]
 
@@ -134,7 +140,8 @@ class NBCSportsVPlayerIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        theplatform_url = self._og_search_video_url(webpage)
+        theplatform_url = self._og_search_video_url(webpage).replace(
+            'vplayer.nbcsports.com', 'player.theplatform.com')
         return self.url_result(theplatform_url, 'ThePlatform')
 
 
@@ -352,6 +359,7 @@ class NBCNewsIE(ThePlatformIE):
 
 
 class NBCOlympicsIE(InfoExtractor):
+    IE_NAME = 'nbcolympics'
     _VALID_URL = r'https?://www\.nbcolympics\.com/video/(?P<id>[a-z-]+)'
 
     _TEST = {
@@ -388,4 +396,55 @@ class NBCOlympicsIE(InfoExtractor):
             'url': theplatform_url,
             'ie_key': ThePlatformIE.ie_key(),
             'display_id': display_id,
+        }
+
+
+class NBCOlympicsStreamIE(AdobePassIE):
+    IE_NAME = 'nbcolympics:stream'
+    _VALID_URL = r'https?://stream\.nbcolympics\.com/(?P<id>[0-9a-z-]+)'
+    _TEST = {
+        'url': 'http://stream.nbcolympics.com/2018-winter-olympics-nbcsn-evening-feb-8',
+        'info_dict': {
+            'id': '203493',
+            'ext': 'mp4',
+            'title': 're:Curling, Alpine, Luge [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+    _DATA_URL_TEMPLATE = 'http://stream.nbcolympics.com/data/%s_%s.json'
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        pid = self._search_regex(r'pid\s*=\s*(\d+);', webpage, 'pid')
+        resource = self._search_regex(
+            r"resource\s*=\s*'(.+)';", webpage,
+            'resource').replace("' + pid + '", pid)
+        event_config = self._download_json(
+            self._DATA_URL_TEMPLATE % ('event_config', pid),
+            pid)['eventConfig']
+        title = self._live_title(event_config['eventTitle'])
+        source_url = self._download_json(
+            self._DATA_URL_TEMPLATE % ('live_sources', pid),
+            pid)['videoSources'][0]['sourceUrl']
+        media_token = self._extract_mvpd_auth(
+            url, pid, event_config.get('requestorId', 'NBCOlympics'), resource)
+        formats = self._extract_m3u8_formats(self._download_webpage(
+            'http://sp.auth.adobe.com/tvs/v1/sign', pid, query={
+                'cdn': 'akamai',
+                'mediaToken': base64.b64encode(media_token.encode()),
+                'resource': base64.b64encode(resource.encode()),
+                'url': source_url,
+            }), pid, 'mp4')
+        self._sort_formats(formats)
+
+        return {
+            'id': pid,
+            'display_id': display_id,
+            'title': title,
+            'formats': formats,
+            'is_live': True,
         }

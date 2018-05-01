@@ -4,12 +4,14 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
+    compat_HTTPError,
     compat_str,
+    compat_urlparse,
 )
 from ..utils import (
-    parse_duration,
+    ExtractorError,
     js_to_json,
+    parse_duration,
     parse_iso8601,
 )
 
@@ -128,9 +130,16 @@ class ViideaIE(InfoExtractor):
 
         base_url = self._proto_relative_url(cfg['livepipe'], 'http:')
 
-        lecture_data = self._download_json(
-            '%s/site/api/lecture/%s?format=json' % (base_url, lecture_id),
-            lecture_id)['lecture'][0]
+        try:
+            lecture_data = self._download_json(
+                '%s/site/api/lecture/%s?format=json' % (base_url, lecture_id),
+                lecture_id)['lecture'][0]
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                msg = self._parse_json(
+                    e.cause.read().decode('utf-8'), lecture_id)
+                raise ExtractorError(msg['detail'], expected=True)
+            raise
 
         lecture_info = {
             'id': lecture_id,

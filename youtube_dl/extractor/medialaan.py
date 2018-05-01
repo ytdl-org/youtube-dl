@@ -2,19 +2,18 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
+from .gigya import GigyaBaseIE
+
 from ..compat import compat_str
 from ..utils import (
-    ExtractorError,
     int_or_none,
     parse_duration,
     try_get,
     unified_timestamp,
-    urlencode_postdata,
 )
 
 
-class MedialaanIE(InfoExtractor):
+class MedialaanIE(GigyaBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:www\.|nieuws\.)?
@@ -119,15 +118,7 @@ class MedialaanIE(InfoExtractor):
             'password': password,
         }
 
-        auth_info = self._download_json(
-            'https://accounts.eu1.gigya.com/accounts.login', None,
-            note='Logging in', errnote='Unable to log in',
-            data=urlencode_postdata(auth_data))
-
-        error_message = auth_info.get('errorDetails') or auth_info.get('errorMessage')
-        if error_message:
-            raise ExtractorError(
-                'Unable to login: %s' % error_message, expected=True)
+        auth_info = self._gigya_login(auth_data)
 
         self._uid = auth_info['UID']
         self._uid_signature = auth_info['UIDSignature']
@@ -150,6 +141,7 @@ class MedialaanIE(InfoExtractor):
 
         vod_id = config.get('vodId') or self._search_regex(
             (r'\\"vodId\\"\s*:\s*\\"(.+?)\\"',
+             r'"vodId"\s*:\s*"(.+?)"',
              r'<[^>]+id=["\']vod-(\d+)'),
             webpage, 'video_id', default=None)
 

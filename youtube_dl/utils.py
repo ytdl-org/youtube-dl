@@ -39,6 +39,7 @@ from .compat import (
     compat_HTMLParser,
     compat_basestring,
     compat_chr,
+    compat_ctypes_WINFUNCTYPE,
     compat_etree_fromstring,
     compat_expanduser,
     compat_html_entities,
@@ -81,7 +82,7 @@ def register_socks_protocols():
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/47.0 (Chrome)',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0 (Chrome)',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -159,6 +160,8 @@ DATE_FORMATS = (
     '%Y-%m-%dT%H:%M',
     '%b %d %Y at %H:%M',
     '%b %d %Y at %H:%M:%S',
+    '%B %d %Y at %H:%M',
+    '%B %d %Y at %H:%M:%S',
 )
 
 DATE_FORMATS_DAY_FIRST = list(DATE_FORMATS)
@@ -535,10 +538,22 @@ def sanitize_path(s):
     return os.path.join(*sanitized_path)
 
 
-# Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
-# unwanted failures due to missing protocol
 def sanitize_url(url):
-    return 'http:%s' % url if url.startswith('//') else url
+    # Prepend protocol-less URLs with `http:` scheme in order to mitigate
+    # the number of unwanted failures due to missing protocol
+    if url.startswith('//'):
+        return 'http:%s' % url
+    # Fix some common typos seen so far
+    COMMON_TYPOS = (
+        # https://github.com/rg3/youtube-dl/issues/15649
+        (r'^httpss://', r'https://'),
+        # https://bx1.be/lives/direct-tv/
+        (r'^rmtp([es]?)://', r'rtmp\1://'),
+    )
+    for mistake, fixup in COMMON_TYPOS:
+        if re.match(mistake, url):
+            return re.sub(mistake, fixup, url)
+    return url
 
 
 def sanitized_Request(url, *args, **kwargs):
@@ -596,7 +611,7 @@ def unescapeHTML(s):
     assert type(s) == compat_str
 
     return re.sub(
-        r'&([^;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
+        r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
 
 
 def get_subprocess_encoding():
@@ -863,8 +878,8 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     # expected HTTP responses to meet HTTP/1.0 or later (see also
     # https://github.com/rg3/youtube-dl/issues/6727)
     if sys.version_info < (3, 0):
-        kwargs[b'strict'] = True
-    hc = http_class(*args, **kwargs)
+        kwargs['strict'] = True
+    hc = http_class(*args, **compat_kwargs(kwargs))
     source_address = ydl_handler._params.get('source_address')
     if source_address is not None:
         sa = (source_address, 0)
@@ -1196,6 +1211,11 @@ def unified_timestamp(date_str, day_first=True):
     if m:
         date_str = date_str[:-len(m.group('tz'))]
 
+    # Python only supports microseconds, so remove nanoseconds
+    m = re.search(r'^([0-9]{4,}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}\.[0-9]{6})[0-9]+$', date_str)
+    if m:
+        date_str = m.group(1)
+
     for expression in date_formats(day_first):
         try:
             dt = datetime.datetime.strptime(date_str, expression) - timezone + datetime.timedelta(hours=pm_delta)
@@ -1328,24 +1348,24 @@ def _windows_write_string(s, out):
     if fileno not in WIN_OUTPUT_IDS:
         return False
 
-    GetStdHandle = ctypes.WINFUNCTYPE(
+    GetStdHandle = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
-        (b'GetStdHandle', ctypes.windll.kernel32))
+        ('GetStdHandle', ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
-    WriteConsoleW = ctypes.WINFUNCTYPE(
+    WriteConsoleW = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
-        ctypes.wintypes.LPVOID)((b'WriteConsoleW', ctypes.windll.kernel32))
+        ctypes.wintypes.LPVOID)(('WriteConsoleW', ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b'GetFileType', ctypes.windll.kernel32))
+    GetFileType = compat_ctypes_WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)(('GetFileType', ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
-    GetConsoleMode = ctypes.WINFUNCTYPE(
+    GetConsoleMode = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
-        (b'GetConsoleMode', ctypes.windll.kernel32))
+        ('GetConsoleMode', ctypes.windll.kernel32))
     INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
 
     def not_a_console(handle):
@@ -1674,6 +1694,28 @@ def parse_count(s):
     return lookup_unit_table(_UNIT_TABLE, s)
 
 
+def parse_resolution(s):
+    if s is None:
+        return {}
+
+    mobj = re.search(r'\b(?P<w>\d+)\s*[xX×]\s*(?P<h>\d+)\b', s)
+    if mobj:
+        return {
+            'width': int(mobj.group('w')),
+            'height': int(mobj.group('h')),
+        }
+
+    mobj = re.search(r'\b(\d+)[pPiI]\b', s)
+    if mobj:
+        return {'height': int(mobj.group(1))}
+
+    mobj = re.search(r'\b([48])[kK]\b', s)
+    if mobj:
+        return {'height': int(mobj.group(1)) * 540}
+
+    return {}
+
+
 def month_by_name(name, lang='en'):
     """ Return the number of a month by (locale-independently) English name """
 
@@ -1815,6 +1857,10 @@ def float_or_none(v, scale=1, invscale=1, default=None):
         return default
 
 
+def bool_or_none(v, default=None):
+    return v if isinstance(v, bool) else default
+
+
 def strip_or_none(v):
     return None if v is None else v.strip()
 
@@ -1831,10 +1877,20 @@ def parse_duration(s):
         days, hours, mins, secs, ms = m.groups()
     else:
         m = re.match(
-            r'''(?ix)(?:P?T)?
+            r'''(?ix)(?:P?
+                (?:
+                    [0-9]+\s*y(?:ears?)?\s*
+                )?
+                (?:
+                    [0-9]+\s*m(?:onths?)?\s*
+                )?
+                (?:
+                    [0-9]+\s*w(?:eeks?)?\s*
+                )?
                 (?:
                     (?P<days>[0-9]+)\s*d(?:ays?)?\s*
                 )?
+                T)?
                 (?:
                     (?P<hours>[0-9]+)\s*h(?:ours?)?\s*
                 )?
@@ -1929,7 +1985,7 @@ class PagedList(object):
 
 
 class OnDemandPagedList(PagedList):
-    def __init__(self, pagefunc, pagesize, use_cache=False):
+    def __init__(self, pagefunc, pagesize, use_cache=True):
         self._pagefunc = pagefunc
         self._pagesize = pagesize
         self._use_cache = use_cache
@@ -2169,6 +2225,20 @@ def try_get(src, getter, expected_type=None):
                 return v
 
 
+def merge_dicts(*dicts):
+    merged = {}
+    for a_dict in dicts:
+        for k, v in a_dict.items():
+            if v is None:
+                continue
+            if (k not in merged or
+                    (isinstance(v, compat_str) and v and
+                        isinstance(merged[k], compat_str) and
+                        not merged[k])):
+                merged[k] = v
+    return merged
+
+
 def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
     return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
 
@@ -2250,7 +2320,7 @@ def js_to_json(code):
         "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
         '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
         {comment}|,(?={skip}[\]}}])|
-        [a-zA-Z_][.a-zA-Z_0-9]*|
+        (?:(?<![0-9])[eE]|[a-df-zA-DF-Z_])[.a-zA-Z_0-9]*|
         \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
         [0-9]+(?={skip}:)
         '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
@@ -2336,6 +2406,7 @@ def mimetype2ext(mt):
         'ttml+xml': 'ttml',
         'x-flv': 'flv',
         'x-mp4-fragmented': 'mp4',
+        'x-ms-sami': 'sami',
         'x-ms-wmv': 'wmv',
         'mpegurl': 'm3u8',
         'x-mpegurl': 'm3u8',
@@ -2358,7 +2429,7 @@ def parse_codecs(codecs_str):
     vcodec, acodec = None, None
     for full_codec in splited_codecs:
         codec = full_codec.split('.')[0]
-        if codec in ('avc1', 'avc2', 'avc3', 'avc4', 'vp9', 'vp8', 'hev1', 'hev2', 'h263', 'h264', 'mp4v'):
+        if codec in ('avc1', 'avc2', 'avc3', 'avc4', 'vp9', 'vp8', 'hev1', 'hev2', 'h263', 'h264', 'mp4v', 'hvc1'):
             if not vcodec:
                 vcodec = full_codec
         elif codec in ('mp4a', 'opus', 'vorbis', 'mp3', 'aac', 'ac-3', 'ec-3', 'eac3', 'dtsc', 'dtse', 'dtsh', 'dtsl'):
@@ -2517,8 +2588,8 @@ def _match_one(filter_part, dct):
         return op(actual_value, comparison_value)
 
     UNARY_OPERATORS = {
-        '': lambda v: v is not None,
-        '!': lambda v: v is None,
+        '': lambda v: (v is True) if isinstance(v, bool) else (v is not None),
+        '!': lambda v: (v is False) if isinstance(v, bool) else (v is None),
     }
     operator_rex = re.compile(r'''(?x)\s*
         (?P<op>%s)\s*(?P<key>[a-z_]+)
@@ -2568,14 +2639,18 @@ def srt_subtitles_timecode(seconds):
 
 
 def dfxp2srt(dfxp_data):
+    '''
+    @param dfxp_data A bytes-like object containing DFXP data
+    @returns A unicode object containing converted SRT data
+    '''
     LEGACY_NAMESPACES = (
-        ('http://www.w3.org/ns/ttml', [
-            'http://www.w3.org/2004/11/ttaf1',
-            'http://www.w3.org/2006/04/ttaf1',
-            'http://www.w3.org/2006/10/ttaf1',
+        (b'http://www.w3.org/ns/ttml', [
+            b'http://www.w3.org/2004/11/ttaf1',
+            b'http://www.w3.org/2006/04/ttaf1',
+            b'http://www.w3.org/2006/10/ttaf1',
         ]),
-        ('http://www.w3.org/ns/ttml#styling', [
-            'http://www.w3.org/ns/ttml#style',
+        (b'http://www.w3.org/ns/ttml#styling', [
+            b'http://www.w3.org/ns/ttml#style',
         ]),
     )
 
@@ -2670,7 +2745,7 @@ def dfxp2srt(dfxp_data):
         for ns in v:
             dfxp_data = dfxp_data.replace(ns, k)
 
-    dfxp = compat_etree_fromstring(dfxp_data.encode('utf-8'))
+    dfxp = compat_etree_fromstring(dfxp_data)
     out = []
     paras = dfxp.findall(_x('.//ttml:p')) or dfxp.findall('.//p')
 

@@ -42,16 +42,19 @@ class ZDFIE(ZDFBaseIE):
     _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
 
     _TESTS = [{
-        'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
+        'url': 'https://www.zdf.de/dokumentation/terra-x/die-magie-der-farben-von-koenigspurpur-und-jeansblau-100.html',
         'info_dict': {
-            'id': 'zdfmediathek-trailer-100',
+            'id': 'die-magie-der-farben-von-koenigspurpur-und-jeansblau-100',
             'ext': 'mp4',
-            'title': 'Die neue ZDFmediathek',
-            'description': 'md5:3003d36487fb9a5ea2d1ff60beb55e8d',
-            'duration': 30,
-            'timestamp': 1477627200,
-            'upload_date': '20161028',
-        }
+            'title': 'Die Magie der Farben (2/2)',
+            'description': 'md5:a89da10c928c6235401066b60a6d5c1a',
+            'duration': 2615,
+            'timestamp': 1465021200,
+            'upload_date': '20160604',
+        },
+    }, {
+        'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
+        'only_matching': True,
     }, {
         'url': 'https://www.zdf.de/filme/taunuskrimi/die-lebenden-und-die-toten-1---ein-taunuskrimi-100.html',
         'only_matching': True,

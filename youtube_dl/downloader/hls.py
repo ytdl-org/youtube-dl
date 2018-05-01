@@ -75,15 +75,31 @@ class HlsFD(FragmentFD):
                 fd.add_progress_hook(ph)
             return fd.real_download(filename, info_dict)
 
-        total_frags = 0
+        def is_ad_fragment(s):
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s or
+                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
+
+        media_frags = 0
+        ad_frags = 0
+        ad_frag_next = False
         for line in s.splitlines():
             line = line.strip()
-            if line and not line.startswith('#'):
-                total_frags += 1
+            if not line:
+                continue
+            if line.startswith('#'):
+                if is_ad_fragment(line):
+                    ad_frags += 1
+                    ad_frag_next = True
+                continue
+            if ad_frag_next:
+                ad_frag_next = False
+                continue
+            media_frags += 1
 
         ctx = {
             'filename': filename,
-            'total_frags': total_frags,
+            'total_frags': media_frags,
+            'ad_frags': ad_frags,
         }
 
         self._prepare_and_start_frag_download(ctx)
@@ -101,10 +117,14 @@ class HlsFD(FragmentFD):
         decrypt_info = {'METHOD': 'NONE'}
         byte_range = {}
         frag_index = 0
+        ad_frag_next = False
         for line in s.splitlines():
             line = line.strip()
             if line:
                 if not line.startswith('#'):
+                    if ad_frag_next:
+                        ad_frag_next = False
+                        continue
                     frag_index += 1
                     if frag_index <= ctx['fragment_index']:
                         continue
@@ -144,7 +164,8 @@ class HlsFD(FragmentFD):
                         return False
                     if decrypt_info['METHOD'] == 'AES-128':
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
-                        decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(decrypt_info['URI']).read()
+                        decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(
+                            self._prepare_url(info_dict, decrypt_info['URI'])).read()
                         frag_content = AES.new(
                             decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
                     self._append_fragment(ctx, frag_content)
@@ -175,6 +196,8 @@ class HlsFD(FragmentFD):
                         'start': sub_range_start,
                         'end': sub_range_start + int(splitted_byte_range[0]),
                     }
+                elif is_ad_fragment(line):
+                    ad_frag_next = True
 
         self._finish_frag_download(ctx)
 

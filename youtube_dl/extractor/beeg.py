@@ -9,6 +9,7 @@ from ..compat import (
 from ..utils import (
     int_or_none,
     parse_iso8601,
+    urljoin,
 )
 
 
@@ -36,8 +37,10 @@ class BeegIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         cpl_url = self._search_regex(
-            r'<script[^>]+src=(["\'])(?P<url>(?:https?:)?//static\.beeg\.com/cpl/\d+\.js.*?)\1',
+            r'<script[^>]+src=(["\'])(?P<url>(?:/static|(?:https?:)?//static\.beeg\.com)/cpl/\d+\.js.*?)\1',
             webpage, 'cpl', default=None, group='url')
+
+        cpl_url = urljoin(url, cpl_url)
 
         beeg_version, beeg_salt = [None] * 2
 
@@ -54,12 +57,16 @@ class BeegIE(InfoExtractor):
                     r'beeg_salt\s*=\s*(["\'])(?P<beeg_salt>.+?)\1', cpl, 'beeg salt',
                     default=None, group='beeg_salt')
 
-        beeg_version = beeg_version or '2000'
+        beeg_version = beeg_version or '2185'
         beeg_salt = beeg_salt or 'pmweAkq8lAYKdfWcFCUj0yoVgoPlinamH5UE1CB3H'
 
-        video = self._download_json(
-            'https://api.beeg.com/api/v6/%s/video/%s' % (beeg_version, video_id),
-            video_id)
+        for api_path in ('', 'api.'):
+            video = self._download_json(
+                'https://%sbeeg.com/api/v6/%s/video/%s'
+                % (api_path, beeg_version, video_id), video_id,
+                fatal=api_path == 'api.')
+            if video:
+                break
 
         def split(o, e):
             def cut(s, x):

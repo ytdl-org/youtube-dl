@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
 
 from .common import (
     InfoExtractor,
@@ -17,6 +17,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     unified_strdate,
+    update_url_query,
 )
 
 
@@ -120,10 +121,43 @@ class SoundcloudIE(InfoExtractor):
                 'license': 'cc-by-sa',
             },
         },
+        # private link, downloadable format
+        {
+            'url': 'https://soundcloud.com/oriuplift/uponly-238-no-talking-wav/s-AyZUd',
+            'md5': '64a60b16e617d41d0bef032b7f55441e',
+            'info_dict': {
+                'id': '340344461',
+                'ext': 'wav',
+                'title': 'Uplifting Only 238 [No Talking] (incl. Alex Feed Guestmix) (Aug 31, 2017) [wav]',
+                'description': 'md5:fa20ee0fca76a3d6df8c7e57f3715366',
+                'uploader': 'Ori Uplift Music',
+                'upload_date': '20170831',
+                'duration': 7449,
+                'license': 'all-rights-reserved',
+            },
+        },
+        # no album art, use avatar pic for thumbnail
+        {
+            'url': 'https://soundcloud.com/garyvee/sideways-prod-mad-real',
+            'md5': '59c7872bc44e5d99b7211891664760c2',
+            'info_dict': {
+                'id': '309699954',
+                'ext': 'mp3',
+                'title': 'Sideways (Prod. Mad Real)',
+                'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+                'uploader': 'garyvee',
+                'upload_date': '20170226',
+                'duration': 207,
+                'thumbnail': r're:https?://.*\.jpg',
+                'license': 'all-rights-reserved',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
-    _CLIENT_ID = 'JlZIsxg2hY5WnBgtn3jfS0UYCl0K8DOg'
-    _IPHONE_CLIENT_ID = '376f225bf427445fc4bfb6b99b72e0bf'
+    _CLIENT_ID = 'LvWovRaJZlWCHql0bISuum8Bd2KX79mb'
 
     @staticmethod
     def _extract_urls(webpage):
@@ -144,7 +178,7 @@ class SoundcloudIE(InfoExtractor):
         name = full_title or track_id
         if quiet:
             self.report_extraction(name)
-        thumbnail = info.get('artwork_url')
+        thumbnail = info.get('artwork_url') or info.get('user', {}).get('avatar_url')
         if isinstance(thumbnail, compat_str):
             thumbnail = thumbnail.replace('-large', '-t500x500')
         ext = 'mp3'
@@ -160,11 +194,13 @@ class SoundcloudIE(InfoExtractor):
             'license': info.get('license'),
         }
         formats = []
+        query = {'client_id': self._CLIENT_ID}
+        if secret_token is not None:
+            query['secret_token'] = secret_token
         if info.get('downloadable', False):
             # We can build a direct link to the song
-            format_url = (
-                'https://api.soundcloud.com/tracks/{0}/download?client_id={1}'.format(
-                    track_id, self._CLIENT_ID))
+            format_url = update_url_query(
+                'https://api.soundcloud.com/tracks/%s/download' % track_id, query)
             formats.append({
                 'format_id': 'download',
                 'ext': info.get('original_format', 'mp3'),
@@ -176,10 +212,7 @@ class SoundcloudIE(InfoExtractor):
         # We have to retrieve the url
         format_dict = self._download_json(
             'https://api.soundcloud.com/i1/tracks/%s/streams' % track_id,
-            track_id, 'Downloading track url', query={
-                'client_id': self._CLIENT_ID,
-                'secret_token': secret_token,
-            })
+            track_id, 'Downloading track url', query=query)
 
         for key, stream_url in format_dict.items():
             abr = int_or_none(self._search_regex(
@@ -216,7 +249,7 @@ class SoundcloudIE(InfoExtractor):
             # cannot be always used, sometimes it can give an HTTP 404 error
             formats.append({
                 'format_id': 'fallback',
-                'url': info['stream_url'] + '?client_id=' + self._CLIENT_ID,
+                'url': update_url_query(info['stream_url'], query),
                 'ext': ext,
             })
 
