@@ -3,11 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-try:
-    from urllib import urlencode
-    from urlparse import urlparse, urlunparse, urljoin
-except ImportError:
-    from urllib.parse import urlencode, urlparse, urlunparse, urljoin
+from ..utils import (
+    update_url_query,
+    urljoin
+)
 
 
 class MakoTVIE(InfoExtractor):
@@ -30,9 +29,7 @@ class MakoTVIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        parsed_url = list(urlparse(url))
-        parsed_url[4] = urlencode({'type': 'service'})
-        service = self._download_json(urlunparse(parsed_url), video_id)
+        service = self._download_json(update_url_query(url, {'type': 'service'}), video_id)
         video = service['root']['video']
 
         config_new = self._download_xml('https://rcs.mako.co.il/flash_swf/players/makoPlayer/configNew.xml', video_id)
@@ -40,15 +37,16 @@ class MakoTVIE(InfoExtractor):
         playlist_url = playlist_url.replace('$$vcmid$$', video['guid'])
         playlist_url = playlist_url.replace('$$videoChannelId$$', video['chId'])
         playlist_url = playlist_url.replace('$$galleryChannelId$$', video['galleryChId'])
-        playlist = self._download_json('https://www.mako.co.il' + playlist_url, video_id)
+        playlist = self._download_json(urljoin('https://www.mako.co.il', playlist_url), video_id)
 
         formats = []
-        for media in playlist['media']:
-            tickets = self._download_json('https://mass.mako.co.il/ClicksStatistics/entitlementsServicesV2.jsp?et=gt&lp={}&rv={}'.format(media['url'], media['cdn']), video_id)
-            assert tickets['status'] == 'success'
-            for ticket in tickets['tickets']:
-                ticket_url = urljoin('https://makostore-hd.ctedgecdn.net', '{}?{}'.format(ticket['url'], ticket['ticket']))
-                formats.extend(self._extract_m3u8_formats(ticket_url, video_id))
+        for media in playlist.get('media', []):
+            tickets = self._download_json('https://mass.mako.co.il/ClicksStatistics/entitlementsServicesV2.jsp', video_id, fatal=False, query={'et': 'gt', 'lp': media['url'], 'rv': media['cdn']})
+            if tickets is None or tickets.get('status') != 'success':
+                continue
+            for ticket in tickets.get('tickets', {}):
+                ticket_url = urljoin('https://makostore-hd.ctedgecdn.net', ticket['url']) + "?" + ticket['ticket']
+                formats.extend(self._extract_m3u8_formats(ticket_url, video_id, fatal=False))
 
         self._sort_formats(formats)
 
