@@ -127,7 +127,7 @@ class ITVIE(InfoExtractor):
             if fault_code == 'InvalidGeoRegion':
                 self.raise_geo_restricted(
                     msg=fault_string, countries=self._GEO_COUNTRIES)
-            elif fault_code != 'InvalidEntity':
+            elif not re.match(r'(Content|Invalid)[A-z]', fault_code):
                 raise ExtractorError(
                     '%s said: %s' % (self.IE_NAME, fault_string), expected=True)
             info.update({
