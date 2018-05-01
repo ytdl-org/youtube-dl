@@ -58,6 +58,10 @@ class UdemyIE(InfoExtractor):
         # no url in outputs format entry
         'url': 'https://www.udemy.com/learn-web-development-complete-step-by-step-guide-to-success/learn/v4/t/lecture/4125812',
         'only_matching': True,
+    }, {
+        # only outputs rendition
+        'url': 'https://www.udemy.com/how-you-can-help-your-local-community-5-amazing-examples/learn/v4/t/lecture/3225750?start=0',
+        'only_matching': True,
     }]
 
     def _extract_course_info(self, webpage, video_id):
@@ -115,9 +119,9 @@ class UdemyIE(InfoExtractor):
                 error_str += ' - %s' % error_data.get('formErrors')
             raise ExtractorError(error_str, expected=True)
 
-    def _download_webpage(self, *args, **kwargs):
+    def _download_webpage_handle(self, *args, **kwargs):
         kwargs.setdefault('headers', {})['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4'
-        return super(UdemyIE, self)._download_webpage(
+        return super(UdemyIE, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
 
     def _download_json(self, url_or_request, *args, **kwargs):
@@ -356,6 +360,12 @@ class UdemyIE(InfoExtractor):
                     transform_source=lambda s: js_to_json(unescapeHTML(s)),
                     fatal=False)
                 extract_subtitles(text_tracks)
+
+        if not formats and outputs:
+            for format_id, output in outputs.items():
+                f = extract_output_format(output, format_id)
+                if f.get('url'):
+                    formats.append(f)
 
         self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 

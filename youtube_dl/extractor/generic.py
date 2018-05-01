@@ -191,6 +191,16 @@ class GenericIE(InfoExtractor):
                 'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
             }
         },
+        # RSS feed with enclosures and unsupported link URLs
+        {
+            'url': 'http://www.hellointernet.fm/podcast?format=rss',
+            'info_dict': {
+                'id': 'http://www.hellointernet.fm/podcast?format=rss',
+                'description': 'CGP Grey and Brady Haran talk about YouTube, life, work, whatever.',
+                'title': 'Hello Internet',
+            },
+            'playlist_mincount': 100,
+        },
         # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
         {
             'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/video/1/smil.xml',
@@ -1273,6 +1283,23 @@ class GenericIE(InfoExtractor):
             'add_ie': ['Kaltura'],
         },
         {
+            # Kaltura iframe embed, more sophisticated
+            'url': 'http://www.cns.nyu.edu/~eero/math-tools/Videos/lecture-05sep2017.html',
+            'info_dict': {
+                'id': '1_9gzouybz',
+                'ext': 'mp4',
+                'title': 'lecture-05sep2017',
+                'description': 'md5:40f347d91fd4ba047e511c5321064b49',
+                'upload_date': '20170913',
+                'uploader_id': 'eps2',
+                'timestamp': 1505340777,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'add_ie': ['Kaltura'],
+        },
+        {
             # meta twitter:player
             'url': 'http://thechive.com/2017/12/08/all-i-want-for-christmas-is-more-twerk/',
             'info_dict': {
@@ -2026,13 +2053,15 @@ class GenericIE(InfoExtractor):
 
         entries = []
         for it in doc.findall('./channel/item'):
-            next_url = xpath_text(it, 'link', fatal=False)
+            next_url = None
+            enclosure_nodes = it.findall('./enclosure')
+            for e in enclosure_nodes:
+                next_url = e.attrib.get('url')
+                if next_url:
+                    break
+
             if not next_url:
-                enclosure_nodes = it.findall('./enclosure')
-                for e in enclosure_nodes:
-                    next_url = e.attrib.get('url')
-                    if next_url:
-                        break
+                next_url = xpath_text(it, 'link', fatal=False)
 
             if not next_url:
                 continue

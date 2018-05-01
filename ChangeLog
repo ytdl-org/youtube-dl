@@ -1,3 +1,29 @@
+version 2018.05.01
+
+Core
+* [downloader/fragment] Restart download if .ytdl file is corrupt (#16312)
++ [extractor/common] Extract interaction statistic
++ [utils] Add merge_dicts
++ [extractor/common] Add _download_json_handle
+
+Extractors
+* [kaltura] Improve iframe embeds detection (#16337)
++ [udemy] Extract outputs renditions (#16289, #16291, #16320, #16321, #16334,
+  #16335)
++ [zattoo] Add support for zattoo.com and mobiltv.quickline.com (#14668, #14676)
+* [yandexmusic] Convert release_year to int
+* [udemy] Override _download_webpage_handle instead of _download_webpage
+* [xiami] Override _download_webpage_handle instead of _download_webpage
+* [yandexmusic] Override _download_webpage_handle instead of _download_webpage
+* [youtube] Correctly disable polymer on all requests (#16323, #16326)
+* [generic] Prefer enclosures over links in RSS feeds (#16189)
++ [redditr] Add support for old.reddit.com URLs (#16274)
+* [nrktv] Update API host (#16324)
++ [imdb] Extract all formats (#16249)
++ [vimeo] Extract JSON-LD (#16295)
+* [funk:channel] Improve extraction (#16285)
+
+
 version 2018.04.25
 
 Core
