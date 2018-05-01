@@ -32,6 +32,6 @@ class PeertubeIE(InfoExtractor):
             'id': video_id,
             'title': details.get('name'),
             'description': details.get('description'),
-            'formats': [{'url': file_data['fileUrl'], 'filesize': file_data['size']} for file_data in sorted(details['files'], key=lambda x: x['size'])],
+            'formats': [{'url': file_data['fileUrl'], 'filesize': file_data.get('size')} for file_data in sorted(details['files'], key=lambda x: x['size'])],
             'thumbnail': urljoin(base_url, details['thumbnailPath'])
         }
