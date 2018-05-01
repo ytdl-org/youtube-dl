@@ -33,7 +33,7 @@ class PornHubIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[a-z]+\.)?pornhub\.com/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?pornhub\.com/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -264,7 +264,7 @@ class PornHubPlaylistBaseIE(InfoExtractor):
 
 
 class PornHubPlaylistIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/playlist/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?pornhub\.com/playlist/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.pornhub.com/playlist/4667351',
         'info_dict': {
@@ -272,11 +272,14 @@ class PornHubPlaylistIE(PornHubPlaylistBaseIE):
             'title': 'Nataly Hot',
         },
         'playlist_mincount': 2,
+    }, {
+        'url': 'https://de.pornhub.com/playlist/4667351',
+        'only_matching': True,
     }]
 
 
 class PornHubUserVideosIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?pornhub\.com/(?:user|channel)s/(?P<id>[^/]+)/videos'
+    _VALID_URL = r'https?://(?:[^/]+\.)?pornhub\.com/(?:user|channel)s/(?P<id>[^/]+)/videos'
     _TESTS = [{
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'info_dict': {
@@ -304,6 +307,9 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
     }, {
         # Most Viewed Videos
         'url': 'https://www.pornhub.com/channels/povd/videos?o=vi',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'only_matching': True,
     }]
 

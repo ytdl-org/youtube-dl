@@ -19,7 +19,18 @@ from ..utils import (
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m|mobile)\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?|web-api/video/moviePlayer|live)/(?P<id>[\d-]+)'
+    _VALID_URL = r'''(?x)
+                https?://
+                    (?:(?:www|m|mobile)\.)?
+                    (?:odnoklassniki|ok)\.ru/
+                    (?:
+                        video(?:embed)?/|
+                        web-api/video/moviePlayer/|
+                        live/|
+                        dk\?.*?st\.mvId=
+                    )
+                    (?P<id>[\d-]+)
+                '''
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
@@ -100,6 +111,9 @@ class OdnoklassnikiIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.ok.ru/live/484531969818',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.ok.ru/dk?st.cmd=movieLayer&st.discId=863789452017&st.retLoc=friend&st.rtu=%2Fdk%3Fst.cmd%3DfriendMovies%26st.mode%3Down%26st.mrkId%3D%257B%2522uploadedMovieMarker%2522%253A%257B%2522marker%2522%253A%25221519410114503%2522%252C%2522hasMore%2522%253Atrue%257D%252C%2522sharedMovieMarker%2522%253A%257B%2522marker%2522%253Anull%252C%2522hasMore%2522%253Afalse%257D%257D%26st.friendId%3D561722190321%26st.frwd%3Don%26_prevCmd%3DfriendMovies%26tkn%3D7257&st.discType=MOVIE&st.mvId=863789452017&_prevCmd=friendMovies&tkn=3648#lst#',
         'only_matching': True,
     }]
 

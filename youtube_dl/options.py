@@ -676,7 +676,8 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-a', '--batch-file',
         dest='batchfile', metavar='FILE',
-        help='File containing URLs to download (\'-\' for stdin)')
+        help="File containing URLs to download ('-' for stdin), one URL per line. "
+             "Lines starting with '#', ';' or ']' are considered as comments and ignored.")
     filesystem.add_option(
         '--id', default=False,
         action='store_true', dest='useid', help='Use only video ID in file name')

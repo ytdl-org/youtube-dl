@@ -20,23 +20,23 @@ from ..utils import (
 class KeezMoviesIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?keezmovies\.com/video/(?:(?P<display_id>[^/]+)-)?(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://www.keezmovies.com/video/petite-asian-lady-mai-playing-in-bathtub-1214711',
-        'md5': '1c1e75d22ffa53320f45eeb07bc4cdc0',
+        'url': 'https://www.keezmovies.com/video/arab-wife-want-it-so-bad-i-see-she-thirsty-and-has-tiny-money-18070681',
+        'md5': '2ac69cdb882055f71d82db4311732a1a',
         'info_dict': {
-            'id': '1214711',
-            'display_id': 'petite-asian-lady-mai-playing-in-bathtub',
+            'id': '18070681',
+            'display_id': 'arab-wife-want-it-so-bad-i-see-she-thirsty-and-has-tiny-money',
             'ext': 'mp4',
-            'title': 'Petite Asian Lady Mai Playing In Bathtub',
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'title': 'Arab wife want it so bad I see she thirsty and has tiny money.',
+            'thumbnail': None,
             'view_count': int,
             'age_limit': 18,
         }
     }, {
-        'url': 'http://www.keezmovies.com/video/1214711',
+        'url': 'http://www.keezmovies.com/video/18070681',
         'only_matching': True,
     }]
 
-    def _extract_info(self, url):
+    def _extract_info(self, url, fatal=True):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         display_id = (mobj.group('display_id')
@@ -55,7 +55,7 @@ class KeezMoviesIE(InfoExtractor):
         encrypted = False
 
         def extract_format(format_url, height=None):
-            if not isinstance(format_url, compat_str) or not format_url.startswith('http'):
+            if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//')):
                 return
             if format_url in format_urls:
                 return
@@ -105,7 +105,11 @@ class KeezMoviesIE(InfoExtractor):
                 raise ExtractorError(
                     'Video %s is no longer available' % video_id, expected=True)
 
-        self._sort_formats(formats)
+        try:
+            self._sort_formats(formats)
+        except ExtractorError:
+            if fatal:
+                raise
 
         if not title:
             title = self._html_search_regex(
@@ -122,7 +126,9 @@ class KeezMoviesIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
-        webpage, info = self._extract_info(url)
+        webpage, info = self._extract_info(url, fatal=False)
+        if not info['formats']:
+            return self.url_result(url, 'Generic')
         info['view_count'] = str_to_int(self._search_regex(
             r'<b>([\d,.]+)</b> Views?', webpage, 'view count', fatal=False))
         return info

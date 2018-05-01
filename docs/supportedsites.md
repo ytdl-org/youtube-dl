@@ -257,7 +257,6 @@
  - **ESPN**
  - **ESPNArticle**
  - **EsriVideo**
- - **ETOnline**
  - **Europa**
  - **EveryonesMixtape**
  - **ExpoTV**
@@ -419,6 +418,7 @@
  - **Lecture2Go**
  - **LEGO**
  - **Lemonde**
+ - **Lenta**
  - **LePlaylist**
  - **LetvCloud**: 乐视云
  - **Libsyn**
@@ -427,6 +427,7 @@
  - **limelight**
  - **limelight:channel**
  - **limelight:channel_list**
+ - **LineTV**
  - **LiTV**
  - **LiveLeak**
  - **LiveLeakEmbed**
@@ -626,6 +627,8 @@
  - **PhilharmonieDeParis**: Philharmonie de Paris
  - **phoenix.de**
  - **Photobucket**
+ - **Picarto**
+ - **PicartoVod**
  - **Piksel**
  - **Pinkbike**
  - **Pladform**
@@ -664,6 +667,8 @@
  - **qqmusic:playlist**: QQ音乐 - 歌单
  - **qqmusic:singer**: QQ音乐 - 歌手
  - **qqmusic:toplist**: QQ音乐 - 排行榜
+ - **Quickline**
+ - **QuicklineLive**
  - **R7**
  - **R7Article**
  - **radio.de**
@@ -802,6 +807,7 @@
  - **SunPorno**
  - **SVT**
  - **SVTPlay**: SVT Play and Öppet arkiv
+ - **SVTSeries**
  - **SWRMediathek**
  - **Syfy**
  - **SztvHu**
@@ -829,6 +835,7 @@
  - **TeleQuebecLive**
  - **TeleTask**
  - **Telewebion**
+ - **TennisTV**
  - **TF1**
  - **TFO**
  - **TheIntercept**
@@ -884,6 +891,7 @@
  - **TVNoe**
  - **TVNow**
  - **TVNowList**
+ - **TVNowShow**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
  - **tvp:series**
@@ -1086,6 +1094,8 @@
  - **youtube:watchlater**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
  - **Zapiks**
  - **Zaq1**
+ - **Zattoo**
+ - **ZattooLive**
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3**: mp3.zing.vn

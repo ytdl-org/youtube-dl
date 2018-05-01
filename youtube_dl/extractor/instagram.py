@@ -1,14 +1,21 @@
 from __future__ import unicode_literals
 
 import itertools
+import hashlib
+import json
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_HTTPError,
+)
 from ..utils import (
+    ExtractorError,
     get_element_by_attribute,
     int_or_none,
     lowercase_escape,
+    std_headers,
     try_get,
 )
 
@@ -237,37 +244,68 @@ class InstagramUserIE(InfoExtractor):
         }
     }
 
-    def _entries(self, uploader_id):
-        query = {
-            '__a': 1,
-        }
+    _gis_tmpl = None
 
-        def get_count(kind):
+    def _entries(self, data):
+        def get_count(suffix):
             return int_or_none(try_get(
-                node, lambda x: x['%ss' % kind]['count']))
+                node, lambda x: x['edge_media_' + suffix]['count']))
 
+        uploader_id = data['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+        csrf_token = data['config']['csrf_token']
+        rhx_gis = data.get('rhx_gis') or '3c7ca9dcefcf966d11dacf1f151335e8'
+
+        self._set_cookie('instagram.com', 'ig_pr', '1')
+
+        cursor = ''
         for page_num in itertools.count(1):
-            page = self._download_json(
-                'https://instagram.com/%s/' % uploader_id, uploader_id,
-                note='Downloading page %d' % page_num,
-                fatal=False, query=query)
-            if not page:
+            variables = json.dumps({
+                'id': uploader_id,
+                'first': 12,
+                'after': cursor,
+            })
+
+            if self._gis_tmpl:
+                gis_tmpls = [self._gis_tmpl]
+            else:
+                gis_tmpls = [
+                    '%s' % rhx_gis,
+                    '',
+                    '%s:%s' % (rhx_gis, csrf_token),
+                    '%s:%s:%s' % (rhx_gis, csrf_token, std_headers['User-Agent']),
+                ]
+
+            for gis_tmpl in gis_tmpls:
+                try:
+                    media = self._download_json(
+                        'https://www.instagram.com/graphql/query/', uploader_id,
+                        'Downloading JSON page %d' % page_num, headers={
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-Instagram-GIS': hashlib.md5(
+                                ('%s:%s' % (gis_tmpl, variables)).encode('utf-8')).hexdigest(),
+                        }, query={
+                            'query_hash': '42323d64886122307be10013ad2dcc44',
+                            'variables': variables,
+                        })['data']['user']['edge_owner_to_timeline_media']
+                    self._gis_tmpl = gis_tmpl
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                        if gis_tmpl != gis_tmpls[-1]:
+                            continue
+                    raise
+
+            edges = media.get('edges')
+            if not edges or not isinstance(edges, list):
                 break
 
-            nodes = try_get(page, lambda x: x['user']['media']['nodes'], list)
-            if not nodes:
-                break
-
-            max_id = None
-
-            for node in nodes:
-                node_id = node.get('id')
-                if node_id:
-                    max_id = node_id
-
+            for edge in edges:
+                node = edge.get('node')
+                if not node or not isinstance(node, dict):
+                    continue
                 if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
                     continue
-                video_id = node.get('code')
+                video_id = node.get('shortcode')
                 if not video_id:
                     continue
 
@@ -276,14 +314,14 @@ class InstagramUserIE(InfoExtractor):
                     ie=InstagramIE.ie_key(), video_id=video_id)
 
                 description = try_get(
-                    node, [lambda x: x['caption'], lambda x: x['text']['id']],
+                    node, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
                     compat_str)
                 thumbnail = node.get('thumbnail_src') or node.get('display_src')
-                timestamp = int_or_none(node.get('date'))
+                timestamp = int_or_none(node.get('taken_at_timestamp'))
 
-                comment_count = get_count('comment')
-                like_count = get_count('like')
-                view_count = int_or_none(node.get('video_views'))
+                comment_count = get_count('to_comment')
+                like_count = get_count('preview_like')
+                view_count = int_or_none(node.get('video_view_count'))
 
                 info.update({
                     'description': description,
@@ -296,12 +334,27 @@ class InstagramUserIE(InfoExtractor):
 
                 yield info
 
-            if not max_id:
+            page_info = media.get('page_info')
+            if not page_info or not isinstance(page_info, dict):
                 break
 
-            query['max_id'] = max_id
+            has_next_page = page_info.get('has_next_page')
+            if not has_next_page:
+                break
+
+            cursor = page_info.get('end_cursor')
+            if not cursor or not isinstance(cursor, compat_str):
+                break
 
     def _real_extract(self, url):
-        uploader_id = self._match_id(url)
+        username = self._match_id(url)
+
+        webpage = self._download_webpage(url, username)
+
+        data = self._parse_json(
+            self._search_regex(
+                r'sharedData\s*=\s*({.+?})\s*;\s*[<\n]', webpage, 'data'),
+            username)
+
         return self.playlist_result(
-            self._entries(uploader_id), uploader_id, uploader_id)
+            self._entries(data), username, username)

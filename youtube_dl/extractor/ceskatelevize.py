@@ -13,6 +13,7 @@ from ..utils import (
     float_or_none,
     sanitized_Request,
     unescapeHTML,
+    update_url_query,
     urlencode_postdata,
     USER_AGENTS,
 )
@@ -265,6 +266,10 @@ class CeskaTelevizePoradyIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        # iframe embed
+        'url': 'http://www.ceskatelevize.cz/porady/10614999031-neviditelni/21251212048/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -272,8 +277,11 @@ class CeskaTelevizePoradyIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        data_url = unescapeHTML(self._search_regex(
-            r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
-            webpage, 'iframe player url', group='url'))
+        data_url = update_url_query(unescapeHTML(self._search_regex(
+            (r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+             r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:www\.)?ceskatelevize\.cz/ivysilani/embed/iFramePlayer\.php.*?)\1'),
+            webpage, 'iframe player url', group='url')), query={
+                'autoStart': 'true',
+        })
 
         return self.url_result(data_url, ie=CeskaTelevizeIE.ie_key())

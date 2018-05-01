@@ -14,6 +14,9 @@ PYTHON ?= /usr/bin/env python
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 SYSCONFDIR = $(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi)
 
+# set markdown input format to "markdown-smart" for pandoc version 2 and to "markdown" for pandoc prior to version 2
+MARKDOWN = $(shell if [ `pandoc -v | head -n1 | cut -d" " -f2 | head -c1` = "2" ]; then echo markdown-smart; else echo markdown; fi)
+
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)
 	install -m 755 youtube-dl $(DESTDIR)$(BINDIR)
@@ -82,11 +85,11 @@ supportedsites:
 	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
 
 README.txt: README.md
-	pandoc -f markdown -t plain README.md -o README.txt
+	pandoc -f $(MARKDOWN) -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
 	$(PYTHON) devscripts/prepare_manpage.py youtube-dl.1.temp.md
-	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
+	pandoc -s -f $(MARKDOWN) -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in

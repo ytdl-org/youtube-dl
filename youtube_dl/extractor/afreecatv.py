@@ -9,6 +9,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    urlencode_postdata,
     xpath_text,
 )
 
@@ -28,6 +29,7 @@ class AfreecaTVIE(InfoExtractor):
                         )
                         (?P<id>\d+)
                     '''
+    _NETRC_MACHINE = 'afreecatv'
     _TESTS = [{
         'url': 'http://live.afreecatv.com:8079/app/index.cgi?szType=read_ucc_bbs&szBjId=dailyapril&nStationNo=16711924&nBbsNo=18605867&nTitleNo=36164052&szSkin=',
         'md5': 'f72c89fe7ecc14c1b5ce506c4996046e',
@@ -139,22 +141,22 @@ class AfreecaTVIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # adult video
-        'url': 'http://vod.afreecatv.com/PLAYER/STATION/26542731',
+        # PARTIAL_ADULT
+        'url': 'http://vod.afreecatv.com/PLAYER/STATION/32028439',
         'info_dict': {
-            'id': '20171001_F1AE1711_196617479_1',
+            'id': '20180327_27901457_202289533_1',
             'ext': 'mp4',
-            'title': '[생]서아 초심 찾기 방송 (part 1)',
+            'title': '[생]빨개요♥ (part 1)',
             'thumbnail': 're:^https?://(?:video|st)img.afreecatv.com/.*$',
-            'uploader': 'BJ서아',
+            'uploader': '[SA]서아',
             'uploader_id': 'bjdyrksu',
-            'upload_date': '20171001',
-            'duration': 3600,
-            'age_limit': 18,
+            'upload_date': '20180327',
+            'duration': 3601,
         },
         'params': {
             'skip_download': True,
         },
+        'expected_warnings': ['adult content'],
     }, {
         'url': 'http://www.afreecatv.com/player/Player.swf?szType=szBjId=djleegoon&nStationNo=11273158&nBbsNo=13161095&nTitleNo=36327652',
         'only_matching': True,
@@ -172,6 +174,51 @@ class AfreecaTVIE(InfoExtractor):
             video_key['part'] = int(m.group('part'))
         return video_key
 
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login_form = {
+            'szWork': 'login',
+            'szType': 'json',
+            'szUid': username,
+            'szPassword': password,
+            'isSaveId': 'false',
+            'szScriptVar': 'oLoginRet',
+            'szAction': '',
+        }
+
+        response = self._download_json(
+            'https://login.afreecatv.com/app/LoginAction.php', None,
+            'Logging in', data=urlencode_postdata(login_form))
+
+        _ERRORS = {
+            -4: 'Your account has been suspended due to a violation of our terms and policies.',
+            -5: 'https://member.afreecatv.com/app/user_delete_progress.php',
+            -6: 'https://login.afreecatv.com/membership/changeMember.php',
+            -8: "Hello! AfreecaTV here.\nThe username you have entered belongs to \n an account that requires a legal guardian's consent. \nIf you wish to use our services without restriction, \nplease make sure to go through the necessary verification process.",
+            -9: 'https://member.afreecatv.com/app/pop_login_block.php',
+            -11: 'https://login.afreecatv.com/afreeca/second_login.php',
+            -12: 'https://member.afreecatv.com/app/user_security.php',
+            0: 'The username does not exist or you have entered the wrong password.',
+            -1: 'The username does not exist or you have entered the wrong password.',
+            -3: 'You have entered your username/password incorrectly.',
+            -7: 'You cannot use your Global AfreecaTV account to access Korean AfreecaTV.',
+            -10: 'Sorry for the inconvenience. \nYour account has been blocked due to an unauthorized access. \nPlease contact our Help Center for assistance.',
+            -32008: 'You have failed to log in. Please contact our Help Center.',
+        }
+
+        result = int_or_none(response.get('RESULT'))
+        if result != 1:
+            error = _ERRORS.get(result, 'You have failed to log in.')
+            raise ExtractorError(
+                'Unable to login: %s said: %s' % (self.IE_NAME, error),
+                expected=True)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -188,21 +235,41 @@ class AfreecaTVIE(InfoExtractor):
         video_id = self._search_regex(
             r'nTitleNo\s*=\s*(\d+)', webpage, 'title', default=video_id)
 
-        video_xml = self._download_xml(
-            'http://afbbs.afreecatv.com:8080/api/video/get_video_info.php',
-            video_id, headers={
-                'Referer': 'http://vod.afreecatv.com/embed.php',
-            }, query={
+        partial_view = False
+        for _ in range(2):
+            query = {
                 'nTitleNo': video_id,
                 'nStationNo': station_id,
                 'nBbsNo': bbs_id,
-                'partialView': 'SKIP_ADULT',
-            })
+            }
+            if partial_view:
+                query['partialView'] = 'SKIP_ADULT'
+            video_xml = self._download_xml(
+                'http://afbbs.afreecatv.com:8080/api/video/get_video_info.php',
+                video_id, 'Downloading video info XML%s'
+                % (' (skipping adult)' if partial_view else ''),
+                video_id, headers={
+                    'Referer': url,
+                }, query=query)
 
-        flag = xpath_text(video_xml, './track/flag', 'flag', default=None)
-        if flag and flag != 'SUCCEED':
+            flag = xpath_text(video_xml, './track/flag', 'flag', default=None)
+            if flag and flag == 'SUCCEED':
+                break
+            if flag == 'PARTIAL_ADULT':
+                self._downloader.report_warning(
+                    'In accordance with local laws and regulations, underage users are restricted from watching adult content. '
+                    'Only content suitable for all ages will be downloaded. '
+                    'Provide account credentials if you wish to download restricted content.')
+                partial_view = True
+                continue
+            elif flag == 'ADULT':
+                error = 'Only users older than 19 are able to watch this video. Provide account credentials to download this content.'
+            else:
+                error = flag
             raise ExtractorError(
-                '%s said: %s' % (self.IE_NAME, flag), expected=True)
+                '%s said: %s' % (self.IE_NAME, error), expected=True)
+        else:
+            raise ExtractorError('Unable to download video info')
 
         video_element = video_xml.findall(compat_xpath('./track/video'))[-1]
         if video_element is None or video_element.text is None:
