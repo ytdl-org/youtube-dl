@@ -3534,10 +3534,13 @@ class GeoUtils(object):
     }
 
     @classmethod
-    def random_ipv4(cls, code):
-        block = cls._country_ip_map.get(code.upper())
-        if not block:
-            return None
+    def random_ipv4(cls, code_or_block):
+        if len(code_or_block) == 2:
+            block = cls._country_ip_map.get(code_or_block.upper())
+            if not block:
+                return None
+        else:
+            block = code_or_block
         addr, preflen = block.split('/')
         addr_min = compat_struct_unpack('!L', socket.inet_aton(addr))[0]
         addr_max = addr_min | (0xffffffff >> int(preflen))

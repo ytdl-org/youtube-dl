@@ -286,6 +286,9 @@ class YoutubeDL(object):
                        Two-letter ISO 3166-2 country code that will be used for
                        explicit geographic restriction bypassing via faking
                        X-Forwarded-For HTTP header (experimental)
+    geo_bypass_ip_block:
+                       IP range in CIDR notation that will be used similarly to
+                       geo_bypass_country (experimental)
 
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
