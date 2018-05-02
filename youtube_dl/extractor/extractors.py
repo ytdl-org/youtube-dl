@@ -477,7 +477,10 @@ from .internetvideoarchive import InternetVideoArchiveIE
 from .iprima import IPrimaIE
 from .iqiyi import IqiyiIE
 from .ir90tv import Ir90TvIE
-from .itv import ITVIE
+from .itv import (
+    ITVIE,
+    ITVBTCCIE,
+)
 from .ivi import (
     IviIE,
     IviCompilationIE
