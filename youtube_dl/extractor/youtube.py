@@ -312,10 +312,14 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
         for playlist_id in orderedSet(re.findall(
-                r'<h3[^>]+class="[^"]*yt-lockup-title[^"]*"[^>]*><a[^>]+href="/?playlist\?list=([0-9A-Za-z-_]{10,})"',
-                content)):
-            yield self.url_result(
-                'https://www.youtube.com/playlist?list=%s' % playlist_id, 'YoutubePlaylist')
+                r'<h3[^>]+class="[^"]*yt-lockup-title[^"]*"[^>]*><a[^>]+href="/?playlist\?list=([0-9A-Za-z-_]{10,})"', content)):
+            playlistURL = 'https://www.youtube.com/playlist?list=%s' % playlist_id
+
+            # get the data from that page and grab the title
+            playlistTitle = self._og_search_title(self._download_webpage(playlistURL, playlist_id))
+            playlistTitle = playlistTitle[:playlistTitle.find(" -")]
+
+            yield self.url_result(playlistURL, 'YoutubePlaylist', video_title=playlistTitle)
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
