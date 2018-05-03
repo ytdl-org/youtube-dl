@@ -9,7 +9,7 @@ from .common import InfoExtractor
 class PeertubeIE(InfoExtractor):
     IE_DESC = 'Peertube Videos'
     IE_NAME = 'Peertube'
-    _VALID_URL = r'https?:\/\/peertube\.touhoppai\.moe\/videos\/watch\/(?P<id>[0-9|a-z]{8}-[0-9|a-z]{4}-[0-9|a-z]{4}-[0-9|a-z]{4}-[0-9|a-z]{12})'
+    _VALID_URL = r'(?:https?:)//peertube\.touhoppai\.moe\/videos\/watch\/(?P<id>[0-9|a-z]{8}-[0-9|a-z]{4}-[0-9|a-z]{4}-[0-9|a-z]{4}-[0-9|a-z]{12})'
     _TEST = {
         'url': 'https://peertube.touhoppai.moe/videos/watch/7f3421ae-6161-4a4a-ae38-d167aec51683',
         'md5': 'a5e1e4a978e6b789553198d1739f5643',
@@ -26,12 +26,22 @@ class PeertubeIE(InfoExtractor):
         video_id = self._match_id(url)
         url_data = compat_urlparse.urlparse(url)
         base_url = "%s://%s" % (url_data.scheme, url_data.hostname)
-        api_url = urljoin(urljoin(base_url, "/api/v1/videos/"), video_id)
+        api_url = urljoin(base_url, "/api/v1/videos/%s" % video_id)
         details = self._download_json(api_url, video_id)
+        formats = [{'url': file_data['fileUrl'], 'filesize': file_data.get('size'), 'format': file_data.get('resolution', {}).get('label')} for file_data in details['files']]
+        self._sort_formats(formats)
         return {
             'id': video_id,
-            'title': details.get('name'),
+            'title': details['name'],
             'description': details.get('description'),
-            'formats': [{'url': file_data['fileUrl'], 'filesize': file_data.get('size')} for file_data in sorted(details['files'], key=lambda x: x['size'])],
-            'thumbnail': urljoin(base_url, details['thumbnailPath'])
+            'formats': formats,
+            'thumbnail': urljoin(base_url, details['thumbnailPath']) if 'thumbnailPath' in details else None,
+            'uploader': details.get('account', {}).get('name'),
+            'uploader_id': details.get('account', {}).get('id'),
+            'uploder_url': details.get('account', {}).get('url'),
+            'duration': details.get('duration'),
+            'view_count': details.get('views'),
+            'like_count': details.get('likes'),
+            'dislike_count': details.get('dislikes'),
+            'tags': details.get('tags')
         }
