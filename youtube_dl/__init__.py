@@ -445,6 +445,13 @@ def _real_main(argv=None):
         if opts.rm_cachedir:
             ydl.cache.remove()
 
+        # Warn if no-effect args are given
+        if opts.audioformat and not opts.extractaudio:
+            ydl.report_warning(
+                'You have specified "--audio-format", '
+                'but have not given "--extract-audio". '
+                'Audio will not be extracted.')
+
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):
             if opts.update_self or opts.rm_cachedir:
