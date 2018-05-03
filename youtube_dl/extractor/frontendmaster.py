@@ -146,8 +146,7 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         course_id = mobj.group('courseid')
 
         course_json_content = self._download_course(course_id=course_id,
-                                                    url=url,
-                                                    display_id=course_id)
+                                                    url=url)
 
         # Necessary to get mandatory informations like title and video_url
         lesson_index = course_json_content.get('lessonSlugs').index(video_id)
@@ -278,8 +277,7 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
         mobj = re.match(self._VALID_URL, url)
         course_id = mobj.group('courseid')
         course_json_content = self._download_course(course_id=course_id,
-                                                    url=url,
-                                                    display_id=None)
+                                                    url=url)
 
         title = course_json_content.get('title')
         description = course_json_content.get('description')
