@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from ..compat import compat_urlparse
-from ..utils import urljoin
+from ..utils import urljoin, int_or_none
 from .common import InfoExtractor
 
 
@@ -28,7 +28,7 @@ class PeertubeIE(InfoExtractor):
         base_url = "%s://%s" % (url_data.scheme, url_data.hostname)
         api_url = urljoin(base_url, "/api/v1/videos/%s" % video_id)
         details = self._download_json(api_url, video_id)
-        formats = [{'url': file_data['fileUrl'], 'filesize': file_data.get('size'), 'format': file_data.get('resolution', {}).get('label')} for file_data in details['files']]
+        formats = [{'url': file_data['fileUrl'], 'filesize': int_or_none(file_data.get('size')), 'format': file_data.get('resolution', {}).get('label')} for file_data in details['files']]
         self._sort_formats(formats)
         return {
             'id': video_id,
@@ -39,9 +39,9 @@ class PeertubeIE(InfoExtractor):
             'uploader': details.get('account', {}).get('name'),
             'uploader_id': details.get('account', {}).get('id'),
             'uploder_url': details.get('account', {}).get('url'),
-            'duration': details.get('duration'),
-            'view_count': details.get('views'),
-            'like_count': details.get('likes'),
-            'dislike_count': details.get('dislikes'),
+            'duration': int_or_none(details.get('duration')),
+            'view_count': int_or_none(details.get('views')),
+            'like_count': int_or_none(details.get('likes')),
+            'dislike_count': int_or_none(details.get('dislikes')),
             'tags': details.get('tags')
         }
