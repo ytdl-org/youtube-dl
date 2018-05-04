@@ -9,7 +9,7 @@ from .common import InfoExtractor
 class PeertubeIE(InfoExtractor):
     IE_DESC = 'Peertube Videos'
     IE_NAME = 'Peertube'
-    _VALID_URL = r'(?:https?:)//peertube\.touhoppai\.moe\/videos\/watch\/(?P<id>[0-9|a-z]{8}-[0-9|a-z]{4}-[0-9|a-z]{4}-[0-9|a-z]{4}-[0-9|a-z]{12})'
+    _VALID_URL = r'(?:https?:)//peertube\.touhoppai\.moe\/videos\/watch\/(?P<id>[0-9|a-f]{8}-[0-9|a-f]{4}-[0-9|a-f]{4}-[0-9|a-f]{4}-[0-9|a-f]{12})'
     _TEST = {
         'url': 'https://peertube.touhoppai.moe/videos/watch/7f3421ae-6161-4a4a-ae38-d167aec51683',
         'md5': 'a5e1e4a978e6b789553198d1739f5643',
