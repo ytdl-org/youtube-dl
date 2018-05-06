@@ -137,6 +137,7 @@ from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
 )
+from .businessinsider import BusinessInsiderIE
 from .buzzfeed import BuzzFeedIE
 from .byutv import BYUtvIE
 from .c56 import C56IE
