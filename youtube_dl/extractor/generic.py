@@ -107,6 +107,7 @@ from .springboardplatform import SpringboardPlatformIE
 from .yapfiles import YapFilesIE
 from .vice import ViceIE
 from .xfileshare import XFileShareIE
+from .cloudflarestream import CloudflareStreamIE
 
 
 class GenericIE(InfoExtractor):
@@ -1471,21 +1472,6 @@ class GenericIE(InfoExtractor):
             },
             'expected_warnings': ['Failed to parse JSON Expecting value'],
         },
-        # Ooyala embed
-        {
-            'url': 'http://www.businessinsider.com/excel-index-match-vlookup-video-how-to-2015-2?IR=T',
-            'info_dict': {
-                'id': '50YnY4czr4ms1vJ7yz3xzq0excz_pUMs',
-                'ext': 'mp4',
-                'description': 'Index/Match versus VLOOKUP.',
-                'title': 'This is what separates the Excel masters from the wannabes',
-                'duration': 191.933,
-            },
-            'params': {
-                # m3u8 downloads
-                'skip_download': True,
-            }
-        },
         # Brightcove URL in single quotes
         {
             'url': 'http://www.sportsnet.ca/baseball/mlb/sn-presents-russell-martin-world-citizen/',
@@ -2009,6 +1995,19 @@ class GenericIE(InfoExtractor):
                 'title': 'Котята',
             },
             'add_ie': [YapFilesIE.ie_key()],
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # CloudflareStream embed
+            'url': 'https://www.cloudflare.com/products/cloudflare-stream/',
+            'info_dict': {
+                'id': '31c9291ab41fac05471db4e73aa11717',
+                'ext': 'mp4',
+                'title': '31c9291ab41fac05471db4e73aa11717',
+            },
+            'add_ie': [CloudflareStreamIE.ie_key()],
             'params': {
                 'skip_download': True,
             },
@@ -3024,6 +3023,11 @@ class GenericIE(InfoExtractor):
         if xfileshare_urls:
             return self.playlist_from_matches(
                 xfileshare_urls, video_id, video_title, ie=XFileShareIE.ie_key())
+
+        cloudflarestream_urls = CloudflareStreamIE._extract_urls(webpage)
+        if cloudflarestream_urls:
+            return self.playlist_from_matches(
+                cloudflarestream_urls, video_id, video_title, ie=CloudflareStreamIE.ie_key())
 
         sharevideos_urls = [mobj.group('url') for mobj in re.finditer(
             r'<iframe[^>]+?\bsrc\s*=\s*(["\'])(?P<url>(?:https?:)?//embed\.share-videos\.se/auto/embed/\d+\?.*?\buid=\d+.*?)\1',

@@ -346,6 +346,11 @@ class InfoExtractor(object):
     geo restriction bypass mechanism right away in order to bypass
     geo restriction, of course, if the mechanism is not disabled. (experimental)
 
+    _GEO_IP_BLOCKS attribute may contain a list of presumably geo unrestricted
+    IP blocks in CIDR notation for this extractor. One of these IP blocks
+    will be used by geo restriction bypass mechanism similarly
+    to _GEO_COUNTRIES. (experimental)
+
     NB: both these geo attributes are experimental and may change in future
     or be completely removed.
 
@@ -358,6 +363,7 @@ class InfoExtractor(object):
     _x_forwarded_for_ip = None
     _GEO_BYPASS = True
     _GEO_COUNTRIES = None
+    _GEO_IP_BLOCKS = None
     _WORKING = True
 
     def __init__(self, downloader=None):
@@ -392,12 +398,15 @@ class InfoExtractor(object):
 
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
-        self._initialize_geo_bypass(self._GEO_COUNTRIES)
+        self._initialize_geo_bypass({
+            'countries': self._GEO_COUNTRIES,
+            'ip_blocks': self._GEO_IP_BLOCKS,
+        })
         if not self._ready:
             self._real_initialize()
             self._ready = True
 
-    def _initialize_geo_bypass(self, countries):
+    def _initialize_geo_bypass(self, geo_bypass_context):
         """
         Initialize geo restriction bypass mechanism.
 
@@ -408,28 +417,82 @@ class InfoExtractor(object):
         HTTP requests.
 
         This method will be used for initial geo bypass mechanism initialization
-        during the instance initialization with _GEO_COUNTRIES.
+        during the instance initialization with _GEO_COUNTRIES and
+        _GEO_IP_BLOCKS.
 
-        You may also manually call it from extractor's code if geo countries
+        You may also manually call it from extractor's code if geo bypass
         information is not available beforehand (e.g. obtained during
-        extraction) or due to some another reason.
+        extraction) or due to some other reason. In this case you should pass
+        this information in geo bypass context passed as first argument. It may
+        contain following fields:
+
+        countries:  List of geo unrestricted countries (similar
+                    to _GEO_COUNTRIES)
+        ip_blocks:  List of geo unrestricted IP blocks in CIDR notation
+                    (similar to _GEO_IP_BLOCKS)
+
         """
         if not self._x_forwarded_for_ip:
-            country_code = self._downloader.params.get('geo_bypass_country', None)
-            # If there is no explicit country for geo bypass specified and
-            # the extractor is known to be geo restricted let's fake IP
-            # as X-Forwarded-For right away.
-            if (not country_code and
-                    self._GEO_BYPASS and
-                    self._downloader.params.get('geo_bypass', True) and
-                    countries):
-                country_code = random.choice(countries)
-            if country_code:
-                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
+
+            # Geo bypass mechanism is explicitly disabled by user
+            if not self._downloader.params.get('geo_bypass', True):
+                return
+
+            if not geo_bypass_context:
+                geo_bypass_context = {}
+
+            # Backward compatibility: previously _initialize_geo_bypass
+            # expected a list of countries, some 3rd party code may still use
+            # it this way
+            if isinstance(geo_bypass_context, (list, tuple)):
+                geo_bypass_context = {
+                    'countries': geo_bypass_context,
+                }
+
+            # The whole point of geo bypass mechanism is to fake IP
+            # as X-Forwarded-For HTTP header based on some IP block or
+            # country code.
+
+            # Path 1: bypassing based on IP block in CIDR notation
+
+            # Explicit IP block specified by user, use it right away
+            # regardless of whether extractor is geo bypassable or not
+            ip_block = self._downloader.params.get('geo_bypass_ip_block', None)
+
+            # Otherwise use random IP block from geo bypass context but only
+            # if extractor is known as geo bypassable
+            if not ip_block:
+                ip_blocks = geo_bypass_context.get('ip_blocks')
+                if self._GEO_BYPASS and ip_blocks:
+                    ip_block = random.choice(ip_blocks)
+
+            if ip_block:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(ip_block)
+                if self._downloader.params.get('verbose', False):
+                    self._downloader.to_screen(
+                        '[debug] Using fake IP %s as X-Forwarded-For.'
+                        % self._x_forwarded_for_ip)
+                return
+
+            # Path 2: bypassing based on country code
+
+            # Explicit country code specified by user, use it right away
+            # regardless of whether extractor is geo bypassable or not
+            country = self._downloader.params.get('geo_bypass_country', None)
+
+            # Otherwise use random country code from geo bypass context but
+            # only if extractor is known as geo bypassable
+            if not country:
+                countries = geo_bypass_context.get('countries')
+                if self._GEO_BYPASS and countries:
+                    country = random.choice(countries)
+
+            if country:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country)
                 if self._downloader.params.get('verbose', False):
                     self._downloader.to_screen(
                         '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
-                        % (self._x_forwarded_for_ip, country_code.upper()))
+                        % (self._x_forwarded_for_ip, country.upper()))
 
     def extract(self, url):
         """Extracts URL information and returns it in list of dicts."""
