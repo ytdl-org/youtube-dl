@@ -122,6 +122,7 @@
  - **BRMediathek**: Bayerischer Rundfunk Mediathek
  - **bt:article**: Bergens Tidende Articles
  - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
+ - **BusinessInsider**
  - **BuzzFeed**
  - **BYUtv**
  - **Camdemy**
@@ -163,6 +164,7 @@
  - **ClipRs**
  - **Clipsyndicate**
  - **CloserToTruth**
+ - **CloudflareStream**
  - **cloudtime**: CloudTime
  - **Cloudy**
  - **Clubic**
@@ -373,6 +375,7 @@
  - **Ir90Tv**
  - **ITTF**
  - **ITV**
+ - **ITVBTCC**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
  - **ivideon**: Ivideon TV

@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.05.09
 
 Core
 * [YoutubeDL] Ensure ext exists for automatic captions
