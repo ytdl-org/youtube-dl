@@ -56,7 +56,9 @@ class FrontEndMasterBaseIE(InfoExtractor):
         )
 
         error = self._search_regex(
-            r'<div[^>]+class=["\']Message MessageAlert["\'][^>]*>([^<]+)</div>',
+            r'<div[^>]+class=["\']Message MessageAlert["\'][^>]*>'
+            r'([^<]+)'
+            r'</div>',
             response, 'error message', default=None)
 
         if error:
@@ -79,7 +81,7 @@ class FrontEndMasterBaseIE(InfoExtractor):
         return response
 
     @staticmethod
-    def _pair_section_with_video_elemen_index(lesson_elements):
+    def _pair_section_video_element(lesson_elements):
         sections = {}
         current_section = None
         current_section_number = 0
@@ -100,9 +102,11 @@ class FrontEndMasterBaseIE(InfoExtractor):
 
 class FrontEndMasterIE(FrontEndMasterBaseIE):
     IE_NAME = 'frontend-masters'
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/(?P<id>[a-z\-]+)'
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/' \
+                 r'(?P<courseid>[a-z\-]+)/' \
+                 r'(?P<id>[a-z\-]+)$'
 
-    _NETRC_MACHINE = 'frontend-masters'
+    _NETRC_MACHINE = 'frontendmasters'
 
     _TEST = {
         'url': 'https://frontendmasters.com/courses/web-development/tools',
@@ -165,10 +169,14 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         lesson_section_elements = course_json_content.get('lessonElements')
 
         try:
-            course_sections_pairing = self._pair_section_with_video_elemen_index(
+            course_sections_pairing = self._pair_section_video_element(
                 lesson_section_elements)
-            lesson_section = course_sections_pairing.get(lesson_index)[0]
-            lesson_section_number = course_sections_pairing.get(lesson_index)[1]
+
+            lesson_section = \
+                course_sections_pairing.get(lesson_index)[0]
+
+            lesson_section_number = \
+                course_sections_pairing.get(lesson_index)[1]
         except Exception:
             lesson_section = None
             lesson_section_number = None
@@ -189,13 +197,13 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         ]
 
         cookies = self._get_cookies(self._COOKIES_BASE)
-        cookies_str = ";".join(["%s=%s" % (cookie.key, cookie.value)
+        cookies_str = ';'.join(['%s=%s' % (cookie.key, cookie.value)
                                 for cookie in cookies.values()])
-        video_request_url = "%s/source"
+        video_request_url = '%s/source'
         video_request_headers = {
-            "origin": "https://frontendmasters.com",
-            "referer": lesson_source_base,
-            "cookie": cookies_str
+            'origin': 'https://frontendmasters.com',
+            'referer': lesson_source_base,
+            'cookie': cookies_str
         }
 
         if self._downloader.params.get('listformats', False):
@@ -208,7 +216,8 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
                     req_ext, req_quality = req_format_split
                     req_quality = '-'.join(req_quality.split('-')[:2])
                     for allowed_quality in ALLOWED_QUALITIES:
-                        if req_ext == allowed_quality.ext and req_quality in allowed_quality.qualities:
+                        if req_ext == allowed_quality.ext and \
+                           req_quality in allowed_quality.qualities:
                             return (AllowedQuality(req_ext, (req_quality,)),)
                 req_ext = 'webm' if self._downloader.params.get(
                     'prefer_free_formats') else 'mp4'
@@ -258,9 +267,10 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
 
 class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
     IE_NAME = 'frontend-masters:course'
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/' \
+                 r'(?P<courseid>[a-z\-]+)/?$'
 
-    _NETRC_MACHINE = 'frontend-masters'
+    _NETRC_MACHINE = 'frontendmasters'
 
     _TEST = {
         'url': 'https://frontendmasters.com/courses/javascript-basics/',
@@ -289,7 +299,7 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
         entries = []
         for video in videos_data:
             video_slug = video.get('slug')
-            clip_url = "%s/%s/%s" % (
+            clip_url = '%s/%s/%s' % (
                 self._VIDEO_BASE, course_display_id, video_slug)
             entries.append({
                 '_type': 'url_transparent',
