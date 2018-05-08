@@ -105,7 +105,7 @@ class UdemyIE(InfoExtractor):
             % (course_id, lecture_id),
             lecture_id, 'Downloading lecture JSON', query={
                 'fields[lecture]': 'title,description,view_html,asset',
-                'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
+                'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,stream_urls,data',
             })
 
     def _handle_error(self, response):
@@ -303,9 +303,10 @@ class UdemyIE(InfoExtractor):
                     'url': src,
                 })
 
-        download_urls = asset.get('download_urls')
-        if isinstance(download_urls, dict):
-            extract_formats(download_urls.get('Video'))
+        for url_kind in ('download', 'stream'):
+            urls = asset.get('%s_urls' % url_kind)
+            if isinstance(urls, dict):
+                extract_formats(urls.get('Video'))
 
         view_html = lecture.get('view_html')
         if view_html:
