@@ -106,7 +106,8 @@ class PuhuTVIE(InfoExtractor):
 
         tags = []
         for tag in tags_list:
-            tags.append(tag.get('name'))
+            if tag.get('name'):
+                tags.append(tag.get('name'))
 
         thumbnails = []
         for id, url in thumbnails_list.items():
@@ -119,21 +120,27 @@ class PuhuTVIE(InfoExtractor):
         for subtitle in subtitles_list:
             lang = subtitle.get('language')
             sub_url = subtitle.get('url')
+            # If the keys were changed by api, continue
+            if not lang or not sub_url:
+                continue
             subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = [{
                 'url': sub_url,
                 'ext': determine_ext(sub_url)
             }]
 
-        format_dict = self._download_json(
+        # Some of videos are geo restricted upon request copyright owner and returns 403
+        req_formats = self._download_json(
             'https://puhutv.com/api/assets/%s/videos' % display_id,
-            video_id, 'Downloading video JSON').get('data').get('videos')
-        if not format_dict:
+            video_id, 'Downloading video JSON')
+        if not req_formats:
             self.raise_geo_restricted()
+        else:
+            format_dict = req_formats.get('data').get('videos')
 
         formats = []
         for format in format_dict:
             media_url = format.get('url')
-            ext = format.get('video_format')
+            ext = format.get('video_format') or determine_ext(media_url)
             quality = format.get('quality')
             if ext == 'mp4' and format.get('is_playlist') is False:
                 formats.append({
@@ -211,7 +218,7 @@ class PuhuTVSerieIE(InfoExtractor):
                         'https://puhutv.com/%s-izle' % video_id,
                         PuhuTVIE.ie_key(), video_id)
                 pagenum = pagenum + 1
-                has_more = season_info.get('hasMore')
+                has_more = season_info.get('hasMore', False)
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
