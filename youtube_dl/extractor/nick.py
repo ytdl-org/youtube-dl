@@ -85,7 +85,7 @@ class NickBrIE(MTVServicesInfoExtractor):
                     https?://
                         (?:
                             (?P<domain>(?:www\.)?nickjr|mundonick\.uol)\.com\.br|
-                            (?:www\.)?nickjr\.nl
+                            (?:www\.)?nickjr\.[a-z]{2}
                         )
                         /(?:programas/)?[^/]+/videos/(?:episodios/)?(?P<id>[^/?\#.]+)
                     '''
@@ -97,6 +97,9 @@ class NickBrIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.nickjr.nl/paw-patrol/videos/311-ge-wol-dig-om-terug-te-zijn/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickjr.de/blaze-und-die-monster-maschinen/videos/f6caaf8f-e4e8-4cc1-b489-9380d6dcd059/',
         'only_matching': True,
     }]
 
