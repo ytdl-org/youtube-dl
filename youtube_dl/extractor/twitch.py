@@ -8,6 +8,7 @@ import random
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
+    compat_kwargs,
     compat_parse_qs,
     compat_str,
     compat_urllib_parse_urlencode,
@@ -16,11 +17,14 @@ from ..compat import (
 from ..utils import (
     clean_html,
     ExtractorError,
+    float_or_none,
     int_or_none,
-    js_to_json,
     orderedSet,
     parse_duration,
     parse_iso8601,
+    qualities,
+    try_get,
+    unified_timestamp,
     update_url_query,
     urlencode_postdata,
     urljoin,
@@ -45,10 +49,11 @@ class TwitchBaseIE(InfoExtractor):
                 '%s returned error: %s - %s' % (self.IE_NAME, error, response.get('message')),
                 expected=True)
 
-    def _call_api(self, path, item_id, note):
+    def _call_api(self, path, item_id, *args, **kwargs):
+        kwargs.setdefault('headers', {})['Client-ID'] = self._CLIENT_ID
         response = self._download_json(
-            '%s/%s' % (self._API_BASE, path), item_id, note,
-            headers={'Client-ID': self._CLIENT_ID})
+            '%s/%s' % (self._API_BASE, path), item_id,
+            *args, **compat_kwargs(kwargs))
         self._handle_error(response)
         return response
 
@@ -622,21 +627,23 @@ class TwitchStreamIE(TwitchBaseIE):
         }
 
 
-class TwitchClipsIE(InfoExtractor):
+class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
     _VALID_URL = r'https?://clips\.twitch\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
 
     _TESTS = [{
-        'url': 'https://clips.twitch.tv/ea/AggressiveCobraPoooound',
+        'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
         'md5': '761769e1eafce0ffebfb4089cb3847cd',
         'info_dict': {
-            'id': 'AggressiveCobraPoooound',
+            'id': '42850523',
             'ext': 'mp4',
             'title': 'EA Play 2016 Live from the Novo Theatre',
             'thumbnail': r're:^https?://.*\.jpg',
+            'timestamp': 1465767393,
+            'upload_date': '20160612',
             'creator': 'EA',
             'uploader': 'stereotype_',
-            'uploader_id': 'stereotype_',
+            'uploader_id': '43566419',
         },
     }, {
         # multiple formats
@@ -647,34 +654,61 @@ class TwitchClipsIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        status = self._download_json(
+            'https://clips.twitch.tv/api/v2/clips/%s/status' % video_id,
+            video_id)
 
-        clip = self._parse_json(
-            self._search_regex(
-                r'(?s)clipInfo\s*=\s*({.+?});', webpage, 'clip info'),
-            video_id, transform_source=js_to_json)
+        formats = []
 
-        title = clip.get('title') or clip.get('channel_title') or self._og_search_title(webpage)
+        for option in status['quality_options']:
+            if not isinstance(option, dict):
+                continue
+            source = option.get('source')
+            if not source or not isinstance(source, compat_str):
+                continue
+            formats.append({
+                'url': source,
+                'format_id': option.get('quality'),
+                'height': int_or_none(option.get('quality')),
+                'fps': int_or_none(option.get('frame_rate')),
+            })
 
-        formats = [{
-            'url': option['source'],
-            'format_id': option.get('quality'),
-            'height': int_or_none(option.get('quality')),
-        } for option in clip.get('quality_options', []) if option.get('source')]
-
-        if not formats:
-            formats = [{
-                'url': clip['clip_video_url'],
-            }]
-
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'creator': clip.get('broadcaster_display_name') or clip.get('broadcaster_login'),
-            'uploader': clip.get('curator_login'),
-            'uploader_id': clip.get('curator_display_name'),
+        info = {
             'formats': formats,
         }
+
+        clip = self._call_api(
+            'kraken/clips/%s' % video_id, video_id, fatal=False, headers={
+                'Accept': 'application/vnd.twitchtv.v5+json',
+            })
+
+        if clip:
+            quality_key = qualities(('tiny', 'small', 'medium'))
+            thumbnails = []
+            thumbnails_dict = clip.get('thumbnails')
+            if isinstance(thumbnails_dict, dict):
+                for thumbnail_id, thumbnail_url in thumbnails_dict.items():
+                    thumbnails.append({
+                        'id': thumbnail_id,
+                        'url': thumbnail_url,
+                        'preference': quality_key(thumbnail_id),
+                    })
+
+            info.update({
+                'id': clip.get('tracking_id') or video_id,
+                'title': clip.get('title') or video_id,
+                'duration': float_or_none(clip.get('duration')),
+                'views': int_or_none(clip.get('views')),
+                'timestamp': unified_timestamp(clip.get('created_at')),
+                'thumbnails': thumbnails,
+                'creator': try_get(clip, lambda x: x['broadcaster']['display_name'], compat_str),
+                'uploader': try_get(clip, lambda x: x['curator']['display_name'], compat_str),
+                'uploader_id': try_get(clip, lambda x: x['curator']['id'], compat_str),
+            })
+        else:
+            info.update({
+                'title': video_id,
+                'id': video_id,
+            })
+
+        return info
