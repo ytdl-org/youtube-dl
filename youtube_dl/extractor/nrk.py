@@ -75,8 +75,9 @@ class NRKBaseIE(InfoExtractor):
                 entry_id, entry_title = video_id_and_title(num)
                 duration = parse_duration(asset.get('duration'))
                 subtitles = {}
-                for subtitle in ('webVtt', 'timedText'):
-                    subtitle_url = asset.get('%sSubtitlesUrl' % subtitle)
+                subtitle_base = asset.get('timedTextSubtitlesUrl')
+                for subtitle in ('ttml', 'vtt'):
+                    subtitle_url = re.sub(r"ttml$", subtitle, subtitle_base)
                     if subtitle_url:
                         subtitles.setdefault('no', []).append({
                             'url': compat_urllib_parse_unquote(subtitle_url)
