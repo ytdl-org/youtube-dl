@@ -673,6 +673,8 @@ class TwitchClipsIE(TwitchBaseIE):
                 'fps': int_or_none(option.get('frame_rate')),
             })
 
+        self._sort_formats(formats)
+
         info = {
             'formats': formats,
         }
