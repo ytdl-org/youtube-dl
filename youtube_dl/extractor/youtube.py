@@ -1537,7 +1537,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
                 args = ytplayer_config['args']
-                if args.get('url_encoded_fmt_stream_map'):
+                if args.get('url_encoded_fmt_stream_map') or args.get('hlsvp'):
                     # Convert to the same format returned by compat_parse_qs
                     video_info = dict((k, [v]) for k, v in args.items())
                     add_dash_mpd(video_info)
@@ -1969,9 +1969,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
                 formats.append(a_format)
         else:
-            unavailable_message = extract_unavailable_message()
-            if unavailable_message:
-                raise ExtractorError(unavailable_message, expected=True)
+            error_message = clean_html(video_info.get('reason', [None])[0])
+            if not error_message:
+                error_message = extract_unavailable_message()
+            if error_message:
+                raise ExtractorError(error_message, expected=True)
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # Look for the DASH manifest
