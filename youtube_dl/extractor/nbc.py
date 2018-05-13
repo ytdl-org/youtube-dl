@@ -9,6 +9,7 @@ from .adobepass import AdobePassIE
 from ..utils import (
     find_xpath_attr,
     smuggle_url,
+    try_get,
     unescapeHTML,
     update_url_query,
     int_or_none,
@@ -78,10 +79,14 @@ class NBCIE(AdobePassIE):
     def _real_extract(self, url):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
         permalink = 'http' + permalink
-        video_data = self._download_json(
+        response = self._download_json(
             'https://api.nbc.com/v3/videos', video_id, query={
                 'filter[permalink]': permalink,
-            })['data'][0]['attributes']
+                'fields[videos]': 'description,entitlement,episodeNumber,guid,keywords,seasonNumber,title,vChipRating',
+                'fields[shows]': 'shortTitle',
+                'include': 'show.shortTitle',
+            })
+        video_data = response['data'][0]['attributes']
         query = {
             'mbr': 'true',
             'manifest': 'm3u',
@@ -103,10 +108,11 @@ class NBCIE(AdobePassIE):
             'title': title,
             'url': theplatform_url,
             'description': video_data.get('description'),
-            'keywords': video_data.get('keywords'),
+            'tags': video_data.get('keywords'),
             'season_number': int_or_none(video_data.get('seasonNumber')),
             'episode_number': int_or_none(video_data.get('episodeNumber')),
-            'series': video_data.get('showName'),
+            'episode': title,
+            'series': try_get(response, lambda x: x['included'][0]['attributes']['shortTitle']),
             'ie_key': 'ThePlatform',
         }
 
