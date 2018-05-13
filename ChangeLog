@@ -1,3 +1,21 @@
+version 2018.05.09
+
+Core
+* [YoutubeDL] Ensure ext exists for automatic captions
+* Introduce --geo-bypass-ip-block
+
+Extractors
++ [udemy] Extract asset captions
++ [udemy] Extract stream URLs (#16372)
++ [businessinsider] Add support for businessinsider.com (#16387, #16388, #16389)
++ [cloudflarestream] Add support for cloudflarestream.com (#16375)
+* [watchbox] Fix extraction (#16356)
+* [discovery] Extract Affiliate/Anonymous Auth Token from cookies (#14954)
++ [itv:btcc] Add support for itv.com/btcc (#16139)
+* [tunein] Use live title for live streams (#16347)
+* [itv] Improve extraction (#16253)
+
+
 version 2018.05.01
 
 Core

@@ -18,6 +18,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     sanitized_Request,
+    try_get,
     unescapeHTML,
     urlencode_postdata,
 )
@@ -105,7 +106,7 @@ class UdemyIE(InfoExtractor):
             % (course_id, lecture_id),
             lecture_id, 'Downloading lecture JSON', query={
                 'fields[lecture]': 'title,description,view_html,asset',
-                'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
+                'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,stream_urls,captions,data',
             })
 
     def _handle_error(self, response):
@@ -303,9 +304,25 @@ class UdemyIE(InfoExtractor):
                     'url': src,
                 })
 
-        download_urls = asset.get('download_urls')
-        if isinstance(download_urls, dict):
-            extract_formats(download_urls.get('Video'))
+        for url_kind in ('download', 'stream'):
+            urls = asset.get('%s_urls' % url_kind)
+            if isinstance(urls, dict):
+                extract_formats(urls.get('Video'))
+
+        captions = asset.get('captions')
+        if isinstance(captions, list):
+            for cc in captions:
+                if not isinstance(cc, dict):
+                    continue
+                cc_url = cc.get('url')
+                if not cc_url or not isinstance(cc_url, compat_str):
+                    continue
+                lang = try_get(cc, lambda x: x['locale']['locale'], compat_str)
+                sub_dict = (automatic_captions if cc.get('source') == 'auto'
+                            else subtitles)
+                sub_dict.setdefault(lang or 'en', []).append({
+                    'url': cc_url,
+                })
 
         view_html = lecture.get('view_html')
         if view_html:

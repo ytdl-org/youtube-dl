@@ -1482,23 +1482,28 @@ class YoutubeDL(object):
             if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
                 info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
 
+        for cc_kind in ('subtitles', 'automatic_captions'):
+            cc = info_dict.get(cc_kind)
+            if cc:
+                for _, subtitle in cc.items():
+                    for subtitle_format in subtitle:
+                        if subtitle_format.get('url'):
+                            subtitle_format['url'] = sanitize_url(subtitle_format['url'])
+                        if subtitle_format.get('ext') is None:
+                            subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
+
+        automatic_captions = info_dict.get('automatic_captions')
         subtitles = info_dict.get('subtitles')
-        if subtitles:
-            for _, subtitle in subtitles.items():
-                for subtitle_format in subtitle:
-                    if subtitle_format.get('url'):
-                        subtitle_format['url'] = sanitize_url(subtitle_format['url'])
-                    if subtitle_format.get('ext') is None:
-                        subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
         if self.params.get('listsubtitles', False):
             if 'automatic_captions' in info_dict:
-                self.list_subtitles(info_dict['id'], info_dict.get('automatic_captions'), 'automatic captions')
+                self.list_subtitles(
+                    info_dict['id'], automatic_captions, 'automatic captions')
             self.list_subtitles(info_dict['id'], subtitles, 'subtitles')
             return
+
         info_dict['requested_subtitles'] = self.process_subtitles(
-            info_dict['id'], subtitles,
-            info_dict.get('automatic_captions'))
+            info_dict['id'], subtitles, automatic_captions)
 
         # We now pick which formats have to be downloaded
         if info_dict.get('formats') is None:
