@@ -1,17 +1,23 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+try:
+    from urllib.parse import urlparse
+
+except ImportError:  # py2
+    from urlparse import urlparse
+
 from .common import InfoExtractor
 
 
 class AllmovieIE(InfoExtractor):
-    """Information extractor for allmovie.tv
+    """Information extractor for allmovie.
 
     Test with:
         python test/test_download.py TestDownload.test_Allmovie
 
     """
-    _VALID_URL = r'http://allmovie\.tv/video/.+-(?P<id>\d+)\.html'
+    _VALID_URL = r'http://allmovie\.(tv|pro)/video/.+-(?P<id>\d+)\.html'
 
     _TEST = {
         'url': 'http://allmovie.tv/video/vesti-v-subbotu-28-10-2017-17255.html',
@@ -30,8 +36,10 @@ class AllmovieIE(InfoExtractor):
 
         page_info = self._download_webpage(url, video_id, note='Downloading info page ...')
 
+        host = urlparse(url).hostname
+
         page_player = self._download_webpage(
-            'http://allmovie.tv/video/show_player/%s' % video_id, video_id,
+            'http://%s/video/show_player/%s' % (host, video_id), video_id,
             headers={'X-Requested-With': 'XMLHttpRequest'},
             note='Downloading player page ...')
 
