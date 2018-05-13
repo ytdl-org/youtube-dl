@@ -1697,9 +1697,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         self.report_information_extraction(video_id)
 
         # uploader
-        if 'author' not in video_info:
-            raise ExtractorError('Unable to extract uploader name')
-        video_uploader = compat_urllib_parse_unquote_plus(video_info['author'][0])
+        video_uploader = try_get(video_info, lambda x: x['author'][0], compat_str)
+        if video_uploader:
+            video_uploader = compat_urllib_parse_unquote_plus(video_uploader)
+        else:
+            self._downloader.report_warning('unable to extract uploader name')
 
         # uploader_id
         video_uploader_id = None
