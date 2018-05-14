@@ -176,7 +176,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      age
     --download-archive FILE          Download only videos not listed in the
                                      archive file. Record the IDs of all
-                                     downloaded videos in it.
+                                     downloaded videos in it. When the switches
+                                     --write-link (or similar) and
+                                     --skip-download are used additionally, the
+                                     IDs will also be recorded, even though
+                                     nothing was actually downloaded.
     --include-ads                    Download advertisements as well
                                      (experimental)
 
@@ -268,11 +272,23 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --no-cache-dir                   Disable filesystem caching
     --rm-cache-dir                   Delete all filesystem cache files
 
-## Thumbnail images:
+## Thumbnail Images:
     --write-thumbnail                Write thumbnail image to disk
     --write-all-thumbnails           Write all thumbnail image formats to disk
     --list-thumbnails                Simulate and list all available thumbnail
                                      formats
+
+## Internet Shortcut Options:
+    --write-link                     Write an internet shortcut file, depending
+                                     on the current platform (.url/.webloc/
+                                     .desktop). The URL may be cached by the OS.
+    --write-url-link                 Write a Windows internet shortcut file
+                                     (.url). Note that the OS caches the URL
+                                     based on the file path.
+    --write-webloc-link              Write a macOS internet shortcut file
+                                     (.webloc)
+    --write-desktop-link             Write a Linux internet shortcut file
+                                     (.desktop)
 
 ## Verbosity / Simulation Options:
     -q, --quiet                      Activate quiet mode
@@ -385,7 +401,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --ap-list-mso                    List all supported multiple-system
                                      operators
 
-## Post-processing Options:
+## Post-Processing Options:
     -x, --extract-audio              Convert video files to audio-only files
                                      (requires ffmpeg or avconv and ffprobe or
                                      avprobe)
@@ -497,7 +513,11 @@ The `-o` option allows users to indicate a template for the output file names.
 
 **tl;dr:** [navigate me to examples](#output-template-examples).
 
-The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "https://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences may be formatted according to [python string formatting operations](https://docs.python.org/2/library/stdtypes.html#string-formatting). For example, `%(NAME)s` or `%(NAME)05d`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a formatting operations. Allowed names along with sequence type are:
+The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "https://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences may be formatted according to [Python string formatting operations](https://docs.python.org/2/library/stdtypes.html#string-formatting). For example, `%(NAME)s` or `%(NAME)05d`. To clarify, that is a percent symbol followed by a name in parentheses, followed by a formatting operation.
+
+You can, e.g., limit the number of characters of the title to prevent errors with too long filenames or file paths: `%(title).100s`. You may want to check the length of the rest of your filename or path and adapt the number accordingly.
+
+Allowed names along with sequence type are:
 
  - `id` (string): Video identifier
  - `title` (string): Video title

@@ -49,6 +49,7 @@ from .utils import (
     date_from_str,
     DateRange,
     DEFAULT_OUTTMPL,
+    DESKTOP_LINK_TEMPLATE,
     determine_ext,
     determine_protocol,
     DownloadError,
@@ -61,6 +62,7 @@ from .utils import (
     formatSeconds,
     GeoRestrictedError,
     int_or_none,
+    iri_to_uri,
     ISO3166Utils,
     locked_file,
     make_HTTPS_handler,
@@ -83,9 +85,12 @@ from .utils import (
     sanitized_Request,
     std_headers,
     subtitles_filename,
+    to_high_limit_path,
     UnavailableVideoError,
     url_basename,
+    URL_LINK_TEMPLATE,
     version_tuple,
+    WEBLOC_LINK_TEMPLATE,
     write_json_file,
     write_string,
     YoutubeDLCookieProcessor,
@@ -178,6 +183,11 @@ class YoutubeDL(object):
     writeannotations:  Write the video annotations to a .annotations.xml file
     writethumbnail:    Write the thumbnail image to a file
     write_all_thumbnails:  Write all thumbnail formats to files
+    writelink:         Write an internet shortcut file, depending on the
+                       current platform (.url/.webloc/.desktop)
+    writeurllink:      Write a Windows internet shortcut file (.url)
+    writewebloclink:   Write a macOS internet shortcut file (.webloc)
+    writedesktoplink:  Write a Linux internet shortcut file (.desktop)
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatically generated subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
@@ -204,7 +214,9 @@ class YoutubeDL(object):
                        downloaded. None for no limit.
     download_archive:  File name of a file where all downloads are recorded.
                        Videos already present in the file are not downloaded
-                       again.
+                       again. When 'writelink' (or similar) and
+                       'skip_download' are also present, the videos will be
+                       recorded, too.
     cookiefile:        File name where cookies should be read from and dumped to.
     nocheckcertificate:Do not verify SSL certificates
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
@@ -1407,6 +1419,8 @@ class YoutubeDL(object):
             raise ExtractorError('Missing "id" field in extractor result')
         if 'title' not in info_dict:
             raise ExtractorError('Missing "title" field in extractor result')
+        if 'webpage_url' not in info_dict:
+            raise ExtractorError('Missing "webpage_url" field in extractor result. Should have been augmented with it.')
 
         def report_force_conversion(field, field_not, conversion):
             self.report_warning(
@@ -1836,7 +1850,56 @@ class YoutubeDL(object):
 
         self._write_thumbnails(info_dict, filename)
 
-        if not self.params.get('skip_download', False):
+        # Write internet shortcut files
+        url_link = webloc_link = desktop_link = False
+        if self.params.get('writelink', False):
+            if sys.platform == "darwin":  # macOS.
+                webloc_link = True
+            elif sys.platform.startswith("linux"):
+                desktop_link = True
+            else:  # if sys.platform in ['win32', 'cygwin']:
+                url_link = True
+        if self.params.get('writeurllink', False):
+            url_link = True
+        if self.params.get('writewebloclink', False):
+            webloc_link = True
+        if self.params.get('writedesktoplink', False):
+            desktop_link = True
+
+        if url_link or webloc_link or desktop_link:
+            ascii_url = iri_to_uri(info_dict['webpage_url'])
+
+        def _write_link_file(extension, template, newline, embed_filename):
+            linkfn = replace_extension(filename, extension, info_dict.get('ext'))
+            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(linkfn)):
+                self.to_screen('[info] Internet shortcut is already present')
+            else:
+                try:
+                    self.to_screen('[info] Writing internet shortcut to: ' + linkfn)
+                    with io.open(encodeFilename(to_high_limit_path(linkfn)), 'w', encoding='utf-8', newline=newline) as linkfile:
+                        template_vars = { 'url': ascii_url }
+                        if embed_filename:
+                            template_vars['filename'] = linkfn[:-len(extension) - 1]
+                        linkfile.write(template % template_vars)
+                except (OSError, IOError):
+                    self.report_error('Cannot write internet shortcut ' + linkfn)
+                    return False
+            return True
+
+        if url_link:
+            if not _write_link_file('url',     URL_LINK_TEMPLATE,     '\r\n', embed_filename=False): return
+        if webloc_link:
+            if not _write_link_file('webloc',  WEBLOC_LINK_TEMPLATE,  '\n',   embed_filename=False): return
+        if desktop_link:
+            if not _write_link_file('desktop', DESKTOP_LINK_TEMPLATE, '\n',   embed_filename=True ): return
+        
+        if self.params.get('skip_download', False):
+            # Regarding the download archive, consider internet shortcut creation in conjunction with the `--skip-download` switch as everything the user wants. (See also help for the`--download-archive` switch.)
+            if url_link or webloc_link or desktop_link:
+                self.record_download_archive(info_dict)
+        
+        # Download
+        else:  # No `--skip-download`
             try:
                 def dl(name, info):
                     fd = get_suitable_downloader(info, self.params)(self, self.params)
