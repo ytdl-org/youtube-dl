@@ -42,6 +42,7 @@ def _make_result(formats, **kwargs):
         'title': 'testttitle',
         'extractor': 'testex',
         'extractor_key': 'TestEx',
+        'webpage_url': 'http://example.com/watch?v=shenanigans',
     }
     res.update(**kwargs)
     return res
@@ -497,6 +498,7 @@ class TestYoutubeDL(unittest.TestCase):
             'subtitles': subtitles,
             'automatic_captions': auto_captions,
             'extractor': 'TEST',
+            'webpage_url': 'http://example.com/watch?v=shenanigans',
         }
 
         def get_info(params={}):
@@ -660,6 +662,7 @@ class TestYoutubeDL(unittest.TestCase):
             'playlist_id': '42',
             'uploader': "變態妍字幕版 太妍 тест",
             'creator': "тест ' 123 ' тест--",
+            'webpage_url': 'http://example.com/watch?v=shenanigans',
         }
         second = {
             'id': '2',
@@ -671,6 +674,7 @@ class TestYoutubeDL(unittest.TestCase):
             'filesize': 5 * 1024,
             'playlist_id': '43',
             'uploader': "тест 123",
+            'webpage_url': 'http://example.com/watch?v=SHENANIGANS',
         }
         videos = [first, second]
 
