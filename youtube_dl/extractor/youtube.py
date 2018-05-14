@@ -1815,6 +1815,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         chapters = self._extract_chapters(description_original, video_duration)
 
+        def _extract_filesize(media_url):
+            return int_or_none(self._search_regex(
+                r'\bclen[=/](\d+)', media_url, 'filesize', default=None))
+
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
             formats = [{
@@ -1919,8 +1923,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 mobj = re.search(r'^(?P<width>\d+)[xX](?P<height>\d+)$', url_data.get('size', [''])[0])
                 width, height = (int(mobj.group('width')), int(mobj.group('height'))) if mobj else (None, None)
 
+                filesize = int_or_none(url_data.get(
+                    'clen', [None])[0]) or _extract_filesize(url)
+
                 more_fields = {
-                    'filesize': int_or_none(url_data.get('clen', [None])[0]),
+                    'filesize': filesize,
                     'tbr': float_or_none(url_data.get('bitrate', [None])[0], 1000),
                     'width': width,
                     'height': height,
@@ -1994,6 +2001,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     for df in self._extract_mpd_formats(
                             mpd_url, video_id, fatal=dash_mpd_fatal,
                             formats_dict=self._formats):
+                        if not df.get('filesize'):
+                            df['filesize'] = _extract_filesize(df['url'])
                         # Do not overwrite DASH format found in some previous DASH manifest
                         if df['format_id'] not in dash_formats:
                             dash_formats[df['format_id']] = df
