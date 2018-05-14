@@ -3951,29 +3951,29 @@ def iri_to_uri(iri):
 
     net_location = ''
     if iri_parts.username:
-        net_location +=           compat_urllib_parse_quote(iri_parts.username, safe=r"!$%&'()*+,~")
+        net_location += compat_urllib_parse_quote(iri_parts.username, safe=r"!$%&'()*+,~")
         if iri_parts.password is not None:
             net_location += ':' + compat_urllib_parse_quote(iri_parts.password, safe=r"!$%&'()*+,~")
         net_location += '@'
-    
+
     net_location += iri_parts.hostname.encode('idna').decode('utf-8')  # Punycode for Unicode hostnames.
     # The 'idna' encoding produces ASCII text.
     if iri_parts.port is not None and iri_parts.port != 80:
         net_location += ':' + str(iri_parts.port)
-    
-    return compat_urllib_parse_urlunparse( (
-        iri_parts.scheme,
-        net_location,
 
-        compat_urllib_parse_quote_plus(iri_parts.path,     safe=r"!$%&'()*+,/:;=@|~"),
+    return compat_urllib_parse_urlunparse(
+        (iri_parts.scheme,
+            net_location,
 
-        # Unsure about the `safe` argument , since this is a legacy way of handling parameters.
-        compat_urllib_parse_quote_plus(iri_parts.params,   safe=r"!$%&'()*+,/:;=@|~"),
+            compat_urllib_parse_quote_plus(iri_parts.path, safe=r"!$%&'()*+,/:;=@|~"),
 
-        # Not totally sure about the `safe` argument, since the source does not explicitly mention the query URI component.
-        compat_urllib_parse_quote_plus(iri_parts.query,    safe=r"!$%&'()*+,/:;=?@{|}~"),
+            # Unsure about the `safe` argument , since this is a legacy way of handling parameters.
+            compat_urllib_parse_quote_plus(iri_parts.params, safe=r"!$%&'()*+,/:;=@|~"),
 
-        compat_urllib_parse_quote_plus(iri_parts.fragment, safe=r"!#$%&'()*+,/:;=?@{|}~")) )
+            # Not totally sure about the `safe` argument, since the source does not explicitly mention the query URI component.
+            compat_urllib_parse_quote_plus(iri_parts.query, safe=r"!$%&'()*+,/:;=?@{|}~"),
+
+            compat_urllib_parse_quote_plus(iri_parts.fragment, safe=r"!#$%&'()*+,/:;=?@{|}~")))
 
     # Source for `safe` arguments: https://url.spec.whatwg.org/#percent-encoded-bytes.
 
@@ -3982,5 +3982,5 @@ def to_high_limit_path(path):
     if sys.platform in ['win32', 'cygwin']:
         # Work around MAX_PATH limitation on Windows. The maximum allowed length for the individual path segments may still be quite limited.
         return r'\\?\ '.rstrip() + os.path.abspath(path)
-    
+
     return path

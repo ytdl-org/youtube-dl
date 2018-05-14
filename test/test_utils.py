@@ -1334,7 +1334,7 @@ Line 1
         self.assertEqual(get_elements_by_attribute('class', 'foo bar', html), ['nice', 'also nice'])
         self.assertEqual(get_elements_by_attribute('class', 'foo', html), [])
         self.assertEqual(get_elements_by_attribute('class', 'no-such-foo', html), [])
-    
+
     def test_iri_to_uri(self):
         self.assertEqual(
             iri_to_uri('https://www.google.com/search?q=foo&ie=utf-8&oe=utf-8&client=firefox-b'),

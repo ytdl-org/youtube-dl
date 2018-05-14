@@ -1877,7 +1877,7 @@ class YoutubeDL(object):
                 try:
                     self.to_screen('[info] Writing internet shortcut to: ' + linkfn)
                     with io.open(encodeFilename(to_high_limit_path(linkfn)), 'w', encoding='utf-8', newline=newline) as linkfile:
-                        template_vars = { 'url': ascii_url }
+                        template_vars = {'url': ascii_url}
                         if embed_filename:
                             template_vars['filename'] = linkfn[:-len(extension) - 1]
                         linkfile.write(template % template_vars)
@@ -1892,12 +1892,12 @@ class YoutubeDL(object):
             if not _write_link_file('webloc',  WEBLOC_LINK_TEMPLATE,  '\n',   embed_filename=False): return
         if desktop_link:
             if not _write_link_file('desktop', DESKTOP_LINK_TEMPLATE, '\n',   embed_filename=True ): return
-        
+
         if self.params.get('skip_download', False):
             # Regarding the download archive, consider internet shortcut creation in conjunction with the `--skip-download` switch as everything the user wants. (See also help for the`--download-archive` switch.)
             if url_link or webloc_link or desktop_link:
                 self.record_download_archive(info_dict)
-        
+
         # Download
         else:  # No `--skip-download`
             try:

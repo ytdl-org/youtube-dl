@@ -50,7 +50,7 @@ except ImportError:  # Python 2
 try:
     from urllib.parse import urlunparse as compat_urllib_parse_urlunparse
 except ImportError:  # Python 2
-    from urlparse     import urlunparse as compat_urllib_parse_urlunparse
+    from urlparse import urlunparse as compat_urllib_parse_urlunparse
 
 try:
     import urllib.response as compat_urllib_response
@@ -2360,7 +2360,7 @@ except NameError:
     compat_str = str
 
 try:
-    from urllib.parse import quote      as compat_urllib_parse_quote
+    from urllib.parse import quote as compat_urllib_parse_quote
     from urllib.parse import quote_plus as compat_urllib_parse_quote_plus
 except ImportError:  # Python 2
     def compat_urllib_parse_quote(string, safe='/'):
