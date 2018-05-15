@@ -3967,7 +3967,7 @@ def iri_to_uri(iri):
 
             compat_urllib_parse_quote_plus(iri_parts.path, safe=r"!$%&'()*+,/:;=@|~"),
 
-            # Unsure about the `safe` argument , since this is a legacy way of handling parameters.
+            # Unsure about the `safe` argument, since this is a legacy way of handling parameters.
             compat_urllib_parse_quote_plus(iri_parts.params, safe=r"!$%&'()*+,/:;=@|~"),
 
             # Not totally sure about the `safe` argument, since the source does not explicitly mention the query URI component.
