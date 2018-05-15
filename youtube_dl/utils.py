@@ -3927,7 +3927,7 @@ WEBLOC_LINK_TEMPLATE = '''
 DESKTOP_LINK_TEMPLATE = '''
 [Desktop Entry]
 Encoding=UTF-8
-Name=Link to %(filename)s
+Name=%(filename)s
 Type=Link
 URL=%(url)s
 Icon=text-html
