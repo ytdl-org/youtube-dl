@@ -6,9 +6,9 @@ from .mtv import MTVServicesInfoExtractor
 
 
 class SpikeIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+\.)?spike\.com/[^/]+/[\da-z]{6}(?:[/?#&]|$)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?paramountnetwork\.com/[^/]+/[\da-z]{6}(?:[/?#&]|$)'
     _TESTS = [{
-        'url': 'http://www.spike.com/video-clips/lhtu8m/auction-hunters-can-allen-ride-a-hundred-year-old-motorcycle',
+        'url': 'http://www.paramountnetwork.com/video-clips/lhtu8m/auction-hunters-can-allen-ride-a-hundred-year-old-motorcycle',
         'md5': '1a9265f32b0c375793d6c4ce45255256',
         'info_dict': {
             'id': 'b9c8221a-4e50-479a-b86d-3333323e38ba',
@@ -19,7 +19,7 @@ class SpikeIE(MTVServicesInfoExtractor):
             'upload_date': '20131227',
         },
     }, {
-        'url': 'http://www.spike.com/full-episodes/j830qm/lip-sync-battle-joel-mchale-vs-jim-rash-season-2-ep-209',
+        'url': 'http://www.paramountnetwork.com/full-episodes/j830qm/lip-sync-battle-joel-mchale-vs-jim-rash-season-2-ep-209',
         'md5': 'b25c6f16418aefb9ad5a6cae2559321f',
         'info_dict': {
             'id': '37ace3a8-1df6-48be-85b8-38df8229e241',
@@ -28,21 +28,21 @@ class SpikeIE(MTVServicesInfoExtractor):
             'description': 'md5:a739ca8f978a7802f67f8016d27ce114',
         },
     }, {
-        'url': 'http://www.spike.com/video-clips/lhtu8m/',
+        'url': 'http://www.paramountnetwork.com/video-clips/i483g4',
         'only_matching': True,
     }, {
-        'url': 'http://www.spike.com/video-clips/lhtu8m',
+        'url': 'http://www.paramountnetwork.com/video-clips/i483g4',
         'only_matching': True,
     }, {
-        'url': 'http://bellator.spike.com/fight/atwr7k/bellator-158-michael-page-vs-evangelista-cyborg',
+        'url': 'http://www.bellator.com/fight/9lpnnm/bellator-197-aj-mckee-vs-justin-lawrence',
         'only_matching': True,
     }, {
-        'url': 'http://bellator.spike.com/video-clips/bw6k7n/bellator-158-foundations-michael-venom-page',
+        'url': 'http://www.bellator.com/video-clips/8a82vq/bellator-197-best-of-michael-chandler-bellator197',
         'only_matching': True,
     }]
 
-    _FEED_URL = 'http://www.spike.com/feeds/mrss/'
-    _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
+    _FEED_URL = 'http://www.paramountnetwork.com/feeds/mrss/'
+    _MOBILE_TEMPLATE = 'http://m.paramountnetwork.com/videos/video.rbml?id=%s'
     _CUSTOM_URL_REGEX = re.compile(r'spikenetworkapp://([^/]+/[-a-fA-F0-9]+)')
     _GEO_COUNTRIES = ['US']
 
@@ -51,5 +51,5 @@ class SpikeIE(MTVServicesInfoExtractor):
         if mgid is None:
             url_parts = self._search_regex(self._CUSTOM_URL_REGEX, webpage, 'episode_id')
             video_type, episode_id = url_parts.split('/', 1)
-            mgid = 'mgid:arc:{0}:spike.com:{1}'.format(video_type, episode_id)
+            mgid = 'mgid:arc:{0}:paramountnetwork.com:{1}'.format(video_type, episode_id)
         return mgid
