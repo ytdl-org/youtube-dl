@@ -283,6 +283,7 @@ from .drtv import (
     DRTVIE,
     DRTVLiveIE,
 )
+from .dtube import DTubeIE
 from .dvtv import DVTVIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
