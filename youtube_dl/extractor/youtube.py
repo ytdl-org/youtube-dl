@@ -37,6 +37,7 @@ from ..utils import (
     orderedSet,
     parse_codecs,
     parse_duration,
+    qualities,
     remove_quotes,
     remove_start,
     smuggle_url,
@@ -1844,6 +1845,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 'width': int_or_none(width_height[0]),
                                 'height': int_or_none(width_height[1]),
                             }
+            q = qualities(['small', 'medium', 'hd720'])
             formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
@@ -1926,13 +1928,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 filesize = int_or_none(url_data.get(
                     'clen', [None])[0]) or _extract_filesize(url)
 
+                quality = url_data.get('quality_label', [None])[0] or url_data.get('quality', [None])[0]
+
                 more_fields = {
                     'filesize': filesize,
                     'tbr': float_or_none(url_data.get('bitrate', [None])[0], 1000),
                     'width': width,
                     'height': height,
                     'fps': int_or_none(url_data.get('fps', [None])[0]),
-                    'format_note': url_data.get('quality_label', [None])[0] or url_data.get('quality', [None])[0],
+                    'format_note': quality,
+                    'quality': q(quality),
                 }
                 for key, value in more_fields.items():
                     if value:
