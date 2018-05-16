@@ -343,7 +343,7 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--download-archive', metavar='FILE',
         dest='download_archive',
-        help='Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it. When the switches --write-link (or similar) and --skip-download are used additionally, the IDs will also be recorded, even though nothing was actually downloaded.')
+        help='Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it.')
     selection.add_option(
         '--include-ads',
         dest='include_ads', action='store_true',
@@ -633,8 +633,11 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '--print-json',
         action='store_true', dest='print_json', default=False,
-        help='Be quiet and print the video information as JSON (video is still being downloaded).',
-    )
+        help='Be quiet and print the video information as JSON (video is still being downloaded).')
+    verbosity.add_option(
+        '--force-write-download-archive',
+        action='store_true', dest='force_write_download_archive', default=False,
+        help='Force download archive entries to be written as far as no errors occur, even though --skip-download or any simulation switch is used.')
     verbosity.add_option(
         '--newline',
         action='store_true', dest='progress_with_newline', default=False,

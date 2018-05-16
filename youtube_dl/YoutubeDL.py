@@ -162,6 +162,8 @@ class YoutubeDL(object):
     forcejson:         Force printing info_dict as JSON.
     dump_single_json:  Force printing the info_dict of the whole playlist
                        (or video) as a single JSON line.
+    force_write_download_archive: Force writing download archive regardless of
+                       'skip_download' or 'simulate'.
     simulate:          Do not download the video files.
     format:            Video format code. See options.py for more information.
     outtmpl:           Template for output names.
@@ -214,9 +216,7 @@ class YoutubeDL(object):
                        downloaded. None for no limit.
     download_archive:  File name of a file where all downloads are recorded.
                        Videos already present in the file are not downloaded
-                       again. When 'writelink' (or similar) and
-                       'skip_download' are also present, the videos will be
-                       recorded, too.
+                       again.
     cookiefile:        File name where cookies should be read from and dumped to.
     nocheckcertificate:Do not verify SSL certificates
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
@@ -1419,8 +1419,6 @@ class YoutubeDL(object):
             raise ExtractorError('Missing "id" field in extractor result')
         if 'title' not in info_dict:
             raise ExtractorError('Missing "title" field in extractor result')
-        if 'webpage_url' not in info_dict:
-            raise ExtractorError('Missing "webpage_url" field in extractor result. Should have been augmented with it.')
 
         def report_force_conversion(field, field_not, conversion):
             self.report_warning(
@@ -1751,8 +1749,11 @@ class YoutubeDL(object):
         if self.params.get('forcejson', False):
             self.to_stdout(json.dumps(info_dict))
 
-        # Do nothing else if in simulate mode
         if self.params.get('simulate', False):
+            if self.params.get('force_write_download_archive', False):
+                self.record_download_archive(info_dict)
+
+            # Do nothing else if in simulate mode
             return
 
         if filename is None:
@@ -1867,6 +1868,9 @@ class YoutubeDL(object):
             desktop_link = True
 
         if url_link or webloc_link or desktop_link:
+            if 'webpage_url' not in info_dict:
+                self.report_error('Cannot write internet shortcut file because the "webpage_url" field is missing in the media information')
+                return
             ascii_url = iri_to_uri(info_dict['webpage_url'])
 
         def _write_link_file(extension, template, newline, embed_filename):
@@ -1896,13 +1900,9 @@ class YoutubeDL(object):
             if not _write_link_file('desktop', DESKTOP_LINK_TEMPLATE, '\n', embed_filename=True):
                 return
 
-        if self.params.get('skip_download', False):
-            # Regarding the download archive, consider internet shortcut creation in conjunction with the `--skip-download` switch as everything the user wants. (See also help for the`--download-archive` switch.)
-            if url_link or webloc_link or desktop_link:
-                self.record_download_archive(info_dict)
-
         # Download
-        else:  # No `--skip-download`
+        must_record_download_archive = False
+        if not self.params.get('skip_download', False):
             try:
                 def dl(name, info):
                     fd = get_suitable_downloader(info, self.params)(self, self.params)
@@ -2049,7 +2049,10 @@ class YoutubeDL(object):
                 except (PostProcessingError) as err:
                     self.report_error('postprocessing: %s' % str(err))
                     return
-                self.record_download_archive(info_dict)
+                must_record_download_archive = True
+
+        if must_record_download_archive or self.params.get('force_write_download_archive', False):
+            self.record_download_archive(info_dict)
 
     def download(self, url_list):
         """Download a given list of URLs."""
