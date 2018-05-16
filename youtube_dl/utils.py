@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 
 from __future__ import unicode_literals
@@ -933,7 +932,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
         self._params = params
 
     def http_open(self, req):
-        conn_class = compat_http_client.HTTPConnection
+        conn_class = YoutubeDLHTTPConnection
 
         socks_proxy = req.headers.get('Ytdl-socks-proxy')
         if socks_proxy:
@@ -1035,7 +1034,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
 def make_socks_conn_class(base_class, socks_proxy):
     assert issubclass(base_class, (
-        compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
+        YoutubeDLHTTPConnection, YoutubeDLHTTPSConnection))
 
     url_components = compat_urlparse.urlparse(socks_proxy)
     if url_components.scheme.lower() == 'socks5':
@@ -1066,7 +1065,7 @@ def make_socks_conn_class(base_class, socks_proxy):
                 self.sock.settimeout(self.timeout)
             self.sock.connect((self.host, self.port))
 
-            if isinstance(self, compat_http_client.HTTPSConnection):
+            if isinstance(self, YoutubeDLHTTPSConnection):
                 if hasattr(self, '_context'):  # Python > 2.6
                     self.sock = self._context.wrap_socket(
                         self.sock, server_hostname=self.host)
@@ -1076,10 +1075,43 @@ def make_socks_conn_class(base_class, socks_proxy):
     return SocksConnection
 
 
+def _create_connection(source_address, host, port, timeout):
+    if source_address is None:
+        family = 0
+    else:
+        if ':' in source_address[0].encode('utf-8'):
+            family = socket.AF_INET6
+        else:
+            family = socket.AF_INET
+    ip_addr = socket.getaddrinfo(host, 0, family)[0][4][0]
+
+    return socket.create_connection((ip_addr, port), timeout, source_address)
+
+
+class YoutubeDLHTTPConnection(compat_http_client.HTTPConnection):
+    def connect(self):
+        """Connect to the host and port specified in __init__."""
+        self.sock = _create_connection(self.source_address, self.host, self.port, self.timeout)
+
+        if self._tunnel_host:
+            self._tunnel()
+
+
+class YoutubeDLHTTPSConnection(compat_http_client.HTTPSConnection):
+    def connect(self):
+        """Connect to a host on a given (SSL) port."""
+        sock = _create_connection(self.source_address, self.host, self.port, self.timeout)
+
+        if self._tunnel_host:
+            self.sock = sock
+            self._tunnel()
+        self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)
+
+
 class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
     def __init__(self, params, https_conn_class=None, *args, **kwargs):
         compat_urllib_request.HTTPSHandler.__init__(self, *args, **kwargs)
-        self._https_conn_class = https_conn_class or compat_http_client.HTTPSConnection
+        self._https_conn_class = https_conn_class or YoutubeDLHTTPSConnection
         self._params = params
 
     def https_open(self, req):
