@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    parse_codecs,
+)
 
 
 class MinotoIE(InfoExtractor):
@@ -26,7 +29,7 @@ class MinotoIE(InfoExtractor):
                 formats.extend(fmt_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
             else:
                 fmt_profile = fmt.get('profile') or {}
-                f = {
+                formats.append({
                     'format_id': fmt_profile.get('name-short'),
                     'format_note': fmt_profile.get('name'),
                     'url': fmt_url,
@@ -35,16 +38,8 @@ class MinotoIE(InfoExtractor):
                     'filesize': int_or_none(fmt.get('filesize')),
                     'width': int_or_none(fmt.get('width')),
                     'height': int_or_none(fmt.get('height')),
-                }
-                codecs = fmt.get('codecs')
-                if codecs:
-                    codecs = codecs.split(',')
-                    if len(codecs) == 2:
-                        f.update({
-                            'vcodec': codecs[0],
-                            'acodec': codecs[1],
-                        })
-                formats.append(f)
+                    'codecs': parse_codecs(fmt.get('codecs')),
+                })
         self._sort_formats(formats)
 
         return {
