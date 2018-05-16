@@ -1887,11 +1887,14 @@ class YoutubeDL(object):
             return True
 
         if url_link:
-            if not _write_link_file('url',     URL_LINK_TEMPLATE,     '\r\n', embed_filename=False): return
+            if not _write_link_file('url', URL_LINK_TEMPLATE, '\r\n', embed_filename=False):
+                return
         if webloc_link:
-            if not _write_link_file('webloc',  WEBLOC_LINK_TEMPLATE,  '\n',   embed_filename=False): return
+            if not _write_link_file('webloc', WEBLOC_LINK_TEMPLATE, '\n', embed_filename=False):
+                return
         if desktop_link:
-            if not _write_link_file('desktop', DESKTOP_LINK_TEMPLATE, '\n',   embed_filename=True ): return
+            if not _write_link_file('desktop', DESKTOP_LINK_TEMPLATE, '\n', embed_filename=True):
+                return
 
         if self.params.get('skip_download', False):
             # Regarding the download archive, consider internet shortcut creation in conjunction with the `--skip-download` switch as everything the user wants. (See also help for the`--download-archive` switch.)
