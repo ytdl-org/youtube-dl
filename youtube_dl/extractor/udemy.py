@@ -18,6 +18,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     sanitized_Request,
+    try_get,
     unescapeHTML,
     urlencode_postdata,
 )
@@ -57,6 +58,10 @@ class UdemyIE(InfoExtractor):
     }, {
         # no url in outputs format entry
         'url': 'https://www.udemy.com/learn-web-development-complete-step-by-step-guide-to-success/learn/v4/t/lecture/4125812',
+        'only_matching': True,
+    }, {
+        # only outputs rendition
+        'url': 'https://www.udemy.com/how-you-can-help-your-local-community-5-amazing-examples/learn/v4/t/lecture/3225750?start=0',
         'only_matching': True,
     }]
 
@@ -101,7 +106,7 @@ class UdemyIE(InfoExtractor):
             % (course_id, lecture_id),
             lecture_id, 'Downloading lecture JSON', query={
                 'fields[lecture]': 'title,description,view_html,asset',
-                'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,data',
+                'fields[asset]': 'asset_type,stream_url,thumbnail_url,download_urls,stream_urls,captions,data',
             })
 
     def _handle_error(self, response):
@@ -299,9 +304,25 @@ class UdemyIE(InfoExtractor):
                     'url': src,
                 })
 
-        download_urls = asset.get('download_urls')
-        if isinstance(download_urls, dict):
-            extract_formats(download_urls.get('Video'))
+        for url_kind in ('download', 'stream'):
+            urls = asset.get('%s_urls' % url_kind)
+            if isinstance(urls, dict):
+                extract_formats(urls.get('Video'))
+
+        captions = asset.get('captions')
+        if isinstance(captions, list):
+            for cc in captions:
+                if not isinstance(cc, dict):
+                    continue
+                cc_url = cc.get('url')
+                if not cc_url or not isinstance(cc_url, compat_str):
+                    continue
+                lang = try_get(cc, lambda x: x['locale']['locale'], compat_str)
+                sub_dict = (automatic_captions if cc.get('source') == 'auto'
+                            else subtitles)
+                sub_dict.setdefault(lang or 'en', []).append({
+                    'url': cc_url,
+                })
 
         view_html = lecture.get('view_html')
         if view_html:
@@ -356,6 +377,12 @@ class UdemyIE(InfoExtractor):
                     transform_source=lambda s: js_to_json(unescapeHTML(s)),
                     fatal=False)
                 extract_subtitles(text_tracks)
+
+        if not formats and outputs:
+            for format_id, output in outputs.items():
+                f = extract_output_format(output, format_id)
+                if f.get('url'):
+                    formats.append(f)
 
         self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 

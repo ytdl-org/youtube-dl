@@ -249,6 +249,10 @@ def parseOpts(overrideArguments=None):
         '--geo-bypass-country', metavar='CODE',
         dest='geo_bypass_country', default=None,
         help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
+    geo.add_option(
+        '--geo-bypass-ip-block', metavar='IP_BLOCK',
+        dest='geo_bypass_ip_block', default=None,
+        help='Force bypass geographic restriction with explicitly provided IP block in CIDR notation (experimental)')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(

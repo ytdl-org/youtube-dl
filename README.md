@@ -116,6 +116,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --geo-bypass-country CODE        Force bypass geographic restriction with
                                      explicitly provided two-letter ISO 3166-2
                                      country code (experimental)
+    --geo-bypass-ip-block IP_BLOCK   Force bypass geographic restriction with
+                                     explicitly provided IP block in CIDR
+                                     notation (experimental)
 
 ## Video Selection:
     --playlist-start NUMBER          Playlist video to start at (default is 1)
