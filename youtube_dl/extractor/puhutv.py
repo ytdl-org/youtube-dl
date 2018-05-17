@@ -6,7 +6,11 @@ from ..compat import compat_str
 from ..utils import (
     int_or_none,
     float_or_none,
-    determine_ext
+    determine_ext,
+    parse_iso8601,
+    str_or_none,
+    unified_strdate,
+    urljoin
 )
 
 
@@ -73,26 +77,22 @@ class PuhuTVIE(InfoExtractor):
         video_id = self._match_id(url)
         # API call
         info = self._download_json(
-            'https://puhutv.com/api/slug/%s-izle' % video_id,
-            video_id)
+            'https://puhutv.com/api/slug/%s-izle' % video_id, video_id)
 
         info = info.get('data')
         display_id = compat_str(info.get('id'))
-        title = info.get('title', {}).get('name')
+        title = info.get('title').get('name')
         if(info.get('display_name') and title is not None):
             title += ' ' + info.get('display_name')
         description = info.get('title', {}).get('description')
 
-        upload_date = info.get('created_at', '').split('T')[0].replace('-', '')
-        if upload_date is '':
-            upload_date = None
+        timestamp = parse_iso8601(info.get('created_at'))
+        upload_date = unified_strdate(info.get('created_at'))
         uploader = info.get('title', {}).get('producer', {}).get('name')
-        uploader_id = info.get('title', {}).get('producer', {}).get('id')
-        if uploader_id is not None:
-            uploader_id = compat_str(uploader_id)
+        uploader_id = str_or_none(info.get('title', {}).get('producer', {}).get('id'))
         view_count = int_or_none(info.get('content', {}).get('watch_count'))
         duration = float_or_none(info.get('content', {}).get('duration_in_ms'), scale=1000)
-        thumbnail = 'https://%s' % info.get('content', {}).get('images', {}).get('wide', {}).get('main')
+        thumbnail = urljoin('https://', info.get('content', {}).get('images', {}).get('wide', {}).get('main'))
         release_year = int_or_none(info.get('title', {}).get('released_at'))
         webpage_url = info.get('web_url')
         tags_list = info.get('title', {}).get('genres', {})
@@ -111,6 +111,7 @@ class PuhuTVIE(InfoExtractor):
 
         thumbnails = []
         for id, url in thumbnails_list.items():
+            url = urljoin('https://', url)
             thumbnails.append({
                 'url': url,
                 'id': id
@@ -131,7 +132,7 @@ class PuhuTVIE(InfoExtractor):
         # Some of videos are geo restricted upon request copyright owner and returns 403
         req_formats = self._download_json(
             'https://puhutv.com/api/assets/%s/videos' % display_id,
-            video_id, 'Downloading video JSON')
+            video_id, 'Downloading video JSON', fatal=False)
         if not req_formats:
             self.raise_geo_restricted()
         else:
@@ -142,7 +143,7 @@ class PuhuTVIE(InfoExtractor):
             media_url = format.get('url')
             ext = format.get('video_format') or determine_ext(media_url)
             quality = format.get('quality')
-            if ext == 'mp4' and format.get('is_playlist') is False:
+            if ext == 'mp4' and format.get('is_playlist', False) is False:
                 formats.append({
                     'url': media_url,
                     'format_id': 'http-%s' % quality,
@@ -159,6 +160,7 @@ class PuhuTVIE(InfoExtractor):
             'episode_number': episode_number,
             'release_year': release_year,
             'upload_date': upload_date,
+            'timestamp': timestamp,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'view_count': view_count,
@@ -184,7 +186,7 @@ class PuhuTVSerieIE(InfoExtractor):
                 'uploader': 'Focus Film',
                 'uploader_id': 61,
             },
-            'playlist_mincount': 10,
+            'playlist_mincount': 234,
         },
         {  # a film detail page which is using same url with serie page
             'url': 'https://puhutv.com/kaybedenler-kulubu-detay',
