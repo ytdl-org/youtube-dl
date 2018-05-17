@@ -989,10 +989,10 @@ class VimeoWatchLaterIE(VimeoChannelIE):
 
 
 class VimeoLikesIE(InfoExtractor):
-    _VALID_URL = r'https://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes/?(?:$|[?#]|sort:)'
+    _VALID_URL = r'https://(?:www\.)?vimeo\.com/(?P<id>[^/]+)/likes/?(?:$|[?#]|sort:)'
     IE_NAME = 'vimeo:likes'
     IE_DESC = 'Vimeo user likes'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
         'info_dict': {
@@ -1000,7 +1000,10 @@ class VimeoLikesIE(InfoExtractor):
             'description': 'See all the videos urza likes',
             'title': 'Videos urza likes',
         },
-    }
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
@@ -1009,7 +1012,7 @@ class VimeoLikesIE(InfoExtractor):
             self._search_regex(
                 r'''(?x)<li><a\s+href="[^"]+"\s+data-page="([0-9]+)">
                     .*?</a></li>\s*<li\s+class="pagination_next">
-                ''', webpage, 'page count'),
+                ''', webpage, 'page count', default=1),
             'page count', fatal=True)
         PAGE_SIZE = 12
         title = self._html_search_regex(
@@ -1017,7 +1020,7 @@ class VimeoLikesIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
 
         def _get_page(idx):
-            page_url = 'https://vimeo.com/user%s/likes/page:%d/sort:date' % (
+            page_url = 'https://vimeo.com/%s/likes/page:%d/sort:date' % (
                 user_id, idx + 1)
             webpage = self._download_webpage(
                 page_url, user_id,
@@ -1037,7 +1040,7 @@ class VimeoLikesIE(InfoExtractor):
 
         return {
             '_type': 'playlist',
-            'id': 'user%s_likes' % user_id,
+            'id': '%s_likes' % user_id,
             'title': title,
             'description': description,
             'entries': pl,
