@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.05.18
 
 Extractors
 * [vimeo:likes] Relax URL regular expression and fix single page likes

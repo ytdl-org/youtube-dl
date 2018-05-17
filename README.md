@@ -106,7 +106,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --geo-verification-proxy URL     Use this proxy to verify the IP address for
                                      some geo-restricted sites. The default
                                      proxy specified by --proxy (or none, if the
-                                     options is not present) is used for the
+                                     option is not present) is used for the
                                      actual downloading.
     --geo-bypass                     Bypass geographic restriction via faking
                                      X-Forwarded-For HTTP header (experimental)
