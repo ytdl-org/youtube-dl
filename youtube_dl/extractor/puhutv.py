@@ -30,6 +30,7 @@ class PuhuTVIE(InfoExtractor):
                 'description': 'md5:405fd024df916ca16731114eb18e511a',
                 'uploader_id': '43',
                 'upload_date': '20160729',
+                'timestamp': int,
             },
         },
         {  # An Episode and geo restricted
@@ -45,6 +46,7 @@ class PuhuTVIE(InfoExtractor):
                 'description': 'md5:18ba5abe6d19f8063a8348445c41e28f',
                 'uploader_id': '269',
                 'upload_date': '20180220',
+                'timestamp': int,
             },
         },
         {  # Has subtitle
@@ -60,6 +62,7 @@ class PuhuTVIE(InfoExtractor):
                 'description': 'md5:e8ddb56738b093b4eae0a536e2ea02c2',
                 'uploader_id': '25',
                 'upload_date': '20180330',
+                'timestamp': int,
             },
             'params': {
                 'skip_download': True,
