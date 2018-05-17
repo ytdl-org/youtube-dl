@@ -78,12 +78,14 @@ class IzleseneIE(InfoExtractor):
             r'comment_count\s*=\s*\'([^\']+)\';',
             webpage, 'comment_count', fatal=False)
 
-        streams = self._parse_json(self._html_search_regex(
-            r'_videoObj\s*=\s*(.*);', webpage, 'streams'), video_id)
+        streams_json = self._html_search_regex(
+            r'_videoObj\s*=\s*(.+);', webpage, 'streams')
+        streams = self._parse_json(streams_json, video_id)
+
         formats = []
         for stream in streams.get('media').get('level'):
             url = stream.get('source')
-            ext = determine_ext(url)
+            ext = determine_ext(url, 'mp4')
             quality = stream.get('value')
             formats.append({
                 'format_id': '%sp' % quality,
