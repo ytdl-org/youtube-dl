@@ -1,3 +1,34 @@
+version <unreleased>
+
+Extractors
+* [vimeo:likes] Relax URL regular expression and fix single page likes
+  extraction (#16475)
+* [pluralsight] Fix clip id extraction (#16460)
++ [mychannels] Add support for mychannels.com (#15334)
+- [moniker] Remove extractor (#15336)
+* [pbs] Fix embed data extraction (#16474)
++ [mtv] Add support for paramountnetwork.com and bellator.com (#15418)
+* [youtube] Fix hd720 format position
+* [dailymotion] Remove fragment part from m3u8 URLs (#8915)
+* [3sat] Improve extraction (#15350)
+    * Extract all formats
+    * Extract more format metadata
+    * Improve format sorting
+    * Use hls native downloader
+    * Detect and bypass geo-restriction
++ [dtube] Add support for d.tube (#15201)
+* [options] Fix typo (#16450)
+* [youtube] Improve format filesize extraction (#16453)
+* [youtube] Make uploader extraction non fatal (#16444)
+* [youtube] Fix extraction for embed restricted live streams (#16433)
+* [nbc] Improve info extraction (#16440)
+* [twitch:clips] Fix extraction (#16429)
+* [redditr] Relax URL regular expression (#16426, #16427)
+* [mixcloud] Bypass throttling for HTTP formats (#12579, #16424)
++ [nick] Add support for nickjr.de (#13230)
+* [teamcoco] Fix extraction (#16374)
+
+
 version 2018.05.09
 
 Core
