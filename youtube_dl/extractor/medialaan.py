@@ -167,8 +167,8 @@ class MedialaanIE(GigyaBaseIE):
             if video:
                 info = {
                     'id': video_id,
-                    'url': video.get('formats')[0].get('url'),
-                    'title': metadata.get('videoTitle'),
+                    'formats': video.get('formats'),
+                    'title': metadata.get('videoTitle') or self._og_search_title(webpage),
                     'thumbnail': video.get('poster'),
                     'timestamp': unified_timestamp(pubdate),
                     'duration': int_or_none(video.get('duration')),
