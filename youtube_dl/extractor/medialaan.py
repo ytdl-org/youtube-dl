@@ -119,7 +119,6 @@ class MedialaanIE(GigyaBaseIE):
         }
 
         auth_info = self._gigya_login(auth_data)
-
         self._uid = auth_info['UID']
         self._uid_signature = auth_info['UIDSignature']
         self._signature_timestamp = auth_info['signatureTimestamp']
@@ -190,21 +189,27 @@ class MedialaanIE(GigyaBaseIE):
                     r'"%s"\s*:\s*"([^"]+)' % item, webpage, item,
                     default=None)
 
-            app_id = get('vod', 'app_id') or self._SITE_TO_APP_ID.get(site_id, 'vtm_watch')
+            api_key = get('vod', 'apikey')
             sso = get('vod', 'gigyaDatabase') or 'vtm-sso'
+            token = self._download_json(
+                'http://user.medialaan.io/user/v1/gigya/request_token',
+                video_id, query={
+                    'uid': self._uid,
+                    'signature': self._uid_signature,
+                    'timestamp': self._signature_timestamp,
+                    'apikey': api_key,
+                    'database': sso,
+                })
 
             data = self._download_json(
-                'http://vod.medialaan.io/api/1.0/item/%s/video' % vod_id,
+                'http://vod.medialaan.io/vod/v2/videos/%s/watch' % vod_id,
                 video_id, query={
-                    'app_id': app_id,
-                    'user_network': sso,
-                    'UID': self._uid,
-                    'UIDSignature': self._uid_signature,
-                    'signatureTimestamp': self._signature_timestamp,
+                    'access_token': token['response'],
+                    'apikey': api_key
                 })
 
             formats = self._extract_m3u8_formats(
-                data['response']['uri'], video_id, entry_protocol='m3u8_native',
+                data['response']['hls-encrypted']['url'], video_id, entry_protocol='m3u8_native',
                 ext='mp4', m3u8_id='hls')
 
             self._sort_formats(formats)
