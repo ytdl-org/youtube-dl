@@ -92,7 +92,7 @@ class ImdbIE(InfoExtractor):
 class ImdbListIE(InfoExtractor):
     IE_NAME = 'imdb:list'
     IE_DESC = 'Internet Movie Database lists'
-    _VALID_URL = r'https?://(?:www\.)?imdb\.com/list/ls(?P<id>\d+)(?!/videoplayer/vi\d+)'
+    _VALID_URL = r'https?://(?:www\.)?imdb\.com/list/ls(?P<id>\d{9})(?!/videoplayer/vi\d+)'
     _TEST = {
         'url': 'https://www.imdb.com/list/ls009921623/',
         'info_dict': {
