@@ -339,20 +339,17 @@ class InfoExtractor(object):
     _GEO_BYPASS attribute may be set to False in order to disable
     geo restriction bypass mechanisms for a particular extractor.
     Though it won't disable explicit geo restriction bypass based on
-    country code provided with geo_bypass_country. (experimental)
+    country code provided with geo_bypass_country.
 
     _GEO_COUNTRIES attribute may contain a list of presumably geo unrestricted
     countries for this extractor. One of these countries will be used by
     geo restriction bypass mechanism right away in order to bypass
-    geo restriction, of course, if the mechanism is not disabled. (experimental)
+    geo restriction, of course, if the mechanism is not disabled.
 
     _GEO_IP_BLOCKS attribute may contain a list of presumably geo unrestricted
     IP blocks in CIDR notation for this extractor. One of these IP blocks
     will be used by geo restriction bypass mechanism similarly
-    to _GEO_COUNTRIES. (experimental)
-
-    NB: both these geo attributes are experimental and may change in future
-    or be completely removed.
+    to _GEO_COUNTRIES.
 
     Finally, the _WORKING attribute should be set to False for broken IEs
     in order to warn the users and skip the tests.
