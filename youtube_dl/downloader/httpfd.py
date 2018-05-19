@@ -1,6 +1,11 @@
+from __future__ import unicode_literals
+
 from .http import HttpFD
 
-import urllib.request as compat_urllib_request
+try:
+    import urllib.request as compat_urllib_request
+except ImportError:  # Python 2
+    import urllib2 as compat_urllib_request
 import threading
 
 
