@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'https?://teamcoco\.com/video/(?P<id>([^/]+/)*[^/?#]+)'
+    _VALID_URL = r'https?://teamcoco\.com/(?P<id>([^/]+/)*[^/?#]+)'
     _TESTS = [
         {
             'url': 'http://teamcoco.com/video/mary-kay-remote',
@@ -70,6 +70,15 @@ class TeamcocoIE(InfoExtractor):
         }, {
             'url': 'http://teamcoco.com/video/the-conan-audiencey-awards-for-04/25/18',
             'only_matching': True,
+        }, {
+            'url': 'http://teamcoco.com/italy/conan-jordan-schlansky-hit-the-streets-of-florence',
+            'only_matching': True,
+        }, {
+            'url': 'http://teamcoco.com/haiti/conan-s-haitian-history-lesson',
+            'only_matching': True,
+        }, {
+            'url': 'http://teamcoco.com/israel/conan-hits-the-streets-beaches-of-tel-aviv',
+            'only_matching': True,
         }
     ]
 
@@ -84,7 +93,7 @@ class TeamcocoIE(InfoExtractor):
         display_id = self._match_id(url)
 
         response = self._graphql_call('''{
-  %s(slug: "video/%s") {
+  %s(slug: "%s") {
     ... on RecordSlug {
       record {
         id
@@ -93,6 +102,9 @@ class TeamcocoIE(InfoExtractor):
         publishOn
         thumb {
           preview
+        }
+        file {
+          url
         }
         tags {
           name
@@ -111,15 +123,15 @@ class TeamcocoIE(InfoExtractor):
         record = response['record']
         video_id = record['id']
 
-        srcs = self._graphql_call('''{
+        video_sources = self._graphql_call('''{
   %s(id: "%s") {
     src
   }
-}''', 'RecordVideoSource', video_id)['src']
+}''', 'RecordVideoSource', video_id) or {}
 
         formats = []
         get_quality = qualities(['low', 'sd', 'hd', 'uhd'])
-        for format_id, src in srcs.items():
+        for format_id, src in video_sources.get('src', {}).items():
             if not isinstance(src, dict):
                 continue
             src_url = src.get('src')
@@ -146,6 +158,9 @@ class TeamcocoIE(InfoExtractor):
                     'format_id': format_id,
                     'quality': get_quality(format_id),
                 })
+        if not formats:
+            formats = self._extract_m3u8_formats(
+                record['file']['url'], video_id, 'mp4', fatal=False)
         self._sort_formats(formats)
 
         return {
