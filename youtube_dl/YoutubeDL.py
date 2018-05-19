@@ -96,6 +96,7 @@ from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
 from .extractor.openload import PhantomJSwrapper
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
+from .downloader.httpfd import HttpHB
 from .postprocessor import (
     FFmpegFixupM3u8PP,
     FFmpegFixupM4aPP,
@@ -1839,7 +1840,12 @@ class YoutubeDL(object):
         if not self.params.get('skip_download', False):
             try:
                 def dl(name, info):
-                    fd = get_suitable_downloader(info, self.params)(self, self.params)
+                    if 'heartbeat_url' in info:
+                        print("use HTTPHB")
+                        fd = HttpHB(self, self.params)
+                    else:
+                        fd = get_suitable_downloader(info, self.params)(self, self.params)
+
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
