@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'https?://teamcoco\.com/video/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://teamcoco\.com/video/(?P<id>([^/]+/)*[^/?#]+)'
     _TESTS = [
         {
             'url': 'http://teamcoco.com/video/mary-kay-remote',
@@ -67,6 +67,9 @@ class TeamcocoIE(InfoExtractor):
                 'skip_download': True,  # m3u8 downloads
             },
             'skip': 'This video is no longer available.',
+        }, {
+            'url': 'http://teamcoco.com/video/the-conan-audiencey-awards-for-04/25/18',
+            'only_matching': True,
         }
     ]
 
