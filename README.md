@@ -1,3 +1,5 @@
+![logotype a-06](https://user-images.githubusercontent.com/36028424/40275792-56728b52-5c2c-11e8-9241-c37f083b00bd.png)
+
 [![Build Status](https://travis-ci.org/rg3/youtube-dl.svg?branch=master)](https://travis-ci.org/rg3/youtube-dl)
 
 youtube-dl - download videos from youtube.com or other video platforms
