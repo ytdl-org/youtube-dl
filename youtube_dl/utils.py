@@ -1270,7 +1270,10 @@ def date_from_str(date_str):
         unit += 's'
         delta = datetime.timedelta(**{unit: time})
         return today + delta
-    return datetime.datetime.strptime(date_str, '%Y%m%d').date()
+    try:
+        return datetime.datetime.strptime(date_str, '%Y%m%d').date()
+    except ValueError:
+        sys.exit('ERROR: cannot parse datestring ' + date_str)
 
 
 def hyphenate_date(date_str):
