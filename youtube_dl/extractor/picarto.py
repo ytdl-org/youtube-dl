@@ -8,7 +8,6 @@ from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     js_to_json,
-    try_get,
     update_url_query,
     urlencode_postdata,
 )
@@ -34,20 +33,9 @@ class PicartoIE(InfoExtractor):
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
-        stream_page = self._download_webpage(url, channel_id)
         metadata = self._download_json(
             'https://api.picarto.tv/v1/channel/name/' + channel_id,
             channel_id)
-
-        if '>This channel does not exist' in stream_page:
-            raise ExtractorError(
-                'Channel %s does not exist' % channel_id, expected=True)
-
-        player = self._parse_json(
-            self._search_regex(
-                r'(?s)playerSettings\[\d+\]\s*=\s*(\{.+?\}\s*\n)', stream_page,
-                'player settings'),
-            channel_id, transform_source=js_to_json)
 
         if metadata.get('online') is False:
             raise ExtractorError('Stream is offline', expected=True)
@@ -57,21 +45,13 @@ class PicartoIE(InfoExtractor):
             data=urlencode_postdata({'loadbalancinginfo': channel_id}),
             note='Downloading load balancing info')
 
-        def get_event(key):
-            return try_get(player, lambda x: x['event'][key], compat_str) or ''
-
         token = self._VALID_URL_RE.match(url).group('token') or 'public'
         params = {
-            'ticket': get_event('ticket'),
             'con': int(time.time() * 1000),
-            'type': get_event('ticket'),
-            'scope': get_event('scope'),
             'token': token,
         }
 
         prefered_edge = cdn_data.get('preferedEdge')
-        default_tech = player.get('defaultTech')
-
         formats = []
 
         for edge in cdn_data['edges']:
@@ -84,8 +64,6 @@ class PicartoIE(InfoExtractor):
                 tech_type = tech.get('type')
                 preference = 0
                 if edge_id == prefered_edge:
-                    preference += 1
-                if tech_type == default_tech:
                     preference += 1
                 format_id = []
                 if edge_id:
