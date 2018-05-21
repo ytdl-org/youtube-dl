@@ -35,6 +35,9 @@ class PicartoIE(InfoExtractor):
     def _real_extract(self, url):
         channel_id = self._match_id(url)
         stream_page = self._download_webpage(url, channel_id)
+        metadata = self._download_json(
+            'https://api.picarto.tv/v1/channel/name/' + channel_id,
+            channel_id)
 
         if '>This channel does not exist' in stream_page:
             raise ExtractorError(
@@ -46,7 +49,7 @@ class PicartoIE(InfoExtractor):
                 'player settings'),
             channel_id, transform_source=js_to_json)
 
-        if player.get('online') is False:
+        if metadata.get('online') is False:
             raise ExtractorError('Stream is offline', expected=True)
 
         cdn_data = self._download_json(
@@ -109,7 +112,7 @@ class PicartoIE(InfoExtractor):
                     continue
         self._sort_formats(formats)
 
-        mature = player.get('mature')
+        mature = metadata.get('adult')
         if mature is None:
             age_limit = None
         else:
@@ -119,7 +122,7 @@ class PicartoIE(InfoExtractor):
             'id': channel_id,
             'title': self._live_title(channel_id),
             'is_live': True,
-            'thumbnail': player.get('vodThumb'),
+            'thumbnail': metadata.get('thumbnails', {}).get('web'),
             'age_limit': age_limit,
             'formats': formats,
         }
