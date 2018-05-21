@@ -126,16 +126,16 @@ class GloboIE(InfoExtractor):
                 continue
 
             hash_code = security_hash[:2]
-            received_time = int(security_hash[2:12])
+            received_time = security_hash[2:12]
             received_random = security_hash[12:22]
             received_md5 = security_hash[22:]
 
-            sign_time = received_time + 86400
+            sign_time = compat_str(int(received_time) + 86400)
             padding = '%010d' % random.randint(1, 10000000000)
 
-            md5_data = (received_md5 + str(sign_time) + padding + '0xFF01DD').encode()
+            md5_data = (received_md5 + sign_time + padding + '0xFF01DD').encode()
             signed_md5 = base64.urlsafe_b64encode(hashlib.md5(md5_data).digest()).decode().strip('=')
-            signed_hash = hash_code + compat_str(received_time) + received_random + compat_str(sign_time) + padding + signed_md5
+            signed_hash = hash_code + received_time + received_random + sign_time + padding + signed_md5
 
             signed_url = '%s?h=%s&k=%s' % (resource_url, signed_hash, 'flash')
             if resource_id.endswith('m3u8') or resource_url.endswith('.m3u8'):
