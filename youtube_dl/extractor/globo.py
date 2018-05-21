@@ -24,6 +24,7 @@ from ..utils import (
 class GloboIE(InfoExtractor):
     _VALID_URL = r'(?:globo:|https?://.+?\.globo\.com/(?:[^/]+/)*(?:v/(?:[^/]+/)?|videos/))(?P<id>\d{7,})'
     _LOGGED_IN = False
+    _NETRC_MACHINE = 'globo'
     _TESTS = [{
         'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
         'md5': 'b3ccc801f75cd04a914d51dadb83a78d',
