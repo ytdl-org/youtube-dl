@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import base64
 import binascii
 import collections
-import ctypes
+#import ctypes
 import email
 import getpass
 import io

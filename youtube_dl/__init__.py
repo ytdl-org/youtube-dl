@@ -10,6 +10,7 @@ import io
 import os
 import random
 import sys
+import json
 
 
 from .options import (
@@ -464,18 +465,30 @@ def _real_main(argv=None):
             ydl.to_screen('--max-download limit reached, aborting.')
             retcode = 101
 
-    sys.exit(retcode)
+    #sys.exit(retcode)
+    return
 
+
+def reportDone(result):
+    data = {}
+    data['result'] = result
+
+    f = open('youtube_dl.done', 'w')
+    f.write(json.dumps(data))
+    f.close()
 
 def main(argv=None):
     try:
         _real_main(argv)
+        reportDone('OK')
     except DownloadError:
-        sys.exit(1)
+        reportDone('DownloadError')
+        #sys.exit(1)
     except SameFileError:
-        sys.exit('ERROR: fixed output name but more than one file to download')
+        reportDone('ERROR: fixed output name but more than one file to download')
+        #sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
-        sys.exit('\nERROR: Interrupted by user')
-
+        reportDone('ERROR: Interrupted by user')
+        #sys.exit('\nERROR: Interrupted by user')
 
 __all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']

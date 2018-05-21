@@ -50,10 +50,7 @@ def report_warning(message):
     Print the message to stderr, it will be prefixed with 'WARNING:'
     If stderr is a tty file the 'WARNING:' will be colored
     '''
-    if sys.stderr.isatty() and compat_os_name != 'nt':
-        _msg_header = '\033[0;33mWARNING:\033[0m'
-    else:
-        _msg_header = 'WARNING:'
+    _msg_header = 'WARNING:'
     output = '%s %s\n' % (_msg_header, message)
     if 'b' in getattr(sys.stderr, 'mode', '') or sys.version_info[0] < 3:
         output = output.encode(preferredencoding())

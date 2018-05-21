@@ -600,10 +600,7 @@ class YoutubeDL(object):
         else:
             if self.params.get('no_warnings'):
                 return
-            if not self.params.get('no_color') and self._err_file.isatty() and compat_os_name != 'nt':
-                _msg_header = '\033[0;33mWARNING:\033[0m'
-            else:
-                _msg_header = 'WARNING:'
+            _msg_header = 'WARNING:'
             warning_message = '%s %s' % (_msg_header, message)
             self.to_stderr(warning_message)
 
@@ -612,10 +609,7 @@ class YoutubeDL(object):
         Do the same as trouble, but prefixes the message with 'ERROR:', colored
         in red if stderr is a tty file.
         '''
-        if not self.params.get('no_color') and self._err_file.isatty() and compat_os_name != 'nt':
-            _msg_header = '\033[0;31mERROR:\033[0m'
-        else:
-            _msg_header = 'ERROR:'
+        _msg_header = 'ERROR:'
         error_message = '%s %s' % (_msg_header, message)
         self.trouble(error_message, tb)
 
@@ -1735,7 +1729,11 @@ class YoutubeDL(object):
         if self.params.get('forceformat', False):
             self.to_stdout(info_dict['format'])
         if self.params.get('forcejson', False):
-            self.to_stdout(json.dumps(info_dict))
+            #self.to_stdout(json.dumps(info_dict))
+            self.to_stdout('Writing json data to youtube_dl.json')
+            with open('youtube_dl.json', 'w') as f:
+                f.write(json.dumps(info_dict).encode('utf-8'))
+                f.close()
 
         # Do nothing else if in simulate mode
         if self.params.get('simulate', False):

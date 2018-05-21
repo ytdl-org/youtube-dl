@@ -8,7 +8,7 @@ import binascii
 import calendar
 import codecs
 import contextlib
-import ctypes
+#import ctypes
 import datetime
 import email.utils
 import email.header
@@ -1183,6 +1183,8 @@ def unified_strdate(date_str, day_first=True):
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
         except ValueError:
             pass
+        except TypeError:
+            pass
     if upload_date is None:
         timetuple = email.utils.parsedate_tz(date_str)
         if timetuple:
@@ -1753,23 +1755,23 @@ def setproctitle(title):
     if sys.platform.startswith('java'):
         return
 
-    try:
-        libc = ctypes.cdll.LoadLibrary('libc.so.6')
-    except OSError:
-        return
-    except TypeError:
-        # LoadLibrary in Windows Python 2.7.13 only expects
-        # a bytestring, but since unicode_literals turns
-        # every string into a unicode string, it fails.
-        return
-    title_bytes = title.encode('utf-8')
-    buf = ctypes.create_string_buffer(len(title_bytes))
-    buf.value = title_bytes
-    try:
-        libc.prctl(15, buf, 0, 0, 0)
-    except AttributeError:
-        return  # Strange libc, just skip this
-
+    #try:
+    #    libc = ctypes.cdll.LoadLibrary('libc.so.6')
+    #except OSError:
+    #    return
+    #except TypeError:
+    #    # LoadLibrary in Windows Python 2.7.13 only expects
+    #    # a bytestring, but since unicode_literals turns
+    #    # every string into a unicode string, it fails.
+    #    return
+    #title_bytes = title.encode('utf-8')
+    #buf = ctypes.create_string_buffer(len(title_bytes))
+    #buf.value = title_bytes
+    #try:
+    #    libc.prctl(15, buf, 0, 0, 0)
+    #except AttributeError:
+    #    return  # Strange libc, just skip this
+    return
 
 def remove_start(s, start):
     return s[len(start):] if s is not None and s.startswith(start) else s
