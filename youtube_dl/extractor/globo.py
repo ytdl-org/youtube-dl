@@ -8,7 +8,10 @@ import random
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+)
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -71,16 +74,22 @@ class GloboIE(InfoExtractor):
         if email is None:
             return
 
-        self._download_json(
-            'https://login.globo.com/api/authentication', None, data=json.dumps({
-                'payload': {
-                    'email': email,
-                    'password': password,
-                    'serviceId': 4654,
-                },
-            }).encode(), headers={
-                'Content-Type': 'application/json; charset=utf-8',
-            })
+        try:
+            self._download_json(
+                'https://login.globo.com/api/authentication', None, data=json.dumps({
+                    'payload': {
+                        'email': email,
+                        'password': password,
+                        'serviceId': 4654,
+                    },
+                }).encode(), headers={
+                    'Content-Type': 'application/json; charset=utf-8',
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                resp = self._parse_json(e.cause.read(), None)
+                raise ExtractorError(resp.get('userMessage') or resp['id'], expected=True)
+            raise
         self._LOGGED_IN = True
 
     def _real_extract(self, url):
