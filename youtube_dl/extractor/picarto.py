@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class PicartoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www.)?picarto\.tv/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www.)?picarto\.tv/(?P<id>[a-zA-Z0-9]+)(?:/(?P<token>[a-zA-Z0-9]+))?'
     _TEST = {
         'url': 'https://picarto.tv/Setz',
         'info_dict': {
@@ -60,12 +60,13 @@ class PicartoIE(InfoExtractor):
         def get_event(key):
             return try_get(player, lambda x: x['event'][key], compat_str) or ''
 
+        token = self._VALID_URL_RE.match(url).group('token') or 'public'
         params = {
-            'token': player.get('token') or '',
             'ticket': get_event('ticket'),
             'con': int(time.time() * 1000),
             'type': get_event('ticket'),
             'scope': get_event('scope'),
+            'token': token,
         }
 
         prefered_edge = cdn_data.get('preferedEdge')
