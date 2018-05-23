@@ -73,7 +73,10 @@ class VierVijfKijkOnlineIE(CognitoBaseIE):
         title_split = title.split(' - ')
         series = title_split[0].strip()
         if len(title_split) == 3:
-            season = title_split[1].split('Seizoen')[1].strip()
+            if 'Seizoen' in title_split[1]:
+                season = title_split[1].split('Seizoen')[1].strip()
+            else:
+                season = title_split[1].strip()
             episode = title_split[2].split('Aflevering')[1].strip()
         else:
             season = None
