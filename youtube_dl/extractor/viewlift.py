@@ -214,7 +214,7 @@ class ViewLiftIE(ViewLiftBaseIE):
                 'description': gist.get('description'),
                 'thumbnail': gist.get('videoImageUrl'),
                 'duration': int_or_none(gist.get('runtime')),
-                'age_limit': parse_age_limit(content_data.get('parentalRating', '').replace('_', '-')),
+                'age_limit': parse_age_limit(content_data.get('parentalRating')),
                 'timestamp': int_or_none(gist.get('publishDate'), 1000),
                 'formats': formats,
             }
