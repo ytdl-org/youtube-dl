@@ -666,6 +666,7 @@ from .nbc import (
     NBCOlympicsIE,
     NBCOlympicsStreamIE,
     NBCSportsIE,
+    NBCSportsStreamIE,
     NBCSportsVPlayerIE,
 )
 from .ndr import (
