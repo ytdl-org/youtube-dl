@@ -2253,12 +2253,12 @@ US_RATINGS = {
 
 
 TV_PARENTAL_GUIDELINES = {
-    'TV-Y': 0,
-    'TV-Y7': 7,
-    'TV-G': 0,
-    'TV-PG': 0,
-    'TV-14': 14,
-    'TV-MA': 17,
+    'Y': 0,
+    'Y7': 7,
+    'G': 0,
+    'PG': 0,
+    '14': 14,
+    'MA': 17,
 }
 
 
@@ -2272,7 +2272,10 @@ def parse_age_limit(s):
         return int(m.group('age'))
     if s in US_RATINGS:
         return US_RATINGS[s]
-    return TV_PARENTAL_GUIDELINES.get(s)
+    m = re.match(r'^TV[_-]?(%s)$' % '|'.join(TV_PARENTAL_GUIDELINES.keys()), s)
+    if m:
+        return TV_PARENTAL_GUIDELINES[m.group(1)]
+    return None
 
 
 def strip_jsonp(code):
