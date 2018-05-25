@@ -56,6 +56,7 @@ class FacebookIE(InfoExtractor):
     _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
 
     _VIDEO_PAGE_TEMPLATE = 'https://www.facebook.com/video/video.php?v=%s'
+    _VIDEO_PAGE_TAHOE_TEMPLATE = 'https://www.facebook.com/video/tahoe/async/%s/?chain=true&isvideo=true'
 
     _TESTS = [{
         'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
@@ -208,6 +209,17 @@ class FacebookIE(InfoExtractor):
         # no title
         'url': 'https://www.facebook.com/onlycleverentertainment/videos/1947995502095005/',
         'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/WatchESLOne/videos/359649331226507/',
+        'info_dict': {
+            'id': '359649331226507',
+            'ext': 'mp4',
+            'title': '#ESLOne VoD - Birmingham Finals Day#1 Fnatic vs. @Evil Geniuses',
+            'uploader': 'ESL One Dota 2',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     @staticmethod
@@ -324,6 +336,24 @@ class FacebookIE(InfoExtractor):
                     list) or [])
 
         if not video_data:
+            # video info not in first request, do a secondary request using tahoe player specific url
+            tahoe_data = self._download_webpage(
+                self._VIDEO_PAGE_TAHOE_TEMPLATE % video_id, video_id,
+                data=urlencode_postdata({
+                    '__user': 0,
+                    '__a': 1,
+                    '__pc': self._search_regex(r'"pkg_cohort":"(.*?)"', webpage, 'pkg cohort', default='PHASED:DEFAULT'),
+                    '__rev': self._search_regex(r'"client_revision":(\d+),', webpage, 'client revision', default=3944515),
+                }),
+                headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                })
+            tahoe_js_data = self._parse_json(self._search_regex(
+                r'for \(;;\);(.+)', tahoe_data,
+                'tahoe js data', default='{}'), video_id, fatal=False)
+            video_data = extract_video_data(tahoe_js_data.get('jsmods', {}).get('instances', []))
+
+        if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
@@ -378,9 +408,11 @@ class FacebookIE(InfoExtractor):
             video_title = limit_length(video_title, 80)
         else:
             video_title = 'Facebook video #%s' % video_id
-        uploader = clean_html(get_element_by_id(
-            'fbPhotoPageAuthorName', webpage)) or self._search_regex(
-            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader', fatal=False)
+        uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
+        if not uploader:
+            uploader = self._search_regex(
+                [r'ownerName\s*:\s*"([^"]+)"', r'property="og:title"\s*content="(.*?)"'],
+                webpage, 'uploader', fatal=False)
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
