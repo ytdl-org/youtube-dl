@@ -35,6 +35,8 @@ You can also use pip:
     
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
+**Tip:** If you want to install youtube-dl with shell completion and man pages on your Linux machine, using the above `pip` command is the recommend way to do so.
+
 OS X users can install youtube-dl with [Homebrew](https://brew.sh/):
 
     brew install youtube-dl
