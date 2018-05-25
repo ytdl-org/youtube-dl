@@ -15,7 +15,7 @@ class IndavideoEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:embed\.)?indavideo\.hu/player/video/|assets\.indavideo\.hu/swf/player\.swf\?.*\b(?:v(?:ID|id))=)(?P<id>[\da-f]+)'
     _TESTS = [{
         'url': 'http://indavideo.hu/player/video/1bdc3c6d80/',
-        'md5': 'f79b009c66194acacd40712a6778acfa',
+        'md5': 'c8a507a1c7410685f83a06eaeeaafeab',
         'info_dict': {
             'id': '1837039',
             'ext': 'mp4',
@@ -47,7 +47,14 @@ class IndavideoEmbedIE(InfoExtractor):
 
         title = video['title']
 
-        video_urls = video.get('video_files', [])
+        video_urls = []
+
+        video_files = video.get('video_files')
+        if isinstance(video_files, list):
+            video_urls.extend(video_files)
+        elif isinstance(video_files, dict):
+            video_urls.extend(video_files.values())
+
         video_file = video.get('video_file')
         if video:
             video_urls.append(video_file)
@@ -61,9 +68,22 @@ class IndavideoEmbedIE(InfoExtractor):
                 video_urls.append(flv_url)
 
         filesh = video.get('filesh')
-        formats = [
-            self.video_url_to_format(video_url, filesh)
-            for video_url in video_urls]
+
+        formats = []
+        for video_url in video_urls:
+            height = int_or_none(self._search_regex(
+                r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None))
+            if filesh:
+                if not height:
+                    continue
+                token = filesh.get(compat_str(height))
+                if token is None:
+                    continue
+                video_url = update_url_query(video_url, {'token': token})
+            formats.append({
+                'url': video_url,
+                'height': height,
+            })
         self._sort_formats(formats)
 
         timestamp = video.get('date')
@@ -91,18 +111,6 @@ class IndavideoEmbedIE(InfoExtractor):
             'formats': formats,
         }
 
-    def video_url_to_format(self, video_url, filesh):
-        height = int_or_none(self._search_regex(
-            r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None))
-        if height and filesh:
-            token = filesh.get(compat_str(height))
-            if token is not None:
-                video_url = update_url_query(video_url, {'token': token})
-        return {
-            'url': video_url,
-            'height': height,
-        }
-
 
 class IndavideoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?indavideo\.hu/video/(?P<id>[^/#?]+)'
@@ -122,7 +130,7 @@ class IndavideoIE(InfoExtractor):
             'upload_date': '20140127',
             'duration': 7,
             'age_limit': 0,
-            'tags': ['vicces', 'macska', 'cica', 'ügyes', 'nevetés', 'játszik', 'Cukiság', 'Jet_Pack'],
+            'tags': list,
         },
     }, {
         'url': 'http://index.indavideo.hu/video/2015_0728_beregszasz',
@@ -146,7 +154,9 @@ class IndavideoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
         embed_url = self._search_regex(
-            r'<link[^>]+rel="video_src"[^>]+href="(.+?)"', webpage, 'embed url')
+            (r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.indavideo\.hu/player/video/.+?)\1',
+             r'<link[^>]+rel="video_src"[^>]+href="(?P<url>.+?)"'),
+            webpage, 'embed url', group='url')
 
         return {
             '_type': 'url_transparent',
