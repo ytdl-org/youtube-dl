@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_unquote
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
     determine_ext,
     float_or_none,
@@ -55,12 +58,33 @@ class IzleseneIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        url = 'http://www.izlesene.com/video/%s' % video_id
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage('http://www.izlesene.com/video/%s' % video_id, video_id)
 
-        title = self._og_search_title(webpage)
+        video = self._parse_json(
+            self._search_regex(
+                r'videoObj\s*=\s*({.+?})\s*;\s*\n', webpage, 'streams'),
+            video_id)
+
+        title = video.get('videoTitle') or self._og_search_title(webpage)
+
+        formats = []
+        for stream in video['media']['level']:
+            source_url = stream.get('source')
+            if not source_url or not isinstance(source_url, compat_str):
+                continue
+            ext = determine_ext(url, 'mp4')
+            quality = stream.get('value')
+            height = int_or_none(quality)
+            formats.append({
+                'format_id': '%sp' % quality if quality else 'sd',
+                'url': compat_urllib_parse_unquote(source_url),
+                'ext': ext,
+                'height': height,
+            })
+        self._sort_formats(formats)
+
         description = self._og_search_description(webpage, default=None)
-        thumbnail = self._proto_relative_url(
+        thumbnail = video.get('posterURL') or self._proto_relative_url(
             self._og_search_thumbnail(webpage), scheme='http:')
 
         uploader = self._html_search_regex(
@@ -69,29 +93,14 @@ class IzleseneIE(InfoExtractor):
         timestamp = parse_iso8601(self._html_search_meta(
             'uploadDate', webpage, 'upload date'))
 
-        duration = float_or_none(self._html_search_regex(
-            r'videoduration\s*=\s*\'([^\']+)\'',
-            webpage, 'duration', fatal=False), scale=1000)
+        duration = float_or_none(video.get('duration') or self._html_search_regex(
+            r'videoduration["\']?\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+            webpage, 'duration', fatal=False, group='value'), scale=1000)
 
         view_count = str_to_int(get_element_by_id('videoViewCount', webpage))
         comment_count = self._html_search_regex(
             r'comment_count\s*=\s*\'([^\']+)\';',
             webpage, 'comment_count', fatal=False)
-
-        streams_json = self._html_search_regex(
-            r'_videoObj\s*=\s*(.+);', webpage, 'streams')
-        streams = self._parse_json(streams_json, video_id)
-
-        formats = []
-        for stream in streams.get('media').get('level'):
-            url = stream.get('source')
-            ext = determine_ext(url, 'mp4')
-            quality = stream.get('value')
-            formats.append({
-                'format_id': '%sp' % quality,
-                'url': compat_urllib_parse_unquote(url),
-                'ext': ext,
-            })
 
         return {
             'id': video_id,
