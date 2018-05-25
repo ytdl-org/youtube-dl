@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
@@ -72,7 +70,7 @@ class IzleseneIE(InfoExtractor):
             'uploadDate', webpage, 'upload date'))
 
         duration = float_or_none(self._html_search_regex(
-            r'"videoduration"\s*:\s*"([^"]+)"',
+            r'videoduration\s*=\s*\'([^\']+)\'',
             webpage, 'duration', fatal=False), scale=1000)
 
         view_count = str_to_int(get_element_by_id('videoViewCount', webpage))
@@ -80,29 +78,18 @@ class IzleseneIE(InfoExtractor):
             r'comment_count\s*=\s*\'([^\']+)\';',
             webpage, 'comment_count', fatal=False)
 
-        content_url = self._html_search_meta(
-            'contentURL', webpage, 'content URL', fatal=False)
-        ext = determine_ext(content_url, 'mp4')
-
-        # Might be empty for some videos.
-        streams = self._html_search_regex(
-            r'"qualitylevel"\s*:\s*"([^"]+)"', webpage, 'streams', default='')
+        streams_json = self._html_search_regex(
+            r'_videoObj\s*=\s*(.+);', webpage, 'streams')
+        streams = self._parse_json(streams_json, video_id)
 
         formats = []
-        if streams:
-            for stream in streams.split('|'):
-                quality, url = re.search(r'\[(\w+)\](.+)', stream).groups()
-                formats.append({
-                    'format_id': '%sp' % quality if quality else 'sd',
-                    'url': compat_urllib_parse_unquote(url),
-                    'ext': ext,
-                })
-        else:
-            stream_url = self._search_regex(
-                r'"streamurl"\s*:\s*"([^"]+)"', webpage, 'stream URL')
+        for stream in streams.get('media').get('level'):
+            url = stream.get('source')
+            ext = determine_ext(url, 'mp4')
+            quality = stream.get('value')
             formats.append({
-                'format_id': 'sd',
-                'url': compat_urllib_parse_unquote(stream_url),
+                'format_id': '%sp' % quality,
+                'url': compat_urllib_parse_unquote(url),
                 'ext': ext,
             })
 
