@@ -61,7 +61,9 @@ class IndavideoEmbedIE(InfoExtractor):
                 video_urls.append(flv_url)
 
         filesh = video.get('filesh')
-        formats = [self.video_url_to_format(video_url, filesh) for video_url in video_urls]
+        formats = [
+            self.video_url_to_format(video_url, filesh)
+            for video_url in video_urls]
         self._sort_formats(formats)
 
         timestamp = video.get('date')
