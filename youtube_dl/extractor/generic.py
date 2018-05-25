@@ -108,6 +108,7 @@ from .yapfiles import YapFilesIE
 from .vice import ViceIE
 from .xfileshare import XFileShareIE
 from .cloudflarestream import CloudflareStreamIE
+from .peertube import PeerTubeIE
 
 
 class GenericIE(InfoExtractor):
@@ -2013,6 +2014,15 @@ class GenericIE(InfoExtractor):
             },
         },
         {
+            # PeerTube embed
+            'url': 'https://joinpeertube.org/fr/home/',
+            'info_dict': {
+                'id': 'home',
+                'title': 'Reprenez le contrôle de vos vidéos ! #JoinPeertube',
+            },
+            'playlist_count': 2,
+        },
+        {
             'url': 'http://share-videos.se/auto/video/83645793?uid=13',
             'md5': 'b68d276de422ab07ee1d49388103f457',
             'info_dict': {
@@ -3028,6 +3038,11 @@ class GenericIE(InfoExtractor):
         if cloudflarestream_urls:
             return self.playlist_from_matches(
                 cloudflarestream_urls, video_id, video_title, ie=CloudflareStreamIE.ie_key())
+
+        peertube_urls = PeerTubeIE._extract_urls(webpage)
+        if peertube_urls:
+            return self.playlist_from_matches(
+                peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
 
         sharevideos_urls = [mobj.group('url') for mobj in re.finditer(
             r'<iframe[^>]+?\bsrc\s*=\s*(["\'])(?P<url>(?:https?:)?//embed\.share-videos\.se/auto/embed/\d+\?.*?\buid=\d+.*?)\1',

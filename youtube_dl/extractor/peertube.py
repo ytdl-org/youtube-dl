@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -13,9 +15,7 @@ from ..utils import (
 
 
 class PeerTubeIE(InfoExtractor):
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:
+    _INSTANCES_RE = r'''(?:
                             # Taken from https://instances.joinpeertube.org/instances
                             tube\.openalgeria\.org|
                             peertube\.pointsecu\.fr|
@@ -115,10 +115,13 @@ class PeerTubeIE(InfoExtractor):
                             peertube2\.cpy\.re|
                             videos\.tcit\.fr|
                             peertube\.cpy\.re
-                        )
+                        )'''
+    _VALID_URL = r'''(?x)
+                    https?://
+                        %s
                         /(?:videos/(?:watch|embed)|api/v\d/videos)/
-                        (?P<id>[^/?#&]+)
-                    '''
+                        (?P<id>[^/?\#&]+)
+                    ''' % _INSTANCES_RE
     _TESTS = [{
         'url': 'https://peertube.moe/videos/watch/2790feb0-8120-4e63-9af3-c943c69f5e6c',
         'md5': '80f24ff364cc9d333529506a263e7feb',
@@ -155,6 +158,14 @@ class PeerTubeIE(InfoExtractor):
         'url': 'https://tube.openalgeria.org/api/v1/videos/c1875674-97d0-4c94-a058-3f7e64c962e8',
         'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [
+            mobj.group('url')
+            for mobj in re.finditer(
+                r'''(?x)<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//%s/videos/embed/[^/?\#&]+)\1'''
+                % PeerTubeIE._INSTANCES_RE, webpage)]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
