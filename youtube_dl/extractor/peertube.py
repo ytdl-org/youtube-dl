@@ -116,7 +116,8 @@ class PeerTubeIE(InfoExtractor):
                             videos\.tcit\.fr|
                             peertube\.cpy\.re
                         )
-                        /videos/watch/(?P<id>[^/?#&]+)
+                        /(?:videos/(?:watch|embed)|api/v\d/videos)/
+                        (?P<id>[^/?#&]+)
                     '''
     _TESTS = [{
         'url': 'https://peertube.moe/videos/watch/2790feb0-8120-4e63-9af3-c943c69f5e6c',
@@ -146,6 +147,12 @@ class PeerTubeIE(InfoExtractor):
     }, {
         # nsfw
         'url': 'https://tube.22decembre.eu/videos/watch/9bb88cd3-9959-46d9-9ab9-33d2bb704c39',
+        'only_matching': True,
+    }, {
+        'url': 'https://tube.22decembre.eu/videos/embed/fed67262-6edb-4d1c-833b-daa9085c71d7',
+        'only_matching': True,
+    }, {
+        'url': 'https://tube.openalgeria.org/api/v1/videos/c1875674-97d0-4c94-a058-3f7e64c962e8',
         'only_matching': True,
     }]
 
