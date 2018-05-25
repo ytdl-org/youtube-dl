@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -37,6 +39,20 @@ class IndavideoEmbedIE(InfoExtractor):
         'url': 'http://assets.indavideo.hu/swf/player.swf?v=fe25e500&vID=1bdc3c6d80&autostart=1&hide=1&i=1',
         'only_matching': True,
     }]
+
+    # Some example URLs covered by generic extractor:
+    #   http://indavideo.hu/video/Vicces_cica_1
+    #   http://index.indavideo.hu/video/2015_0728_beregszasz
+    #   http://auto.indavideo.hu/video/Sajat_utanfutoban_a_kis_tacsko
+    #   http://erotika.indavideo.hu/video/Amator_tini_punci
+    #   http://film.indavideo.hu/video/f_hrom_nagymamm_volt
+    #   http://palyazat.indavideo.hu/video/Embertelen_dal_Dodgem_egyuttes
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\'](?P<url>(?:https?:)?//embed\.indavideo\.hu/player/video/[\da-f]+)',
+            webpage)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -109,58 +125,4 @@ class IndavideoEmbedIE(InfoExtractor):
             'age_limit': parse_age_limit(video.get('age_limit')),
             'tags': tags,
             'formats': formats,
-        }
-
-
-class IndavideoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?indavideo\.hu/video/(?P<id>[^/#?]+)'
-    _TESTS = [{
-        'url': 'http://indavideo.hu/video/Vicces_cica_1',
-        'md5': '8c82244ba85d2a2310275b318eb51eac',
-        'info_dict': {
-            'id': '1335611',
-            'display_id': 'Vicces_cica_1',
-            'ext': 'mp4',
-            'title': 'Vicces cica',
-            'description': 'Játszik a tablettel. :D',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Jet_Pack',
-            'uploader_id': '491217',
-            'timestamp': 1390821212,
-            'upload_date': '20140127',
-            'duration': 7,
-            'age_limit': 0,
-            'tags': list,
-        },
-    }, {
-        'url': 'http://index.indavideo.hu/video/2015_0728_beregszasz',
-        'only_matching': True,
-    }, {
-        'url': 'http://auto.indavideo.hu/video/Sajat_utanfutoban_a_kis_tacsko',
-        'only_matching': True,
-    }, {
-        'url': 'http://erotika.indavideo.hu/video/Amator_tini_punci',
-        'only_matching': True,
-    }, {
-        'url': 'http://film.indavideo.hu/video/f_hrom_nagymamm_volt',
-        'only_matching': True,
-    }, {
-        'url': 'http://palyazat.indavideo.hu/video/Embertelen_dal_Dodgem_egyuttes',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-        embed_url = self._search_regex(
-            (r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.indavideo\.hu/player/video/.+?)\1',
-             r'<link[^>]+rel="video_src"[^>]+href="(?P<url>.+?)"'),
-            webpage, 'embed url', group='url')
-
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'IndavideoEmbed',
-            'url': embed_url,
-            'display_id': display_id,
         }

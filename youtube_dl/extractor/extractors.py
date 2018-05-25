@@ -469,10 +469,7 @@ from .imgur import (
 )
 from .ina import InaIE
 from .inc import IncIE
-from .indavideo import (
-    IndavideoIE,
-    IndavideoEmbedIE,
-)
+from .indavideo import IndavideoEmbedIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
 from .internazionale import InternazionaleIE
