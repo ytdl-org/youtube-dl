@@ -2,10 +2,12 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_age_limit,
     parse_iso8601,
+    update_url_query,
 )
 
 
@@ -58,11 +60,10 @@ class IndavideoEmbedIE(InfoExtractor):
             if flv_url not in video_urls:
                 video_urls.append(flv_url)
 
-        formats = [{
-            'url': video_url,
-            'height': int_or_none(self._search_regex(
-                r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None)),
-        } for video_url in video_urls]
+        filesh = video.get('filesh')
+        formats = [
+            self.video_url_to_format(video_url, filesh)
+            for video_url in video_urls]
         self._sort_formats(formats)
 
         timestamp = video.get('date')
@@ -88,6 +89,18 @@ class IndavideoEmbedIE(InfoExtractor):
             'age_limit': parse_age_limit(video.get('age_limit')),
             'tags': tags,
             'formats': formats,
+        }
+
+    def video_url_to_format(self, video_url, filesh):
+        height = int_or_none(self._search_regex(
+            r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None))
+        if height and filesh:
+            token = filesh.get(compat_str(height))
+            if token is not None:
+                video_url = update_url_query(video_url, {'token': token})
+        return {
+            'url': video_url,
+            'height': height,
         }
 
 
