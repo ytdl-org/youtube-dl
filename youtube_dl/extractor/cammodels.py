@@ -28,6 +28,7 @@ class CamModelsIE(InfoExtractor):
             ERRORS = (
                 ("I'm offline, but let's stay connected", 'This user is currently offline'),
                 ('in a private show', 'This user is in a private show'),
+                ('is currently performing LIVE', 'This model is currently performing live'),
             )
             for pattern, message in ERRORS:
                 if pattern in webpage:
