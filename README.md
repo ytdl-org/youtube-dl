@@ -79,9 +79,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --ignore-config                  Do not read configuration files. When given
                                      in the global configuration file
                                      /etc/youtube-dl.conf: Do not read the user
-                                     configuration in ~/.config/youtube-
-                                     dl/config (%APPDATA%/youtube-dl/config.txt
-                                     on Windows)
+                                     configuration in ~/.config/youtube-dl/config
+                                     (%APPDATA%/youtube-dl/config.txt on Windows)
     --config-location PATH           Location of the configuration file; either
                                      the path to the config or its containing
                                      directory.
