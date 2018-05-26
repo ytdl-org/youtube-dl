@@ -1,93 +1,94 @@
+# coding: utf-8
 from __future__ import unicode_literals
+
 from .common import InfoExtractor
-from .common import ExtractorError
-import json
-import re
-from ..utils import int_or_none
+from ..compat import compat_str
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+)
 
 
 class CamModelsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?cammodels\.com/cam/(?P<id>\w+)'
-    _HEADERS = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
-        # Needed because server doesn't return links to video URLs if a browser-like User-Agent is not used
-    }
+    _VALID_URL = r'https?://(?:www\.)?cammodels\.com/cam/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.cammodels.com/cam/AutumnKnight/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            url,
-            video_id,
-            headers=self._HEADERS)
-        manifest_url_root = self._html_search_regex(
-            r'manifestUrlRoot=(?P<id>https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))',
-            webpage,
-            'manifest',
-            None,
-            False)
-        if not manifest_url_root:
-            offline = self._html_search_regex(
-                r'(?P<id>I\'m offline, but let\'s stay connected!)',
-                webpage,
-                'offline indicator',
-                None,
-                False)
-            private = self._html_search_regex(
-                r'(?P<id>I’m in a private show right now)',
-                webpage,
-                'private show indicator',
-                None,
-                False)
-            err = 'This user is currently offline, so nothing can be downloaded.' if offline \
-                else 'This user is doing a private show, which requires payment. This extractor currently does not support private streams.' if private \
-                else 'Unable to find link to stream info on webpage. Room is not offline, so something else is wrong.'
-            raise ExtractorError(
-                err,
-                expected=True if offline or private else False,
-                video_id=video_id
+        user_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, user_id)
+
+        manifest_root = self._html_search_regex(
+            r'manifestUrlRoot=([^&\']+)', webpage, 'manifest', default=None)
+
+        if not manifest_root:
+            ERRORS = (
+                ("I'm offline, but let's stay connected", 'This user is currently offline'),
+                ('in a private show', 'This user is in a private show'),
             )
-        manifest_url = manifest_url_root + video_id + '.json'
+            for pattern, message in ERRORS:
+                if pattern in webpage:
+                    error = message
+                    expected = True
+                    break
+            else:
+                error = 'Unable to find manifest URL root'
+                expected = False
+            raise ExtractorError(error, expected=expected)
+
         manifest = self._download_json(
-            manifest_url,
-            video_id,
-            'Downloading links to streams.',
-            'Link to stream URLs was found, but we couldn\'t access it.',
-            headers=self._HEADERS)
-        try:
-            formats = []
-            for fmtName in ['mp4-rtmp', 'mp4-hls']:
-                for encoding in manifest['formats'][fmtName]['encodings']:
-                    formats.append({
+            '%s%s.json' % (manifest_root, user_id), user_id)
+
+        formats = []
+        for format_id, format_dict in manifest['formats'].items():
+            if not isinstance(format_dict, dict):
+                continue
+            encodings = format_dict.get('encodings')
+            if not isinstance(encodings, list):
+                continue
+            vcodec = format_dict.get('videoCodec')
+            acodec = format_dict.get('audioCodec')
+            for media in encodings:
+                if not isinstance(media, dict):
+                    continue
+                media_url = media.get('location')
+                if not media_url or not isinstance(media_url, compat_str):
+                    continue
+
+                format_id_list = [format_id]
+                height = int_or_none(media.get('videoHeight'))
+                if height is not None:
+                    format_id_list.append('%dp' % height)
+                f = {
+                    'url': media_url,
+                    'format_id': '-'.join(format_id_list),
+                    'width': int_or_none(media.get('videoWidth')),
+                    'height': height,
+                    'vbr': int_or_none(media.get('videoKbps')),
+                    'abr': int_or_none(media.get('audioKbps')),
+                    'fps': int_or_none(media.get('fps')),
+                    'vcodec': vcodec,
+                    'acodec': acodec,
+                }
+                if 'rtmp' in format_id:
+                    f['ext'] = 'flv'
+                elif 'hls' in format_id:
+                    f.update({
                         'ext': 'mp4',
-                        'url': encoding['location'],
-                        'width': int_or_none(encoding.get('videoWidth')),
-                        'height': int_or_none(encoding.get('videoHeight')),
-                        'vbr': int_or_none(encoding.get('videoKbps')),
-                        'abr': int_or_none(encoding.get('audioKbps')),
-                        'format_id': fmtName + str(encoding.get('videoWidth'))
+                        # hls skips fragments, preferring rtmp
+                        'preference': -1,
                     })
-        # If they change the JSON format, then fallback to parsing out RTMP links via regex.
-        except KeyError:
-            manifest_json = json.dumps(manifest)
-            manifest_links = re.finditer(
-                r'(?P<id>rtmp?:\/\/[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#&//=]*))',
-                manifest_json)
-            if not manifest_links:
-                raise ExtractorError(
-                    'Link to stream info was found, but we couldn\'t read the response. This is probably a bug.',
-                    expected=False,
-                    video_id=video_id)
-            formats = []
-            for manifest_link in manifest_links:
-                url = manifest_link.group('id')
-                formats.append({
-                    'ext': 'mp4',
-                    'url': url,
-                    'format_id': url.split(sep='/')[-1]
-                })
+                else:
+                    continue
+                formats.append(f)
         self._sort_formats(formats)
+
         return {
-            'id': video_id,
-            'title': self._live_title(video_id),
-            'formats': formats
+            'id': user_id,
+            'title': self._live_title(user_id),
+            'is_live': True,
+            'formats': formats,
         }
