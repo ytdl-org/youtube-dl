@@ -49,9 +49,11 @@ from .utils import (
     date_from_str,
     DateRange,
     DEFAULT_OUTTMPL,
-    DESKTOP_LINK_TEMPLATE,
     determine_ext,
     determine_protocol,
+    DOT_DESKTOP_LINK_TEMPLATE,
+    DOT_URL_LINK_TEMPLATE,
+    DOT_WEBLOC_LINK_TEMPLATE,
     DownloadError,
     encode_compat_str,
     encodeFilename,
@@ -88,9 +90,7 @@ from .utils import (
     to_high_limit_path,
     UnavailableVideoError,
     url_basename,
-    URL_LINK_TEMPLATE,
     version_tuple,
-    WEBLOC_LINK_TEMPLATE,
     write_json_file,
     write_string,
     YoutubeDLCookieProcessor,
@@ -1891,13 +1891,13 @@ class YoutubeDL(object):
             return True
 
         if url_link:
-            if not _write_link_file('url', URL_LINK_TEMPLATE, '\r\n', embed_filename=False):
+            if not _write_link_file('url', DOT_URL_LINK_TEMPLATE, '\r\n', embed_filename=False):
                 return
         if webloc_link:
-            if not _write_link_file('webloc', WEBLOC_LINK_TEMPLATE, '\n', embed_filename=False):
+            if not _write_link_file('webloc', DOT_WEBLOC_LINK_TEMPLATE, '\n', embed_filename=False):
                 return
         if desktop_link:
-            if not _write_link_file('desktop', DESKTOP_LINK_TEMPLATE, '\n', embed_filename=True):
+            if not _write_link_file('desktop', DOT_DESKTOP_LINK_TEMPLATE, '\n', embed_filename=True):
                 return
 
         # Download

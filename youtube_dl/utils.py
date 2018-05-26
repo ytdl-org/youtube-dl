@@ -3908,12 +3908,12 @@ def random_birthday(year_field, month_field, day_field):
 
 
 # Templates for internet shortcut files, which are plain text files.
-URL_LINK_TEMPLATE = '''
+DOT_URL_LINK_TEMPLATE = '''
 [InternetShortcut]
 URL=%(url)s
 '''.lstrip()
 
-WEBLOC_LINK_TEMPLATE = '''
+DOT_WEBLOC_LINK_TEMPLATE = '''
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -3924,7 +3924,7 @@ WEBLOC_LINK_TEMPLATE = '''
 </plist>
 '''.lstrip()
 
-DESKTOP_LINK_TEMPLATE = '''
+DOT_DESKTOP_LINK_TEMPLATE = '''
 [Desktop Entry]
 Encoding=UTF-8
 Name=%(filename)s
