@@ -108,6 +108,8 @@ from .yapfiles import YapFilesIE
 from .vice import ViceIE
 from .xfileshare import XFileShareIE
 from .cloudflarestream import CloudflareStreamIE
+from .peertube import PeerTubeIE
+from .indavideo import IndavideoEmbedIE
 
 
 class GenericIE(InfoExtractor):
@@ -2013,6 +2015,33 @@ class GenericIE(InfoExtractor):
             },
         },
         {
+            # PeerTube embed
+            'url': 'https://joinpeertube.org/fr/home/',
+            'info_dict': {
+                'id': 'home',
+                'title': 'Reprenez le contrôle de vos vidéos ! #JoinPeertube',
+            },
+            'playlist_count': 2,
+        },
+        {
+            # Indavideo embed
+            'url': 'https://streetkitchen.hu/receptek/igy_kell_otthon_hamburgert_sutni/',
+            'info_dict': {
+                'id': '1693903',
+                'ext': 'mp4',
+                'title': 'Így kell otthon hamburgert sütni',
+                'description': 'md5:f5a730ecf900a5c852e1e00540bbb0f7',
+                'timestamp': 1426330212,
+                'upload_date': '20150314',
+                'uploader': 'StreetKitchen',
+                'uploader_id': '546363',
+            },
+            'add_ie': [IndavideoEmbedIE.ie_key()],
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             'url': 'http://share-videos.se/auto/video/83645793?uid=13',
             'md5': 'b68d276de422ab07ee1d49388103f457',
             'info_dict': {
@@ -3028,6 +3057,16 @@ class GenericIE(InfoExtractor):
         if cloudflarestream_urls:
             return self.playlist_from_matches(
                 cloudflarestream_urls, video_id, video_title, ie=CloudflareStreamIE.ie_key())
+
+        peertube_urls = PeerTubeIE._extract_urls(webpage)
+        if peertube_urls:
+            return self.playlist_from_matches(
+                peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
+
+        indavideo_urls = IndavideoEmbedIE._extract_urls(webpage)
+        if indavideo_urls:
+            return self.playlist_from_matches(
+                indavideo_urls, video_id, video_title, ie=IndavideoEmbedIE.ie_key())
 
         sharevideos_urls = [mobj.group('url') for mobj in re.finditer(
             r'<iframe[^>]+?\bsrc\s*=\s*(["\'])(?P<url>(?:https?:)?//embed\.share-videos\.se/auto/embed/\d+\?.*?\buid=\d+.*?)\1',
