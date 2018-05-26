@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
-    sanitized_Request,
     urlencode_postdata
 )
 
@@ -111,23 +110,37 @@ class TumblrIE(InfoExtractor):
         (username, password) = self._get_login_info()
         if username is None:
             return
-        self.report_login()
-        webpage = self._download_webpage(self._LOGIN_URL, None, False)
-        form = self._hidden_inputs(webpage)
-        form.update({
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        login_form = self._hidden_inputs(login_page)
+        login_form.update({
             'user[email]': username,
             'user[password]': password
         })
-        login_response = self._download_webpage(
-            sanitized_Request(self._LOGIN_URL, urlencode_postdata(form), {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Referer': self._LOGIN_URL
-            }), None, False, 'Wrong login info')
 
-        # Check the login response from Tumblr for an error message and fail the extraction if we find one.
-        login_errors = self._search_regex(r'Tumblr\.RegistrationForm\.errors\s*=\s*\[[\"|\'](.+)[\"|\']\]', login_response, 'login errors', False)
+        response, urlh = self._download_webpage_handle(
+            self._LOGIN_URL, None, 'Logging in',
+            data=urlencode_postdata(login_form), headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': self._LOGIN_URL,
+            })
+
+        # Successful login
+        if '/dashboard' in urlh.geturl():
+            return
+
+        login_errors = self._parse_json(
+            self._search_regex(
+                r'RegistrationForm\.errors\s*=\s*(\[.+?\])\s*;', response,
+                'login errors', default='[]'),
+            None, fatal=False)
         if login_errors:
-            raise ExtractorError('Error logging in: %s' % login_errors, expected=True)
+            raise ExtractorError(
+                'Unable to login: %s' % login_errors[0], expected=True)
+
+        self.report_warning('Login has probably failed')
 
     def _real_extract(self, url):
         m_url = re.match(self._VALID_URL, url)
