@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.05.26
 
 Core
 * [utils] Improve parse_age_limit

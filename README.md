@@ -93,8 +93,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
 ## Network Options:
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
-                                     To enable experimental SOCKS proxy, specify
-                                     a proper scheme. For example
+                                     To enable SOCKS proxy, specify a proper
+                                     scheme. For example
                                      socks5://127.0.0.1:1080/. Pass in an empty
                                      string (--proxy "") for direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
@@ -109,16 +109,15 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      option is not present) is used for the
                                      actual downloading.
     --geo-bypass                     Bypass geographic restriction via faking
-                                     X-Forwarded-For HTTP header (experimental)
+                                     X-Forwarded-For HTTP header
     --no-geo-bypass                  Do not bypass geographic restriction via
                                      faking X-Forwarded-For HTTP header
-                                     (experimental)
     --geo-bypass-country CODE        Force bypass geographic restriction with
                                      explicitly provided two-letter ISO 3166-2
-                                     country code (experimental)
+                                     country code
     --geo-bypass-ip-block IP_BLOCK   Force bypass geographic restriction with
                                      explicitly provided IP block in CIDR
-                                     notation (experimental)
+                                     notation
 
 ## Video Selection:
     --playlist-start NUMBER          Playlist video to start at (default is 1)
@@ -209,7 +208,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --playlist-reverse               Download playlist videos in reverse order
     --playlist-random                Download playlist videos in random order
     --xattr-set-filesize             Set file xattribute ytdl.filesize with
-                                     expected file size (experimental)
+                                     expected file size
     --hls-prefer-native              Use the native HLS downloader instead of
                                      ffmpeg
     --hls-prefer-ffmpeg              Use ffmpeg instead of the native HLS
