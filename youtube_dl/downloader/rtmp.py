@@ -170,6 +170,8 @@ class RtmpFD(FileDownloader):
         RD_INCOMPLETE = 2
         RD_NO_CONNECT = 3
 
+        started = time.time()
+
         try:
             retval = run_rtmpdump(args)
         except KeyboardInterrupt:
@@ -184,7 +186,7 @@ class RtmpFD(FileDownloader):
 
         while retval in (RD_INCOMPLETE, RD_FAILED) and not test and not live:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('[rtmpdump] %s bytes' % prevsize)
+            self.to_screen('[rtmpdump] Downloaded %s bytes' % prevsize)
             time.sleep(5.0)  # This seems to be needed
             args = basic_args + ['--resume']
             if retval == RD_FAILED:
@@ -201,13 +203,14 @@ class RtmpFD(FileDownloader):
                 break
         if retval == RD_SUCCESS or (test and retval == RD_INCOMPLETE):
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('[rtmpdump] %s bytes' % fsize)
+            self.to_screen('[rtmpdump] Downloaded %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
                 'total_bytes': fsize,
                 'filename': filename,
                 'status': 'finished',
+                'elapsed': time.time() - started,
             })
             return True
         else:
