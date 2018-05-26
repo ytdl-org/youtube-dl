@@ -131,7 +131,7 @@ class CBCIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         title = self._og_search_title(webpage, default=None) or self._html_search_meta(
             'twitter:title', webpage, 'title', default=None) or self._html_search_regex(
-                r'<title>(.*?)</title>', webpage, 'title', fatal=True)
+                r'<title>(.*?)\s*</title>', webpage, 'title', fatal=False)
         entries = [
             self._extract_player_init(player_init, display_id)
             for player_init in re.findall(r'CBC\.APP\.Caffeine\.initInstance\(({.+?})\);', webpage)]
@@ -139,7 +139,7 @@ class CBCIE(InfoExtractor):
             self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
             for media_id in re.findall(r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"', webpage)])
         return self.playlist_result(
-            entries, display_id, title.strip(),
+            entries, display_id, title,
             self._og_search_description(webpage))
 
 
