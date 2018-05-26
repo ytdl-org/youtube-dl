@@ -1883,7 +1883,7 @@ class YoutubeDL(object):
                     with io.open(encodeFilename(to_high_limit_path(linkfn)), 'w', encoding='utf-8', newline=newline) as linkfile:
                         template_vars = {'url': ascii_url}
                         if embed_filename:
-                            template_vars['filename'] = linkfn[:-len(extension) - 1]
+                            template_vars['filename'] = linkfn[:-(len(extension) + 1)]
                         linkfile.write(template % template_vars)
                 except (OSError, IOError):
                     self.report_error('Cannot write internet shortcut ' + linkfn)
