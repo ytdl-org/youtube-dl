@@ -24,7 +24,7 @@ class ZattooBaseIE(InfoExtractor):
     _power_guide_hash = None
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if not username or not password:
             self.raise_login_required(
                 'A valid %s account is needed to access this media.'

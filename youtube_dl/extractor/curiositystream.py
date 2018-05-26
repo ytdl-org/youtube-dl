@@ -35,7 +35,7 @@ class CuriosityStreamBaseIE(InfoExtractor):
         return result['data']
 
     def _real_initialize(self):
-        (email, password) = self._get_login_info()
+        email, password = self._get_login_info()
         if email is None:
             return
         result = self._download_json(

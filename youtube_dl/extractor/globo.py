@@ -23,7 +23,6 @@ from ..utils import (
 
 class GloboIE(InfoExtractor):
     _VALID_URL = r'(?:globo:|https?://.+?\.globo\.com/(?:[^/]+/)*(?:v/(?:[^/]+/)?|videos/))(?P<id>\d{7,})'
-    _LOGGED_IN = False
     _NETRC_MACHINE = 'globo'
     _TESTS = [{
         'url': 'http://g1.globo.com/carros/autoesporte/videos/t/exclusivos-do-g1/v/mercedes-benz-gla-passa-por-teste-de-colisao-na-europa/3607726/',
@@ -68,9 +67,6 @@ class GloboIE(InfoExtractor):
     }]
 
     def _real_initialize(self):
-        if self._LOGGED_IN:
-            return
-
         email, password = self._get_login_info()
         if email is None:
             return
@@ -91,7 +87,6 @@ class GloboIE(InfoExtractor):
                 resp = self._parse_json(e.cause.read(), None)
                 raise ExtractorError(resp.get('userMessage') or resp['id'], expected=True)
             raise
-        self._LOGGED_IN = True
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

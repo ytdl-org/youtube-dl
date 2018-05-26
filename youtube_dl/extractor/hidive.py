@@ -18,7 +18,6 @@ class HiDiveIE(InfoExtractor):
     # so disabling geo bypass completely
     _GEO_BYPASS = False
     _NETRC_MACHINE = 'hidive'
-    _LOGGED_IN = False
     _LOGIN_URL = 'https://www.hidive.com/account/login'
 
     _TESTS = [{
@@ -38,10 +37,7 @@ class HiDiveIE(InfoExtractor):
     }]
 
     def _real_initialize(self):
-        if self._LOGGED_IN:
-            return
-
-        (email, password) = self._get_login_info()
+        email, password = self._get_login_info()
         if email is None:
             return
 
@@ -56,7 +52,6 @@ class HiDiveIE(InfoExtractor):
         })
         self._download_webpage(
             self._LOGIN_URL, None, 'Logging in', data=urlencode_postdata(data))
-        self._LOGGED_IN = True
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

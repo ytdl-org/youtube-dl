@@ -85,7 +85,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         If _LOGIN_REQUIRED is set and no authentication was provided, an error is raised.
         """
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         # No authentication to be performed
         if username is None:
             if self._LOGIN_REQUIRED and self._downloader.params.get('cookiefile') is None:
