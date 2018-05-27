@@ -2,15 +2,11 @@
 from __future__ import unicode_literals
 
 import collections
-
 import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
-    compat_basestring,
-    compat_str)
-
+    compat_urlparse)
 from ..utils import (
     ExtractorError,
     urlencode_postdata,
@@ -23,6 +19,20 @@ class FrontEndMasterBaseIE(InfoExtractor):
     _CAPTIONS_BASE = 'https://api.frontendmasters.com/v1/kabuki/transcripts'
     _COOKIES_BASE = 'https://api.frontendmasters.com'
     _LOGIN_URL = 'https://frontendmasters.com/login/'
+
+    _QUALITIES_PREFERENCE = ('low', 'medium', 'high')
+    _QUALITIES = {
+        'low': {'width': 480, 'height': 360},
+        'medium': {'width': 1280, 'height': 720},
+        'high': {'width': 1920, 'height': 1080}
+    }
+
+    AllowedQuality = collections.namedtuple('AllowedQuality',
+                                            ['ext', 'qualities'])
+    _ALLOWED_QUALITIES = [
+        AllowedQuality('webm', ['low', 'medium', 'high']),
+        AllowedQuality('mp4', ['low', 'medium', 'high'])
+    ]
 
     def _real_initialize(self):
         self._login()
@@ -65,11 +75,6 @@ class FrontEndMasterBaseIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % unescapeHTML(error),
                                  expected=True)
 
-    def _match_course_id(self, url):
-        m = re.match(self._VALID_URL, url)
-        assert m
-        return compat_str(m.group('courseid'))
-
     def _download_course(self, course_id, url):
         response = self._download_json(
             '%s/%s' % (self._API_BASE, course_id), course_id,
@@ -104,7 +109,7 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
     IE_NAME = 'frontend-masters'
     _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/' \
                  r'(?P<courseid>[a-z\-]+)/' \
-                 r'(?P<id>[a-z\-]+)$'
+                 r'(?P<id>[a-z\-]+)'
 
     _NETRC_MACHINE = 'frontendmasters'
 
@@ -121,26 +126,15 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
         'skip': 'Requires FrontendMasters account credentials',
     }
 
-    @staticmethod
-    def _convert_subtitles(captions):
-        if captions and isinstance(captions, compat_basestring):
-            if captions.startswith('WEBVTT'):
-                # Assumes captions are in WEBVTT format
-                captions = captions.replace('WEBVTT', '')
-                captions = captions.replace('.', ',')
-        return captions
-
     def _get_subtitles(self, video_hash, video_id):
         captions = self._download_webpage(
             '%s/%s.vtt' % (self._CAPTIONS_BASE, video_hash), video_id,
             fatal=False)
-        srt_captions = FrontEndMasterIE._convert_subtitles(captions)
-
-        if srt_captions:
+        if captions:
             return {
                 'en': [{
-                    'ext': 'srt',
-                    'data': srt_captions
+                    'ext': 'vtt',
+                    'data': captions
                 }]
             }
 
@@ -181,54 +175,18 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
             lesson_section = None
             lesson_section_number = None
 
-        QUALITIES_PREFERENCE = ('low', 'medium', 'high')
-        quality_key = qualities(QUALITIES_PREFERENCE)
-        QUALITIES = {
-            'low': {'width': 480, 'height': 360},
-            'medium': {'width': 1280, 'height': 720},
-            'high': {'width': 1920, 'height': 1080}
-        }
-
-        AllowedQuality = collections.namedtuple('AllowedQuality',
-                                                ['ext', 'qualities'])
-        ALLOWED_QUALITIES = [
-            AllowedQuality('webm', ['low', 'medium', 'high']),
-            AllowedQuality('mp4', ['low', 'medium', 'high'])
-        ]
-
-        cookies = self._get_cookies(self._COOKIES_BASE)
-        cookies_str = ';'.join(['%s=%s' % (cookie.key, cookie.value)
-                                for cookie in cookies.values()])
         video_request_url = '%s/source'
         video_request_headers = {
             'origin': 'https://frontendmasters.com',
             'referer': lesson_source_base,
-            'cookie': cookies_str
         }
 
-        if self._downloader.params.get('listformats', False):
-            allowed_qualities = ALLOWED_QUALITIES
-        else:
-            def guess_allowed_qualities():
-                req_format = self._downloader.params.get('format') or 'best'
-                req_format_split = req_format.split('-', 1)
-                if len(req_format_split) > 1:
-                    req_ext, req_quality = req_format_split
-                    req_quality = '-'.join(req_quality.split('-')[:2])
-                    for allowed_quality in ALLOWED_QUALITIES:
-                        if req_ext == allowed_quality.ext and \
-                           req_quality in allowed_quality.qualities:
-                            return (AllowedQuality(req_ext, (req_quality,)),)
-                req_ext = 'webm' if self._downloader.params.get(
-                    'prefer_free_formats') else 'mp4'
-                return (AllowedQuality(req_ext, ('high',)),)
-
-            allowed_qualities = guess_allowed_qualities()
+        quality_key = qualities(self._QUALITIES_PREFERENCE)
 
         formats = []
-        for ext, qualities_ in allowed_qualities:
+        for ext, qualities_ in self._ALLOWED_QUALITIES:
             for quality in qualities_:
-                f = QUALITIES[quality].copy()
+                f = self._QUALITIES[quality].copy()
                 video_request_params = {
                     'r': f['height'],
                     'f': ext
@@ -267,8 +225,7 @@ class FrontEndMasterIE(FrontEndMasterBaseIE):
 
 class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
     IE_NAME = 'frontend-masters:course'
-    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/' \
-                 r'(?P<courseid>[a-z\-]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?frontendmasters\.com/courses/(?P<courseid>[a-z\-]+)/?$'
 
     _NETRC_MACHINE = 'frontendmasters'
 
@@ -282,6 +239,10 @@ class FrontEndMasterCourseIE(FrontEndMasterBaseIE):
         'playlist_count': 19,
         'skip': 'Requires FrontendMasters account credentials'
     }
+
+    @classmethod
+    def suitable(cls, url):
+        return False if FrontEndMasterIE.suitable(url) else super(FrontEndMasterBaseIE, cls).suitable(url)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
