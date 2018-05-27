@@ -1295,6 +1295,7 @@ from .vodlocker import VodlockerIE
 from .vodpl import VODPlIE
 from .vodplatform import VODPlatformIE
 from .voicerepublic import VoiceRepublicIE
+from .volat import VolAtIE
 from .voot import VootIE
 from .voxmedia import (
     VoxMediaVolumeIE,
@@ -1337,7 +1338,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
