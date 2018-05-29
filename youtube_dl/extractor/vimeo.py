@@ -16,6 +16,7 @@ from ..utils import (
     ExtractorError,
     InAdvancePagedList,
     int_or_none,
+    merge_dicts,
     NO_DEFAULT,
     RegexNotFoundError,
     sanitized_Request,
@@ -36,7 +37,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
     _LOGIN_URL = 'https://vimeo.com/log_in'
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             if self._LOGIN_REQUIRED:
                 raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
@@ -639,16 +640,18 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             'preference': 1,
                         })
 
-        info_dict = self._parse_config(config, video_id)
-        formats.extend(info_dict['formats'])
+        info_dict_config = self._parse_config(config, video_id)
+        formats.extend(info_dict_config['formats'])
         self._vimeo_sort_formats(formats)
+
+        json_ld = self._search_json_ld(webpage, video_id, default={})
 
         if not cc_license:
             cc_license = self._search_regex(
                 r'<link[^>]+rel=["\']license["\'][^>]+href=(["\'])(?P<license>(?:(?!\1).)+)\1',
                 webpage, 'license', default=None, group='license')
 
-        info_dict.update({
+        info_dict = {
             'id': video_id,
             'formats': formats,
             'timestamp': unified_timestamp(timestamp),
@@ -658,7 +661,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'like_count': like_count,
             'comment_count': comment_count,
             'license': cc_license,
-        })
+        }
+
+        info_dict = merge_dicts(info_dict, info_dict_config, json_ld)
 
         return info_dict
 
@@ -984,10 +989,10 @@ class VimeoWatchLaterIE(VimeoChannelIE):
 
 
 class VimeoLikesIE(InfoExtractor):
-    _VALID_URL = r'https://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes/?(?:$|[?#]|sort:)'
+    _VALID_URL = r'https://(?:www\.)?vimeo\.com/(?P<id>[^/]+)/likes/?(?:$|[?#]|sort:)'
     IE_NAME = 'vimeo:likes'
     IE_DESC = 'Vimeo user likes'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
         'info_dict': {
@@ -995,7 +1000,10 @@ class VimeoLikesIE(InfoExtractor):
             'description': 'See all the videos urza likes',
             'title': 'Videos urza likes',
         },
-    }
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
@@ -1004,7 +1012,7 @@ class VimeoLikesIE(InfoExtractor):
             self._search_regex(
                 r'''(?x)<li><a\s+href="[^"]+"\s+data-page="([0-9]+)">
                     .*?</a></li>\s*<li\s+class="pagination_next">
-                ''', webpage, 'page count'),
+                ''', webpage, 'page count', default=1),
             'page count', fatal=True)
         PAGE_SIZE = 12
         title = self._html_search_regex(
@@ -1012,7 +1020,7 @@ class VimeoLikesIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
 
         def _get_page(idx):
-            page_url = 'https://vimeo.com/user%s/likes/page:%d/sort:date' % (
+            page_url = 'https://vimeo.com/%s/likes/page:%d/sort:date' % (
                 user_id, idx + 1)
             webpage = self._download_webpage(
                 page_url, user_id,
@@ -1032,7 +1040,7 @@ class VimeoLikesIE(InfoExtractor):
 
         return {
             '_type': 'playlist',
-            'id': 'user%s_likes' % user_id,
+            'id': '%s_likes' % user_id,
             'title': title,
             'description': description,
             'entries': pl,

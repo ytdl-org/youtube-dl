@@ -7,6 +7,7 @@ import json
 import re
 
 from .common import InfoExtractor
+from .brightcove import BrightcoveNewIE
 from ..compat import (
     compat_str,
     compat_etree_register_namespace,
@@ -18,6 +19,7 @@ from ..utils import (
     xpath_text,
     int_or_none,
     parse_duration,
+    smuggle_url,
     ExtractorError,
     determine_ext,
 )
@@ -40,6 +42,14 @@ class ITVIE(InfoExtractor):
     }, {
         # unavailable via data-playlist-url
         'url': 'https://www.itv.com/hub/through-the-keyhole/2a2271a0033',
+        'only_matching': True,
+    }, {
+        # InvalidVodcrid
+        'url': 'https://www.itv.com/hub/james-martins-saturday-morning/2a5159a0034',
+        'only_matching': True,
+    }, {
+        # ContentUnavailable
+        'url': 'https://www.itv.com/hub/whos-doing-the-dishes/2a2898a0024',
         'only_matching': True,
     }]
 
@@ -127,7 +137,8 @@ class ITVIE(InfoExtractor):
             if fault_code == 'InvalidGeoRegion':
                 self.raise_geo_restricted(
                     msg=fault_string, countries=self._GEO_COUNTRIES)
-            elif fault_code != 'InvalidEntity':
+            elif fault_code not in (
+                    'InvalidEntity', 'InvalidVodcrid', 'ContentUnavailable'):
                 raise ExtractorError(
                     '%s said: %s' % (self.IE_NAME, fault_string), expected=True)
             info.update({
@@ -251,3 +262,38 @@ class ITVIE(InfoExtractor):
             'subtitles': subtitles,
         })
         return info
+
+
+class ITVBTCCIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?itv\.com/btcc/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
+        'info_dict': {
+            'id': 'btcc-2018-all-the-action-from-brands-hatch',
+            'title': 'BTCC 2018: All the action from Brands Hatch',
+        },
+        'playlist_mincount': 9,
+    }
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1582188683001/HkiHLnNRx_default/index.html?videoId=%s'
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result(
+                smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % video_id, {
+                    # ITV does not like some GB IP ranges, so here are some
+                    # IP blocks it accepts
+                    'geo_ip_blocks': [
+                        '193.113.0.0/16', '54.36.162.0/23', '159.65.16.0/21'
+                    ],
+                    'referrer': url,
+                }),
+                ie=BrightcoveNewIE.ie_key(), video_id=video_id)
+            for video_id in re.findall(r'data-video-id=["\'](\d+)', webpage)]
+
+        title = self._og_search_title(webpage, fatal=False)
+
+        return self.playlist_result(entries, playlist_id, title)

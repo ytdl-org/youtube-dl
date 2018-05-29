@@ -1,3 +1,135 @@
+version 2018.05.26
+
+Core
+* [utils] Improve parse_age_limit
+
+Extractors
+* [audiomack] Stringify video id (#15310)
+* [izlesene] Fix extraction (#16233, #16271, #16407)
++ [indavideo] Add support for generic embeds (#11989)
+* [indavideo] Fix extraction (#11221)
+* [indavideo] Sign download URLs (#16174)
++ [peertube] Add support for PeerTube based sites (#16301, #16329)
+* [imgur] Fix extraction (#16537)
++ [hidive] Add support for authentication (#16534)
++ [nbc] Add support for stream.nbcsports.com (#13911)
++ [viewlift] Add support for hoichoi.tv (#16536)
+* [go90] Extract age limit and detect DRM protection(#10127)
+* [viewlift] fix extraction for snagfilms.com (#15766)
+* [globo] Improve extraction (#4189)
+    * Add support for authentication
+    * Simplify URL signing
+    * Extract DASH and MSS formats
+* [leeco] Fix extraction (#16464)
+* [teamcoco] Add fallback for format extraction (#16484)
+* [teamcoco] Improve URL regular expression (#16484)
+* [imdb] Improve extraction (#4085, #14557)
+
+
+version 2018.05.18
+
+Extractors
+* [vimeo:likes] Relax URL regular expression and fix single page likes
+  extraction (#16475)
+* [pluralsight] Fix clip id extraction (#16460)
++ [mychannels] Add support for mychannels.com (#15334)
+- [moniker] Remove extractor (#15336)
+* [pbs] Fix embed data extraction (#16474)
++ [mtv] Add support for paramountnetwork.com and bellator.com (#15418)
+* [youtube] Fix hd720 format position
+* [dailymotion] Remove fragment part from m3u8 URLs (#8915)
+* [3sat] Improve extraction (#15350)
+    * Extract all formats
+    * Extract more format metadata
+    * Improve format sorting
+    * Use hls native downloader
+    * Detect and bypass geo-restriction
++ [dtube] Add support for d.tube (#15201)
+* [options] Fix typo (#16450)
+* [youtube] Improve format filesize extraction (#16453)
+* [youtube] Make uploader extraction non fatal (#16444)
+* [youtube] Fix extraction for embed restricted live streams (#16433)
+* [nbc] Improve info extraction (#16440)
+* [twitch:clips] Fix extraction (#16429)
+* [redditr] Relax URL regular expression (#16426, #16427)
+* [mixcloud] Bypass throttling for HTTP formats (#12579, #16424)
++ [nick] Add support for nickjr.de (#13230)
+* [teamcoco] Fix extraction (#16374)
+
+
+version 2018.05.09
+
+Core
+* [YoutubeDL] Ensure ext exists for automatic captions
+* Introduce --geo-bypass-ip-block
+
+Extractors
++ [udemy] Extract asset captions
++ [udemy] Extract stream URLs (#16372)
++ [businessinsider] Add support for businessinsider.com (#16387, #16388, #16389)
++ [cloudflarestream] Add support for cloudflarestream.com (#16375)
+* [watchbox] Fix extraction (#16356)
+* [discovery] Extract Affiliate/Anonymous Auth Token from cookies (#14954)
++ [itv:btcc] Add support for itv.com/btcc (#16139)
+* [tunein] Use live title for live streams (#16347)
+* [itv] Improve extraction (#16253)
+
+
+version 2018.05.01
+
+Core
+* [downloader/fragment] Restart download if .ytdl file is corrupt (#16312)
++ [extractor/common] Extract interaction statistic
++ [utils] Add merge_dicts
++ [extractor/common] Add _download_json_handle
+
+Extractors
+* [kaltura] Improve iframe embeds detection (#16337)
++ [udemy] Extract outputs renditions (#16289, #16291, #16320, #16321, #16334,
+  #16335)
++ [zattoo] Add support for zattoo.com and mobiltv.quickline.com (#14668, #14676)
+* [yandexmusic] Convert release_year to int
+* [udemy] Override _download_webpage_handle instead of _download_webpage
+* [xiami] Override _download_webpage_handle instead of _download_webpage
+* [yandexmusic] Override _download_webpage_handle instead of _download_webpage
+* [youtube] Correctly disable polymer on all requests (#16323, #16326)
+* [generic] Prefer enclosures over links in RSS feeds (#16189)
++ [redditr] Add support for old.reddit.com URLs (#16274)
+* [nrktv] Update API host (#16324)
++ [imdb] Extract all formats (#16249)
++ [vimeo] Extract JSON-LD (#16295)
+* [funk:channel] Improve extraction (#16285)
+
+
+version 2018.04.25
+
+Core
+* [utils] Fix match_str for boolean meta fields
++ [Makefile] Add support for pandoc 2 and disable smart extension (#16251)
+* [YoutubeDL] Fix typo in media extension compatibility checker (#16215)
+
+Extractors
++ [openload] Recognize IPv6 stream URLs (#16136, #16137, #16205, #16246,
+  #16250)
++ [twitch] Extract is_live according to status (#16259)
+* [pornflip] Relax URL regular expression (#16258)
+- [etonline] Remove extractor (#16256)
+* [breakcom] Fix extraction (#16254)
++ [youtube] Add ability to authenticate with cookies
+* [youtube:feed] Implement lazy playlist extraction (#10184)
++ [svt] Add support for TV channel live streams (#15279, #15809)
+* [ccma] Fix video extraction (#15931)
+* [rentv] Fix extraction (#15227)
++ [nick] Add support for nickjr.nl (#16230)
+* [extremetube] Fix metadata extraction
++ [keezmovies] Add support for generic embeds (#16134, #16154)
+* [nexx] Extract new azure URLs (#16223)
+* [cbssports] Fix extraction (#16217)
+* [kaltura] Improve embeds detection (#16201)
+* [instagram:user] Fix extraction (#16119)
+* [cbs] Skip DRM asset types (#16104)
+
+
 version 2018.04.16
 
 Extractors

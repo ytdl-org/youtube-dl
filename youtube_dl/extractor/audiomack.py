@@ -65,7 +65,7 @@ class AudiomackIE(InfoExtractor):
             return {'_type': 'url', 'url': api_response['url'], 'ie_key': 'Soundcloud'}
 
         return {
-            'id': api_response.get('id', album_url_tag),
+            'id': compat_str(api_response.get('id', album_url_tag)),
             'uploader': api_response.get('artist'),
             'title': api_response.get('title'),
             'url': api_response['url'],

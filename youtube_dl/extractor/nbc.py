@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-import re
 import base64
+import json
+import re
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
@@ -9,6 +10,7 @@ from .adobepass import AdobePassIE
 from ..utils import (
     find_xpath_attr,
     smuggle_url,
+    try_get,
     unescapeHTML,
     update_url_query,
     int_or_none,
@@ -78,10 +80,14 @@ class NBCIE(AdobePassIE):
     def _real_extract(self, url):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
         permalink = 'http' + permalink
-        video_data = self._download_json(
+        response = self._download_json(
             'https://api.nbc.com/v3/videos', video_id, query={
                 'filter[permalink]': permalink,
-            })['data'][0]['attributes']
+                'fields[videos]': 'description,entitlement,episodeNumber,guid,keywords,seasonNumber,title,vChipRating',
+                'fields[shows]': 'shortTitle',
+                'include': 'show.shortTitle',
+            })
+        video_data = response['data'][0]['attributes']
         query = {
             'mbr': 'true',
             'manifest': 'm3u',
@@ -103,10 +109,11 @@ class NBCIE(AdobePassIE):
             'title': title,
             'url': theplatform_url,
             'description': video_data.get('description'),
-            'keywords': video_data.get('keywords'),
+            'tags': video_data.get('keywords'),
             'season_number': int_or_none(video_data.get('seasonNumber')),
             'episode_number': int_or_none(video_data.get('episodeNumber')),
-            'series': video_data.get('showName'),
+            'episode': title,
+            'series': try_get(response, lambda x: x['included'][0]['attributes']['shortTitle']),
             'ie_key': 'ThePlatform',
         }
 
@@ -167,6 +174,65 @@ class NBCSportsIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         return self.url_result(
             NBCSportsVPlayerIE._extract_url(webpage), 'NBCSportsVPlayer')
+
+
+class NBCSportsStreamIE(AdobePassIE):
+    _VALID_URL = r'https?://stream\.nbcsports\.com/.+?\bpid=(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://stream.nbcsports.com/nbcsn/generic?pid=206559',
+        'info_dict': {
+            'id': '206559',
+            'ext': 'mp4',
+            'title': 'Amgen Tour of California Women\'s Recap',
+            'description': 'md5:66520066b3b5281ada7698d0ea2aa894',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'skip': 'Requires Adobe Pass Authentication',
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        live_source = self._download_json(
+            'http://stream.nbcsports.com/data/live_sources_%s.json' % video_id,
+            video_id)
+        video_source = live_source['videoSources'][0]
+        title = video_source['title']
+        source_url = None
+        for k in ('source', 'msl4source', 'iossource', 'hlsv4'):
+            sk = k + 'Url'
+            source_url = video_source.get(sk) or video_source.get(sk + 'Alt')
+            if source_url:
+                break
+        else:
+            source_url = video_source['ottStreamUrl']
+        is_live = video_source.get('type') == 'live' or video_source.get('status') == 'Live'
+        resource = self._get_mvpd_resource('nbcsports', title, video_id, '')
+        token = self._extract_mvpd_auth(url, video_id, 'nbcsports', resource)
+        tokenized_url = self._download_json(
+            'https://token.playmakerservices.com/cdn',
+            video_id, data=json.dumps({
+                'requestorId': 'nbcsports',
+                'pid': video_id,
+                'application': 'NBCSports',
+                'version': 'v1',
+                'platform': 'desktop',
+                'cdn': 'akamai',
+                'url': video_source['sourceUrl'],
+                'token': base64.b64encode(token.encode()).decode(),
+                'resourceId': base64.b64encode(resource.encode()).decode(),
+            }).encode())['tokenizedUrl']
+        formats = self._extract_m3u8_formats(tokenized_url, video_id, 'mp4')
+        self._sort_formats(formats)
+        return {
+            'id': video_id,
+            'title': self._live_title(title) if is_live else title,
+            'description': live_source.get('description'),
+            'formats': formats,
+            'is_live': is_live,
+        }
 
 
 class CSNNEIE(InfoExtractor):

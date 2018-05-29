@@ -6,7 +6,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
+    parse_age_limit,
     parse_iso8601,
 )
 
@@ -23,6 +25,7 @@ class Go90IE(InfoExtractor):
             'description': 'VICE\'s Karley Sciortino meets with activists who discuss the state\'s strong anti-porn stance. Then, VICE Sports explains NFL contracts.',
             'timestamp': 1491868800,
             'upload_date': '20170411',
+            'age_limit': 14,
         }
     }
 
@@ -33,6 +36,8 @@ class Go90IE(InfoExtractor):
             video_id, headers={
                 'Content-Type': 'application/json; charset=utf-8',
             }, data=b'{"client":"web","device_type":"pc"}')
+        if video_data.get('requires_drm'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
         main_video_asset = video_data['main_video_asset']
 
         episode_number = int_or_none(video_data.get('episode_number'))
@@ -123,4 +128,5 @@ class Go90IE(InfoExtractor):
             'season_number': season_number,
             'episode_number': episode_number,
             'subtitles': subtitles,
+            'age_limit': parse_age_limit(video_data.get('rating')),
         }

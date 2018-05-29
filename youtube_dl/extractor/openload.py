@@ -340,7 +340,10 @@ class OpenloadIE(InfoExtractor):
                       get_element_by_id('streamurj', webpage) or
                       self._search_regex(
                           (r'>\s*([\w-]+~\d{10,}~\d+\.\d+\.0\.0~[\w-]+)\s*<',
-                           r'>\s*([\w~-]+~\d+\.\d+\.\d+\.\d+~[\w~-]+)'), webpage,
+                           r'>\s*([\w~-]+~\d+\.\d+\.\d+\.\d+~[\w~-]+)',
+                           r'>\s*([\w-]+~\d{10,}~(?:[a-f\d]+:){2}:~[\w-]+)\s*<',
+                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)\s*<',
+                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)'), webpage,
                           'stream URL'))
 
         video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
