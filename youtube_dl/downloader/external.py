@@ -233,7 +233,24 @@ class FFmpegFD(ExternalFD):
             # http://trac.ffmpeg.org/ticket/6125#comment:10
             args += ['-seekable', '1' if seekable else '0']
 
-        args += self._configuration_args()
+        # args += self._configuration_args()
+        # Some ffmpeg options need to come after the input url.
+        # `-to` and `-fs` must. `-t` should.
+        # Also, in ffmpeg, options and values must be separated with a space;
+        # so, we will never see `-t2` but will see `-t 2`.
+
+        self._input_args = self._configuration_args()
+        self._output_args = []
+
+        for opt in ['-t', '-to', '-fs']:
+            try:
+                idx = self._input_args.index(opt)
+                self._output_args.append(self._input_args.pop(idx))  # the option
+                self._output_args.append(self._input_args.pop(idx))  # the value
+            except ValueError:
+                pass
+
+        args += self._input_args
 
         # start_time = info_dict.get('start_time') or 0
         # if start_time:
@@ -295,6 +312,7 @@ class FFmpegFD(ExternalFD):
                 args += ['-rtmp_live', 'live']
 
         args += ['-i', url, '-c', 'copy']
+        args += self._output_args
 
         if self.params.get('test', False):
             args += ['-fs', compat_str(self._TEST_FILE_SIZE)]
