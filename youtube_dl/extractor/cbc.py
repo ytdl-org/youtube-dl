@@ -101,7 +101,7 @@ class CBCIE(InfoExtractor):
         # multiple CBC.APP.Caffeine.initInstance(...)
         'url': 'http://www.cbc.ca/news/canada/calgary/dog-indoor-exercise-winter-1.3928238',
         'info_dict': {
-            'title': 'Keep Rover active during the deep freeze with doggie pushups and other fun indoor tasks',
+            'title': 're:Keep Rover active during the deep freeze with doggie pushups and other fun indoor tasks.*',
             'id': 'dog-indoor-exercise-winter-1.3928238',
             'description': 'md5:c18552e41726ee95bd75210d1ca9194c',
         },
@@ -273,8 +273,20 @@ class CBCWatchBaseIE(InfoExtractor):
             guid = xpath_text(item, 'guid', fatal=True)
             title = xpath_text(item, 'title', fatal=True)
 
-            media_group = xpath_element(item, _add_ns('media:group'), fatal=True)
-            content = xpath_element(media_group, _add_ns('media:content'), fatal=True)
+            media_group = xpath_element(item, _add_ns('media:group'), fatal=False)
+            content = None
+            if media_group is not None:
+                content = xpath_element(media_group, _add_ns('media:content'), fatal=True)
+
+            if content is None:
+                content = xpath_element(item, _add_ns('media:content'), fatal=False)
+
+            if content is None:
+                link = xpath_text(item, 'link', fatal=True)
+                sub_result = self._parse_rss_feed(self._call_api(link, guid))
+                entries.extend(sub_result.get('entries') or [])
+                continue
+
             content_url = content.attrib['url']
 
             thumbnails = []
