@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-see: `jstests`
+see: `js2tests`
 """
 
 from __future__ import unicode_literals
@@ -17,8 +17,8 @@ else:
     import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.jsinterp import JSInterpreter
-from .jstests import gettestcases
+from youtube_dl.jsinterp2 import JSInterpreter
+from .js2tests import gettestcases
 
 defs = gettestcases()
 # set level to logging.DEBUG to see messages about missing assertions

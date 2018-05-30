@@ -1,5 +1,5 @@
-from youtube_dl.jsinterp.jsgrammar import Token
-from youtube_dl.jsinterp.tstream import _ASSIGN_OPERATORS, _OPERATORS
+from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _OPERATORS
 
 skip = {'interpret': 'Interpreting object literals not yet implemented'}
 

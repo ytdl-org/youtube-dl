@@ -1,13 +1,14 @@
-from youtube_dl.jsinterp.jsgrammar import Token
-from youtube_dl.jsinterp.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _RELATIONS
+from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _RELATIONS
 
-skip = {'interpret': 'Interpreting for loop not yet implemented'}
+skip = {'interpret': 'Interpreting for empty loop not yet implemented'}
 
 tests = [
     {
         'code': '''
             function f(x){
-                for (var h = 0; h <= x; ++h) {
+                var h = 0;
+                for (; h <= x; ++h) {
                     a = h;
                 }
                 return a;
@@ -16,10 +17,11 @@ tests = [
         'asserts': [{'value': 5, 'call': ('f', 5)}],
         'ast': [
             (Token.FUNC, 'f', ['x'], [
+                (Token.VAR, zip(['h'], [
+                    (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
+                ])),
                 (Token.FOR,
-                 (Token.VAR, zip(['h'], [
-                     (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
-                 ])),
+                 None,
                  (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
                      (Token.MEMBER, (Token.ID, 'h'), None, None),
                      (Token.MEMBER, (Token.ID, 'x'), None, None),

@@ -1,5 +1,5 @@
-from youtube_dl.jsinterp.jsgrammar import Token
-from youtube_dl.jsinterp.tstream import _RELATIONS
+from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.tstream import _RELATIONS
 
 skip = {'interpret': 'Interpreting if statement not yet implemented'}
 

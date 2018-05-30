@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-see: `jstests`
+see: `js2tests`
 """
 
 from __future__ import unicode_literals
@@ -18,8 +18,8 @@ else:
     import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.jsinterp.jsparser import Parser
-from .jstests import gettestcases
+from youtube_dl.jsinterp2.jsparser import Parser
+from .js2tests import gettestcases
 
 
 def traverse(node, tree_types=(list, tuple)):
@@ -62,15 +62,15 @@ def generator(test_case, name):
 
 
 # And add them to TestJSInterpreterParse
-for n, tc in enumerate(defs):
-    reason = tc['skip'].get('parse', False)
-    tname = 'test_' + str(tc['name'])
+for testcase in defs:
+    reason = testcase['skip'].get('parse', False)
+    tname = 'test_' + str(testcase['name'])
     i = 1
     while hasattr(TestJSInterpreterParse, tname):
-        tname = 'test_%s_%d' % (tc['name'], i)
+        tname = 'test_%s_%d' % (testcase['name'], i)
         i += 1
     if reason is not True:
-        test_method = generator(tc, tname)
+        test_method = generator(testcase, tname)
         if reason is not False:
             test_method.__unittest_skip__ = True
             test_method.__unittest_skip_why__ = reason

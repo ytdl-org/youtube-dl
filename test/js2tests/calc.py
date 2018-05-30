@@ -1,5 +1,5 @@
-from youtube_dl.jsinterp.jsgrammar import Token
-from youtube_dl.jsinterp.tstream import _OPERATORS
+from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.tstream import _OPERATORS
 
 tests = [
     {'code': 'return 2*a+1;',
