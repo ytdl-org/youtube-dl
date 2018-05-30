@@ -154,7 +154,7 @@ class BBCCoUkIE(InfoExtractor):
             'note': 'Video',
             'info_dict': {
                 'id': 'p025c103',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Reading and Leeds Festival, 2014, Rae Morris - Closer (Live on BBC Three)',
                 'description': 'Rae Morris performs Closer for BBC Three at Reading 2014',
                 'duration': 226,
@@ -211,7 +211,7 @@ class BBCCoUkIE(InfoExtractor):
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
             'info_dict': {
                 'id': 'p028bfkj',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
                 'description': 'Extract from BBC documentary Look Stranger - Giant Leeks and Magic Brews',
             },
@@ -601,7 +601,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/world-europe-32668511',
         'info_dict': {
             'id': 'world-europe-32668511',
-            'title': 'Russia stages massive WW2 parade despite Western boycott',
+            'title': 'Russia stages massive WW2 parade',
             'description': 'md5:00ff61976f6081841f759a08bf78cc9c',
         },
         'playlist_count': 2,
@@ -688,7 +688,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret',
         'info_dict': {
             'id': 'p02q6gc4',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Sri Lanka’s spicy secret',
             'description': 'As a new train line to Jaffna opens up the country’s north, travellers can experience a truly distinct slice of Tamil culture.',
             'timestamp': 1437674293,
@@ -972,6 +972,7 @@ class BBCIE(BBCCoUkIE):
             playlist_id, fatal=False)
         if morph_payload:
             components = try_get(morph_payload, lambda x: x['body']['components'], list) or []
+            lead_media, programme_id = None, None
             for component in components:
                 if not isinstance(component, dict):
                     continue
@@ -984,6 +985,23 @@ class BBCIE(BBCCoUkIE):
                 programme_id = identifiers.get('vpid') or identifiers.get('playablePid')
                 if not programme_id:
                     continue
+                break
+
+            if not lead_media:
+                for component in try_get(morph_payload, lambda x: x['body']['promos'], list) or []:
+                    if not isinstance(component, dict):
+                        continue
+                    media = try_get(component, lambda x: x['asset']['media'], dict)
+                    if not media:
+                        continue
+                    programme_id = media.get('pid')
+                    if not programme_id:
+                        continue
+                    component.update(media)
+                    lead_media = component
+                    break
+
+            if lead_media and programme_id:
                 title = lead_media.get('title') or self._og_search_title(webpage)
                 formats, subtitles = self._download_media_selector(programme_id)
                 self._sort_formats(formats)
@@ -995,6 +1013,8 @@ class BBCIE(BBCCoUkIE):
                 if isinstance(duration_d, dict):
                     duration = parse_duration(dict_get(
                         duration_d, ('rawDuration', 'formattedDuration', 'spokenDuration')))
+                else:
+                    duration = parse_duration(duration_d)
                 return {
                     'id': programme_id,
                     'title': title,
