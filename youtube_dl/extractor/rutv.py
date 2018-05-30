@@ -13,11 +13,15 @@ from ..utils import (
 class RUTVIE(InfoExtractor):
     IE_DESC = 'RUTV.RU'
     _VALID_URL = r'''(?x)
-        https?://player\.(?:rutv\.ru|vgtrk\.com)/
-            (?P<path>flash\d+v/container\.swf\?id=
-            |iframe/(?P<type>swf|video|live)/id/
-            |index/iframe/cast_id/)
-            (?P<id>\d+)'''
+                    https?://
+                        (?:test)?player\.(?:rutv\.ru|vgtrk\.com)/
+                        (?P<path>
+                            flash\d+v/container\.swf\?id=|
+                            iframe/(?P<type>swf|video|live)/id/|
+                            index/iframe/cast_id/
+                        )
+                        (?P<id>\d+)
+                    '''
 
     _TESTS = [
         {
@@ -99,17 +103,21 @@ class RUTVIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'https://testplayer.vgtrk.com/iframe/live/id/19201/showZoomBtn/false/isPlay/true/',
+            'only_matching': True,
+        },
     ]
 
     @classmethod
     def _extract_url(cls, webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>https?://player\.(?:rutv\.ru|vgtrk\.com)/(?:iframe/(?:swf|video|live)/id|index/iframe/cast_id)/.+?)\1', webpage)
+            r'<iframe[^>]+?src=(["\'])(?P<url>https?://(?:test)?player\.(?:rutv\.ru|vgtrk\.com)/(?:iframe/(?:swf|video|live)/id|index/iframe/cast_id)/.+?)\1', webpage)
         if mobj:
             return mobj.group('url')
 
         mobj = re.search(
-            r'<meta[^>]+?property=(["\'])og:video\1[^>]+?content=(["\'])(?P<url>https?://player\.(?:rutv\.ru|vgtrk\.com)/flash\d+v/container\.swf\?id=.+?\2)',
+            r'<meta[^>]+?property=(["\'])og:video\1[^>]+?content=(["\'])(?P<url>https?://(?:test)?player\.(?:rutv\.ru|vgtrk\.com)/flash\d+v/container\.swf\?id=.+?\2)',
             webpage)
         if mobj:
             return mobj.group('url')

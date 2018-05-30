@@ -19,7 +19,7 @@ class DeezerPlaylistIE(InfoExtractor):
             'id': '176747451',
             'title': 'Best!',
             'uploader': 'Anonymous',
-            'thumbnail': 're:^https?://cdn-images.deezer.com/images/cover/.*\.jpg$',
+            'thumbnail': r're:^https?://cdn-images\.deezer\.com/images/cover/.*\.jpg$',
         },
         'playlist_count': 30,
         'skip': 'Only available in .de',

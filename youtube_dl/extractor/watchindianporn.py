@@ -4,11 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-    parse_duration,
-    int_or_none,
-)
+from ..utils import parse_duration
 
 
 class WatchIndianPornIE(InfoExtractor):
@@ -22,12 +18,9 @@ class WatchIndianPornIE(InfoExtractor):
             'display_id': 'hot-milf-from-kerala-shows-off-her-gorgeous-large-breasts-on-camera',
             'ext': 'mp4',
             'title': 'Hot milf from kerala shows off her gorgeous large breasts on camera',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'uploader': 'LoveJay',
-            'upload_date': '20160428',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 226,
             'view_count': int,
-            'comment_count': int,
             'categories': list,
             'age_limit': 18,
         }
@@ -40,51 +33,36 @@ class WatchIndianPornIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_url = self._html_search_regex(
-            r"url: escape\('([^']+)'\)", webpage, 'url')
+        info_dict = self._parse_html5_media_entries(url, webpage, video_id)[0]
 
-        title = self._html_search_regex(
-            r'<h2 class="he2"><span>(.*?)</span>',
-            webpage, 'title')
-        thumbnail = self._html_search_regex(
-            r'<span id="container"><img\s+src="([^"]+)"',
-            webpage, 'thumbnail', fatal=False)
-
-        uploader = self._html_search_regex(
-            r'class="aupa">\s*(.*?)</a>',
-            webpage, 'uploader')
-        upload_date = unified_strdate(self._html_search_regex(
-            r'Added: <strong>(.+?)</strong>', webpage, 'upload date', fatal=False))
+        title = self._html_search_regex((
+            r'<title>(.+?)\s*-\s*Indian\s+Porn</title>',
+            r'<h4>(.+?)</h4>'
+        ), webpage, 'title')
 
         duration = parse_duration(self._search_regex(
-            r'<td>Time:\s*</td>\s*<td align="right"><span>\s*(.+?)\s*</span>',
+            r'Time:\s*<strong>\s*(.+?)\s*</strong>',
             webpage, 'duration', fatal=False))
 
-        view_count = int_or_none(self._search_regex(
-            r'<td>Views:\s*</td>\s*<td align="right"><span>\s*(\d+)\s*</span>',
+        view_count = int(self._search_regex(
+            r'(?s)Time:\s*<strong>.*?</strong>.*?<strong>\s*(\d+)\s*</strong>',
             webpage, 'view count', fatal=False))
-        comment_count = int_or_none(self._search_regex(
-            r'<td>Comments:\s*</td>\s*<td align="right"><span>\s*(\d+)\s*</span>',
-            webpage, 'comment count', fatal=False))
 
         categories = re.findall(
-            r'<a href="[^"]+/search/video/desi"><span>([^<]+)</span></a>',
+            r'<a[^>]+class=[\'"]categories[\'"][^>]*>\s*([^<]+)\s*</a>',
             webpage)
 
-        return {
+        info_dict.update({
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
             'http_headers': {
                 'Referer': url,
             },
             'title': title,
-            'thumbnail': thumbnail,
-            'uploader': uploader,
-            'upload_date': upload_date,
             'duration': duration,
             'view_count': view_count,
-            'comment_count': comment_count,
             'categories': categories,
             'age_limit': 18,
-        }
+        })
+
+        return info_dict

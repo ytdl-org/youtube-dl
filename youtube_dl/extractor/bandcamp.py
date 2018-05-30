@@ -14,14 +14,16 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    KNOWN_EXTENSIONS,
     parse_filesize,
     unescapeHTML,
     update_url_query,
+    unified_strdate,
 )
 
 
 class BandcampIE(InfoExtractor):
-    _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>.*)'
+    _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
         'md5': 'c557841d5e50261777a6585648adf439',
@@ -34,12 +36,12 @@ class BandcampIE(InfoExtractor):
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '73d0b3171568232574e45652f8720b5c',
+        'md5': '0369ace6b939f0927e62c67a1a8d9fa7',
         'info_dict': {
             'id': '2650410135',
-            'ext': 'mp3',
-            'title': 'Lanius (Battle)',
-            'uploader': 'Ben Prunty Music',
+            'ext': 'aiff',
+            'title': 'Ben Prunty - Lanius (Battle)',
+            'uploader': 'Ben Prunty',
         },
     }]
 
@@ -47,6 +49,7 @@ class BandcampIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
+        thumbnail = self._html_search_meta('og:image', webpage, default=None)
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
         if not m_download:
             m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
@@ -75,6 +78,7 @@ class BandcampIE(InfoExtractor):
                 return {
                     'id': track_id,
                     'title': data['title'],
+                    'thumbnail': thumbnail,
                     'formats': formats,
                     'duration': float_or_none(data.get('duration')),
                 }
@@ -143,7 +147,7 @@ class BandcampIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': info.get('thumb_url'),
+            'thumbnail': info.get('thumb_url') or thumbnail,
             'uploader': info.get('artist'),
             'artist': artist,
             'track': track,
@@ -153,7 +157,7 @@ class BandcampIE(InfoExtractor):
 
 class BandcampAlbumIE(InfoExtractor):
     IE_NAME = 'Bandcamp:album'
-    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<album_id>[^?#]+)|/?(?:$|[?#]))'
+    _VALID_URL = r'https?://(?:(?P<subdomain>[^.]+)\.)?bandcamp\.com(?:/album/(?P<album_id>[^/?#&]+))?'
 
     _TESTS = [{
         'url': 'http://blazo.bandcamp.com/album/jazz-format-mixtape-vol-1',
@@ -209,7 +213,22 @@ class BandcampAlbumIE(InfoExtractor):
             'id': 'entropy-ep',
         },
         'playlist_mincount': 3,
+    }, {
+        # not all tracks have songs
+        'url': 'https://insulters.bandcamp.com/album/we-are-the-plague',
+        'info_dict': {
+            'id': 'we-are-the-plague',
+            'title': 'WE ARE THE PLAGUE',
+            'uploader_id': 'insulters',
+        },
+        'playlist_count': 2,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if BandcampWeeklyIE.suitable(url) or BandcampIE.suitable(url)
+                else super(BandcampAlbumIE, cls).suitable(url))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -217,12 +236,21 @@ class BandcampAlbumIE(InfoExtractor):
         album_id = mobj.group('album_id')
         playlist_id = album_id or uploader_id
         webpage = self._download_webpage(url, playlist_id)
-        tracks_paths = re.findall(r'<a href="(.*?)" itemprop="url">', webpage)
-        if not tracks_paths:
+        track_elements = re.findall(
+            r'(?s)<div[^>]*>(.*?<a[^>]+href="([^"]+?)"[^>]+itemprop="url"[^>]*>.*?)</div>', webpage)
+        if not track_elements:
             raise ExtractorError('The page doesn\'t contain any tracks')
+        # Only tracks with duration info have songs
         entries = [
-            self.url_result(compat_urlparse.urljoin(url, t_path), ie=BandcampIE.ie_key())
-            for t_path in tracks_paths]
+            self.url_result(
+                compat_urlparse.urljoin(url, t_path),
+                ie=BandcampIE.ie_key(),
+                video_title=self._search_regex(
+                    r'<span\b[^>]+\bitemprop=["\']name["\'][^>]*>([^<]+)',
+                    elem_content, 'track title', fatal=False))
+            for elem_content, t_path in track_elements
+            if self._html_search_meta('duration', elem_content, default=None)]
+
         title = self._html_search_regex(
             r'album_title\s*:\s*"((?:\\.|[^"\\])+?)"',
             webpage, 'title', fatal=False)
@@ -234,4 +262,93 @@ class BandcampAlbumIE(InfoExtractor):
             'id': playlist_id,
             'title': title,
             'entries': entries,
+        }
+
+
+class BandcampWeeklyIE(InfoExtractor):
+    IE_NAME = 'Bandcamp:weekly'
+    _VALID_URL = r'https?://(?:www\.)?bandcamp\.com/?\?(?:.*?&)?show=(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://bandcamp.com/?show=224',
+        'md5': 'b00df799c733cf7e0c567ed187dea0fd',
+        'info_dict': {
+            'id': '224',
+            'ext': 'opus',
+            'title': 'BC Weekly April 4th 2017 - Magic Moments',
+            'description': 'md5:5d48150916e8e02d030623a48512c874',
+            'duration': 5829.77,
+            'release_date': '20170404',
+            'series': 'Bandcamp Weekly',
+            'episode': 'Magic Moments',
+            'episode_number': 208,
+            'episode_id': '224',
+        }
+    }, {
+        'url': 'https://bandcamp.com/?blah/blah@&show=228',
+        'only_matching': True
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        blob = self._parse_json(
+            self._search_regex(
+                r'data-blob=(["\'])(?P<blob>{.+?})\1', webpage,
+                'blob', group='blob'),
+            video_id, transform_source=unescapeHTML)
+
+        show = blob['bcw_show']
+
+        # This is desired because any invalid show id redirects to `bandcamp.com`
+        # which happens to expose the latest Bandcamp Weekly episode.
+        show_id = int_or_none(show.get('show_id')) or int_or_none(video_id)
+
+        formats = []
+        for format_id, format_url in show['audio_stream'].items():
+            if not isinstance(format_url, compat_str):
+                continue
+            for known_ext in KNOWN_EXTENSIONS:
+                if known_ext in format_id:
+                    ext = known_ext
+                    break
+            else:
+                ext = None
+            formats.append({
+                'format_id': format_id,
+                'url': format_url,
+                'ext': ext,
+                'vcodec': 'none',
+            })
+        self._sort_formats(formats)
+
+        title = show.get('audio_title') or 'Bandcamp Weekly'
+        subtitle = show.get('subtitle')
+        if subtitle:
+            title += ' - %s' % subtitle
+
+        episode_number = None
+        seq = blob.get('bcw_seq')
+
+        if seq and isinstance(seq, list):
+            try:
+                episode_number = next(
+                    int_or_none(e.get('episode_number'))
+                    for e in seq
+                    if isinstance(e, dict) and int_or_none(e.get('id')) == show_id)
+            except StopIteration:
+                pass
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': show.get('desc') or show.get('short_desc'),
+            'duration': float_or_none(show.get('audio_duration')),
+            'is_live': False,
+            'release_date': unified_strdate(show.get('published_date')),
+            'series': 'Bandcamp Weekly',
+            'episode': show.get('subtitle'),
+            'episode_number': episode_number,
+            'episode_id': compat_str(video_id),
+            'formats': formats
         }

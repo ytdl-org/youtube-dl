@@ -9,10 +9,12 @@ class MetadataFromTitlePP(PostProcessor):
     def __init__(self, downloader, titleformat):
         super(MetadataFromTitlePP, self).__init__(downloader)
         self._titleformat = titleformat
-        self._titleregex = self.format_to_regex(titleformat)
+        self._titleregex = (self.format_to_regex(titleformat)
+                            if re.search(r'%\(\w+\)s', titleformat)
+                            else titleformat)
 
     def format_to_regex(self, fmt):
-        """
+        r"""
         Converts a string like
            '%(title)s - %(artist)s'
         to a regex like
@@ -26,18 +28,21 @@ class MetadataFromTitlePP(PostProcessor):
             regex += r'(?P<' + match.group(1) + '>.+)'
             lastpos = match.end()
         if lastpos < len(fmt):
-            regex += re.escape(fmt[lastpos:len(fmt)])
+            regex += re.escape(fmt[lastpos:])
         return regex
 
     def run(self, info):
         title = info['title']
         match = re.match(self._titleregex, title)
         if match is None:
-            self._downloader.to_screen('[fromtitle] Could not interpret title of video as "%s"' % self._titleformat)
+            self._downloader.to_screen(
+                '[fromtitle] Could not interpret title of video as "%s"'
+                % self._titleformat)
             return [], info
         for attribute, value in match.groupdict().items():
-            value = match.group(attribute)
             info[attribute] = value
-            self._downloader.to_screen('[fromtitle] parsed ' + attribute + ': ' + value)
+            self._downloader.to_screen(
+                '[fromtitle] parsed %s: %s'
+                % (attribute, value if value is not None else 'NA'))
 
         return [], info

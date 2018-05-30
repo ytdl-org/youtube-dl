@@ -16,8 +16,8 @@ class AudioBoomIE(InfoExtractor):
             'title': '3/09/2016 Czaban Hour 3',
             'description': 'Guest:   Nate Davis - NFL free agency,   Guest:   Stan Gans',
             'duration': 2245.72,
-            'uploader': 'Steve Czaban',
-            'uploader_url': 're:https?://(?:www\.)?audioboom\.com/channel/steveczabanyahoosportsradio',
+            'uploader': 'SB Nation A.M.',
+            'uploader_url': r're:https?://(?:www\.)?audioboom\.com/channel/steveczabanyahoosportsradio',
         }
     }, {
         'url': 'https://audioboom.com/posts/4279833-3-09-2016-czaban-hour-3?t=0',
@@ -43,7 +43,7 @@ class AudioBoomIE(InfoExtractor):
 
         def from_clip(field):
             if clip:
-                clip.get(field)
+                return clip.get(field)
 
         audio_url = from_clip('clipURLPriorToLoading') or self._og_search_property(
             'audio', webpage, 'audio url')

@@ -1,10 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_b64decode
 from ..utils import parse_duration
 
 
@@ -19,6 +19,7 @@ class ChirbitIE(InfoExtractor):
             'title': 'md5:f542ea253f5255240be4da375c6a5d7e',
             'description': 'md5:f24a4e22a71763e32da5fed59e47c770',
             'duration': 306,
+            'uploader': 'Gerryaudio',
         },
         'params': {
             'skip_download': True,
@@ -43,8 +44,7 @@ class ChirbitIE(InfoExtractor):
 
         # Reverse engineered from https://chirb.it/js/chirbit.player.js (look
         # for soundURL)
-        audio_url = base64.b64decode(
-            data_fd[::-1].encode('ascii')).decode('utf-8')
+        audio_url = compat_b64decode(data_fd[::-1]).decode('utf-8')
 
         title = self._search_regex(
             r'class=["\']chirbit-title["\'][^>]*>([^<]+)', webpage, 'title')
@@ -54,6 +54,9 @@ class ChirbitIE(InfoExtractor):
         duration = parse_duration(self._search_regex(
             r'class=["\']c-length["\'][^>]*>([^<]+)',
             webpage, 'duration', fatal=False))
+        uploader = self._search_regex(
+            r'id=["\']chirbit-username["\'][^>]*>([^<]+)',
+            webpage, 'uploader', fatal=False)
 
         return {
             'id': audio_id,
@@ -61,6 +64,7 @@ class ChirbitIE(InfoExtractor):
             'title': title,
             'description': description,
             'duration': duration,
+            'uploader': uploader,
         }
 
 

@@ -18,7 +18,7 @@ class VidioIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'DJ_AMBRED - Booyah (Live 2015)',
             'description': 'md5:27dc15f819b6a78a626490881adbadf8',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 149,
             'like_count': int,
         },
@@ -49,11 +49,15 @@ class VidioIE(InfoExtractor):
             thumbnail = clip.get('image')
 
         m3u8_url = m3u8_url or self._search_regex(
-            r'data(?:-vjs)?-clip-hls-url=(["\'])(?P<url>.+?)\1', webpage, 'hls url')
-        formats = self._extract_m3u8_formats(m3u8_url, display_id, 'mp4', entry_protocol='m3u8_native')
+            r'data(?:-vjs)?-clip-hls-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+            webpage, 'hls url', group='url')
+        formats = self._extract_m3u8_formats(
+            m3u8_url, display_id, 'mp4', entry_protocol='m3u8_native')
+        self._sort_formats(formats)
 
         duration = int_or_none(duration or self._search_regex(
-            r'data-video-duration=(["\'])(?P<duartion>\d+)\1', webpage, 'duration'))
+            r'data-video-duration=(["\'])(?P<duration>\d+)\1', webpage,
+            'duration', fatal=False, group='duration'))
         thumbnail = thumbnail or self._og_search_thumbnail(webpage)
 
         like_count = int_or_none(self._search_regex(

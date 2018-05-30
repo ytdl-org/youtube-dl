@@ -4,12 +4,14 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
+    compat_HTTPError,
     compat_str,
+    compat_urlparse,
 )
 from ..utils import (
-    parse_duration,
+    ExtractorError,
     js_to_json,
+    parse_duration,
     parse_iso8601,
 )
 
@@ -40,7 +42,7 @@ class ViideaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Automatics, robotics and biocybernetics',
             'description': 'md5:815fc1deb6b3a2bff99de2d5325be482',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'timestamp': 1372349289,
             'upload_date': '20130627',
             'duration': 565,
@@ -58,7 +60,7 @@ class ViideaIE(InfoExtractor):
             'ext': 'flv',
             'title': 'NLP at Google',
             'description': 'md5:fc7a6d9bf0302d7cc0e53f7ca23747b3',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'timestamp': 1284375600,
             'upload_date': '20100913',
             'duration': 5352,
@@ -74,7 +76,7 @@ class ViideaIE(InfoExtractor):
             'id': '23181',
             'title': 'Deep Learning Summer School, Montreal 2015',
             'description': 'md5:0533a85e4bd918df52a01f0e1ebe87b7',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'timestamp': 1438560000,
         },
         'playlist_count': 30,
@@ -85,7 +87,7 @@ class ViideaIE(InfoExtractor):
             'id': '9737',
             'display_id': 'mlss09uk_bishop_ibi',
             'title': 'Introduction To Bayesian Inference',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
             'timestamp': 1251622800,
         },
         'playlist': [{
@@ -94,7 +96,7 @@ class ViideaIE(InfoExtractor):
                 'display_id': 'mlss09uk_bishop_ibi_part1',
                 'ext': 'wmv',
                 'title': 'Introduction To Bayesian Inference (Part 1)',
-                'thumbnail': 're:http://.*\.jpg',
+                'thumbnail': r're:http://.*\.jpg',
                 'duration': 4622,
                 'timestamp': 1251622800,
                 'upload_date': '20090830',
@@ -105,7 +107,7 @@ class ViideaIE(InfoExtractor):
                 'display_id': 'mlss09uk_bishop_ibi_part2',
                 'ext': 'wmv',
                 'title': 'Introduction To Bayesian Inference (Part 2)',
-                'thumbnail': 're:http://.*\.jpg',
+                'thumbnail': r're:http://.*\.jpg',
                 'duration': 5641,
                 'timestamp': 1251622800,
                 'upload_date': '20090830',
@@ -128,9 +130,16 @@ class ViideaIE(InfoExtractor):
 
         base_url = self._proto_relative_url(cfg['livepipe'], 'http:')
 
-        lecture_data = self._download_json(
-            '%s/site/api/lecture/%s?format=json' % (base_url, lecture_id),
-            lecture_id)['lecture'][0]
+        try:
+            lecture_data = self._download_json(
+                '%s/site/api/lecture/%s?format=json' % (base_url, lecture_id),
+                lecture_id)['lecture'][0]
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                msg = self._parse_json(
+                    e.cause.read().decode('utf-8'), lecture_id)
+                raise ExtractorError(msg['detail'], expected=True)
+            raise
 
         lecture_info = {
             'id': lecture_id,

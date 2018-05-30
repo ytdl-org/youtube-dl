@@ -16,13 +16,10 @@ class Canalc2IE(InfoExtractor):
         'md5': '060158428b650f896c542dfbb3d6487f',
         'info_dict': {
             'id': '12163',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Terrasses du Numérique',
             'duration': 122,
         },
-        'params': {
-            'skip_download': True,  # Requires rtmpdump
-        }
     }, {
         'url': 'http://archives-canalc2.u-strasbg.fr/video.asp?idVideo=11427&voir=oui',
         'only_matching': True,
@@ -33,6 +30,10 @@ class Canalc2IE(InfoExtractor):
 
         webpage = self._download_webpage(
             'http://www.canalc2.tv/video/%s' % video_id, video_id)
+
+        title = self._html_search_regex(
+            r'(?s)class="[^"]*col_description[^"]*">.*?<h3>(.+?)</h3>',
+            webpage, 'title')
 
         formats = []
         for _, video_url in re.findall(r'file\s*=\s*(["\'])(.+?)\1', webpage):
@@ -52,17 +53,21 @@ class Canalc2IE(InfoExtractor):
                     'url': video_url,
                     'format_id': 'http',
                 })
-        self._sort_formats(formats)
 
-        title = self._html_search_regex(
-            r'(?s)class="[^"]*col_description[^"]*">.*?<h3>(.*?)</h3>', webpage, 'title')
-        duration = parse_duration(self._search_regex(
-            r'id=["\']video_duree["\'][^>]*>([^<]+)',
-            webpage, 'duration', fatal=False))
+        if formats:
+            info = {
+                'formats': formats,
+            }
+        else:
+            info = self._parse_html5_media_entries(url, webpage, url)[0]
 
-        return {
+        self._sort_formats(info['formats'])
+
+        info.update({
             'id': video_id,
             'title': title,
-            'duration': duration,
-            'formats': formats,
-        }
+            'duration': parse_duration(self._search_regex(
+                r'id=["\']video_duree["\'][^>]*>([^<]+)',
+                webpage, 'duration', fatal=False)),
+        })
+        return info

@@ -26,7 +26,7 @@ class RoosterTeethIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Million Dollars, But...: Million Dollars, But... The Game Announcement',
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
-            'thumbnail': 're:^https?://.*\.png$',
+            'thumbnail': r're:^https?://.*\.png$',
             'series': 'Million Dollars, But...',
             'episode': 'Million Dollars, But... The Game Announcement',
             'comment_count': int,
@@ -50,7 +50,7 @@ class RoosterTeethIE(InfoExtractor):
     }]
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -68,7 +68,7 @@ class RoosterTeethIE(InfoExtractor):
 
         login_request = self._download_webpage(
             self._LOGIN_URL, None,
-            note='Logging in as %s' % username,
+            note='Logging in',
             data=urlencode_postdata(login_form),
             headers={
                 'Referer': self._LOGIN_URL,

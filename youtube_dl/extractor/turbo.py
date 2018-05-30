@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -24,7 +25,7 @@ class TurboIE(InfoExtractor):
             'duration': 3715,
             'title': 'Turbo du 07/09/2014 : Renault Twingo 3, Bentley Continental GT Speed, CES, Guide Achat Dacia... ',
             'description': 'Turbo du 07/09/2014 : Renault Twingo 3, Bentley Continental GT Speed, CES, Guide Achat Dacia...',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 
@@ -49,7 +50,7 @@ class TurboIE(InfoExtractor):
         for child in item:
             m = re.search(r'url_video_(?P<quality>.+)', child.tag)
             if m:
-                quality = m.group('quality')
+                quality = compat_str(m.group('quality'))
                 formats.append({
                     'format_id': quality,
                     'url': child.text,

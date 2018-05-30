@@ -21,7 +21,7 @@ class YesJapanIE(InfoExtractor):
             'ext': 'mp4',
             'timestamp': 1416391590,
             'upload_date': '20141119',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 

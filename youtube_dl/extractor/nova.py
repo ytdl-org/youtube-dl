@@ -21,7 +21,7 @@ class NovaIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Duel: Michal Hrdlička a Petr Suchoň',
             'description': 'md5:d0cc509858eee1b1374111c588c6f5d5',
-            'thumbnail': 're:^https?://.*\.(?:jpg)',
+            'thumbnail': r're:^https?://.*\.(?:jpg)',
         },
         'params': {
             # rtmp download
@@ -36,7 +36,7 @@ class NovaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Podzemní nemocnice v pražské Krči',
             'description': 'md5:f0a42dd239c26f61c28f19e62d20ef53',
-            'thumbnail': 're:^https?://.*\.(?:jpg)',
+            'thumbnail': r're:^https?://.*\.(?:jpg)',
         }
     }, {
         'url': 'http://novaplus.nova.cz/porad/policie-modrava/video/5591-policie-modrava-15-dil-blondynka-na-hrbitove',
@@ -46,7 +46,7 @@ class NovaIE(InfoExtractor):
             'ext': 'flv',
             'title': 'Policie Modrava - 15. díl - Blondýnka na hřbitově',
             'description': 'md5:dc24e50be5908df83348e50d1431295e',  # Make sure this description is clean of html tags
-            'thumbnail': 're:^https?://.*\.(?:jpg)',
+            'thumbnail': r're:^https?://.*\.(?:jpg)',
         },
         'params': {
             # rtmp download
@@ -58,7 +58,7 @@ class NovaIE(InfoExtractor):
             'id': '1756858',
             'ext': 'flv',
             'title': 'Televizní noviny - 30. 5. 2015',
-            'thumbnail': 're:^https?://.*\.(?:jpg)',
+            'thumbnail': r're:^https?://.*\.(?:jpg)',
             'upload_date': '20150530',
         },
         'params': {
@@ -72,7 +72,7 @@ class NovaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Zaklínač 3: Divoký hon',
             'description': 're:.*Pokud se stejně jako my nemůžete.*',
-            'thumbnail': 're:https?://.*\.jpg(\?.*)?',
+            'thumbnail': r're:https?://.*\.jpg(\?.*)?',
             'upload_date': '20150521',
         },
         'params': {

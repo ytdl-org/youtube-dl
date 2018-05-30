@@ -17,7 +17,7 @@ class DBTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Skulle teste ut fornøyelsespark, men kollegaen var bare opptatt av bikinikroppen',
             'description': 'md5:1504a54606c4dde3e4e61fc97aa857e0',
-            'thumbnail': 're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'timestamp': 1404039863,
             'upload_date': '20140629',
             'duration': 69.544,

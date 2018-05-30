@@ -9,14 +9,16 @@ from ..utils import int_or_none
 class XiamiBaseIE(InfoExtractor):
     _API_BASE_URL = 'http://www.xiami.com/song/playlist/cat/json/id'
 
-    def _download_webpage(self, *args, **kwargs):
-        webpage = super(XiamiBaseIE, self)._download_webpage(*args, **kwargs)
+    def _download_webpage_handle(self, *args, **kwargs):
+        webpage = super(XiamiBaseIE, self)._download_webpage_handle(*args, **kwargs)
         if '>Xiami is currently not available in your country.<' in webpage:
             self.raise_geo_restricted('Xiami is currently not available in your country')
         return webpage
 
     def _extract_track(self, track, track_id=None):
-        title = track['title']
+        track_name = track.get('songName') or track.get('name') or track['subName']
+        artist = track.get('artist') or track.get('artist_name') or track.get('singers')
+        title = '%s - %s' % (artist, track_name) if artist else track_name
         track_url = self._decrypt(track['location'])
 
         subtitles = {}
@@ -31,15 +33,19 @@ class XiamiBaseIE(InfoExtractor):
             'thumbnail': track.get('pic') or track.get('album_pic'),
             'duration': int_or_none(track.get('length')),
             'creator': track.get('artist', '').split(';')[0],
-            'track': title,
-            'album': track.get('album_name'),
-            'artist': track.get('artist'),
+            'track': track_name,
+            'track_number': int_or_none(track.get('track')),
+            'album': track.get('album_name') or track.get('title'),
+            'artist': artist,
             'subtitles': subtitles,
         }
 
-    def _extract_tracks(self, item_id, typ=None):
+    def _extract_tracks(self, item_id, referer, typ=None):
         playlist = self._download_json(
-            '%s/%s%s' % (self._API_BASE_URL, item_id, '/type/%s' % typ if typ else ''), item_id)
+            '%s/%s%s' % (self._API_BASE_URL, item_id, '/type/%s' % typ if typ else ''),
+            item_id, headers={
+                'Referer': referer,
+            })
         return [
             self._extract_track(track, item_id)
             for track in playlist['data']['trackList']]
@@ -68,14 +74,14 @@ class XiamiBaseIE(InfoExtractor):
 class XiamiSongIE(XiamiBaseIE):
     IE_NAME = 'xiami:song'
     IE_DESC = '虾米音乐'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/song/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/song/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.xiami.com/song/1775610518',
         'md5': '521dd6bea40fd5c9c69f913c232cb57e',
         'info_dict': {
             'id': '1775610518',
             'ext': 'mp3',
-            'title': 'Woman',
+            'title': 'HONNE - Woman',
             'thumbnail': r're:http://img\.xiami\.net/images/album/.*\.jpg',
             'duration': 265,
             'creator': 'HONNE',
@@ -95,7 +101,7 @@ class XiamiSongIE(XiamiBaseIE):
         'info_dict': {
             'id': '1775256504',
             'ext': 'mp3',
-            'title': '悟空',
+            'title': '戴荃 - 悟空',
             'thumbnail': r're:http://img\.xiami\.net/images/album/.*\.jpg',
             'duration': 200,
             'creator': '戴荃',
@@ -109,22 +115,42 @@ class XiamiSongIE(XiamiBaseIE):
             },
         },
         'skip': 'Georestricted',
+    }, {
+        'url': 'http://www.xiami.com/song/1775953850',
+        'info_dict': {
+            'id': '1775953850',
+            'ext': 'mp3',
+            'title': 'До Скону - Чума Пожирает Землю',
+            'thumbnail': r're:http://img\.xiami\.net/images/album/.*\.jpg',
+            'duration': 683,
+            'creator': 'До Скону',
+            'track': 'Чума Пожирает Землю',
+            'track_number': 7,
+            'album': 'Ад',
+            'artist': 'До Скону',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://www.xiami.com/song/xLHGwgd07a1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        return self._extract_tracks(self._match_id(url))[0]
+        return self._extract_tracks(self._match_id(url), url)[0]
 
 
 class XiamiPlaylistBaseIE(XiamiBaseIE):
     def _real_extract(self, url):
         item_id = self._match_id(url)
-        return self.playlist_result(self._extract_tracks(item_id, self._TYPE), item_id)
+        return self.playlist_result(self._extract_tracks(item_id, url, self._TYPE), item_id)
 
 
 class XiamiAlbumIE(XiamiPlaylistBaseIE):
     IE_NAME = 'xiami:album'
     IE_DESC = '虾米音乐 - 专辑'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/album/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/album/(?P<id>[^/?#&]+)'
     _TYPE = '1'
     _TESTS = [{
         'url': 'http://www.xiami.com/album/2100300444',
@@ -136,28 +162,34 @@ class XiamiAlbumIE(XiamiPlaylistBaseIE):
     }, {
         'url': 'http://www.xiami.com/album/512288?spm=a1z1s.6843761.1110925389.6.hhE9p9',
         'only_matching': True,
+    }, {
+        'url': 'http://www.xiami.com/album/URVDji2a506',
+        'only_matching': True,
     }]
 
 
 class XiamiArtistIE(XiamiPlaylistBaseIE):
     IE_NAME = 'xiami:artist'
     IE_DESC = '虾米音乐 - 歌手'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/artist/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/artist/(?P<id>[^/?#&]+)'
     _TYPE = '2'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.xiami.com/artist/2132?spm=0.0.0.0.dKaScp',
         'info_dict': {
             'id': '2132',
         },
         'playlist_count': 20,
         'skip': 'Georestricted',
-    }
+    }, {
+        'url': 'http://www.xiami.com/artist/bC5Tk2K6eb99',
+        'only_matching': True,
+    }]
 
 
 class XiamiCollectionIE(XiamiPlaylistBaseIE):
     IE_NAME = 'xiami:collection'
     IE_DESC = '虾米音乐 - 精选集'
-    _VALID_URL = r'https?://(?:www\.)?xiami\.com/collect/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?xiami\.com/collect/(?P<id>[^/?#&]+)'
     _TYPE = '3'
     _TEST = {
         'url': 'http://www.xiami.com/collect/156527391?spm=a1z1s.2943601.6856193.12.4jpBnr',

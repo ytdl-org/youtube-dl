@@ -21,7 +21,7 @@ from youtube_dl.extractor import (
     NPOIE,
     ComedyCentralIE,
     NRKTVIE,
-    RaiTVIE,
+    RaiPlayIE,
     VikiIE,
     ThePlatformIE,
     ThePlatformFeedIE,
@@ -232,7 +232,7 @@ class TestNPOSubtitles(BaseTestSubtitles):
 
 
 class TestMTVSubtitles(BaseTestSubtitles):
-    url = 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother'
+    url = 'http://www.cc.com/video-clips/p63lk0/adam-devine-s-house-party-chasing-white-swans'
     IE = ComedyCentralIE
 
     def getInfoDict(self):
@@ -243,7 +243,7 @@ class TestMTVSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), 'b9f6ca22a6acf597ec76f61749765e65')
+        self.assertEqual(md5(subtitles['en']), '78206b8d8a0cfa9da64dc026eea48961')
 
 
 class TestNRKSubtitles(BaseTestSubtitles):
@@ -258,9 +258,9 @@ class TestNRKSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['no']), '544fa917d3197fcbee64634559221cc2')
 
 
-class TestRaiSubtitles(BaseTestSubtitles):
-    url = 'http://www.rai.tv/dl/RaiTV/programmi/media/ContentItem-cb27157f-9dd0-4aee-b788-b1f67643a391.html'
-    IE = RaiTVIE
+class TestRaiPlaySubtitles(BaseTestSubtitles):
+    url = 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html'
+    IE = RaiPlayIE
 
     def test_allsubtitles(self):
         self.DL.params['writesubtitles'] = True

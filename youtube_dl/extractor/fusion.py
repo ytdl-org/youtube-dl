@@ -5,9 +5,9 @@ from .ooyala import OoyalaIE
 
 
 class FusionIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?fusion\.net/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?fusion\.(?:net|tv)/video/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://fusion.net/video/201781/u-s-and-panamanian-forces-work-together-to-stop-a-vessel-smuggling-drugs/',
+        'url': 'http://fusion.tv/video/201781/u-s-and-panamanian-forces-work-together-to-stop-a-vessel-smuggling-drugs/',
         'info_dict': {
             'id': 'ZpcWNoMTE6x6uVIIWYpHh0qQDjxBuq5P',
             'ext': 'mp4',
@@ -20,7 +20,7 @@ class FusionIE(InfoExtractor):
         },
         'add_ie': ['Ooyala'],
     }, {
-        'url': 'http://fusion.net/video/201781',
+        'url': 'http://fusion.tv/video/201781',
         'only_matching': True,
     }]
 

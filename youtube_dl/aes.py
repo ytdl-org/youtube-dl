@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
-import base64
 from math import ceil
 
+from .compat import compat_b64decode
 from .utils import bytes_to_intlist, intlist_to_bytes
 
 BLOCK_SIZE_BYTES = 16
@@ -58,6 +58,34 @@ def aes_cbc_decrypt(data, key, iv):
     decrypted_data = decrypted_data[:len(data)]
 
     return decrypted_data
+
+
+def aes_cbc_encrypt(data, key, iv):
+    """
+    Encrypt with aes in CBC mode. Using PKCS#7 padding
+
+    @param {int[]} data        cleartext
+    @param {int[]} key         16/24/32-Byte cipher key
+    @param {int[]} iv          16-Byte IV
+    @returns {int[]}           encrypted data
+    """
+    expanded_key = key_expansion(key)
+    block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
+
+    encrypted_data = []
+    previous_cipher_block = iv
+    for i in range(block_count):
+        block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
+        remaining_length = BLOCK_SIZE_BYTES - len(block)
+        block += [remaining_length] * remaining_length
+        mixed_block = xor(block, previous_cipher_block)
+
+        encrypted_block = aes_encrypt(mixed_block, expanded_key)
+        encrypted_data += encrypted_block
+
+        previous_cipher_block = encrypted_block
+
+    return encrypted_data
 
 
 def key_expansion(data):
@@ -152,7 +180,7 @@ def aes_decrypt_text(data, password, key_size_bytes):
     """
     NONCE_LENGTH_BYTES = 8
 
-    data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
+    data = bytes_to_intlist(compat_b64decode(data))
     password = bytes_to_intlist(password.encode('utf-8'))
 
     key = password[:key_size_bytes] + [0] * (key_size_bytes - len(password))

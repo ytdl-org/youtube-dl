@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class GfycatIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?:ifr/)?(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?:ifr/|gifs/detail/)?(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://gfycat.com/DeadlyDecisiveGermanpinscher',
         'info_dict': {
@@ -44,6 +44,9 @@ class GfycatIE(InfoExtractor):
             'categories': list,
             'age_limit': 0,
         }
+    }, {
+        'url': 'https://gfycat.com/gifs/detail/UnconsciousLankyIvorygull',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
@@ -82,7 +85,7 @@ class GfycatIE(InfoExtractor):
             video_url = gfy.get('%sUrl' % format_id)
             if not video_url:
                 continue
-            filesize = gfy.get('%sSize' % format_id)
+            filesize = int_or_none(gfy.get('%sSize' % format_id))
             formats.append({
                 'url': video_url,
                 'format_id': format_id,

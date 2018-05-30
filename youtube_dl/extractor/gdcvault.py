@@ -75,10 +75,23 @@ class GDCVaultIE(InfoExtractor):
                 'format': 'jp',  # The japanese audio
             }
         },
+        {
+            # gdc-player.html
+            'url': 'http://www.gdcvault.com/play/1435/An-American-engine-in-Tokyo',
+            'info_dict': {
+                'id': '1435',
+                'display_id': 'An-American-engine-in-Tokyo',
+                'ext': 'flv',
+                'title': 'An American Engine in Tokyo:/nThe collaboration of Epic Games and Square Enix/nFor THE LAST REMINANT',
+            },
+            'params': {
+                'skip_download': True,  # Requires rtmpdump
+            },
+        },
     ]
 
     def _login(self, webpage_url, display_id):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None or password is None:
             self.report_warning('It looks like ' + webpage_url + ' requires a login. Try specifying a username and password and try again.')
             return None
@@ -128,7 +141,7 @@ class GDCVaultIE(InfoExtractor):
                 'title': title,
             }
 
-        PLAYER_REGEX = r'<iframe src="(?P<xml_root>.+?)/player.*?\.html.*?".*?</iframe>'
+        PLAYER_REGEX = r'<iframe src="(?P<xml_root>.+?)/(?:gdc-)?player.*?\.html.*?".*?</iframe>'
 
         xml_root = self._html_search_regex(
             PLAYER_REGEX, start_page, 'xml root', default=None)

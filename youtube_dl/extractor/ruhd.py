@@ -14,7 +14,7 @@ class RUHDIE(InfoExtractor):
             'ext': 'divx',
             'title': 'КОТ бааааам',
             'description': 'классный кот)',
-            'thumbnail': 're:^http://.*\.jpg$',
+            'thumbnail': r're:^http://.*\.jpg$',
         }
     }
 
@@ -25,7 +25,7 @@ class RUHDIE(InfoExtractor):
         video_url = self._html_search_regex(
             r'<param name="src" value="([^"]+)"', webpage, 'video url')
         title = self._html_search_regex(
-            r'<title>([^<]+)&nbsp;&nbsp; RUHD.ru - Видео Высокого качества №1 в России!</title>',
+            r'<title>([^<]+)&nbsp;&nbsp; RUHD\.ru - Видео Высокого качества №1 в России!</title>',
             webpage, 'title')
         description = self._html_search_regex(
             r'(?s)<div id="longdesc">(.+?)<span id="showlink">',

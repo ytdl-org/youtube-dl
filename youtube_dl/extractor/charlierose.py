@@ -5,7 +5,7 @@ from ..utils import remove_end
 
 
 class CharlieRoseIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?charlierose\.com/video(?:s|/player)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?charlierose\.com/(?:video|episode)(?:s|/player)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://charlierose.com/videos/27996',
         'md5': 'fda41d49e67d4ce7c2411fd2c4702e09',
@@ -13,7 +13,7 @@ class CharlieRoseIE(InfoExtractor):
             'id': '27996',
             'ext': 'mp4',
             'title': 'Remembering Zaha Hadid',
-            'thumbnail': 're:^https?://.*\.jpg\?\d+',
+            'thumbnail': r're:^https?://.*\.jpg\?\d+',
             'description': 'We revisit past conversations with Zaha Hadid, in memory of the world renowned Iraqi architect.',
             'subtitles': {
                 'en': [{
@@ -23,6 +23,9 @@ class CharlieRoseIE(InfoExtractor):
         },
     }, {
         'url': 'https://charlierose.com/videos/27996',
+        'only_matching': True,
+    }, {
+        'url': 'https://charlierose.com/episodes/30887?autoplay=true',
         'only_matching': True,
     }]
 

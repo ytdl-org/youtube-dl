@@ -20,16 +20,15 @@ class CoubIE(InfoExtractor):
             'id': '5u5n1',
             'ext': 'mp4',
             'title': 'The Matrix Moonwalk',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 4.6,
             'timestamp': 1428527772,
             'upload_date': '20150408',
-            'uploader': 'Артём Лоскутников',
+            'uploader': 'Artyom Loskutnikov',
             'uploader_id': 'artyom.loskutnikov',
             'view_count': int,
             'like_count': int,
             'repost_count': int,
-            'comment_count': int,
             'age_limit': 0,
         },
     }, {
@@ -118,7 +117,6 @@ class CoubIE(InfoExtractor):
         view_count = int_or_none(coub.get('views_count') or coub.get('views_increase_count'))
         like_count = int_or_none(coub.get('likes_count'))
         repost_count = int_or_none(coub.get('recoubs_count'))
-        comment_count = int_or_none(coub.get('comments_count'))
 
         age_restricted = coub.get('age_restricted', coub.get('age_restricted_by_admin'))
         if age_restricted is not None:
@@ -137,7 +135,6 @@ class CoubIE(InfoExtractor):
             'view_count': view_count,
             'like_count': like_count,
             'repost_count': repost_count,
-            'comment_count': comment_count,
             'age_limit': age_limit,
             'formats': formats,
         }

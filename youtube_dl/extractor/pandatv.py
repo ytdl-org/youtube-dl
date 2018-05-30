@@ -10,13 +10,13 @@ from ..utils import (
 
 class PandaTVIE(InfoExtractor):
     IE_DESC = '熊猫TV'
-    _VALID_URL = r'http://(?:www\.)?panda\.tv/(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://www.panda.tv/10091',
+    _VALID_URL = r'https?://(?:www\.)?panda\.tv/(?P<id>[0-9]+)'
+    _TESTS = [{
+        'url': 'http://www.panda.tv/66666',
         'info_dict': {
-            'id': '10091',
+            'id': '66666',
             'title': 're:.+',
-            'uploader': '囚徒',
+            'uploader': '刘杀鸡',
             'ext': 'flv',
             'is_live': True,
         },
@@ -24,13 +24,16 @@ class PandaTVIE(InfoExtractor):
             'skip_download': True,
         },
         'skip': 'Live stream is offline',
-    }
+    }, {
+        'url': 'https://www.panda.tv/66666',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         config = self._download_json(
-            'http://www.panda.tv/api_room?roomid=%s' % video_id, video_id)
+            'https://www.panda.tv/api_room_v2?roomid=%s' % video_id, video_id)
 
         error_code = config.get('errno', 0)
         if error_code is not 0:
@@ -63,6 +66,11 @@ class PandaTVIE(InfoExtractor):
             plflag1 = '4'
         live_panda = 'live_panda' if plflag0 < 1 else ''
 
+        plflag_auth = self._parse_json(video_info['plflag_list'], video_id)
+        sign = plflag_auth['auth']['sign']
+        ts = plflag_auth['auth']['time']
+        rid = plflag_auth['auth']['rid']
+
         quality_key = qualities(['OD', 'HD', 'SD'])
         suffix = ['_small', '_mid', '']
         formats = []
@@ -74,8 +82,8 @@ class PandaTVIE(InfoExtractor):
                 continue
             for pref, (ext, pl) in enumerate((('m3u8', '-hls'), ('flv', ''))):
                 formats.append({
-                    'url': 'http://pl%s%s.live.panda.tv/live_panda/%s%s%s.%s'
-                    % (pl, plflag1, room_key, live_panda, suffix[quality], ext),
+                    'url': 'https://pl%s%s.live.panda.tv/live_panda/%s%s%s.%s?sign=%s&ts=%s&rid=%s'
+                    % (pl, plflag1, room_key, live_panda, suffix[quality], ext, sign, ts, rid),
                     'format_id': '%s-%s' % (k, ext),
                     'quality': quality,
                     'source_preference': pref,

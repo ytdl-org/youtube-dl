@@ -21,7 +21,7 @@ class JoveIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Electrode Positioning and Montage in Transcranial Direct Current Stimulation',
                 'description': 'md5:015dd4509649c0908bc27f049e0262c6',
-                'thumbnail': 're:^https?://.*\.png$',
+                'thumbnail': r're:^https?://.*\.png$',
                 'upload_date': '20110523',
             }
         },
@@ -33,7 +33,7 @@ class JoveIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Culturing Caenorhabditis elegans in Axenic Liquid Media and Creation of Transgenic Worms by Microparticle Bombardment',
                 'description': 'md5:35ff029261900583970c4023b70f1dc9',
-                'thumbnail': 're:^https?://.*\.png$',
+                'thumbnail': r're:^https?://.*\.png$',
                 'upload_date': '20140802',
             }
         },
@@ -65,9 +65,9 @@ class JoveIE(InfoExtractor):
             webpage, 'description', fatal=False)
         publish_date = unified_strdate(self._html_search_meta(
             'citation_publication_date', webpage, 'publish date', fatal=False))
-        comment_count = self._html_search_regex(
+        comment_count = int(self._html_search_regex(
             r'<meta name="num_comments" content="(\d+) Comments?"',
-            webpage, 'comment count', fatal=False)
+            webpage, 'comment count', fatal=False))
 
         return {
             'id': video_id,

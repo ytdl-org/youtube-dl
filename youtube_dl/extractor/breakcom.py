@@ -1,17 +1,15 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_age_limit,
-)
+from .youtube import YoutubeIE
+from ..compat import compat_str
+from ..utils import int_or_none
 
 
 class BreakIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?break\.com/video/(?:[^/]+/)*.+-(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?break\.com/video/(?P<display_id>[^/]+?)(?:-(?P<id>\d+))?(?:[/?#&]|$)'
     _TESTS = [{
         'url': 'http://www.break.com/video/when-girls-act-like-guys-2468056',
         'info_dict': {
@@ -19,6 +17,21 @@ class BreakIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'When Girls Act Like D-Bags',
             'age_limit': 13,
+        },
+    }, {
+        # youtube embed
+        'url': 'http://www.break.com/video/someone-forgot-boat-brakes-work',
+        'info_dict': {
+            'id': 'RrrDLdeL2HQ',
+            'ext': 'mp4',
+            'title': 'Whale Watching Boat Crashing Into San Diego Dock',
+            'description': 'md5:afc1b2772f0a8468be51dd80eb021069',
+            'upload_date': '20160331',
+            'uploader': 'Steve Holden',
+            'uploader_id': 'sdholden07',
+        },
+        'params': {
+            'skip_download': True,
         }
     }, {
         'url': 'http://www.break.com/video/ugc/baby-flex-2773063',
@@ -26,39 +39,51 @@ class BreakIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            'http://www.break.com/embed/%s' % video_id, video_id)
-        info = json.loads(self._search_regex(
-            r'var embedVars = ({.*})\s*?</script>',
-            webpage, 'info json', flags=re.DOTALL))
+        display_id, video_id = re.match(self._VALID_URL, url).groups()
 
-        youtube_id = info.get('youtubeId')
-        if youtube_id:
-            return self.url_result(youtube_id, 'Youtube')
+        webpage = self._download_webpage(url, display_id)
 
-        formats = [{
-            'url': media['uri'] + '?' + info['AuthToken'],
-            'tbr': media['bitRate'],
-            'width': media['width'],
-            'height': media['height'],
-        } for media in info['media'] if media.get('mediaPurpose') == 'play']
+        youtube_url = YoutubeIE._extract_url(webpage)
+        if youtube_url:
+            return self.url_result(youtube_url, ie=YoutubeIE.ie_key())
 
-        if not formats:
+        content = self._parse_json(
+            self._search_regex(
+                r'(?s)content["\']\s*:\s*(\[.+?\])\s*[,\n]', webpage,
+                'content'),
+            display_id)
+
+        formats = []
+        for video in content:
+            video_url = video.get('url')
+            if not video_url or not isinstance(video_url, compat_str):
+                continue
+            bitrate = int_or_none(self._search_regex(
+                r'(\d+)_kbps', video_url, 'tbr', default=None))
             formats.append({
-                'url': info['videoUri']
+                'url': video_url,
+                'format_id': 'http-%d' % bitrate if bitrate else 'http',
+                'tbr': bitrate,
             })
-
         self._sort_formats(formats)
 
-        duration = int_or_none(info.get('videoLengthInSeconds'))
-        age_limit = parse_age_limit(info.get('audienceRating'))
+        title = self._search_regex(
+            (r'title["\']\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+             r'<h1[^>]*>(?P<value>[^<]+)'), webpage, 'title', group='value')
+
+        def get(key, name):
+            return int_or_none(self._search_regex(
+                r'%s["\']\s*:\s*["\'](\d+)' % key, webpage, name,
+                default=None))
+
+        age_limit = get('ratings', 'age limit')
+        video_id = video_id or get('pid', 'video id') or display_id
 
         return {
             'id': video_id,
-            'title': info['contentName'],
-            'thumbnail': info['thumbUri'],
-            'duration': duration,
+            'display_id': display_id,
+            'title': title,
+            'thumbnail': self._og_search_thumbnail(webpage),
             'age_limit': age_limit,
             'formats': formats,
         }

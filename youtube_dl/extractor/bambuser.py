@@ -44,7 +44,7 @@ class BambuserIE(InfoExtractor):
     }
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -59,7 +59,7 @@ class BambuserIE(InfoExtractor):
             self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Referer', self._LOGIN_URL)
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            request, None, 'Logging in')
 
         login_error = self._html_search_regex(
             r'(?s)<div class="messages error">(.+?)</div>',

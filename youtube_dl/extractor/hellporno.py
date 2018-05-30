@@ -20,7 +20,7 @@ class HellPornoIE(InfoExtractor):
             'display_id': 'dixie-is-posing-with-naked-ass-very-erotic',
             'ext': 'mp4',
             'title': 'Dixie is posing with naked ass very erotic',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
     }, {

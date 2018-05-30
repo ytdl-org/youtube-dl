@@ -4,62 +4,62 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     ExtractorError,
-    parse_filesize,
+    int_or_none,
+    parse_iso8601,
     qualities,
+    unescapeHTML,
 )
 
 
 class Channel9IE(InfoExtractor):
-    '''
-    Common extractor for channel9.msdn.com.
-
-    The type of provided URL (video or playlist) is determined according to
-    meta Search.PageType from web page HTML rather than URL itself, as it is
-    not always possible to do.
-    '''
     IE_DESC = 'Channel 9'
     IE_NAME = 'channel9'
-    _VALID_URL = r'https?://(?:www\.)?channel9\.msdn\.com/(?P<contentpath>.+?)(?P<rss>/RSS)?/?(?:[?#&]|$)'
+    _VALID_URL = r'https?://(?:www\.)?(?:channel9\.msdn\.com|s\.ch9\.ms)/(?P<contentpath>.+?)(?P<rss>/RSS)?/?(?:[?#&]|$)'
 
     _TESTS = [{
         'url': 'http://channel9.msdn.com/Events/TechEd/Australia/2013/KOS002',
-        'md5': 'bbd75296ba47916b754e73c3a4bbdf10',
+        'md5': '32083d4eaf1946db6d454313f44510ca',
         'info_dict': {
-            'id': 'Events/TechEd/Australia/2013/KOS002',
-            'ext': 'mp4',
+            'id': '6c413323-383a-49dc-88f9-a22800cab024',
+            'ext': 'wmv',
             'title': 'Developer Kick-Off Session: Stuff We Love',
-            'description': 'md5:c08d72240b7c87fcecafe2692f80e35f',
+            'description': 'md5:b80bf9355a503c193aff7ec6cd5a7731',
             'duration': 4576,
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
+            'timestamp': 1377717420,
+            'upload_date': '20130828',
             'session_code': 'KOS002',
-            'session_day': 'Day 1',
             'session_room': 'Arena 1A',
-            'session_speakers': ['Ed Blankenship', 'Andrew Coates', 'Brady Gaster', 'Patrick Klug',
-                                 'Mads Kristensen'],
+            'session_speakers': ['Andrew Coates', 'Brady Gaster', 'Mads Kristensen', 'Ed Blankenship', 'Patrick Klug'],
         },
     }, {
         'url': 'http://channel9.msdn.com/posts/Self-service-BI-with-Power-BI-nuclear-testing',
-        'md5': 'b43ee4529d111bc37ba7ee4f34813e68',
+        'md5': 'dcf983ee6acd2088e7188c3cf79b46bc',
         'info_dict': {
-            'id': 'posts/Self-service-BI-with-Power-BI-nuclear-testing',
-            'ext': 'mp4',
+            'id': 'fe8e435f-bb93-4e01-8e97-a28c01887024',
+            'ext': 'wmv',
             'title': 'Self-service BI with Power BI - nuclear testing',
-            'description': 'md5:d1e6ecaafa7fb52a2cacdf9599829f5b',
+            'description': 'md5:2d17fec927fc91e9e17783b3ecc88f54',
             'duration': 1540,
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
+            'timestamp': 1386381991,
+            'upload_date': '20131207',
             'authors': ['Mike Wilmot'],
         },
     }, {
         # low quality mp4 is best
         'url': 'https://channel9.msdn.com/Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
         'info_dict': {
-            'id': 'Events/CPP/CppCon-2015/Ranges-for-the-Standard-Library',
+            'id': '33ad69d2-6a4e-4172-83a1-a523013dec76',
             'ext': 'mp4',
             'title': 'Ranges for the Standard Library',
-            'description': 'md5:2e6b4917677af3728c5f6d63784c4c5d',
+            'description': 'md5:9895e0a9fd80822d2f01c454b8f4a372',
             'duration': 5646,
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
+            'upload_date': '20150930',
+            'timestamp': 1443640735,
         },
         'params': {
             'skip_download': True,
@@ -70,7 +70,7 @@ class Channel9IE(InfoExtractor):
             'id': 'Niners/Splendid22/Queue/76acff796e8f411184b008028e0d492b',
             'title': 'Channel 9',
         },
-        'playlist_count': 2,
+        'playlist_mincount': 100,
     }, {
         'url': 'https://channel9.msdn.com/Events/DEVintersection/DEVintersection-2016/RSS',
         'only_matching': True,
@@ -81,188 +81,11 @@ class Channel9IE(InfoExtractor):
 
     _RSS_URL = 'http://channel9.msdn.com/%s/RSS'
 
-    def _formats_from_html(self, html):
-        FORMAT_REGEX = r'''
-            (?x)
-            <a\s+href="(?P<url>[^"]+)">(?P<quality>[^<]+)</a>\s*
-            <span\s+class="usage">\((?P<note>[^\)]+)\)</span>\s*
-            (?:<div\s+class="popup\s+rounded">\s*
-            <h3>File\s+size</h3>\s*(?P<filesize>.*?)\s*
-            </div>)?                                                # File size part may be missing
-        '''
-        quality = qualities((
-            'MP3', 'MP4',
-            'Low Quality WMV', 'Low Quality MP4',
-            'Mid Quality WMV', 'Mid Quality MP4',
-            'High Quality WMV', 'High Quality MP4'))
-        formats = [{
-            'url': x.group('url'),
-            'format_id': x.group('quality'),
-            'format_note': x.group('note'),
-            'format': '%s (%s)' % (x.group('quality'), x.group('note')),
-            'filesize_approx': parse_filesize(x.group('filesize')),
-            'quality': quality(x.group('quality')),
-            'vcodec': 'none' if x.group('note') == 'Audio only' else None,
-        } for x in list(re.finditer(FORMAT_REGEX, html))]
-
-        self._sort_formats(formats)
-
-        return formats
-
-    def _extract_title(self, html):
-        title = self._html_search_meta('title', html, 'title')
-        if title is None:
-            title = self._og_search_title(html)
-            TITLE_SUFFIX = ' (Channel 9)'
-            if title is not None and title.endswith(TITLE_SUFFIX):
-                title = title[:-len(TITLE_SUFFIX)]
-        return title
-
-    def _extract_description(self, html):
-        DESCRIPTION_REGEX = r'''(?sx)
-            <div\s+class="entry-content">\s*
-            <div\s+id="entry-body">\s*
-            (?P<description>.+?)\s*
-            </div>\s*
-            </div>
-        '''
-        m = re.search(DESCRIPTION_REGEX, html)
-        if m is not None:
-            return m.group('description')
-        return self._html_search_meta('description', html, 'description')
-
-    def _extract_duration(self, html):
-        m = re.search(r'"length": *"(?P<hours>\d{2}):(?P<minutes>\d{2}):(?P<seconds>\d{2})"', html)
-        return ((int(m.group('hours')) * 60 * 60) + (int(m.group('minutes')) * 60) + int(m.group('seconds'))) if m else None
-
-    def _extract_slides(self, html):
-        m = re.search(r'<a href="(?P<slidesurl>[^"]+)" class="slides">Slides</a>', html)
-        return m.group('slidesurl') if m is not None else None
-
-    def _extract_zip(self, html):
-        m = re.search(r'<a href="(?P<zipurl>[^"]+)" class="zip">Zip</a>', html)
-        return m.group('zipurl') if m is not None else None
-
-    def _extract_avg_rating(self, html):
-        m = re.search(r'<p class="avg-rating">Avg Rating: <span>(?P<avgrating>[^<]+)</span></p>', html)
-        return float(m.group('avgrating')) if m is not None else 0
-
-    def _extract_rating_count(self, html):
-        m = re.search(r'<div class="rating-count">\((?P<ratingcount>[^<]+)\)</div>', html)
-        return int(self._fix_count(m.group('ratingcount'))) if m is not None else 0
-
-    def _extract_view_count(self, html):
-        m = re.search(r'<li class="views">\s*<span class="count">(?P<viewcount>[^<]+)</span> Views\s*</li>', html)
-        return int(self._fix_count(m.group('viewcount'))) if m is not None else 0
-
-    def _extract_comment_count(self, html):
-        m = re.search(r'<li class="comments">\s*<a href="#comments">\s*<span class="count">(?P<commentcount>[^<]+)</span> Comments\s*</a>\s*</li>', html)
-        return int(self._fix_count(m.group('commentcount'))) if m is not None else 0
-
-    def _fix_count(self, count):
-        return int(str(count).replace(',', '')) if count is not None else None
-
-    def _extract_authors(self, html):
-        m = re.search(r'(?s)<li class="author">(.*?)</li>', html)
-        if m is None:
-            return None
-        return re.findall(r'<a href="/Niners/[^"]+">([^<]+)</a>', m.group(1))
-
-    def _extract_session_code(self, html):
-        m = re.search(r'<li class="code">\s*(?P<code>.+?)\s*</li>', html)
-        return m.group('code') if m is not None else None
-
-    def _extract_session_day(self, html):
-        m = re.search(r'<li class="day">\s*<a href="/Events/[^"]+">(?P<day>[^<]+)</a>\s*</li>', html)
-        return m.group('day').strip() if m is not None else None
-
-    def _extract_session_room(self, html):
-        m = re.search(r'<li class="room">\s*(?P<room>.+?)\s*</li>', html)
-        return m.group('room') if m is not None else None
-
-    def _extract_session_speakers(self, html):
-        return re.findall(r'<a href="/Events/Speakers/[^"]+">([^<]+)</a>', html)
-
-    def _extract_content(self, html, content_path):
-        # Look for downloadable content
-        formats = self._formats_from_html(html)
-        slides = self._extract_slides(html)
-        zip_ = self._extract_zip(html)
-
-        # Nothing to download
-        if len(formats) == 0 and slides is None and zip_ is None:
-            self._downloader.report_warning('None of recording, slides or zip are available for %s' % content_path)
-            return
-
-        # Extract meta
-        title = self._extract_title(html)
-        description = self._extract_description(html)
-        thumbnail = self._og_search_thumbnail(html)
-        duration = self._extract_duration(html)
-        avg_rating = self._extract_avg_rating(html)
-        rating_count = self._extract_rating_count(html)
-        view_count = self._extract_view_count(html)
-        comment_count = self._extract_comment_count(html)
-
-        common = {
-            '_type': 'video',
-            'id': content_path,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'avg_rating': avg_rating,
-            'rating_count': rating_count,
-            'view_count': view_count,
-            'comment_count': comment_count,
-        }
-
-        result = []
-
-        if slides is not None:
-            d = common.copy()
-            d.update({'title': title + '-Slides', 'url': slides})
-            result.append(d)
-
-        if zip_ is not None:
-            d = common.copy()
-            d.update({'title': title + '-Zip', 'url': zip_})
-            result.append(d)
-
-        if len(formats) > 0:
-            d = common.copy()
-            d.update({'title': title, 'formats': formats})
-            result.append(d)
-
-        return result
-
-    def _extract_entry_item(self, html, content_path):
-        contents = self._extract_content(html, content_path)
-        if contents is None:
-            return contents
-
-        if len(contents) > 1:
-            raise ExtractorError('Got more than one entry')
-        result = contents[0]
-        result['authors'] = self._extract_authors(html)
-
-        return result
-
-    def _extract_session(self, html, content_path):
-        contents = self._extract_content(html, content_path)
-        if contents is None:
-            return contents
-
-        session_meta = {
-            'session_code': self._extract_session_code(html),
-            'session_day': self._extract_session_day(html),
-            'session_room': self._extract_session_room(html),
-            'session_speakers': self._extract_session_speakers(html),
-        }
-
-        for content in contents:
-            content.update(session_meta)
-
-        return self.playlist_result(contents)
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+src=["\'](https?://channel9\.msdn\.com/(?:[^/]+/)+)player\b',
+            webpage)
 
     def _extract_list(self, video_id, rss_url=None):
         if not rss_url:
@@ -274,9 +97,7 @@ class Channel9IE(InfoExtractor):
         return self.playlist_result(entries, video_id, title_text)
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        content_path = mobj.group('contentpath')
-        rss = mobj.group('rss')
+        content_path, rss = re.match(self._VALID_URL, url).groups()
 
         if rss:
             return self._extract_list(content_path, url)
@@ -284,17 +105,158 @@ class Channel9IE(InfoExtractor):
         webpage = self._download_webpage(
             url, content_path, 'Downloading web page')
 
-        page_type = self._search_regex(
-            r'<meta[^>]+name=(["\'])WT\.entryid\1[^>]+content=(["\'])(?P<pagetype>[^:]+).+?\2',
-            webpage, 'page type', default=None, group='pagetype')
-        if page_type:
-            if page_type == 'Entry':      # Any 'item'-like page, may contain downloadable content
-                return self._extract_entry_item(webpage, content_path)
-            elif page_type == 'Session':  # Event session page, may contain downloadable content
-                return self._extract_session(webpage, content_path)
-            elif page_type == 'Event':
-                return self._extract_list(content_path)
+        episode_data = self._search_regex(
+            r"data-episode='([^']+)'", webpage, 'episode data', default=None)
+        if episode_data:
+            episode_data = self._parse_json(unescapeHTML(
+                episode_data), content_path)
+            content_id = episode_data['contentId']
+            is_session = '/Sessions(' in episode_data['api']
+            content_url = 'https://channel9.msdn.com/odata' + episode_data['api']
+            if is_session:
+                content_url += '?$expand=Speakers'
             else:
-                raise ExtractorError('Unexpected WT.entryid %s' % page_type, expected=True)
-        else:  # Assuming list
+                content_url += '?$expand=Authors'
+            content_data = self._download_json(content_url, content_id)
+            title = content_data['Title']
+
+            QUALITIES = (
+                'mp3',
+                'wmv', 'mp4',
+                'wmv-low', 'mp4-low',
+                'wmv-mid', 'mp4-mid',
+                'wmv-high', 'mp4-high',
+            )
+
+            quality_key = qualities(QUALITIES)
+
+            def quality(quality_id, format_url):
+                return (len(QUALITIES) if '_Source.' in format_url
+                        else quality_key(quality_id))
+
+            formats = []
+            urls = set()
+
+            SITE_QUALITIES = {
+                'MP3': 'mp3',
+                'MP4': 'mp4',
+                'Low Quality WMV': 'wmv-low',
+                'Low Quality MP4': 'mp4-low',
+                'Mid Quality WMV': 'wmv-mid',
+                'Mid Quality MP4': 'mp4-mid',
+                'High Quality WMV': 'wmv-high',
+                'High Quality MP4': 'mp4-high',
+            }
+
+            formats_select = self._search_regex(
+                r'(?s)<select[^>]+name=["\']format[^>]+>(.+?)</select', webpage,
+                'formats select', default=None)
+            if formats_select:
+                for mobj in re.finditer(
+                        r'<option\b[^>]+\bvalue=(["\'])(?P<url>(?:(?!\1).)+)\1[^>]*>\s*(?P<format>[^<]+?)\s*<',
+                        formats_select):
+                    format_url = mobj.group('url')
+                    if format_url in urls:
+                        continue
+                    urls.add(format_url)
+                    format_id = mobj.group('format')
+                    quality_id = SITE_QUALITIES.get(format_id, format_id)
+                    formats.append({
+                        'url': format_url,
+                        'format_id': quality_id,
+                        'quality': quality(quality_id, format_url),
+                        'vcodec': 'none' if quality_id == 'mp3' else None,
+                    })
+
+            API_QUALITIES = {
+                'VideoMP4Low': 'mp4-low',
+                'VideoWMV': 'wmv-mid',
+                'VideoMP4Medium': 'mp4-mid',
+                'VideoMP4High': 'mp4-high',
+                'VideoWMVHQ': 'wmv-hq',
+            }
+
+            for format_id, q in API_QUALITIES.items():
+                q_url = content_data.get(format_id)
+                if not q_url or q_url in urls:
+                    continue
+                urls.add(q_url)
+                formats.append({
+                    'url': q_url,
+                    'format_id': q,
+                    'quality': quality(q, q_url),
+                })
+
+            self._sort_formats(formats)
+
+            slides = content_data.get('Slides')
+            zip_file = content_data.get('ZipFile')
+
+            if not formats and not slides and not zip_file:
+                raise ExtractorError(
+                    'None of recording, slides or zip are available for %s' % content_path)
+
+            subtitles = {}
+            for caption in content_data.get('Captions', []):
+                caption_url = caption.get('Url')
+                if not caption_url:
+                    continue
+                subtitles.setdefault(caption.get('Language', 'en'), []).append({
+                    'url': caption_url,
+                    'ext': 'vtt',
+                })
+
+            common = {
+                'id': content_id,
+                'title': title,
+                'description': clean_html(content_data.get('Description') or content_data.get('Body')),
+                'thumbnail': content_data.get('Thumbnail') or content_data.get('VideoPlayerPreviewImage'),
+                'duration': int_or_none(content_data.get('MediaLengthInSeconds')),
+                'timestamp': parse_iso8601(content_data.get('PublishedDate')),
+                'avg_rating': int_or_none(content_data.get('Rating')),
+                'rating_count': int_or_none(content_data.get('RatingCount')),
+                'view_count': int_or_none(content_data.get('Views')),
+                'comment_count': int_or_none(content_data.get('CommentCount')),
+                'subtitles': subtitles,
+            }
+            if is_session:
+                speakers = []
+                for s in content_data.get('Speakers', []):
+                    speaker_name = s.get('FullName')
+                    if not speaker_name:
+                        continue
+                    speakers.append(speaker_name)
+
+                common.update({
+                    'session_code': content_data.get('Code'),
+                    'session_room': content_data.get('Room'),
+                    'session_speakers': speakers,
+                })
+            else:
+                authors = []
+                for a in content_data.get('Authors', []):
+                    author_name = a.get('DisplayName')
+                    if not author_name:
+                        continue
+                    authors.append(author_name)
+                common['authors'] = authors
+
+            contents = []
+
+            if slides:
+                d = common.copy()
+                d.update({'title': title + '-Slides', 'url': slides})
+                contents.append(d)
+
+            if zip_file:
+                d = common.copy()
+                d.update({'title': title + '-Zip', 'url': zip_file})
+                contents.append(d)
+
+            if formats:
+                d = common.copy()
+                d.update({'title': title, 'formats': formats})
+                contents.append(d)
+            return self.playlist_result(contents)
+        else:
             return self._extract_list(content_path)

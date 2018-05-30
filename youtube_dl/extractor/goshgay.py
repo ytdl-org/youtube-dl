@@ -19,7 +19,7 @@ class GoshgayIE(InfoExtractor):
             'id': '299069',
             'ext': 'flv',
             'title': 'DIESEL SFW XXX Video',
-            'thumbnail': 're:^http://.*\.jpg$',
+            'thumbnail': r're:^http://.*\.jpg$',
             'duration': 80,
             'age_limit': 18,
         }

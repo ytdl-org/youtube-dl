@@ -21,7 +21,7 @@ class TassIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Посетителям московского зоопарка показали красную панду',
                 'description': 'Приехавшую из Дублина Зейну можно увидеть в павильоне "Кошки тропиков"',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {

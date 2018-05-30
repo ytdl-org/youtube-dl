@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -46,7 +47,7 @@ class GolemIE(InfoExtractor):
                 continue
 
             formats.append({
-                'format_id': e.tag,
+                'format_id': compat_str(e.tag),
                 'url': compat_urlparse.urljoin(self._PREFIX, url),
                 'height': self._int(e.get('height'), 'height'),
                 'width': self._int(e.get('width'), 'width'),

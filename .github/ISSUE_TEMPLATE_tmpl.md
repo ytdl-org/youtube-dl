@@ -1,17 +1,18 @@
 ## Please follow the guide below
 
 - You will be asked some questions and requested to provide some information, please read them **carefully** and answer honestly
-- Put an `x` into all the boxes [ ] relevant to your *issue* (like that [x])
-- Use *Preview* tab to see how your issue will actually look like
+- Put an `x` into all the boxes [ ] relevant to your *issue* (like this: `[x]`)
+- Use the *Preview* tab to see what your issue will actually look like
 
 ---
 
-### Make sure you are using the *latest* version: run `youtube-dl --version` and ensure your version is *%(version)s*. If it's not read [this FAQ entry](https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl) and update. Issues with outdated version will be rejected.
+### Make sure you are using the *latest* version: run `youtube-dl --version` and ensure your version is *%(version)s*. If it's not, read [this FAQ entry](https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl) and update. Issues with outdated version will be rejected.
 - [ ] I've **verified** and **I assure** that I'm running youtube-dl **%(version)s**
 
 ### Before submitting an *issue* make sure you have:
-- [ ] At least skimmed through [README](https://github.com/rg3/youtube-dl/blob/master/README.md) and **most notably** [FAQ](https://github.com/rg3/youtube-dl#faq) and [BUGS](https://github.com/rg3/youtube-dl#bugs) sections
+- [ ] At least skimmed through the [README](https://github.com/rg3/youtube-dl/blob/master/README.md), **most notably** the [FAQ](https://github.com/rg3/youtube-dl#faq) and [BUGS](https://github.com/rg3/youtube-dl#bugs) sections
 - [ ] [Searched](https://github.com/rg3/youtube-dl/search?type=Issues) the bugtracker for similar issues including closed ones
+- [ ] Checked that provided video/audio/playlist URLs (if any) are alive and playable in a browser
 
 ### What is the purpose of your *issue*?
 - [ ] Bug report (encountered problems with youtube-dl)
@@ -28,9 +29,9 @@
 
 ### If the purpose of this *issue* is a *bug report*, *site support request* or you are not completely sure provide the full verbose output as follows:
 
-Add `-v` flag to **your command line** you run youtube-dl with, copy the **whole** output and insert it here. It should look similar to one below (replace it with **your** log inserted between triple ```):
+Add the `-v` flag to **your command line** you run youtube-dl with (`youtube-dl -v <your command line>`), copy the **whole** output and insert it here. It should look similar to one below (replace it with **your** log inserted between triple ```):
+
 ```
-$ youtube-dl -v <your command line>
 [debug] System config: []
 [debug] User config: []
 [debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
@@ -49,6 +50,8 @@ $ youtube-dl -v <your command line>
 - Single video: https://www.youtube.com/watch?v=BaW_jenozKc
 - Single video: https://youtu.be/BaW_jenozKc
 - Playlist: https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc
+
+Note that **youtube-dl does not support sites dedicated to [copyright infringement](https://github.com/rg3/youtube-dl#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. In order for site support request to be accepted all provided example URLs should not violate any copyrights.
 
 ---
 

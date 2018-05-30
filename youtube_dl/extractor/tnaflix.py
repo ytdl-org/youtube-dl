@@ -21,6 +21,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         r'flashvars\.config\s*=\s*escape\("([^"]+)"',
         r'<input[^>]+name="config\d?" value="([^"]+)"',
     ]
+    _HOST = 'tna'
+    _VKEY_SUFFIX = ''
     _TITLE_REGEX = r'<input[^>]+name="title" value="([^"]+)"'
     _DESCRIPTION_REGEX = r'<input[^>]+name="description" value="([^"]+)"'
     _UPLOADER_REGEX = r'<input[^>]+name="username" value="([^"]+)"'
@@ -72,7 +74,13 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id') if 'display_id' in mobj.groupdict() else video_id
+        for display_id_key in ('display_id', 'display_id_2'):
+            if display_id_key in mobj.groupdict():
+                display_id = mobj.group(display_id_key)
+                if display_id:
+                    break
+        else:
+            display_id = video_id
 
         webpage = self._download_webpage(url, display_id)
 
@@ -81,8 +89,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
 
         if not cfg_url:
             inputs = self._hidden_inputs(webpage)
-            cfg_url = ('https://cdn-fck.tnaflix.com/tnaflix/%s.fid?key=%s&VID=%s&premium=1&vip=1&alpha'
-                       % (inputs['vkey'], inputs['nkey'], video_id))
+            cfg_url = ('https://cdn-fck.%sflix.com/%sflix/%s%s.fid?key=%s&VID=%s&premium=1&vip=1&alpha'
+                       % (self._HOST, self._HOST, inputs['vkey'], self._VKEY_SUFFIX, inputs['nkey'], video_id))
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, 'Downloading metadata',
@@ -91,7 +99,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         formats = []
 
         def extract_video_url(vl):
-            return re.sub('speed=\d+', 'speed=', unescapeHTML(vl.text))
+            # Any URL modification now results in HTTP Error 403: Forbidden
+            return unescapeHTML(vl.text)
 
         video_link = cfg_xml.find('./videoLink')
         if video_link is not None:
@@ -174,7 +183,7 @@ class TNAFlixNetworkEmbedIE(TNAFlixNetworkBaseIE):
             'display_id': '6538',
             'ext': 'mp4',
             'title': 'Educational xxx video',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         },
         'params': {
@@ -192,24 +201,27 @@ class TNAFlixNetworkEmbedIE(TNAFlixNetworkBaseIE):
             webpage)]
 
 
-class TNAFlixIE(TNAFlixNetworkBaseIE):
+class TNAEMPFlixBaseIE(TNAFlixNetworkBaseIE):
+    _DESCRIPTION_REGEX = r'(?s)>Description:</[^>]+>(.+?)<'
+    _UPLOADER_REGEX = r'<span>by\s*<a[^>]+\bhref=["\']/profile/[^>]+>([^<]+)<'
+    _CATEGORIES_REGEX = r'(?s)<span[^>]*>Categories:</span>(.+?)</div>'
+
+
+class TNAFlixIE(TNAEMPFlixBaseIE):
     _VALID_URL = r'https?://(?:www\.)?tnaflix\.com/[^/]+/(?P<display_id>[^/]+)/video(?P<id>\d+)'
 
     _TITLE_REGEX = r'<title>(.+?) - (?:TNAFlix Porn Videos|TNAFlix\.com)</title>'
-    _DESCRIPTION_REGEX = r'(?s)>Description:</[^>]+>(.+?)<'
-    _UPLOADER_REGEX = r'<i>\s*Verified Member\s*</i>\s*<h\d+>(.+?)<'
-    _CATEGORIES_REGEX = r'(?s)<span[^>]*>Categories:</span>(.+?)</div>'
 
     _TESTS = [{
         # anonymous uploader, no categories
         'url': 'http://www.tnaflix.com/porn-stars/Carmella-Decesare-striptease/video553878',
-        'md5': 'ecf3498417d09216374fc5907f9c6ec0',
+        'md5': '7e569419fe6d69543d01e6be22f5f7c4',
         'info_dict': {
             'id': '553878',
             'display_id': 'Carmella-Decesare-striptease',
             'ext': 'mp4',
             'title': 'Carmella Decesare - striptease',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 91,
             'age_limit': 18,
             'categories': ['Porn Stars'],
@@ -224,11 +236,11 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
             'ext': 'mp4',
             'title': 'Educational xxx video',
             'description': 'md5:b4fab8f88a8621c8fabd361a173fe5b8',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 164,
             'age_limit': 18,
             'uploader': 'bobwhite39',
-            'categories': ['Amateur Porn', 'Squirting Videos', 'Teen Girls 18+'],
+            'categories': list,
         }
     }, {
         'url': 'https://www.tnaflix.com/amateur-porn/bunzHD-Ms.Donk/video358632',
@@ -236,21 +248,22 @@ class TNAFlixIE(TNAFlixNetworkBaseIE):
     }]
 
 
-class EMPFlixIE(TNAFlixNetworkBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?empflix\.com/videos/(?P<display_id>.+?)-(?P<id>[0-9]+)\.html'
+class EMPFlixIE(TNAEMPFlixBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?empflix\.com/(?:videos/(?P<display_id>.+?)-|[^/]+/(?P<display_id_2>[^/]+)/video)(?P<id>[0-9]+)'
 
-    _UPLOADER_REGEX = r'<span[^>]+class="infoTitle"[^>]*>Uploaded By:</span>(.+?)</li>'
+    _HOST = 'emp'
+    _VKEY_SUFFIX = '-1'
 
     _TESTS = [{
         'url': 'http://www.empflix.com/videos/Amateur-Finger-Fuck-33051.html',
-        'md5': 'b1bc15b6412d33902d6e5952035fcabc',
+        'md5': 'bc30d48b91a7179448a0bda465114676',
         'info_dict': {
             'id': '33051',
             'display_id': 'Amateur-Finger-Fuck',
             'ext': 'mp4',
             'title': 'Amateur Finger Fuck',
             'description': 'Amateur solo finger fucking.',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'duration': 83,
             'age_limit': 18,
             'uploader': 'cwbike',
@@ -258,6 +271,9 @@ class EMPFlixIE(TNAFlixNetworkBaseIE):
         }
     }, {
         'url': 'http://www.empflix.com/videos/[AROMA][ARMD-718]-Aoi-Yoshino-Sawa-25826.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.empflix.com/amateur-porn/Amateur-Finger-Fuck/video33051',
         'only_matching': True,
     }]
 
@@ -280,7 +296,7 @@ class MovieFapIE(TNAFlixNetworkBaseIE):
             'ext': 'mp4',
             'title': 'Experienced MILF Amazing Handjob',
             'description': 'Experienced MILF giving an Amazing Handjob',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
             'uploader': 'darvinfred06',
             'view_count': int,
@@ -298,7 +314,7 @@ class MovieFapIE(TNAFlixNetworkBaseIE):
             'ext': 'flv',
             'title': 'Jeune Couple Russe',
             'description': 'Amateur',
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
             'uploader': 'whiskeyjar',
             'view_count': int,

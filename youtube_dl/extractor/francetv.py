@@ -3,33 +3,102 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     clean_html,
+    determine_ext,
     ExtractorError,
     int_or_none,
     parse_duration,
-    determine_ext,
+    try_get,
 )
-from .dailymotion import (
-    DailymotionIE,
-    DailymotionCloudIE,
-)
+from .dailymotion import DailymotionIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
-    def _extract_video(self, video_id, catalogue):
+    def _make_url_result(self, video_or_full_id, catalog=None):
+        full_id = 'francetv:%s' % video_or_full_id
+        if '@' not in video_or_full_id and catalog:
+            full_id += '@%s' % catalog
+        return self.url_result(
+            full_id, ie=FranceTVIE.ie_key(),
+            video_id=video_or_full_id.split('@')[0])
+
+
+class FranceTVIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+                    (?:
+                        https?://
+                            sivideo\.webservices\.francetelevisions\.fr/tools/getInfosOeuvre/v2/\?
+                            .*?\bidDiffusion=[^&]+|
+                        (?:
+                            https?://videos\.francetv\.fr/video/|
+                            francetv:
+                        )
+                        (?P<id>[^@]+)(?:@(?P<catalog>.+))?
+                    )
+                    '''
+
+    _TESTS = [{
+        # without catalog
+        'url': 'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/?idDiffusion=162311093&callback=_jsonp_loader_callback_request_0',
+        'md5': 'c2248a8de38c4e65ea8fae7b5df2d84f',
+        'info_dict': {
+            'id': '162311093',
+            'ext': 'mp4',
+            'title': '13h15, le dimanche... - Les mystères de Jésus',
+            'description': 'md5:75efe8d4c0a8205e5904498ffe1e1a42',
+            'timestamp': 1502623500,
+            'upload_date': '20170813',
+        },
+    }, {
+        # with catalog
+        'url': 'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/?idDiffusion=NI_1004933&catalogue=Zouzous&callback=_jsonp_loader_callback_request_4',
+        'only_matching': True,
+    }, {
+        'url': 'http://videos.francetv.fr/video/NI_657393@Regions',
+        'only_matching': True,
+    }, {
+        'url': 'francetv:162311093',
+        'only_matching': True,
+    }, {
+        'url': 'francetv:NI_1004933@Zouzous',
+        'only_matching': True,
+    }, {
+        'url': 'francetv:NI_983319@Info-web',
+        'only_matching': True,
+    }, {
+        'url': 'francetv:NI_983319',
+        'only_matching': True,
+    }, {
+        'url': 'francetv:NI_657393@Regions',
+        'only_matching': True,
+    }, {
+        # france-3 live
+        'url': 'francetv:SIM_France3',
+        'only_matching': True,
+    }]
+
+    def _extract_video(self, video_id, catalogue=None):
+        # Videos are identified by idDiffusion so catalogue part is optional.
+        # However when provided, some extra formats may be returned so we pass
+        # it if available.
         info = self._download_json(
-            'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/?idDiffusion=%s&catalogue=%s'
-            % (video_id, catalogue),
-            video_id, 'Downloading video JSON')
+            'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/',
+            video_id, 'Downloading video JSON', query={
+                'idDiffusion': video_id,
+                'catalogue': catalogue or '',
+            })
 
         if info.get('status') == 'NOK':
             raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, info['message']), expected=True)
+                '%s returned error: %s' % (self.IE_NAME, info['message']),
+                expected=True)
         allowed_countries = info['videos'][0].get('geoblocage')
         if allowed_countries:
             georestricted = True
@@ -44,6 +113,21 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
         else:
             georestricted = False
 
+        def sign(manifest_url, manifest_id):
+            for host in ('hdfauthftv-a.akamaihd.net', 'hdfauth.francetv.fr'):
+                signed_url = self._download_webpage(
+                    'https://%s/esi/TA' % host, video_id,
+                    'Downloading signed %s manifest URL' % manifest_id,
+                    fatal=False, query={
+                        'url': manifest_url,
+                    })
+                if (signed_url and isinstance(signed_url, compat_str) and
+                        re.search(r'^(?:https?:)?//', signed_url)):
+                    return signed_url
+            return manifest_url
+
+        is_live = None
+
         formats = []
         for video in info['videos']:
             if video['statut'] != 'ONLINE':
@@ -51,6 +135,10 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
             video_url = video['url']
             if not video_url:
                 continue
+            if is_live is None:
+                is_live = (try_get(
+                    video, lambda x: x['plages_ouverture'][0]['direct'],
+                    bool) is True) or '/live.francetv.fr/' in video_url
             format_id = video['format']
             ext = determine_ext(video_url)
             if ext == 'f4m':
@@ -58,17 +146,14 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
                     # See https://github.com/rg3/youtube-dl/issues/3963
                     # m3u8 urls work fine
                     continue
-                f4m_url = self._download_webpage(
-                    'http://hdfauth.francetv.fr/esi/TA?url=%s' % video_url,
-                    video_id, 'Downloading f4m manifest token', fatal=False)
-                if f4m_url:
-                    formats.extend(self._extract_f4m_formats(
-                        f4m_url + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
-                        video_id, f4m_id=format_id, fatal=False))
+                formats.extend(self._extract_f4m_formats(
+                    sign(video_url, format_id) + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
+                    video_id, f4m_id=format_id, fatal=False))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id=format_id, fatal=False))
+                    sign(video_url, format_id), video_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id=format_id,
+                    fatal=False))
             elif video_url.startswith('rtmp'):
                 formats.append({
                     'url': video_url,
@@ -99,39 +184,136 @@ class FranceTVBaseInfoExtractor(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
+            'title': self._live_title(title) if is_live else title,
             'description': clean_html(info['synopsis']),
             'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
             'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
             'timestamp': int_or_none(info['diffusion']['timestamp']),
+            'is_live': is_live,
             'formats': formats,
             'subtitles': subtitles,
         }
 
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        catalog = mobj.group('catalog')
 
-class PluzzIE(FranceTVBaseInfoExtractor):
-    IE_NAME = 'pluzz.francetv.fr'
-    _VALID_URL = r'https?://(?:m\.)?pluzz\.francetv\.fr/videos/(?P<id>.+?)\.html'
+        if not video_id:
+            qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+            video_id = qs.get('idDiffusion', [None])[0]
+            catalog = qs.get('catalogue', [None])[0]
+            if not video_id:
+                raise ExtractorError('Invalid URL', expected=True)
 
-    # Can't use tests, videos expire in 7 days
+        return self._extract_video(video_id, catalog)
+
+
+class FranceTVSiteIE(FranceTVBaseInfoExtractor):
+    _VALID_URL = r'https?://(?:(?:www\.)?france\.tv|mobile\.france\.tv)/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+
+    _TESTS = [{
+        'url': 'https://www.france.tv/france-2/13h15-le-dimanche/140921-les-mysteres-de-jesus.html',
+        'info_dict': {
+            'id': '162311093',
+            'ext': 'mp4',
+            'title': '13h15, le dimanche... - Les mystères de Jésus',
+            'description': 'md5:75efe8d4c0a8205e5904498ffe1e1a42',
+            'timestamp': 1502623500,
+            'upload_date': '20170813',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [FranceTVIE.ie_key()],
+    }, {
+        # france3
+        'url': 'https://www.france.tv/france-3/des-chiffres-et-des-lettres/139063-emission-du-mardi-9-mai-2017.html',
+        'only_matching': True,
+    }, {
+        # france4
+        'url': 'https://www.france.tv/france-4/hero-corp/saison-1/134151-apres-le-calme.html',
+        'only_matching': True,
+    }, {
+        # france5
+        'url': 'https://www.france.tv/france-5/c-a-dire/saison-10/137013-c-a-dire.html',
+        'only_matching': True,
+    }, {
+        # franceo
+        'url': 'https://www.france.tv/france-o/archipels/132249-mon-ancetre-l-esclave.html',
+        'only_matching': True,
+    }, {
+        # france2 live
+        'url': 'https://www.france.tv/france-2/direct.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.france.tv/documentaires/histoire/136517-argentine-les-500-bebes-voles-de-la-dictature.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.france.tv/jeux-et-divertissements/divertissements/133965-le-web-contre-attaque.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://mobile.france.tv/france-5/c-dans-l-air/137347-emission-du-vendredi-12-mai-2017.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.france.tv/142749-rouge-sang.html',
+        'only_matching': True,
+    }, {
+        # france-3 live
+        'url': 'https://www.france.tv/france-3/direct.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
 
-        video_id = self._html_search_meta(
-            'id_video', webpage, 'video id', default=None)
+        catalogue = None
+        video_id = self._search_regex(
+            r'data-main-video=(["\'])(?P<id>(?:(?!\1).)+)\1',
+            webpage, 'video id', default=None, group='id')
+
         if not video_id:
-            video_id = self._search_regex(
-                r'data-diffusion=["\'](\d+)', webpage, 'video id')
+            video_id, catalogue = self._html_search_regex(
+                r'(?:href=|player\.setVideo\(\s*)"http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
+                webpage, 'video ID').split('@')
 
-        return self._extract_video(video_id, 'Pluzz')
+        return self._make_url_result(video_id, catalogue)
 
 
-class FranceTvInfoIE(FranceTVBaseInfoExtractor):
+class FranceTVEmbedIE(FranceTVBaseInfoExtractor):
+    _VALID_URL = r'https?://embed\.francetv\.fr/*\?.*?\bue=(?P<id>[^&]+)'
+
+    _TESTS = [{
+        'url': 'http://embed.francetv.fr/?ue=7fd581a2ccf59d2fc5719c5c13cf6961',
+        'info_dict': {
+            'id': 'NI_983319',
+            'ext': 'mp4',
+            'title': 'Le Pen Reims',
+            'upload_date': '20170505',
+            'timestamp': 1493981780,
+            'duration': 16,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [FranceTVIE.ie_key()],
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        video = self._download_json(
+            'http://api-embed.webservices.francetelevisions.fr/key/%s' % video_id,
+            video_id)
+
+        return self._make_url_result(video['video_id'], video.get('catalog'))
+
+
+class FranceTVInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/(?:[^/]+/)*(?P<title>[^/?#&.]+)'
+    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&.]+)'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
@@ -146,51 +328,18 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             },
         },
         'params': {
-            # m3u8 downloads
             'skip_download': True,
         },
+        'add_ie': [FranceTVIE.ie_key()],
     }, {
         'url': 'http://www.francetvinfo.fr/elections/europeennes/direct-europeennes-regardez-le-debat-entre-les-candidats-a-la-presidence-de-la-commission_600639.html',
-        'info_dict': {
-            'id': 'EV_20019',
-            'ext': 'mp4',
-            'title': 'Débat des candidats à la Commission européenne',
-            'description': 'Débat des candidats à la Commission européenne',
-        },
-        'params': {
-            'skip_download': 'HLS (reqires ffmpeg)'
-        },
-        'skip': 'Ce direct est terminé et sera disponible en rattrapage dans quelques minutes.',
+        'only_matching': True,
     }, {
         'url': 'http://www.francetvinfo.fr/economie/entreprises/les-entreprises-familiales-le-secret-de-la-reussite_933271.html',
-        'md5': 'f485bda6e185e7d15dbc69b72bae993e',
-        'info_dict': {
-            'id': 'NI_173343',
-            'ext': 'mp4',
-            'title': 'Les entreprises familiales : le secret de la réussite',
-            'thumbnail': 're:^https?://.*\.jpe?g$',
-            'timestamp': 1433273139,
-            'upload_date': '20150602',
-        },
-        'params': {
-            # m3u8 downloads
-            'skip_download': True,
-        },
+        'only_matching': True,
     }, {
         'url': 'http://france3-regions.francetvinfo.fr/bretagne/cotes-d-armor/thalassa-echappee-breizh-ce-venredi-dans-les-cotes-d-armor-954961.html',
-        'md5': 'f485bda6e185e7d15dbc69b72bae993e',
-        'info_dict': {
-            'id': 'NI_657393',
-            'ext': 'mp4',
-            'title': 'Olivier Monthus, réalisateur de "Bretagne, le choix de l’Armor"',
-            'description': 'md5:a3264114c9d29aeca11ced113c37b16c',
-            'thumbnail': 're:^https?://.*\.jpe?g$',
-            'timestamp': 1458300695,
-            'upload_date': '20160318',
-        },
-        'params': {
-            'skip_download': True,
-        },
+        'only_matching': True,
     }, {
         # Dailymotion embed
         'url': 'http://www.francetvinfo.fr/politique/notre-dame-des-landes/video-sur-france-inter-cecile-duflot-denonce-le-regard-meprisant-de-patrick-cohen_1520091.html',
@@ -212,13 +361,9 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        page_title = mobj.group('title')
-        webpage = self._download_webpage(url, page_title)
+        display_id = self._match_id(url)
 
-        dmcloud_url = DailymotionCloudIE._extract_dmcloud_url(webpage)
-        if dmcloud_url:
-            return self.url_result(dmcloud_url, DailymotionCloudIE.ie_key())
+        webpage = self._download_webpage(url, display_id)
 
         dailymotion_urls = DailymotionIE._extract_urls(webpage)
         if dailymotion_urls:
@@ -230,182 +375,116 @@ class FranceTvInfoIE(FranceTVBaseInfoExtractor):
             (r'id-video=([^@]+@[^"]+)',
              r'<a[^>]+href="(?:https?:)?//videos\.francetv\.fr/video/([^@]+@[^"]+)"'),
             webpage, 'video id').split('@')
-        return self._extract_video(video_id, catalogue)
+
+        return self._make_url_result(video_id, catalogue)
 
 
-class FranceTVIE(FranceTVBaseInfoExtractor):
-    IE_NAME = 'francetv'
-    IE_DESC = 'France 2, 3, 4, 5 and Ô'
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:
-                            (?:www\.)?france[2345o]\.fr/
-                                (?:
-                                    emissions/[^/]+/(?:videos|diffusions)|
-                                    emission/[^/]+|
-                                    videos|
-                                    jt
-                                )
-                            /|
-                            embed\.francetv\.fr/\?ue=
-                        )
-                        (?P<id>[^/?]+)
-                    '''
+class GenerationWhatIE(InfoExtractor):
+    IE_NAME = 'france2.fr:generation-what'
+    _VALID_URL = r'https?://generation-what\.francetv\.fr/[^/]+/video/(?P<id>[^/?#&]+)'
 
-    _TESTS = [
-        # france2
-        {
-            'url': 'http://www.france2.fr/emissions/13h15-le-samedi-le-dimanche/videos/75540104',
-            'md5': 'c03fc87cb85429ffd55df32b9fc05523',
-            'info_dict': {
-                'id': '109169362',
-                'ext': 'flv',
-                'title': '13h15, le dimanche...',
-                'description': 'md5:9a0932bb465f22d377a449be9d1a0ff7',
-                'upload_date': '20140914',
-                'timestamp': 1410693600,
-            },
-        },
-        # france3
-        {
-            'url': 'http://www.france3.fr/emissions/pieces-a-conviction/diffusions/13-11-2013_145575',
-            'md5': '679bb8f8921f8623bd658fa2f8364da0',
-            'info_dict': {
-                'id': '000702326_CAPP_PicesconvictionExtrait313022013_120220131722_Au',
-                'ext': 'mp4',
-                'title': 'Le scandale du prix des médicaments',
-                'description': 'md5:1384089fbee2f04fc6c9de025ee2e9ce',
-                'upload_date': '20131113',
-                'timestamp': 1384380000,
-            },
-        },
-        # france4
-        {
-            'url': 'http://www.france4.fr/emissions/hero-corp/videos/rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
-            'md5': 'a182bf8d2c43d88d46ec48fbdd260c1c',
-            'info_dict': {
-                'id': 'rhozet_herocorp_bonus_1_20131106_1923_06112013172108_F4',
-                'ext': 'mp4',
-                'title': 'Hero Corp Making of - Extrait 1',
-                'description': 'md5:c87d54871b1790679aec1197e73d650a',
-                'upload_date': '20131106',
-                'timestamp': 1383766500,
-            },
-        },
-        # france5
-        {
-            'url': 'http://www.france5.fr/emissions/c-a-dire/videos/quels_sont_les_enjeux_de_cette_rentree_politique__31-08-2015_908948?onglet=tous&page=1',
-            'md5': 'f6c577df3806e26471b3d21631241fd0',
-            'info_dict': {
-                'id': '123327454',
-                'ext': 'flv',
-                'title': 'C à dire ?! - Quels sont les enjeux de cette rentrée politique ?',
-                'description': 'md5:4a0d5cb5dce89d353522a84462bae5a4',
-                'upload_date': '20150831',
-                'timestamp': 1441035120,
-            },
-        },
-        # franceo
-        {
-            'url': 'http://www.franceo.fr/jt/info-soir/18-07-2015',
-            'md5': '47d5816d3b24351cdce512ad7ab31da8',
-            'info_dict': {
-                'id': '125377621',
-                'ext': 'flv',
-                'title': 'Infô soir',
-                'description': 'md5:01b8c6915a3d93d8bbbd692651714309',
-                'upload_date': '20150718',
-                'timestamp': 1437241200,
-                'duration': 414,
-            },
-        },
-        {
-            # francetv embed
-            'url': 'http://embed.francetv.fr/?ue=8d7d3da1e3047c42ade5a5d7dfd3fc87',
-            'info_dict': {
-                'id': 'EV_30231',
-                'ext': 'flv',
-                'title': 'Alcaline, le concert avec Calogero',
-                'description': 'md5:61f08036dcc8f47e9cfc33aed08ffaff',
-                'upload_date': '20150226',
-                'timestamp': 1424989860,
-                'duration': 5400,
-            },
-        },
-        {
-            'url': 'http://www.france4.fr/emission/highlander/diffusion-du-17-07-2015-04h05',
-            'only_matching': True,
-        },
-        {
-            'url': 'http://www.franceo.fr/videos/125377617',
-            'only_matching': True,
-        }
-    ]
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        video_id, catalogue = self._html_search_regex(
-            r'(?:href=|player\.setVideo\(\s*)"http://videos?\.francetv\.fr/video/([^@]+@[^"]+)"',
-            webpage, 'video ID').split('@')
-        return self._extract_video(video_id, catalogue)
-
-
-class GenerationQuoiIE(InfoExtractor):
-    IE_NAME = 'france2.fr:generation-quoi'
-    _VALID_URL = r'https?://generation-quoi\.france2\.fr/portrait/(?P<id>[^/?#]+)'
-
-    _TEST = {
-        'url': 'http://generation-quoi.france2.fr/portrait/garde-a-vous',
+    _TESTS = [{
+        'url': 'http://generation-what.francetv.fr/portrait/video/present-arms',
         'info_dict': {
-            'id': 'k7FJX8VBcvvLmX4wA5Q',
+            'id': 'wtvKYUG45iw',
             'ext': 'mp4',
-            'title': 'Génération Quoi - Garde à Vous',
-            'uploader': 'Génération Quoi',
+            'title': 'Generation What - Garde à vous - FRA',
+            'uploader': 'Generation What',
+            'uploader_id': 'UCHH9p1eetWCgt4kXBYCb3_w',
+            'upload_date': '20160411',
         },
         'params': {
-            # It uses Dailymotion
             'skip_download': True,
         },
-    }
+        'add_ie': ['Youtube'],
+    }, {
+        'url': 'http://generation-what.francetv.fr/europe/video/present-arms',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        info_url = compat_urlparse.urljoin(url, '/medias/video/%s.json' % display_id)
-        info_json = self._download_webpage(info_url, display_id)
-        info = json.loads(info_json)
-        return self.url_result('http://www.dailymotion.com/video/%s' % info['id'],
-                               ie='Dailymotion')
+
+        webpage = self._download_webpage(url, display_id)
+
+        youtube_id = self._search_regex(
+            r"window\.videoURL\s*=\s*'([0-9A-Za-z_-]{11})';",
+            webpage, 'youtube id')
+
+        return self.url_result(youtube_id, ie='Youtube', video_id=youtube_id)
 
 
 class CultureboxIE(FranceTVBaseInfoExtractor):
-    IE_NAME = 'culturebox.francetvinfo.fr'
-    _VALID_URL = r'https?://(?:m\.)?culturebox\.francetvinfo\.fr/(?P<name>.*?)(\?|$)'
+    _VALID_URL = r'https?://(?:m\.)?culturebox\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&]+)'
 
-    _TEST = {
-        'url': 'http://culturebox.francetvinfo.fr/live/musique/musique-classique/le-livre-vermeil-de-montserrat-a-la-cathedrale-delne-214511',
-        'md5': '9b88dc156781c4dbebd4c3e066e0b1d6',
+    _TESTS = [{
+        'url': 'https://culturebox.francetvinfo.fr/opera-classique/musique-classique/c-est-baroque/concerts/cantates-bwv-4-106-et-131-de-bach-par-raphael-pichon-57-268689',
         'info_dict': {
-            'id': 'EV_50111',
-            'ext': 'flv',
-            'title': "Le Livre Vermeil de Montserrat à la Cathédrale d'Elne",
-            'description': 'md5:f8a4ad202e8fe533e2c493cc12e739d9',
-            'upload_date': '20150320',
-            'timestamp': 1426892400,
-            'duration': 2760.9,
+            'id': 'EV_134885',
+            'ext': 'mp4',
+            'title': 'Cantates BWV 4, 106 et 131 de Bach par Raphaël Pichon 5/7',
+            'description': 'md5:19c44af004b88219f4daa50fa9a351d4',
+            'upload_date': '20180206',
+            'timestamp': 1517945220,
+            'duration': 5981,
         },
-    }
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [FranceTVIE.ie_key()],
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        if ">Ce live n'est plus disponible en replay<" in webpage:
+            raise ExtractorError(
+                'Video %s is not available' % display_id, expected=True)
+
+        video_id, catalogue = self._search_regex(
+            r'["\'>]https?://videos\.francetv\.fr/video/([^@]+@.+?)["\'<]',
+            webpage, 'video id').split('@')
+
+        return self._make_url_result(video_id, catalogue)
+
+
+class FranceTVJeunesseIE(FranceTVBaseInfoExtractor):
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?(?:zouzous|ludo)\.fr/heros/(?P<id>[^/?#&]+))'
+
+    _TESTS = [{
+        'url': 'https://www.zouzous.fr/heros/simon',
+        'info_dict': {
+            'id': 'simon',
+        },
+        'playlist_count': 9,
+    }, {
+        'url': 'https://www.ludo.fr/heros/ninjago',
+        'info_dict': {
+            'id': 'ninjago',
+        },
+        'playlist_count': 10,
+    }, {
+        'url': 'https://www.zouzous.fr/heros/simon?abc',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        name = mobj.group('name')
+        playlist_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, name)
+        playlist = self._download_json(
+            '%s/%s' % (mobj.group('url'), 'playlist'), playlist_id)
 
-        if ">Ce live n'est plus disponible en replay<" in webpage:
-            raise ExtractorError('Video %s is not available' % name, expected=True)
+        if not playlist.get('count'):
+            raise ExtractorError(
+                '%s is not available' % playlist_id, expected=True)
 
-        video_id, catalogue = self._search_regex(
-            r'"http://videos\.francetv\.fr/video/([^@]+@[^"]+)"', webpage, 'video id').split('@')
+        entries = []
+        for item in playlist['items']:
+            identity = item.get('identity')
+            if identity and isinstance(identity, compat_str):
+                entries.append(self._make_url_result(identity))
 
-        return self._extract_video(video_id, catalogue)
+        return self.playlist_result(entries, playlist_id)

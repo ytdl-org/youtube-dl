@@ -7,12 +7,21 @@ import time
 
 from .amp import AMPIE
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..compat import compat_urlparse
 
 
 class AbcNewsVideoIE(AMPIE):
     IE_NAME = 'abcnews:video'
-    _VALID_URL = r'https?://abcnews\.go\.com/[^/]+/video/(?P<display_id>[0-9a-z-]+)-(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        abcnews\.go\.com/
+                        (?:
+                            [^/]+/video/(?P<display_id>[0-9a-z-]+)-|
+                            video/embed\?.*?\bid=
+                        )
+                        (?P<id>\d+)
+                    '''
 
     _TESTS = [{
         'url': 'http://abcnews.go.com/ThisWeek/video/week-exclusive-irans-foreign-minister-zarif-20411932',
@@ -23,12 +32,15 @@ class AbcNewsVideoIE(AMPIE):
             'title': '\'This Week\' Exclusive: Iran\'s Foreign Minister Zarif',
             'description': 'George Stephanopoulos goes one-on-one with Iranian Foreign Minister Dr. Javad Zarif.',
             'duration': 180,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        'url': 'http://abcnews.go.com/video/embed?id=46979033',
+        'only_matching': True,
     }, {
         'url': 'http://abcnews.go.com/2020/video/2020-husband-stands-teacher-jail-student-affairs-26119478',
         'only_matching': True,
@@ -54,12 +66,12 @@ class AbcNewsIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://abcnews.go.com/Blotter/News/dramatic-video-rare-death-job-america/story?id=10498713#.UIhwosWHLjY',
         'info_dict': {
-            'id': '10498713',
+            'id': '10505354',
             'ext': 'flv',
             'display_id': 'dramatic-video-rare-death-job-america',
             'title': 'Occupational Hazards',
             'description': 'Nightline investigates the dangers that lurk at various jobs.',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20100428',
             'timestamp': 1272412800,
         },
@@ -67,7 +79,7 @@ class AbcNewsIE(InfoExtractor):
     }, {
         'url': 'http://abcnews.go.com/Entertainment/justin-timberlake-performs-stop-feeling-eurovision-2016/story?id=39125818',
         'info_dict': {
-            'id': '39125818',
+            'id': '38897857',
             'ext': 'mp4',
             'display_id': 'justin-timberlake-performs-stop-feeling-eurovision-2016',
             'title': 'Justin Timberlake Drops Hints For Secret Single',
@@ -97,9 +109,7 @@ class AbcNewsIE(InfoExtractor):
             r'window\.abcnvideo\.url\s*=\s*"([^"]+)"', webpage, 'video URL')
         full_video_url = compat_urlparse.urljoin(url, video_url)
 
-        youtube_url = self._html_search_regex(
-            r'<iframe[^>]+src="(https://www\.youtube\.com/embed/[^"]+)"',
-            webpage, 'YouTube URL', default=None)
+        youtube_url = YoutubeIE._extract_url(webpage)
 
         timestamp = None
         date_str = self._html_search_regex(
@@ -129,7 +139,7 @@ class AbcNewsIE(InfoExtractor):
         }
 
         if youtube_url:
-            entries = [entry, self.url_result(youtube_url, 'Youtube')]
+            entries = [entry, self.url_result(youtube_url, ie=YoutubeIE.ie_key())]
             return self.playlist_result(entries)
 
         return entry

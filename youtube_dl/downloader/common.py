@@ -8,10 +8,11 @@ import random
 
 from ..compat import compat_os_name
 from ..utils import (
+    decodeArgument,
     encodeFilename,
     error_to_compat_str,
-    decodeArgument,
     format_bytes,
+    shell_quote,
     timeconvert,
 )
 
@@ -44,10 +45,12 @@ class FileDownloader(object):
     min_filesize:       Skip files smaller than this size
     max_filesize:       Skip files larger than this size
     xattr_set_filesize: Set ytdl.filesize user xattribute with expected size.
-                        (experimental)
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
     hls_use_mpegts:     Use the mpegts container for HLS videos.
+    http_chunk_size:    Size of a chunk for chunk-based HTTP downloading. May be
+                        useful for bypassing bandwidth throttling imposed by
+                        a webserver (experimental)
 
     Subclasses of this one must re-define the real_download method.
     """
@@ -187,6 +190,9 @@ class FileDownloader(object):
             return filename[:-len('.part')]
         return filename
 
+    def ytdl_filename(self, filename):
+        return filename + '.ytdl'
+
     def try_rename(self, old_filename, new_filename):
         try:
             if old_filename == new_filename:
@@ -242,12 +248,13 @@ class FileDownloader(object):
             if self.params.get('noprogress', False):
                 self.to_screen('[download] Download completed')
             else:
-                s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+                msg_template = '100%%'
+                if s.get('total_bytes') is not None:
+                    s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+                    msg_template += ' of %(_total_bytes_str)s'
                 if s.get('elapsed') is not None:
                     s['_elapsed_str'] = self.format_seconds(s['elapsed'])
-                    msg_template = '100%% of %(_total_bytes_str)s in %(_elapsed_str)s'
-                else:
-                    msg_template = '100%% of %(_total_bytes_str)s'
+                    msg_template += ' in %(_elapsed_str)s'
                 self._report_progress_status(
                     msg_template % s, is_last_line=True)
 
@@ -300,11 +307,11 @@ class FileDownloader(object):
         """Report attempt to resume at given byte."""
         self.to_screen('[download] Resuming download at byte %s' % resume_len)
 
-    def report_retry(self, count, retries):
+    def report_retry(self, err, count, retries):
         """Report retry in case of HTTP error 5xx"""
         self.to_screen(
-            '[download] Got server HTTP error. Retrying (attempt %d of %s)...'
-            % (count, self.format_retries(retries)))
+            '[download] Got server HTTP error: %s. Retrying (attempt %d of %s)...'
+            % (error_to_compat_str(err), count, self.format_retries(retries)))
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""
@@ -327,27 +334,31 @@ class FileDownloader(object):
             os.path.exists(encodeFilename(filename))
         )
 
-        continuedl_and_exists = (
-            self.params.get('continuedl', True) and
-            os.path.isfile(encodeFilename(filename)) and
-            not self.params.get('nopart', False)
-        )
+        if not hasattr(filename, 'write'):
+            continuedl_and_exists = (
+                self.params.get('continuedl', True) and
+                os.path.isfile(encodeFilename(filename)) and
+                not self.params.get('nopart', False)
+            )
 
-        # Check file already present
-        if filename != '-' and (nooverwrites_and_exists or continuedl_and_exists):
-            self.report_file_already_downloaded(filename)
-            self._hook_progress({
-                'filename': filename,
-                'status': 'finished',
-                'total_bytes': os.path.getsize(encodeFilename(filename)),
-            })
-            return True
+            # Check file already present
+            if filename != '-' and (nooverwrites_and_exists or continuedl_and_exists):
+                self.report_file_already_downloaded(filename)
+                self._hook_progress({
+                    'filename': filename,
+                    'status': 'finished',
+                    'total_bytes': os.path.getsize(encodeFilename(filename)),
+                })
+                return True
 
         min_sleep_interval = self.params.get('sleep_interval')
         if min_sleep_interval:
             max_sleep_interval = self.params.get('max_sleep_interval', min_sleep_interval)
             sleep_interval = random.uniform(min_sleep_interval, max_sleep_interval)
-            self.to_screen('[download] Sleeping %s seconds...' % sleep_interval)
+            self.to_screen(
+                '[download] Sleeping %s seconds...' % (
+                    int(sleep_interval) if sleep_interval.is_integer()
+                    else '%.2f' % sleep_interval))
             time.sleep(sleep_interval)
 
         return self.real_download(filename, info_dict)
@@ -374,10 +385,5 @@ class FileDownloader(object):
         if exe is None:
             exe = os.path.basename(str_args[0])
 
-        try:
-            import pipes
-            shell_quote = lambda args: ' '.join(map(pipes.quote, str_args))
-        except ImportError:
-            shell_quote = repr
         self.to_screen('[debug] %s command line: %s' % (
             exe, shell_quote(str_args)))

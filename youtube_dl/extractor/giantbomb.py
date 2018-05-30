@@ -5,9 +5,10 @@ import json
 
 from .common import InfoExtractor
 from ..utils import (
-    unescapeHTML,
-    qualities,
+    determine_ext,
     int_or_none,
+    qualities,
+    unescapeHTML,
 )
 
 
@@ -15,7 +16,7 @@ class GiantBombIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?giantbomb\.com/videos/(?P<display_id>[^/]+)/(?P<id>\d+-\d+)'
     _TEST = {
         'url': 'http://www.giantbomb.com/videos/quick-look-destiny-the-dark-below/2300-9782/',
-        'md5': '57badeface303ecf6b98b812de1b9018',
+        'md5': 'c8ea694254a59246a42831155dec57ac',
         'info_dict': {
             'id': '2300-9782',
             'display_id': 'quick-look-destiny-the-dark-below',
@@ -23,7 +24,7 @@ class GiantBombIE(InfoExtractor):
             'title': 'Quick Look: Destiny: The Dark Below',
             'description': 'md5:0aa3aaf2772a41b91d44c63f30dfad24',
             'duration': 2399,
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
 
@@ -51,11 +52,16 @@ class GiantBombIE(InfoExtractor):
         for format_id, video_url in video['videoStreams'].items():
             if format_id == 'f4m_stream':
                 continue
-            if video_url.endswith('.f4m'):
+            ext = determine_ext(video_url)
+            if ext == 'f4m':
                 f4m_formats = self._extract_f4m_formats(video_url + '?hdcore=3.3.1', display_id)
                 if f4m_formats:
                     f4m_formats[0]['quality'] = quality(format_id)
                     formats.extend(f4m_formats)
+            elif ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, display_id, ext='mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
             else:
                 formats.append({
                     'url': video_url,

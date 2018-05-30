@@ -22,7 +22,7 @@ class MnetIE(InfoExtractor):
             'timestamp': 1451564040,
             'age_limit': 0,
             'thumbnails': 'mincount:5',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'ext': 'flv',
         },
         'params': {
@@ -40,21 +40,29 @@ class MnetIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        # TODO: extract rtmp formats
+        # no stype -> rtmp url
+        # stype=H -> m3u8 url
+        # stype=M -> mpd url
         info = self._download_json(
-            'http://content.api.mnet.com/player/vodConfig?id=%s&ctype=CLIP' % video_id,
-            video_id, 'Downloading vod config JSON')['data']['info']
+            'http://content.api.mnet.com/player/vodConfig',
+            video_id, 'Downloading vod config JSON', query={
+                'id': video_id,
+                'ctype': 'CLIP',
+                'stype': 'H',
+            })['data']['info']
 
         title = info['title']
 
-        rtmp_info = self._download_json(
-            info['cdn'], video_id, 'Downloading vod cdn JSON')
-
-        formats = [{
-            'url': rtmp_info['serverurl'] + rtmp_info['fileurl'],
-            'ext': 'flv',
-            'page_url': url,
-            'player_url': 'http://flvfile.mnet.com/service/player/201602/cjem_player_tv.swf?v=201602191318',
-        }]
+        cdn_data = self._download_json(
+            info['cdn'], video_id, 'Downloading vod cdn JSON')['data'][0]
+        m3u8_url = cdn_data['url']
+        token = cdn_data.get('token')
+        if token and token != '-':
+            m3u8_url += '?' + token
+        formats = self._extract_wowza_formats(
+            m3u8_url, video_id, skip_protocols=['rtmp', 'rtsp', 'f4m'])
+        self._sort_formats(formats)
 
         description = info.get('ment')
         duration = parse_duration(info.get('time'))

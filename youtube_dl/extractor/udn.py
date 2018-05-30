@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
@@ -23,12 +22,13 @@ class UDNEmbedIE(InfoExtractor):
             'id': '300040',
             'ext': 'mp4',
             'title': '生物老師男變女 全校挺"做自己"',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
+        'expected_warnings': ['Failed to parse JSON Expecting value'],
     }, {
         'url': 'https://video.udn.com/embed/news/300040',
         'only_matching': True,
@@ -43,10 +43,21 @@ class UDNEmbedIE(InfoExtractor):
 
         page = self._download_webpage(url, video_id)
 
-        options = json.loads(js_to_json(self._html_search_regex(
-            r'var\s+options\s*=\s*([^;]+);', page, 'video urls dictionary')))
-
-        video_urls = options['video']
+        options_str = self._html_search_regex(
+            r'var\s+options\s*=\s*([^;]+);', page, 'options')
+        trans_options_str = js_to_json(options_str)
+        options = self._parse_json(trans_options_str, 'options', fatal=False) or {}
+        if options:
+            video_urls = options['video']
+            title = options['title']
+            poster = options.get('poster')
+        else:
+            video_urls = self._parse_json(self._html_search_regex(
+                r'"video"\s*:\s*({.+?})\s*,', trans_options_str, 'video urls'), 'video urls')
+            title = self._html_search_regex(
+                r"title\s*:\s*'(.+?)'\s*,", options_str, 'title')
+            poster = self._html_search_regex(
+                r"poster\s*:\s*'(.+?)'\s*,", options_str, 'poster', default=None)
 
         if video_urls.get('youtube'):
             return self.url_result(video_urls.get('youtube'), 'Youtube')
@@ -68,7 +79,7 @@ class UDNEmbedIE(InfoExtractor):
                 formats.extend(self._extract_f4m_formats(
                     video_url, video_id, f4m_id='hds'))
             else:
-                mobj = re.search(r'_(?P<height>\d+)p_(?P<tbr>\d+).mp4', video_url)
+                mobj = re.search(r'_(?P<height>\d+)p_(?P<tbr>\d+)\.mp4', video_url)
                 a_format = {
                     'url': video_url,
                     # video_type may be 'mp4', which confuses YoutubeDL
@@ -83,14 +94,9 @@ class UDNEmbedIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        thumbnails = [{
-            'url': img_url,
-            'id': img_type,
-        } for img_type, img_url in options.get('gallery', [{}])[0].items() if img_url]
-
         return {
             'id': video_id,
             'formats': formats,
-            'title': options['title'],
-            'thumbnails': thumbnails,
+            'title': title,
+            'thumbnail': poster,
         }

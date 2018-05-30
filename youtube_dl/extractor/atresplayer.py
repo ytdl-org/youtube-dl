@@ -30,20 +30,20 @@ class AtresPlayerIE(InfoExtractor):
                 'title': 'Especial Solidario de Nochebuena',
                 'description': 'md5:e2d52ff12214fa937107d21064075bf1',
                 'duration': 5527.6,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
             'skip': 'This video is only available for registered users'
         },
         {
             'url': 'http://www.atresplayer.com/television/especial/videoencuentros/temporada-1/capitulo-112-david-bustamante_2014121600375.html',
-            'md5': '0d0e918533bbd4b263f2de4d197d4aac',
+            'md5': '6e52cbb513c405e403dbacb7aacf8747',
             'info_dict': {
                 'id': 'capitulo-112-david-bustamante',
                 'ext': 'flv',
                 'title': 'David Bustamante',
                 'description': 'md5:f33f1c0a05be57f6708d4dd83a3b81c6',
                 'duration': 1439.0,
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -74,7 +74,7 @@ class AtresPlayerIE(InfoExtractor):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -87,10 +87,11 @@ class AtresPlayerIE(InfoExtractor):
             self._LOGIN_URL, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         response = self._download_webpage(
-            request, None, 'Logging in as %s' % username)
+            request, None, 'Logging in')
 
         error = self._html_search_regex(
-            r'(?s)<ul class="list_error">(.+?)</ul>', response, 'error', default=None)
+            r'(?s)<ul[^>]+class="[^"]*\blist_error\b[^"]*">(.+?)</ul>',
+            response, 'error', default=None)
         if error:
             raise ExtractorError(
                 'Unable to login: %s' % error, expected=True)
@@ -155,13 +156,17 @@ class AtresPlayerIE(InfoExtractor):
             if format_id == 'token' or not video_url.startswith('http'):
                 continue
             if 'geodeswowsmpra3player' in video_url:
-                f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
-                f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
+                # f4m_path = video_url.split('smil:', 1)[-1].split('free_', 1)[0]
+                # f4m_url = 'http://drg.antena3.com/{0}hds/es/sd.f4m'.format(f4m_path)
                 # this videos are protected by DRM, the f4m downloader doesn't support them
                 continue
-            else:
-                f4m_url = video_url[:-9] + '/manifest.f4m'
-            formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
+            video_url_hd = video_url.replace('free_es', 'es')
+            formats.extend(self._extract_f4m_formats(
+                video_url_hd[:-9] + '/manifest.f4m', video_id, f4m_id='hds',
+                fatal=False))
+            formats.extend(self._extract_mpd_formats(
+                video_url_hd[:-9] + '/manifest.mpd', video_id, mpd_id='dash',
+                fatal=False))
         self._sort_formats(formats)
 
         path_data = player.get('pathData')

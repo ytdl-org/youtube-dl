@@ -27,7 +27,7 @@ class KUSIIE(InfoExtractor):
             'duration': 223.586,
             'upload_date': '20160826',
             'timestamp': 1472233118,
-            'thumbnail': 're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$'
         },
     }, {
         'url': 'http://kusi.com/video?clipId=12203019',

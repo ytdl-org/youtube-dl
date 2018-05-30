@@ -15,7 +15,7 @@ class MLBIE(InfoExtractor):
                         (?:[\da-z_-]+\.)*mlb\.com/
                         (?:
                             (?:
-                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?v|
+                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?(?:v|.*?/c-)|
                                 (?:
                                     shared/video/embed/(?:embed|m-internal-embed)\.html|
                                     (?:[^/]+/)+(?:play|index)\.jsp|
@@ -37,7 +37,7 @@ class MLBIE(InfoExtractor):
                 'duration': 66,
                 'timestamp': 1405980600,
                 'upload_date': '20140721',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -51,7 +51,7 @@ class MLBIE(InfoExtractor):
                 'duration': 46,
                 'timestamp': 1405105800,
                 'upload_date': '20140711',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -65,7 +65,7 @@ class MLBIE(InfoExtractor):
                 'duration': 488,
                 'timestamp': 1405399936,
                 'upload_date': '20140715',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -79,12 +79,12 @@ class MLBIE(InfoExtractor):
                 'duration': 52,
                 'timestamp': 1405390722,
                 'upload_date': '20140715',
-                'thumbnail': 're:^https?://.*\.jpg$',
+                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
             'url': 'http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer',
-            'md5': 'b190e70141fb9a1552a85426b4da1b5d',
+            'md5': 'aafaf5b0186fee8f32f20508092f8111',
             'info_dict': {
                 'id': '75609783',
                 'ext': 'mp4',
@@ -93,6 +93,10 @@ class MLBIE(InfoExtractor):
                 'timestamp': 1429124820,
                 'upload_date': '20150415',
             }
+        },
+        {
+            'url': 'https://www.mlb.com/video/hargrove-homers-off-caldwell/c-1352023483?tid=67793694',
+            'only_matching': True,
         },
         {
             'url': 'http://m.mlb.com/shared/video/embed/embed.html?content_id=35692085&topic_id=6479266&width=400&height=224&property=mlb',

@@ -14,7 +14,7 @@ class SexuIE(InfoExtractor):
             'title': 'md5:4d05a19a5fc049a63dbbaf05fb71d91b',
             'description': 'md5:2b75327061310a3afb3fbd7d09e2e403',
             'categories': list,  # NSFW
-            'thumbnail': 're:https?://.*\.jpg$',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
     }
@@ -32,8 +32,9 @@ class SexuIE(InfoExtractor):
         formats = [{
             'url': source['file'].replace('\\', ''),
             'format_id': source.get('label'),
-            'height': self._search_regex(
-                r'^(\d+)[pP]', source.get('label', ''), 'height', default=None),
+            'height': int(self._search_regex(
+                r'^(\d+)[pP]', source.get('label', ''), 'height',
+                default=None)),
         } for source in sources if source.get('file')]
         self._sort_formats(formats)
 

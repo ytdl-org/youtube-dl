@@ -25,7 +25,7 @@ class FiveTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Россияне выбрали имя для общенациональной платежной системы',
             'description': 'md5:a8aa13e2b7ad36789e9f77a74b6de660',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 180,
         },
     }, {
@@ -35,7 +35,7 @@ class FiveTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': '3D принтер',
             'description': 'md5:d76c736d29ef7ec5c0cf7d7c65ffcb41',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 180,
         },
     }, {
@@ -43,8 +43,8 @@ class FiveTVIE(InfoExtractor):
         'info_dict': {
             'id': 'glavnoe',
             'ext': 'mp4',
-            'title': 'Итоги недели с 8 по 14 июня 2015 года',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'title': r're:^Итоги недели с \d+ по \d+ \w+ \d{4} года$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
         'url': 'http://www.5-tv.ru/glavnoe/broadcasts/508645/',
@@ -70,7 +70,8 @@ class FiveTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"',
+            [r'<div[^>]+?class="flowplayer[^>]+?data-href="([^"]+)"',
+             r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"'],
             webpage, 'video url')
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(

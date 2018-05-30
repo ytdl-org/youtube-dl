@@ -55,7 +55,7 @@ class SenateISVPIE(InfoExtractor):
             'id': 'judiciary031715',
             'ext': 'mp4',
             'title': 'Integrated Senate Video Player',
-            'thumbnail': 're:^https?://.*\.(?:jpg|png)$',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
         },
         'params': {
             # m3u8 download
@@ -89,7 +89,7 @@ class SenateISVPIE(InfoExtractor):
     @staticmethod
     def _search_iframe_url(webpage):
         mobj = re.search(
-            r"<iframe[^>]+src=['\"](?P<url>http://www\.senate\.gov/isvp/?\?[^'\"]+)['\"]",
+            r"<iframe[^>]+src=['\"](?P<url>https?://www\.senate\.gov/isvp/?\?[^'\"]+)['\"]",
             webpage)
         if mobj:
             return mobj.group('url')

@@ -1,11 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_age_limit,
     parse_iso8601,
+    update_url_query,
 )
 
 
@@ -13,13 +17,13 @@ class IndavideoEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:embed\.)?indavideo\.hu/player/video/|assets\.indavideo\.hu/swf/player\.swf\?.*\b(?:v(?:ID|id))=)(?P<id>[\da-f]+)'
     _TESTS = [{
         'url': 'http://indavideo.hu/player/video/1bdc3c6d80/',
-        'md5': 'f79b009c66194acacd40712a6778acfa',
+        'md5': 'c8a507a1c7410685f83a06eaeeaafeab',
         'info_dict': {
             'id': '1837039',
             'ext': 'mp4',
             'title': 'Cicatánc',
             'description': '',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'cukiajanlo',
             'uploader_id': '83729',
             'timestamp': 1439193826,
@@ -36,6 +40,20 @@ class IndavideoEmbedIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    # Some example URLs covered by generic extractor:
+    #   http://indavideo.hu/video/Vicces_cica_1
+    #   http://index.indavideo.hu/video/2015_0728_beregszasz
+    #   http://auto.indavideo.hu/video/Sajat_utanfutoban_a_kis_tacsko
+    #   http://erotika.indavideo.hu/video/Amator_tini_punci
+    #   http://film.indavideo.hu/video/f_hrom_nagymamm_volt
+    #   http://palyazat.indavideo.hu/video/Embertelen_dal_Dodgem_egyuttes
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\'](?P<url>(?:https?:)?//embed\.indavideo\.hu/player/video/[\da-f]+)',
+            webpage)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -45,7 +63,14 @@ class IndavideoEmbedIE(InfoExtractor):
 
         title = video['title']
 
-        video_urls = video.get('video_files', [])
+        video_urls = []
+
+        video_files = video.get('video_files')
+        if isinstance(video_files, list):
+            video_urls.extend(video_files)
+        elif isinstance(video_files, dict):
+            video_urls.extend(video_files.values())
+
         video_file = video.get('video_file')
         if video:
             video_urls.append(video_file)
@@ -58,11 +83,23 @@ class IndavideoEmbedIE(InfoExtractor):
             if flv_url not in video_urls:
                 video_urls.append(flv_url)
 
-        formats = [{
-            'url': video_url,
-            'height': int_or_none(self._search_regex(
-                r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None)),
-        } for video_url in video_urls]
+        filesh = video.get('filesh')
+
+        formats = []
+        for video_url in video_urls:
+            height = int_or_none(self._search_regex(
+                r'\.(\d{3,4})\.mp4(?:\?|$)', video_url, 'height', default=None))
+            if filesh:
+                if not height:
+                    continue
+                token = filesh.get(compat_str(height))
+                if token is None:
+                    continue
+                video_url = update_url_query(video_url, {'token': token})
+            formats.append({
+                'url': video_url,
+                'height': height,
+            })
         self._sort_formats(formats)
 
         timestamp = video.get('date')
@@ -88,56 +125,4 @@ class IndavideoEmbedIE(InfoExtractor):
             'age_limit': parse_age_limit(video.get('age_limit')),
             'tags': tags,
             'formats': formats,
-        }
-
-
-class IndavideoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?indavideo\.hu/video/(?P<id>[^/#?]+)'
-    _TESTS = [{
-        'url': 'http://indavideo.hu/video/Vicces_cica_1',
-        'md5': '8c82244ba85d2a2310275b318eb51eac',
-        'info_dict': {
-            'id': '1335611',
-            'display_id': 'Vicces_cica_1',
-            'ext': 'mp4',
-            'title': 'Vicces cica',
-            'description': 'Játszik a tablettel. :D',
-            'thumbnail': 're:^https?://.*\.jpg$',
-            'uploader': 'Jet_Pack',
-            'uploader_id': '491217',
-            'timestamp': 1390821212,
-            'upload_date': '20140127',
-            'duration': 7,
-            'age_limit': 0,
-            'tags': ['vicces', 'macska', 'cica', 'ügyes', 'nevetés', 'játszik', 'Cukiság', 'Jet_Pack'],
-        },
-    }, {
-        'url': 'http://index.indavideo.hu/video/2015_0728_beregszasz',
-        'only_matching': True,
-    }, {
-        'url': 'http://auto.indavideo.hu/video/Sajat_utanfutoban_a_kis_tacsko',
-        'only_matching': True,
-    }, {
-        'url': 'http://erotika.indavideo.hu/video/Amator_tini_punci',
-        'only_matching': True,
-    }, {
-        'url': 'http://film.indavideo.hu/video/f_hrom_nagymamm_volt',
-        'only_matching': True,
-    }, {
-        'url': 'http://palyazat.indavideo.hu/video/Embertelen_dal_Dodgem_egyuttes',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-        embed_url = self._search_regex(
-            r'<link[^>]+rel="video_src"[^>]+href="(.+?)"', webpage, 'embed url')
-
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'IndavideoEmbed',
-            'url': embed_url,
-            'display_id': display_id,
         }

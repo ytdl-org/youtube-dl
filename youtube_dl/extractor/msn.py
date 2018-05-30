@@ -68,22 +68,16 @@ class MSNIE(InfoExtractor):
             format_url = file_.get('url')
             if not format_url:
                 continue
-            ext = determine_ext(format_url)
-            if ext == 'ism':
-                formats.extend(self._extract_ism_formats(
-                    format_url + '/Manifest', display_id, 'mss', fatal=False))
             if 'm3u8' in format_url:
                 # m3u8_native should not be used here until
                 # https://github.com/rg3/youtube-dl/issues/9913 is fixed
                 m3u8_formats = self._extract_m3u8_formats(
                     format_url, display_id, 'mp4',
                     m3u8_id='hls', fatal=False)
-                # Despite metadata in m3u8 all video+audio formats are
-                # actually video-only (no audio)
-                for f in m3u8_formats:
-                    if f.get('acodec') != 'none' and f.get('vcodec') != 'none':
-                        f['acodec'] = 'none'
                 formats.extend(m3u8_formats)
+            elif determine_ext(format_url) == 'ism':
+                formats.extend(self._extract_ism_formats(
+                    format_url + '/Manifest', display_id, 'mss', fatal=False))
             else:
                 formats.append({
                     'url': format_url,

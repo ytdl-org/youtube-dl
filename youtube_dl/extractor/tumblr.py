@@ -4,11 +4,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..compat import compat_str
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+    urlencode_postdata
+)
 
 
 class TumblrIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<blog_name>[^/?#&]+)\.tumblr\.com/(?:post|video)/(?P<id>[0-9]+)(?:$|[/?#])'
+    _NETRC_MACHINE = 'tumblr'
+    _LOGIN_URL = 'https://www.tumblr.com/login'
     _TESTS = [{
         'url': 'http://tatianamaslanydaily.tumblr.com/post/54196191430/orphan-black-dvd-extra-behind-the-scenes',
         'md5': '479bb068e5b16462f5176a6828829767',
@@ -17,7 +24,7 @@ class TumblrIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'tatiana maslany news, Orphan Black || DVD extra - behind the scenes ↳...',
             'description': 'md5:37db8211e40b50c7c44e95da14f630b7',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         'url': 'http://5sostrum.tumblr.com/post/90208453769/yall-forgetting-the-greatest-keek-of-them-all',
@@ -27,7 +34,7 @@ class TumblrIE(InfoExtractor):
             'ext': 'mp4',
             'title': '5SOS STRUM ;]',
             'description': 'md5:dba62ac8639482759c8eb10ce474586a',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         }
     }, {
         'url': 'http://hdvideotest.tumblr.com/post/130323439814/test-description-for-my-hd-video',
@@ -37,7 +44,7 @@ class TumblrIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'HD Video Testing \u2014 Test description for my HD video',
             'description': 'md5:97cc3ab5fcd27ee4af6356701541319c',
-            'thumbnail': 're:http://.*\.jpg',
+            'thumbnail': r're:http://.*\.jpg',
         },
         'params': {
             'format': 'hd',
@@ -92,10 +99,49 @@ class TumblrIE(InfoExtractor):
             'title': 'Video by victoriassecret',
             'description': 'Invisibility or flight…which superpower would YOU choose? #VSFashionShow #ThisOrThat',
             'uploader_id': 'victoriassecret',
-            'thumbnail': 're:^https?://.*\.jpg'
+            'thumbnail': r're:^https?://.*\.jpg'
         },
         'add_ie': ['Instagram'],
     }]
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        login_form = self._hidden_inputs(login_page)
+        login_form.update({
+            'user[email]': username,
+            'user[password]': password
+        })
+
+        response, urlh = self._download_webpage_handle(
+            self._LOGIN_URL, None, 'Logging in',
+            data=urlencode_postdata(login_form), headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': self._LOGIN_URL,
+            })
+
+        # Successful login
+        if '/dashboard' in urlh.geturl():
+            return
+
+        login_errors = self._parse_json(
+            self._search_regex(
+                r'RegistrationForm\.errors\s*=\s*(\[.+?\])\s*;', response,
+                'login errors', default='[]'),
+            None, fatal=False)
+        if login_errors:
+            raise ExtractorError(
+                'Unable to login: %s' % login_errors[0], expected=True)
+
+        self.report_warning('Login has probably failed')
 
     def _real_extract(self, url):
         m_url = re.match(self._VALID_URL, url)
@@ -105,11 +151,19 @@ class TumblrIE(InfoExtractor):
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage, urlh = self._download_webpage_handle(url, video_id)
 
+        redirect_url = compat_str(urlh.geturl())
+        if 'tumblr.com/safe-mode' in redirect_url or redirect_url.startswith('/safe-mode'):
+            raise ExtractorError(
+                'This Tumblr may contain sensitive media. '
+                'Disable safe mode in your account settings '
+                'at https://www.tumblr.com/settings/account#safe_mode',
+                expected=True)
+
         iframe_url = self._search_regex(
             r'src=\'(https?://www\.tumblr\.com/video/[^\']+)\'',
             webpage, 'iframe url', default=None)
         if iframe_url is None:
-            return self.url_result(urlh.geturl(), 'Generic')
+            return self.url_result(redirect_url, 'Generic')
 
         iframe = self._download_webpage(iframe_url, video_id, 'Downloading iframe page')
 

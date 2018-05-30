@@ -20,7 +20,7 @@ class SaveFromIE(InfoExtractor):
             'upload_date': '20120816',
             'uploader': 'Howcast',
             'uploader_id': 'Howcast',
-            'description': 're:(?s).* Hi, my name is Rene Dreifuss\. And I\'m here to show you some MMA.*',
+            'description': r're:(?s).* Hi, my name is Rene Dreifuss\. And I\'m here to show you some MMA.*',
         },
         'params': {
             'skip_download': True

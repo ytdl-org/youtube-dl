@@ -1,13 +1,21 @@
 from __future__ import unicode_literals
 
+import itertools
+import hashlib
+import json
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_HTTPError,
+)
 from ..utils import (
+    ExtractorError,
     get_element_by_attribute,
     int_or_none,
-    limit_length,
     lowercase_escape,
+    std_headers,
     try_get,
 )
 
@@ -22,7 +30,7 @@ class InstagramIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Video by naomipq',
             'description': 'md5:1f17f0ab29bd6fe2bfad705f58de3cb8',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1371748545,
             'upload_date': '20130620',
             'uploader_id': 'naomipq',
@@ -38,7 +46,7 @@ class InstagramIE(InfoExtractor):
             'id': 'BA-pQFBG8HZ',
             'ext': 'mp4',
             'title': 'Video by britneyspears',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'timestamp': 1453760977,
             'upload_date': '20160125',
             'uploader_id': 'britneyspears',
@@ -49,6 +57,33 @@ class InstagramIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
+        },
+    }, {
+        # multi video post
+        'url': 'https://www.instagram.com/p/BQ0eAlwhDrw/',
+        'playlist': [{
+            'info_dict': {
+                'id': 'BQ0dSaohpPW',
+                'ext': 'mp4',
+                'title': 'Video 1',
+            },
+        }, {
+            'info_dict': {
+                'id': 'BQ0dTpOhuHT',
+                'ext': 'mp4',
+                'title': 'Video 2',
+            },
+        }, {
+            'info_dict': {
+                'id': 'BQ0dT7RBFeF',
+                'ext': 'mp4',
+                'title': 'Video 3',
+            },
+        }],
+        'info_dict': {
+            'id': 'BQ0eAlwhDrw',
+            'title': 'Post by instagram',
+            'description': 'md5:0f9203fc6a2ce4d228da5754bcf54957',
         },
     }, {
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
@@ -84,7 +119,8 @@ class InstagramIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         (video_url, description, thumbnail, timestamp, uploader,
-         uploader_id, like_count, comment_count, height, width) = [None] * 10
+         uploader_id, like_count, comment_count, comments, height,
+         width) = [None] * 11
 
         shared_data = self._parse_json(
             self._search_regex(
@@ -93,18 +129,29 @@ class InstagramIE(InfoExtractor):
             video_id, fatal=False)
         if shared_data:
             media = try_get(
-                shared_data, lambda x: x['entry_data']['PostPage'][0]['media'], dict)
+                shared_data,
+                (lambda x: x['entry_data']['PostPage'][0]['graphql']['shortcode_media'],
+                 lambda x: x['entry_data']['PostPage'][0]['media']),
+                dict)
             if media:
                 video_url = media.get('video_url')
                 height = int_or_none(media.get('dimensions', {}).get('height'))
                 width = int_or_none(media.get('dimensions', {}).get('width'))
-                description = media.get('caption')
+                description = try_get(
+                    media, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
+                    compat_str) or media.get('caption')
                 thumbnail = media.get('display_src')
-                timestamp = int_or_none(media.get('date'))
+                timestamp = int_or_none(media.get('taken_at_timestamp') or media.get('date'))
                 uploader = media.get('owner', {}).get('full_name')
                 uploader_id = media.get('owner', {}).get('username')
-                like_count = int_or_none(media.get('likes', {}).get('count'))
-                comment_count = int_or_none(media.get('comments', {}).get('count'))
+
+                def get_count(key, kind):
+                    return int_or_none(try_get(
+                        media, (lambda x: x['edge_media_%s' % key]['count'],
+                                lambda x: x['%ss' % kind]['count'])))
+                like_count = get_count('preview_like', 'like')
+                comment_count = get_count('to_comment', 'comment')
+
                 comments = [{
                     'author': comment.get('user', {}).get('username'),
                     'author_id': comment.get('user', {}).get('id'),
@@ -113,6 +160,32 @@ class InstagramIE(InfoExtractor):
                     'timestamp': int_or_none(comment.get('created_at')),
                 } for comment in media.get(
                     'comments', {}).get('nodes', []) if comment.get('text')]
+                if not video_url:
+                    edges = try_get(
+                        media, lambda x: x['edge_sidecar_to_children']['edges'],
+                        list) or []
+                    if edges:
+                        entries = []
+                        for edge_num, edge in enumerate(edges, start=1):
+                            node = try_get(edge, lambda x: x['node'], dict)
+                            if not node:
+                                continue
+                            node_video_url = try_get(node, lambda x: x['video_url'], compat_str)
+                            if not node_video_url:
+                                continue
+                            entries.append({
+                                'id': node.get('shortcode') or node['id'],
+                                'title': 'Video %d' % edge_num,
+                                'url': node_video_url,
+                                'thumbnail': node.get('display_url'),
+                                'width': int_or_none(try_get(node, lambda x: x['dimensions']['width'])),
+                                'height': int_or_none(try_get(node, lambda x: x['dimensions']['height'])),
+                                'view_count': int_or_none(node.get('video_view_count')),
+                            })
+                        return self.playlist_result(
+                            entries, video_id,
+                            'Post by %s' % uploader_id if uploader_id else None,
+                            description)
 
         if not video_url:
             video_url = self._og_search_video_url(webpage, secure=False)
@@ -154,7 +227,7 @@ class InstagramIE(InfoExtractor):
 
 
 class InstagramUserIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<username>[^/]{2,})/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/?(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
     IE_NAME = 'instagram:user'
     _TEST = {
@@ -163,82 +236,125 @@ class InstagramUserIE(InfoExtractor):
             'id': 'porsche',
             'title': 'porsche',
         },
-        'playlist_mincount': 2,
-        'playlist': [{
-            'info_dict': {
-                'id': '614605558512799803_462752227',
-                'ext': 'mp4',
-                'title': '#Porsche Intelligent Performance.',
-                'thumbnail': 're:^https?://.*\.jpg',
-                'uploader': 'Porsche',
-                'uploader_id': 'porsche',
-                'timestamp': 1387486713,
-                'upload_date': '20131219',
-            },
-        }],
+        'playlist_count': 5,
         'params': {
             'extract_flat': True,
             'skip_download': True,
+            'playlistend': 5,
         }
     }
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        uploader_id = mobj.group('username')
+    _gis_tmpl = None
 
-        entries = []
-        page_count = 0
-        media_url = 'http://instagram.com/%s/media' % uploader_id
-        while True:
-            page = self._download_json(
-                media_url, uploader_id,
-                note='Downloading page %d ' % (page_count + 1),
-            )
-            page_count += 1
+    def _entries(self, data):
+        def get_count(suffix):
+            return int_or_none(try_get(
+                node, lambda x: x['edge_media_' + suffix]['count']))
 
-            for it in page['items']:
-                if it.get('type') != 'video':
+        uploader_id = data['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+        csrf_token = data['config']['csrf_token']
+        rhx_gis = data.get('rhx_gis') or '3c7ca9dcefcf966d11dacf1f151335e8'
+
+        self._set_cookie('instagram.com', 'ig_pr', '1')
+
+        cursor = ''
+        for page_num in itertools.count(1):
+            variables = json.dumps({
+                'id': uploader_id,
+                'first': 12,
+                'after': cursor,
+            })
+
+            if self._gis_tmpl:
+                gis_tmpls = [self._gis_tmpl]
+            else:
+                gis_tmpls = [
+                    '%s' % rhx_gis,
+                    '',
+                    '%s:%s' % (rhx_gis, csrf_token),
+                    '%s:%s:%s' % (rhx_gis, csrf_token, std_headers['User-Agent']),
+                ]
+
+            for gis_tmpl in gis_tmpls:
+                try:
+                    media = self._download_json(
+                        'https://www.instagram.com/graphql/query/', uploader_id,
+                        'Downloading JSON page %d' % page_num, headers={
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-Instagram-GIS': hashlib.md5(
+                                ('%s:%s' % (gis_tmpl, variables)).encode('utf-8')).hexdigest(),
+                        }, query={
+                            'query_hash': '42323d64886122307be10013ad2dcc44',
+                            'variables': variables,
+                        })['data']['user']['edge_owner_to_timeline_media']
+                    self._gis_tmpl = gis_tmpl
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                        if gis_tmpl != gis_tmpls[-1]:
+                            continue
+                    raise
+
+            edges = media.get('edges')
+            if not edges or not isinstance(edges, list):
+                break
+
+            for edge in edges:
+                node = edge.get('node')
+                if not node or not isinstance(node, dict):
                     continue
-                like_count = int_or_none(it.get('likes', {}).get('count'))
-                user = it.get('user', {})
+                if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
+                    continue
+                video_id = node.get('shortcode')
+                if not video_id:
+                    continue
 
-                formats = [{
-                    'format_id': k,
-                    'height': v.get('height'),
-                    'width': v.get('width'),
-                    'url': v['url'],
-                } for k, v in it['videos'].items()]
-                self._sort_formats(formats)
+                info = self.url_result(
+                    'https://instagram.com/p/%s/' % video_id,
+                    ie=InstagramIE.ie_key(), video_id=video_id)
 
-                thumbnails_el = it.get('images', {})
-                thumbnail = thumbnails_el.get('thumbnail', {}).get('url')
+                description = try_get(
+                    node, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
+                    compat_str)
+                thumbnail = node.get('thumbnail_src') or node.get('display_src')
+                timestamp = int_or_none(node.get('taken_at_timestamp'))
 
-                # In some cases caption is null, which corresponds to None
-                # in python. As a result, it.get('caption', {}) gives None
-                title = (it.get('caption') or {}).get('text', it['id'])
+                comment_count = get_count('to_comment')
+                like_count = get_count('preview_like')
+                view_count = int_or_none(node.get('video_view_count'))
 
-                entries.append({
-                    'id': it['id'],
-                    'title': limit_length(title, 80),
-                    'formats': formats,
+                info.update({
+                    'description': description,
                     'thumbnail': thumbnail,
-                    'webpage_url': it.get('link'),
-                    'uploader': user.get('full_name'),
-                    'uploader_id': user.get('username'),
+                    'timestamp': timestamp,
+                    'comment_count': comment_count,
                     'like_count': like_count,
-                    'timestamp': int_or_none(it.get('created_time')),
+                    'view_count': view_count,
                 })
 
-            if not page['items']:
-                break
-            max_id = page['items'][-1]['id'].split('_')[0]
-            media_url = (
-                'http://instagram.com/%s/media?max_id=%s' % (
-                    uploader_id, max_id))
+                yield info
 
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'id': uploader_id,
-            'title': uploader_id,
-        }
+            page_info = media.get('page_info')
+            if not page_info or not isinstance(page_info, dict):
+                break
+
+            has_next_page = page_info.get('has_next_page')
+            if not has_next_page:
+                break
+
+            cursor = page_info.get('end_cursor')
+            if not cursor or not isinstance(cursor, compat_str):
+                break
+
+    def _real_extract(self, url):
+        username = self._match_id(url)
+
+        webpage = self._download_webpage(url, username)
+
+        data = self._parse_json(
+            self._search_regex(
+                r'sharedData\s*=\s*({.+?})\s*;\s*[<\n]', webpage, 'data'),
+            username)
+
+        return self.playlist_result(
+            self._entries(data), username, username)

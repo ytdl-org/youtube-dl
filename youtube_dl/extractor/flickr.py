@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_urlencode
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_urlencode,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -81,7 +84,7 @@ class FlickrIE(InfoExtractor):
 
             formats = []
             for stream in streams['stream']:
-                stream_type = str(stream.get('type'))
+                stream_type = compat_str(stream.get('type'))
                 formats.append({
                     'format_id': stream_type,
                     'url': stream['_content'],

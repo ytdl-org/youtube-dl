@@ -16,7 +16,7 @@ class GazetaIE(InfoExtractor):
             'ext': 'mp4',
             'title': '«70–80 процентов гражданских в Донецке на грани голода»',
             'description': 'md5:38617526050bd17b234728e7f9620a71',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
         },
         'skip': 'video not found',
     }, {

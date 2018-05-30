@@ -12,10 +12,10 @@ class RtlNlIE(InfoExtractor):
     IE_NAME = 'rtl.nl'
     IE_DESC = 'rtl.nl and rtlxl.nl'
     _VALID_URL = r'''(?x)
-        https?://(?:www\.)?
+        https?://(?:(?:www|static)\.)?
         (?:
             rtlxl\.nl/[^\#]*\#!/[^/]+/|
-            rtl\.nl/system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html\b.+?\buuid=
+            rtl\.nl/(?:(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html|embed)\b.+?\buuid=|video/)
         )
         (?P<id>[0-9a-f-]+)'''
 
@@ -40,7 +40,7 @@ class RtlNlIE(InfoExtractor):
             'ext': 'mp4',
             'timestamp': 1424039400,
             'title': 'RTL Nieuws - Nieuwe beelden Kopenhagen: chaos direct na aanslag',
-            'thumbnail': 're:^https?://screenshots\.rtl\.nl/(?:[^/]+/)*sz=[0-9]+x[0-9]+/uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed$',
+            'thumbnail': r're:^https?://screenshots\.rtl\.nl/(?:[^/]+/)*sz=[0-9]+x[0-9]+/uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed$',
             'upload_date': '20150215',
             'description': 'Er zijn nieuwe beelden vrijgegeven die vlak na de aanslag in Kopenhagen zijn gemaakt. Op de video is goed te zien hoe omstanders zich bekommeren om één van de slachtoffers, terwijl de eerste agenten ter plaatse komen.',
         }
@@ -52,7 +52,7 @@ class RtlNlIE(InfoExtractor):
             'id': 'f536aac0-1dc3-4314-920e-3bd1c5b3811a',
             'ext': 'mp4',
             'title': 'RTL Nieuws - Meer beelden van overval juwelier',
-            'thumbnail': 're:^https?://screenshots\.rtl\.nl/(?:[^/]+/)*sz=[0-9]+x[0-9]+/uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a$',
+            'thumbnail': r're:^https?://screenshots\.rtl\.nl/(?:[^/]+/)*sz=[0-9]+x[0-9]+/uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a$',
             'timestamp': 1437233400,
             'upload_date': '20150718',
             'duration': 30.474,
@@ -69,6 +69,12 @@ class RtlNlIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://rtlxl.nl/?_ga=1.204735956.572365465.1466978370#!/rtl-nieuws-132237/3c487912-023b-49ac-903e-2c5d79f8410f',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rtl.nl/video/c603c9c2-601d-4b5e-8175-64f1e942dc7d/',
+        'only_matching': True,
+    }, {
+        'url': 'https://static.rtl.nl/embed/?uuid=1a2970fc-5c0b-43ff-9fdc-927e39e6d1bc&autoplay=false&publicatiepunt=rtlnieuwsnl',
         'only_matching': True,
     }]
 
@@ -87,58 +93,11 @@ class RtlNlIE(InfoExtractor):
 
         meta = info.get('meta', {})
 
-        # m3u8 streams are encrypted and may not be handled properly by older ffmpeg/avconv.
-        # To workaround this previously adaptive -> flash trick was used to obtain
-        # unencrypted m3u8 streams (see https://github.com/rg3/youtube-dl/issues/4118)
-        # and bypass georestrictions as well.
-        # Currently, unencrypted m3u8 playlists are (intentionally?) invalid and therefore
-        # unusable albeit can be fixed by simple string replacement (see
-        # https://github.com/rg3/youtube-dl/pull/6337)
-        # Since recent ffmpeg and avconv handle encrypted streams just fine encrypted
-        # streams are used now.
         videopath = material['videopath']
         m3u8_url = meta.get('videohost', 'http://manifest.us.rtl.nl') + videopath
 
         formats = self._extract_m3u8_formats(
             m3u8_url, uuid, 'mp4', m3u8_id='hls', fatal=False)
-
-        video_urlpart = videopath.split('/adaptive/')[1][:-5]
-        PG_URL_TEMPLATE = 'http://pg.us.rtl.nl/rtlxl/network/%s/progressive/%s.mp4'
-
-        PG_FORMATS = (
-            ('a2t', 512, 288),
-            ('a3t', 704, 400),
-            ('nettv', 1280, 720),
-        )
-
-        def pg_format(format_id, width, height):
-            return {
-                'url': PG_URL_TEMPLATE % (format_id, video_urlpart),
-                'format_id': 'pg-%s' % format_id,
-                'protocol': 'http',
-                'width': width,
-                'height': height,
-            }
-
-        if not formats:
-            formats = [pg_format(*pg_tuple) for pg_tuple in PG_FORMATS]
-        else:
-            pg_formats = []
-            for format_id, width, height in PG_FORMATS:
-                try:
-                    # Find hls format with the same width and height corresponding
-                    # to progressive format and copy metadata from it.
-                    f = next(f for f in formats if f.get('height') == height)
-                    # hls formats may have invalid width
-                    f['width'] = width
-                    f_copy = f.copy()
-                    f_copy.update(pg_format(format_id, width, height))
-                    pg_formats.append(f_copy)
-                except StopIteration:
-                    # Missing hls format does mean that no progressive format with
-                    # such width and height exists either.
-                    pass
-            formats.extend(pg_formats)
         self._sort_formats(formats)
 
         thumbnails = []

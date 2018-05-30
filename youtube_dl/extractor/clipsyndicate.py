@@ -18,7 +18,7 @@ class ClipsyndicateIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Brick Briscoe',
             'duration': 612,
-            'thumbnail': 're:^https?://.+\.jpg',
+            'thumbnail': r're:^https?://.+\.jpg',
         },
     }, {
         'url': 'http://chic.clipsyndicate.com/video/play/5844117/shark_attack',

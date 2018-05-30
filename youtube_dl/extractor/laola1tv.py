@@ -1,25 +1,127 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
+import json
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
 from ..utils import (
     ExtractorError,
-    sanitized_Request,
     unified_strdate,
     urlencode_postdata,
     xpath_element,
     xpath_text,
+    update_url_query,
+    js_to_json,
 )
 
 
-class Laola1TvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?laola1\.tv/(?P<lang>[a-z]+)-(?P<portal>[a-z]+)/(?P<kind>[^/]+)/(?P<slug>[^/?#&]+)'
+class Laola1TvEmbedIE(InfoExtractor):
+    IE_NAME = 'laola1tv:embed'
+    _VALID_URL = r'https?://(?:www\.)?laola1\.tv/titanplayer\.php\?.*?\bvideoid=(?P<id>\d+)'
+    _TESTS = [{
+        # flashvars.premium = "false";
+        'url': 'https://www.laola1.tv/titanplayer.php?videoid=708065&type=V&lang=en&portal=int&customer=1024',
+        'info_dict': {
+            'id': '708065',
+            'ext': 'mp4',
+            'title': 'MA Long CHN - FAN Zhendong CHN',
+            'uploader': 'ITTF - International Table Tennis Federation',
+            'upload_date': '20161211',
+        },
+    }]
+
+    def _extract_token_url(self, stream_access_url, video_id, data):
+        return self._download_json(
+            stream_access_url, video_id, headers={
+                'Content-Type': 'application/json',
+            }, data=json.dumps(data).encode())['data']['stream-access'][0]
+
+    def _extract_formats(self, token_url, video_id):
+        token_doc = self._download_xml(
+            token_url, video_id, 'Downloading token',
+            headers=self.geo_verification_headers())
+
+        token_attrib = xpath_element(token_doc, './/token').attrib
+
+        if token_attrib['status'] != '0':
+            raise ExtractorError(
+                'Token error: %s' % token_attrib['comment'], expected=True)
+
+        formats = self._extract_akamai_formats(
+            '%s?hdnea=%s' % (token_attrib['url'], token_attrib['auth']),
+            video_id)
+        self._sort_formats(formats)
+        return formats
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        flash_vars = self._search_regex(
+            r'(?s)flashvars\s*=\s*({.+?});', webpage, 'flash vars')
+
+        def get_flashvar(x, *args, **kwargs):
+            flash_var = self._search_regex(
+                r'%s\s*:\s*"([^"]+)"' % x,
+                flash_vars, x, default=None)
+            if not flash_var:
+                flash_var = self._search_regex([
+                    r'flashvars\.%s\s*=\s*"([^"]+)"' % x,
+                    r'%s\s*=\s*"([^"]+)"' % x],
+                    webpage, x, *args, **kwargs)
+            return flash_var
+
+        hd_doc = self._download_xml(
+            'http://www.laola1.tv/server/hd_video.php', video_id, query={
+                'play': get_flashvar('streamid'),
+                'partner': get_flashvar('partnerid'),
+                'portal': get_flashvar('portalid'),
+                'lang': get_flashvar('sprache'),
+                'v5ident': '',
+            })
+
+        _v = lambda x, **k: xpath_text(hd_doc, './/video/' + x, **k)
+        title = _v('title', fatal=True)
+
+        token_url = None
+        premium = get_flashvar('premium', default=None)
+        if premium:
+            token_url = update_url_query(
+                _v('url', fatal=True), {
+                    'timestamp': get_flashvar('timestamp'),
+                    'auth': get_flashvar('auth'),
+                })
+        else:
+            data_abo = urlencode_postdata(
+                dict((i, v) for i, v in enumerate(_v('req_liga_abos').split(','))))
+            stream_access_url = update_url_query(
+                'https://club.laola1.tv/sp/laola1/api/v3/user/session/premium/player/stream-access', {
+                    'videoId': _v('id'),
+                    'target': self._search_regex(r'vs_target = (\d+);', webpage, 'vs target'),
+                    'label': _v('label'),
+                    'area': _v('area'),
+                })
+            token_url = self._extract_token_url(stream_access_url, video_id, data_abo)
+
+        formats = self._extract_formats(token_url, video_id)
+
+        categories_str = _v('meta_sports')
+        categories = categories_str.split(',') if categories_str else []
+        is_live = _v('islive') == 'true'
+
+        return {
+            'id': video_id,
+            'title': self._live_title(title) if is_live else title,
+            'upload_date': unified_strdate(_v('time_date')),
+            'uploader': _v('meta_organisation'),
+            'categories': categories,
+            'is_live': is_live,
+            'formats': formats,
+        }
+
+
+class Laola1TvIE(Laola1TvEmbedIE):
+    IE_NAME = 'laola1tv'
+    _VALID_URL = r'https?://(?:www\.)?laola1\.tv/[a-z]+-[a-z]+/[^/]+/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.laola1.tv/de-de/video/straubing-tigers-koelner-haie/227883.html',
         'info_dict': {
@@ -67,85 +169,67 @@ class Laola1TvIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('slug')
-        kind = mobj.group('kind')
-        lang = mobj.group('lang')
-        portal = mobj.group('portal')
+        display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
 
         if 'Dieser Livestream ist bereits beendet.' in webpage:
             raise ExtractorError('This live stream has already finished.', expected=True)
 
-        iframe_url = self._search_regex(
-            r'<iframe[^>]*?id="videoplayer"[^>]*?src="([^"]+)"',
-            webpage, 'iframe url')
+        conf = self._parse_json(self._search_regex(
+            r'(?s)conf\s*=\s*({.+?});', webpage, 'conf'),
+            display_id, js_to_json)
 
-        video_id = self._search_regex(
-            r'videoid=(\d+)', iframe_url, 'video id')
+        video_id = conf['videoid']
 
-        iframe = self._download_webpage(compat_urlparse.urljoin(
-            url, iframe_url), display_id, 'Downloading iframe')
+        config = self._download_json(conf['configUrl'], video_id, query={
+            'videoid': video_id,
+            'partnerid': conf['partnerid'],
+            'language': conf.get('language', ''),
+            'portal': conf.get('portalid', ''),
+        })
+        error = config.get('error')
+        if error:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
 
-        partner_id = self._search_regex(
-            r'partnerid\s*:\s*(["\'])(?P<partner_id>.+?)\1',
-            iframe, 'partner id', group='partner_id')
+        video_data = config['video']
+        title = video_data['title']
+        is_live = video_data.get('isLivestream') and video_data.get('isLive')
+        meta = video_data.get('metaInformation')
+        sports = meta.get('sports')
+        categories = sports.split(',') if sports else []
 
-        hd_doc = self._download_xml(
-            'http://www.laola1.tv/server/hd_video.php?%s'
-            % compat_urllib_parse_urlencode({
-                'play': video_id,
-                'partner': partner_id,
-                'portal': portal,
-                'lang': lang,
-                'v5ident': '',
-            }), display_id)
+        token_url = self._extract_token_url(
+            video_data['streamAccess'], video_id,
+            video_data['abo']['required'])
 
-        _v = lambda x, **k: xpath_text(hd_doc, './/video/' + x, **k)
-        title = _v('title', fatal=True)
-
-        VS_TARGETS = {
-            'video': '2',
-            'livestream': '17',
-        }
-
-        req = sanitized_Request(
-            'https://club.laola1.tv/sp/laola1/api/v3/user/session/premium/player/stream-access?%s' %
-            compat_urllib_parse_urlencode({
-                'videoId': video_id,
-                'target': VS_TARGETS.get(kind, '2'),
-                'label': _v('label'),
-                'area': _v('area'),
-            }),
-            urlencode_postdata(
-                dict((i, v) for i, v in enumerate(_v('req_liga_abos').split(',')))))
-
-        token_url = self._download_json(req, display_id)['data']['stream-access'][0]
-        token_doc = self._download_xml(token_url, display_id, 'Downloading token')
-
-        token_attrib = xpath_element(token_doc, './/token').attrib
-        token_auth = token_attrib['auth']
-
-        if token_auth in ('blocked', 'restricted', 'error'):
-            raise ExtractorError(
-                'Token error: %s' % token_attrib['comment'], expected=True)
-
-        formats = self._extract_f4m_formats(
-            '%s?hdnea=%s&hdcore=3.2.0' % (token_attrib['url'], token_auth),
-            video_id, f4m_id='hds')
-        self._sort_formats(formats)
-
-        categories_str = _v('meta_sports')
-        categories = categories_str.split(',') if categories_str else []
+        formats = self._extract_formats(token_url, video_id)
 
         return {
             'id': video_id,
             'display_id': display_id,
-            'title': title,
-            'upload_date': unified_strdate(_v('time_date')),
-            'uploader': _v('meta_organisation'),
+            'title': self._live_title(title) if is_live else title,
+            'description': video_data.get('description'),
+            'thumbnail': video_data.get('image'),
             'categories': categories,
-            'is_live': _v('islive') == 'true',
             'formats': formats,
+            'is_live': is_live,
         }
+
+
+class ITTFIE(InfoExtractor):
+    _VALID_URL = r'https?://tv\.ittf\.com/video/[^/]+/(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://tv.ittf.com/video/peng-wang-wei-matsudaira-kenta/951802',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        return self.url_result(
+            update_url_query('https://www.laola1.tv/titanplayer.php', {
+                'videoid': self._match_id(url),
+                'type': 'V',
+                'lang': 'en',
+                'portal': 'int',
+                'customer': 1024,
+            }), Laola1TvEmbedIE.ie_key())

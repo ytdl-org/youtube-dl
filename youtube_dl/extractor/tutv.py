@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
-import base64
-
 from .common import InfoExtractor
-from ..compat import compat_parse_qs
+from ..compat import (
+    compat_b64decode,
+    compat_parse_qs,
+)
 
 
 class TutvIE(InfoExtractor):
@@ -26,7 +27,7 @@ class TutvIE(InfoExtractor):
 
         data_content = self._download_webpage(
             'http://tu.tv/flvurl.php?codVideo=%s' % internal_id, video_id, 'Downloading video info')
-        video_url = base64.b64decode(compat_parse_qs(data_content)['kpt'][0].encode('utf-8')).decode('utf-8')
+        video_url = compat_b64decode(compat_parse_qs(data_content)['kpt'][0]).decode('utf-8')
 
         return {
             'id': internal_id,

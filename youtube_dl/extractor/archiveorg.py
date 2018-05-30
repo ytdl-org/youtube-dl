@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-from .jwplatform import JWPlatformBaseIE
+from .common import InfoExtractor
 from ..utils import (
     unified_strdate,
     clean_html,
 )
 
 
-class ArchiveOrgIE(JWPlatformBaseIE):
+class ArchiveOrgIE(InfoExtractor):
     IE_NAME = 'archive.org'
     IE_DESC = 'archive.org videos'
     _VALID_URL = r'https?://(?:www\.)?archive\.org/(?:details|embed)/(?P<id>[^/?#]+)(?:[?].*)?$'
@@ -24,12 +24,12 @@ class ArchiveOrgIE(JWPlatformBaseIE):
         }
     }, {
         'url': 'https://archive.org/details/Cops1922',
-        'md5': 'bc73c8ab3838b5a8fc6c6651fa7b58ba',
+        'md5': '0869000b4ce265e8ca62738b336b268a',
         'info_dict': {
             'id': 'Cops1922',
             'ext': 'mp4',
             'title': 'Buster Keaton\'s "Cops" (1922)',
-            'description': 'md5:b4544662605877edd99df22f9620d858',
+            'description': 'md5:89e7c77bf5d965dd5c0372cfb49470f6',
         }
     }, {
         'url': 'http://archive.org/embed/XD300-23_68HighlightsAResearchCntAugHumanIntellect',
@@ -41,7 +41,7 @@ class ArchiveOrgIE(JWPlatformBaseIE):
         webpage = self._download_webpage(
             'http://archive.org/embed/' + video_id, video_id)
         jwplayer_playlist = self._parse_json(self._search_regex(
-            r"(?s)Play\('[^']+'\s*,\s*(\[.+\])\s*,\s*{.*?}\);",
+            r"(?s)Play\('[^']+'\s*,\s*(\[.+\])\s*,\s*{.*?}\)",
             webpage, 'jwplayer playlist'), video_id)
         info = self._parse_jwplayer_data(
             {'playlist': jwplayer_playlist}, video_id, base_url=url)

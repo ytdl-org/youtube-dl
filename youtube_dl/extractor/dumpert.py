@@ -1,10 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_b64decode
 from ..utils import (
     qualities,
     sanitized_Request,
@@ -21,7 +21,7 @@ class DumpertIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Ik heb nieuws voor je',
             'description': 'Niet schrikken hoor',
-            'thumbnail': 're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
         'url': 'http://www.dumpert.nl/embed/6675421/dc440fe7/',
@@ -42,7 +42,7 @@ class DumpertIE(InfoExtractor):
             r'data-files="([^"]+)"', webpage, 'data files')
 
         files = self._parse_json(
-            base64.b64decode(files_base64.encode('utf-8')).decode('utf-8'),
+            compat_b64decode(files_base64).decode('utf-8'),
             video_id)
 
         quality = qualities(['flv', 'mobile', 'tablet', '720p'])

@@ -1,11 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     js_to_json,
-    ExtractorError,
     urlencode_postdata,
     extract_attributes,
     smuggle_url,
@@ -15,7 +16,7 @@ from ..utils import (
 class TouTvIE(InfoExtractor):
     _NETRC_MACHINE = 'toutv'
     IE_NAME = 'tou.tv'
-    _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+(?:/S[0-9]+E[0-9]+)?)'
+    _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+(?:/S[0-9]+[EC][0-9]+)?)'
     _access_token = None
     _claims = None
 
@@ -36,13 +37,16 @@ class TouTvIE(InfoExtractor):
     }, {
         'url': 'http://ici.tou.tv/hackers',
         'only_matching': True,
+    }, {
+        'url': 'https://ici.tou.tv/l-age-adulte/S01C501',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
         email, password = self._get_login_info()
         if email is None:
             return
-        state = 'http://ici.tou.tv//'
+        state = 'http://ici.tou.tv/'
         webpage = self._download_webpage(state, None, 'Downloading homepage')
         toutvlogin = self._parse_json(self._search_regex(
             r'(?s)toutvlogin\s*=\s*({.+?});', webpage, 'toutvlogin'), None, js_to_json)
@@ -55,16 +59,30 @@ class TouTvIE(InfoExtractor):
                 'scope': 'media-drmt openid profile email id.write media-validation.read.privileged',
                 'state': state,
             })
-        login_form = self._search_regex(
-            r'(?s)(<form[^>]+(?:id|name)="Form-login".+?</form>)', login_webpage, 'login form')
-        form_data = self._hidden_inputs(login_form)
+
+        def extract_form_url_and_data(wp, default_form_url, form_spec_re=''):
+            form, form_elem = re.search(
+                r'(?s)((<form[^>]+?%s[^>]*?>).+?</form>)' % form_spec_re, wp).groups()
+            form_data = self._hidden_inputs(form)
+            form_url = extract_attributes(form_elem).get('action') or default_form_url
+            return form_url, form_data
+
+        post_url, form_data = extract_form_url_and_data(
+            login_webpage,
+            'https://services.radio-canada.ca/auth/oauth/v2/authorize/login',
+            r'(?:id|name)="Form-login"')
         form_data.update({
             'login-email': email,
             'login-password': password,
         })
-        post_url = extract_attributes(login_form).get('action') or authorize_url
-        _, urlh = self._download_webpage_handle(
+        consent_webpage = self._download_webpage(
             post_url, None, 'Logging in', data=urlencode_postdata(form_data))
+        post_url, form_data = extract_form_url_and_data(
+            consent_webpage,
+            'https://services.radio-canada.ca/auth/oauth/v2/authorize/consent')
+        _, urlh = self._download_webpage_handle(
+            post_url, None, 'Following Redirection',
+            data=urlencode_postdata(form_data))
         self._access_token = self._search_regex(
             r'access_token=([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
             urlh.geturl(), 'access token')
@@ -78,8 +96,10 @@ class TouTvIE(InfoExtractor):
     def _real_extract(self, url):
         path = self._match_id(url)
         metadata = self._download_json('http://ici.tou.tv/presentation/%s' % path, path)
+        # IsDrm does not necessarily mean the video is DRM protected (see
+        # https://github.com/rg3/youtube-dl/issues/13994).
         if metadata.get('IsDrm'):
-            raise ExtractorError('This video is DRM protected.', expected=True)
+            self.report_warning('This video is probably DRM protected.', path)
         video_id = metadata['IdMedia']
         details = metadata['Details']
         title = details['OriginalTitle']

@@ -21,7 +21,7 @@ class PornHdIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Restroom selfie masturbation',
             'description': 'md5:3748420395e03e31ac96857a8f125b2b',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
             'age_limit': 18,
         }
@@ -35,7 +35,7 @@ class PornHdIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sierra loves doing laundry',
             'description': 'md5:8ff0523848ac2b8f9b065ba781ccf294',
-            'thumbnail': 're:^https?://.*\.jpg',
+            'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
             'age_limit': 18,
         },
@@ -54,7 +54,7 @@ class PornHdIE(InfoExtractor):
              r'<title>(.+?) - .*?[Pp]ornHD.*?</title>'], webpage, 'title')
 
         sources = self._parse_json(js_to_json(self._search_regex(
-            r"(?s)'sources'\s*:\s*(\{.+?\})\s*\}[;,)]",
+            r"(?s)sources'?\s*[:=]\s*(\{.+?\})",
             webpage, 'sources', default='{}')), video_id)
 
         if not sources:
@@ -82,7 +82,8 @@ class PornHdIE(InfoExtractor):
         view_count = int_or_none(self._html_search_regex(
             r'(\d+) views\s*<', webpage, 'view count', fatal=False))
         thumbnail = self._search_regex(
-            r"'poster'\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)
+            r"poster'?\s*:\s*([\"'])(?P<url>(?:(?!\1).)+)\1", webpage,
+            'thumbnail', fatal=False, group='url')
 
         return {
             'id': video_id,

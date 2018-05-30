@@ -1,13 +1,12 @@
 from __future__ import division, unicode_literals
 
-import base64
 import io
 import itertools
-import os
 import time
 
 from .fragment import FragmentFD
 from ..compat import (
+    compat_b64decode,
     compat_etree_fromstring,
     compat_urlparse,
     compat_urllib_error,
@@ -16,9 +15,7 @@ from ..compat import (
     compat_struct_unpack,
 )
 from ..utils import (
-    encodeFilename,
     fix_xml_ampersands,
-    sanitize_open,
     xpath_text,
 )
 
@@ -246,8 +243,17 @@ def remove_encrypted_media(media):
                        media))
 
 
-def _add_ns(prop):
-    return '{http://ns.adobe.com/f4m/1.0}%s' % prop
+def _add_ns(prop, ver=1):
+    return '{http://ns.adobe.com/f4m/%d.0}%s' % (ver, prop)
+
+
+def get_base_url(manifest):
+    base_url = xpath_text(
+        manifest, [_add_ns('baseURL'), _add_ns('baseURL', 2)],
+        'base URL', default=None)
+    if base_url:
+        base_url = base_url.strip()
+    return base_url
 
 
 class F4mFD(FragmentFD):
@@ -306,7 +312,7 @@ class F4mFD(FragmentFD):
             boot_info = self._get_bootstrap_from_url(bootstrap_url)
         else:
             bootstrap_url = None
-            bootstrap = base64.b64decode(node.text.encode('ascii'))
+            bootstrap = compat_b64decode(node.text)
             boot_info = read_bootstrap_info(bootstrap)
         return boot_info, bootstrap_url
 
@@ -333,17 +339,17 @@ class F4mFD(FragmentFD):
             rate, media = list(filter(
                 lambda f: int(f[0]) == requested_bitrate, formats))[0]
 
-        base_url = compat_urlparse.urljoin(man_url, media.attrib['url'])
+        # Prefer baseURL for relative URLs as per 11.2 of F4M 3.0 spec.
+        man_base_url = get_base_url(doc) or man_url
+
+        base_url = compat_urlparse.urljoin(man_base_url, media.attrib['url'])
         bootstrap_node = doc.find(_add_ns('bootstrapInfo'))
-        # From Adobe F4M 3.0 spec:
-        # The <baseURL> element SHALL be the base URL for all relative
-        # (HTTP-based) URLs in the manifest. If <baseURL> is not present, said
-        # URLs should be relative to the location of the containing document.
-        boot_info, bootstrap_url = self._parse_bootstrap_node(bootstrap_node, man_url)
+        boot_info, bootstrap_url = self._parse_bootstrap_node(
+            bootstrap_node, man_base_url)
         live = boot_info['live']
         metadata_node = media.find(_add_ns('metadata'))
         if metadata_node is not None:
-            metadata = base64.b64decode(metadata_node.text.encode('ascii'))
+            metadata = compat_b64decode(metadata_node.text)
         else:
             metadata = None
 
@@ -366,17 +372,21 @@ class F4mFD(FragmentFD):
 
         dest_stream = ctx['dest_stream']
 
-        write_flv_header(dest_stream)
-        if not live:
-            write_metadata_tag(dest_stream, metadata)
+        if ctx['complete_frags_downloaded_bytes'] == 0:
+            write_flv_header(dest_stream)
+            if not live:
+                write_metadata_tag(dest_stream, metadata)
 
         base_url_parsed = compat_urllib_parse_urlparse(base_url)
 
         self._start_frag_download(ctx)
 
-        frags_filenames = []
+        frag_index = 0
         while fragments_list:
             seg_i, frag_i = fragments_list.pop(0)
+            frag_index += 1
+            if frag_index <= ctx['fragment_index']:
+                continue
             name = 'Seg%d-Frag%d' % (seg_i, frag_i)
             query = []
             if base_url_parsed.query:
@@ -386,17 +396,10 @@ class F4mFD(FragmentFD):
             if info_dict.get('extra_param_to_segment_url'):
                 query.append(info_dict['extra_param_to_segment_url'])
             url_parsed = base_url_parsed._replace(path=base_url_parsed.path + name, query='&'.join(query))
-            frag_filename = '%s-%s' % (ctx['tmpfilename'], name)
             try:
-                success = ctx['dl'].download(frag_filename, {
-                    'url': url_parsed.geturl(),
-                    'http_headers': info_dict.get('http_headers'),
-                })
+                success, down_data = self._download_fragment(ctx, url_parsed.geturl(), info_dict)
                 if not success:
                     return False
-                (down, frag_sanitized) = sanitize_open(frag_filename, 'rb')
-                down_data = down.read()
-                down.close()
                 reader = FlvReader(down_data)
                 while True:
                     try:
@@ -411,12 +414,8 @@ class F4mFD(FragmentFD):
                             break
                         raise
                     if box_type == b'mdat':
-                        dest_stream.write(box_data)
+                        self._append_fragment(ctx, box_data)
                         break
-                if live:
-                    os.remove(encodeFilename(frag_sanitized))
-                else:
-                    frags_filenames.append(frag_sanitized)
             except (compat_urllib_error.HTTPError, ) as err:
                 if live and (err.code == 404 or err.code == 410):
                     # We didn't keep up with the live window. Continue
@@ -435,8 +434,5 @@ class F4mFD(FragmentFD):
                     self.report_warning(msg)
 
         self._finish_frag_download(ctx)
-
-        for frag_file in frags_filenames:
-            os.remove(encodeFilename(frag_file))
 
         return True

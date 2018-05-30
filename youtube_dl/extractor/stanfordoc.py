@@ -66,7 +66,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 r'(?s)<description>([^<]+)</description>',
                 coursepage, 'description', fatal=False)
 
-            links = orderedSet(re.findall('<a href="(VideoPage.php\?[^"]+)">', coursepage))
+            links = orderedSet(re.findall(r'<a href="(VideoPage\.php\?[^"]+)">', coursepage))
             info['entries'] = [self.url_result(
                 'http://openclassroom.stanford.edu/MainFolder/%s' % unescapeHTML(l)
             ) for l in links]
@@ -84,7 +84,7 @@ class StanfordOpenClassroomIE(InfoExtractor):
             rootpage = self._download_webpage(rootURL, info['id'],
                                               errnote='Unable to download course info page')
 
-            links = orderedSet(re.findall('<a href="(CoursePage.php\?[^"]+)">', rootpage))
+            links = orderedSet(re.findall(r'<a href="(CoursePage\.php\?[^"]+)">', rootpage))
             info['entries'] = [self.url_result(
                 'http://openclassroom.stanford.edu/MainFolder/%s' % unescapeHTML(l)
             ) for l in links]
