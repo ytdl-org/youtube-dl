@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.05.30
 
 Core
 * [downloader/rtmp] Generalize download messages and report time elapsed

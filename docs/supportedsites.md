@@ -15,7 +15,6 @@
  - **8tracks**
  - **91porn**
  - **9c9media**
- - **9c9media:stack**
  - **9gag**
  - **9now.com.au**
  - **abc.net.au**
@@ -48,6 +47,7 @@
  - **anitube.se**
  - **Anvato**
  - **AnySex**
+ - **APA**
  - **Aparat**
  - **AppleConnect**
  - **AppleDaily**: 臺灣蘋果日報
@@ -128,6 +128,7 @@
  - **BYUtv**
  - **Camdemy**
  - **CamdemyFolder**
+ - **CamModels**
  - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: mycanal.fr and piwiplus.fr
