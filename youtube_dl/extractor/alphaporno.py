@@ -1,11 +1,14 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
     parse_duration,
     parse_filesize,
     int_or_none,
+    js_to_json,
 )
 
 
@@ -35,11 +38,21 @@ class AlphaPornoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_id = self._search_regex(
-            r"video_id\s*:\s*'([^']+)'", webpage, 'video id', default=None)
+        video_id = re.sub(r'^https?://.*/embed/', '', self._html_search_meta('embedUrl', webpage, 'video id'))
 
-        video_url = self._search_regex(
-            r"video_url\s*:\s*'([^']+)'", webpage, 'video url')
+        sources = self._parse_json(
+            self._search_regex(r'sources\s*:\s*(\[[^\]]*\])', webpage, 'source data'), video_id,
+            transform_source=js_to_json
+        )
+
+        formats = []
+        for s in sources:
+            video_url = s['file']
+            formats.append({
+                'url': video_url,
+                'height': int_or_none(re.sub('^(\d+)[pi].*', r'\1', s.get('label') or ''))
+            })
+
         ext = self._html_search_meta(
             'encodingFormat', webpage, 'ext', default='.mp4')[1:]
 
@@ -64,7 +77,6 @@ class AlphaPornoIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
             'ext': ext,
             'title': title,
             'thumbnail': thumbnail,
@@ -74,4 +86,5 @@ class AlphaPornoIE(InfoExtractor):
             'tbr': bitrate,
             'categories': categories,
             'age_limit': age_limit,
+            'formats': formats,
         }
