@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-"""
-see: `js2tests`
-"""
+# """
+# see: `js2tests`
+# """
 
 from __future__ import unicode_literals
 

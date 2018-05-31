@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from youtube_dl.jsinterp2.jsgrammar import Token
 
 skip = {'interpret': 'Interpreting label not yet implemented',
