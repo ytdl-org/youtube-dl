@@ -301,6 +301,10 @@ class OpenloadIE(InfoExtractor):
     }, {
         'url': 'https://oload.xyz/f/WwRBpzW8Wtk',
         'only_matching': True,
+    }, {
+        # Its title has not got its extension but url has it
+        'url': 'https://oload.download/f/N4Otkw39VCw/Tomb.Raider.2018.HDRip.XviD.AC3-EVO.avi.mp4',
+        'only_matching': True,
     }]
 
     _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
@@ -354,13 +358,19 @@ class OpenloadIE(InfoExtractor):
         entry = entries[0] if entries else {}
         subtitles = entry.get('subtitles')
 
+        # Some videos have special name and some of these
+        # have not got their extension on their title
+        # If url has their file name, it has always its extension
+        video_ext = determine_ext(title, None)
+        if video_ext is None:
+            video_ext = determine_ext(url, 'mp4')
+
         info_dict = {
             'id': video_id,
             'title': title,
             'thumbnail': entry.get('thumbnail') or self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
-            # Seems all videos have extensions in their titles
-            'ext': determine_ext(title, 'mp4'),
+            'ext': video_ext,
             'subtitles': subtitles,
             'http_headers': headers,
         }
