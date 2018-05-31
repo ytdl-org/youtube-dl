@@ -381,6 +381,7 @@ from .francetv import (
     FranceTVSiteIE,
     FranceTVEmbedIE,
     FranceTVInfoIE,
+    FranceTVInfoSportIE,
     FranceTVJeunesseIE,
     GenerationWhatIE,
     CultureboxIE,
