@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-from . import true
 from .internals import jstype, boolean_type, object_type, to_boolean
-from .base import to_js
+from .utils import to_js
 from .jsobject import JSObject, JSObjectPrototype
 
 
@@ -40,6 +39,10 @@ class JSBooleanPrototype(JSObjectPrototype):
         'toString': _to_string,
         'valueOf': _value_of
     }
+
+
+true = JSBooleanPrototype(True)
+false = JSBooleanPrototype(False)
 
 
 class JSBoolean(JSObject):

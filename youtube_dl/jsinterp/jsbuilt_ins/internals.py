@@ -4,12 +4,8 @@ import re
 from math import isnan, isinf, log10
 from sys import float_info
 
-from . import undefined, null, true, false
-from .base import to_js, native_bool, native_string, native_number, native_object
-from .jsobject import JSObjectPrototype
-from .jsboolean import JSBooleanPrototype
-from .jsstring import JSStringPrototype
-from .jsnumber import JSNumberPrototype
+from .base import native_bool, native_string, native_number, native_object
+from .utils import to_js
 from ..jsgrammar import __HEXADECIMAL_RE
 
 undefined_type = object()
@@ -21,6 +17,9 @@ object_type = object()
 
 
 def jstype(o):
+    from .base import null, undefined
+    from .jsboolean import true, false
+
     if o is undefined:
         return undefined_type
     elif o is None or o is null:
@@ -42,6 +41,12 @@ def to_primitive(o, hint=None):
 
 
 def to_boolean(o):
+    from .base import undefined, null
+    from .jsobject import JSObjectPrototype
+    from .jsboolean import JSBooleanPrototype, false, true
+    from .jsstring import JSStringPrototype
+    from .jsnumber import JSNumberPrototype
+
     if o is undefined or o is null:
         return false
     elif isinstance(o, JSBooleanPrototype):
@@ -57,6 +62,11 @@ def to_boolean(o):
 
 
 def to_number(o):
+    from .base import null, undefined
+    from .jsobject import JSObjectPrototype
+    from .jsboolean import JSBooleanPrototype, false, true
+    from .jsstring import JSStringPrototype
+
     if o is undefined:
         return float('nan')
     elif o is null or isinstance(o, JSBooleanPrototype) and o.value is false:
@@ -129,6 +139,11 @@ def to_uint16(o):
 
 
 def to_string(o):
+    from .base import null, undefined
+    from .jsobject import JSObjectPrototype
+    from .jsboolean import JSBooleanPrototype, false, true
+    from .jsnumber import JSNumberPrototype
+
     if o is undefined:
         return 'undefined'
     elif o is null:
@@ -184,6 +199,12 @@ def to_string(o):
 
 
 def to_object(o):
+    from .base import null, undefined
+    from .jsobject import JSObjectPrototype
+    from .jsboolean import JSBooleanPrototype
+    from .jsstring import JSStringPrototype
+    from .jsnumber import JSNumberPrototype
+
     if o is undefined or o is null:
         raise Exception('TypeError: Cannot convert undefined or null to object')
     elif isinstance(o, JSBooleanPrototype):

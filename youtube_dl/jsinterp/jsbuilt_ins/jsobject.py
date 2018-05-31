@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
 
-from . import null, undefined
-from .base import JSProtoBase, to_js, js, JSBase
+from .base import JSProtoBase, JSBase, null, undefined
+from .utils import to_js, js
 from .internals import to_object
-from .jsboolean import JSBooleanPrototype
-from .jsnumber import JSNumberPrototype
-from .jsstring import JSStringPrototype
 
 
 class JSObjectPrototype(JSProtoBase):
@@ -63,6 +60,10 @@ class JSObject(JSBase):
 
     @staticmethod
     def construct(value=None):
+        from .jsboolean import JSBooleanPrototype
+        from .jsnumber import JSNumberPrototype
+        from .jsstring import JSStringPrototype
+
         value = to_js(value)
         # TODO set [[Prototype]], [[Class]], [[Extensible]], internal methods
         if value is undefined or value is null:

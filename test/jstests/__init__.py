@@ -26,13 +26,14 @@ from . import (
     try_statement,
     with_statement,
     debug,
-    unshift
+    unshift,
+    stringprototype
 )
 
 
 modules = [basic, calc, empty_return, morespace, strange_chars, operators, unary, array_access, parens, assignments,
            comments, precedence, call, getfield, branch, switch, for_loop, for_empty, for_in, do_loop, while_loop,
-           label, func_expr, object_literal, try_statement, with_statement, debug, unshift]
+           label, func_expr, object_literal, try_statement, with_statement, debug, unshift, stringprototype]
 
 
 def gettestcases():

@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
-from . import undefined, null
+from .base import undefined, null
 from .internals import to_string, throw_type_error
-from .base import to_js, native_function, JSBase
+from .base import native_function, JSBase
+from .utils import to_js
 from .jsobject import JSObject, JSObjectPrototype
 
 

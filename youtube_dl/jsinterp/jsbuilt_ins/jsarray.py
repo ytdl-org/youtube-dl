@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
-from . import undefined
-from .base import native_number
+from .base import native_number, undefined
 from .jsobject import JSObject, JSObjectPrototype
 from .jsnumber import JSNumberPrototype
 

@@ -8,10 +8,8 @@ from . import jsboolean
 from . import jsstring
 from . import jsnumber
 
-undefined = base.JSBase('undefined')
-null = base.JSBase('null')
-true = jsboolean.JSBooleanPrototype(True)
-false = jsboolean.JSBooleanPrototype(False)
+from .base import null, undefined
+from .jsboolean import false, true
 
 
 def _eval(code):

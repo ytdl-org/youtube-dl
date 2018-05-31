@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from .internals import jstype, number_type, to_number
-from .base import to_js
+from .utils import to_js
 from .jsobject import JSObject, JSObjectPrototype
 
 

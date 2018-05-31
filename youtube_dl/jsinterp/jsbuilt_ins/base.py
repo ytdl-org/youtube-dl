@@ -3,13 +3,6 @@ from __future__ import unicode_literals
 from types import FunctionType
 
 from ...compat import compat_str
-from . import undefined
-from .jsobject import JSObjectPrototype
-from .jsfunction import JSFunctionPrototype
-from .jsarray import JSArrayPrototype
-from .jsboolean import JSBooleanPrototype
-from .jsstring import JSStringPrototype
-from .jsnumber import JSNumberPrototype
 
 
 class JSBase(object):
@@ -19,6 +12,10 @@ class JSBase(object):
         self.props = {}
 
     own = {}
+
+
+undefined = JSBase('undefined')
+null = JSBase('null')
 
 
 class JSProtoBase(JSBase):
@@ -58,39 +55,6 @@ class JSProtoBase(JSBase):
             raise Exception('TypeError: %s is not a function' % prop)
 
     jsclass = ''
-
-
-def _get_formal_args(func):
-    return func.__code__.co_varnames[func.__code__.co_argcount - len((func.__defaults__))]
-
-
-def to_js(o, name=None):
-    if isinstance(o, JSProtoBase):
-        return o
-    elif o is None:
-        return undefined
-    elif isinstance(o, native_bool):
-        return JSBooleanPrototype(o)
-    elif isinstance(o, native_string):
-        return JSStringPrototype(o)
-    elif isinstance(o, native_number):
-        return JSNumberPrototype(o)
-    elif isinstance(o, native_object):
-        return JSObjectPrototype(o)
-    elif isinstance(o, native_function):
-        return JSFunctionPrototype(name, o, _get_formal_args(o))
-    elif isinstance(o, JSBase) and hasattr(o, 'call'):
-        return JSFunctionPrototype(o.name, o, _get_formal_args(o.call))
-    elif isinstance(o, native_array):
-        return JSArrayPrototype(o)
-    else:
-        raise Exception('Not allowed conversion %s to js' % type(o))
-
-
-def js(func):
-    def wrapper(*args, **kwargs):
-        return to_js(*func(*args, **kwargs))
-    return wrapper
 
 
 native_bool = bool
