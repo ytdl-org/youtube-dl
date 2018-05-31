@@ -226,7 +226,7 @@ class FacebookIE(InfoExtractor):
         return urls
 
     def _login(self):
-        (useremail, password) = self._get_login_info()
+        useremail, password = self._get_login_info()
         if useremail is None:
             return
 

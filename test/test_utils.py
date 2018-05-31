@@ -42,6 +42,7 @@ from youtube_dl.utils import (
     is_html,
     js_to_json,
     limit_length,
+    merge_dicts,
     mimetype2ext,
     month_by_name,
     multipart_encode,
@@ -519,6 +520,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_age_limit('PG-13'), 13)
         self.assertEqual(parse_age_limit('TV-14'), 14)
         self.assertEqual(parse_age_limit('TV-MA'), 17)
+        self.assertEqual(parse_age_limit('TV14'), 14)
+        self.assertEqual(parse_age_limit('TV_G'), 0)
 
     def test_parse_duration(self):
         self.assertEqual(parse_duration(None), None)
@@ -669,6 +672,17 @@ class TestUtil(unittest.TestCase):
         for key, false_value in FALSE_VALUES.items():
             self.assertEqual(dict_get(d, ('b', 'c', key, )), None)
             self.assertEqual(dict_get(d, ('b', 'c', key, ), skip_false_values=False), false_value)
+
+    def test_merge_dicts(self):
+        self.assertEqual(merge_dicts({'a': 1}, {'b': 2}), {'a': 1, 'b': 2})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': 2}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': None}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': ''}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': None}, {'a': 1}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 1}), {'a': ''})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 'abc'}), {'a': 'abc'})
+        self.assertEqual(merge_dicts({'a': None}, {'a': ''}, {'a': 'abc'}), {'a': 'abc'})
 
     def test_encode_compat_str(self):
         self.assertEqual(encode_compat_str(b'\xd1\x82\xd0\xb5\xd1\x81\xd1\x82', 'utf-8'), 'тест')
@@ -1073,6 +1087,18 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+        self.assertTrue(match_str('is_live', {'is_live': True}))
+        self.assertFalse(match_str('is_live', {'is_live': False}))
+        self.assertFalse(match_str('is_live', {'is_live': None}))
+        self.assertFalse(match_str('is_live', {}))
+        self.assertFalse(match_str('!is_live', {'is_live': True}))
+        self.assertTrue(match_str('!is_live', {'is_live': False}))
+        self.assertTrue(match_str('!is_live', {'is_live': None}))
+        self.assertTrue(match_str('!is_live', {}))
+        self.assertTrue(match_str('title', {'title': 'abc'}))
+        self.assertTrue(match_str('title', {'title': ''}))
+        self.assertFalse(match_str('!title', {'title': 'abc'}))
+        self.assertFalse(match_str('!title', {'title': ''}))
 
     def test_parse_dfxp_time_expr(self):
         self.assertEqual(parse_dfxp_time_expr(None), None)

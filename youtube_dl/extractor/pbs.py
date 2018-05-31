@@ -505,7 +505,7 @@ class PBSIE(InfoExtractor):
             if player:
                 video_info = self._parse_json(
                     self._search_regex(
-                        r'(?s)PBS\.videoData\s*=\s*({.+?});\n',
+                        [r'(?s)PBS\.videoData\s*=\s*({.+?});\n', r'window\.videoBridge\s*=\s*({.+?});'],
                         player, '%s video data' % page, default='{}'),
                     display_id, transform_source=js_to_json, fatal=False)
                 if video_info:
@@ -513,10 +513,14 @@ class PBSIE(InfoExtractor):
                     if not info:
                         info = video_info
                 if not chapters:
-                    for chapter_data in re.findall(r'(?s)chapters\.push\(({.*?})\)', player):
-                        chapter = self._parse_json(chapter_data, video_id, js_to_json, fatal=False)
-                        if not chapter:
-                            continue
+                    raw_chapters = video_info.get('chapters') or []
+                    if not raw_chapters:
+                        for chapter_data in re.findall(r'(?s)chapters\.push\(({.*?})\)', player):
+                            chapter = self._parse_json(chapter_data, video_id, js_to_json, fatal=False)
+                            if not chapter:
+                                continue
+                            raw_chapters.append(chapter)
+                    for chapter in raw_chapters:
                         start_time = float_or_none(chapter.get('start_time'), 1000)
                         duration = float_or_none(chapter.get('duration'), 1000)
                         if start_time is None or duration is None:

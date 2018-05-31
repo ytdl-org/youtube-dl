@@ -243,7 +243,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -302,6 +302,12 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://oload.xyz/f/WwRBpzW8Wtk',
         'only_matching': True,
     }, {
+        'url': 'https://oload.win/f/kUEfGclsU9o',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.download/f/kUEfGclsU9o',
+        'only_matching': True,
+    }, {
         # Its title has not got its extension but url has it
         'url': 'https://oload.download/f/N4Otkw39VCw/Tomb.Raider.2018.HDRip.XviD.AC3-EVO.avi.mp4',
         'only_matching': True,
@@ -344,7 +350,10 @@ class OpenloadIE(InfoExtractor):
                       get_element_by_id('streamurj', webpage) or
                       self._search_regex(
                           (r'>\s*([\w-]+~\d{10,}~\d+\.\d+\.0\.0~[\w-]+)\s*<',
-                           r'>\s*([\w~-]+~\d+\.\d+\.\d+\.\d+~[\w~-]+)'), webpage,
+                           r'>\s*([\w~-]+~\d+\.\d+\.\d+\.\d+~[\w~-]+)',
+                           r'>\s*([\w-]+~\d{10,}~(?:[a-f\d]+:){2}:~[\w-]+)\s*<',
+                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)\s*<',
+                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)'), webpage,
                           'stream URL'))
 
         video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id

@@ -63,7 +63,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': '623160978427936768',
                 'ext': 'mp4',
                 'title': 'Twitter web player',
-                'thumbnail': r're:^https?://.*(?:\bformat=|\.)jpg',
+                'thumbnail': r're:^https?://.*$',
             },
         },
         {
@@ -223,14 +223,37 @@ class TwitterCardIE(TwitterBaseIE):
                 formats.extend(self._extract_mobile_formats(username, video_id))
 
             if formats:
+                title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+                thumbnail = config.get('posterImageUrl') or config.get('image_src')
+                duration = float_or_none(config.get('duration'), scale=1000) or duration
                 break
+
+        if not formats:
+            config = self._download_json(
+                'https://api.twitter.com/1.1/videos/tweet/config/%s.json' % video_id,
+                video_id, headers={
+                    'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAIK1zgAAAAAA2tUWuhGZ2JceoId5GwYWU5GspY4%3DUq7gzFoCZs1QfwGoVdvSac3IniczZEYXIcDyumCauIXpcAPorE',
+                })
+            track = config['track']
+            vmap_url = track.get('vmapUrl')
+            if vmap_url:
+                formats = self._extract_formats_from_vmap_url(vmap_url, video_id)
+            else:
+                playback_url = track['playbackUrl']
+                if determine_ext(playback_url) == 'm3u8':
+                    formats = self._extract_m3u8_formats(
+                        playback_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls')
+                else:
+                    formats = [{
+                        'url': playback_url,
+                    }]
+            title = 'Twitter web player'
+            thumbnail = config.get('posterImage')
+            duration = float_or_none(track.get('durationMs'), scale=1000)
 
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
-
-        title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
-        thumbnail = config.get('posterImageUrl') or config.get('image_src')
-        duration = float_or_none(config.get('duration'), scale=1000) or duration
 
         return {
             'id': video_id,
@@ -371,6 +394,22 @@ class TwitterIE(InfoExtractor):
             'uploader': 'Préfet de Guadeloupe',
             'uploader_id': 'Prefet971',
             'duration': 47.48,
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        },
+    }, {
+        # card via api.twitter.com/1.1/videos/tweet/config
+        'url': 'https://twitter.com/LisPower1/status/1001551623938805763',
+        'info_dict': {
+            'id': '1001551623938805763',
+            'ext': 'mp4',
+            'title': 're:.*?Shep is on a roll today.*?',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'md5:63b036c228772523ae1924d5f8e5ed6b',
+            'uploader': 'Lis Power',
+            'uploader_id': 'LisPower1',
+            'duration': 111.278,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg

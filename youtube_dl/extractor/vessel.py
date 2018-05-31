@@ -75,7 +75,7 @@ class VesselIE(InfoExtractor):
                     'Access to this content is restricted. (%s said: %s)' % (self.IE_NAME, err_code), expected=True)
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
         self.report_login()

@@ -123,7 +123,7 @@ class GoIE(AdobePassIE):
                         'adobe_requestor_id': requestor_id,
                     })
                 else:
-                    self._initialize_geo_bypass(['US'])
+                    self._initialize_geo_bypass({'countries': ['US']})
                 entitlement = self._download_json(
                     'https://api.entitlement.watchabc.go.com/vp2/ws-secure/entitlement/2020/authorize.json',
                     video_id, data=urlencode_postdata(data))
