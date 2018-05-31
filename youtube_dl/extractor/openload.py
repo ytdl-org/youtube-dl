@@ -361,9 +361,7 @@ class OpenloadIE(InfoExtractor):
         # Some videos have special name and some of these
         # have not got their extension on their title
         # If url has their file name, it has always its extension
-        video_ext = determine_ext(title, None)
-        if video_ext is None:
-            video_ext = determine_ext(url, 'mp4')
+        video_ext = determine_ext(title, None) or determine_ext(url, 'mp4')
 
         info_dict = {
             'id': video_id,
