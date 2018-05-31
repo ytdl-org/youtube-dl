@@ -22,32 +22,28 @@ class NuvidIE(InfoExtractor):
         }
     }
 
-    def _real_extract(self, url):
+        def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        page_url = 'http://m.nuvid.com/video/%s' % video_id
+        page_url = 'https://m.nuvid.com/video/%s' % video_id
         webpage = self._download_webpage(
             page_url, video_id, 'Downloading video page')
-        # When dwnld_speed exists and has a value larger than the MP4 file's
-        # bitrate, Nuvid returns the MP4 URL
-        # It's unit is 100bytes/millisecond, see mobile-nuvid-min.js for the algorithm
-        self._set_cookie('nuvid.com', 'dwnld_speed', '10.0')
-        mp4_webpage = self._download_webpage(
-            page_url, video_id, 'Downloading video page for MP4 format')
 
-        html5_video_re = r'(?s)<(?:video|audio)[^<]*(?:>.*?<source[^>]*)?\s+src=["\'](.*?)["\']',
-        video_url = self._html_search_regex(html5_video_re, webpage, video_id)
-        mp4_video_url = self._html_search_regex(html5_video_re, mp4_webpage, video_id)
+        video_hash_re = r'(?s)<(?:video|audio).+data-video_hash="(?P<video_hash>[^"]+)[^>]*(?:>)',
+        hash_time_re = r'(?s)<(?:video|audio).+data-hash_time="(?P<hash_time>[^"]+)[^>]*(?:>)',
+        video_hash = self._html_search_regex(video_hash_re, webpage, 'video_hash')
+        hash_time = self._html_search_regex(hash_time_re, webpage, 'hash_time')
+
+        query = {'video_hash': video_hash, 'hash_time': hash_time, 'video_id': video_id}
+        player_source = self._download_json('https://m.nuvid.com/player_config', video_id, query=query)
+        mp4_video_url = player_source['source']
+
         formats = [{
-            'url': video_url,
+            'url': mp4_video_url
         }]
-        if mp4_video_url != video_url:
-            formats.append({
-                'url': mp4_video_url,
-            })
 
         title = self._html_search_regex(
-            [r'<span title="([^"]+)">',
+            [r'<div class="[^"]+" title="([^"]+)" id="video_area">',
              r'<div class="thumb-holder video">\s*<h5[^>]*>([^<]+)</h5>',
              r'<span[^>]+class="title_thumb">([^<]+)</span>'], webpage, 'title').strip()
         thumbnails = [
