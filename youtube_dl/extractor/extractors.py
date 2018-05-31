@@ -705,12 +705,7 @@ from .nexx import (
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhk import NhkVodIE
-from .nhl import (
-    NHLVideocenterIE,
-    NHLNewsIE,
-    NHLVideocenterCategoryIE,
-    NHLIE,
-)
+from .nhl import NHLIE
 from .nick import (
     NickIE,
     NickBrIE,
