@@ -37,7 +37,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
     _LOGIN_URL = 'https://vimeo.com/log_in'
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             if self._LOGIN_REQUIRED:
                 raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)

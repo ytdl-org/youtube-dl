@@ -54,6 +54,7 @@ class RBMARadioIE(InfoExtractor):
             'abr': abr,
             'vcodec': 'none',
         } for abr in (96, 128, 256)]
+        self._check_formats(formats, episode_id)
 
         description = clean_html(episode.get('longTeaser'))
         thumbnail = self._proto_relative_url(episode.get('imageURL', {}).get('landscape'))

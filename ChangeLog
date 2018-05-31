@@ -1,3 +1,55 @@
+version 2018.05.30
+
+Core
+* [downloader/rtmp] Generalize download messages and report time elapsed
+  on finish
+* [downloader/rtmp] Gracefully handle live streams interrupted by user
+
+Extractors
+* [teamcoco] Fix extraction for full episodes (#16573)
+* [spiegel] Fix info extraction (#16538)
++ [apa] Add support for apa.at (#15041, #15672)
++ [bellmedia] Add support for bnnbloomberg.ca (#16560)
++ [9c9media] Extract MPD formats and subtitles
+* [cammodels] Use geo verification headers
++ [ufctv] Add support for authentication (#16542)
++ [cammodels] Add support for cammodels.com (#14499)
+* [utils] Fix style id extraction for namespaced id attribute in dfxp2srt
+  (#16551)
+* [soundcloud] Detect format extension (#16549)
+* [cbc] Fix playlist title extraction (#16502)
++ [tumblr] Detect and report sensitive media (#13829)
++ [tumblr] Add support for authentication (#15133)
+
+
+version 2018.05.26
+
+Core
+* [utils] Improve parse_age_limit
+
+Extractors
+* [audiomack] Stringify video id (#15310)
+* [izlesene] Fix extraction (#16233, #16271, #16407)
++ [indavideo] Add support for generic embeds (#11989)
+* [indavideo] Fix extraction (#11221)
+* [indavideo] Sign download URLs (#16174)
++ [peertube] Add support for PeerTube based sites (#16301, #16329)
+* [imgur] Fix extraction (#16537)
++ [hidive] Add support for authentication (#16534)
++ [nbc] Add support for stream.nbcsports.com (#13911)
++ [viewlift] Add support for hoichoi.tv (#16536)
+* [go90] Extract age limit and detect DRM protection(#10127)
+* [viewlift] fix extraction for snagfilms.com (#15766)
+* [globo] Improve extraction (#4189)
+    * Add support for authentication
+    * Simplify URL signing
+    * Extract DASH and MSS formats
+* [leeco] Fix extraction (#16464)
+* [teamcoco] Add fallback for format extraction (#16484)
+* [teamcoco] Improve URL regular expression (#16484)
+* [imdb] Improve extraction (#4085, #14557)
+
+
 version 2018.05.18
 
 Extractors

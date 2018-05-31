@@ -2253,12 +2253,12 @@ US_RATINGS = {
 
 
 TV_PARENTAL_GUIDELINES = {
-    'Y': 0,
-    'Y7': 7,
-    'G': 0,
-    'PG': 0,
-    '14': 14,
-    'MA': 17,
+    'TV-Y': 0,
+    'TV-Y7': 7,
+    'TV-G': 0,
+    'TV-PG': 0,
+    'TV-14': 14,
+    'TV-MA': 17,
 }
 
 
@@ -2272,9 +2272,9 @@ def parse_age_limit(s):
         return int(m.group('age'))
     if s in US_RATINGS:
         return US_RATINGS[s]
-    m = re.match(r'^TV[_-]?(%s)$' % '|'.join(TV_PARENTAL_GUIDELINES.keys()), s)
+    m = re.match(r'^TV[_-]?(%s)$' % '|'.join(k[3:] for k in TV_PARENTAL_GUIDELINES), s)
     if m:
-        return TV_PARENTAL_GUIDELINES[m.group(1)]
+        return TV_PARENTAL_GUIDELINES['TV-' + m.group(1)]
     return None
 
 
@@ -2667,6 +2667,7 @@ def dfxp2srt(dfxp_data):
     ]
 
     _x = functools.partial(xpath_with_ns, ns_map={
+        'xml': 'http://www.w3.org/XML/1998/namespace',
         'ttml': 'http://www.w3.org/ns/ttml',
         'tts': 'http://www.w3.org/ns/ttml#styling',
     })
@@ -2758,7 +2759,9 @@ def dfxp2srt(dfxp_data):
     repeat = False
     while True:
         for style in dfxp.findall(_x('.//ttml:style')):
-            style_id = style.get('id')
+            style_id = style.get('id') or style.get(_x('xml:id'))
+            if not style_id:
+                continue
             parent_style_id = style.get('style')
             if parent_style_id:
                 if parent_style_id not in styles:

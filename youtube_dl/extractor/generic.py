@@ -110,6 +110,7 @@ from .xfileshare import XFileShareIE
 from .cloudflarestream import CloudflareStreamIE
 from .peertube import PeerTubeIE
 from .indavideo import IndavideoEmbedIE
+from .apa import APAIE
 
 
 class GenericIE(InfoExtractor):
@@ -2042,6 +2043,23 @@ class GenericIE(InfoExtractor):
             },
         },
         {
+            # APA embed via JWPlatform embed
+            'url': 'http://www.vol.at/blue-man-group/5593454',
+            'info_dict': {
+                'id': 'jjv85FdZ',
+                'ext': 'mp4',
+                'title': '"Blau ist mysteriös": Die Blue Man Group im Interview',
+                'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 254,
+                'timestamp': 1519211149,
+                'upload_date': '20180221',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             'url': 'http://share-videos.se/auto/video/83645793?uid=13',
             'md5': 'b68d276de422ab07ee1d49388103f457',
             'info_dict': {
@@ -3067,6 +3085,11 @@ class GenericIE(InfoExtractor):
         if indavideo_urls:
             return self.playlist_from_matches(
                 indavideo_urls, video_id, video_title, ie=IndavideoEmbedIE.ie_key())
+
+        apa_urls = APAIE._extract_urls(webpage)
+        if apa_urls:
+            return self.playlist_from_matches(
+                apa_urls, video_id, video_title, ie=APAIE.ie_key())
 
         sharevideos_urls = [mobj.group('url') for mobj in re.finditer(
             r'<iframe[^>]+?\bsrc\s*=\s*(["\'])(?P<url>(?:https?:)?//embed\.share-videos\.se/auto/embed/\d+\?.*?\buid=\d+.*?)\1',
