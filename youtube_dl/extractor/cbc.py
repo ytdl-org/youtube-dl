@@ -136,9 +136,15 @@ class CBCIE(InfoExtractor):
         entries = [
             self._extract_player_init(player_init, display_id)
             for player_init in re.findall(r'CBC\.APP\.Caffeine\.initInstance\(({.+?})\);', webpage)]
+
         entries.extend([
             self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
             for media_id in re.findall(r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"', webpage)])
+
+        entries.extend([
+            self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
+            for media_id in re.findall(r'"guid":"(\d+)"', webpage)])
+
         return self.playlist_result(
             entries, display_id, strip_or_none(title),
             self._og_search_description(webpage))
