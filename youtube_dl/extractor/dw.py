@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     unified_strdate,
+    ExtractorError
 )
 from ..compat import compat_urlparse
 
@@ -12,6 +13,7 @@ from ..compat import compat_urlparse
 class DWIE(InfoExtractor):
     IE_NAME = 'dw'
     _VALID_URL = r'https?://(?:www\.)?dw\.com/(?:[^/]+/)+(?:av|e)-(?P<id>\d+)'
+    _SOURCES_URL = 'http://www.dw.com/playersources/%s-%s'
     _TESTS = [{
         # video
         'url': 'http://www.dw.com/en/intelligent-light/av-19112290',
@@ -21,7 +23,18 @@ class DWIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Intelligent light',
             'description': 'md5:90e00d5881719f2a6a5827cb74985af1',
-            'upload_date': '20160311',
+            'upload_date': '20160605',
+        }
+    }, {
+        # 720 video
+        'url': 'http://www.dw.com/en/hamburg-imposes-germanys-first-diesel-ban/av-44026376',
+        'md5': '09299d024c4003145247d02b45a2bd3f',
+        'info_dict': {
+            'id': '44026376',
+            'ext': 'mp4',
+            'title': 'Hamburg imposes Germany\'s first diesel ban',
+            'description': 'md5:a455cf13a29a11d5abff2c9a57981198',
+            'upload_date': '20180531',
         }
     }, {
         # audio
@@ -55,13 +68,30 @@ class DWIE(InfoExtractor):
         title = hidden_inputs['media_title']
         media_id = hidden_inputs.get('media_id') or media_id
 
-        if hidden_inputs.get('player_type') == 'video' and hidden_inputs.get('stream_file') == '1':
-            formats = self._extract_smil_formats(
-                'http://www.dw.com/smil/v-%s' % media_id, media_id,
-                transform_source=lambda s: s.replace(
-                    'rtmp://tv-od.dw.de/flash/',
-                    'http://tv-download.dw.de/dwtv_video/flv/'))
-            self._sort_formats(formats)
+        if hidden_inputs.get('player_type') == 'video':
+            if hidden_inputs.get('stream_file') == '1':
+                formats = self._extract_smil_formats(
+                    'http://www.dw.com/smil/v-%s' % media_id, media_id,
+                    transform_source=lambda s: s.replace(
+                        'rtmp://tv-od.dw.de/flash/',
+                        'http://tv-download.dw.de/dwtv_video/flv/'))
+                self._sort_formats(formats)
+            else:
+                media = self._download_json(self._SOURCES_URL % ('v', media_id), media_id)
+                formats = []
+                for medium in media:
+                    formats.append({
+                        'url': medium.get('file'),
+                        'format_id': medium.get('label')
+                    })
+                self._sort_formats(formats, 'label')
+        elif hidden_inputs.get('player_type') == 'audio':
+            media = self._download_json(self._SOURCES_URL % ('a', media_id), media_id)
+            formats = []
+            for medium in media:
+                formats.append({
+                    'url': medium.get('file'),
+                })
         else:
             formats = [{'url': hidden_inputs['file_name']}]
 
