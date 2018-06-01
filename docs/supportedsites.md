@@ -553,9 +553,6 @@
  - **nfl.com**
  - **NhkVod**
  - **nhl.com**
- - **nhl.com:news**: NHL news
- - **nhl.com:videocenter**
- - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
  - **nick.de**
  - **nickelodeon:br**
@@ -793,6 +790,7 @@
  - **Spiegel**
  - **Spiegel:Article**: Articles on spiegel.de
  - **Spiegeltv**
+ - **sport.francetvinfo.fr**
  - **Sport5**
  - **SportBoxEmbed**
  - **SportDeutschland**
