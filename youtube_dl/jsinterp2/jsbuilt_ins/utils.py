@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from .base import (
     JSProtoBase, native_bool, native_string, native_number, native_object, native_function, JSBase, native_array
 )
