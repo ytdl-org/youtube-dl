@@ -324,34 +324,18 @@ class FacebookIE(InfoExtractor):
         if server_js_data:
             video_data = extract_video_data(server_js_data.get('instances', []))
 
+        def extract_from_jsmods_instances(js_data):
+            if js_data:
+                return extract_video_data(try_get(
+                    js_data, lambda x: x['jsmods']['instances'], list) or [])
+
         if not video_data:
             server_js_data = self._parse_json(
                 self._search_regex(
                     r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:stream_pagelet|pagelet_group_mall|permalink_video_pagelet)',
                     webpage, 'js data', default='{}'),
                 video_id, transform_source=js_to_json, fatal=False)
-            if server_js_data:
-                video_data = extract_video_data(try_get(
-                    server_js_data, lambda x: x['jsmods']['instances'],
-                    list) or [])
-
-        if not video_data:
-            # video info not in first request, do a secondary request using tahoe player specific url
-            tahoe_data = self._download_webpage(
-                self._VIDEO_PAGE_TAHOE_TEMPLATE % video_id, video_id,
-                data=urlencode_postdata({
-                    '__user': 0,
-                    '__a': 1,
-                    '__pc': self._search_regex(r'"pkg_cohort":"(.*?)"', webpage, 'pkg cohort', default='PHASED:DEFAULT'),
-                    '__rev': self._search_regex(r'"client_revision":(\d+),', webpage, 'client revision', default=3944515),
-                }),
-                headers={
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                })
-            tahoe_js_data = self._parse_json(self._search_regex(
-                r'for \(;;\);(.+)', tahoe_data,
-                'tahoe js data', default='{}'), video_id, fatal=False)
-            video_data = extract_video_data(tahoe_js_data.get('jsmods', {}).get('instances', []))
+            video_data = extract_from_jsmods_instances(server_js_data)
 
         if not video_data:
             if not fatal_if_no_video:
@@ -363,8 +347,33 @@ class FacebookIE(InfoExtractor):
                     expected=True)
             elif '>You must log in to continue' in webpage:
                 self.raise_login_required()
-            else:
-                raise ExtractorError('Cannot parse data')
+
+            # Video info not in first request, do a secondary request using
+            # tahoe player specific URL
+            tahoe_data = self._download_webpage(
+                self._VIDEO_PAGE_TAHOE_TEMPLATE % video_id, video_id,
+                data=urlencode_postdata({
+                    '__user': 0,
+                    '__a': 1,
+                    '__pc': self._search_regex(
+                        r'pkg_cohort["\']\s*:\s*["\'](.+?)["\']', webpage,
+                        'pkg cohort', default='PHASED:DEFAULT'),
+                    '__rev': self._search_regex(
+                        r'client_revision["\']\s*:\s*(\d+),', webpage,
+                        'client revision', default='3944515'),
+                }),
+                headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                })
+            tahoe_js_data = self._parse_json(
+                self._search_regex(
+                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_data,
+                    'tahoe js data', default='{}'),
+                video_id, fatal=False)
+            video_data = extract_from_jsmods_instances(tahoe_js_data)
+
+        if not video_data:
+            raise ExtractorError('Cannot parse data')
 
         formats = []
         for f in video_data:
@@ -408,11 +417,10 @@ class FacebookIE(InfoExtractor):
             video_title = limit_length(video_title, 80)
         else:
             video_title = 'Facebook video #%s' % video_id
-        uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage))
-        if not uploader:
-            uploader = self._search_regex(
-                [r'ownerName\s*:\s*"([^"]+)"', r'property="og:title"\s*content="(.*?)"'],
-                webpage, 'uploader', fatal=False)
+        uploader = clean_html(get_element_by_id(
+            'fbPhotoPageAuthorName', webpage)) or self._search_regex(
+            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
+            fatal=False) or self._og_search_title(webpage, fatal=False)
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
