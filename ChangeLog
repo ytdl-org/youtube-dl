@@ -1,3 +1,21 @@
+version 2018.06.02
+
+Core
+* [utils] Improve determine_ext
+
+Extractors
++ [facebook] Add support for tahoe player videos (#15441, #16554)
+* [cbc] Improve extraction (#16583, #16593)
+* [openload] Improve ext extraction (#16595)
++ [twitter:card] Add support for another endpoint (#16586)
++ [openload] Add support for oload.win and oload.download (#16592)
+* [audimedia] Fix extraction (#15309)
++ [francetv] Add support for sport.francetvinfo.fr (#15645)
+* [mlb] Improve extraction (#16587)
+- [nhl] Remove old extractors
+* [rbmaradio] Check formats availability (#16585)
+
+
 version 2018.05.30
 
 Core

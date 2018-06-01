@@ -17,6 +17,7 @@ from ..utils import (
     xpath_element,
     xpath_with_ns,
     find_xpath_attr,
+    orderedSet,
     parse_duration,
     parse_iso8601,
     parse_age_limit,
@@ -136,9 +137,15 @@ class CBCIE(InfoExtractor):
         entries = [
             self._extract_player_init(player_init, display_id)
             for player_init in re.findall(r'CBC\.APP\.Caffeine\.initInstance\(({.+?})\);', webpage)]
+        media_ids = []
+        for media_id_re in (
+                r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"',
+                r'<div[^>]+\bid=["\']player-(\d+)',
+                r'guid["\']\s*:\s*["\'](\d+)'):
+            media_ids.extend(re.findall(media_id_re, webpage))
         entries.extend([
             self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
-            for media_id in re.findall(r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"', webpage)])
+            for media_id in orderedSet(media_ids)])
         return self.playlist_result(
             entries, display_id, strip_or_none(title),
             self._og_search_description(webpage))
