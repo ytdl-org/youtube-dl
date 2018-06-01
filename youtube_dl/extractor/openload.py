@@ -367,17 +367,12 @@ class OpenloadIE(InfoExtractor):
         entry = entries[0] if entries else {}
         subtitles = entry.get('subtitles')
 
-        # Some videos have special name and some of these
-        # have not got their extension on their title
-        # If url has their file name, it has always its extension
-        video_ext = determine_ext(title, None) or determine_ext(url, 'mp4')
-
         info_dict = {
             'id': video_id,
             'title': title,
             'thumbnail': entry.get('thumbnail') or self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
-            'ext': video_ext,
+            'ext': determine_ext(title, None) or determine_ext(url, 'mp4'),
             'subtitles': subtitles,
             'http_headers': headers,
         }
