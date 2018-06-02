@@ -530,7 +530,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
                 'license': 'Standard YouTube License',
                 'creator': 'Justin Timberlake',
-                'track': 'Tunnel Vision`',
+                'track': 'Tunnel Vision',
                 'artist': 'Justin Timberlake',
                 'age_limit': 18,
             }
@@ -1698,136 +1698,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
             raise ExtractorError('"rental" videos not supported. See https://github.com/rg3/youtube-dl/issues/359 for more information.', expected=True)
 
-        # Start extracting information
-        self.report_information_extraction(video_id)
-
-        # uploader
-        video_uploader = try_get(video_info, lambda x: x['author'][0], compat_str)
-        if video_uploader:
-            video_uploader = compat_urllib_parse_unquote_plus(video_uploader)
-        else:
-            self._downloader.report_warning('unable to extract uploader name')
-
-        # uploader_id
-        video_uploader_id = None
-        video_uploader_url = None
-        mobj = re.search(
-            r'<link itemprop="url" href="(?P<uploader_url>https?://www\.youtube\.com/(?:user|channel)/(?P<uploader_id>[^"]+))">',
-            video_webpage)
-        if mobj is not None:
-            video_uploader_id = mobj.group('uploader_id')
-            video_uploader_url = mobj.group('uploader_url')
-        else:
-            self._downloader.report_warning('unable to extract uploader nickname')
-
-        # thumbnail image
-        # We try first to get a high quality image:
-        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
-                            video_webpage, re.DOTALL)
-        if m_thumb is not None:
-            video_thumbnail = m_thumb.group(1)
-        elif 'thumbnail_url' not in video_info:
-            self._downloader.report_warning('unable to extract video thumbnail')
-            video_thumbnail = None
-        else:   # don't panic if we can't find it
-            video_thumbnail = compat_urllib_parse_unquote_plus(video_info['thumbnail_url'][0])
-
-        # upload date
-        upload_date = self._html_search_meta(
-            'datePublished', video_webpage, 'upload date', default=None)
-        if not upload_date:
-            upload_date = self._search_regex(
-                [r'(?s)id="eow-date.*?>(.*?)</span>',
-                 r'(?:id="watch-uploader-info".*?>.*?|["\']simpleText["\']\s*:\s*["\'])(?:Published|Uploaded|Streamed live|Started) on (.+?)[<"\']'],
-                video_webpage, 'upload date', default=None)
-        upload_date = unified_strdate(upload_date)
-
-        video_license = self._html_search_regex(
-            r'<h4[^>]+class="title"[^>]*>\s*License\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li',
-            video_webpage, 'license', default=None)
-
-        m_music = re.search(
-            r'''(?x)
-                <h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*
-                <ul[^>]*>\s*
-                <li>(?P<title>.+?)
-                by (?P<creator>.+?)
-                (?:
-                    \(.+?\)|
-                    <a[^>]*
-                        (?:
-                            \bhref=["\']/red[^>]*>|             # drop possible
-                            >\s*Listen ad-free with YouTube Red # YouTube Red ad
-                        )
-                    .*?
-                )?</li
-            ''',
-            video_webpage)
-        if m_music:
-            video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
-            video_creator = clean_html(m_music.group('creator'))
-        else:
-            video_alt_title = video_creator = None
-
-        def extract_meta(field):
-            return self._html_search_regex(
-                r'<h4[^>]+class="title"[^>]*>\s*%s\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li>\s*' % field,
-                video_webpage, field, default=None)
-
-        track = extract_meta('Song')
-        artist = extract_meta('Artist')
-
-        m_episode = re.search(
-            r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
-            video_webpage)
-        if m_episode:
-            series = m_episode.group('series')
-            season_number = int(m_episode.group('season'))
-            episode_number = int(m_episode.group('episode'))
-        else:
-            series = season_number = episode_number = None
-
-        m_cat_container = self._search_regex(
-            r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
-            video_webpage, 'categories', default=None)
-        if m_cat_container:
-            category = self._html_search_regex(
-                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'category',
-                default=None)
-            video_categories = None if category is None else [category]
-        else:
-            video_categories = None
-
-        video_tags = [
-            unescapeHTML(m.group('content'))
-            for m in re.finditer(self._meta_regex('og:video:tag'), video_webpage)]
-
-        def _extract_count(count_name):
-            return str_to_int(self._search_regex(
-                r'-%s-button[^>]+><span[^>]+class="yt-uix-button-content"[^>]*>([\d,]+)</span>'
-                % re.escape(count_name),
-                video_webpage, count_name, default=None))
-
-        like_count = _extract_count('like')
-        dislike_count = _extract_count('dislike')
-
-        # subtitles
-        video_subtitles = self.extract_subtitles(video_id, video_webpage)
-        automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
-
-        video_duration = try_get(
-            video_info, lambda x: int_or_none(x['length_seconds'][0]))
-        if not video_duration:
-            video_duration = parse_duration(self._html_search_meta(
-                'duration', video_webpage, 'video duration'))
-
-        # annotations
-        video_annotations = None
-        if self._downloader.params.get('writeannotations', False):
-            video_annotations = self._extract_annotations(video_id)
-
-        chapters = self._extract_chapters(description_original, video_duration)
-
         def _extract_filesize(media_url):
             return int_or_none(self._search_regex(
                 r'\bclen[=/](\d+)', media_url, 'filesize', default=None))
@@ -2001,6 +1871,133 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if error_message:
                 raise ExtractorError(error_message, expected=True)
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
+
+        # uploader
+        video_uploader = try_get(video_info, lambda x: x['author'][0], compat_str)
+        if video_uploader:
+            video_uploader = compat_urllib_parse_unquote_plus(video_uploader)
+        else:
+            self._downloader.report_warning('unable to extract uploader name')
+
+        # uploader_id
+        video_uploader_id = None
+        video_uploader_url = None
+        mobj = re.search(
+            r'<link itemprop="url" href="(?P<uploader_url>https?://www\.youtube\.com/(?:user|channel)/(?P<uploader_id>[^"]+))">',
+            video_webpage)
+        if mobj is not None:
+            video_uploader_id = mobj.group('uploader_id')
+            video_uploader_url = mobj.group('uploader_url')
+        else:
+            self._downloader.report_warning('unable to extract uploader nickname')
+
+        # thumbnail image
+        # We try first to get a high quality image:
+        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
+                            video_webpage, re.DOTALL)
+        if m_thumb is not None:
+            video_thumbnail = m_thumb.group(1)
+        elif 'thumbnail_url' not in video_info:
+            self._downloader.report_warning('unable to extract video thumbnail')
+            video_thumbnail = None
+        else:   # don't panic if we can't find it
+            video_thumbnail = compat_urllib_parse_unquote_plus(video_info['thumbnail_url'][0])
+
+        # upload date
+        upload_date = self._html_search_meta(
+            'datePublished', video_webpage, 'upload date', default=None)
+        if not upload_date:
+            upload_date = self._search_regex(
+                [r'(?s)id="eow-date.*?>(.*?)</span>',
+                 r'(?:id="watch-uploader-info".*?>.*?|["\']simpleText["\']\s*:\s*["\'])(?:Published|Uploaded|Streamed live|Started) on (.+?)[<"\']'],
+                video_webpage, 'upload date', default=None)
+        upload_date = unified_strdate(upload_date)
+
+        video_license = self._html_search_regex(
+            r'<h4[^>]+class="title"[^>]*>\s*License\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li',
+            video_webpage, 'license', default=None)
+
+        m_music = re.search(
+            r'''(?x)
+                <h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*
+                <ul[^>]*>\s*
+                <li>(?P<title>.+?)
+                by (?P<creator>.+?)
+                (?:
+                    \(.+?\)|
+                    <a[^>]*
+                        (?:
+                            \bhref=["\']/red[^>]*>|             # drop possible
+                            >\s*Listen ad-free with YouTube Red # YouTube Red ad
+                        )
+                    .*?
+                )?</li
+            ''',
+            video_webpage)
+        if m_music:
+            video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
+            video_creator = clean_html(m_music.group('creator'))
+        else:
+            video_alt_title = video_creator = None
+
+        def extract_meta(field):
+            return self._html_search_regex(
+                r'<h4[^>]+class="title"[^>]*>\s*%s\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li>\s*' % field,
+                video_webpage, field, default=None)
+
+        track = extract_meta('Song')
+        artist = extract_meta('Artist')
+
+        m_episode = re.search(
+            r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
+            video_webpage)
+        if m_episode:
+            series = m_episode.group('series')
+            season_number = int(m_episode.group('season'))
+            episode_number = int(m_episode.group('episode'))
+        else:
+            series = season_number = episode_number = None
+
+        m_cat_container = self._search_regex(
+            r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
+            video_webpage, 'categories', default=None)
+        if m_cat_container:
+            category = self._html_search_regex(
+                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'category',
+                default=None)
+            video_categories = None if category is None else [category]
+        else:
+            video_categories = None
+
+        video_tags = [
+            unescapeHTML(m.group('content'))
+            for m in re.finditer(self._meta_regex('og:video:tag'), video_webpage)]
+
+        def _extract_count(count_name):
+            return str_to_int(self._search_regex(
+                r'-%s-button[^>]+><span[^>]+class="yt-uix-button-content"[^>]*>([\d,]+)</span>'
+                % re.escape(count_name),
+                video_webpage, count_name, default=None))
+
+        like_count = _extract_count('like')
+        dislike_count = _extract_count('dislike')
+
+        # subtitles
+        video_subtitles = self.extract_subtitles(video_id, video_webpage)
+        automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
+
+        video_duration = try_get(
+            video_info, lambda x: int_or_none(x['length_seconds'][0]))
+        if not video_duration:
+            video_duration = parse_duration(self._html_search_meta(
+                'duration', video_webpage, 'video duration'))
+
+        # annotations
+        video_annotations = None
+        if self._downloader.params.get('writeannotations', False):
+            video_annotations = self._extract_annotations(video_id)
+
+        chapters = self._extract_chapters(description_original, video_duration)
 
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
