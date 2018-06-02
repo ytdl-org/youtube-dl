@@ -2,8 +2,11 @@ from __future__ import unicode_literals
 
 from youtube_dl.jsinterp2.jsgrammar import Token
 
-skip = {'interpret': 'Interpreting debugger statement not yet implemented',
-        'parse': 'Test not yet implemented: missing code and ast'}
+skip = {
+    'jsinterp': 'Debugger statement is not supported',
+    'interpret': 'Interpreting debugger statement not yet implemented',
+    'parse': 'Test not yet implemented: missing code and ast'
+}
 
 tests = [
     {

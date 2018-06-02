@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _RELATIONS
 
-skip = {'interpret': 'Interpreting if statement not yet implemented'}
+skip = {
+    'jsinterp': 'Branching is not supported',
+    'interpret': 'Interpreting if statement not yet implemented'
+}
 
 tests = [
     {

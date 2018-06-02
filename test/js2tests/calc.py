@@ -4,10 +4,11 @@ from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _OPERATORS
 
 tests = [
-    {'code': 'return 2*a+1;',
-     'globals': {'a': 3},
-     'asserts': [{'value': 7}],
-     'ast': [(Token.RETURN,
+    {'code': 'function x4(a){return 2*a+1;}',
+     'asserts': [{'value': 7, 'call': ('x4', 3)}],
+     'ast': [
+         (Token.FUNC, 'x4', ['a'], [
+            (Token.RETURN,
               (Token.EXPR, [
                   (Token.ASSIGN,
                    None,
@@ -21,6 +22,8 @@ tests = [
                    ]),
                    None)
               ])
-              )]
+              )
+         ])
+     ]
      }
 ]

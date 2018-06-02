@@ -17,7 +17,7 @@ else:
     import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.jsinterp import JSInterpreter
+from youtube_dl.jsinterp2 import JSInterpreter
 from .js2tests import gettestcases
 
 defs = gettestcases()
@@ -34,7 +34,7 @@ def generator(test_case, name):
     def test_template(self):
         for test in test_case['subtests']:
             excluded = test.get('exclude')
-            if excluded is not None and 'jsinterp' in excluded:
+            if excluded is not None and 'jsinterp2' in excluded:
                 log_reason = 'jsinterp does not support this subtest:\n%s' % test['code']
             elif 'code' not in test:
                 log_reason = 'No code in subtest, skipping'
@@ -44,19 +44,11 @@ def generator(test_case, name):
                 log_reason = None
 
             if log_reason is None:
-                variables = test.get('globals')
-                code = test['code']
-                call = None
-
-                if variables is not None:
-                    code = 'function f(%s){%s}' % ((''.join(variables.keys())), code)
-                    call = ('f',) + tuple(v for v in variables.values())
-
-                jsi = JSInterpreter(code, objects=variables)
+                jsi = JSInterpreter(test['code'], variables=(test.get('globals')))
+                jsi.run()
                 for assertion in test['asserts']:
                     if 'value' in assertion:
-                        if call is None:
-                            call = assertion['call']
+                        call = assertion['call']
                         self.assertEqual(jsi.call_function(*call), assertion['value'])
                     else:
                         log.debug('No value in assertion, skipping')
@@ -69,7 +61,7 @@ def generator(test_case, name):
 
 # And add them to TestJSInterpreter
 for n, tc in enumerate(defs):
-    reason = tc['skip'].get('jsinterp', False)
+    reason = tc['skip'].get('interpret', False)
     tname = 'test_' + str(tc['name'])
     i = 1
     while hasattr(TestJSInterpreter, tname):

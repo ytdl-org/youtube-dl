@@ -284,8 +284,8 @@ class JSInterpreter(object):
         self._context = self._context_stack.pop()
 
     def call_function(self, funcname, *args):
-        f = (self.this[funcname] if funcname in self.this else
-             self.global_vars[funcname] if funcname in self.global_vars else
+        f = (self.this[funcname].getvalue() if funcname in self.this else
+             self.global_vars[funcname].getvalue() if funcname in self.global_vars else
              self.extract_function(funcname))
         return f(*args)
 

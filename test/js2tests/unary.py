@@ -1,11 +1,14 @@
 from __future__ import unicode_literals
 
-skip = {'parse': True}
+skip = {
+    'jsinterp': 'Unary opertations are not supported',
+    'parse': True
+}
 
 tests = [
     {
-        'code': 'return -5 + +3;',
-        'asserts': [{'value': -2}]
+        'code': 'function f() { return -5 + +3; }',
+        'asserts': [{'value': -2, 'call': ('f',)}]
     }, {
         'code': 'function f() {return -5 + ++a;}',
         'globals': {'a': -3},

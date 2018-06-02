@@ -1,12 +1,16 @@
 from __future__ import unicode_literals
 
-skip = {'parse': 'Ast not yet implemented'}
+skip = {
+    'jsinterp': 'String literals are not supported',
+    'parse': 'Ast not yet implemented'
+}
 
 tests = [
     {
-        'code': '"hello".split("");',
+        'exclude': ('jsinterp2',),
+        'code': 'function f() {return "hello".split(""); }',
         'globals': {},
-        'asserts': [{'value': ['h', 'e', 'l', 'l', 'o']}],
+        'asserts': [{'value': ['h', 'e', 'l', 'l', 'o'], 'call': ('f',)}],
         'ast': []
     }
 ]

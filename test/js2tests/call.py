@@ -9,9 +9,8 @@ tests = [
             function x() { return 2; }
             function y(a) { return x() + a; }
             function z() { return y(3); }
-            z();
             ''',
-        'asserts': [{'value': 5}],
+        'asserts': [{'value': 5, 'call': ('z',)}],
         'ast': [
             (Token.FUNC, 'x', [], [
                 (Token.RETURN, (Token.EXPR, [
@@ -37,17 +36,13 @@ tests = [
                     ]), None)
                 ])
                  )
-            ]),
-            (Token.EXPR, [
-                (Token.ASSIGN, None, (Token.OPEXPR, [
-                    (Token.MEMBER, (Token.ID, 'z'), None, (Token.CALL, [], None))
-                ]), None)
             ])
         ]
     }, {
-        'code': 'function x(a) { return a.split(""); }',
         # FIXME built-in functions not yet implemented
-        # 'asserts': [{'value': ["a", "b", "c"], 'call': ('x',"abc")}],
+        'exclude': ('jsinterp2',),
+        'code': 'function x(a) { return a.split(""); }',
+        'asserts': [{'value': ["a", "b", "c"], 'call': ('x',"abc")}],
         'ast': [
             (Token.FUNC, 'x', ['a'], [
                 (Token.RETURN, (Token.EXPR, [
@@ -63,13 +58,13 @@ tests = [
             ])
         ]
     }, {
+        'exclude': ('jsinterp',),
         'code': '''
             function a(x) { return x; }
             function b(x) { return x + 1; }
             function c()  { return [a, b][0](0); }
-            c();
             ''',
-        'asserts': [{'value': 0}],
+        'asserts': [{'value': 0, 'call': ('c',)}],
         'ast': [
             (Token.FUNC, 'a', ['x'], [
                 (Token.RETURN, (Token.EXPR, [
@@ -100,11 +95,6 @@ tests = [
                         ], None)))
                     ]), None)
                 ]))
-            ]),
-            (Token.EXPR, [
-                (Token.ASSIGN, None, (Token.OPEXPR, [
-                    (Token.MEMBER, (Token.ID, 'c'), None, (Token.CALL, [], None))
-                ]), None)
             ])
         ]
     }

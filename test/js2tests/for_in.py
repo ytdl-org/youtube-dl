@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS
 
-skip = {'interpret': 'Interpreting for in loop not yet implemented'}
+skip = {
+    'jsinterp': 'For in loop is not supported',
+    'interpret': 'Interpreting for in loop not yet implemented'
+}
 
 tests = [
     {

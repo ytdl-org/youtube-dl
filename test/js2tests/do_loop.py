@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _RELATIONS
 
-skip = {'interpret': 'Interpreting do loop not yet implemented'}
+skip = {
+    'jsinterp': 'Do loop is not supportted',
+    'interpret': 'Interpreting do loop not yet implemented'
+}
 
 tests = [
     {
@@ -16,7 +19,7 @@ tests = [
                 return i;
             }
             ''',
-        'asserts': [{'value': 5, 'call': 5}],
+        'asserts': [{'value': 5, 'call': ('f', 5)}],
         'ast': [
             (Token.FUNC, 'f', ['x'], [
                 (Token.EXPR, [

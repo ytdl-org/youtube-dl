@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS
 
-skip = {'interpret': 'Interpreting function expression not yet implemented'}
+skip = {
+    'jsinterp': 'not supported',
+    'interpret': 'Interpreting function expression not yet implemented'
+}
 
 tests = [
     {
