@@ -12,6 +12,7 @@ from ..utils import (
     float_or_none,
     get_element_by_class,
     int_or_none,
+    js_to_json,
     parse_duration,
     parse_iso8601,
     try_get,
@@ -772,6 +773,17 @@ class BBCIE(BBCCoUkIE):
         # single video article embedded with data-media-vpid
         'url': 'http://www.bbc.co.uk/sport/rowing/35908187',
         'only_matching': True,
+    }, {
+        'url': 'https://www.bbc.co.uk/bbcthree/clip/73d0bbd0-abc3-4cea-b3c0-cdae21905eb1',
+        'info_dict': {
+            'id': 'p06556y7',
+            'ext': 'mp4',
+            'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
+            'description': 'md5:4b7dfd063d5a789a1512e99662be3ddd',
+        },
+        'params': {
+            'skip_download': True,
+        }
     }]
 
     @classmethod
@@ -993,6 +1005,36 @@ class BBCIE(BBCCoUkIE):
                     'formats': formats,
                     'subtitles': subtitles,
                 }
+
+        bbc3_config = self._parse_json(
+            self._search_regex(
+                r'(?s)bbcthreeConfig\s*=\s*({.+?})\s*;\s*<', webpage,
+                'bbcthree config', default='{}'),
+            playlist_id, transform_source=js_to_json, fatal=False)
+        if bbc3_config:
+            bbc3_playlist = try_get(
+                bbc3_config, lambda x: x['payload']['content']['bbcMedia']['playlist'],
+                dict)
+            if bbc3_playlist:
+                playlist_title = bbc3_playlist.get('title') or playlist_title
+                thumbnail = bbc3_playlist.get('holdingImageURL')
+                entries = []
+                for bbc3_item in bbc3_playlist['items']:
+                    programme_id = bbc3_item.get('versionID')
+                    if not programme_id:
+                        continue
+                    formats, subtitles = self._download_media_selector(programme_id)
+                    self._sort_formats(formats)
+                    entries.append({
+                        'id': programme_id,
+                        'title': playlist_title,
+                        'thumbnail': thumbnail,
+                        'timestamp': timestamp,
+                        'formats': formats,
+                        'subtitles': subtitles,
+                    })
+                return self.playlist_result(
+                    entries, playlist_id, playlist_title, playlist_description)
 
         def extract_all(pattern):
             return list(filter(None, map(
