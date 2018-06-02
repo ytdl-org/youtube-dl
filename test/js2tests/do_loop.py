@@ -4,7 +4,7 @@ from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _RELATIONS
 
 skip = {
-    'jsinterp': 'Do loop is not supportted',
+    'jsinterp': 'Do loop is not supported',
     'interpret': 'Interpreting do loop not yet implemented'
 }
 

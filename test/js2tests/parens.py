@@ -52,12 +52,13 @@ tests = [
                                              (Token.MEMBER, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
                                                  (Token.MEMBER, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
                                                      (Token.MEMBER, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                                                         (Token.MEMBER, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                                                             (Token.MEMBER,
-                                                              (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                                                                  (Token.MEMBER, (Token.INT, 3), None, None)
-                                                              ]), None)]), None, None)
-                                                         ]), None)]), None, None)
+                                                         (Token.MEMBER,
+                                                          (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                                                              (Token.MEMBER,
+                                                               (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
+                                                                   (Token.MEMBER, (Token.INT, 3), None, None)
+                                                               ]), None)]), None, None)
+                                                          ]), None)]), None, None)
                                                      ]), None)]), None, None)
                                                  ]), None)]), None, None)
                                              ]), None)]), None, None)

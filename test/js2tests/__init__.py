@@ -9,8 +9,8 @@
 #
 #     code: If missing subtest is skipped, Otherwise it's value is used as code to initialize the tested class.
 #     globals: Optional. Used only by `test_jsinterp`. If set used as argument `variables` initializing `JSInterperter`.
-#     asserts: Used only by `test_jsinterp`. If this is missing subtest is skipped, Should be a list of `dict`, each used
-#              as an assertion for the initialized `JSInterpreter`. Each `dict` may have the following keys:
+#     asserts: Used only by `test_jsinterp`. If this is missing subtest is skipped, Should be a list of `dict`, each
+#              used as an assertion for the initialized `JSInterpreter`. Each `dict` may have the following keys:
 #                 value: If missing assertion is skipped. Otherwise it's value is used as expected value in
 #                        an `assertEqual` call.
 #                 call: Optional. If set used as arguments of a `call_function` call of the initialized `JSInterpreter`

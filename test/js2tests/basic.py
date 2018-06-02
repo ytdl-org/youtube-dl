@@ -24,7 +24,7 @@ tests = [
         'ast': [(Token.FUNC, 'x', [], [None])]
     },
     {
-        # FIXME: function expresiion needs to be implemented
+        # FIXME: function expression needs to be implemented
         'exclude': ('jsinterp2',),
         'code': 'var x5 = function x5(){return 42;}',
         'asserts': [{'value': 42, 'call': ('x5',)}]

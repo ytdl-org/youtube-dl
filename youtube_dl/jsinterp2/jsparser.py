@@ -156,7 +156,7 @@ class Parser(object):
 
             elif token_value == 'debugger':
                 self.token_stream.pop()
-                statement = (Token.DEBUG)
+                statement = (Token.DEBUG,)
                 peek_id, peek_value, peek_pos = self.token_stream.peek()
                 if peek_id is Token.END:
                     self.token_stream.pop()
@@ -164,7 +164,7 @@ class Parser(object):
                     # FIXME automatic end insertion
                     raise ExtractorError('Unexpected sequence at %d' % peek_pos)
             else:  # label
-                # XXX possible refactoring (this is the only branch not poping)
+                # XXX possible refactoring (this is the only branch not popping)
                 token_id, token_value, token_pos = self.token_stream.peek(2)
                 if token_id is Token.COLON:
                     token_id, label_name, token_pos = self.token_stream.pop(2)

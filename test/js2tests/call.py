@@ -42,7 +42,7 @@ tests = [
         # FIXME built-in functions not yet implemented
         'exclude': ('jsinterp2',),
         'code': 'function x(a) { return a.split(""); }',
-        'asserts': [{'value': ["a", "b", "c"], 'call': ('x',"abc")}],
+        'asserts': [{'value': ["a", "b", "c"], 'call': ('x', "abc")}],
         'ast': [
             (Token.FUNC, 'x', ['a'], [
                 (Token.RETURN, (Token.EXPR, [

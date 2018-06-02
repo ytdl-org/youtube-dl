@@ -6,7 +6,7 @@ from .base import (
 
 
 def _get_formal_args(func):
-    return func.__code__.co_varnames[func.__code__.co_argcount - len((func.__defaults__))]
+    return func.__code__.co_varnames[func.__code__.co_argcount - len(func.__defaults__)]
 
 
 def to_js(o, name=None):

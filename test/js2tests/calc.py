@@ -9,7 +9,7 @@ tests = [
      'ast': [
          (Token.FUNC, 'x4', ['a'], [
             (Token.RETURN,
-              (Token.EXPR, [
+             (Token.EXPR, [
                   (Token.ASSIGN,
                    None,
                    (Token.OPEXPR, [
@@ -21,8 +21,8 @@ tests = [
                        (Token.OP, _OPERATORS['+'][1])
                    ]),
                    None)
-              ])
-              )
+             ])
+             )
          ])
      ]
      }

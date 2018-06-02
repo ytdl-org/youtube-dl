@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 skip = {
-    'jsinterp': 'Unary opertations are not supported',
+    'jsinterp': 'Unary operations are not supported',
     'parse': True
 }
 
