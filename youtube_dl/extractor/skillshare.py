@@ -68,8 +68,8 @@ class SkillshareCourseIE(SkillshareBaseIE):
         class_id = self._match_id(url)
         class_json = self._download_json(self._CLASS_URL % class_id,
                                          None,
-                                         note="Getting class details",
-                                         errnote="Downloading class JSON")
+                                         note="Downloading class JSON",
+                                         errnote="Error downloading class JSON")
 
         if class_json.get("enrollment_type", 0) > self._user_type:
             raise ExtractorError("This course requires a premium account and thus can't be downloaded")
