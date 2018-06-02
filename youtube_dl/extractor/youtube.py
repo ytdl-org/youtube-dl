@@ -510,6 +510,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IconaPop',
                 'license': 'Standard YouTube License',
                 'creator': 'Icona Pop',
+                'track': 'I Love It (feat. Charli XCX)',
+                'artist': 'Icona Pop',
             }
         },
         {
@@ -528,6 +530,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
                 'license': 'Standard YouTube License',
                 'creator': 'Justin Timberlake',
+                'track': 'Tunnel Vision`',
+                'artist': 'Justin Timberlake',
                 'age_limit': 18,
             }
         },
@@ -1765,6 +1769,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             video_alt_title = video_creator = None
 
+        def extract_meta(field):
+            return self._html_search_regex(
+                r'<h4[^>]+class="title"[^>]*>\s*%s\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li>\s*' % field,
+                video_webpage, field, default=None)
+
+        track = extract_meta('Song')
+        artist = extract_meta('Artist')
+
         m_episode = re.search(
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
             video_webpage)
@@ -2055,9 +2067,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'uploader_url': video_uploader_url,
             'upload_date': upload_date,
             'license': video_license,
-            'creator': video_creator,
+            'creator': video_creator or artist,
             'title': video_title,
-            'alt_title': video_alt_title,
+            'alt_title': video_alt_title or track,
             'thumbnail': video_thumbnail,
             'description': video_description,
             'categories': video_categories,
@@ -2080,6 +2092,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'series': series,
             'season_number': season_number,
             'episode_number': episode_number,
+            'track': track,
+            'artist': artist,
         }
 
 
