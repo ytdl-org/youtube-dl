@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _OPERATORS
 
-skip = {'interpret': 'Interpreting built-in fields not yet implemented'}
+skip = {'interpret': 'Interpreting built-in fields are not yet implemented'}
 
 tests = [
     {

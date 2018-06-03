@@ -5,7 +5,7 @@ from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS
 
 skip = {
     'jsinterp': 'Switch statement is not supported',
-    'interpret': 'Interpreting switch statement not yet implemented'
+    'interpret': 'Interpreting switch statement is not yet implemented'
 }
 
 tests = [

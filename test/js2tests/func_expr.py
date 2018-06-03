@@ -5,7 +5,7 @@ from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS
 
 skip = {
     'jsinterp': 'not supported',
-    'interpret': 'Interpreting function expression not yet implemented'
+    'interpret': 'Interpreting function expression is not yet implemented'
 }
 
 tests = [

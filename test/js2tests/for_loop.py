@@ -5,7 +5,7 @@ from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _R
 
 skip = {
     'jsinterp': 'For loop is not supported',
-    'interpret': 'Interpreting for loop not yet implemented'
+    'interpret': 'Interpreting for loop is not yet implemented'
 }
 
 tests = [

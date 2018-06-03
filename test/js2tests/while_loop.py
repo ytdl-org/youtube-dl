@@ -5,7 +5,7 @@ from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _R
 
 skip = {
     'jsinterp': 'While loop is not supported',
-    'interpret': 'Interpreting while loop not yet implemented'
+    'interpret': 'Interpreting while loop is not yet implemented'
 }
 
 tests = [

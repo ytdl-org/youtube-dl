@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
 skip = {
-    'jsinterp': 'Test not implemented',
-    'parse': 'Test not implemented',
-    'interpert': 'Test not implemented'
+    'jsinterp': 'Test is not implemented',
+    'interpert': 'Test is not implemented',
+    'parse': 'Test is not implemented'
 }
 
 tests = [

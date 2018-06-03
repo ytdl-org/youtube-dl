@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 skip = {
     'jsinterp': 'Unary operations are not supported',
-    'parse': True
+    'parse': 'Test is not yet implemented: missing ast'
 }
 
 tests = [

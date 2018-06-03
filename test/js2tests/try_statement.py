@@ -4,8 +4,8 @@ from youtube_dl.jsinterp2.jsgrammar import Token
 
 skip = {
     'jsinterp': 'Try statement is not supported',
-    'interpret': 'Interpreting try statement not yet implemented',
-    'parse': 'Test not yet implemented: missing code and ast'
+    'interpret': 'Interpreting try statement is not yet implemented',
+    'parse': 'Test is not yet implemented: missing code and ast'
 }
 
 tests = [
