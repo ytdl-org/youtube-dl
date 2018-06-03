@@ -16,8 +16,7 @@ class Parser(object):
     def parse(self):
         while not self.token_stream.ended:
             yield self._source_element(self.stack_top)
-        raise StopIteration
-    
+
     def _source_element(self, stack_top):
         if stack_top < 0:
             raise ExtractorError('Recursion limit reached')

@@ -154,8 +154,7 @@ class TokenStream(object):
                 self.ended = True
             else:
                 raise ExtractorError('Unrecognised sequence at %d' % pos)
-        raise StopIteration
-
+        
     def chk_id(self, last=False):
         if last:
             name, value, pos = self._last
