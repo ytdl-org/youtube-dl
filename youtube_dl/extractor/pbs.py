@@ -456,8 +456,7 @@ class PBSIE(InfoExtractor):
             if not url:
                 url = self._og_search_url(webpage)
             
-            if url.strip().startswith("//"):
-                url = "https:" + url.strip()
+            url = self._proto_relative_url(url.strip())
             mobj = re.match(self._VALID_URL, url)
 
         player_id = mobj.group('player_id')
@@ -467,13 +466,8 @@ class PBSIE(InfoExtractor):
             player_page = self._download_webpage(
                 url, display_id, note='Downloading player page',
                 errnote='Could not download player page')
-            
-            try:
-                video_id = self._search_regex(
-                    r'<div\s+id="video_([0-9]+)"', player_page, 'video ID')
-            except:
-                video_id = self._search_regex(
-                    r'"id":[\s]*"([0-9]+)"', player_page, 'video ID')
+            video_id = self._search_regex(
+                [r'<div\s+id="video_([0-9]+)"', r'"id":[\s]*"([0-9]+)"'], player_page, 'video ID')
         else:
             video_id = mobj.group('id')
             display_id = video_id
