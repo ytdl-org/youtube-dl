@@ -467,7 +467,7 @@ class PBSIE(InfoExtractor):
                 url, display_id, note='Downloading player page',
                 errnote='Could not download player page')
             video_id = self._search_regex(
-                [r'<div\s+id="video_([0-9]+)"', r'"id":[\s]*"([0-9]+)"'], player_page, 'video ID')
+                [r'<div\s+id="video_([0-9]+)"', r'"id":\s*"([0-9]+)"'], player_page, 'video ID')
         else:
             video_id = mobj.group('id')
             display_id = video_id
