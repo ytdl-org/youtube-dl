@@ -229,11 +229,22 @@ class TwitterCardIE(TwitterBaseIE):
                 break
 
         if not formats:
+            headers = {
+                'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw',
+                'Referer': url,
+            }
+            ct0 = self._get_cookies(url).get('ct0')
+            if ct0:
+                headers['csrf_token'] = ct0.value
+            guest_token = self._download_json(
+                'https://api.twitter.com/1.1/guest/activate.json', video_id,
+                'Downloading guest token', data=b'',
+                headers=headers)['guest_token']
+            headers['x-guest-token'] = guest_token
+            self._set_cookie('api.twitter.com', 'gt', guest_token)
             config = self._download_json(
                 'https://api.twitter.com/1.1/videos/tweet/config/%s.json' % video_id,
-                video_id, headers={
-                    'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAIK1zgAAAAAA2tUWuhGZ2JceoId5GwYWU5GspY4%3DUq7gzFoCZs1QfwGoVdvSac3IniczZEYXIcDyumCauIXpcAPorE',
-                })
+                video_id, headers=headers)
             track = config['track']
             vmap_url = track.get('vmapUrl')
             if vmap_url:
