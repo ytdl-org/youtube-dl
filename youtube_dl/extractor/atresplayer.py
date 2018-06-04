@@ -21,31 +21,31 @@ class AtresPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/[^/]+/[^/]+/[^/]+/[^/]+/[^/_]+_(?P<id>[A-z0-9]+)/?'
     _NETRC_MACHINE = 'atresplayer'
     _TESTS = [
+        # {
+        #     # TODO:
+        #     'url': 'http://www.atresplayer.com/television/programas/el-club-de-la-comedia/temporada-4/capitulo-10-especial-solidario-nochebuena_2014122100174.html',
+        #     'md5': 'efd56753cda1bb64df52a3074f62e38a',
+        #     'info_dict': {
+        #         'id': 'capitulo-10-especial-solidario-nochebuena',
+        #         'ext': 'mp4',
+        #         'title': 'Especial Solidario de Nochebuena',
+        #         'description': 'md5:e2d52ff12214fa937107d21064075bf1',
+        #         'duration': 5527.6,
+        #         'thumbnail': r're:^https?://.*\.jpg$',
+        #     },
+        #     'skip': 'This video is only available for registered users'
+        # },
         {
             # TODO:
-            'url': 'http://www.atresplayer.com/television/programas/el-club-de-la-comedia/temporada-4/capitulo-10-especial-solidario-nochebuena_2014122100174.html',
-            'md5': 'efd56753cda1bb64df52a3074f62e38a',
+            'url': 'https://www.atresplayer.com/lasexta/series/navy-investigacion-criminal/temporada-12/capitulo-10-captulo_5ad6869b986b2866f89ebca0/',
+            'md5': '3afa3d3cc155264374916f2a23d1d00c',
             'info_dict': {
-                'id': 'capitulo-10-especial-solidario-nochebuena',
+                'id': '5ad6869b986b2866f89ebca0',
                 'ext': 'mp4',
-                'title': 'Especial Solidario de Nochebuena',
-                'description': 'md5:e2d52ff12214fa937107d21064075bf1',
-                'duration': 5527.6,
-                'thumbnail': r're:^https?://.*\.jpg$',
-            },
-            'skip': 'This video is only available for registered users'
-        },
-        {
-            # TODO:
-            'url': 'http://www.atresplayer.com/television/especial/videoencuentros/temporada-1/capitulo-112-david-bustamante_2014121600375.html',
-            'md5': '6e52cbb513c405e403dbacb7aacf8747',
-            'info_dict': {
-                'id': 'capitulo-112-david-bustamante',
-                'ext': 'flv',
-                'title': 'David Bustamante',
-                'description': 'md5:f33f1c0a05be57f6708d4dd83a3b81c6',
-                'duration': 1439.0,
-                'thumbnail': r're:^https?://.*\.jpg$',
+                # 'title': 'David Bustamante',
+                # 'description': 'md5:f33f1c0a05be57f6708d4dd83a3b81c6',
+                # 'duration': 1439.0,
+                # 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -219,9 +219,9 @@ class AtresPlayerIE(InfoExtractor):
             'id': video_id,
             'title': video_data['titulo'],
             # 'title': title,
-            # 'description': description,
-            # 'thumbnail': thumbnail,
-            # 'duration': duration,
+            'description': video_data['descripcion'],
+            'thumbnail': video_data['imgPoster'],
+            'duration': video_data['duration'],
             'formats': formats,
             # 'subtitles': subtitles,
         }
