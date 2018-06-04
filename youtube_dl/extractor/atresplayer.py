@@ -55,14 +55,8 @@ class AtresPlayerIE(InfoExtractor):
     ]
 
     _USER_AGENT = 'Dalvik/1.6.0 (Linux; U; Android 4.3; GT-I9300 Build/JSS15J'
-    _MAGIC = 'QWtMLXs414Yo+c#_+Q#K@NN)'
-    _TIMESTAMP_SHIFT = 30000
 
-    _TIME_API_URL = 'http://servicios.atresplayer.com/api/admin/time.json'
-    _URL_VIDEO_TEMPLATE = 'https://servicios.atresplayer.com/api/urlVideo/{1}/{0}/{1}|{2}|{3}.json'
-    # _PLAYER_URL_TEMPLATE = 'https://servicios.atresplayer.com/episode/getplayer.json?episodePk=%s'
     _PLAYER_URL_TEMPLATE = 'https://api.atresplayer.com/client/v1/page/episode/%s'
-    _EPISODE_URL_TEMPLATE = 'http://www.atresplayer.com/episodexml/%s'
 
     _LOGIN_URL = 'https://servicios.atresplayer.com/j_spring_security_check'
 
@@ -193,19 +187,6 @@ class AtresPlayerIE(InfoExtractor):
         #         fatal=False))
         self._sort_formats(formats)
 
-        path_data = player.get('pathData')
-
-        # episode = self._download_xml(
-        #     self._EPISODE_URL_TEMPLATE % path_data, video_id,
-        #     'Downloading episode XML')
-        #
-        # duration = float_or_none(xpath_text(
-        #     episode, './media/asset/info/technical/contentDuration', 'duration'))
-        #
-        # art = episode.find('./media/asset/info/art')
-        # title = xpath_text(art, './name', 'title')
-        # description = xpath_text(art, './description', 'description')
-        # thumbnail = xpath_text(episode, './media/asset/files/background', 'thumbnail')
         #
         # subtitles = {}
         # subtitle_url = xpath_text(episode, './media/asset/files/subtitle', 'subtitle')
@@ -223,5 +204,4 @@ class AtresPlayerIE(InfoExtractor):
             'thumbnail': video_data['imgPoster'],
             'duration': video_data['duration'],
             'formats': formats,
-            # 'subtitles': subtitles,
         }
