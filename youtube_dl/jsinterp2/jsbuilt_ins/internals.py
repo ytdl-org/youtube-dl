@@ -83,6 +83,7 @@ def to_number(o):
             if v:
                 s = 1 if v.startswith('+') or v.startswith('-') else 0
                 if v[s:] == 'Infinity':
+                    # FIXME: declare in jsbuilt_ins (propery of global_obj)
                     return float(v[:s] + 'inf')  # 10 ** 10000 according to spec
                 elif v[s:].isdigit():
                     return int(v)
@@ -93,6 +94,7 @@ def to_number(o):
             else:
                 return 0
         else:
+            # FIXME: declare in jsbuilt_ins (propery of global_obj)
             return float('nan')
 
     elif isinstance(o, JSObjectPrototype):

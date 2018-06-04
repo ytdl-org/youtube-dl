@@ -1,3 +1,5 @@
+# TODO use json instead of py
+# TODO create devscript to generate ASTs (using e.g. acorn)
 # """
 # This package contains templates for `test_jsinterp` and `test_interp_parse` to create test methods.
 # These modules will create a test method for each module in this package. A test method consist of one or more subtest.
