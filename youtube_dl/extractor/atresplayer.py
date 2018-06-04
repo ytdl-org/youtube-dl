@@ -1,20 +1,19 @@
 from __future__ import unicode_literals
 
-import time
-import hmac
-import hashlib
-import re
+import json
+
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
-    float_or_none,
-    int_or_none,
     sanitized_Request,
     urlencode_postdata,
-    xpath_text,
 )
+
+try:
+    from json import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
 
 
 class AtresPlayerIE(InfoExtractor):
@@ -48,12 +47,6 @@ class AtresPlayerIE(InfoExtractor):
 
     _LOGIN_URL = 'https://servicios.atresplayer.com/j_spring_security_check'
 
-    _ERRORS = {
-        'UNPUBLISHED': 'We\'re sorry, but this video is not yet available.',
-        'DELETED': 'This video has expired and is no longer available for online streaming.',
-        'GEOUNPUBLISHED': 'We\'re sorry, but this video is not available in your region due to right restrictions.',
-        # 'PREMIUM': 'PREMIUM',
-    }
 
     def _real_initialize(self):
         self._login()
@@ -89,19 +82,27 @@ class AtresPlayerIE(InfoExtractor):
             headers={'User-Agent': self._USER_AGENT})
         player = self._download_json(request, video_id, 'Downloading player JSON')
 
-        episode_type = player.get('typeOfEpisode')
-        error_message = self._ERRORS.get(episode_type)
-        if error_message:
-            raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, error_message), expected=True)
-
         formats = []
         video_url = player.get('urlVideo')
 
         request = sanitized_Request(
             video_url,
             headers={'User-Agent': self._USER_AGENT})
-        video_data = self._download_json(request, video_id, 'Downloading video JSON')
+        try:
+            video_data = self._download_json(request, video_id, 'Downloading video JSON', fatal=True)
+        except ExtractorError as e:
+            if len(e.exc_info) <= 1 or e.exc_info[1].code != 403:
+                raise
+            try:
+                data = json.loads(e.exc_info[1].file.read())
+            except JSONDecodeError:
+                raise e
+            if isinstance(data, dict) and 'error' in data:
+                raise ExtractorError('{} returned error: {} ({})'.format(
+                    self.IE_NAME, data['error'], data.get('error_description', 'There is no description')
+                ), expected=True)
+            else:
+                raise e
 
         for source in video_data['sources']:
             if source['type'] == "application/dash+xml":
