@@ -17,6 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from youtube_dl.jsinterp2.jsparser import Parser
 from .js2tests import gettestcases
 
+__doc__ = """see: `js2tests`"""
+
 
 def traverse(node, tree_types=(list, tuple)):
     if sys.version_info > (3,) and isinstance(node, zip):
@@ -28,9 +30,6 @@ def traverse(node, tree_types=(list, tuple)):
         return tree
     else:
         return node
-
-
-__doc__ = """see: `js2tests`"""
 
 
 defs = gettestcases()

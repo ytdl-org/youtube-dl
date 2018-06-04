@@ -56,7 +56,6 @@ def generator(test_case, my_log):
                     my_log.debug('globals: %s' % variables)
                 my_log.debug(code)
 
-
                 jsi = JSInterpreter(code, objects=variables)
                 for assertion in test['asserts']:
                     if 'value' in assertion:
