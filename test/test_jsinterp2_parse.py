@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-# """
-# see: `js2tests`
-# """
-
 from __future__ import unicode_literals
 
 # Allow direct execution
@@ -32,6 +28,9 @@ def traverse(node, tree_types=(list, tuple)):
         return tree
     else:
         return node
+
+
+__doc__ = """see: `js2tests`"""
 
 
 defs = gettestcases()
