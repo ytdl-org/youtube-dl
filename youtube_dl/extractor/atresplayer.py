@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import json
-
+from urllib.error import HTTPError
 
 from .common import InfoExtractor
 from ..utils import (
@@ -14,6 +14,8 @@ try:
     from json import JSONDecodeError
 except ImportError:
     JSONDecodeError = ValueError
+
+
 
 
 class AtresPlayerIE(InfoExtractor):
@@ -45,34 +47,54 @@ class AtresPlayerIE(InfoExtractor):
 
     _PLAYER_URL_TEMPLATE = 'https://api.atresplayer.com/client/v1/page/episode/%s'
 
-    _LOGIN_URL = 'https://servicios.atresplayer.com/j_spring_security_check'
+    _LOGIN_URL = 'https://api.atresplayer.com/login?redirect=https%3A%2F%2Fwww.atresplayer.com'
+    _LOGIN_ACCOUNT_URL = 'https://account.atresmedia.com/api/login'
 
 
     def _real_initialize(self):
         self._login()
 
     def _login(self):
+
         (username, password) = self._get_login_info()
         if username is None:
             return
 
         login_form = {
-            'j_username': username,
-            'j_password': password,
+            'username': username,
+            'password': password,
         }
 
+        self._download_webpage(self._LOGIN_URL, None, 'get login page')
         request = sanitized_Request(
-            self._LOGIN_URL, urlencode_postdata(login_form))
+            self._LOGIN_ACCOUNT_URL,
+            urlencode_postdata(login_form),
+            login_form,
+            method='post')
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        response = self._download_webpage(
-            request, None, 'Logging in')
+        # request.add_header('Content-Type', 'multipart/form-data')
+        try:
+            response = self._download_json(
+                request, None, 'post to login form')
+        except ExtractorError as e:
+            if isinstance(e.cause, HTTPError):
+                self._atres_player_error(e.cause.file.read(), e)
+            else:
+                raise
+        else:
+            self._download_webpage(response['targetUrl'], None, 'Set login session')
 
-        error = self._html_search_regex(
-            r'(?s)<ul[^>]+class="[^"]*\blist_error\b[^"]*">(.+?)</ul>',
-            response, 'error', default=None)
-        if error:
-            raise ExtractorError(
-                'Unable to login: %s' % error, expected=True)
+    def _atres_player_error(self, body_response, original_exception):
+        try:
+            data = json.loads(body_response)
+        except JSONDecodeError:
+            raise original_exception
+        if isinstance(data, dict) and 'error' in data:
+            raise ExtractorError('{} returned error: {} ({})'.format(
+                self.IE_NAME, data['error'], data.get('error_description', 'There is no description')
+            ), expected=True)
+        else:
+            raise original_exception
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -93,16 +115,7 @@ class AtresPlayerIE(InfoExtractor):
         except ExtractorError as e:
             if len(e.exc_info) <= 1 or e.exc_info[1].code != 403:
                 raise
-            try:
-                data = json.loads(e.exc_info[1].file.read())
-            except JSONDecodeError:
-                raise e
-            if isinstance(data, dict) and 'error' in data:
-                raise ExtractorError('{} returned error: {} ({})'.format(
-                    self.IE_NAME, data['error'], data.get('error_description', 'There is no description')
-                ), expected=True)
-            else:
-                raise e
+            self._atres_player_error(e.exc_info[1].file.read(), e)
 
         for source in video_data['sources']:
             if source['type'] == "application/dash+xml":
