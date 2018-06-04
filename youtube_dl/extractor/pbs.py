@@ -361,6 +361,21 @@ class PBSIE(InfoExtractor):
             },
         },
         {
+            'url': 'https://www.pbs.org/wgbh/masterpiece/episodes/victoria-s2-e1/',
+            'info_dict': {
+                'id': '3007193718',
+                'ext': 'mp4',
+                'title': 'Victoria - A Soldier\'s Daughter / The Green-Eyed Monster',
+                'description': 'md5:37efbac85e0c09b009586523ec143652',
+                'duration': 6292,
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
             'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
             'only_matching': True,
         },
