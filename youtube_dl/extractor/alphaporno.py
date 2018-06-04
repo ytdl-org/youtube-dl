@@ -40,51 +40,43 @@ class AlphaPornoIE(InfoExtractor):
 
         video_id = re.sub(r'^https?://.*/embed/', '', self._html_search_meta('embedUrl', webpage, 'video id'))
 
-        sources = self._parse_json(
-            self._search_regex(r'sources\s*:\s*(\[[^\]]*\])', webpage, 'source data'), video_id,
-            transform_source=js_to_json
-        )
-
-        formats = []
-        for s in sources:
-            video_url = s['file']
-            formats.append({
-                'url': video_url,
-                'height': int_or_none(re.sub('^(\d+)[pi].*', r'\1', s.get('label') or ''))
-            })
-
-        ext = self._html_search_meta(
-            'encodingFormat', webpage, 'ext', default='.mp4')[1:]
+        result = self._extract_jwplayer_data(webpage, video_id, require_title=False)
 
         title = self._search_regex(
             [r'<meta content="([^"]+)" itemprop="description">',
              r'class="title" itemprop="name">([^<]+)<'],
             webpage, 'title')
-        thumbnail = self._html_search_meta('thumbnail', webpage, 'thumbnail')
         timestamp = parse_iso8601(self._html_search_meta(
             'uploadDate', webpage, 'upload date'))
         duration = parse_duration(self._html_search_meta(
             'duration', webpage, 'duration'))
-        filesize_approx = parse_filesize(self._html_search_meta(
-            'contentSize', webpage, 'file size'))
-        bitrate = int_or_none(self._html_search_meta(
-            'bitrate', webpage, 'bitrate'))
+        filesize_approx = self._html_search_meta(
+            'contentSize', webpage, 'file size')
+
+        # bitrates are taken from the URL; the document only contains
+        # a single value for the lowest quality
+        for f in result.get('formats') or []:
+            m = re.search(r'[?&]br=(\d+)', f.get('url') or '')
+            if m:
+                f['tbr'] = int(m.group(1))
+
+        # filesizes are concatenated together in the meta tag
+        if filesize_approx:
+            filesizes = re.findall(r'\s*[\d.]+\s*[A-Za-z]+', filesize_approx)
+            for f, size in zip(result.get('formats') or [], filesizes):
+                f['filesize_approx'] = parse_filesize(size)
+
         categories = self._html_search_meta(
             'keywords', webpage, 'categories', default='').split(',')
 
         age_limit = self._rta_search(webpage)
 
-        return {
-            'id': video_id,
+        result.update({
             'display_id': display_id,
-            'ext': ext,
             'title': title,
-            'thumbnail': thumbnail,
             'timestamp': timestamp,
             'duration': duration,
-            'filesize_approx': filesize_approx,
-            'tbr': bitrate,
             'categories': categories,
             'age_limit': age_limit,
-            'formats': formats,
-        }
+        })
+        return result
