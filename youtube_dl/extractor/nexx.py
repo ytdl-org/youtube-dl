@@ -29,14 +29,13 @@ class NexxIE(InfoExtractor):
     _TESTS = [{
         # movie
         'url': 'https://api.nexx.cloud/v3/748/videos/byid/128907',
-        'md5': '828cea195be04e66057b846288295ba1',
+        'md5': '31899fd683de49ad46f4ee67e53e83fe',
         'info_dict': {
             'id': '128907',
             'ext': 'mp4',
             'title': 'Stiftung Warentest',
             'alt_title': 'Wie ein Test abläuft',
             'description': 'md5:d1ddb1ef63de721132abd38639cc2fd2',
-            'release_year': 2013,
             'creator': 'SPIEGEL TV',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 2509,
@@ -62,6 +61,7 @@ class NexxIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         # does not work via arc
         'url': 'nexx:741:1269984',
@@ -71,7 +71,6 @@ class NexxIE(InfoExtractor):
             'ext': 'mp4',
             'title': '1 TAG ohne KLO... wortwörtlich! 😑',
             'alt_title': '1 TAG ohne KLO... wortwörtlich! 😑',
-            'description': 'md5:4604539793c49eda9443ab5c5b1d612f',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 607,
             'timestamp': 1518614955,
