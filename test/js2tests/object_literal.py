@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 from youtube_dl.jsinterp2.jsgrammar import Token
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _OPERATORS
 
-skip = {'interpret': 'Interpreting object literals is not yet implemented'}
+skip = {
+    'jsinterp': 'Unsupported JS expression',
+    'interpret': 'Interpreting object literals is not yet implemented'
+}
 
 tests = [
     {

@@ -34,51 +34,63 @@ __doc__ = """see: `js2tests`"""
 
 
 defs = gettestcases()
-# set level to logging.DEBUG to see messages about not set ASTs
+# set level to logging.INFO to see messages about not set ASTs
+# set level to logging.DEBUG to see messages about code tests are running
 logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
+log = logging.getLogger('TestJSInterpreter2Parse')
 
 
-class TestJSInterpreterParse(unittest.TestCase):
+class TestJSInterpreter2Parse(unittest.TestCase):
     def setUp(self):
         self.defs = defs
 
 
-def generator(test_case, name):
+def generator(test_case, my_log):
     def test_template(self):
+        my_log.debug('Started...')
         for test in test_case['subtests']:
             if 'code' in test:
-                jsp = Parser(test['code'])
+                code = test['code']
+                my_log.debug(code)
+
+                jsp = Parser(code)
                 parsed = list(jsp.parse())
                 if 'ast' in test:
                     self.assertEqual(traverse(parsed), traverse(test['ast']))
                 else:
-                    log.debug('No AST for subtest, trying to parse only')
+                    my_log.info('No AST for subtest, trying to parse only')
             else:
-                log.debug('No code in subtest, skipping')
+                my_log.info('No code in subtest, skipping')
 
-    log = logging.getLogger('TestJSInterpreterParse.%s' % name)
     return test_template
 
 
-# And add them to TestJSInterpreterParse
+# And add them to TestJSInterpreter2Parse
 for testcase in defs:
     reason = testcase['skip'].get('parse', False)
     tname = 'test_' + str(testcase['name'])
     i = 1
-    while hasattr(TestJSInterpreterParse, tname):
+    while hasattr(TestJSInterpreter2Parse, tname):
         tname = 'test_%s_%d' % (testcase['name'], i)
         i += 1
-    if reason is not True:
-        test_method = generator(testcase, tname)
+
+    if reason is True:
+        log_reason = 'Entirely'
+    elif not any('asserts' in test for test in testcase['subtests']):
+        log_reason = '''There isn't any assertion'''
+    else:
+        log_reason = None
+
+    if log_reason is None:
+        test_method = generator(testcase, log.getChild(tname))
+        test_method.__name__ = str(tname)
         if reason is not False:
             test_method.__unittest_skip__ = True
             test_method.__unittest_skip_why__ = reason
-        test_method.__name__ = str(tname)
-        setattr(TestJSInterpreterParse, test_method.__name__, test_method)
+        setattr(TestJSInterpreter2Parse, test_method.__name__, test_method)
         del test_method
     else:
-        log = logging.getLogger('TestJSInterpreterParse')
-        log.debug('Skipping %s:Entirely' % tname)
+        log.info('Skipping %s:%s' % (tname, log_reason))
 
 
 if __name__ == '__main__':

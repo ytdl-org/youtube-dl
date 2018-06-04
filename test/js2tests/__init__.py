@@ -27,11 +27,12 @@ Each `dict` in ``tests`` may have the following keys:
          objects.
 
 In the `dict` named ``skip`` is optional and may have the following keys:
+    jsinterp
     interpret
     parse
-Both used as the argument of `skipTest` decorator of the created test method in `test_jsinterp`
+Each used as the argument of `skipTest` decorator of the created test method in `test_jsinterp`
 and `test_jsinterp_parse` respectably. Unless they're value is `True`, that case the test method is skipped entirely,
-or `False`, which is the default value.
+or `False`, which is the default value and has no effect.
 
 Example:
     This is not a functional template, rather a skeleton:

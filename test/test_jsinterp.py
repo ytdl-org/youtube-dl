@@ -21,7 +21,9 @@ __doc__ = """see: `js2tests`"""
 
 defs = gettestcases()
 # set level to logging.DEBUG to see messages about missing assertions
-logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
+# set level to logging.DEBUG to see messages about code tests are running
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+log = logging.getLogger('TestJSInterpreter')
 
 
 class TestJSInterpreter(unittest.TestCase):
@@ -29,8 +31,9 @@ class TestJSInterpreter(unittest.TestCase):
         self.defs = defs
 
 
-def generator(test_case, name):
+def generator(test_case, my_log):
     def test_template(self):
+        my_log.debug('Started...')
         for test in test_case['subtests']:
             excluded = test.get('exclude')
             if excluded is not None and 'jsinterp' in excluded:
@@ -50,40 +53,46 @@ def generator(test_case, name):
                 if variables is not None:
                     code = 'function f(%s){%s}' % ((''.join(variables.keys())), code)
                     call = ('f',) + tuple(v for v in variables.values())
+                    my_log.debug('globals: %s' % variables)
+                my_log.debug(code)
+
 
                 jsi = JSInterpreter(code, objects=variables)
                 for assertion in test['asserts']:
                     if 'value' in assertion:
                         if call is None:
                             call = assertion['call']
+
+                        if call is not None:
+                            my_log.debug('call: %s(%s)' % (call[0], ', '.join(str(arg) for arg in call[1:])))
+
                         self.assertEqual(jsi.call_function(*call), assertion['value'])
                     else:
-                        log.debug('No value in assertion, skipping')
+                        my_log.info('No value in assertion, skipping')
             else:
-                log.debug(log_reason)
+                my_log.info(log_reason)
 
-    log = logging.getLogger('TestJSInterpreter.%s' % name)
     return test_template
 
 
 # And add them to TestJSInterpreter
-for n, tc in enumerate(defs):
-    reason = tc['skip'].get('jsinterp', False)
-    tname = 'test_' + str(tc['name'])
+for testcase in defs:
+    reason = testcase['skip'].get('jsinterp', False)
+    tname = 'test_' + str(testcase['name'])
     i = 1
     while hasattr(TestJSInterpreter, tname):
-        tname = 'test_%s_%d' % (tc['name'], i)
+        tname = 'test_%s_%d' % (testcase['name'], i)
         i += 1
 
-    if reason is not True:
+    if reason is True:
         log_reason = 'Entirely'
-    elif not any('asserts' in test for test in tc['subtests']):
+    elif not any('asserts' in test for test in testcase['subtests']):
         log_reason = '''There isn't any assertion'''
     else:
         log_reason = None
 
-    if log_reason is not None:
-        test_method = generator(tc, tname)
+    if log_reason is None:
+        test_method = generator(testcase, log.getChild(tname))
         test_method.__name__ = str(tname)
         if reason is not False:
             test_method.__unittest_skip__ = True
@@ -91,8 +100,7 @@ for n, tc in enumerate(defs):
         setattr(TestJSInterpreter, test_method.__name__, test_method)
         del test_method
     else:
-        log = logging.getLogger('TestJSInterpreter')
-        log.debug('Skipping %s:%s' % (tname, log_reason))
+        log.info('Skipping %s:%s' % (tname, log_reason))
 
 if __name__ == '__main__':
     unittest.main()
