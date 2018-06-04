@@ -82,7 +82,7 @@ for testcase in defs:
         log_reason = None
 
     if log_reason is None:
-        test_method = generator(testcase, log.getChild(tname))
+        test_method = generator(testcase, logging.getLogger('.'.join((log.name, tname))))
         test_method.__name__ = str(tname)
         if reason is not False:
             test_method.__unittest_skip__ = True
