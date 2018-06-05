@@ -2037,6 +2037,11 @@ class YoutubeDL(object):
         """Run all the postprocessors on the given file."""
         info = dict(ie_info)
         info['filepath'] = filename
+        info['pp_extras'] = {
+            'params': dict(self.params),
+            '_num_downloads': self._num_downloads,
+            '_NUMERIC_FIELDS': self._NUMERIC_FIELDS,
+        }
         pps_chain = []
         if ie_info.get('__postprocessors') is not None:
             pps_chain.extend(ie_info['__postprocessors'])
