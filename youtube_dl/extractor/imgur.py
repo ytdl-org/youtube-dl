@@ -109,6 +109,91 @@ class ImgurIE(InfoExtractor):
         }
 
 
+class ImgurUnmutedIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/t/unmuted/(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z]+)?$'
+
+    _TESTS = [{
+        'url': 'https://imgur.com/t/unmuted/6lAn9VQ',
+        'info_dict': {
+            'id': '6lAn9VQ',
+        },
+        'playlist_count': 3,
+        'playlist': [
+            { 'info_dict': { 'id': '3inf5ZW-6lAn9VQ', 'ext': 'mp4', 'title': 're:Penguins !-3inf5ZW', 'description': 'Imgur: The magic of the Internet',} },
+            { 'info_dict': { 'id': 'ejQsvLp-6lAn9VQ', 'ext': 'mp4', 'title': 're:Penguins !-ejQsvLp', 'description': 'Imgur: The magic of the Internet',} },
+            { 'info_dict': { 'id': '3WRggtZ-6lAn9VQ', 'ext': 'mp4', 'title': 're:Penguins !-3WRggtZ', 'description': 'Imgur: The magic of the Internet',} },
+        ],
+    }, {
+        'url': 'https://imgur.com/t/unmuted/kx2uD3C',
+        'info_dict': {
+            'id': 'kx2uD3C',
+            'ext': 'mp4',
+            'title': 're:Intruder$',
+            'description': 'Imgur: The magic of the Internet',
+        },
+    }, {
+        'url': 'https://imgur.com/t/unmuted/wXSK0YH',
+        'info_dict': {
+            'id': 'wXSK0YH',
+            'ext': 'mp4',
+            'title': 're:I got the blues$',
+            'description': 'Imgur: The magic of the Internet',
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        video_json = self._search_regex(
+            r'image\s*:\s*({.*})',
+            webpage, 'video json', default=None)
+
+        videod = self._parse_json(video_json, video_id)
+        album_images = videod.get('album_images')
+        images = album_images.get('images')
+
+        entries = []
+        add_hash = False
+        if len(images) > 1:
+            add_hash = True
+
+        for image in images:
+            formats = []
+            h = image.get('hash')
+            url = 'https://i.imgur.com/{id}.mp4'.format(id=h)
+            filetype = image.get('ext').lstrip('.')
+            width = image.get('width')
+            height = image.get('height')
+
+            formats.append({
+                'format_id':filetype,
+                'url': url,
+                'ext': filetype,
+                'width': width,
+                'height': height,
+                'http_headers': {
+                    'User-Agent': 'youtube-dl (like wget)',
+                },
+            })
+
+            self._sort_formats(formats)
+            title = self._og_search_title(webpage)
+            indiv_video_id = video_id
+
+            if add_hash:
+                title += '-' + h
+                indiv_video_id = h + '-' + video_id
+
+            entries.append({
+                'id': indiv_video_id,
+                'formats': formats,
+                'description': self._og_search_description(webpage, default=None),
+                'title': title,
+            })
+
+        return self.playlist_result(entries, video_id)
+
 class ImgurAlbumIE(InfoExtractor):
     _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:a|gallery|topic/[^/]+)/)?(?P<id>[a-zA-Z0-9]{5})(?:[/?#&]+)?$'
 
