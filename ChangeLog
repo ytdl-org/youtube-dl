@@ -1,3 +1,16 @@
+version 2018.06.04
+
+Extractors
++ [camtube] Add support for camtube.co
++ [twitter:card] Extract guest token (#16609)
++ [chaturbate] Use geo verification headers
++ [bbc] Add support for bbcthree (#16612)
+* [youtube] Move metadata extraction after video availability check
++ [youtube] Extract track and artist
++ [safari] Add support for new URL schema (#16614)
+* [adn] Fix extraction
+
+
 version 2018.06.02
 
 Core
