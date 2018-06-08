@@ -119,10 +119,29 @@ class ImgurUnmutedIE(InfoExtractor):
         },
         'playlist_count': 3,
         'playlist': [
-            { 'info_dict': { 'id': '3inf5ZW-6lAn9VQ', 'ext': 'mp4', 'title': 're:Penguins !-3inf5ZW', 'description': 'Imgur: The magic of the Internet',} },
-            { 'info_dict': { 'id': 'ejQsvLp-6lAn9VQ', 'ext': 'mp4', 'title': 're:Penguins !-ejQsvLp', 'description': 'Imgur: The magic of the Internet',} },
-            { 'info_dict': { 'id': '3WRggtZ-6lAn9VQ', 'ext': 'mp4', 'title': 're:Penguins !-3WRggtZ', 'description': 'Imgur: The magic of the Internet',} },
-        ],
+            {
+                'info_dict': {
+                    'id': '3inf5ZW-6lAn9VQ',
+                    'ext': 'mp4',
+                    'title': 're:Penguins !-3inf5ZW',
+                    'description': 'Imgur: The magic of the Internet',
+                }
+            }, {
+                'info_dict': {
+                    'id': 'ejQsvLp-6lAn9VQ',
+                    'ext': 'mp4',
+                    'title': 're:Penguins !-ejQsvLp',
+                    'description': 'Imgur: The magic of the Internet',
+                }
+            }, {
+                'info_dict': {
+                    'id': '3WRggtZ-6lAn9VQ',
+                    'ext': 'mp4',
+                    'title': 're:Penguins !-3WRggtZ',
+                    'description': 'Imgur: The magic of the Internet',
+                }
+            },
+        ]
     }, {
         'url': 'https://imgur.com/t/unmuted/kx2uD3C',
         'info_dict': {
@@ -167,7 +186,7 @@ class ImgurUnmutedIE(InfoExtractor):
             height = image.get('height')
 
             formats.append({
-                'format_id':filetype,
+                'format_id': filetype,
                 'url': url,
                 'ext': filetype,
                 'width': width,
@@ -193,6 +212,7 @@ class ImgurUnmutedIE(InfoExtractor):
             })
 
         return self.playlist_result(entries, video_id)
+
 
 class ImgurAlbumIE(InfoExtractor):
     _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:a|gallery|topic/[^/]+)/)?(?P<id>[a-zA-Z0-9]{5})(?:[/?#&]+)?$'
