@@ -5,101 +5,113 @@ from __future__ import unicode_literals
 # Allow direct execution
 import os
 import sys
-import logging
-
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.jsinterp import JSInterpreter
-from .js2tests import gettestcases
-
-__doc__ = """see: `js2tests`"""
 
 
-defs = gettestcases()
-# set level to logging.DEBUG to see messages about missing assertions
-# set level to logging.DEBUG to see messages about code tests are running
-logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
-log = logging.getLogger('TestJSInterpreter')
+class TestJSInterpreterOrig(unittest.TestCase):
+    def test_basic(self):
+        jsi = JSInterpreter('function x(){;}')
+        self.assertEqual(jsi.call_function('x'), None)
 
+        jsi = JSInterpreter('function x3(){return 42;}')
+        self.assertEqual(jsi.call_function('x3'), 42)
 
-class TestJSInterpreter(unittest.TestCase):
-    def setUp(self):
-        self.defs = defs
+        jsi = JSInterpreter('var x5 = function(){return 42;}')
+        self.assertEqual(jsi.call_function('x5'), 42)
 
+    def test_calc(self):
+        jsi = JSInterpreter('function x4(a){return 2*a+1;}')
+        self.assertEqual(jsi.call_function('x4', 3), 7)
 
-def generator(test_case, my_log):
-    def test_template(self):
-        my_log.debug('Started...')
-        for test in test_case['subtests']:
-            excluded = test.get('exclude')
-            if excluded is not None and 'jsinterp' in excluded:
-                log_reason = 'jsinterp does not support this subtest:\n%s' % test['code']
-            elif 'code' not in test:
-                log_reason = 'No code in subtest, skipping'
-            elif 'asserts' not in test:
-                log_reason = 'No assertion in subtest, skipping'
-            else:
-                log_reason = None
+    def test_empty_return(self):
+        jsi = JSInterpreter('function f(){return; y()}')
+        self.assertEqual(jsi.call_function('f'), None)
 
-            if log_reason is None:
-                variables = test.get('globals')
-                code = test['code']
-                call = None
+    def test_morespace(self):
+        jsi = JSInterpreter('function x (a) { return 2 * a + 1 ; }')
+        self.assertEqual(jsi.call_function('x', 3), 7)
 
-                if variables is not None:
-                    code = 'function f(%s){%s}' % ((''.join(variables.keys())), code)
-                    call = ('f',) + tuple(v for v in variables.values())
-                    my_log.debug('globals: %s' % variables)
-                my_log.debug(code)
+        jsi = JSInterpreter('function f () { x =  2  ; return x; }')
+        self.assertEqual(jsi.call_function('f'), 2)
 
-                jsi = JSInterpreter(code, objects=variables)
-                for assertion in test['asserts']:
-                    if 'value' in assertion:
-                        if call is None:
-                            call = assertion['call']
+    def test_strange_chars(self):
+        jsi = JSInterpreter('function $_xY1 ($_axY1) { var $_axY2 = $_axY1 + 1; return $_axY2; }')
+        self.assertEqual(jsi.call_function('$_xY1', 20), 21)
 
-                        if call is not None:
-                            my_log.debug('call: %s(%s)' % (call[0], ', '.join(str(arg) for arg in call[1:])))
+    def test_operators(self):
+        jsi = JSInterpreter('function f(){return 1 << 5;}')
+        self.assertEqual(jsi.call_function('f'), 32)
 
-                        self.assertEqual(jsi.call_function(*call), assertion['value'])
-                    else:
-                        my_log.info('No value in assertion, skipping')
-            else:
-                my_log.info(log_reason)
+        jsi = JSInterpreter('function f(){return 19 & 21;}')
+        self.assertEqual(jsi.call_function('f'), 17)
 
-    return test_template
+        jsi = JSInterpreter('function f(){return 11 >> 2;}')
+        self.assertEqual(jsi.call_function('f'), 2)
 
+    def test_array_access(self):
+        jsi = JSInterpreter('function f(){var x = [1,2,3]; x[0] = 4; x[0] = 5; x[2] = 7; return x;}')
+        self.assertEqual(jsi.call_function('f'), [5, 2, 7])
 
-# And add them to TestJSInterpreter
-for testcase in defs:
-    reason = testcase['skip'].get('jsinterp', False)
-    tname = 'test_' + str(testcase['name'])
-    i = 1
-    while hasattr(TestJSInterpreter, tname):
-        tname = 'test_%s_%d' % (testcase['name'], i)
-        i += 1
+    def test_parens(self):
+        jsi = JSInterpreter('function f(){return (1) + (2) * ((( (( (((((3)))))) )) ));}')
+        self.assertEqual(jsi.call_function('f'), 7)
 
-    if reason is True:
-        log_reason = 'Entirely'
-    elif not any('asserts' in test for test in testcase['subtests']):
-        log_reason = '''There isn't any assertion'''
-    else:
-        log_reason = None
+        jsi = JSInterpreter('function f(){return (1 + 2) * 3;}')
+        self.assertEqual(jsi.call_function('f'), 9)
 
-    if log_reason is None:
-        test_method = generator(testcase, logging.getLogger('.'.join((log.name, tname))))
-        test_method.__name__ = str(tname)
-        if reason is not False:
-            test_method.__unittest_skip__ = True
-            test_method.__unittest_skip_why__ = reason
-        setattr(TestJSInterpreter, test_method.__name__, test_method)
-        del test_method
-    else:
-        log.info('Skipping %s:%s' % (tname, log_reason))
+    def test_assignments(self):
+        jsi = JSInterpreter('function f(){var x = 20; x = 30 + 1; return x;}')
+        self.assertEqual(jsi.call_function('f'), 31)
+
+        jsi = JSInterpreter('function f(){var x = 20; x += 30 + 1; return x;}')
+        self.assertEqual(jsi.call_function('f'), 51)
+
+        jsi = JSInterpreter('function f(){var x = 20; x -= 30 + 1; return x;}')
+        self.assertEqual(jsi.call_function('f'), -11)
+
+    def test_comments(self):
+        'Skipping: Not yet fully implemented'
+        return
+        jsi = JSInterpreter('''
+        function x() {
+            var x = /* 1 + */ 2;
+            var y = /* 30
+            * 40 */ 50;
+            return x + y;
+        }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 52)
+
+        jsi = JSInterpreter('''
+        function f() {
+            var x = "/*";
+            var y = 1 /* comment */ + 2;
+            return y;
+        }
+        ''')
+        self.assertEqual(jsi.call_function('f'), 3)
+
+    def test_precedence(self):
+        jsi = JSInterpreter('''
+        function x() {
+            var a = [10, 20, 30, 40, 50];
+            var b = 6;
+            a[0]=a[b%a.length];
+            return a;
+        }''')
+        self.assertEqual(jsi.call_function('x'), [20, 20, 30, 40, 50])
+
+    def test_call(self):
+        jsi = JSInterpreter('''
+        function x() { return 2; }
+        function y(a) { return x() + a; }
+        function z() { return y(3); }
+        ''')
+        self.assertEqual(jsi.call_function('z'), 5)
+
 
 if __name__ == '__main__':
     unittest.main()
