@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 skip = {
     'jsinterp': 'String literals are not supported',
-    'interpret': 'Builtins are not yet implemented',
     'parse': 'Test is not yet implemented: missing ast'
 }
 

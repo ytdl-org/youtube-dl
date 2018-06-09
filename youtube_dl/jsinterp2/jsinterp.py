@@ -6,6 +6,10 @@ from ..compat import compat_str
 from ..utils import ExtractorError
 from .jsparser import Parser
 from .jsgrammar import Token, token_keys
+from .jsbuilt_ins import global_obj
+from .jsbuilt_ins.base import isprimitive
+from .jsbuilt_ins.internals import to_string
+from .jsbuilt_ins.utils import to_js
 
 
 class Context(object):
@@ -31,7 +35,7 @@ class Reference(object):
         if deep:
             if isinstance(self._value, (list, tuple)):
                 # TODO test nested arrays
-                value = [elem.getvalue() for elem in self._value]
+                value = [elem if isprimitive(elem) else elem.getvalue() for elem in self._value]
             elif isinstance(self._value, dict):
                 value = {}
                 for key, prop in self._value.items():
@@ -59,8 +63,6 @@ class Reference(object):
 
 class JSInterpreter(object):
     # TODO support json
-
-    undefined = object()
 
     def __init__(self, code, variables=None):
         super(JSInterpreter, self).__init__()
@@ -116,7 +118,8 @@ class JSInterpreter(object):
                     ref = s.getvalue()
         elif name is Token.VAR:
             for name, value in stmt[1]:
-                value = self.interpret_expression(value).getvalue() if value is not None else self.undefined
+                value = (self.interpret_expression(value).getvalue() if value is not None else
+                         global_obj.get_prop('undefined'))
                 self.this[name] = Reference(value, (self.this, name))
         elif name is Token.EXPR:
             for expr in stmt[1]:
@@ -158,7 +161,7 @@ class JSInterpreter(object):
                             if lid[0] is Token.ID and args is None and tail is None:
                                 key = lid[1]
                     if key is not None:
-                        u = Reference(self.undefined, (self.this, key))
+                        u = Reference(global_obj.get_prop('undefined'), (self.this, key))
                         leftref = self.this[key] = u
                     else:
                         raise ExtractorError('Invalid left-hand side in assignment')
@@ -209,16 +212,31 @@ class JSInterpreter(object):
             if args is not None:
                 # TODO interpret NewExpression
                 pass
+            source = None
             while tail is not None:
                 tail_name, tail_value, tail = tail
                 if tail_name is Token.FIELD:
-                    target = target.getvalue()[tail_value]
+                    source = to_js(target.getvalue())
+                    target = source.get_prop(tail_value)
                 elif tail_name is Token.ELEM:
-                    index = self.interpret_expression(tail_value).getvalue()
-                    target = target.getvalue()[index]
+                    prop = self.interpret_expression(tail_value).getvalue()
+                    target = to_js(target.getvalue()).get_prop(to_string(to_js(prop)))
                 elif tail_name is Token.CALL:
                     args = (self.interpret_expression(arg).getvalue() for arg in tail_value)
-                    target = Reference(target.getvalue()(*args))
+                    if isprimitive(target):
+                        if source is None:
+                            target = target(*args)
+                        else:
+                            target = target(source, *args)
+                    else:
+                        if source is None:
+                            target = target.getvalue()(*args)
+                        else:
+                            target = target.getvalue()(source, *args)
+                    if isprimitive(target):
+                        target = Reference(target)
+                    else:
+                        target = Reference(target.getvalue())
             ref = target
 
         elif name is Token.ID:

@@ -22,7 +22,7 @@ __doc__ = """see: `js2tests`"""
 defs = gettestcases()
 # set level to logging.DEBUG to see messages about missing assertions
 # set level to logging.DEBUG to see messages about code tests are running
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 log = logging.getLogger('TestJSInterpreter')
 
 

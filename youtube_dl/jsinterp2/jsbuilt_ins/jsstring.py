@@ -60,7 +60,9 @@ class JSStringPrototype(JSObjectPrototype):
         return 'string slice'
 
     def _split(self, sep):
-        return 'string split'
+        if sep == '':
+            return list(self.value)
+        return self.value.split(sep)
 
     def _substring(self, start, end):
         return 'string substring'

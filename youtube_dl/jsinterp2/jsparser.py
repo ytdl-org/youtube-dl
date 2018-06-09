@@ -440,7 +440,7 @@ class Parser(object):
             # Rhino has check for args length
             # Rhino has experimental syntax allowing an object literal to follow a new expression
         else:
-            target = self._primary_expression(stack_top)
+            target = self._primary_expression(stack_top - 1)
             args = None
 
         return (Token.MEMBER, target, args, self._member_tail(stack_top - 1))

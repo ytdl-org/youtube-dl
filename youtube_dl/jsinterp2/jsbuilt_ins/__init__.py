@@ -53,5 +53,9 @@ global_obj = jsobject.JSObject.construct(
      'Array': jsarray.JSArray(),
      'Function': jsfunction.JSFunction(),
      'String': jsstring.JSString(),
-     'Number': jsnumber.JSNumber()
+     'Number': jsnumber.JSNumber(),
+     'false': jsboolean.false,
+     'true': jsboolean.true,
+     'null': base.null,
+     'undefined': base.undefined
      })

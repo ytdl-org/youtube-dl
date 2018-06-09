@@ -24,10 +24,10 @@ class JSProtoBase(JSBase):
         super(JSProtoBase, self).__init__('')
         cls = self.__class__
         while cls.__base__ is not JSProtoBase:
-            cls = cls.__base__
             props = cls.own.copy()
             props.update(self.props)
             self.props = props
+            cls = cls.__base__
         self.value = {}
 
     def get_prop(self, prop):
@@ -63,3 +63,8 @@ native_number = (int, float)
 native_object = dict
 native_array = (list, tuple)
 native_function = FunctionType
+
+
+def isprimitive(value):
+    return (isinstance(value, (native_bool, native_string, native_number, native_object, native_array, native_function))
+            or value is None)
