@@ -1,3 +1,14 @@
+version <unreleased>
+
+Extractors
+* [npo] Extend URL regular expression and add support for npostart.nl (#16682)
++ [inc] Add support for another embed schema (#16666)
+* [tv4] Fix format extraction (#16650)
++ [nexx] Add support for free cdn (#16538)
++ [pbs] Add another cove id pattern (#15373)
++ [rbmaradio] Add support for 192k format (#16631)
+
+
 version 2018.06.04
 
 Extractors
