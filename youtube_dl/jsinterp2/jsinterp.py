@@ -151,7 +151,7 @@ class JSInterpreter(object):
             else:
                 try:
                     leftref = self.interpret_expression(left)
-                except KeyError:
+                except ExtractorError:
                     lname = left[0]
                     key = None
                     if lname is Token.OPEXPR and len(left[1]) == 1:
