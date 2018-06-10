@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.06.11
 
 Extractors
 * [npo] Extend URL regular expression and add support for npostart.nl (#16682)
