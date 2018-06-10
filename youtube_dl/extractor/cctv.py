@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from calendar import timegm
+from datetime import datetime
 import re
 
 from .common import InfoExtractor
@@ -22,7 +24,6 @@ class CCTVIE(InfoExtractor):
     _TESTS = [{
         # fo.addVariable("videoCenterId","id")
         'url': 'http://sports.cntv.cn/2016/02/12/ARTIaBRxv4rTT1yWf1frW2wi160212.shtml',
-        'md5': 'd61ec00a493e09da810bf406a078f691',
         'info_dict': {
             'id': '5ecdbeab623f4973b40ff25f18b174e8',
             'ext': 'mp4',
@@ -113,6 +114,17 @@ class CCTVIE(InfoExtractor):
         },
         'expected_warnings': ['Failed to download m3u8 information'],
     }, {
+        # older multi-part streams, non-HLS
+        'url': 'http://english.cntv.cn/program/learnchinese/20110325/103360.shtml',
+        'info_dict': {
+            'id': '20110325100557_00',
+            'ext': 'mp4',
+            'title': 'Learn to Speak Chinese Edition 24-2011 (Chapter 01)',
+            'duration': 295,
+            'timestamp': 1301053440,
+            'upload_date': '20110325',
+        },
+    }, {
         'url': 'http://ent.cntv.cn/2016/01/18/ARTIjprSSJH8DryTVr5Bx8Wb160118.shtml',
         'only_matching': True,
     }, {
@@ -163,6 +175,12 @@ class CCTVIE(InfoExtractor):
             data = self._parse_json(data, video_id)
             entries = []
             title = data.get('title')
+            upload_date = self._search_regex(
+                '<em>(?:\s+)?(\d{2}\-\d{2}\-\d{4}\s+\d{2}\:\d{2})[^<]+',
+                webpage, 'upload date', fatal=False).strip()
+            upload_date = re.sub(r'\s+', ' ', upload_date)
+            udt = datetime.strptime(upload_date, '%m-%d-%Y %H:%M')
+
             for i, chapter in enumerate(data.get('chapters', [])):
                 url = chapter.get('url')
                 if title:
@@ -170,12 +188,18 @@ class CCTVIE(InfoExtractor):
                 else:
                     ctitle = 'Chapter %02d' % (i + 1,)
                 if url:
+                    if not url.startswith('http'):
+                        url = re.sub(r'^[^\:]+', 'http', url)
                     entries.append(dict(id='%s_%02d' % (video_id, i,),
                                         thumbnail=data.get('imagePath'),
                                         title=ctitle,
                                         duration=int_or_none(chapter.get('duration')),
+                                        upload_date=udt.strftime('%Y%m%d'),
+                                        timestamp=timegm(udt.timetuple()),
                                         url=url))
-            return self.playlist_result(entries, playlist_id=video_id, playlist_title=data.get('title'))
+            return self.playlist_result(entries,
+                                        playlist_id=video_id,
+                                        playlist_title=title)
 
         title = data['title']
 
