@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from youtube_dl.jsinterp2 import JSInterpreter
 from .jstests import gettestcases
 
-__doc__ = """see: `js2tests`"""
+__doc__ = """see: `jstests`"""
 
 
 defs = gettestcases()
@@ -71,12 +71,12 @@ def generator(test_case, my_log):
     return test_template
 
 
-# And add them to TestJSInterpreter2
+# And add them to TestJSTestsJSInterpreter2
 for testcase in defs:
     reason = testcase['skip'].get('interpret', False)
     tname = 'test_' + str(testcase['name'])
     i = 1
-    while hasattr(TestJSInterpreter2, tname):
+    while hasattr(TestJSTestsJSInterpreter2, tname):
         tname = 'test_%s_%d' % (testcase['name'], i)
         i += 1
 
@@ -93,7 +93,7 @@ for testcase in defs:
         if reason is not False:
             test_method.__unittest_skip__ = True
             test_method.__unittest_skip_why__ = reason
-        setattr(TestJSInterpreter2, test_method.__name__, test_method)
+        setattr(TestJSTestsJSInterpreter2, test_method.__name__, test_method)
         del test_method
     else:
         log.info('Skipping %s:%s' % (tname, log_reason))

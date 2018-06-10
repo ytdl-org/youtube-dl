@@ -66,6 +66,7 @@ def to_number(o):
     from .jsobject import JSObjectPrototype
     from .jsboolean import JSBooleanPrototype, false, true
     from .jsstring import JSStringPrototype
+    from .jsnumber import JSNumberPrototype
 
     if o is undefined:
         return float('nan')
@@ -73,6 +74,8 @@ def to_number(o):
         return 0
     elif isinstance(o, JSBooleanPrototype) and o.value is true:
         return 1
+    elif isinstance(o, JSNumberPrototype):
+        return o.value
     elif isinstance(o, JSStringPrototype):
         _STR_FLOAT_RE = r'(?:(?:[0-9]+(?:\.[0-9]*)?)|(?:\.[0-9]+))(?:[eE][+-]?[0-9]+)?'
         m = re.match(r'^[\s\n]*(?P<value>(?:[+-]*(?:Infinity|%(float)s))|%(hex)s)?[\s\n]*$' % {'float': _STR_FLOAT_RE,

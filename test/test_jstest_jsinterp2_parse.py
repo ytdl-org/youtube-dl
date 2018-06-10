@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from youtube_dl.jsinterp2.jsparser import Parser
 from .jstests import gettestcases
 
-__doc__ = """see: `js2tests`"""
+__doc__ = """see: `jstests`"""
 
 
 def traverse(node, tree_types=(list, tuple)):
@@ -64,12 +64,12 @@ def generator(test_case, my_log):
     return test_template
 
 
-# And add them to TestJSInterpreter2Parse
+# And add them to TestJSTestsJSInterpreter2Parse
 for testcase in defs:
     reason = testcase['skip'].get('parse', False)
     tname = 'test_' + str(testcase['name'])
     i = 1
-    while hasattr(TestJSInterpreter2Parse, tname):
+    while hasattr(TestJSTestsJSInterpreter2Parse, tname):
         tname = 'test_%s_%d' % (testcase['name'], i)
         i += 1
 
@@ -86,7 +86,7 @@ for testcase in defs:
         if reason is not False:
             test_method.__unittest_skip__ = True
             test_method.__unittest_skip_why__ = reason
-        setattr(TestJSInterpreter2Parse, test_method.__name__, test_method)
+        setattr(TestJSTestsJSInterpreter2Parse, test_method.__name__, test_method)
         del test_method
     else:
         log.info('Skipping %s:%s' % (tname, log_reason))

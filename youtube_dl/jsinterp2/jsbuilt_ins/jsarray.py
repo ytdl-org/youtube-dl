@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from youtube_dl.jsinterp2.jsbuilt_ins.internals import to_uint32, to_integer
 from .base import native_number, undefined
 from .jsobject import JSObject, JSObjectPrototype
 from .jsnumber import JSNumberPrototype
@@ -55,8 +56,15 @@ class JSArrayPrototype(JSObjectPrototype):
     def _shift(self):
         return 'array shift'
 
-    def _slice(self, start, end):
-        return 'array slice'
+    def _slice(self, start, end=None):
+        from .utils import to_js
+
+        length = to_uint32(to_js(len(self.value)))
+        start = to_integer(to_js(start))
+        end = length if end is undefined else to_integer(to_js(end))
+        start = min(start, length) if start > 0 else max(length + start, 0)
+
+        return self.value[start:end]
 
     def _sort(self, cmp):
         return 'array sort'
