@@ -4,9 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     float_or_none,
+    int_or_none,
     try_get,
     unified_timestamp,
 )
@@ -132,6 +136,7 @@ class CCTVIE(InfoExtractor):
         video_id = self._search_regex(
             [r'var\s+guid\s*=\s*["\']([\da-fA-F]+)',
              r'videoCenterId["\']\s*,\s*["\']([\da-fA-F]+)',
+             r'video(?:Center)?Id=([\da-f]+)',
              r'changePlayer\s*\(\s*["\']([\da-fA-F]+)',
              r'load[Vv]ideo\s*\(\s*["\']([\da-fA-F]+)',
              r'var\s+initMyAray\s*=\s*["\']([\da-fA-F]+)',
@@ -146,7 +151,31 @@ class CCTVIE(InfoExtractor):
                 'idl': 32,
                 'idlr': 32,
                 'modifyed': 'false',
-            })
+            }, fatal=False)
+        if data.get('status') == 'not_exist' or not data:
+            p = compat_urlparse.urlsplit(url, scheme='http')
+            path = self._search_regex(r'filePath=(/[^\&"]+)', webpage, 'filePath')
+            beg = video_id[0:8]
+            ending = video_id[8:]
+            url = '%s://%s%s%s/%s.txt' % (p.scheme, p.netloc, path, beg, ending)
+            data = self._download_webpage(url, ending, 'Downloading JSON metadata')
+            data = re.sub(r'(?:\s+)?<\!\-+[^\-]+\-+>.*', '', data)
+            data = self._parse_json(data, video_id)
+            entries = []
+            title = data.get('title')
+            for i, chapter in enumerate(data.get('chapters', [])):
+                url = chapter.get('url')
+                if title:
+                    ctitle = '%s (Chapter %02d)' % (title, i + 1,)
+                else:
+                    ctitle = 'Chapter %02d' % (i + 1,)
+                if url:
+                    entries.append(dict(id='%s_%02d' % (video_id, i,),
+                                        thumbnail=data.get('imagePath'),
+                                        title=ctitle,
+                                        duration=int_or_none(chapter.get('duration')),
+                                        url=url))
+            return self.playlist_result(entries, playlist_id=video_id, playlist_title=data.get('title'))
 
         title = data['title']
 
