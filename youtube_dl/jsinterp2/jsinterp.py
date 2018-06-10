@@ -241,9 +241,16 @@ class JSInterpreter(object):
 
         elif name is Token.ID:
             # XXX error handling (unknown id)
-            ref = (self.this[expr[1]] if expr[1] in self.this else
-                   self.global_vars[expr[1]])
-        
+            id = expr[1]
+            try:
+                ref = (self.this[id] if id in self.this else
+                       self.global_vars[id])
+            except KeyError:
+                try:
+                    ref = Reference(self.extract_object(id))
+                except AttributeError:
+                    ref = Reference(self.extract_function(id))
+
         # literal
         elif name in token_keys:
             ref = Reference(expr[1])

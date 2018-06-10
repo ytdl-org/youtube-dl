@@ -59,11 +59,18 @@ class JSArrayPrototype(JSObjectPrototype):
     def _slice(self, start, end=None):
         from .utils import to_js
 
-        length = to_uint32(to_js(len(self.value)))
-        start = to_integer(to_js(start))
-        end = length if end is undefined else to_integer(to_js(end))
+        start = to_js(start)
+        end = to_js(end)
+        length = to_js(len(self.value))
+
+        length = to_uint32(length)
+        start = to_integer(start)
+        end = length if end is undefined else to_integer(end)
+
         start = min(start, length) if start > 0 else max(length + start, 0)
 
+        # TODO add jstest for it
+        
         return self.value[start:end]
 
     def _sort(self, cmp):
