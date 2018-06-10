@@ -60,6 +60,8 @@ class JSStringPrototype(JSObjectPrototype):
         return 'string slice'
 
     def _split(self, sep):
+        # TODO fix according to spec
+        # TODO support JSRegexp for sep
         if sep == '':
             return list(self.value)
         return self.value.split(sep)
