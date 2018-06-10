@@ -20,7 +20,7 @@ _token_names = ('COPEN', 'CCLOSE', 'POPEN', 'PCLOSE', 'SOPEN', 'SCLOSE',
                 'PROPGET', 'PROPSET', 'PROPVALUE',
                 'RSV')
 
-Token = namedtuple('Token', _token_names)._make(_token_names)
+TokenTypes = namedtuple('Token', _token_names)._make(_token_names)
 
 __DECIMAL_RE = r'(?:[1-9][0-9]*)|0'
 __OCTAL_RE = r'0[0-7]+'
@@ -61,20 +61,21 @@ _NULL_RE = r'null'
 _REGEX_FLAGS_RE = r'(?![gimy]*(?P<reflag>[gimy])[gimy]*(?P=reflag))(?P<%s>[gimy]{0,4}\b)' % 'REFLAGS'
 _REGEX_RE = r'/(?!\*)(?P<%s>(?:[^/\n]|(?:\\/))*)/(?:(?:%s)|(?:\s|$))' % ('REBODY', _REGEX_FLAGS_RE)
 
-token_keys = Token.NULL, Token.BOOL, Token.ID, Token.STR, Token.INT, Token.FLOAT, Token.REGEX
+token_keys = TokenTypes.NULL, TokenTypes.BOOL, TokenTypes.ID, TokenTypes.STR, TokenTypes.INT, TokenTypes.FLOAT, TokenTypes.REGEX
 
 _TOKENS = zip(token_keys, (_NULL_RE, _BOOL_RE, _NAME_RE, _STRING_RE, _INTEGER_RE, _FLOAT_RE, _REGEX_RE))
 
 
-COMMENT_RE = r'(?P<%s>/\*(?:(?!\*/)(?:\n|.))*\*/)' % Token.COMMENT
+COMMENT_RE = r'(?P<%s>/\*(?:(?!\*/)(?:\n|.))*\*/)' % TokenTypes.COMMENT
 TOKENS_RE = r'|'.join('(?P<%(id)s>%(value)s)' % {'id': name, 'value': value}
                       for name, value in _TOKENS)
 
-LOGICAL_OPERATORS_RE = r'(?P<%s>%s)' % (Token.LOP, r'|'.join(re.escape(value) for value in _logical_operator))
-UNARY_OPERATORS_RE = r'(?P<%s>%s)' % (Token.UOP, r'|'.join(re.escape(value) for value in _unary_operator))
-ASSIGN_OPERATORS_RE = r'(?P<%s>%s)' % (Token.AOP,
+LOGICAL_OPERATORS_RE = r'(?P<%s>%s)' % (TokenTypes.LOP, r'|'.join(re.escape(value) for value in _logical_operator))
+UNARY_OPERATORS_RE = r'(?P<%s>%s)' % (TokenTypes.UOP, r'|'.join(re.escape(value) for value in _unary_operator))
+ASSIGN_OPERATORS_RE = r'(?P<%s>%s)' % (TokenTypes.AOP,
                                        r'|'.join(re.escape(value) if value != '=' else re.escape(value) + r'(?!\=)'
                                                  for value in _assign_operator))
-OPERATORS_RE = r'(?P<%s>%s)' % (Token.OP, r'|'.join(re.escape(value) for value in _operator))
-RELATIONS_RE = r'(?P<%s>%s)' % (Token.REL, r'|'.join(re.escape(value) for value in _relation))
-PUNCTUATIONS_RE = r'(?P<%s>%s)' % (Token.PUNCT, r'|'.join(re.escape(value) for value in _punctuations))
+OPERATORS_RE = r'(?P<%s>%s)' % (TokenTypes.OP, r'|'.join(re.escape(value) for value in _operator))
+RELATIONS_RE = r'(?P<%s>%s)' % (TokenTypes.REL, r'|'.join(re.escape(value) for value in _relation))
+PUNCTUATIONS_RE = r'(?P<%s>%s)' % (TokenTypes.PUNCT, r'|'.join(re.escape(value) for value in _punctuations))
+LINETERMINATORSEQ_RE = r'\n|\r(?!\n)|\u2028|\u2029'

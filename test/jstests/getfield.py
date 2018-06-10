@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.jsgrammar import TokenTypes
 
 skip = {'jsinterp': 'Field access is not supported'}
 
@@ -10,16 +10,16 @@ tests = [
         'asserts': [{'value': 3, 'call': ('f',)}],
         'globals': {'a': {'var': 3}},
         'ast': [
-            (Token.FUNC, 'f', [], [
-                (Token.RETURN,
-                 (Token.EXPR, [
-                     (Token.ASSIGN,
+            (TokenTypes.FUNC, 'f', [], [
+                (TokenTypes.RETURN,
+                 (TokenTypes.EXPR, [
+                     (TokenTypes.ASSIGN,
                       None,
-                      (Token.OPEXPR, [
-                          (Token.MEMBER,
-                           (Token.ID, 'a'),
+                      (TokenTypes.OPEXPR, [
+                          (TokenTypes.MEMBER,
+                           (TokenTypes.ID, 'a'),
                            None,
-                           (Token.FIELD, 'var', None)),
+                           (TokenTypes.FIELD, 'var', None)),
                       ]),
                       None)
                  ]))

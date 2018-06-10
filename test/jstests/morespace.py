@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.jsgrammar import TokenTypes
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS
 
 tests = [
@@ -8,22 +8,22 @@ tests = [
         'code': 'function f() { x =  2  ; return x; }',
         'asserts': [{'value': 2, 'call': ('f',)}],
         'ast': [
-            (Token.FUNC, 'f', [], [
-                (Token.EXPR,
-                 [(Token.ASSIGN,
+            (TokenTypes.FUNC, 'f', [], [
+                (TokenTypes.EXPR,
+                 [(TokenTypes.ASSIGN,
                    _ASSIGN_OPERATORS['='][1],
-                   (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]),
-                   (Token.ASSIGN,
+                   (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.ID, 'x'), None, None)]),
+                   (TokenTypes.ASSIGN,
                     None,
-                    (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 2), None, None)]),
+                    (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.INT, 2), None, None)]),
                     None)
                    )]
                  ),
-                (Token.RETURN,
-                 (Token.EXPR, [
-                     (Token.ASSIGN,
+                (TokenTypes.RETURN,
+                 (TokenTypes.EXPR, [
+                     (TokenTypes.ASSIGN,
                       None,
-                      (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]),
+                      (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.ID, 'x'), None, None)]),
                       None)
                  ])
                  )

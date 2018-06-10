@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.jsgrammar import TokenTypes
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _OPERATORS
 
 skip = {
@@ -21,32 +21,32 @@ tests = [
             }
             ''',
         'ast': [
-            (Token.FUNC, 'f', [], [
-                (Token.VAR,
+            (TokenTypes.FUNC, 'f', [], [
+                (TokenTypes.VAR,
                  zip(['o'],
-                     [(Token.ASSIGN, None, (Token.OPEXPR, [
-                         (Token.MEMBER, (Token.OBJECT, [
-                             ('a', (Token.PROPVALUE, (Token.ASSIGN, None, (Token.OPEXPR, [
-                                 (Token.MEMBER, (Token.INT, 7), None, None)
+                     [(TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                         (TokenTypes.MEMBER, (TokenTypes.OBJECT, [
+                             ('a', (TokenTypes.PROPVALUE, (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                                 (TokenTypes.MEMBER, (TokenTypes.INT, 7), None, None)
                              ]), None))),
-                             ('b', (Token.PROPGET, [
-                                 (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                                     (Token.MEMBER, (Token.RSV, 'this'), None, (Token.FIELD, 'a', None)),
-                                     (Token.MEMBER, (Token.INT, 1), None, None),
-                                     (Token.OP, _OPERATORS['+'][1])
+                             ('b', (TokenTypes.PROPGET, [
+                                 (TokenTypes.RETURN, (TokenTypes.EXPR, [(TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                                     (TokenTypes.MEMBER, (TokenTypes.RSV, 'this'), None, (TokenTypes.FIELD, 'a', None)),
+                                     (TokenTypes.MEMBER, (TokenTypes.INT, 1), None, None),
+                                     (TokenTypes.OP, _OPERATORS['+'][1])
                                  ]), None)]))
                              ])),
-                             ('c', (Token.PROPSET, 'x', [
-                                 (Token.EXPR, [
-                                     (Token.ASSIGN,
+                             ('c', (TokenTypes.PROPSET, 'x', [
+                                 (TokenTypes.EXPR, [
+                                     (TokenTypes.ASSIGN,
                                       _ASSIGN_OPERATORS['='][1],
-                                      (Token.OPEXPR, [
-                                          (Token.MEMBER, (Token.RSV, 'this'), None, (Token.FIELD, 'a', None))
+                                      (TokenTypes.OPEXPR, [
+                                          (TokenTypes.MEMBER, (TokenTypes.RSV, 'this'), None, (TokenTypes.FIELD, 'a', None))
                                       ]),
-                                      (Token.ASSIGN, None, (Token.OPEXPR, [
-                                          (Token.MEMBER, (Token.ID, 'x'), None, None),
-                                          (Token.MEMBER, (Token.INT, 2), None, None),
-                                          (Token.OP, _OPERATORS['/'][1])
+                                      (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                                          (TokenTypes.MEMBER, (TokenTypes.ID, 'x'), None, None),
+                                          (TokenTypes.MEMBER, (TokenTypes.INT, 2), None, None),
+                                          (TokenTypes.OP, _OPERATORS['/'][1])
                                       ]), None))
                                  ])
                              ]))
@@ -55,8 +55,8 @@ tests = [
                      ]), None)]
                      )
                  ),
-                (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                    (Token.MEMBER, (Token.ID, 'o'), None, None)]), None)]))
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [(TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                    (TokenTypes.MEMBER, (TokenTypes.ID, 'o'), None, None)]), None)]))
             ])
         ]
     }

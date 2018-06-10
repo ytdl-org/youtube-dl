@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from youtube_dl.jsinterp2.jsbuilt_ins.internals import to_uint32, to_integer
+from .internals import to_uint32, to_integer
 from .base import native_number, undefined
 from .jsobject import JSObject, JSObjectPrototype
 from .jsnumber import JSNumberPrototype

@@ -5,7 +5,7 @@ import re
 from ..compat import compat_str
 from ..utils import ExtractorError
 from .jsparser import Parser
-from .jsgrammar import Token, token_keys
+from .jsgrammar import TokenTypes, token_keys
 from .jsbuilt_ins import global_obj
 from .jsbuilt_ins.base import isprimitive
 from .jsbuilt_ins.internals import to_string
@@ -101,7 +101,7 @@ class JSInterpreter(object):
 
         name = stmt[0]
         ref = None
-        if name == Token.FUNC:
+        if name == TokenTypes.FUNC:
             name, args, body = stmt[1:]
             if name is not None:
                 if self._context_stack:
@@ -110,23 +110,23 @@ class JSInterpreter(object):
                     self.global_vars[name] = Reference(self.build_function(args, body), (self.this, name))
             else:
                 raise ExtractorError('Function expression is not yet implemented')
-        elif name is Token.BLOCK:
+        elif name is TokenTypes.BLOCK:
             block = stmt[1]
             for stmt in block:
                 s = self.interpret_statement(stmt)
                 if s is not None:
                     ref = s.getvalue()
-        elif name is Token.VAR:
+        elif name is TokenTypes.VAR:
             for name, value in stmt[1]:
                 value = (self.interpret_expression(value).getvalue() if value is not None else
                          global_obj.get_prop('undefined'))
                 self.this[name] = Reference(value, (self.this, name))
-        elif name is Token.EXPR:
+        elif name is TokenTypes.EXPR:
             for expr in stmt[1]:
                 ref = self.interpret_expression(expr)
         # if
         # continue, break
-        elif name is Token.RETURN:
+        elif name is TokenTypes.RETURN:
             ref = self.interpret_statement(stmt[1])
             self._context.ended = True
         # with
@@ -144,7 +144,7 @@ class JSInterpreter(object):
             return
         name = expr[0]
 
-        if name is Token.ASSIGN:
+        if name is TokenTypes.ASSIGN:
             op, left, right = expr[1:]
             if op is None:
                 ref = self.interpret_expression(left)
@@ -154,11 +154,11 @@ class JSInterpreter(object):
                 except ExtractorError:
                     lname = left[0]
                     key = None
-                    if lname is Token.OPEXPR and len(left[1]) == 1:
+                    if lname is TokenTypes.OPEXPR and len(left[1]) == 1:
                         lname = left[1][0][0]
-                        if lname is Token.MEMBER:
+                        if lname is TokenTypes.MEMBER:
                             lid, args, tail = left[1][0][1:]
-                            if lid[0] is Token.ID and args is None and tail is None:
+                            if lid[0] is TokenTypes.ID and args is None and tail is None:
                                 key = lid[1]
                     if key is not None:
                         u = Reference(global_obj.get_prop('undefined'), (self.this, key))
@@ -171,10 +171,10 @@ class JSInterpreter(object):
                 # XXX check specs what to return
                 ref = leftref
 
-        elif name is Token.EXPR:
+        elif name is TokenTypes.EXPR:
             ref = self.interpret_statement(expr)
 
-        elif name is Token.OPEXPR:
+        elif name is TokenTypes.OPEXPR:
             stack = []
             postfix = []
             rpn = expr[1][:]
@@ -182,18 +182,18 @@ class JSInterpreter(object):
             while rpn:
                 token = rpn.pop(0)
                 # XXX relation 'in' 'instanceof'
-                if token[0] in (Token.OP, Token.AOP, Token.LOP, Token.REL):
+                if token[0] in (TokenTypes.OP, TokenTypes.AOP, TokenTypes.LOP, TokenTypes.REL):
                     right = stack.pop()
                     left = stack.pop()
                     stack.append(Reference(token[1](left.getvalue(), right.getvalue())))
                 # XXX add unary operator 'delete', 'void', 'instanceof'
-                elif token[0] is Token.UOP:
+                elif token[0] is TokenTypes.UOP:
                     right = stack.pop()
                     stack.append(Reference(token[1](right.getvalue())))
-                elif token[0] is Token.PREFIX:
+                elif token[0] is TokenTypes.PREFIX:
                     right = stack.pop()
                     stack.append(Reference(right.putvalue(token[1](right.getvalue()))))
-                elif token[0] is Token.POSTFIX:
+                elif token[0] is TokenTypes.POSTFIX:
                     postfix.append((stack[-1], token[1]))
                 else:
                     stack.append(self.interpret_expression(token))
@@ -205,7 +205,7 @@ class JSInterpreter(object):
             else:
                 raise ExtractorError('Expression has too many values')
 
-        elif name is Token.MEMBER:
+        elif name is TokenTypes.MEMBER:
             # TODO interpret member
             target, args, tail = expr[1:]
             target = self.interpret_expression(target)
@@ -215,13 +215,13 @@ class JSInterpreter(object):
             source = None
             while tail is not None:
                 tail_name, tail_value, tail = tail
-                if tail_name is Token.FIELD:
+                if tail_name is TokenTypes.FIELD:
                     source = to_js(target.getvalue())
                     target = source.get_prop(tail_value)
-                elif tail_name is Token.ELEM:
+                elif tail_name is TokenTypes.ELEM:
                     prop = self.interpret_expression(tail_value).getvalue()
                     target = to_js(target.getvalue()).get_prop(to_string(to_js(prop)))
-                elif tail_name is Token.CALL:
+                elif tail_name is TokenTypes.CALL:
                     args = (self.interpret_expression(arg).getvalue() for arg in tail_value)
                     if isprimitive(target):
                         if source is None:
@@ -239,7 +239,7 @@ class JSInterpreter(object):
                         target = Reference(target.getvalue())
             ref = target
 
-        elif name is Token.ID:
+        elif name is TokenTypes.ID:
             # XXX error handling (unknown id)
             id = expr[1]
             try:
@@ -255,7 +255,7 @@ class JSInterpreter(object):
         elif name in token_keys:
             ref = Reference(expr[1])
 
-        elif name is Token.ARRAY:
+        elif name is TokenTypes.ARRAY:
             array = []
             for key, elem in enumerate(expr[1]):
                 value = self.interpret_expression(elem).getvalue()

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.jsgrammar import TokenTypes
 from youtube_dl.jsinterp2.tstream import _OPERATORS
 
 tests = [
@@ -12,26 +12,26 @@ tests = [
             ''',
         'asserts': [{'value': 5, 'call': ('z',)}],
         'ast': [
-            (Token.FUNC, 'x', [], [
-                (Token.RETURN, (Token.EXPR, [
-                    (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 2), None, None)]), None)
+            (TokenTypes.FUNC, 'x', [], [
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [
+                    (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.INT, 2), None, None)]), None)
                 ]))
             ]),
-            (Token.FUNC, 'y', ['a'], [
-                (Token.RETURN, (Token.EXPR, [
-                    (Token.ASSIGN, None,
-                     (Token.OPEXPR, [
-                         (Token.MEMBER, (Token.ID, 'x'), None, (Token.CALL, [], None)),
-                         (Token.MEMBER, (Token.ID, 'a'), None, None),
-                         (Token.OP, _OPERATORS['+'][1])
+            (TokenTypes.FUNC, 'y', ['a'], [
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [
+                    (TokenTypes.ASSIGN, None,
+                     (TokenTypes.OPEXPR, [
+                         (TokenTypes.MEMBER, (TokenTypes.ID, 'x'), None, (TokenTypes.CALL, [], None)),
+                         (TokenTypes.MEMBER, (TokenTypes.ID, 'a'), None, None),
+                         (TokenTypes.OP, _OPERATORS['+'][1])
                      ]), None)
                 ]))
             ]),
-            (Token.FUNC, 'z', [], [
-                (Token.RETURN, (Token.EXPR, [
-                    (Token.ASSIGN, None, (Token.OPEXPR, [
-                        (Token.MEMBER, (Token.ID, 'y'), None, (Token.CALL, [
-                            (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 3), None, None)]), None)
+            (TokenTypes.FUNC, 'z', [], [
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [
+                    (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                        (TokenTypes.MEMBER, (TokenTypes.ID, 'y'), None, (TokenTypes.CALL, [
+                            (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.INT, 3), None, None)]), None)
                         ], None))
                     ]), None)
                 ])
@@ -42,13 +42,13 @@ tests = [
         'code': 'function x(a) { return a.split(""); }',
         'asserts': [{'value': ["a", "b", "c"], 'call': ('x', "abc")}],
         'ast': [
-            (Token.FUNC, 'x', ['a'], [
-                (Token.RETURN, (Token.EXPR, [
-                    (Token.ASSIGN, None, (Token.OPEXPR, [
-                        (Token.MEMBER, (Token.ID, 'a'), None,
-                         (Token.FIELD, 'split',
-                          (Token.CALL, [
-                              (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.STR, ''), None, None)]), None)
+            (TokenTypes.FUNC, 'x', ['a'], [
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [
+                    (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                        (TokenTypes.MEMBER, (TokenTypes.ID, 'a'), None,
+                         (TokenTypes.FIELD, 'split',
+                          (TokenTypes.CALL, [
+                              (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.STR, ''), None, None)]), None)
                           ], None))
                          )]),
                      None)
@@ -64,32 +64,32 @@ tests = [
             ''',
         'asserts': [{'value': 0, 'call': ('c',)}],
         'ast': [
-            (Token.FUNC, 'a', ['x'], [
-                (Token.RETURN, (Token.EXPR, [
-                    (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'x'), None, None)]), None)
+            (TokenTypes.FUNC, 'a', ['x'], [
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [
+                    (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.ID, 'x'), None, None)]), None)
                 ]))
             ]),
-            (Token.FUNC, 'b', ['x'], [
-                (Token.RETURN, (Token.EXPR, [
-                    (Token.ASSIGN, None, (Token.OPEXPR, [
-                        (Token.MEMBER, (Token.ID, 'x'), None, None),
-                        (Token.MEMBER, (Token.INT, 1), None, None),
-                        (Token.OP, _OPERATORS['+'][1])
+            (TokenTypes.FUNC, 'b', ['x'], [
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [
+                    (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                        (TokenTypes.MEMBER, (TokenTypes.ID, 'x'), None, None),
+                        (TokenTypes.MEMBER, (TokenTypes.INT, 1), None, None),
+                        (TokenTypes.OP, _OPERATORS['+'][1])
                     ]), None)
                 ]))
             ]),
-            (Token.FUNC, 'c', [], [
-                (Token.RETURN, (Token.EXPR, [
-                    (Token.ASSIGN, None, (Token.OPEXPR, [
-                        (Token.MEMBER, (Token.ARRAY, [
-                            (Token.ASSIGN, None, (Token.OPEXPR, [
-                                (Token.MEMBER, (Token.ID, 'a'), None, None)]), None),
-                            (Token.ASSIGN, None, (Token.OPEXPR, [
-                                (Token.MEMBER, (Token.ID, 'b'), None, None)]), None)
-                        ]), None, (Token.ELEM, (Token.EXPR, [
-                            (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
-                        ]), (Token.CALL, [
-                            (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
+            (TokenTypes.FUNC, 'c', [], [
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [
+                    (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                        (TokenTypes.MEMBER, (TokenTypes.ARRAY, [
+                            (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                                (TokenTypes.MEMBER, (TokenTypes.ID, 'a'), None, None)]), None),
+                            (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                                (TokenTypes.MEMBER, (TokenTypes.ID, 'b'), None, None)]), None)
+                        ]), None, (TokenTypes.ELEM, (TokenTypes.EXPR, [
+                            (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.INT, 0), None, None)]), None)
+                        ]), (TokenTypes.CALL, [
+                            (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.INT, 0), None, None)]), None)
                         ], None)))
                     ]), None)
                 ]))

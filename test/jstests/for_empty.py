@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.jsgrammar import TokenTypes
 from youtube_dl.jsinterp2.tstream import _ASSIGN_OPERATORS, _UNARY_OPERATORS, _RELATIONS
 
 skip = {
@@ -21,30 +21,30 @@ tests = [
             ''',
         'asserts': [{'value': 5, 'call': ('f', 5)}],
         'ast': [
-            (Token.FUNC, 'f', ['x'], [
-                (Token.VAR, zip(['h'], [
-                    (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 0), None, None)]), None)
+            (TokenTypes.FUNC, 'f', ['x'], [
+                (TokenTypes.VAR, zip(['h'], [
+                    (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.INT, 0), None, None)]), None)
                 ])),
-                (Token.FOR,
+                (TokenTypes.FOR,
                  None,
-                 (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                     (Token.MEMBER, (Token.ID, 'h'), None, None),
-                     (Token.MEMBER, (Token.ID, 'x'), None, None),
-                     (Token.REL, _RELATIONS['<='][1])
+                 (TokenTypes.EXPR, [(TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                     (TokenTypes.MEMBER, (TokenTypes.ID, 'h'), None, None),
+                     (TokenTypes.MEMBER, (TokenTypes.ID, 'x'), None, None),
+                     (TokenTypes.REL, _RELATIONS['<='][1])
                  ]), None)]),
-                 (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                     (Token.MEMBER, (Token.ID, 'h'), None, None),
-                     (Token.PREFIX, _UNARY_OPERATORS['++'][1])
+                 (TokenTypes.EXPR, [(TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                     (TokenTypes.MEMBER, (TokenTypes.ID, 'h'), None, None),
+                     (TokenTypes.PREFIX, _UNARY_OPERATORS['++'][1])
                  ]), None)]),
-                 (Token.BLOCK, [
-                     (Token.EXPR, [
-                         (Token.ASSIGN, _ASSIGN_OPERATORS['='][1],
-                          (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'a'), None, None)]),
-                          (Token.ASSIGN, None, (Token.OPEXPR, [(Token.MEMBER, (Token.ID, 'h'), None, None)]), None))
+                 (TokenTypes.BLOCK, [
+                     (TokenTypes.EXPR, [
+                         (TokenTypes.ASSIGN, _ASSIGN_OPERATORS['='][1],
+                          (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.ID, 'a'), None, None)]),
+                          (TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.ID, 'h'), None, None)]), None))
                      ])
                  ])),
-                (Token.RETURN, (Token.EXPR, [(Token.ASSIGN, None, (Token.OPEXPR, [
-                    (Token.MEMBER, (Token.ID, 'a'), None, None)]), None)]))
+                (TokenTypes.RETURN, (TokenTypes.EXPR, [(TokenTypes.ASSIGN, None, (TokenTypes.OPEXPR, [
+                    (TokenTypes.MEMBER, (TokenTypes.ID, 'a'), None, None)]), None)]))
             ])
         ]
     }

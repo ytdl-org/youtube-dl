@@ -1,18 +1,18 @@
 from __future__ import unicode_literals
 
-from youtube_dl.jsinterp2.jsgrammar import Token
+from youtube_dl.jsinterp2.jsgrammar import TokenTypes
 
 tests = [
     {
         'code': 'function f() { return 42; }',
         'asserts': [{'value': 42, 'call': ('f',)}],
         'ast': [
-            (Token.FUNC, 'f', [], [
-                (Token.RETURN,
-                 (Token.EXPR, [
-                     (Token.ASSIGN,
+            (TokenTypes.FUNC, 'f', [], [
+                (TokenTypes.RETURN,
+                 (TokenTypes.EXPR, [
+                     (TokenTypes.ASSIGN,
                       None,
-                      (Token.OPEXPR, [(Token.MEMBER, (Token.INT, 42), None, None)]),
+                      (TokenTypes.OPEXPR, [(TokenTypes.MEMBER, (TokenTypes.INT, 42), None, None)]),
                       None)
                  ]))
             ])
@@ -21,7 +21,7 @@ tests = [
     {
         'code': 'function x() {;}',
         'asserts': [{'value': None, 'call': ('x',)}],
-        'ast': [(Token.FUNC, 'x', [], [None])]
+        'ast': [(TokenTypes.FUNC, 'x', [], [None])]
     },
     {
         # FIXME: function expression needs to be implemented
