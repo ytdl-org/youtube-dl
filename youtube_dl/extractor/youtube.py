@@ -12,7 +12,7 @@ import time
 import traceback
 
 from .common import InfoExtractor, SearchInfoExtractor
-from ..jsinterp2 import JSInterpreter
+from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
@@ -1165,7 +1165,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         jsi = JSInterpreter(jscode)
         initial_function = jsi.extract_function(funcname)
-        return lambda s: initial_function(*s)
+        return lambda s: initial_function([s])
 
     def _parse_sig_swf(self, file_contents):
         swfi = SWFInterpreter(file_contents)
