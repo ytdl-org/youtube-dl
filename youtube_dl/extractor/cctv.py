@@ -117,12 +117,14 @@ class CCTVIE(InfoExtractor):
         # older multi-part streams, non-HLS
         'url': 'http://english.cntv.cn/program/learnchinese/20110325/103360.shtml',
         'info_dict': {
-            'id': '20110325100557_00',
+            'id': '20110325100557',
             'ext': 'mp4',
-            'title': 'Learn to Speak Chinese Edition 24-2011 (Chapter 01)',
-            'duration': 295,
+            'title': 're:^Learn to Speak Chinese Edition 24-2011',
             'timestamp': 1301053440,
             'upload_date': '20110325',
+            'uploader': 'Beauty',
+            'creator': 'CNTV',
+            'description': 'Mike：兰兰，你在哪儿啊？\nMike：Lan Lan，where are you?\n兰兰：噢，是麦克呀。我刚才去游泳了，正打算回家呢。麦克，你有什么事儿吗？',
         },
     }, {
         'url': 'http://ent.cntv.cn/2016/01/18/ARTIjprSSJH8DryTVr5Bx8Wb160118.shtml',
@@ -174,27 +176,32 @@ class CCTVIE(InfoExtractor):
             data = re.sub(r'(?:\s+)?<\!\-+[^\-]+\-+>.*', '', data)
             data = self._parse_json(data, video_id)
             entries = []
-            title = data.get('title')
+            title = data['title']
             upload_date = self._search_regex(
                 '<em>(?:\s+)?(\d{2}\-\d{2}\-\d{4}\s+\d{2}\:\d{2})[^<]+',
                 webpage, 'upload date', fatal=False).strip()
             upload_date = re.sub(r'\s+', ' ', upload_date)
             udt = datetime.strptime(upload_date, '%m-%d-%Y %H:%M')
+            desc = self._html_search_meta('description', webpage, 'description')
+            desc = desc.replace('\r', '\n').replace('\n ', '\n')
+            creator = self._html_search_regex(r'<b>(?:\s+)?Source\:(?:\s+)?</b>(?:\s+)?([^<]+)',
+                                              webpage, 'source')
+            editor = self._html_search_regex(r'<b>(?:\s+)?Editor\:</b>(?:\s+)?([^<\|]+)',
+                                             webpage, 'editor').strip()
 
             for i, chapter in enumerate(data.get('chapters', [])):
                 url = chapter.get('url')
-                if title:
-                    ctitle = '%s (Chapter %02d)' % (title, i + 1,)
-                else:
-                    ctitle = 'Chapter %02d' % (i + 1,)
                 if url:
                     if not url.startswith('http'):
                         url = re.sub(r'^[^\:]+', 'http', url)
-                    entries.append(dict(id='%s_%02d' % (video_id, i,),
+                    entries.append(dict(id=video_id,
                                         thumbnail=data.get('imagePath'),
-                                        title=ctitle,
+                                        title='%s - %02d' % (title, i + 1,),
                                         duration=int_or_none(chapter.get('duration')),
                                         upload_date=udt.strftime('%Y%m%d'),
+                                        description=desc,
+                                        uploader=editor,
+                                        creator=creator,
                                         timestamp=timegm(udt.timetuple()),
                                         url=url))
             return self.playlist_result(entries,
