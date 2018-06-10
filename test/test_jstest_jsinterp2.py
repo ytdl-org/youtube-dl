@@ -14,7 +14,7 @@ else:
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.jsinterp2 import JSInterpreter
-from .js2tests import gettestcases
+from .jstests import gettestcases
 
 __doc__ = """see: `js2tests`"""
 
@@ -26,7 +26,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.WARNING)
 log = logging.getLogger('TestJSInterpreter2')
 
 
-class TestJSInterpreter2(unittest.TestCase):
+class TestJSTestsJSInterpreter2(unittest.TestCase):
     def setUp(self):
         self.defs = defs
 

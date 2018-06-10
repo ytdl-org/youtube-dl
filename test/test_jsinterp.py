@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from youtube_dl.jsinterp import JSInterpreter
 
 
-class TestJSInterpreterOrig(unittest.TestCase):
+class TestJSInterpreter(unittest.TestCase):
     def test_basic(self):
         jsi = JSInterpreter('function x(){;}')
         self.assertEqual(jsi.call_function('x'), None)
