@@ -4,6 +4,7 @@ import re
 
 from ..compat import compat_str
 from ..utils import ExtractorError
+from .environment import Context, Reference
 from .jsparser import Parser
 from .jsgrammar import TokenTypes, token_keys
 from .jsbuilt_ins import global_obj
@@ -11,64 +12,7 @@ from .jsbuilt_ins.base import isprimitive
 from .jsbuilt_ins.internals import to_string
 from .jsbuilt_ins.utils import to_js
 
-
-class Context(object):
-    def __init__(self, variables=None, ended=False):
-        super(Context, self).__init__()
-        self.ended = ended
-        self.no_in = True
-        self.local_vars = {}
-        if variables is not None:
-            for k, v in dict(variables).items():
-                # XXX validate identifiers
-                self.local_vars[k] = Reference(v, (self.local_vars, k))
-
-
-class Reference(object):
-    def __init__(self, value, parent_key=None):
-        super(Reference, self).__init__()
-        self._value = value
-        if parent_key is not None:
-            self._parent, self._name = parent_key
-        else:
-            self._parent = self._name = None
-
-    def getvalue(self, deep=False):
-        value = self._value
-        if deep:
-            if isinstance(self._value, (list, tuple)):
-                # TODO test nested arrays
-                value = [elem if isprimitive(elem) else elem.getvalue() for elem in self._value]
-            elif isinstance(self._value, dict):
-                value = {}
-                for key, prop in self._value.items():
-                    value[key] = prop.getvalue()
-
-        return value
-
-    def putvalue(self, value):
-        if self._parent is None:
-            raise ExtractorError('Trying to set a read-only reference')
-        if not hasattr(self._parent, '__setitem__'):
-            raise ExtractorError('Unknown reference')
-        self._parent.__setitem__(self._name, Reference(value, (self._parent, self._name)))
-        self._value = value
-        return value
-
-    def __repr__(self):
-        if self._parent is not None:
-            parent, key = self._parent
-            return '<Reference value: %s, parent: %s@(0x%x), key: %s>' % (
-                str(self._value), parent.__class__.__name__, id(parent), key)
-        return '<Reference value: %s, parent: %s>' % (self._value, None)
-
-    def __eq__(self, other):
-        if isinstance(other, Reference):
-            return self._parent is other._parent and self._name == other._name
-        return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+# TODO use JSObject for Contex.local_vars and JSInterpreter.global_vars
 
 
 class JSInterpreter(object):

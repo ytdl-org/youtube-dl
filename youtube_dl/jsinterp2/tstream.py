@@ -16,7 +16,8 @@ from .jsgrammar import (
     UNARY_OPERATORS_RE,
     TokenTypes
 )
-from .jsbuilt_ins import false, true, nan
+from .environment import Reference
+from .jsbuilt_ins import false, true, nan, undefined
 from .jsbuilt_ins.internals import jstype, undefined_type, null_type, number_type, boolean_type, string_type
 
 
@@ -25,8 +26,6 @@ def convert_to_unary(token_value):
 
 
 def strict_equal(x, y):
-    from .jsinterp import Reference
-
     if jstype(x) != jstype(y):
         return False
     if jstype(x) in (undefined_type, null_type):
@@ -44,6 +43,22 @@ def strict_equal(x, y):
     if isinstance(x, Reference):
         return isinstance(y, Reference) and x == y
     return False
+
+
+def delete(ref):
+    if not isinstance(ref, Reference):
+        return True
+    if ref.value not in (None, undefined):
+        # XXX raise SyntaxError if ref is strict reference
+        return True
+    # XXX handle if ref is property reference
+    else:
+        # XXX raise SyntaxError if ref is strict reference (again)
+        if ref.name not in ref.parent:
+            return False
+        # FIXME `JSInterperter.global_vars` will be changed from `dict` to `JSObjectPrototype`
+        ref.parent.remove(ref.name)
+        return True
 
 
 _PUNCTUATIONS = {
@@ -70,9 +85,8 @@ _UNARY_OPERATORS = {
     '--': (TokenTypes.DEC, lambda cur: cur - 1),
     '!': (TokenTypes.NOT, operator.not_),
     '~': (TokenTypes.BNOT, operator.inv),
-    # XXX define these operators
-    'delete': (TokenTypes.DEL, None),
-    'void': (TokenTypes.VOID, None),
+    'delete': (TokenTypes.DEL, delete),
+    'void': (TokenTypes.VOID, lambda cur: undefined),
     'typeof': (TokenTypes.TYPE, lambda cur: _type_strings[jstype(cur)])
 }
 _RELATIONS = {
