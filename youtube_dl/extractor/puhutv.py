@@ -61,7 +61,7 @@ class PuhuTVIE(InfoExtractor):
 
         display_id = compat_str(info['id'])
         title = info['title']['name']
-        if isinstance(info.get('display_name'), compat_str):
+        if info.get('display_name'):
             title = '%s %s' % (title, info.get('display_name'))
 
         description = try_get(info, lambda x: x['title']['description'], compat_str) or info.get('description')
