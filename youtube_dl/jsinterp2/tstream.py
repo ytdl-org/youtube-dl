@@ -16,6 +16,35 @@ from .jsgrammar import (
     UNARY_OPERATORS_RE,
     TokenTypes
 )
+from .jsbuilt_ins import false, true, nan
+from .jsbuilt_ins.internals import jstype, undefined_type, null_type, number_type, boolean_type, string_type
+
+
+def convert_to_unary(token_value):
+    return {TokenTypes.ADD: _UNARY_OPERATORS['+'], TokenTypes.SUB: _UNARY_OPERATORS['-']}[token_value[0]]
+
+
+def strict_equal(x, y):
+    from .jsinterp import Reference
+
+    if jstype(x) != jstype(y):
+        return False
+    if jstype(x) in (undefined_type, null_type):
+        return True
+    if jstype(x) is number_type:
+        if x is nan or y is nan:
+            return False
+        if x.value == y.value:
+            return True
+        return False
+    if jstype(x):
+        return x.value == y.value
+    if jstype(x) is boolean_type:
+        return (x is true and y is true) or (x is false and y is false)
+    if isinstance(x, Reference):
+        return isinstance(y, Reference) and x == y
+    return False
+
 
 _PUNCTUATIONS = {
     '{': TokenTypes.COPEN,
@@ -35,8 +64,8 @@ _LOGICAL_OPERATORS = {
     '||': (TokenTypes.OR, lambda cur, right: cur or right)
 }
 _UNARY_OPERATORS = {
-    '+': (TokenTypes.PLUS, lambda cur: cur),
-    '-': (TokenTypes.NEG, lambda cur: cur * -1),
+    '+': (TokenTypes.PLUS, operator.pos),
+    '-': (TokenTypes.NEG, operator.neg),
     '++': (TokenTypes.INC, lambda cur: cur + 1),
     '--': (TokenTypes.DEC, lambda cur: cur - 1),
     '!': (TokenTypes.NOT, operator.not_),
@@ -44,7 +73,7 @@ _UNARY_OPERATORS = {
     # XXX define these operators
     'delete': (TokenTypes.DEL, None),
     'void': (TokenTypes.VOID, None),
-    'typeof': (TokenTypes.TYPE, lambda cur: type(cur))
+    'typeof': (TokenTypes.TYPE, lambda cur: _type_strings[jstype(cur)])
 }
 _RELATIONS = {
     '<': (TokenTypes.LT, operator.lt),
@@ -54,8 +83,8 @@ _RELATIONS = {
     # XXX check python and JavaScript equality difference
     '==': (TokenTypes.EQ, operator.eq),
     '!=': (TokenTypes.NE, operator.ne),
-    '===': (TokenTypes.SEQ, lambda cur, right: cur == right and type(cur) == type(right)),
-    '!==': (TokenTypes.SNE, lambda cur, right: not cur == right or not type(cur) == type(right)),
+    '===': (TokenTypes.SEQ, strict_equal),
+    '!==': (TokenTypes.SNE, lambda cur, right: not strict_equal(cur, right)),
     'in': (TokenTypes.IN, operator.contains),
     'instanceof': (TokenTypes.INSTANCEOF, lambda cur, right: isinstance(cur, right))
 }
@@ -100,9 +129,13 @@ _input_element = re.compile(r'\s*(?:%(comment)s|%(token)s|%(lop)s|%(uop)s|%(aop)
 
 _line_terminator = re.compile(LINETERMINATORSEQ_RE)
 
-
-def convert_to_unary(token_value):
-    return {TokenTypes.ADD: _UNARY_OPERATORS['+'], TokenTypes.SUB: _UNARY_OPERATORS['-']}[token_value[0]]
+_type_strings = {
+    undefined_type: 'undefinied',
+    null_type: 'null',
+    boolean_type: 'boolean',
+    number_type: 'number',
+    string_type: 'string'
+}
 
 
 class Token(object):

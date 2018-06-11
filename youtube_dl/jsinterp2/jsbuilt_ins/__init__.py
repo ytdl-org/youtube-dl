@@ -10,6 +10,7 @@ from . import jsnumber
 
 from .base import null, undefined
 from .jsboolean import false, true
+from .jsnumber import infinity, nan
 
 
 def _eval(code):

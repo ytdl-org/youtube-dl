@@ -16,6 +16,34 @@ class JSNumberPrototype(JSObjectPrototype):
             self.value = value
             self.own = {}
 
+    def __add__(self, other):
+        if isinstance(other, JSNumberPrototype):
+            other = other.value
+        return JSNumberPrototype(self.value + other)
+
+    def __sub__(self, other):
+        if isinstance(other, JSNumberPrototype):
+            other = other.value
+        return JSNumberPrototype(self.value - other)
+
+    def __mul__(self, other):
+        if isinstance(other, JSNumberPrototype):
+            other = other.value
+        return JSNumberPrototype(self.value * other)
+
+    def __div__(self, other):
+        if isinstance(other, JSNumberPrototype):
+            other = other.value
+        return JSNumberPrototype(self.value / other)
+
+    def __neg__(self):
+        return JSNumberPrototype(-self.value)
+
+    def __pos__(self):
+        return JSNumberPrototype(+self.value)
+
+    # __invert__?
+
     @staticmethod
     def _constructor(value=None):
         return JSNumber.construct(value)
@@ -53,6 +81,10 @@ class JSNumberPrototype(JSObjectPrototype):
     }
 
 
+nan = JSNumberPrototype(float('nan'))
+infinity = JSNumberPrototype(float('inf'))
+
+
 class JSNumber(JSObject):
     @staticmethod
     def call(value=None):
@@ -68,7 +100,7 @@ class JSNumber(JSObject):
         'prototype': JSNumberPrototype(),
         'MAX_VALUE': 1.7976931348623157 * 10 ** 308,
         'MIN_VALUE': 5 * 10 ** (-324),
-        'NAN': float('nan'),
-        'NEGATIVE_INFINITY': float('-inf'),
-        'POSITIVE_INFINITY': float('inf'),
+        'NAN': nan,
+        'NEGATIVE_INFINITY': infinity * -1,
+        'POSITIVE_INFINITY': infinity,
     }

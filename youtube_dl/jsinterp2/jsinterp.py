@@ -25,10 +25,13 @@ class Context(object):
 
 
 class Reference(object):
-    def __init__(self, value, parent=None):
+    def __init__(self, value, parent_key=None):
         super(Reference, self).__init__()
         self._value = value
-        self._parent = parent
+        if parent_key is not None:
+            self._parent, self._name = parent_key
+        else:
+            self._parent = self._name = None
 
     def getvalue(self, deep=False):
         value = self._value
@@ -46,10 +49,9 @@ class Reference(object):
     def putvalue(self, value):
         if self._parent is None:
             raise ExtractorError('Trying to set a read-only reference')
-        parent, key = self._parent
-        if not hasattr(parent, '__setitem__'):
+        if not hasattr(self._parent, '__setitem__'):
             raise ExtractorError('Unknown reference')
-        parent.__setitem__(key, Reference(value, (parent, key)))
+        self._parent.__setitem__(self._name, Reference(value, (self._parent, self._name)))
         self._value = value
         return value
 
@@ -59,6 +61,14 @@ class Reference(object):
             return '<Reference value: %s, parent: %s@(0x%x), key: %s>' % (
                 str(self._value), parent.__class__.__name__, id(parent), key)
         return '<Reference value: %s, parent: %s>' % (self._value, None)
+
+    def __eq__(self, other):
+        if isinstance(other, Reference):
+            return self._parent is other._parent and self._name == other._name
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class JSInterpreter(object):
