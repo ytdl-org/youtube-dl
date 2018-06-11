@@ -18,14 +18,13 @@ class RoosterTeethIE(InfoExtractor):
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
-        'md5': 'e2bd7764732d785ef797700a2489f212',
         'info_dict': {
-            'id': '26576',
+            'id': '9156',
             'display_id': 'million-dollars-but-season-2-million-dollars-but-the-game-announcement',
             'ext': 'mp4',
-            'title': 'Million Dollars, But...: Million Dollars, But... The Game Announcement',
+            'title': 'Million Dollars, But... The Game Announcement',
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
-            'thumbnail': r're:^https?://.*\.png$',
+            'thumbnail': r'^https?://.*\.png$',
             'series': 'Million Dollars, But...',
         },
     }, {
@@ -113,11 +112,10 @@ class RoosterTeethIE(InfoExtractor):
         json_attributes = json_body['attributes']
         
         display_title = json_attributes['display_title']
-        
-        title = str_or_none(self._search_regex(r': ([\w]+)$', display_title, 'title'))
         episode = int_or_none(self._search_regex(r':E([\d]+)', display_title, 'episode', fatal=False))
-        season = int_or_none(self._search_regex(r'^V([\d]+):E', display_title, 'season', fatal=False))
+        season = int_or_none(self._search_regex(r'^[\w]([\d]+)', display_title, 'season', fatal=False))
         
+        title = json_attributes.get('title')
         video_id = str(json_body.get('id'))
         thumbnail = json_body['included']['images'][0]['attributes']['large']
         description = json_attributes.get('description')
