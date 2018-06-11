@@ -390,6 +390,21 @@ class PBSIE(InfoExtractor):
             'expected_warnings': ['HTTP Error 403: Forbidden'],
         },
         {
+            # Test for the second id extractor
+            'url': 'https://player.pbs.org/partnerplayer/tOz9tM5ljOXQqIIWke53UA==/',
+            'info_dict': {
+                'id': '3011407934',
+                'ext': 'mp4',
+                'title': 'Stories from the Stage - Road Trip',
+                'duration': 1619,
+                'thumbnail': r're:^https?://.*\.JPG$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
             'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
             'only_matching': True,
         },
