@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class TVNetIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+)\.tvnet\.gov\.vn/[^/]+/(?:\d+/)?(?P<id>[0-9]+)/'
+    _VALID_URL = r'https?://(?:[^/]+)\.tvnet\.gov\.vn/[^/]+/(?:\d+/)?(?P<id>\d+)(?:/|$)'
     _TESTS = [{
         # video
         'url': 'http://de.tvnet.gov.vn/video/109788/vtv1---bac-tuyet-tai-lao-cai-va-ha-giang/tin-nong-24h',
