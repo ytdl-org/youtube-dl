@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class TVNetIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+)\.tvnet\.gov\.vn/[^/]+/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:[^/]+)\.tvnet\.gov\.vn/[^/]+/(?:\d+/)?(?P<id>[0-9]+)/'
     _TESTS = [{
         # video
         'url': 'http://de.tvnet.gov.vn/video/109788/vtv1---bac-tuyet-tai-lao-cai-va-ha-giang/tin-nong-24h',
@@ -35,6 +35,18 @@ class TVNetIE(InfoExtractor):
             'title': 'VOV1 - Bản tin chiều (10/06/2018)',
             'thumbnail': r're:(?i)https?://.*\.(?:jpg|png)',
             'is_live': False,
+        },
+    }, {
+        'url': 'http://us.tvnet.gov.vn/video/118023/129999/ngay-0705',
+        'info_dict': {
+            'id': '129999',
+            'ext': 'mp4',
+            'title': 'VTV1 - Quốc hội với cử tri (11/06/2018)',
+            'thumbnail': r're:(?i)https?://.*\.(?:jpg|png)',
+            'is_live': False,
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         # live stream
@@ -62,6 +74,9 @@ class TVNetIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'http://us.tvnet.gov.vn/phim/6136/25510/vtv3---ca-mot-doi-an-oan-tap-1-50/phim-truyen-hinh',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
