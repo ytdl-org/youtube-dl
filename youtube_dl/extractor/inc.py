@@ -52,7 +52,7 @@ class IncIE(InfoExtractor):
         kaltura_id = self._search_regex(
             r'id=(["\'])kaltura_player_(?P<id>.+?)\1', webpage, 'kaltura id',
             default=None, group='id') or self._parse_json(self._search_regex(
-            r'pageInfo\.videos\s*=\s*\[(.+)\];', webpage, 'kaltura id'),
+                r'pageInfo\.videos\s*=\s*\[(.+)\];', webpage, 'kaltura id'),
             display_id)['vid_kaltura_id']
 
         return self.url_result(
