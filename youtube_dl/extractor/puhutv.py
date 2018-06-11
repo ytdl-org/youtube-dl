@@ -7,10 +7,10 @@ from ..utils import (
     int_or_none,
     float_or_none,
     determine_ext,
-    parse_iso8601,
     str_or_none,
     unified_strdate,
-    urljoin,
+    unified_timestamp,
+    try_get,
     url_basename,
     remove_end
 )
@@ -61,44 +61,41 @@ class PuhuTVIE(InfoExtractor):
 
         display_id = compat_str(info['id'])
         title = info['title']['name']
-        if(info.get('display_name') and title is not None):
-            title += ' ' + info.get('display_name')
+        if isinstance(info.get('display_name'), compat_str):
+            title = '%s %s' % (title, info.get('display_name'))
 
-        description = info.get('title', {}).get('description') or info.get('description')
-        timestamp = parse_iso8601(info.get('created_at'))
+        description = try_get(info, lambda x: x['title']['description'], compat_str) or info.get('description')
+        timestamp = unified_timestamp(info.get('created_at'))
         upload_date = unified_strdate(info.get('created_at'))
-        uploader = info.get('title', {}).get('producer', {}).get('name')
-        uploader_id = str_or_none(info.get('title', {}).get('producer', {}).get('id'))
-        view_count = int_or_none(info.get('content', {}).get('watch_count'))
-        duration = float_or_none(info.get('content', {}).get('duration_in_ms'), scale=1000)
-        thumbnail = urljoin('https://', info.get('content', {}).get('images', {}).get('wide', {}).get('main'))
-        release_year = int_or_none(info.get('title', {}).get('released_at'))
+        uploader = try_get(info, lambda x: x['title']['producer']['name'], compat_str)
+        uploader_id = str_or_none(try_get(info, lambda x: x['title']['producer']['id']))
+        view_count = int_or_none(try_get(info, lambda x: x['content']['watch_count']))
+        duration = float_or_none(try_get(info, lambda x: x['content']['duration_in_ms']), scale=1000)
+        thumbnail = try_get(info, lambda x: x['content']['images']['wide']['main'], compat_str)
+        release_year = int_or_none(try_get(info, lambda x: x['title']['released_at']))
         webpage_url = info.get('web_url')
 
-        # for series
         season_number = int_or_none(info.get('season_number'))
         season_id = int_or_none(info.get('season_id'))
         episode_number = int_or_none(info.get('episode_number'))
 
         tags = []
-        for tag in info.get('title', {}).get('genres', {}):
+        for tag in try_get(info, lambda x: x['title']['genres'], list) or []:
             if isinstance(tag.get('name'), compat_str):
                 tags.append(tag.get('name'))
 
         thumbnails = []
-        thumbs_dict = info.get('content', {}).get('images', {}).get('wide', {})
-        if isinstance(thumbs_dict, dict):
-            for id, url in thumbs_dict.items():
-                if not url or not isinstance(url, compat_str):
-                    continue
-                url = urljoin('https://', url)
-                thumbnails.append({
-                    'url': url,
-                    'id': id
-                })
+        thumbs_dict = try_get(info, lambda x: x['content']['images']['wide'], dict) or {}
+        for id, url in thumbs_dict.items():
+            if not url or not isinstance(url, compat_str):
+                continue
+            thumbnails.append({
+                'url': 'https://%s' % url,
+                'id': id
+            })
 
         subtitles = {}
-        for subtitle in info.get('content', {}).get('subtitles', {}):
+        for subtitle in try_get(info, lambda x: x['content']['subtitles'], list) or []:
             if not isinstance(subtitle, dict):
                 continue
             lang = subtitle.get('language')
@@ -106,16 +103,13 @@ class PuhuTVIE(InfoExtractor):
             if not lang or not isinstance(lang, compat_str) or not sub_url or not isinstance(sub_url, compat_str):
                 continue
             subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = [{
-                'url': sub_url,
-                'ext': determine_ext(sub_url)
+                'url': sub_url
             }]
 
         # Some of videos are geo restricted upon request copyright owner and returns 403
         req_formats = self._download_json(
             'https://puhutv.com/api/assets/%s/videos' % display_id,
-            video_id, 'Downloading video JSON', fatal=False)
-        if not req_formats:
-            self.raise_geo_restricted()
+            video_id, 'Downloading video JSON')
 
         formats = []
         for format in req_formats['data']['videos']:
@@ -194,13 +188,12 @@ class PuhuTVSerieIE(InfoExtractor):
             pagenum = 1
             has_more = True
             while has_more is True:
-                query = {
-                    'page': pagenum,
-                    'per': 40,
-                }
                 season_info = self._download_json(
                     'https://galadriel.puhutv.com/seasons/%s' % season_id,
-                    playlist_id, 'Downloading season %s page %s' % (season_number, pagenum), query=query)
+                    playlist_id, 'Downloading season %s page %s' % (season_number, pagenum), query={
+                        'page': pagenum,
+                        'per': 40,
+                    })
                 for episode in season_info.get('episodes'):
                     video_id = episode['slugPath'].replace('-izle', '')
                     yield self.url_result(
@@ -216,8 +209,8 @@ class PuhuTVSerieIE(InfoExtractor):
             'https://puhutv.com/api/slug/%s-detay' % playlist_id, playlist_id)['data']
 
         title = info.get('name')
-        uploader = info.get('producer', {}).get('name')
-        uploader_id = info.get('producer', {}).get('id')
+        uploader = try_get(info, lambda x: x['producer']['name'], compat_str)
+        uploader_id = try_get(info, lambda x: x['producer']['id'])
         seasons = info.get('seasons')
         if seasons:
             entries = self._extract_entries(playlist_id, seasons)
