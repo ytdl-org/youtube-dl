@@ -89,7 +89,7 @@ class FoxNewsArticleIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_id = self._html_search_regex(
-            r'data-video-id=([\'"])(?P<id>[^\'"]+)\1',
+            (r'data-video-id=([\'"])(?P<id>[^\'"]+)\1', r'https?.*foxnews.*video_id=(?P<id>[\d]+)'),
             webpage, 'video ID', group='id')
         return self.url_result(
             'http://video.foxnews.com/v/' + video_id,
