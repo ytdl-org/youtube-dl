@@ -16,12 +16,22 @@ from ..utils import (
 class NRKBaseIE(InfoExtractor):
     _GEO_COUNTRIES = ['NO']
 
+    _api_host = None
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        data = self._download_json(
-            'http://%s/mediaelement/%s' % (self._API_HOST, video_id),
-            video_id, 'Downloading mediaelement JSON')
+        api_hosts = (self._api_host, ) if self._api_host else self._API_HOSTS
+
+        for api_host in api_hosts:
+            data = self._download_json(
+                'http://%s/mediaelement/%s' % (api_host, video_id),
+                video_id, 'Downloading mediaelement JSON',
+                fatal=api_host == api_hosts[-1])
+            if not data:
+                continue
+            self._api_host = api_host
+            break
 
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
         video_id = data.get('id') or video_id
@@ -191,7 +201,7 @@ class NRKIE(NRKBaseIE):
                             )
                             (?P<id>[^?#&]+)
                         '''
-    _API_HOST = 'v8-psapi.nrk.no'
+    _API_HOSTS = ('psapi.nrk.no', 'v8-psapi.nrk.no')
     _TESTS = [{
         # video
         'url': 'http://www.nrk.no/video/PS*150533',
@@ -237,8 +247,7 @@ class NRKTVIE(NRKBaseIE):
                             (?:/\d{2}-\d{2}-\d{4})?
                             (?:\#del=(?P<part_id>\d+))?
                     ''' % _EPISODE_RE
-    _API_HOST = 'psapi-ne.nrk.no'
-
+    _API_HOSTS = ('psapi-ne.nrk.no', 'psapi-we.nrk.no')
     _TESTS = [{
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
         'md5': '4e9ca6629f09e588ed240fb11619922a',

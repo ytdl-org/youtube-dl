@@ -339,15 +339,17 @@ class InfoExtractor(object):
     _GEO_BYPASS attribute may be set to False in order to disable
     geo restriction bypass mechanisms for a particular extractor.
     Though it won't disable explicit geo restriction bypass based on
-    country code provided with geo_bypass_country. (experimental)
+    country code provided with geo_bypass_country.
 
     _GEO_COUNTRIES attribute may contain a list of presumably geo unrestricted
     countries for this extractor. One of these countries will be used by
     geo restriction bypass mechanism right away in order to bypass
-    geo restriction, of course, if the mechanism is not disabled. (experimental)
+    geo restriction, of course, if the mechanism is not disabled.
 
-    NB: both these geo attributes are experimental and may change in future
-    or be completely removed.
+    _GEO_IP_BLOCKS attribute may contain a list of presumably geo unrestricted
+    IP blocks in CIDR notation for this extractor. One of these IP blocks
+    will be used by geo restriction bypass mechanism similarly
+    to _GEO_COUNTRIES.
 
     Finally, the _WORKING attribute should be set to False for broken IEs
     in order to warn the users and skip the tests.
@@ -358,6 +360,7 @@ class InfoExtractor(object):
     _x_forwarded_for_ip = None
     _GEO_BYPASS = True
     _GEO_COUNTRIES = None
+    _GEO_IP_BLOCKS = None
     _WORKING = True
 
     def __init__(self, downloader=None):
@@ -392,12 +395,15 @@ class InfoExtractor(object):
 
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
-        self._initialize_geo_bypass(self._GEO_COUNTRIES)
+        self._initialize_geo_bypass({
+            'countries': self._GEO_COUNTRIES,
+            'ip_blocks': self._GEO_IP_BLOCKS,
+        })
         if not self._ready:
             self._real_initialize()
             self._ready = True
 
-    def _initialize_geo_bypass(self, countries):
+    def _initialize_geo_bypass(self, geo_bypass_context):
         """
         Initialize geo restriction bypass mechanism.
 
@@ -408,28 +414,82 @@ class InfoExtractor(object):
         HTTP requests.
 
         This method will be used for initial geo bypass mechanism initialization
-        during the instance initialization with _GEO_COUNTRIES.
+        during the instance initialization with _GEO_COUNTRIES and
+        _GEO_IP_BLOCKS.
 
-        You may also manually call it from extractor's code if geo countries
+        You may also manually call it from extractor's code if geo bypass
         information is not available beforehand (e.g. obtained during
-        extraction) or due to some another reason.
+        extraction) or due to some other reason. In this case you should pass
+        this information in geo bypass context passed as first argument. It may
+        contain following fields:
+
+        countries:  List of geo unrestricted countries (similar
+                    to _GEO_COUNTRIES)
+        ip_blocks:  List of geo unrestricted IP blocks in CIDR notation
+                    (similar to _GEO_IP_BLOCKS)
+
         """
         if not self._x_forwarded_for_ip:
-            country_code = self._downloader.params.get('geo_bypass_country', None)
-            # If there is no explicit country for geo bypass specified and
-            # the extractor is known to be geo restricted let's fake IP
-            # as X-Forwarded-For right away.
-            if (not country_code and
-                    self._GEO_BYPASS and
-                    self._downloader.params.get('geo_bypass', True) and
-                    countries):
-                country_code = random.choice(countries)
-            if country_code:
-                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
+
+            # Geo bypass mechanism is explicitly disabled by user
+            if not self._downloader.params.get('geo_bypass', True):
+                return
+
+            if not geo_bypass_context:
+                geo_bypass_context = {}
+
+            # Backward compatibility: previously _initialize_geo_bypass
+            # expected a list of countries, some 3rd party code may still use
+            # it this way
+            if isinstance(geo_bypass_context, (list, tuple)):
+                geo_bypass_context = {
+                    'countries': geo_bypass_context,
+                }
+
+            # The whole point of geo bypass mechanism is to fake IP
+            # as X-Forwarded-For HTTP header based on some IP block or
+            # country code.
+
+            # Path 1: bypassing based on IP block in CIDR notation
+
+            # Explicit IP block specified by user, use it right away
+            # regardless of whether extractor is geo bypassable or not
+            ip_block = self._downloader.params.get('geo_bypass_ip_block', None)
+
+            # Otherwise use random IP block from geo bypass context but only
+            # if extractor is known as geo bypassable
+            if not ip_block:
+                ip_blocks = geo_bypass_context.get('ip_blocks')
+                if self._GEO_BYPASS and ip_blocks:
+                    ip_block = random.choice(ip_blocks)
+
+            if ip_block:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(ip_block)
+                if self._downloader.params.get('verbose', False):
+                    self._downloader.to_screen(
+                        '[debug] Using fake IP %s as X-Forwarded-For.'
+                        % self._x_forwarded_for_ip)
+                return
+
+            # Path 2: bypassing based on country code
+
+            # Explicit country code specified by user, use it right away
+            # regardless of whether extractor is geo bypassable or not
+            country = self._downloader.params.get('geo_bypass_country', None)
+
+            # Otherwise use random country code from geo bypass context but
+            # only if extractor is known as geo bypassable
+            if not country:
+                countries = geo_bypass_context.get('countries')
+                if self._GEO_BYPASS and countries:
+                    country = random.choice(countries)
+
+            if country:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country)
                 if self._downloader.params.get('verbose', False):
                     self._downloader.to_screen(
                         '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
-                        % (self._x_forwarded_for_ip, country_code.upper()))
+                        % (self._x_forwarded_for_ip, country.upper()))
 
     def extract(self, url):
         """Extracts URL information and returns it in list of dicts."""
@@ -682,18 +742,30 @@ class InfoExtractor(object):
             else:
                 self.report_warning(errmsg + str(ve))
 
-    def _download_json(self, url_or_request, video_id,
-                       note='Downloading JSON metadata',
-                       errnote='Unable to download JSON metadata',
-                       transform_source=None,
-                       fatal=True, encoding=None, data=None, headers={}, query={}):
-        json_string = self._download_webpage(
+    def _download_json_handle(
+            self, url_or_request, video_id, note='Downloading JSON metadata',
+            errnote='Unable to download JSON metadata', transform_source=None,
+            fatal=True, encoding=None, data=None, headers={}, query={}):
+        """Return a tuple (JSON object, URL handle)"""
+        res = self._download_webpage_handle(
             url_or_request, video_id, note, errnote, fatal=fatal,
             encoding=encoding, data=data, headers=headers, query=query)
-        if (not fatal) and json_string is False:
-            return None
+        if res is False:
+            return res
+        json_string, urlh = res
         return self._parse_json(
-            json_string, video_id, transform_source=transform_source, fatal=fatal)
+            json_string, video_id, transform_source=transform_source,
+            fatal=fatal), urlh
+
+    def _download_json(
+            self, url_or_request, video_id, note='Downloading JSON metadata',
+            errnote='Unable to download JSON metadata', transform_source=None,
+            fatal=True, encoding=None, data=None, headers={}, query={}):
+        res = self._download_json_handle(
+            url_or_request, video_id, note=note, errnote=errnote,
+            transform_source=transform_source, fatal=fatal, encoding=encoding,
+            data=data, headers=headers, query=query)
+        return res if res is False else res[0]
 
     def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
         if transform_source:
@@ -1008,6 +1080,40 @@ class InfoExtractor(object):
         if isinstance(json_ld, dict):
             json_ld = [json_ld]
 
+        INTERACTION_TYPE_MAP = {
+            'CommentAction': 'comment',
+            'AgreeAction': 'like',
+            'DisagreeAction': 'dislike',
+            'LikeAction': 'like',
+            'DislikeAction': 'dislike',
+            'ListenAction': 'view',
+            'WatchAction': 'view',
+            'ViewAction': 'view',
+        }
+
+        def extract_interaction_statistic(e):
+            interaction_statistic = e.get('interactionStatistic')
+            if not isinstance(interaction_statistic, list):
+                return
+            for is_e in interaction_statistic:
+                if not isinstance(is_e, dict):
+                    continue
+                if is_e.get('@type') != 'InteractionCounter':
+                    continue
+                interaction_type = is_e.get('interactionType')
+                if not isinstance(interaction_type, compat_str):
+                    continue
+                interaction_count = int_or_none(is_e.get('userInteractionCount'))
+                if interaction_count is None:
+                    continue
+                count_kind = INTERACTION_TYPE_MAP.get(interaction_type.split('/')[-1])
+                if not count_kind:
+                    continue
+                count_key = '%s_count' % count_kind
+                if info.get(count_key) is not None:
+                    continue
+                info[count_key] = interaction_count
+
         def extract_video_object(e):
             assert e['@type'] == 'VideoObject'
             info.update({
@@ -1023,6 +1129,7 @@ class InfoExtractor(object):
                 'height': int_or_none(e.get('height')),
                 'view_count': int_or_none(e.get('interactionCount')),
             })
+            extract_interaction_statistic(e)
 
         for e in json_ld:
             if isinstance(e.get('@context'), compat_str) and re.match(r'^https?://schema.org/?$', e.get('@context')):

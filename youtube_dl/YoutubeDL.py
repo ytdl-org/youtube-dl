@@ -211,7 +211,7 @@ class YoutubeDL(object):
                        At the moment, this is only supported by YouTube.
     proxy:             URL of the proxy server to use
     geo_verification_proxy:  URL of the proxy to use for IP address verification
-                       on geo-restricted sites. (Experimental)
+                       on geo-restricted sites.
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
@@ -259,7 +259,7 @@ class YoutubeDL(object):
                        - "warn": only emit a warning
                        - "detect_or_warn": check whether we can do anything
                                            about it, warn otherwise (default)
-    source_address:    (Experimental) Client-side IP address to bind to.
+    source_address:    Client-side IP address to bind to.
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download when
@@ -281,11 +281,14 @@ class YoutubeDL(object):
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
     geo_bypass:        Bypass geographic restriction via faking X-Forwarded-For
-                       HTTP header (experimental)
+                       HTTP header
     geo_bypass_country:
                        Two-letter ISO 3166-2 country code that will be used for
                        explicit geographic restriction bypassing via faking
-                       X-Forwarded-For HTTP header (experimental)
+                       X-Forwarded-For HTTP header
+    geo_bypass_ip_block:
+                       IP range in CIDR notation that will be used similarly to
+                       geo_bypass_country
 
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
@@ -1479,23 +1482,28 @@ class YoutubeDL(object):
             if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
                 info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
 
+        for cc_kind in ('subtitles', 'automatic_captions'):
+            cc = info_dict.get(cc_kind)
+            if cc:
+                for _, subtitle in cc.items():
+                    for subtitle_format in subtitle:
+                        if subtitle_format.get('url'):
+                            subtitle_format['url'] = sanitize_url(subtitle_format['url'])
+                        if subtitle_format.get('ext') is None:
+                            subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
+
+        automatic_captions = info_dict.get('automatic_captions')
         subtitles = info_dict.get('subtitles')
-        if subtitles:
-            for _, subtitle in subtitles.items():
-                for subtitle_format in subtitle:
-                    if subtitle_format.get('url'):
-                        subtitle_format['url'] = sanitize_url(subtitle_format['url'])
-                    if subtitle_format.get('ext') is None:
-                        subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
         if self.params.get('listsubtitles', False):
             if 'automatic_captions' in info_dict:
-                self.list_subtitles(info_dict['id'], info_dict.get('automatic_captions'), 'automatic captions')
+                self.list_subtitles(
+                    info_dict['id'], automatic_captions, 'automatic captions')
             self.list_subtitles(info_dict['id'], subtitles, 'subtitles')
             return
+
         info_dict['requested_subtitles'] = self.process_subtitles(
-            info_dict['id'], subtitles,
-            info_dict.get('automatic_captions'))
+            info_dict['id'], subtitles, automatic_captions)
 
         # We now pick which formats have to be downloaded
         if info_dict.get('formats') is None:

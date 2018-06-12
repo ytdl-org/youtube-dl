@@ -180,9 +180,12 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                         continue
                     ext = mimetype2ext(type_) or determine_ext(media_url)
                     if ext == 'm3u8':
-                        formats.extend(self._extract_m3u8_formats(
+                        m3u8_formats = self._extract_m3u8_formats(
                             media_url, video_id, 'mp4', preference=-1,
-                            m3u8_id='hls', fatal=False))
+                            m3u8_id='hls', fatal=False)
+                        for f in m3u8_formats:
+                            f['url'] = f['url'].split('#')[0]
+                            formats.append(f)
                     elif ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             media_url, video_id, preference=-1, f4m_id='hds', fatal=False))

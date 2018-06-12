@@ -32,7 +32,7 @@ class TennisTVIE(InfoExtractor):
     _NETRC_MACHINE = 'tennistv'
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if not username or not password:
             raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
 

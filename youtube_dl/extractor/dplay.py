@@ -102,7 +102,9 @@ class DPlayIE(InfoExtractor):
         display_id = mobj.group('id')
         domain = mobj.group('domain')
 
-        self._initialize_geo_bypass([mobj.group('country').upper()])
+        self._initialize_geo_bypass({
+            'countries': [mobj.group('country').upper()],
+        })
 
         webpage = self._download_webpage(url, display_id)
 

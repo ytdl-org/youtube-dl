@@ -19,8 +19,8 @@ from ..utils import (
 
 
 class CrackleIE(InfoExtractor):
-    _VALID_URL = r'(?:crackle:|https?://(?:(?:www|m)\.)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'(?:crackle:|https?://(?:(?:www|m)\.)?(?:sony)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
+    _TESTS = [{
         # geo restricted to CA
         'url': 'https://www.crackle.com/andromeda/2502343',
         'info_dict': {
@@ -45,7 +45,10 @@ class CrackleIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
-    }
+    }, {
+        'url': 'https://www.sonycrackle.com/andromeda/2502343',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

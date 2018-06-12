@@ -669,7 +669,10 @@ class BrightcoveNewIE(AdobePassIE):
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
-        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+            'ip_blocks': smuggled_data.get('geo_ip_blocks'),
+        })
 
         account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
 

@@ -277,7 +277,9 @@ class AnvatoIE(InfoExtractor):
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
-        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+        })
 
         mobj = re.match(self._VALID_URL, url)
         access_key, video_id = mobj.group('access_key_or_mcp', 'id')
