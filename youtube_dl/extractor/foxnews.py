@@ -31,8 +31,8 @@ class FoxNewsIE(AMPIE):
             'info_dict': {
                 'id': '3922535568001',
                 'ext': 'mp4',
-                'title': "Rep. Luis Gutierrez on if Obama's immigration plan is legal",
-                'description': "Congressman discusses president's plan",
+                'title': 'Rep. Luis Gutierrez on if Obama\'s immigration plan is legal',
+                'description': 'Congressman discusses president\'s plan',
                 'duration': 292,
                 'timestamp': 1417662047,
                 'upload_date': '20141204',
@@ -41,17 +41,6 @@ class FoxNewsIE(AMPIE):
             'params': {
                 # m3u8 download
                 'skip_download': True,
-            },
-        },
-        {
-            'url': 'http://www.foxnews.com/us/2018/03/09/parkland-survivor-kyle-kashuv-on-meeting-trump-his-app-to-prevent-another-school-shooting.amp.html?__twitter_impression=true',
-            'info_dict': {
-                'id': '5748266721001',
-                'ext': 'mp4',
-                'title': "Kyle Kashuv has a positive message for the Trump White House",
-                'description': "Marjory Stoneman Douglas student disagrees with classmates.",
-                'duration': 229,
-                'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
@@ -82,18 +71,31 @@ class FoxNewsArticleIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?foxnews\.com/(?!v)([^/]+/)+(?P<id>[a-z-]+)'
     IE_NAME = 'foxnews:article'
 
-    _TEST = {
-        'url': 'http://www.foxnews.com/politics/2016/09/08/buzz-about-bud-clinton-camp-denies-claims-wore-earpiece-at-forum.html',
-        'md5': '62aa5a781b308fdee212ebb6f33ae7ef',
-        'info_dict': {
-            'id': '5116295019001',
-            'ext': 'mp4',
-            'title': 'Trump and Clinton asked to defend positions on Iraq War',
-            'description': 'Veterans react on \'The Kelly File\'',
-            'timestamp': 1473299755,
-            'upload_date': '20160908',
+    _TESTS = [
+        {
+            'url': 'http://www.foxnews.com/politics/2016/09/08/buzz-about-bud-clinton-camp-denies-claims-wore-earpiece-at-forum.html',
+            'md5': '62aa5a781b308fdee212ebb6f33ae7ef',
+            'info_dict': {
+                'id': '5116295019001',
+                'ext': 'mp4',
+                'title': 'Trump and Clinton asked to defend positions on Iraq War',
+                'description': 'Veterans react on \'The Kelly File\'',
+                'timestamp': 1473299755,
+                'upload_date': '20160908',
+            },
         },
-    }
+        {
+            'url': 'http://www.foxnews.com/us/2018/03/09/parkland-survivor-kyle-kashuv-on-meeting-trump-his-app-to-prevent-another-school-shooting.amp.html?__twitter_impression=true',
+            'info_dict': {
+                'id': '5748266721001',
+                'ext': 'mp4',
+                'title': 'Kyle Kashuv has a positive message for the Trump White House',
+                'description': 'Marjory Stoneman Douglas student disagrees with classmates.',
+                'duration': 229,
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+        },
+    ]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
