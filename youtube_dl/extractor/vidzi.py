@@ -50,12 +50,12 @@ class VidziIE(InfoExtractor):
             decode_packed_codes(mobj.group(0)).replace('\\\'', '\'')
             for mobj in re.finditer(PACKED_CODES_RE, webpage)])
         for num, code in enumerate(codes, 1):
-            jwplayer_data = self._parse_json(
-                self._search_regex(
-                    r'setup\(([^)]+)\)', code, 'jwplayer data',
-                    default=NO_DEFAULT if num == len(codes) else '{}'),
-                video_id, transform_source=lambda s: js_to_json(
-                    re.sub(r'\s*\+\s*window\[.+?\]', '', s)))
+            json_data = self._search_regex(
+                r'setup\(([^)]+)\)', code, 'jwplayer data',
+                default=NO_DEFAULT if num == len(codes) else '{}')
+            json_data = re.sub(r'\s*\+\s*window\[.+?\]', '', json_data)
+            # print 'json_data: {0}'.format(json_data)
+            jwplayer_data = self._parse_json(json_data, video_id, transform_source=js_to_json)
             if jwplayer_data:
                 break
 
