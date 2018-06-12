@@ -31,8 +31,8 @@ class FoxNewsIE(AMPIE):
             'info_dict': {
                 'id': '3922535568001',
                 'ext': 'mp4',
-                'title': 'Rep. Luis Gutierrez on if Obama\'s immigration plan is legal',
-                'description': 'Congressman discusses president\'s plan',
+                'title': "Rep. Luis Gutierrez on if Obama's immigration plan is legal",
+                'description': "Congressman discusses president's plan",
                 'duration': 292,
                 'timestamp': 1417662047,
                 'upload_date': '20141204',
@@ -102,7 +102,7 @@ class FoxNewsArticleIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_id = self._html_search_regex(
-            (r'data-video-id=([\'"])(?P<id>[^\'"]+)\1', r'https?.*foxnews.*video_id=(?P<id>[\d]+)'),
+            (r'data-video-id=([\'"])(?P<id>[^\'"]+)\1', r'<amp-iframe.*src="https?.*foxnews.*video_id=(?P<id>[\d]+).*>'),
             webpage, 'video ID', group='id')
         return self.url_result(
             'http://video.foxnews.com/v/' + video_id,
