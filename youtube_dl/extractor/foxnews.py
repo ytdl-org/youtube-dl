@@ -44,6 +44,17 @@ class FoxNewsIE(AMPIE):
             },
         },
         {
+            'url': 'http://www.foxnews.com/us/2018/03/09/parkland-survivor-kyle-kashuv-on-meeting-trump-his-app-to-prevent-another-school-shooting.amp.html?__twitter_impression=true',
+            'info_dict': {
+                'id': '5748266721001',
+                'ext': 'mp4',
+                'title': "Kyle Kashuv has a positive message for the Trump White House",
+                'description': "Marjory Stoneman Douglas student disagrees with classmates.",
+                'duration': 229,
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+        },
+        {
             'url': 'http://video.foxnews.com/v/video-embed.html?video_id=3937480&d=video.foxnews.com',
             'only_matching': True,
         },
