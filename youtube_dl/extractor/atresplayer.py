@@ -1,7 +1,11 @@
 from __future__ import unicode_literals
 
 import json
-from urllib.error import HTTPError
+
+try:
+    from urllib.error import HTTPError
+except ImportError:
+    from urllib2 import HTTPError
 
 from .common import InfoExtractor
 from ..utils import (
