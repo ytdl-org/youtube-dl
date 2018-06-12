@@ -1,17 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..compat import (
+    compat_HTTPError,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
-    strip_or_none,
-    unescapeHTML,
+    str_or_none,
     urlencode_postdata,
 )
-
 
 class RoosterTeethIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/episode/(?P<id>[^/?#&]+)'
@@ -19,17 +18,13 @@ class RoosterTeethIE(InfoExtractor):
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
-        'md5': 'e2bd7764732d785ef797700a2489f212',
         'info_dict': {
-            'id': '26576',
+            'id': '9156',
             'display_id': 'million-dollars-but-season-2-million-dollars-but-the-game-announcement',
-            'ext': 'mp4',
-            'title': 'Million Dollars, But...: Million Dollars, But... The Game Announcement',
+            'title': 'Million Dollars, But... The Game Announcement',
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
-            'thumbnail': r're:^https?://.*\.png$',
             'series': 'Million Dollars, But...',
-            'episode': 'Million Dollars, But... The Game Announcement',
-            'comment_count': int,
+            'duration': 145,
         },
     }, {
         'url': 'http://achievementhunter.roosterteeth.com/episode/off-topic-the-achievement-hunter-podcast-2016-i-didn-t-think-it-would-pass-31',
@@ -90,59 +85,61 @@ class RoosterTeethIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, display_id)
+        try:
+            json_m3u8 = self._download_json(
+                'https://svod-be.roosterteeth.com/api/v1/episodes/%s/videos' % display_id,
+                display_id, 'Downloading JSON m3u8')
+            json_metadata = self._download_json(
+                'https://svod-be.roosterteeth.com/api/v1/episodes/%s/' % display_id,
+                display_id)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                self.raise_login_required('This video is only available for FIRST memebers')
+            raise
 
-        episode = strip_or_none(unescapeHTML(self._search_regex(
-            (r'videoTitle\s*=\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
-             r'<title>(?P<title>[^<]+)</title>'), webpage, 'title',
-            default=None, group='title')))
-
-        title = strip_or_none(self._og_search_title(
-            webpage, default=None)) or episode
-
-        m3u8_url = self._search_regex(
-            r'file\s*:\s*(["\'])(?P<url>http.+?\.m3u8.*?)\1',
-            webpage, 'm3u8 url', default=None, group='url')
-
-        if not m3u8_url:
-            if re.search(r'<div[^>]+class=["\']non-sponsor', webpage):
-                self.raise_login_required(
-                    '%s is only available for FIRST members' % display_id)
-
-            if re.search(r'<div[^>]+class=["\']golive-gate', webpage):
-                self.raise_login_required('%s is not available yet' % display_id)
-
+        try:
+            m3u8_url = json_m3u8['data'][0]['attributes']['url']
+        except:
             raise ExtractorError('Unable to extract m3u8 URL')
 
         formats = self._extract_m3u8_formats(
             m3u8_url, display_id, ext='mp4',
             entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
-
-        description = strip_or_none(self._og_search_description(webpage))
-        thumbnail = self._proto_relative_url(self._og_search_thumbnail(webpage))
-
-        series = self._search_regex(
-            (r'<h2>More ([^<]+)</h2>', r'<a[^>]+>See All ([^<]+) Videos<'),
-            webpage, 'series', fatal=False)
-
-        comment_count = int_or_none(self._search_regex(
-            r'>Comments \((\d+)\)<', webpage,
-            'comment count', fatal=False))
-
-        video_id = self._search_regex(
-            (r'containerId\s*=\s*["\']episode-(\d+)\1',
-             r'<div[^<]+id=["\']episode-(\d+)'), webpage,
-            'video id', default=display_id)
+        
+        json_body = json_metadata.get('data')[0]
+        json_attributes = json_body.get('attributes')
+        
+        display_title = json_attributes.get('display_title')
+        episode = int_or_none(self._search_regex(r':E([\d]+)', display_title, 'episode', fatal=False))
+        season = int_or_none(self._search_regex(r'^[\w]([\d]+)', display_title, 'season', fatal=False))
+        
+        title = json_attributes.get('title')
+        video_id = str(json_body.get('id'))
+        description = json_attributes.get('description')
+        series = json_attributes.get('show_title')
+        uploader = json_attributes.get('channel_slug')
+        duration = json_attributes.get('length')
+        
+        thumbnails = []
+        thumbnails_attributes = json_body.get('included').get('images')[0].get('attributes')
+        if thumbnails_attributes:
+            for img_name in ('large', 'medium', 'small', 'thumb'):
+                thumbnails.append({
+                    'url': thumbnails_attributes.get(img_name),
+                    'id': img_name,
+                })
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
+            'duration': duration,
+            'thumbnails': thumbnails,
             'series': series,
+            'season': season,
             'episode': episode,
-            'comment_count': comment_count,
+            'uploader': uploader,
             'formats': formats,
         }
