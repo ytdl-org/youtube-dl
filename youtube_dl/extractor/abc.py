@@ -181,6 +181,11 @@ class ABCIViewIE(InfoExtractor):
             'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
             'series': unescapeHTML(video_params.get('seriesTitle')),
             'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
+            'season_number': int_or_none(self._search_regex(
+                r'\bSeries\s+(\d+)\b', title, 'season number', default=None)),
+            'episode_number': int_or_none(self._search_regex(
+                r'\bEp\s+(\d+)\b', title, 'episode number', default=None)),
+            'episode_id': house_number,
             'uploader_id': video_params.get('channel'),
             'formats': formats,
             'subtitles': subtitles,
