@@ -21,11 +21,10 @@ class RoosterTeethIE(InfoExtractor):
         'info_dict': {
             'id': '9156',
             'display_id': 'million-dollars-but-season-2-million-dollars-but-the-game-announcement',
-            'ext': 'mp4',
             'title': 'Million Dollars, But... The Game Announcement',
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
-            'thumbnail': r'^https?://.*\.png$',
             'series': 'Million Dollars, But...',
+            'duration': 145,
         },
     }, {
         'url': 'http://achievementhunter.roosterteeth.com/episode/off-topic-the-achievement-hunter-podcast-2016-i-didn-t-think-it-would-pass-31',
@@ -108,27 +107,39 @@ class RoosterTeethIE(InfoExtractor):
             entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
         
-        json_body = json_metadata['data'][0]
-        json_attributes = json_body['attributes']
+        json_body = json_metadata.get('data')[0]
+        json_attributes = json_body.get('attributes')
         
-        display_title = json_attributes['display_title']
+        display_title = json_attributes.get('display_title')
         episode = int_or_none(self._search_regex(r':E([\d]+)', display_title, 'episode', fatal=False))
         season = int_or_none(self._search_regex(r'^[\w]([\d]+)', display_title, 'season', fatal=False))
         
         title = json_attributes.get('title')
         video_id = str(json_body.get('id'))
-        thumbnail = json_body['included']['images'][0]['attributes']['large']
         description = json_attributes.get('description')
         series = json_attributes.get('show_title')
+        uploader = json_attributes.get('channel_slug')
+        duration = json_attributes.get('length')
         
+        thumbnails = []
+        thumbnails_attributes = json_body.get('included').get('images')[0].get('attributes')
+        if thumbnails_attributes:
+            for img_name in ('large', 'medium', 'small', 'thumb'):
+                thumbnails.append({
+                    'url': thumbnails_attributes.get(img_name),
+                    'id': img_name,
+                })
+
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'description': description,
-            'thumbnail': thumbnail,
+            'duration': duration,
+            'thumbnails': thumbnails,
             'series': series,
             'season': season,
             'episode': episode,
+            'uploader': uploader,
             'formats': formats,
         }
