@@ -53,7 +53,7 @@ class VidziIE(InfoExtractor):
             jwplayer_data = self._parse_json(
                 self._search_regex(
                     r'setup\(([^)]+)\)', code, 'jwplayer data',
-                    default=NO_DEFAULT if num == len(codes) else '{}'),
+                    default=NO_DEFAULT if num == len(codes) else '{}').replace('+ window[\'vastRef\']', ''),
                 video_id, transform_source=js_to_json)
             if jwplayer_data:
                 break
