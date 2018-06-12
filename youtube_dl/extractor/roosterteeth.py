@@ -6,7 +6,9 @@ import time
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    compat_str,
     str_or_none,
+    try_get,
     unified_timestamp,
     urlencode_postdata,
 )
@@ -105,10 +107,7 @@ class RoosterTeethIE(InfoExtractor):
         description = attributes.get('caption')
         series = attributes.get('show_title')
 
-        images = data.get('included', {}).get('images')
-        if images and len(images) > 0:
-            images = images[0]
-        thumbnail = images.get('attributes', {}).get('thumb')
+        thumbnail = try_get(data, lambda x: x['included']['images'][0]['attributes']['thumb'], compat_str)
 
         video_response = self._call_api(
             display_id,
@@ -137,7 +136,7 @@ class RoosterTeethIE(InfoExtractor):
                 else:
                     raise ExtractorError('Video is not available')
 
-        video_attributes = video_response.get('data')[0].get('attributes')
+        video_attributes = try_get(video_response, lambda x: x['data'][0]['attributes'])
 
         m3u8_url = video_attributes.get('url')
         if not m3u8_url:
