@@ -97,13 +97,11 @@ class RoosterTeethIE(InfoExtractor):
             headers=headers,
         )
 
-        if len(api_response.get('data', [])) == 0:
-            raise ExtractorError('Unable to download video information')
-        data = api_response.get('data')[0]
+        data = api_response['data'][0]
 
-        attributes = data.get('attributes', {})
+        attributes = data['attributes']
         episode = attributes.get('display_title')
-        title = attributes.get('title')
+        title = attributes['title']
         description = attributes.get('caption')
         series = attributes.get('show_title')
 
@@ -139,8 +137,6 @@ class RoosterTeethIE(InfoExtractor):
                 else:
                     raise ExtractorError('Video is not available')
 
-        if len(video_response.get('data', [])) == 0:
-            raise ExtractorError('Unable to download video information')
         video_attributes = video_response.get('data')[0].get('attributes')
 
         m3u8_url = video_attributes.get('url')
