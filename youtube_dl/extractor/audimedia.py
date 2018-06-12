@@ -5,13 +5,12 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     parse_iso8601,
-    sanitized_Request,
 )
 
 
 class AudiMediaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?audi-mediacenter\.com/(?:en|de)/audimediatv/(?P<id>[^/?#]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?audi-mediacenter\.com/(?:en|de)/audimediatv/(?:video/)?(?P<id>[^/?#]+)'
+    _TESTS = [{
         'url': 'https://www.audi-mediacenter.com/en/audimediatv/60-seconds-of-audi-sport-104-2015-wec-bahrain-rookie-test-1467',
         'md5': '79a8b71c46d49042609795ab59779b66',
         'info_dict': {
@@ -24,41 +23,46 @@ class AudiMediaIE(InfoExtractor):
             'duration': 74022,
             'view_count': int,
         }
-    }
-    # extracted from https://audimedia.tv/assets/embed/embedded-player.js (dataSourceAuthToken)
-    _AUTH_TOKEN = 'e25b42847dba18c6c8816d5d8ce94c326e06823ebf0859ed164b3ba169be97f2'
+    }, {
+        'url': 'https://www.audi-mediacenter.com/en/audimediatv/video/60-seconds-of-audi-sport-104-2015-wec-bahrain-rookie-test-2991',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
         raw_payload = self._search_regex([
-            r'class="amtv-embed"[^>]+id="([^"]+)"',
-            r'class=\\"amtv-embed\\"[^>]+id=\\"([^"]+)\\"',
+            r'class="amtv-embed"[^>]+id="([0-9a-z-]+)"',
+            r'id="([0-9a-z-]+)"[^>]+class="amtv-embed"',
+            r'class=\\"amtv-embed\\"[^>]+id=\\"([0-9a-z-]+)\\"',
+            r'id=\\"([0-9a-z-]+)\\"[^>]+class=\\"amtv-embed\\"',
+            r'id=(?:\\)?"(amtve-[a-z]-\d+-[a-z]{2})',
         ], webpage, 'raw payload')
-        _, stage_mode, video_id, lang = raw_payload.split('-')
+        _, stage_mode, video_id, _ = raw_payload.split('-')
 
         # TODO: handle s and e stage_mode (live streams and ended live streams)
         if stage_mode not in ('s', 'e'):
-            request = sanitized_Request(
-                'https://audimedia.tv/api/video/v1/videos/%s?embed[]=video_versions&embed[]=thumbnail_image&where[content_language_iso]=%s' % (video_id, lang),
-                headers={'X-Auth-Token': self._AUTH_TOKEN})
-            json_data = self._download_json(request, video_id)['results']
+            video_data = self._download_json(
+                'https://www.audimedia.tv/api/video/v1/videos/' + video_id,
+                video_id, query={
+                    'embed[]': ['video_versions', 'thumbnail_image'],
+                })['results']
             formats = []
 
-            stream_url_hls = json_data.get('stream_url_hls')
+            stream_url_hls = video_data.get('stream_url_hls')
             if stream_url_hls:
                 formats.extend(self._extract_m3u8_formats(
                     stream_url_hls, video_id, 'mp4',
                     entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
 
-            stream_url_hds = json_data.get('stream_url_hds')
+            stream_url_hds = video_data.get('stream_url_hds')
             if stream_url_hds:
                 formats.extend(self._extract_f4m_formats(
                     stream_url_hds + '?hdcore=3.4.0',
                     video_id, f4m_id='hds', fatal=False))
 
-            for video_version in json_data.get('video_versions'):
+            for video_version in video_data.get('video_versions', []):
                 video_version_url = video_version.get('download_url') or video_version.get('stream_url')
                 if not video_version_url:
                     continue
@@ -79,11 +83,11 @@ class AudiMediaIE(InfoExtractor):
 
             return {
                 'id': video_id,
-                'title': json_data['title'],
-                'description': json_data.get('subtitle'),
-                'thumbnail': json_data.get('thumbnail_image', {}).get('file'),
-                'timestamp': parse_iso8601(json_data.get('publication_date')),
-                'duration': int_or_none(json_data.get('duration')),
-                'view_count': int_or_none(json_data.get('view_count')),
+                'title': video_data['title'],
+                'description': video_data.get('subtitle'),
+                'thumbnail': video_data.get('thumbnail_image', {}).get('file'),
+                'timestamp': parse_iso8601(video_data.get('publication_date')),
+                'duration': int_or_none(video_data.get('duration')),
+                'view_count': int_or_none(video_data.get('view_count')),
                 'formats': formats,
             }

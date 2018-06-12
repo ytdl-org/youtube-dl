@@ -42,6 +42,7 @@ from youtube_dl.utils import (
     is_html,
     js_to_json,
     limit_length,
+    merge_dicts,
     mimetype2ext,
     month_by_name,
     multipart_encode,
@@ -360,6 +361,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(determine_ext('http://example.com/foo/bar.nonext/?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar/mp4?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar.m3u8//?download'), 'm3u8')
+        self.assertEqual(determine_ext('foobar', None), None)
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
@@ -518,6 +520,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_age_limit('PG-13'), 13)
         self.assertEqual(parse_age_limit('TV-14'), 14)
         self.assertEqual(parse_age_limit('TV-MA'), 17)
+        self.assertEqual(parse_age_limit('TV14'), 14)
+        self.assertEqual(parse_age_limit('TV_G'), 0)
 
     def test_parse_duration(self):
         self.assertEqual(parse_duration(None), None)
@@ -668,6 +672,17 @@ class TestUtil(unittest.TestCase):
         for key, false_value in FALSE_VALUES.items():
             self.assertEqual(dict_get(d, ('b', 'c', key, )), None)
             self.assertEqual(dict_get(d, ('b', 'c', key, ), skip_false_values=False), false_value)
+
+    def test_merge_dicts(self):
+        self.assertEqual(merge_dicts({'a': 1}, {'b': 2}), {'a': 1, 'b': 2})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': 2}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': None}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': ''}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': None}, {'a': 1}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 1}), {'a': ''})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 'abc'}), {'a': 'abc'})
+        self.assertEqual(merge_dicts({'a': None}, {'a': ''}, {'a': 'abc'}), {'a': 'abc'})
 
     def test_encode_compat_str(self):
         self.assertEqual(encode_compat_str(b'\xd1\x82\xd0\xb5\xd1\x81\xd1\x82', 'utf-8'), 'тест')

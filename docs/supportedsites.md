@@ -15,7 +15,6 @@
  - **8tracks**
  - **91porn**
  - **9c9media**
- - **9c9media:stack**
  - **9gag**
  - **9now.com.au**
  - **abc.net.au**
@@ -48,6 +47,7 @@
  - **anitube.se**
  - **Anvato**
  - **AnySex**
+ - **APA**
  - **Aparat**
  - **AppleConnect**
  - **AppleDaily**: 臺灣蘋果日報
@@ -100,6 +100,7 @@
  - **Beatport**
  - **Beeg**
  - **BehindKink**
+ - **Bellator**
  - **BellMedia**
  - **Bet**
  - **Bigflix**
@@ -122,10 +123,13 @@
  - **BRMediathek**: Bayerischer Rundfunk Mediathek
  - **bt:article**: Bergens Tidende Articles
  - **bt:vestlendingen**: Bergens Tidende - Vestlendingen
+ - **BusinessInsider**
  - **BuzzFeed**
  - **BYUtv**
  - **Camdemy**
  - **CamdemyFolder**
+ - **CamModels**
+ - **CamTube**
  - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: mycanal.fr and piwiplus.fr
@@ -163,6 +167,7 @@
  - **ClipRs**
  - **Clipsyndicate**
  - **CloserToTruth**
+ - **CloudflareStream**
  - **cloudtime**: CloudTime
  - **Cloudy**
  - **Clubic**
@@ -232,6 +237,7 @@
  - **DrTuber**
  - **drtv**
  - **drtv:live**
+ - **DTube**
  - **Dumpert**
  - **dvtv**: http://video.aktualne.cz/
  - **dw**
@@ -361,7 +367,6 @@
  - **ImgurAlbum**
  - **Ina**
  - **Inc**
- - **Indavideo**
  - **IndavideoEmbed**
  - **InfoQ**
  - **Instagram**
@@ -373,6 +378,7 @@
  - **Ir90Tv**
  - **ITTF**
  - **ITV**
+ - **ITVBTCC**
  - **ivi**: ivi.ru
  - **ivi:compilation**: ivi.ru compilations
  - **ivideon**: Ivideon TV
@@ -445,7 +451,6 @@
  - **mailru**: Видео@Mail.Ru
  - **mailru:music**: Музыка@Mail.Ru
  - **mailru:music:search**: Музыка@Mail.Ru
- - **MakersChannel**
  - **MakerTV**
  - **mangomolo:live**
  - **mangomolo:video**
@@ -483,7 +488,6 @@
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
  - **Mojvideo**
- - **Moniker**: allmyvideos.net and vidspot.net
  - **Morningstar**: morningstar.com
  - **Motherless**
  - **MotherlessGroup**
@@ -505,6 +509,7 @@
  - **mva:course**: Microsoft Virtual Academy courses
  - **Mwave**
  - **MwaveMeetGreet**
+ - **MyChannels**
  - **MySpace**
  - **MySpace:album**
  - **MySpass**
@@ -522,6 +527,7 @@
  - **nbcolympics**
  - **nbcolympics:stream**
  - **NBCSports**
+ - **NBCSportsStream**
  - **NBCSportsVPlayer**
  - **ndr**: NDR.de - Norddeutscher Rundfunk
  - **ndr:embed**
@@ -548,9 +554,6 @@
  - **nfl.com**
  - **NhkVod**
  - **nhl.com**
- - **nhl.com:news**: NHL news
- - **nhl.com:videocenter**
- - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
  - **nick.de**
  - **nickelodeon:br**
@@ -615,11 +618,13 @@
  - **PacktPubCourse**
  - **PandaTV**: 熊猫TV
  - **pandora.tv**: 판도라TV
+ - **ParamountNetwork**
  - **parliamentlive.tv**: UK parliament videos
  - **Patreon**
  - **pbs**: Public Broadcasting Service (PBS) and member stations: PBS: Public Broadcasting Service, APT - Alabama Public Television (WBIQ), GPB/Georgia Public Broadcasting (WGTV), Mississippi Public Broadcasting (WMPN), Nashville Public Television (WNPT), WFSU-TV (WFSU), WSRE (WSRE), WTCI (WTCI), WPBA/Channel 30 (WPBA), Alaska Public Media (KAKM), Arizona PBS (KAET), KNME-TV/Channel 5 (KNME), Vegas PBS (KLVX), AETN/ARKANSAS ETV NETWORK (KETS), KET (WKLE), WKNO/Channel 10 (WKNO), LPB/LOUISIANA PUBLIC BROADCASTING (WLPB), OETA (KETA), Ozarks Public Television (KOZK), WSIU Public Broadcasting (WSIU), KEET TV (KEET), KIXE/Channel 9 (KIXE), KPBS San Diego (KPBS), KQED (KQED), KVIE Public Television (KVIE), PBS SoCal/KOCE (KOCE), ValleyPBS (KVPT), CONNECTICUT PUBLIC TELEVISION (WEDH), KNPB Channel 5 (KNPB), SOPTV (KSYS), Rocky Mountain PBS (KRMA), KENW-TV3 (KENW), KUED Channel 7 (KUED), Wyoming PBS (KCWC), Colorado Public Television / KBDI 12 (KBDI), KBYU-TV (KBYU), Thirteen/WNET New York (WNET), WGBH/Channel 2 (WGBH), WGBY (WGBY), NJTV Public Media NJ (WNJT), WLIW21 (WLIW), mpt/Maryland Public Television (WMPB), WETA Television and Radio (WETA), WHYY (WHYY), PBS 39 (WLVT), WVPT - Your Source for PBS and More! (WVPT), Howard University Television (WHUT), WEDU PBS (WEDU), WGCU Public Media (WGCU), WPBT2 (WPBT), WUCF TV (WUCF), WUFT/Channel 5 (WUFT), WXEL/Channel 42 (WXEL), WLRN/Channel 17 (WLRN), WUSF Public Broadcasting (WUSF), ETV (WRLK), UNC-TV (WUNC), PBS Hawaii - Oceanic Cable Channel 10 (KHET), Idaho Public Television (KAID), KSPS (KSPS), OPB (KOPB), KWSU/Channel 10 & KTNW/Channel 31 (KWSU), WILL-TV (WILL), Network Knowledge - WSEC/Springfield (WSEC), WTTW11 (WTTW), Iowa Public Television/IPTV (KDIN), Nine Network (KETC), PBS39 Fort Wayne (WFWA), WFYI Indianapolis (WFYI), Milwaukee Public Television (WMVS), WNIN (WNIN), WNIT Public Television (WNIT), WPT (WPNE), WVUT/Channel 22 (WVUT), WEIU/Channel 51 (WEIU), WQPT-TV (WQPT), WYCC PBS Chicago (WYCC), WIPB-TV (WIPB), WTIU (WTIU), CET  (WCET), ThinkTVNetwork (WPTD), WBGU-TV (WBGU), WGVU TV (WGVU), NET1 (KUON), Pioneer Public Television (KWCM), SDPB Television (KUSD), TPT (KTCA), KSMQ (KSMQ), KPTS/Channel 8 (KPTS), KTWU/Channel 11 (KTWU), East Tennessee PBS (WSJK), WCTE-TV (WCTE), WLJT, Channel 11 (WLJT), WOSU TV (WOSU), WOUB/WOUC (WOUB), WVPB (WVPB), WKYU-PBS (WKYU), KERA 13 (KERA), MPBN (WCBB), Mountain Lake PBS (WCFE), NHPTV (WENH), Vermont PBS (WETK), witf (WITF), WQED Multimedia (WQED), WMHT Educational Telecommunications (WMHT), Q-TV (WDCQ), WTVS Detroit Public TV (WTVS), CMU Public Television (WCMU), WKAR-TV (WKAR), WNMU-TV Public TV 13 (WNMU), WDSE - WRPT (WDSE), WGTE TV (WGTE), Lakeland Public Television (KAWE), KMOS-TV - Channels 6.1, 6.2 and 6.3 (KMOS), MontanaPBS (KUSM), KRWG/Channel 22 (KRWG), KACV (KACV), KCOS/Channel 13 (KCOS), WCNY/Channel 24 (WCNY), WNED (WNED), WPBS (WPBS), WSKG Public TV (WSKG), WXXI (WXXI), WPSU (WPSU), WVIA Public Media Studios (WVIA), WTVI (WTVI), Western Reserve PBS (WNEO), WVIZ/PBS ideastream (WVIZ), KCTS 9 (KCTS), Basin PBS (KPBT), KUHT / Channel 8 (KUHT), KLRN (KLRN), KLRU (KLRU), WTJX Channel 12 (WTJX), WCVE PBS (WCVE), KBTC Public Television (KBTC)
  - **pcmag**
  - **PearVideo**
+ - **PeerTube**
  - **People**
  - **PerformGroup**
  - **periscope**: Periscope
@@ -667,6 +672,8 @@
  - **qqmusic:playlist**: QQ音乐 - 歌单
  - **qqmusic:singer**: QQ音乐 - 歌手
  - **qqmusic:toplist**: QQ音乐 - 排行榜
+ - **Quickline**
+ - **QuicklineLive**
  - **R7**
  - **R7Article**
  - **radio.de**
@@ -784,7 +791,7 @@
  - **Spiegel**
  - **Spiegel:Article**: Articles on spiegel.de
  - **Spiegeltv**
- - **Spike**
+ - **sport.francetvinfo.fr**
  - **Sport5**
  - **SportBoxEmbed**
  - **SportDeutschland**
@@ -1092,6 +1099,8 @@
  - **youtube:watchlater**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
  - **Zapiks**
  - **Zaq1**
+ - **Zattoo**
+ - **ZattooLive**
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3**: mp3.zing.vn

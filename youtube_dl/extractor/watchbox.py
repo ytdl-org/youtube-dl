@@ -69,7 +69,7 @@ class WatchBoxIE(InfoExtractor):
 
         source = self._parse_json(
             self._search_regex(
-                r'(?s)source\s*:\s*({.+?})\s*,\s*\n', webpage, 'source',
+                r'(?s)source["\']?\s*:\s*({.+?})\s*[,}]', webpage, 'source',
                 default='{}'),
             video_id, transform_source=js_to_json, fatal=False) or {}
 
