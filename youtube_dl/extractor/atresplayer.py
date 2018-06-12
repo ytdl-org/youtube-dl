@@ -16,26 +16,21 @@ except ImportError:
     JSONDecodeError = ValueError
 
 
-
-
 class AtresPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/[^/]+/[^/]+/[^/]+/[^/]+/[^/_]+_(?P<id>[A-z0-9]+)/?'
     _NETRC_MACHINE = 'atresplayer'
     _TESTS = [
         {
-            'url': 'https://www.atresplayer.com/lasexta/series/navy-investigacion-criminal/temporada-12/capitulo-10-captulo_5ad6869b986b2866f89ebca0/',
+            'url': 'https://www.atresplayer.com/lasexta/programas/el-intermedio/temporada-12/el-intermedio-21-05-18_5b03068d7ed1a8a94b3faf29/',
             'md5': '3afa3d3cc155264374916f2a23d1d00c',
             'info_dict': {
-                'id': '5ad6869b986b2866f89ebca0',
+                'id': '5b03068d7ed1a8a94b3faf29',
                 'ext': 'm3u8',
-                'title': u'Capítulo 10: Reglas de casa',
-                'description': 'md5:3ec43e9b7da2cd1280fa80adccdd09b0',
-                'duration': 2500.0,
-                'thumbnail': r're:^https://imagenes.atresplayer.com/.+$'
             },
             'params': {
                 'skip_download': True,
             },
+            'skip': 'required_registered',
         },
         {
             'url': 'http://www.atresplayer.com/television/series/el-secreto-de-puente-viejo/el-chico-de-los-tres-lunares/capitulo-977-29-12-14_2014122400174.html',
@@ -44,12 +39,9 @@ class AtresPlayerIE(InfoExtractor):
     ]
 
     _USER_AGENT = 'Dalvik/1.6.0 (Linux; U; Android 4.3; GT-I9300 Build/JSS15J'
-
     _PLAYER_URL_TEMPLATE = 'https://api.atresplayer.com/client/v1/page/episode/%s'
-
     _LOGIN_URL = 'https://api.atresplayer.com/login?redirect=https%3A%2F%2Fwww.atresplayer.com'
     _LOGIN_ACCOUNT_URL = 'https://account.atresmedia.com/api/login'
-
 
     def _real_initialize(self):
         self._login()
@@ -72,13 +64,12 @@ class AtresPlayerIE(InfoExtractor):
             login_form,
             method='post')
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        # request.add_header('Content-Type', 'multipart/form-data')
         try:
             response = self._download_json(
                 request, None, 'post to login form')
         except ExtractorError as e:
             if isinstance(e.cause, HTTPError):
-                self._atres_player_error(e.cause.file.read(), e)
+                raise self._atres_player_error(e.cause.file.read(), e)
             else:
                 raise
         else:
@@ -88,13 +79,13 @@ class AtresPlayerIE(InfoExtractor):
         try:
             data = json.loads(body_response)
         except JSONDecodeError:
-            raise original_exception
+            return original_exception
         if isinstance(data, dict) and 'error' in data:
-            raise ExtractorError('{} returned error: {} ({})'.format(
+            return ExtractorError('{} returned error: {} ({})'.format(
                 self.IE_NAME, data['error'], data.get('error_description', 'There is no description')
             ), expected=True)
         else:
-            raise original_exception
+            return original_exception
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -115,7 +106,7 @@ class AtresPlayerIE(InfoExtractor):
         except ExtractorError as e:
             if len(e.exc_info) <= 1 or e.exc_info[1].code != 403:
                 raise
-            self._atres_player_error(e.exc_info[1].file.read(), e)
+            raise self._atres_player_error(e.exc_info[1].file.read(), e)
 
         for source in video_data['sources']:
             if source['type'] == "application/dash+xml":
