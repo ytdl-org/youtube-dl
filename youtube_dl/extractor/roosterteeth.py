@@ -78,12 +78,7 @@ class RoosterTeethIE(InfoExtractor):
         created_at = response.get('created_at', 0)
         expires_in = response.get('expires_in', 0)
 
-        self._set_cookie(
-            '.roosterteeth.com',
-            'rt_access_token',
-            self._ACCESS_TOKEN,
-            created_at + expires_in
-        )
+        self._set_cookie('.roosterteeth.com', 'rt_access_token', self._ACCESS_TOKEN, created_at + expires_in)
 
     def _real_initialize(self):
         self._login()
@@ -93,7 +88,7 @@ class RoosterTeethIE(InfoExtractor):
 
         headers = {}
         if self._ACCESS_TOKEN:
-            headers['Authorization'] = 'Bearer {}'.format(self._ACCESS_TOKEN)
+            headers['Authorization'] = 'Bearer ' + self._ACCESS_TOKEN
 
         api_response = self._call_api(
             display_id,
@@ -178,11 +173,7 @@ class RoosterTeethIE(InfoExtractor):
         if path:
             url = url + path
 
-        return self._download_json(
-            url,
-            video_id,
-            **kwargs
-        )
+        return self._download_json(url, video_id, **kwargs)
 
     def _get_cookie(self, name):
         for cookie in self._downloader.cookiejar:
