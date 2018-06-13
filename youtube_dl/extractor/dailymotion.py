@@ -8,10 +8,9 @@ import json
 import random
 import re
 import string
-import struct
 
 from .common import InfoExtractor
-
+from ..compat import compat_struct_pack
 from ..utils import (
     determine_ext,
     error_to_compat_str,
@@ -177,7 +176,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                     r = int(metadata['id'][1:], 36)
                     us64e = lambda x: base64.urlsafe_b64encode(x).decode().strip('=')
                     t = ''.join(random.choice(string.ascii_letters) for i in range(10))
-                    n = us64e(struct.pack('I', r))
+                    n = us64e(compat_struct_pack('I', r))
                     i = us64e(hashlib.md5(('%s%d%s' % (password, r, t)).encode()).digest())
                     metadata = self._download_json(
                         'http://www.dailymotion.com/player/metadata/video/p' + i + t + n, video_id)
