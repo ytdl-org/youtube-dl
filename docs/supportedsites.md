@@ -893,6 +893,7 @@
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
  - **TVN24**
+ - **TVNet**
  - **TVNoe**
  - **TVNow**
  - **TVNowList**
