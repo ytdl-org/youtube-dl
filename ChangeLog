@@ -1,3 +1,19 @@
+version <unreleased>
+
+Core
+* [downloader/http] Fix retry on error when streaming to stdout (#16699)
+
+Extractors
++ [discoverynetworks] Add support for disco-api videos (#16724)
++ [dailymotion] Add support for password protected videos (#9789)
++ [abc:iview] Add support for livestreams (#12354)
+* [abc:iview] Fix extraction (#16704)
++ [crackle] Add support for sonycrackle.com (#16698)
++ [tvnet] Add support for tvnet.gov.vn (#15462)
+* [nrk] Update API hosts and try all previously known ones (#16690)
+* [wimp] Fix Youtube embeds extraction
+
+
 version 2018.06.11
 
 Extractors
