@@ -97,6 +97,75 @@ class DPlayIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    def _get_disco_api_info(self, url, display_id, disco_host, realm):
+        disco_base = 'https://' + disco_host
+        token = self._download_json(
+            '%s/token' % disco_base, display_id, 'Downloading token',
+            query={
+                'realm': realm,
+            })['data']['attributes']['token']
+        headers = {
+            'Referer': url,
+            'Authorization': 'Bearer ' + token,
+        }
+        video = self._download_json(
+            '%s/content/videos/%s' % (disco_base, display_id), display_id,
+            headers=headers, query={
+                'include': 'show'
+            })
+        video_id = video['data']['id']
+        info = video['data']['attributes']
+        title = info['name']
+        formats = []
+        for format_id, format_dict in self._download_json(
+                '%s/playback/videoPlaybackInfo/%s' % (disco_base, video_id),
+                display_id, headers=headers)['data']['attributes']['streaming'].items():
+            if not isinstance(format_dict, dict):
+                continue
+            format_url = format_dict.get('url')
+            if not format_url:
+                continue
+            ext = determine_ext(format_url)
+            if format_id == 'dash' or ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, display_id, mpd_id='dash', fatal=False))
+            elif format_id == 'hls' or ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, display_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id='hls',
+                    fatal=False))
+            else:
+                formats.append({
+                    'url': format_url,
+                    'format_id': format_id,
+                })
+        self._sort_formats(formats)
+
+        series = None
+        try:
+            included = video.get('included')
+            if isinstance(included, list):
+                show = next(e for e in included if e.get('type') == 'show')
+                series = try_get(
+                    show, lambda x: x['attributes']['name'], compat_str)
+        except StopIteration:
+            pass
+
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'description': info.get('description'),
+            'duration': float_or_none(
+                info.get('videoDuration'), scale=1000),
+            'timestamp': unified_timestamp(info.get('publishStart')),
+            'series': series,
+            'season_number': int_or_none(info.get('seasonNumber')),
+            'episode_number': int_or_none(info.get('episodeNumber')),
+            'age_limit': int_or_none(info.get('minimum_age')),
+            'formats': formats,
+        }
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id = mobj.group('id')
@@ -113,72 +182,8 @@ class DPlayIE(InfoExtractor):
 
         if not video_id:
             host = mobj.group('host')
-            disco_base = 'https://disco-api.%s' % host
-            self._download_json(
-                '%s/token' % disco_base, display_id, 'Downloading token',
-                query={
-                    'realm': host.replace('.', ''),
-                })
-            video = self._download_json(
-                '%s/content/videos/%s' % (disco_base, display_id), display_id,
-                headers={
-                    'Referer': url,
-                    'x-disco-client': 'WEB:UNKNOWN:dplay-client:0.0.1',
-                }, query={
-                    'include': 'show'
-                })
-            video_id = video['data']['id']
-            info = video['data']['attributes']
-            title = info['name']
-            formats = []
-            for format_id, format_dict in self._download_json(
-                    '%s/playback/videoPlaybackInfo/%s' % (disco_base, video_id),
-                    display_id)['data']['attributes']['streaming'].items():
-                if not isinstance(format_dict, dict):
-                    continue
-                format_url = format_dict.get('url')
-                if not format_url:
-                    continue
-                ext = determine_ext(format_url)
-                if format_id == 'dash' or ext == 'mpd':
-                    formats.extend(self._extract_mpd_formats(
-                        format_url, display_id, mpd_id='dash', fatal=False))
-                elif format_id == 'hls' or ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        format_url, display_id, 'mp4',
-                        entry_protocol='m3u8_native', m3u8_id='hls',
-                        fatal=False))
-                else:
-                    formats.append({
-                        'url': format_url,
-                        'format_id': format_id,
-                    })
-            self._sort_formats(formats)
-
-            series = None
-            try:
-                included = video.get('included')
-                if isinstance(included, list):
-                    show = next(e for e in included if e.get('type') == 'show')
-                    series = try_get(
-                        show, lambda x: x['attributes']['name'], compat_str)
-            except StopIteration:
-                pass
-
-            return {
-                'id': video_id,
-                'display_id': display_id,
-                'title': title,
-                'description': info.get('description'),
-                'duration': float_or_none(
-                    info.get('videoDuration'), scale=1000),
-                'timestamp': unified_timestamp(info.get('publishStart')),
-                'series': series,
-                'season_number': int_or_none(info.get('seasonNumber')),
-                'episode_number': int_or_none(info.get('episodeNumber')),
-                'age_limit': int_or_none(info.get('minimum_age')),
-                'formats': formats,
-            }
+            return self._get_disco_api_info(
+                url, display_id, 'disco-api.' + host, host.replace('.', ''))
 
         info = self._download_json(
             'http://%s/api/v2/ajax/videos?video_id=%s' % (domain, video_id),
