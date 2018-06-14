@@ -309,26 +309,22 @@ class LyndaCourseIE(LyndaBaseIE):
         unaccessible_videos = 0
         entries = []
         
-        templateVars = {}
+        template_vars = {}
         date = course.get('DateReleasedUtc')
-        if date:
+        if isinstance(date, str) and len(date) > 10:
             date = date[6:10] + date[0:2] + date[3:5]
-            templateVars.update({'release_date': date})
+            template_vars.update({'release_date': date})
 
         authors = course.get("Authors")
-        if authors:
-            authorString = ''
+        if authors and isinstance(authors, list):
+            author_string = ''
             for author in authors:
-                authorString += author.get("Fullname") + ", "
-            authorString = authorString[:-2]
-            templateVars.update({'creator': authorString})
-
-        tags = course.get('Tags')
-        if tags:
-            for tag in tags:
-                if tag.get('TypeName') == 'Level':
-                    templateVars.update({'skill_level': tag.get('Name')})
-
+                if isinstance(author, dict):
+                    name = author.get("Fullname")
+                    if isinstance(name, str) and name:
+                        author_string += name + ", "
+            author_string = author_string[:-2]
+            template_vars.update({'creator': author_string})
         # Might want to extract videos right here from video['Formats'] as it seems 'Formats' is not provided
         # by single video API anymore
 
@@ -347,7 +343,7 @@ class LyndaCourseIE(LyndaBaseIE):
                         'chapter_number': int_or_none(chapter.get('ChapterIndex')),
                         'chapter_id': compat_str(chapter.get('ID')),
                     }
-                    entry.update(templateVars)
+                    entry.update(template_vars)
                     entries.append(entry)
 
         if unaccessible_videos > 0:
