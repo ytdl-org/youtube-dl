@@ -3150,9 +3150,13 @@ class GenericIE(InfoExtractor):
         jwplayer_data = self._find_jwplayer_data(
             webpage, video_id, transform_source=js_to_json)
         if jwplayer_data:
-            info = self._parse_jwplayer_data(
-                jwplayer_data, video_id, require_title=False, base_url=url)
-            return merge_dicts(info, info_dict)
+            try:
+                info = self._parse_jwplayer_data(
+                    jwplayer_data, video_id, require_title=False, base_url=url)
+                return merge_dicts(info, info_dict)
+            except ExtractorError:
+                # See https://github.com/rg3/youtube-dl/pull/16735
+                pass
 
         # Video.js embed
         mobj = re.search(
