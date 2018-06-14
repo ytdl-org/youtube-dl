@@ -361,6 +361,20 @@ class PBSIE(InfoExtractor):
             },
         },
         {
+            'url': 'https://www.pbs.org/wgbh/masterpiece/episodes/victoria-s2-e1/',
+            'info_dict': {
+                'id': '3007193718',
+                'ext': 'mp4',
+                'title': 'Victoria - A Soldier\'s Daughter / The Green-Eyed Monster',
+                'description': 'md5:37efbac85e0c09b009586523ec143652',
+                'duration': 6292,
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
             'url': 'http://www.pbs.org/wgbh/roadshow/watch/episode/2105-indianapolis-hour-2/',
             'info_dict': {
                 'id': '2365936247',
@@ -369,6 +383,21 @@ class PBSIE(InfoExtractor):
                 'description': 'md5:524b32249db55663e7231b6b8d1671a2',
                 'duration': 3180,
                 'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
+            # Test for the second id extractor
+            'url': 'https://player.pbs.org/partnerplayer/tOz9tM5ljOXQqIIWke53UA==/',
+            'info_dict': {
+                'id': '3011407934',
+                'ext': 'mp4',
+                'title': 'Stories from the Stage - Road Trip',
+                'duration': 1619,
+                'thumbnail': r're:^https?://.*\.JPG$',
             },
             'params': {
                 'skip_download': True,
@@ -471,7 +500,8 @@ class PBSIE(InfoExtractor):
 
             if not url:
                 url = self._og_search_url(webpage)
-
+            
+            url = self._proto_relative_url(url.strip())
             mobj = re.match(self._VALID_URL, url)
 
         player_id = mobj.group('player_id')
