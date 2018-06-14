@@ -15,7 +15,6 @@
  - **8tracks**
  - **91porn**
  - **9c9media**
- - **9c9media:stack**
  - **9gag**
  - **9now.com.au**
  - **abc.net.au**
@@ -48,6 +47,7 @@
  - **anitube.se**
  - **Anvato**
  - **AnySex**
+ - **APA**
  - **Aparat**
  - **AppleConnect**
  - **AppleDaily**: 臺灣蘋果日報
@@ -128,6 +128,8 @@
  - **BYUtv**
  - **Camdemy**
  - **CamdemyFolder**
+ - **CamModels**
+ - **CamTube**
  - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: mycanal.fr and piwiplus.fr
@@ -552,9 +554,6 @@
  - **nfl.com**
  - **NhkVod**
  - **nhl.com**
- - **nhl.com:news**: NHL news
- - **nhl.com:videocenter**
- - **nhl.com:videocenter:category**: NHL videocenter category
  - **nick.com**
  - **nick.de**
  - **nickelodeon:br**
@@ -792,6 +791,7 @@
  - **Spiegel**
  - **Spiegel:Article**: Articles on spiegel.de
  - **Spiegeltv**
+ - **sport.francetvinfo.fr**
  - **Sport5**
  - **SportBoxEmbed**
  - **SportDeutschland**
@@ -893,6 +893,7 @@
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
  - **TVN24**
+ - **TVNet**
  - **TVNoe**
  - **TVNow**
  - **TVNowList**

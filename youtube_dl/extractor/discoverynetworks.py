@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from .brightcove import BrightcoveLegacyIE
+from .dplay import DPlayIE
 from ..compat import (
     compat_parse_qs,
     compat_urlparse,
@@ -12,8 +12,13 @@ from ..compat import (
 from ..utils import smuggle_url
 
 
-class DiscoveryNetworksDeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:discovery|tlc|animalplanet|dmax)\.de/(?:.*#(?P<id>\d+)|(?:[^/]+/)*videos/(?P<title>[^/?#]+))'
+class DiscoveryNetworksDeIE(DPlayIE):
+    _VALID_URL = r'''(?x)https?://(?:www\.)?(?P<site>discovery|tlc|animalplanet|dmax)\.de/
+                        (?:
+                           .*\#(?P<id>\d+)|
+                           (?:[^/]+/)*videos/(?P<display_id>[^/?#]+)|
+                           programme/(?P<programme>[^/]+)/video/(?P<alternate_id>[^/]+)
+                        )'''
 
     _TESTS = [{
         'url': 'http://www.tlc.de/sendungen/breaking-amish/videos/#3235167922001',
@@ -40,6 +45,14 @@ class DiscoveryNetworksDeIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        alternate_id = mobj.group('alternate_id')
+        if alternate_id:
+            self._initialize_geo_bypass({
+                'countries': ['DE'],
+            })
+            return self._get_disco_api_info(
+                url, '%s/%s' % (mobj.group('programme'), alternate_id),
+                'sonic-eu1-prod.disco-api.com', mobj.group('site') + 'de')
         brightcove_id = mobj.group('id')
         if not brightcove_id:
             title = mobj.group('title')

@@ -510,6 +510,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IconaPop',
                 'license': 'Standard YouTube License',
                 'creator': 'Icona Pop',
+                'track': 'I Love It (feat. Charli XCX)',
+                'artist': 'Icona Pop',
             }
         },
         {
@@ -528,6 +530,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
                 'license': 'Standard YouTube License',
                 'creator': 'Justin Timberlake',
+                'track': 'Tunnel Vision',
+                'artist': 'Justin Timberlake',
                 'age_limit': 18,
             }
         },
@@ -597,7 +601,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'IB3lcPjvWLA',
                 'ext': 'm4a',
                 'title': 'Afrojack, Spree Wilson - The Spark ft. Spree Wilson',
-                'description': 'md5:12e7067fa6735a77bdcbb58cb1187d2d',
+                'description': 'md5:1900ed86ee514927b9e00fbead6969a5',
                 'duration': 244,
                 'uploader': 'AfrojackVEVO',
                 'uploader_id': 'AfrojackVEVO',
@@ -638,7 +642,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'duration': 219,
                 'upload_date': '20100909',
-                'uploader': 'The Amazing Atheist',
+                'uploader': 'TJ Kirk',
                 'uploader_id': 'TheAmazingAtheist',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/TheAmazingAtheist',
                 'license': 'Standard YouTube License',
@@ -668,10 +672,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=6kLq3WMV1nU',
             'info_dict': {
                 'id': '6kLq3WMV1nU',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': 'Dedication To My Ex (Miss That) (Lyric Video)',
                 'description': 'md5:33765bb339e1b47e7e72b5490139bb41',
-                'duration': 247,
+                'duration': 246,
                 'uploader': 'LloydVEVO',
                 'uploader_id': 'LloydVEVO',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/LloydVEVO',
@@ -733,7 +737,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'AllenMeow',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/AllenMeow',
                 'description': 'made by Wacom from Korea | 字幕&加油添醋 by TY\'s Allen | 感謝heylisa00cavey1001同學熱情提供梗及翻譯',
-                'uploader': '孫艾倫',
+                'uploader': '孫ᄋᄅ',
                 'license': 'Standard YouTube License',
                 'title': '[A-made] 變態妍字幕版 太妍 我就是這樣的人',
             },
@@ -760,7 +764,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=FIl7x6_3R5Y',
             'info_dict': {
                 'id': 'FIl7x6_3R5Y',
-                'ext': 'mp4',
+                'ext': 'webm',
                 'title': 'md5:7b81415841e02ecd4313668cde88737a',
                 'description': 'md5:116377fd2963b81ec4ce64b542173306',
                 'duration': 220,
@@ -769,8 +773,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/dorappi2000',
                 'uploader': 'dorappi2000',
                 'license': 'Standard YouTube License',
-                'formats': 'mincount:32',
+                'formats': 'mincount:31',
             },
+            'skip': 'not actual anymore',
         },
         # DASH manifest with segment_list
         {
@@ -885,7 +890,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'lsguqyKfVQg',
                 'ext': 'mp4',
                 'title': '{dark walk}; Loki/AC/Dishonored; collab w/Elflover21',
-                'alt_title': 'Dark Walk',
+                'alt_title': 'Dark Walk - Position Music',
                 'description': 'md5:8085699c11dc3f597ce0410b0dcbb34a',
                 'duration': 133,
                 'upload_date': '20151119',
@@ -893,7 +898,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IronSoulElf',
                 'uploader': 'IronSoulElf',
                 'license': 'Standard YouTube License',
-                'creator': 'Todd Haberman, Daniel Law Heath & Aaron Kaplan',
+                'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
+                'track': 'Dark Walk - Position Music',
+                'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
             },
             'params': {
                 'skip_download': True,
@@ -950,7 +957,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:dda0d780d5a6e120758d1711d062a867',
                 'duration': 4060,
                 'upload_date': '20151119',
-                'uploader': 'Bernie 2016',
+                'uploader': 'Bernie Sanders',
                 'uploader_id': 'UCH1dpzjCEiGAt8CXkryhkZg',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCH1dpzjCEiGAt8CXkryhkZg',
                 'license': 'Creative Commons Attribution license (reuse allowed)',
@@ -985,6 +992,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'This video is not available.',
         },
         {
             # YouTube Red video with episode data
@@ -993,7 +1001,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'iqKdEhx-dD4',
                 'ext': 'mp4',
                 'title': 'Isolation - Mind Field (Ep 1)',
-                'description': 'md5:8013b7ddea787342608f63a13ddc9492',
+                'description': 'md5:25b78d2f64ae81719f5c96319889b736',
                 'duration': 2085,
                 'upload_date': '20170118',
                 'uploader': 'Vsauce',
@@ -1026,7 +1034,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'UCEJYpZGqgUob0zVVEaLhvVg',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCEJYpZGqgUob0zVVEaLhvVg',
                 'license': 'Standard YouTube License',
-                'view_count': int,
             },
             'params': {
                 'skip_download': True,
@@ -1694,128 +1701,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
             raise ExtractorError('"rental" videos not supported. See https://github.com/rg3/youtube-dl/issues/359 for more information.', expected=True)
 
-        # Start extracting information
-        self.report_information_extraction(video_id)
-
-        # uploader
-        video_uploader = try_get(video_info, lambda x: x['author'][0], compat_str)
-        if video_uploader:
-            video_uploader = compat_urllib_parse_unquote_plus(video_uploader)
-        else:
-            self._downloader.report_warning('unable to extract uploader name')
-
-        # uploader_id
-        video_uploader_id = None
-        video_uploader_url = None
-        mobj = re.search(
-            r'<link itemprop="url" href="(?P<uploader_url>https?://www\.youtube\.com/(?:user|channel)/(?P<uploader_id>[^"]+))">',
-            video_webpage)
-        if mobj is not None:
-            video_uploader_id = mobj.group('uploader_id')
-            video_uploader_url = mobj.group('uploader_url')
-        else:
-            self._downloader.report_warning('unable to extract uploader nickname')
-
-        # thumbnail image
-        # We try first to get a high quality image:
-        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
-                            video_webpage, re.DOTALL)
-        if m_thumb is not None:
-            video_thumbnail = m_thumb.group(1)
-        elif 'thumbnail_url' not in video_info:
-            self._downloader.report_warning('unable to extract video thumbnail')
-            video_thumbnail = None
-        else:   # don't panic if we can't find it
-            video_thumbnail = compat_urllib_parse_unquote_plus(video_info['thumbnail_url'][0])
-
-        # upload date
-        upload_date = self._html_search_meta(
-            'datePublished', video_webpage, 'upload date', default=None)
-        if not upload_date:
-            upload_date = self._search_regex(
-                [r'(?s)id="eow-date.*?>(.*?)</span>',
-                 r'(?:id="watch-uploader-info".*?>.*?|["\']simpleText["\']\s*:\s*["\'])(?:Published|Uploaded|Streamed live|Started) on (.+?)[<"\']'],
-                video_webpage, 'upload date', default=None)
-        upload_date = unified_strdate(upload_date)
-
-        video_license = self._html_search_regex(
-            r'<h4[^>]+class="title"[^>]*>\s*License\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li',
-            video_webpage, 'license', default=None)
-
-        m_music = re.search(
-            r'''(?x)
-                <h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*
-                <ul[^>]*>\s*
-                <li>(?P<title>.+?)
-                by (?P<creator>.+?)
-                (?:
-                    \(.+?\)|
-                    <a[^>]*
-                        (?:
-                            \bhref=["\']/red[^>]*>|             # drop possible
-                            >\s*Listen ad-free with YouTube Red # YouTube Red ad
-                        )
-                    .*?
-                )?</li
-            ''',
-            video_webpage)
-        if m_music:
-            video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
-            video_creator = clean_html(m_music.group('creator'))
-        else:
-            video_alt_title = video_creator = None
-
-        m_episode = re.search(
-            r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
-            video_webpage)
-        if m_episode:
-            series = m_episode.group('series')
-            season_number = int(m_episode.group('season'))
-            episode_number = int(m_episode.group('episode'))
-        else:
-            series = season_number = episode_number = None
-
-        m_cat_container = self._search_regex(
-            r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
-            video_webpage, 'categories', default=None)
-        if m_cat_container:
-            category = self._html_search_regex(
-                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'category',
-                default=None)
-            video_categories = None if category is None else [category]
-        else:
-            video_categories = None
-
-        video_tags = [
-            unescapeHTML(m.group('content'))
-            for m in re.finditer(self._meta_regex('og:video:tag'), video_webpage)]
-
-        def _extract_count(count_name):
-            return str_to_int(self._search_regex(
-                r'-%s-button[^>]+><span[^>]+class="yt-uix-button-content"[^>]*>([\d,]+)</span>'
-                % re.escape(count_name),
-                video_webpage, count_name, default=None))
-
-        like_count = _extract_count('like')
-        dislike_count = _extract_count('dislike')
-
-        # subtitles
-        video_subtitles = self.extract_subtitles(video_id, video_webpage)
-        automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
-
-        video_duration = try_get(
-            video_info, lambda x: int_or_none(x['length_seconds'][0]))
-        if not video_duration:
-            video_duration = parse_duration(self._html_search_meta(
-                'duration', video_webpage, 'video duration'))
-
-        # annotations
-        video_annotations = None
-        if self._downloader.params.get('writeannotations', False):
-            video_annotations = self._extract_annotations(video_id)
-
-        chapters = self._extract_chapters(description_original, video_duration)
-
         def _extract_filesize(media_url):
             return int_or_none(self._search_regex(
                 r'\bclen[=/](\d+)', media_url, 'filesize', default=None))
@@ -1990,6 +1875,133 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 raise ExtractorError(error_message, expected=True)
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
+        # uploader
+        video_uploader = try_get(video_info, lambda x: x['author'][0], compat_str)
+        if video_uploader:
+            video_uploader = compat_urllib_parse_unquote_plus(video_uploader)
+        else:
+            self._downloader.report_warning('unable to extract uploader name')
+
+        # uploader_id
+        video_uploader_id = None
+        video_uploader_url = None
+        mobj = re.search(
+            r'<link itemprop="url" href="(?P<uploader_url>https?://www\.youtube\.com/(?:user|channel)/(?P<uploader_id>[^"]+))">',
+            video_webpage)
+        if mobj is not None:
+            video_uploader_id = mobj.group('uploader_id')
+            video_uploader_url = mobj.group('uploader_url')
+        else:
+            self._downloader.report_warning('unable to extract uploader nickname')
+
+        # thumbnail image
+        # We try first to get a high quality image:
+        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
+                            video_webpage, re.DOTALL)
+        if m_thumb is not None:
+            video_thumbnail = m_thumb.group(1)
+        elif 'thumbnail_url' not in video_info:
+            self._downloader.report_warning('unable to extract video thumbnail')
+            video_thumbnail = None
+        else:   # don't panic if we can't find it
+            video_thumbnail = compat_urllib_parse_unquote_plus(video_info['thumbnail_url'][0])
+
+        # upload date
+        upload_date = self._html_search_meta(
+            'datePublished', video_webpage, 'upload date', default=None)
+        if not upload_date:
+            upload_date = self._search_regex(
+                [r'(?s)id="eow-date.*?>(.*?)</span>',
+                 r'(?:id="watch-uploader-info".*?>.*?|["\']simpleText["\']\s*:\s*["\'])(?:Published|Uploaded|Streamed live|Started) on (.+?)[<"\']'],
+                video_webpage, 'upload date', default=None)
+        upload_date = unified_strdate(upload_date)
+
+        video_license = self._html_search_regex(
+            r'<h4[^>]+class="title"[^>]*>\s*License\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li',
+            video_webpage, 'license', default=None)
+
+        m_music = re.search(
+            r'''(?x)
+                <h4[^>]+class="title"[^>]*>\s*Music\s*</h4>\s*
+                <ul[^>]*>\s*
+                <li>(?P<title>.+?)
+                by (?P<creator>.+?)
+                (?:
+                    \(.+?\)|
+                    <a[^>]*
+                        (?:
+                            \bhref=["\']/red[^>]*>|             # drop possible
+                            >\s*Listen ad-free with YouTube Red # YouTube Red ad
+                        )
+                    .*?
+                )?</li
+            ''',
+            video_webpage)
+        if m_music:
+            video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
+            video_creator = clean_html(m_music.group('creator'))
+        else:
+            video_alt_title = video_creator = None
+
+        def extract_meta(field):
+            return self._html_search_regex(
+                r'<h4[^>]+class="title"[^>]*>\s*%s\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li>\s*' % field,
+                video_webpage, field, default=None)
+
+        track = extract_meta('Song')
+        artist = extract_meta('Artist')
+
+        m_episode = re.search(
+            r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
+            video_webpage)
+        if m_episode:
+            series = m_episode.group('series')
+            season_number = int(m_episode.group('season'))
+            episode_number = int(m_episode.group('episode'))
+        else:
+            series = season_number = episode_number = None
+
+        m_cat_container = self._search_regex(
+            r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
+            video_webpage, 'categories', default=None)
+        if m_cat_container:
+            category = self._html_search_regex(
+                r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'category',
+                default=None)
+            video_categories = None if category is None else [category]
+        else:
+            video_categories = None
+
+        video_tags = [
+            unescapeHTML(m.group('content'))
+            for m in re.finditer(self._meta_regex('og:video:tag'), video_webpage)]
+
+        def _extract_count(count_name):
+            return str_to_int(self._search_regex(
+                r'-%s-button[^>]+><span[^>]+class="yt-uix-button-content"[^>]*>([\d,]+)</span>'
+                % re.escape(count_name),
+                video_webpage, count_name, default=None))
+
+        like_count = _extract_count('like')
+        dislike_count = _extract_count('dislike')
+
+        # subtitles
+        video_subtitles = self.extract_subtitles(video_id, video_webpage)
+        automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
+
+        video_duration = try_get(
+            video_info, lambda x: int_or_none(x['length_seconds'][0]))
+        if not video_duration:
+            video_duration = parse_duration(self._html_search_meta(
+                'duration', video_webpage, 'video duration'))
+
+        # annotations
+        video_annotations = None
+        if self._downloader.params.get('writeannotations', False):
+            video_annotations = self._extract_annotations(video_id)
+
+        chapters = self._extract_chapters(description_original, video_duration)
+
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
             dash_mpd_fatal = True
@@ -2055,9 +2067,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'uploader_url': video_uploader_url,
             'upload_date': upload_date,
             'license': video_license,
-            'creator': video_creator,
+            'creator': video_creator or artist,
             'title': video_title,
-            'alt_title': video_alt_title,
+            'alt_title': video_alt_title or track,
             'thumbnail': video_thumbnail,
             'description': video_description,
             'categories': video_categories,
@@ -2080,6 +2092,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'series': series,
             'season_number': season_number,
             'episode_number': episode_number,
+            'track': track,
+            'artist': artist,
         }
 
 

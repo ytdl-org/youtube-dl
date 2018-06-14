@@ -361,6 +361,21 @@ class PBSIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://www.pbs.org/wgbh/roadshow/watch/episode/2105-indianapolis-hour-2/',
+            'info_dict': {
+                'id': '2365936247',
+                'ext': 'mp4',
+                'title': 'Antiques Roadshow - Indianapolis, Hour 2',
+                'description': 'md5:524b32249db55663e7231b6b8d1671a2',
+                'duration': 3180,
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
             'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
             'only_matching': True,
         },
@@ -422,6 +437,7 @@ class PBSIE(InfoExtractor):
                 r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
                 r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([0-9]+)"/>',  # jwplayer
                 r"(?s)window\.PBS\.playerConfig\s*=\s*{.*?id\s*:\s*'([0-9]+)',",
+                r'<div[^>]+\bdata-cove-id=["\'](\d+)"',  # http://www.pbs.org/wgbh/roadshow/watch/episode/2105-indianapolis-hour-2/
             ]
 
             media_id = self._search_regex(

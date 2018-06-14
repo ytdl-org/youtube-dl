@@ -147,6 +147,7 @@ from .camdemy import (
     CamdemyFolderIE
 )
 from .cammodels import CamModelsIE
+from .camtube import CamTubeIE
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
@@ -381,6 +382,7 @@ from .francetv import (
     FranceTVSiteIE,
     FranceTVEmbedIE,
     FranceTVInfoIE,
+    FranceTVInfoSportIE,
     FranceTVJeunesseIE,
     GenerationWhatIE,
     CultureboxIE,
@@ -705,12 +707,7 @@ from .nexx import (
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhk import NhkVodIE
-from .nhl import (
-    NHLVideocenterIE,
-    NHLNewsIE,
-    NHLVideocenterCategoryIE,
-    NHLIE,
-)
+from .nhl import NHLIE
 from .nick import (
     NickIE,
     NickBrIE,
@@ -1142,6 +1139,7 @@ from .tvc import (
 from .tvigle import TvigleIE
 from .tvland import TVLandIE
 from .tvn24 import TVN24IE
+from .tvnet import TVNetIE
 from .tvnoe import TVNoeIE
 from .tvnow import (
     TVNowIE,

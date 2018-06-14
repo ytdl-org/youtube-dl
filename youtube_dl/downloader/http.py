@@ -217,10 +217,11 @@ class HttpFD(FileDownloader):
             before = start  # start measuring
 
             def retry(e):
-                if ctx.tmpfilename != '-':
+                to_stdout = ctx.tmpfilename == '-'
+                if not to_stdout:
                     ctx.stream.close()
                 ctx.stream = None
-                ctx.resume_len = os.path.getsize(encodeFilename(ctx.tmpfilename))
+                ctx.resume_len = byte_counter if to_stdout else os.path.getsize(encodeFilename(ctx.tmpfilename))
                 raise RetryDownload(e)
 
             while True:
