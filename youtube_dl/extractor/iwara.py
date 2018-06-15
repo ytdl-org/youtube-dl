@@ -85,19 +85,26 @@ class IwaraIE(InfoExtractor):
         upload_date = unified_strdate(self._html_search_regex(
             r'作成日:(\d{4}-\d{2}-\d{2})', webpage, 'upload_date', fatal=False))
 
-        uploader = get_element_by_class('username', webpage)
+        node_info_class = get_element_by_class('node-info', webpage)
+        if node_info_class is not None:
+            uploader = self._html_search_regex(
+                r'<a.*title="ユーザー (.+) の写真[^>]+', node_info_class, 'uploader', fatal=False)
 
         description = clean_html(get_element_by_class('field-type-text-with-summary', webpage))
 
         comments_id = get_element_by_id('comments', webpage)
-        comment_count = int_or_none(self._html_search_regex(
-            r'([\d,]+)', get_element_by_class('title', comments_id), 'comment_count', fatal=False))
+        if comments_id is not None:
+            comments_header = get_element_by_class('title', comments_id)
+            if comments_header is not None:
+                comment_count = int_or_none(self._html_search_regex(
+                r'([\d,]+)', get_element_by_class('title', comments_id), 'comment_count', fatal=False))
 
         node_views_class = get_element_by_class('node-views', webpage)
-        like_count = str_to_int(self._html_search_regex(
-            r'glyphicon-heart[^>]+><\/i>\s+([\d,]+)', node_views_class, 'like_count', fatal=False))
-        view_count = str_to_int(self._html_search_regex(
-            r'glyphicon-eye-open[^>]+><\/i>\s+([\d,]+)', node_views_class, 'view_count', fatal=False))
+        if node_views_class is not None:
+            like_count = str_to_int(self._html_search_regex(
+                r'glyphicon-heart[^>]+></i>\s+([\d,]+)', node_views_class, 'like_count', fatal=False))
+            view_count = str_to_int(self._html_search_regex(
+                r'glyphicon-eye-open[^>]+></i>\s+([\d,]+)', node_views_class, 'view_count', fatal=False))
 
         formats = []
         for a_format in video_data:
