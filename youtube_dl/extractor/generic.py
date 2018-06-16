@@ -3123,7 +3123,7 @@ class GenericIE(InfoExtractor):
                 info = self._parse_jwplayer_data(
                     jwplayer_data, video_id, require_title=False, base_url=url)
                 return merge_dicts(info, info_dict)
-            except ExtractorError, e:
+            except ExtractorError as e:
                 self.to_screen(e.msg_without_bug_report)
                 self.to_screen("Trying different extractor")
 
