@@ -2069,6 +2069,20 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'TODO: fix nested playlists processing in tests',
         },
+        {
+            # Test for fallback after _parse_jwplayer_data fails
+            # See https://github.com/rg3/youtube-dl/pull/16735
+            'url': 'http://www.anime1.com/watch/nichijou/episode-1',
+            'info_dict': {
+                'id': '[HorribleSubs] Nichijou - 01 [480p]_a1_BRK',
+                'title': 'Nichijou - Episode 1',
+                'ext': 'mp4',
+                'uploader': 'www.anime1.com',
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
