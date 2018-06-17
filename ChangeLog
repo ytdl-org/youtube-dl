@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.06.18
 
 Core
 * [downloader/rtmp] Fix downloading in verbose mode (#16736)
