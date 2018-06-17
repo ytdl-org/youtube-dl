@@ -1,3 +1,22 @@
+version <unreleased>
+
+Core
+* [downloader/rtmp] Fix downloading in verbose mode (#16736)
+
+Extractors
++ [markiza] Add support for markiza.sk (#16750)
+* [wat] Try all supported adaptive URLs
++ [6play] Add support for rtlplay.be and extract hd usp formats
++ [rtbf] Add support for audio and live streams (#9638, #11923)
++ [rtbf] Extract HLS, DASH and all HTTP formats
++ [rtbf] Extract subtitles
++ [rtbf] Fixup specific HTTP URLs (#16101)
++ [expressen] Add support for expressen.se
+* [vidzi] Fix extraction (#16678)
+* [pbs] Improve extraction (#16623, #16684)
+* [bilibili] Restrict cid regular expression (#16638, #16734)
+
+
 version 2018.06.14
 
 Core
