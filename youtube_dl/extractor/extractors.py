@@ -590,6 +590,10 @@ from .mangomolo import (
     MangomoloLiveIE,
 )
 from .manyvids import ManyVidsIE
+from .markiza import (
+    MarkizaIE,
+    MarkizaPageIE,
+)
 from .massengeschmacktv import MassengeschmackTVIE
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
