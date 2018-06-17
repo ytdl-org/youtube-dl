@@ -19,6 +19,7 @@ from ..compat import (
     compat_cookies,
     compat_etree_fromstring,
     compat_getpass,
+    compat_integer_types,
     compat_http_client,
     compat_os_name,
     compat_str,
@@ -548,8 +549,26 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return compat_str(type(self).__name__[:-2])
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
-        """ Returns the response handle """
+    @staticmethod
+    def __can_accept_status_code(err, expected_status):
+        assert isinstance(err, compat_urllib_error.HTTPError)
+        if expected_status is None:
+            return False
+        if isinstance(expected_status, compat_integer_types):
+            return err.code == expected_status
+        elif isinstance(expected_status, (list, tuple)):
+            return err.code in expected_status
+        elif callable(expected_status):
+            return expected_status(err.code) is True
+        else:
+            assert False
+
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers={}, query={}, expected_status=None):
+        """
+        Return the response handle.
+
+        See _download_webpage docstring for arguments specification.
+        """
         if note is None:
             self.report_download_webpage(video_id)
         elif note is not False:
@@ -578,6 +597,10 @@ class InfoExtractor(object):
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            if isinstance(err, compat_urllib_error.HTTPError):
+                if self.__can_accept_status_code(err, expected_status):
+                    return err.fp
+
             if errnote is False:
                 return False
             if errnote is None:
@@ -590,13 +613,17 @@ class InfoExtractor(object):
                 self._downloader.report_warning(errmsg)
                 return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}):
-        """ Returns a tuple (page content as string, URL handle) """
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}, expected_status=None):
+        """
+        Return a tuple (page content as string, URL handle).
+
+        See _download_webpage docstring for arguments specification.
+        """
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
 
-        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, data=data, headers=headers, query=query)
+        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, data=data, headers=headers, query=query, expected_status=expected_status)
         if urlh is False:
             assert not fatal
             return False
@@ -685,13 +712,52 @@ class InfoExtractor(object):
 
         return content
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers={}, query={}):
-        """ Returns the data of the page as a string """
+    def _download_webpage(
+            self, url_or_request, video_id, note=None, errnote=None,
+            fatal=True, tries=1, timeout=5, encoding=None, data=None,
+            headers={}, query={}, expected_status=None):
+        """
+        Return the data of the page as a string.
+
+        Arguments:
+        url_or_request -- plain text URL as a string or
+            a compat_urllib_request.Requestobject
+        video_id -- Video/playlist/item identifier (string)
+
+        Keyword arguments:
+        note -- note printed before downloading (string)
+        errnote -- note printed in case of an error (string)
+        fatal -- flag denoting whether error should be considered fatal,
+            i.e. whether it should cause ExtractionError to be raised,
+            otherwise a warning will be reported and extraction continued
+        tries -- number of tries
+        timeout -- sleep interval between tries
+        encoding -- encoding for a page content decoding, guessed automatically
+            when not explicitly specified
+        data -- POST data (bytes)
+        headers -- HTTP headers (dict)
+        query -- URL query (dict)
+        expected_status -- allows to accept failed HTTP requests (non 2xx
+            status code) by explicitly specifying a set of accepted status
+            codes. Can be any of the following entities:
+                - an integer type specifying an exact failed status code to
+                  accept
+                - a list or a tuple of integer types specifying a list of
+                  failed status codes to accept
+                - a callable accepting an actual failed status code and
+                  returning True if it should be accepted
+            Note that this argument does not affect success status codes (2xx)
+            which are always accepted.
+        """
+
         success = False
         try_count = 0
         while success is False:
             try:
-                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal, encoding=encoding, data=data, headers=headers, query=query)
+                res = self._download_webpage_handle(
+                    url_or_request, video_id, note, errnote, fatal,
+                    encoding=encoding, data=data, headers=headers, query=query,
+                    expected_status=expected_status)
                 success = True
             except compat_http_client.IncompleteRead as e:
                 try_count += 1
@@ -707,11 +773,17 @@ class InfoExtractor(object):
     def _download_xml_handle(
             self, url_or_request, video_id, note='Downloading XML',
             errnote='Unable to download XML', transform_source=None,
-            fatal=True, encoding=None, data=None, headers={}, query={}):
-        """Return a tuple (xml as an xml.etree.ElementTree.Element, URL handle)"""
+            fatal=True, encoding=None, data=None, headers={}, query={},
+            expected_status=None):
+        """
+        Return a tuple (xml as an xml.etree.ElementTree.Element, URL handle).
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_webpage_handle(
             url_or_request, video_id, note, errnote, fatal=fatal,
-            encoding=encoding, data=data, headers=headers, query=query)
+            encoding=encoding, data=data, headers=headers, query=query,
+            expected_status=expected_status)
         if res is False:
             return res
         xml_string, urlh = res
@@ -719,15 +791,21 @@ class InfoExtractor(object):
             xml_string, video_id, transform_source=transform_source,
             fatal=fatal), urlh
 
-    def _download_xml(self, url_or_request, video_id,
-                      note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True, encoding=None,
-                      data=None, headers={}, query={}):
-        """Return the xml as an xml.etree.ElementTree.Element"""
+    def _download_xml(
+            self, url_or_request, video_id,
+            note='Downloading XML', errnote='Unable to download XML',
+            transform_source=None, fatal=True, encoding=None,
+            data=None, headers={}, query={}, expected_status=None):
+        """
+        Return the xml as an xml.etree.ElementTree.Element.
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_xml_handle(
             url_or_request, video_id, note=note, errnote=errnote,
             transform_source=transform_source, fatal=fatal, encoding=encoding,
-            data=data, headers=headers, query=query)
+            data=data, headers=headers, query=query,
+            expected_status=expected_status)
         return res if res is False else res[0]
 
     def _parse_xml(self, xml_string, video_id, transform_source=None, fatal=True):
@@ -745,11 +823,17 @@ class InfoExtractor(object):
     def _download_json_handle(
             self, url_or_request, video_id, note='Downloading JSON metadata',
             errnote='Unable to download JSON metadata', transform_source=None,
-            fatal=True, encoding=None, data=None, headers={}, query={}):
-        """Return a tuple (JSON object, URL handle)"""
+            fatal=True, encoding=None, data=None, headers={}, query={},
+            expected_status=None):
+        """
+        Return a tuple (JSON object, URL handle).
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_webpage_handle(
             url_or_request, video_id, note, errnote, fatal=fatal,
-            encoding=encoding, data=data, headers=headers, query=query)
+            encoding=encoding, data=data, headers=headers, query=query,
+            expected_status=expected_status)
         if res is False:
             return res
         json_string, urlh = res
@@ -760,11 +844,18 @@ class InfoExtractor(object):
     def _download_json(
             self, url_or_request, video_id, note='Downloading JSON metadata',
             errnote='Unable to download JSON metadata', transform_source=None,
-            fatal=True, encoding=None, data=None, headers={}, query={}):
+            fatal=True, encoding=None, data=None, headers={}, query={},
+            expected_status=None):
+        """
+        Return the JSON object as a dict.
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_json_handle(
             url_or_request, video_id, note=note, errnote=errnote,
             transform_source=transform_source, fatal=fatal, encoding=encoding,
-            data=data, headers=headers, query=query)
+            data=data, headers=headers, query=query,
+            expected_status=expected_status)
         return res if res is False else res[0]
 
     def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
