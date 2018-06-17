@@ -110,7 +110,11 @@ class MarkizaPageIE(InfoExtractor):
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, playlist_id)
+        webpage = self._download_webpage(
+            # Downloading for some hosts (e.g. dajto, doma) fails with 500
+            # although everything seems to be OK, so considering 500
+            # status code to be expected.
+            url, playlist_id, expected_status=500)
 
         entries = [
             self.url_result('http://videoarchiv.markiza.sk/video/%s' % video_id)
