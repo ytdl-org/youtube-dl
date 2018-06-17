@@ -21,7 +21,6 @@ from ..utils import (
     urljoin,
 )
 from ..compat import (
-    compat_etree_fromstring,
     compat_HTTPError,
     compat_urlparse,
 )
@@ -334,14 +333,9 @@ class BBCCoUkIE(InfoExtractor):
         self._raise_extractor_error(last_exception)
 
     def _download_media_selector_url(self, url, programme_id=None):
-        try:
-            media_selection = self._download_xml(
-                url, programme_id, 'Downloading media selection XML')
-        except ExtractorError as ee:
-            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code in (403, 404):
-                media_selection = compat_etree_fromstring(ee.cause.read().decode('utf-8'))
-            else:
-                raise
+        media_selection = self._download_xml(
+            url, programme_id, 'Downloading media selection XML',
+            expected_status=(403, 404))
         return self._process_media_selector(media_selection, programme_id)
 
     def _process_media_selector(self, media_selection, programme_id):
