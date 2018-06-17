@@ -97,7 +97,7 @@ class IwaraIE(InfoExtractor):
             comments_header = get_element_by_class('title', comments_id)
             if comments_header is not None:
                 comment_count = int_or_none(self._html_search_regex(
-                r'([\d,]+)', get_element_by_class('title', comments_id), 'comment_count', fatal=False))
+                r'([\d,]+)', comments_header, 'comment_count', fatal=False))
 
         node_views_class = get_element_by_class('node-views', webpage)
         if node_views_class is not None:
