@@ -19,8 +19,8 @@ class TVNowBaseIE(InfoExtractor):
     _VIDEO_FIELDS = (
         'id', 'title', 'free', 'geoblocked', 'articleLong', 'articleShort',
         'broadcastStartDate', 'isDrm', 'duration', 'season', 'episode',
-        'manifest.dashclear', 'format.title', 'format.defaultImage169Format',
-        'format.defaultImage169Logo')
+        'manifest.dashclear', 'manifest.hlsclear', 'manifest.smoothclear',
+        'format.title', 'format.defaultImage169Format', 'format.defaultImage169Logo')
 
     def _call_api(self, path, video_id, query):
         return self._download_json(
@@ -31,27 +31,42 @@ class TVNowBaseIE(InfoExtractor):
         video_id = compat_str(info['id'])
         title = info['title']
 
-        mpd_url = info['manifest']['dashclear']
-        if not mpd_url:
+        paths = []
+        for manifest_url in (info.get('manifest') or {}).values():
+            if not manifest_url:
+                continue
+            manifest_url = update_url_query(manifest_url, {'filter': ''})
+            path = self._search_regex(r'https?://[^/]+/(.+?)\.ism/', manifest_url, 'path')
+            if path in paths:
+                continue
+            paths.append(path)
+
+            def url_repl(proto, suffix):
+                return re.sub(
+                    r'(?:hls|dash|hss)([.-])', proto + r'\1', re.sub(
+                        r'\.ism/(?:[^.]*\.(?:m3u8|mpd)|[Mm]anifest)',
+                        '.ism/' + suffix, manifest_url))
+
+            formats = self._extract_mpd_formats(
+                url_repl('dash', '.mpd'), video_id,
+                mpd_id='dash', fatal=False)
+            formats.extend(self._extract_ism_formats(
+                url_repl('hss', 'Manifest'),
+                video_id, ism_id='mss', fatal=False))
+            formats.extend(self._extract_m3u8_formats(
+                url_repl('hls', '.m3u8'), video_id, 'mp4',
+                'm3u8_native', m3u8_id='hls', fatal=False))
+            if formats:
+                break
+        else:
             if info.get('isDrm'):
                 raise ExtractorError(
                     'Video %s is DRM protected' % video_id, expected=True)
             if info.get('geoblocked'):
-                raise ExtractorError(
-                    'Video %s is not available from your location due to geo restriction' % video_id,
-                    expected=True)
+                raise self.raise_geo_restricted()
             if not info.get('free', True):
                 raise ExtractorError(
                     'Video %s is not available for free' % video_id, expected=True)
-
-        mpd_url = update_url_query(mpd_url, {'filter': ''})
-        formats = self._extract_mpd_formats(mpd_url, video_id, mpd_id='dash', fatal=False)
-        formats.extend(self._extract_ism_formats(
-            mpd_url.replace('dash.', 'hss.').replace('/.mpd', '/Manifest'),
-            video_id, ism_id='mss', fatal=False))
-        formats.extend(self._extract_m3u8_formats(
-            mpd_url.replace('dash.', 'hls.').replace('/.mpd', '/.m3u8'),
-            video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
         self._sort_formats(formats)
 
         description = info.get('articleLong') or info.get('articleShort')
@@ -88,7 +103,7 @@ class TVNowBaseIE(InfoExtractor):
 class TVNowIE(TVNowBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:www\.)?tvnow\.(?:de|at|ch)/[^/]+/
+                        (?:www\.)?tvnow\.(?:de|at|ch)/(?P<station>[^/]+)/
                         (?P<show_id>[^/]+)/
                         (?!(?:list|jahr)(?:/|$))(?P<id>[^/?\#&]+)
                     '''
@@ -140,11 +155,13 @@ class TVNowIE(TVNowBaseIE):
     }]
 
     def _real_extract(self, url):
-        display_id = '%s/%s' % re.match(self._VALID_URL, url).groups()
+        mobj = re.match(self._VALID_URL, url)
+        display_id = '%s/%s' % mobj.group(2, 3)
 
         info = self._call_api(
             'movies/' + display_id, display_id, query={
                 'fields': ','.join(self._VIDEO_FIELDS),
+                'station': mobj.group(1),
             })
 
         return self._extract_video(info, display_id)
