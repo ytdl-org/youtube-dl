@@ -99,7 +99,7 @@ class RTBFIE(InfoExtractor):
         http_url = data.get('url')
         if formats and http_url and re.search(height_re, http_url):
             http_url = fix_url(http_url)
-            for m3u8_f in formats.copy():
+            for m3u8_f in formats[:]:
                 height = m3u8_f.get('height')
                 if not height:
                     continue
