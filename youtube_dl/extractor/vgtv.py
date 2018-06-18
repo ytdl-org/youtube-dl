@@ -24,6 +24,7 @@ class VGTVIE(XstreamIE):
         'aftenposten.no/webtv': 'aptv',
         'ap.vgtv.no/webtv': 'aptv',
         'tv.aftonbladet.se/abtv': 'abtv',
+        'www.aftonbladet.se/tv': 'abtv',
     }
 
     _APP_NAME_TO_VENDOR = {
@@ -44,7 +45,7 @@ class VGTVIE(XstreamIE):
                     (?:
                         (?:\#!/)?(?:video|live)/|
                         embed?.*id=|
-                        articles/
+                        a(?:rticles)?/
                     )|
                     (?P<appname>
                         %s
@@ -141,6 +142,10 @@ class VGTVIE(XstreamIE):
         },
         {
             'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://www.aftonbladet.se/tv/a/36015',
             'only_matching': True,
         },
         {
