@@ -1,3 +1,21 @@
+version <unreleased>
+
+Core
++ [extractor/common] Introduce expected_status in _download_* methods
+  for convenient accept of HTTP requests failed with non 2xx status codes
++ [compat] Introduce compat_integer_types
+
+Extractors
+* [peertube] Improve generic support (#16733)
++ [6play] Use geo verification headers
+* [rtbf] Fix extraction for python 3.2
+* [vgtv] Improve HLS formats extraction
++ [vgtv] Add support for www.aftonbladet.se/tv URLs
+* [bbccouk] Use expected_status
+* [markiza] Expect 500 HTTP status code
+* [tvnow] Try all clear manifest URLs (#15361)
+
+
 version 2018.06.18
 
 Core
