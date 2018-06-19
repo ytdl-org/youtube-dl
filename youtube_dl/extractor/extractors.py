@@ -928,6 +928,7 @@ from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETe
 from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
 from .rudo import RudoIE
+from .rugbypass import RugbyPassIE
 from .ruhd import RUHDIE
 from .ruleporn import RulePornIE
 from .rutube import (
