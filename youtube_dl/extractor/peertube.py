@@ -116,12 +116,14 @@ class PeerTubeIE(InfoExtractor):
                             videos\.tcit\.fr|
                             peertube\.cpy\.re
                         )'''
+    _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
     _VALID_URL = r'''(?x)
-                    https?://
-                        %s
-                        /(?:videos/(?:watch|embed)|api/v\d/videos)/
-                        (?P<id>[^/?\#&]+)
-                    ''' % _INSTANCES_RE
+                    (?:
+                        peertube:(?P<host>[^:]+):|
+                        https?://(?P<host_2>%s)/(?:videos/(?:watch|embed)|api/v\d/videos)/
+                    )
+                    (?P<id>%s)
+                    ''' % (_INSTANCES_RE, _UUID_RE)
     _TESTS = [{
         'url': 'https://peertube.moe/videos/watch/2790feb0-8120-4e63-9af3-c943c69f5e6c',
         'md5': '80f24ff364cc9d333529506a263e7feb',
@@ -157,21 +159,40 @@ class PeerTubeIE(InfoExtractor):
     }, {
         'url': 'https://tube.openalgeria.org/api/v1/videos/c1875674-97d0-4c94-a058-3f7e64c962e8',
         'only_matching': True,
+    }, {
+        'url': 'peertube:video.blender.org:b37a5b9f-e6b5-415c-b700-04a5cd6ec205',
+        'only_matching': True,
     }]
 
     @staticmethod
-    def _extract_urls(webpage):
-        return [
-            mobj.group('url')
-            for mobj in re.finditer(
-                r'''(?x)<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//%s/videos/embed/[^/?\#&]+)\1'''
-                % PeerTubeIE._INSTANCES_RE, webpage)]
+    def _extract_peertube_url(webpage, source_url):
+        mobj = re.match(
+            r'https?://(?P<host>[^/]+)/videos/watch/(?P<id>%s)'
+            % PeerTubeIE._UUID_RE, source_url)
+        if mobj and any(p in webpage for p in (
+                '<title>PeerTube<',
+                'There will be other non JS-based clients to access PeerTube',
+                '>We are sorry but it seems that PeerTube is not compatible with your web browser.<')):
+            return 'peertube:%s:%s' % mobj.group('host', 'id')
+
+    @staticmethod
+    def _extract_urls(webpage, source_url):
+        entries = re.findall(
+            r'''(?x)<iframe[^>]+\bsrc=["\'](?P<url>(?:https?:)?//%s/videos/embed/%s)'''
+            % (PeerTubeIE._INSTANCES_RE, PeerTubeIE._UUID_RE), webpage)
+        if not entries:
+            peertube_url = PeerTubeIE._extract_peertube_url(webpage, source_url)
+            if peertube_url:
+                entries = [peertube_url]
+        return entries
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host') or mobj.group('host_2')
+        video_id = mobj.group('id')
 
         video = self._download_json(
-            urljoin(url, '/api/v1/videos/%s' % video_id), video_id)
+            'https://%s/api/v1/videos/%s' % (host, video_id), video_id)
 
         title = video['name']
 

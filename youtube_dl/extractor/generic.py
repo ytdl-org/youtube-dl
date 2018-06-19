@@ -3076,7 +3076,7 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 cloudflarestream_urls, video_id, video_title, ie=CloudflareStreamIE.ie_key())
 
-        peertube_urls = PeerTubeIE._extract_urls(webpage)
+        peertube_urls = PeerTubeIE._extract_urls(webpage, url)
         if peertube_urls:
             return self.playlist_from_matches(
                 peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
