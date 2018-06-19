@@ -71,7 +71,9 @@ class SixPlayIE(InfoExtractor):
             if container == 'm3u8' or ext == 'm3u8':
                 if protocol == 'usp':
                     if compat_parse_qs(compat_urllib_parse_urlparse(asset_url).query).get('token', [None])[0]:
-                        urlh = self._request_webpage(asset_url, video_id, fatal=False)
+                        urlh = self._request_webpage(
+                            asset_url, video_id, fatal=False,
+                            headers=self.geo_verification_headers())
                         if not urlh:
                             continue
                         asset_url = urlh.geturl()
