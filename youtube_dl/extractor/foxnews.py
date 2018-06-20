@@ -76,7 +76,7 @@ class FoxNewsIE(AMPIE):
 
 
 class FoxNewsArticleIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?foxnews\.com/(?!v)([^/]+/)+(?P<id>[a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:insider\.)?foxnews\.com/(?!v)([^/]+/)+(?P<id>[a-z-]+)'
     IE_NAME = 'foxnews:article'
 
     _TESTS = [{
@@ -107,6 +107,9 @@ class FoxNewsArticleIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'http://insider.foxnews.com/2016/08/25/univ-wisconsin-student-group-pushing-silence-certain-words',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -122,47 +125,3 @@ class FoxNewsArticleIE(InfoExtractor):
 
         return self.url_result(
             FoxNewsIE._extract_urls(webpage)[0], FoxNewsIE.ie_key())
-
-
-class FoxNewsInsiderIE(InfoExtractor):
-    _VALID_URL = r'https?://insider\.foxnews\.com/([^/]+/)+(?P<id>[a-z-]+)'
-    IE_NAME = 'foxnews:insider'
-
-    _TEST = {
-        'url': 'http://insider.foxnews.com/2016/08/25/univ-wisconsin-student-group-pushing-silence-certain-words',
-        'md5': 'a10c755e582d28120c62749b4feb4c0c',
-        'info_dict': {
-            'id': '5099377331001',
-            'display_id': 'univ-wisconsin-student-group-pushing-silence-certain-words',
-            'ext': 'mp4',
-            'title': 'Student Group: Saying \'Politically Correct,\' \'Trash\' and \'Lame\' Is Offensive',
-            'description': 'Is campus censorship getting out of control?',
-            'timestamp': 1472168725,
-            'upload_date': '20160825',
-            'thumbnail': r're:^https?://.*\.jpg$',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-        'add_ie': [FoxNewsIE.ie_key()],
-    }
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
-        embed_url = self._html_search_meta('embedUrl', webpage, 'embed URL')
-
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
-
-        return {
-            '_type': 'url_transparent',
-            'ie_key': FoxNewsIE.ie_key(),
-            'url': embed_url,
-            'display_id': display_id,
-            'title': title,
-            'description': description,
-        }
