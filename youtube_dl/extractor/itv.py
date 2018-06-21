@@ -13,16 +13,16 @@ from ..compat import (
     compat_etree_register_namespace,
 )
 from ..utils import (
+    determine_ext,
+    ExtractorError,
     extract_attributes,
-    xpath_with_ns,
-    xpath_element,
-    xpath_text,
     int_or_none,
     merge_dicts,
     parse_duration,
     smuggle_url,
-    ExtractorError,
-    determine_ext,
+    xpath_with_ns,
+    xpath_element,
+    xpath_text,
 )
 
 
