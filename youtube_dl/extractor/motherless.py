@@ -123,7 +123,7 @@ class MotherlessIE(InfoExtractor):
 
 
 class MotherlessGroupIE(InfoExtractor):
-    _VALID_URL = 'https?://(?:www\.)?motherless\.com/gv?/(?P<id>[a-z0-9_]+)'
+    _VALID_URL = r'https?://(?:www\.)?motherless\.com/gv?/(?P<id>[a-z0-9_]+)'
     _TESTS = [{
         'url': 'http://motherless.com/g/movie_scenes',
         'info_dict': {
