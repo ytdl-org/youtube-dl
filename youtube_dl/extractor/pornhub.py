@@ -115,9 +115,6 @@ class PornHubIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # playlist loading can lead to cookies here, interferring with platform settings
-        self._downloader.cookiejar.clear('.pornhub.com')
-
         self._set_cookie('pornhub.com', 'age_verified', '1')
 
         def dl_webpage(platform):
@@ -262,6 +259,9 @@ class PornHubPlaylistBaseIE(InfoExtractor):
         title = playlist.get('title') or self._search_regex(
             r'>Videos\s+in\s+(.+?)\s+[Pp]laylist<', webpage, 'title', fatal=False)
 
+        # list loading can lead to cookies in .pornhub.com, interferring with platform settings when loading the pages
+        self._downloader.cookiejar.clear('.pornhub.com')
+
         return self.playlist_result(
             entries, playlist_id, title, playlist.get('description'))
 
@@ -333,5 +333,8 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
             if not page_entries:
                 break
             entries.extend(page_entries)
+
+        # list loading can lead to cookies in .pornhub.com, interferring with platform settings when loading the pages
+        self._downloader.cookiejar.clear('.pornhub.com')
 
         return self.playlist_result(entries, user_id)
