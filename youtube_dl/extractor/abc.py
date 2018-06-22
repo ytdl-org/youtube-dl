@@ -103,6 +103,61 @@ class ABCIE(InfoExtractor):
         }
 
 
+class ABCIViewShowIE(InfoExtractor):
+    IE_NAME = 'abc.net.au:iview:show'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*show/(?P<id>[^/?#]+)/?'
+    _GEO_COUNTRIES = ['AU']
+
+    # ABC iview programs are normally available for 14 days only.
+    _TESTS = [{
+        'url': 'https://iview.abc.net.au/show/sarah-and-duck/',
+        'info_dict': {
+            'id': 'sarah-and-duck',
+            'title': 'Sarah And Duck',
+            'description': 'Sarah is a 7 year old girl with big eyes and a green hat, who lives with her quacky, flappy, slightly manic, but endearing best friend, Duck.',
+        },
+        'playlist_count': 14,
+        'params': {
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        show_id = self._match_id(url)
+        show_data = self._download_json('https://api.iview.abc.net.au/v2/show/' + show_id, show_id)
+
+        title = show_data.get('displayTitle') or show_data.get('title') or show_id
+        description = show_data.get('description')
+
+        entries = []
+        for s in show_data['_embedded']['seriesList']:
+            series_id = s.get('id')
+            if series_id:
+                url = 'https://api.iview.abc.net.au/v2/series/' + show_id + '/' + series_id
+                groupList = self._download_json(
+                    url,
+                    series_id,
+                    fatal=False,
+                    errnote="Failed to fetch series ID '%s' from '%s'" % (series_id, url)
+                )
+                if type(groupList) is not list:
+                    groupList = [groupList]
+
+                for series in groupList:
+                    for ep in series.get('_embedded', {}).get('videoEpisodes'):
+                        path = ep.get('_links', {}).get('deeplink', {}).get('href')
+                        if path:
+                            entries.append(self.url_result('https://iview.abc.net.au' + path))
+
+        return {
+            '_type': 'playlist',
+            'id': show_id,
+            'title': title,
+            'description': description,
+            'entries': entries,
+        }
+
+
 class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
     _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*video/(?P<id>[^/?#]+)'
