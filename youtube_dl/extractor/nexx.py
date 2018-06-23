@@ -29,14 +29,13 @@ class NexxIE(InfoExtractor):
     _TESTS = [{
         # movie
         'url': 'https://api.nexx.cloud/v3/748/videos/byid/128907',
-        'md5': '828cea195be04e66057b846288295ba1',
+        'md5': '31899fd683de49ad46f4ee67e53e83fe',
         'info_dict': {
             'id': '128907',
             'ext': 'mp4',
             'title': 'Stiftung Warentest',
             'alt_title': 'Wie ein Test abläuft',
             'description': 'md5:d1ddb1ef63de721132abd38639cc2fd2',
-            'release_year': 2013,
             'creator': 'SPIEGEL TV',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 2509,
@@ -62,6 +61,7 @@ class NexxIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         # does not work via arc
         'url': 'nexx:741:1269984',
@@ -71,11 +71,25 @@ class NexxIE(InfoExtractor):
             'ext': 'mp4',
             'title': '1 TAG ohne KLO... wortwörtlich! 😑',
             'alt_title': '1 TAG ohne KLO... wortwörtlich! 😑',
-            'description': 'md5:4604539793c49eda9443ab5c5b1d612f',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 607,
             'timestamp': 1518614955,
             'upload_date': '20180214',
+        },
+    }, {
+        # free cdn from http://www.spiegel.de/video/eifel-zoo-aufregung-um-ausgebrochene-raubtiere-video-99018031.html
+        'url': 'nexx:747:1533779',
+        'md5': '6bf6883912b82b7069fb86c2297e9893',
+        'info_dict': {
+            'id': '1533779',
+            'ext': 'mp4',
+            'title': 'Aufregung um ausgebrochene Raubtiere',
+            'alt_title': 'Eifel-Zoo',
+            'description': 'md5:f21375c91c74ad741dcb164c427999d2',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 111,
+            'timestamp': 1527874460,
+            'upload_date': '20180601',
         },
     }, {
         'url': 'https://api.nexxcdn.com/v3/748/videos/byid/128907',
@@ -140,6 +154,139 @@ class NexxIE(InfoExtractor):
             headers=headers)
         self._handle_error(result)
         return result['result']
+
+    def _extract_free_formats(self, video, video_id):
+        stream_data = video['streamdata']
+        cdn = stream_data['cdnType']
+        assert cdn == 'free'
+
+        hash = video['general']['hash']
+
+        ps = compat_str(stream_data['originalDomain'])
+        if stream_data['applyFolderHierarchy'] == 1:
+            s = ('%04d' % int(video_id))[::-1]
+            ps += '/%s/%s' % (s[0:2], s[2:4])
+        ps += '/%s/%s_' % (video_id, hash)
+
+        t = 'http://%s' + ps
+        fd = stream_data['azureFileDistribution'].split(',')
+        cdn_provider = stream_data['cdnProvider']
+
+        def p0(p):
+            return '_%s' % p if stream_data['applyAzureStructure'] == 1 else ''
+
+        formats = []
+        if cdn_provider == 'ak':
+            t += ','
+            for i in fd:
+                p = i.split(':')
+                t += p[1] + p0(int(p[0])) + ','
+            t += '.mp4.csmil/master.%s'
+        elif cdn_provider == 'ce':
+            k = t.split('/')
+            h = k.pop()
+            http_base = t = '/'.join(k)
+            http_base = http_base % stream_data['cdnPathHTTP']
+            t += '/asset.ism/manifest.%s?dcp_ver=aos4&videostream='
+            for i in fd:
+                p = i.split(':')
+                tbr = int(p[0])
+                filename = '%s%s%s.mp4' % (h, p[1], p0(tbr))
+                f = {
+                    'url': http_base + '/' + filename,
+                    'format_id': '%s-http-%d' % (cdn, tbr),
+                    'tbr': tbr,
+                }
+                width_height = p[1].split('x')
+                if len(width_height) == 2:
+                    f.update({
+                        'width': int_or_none(width_height[0]),
+                        'height': int_or_none(width_height[1]),
+                    })
+                formats.append(f)
+                a = filename + ':%s' % (tbr * 1000)
+                t += a + ','
+            t = t[:-1] + '&audiostream=' + a.split(':')[0]
+        else:
+            assert False
+
+        if cdn_provider == 'ce':
+            formats.extend(self._extract_mpd_formats(
+                t % (stream_data['cdnPathDASH'], 'mpd'), video_id,
+                mpd_id='%s-dash' % cdn, fatal=False))
+        formats.extend(self._extract_m3u8_formats(
+            t % (stream_data['cdnPathHLS'], 'm3u8'), video_id, 'mp4',
+            entry_protocol='m3u8_native', m3u8_id='%s-hls' % cdn, fatal=False))
+
+        return formats
+
+    def _extract_azure_formats(self, video, video_id):
+        stream_data = video['streamdata']
+        cdn = stream_data['cdnType']
+        assert cdn == 'azure'
+
+        azure_locator = stream_data['azureLocator']
+
+        def get_cdn_shield_base(shield_type='', static=False):
+            for secure in ('', 's'):
+                cdn_shield = stream_data.get('cdnShield%sHTTP%s' % (shield_type, secure.upper()))
+                if cdn_shield:
+                    return 'http%s://%s' % (secure, cdn_shield)
+            else:
+                if 'fb' in stream_data['azureAccount']:
+                    prefix = 'df' if static else 'f'
+                else:
+                    prefix = 'd' if static else 'p'
+                account = int(stream_data['azureAccount'].replace('nexxplayplus', '').replace('nexxplayfb', ''))
+                return 'http://nx-%s%02d.akamaized.net/' % (prefix, account)
+
+        language = video['general'].get('language_raw') or ''
+
+        azure_stream_base = get_cdn_shield_base()
+        is_ml = ',' in language
+        azure_manifest_url = '%s%s/%s_src%s.ism/Manifest' % (
+            azure_stream_base, azure_locator, video_id, ('_manifest' if is_ml else '')) + '%s'
+
+        protection_token = try_get(
+            video, lambda x: x['protectiondata']['token'], compat_str)
+        if protection_token:
+            azure_manifest_url += '?hdnts=%s' % protection_token
+
+        formats = self._extract_m3u8_formats(
+            azure_manifest_url % '(format=m3u8-aapl)',
+            video_id, 'mp4', 'm3u8_native',
+            m3u8_id='%s-hls' % cdn, fatal=False)
+        formats.extend(self._extract_mpd_formats(
+            azure_manifest_url % '(format=mpd-time-csf)',
+            video_id, mpd_id='%s-dash' % cdn, fatal=False))
+        formats.extend(self._extract_ism_formats(
+            azure_manifest_url % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
+
+        azure_progressive_base = get_cdn_shield_base('Prog', True)
+        azure_file_distribution = stream_data.get('azureFileDistribution')
+        if azure_file_distribution:
+            fds = azure_file_distribution.split(',')
+            if fds:
+                for fd in fds:
+                    ss = fd.split(':')
+                    if len(ss) == 2:
+                        tbr = int_or_none(ss[0])
+                        if tbr:
+                            f = {
+                                'url': '%s%s/%s_src_%s_%d.mp4' % (
+                                    azure_progressive_base, azure_locator, video_id, ss[1], tbr),
+                                'format_id': '%s-http-%d' % (cdn, tbr),
+                                'tbr': tbr,
+                            }
+                            width_height = ss[1].split('x')
+                            if len(width_height) == 2:
+                                f.update({
+                                    'width': int_or_none(width_height[0]),
+                                    'height': int_or_none(width_height[1]),
+                                })
+                            formats.append(f)
+
+        return formats
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -220,72 +367,15 @@ class NexxIE(InfoExtractor):
         general = video['general']
         title = general['title']
 
-        stream_data = video['streamdata']
-        language = general.get('language_raw') or ''
+        cdn = video['streamdata']['cdnType']
 
-        # TODO: reverse more cdns
-
-        cdn = stream_data['cdnType']
-        assert cdn == 'azure'
-
-        azure_locator = stream_data['azureLocator']
-
-        def get_cdn_shield_base(shield_type='', static=False):
-            for secure in ('', 's'):
-                cdn_shield = stream_data.get('cdnShield%sHTTP%s' % (shield_type, secure.upper()))
-                if cdn_shield:
-                    return 'http%s://%s' % (secure, cdn_shield)
-            else:
-                if 'fb' in stream_data['azureAccount']:
-                    prefix = 'df' if static else 'f'
-                else:
-                    prefix = 'd' if static else 'p'
-                account = int(stream_data['azureAccount'].replace('nexxplayplus', '').replace('nexxplayfb', ''))
-                return 'http://nx-%s%02d.akamaized.net/' % (prefix, account)
-
-        azure_stream_base = get_cdn_shield_base()
-        is_ml = ',' in language
-        azure_manifest_url = '%s%s/%s_src%s.ism/Manifest' % (
-            azure_stream_base, azure_locator, video_id, ('_manifest' if is_ml else '')) + '%s'
-
-        protection_token = try_get(
-            video, lambda x: x['protectiondata']['token'], compat_str)
-        if protection_token:
-            azure_manifest_url += '?hdnts=%s' % protection_token
-
-        formats = self._extract_m3u8_formats(
-            azure_manifest_url % '(format=m3u8-aapl)',
-            video_id, 'mp4', 'm3u8_native',
-            m3u8_id='%s-hls' % cdn, fatal=False)
-        formats.extend(self._extract_mpd_formats(
-            azure_manifest_url % '(format=mpd-time-csf)',
-            video_id, mpd_id='%s-dash' % cdn, fatal=False))
-        formats.extend(self._extract_ism_formats(
-            azure_manifest_url % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
-
-        azure_progressive_base = get_cdn_shield_base('Prog', True)
-        azure_file_distribution = stream_data.get('azureFileDistribution')
-        if azure_file_distribution:
-            fds = azure_file_distribution.split(',')
-            if fds:
-                for fd in fds:
-                    ss = fd.split(':')
-                    if len(ss) == 2:
-                        tbr = int_or_none(ss[0])
-                        if tbr:
-                            f = {
-                                'url': '%s%s/%s_src_%s_%d.mp4' % (
-                                    azure_progressive_base, azure_locator, video_id, ss[1], tbr),
-                                'format_id': '%s-http-%d' % (cdn, tbr),
-                                'tbr': tbr,
-                            }
-                            width_height = ss[1].split('x')
-                            if len(width_height) == 2:
-                                f.update({
-                                    'width': int_or_none(width_height[0]),
-                                    'height': int_or_none(width_height[1]),
-                                })
-                            formats.append(f)
+        if cdn == 'azure':
+            formats = self._extract_azure_formats(video, video_id)
+        elif cdn == 'free':
+            formats = self._extract_free_formats(video, video_id)
+        else:
+            # TODO: reverse more cdns
+            assert False
 
         self._sort_formats(formats)
 

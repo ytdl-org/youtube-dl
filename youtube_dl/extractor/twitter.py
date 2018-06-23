@@ -63,7 +63,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': '623160978427936768',
                 'ext': 'mp4',
                 'title': 'Twitter web player',
-                'thumbnail': r're:^https?://.*(?:\bformat=|\.)jpg',
+                'thumbnail': r're:^https?://.*$',
             },
         },
         {
@@ -108,6 +108,8 @@ class TwitterCardIE(TwitterBaseIE):
         },
     ]
 
+    _API_BASE = 'https://api.twitter.com/1.1'
+
     def _parse_media_info(self, media_info, video_id):
         formats = []
         for media_variant in media_info.get('variants', []):
@@ -149,7 +151,7 @@ class TwitterCardIE(TwitterBaseIE):
             main_script, 'bearer token')
         # https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/get-statuses-show-id
         api_data = self._download_json(
-            'https://api.twitter.com/1.1/statuses/show/%s.json' % video_id,
+            '%s/statuses/show/%s.json' % (self._API_BASE, video_id),
             video_id, 'Downloading API data',
             headers={
                 'Authorization': 'Bearer ' + bearer_token,
@@ -223,14 +225,48 @@ class TwitterCardIE(TwitterBaseIE):
                 formats.extend(self._extract_mobile_formats(username, video_id))
 
             if formats:
+                title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+                thumbnail = config.get('posterImageUrl') or config.get('image_src')
+                duration = float_or_none(config.get('duration'), scale=1000) or duration
                 break
+
+        if not formats:
+            headers = {
+                'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw',
+                'Referer': url,
+            }
+            ct0 = self._get_cookies(url).get('ct0')
+            if ct0:
+                headers['csrf_token'] = ct0.value
+            guest_token = self._download_json(
+                '%s/guest/activate.json' % self._API_BASE, video_id,
+                'Downloading guest token', data=b'',
+                headers=headers)['guest_token']
+            headers['x-guest-token'] = guest_token
+            self._set_cookie('api.twitter.com', 'gt', guest_token)
+            config = self._download_json(
+                '%s/videos/tweet/config/%s.json' % (self._API_BASE, video_id),
+                video_id, headers=headers)
+            track = config['track']
+            vmap_url = track.get('vmapUrl')
+            if vmap_url:
+                formats = self._extract_formats_from_vmap_url(vmap_url, video_id)
+            else:
+                playback_url = track['playbackUrl']
+                if determine_ext(playback_url) == 'm3u8':
+                    formats = self._extract_m3u8_formats(
+                        playback_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls')
+                else:
+                    formats = [{
+                        'url': playback_url,
+                    }]
+            title = 'Twitter web player'
+            thumbnail = config.get('posterImage')
+            duration = float_or_none(track.get('durationMs'), scale=1000)
 
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
-
-        title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
-        thumbnail = config.get('posterImageUrl') or config.get('image_src')
-        duration = float_or_none(config.get('duration'), scale=1000) or duration
 
         return {
             'id': video_id,
@@ -371,6 +407,22 @@ class TwitterIE(InfoExtractor):
             'uploader': 'Préfet de Guadeloupe',
             'uploader_id': 'Prefet971',
             'duration': 47.48,
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        },
+    }, {
+        # card via api.twitter.com/1.1/videos/tweet/config
+        'url': 'https://twitter.com/LisPower1/status/1001551623938805763',
+        'info_dict': {
+            'id': '1001551623938805763',
+            'ext': 'mp4',
+            'title': 're:.*?Shep is on a roll today.*?',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'md5:63b036c228772523ae1924d5f8e5ed6b',
+            'uploader': 'Lis Power',
+            'uploader_id': 'LisPower1',
+            'duration': 111.278,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg

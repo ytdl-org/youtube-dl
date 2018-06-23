@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-import re
 import base64
+import json
+import re
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
@@ -173,6 +174,65 @@ class NBCSportsIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         return self.url_result(
             NBCSportsVPlayerIE._extract_url(webpage), 'NBCSportsVPlayer')
+
+
+class NBCSportsStreamIE(AdobePassIE):
+    _VALID_URL = r'https?://stream\.nbcsports\.com/.+?\bpid=(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://stream.nbcsports.com/nbcsn/generic?pid=206559',
+        'info_dict': {
+            'id': '206559',
+            'ext': 'mp4',
+            'title': 'Amgen Tour of California Women\'s Recap',
+            'description': 'md5:66520066b3b5281ada7698d0ea2aa894',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'skip': 'Requires Adobe Pass Authentication',
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        live_source = self._download_json(
+            'http://stream.nbcsports.com/data/live_sources_%s.json' % video_id,
+            video_id)
+        video_source = live_source['videoSources'][0]
+        title = video_source['title']
+        source_url = None
+        for k in ('source', 'msl4source', 'iossource', 'hlsv4'):
+            sk = k + 'Url'
+            source_url = video_source.get(sk) or video_source.get(sk + 'Alt')
+            if source_url:
+                break
+        else:
+            source_url = video_source['ottStreamUrl']
+        is_live = video_source.get('type') == 'live' or video_source.get('status') == 'Live'
+        resource = self._get_mvpd_resource('nbcsports', title, video_id, '')
+        token = self._extract_mvpd_auth(url, video_id, 'nbcsports', resource)
+        tokenized_url = self._download_json(
+            'https://token.playmakerservices.com/cdn',
+            video_id, data=json.dumps({
+                'requestorId': 'nbcsports',
+                'pid': video_id,
+                'application': 'NBCSports',
+                'version': 'v1',
+                'platform': 'desktop',
+                'cdn': 'akamai',
+                'url': video_source['sourceUrl'],
+                'token': base64.b64encode(token.encode()).decode(),
+                'resourceId': base64.b64encode(resource.encode()).decode(),
+            }).encode())['tokenizedUrl']
+        formats = self._extract_m3u8_formats(tokenized_url, video_id, 'mp4')
+        self._sort_formats(formats)
+        return {
+            'id': video_id,
+            'title': self._live_title(title) if is_live else title,
+            'description': live_source.get('description'),
+            'formats': formats,
+            'is_live': is_live,
+        }
 
 
 class CSNNEIE(InfoExtractor):

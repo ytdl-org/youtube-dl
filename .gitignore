@@ -48,3 +48,4 @@ youtube-dl.zsh
 *.kdev4
 
 tmp/
+venv/

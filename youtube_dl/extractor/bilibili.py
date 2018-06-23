@@ -114,7 +114,7 @@ class BiliBiliIE(InfoExtractor):
 
         if 'anime/' not in url:
             cid = self._search_regex(
-                r'cid(?:["\']:|=)(\d+)', webpage, 'cid',
+                r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
                 default=None
             ) or compat_parse_qs(self._search_regex(
                 [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',

@@ -44,6 +44,7 @@ from .anysex import AnySexIE
 from .aol import AolIE
 from .allocine import AllocineIE
 from .aliexpress import AliExpressLiveIE
+from .apa import APAIE
 from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
 from .appletrailers import (
@@ -145,6 +146,8 @@ from .camdemy import (
     CamdemyIE,
     CamdemyFolderIE
 )
+from .cammodels import CamModelsIE
+from .camtube import CamTubeIE
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
@@ -283,6 +286,7 @@ from .drtv import (
     DRTVIE,
     DRTVLiveIE,
 )
+from .dtube import DTubeIE
 from .dvtv import DVTVIE
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
@@ -331,6 +335,7 @@ from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .expotv import ExpoTVIE
+from .expressen import ExpressenIE
 from .extremetube import ExtremeTubeIE
 from .eyedotv import EyedoTVIE
 from .facebook import (
@@ -368,7 +373,6 @@ from .foxgay import FoxgayIE
 from .foxnews import (
     FoxNewsIE,
     FoxNewsArticleIE,
-    FoxNewsInsiderIE,
 )
 from .foxsports import FoxSportsIE
 from .franceculture import FranceCultureIE
@@ -378,6 +382,7 @@ from .francetv import (
     FranceTVSiteIE,
     FranceTVEmbedIE,
     FranceTVInfoIE,
+    FranceTVInfoSportIE,
     FranceTVJeunesseIE,
     GenerationWhatIE,
     CultureboxIE,
@@ -468,10 +473,7 @@ from .imgur import (
 )
 from .ina import InaIE
 from .inc import IncIE
-from .indavideo import (
-    IndavideoIE,
-    IndavideoEmbedIE,
-)
+from .indavideo import IndavideoEmbedIE
 from .infoq import InfoQIE
 from .instagram import InstagramIE, InstagramUserIE
 from .internazionale import InternazionaleIE
@@ -581,13 +583,16 @@ from .mailru import (
     MailRuMusicIE,
     MailRuMusicSearchIE,
 )
-from .makerschannel import MakersChannelIE
 from .makertv import MakerTVIE
 from .mangomolo import (
     MangomoloVideoIE,
     MangomoloLiveIE,
 )
 from .manyvids import ManyVidsIE
+from .markiza import (
+    MarkizaIE,
+    MarkizaPageIE,
+)
 from .massengeschmacktv import MassengeschmackTVIE
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
@@ -624,7 +629,6 @@ from .mnet import MnetIE
 from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
-from .moniker import MonikerIE
 from .morningstar import MorningstarIE
 from .motherless import (
     MotherlessIE,
@@ -645,6 +649,7 @@ from .mtv import (
 from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
 from .mwave import MwaveIE, MwaveMeetGreetIE
+from .mychannels import MyChannelsIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvi import (
@@ -666,6 +671,7 @@ from .nbc import (
     NBCOlympicsIE,
     NBCOlympicsStreamIE,
     NBCSportsIE,
+    NBCSportsStreamIE,
     NBCSportsVPlayerIE,
 )
 from .ndr import (
@@ -705,12 +711,7 @@ from .nexx import (
 from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhk import NhkVodIE
-from .nhl import (
-    NHLVideocenterIE,
-    NHLNewsIE,
-    NHLVideocenterCategoryIE,
-    NHLIE,
-)
+from .nhl import NHLIE
 from .nick import (
     NickIE,
     NickBrIE,
@@ -719,10 +720,7 @@ from .nick import (
     NickRuIE,
 )
 from .niconico import NiconicoIE, NiconicoPlaylistIE
-from .ninecninemedia import (
-    NineCNineMediaStackIE,
-    NineCNineMediaIE,
-)
+from .ninecninemedia import NineCNineMediaIE
 from .ninegag import NineGagIE
 from .ninenow import NineNowIE
 from .nintendo import NintendoIE
@@ -810,6 +808,7 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .pearvideo import PearVideoIE
+from .peertube import PeerTubeIE
 from .people import PeopleIE
 from .performgroup import PerformGroupIE
 from .periscope import (
@@ -1016,7 +1015,10 @@ from .spankbang import SpankBangIE
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
-from .spike import SpikeIE
+from .spike import (
+    BellatorIE,
+    ParamountNetworkIE,
+)
 from .stitcher import StitcherIE
 from .sport5 import Sport5IE
 from .sportbox import SportBoxEmbedIE
@@ -1142,6 +1144,7 @@ from .tvc import (
 from .tvigle import TvigleIE
 from .tvland import TVLandIE
 from .tvn24 import TVN24IE
+from .tvnet import TVNetIE
 from .tvnoe import TVNoeIE
 from .tvnow import (
     TVNowIE,

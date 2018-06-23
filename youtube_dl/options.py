@@ -203,7 +203,7 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--proxy', dest='proxy',
         default=None, metavar='URL',
-        help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable experimental '
+        help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable '
              'SOCKS proxy, specify a proper scheme. For example '
              'socks5://127.0.0.1:1080/. Pass in an empty string (--proxy "") '
              'for direct connection')
@@ -240,19 +240,19 @@ def parseOpts(overrideArguments=None):
     geo.add_option(
         '--geo-bypass',
         action='store_true', dest='geo_bypass', default=True,
-        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header')
     geo.add_option(
         '--no-geo-bypass',
         action='store_false', dest='geo_bypass', default=True,
-        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header')
     geo.add_option(
         '--geo-bypass-country', metavar='CODE',
         dest='geo_bypass_country', default=None,
-        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
+        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code')
     geo.add_option(
         '--geo-bypass-ip-block', metavar='IP_BLOCK',
         dest='geo_bypass_ip_block', default=None,
-        help='Force bypass geographic restriction with explicitly provided IP block in CIDR notation (experimental)')
+        help='Force bypass geographic restriction with explicitly provided IP block in CIDR notation')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
@@ -502,7 +502,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',
-        help='Set file xattribute ytdl.filesize with expected file size (experimental)')
+        help='Set file xattribute ytdl.filesize with expected file size')
     downloader.add_option(
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true', default=None,

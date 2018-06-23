@@ -94,7 +94,7 @@ class PluralsightIE(PluralsightBaseIE):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -140,10 +140,10 @@ class PluralsightIE(PluralsightBaseIE):
 
             raise ExtractorError('Unable to log in')
 
-    def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
+    def _get_subtitles(self, author, clip_idx, lang, name, duration, video_id):
         captions_post = {
             'a': author,
-            'cn': clip_id,
+            'cn': clip_idx,
             'lc': lang,
             'm': name,
         }
@@ -195,13 +195,13 @@ class PluralsightIE(PluralsightBaseIE):
 
         author = qs.get('author', [None])[0]
         name = qs.get('name', [None])[0]
-        clip_id = qs.get('clip', [None])[0]
+        clip_idx = qs.get('clip', [None])[0]
         course_name = qs.get('course', [None])[0]
 
-        if any(not f for f in (author, name, clip_id, course_name,)):
+        if any(not f for f in (author, name, clip_idx, course_name,)):
             raise ExtractorError('Invalid URL', expected=True)
 
-        display_id = '%s-%s' % (name, clip_id)
+        display_id = '%s-%s' % (name, clip_idx)
 
         course = self._download_course(course_name, url, display_id)
 
@@ -217,7 +217,7 @@ class PluralsightIE(PluralsightBaseIE):
                         clip_index = clip_.get('index')
                     if clip_index is None:
                         continue
-                    if compat_str(clip_index) == clip_id:
+                    if compat_str(clip_index) == clip_idx:
                         clip = clip_
                         break
 
@@ -225,6 +225,7 @@ class PluralsightIE(PluralsightBaseIE):
             raise ExtractorError('Unable to resolve clip')
 
         title = clip['title']
+        clip_id = clip.get('clipName') or clip.get('name') or clip['clipId']
 
         QUALITIES = {
             'low': {'width': 640, 'height': 480},
@@ -277,7 +278,7 @@ class PluralsightIE(PluralsightBaseIE):
                 clip_post = {
                     'author': author,
                     'includeCaptions': False,
-                    'clipIndex': int(clip_id),
+                    'clipIndex': int(clip_idx),
                     'courseName': course_name,
                     'locale': 'en',
                     'moduleName': name,
@@ -330,10 +331,10 @@ class PluralsightIE(PluralsightBaseIE):
 
         # TODO: other languages?
         subtitles = self.extract_subtitles(
-            author, clip_id, 'en', name, duration, display_id)
+            author, clip_idx, 'en', name, duration, display_id)
 
         return {
-            'id': clip.get('clipName') or clip['name'],
+            'id': clip_id,
             'title': title,
             'duration': duration,
             'creator': author,
