@@ -62,4 +62,8 @@ class ArchiveOrgIE(InfoExtractor):
                 'uploader': get_optional(metadata, 'creator'),
                 'upload_date': unified_strdate(get_optional(metadata, 'date')),
             })
+        if info.get('thumbnail', '').startswith('/'):
+            info.update({
+                'thumbnail': 'https://archive.org%s' % info.get('thumbnail')
+            })
         return info
