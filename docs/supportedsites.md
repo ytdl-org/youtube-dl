@@ -290,7 +290,6 @@
  - **Foxgay**
  - **foxnews**: Fox News and Fox Business Video
  - **foxnews:article**
- - **foxnews:insider**
  - **FoxSports**
  - **france2.fr:generation-what**
  - **FranceCulture**
