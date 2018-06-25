@@ -535,7 +535,7 @@ class BrightcoveNewIE(AdobePassIE):
 
             # According to examples from [4] it's unclear whether video id
             # may be optional and what to do when it is
-            video_id = attrs.get('data-video-id')
+            video_id = attrs.get('data-video-id') or attrs.get('data-brightcove-id')
             if not video_id:
                 continue
 
