@@ -1040,6 +1040,7 @@ from .stretchinternet import StretchInternetIE
 from .sunporno import SunPornoIE
 from .svt import (
     SVTIE,
+    SVTPageIE,
     SVTPlayIE,
     SVTSeriesIE,
 )
