@@ -305,8 +305,8 @@ class YoutubeDL(object):
     http_chunk_size.
 
     The following options are used by the post processors:
-    prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,
-                       otherwise prefer avconv.
+    prefer_ffmpeg:     If False, use avconv instead of ffmpeg if both are available,
+                       otherwise prefer ffmpeg.
     postprocessor_args: A list of additional command-line arguments for the
                         postprocessor.
 
