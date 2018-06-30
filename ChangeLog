@@ -1,3 +1,14 @@
+version 2018.06.25
+
+Extractors
+* [joj] Relax URL regular expression (#16771)
+* [brightcove] Workaround sonyliv DRM protected videos (#16807)
+* [motherless] Fix extraction (#16786)
+* [itv] Make SOAP request non fatal and extract metadata from webpage (#16780)
+- [foxnews:insider] Remove extractor (#15810)
++ [foxnews] Add support for iframe embeds (#15810, #16711)
+
+
 version 2018.06.19
 
 Core

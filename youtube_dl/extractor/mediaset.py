@@ -43,6 +43,22 @@ class MediasetIE(InfoExtractor):
         },
         'expected_warnings': ['is not a supported codec'],
     }, {
+        'url': 'http://www.video.mediaset.it/video/matrix/full_chiambretti/puntata-del-25-maggio_846685.html',
+        'md5': '1276f966ac423d16ba255ce867de073e',
+        'info_dict': {
+            'id': '846685',
+            'ext': 'mp4',
+            'title': 'Puntata del 25 maggio',
+            'description': 'md5:ee2e456e3eb1dba5e814596655bb5296',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 6565,
+            'creator': 'mediaset',
+            'upload_date': '20180525',
+            'series': 'Matrix',
+            'categories': ['infotainment'],
+        },
+        'expected_warnings': ['HTTP Error 403: Forbidden'],
+    }, {
         # clip
         'url': 'http://www.video.mediaset.it/video/gogglebox/clip/un-grande-classico-della-commedia-sexy_661680.html',
         'only_matching': True,
@@ -70,16 +86,33 @@ class MediasetIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        video = self._download_json(
+            'https://www.video.mediaset.it/html/metainfo.sjson',
+            video_id, 'Downloading media info', query={
+                'id': video_id
+            })['video']
+
+        title = video['title']
+        media_id = video.get('guid') or video_id
+
         video_list = self._download_json(
-            'http://cdnsel01.mediaset.net/GetCdn.aspx',
+            'http://cdnsel01.mediaset.net/GetCdn2018.aspx',
             video_id, 'Downloading video CDN JSON', query={
-                'streamid': video_id,
+                'streamid': media_id,
                 'format': 'json',
             })['videoList']
 
         formats = []
         for format_url in video_list:
-            if '.ism' in format_url:
+            ext = determine_ext(format_url)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            elif ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, video_id, mpd_id='dash', fatal=False))
+            elif ext == 'ism' or '.ism' in format_url:
                 formats.extend(self._extract_ism_formats(
                     format_url, video_id, ism_id='mss', fatal=False))
             else:
@@ -89,30 +122,23 @@ class MediasetIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
-        mediainfo = self._download_json(
-            'http://plr.video.mediaset.it/html/metainfo.sjson',
-            video_id, 'Downloading video info JSON', query={
-                'id': video_id,
-            })['video']
-
-        title = mediainfo['title']
-
         creator = try_get(
-            mediainfo, lambda x: x['brand-info']['publisher'], compat_str)
+            video, lambda x: x['brand-info']['publisher'], compat_str)
         category = try_get(
-            mediainfo, lambda x: x['brand-info']['category'], compat_str)
+            video, lambda x: x['brand-info']['category'], compat_str)
         categories = [category] if category else None
 
         return {
             'id': video_id,
             'title': title,
-            'description': mediainfo.get('short-description'),
-            'thumbnail': mediainfo.get('thumbnail'),
-            'duration': parse_duration(mediainfo.get('duration')),
+            'description': video.get('short-description'),
+            'thumbnail': video.get('thumbnail'),
+            'duration': parse_duration(video.get('duration')),
             'creator': creator,
-            'upload_date': unified_strdate(mediainfo.get('production-date')),
-            'webpage_url': mediainfo.get('url'),
-            'series': mediainfo.get('brand-value'),
+            'upload_date': unified_strdate(video.get('production-date')),
+            'webpage_url': video.get('url'),
+            'series': video.get('brand-value'),
+            'season': video.get('season'),
             'categories': categories,
             'formats': formats,
         }
