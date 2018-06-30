@@ -2106,7 +2106,21 @@ class InfoExtractor(object):
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
 
                         def prepare_template(template_name, identifiers):
-                            t = representation_ms_info[template_name]
+                            tmpl = representation_ms_info[template_name]
+                            # First of, % characters outside $...$ templates
+                            # must be escaped by doubling for proper processing
+                            # by % operator string formatting used further (see
+                            # https://github.com/rg3/youtube-dl/issues/16867).
+                            t = ''
+                            in_template = False
+                            for c in tmpl:
+                                t += c
+                                if c == '$':
+                                    in_template = not in_template
+                                elif c == '%' and not in_template:
+                                    t += c
+                            # Next, $...$ templates are translated to their
+                            # %(...) counterparts to be used with % operator
                             t = t.replace('$RepresentationID$', representation_id)
                             t = re.sub(r'\$(%s)\$' % '|'.join(identifiers), r'%(\1)d', t)
                             t = re.sub(r'\$(%s)%%([^$]+)\$' % '|'.join(identifiers), r'%(\1)\2', t)
