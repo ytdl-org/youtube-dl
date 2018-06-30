@@ -282,7 +282,7 @@ class NPOIE(NPOBaseIE):
                 video_url = stream_info.get('url')
             if not video_url or video_url in urls:
                 continue
-            urls.add(item_url)
+            urls.add(video_url)
             if determine_ext(video_url) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     video_url, video_id, ext='mp4',
