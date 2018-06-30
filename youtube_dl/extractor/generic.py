@@ -2059,6 +2059,21 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'TODO: fix nested playlists processing in tests',
         },
+        {
+            'url': 'https://logbuch-netzpolitik.de/lnp247-lastesel-mit-glasfaseranschluss',
+            'info_dict': {
+                'id': 'lnp247-lastesel-mit-glasfaseranschluss',
+                'ext': 'opus',
+                'formats': 'mincount:4',
+                'title': 'LNP247 Lastesel mit Glasfaseranschluss',
+                'description': 'md5:9319166b6cfb8054f2875790a77cae09',
+                'site_name': 'Logbuch:Netzpolitik',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -3163,6 +3178,26 @@ class GenericIE(InfoExtractor):
             webpage, video_id, default={}, expected_type='VideoObject')
         if json_ld.get('url'):
             return merge_dicts(json_ld, info_dict)
+
+        # Look for Metaebene alike embedded podcast
+        audio_embeds = zip(
+            re.findall(self._og_regexes('audio')[0], webpage),
+            re.findall(self._og_regexes('audio:type')[0], webpage))
+        if audio_embeds:
+            formats = []
+            for audio_url, audio_type in audio_embeds:
+                formats.append({
+                    'url': audio_url[0],
+                    'format_id': audio_type[0]})
+            self._sort_formats(formats)
+            info_dict.update({
+                'title': self._og_search_title(webpage),
+                'site_name': self._og_search_property('site_name', webpage),
+                'description': self._og_search_description(webpage),
+                'thumbnail': self._og_search_thumbnail(webpage),
+                'formats': formats,
+            })
+            return info_dict
 
         def check_video(vurl):
             if YoutubeIE.suitable(vurl):
