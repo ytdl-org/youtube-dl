@@ -15,8 +15,8 @@ from ..utils import (
 
 
 class Go90IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?go90\.com/videos/(?P<id>[0-9a-zA-Z]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?go90\.com/(?:videos|embed)/(?P<id>[0-9a-zA-Z]+)'
+    _TESTS = [{
         'url': 'https://www.go90.com/videos/84BUqjLpf9D',
         'md5': 'efa7670dbbbf21a7b07b360652b24a32',
         'info_dict': {
@@ -28,7 +28,10 @@ class Go90IE(InfoExtractor):
             'upload_date': '20170411',
             'age_limit': 14,
         }
-    }
+    }, {
+        'url': 'https://www.go90.com/embed/261MflWkD3N',
+        'only_matching': True,
+    }]
     _GEO_BYPASS = False
 
     def _real_extract(self, url):
