@@ -19,6 +19,7 @@ from ..compat import (
     compat_cookies,
     compat_etree_fromstring,
     compat_getpass,
+    compat_integer_types,
     compat_http_client,
     compat_os_name,
     compat_str,
@@ -339,15 +340,17 @@ class InfoExtractor(object):
     _GEO_BYPASS attribute may be set to False in order to disable
     geo restriction bypass mechanisms for a particular extractor.
     Though it won't disable explicit geo restriction bypass based on
-    country code provided with geo_bypass_country. (experimental)
+    country code provided with geo_bypass_country.
 
     _GEO_COUNTRIES attribute may contain a list of presumably geo unrestricted
     countries for this extractor. One of these countries will be used by
     geo restriction bypass mechanism right away in order to bypass
-    geo restriction, of course, if the mechanism is not disabled. (experimental)
+    geo restriction, of course, if the mechanism is not disabled.
 
-    NB: both these geo attributes are experimental and may change in future
-    or be completely removed.
+    _GEO_IP_BLOCKS attribute may contain a list of presumably geo unrestricted
+    IP blocks in CIDR notation for this extractor. One of these IP blocks
+    will be used by geo restriction bypass mechanism similarly
+    to _GEO_COUNTRIES.
 
     Finally, the _WORKING attribute should be set to False for broken IEs
     in order to warn the users and skip the tests.
@@ -358,6 +361,7 @@ class InfoExtractor(object):
     _x_forwarded_for_ip = None
     _GEO_BYPASS = True
     _GEO_COUNTRIES = None
+    _GEO_IP_BLOCKS = None
     _WORKING = True
 
     def __init__(self, downloader=None):
@@ -392,12 +396,15 @@ class InfoExtractor(object):
 
     def initialize(self):
         """Initializes an instance (authentication, etc)."""
-        self._initialize_geo_bypass(self._GEO_COUNTRIES)
+        self._initialize_geo_bypass({
+            'countries': self._GEO_COUNTRIES,
+            'ip_blocks': self._GEO_IP_BLOCKS,
+        })
         if not self._ready:
             self._real_initialize()
             self._ready = True
 
-    def _initialize_geo_bypass(self, countries):
+    def _initialize_geo_bypass(self, geo_bypass_context):
         """
         Initialize geo restriction bypass mechanism.
 
@@ -408,28 +415,82 @@ class InfoExtractor(object):
         HTTP requests.
 
         This method will be used for initial geo bypass mechanism initialization
-        during the instance initialization with _GEO_COUNTRIES.
+        during the instance initialization with _GEO_COUNTRIES and
+        _GEO_IP_BLOCKS.
 
-        You may also manually call it from extractor's code if geo countries
+        You may also manually call it from extractor's code if geo bypass
         information is not available beforehand (e.g. obtained during
-        extraction) or due to some another reason.
+        extraction) or due to some other reason. In this case you should pass
+        this information in geo bypass context passed as first argument. It may
+        contain following fields:
+
+        countries:  List of geo unrestricted countries (similar
+                    to _GEO_COUNTRIES)
+        ip_blocks:  List of geo unrestricted IP blocks in CIDR notation
+                    (similar to _GEO_IP_BLOCKS)
+
         """
         if not self._x_forwarded_for_ip:
-            country_code = self._downloader.params.get('geo_bypass_country', None)
-            # If there is no explicit country for geo bypass specified and
-            # the extractor is known to be geo restricted let's fake IP
-            # as X-Forwarded-For right away.
-            if (not country_code and
-                    self._GEO_BYPASS and
-                    self._downloader.params.get('geo_bypass', True) and
-                    countries):
-                country_code = random.choice(countries)
-            if country_code:
-                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
+
+            # Geo bypass mechanism is explicitly disabled by user
+            if not self._downloader.params.get('geo_bypass', True):
+                return
+
+            if not geo_bypass_context:
+                geo_bypass_context = {}
+
+            # Backward compatibility: previously _initialize_geo_bypass
+            # expected a list of countries, some 3rd party code may still use
+            # it this way
+            if isinstance(geo_bypass_context, (list, tuple)):
+                geo_bypass_context = {
+                    'countries': geo_bypass_context,
+                }
+
+            # The whole point of geo bypass mechanism is to fake IP
+            # as X-Forwarded-For HTTP header based on some IP block or
+            # country code.
+
+            # Path 1: bypassing based on IP block in CIDR notation
+
+            # Explicit IP block specified by user, use it right away
+            # regardless of whether extractor is geo bypassable or not
+            ip_block = self._downloader.params.get('geo_bypass_ip_block', None)
+
+            # Otherwise use random IP block from geo bypass context but only
+            # if extractor is known as geo bypassable
+            if not ip_block:
+                ip_blocks = geo_bypass_context.get('ip_blocks')
+                if self._GEO_BYPASS and ip_blocks:
+                    ip_block = random.choice(ip_blocks)
+
+            if ip_block:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(ip_block)
+                if self._downloader.params.get('verbose', False):
+                    self._downloader.to_screen(
+                        '[debug] Using fake IP %s as X-Forwarded-For.'
+                        % self._x_forwarded_for_ip)
+                return
+
+            # Path 2: bypassing based on country code
+
+            # Explicit country code specified by user, use it right away
+            # regardless of whether extractor is geo bypassable or not
+            country = self._downloader.params.get('geo_bypass_country', None)
+
+            # Otherwise use random country code from geo bypass context but
+            # only if extractor is known as geo bypassable
+            if not country:
+                countries = geo_bypass_context.get('countries')
+                if self._GEO_BYPASS and countries:
+                    country = random.choice(countries)
+
+            if country:
+                self._x_forwarded_for_ip = GeoUtils.random_ipv4(country)
                 if self._downloader.params.get('verbose', False):
                     self._downloader.to_screen(
                         '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
-                        % (self._x_forwarded_for_ip, country_code.upper()))
+                        % (self._x_forwarded_for_ip, country.upper()))
 
     def extract(self, url):
         """Extracts URL information and returns it in list of dicts."""
@@ -488,8 +549,26 @@ class InfoExtractor(object):
     def IE_NAME(self):
         return compat_str(type(self).__name__[:-2])
 
-    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
-        """ Returns the response handle """
+    @staticmethod
+    def __can_accept_status_code(err, expected_status):
+        assert isinstance(err, compat_urllib_error.HTTPError)
+        if expected_status is None:
+            return False
+        if isinstance(expected_status, compat_integer_types):
+            return err.code == expected_status
+        elif isinstance(expected_status, (list, tuple)):
+            return err.code in expected_status
+        elif callable(expected_status):
+            return expected_status(err.code) is True
+        else:
+            assert False
+
+    def _request_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, data=None, headers={}, query={}, expected_status=None):
+        """
+        Return the response handle.
+
+        See _download_webpage docstring for arguments specification.
+        """
         if note is None:
             self.report_download_webpage(video_id)
         elif note is not False:
@@ -518,6 +597,10 @@ class InfoExtractor(object):
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            if isinstance(err, compat_urllib_error.HTTPError):
+                if self.__can_accept_status_code(err, expected_status):
+                    return err.fp
+
             if errnote is False:
                 return False
             if errnote is None:
@@ -530,13 +613,17 @@ class InfoExtractor(object):
                 self._downloader.report_warning(errmsg)
                 return False
 
-    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}):
-        """ Returns a tuple (page content as string, URL handle) """
+    def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}, expected_status=None):
+        """
+        Return a tuple (page content as string, URL handle).
+
+        See _download_webpage docstring for arguments specification.
+        """
         # Strip hashes from the URL (#1038)
         if isinstance(url_or_request, (compat_str, str)):
             url_or_request = url_or_request.partition('#')[0]
 
-        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, data=data, headers=headers, query=query)
+        urlh = self._request_webpage(url_or_request, video_id, note, errnote, fatal, data=data, headers=headers, query=query, expected_status=expected_status)
         if urlh is False:
             assert not fatal
             return False
@@ -625,13 +712,52 @@ class InfoExtractor(object):
 
         return content
 
-    def _download_webpage(self, url_or_request, video_id, note=None, errnote=None, fatal=True, tries=1, timeout=5, encoding=None, data=None, headers={}, query={}):
-        """ Returns the data of the page as a string """
+    def _download_webpage(
+            self, url_or_request, video_id, note=None, errnote=None,
+            fatal=True, tries=1, timeout=5, encoding=None, data=None,
+            headers={}, query={}, expected_status=None):
+        """
+        Return the data of the page as a string.
+
+        Arguments:
+        url_or_request -- plain text URL as a string or
+            a compat_urllib_request.Requestobject
+        video_id -- Video/playlist/item identifier (string)
+
+        Keyword arguments:
+        note -- note printed before downloading (string)
+        errnote -- note printed in case of an error (string)
+        fatal -- flag denoting whether error should be considered fatal,
+            i.e. whether it should cause ExtractionError to be raised,
+            otherwise a warning will be reported and extraction continued
+        tries -- number of tries
+        timeout -- sleep interval between tries
+        encoding -- encoding for a page content decoding, guessed automatically
+            when not explicitly specified
+        data -- POST data (bytes)
+        headers -- HTTP headers (dict)
+        query -- URL query (dict)
+        expected_status -- allows to accept failed HTTP requests (non 2xx
+            status code) by explicitly specifying a set of accepted status
+            codes. Can be any of the following entities:
+                - an integer type specifying an exact failed status code to
+                  accept
+                - a list or a tuple of integer types specifying a list of
+                  failed status codes to accept
+                - a callable accepting an actual failed status code and
+                  returning True if it should be accepted
+            Note that this argument does not affect success status codes (2xx)
+            which are always accepted.
+        """
+
         success = False
         try_count = 0
         while success is False:
             try:
-                res = self._download_webpage_handle(url_or_request, video_id, note, errnote, fatal, encoding=encoding, data=data, headers=headers, query=query)
+                res = self._download_webpage_handle(
+                    url_or_request, video_id, note, errnote, fatal,
+                    encoding=encoding, data=data, headers=headers, query=query,
+                    expected_status=expected_status)
                 success = True
             except compat_http_client.IncompleteRead as e:
                 try_count += 1
@@ -647,11 +773,17 @@ class InfoExtractor(object):
     def _download_xml_handle(
             self, url_or_request, video_id, note='Downloading XML',
             errnote='Unable to download XML', transform_source=None,
-            fatal=True, encoding=None, data=None, headers={}, query={}):
-        """Return a tuple (xml as an xml.etree.ElementTree.Element, URL handle)"""
+            fatal=True, encoding=None, data=None, headers={}, query={},
+            expected_status=None):
+        """
+        Return a tuple (xml as an xml.etree.ElementTree.Element, URL handle).
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_webpage_handle(
             url_or_request, video_id, note, errnote, fatal=fatal,
-            encoding=encoding, data=data, headers=headers, query=query)
+            encoding=encoding, data=data, headers=headers, query=query,
+            expected_status=expected_status)
         if res is False:
             return res
         xml_string, urlh = res
@@ -659,15 +791,21 @@ class InfoExtractor(object):
             xml_string, video_id, transform_source=transform_source,
             fatal=fatal), urlh
 
-    def _download_xml(self, url_or_request, video_id,
-                      note='Downloading XML', errnote='Unable to download XML',
-                      transform_source=None, fatal=True, encoding=None,
-                      data=None, headers={}, query={}):
-        """Return the xml as an xml.etree.ElementTree.Element"""
+    def _download_xml(
+            self, url_or_request, video_id,
+            note='Downloading XML', errnote='Unable to download XML',
+            transform_source=None, fatal=True, encoding=None,
+            data=None, headers={}, query={}, expected_status=None):
+        """
+        Return the xml as an xml.etree.ElementTree.Element.
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_xml_handle(
             url_or_request, video_id, note=note, errnote=errnote,
             transform_source=transform_source, fatal=fatal, encoding=encoding,
-            data=data, headers=headers, query=query)
+            data=data, headers=headers, query=query,
+            expected_status=expected_status)
         return res if res is False else res[0]
 
     def _parse_xml(self, xml_string, video_id, transform_source=None, fatal=True):
@@ -685,11 +823,17 @@ class InfoExtractor(object):
     def _download_json_handle(
             self, url_or_request, video_id, note='Downloading JSON metadata',
             errnote='Unable to download JSON metadata', transform_source=None,
-            fatal=True, encoding=None, data=None, headers={}, query={}):
-        """Return a tuple (JSON object, URL handle)"""
+            fatal=True, encoding=None, data=None, headers={}, query={},
+            expected_status=None):
+        """
+        Return a tuple (JSON object, URL handle).
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_webpage_handle(
             url_or_request, video_id, note, errnote, fatal=fatal,
-            encoding=encoding, data=data, headers=headers, query=query)
+            encoding=encoding, data=data, headers=headers, query=query,
+            expected_status=expected_status)
         if res is False:
             return res
         json_string, urlh = res
@@ -700,11 +844,18 @@ class InfoExtractor(object):
     def _download_json(
             self, url_or_request, video_id, note='Downloading JSON metadata',
             errnote='Unable to download JSON metadata', transform_source=None,
-            fatal=True, encoding=None, data=None, headers={}, query={}):
+            fatal=True, encoding=None, data=None, headers={}, query={},
+            expected_status=None):
+        """
+        Return the JSON object as a dict.
+
+        See _download_webpage docstring for arguments specification.
+        """
         res = self._download_json_handle(
             url_or_request, video_id, note=note, errnote=errnote,
             transform_source=transform_source, fatal=fatal, encoding=encoding,
-            data=data, headers=headers, query=query)
+            data=data, headers=headers, query=query,
+            expected_status=expected_status)
         return res if res is False else res[0]
 
     def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
@@ -1955,7 +2106,21 @@ class InfoExtractor(object):
                         representation_ms_info = extract_multisegment_info(representation, adaption_set_ms_info)
 
                         def prepare_template(template_name, identifiers):
-                            t = representation_ms_info[template_name]
+                            tmpl = representation_ms_info[template_name]
+                            # First of, % characters outside $...$ templates
+                            # must be escaped by doubling for proper processing
+                            # by % operator string formatting used further (see
+                            # https://github.com/rg3/youtube-dl/issues/16867).
+                            t = ''
+                            in_template = False
+                            for c in tmpl:
+                                t += c
+                                if c == '$':
+                                    in_template = not in_template
+                                elif c == '%' and not in_template:
+                                    t += c
+                            # Next, $...$ templates are translated to their
+                            # %(...) counterparts to be used with % operator
                             t = t.replace('$RepresentationID$', representation_id)
                             t = re.sub(r'\$(%s)\$' % '|'.join(identifiers), r'%(\1)d', t)
                             t = re.sub(r'\$(%s)%%([^$]+)\$' % '|'.join(identifiers), r'%(\1)\2', t)
@@ -2286,6 +2451,8 @@ class InfoExtractor(object):
                         media_info['subtitles'].setdefault(lang, []).append({
                             'url': absolute_url(src),
                         })
+            for f in media_info['formats']:
+                f.setdefault('http_headers', {})['Referer'] = base_url
             if media_info['formats'] or media_info['subtitles']:
                 entries.append(media_info)
         return entries

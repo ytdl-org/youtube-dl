@@ -49,7 +49,7 @@ class CrunchyrollBaseIE(InfoExtractor):
             })
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 

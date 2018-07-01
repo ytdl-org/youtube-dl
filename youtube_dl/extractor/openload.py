@@ -243,7 +243,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -300,6 +300,16 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://oload.xyz/f/WwRBpzW8Wtk',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.win/f/kUEfGclsU9o',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.download/f/kUEfGclsU9o',
+        'only_matching': True,
+    }, {
+        # Its title has not got its extension but url has it
+        'url': 'https://oload.download/f/N4Otkw39VCw/Tomb.Raider.2018.HDRip.XviD.AC3-EVO.avi.mp4',
         'only_matching': True,
     }]
 
@@ -362,8 +372,7 @@ class OpenloadIE(InfoExtractor):
             'title': title,
             'thumbnail': entry.get('thumbnail') or self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
-            # Seems all videos have extensions in their titles
-            'ext': determine_ext(title, 'mp4'),
+            'ext': determine_ext(title, None) or determine_ext(url, 'mp4'),
             'subtitles': subtitles,
             'http_headers': headers,
         }

@@ -361,6 +361,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(determine_ext('http://example.com/foo/bar.nonext/?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar/mp4?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar.m3u8//?download'), 'm3u8')
+        self.assertEqual(determine_ext('foobar', None), None)
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
@@ -519,6 +520,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_age_limit('PG-13'), 13)
         self.assertEqual(parse_age_limit('TV-14'), 14)
         self.assertEqual(parse_age_limit('TV-MA'), 17)
+        self.assertEqual(parse_age_limit('TV14'), 14)
+        self.assertEqual(parse_age_limit('TV_G'), 0)
 
     def test_parse_duration(self):
         self.assertEqual(parse_duration(None), None)

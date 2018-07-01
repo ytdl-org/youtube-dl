@@ -3,13 +3,16 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     parse_duration,
     parse_iso8601,
+    urlencode_postdata,
 )
 
 
 class UFCTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ufc\.tv/video/(?P<id>[^/]+)'
+    _NETRC_MACHINE = 'ufctv'
     _TEST = {
         'url': 'https://www.ufc.tv/video/ufc-219-countdown-full-episode',
         'info_dict': {
@@ -25,6 +28,21 @@ class UFCTVIE(InfoExtractor):
             'skip_download': True,
         }
     }
+
+    def _real_initialize(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        code = self._download_json(
+            'https://www.ufc.tv/secure/authenticate',
+            None, 'Logging in', data=urlencode_postdata({
+                'username': username,
+                'password': password,
+                'format': 'json',
+            })).get('code')
+        if code and code != 'loginsuccess':
+            raise ExtractorError(code, expected=True)
 
     def _real_extract(self, url):
         display_id = self._match_id(url)

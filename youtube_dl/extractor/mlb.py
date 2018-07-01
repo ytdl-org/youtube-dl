@@ -1,96 +1,90 @@
 from __future__ import unicode_literals
 
-import re
-
-from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    parse_iso8601,
-)
+from .nhl import NHLBaseIE
 
 
-class MLBIE(InfoExtractor):
+class MLBIE(NHLBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:[\da-z_-]+\.)*mlb\.com/
+                        (?:[\da-z_-]+\.)*(?P<site>mlb)\.com/
                         (?:
                             (?:
-                                (?:.*?/)?video/(?:topic/[\da-z_-]+/)?(?:v|.*?/c-)|
+                                (?:[^/]+/)*c-|
                                 (?:
                                     shared/video/embed/(?:embed|m-internal-embed)\.html|
                                     (?:[^/]+/)+(?:play|index)\.jsp|
                                 )\?.*?\bcontent_id=
                             )
-                            (?P<id>n?\d+)|
-                            (?:[^/]+/)*(?P<path>[^/]+)
+                            (?P<id>\d+)
                         )
                     '''
+    _CONTENT_DOMAIN = 'content.mlb.com'
     _TESTS = [
         {
-            'url': 'http://m.mlb.com/sea/video/topic/51231442/v34698933/nymsea-ackley-robs-a-home-run-with-an-amazing-catch/?c_id=sea',
-            'md5': 'ff56a598c2cf411a9a38a69709e97079',
+            'url': 'https://www.mlb.com/mariners/video/ackleys-spectacular-catch/c-34698933',
+            'md5': '632358dacfceec06bad823b83d21df2d',
             'info_dict': {
                 'id': '34698933',
                 'ext': 'mp4',
                 'title': "Ackley's spectacular catch",
                 'description': 'md5:7f5a981eb4f3cbc8daf2aeffa2215bf0',
                 'duration': 66,
-                'timestamp': 1405980600,
-                'upload_date': '20140721',
+                'timestamp': 1405995000,
+                'upload_date': '20140722',
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
-            'url': 'http://m.mlb.com/video/topic/81536970/v34496663/mianym-stanton-practices-for-the-home-run-derby',
-            'md5': 'd9c022c10d21f849f49c05ae12a8a7e9',
+            'url': 'https://www.mlb.com/video/stanton-prepares-for-derby/c-34496663',
+            'md5': 'bf2619bf9cacc0a564fc35e6aeb9219f',
             'info_dict': {
                 'id': '34496663',
                 'ext': 'mp4',
                 'title': 'Stanton prepares for Derby',
                 'description': 'md5:d00ce1e5fd9c9069e9c13ab4faedfa57',
                 'duration': 46,
-                'timestamp': 1405105800,
+                'timestamp': 1405120200,
                 'upload_date': '20140711',
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
-            'url': 'http://m.mlb.com/video/topic/vtp_hrd_sponsor/v34578115/hrd-cespedes-wins-2014-gillette-home-run-derby',
-            'md5': '0e6e73d509321e142409b695eadd541f',
+            'url': 'https://www.mlb.com/video/cespedes-repeats-as-derby-champ/c-34578115',
+            'md5': '99bb9176531adc600b90880fb8be9328',
             'info_dict': {
                 'id': '34578115',
                 'ext': 'mp4',
                 'title': 'Cespedes repeats as Derby champ',
                 'description': 'md5:08df253ce265d4cf6fb09f581fafad07',
                 'duration': 488,
-                'timestamp': 1405399936,
+                'timestamp': 1405414336,
                 'upload_date': '20140715',
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
-            'url': 'http://m.mlb.com/video/v34577915/bautista-on-derby-captaining-duties-his-performance',
-            'md5': 'b8fd237347b844365d74ea61d4245967',
+            'url': 'https://www.mlb.com/video/bautista-on-home-run-derby/c-34577915',
+            'md5': 'da8b57a12b060e7663ee1eebd6f330ec',
             'info_dict': {
                 'id': '34577915',
                 'ext': 'mp4',
                 'title': 'Bautista on Home Run Derby',
                 'description': 'md5:b80b34031143d0986dddc64a8839f0fb',
                 'duration': 52,
-                'timestamp': 1405390722,
+                'timestamp': 1405405122,
                 'upload_date': '20140715',
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
         },
         {
-            'url': 'http://m.mlb.com/news/article/118550098/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer',
-            'md5': 'aafaf5b0186fee8f32f20508092f8111',
+            'url': 'https://www.mlb.com/news/blue-jays-kevin-pillar-goes-spidey-up-the-wall-to-rob-tim-beckham-of-a-homer/c-118550098',
+            'md5': 'e09e37b552351fddbf4d9e699c924d68',
             'info_dict': {
                 'id': '75609783',
                 'ext': 'mp4',
                 'title': 'Must C: Pillar climbs for catch',
                 'description': '4/15/15: Blue Jays outfielder Kevin Pillar continues his defensive dominance by climbing the wall in left to rob Tim Beckham of a home run',
-                'timestamp': 1429124820,
+                'timestamp': 1429139220,
                 'upload_date': '20150415',
             }
         },
@@ -111,7 +105,7 @@ class MLBIE(InfoExtractor):
             'only_matching': True,
         },
         {
-            'url': 'http://m.cardinals.mlb.com/stl/video/v51175783/atlstl-piscotty-makes-great-sliding-catch-on-line/?partnerId=as_mlb_20150321_42500876&adbid=579409712979910656&adbpl=tw&adbpr=52847728',
+            'url': 'https://www.mlb.com/cardinals/video/piscottys-great-sliding-catch/c-51175783',
             'only_matching': True,
         },
         {
@@ -120,58 +114,7 @@ class MLBIE(InfoExtractor):
             'only_matching': True,
         },
         {
-            'url': 'http://washington.nationals.mlb.com/mlb/gameday/index.jsp?c_id=was&gid=2015_05_09_atlmlb_wasmlb_1&lang=en&content_id=108309983&mode=video#',
+            'url': 'https://www.mlb.com/cut4/carlos-gomez-borrowed-sunglasses-from-an-as-fan/c-278912842',
             'only_matching': True,
         }
     ]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
-        if not video_id:
-            video_path = mobj.group('path')
-            webpage = self._download_webpage(url, video_path)
-            video_id = self._search_regex(
-                [r'data-video-?id="(\d+)"', r'content_id=(\d+)'], webpage, 'video id')
-
-        detail = self._download_xml(
-            'http://m.mlb.com/gen/multimedia/detail/%s/%s/%s/%s.xml'
-            % (video_id[-3], video_id[-2], video_id[-1], video_id), video_id)
-
-        title = detail.find('./headline').text
-        description = detail.find('./big-blurb').text
-        duration = parse_duration(detail.find('./duration').text)
-        timestamp = parse_iso8601(detail.attrib['date'][:-5])
-
-        thumbnails = [{
-            'url': thumbnail.text,
-        } for thumbnail in detail.findall('./thumbnailScenarios/thumbnailScenario')]
-
-        formats = []
-        for media_url in detail.findall('./url'):
-            playback_scenario = media_url.attrib['playback_scenario']
-            fmt = {
-                'url': media_url.text,
-                'format_id': playback_scenario,
-            }
-            m = re.search(r'(?P<vbr>\d+)K_(?P<width>\d+)X(?P<height>\d+)', playback_scenario)
-            if m:
-                fmt.update({
-                    'vbr': int(m.group('vbr')) * 1000,
-                    'width': int(m.group('width')),
-                    'height': int(m.group('height')),
-                })
-            formats.append(fmt)
-
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'duration': duration,
-            'timestamp': timestamp,
-            'formats': formats,
-            'thumbnails': thumbnails,
-        }
