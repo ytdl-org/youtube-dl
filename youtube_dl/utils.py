@@ -748,7 +748,6 @@ class ExtractorError(YoutubeDLError):
             msg = video_id + ': ' + msg
         if cause:
             msg += ' (caused by %r)' % cause
-        self.msg_without_bug_report = msg
         if not expected:
             msg += bug_reports_message()
         super(ExtractorError, self).__init__(msg)
