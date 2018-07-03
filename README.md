@@ -427,9 +427,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      default; fix file if we can, warn
                                      otherwise)
     --prefer-avconv                  Prefer avconv over ffmpeg for running the
-                                     postprocessors (default)
-    --prefer-ffmpeg                  Prefer ffmpeg over avconv for running the
                                      postprocessors
+    --prefer-ffmpeg                  Prefer ffmpeg over avconv for running the
+                                     postprocessors (default)
     --ffmpeg-location PATH           Location of the ffmpeg/avconv binary;
                                      either the path to the binary or its
                                      containing directory.

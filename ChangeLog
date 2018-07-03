@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.07.04
 
 Core
 * [extractor/common] Properly escape % in MPD templates (#16867)

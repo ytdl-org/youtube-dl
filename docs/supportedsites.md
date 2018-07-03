@@ -813,6 +813,7 @@
  - **StretchInternet**
  - **SunPorno**
  - **SVT**
+ - **SVTPage**
  - **SVTPlay**: SVT Play and Öppet arkiv
  - **SVTSeries**
  - **SWRMediathek**
