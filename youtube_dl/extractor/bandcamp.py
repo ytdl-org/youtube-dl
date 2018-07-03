@@ -30,18 +30,42 @@ class BandcampIE(InfoExtractor):
         'info_dict': {
             'id': '1812978515',
             'ext': 'mp3',
-            'title': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
+            'track': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
+            'title': "youtube-dl  \\ - youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
             'duration': 9.8485,
+            'uploader': 'youtube-dl  \\',
+            'artist': 'youtube-dl  \\',
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '0369ace6b939f0927e62c67a1a8d9fa7',
+        'md5': '853e35bf34aa1d6fe2615ae612564b36',
         'info_dict': {
             'id': '2650410135',
             'ext': 'aiff',
-            'title': 'Ben Prunty - Lanius (Battle)',
+            'album': 'FTL: Advanced Edition Soundtrack',
+            'artist': 'Ben Prunty',
             'uploader': 'Ben Prunty',
+            'release_date': '20140403',
+            'release_year': 2014,
+            'track_number': 1,
+            'track': 'Lanius (Battle)',
+            'title': 'Ben Prunty - Lanius (Battle)',
+        },
+    }, {
+        'url': 'https://billbaxter.bandcamp.com/track/drone-city-pt-3-3',
+        'md5': 'e8e24365cb38ff841b4e5df014f988ed',
+        'info_dict': {
+            'id': '3755531036',
+            'ext': 'mp3',
+            'album': 'Drone City',
+            'artist': 'The ambient drones of Bill Baxter',
+            'uploader': 'The ambient drones of Bill Baxter',
+            'release_date': '20160326',
+            'release_year': 2016,
+            'track_number': 3,
+            'track': 'Drone City, Pt. 3',
+            'title': 'The ambient drones of Bill Baxter - Drone City, Pt. 3',
         },
     }]
 
@@ -51,11 +75,22 @@ class BandcampIE(InfoExtractor):
         webpage = self._download_webpage(url, title)
         thumbnail = self._html_search_meta('og:image', webpage, default=None)
         m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
+        m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
+        json_code = m_trackinfo.group(1) if m_trackinfo else None
+        data = self._parse_json(json_code, title)[0]
+
+        artist = self._search_regex(r'artist\s*:\s*"([^"]+)"', webpage, 'artist', default=None)
+        album_title = self._search_regex(r'album_title\s*:\s*"([^"]+)"', webpage, 'album title', default=None)
+        release_date = self._search_regex(r'album_release_date\s*:\s*"([^"]+)"', webpage, 'release', default=None)
+        release_date = unified_strdate(release_date) if release_date else None
+        release_year = int(release_date[0:4]) if release_date else None
+        track = data.get('title') if data else None
+        title = '%s - %s' % (artist, track) if artist else (track or title)
+        track_number = data.get('track_num') if data else None
+        duration = float_or_none(data.get('duration'))
+
         if not m_download:
-            m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
-            if m_trackinfo:
-                json_code = m_trackinfo.group(1)
-                data = json.loads(json_code)[0]
+            if data:
                 track_id = compat_str(data['id'])
 
                 if not data.get('file'):
@@ -77,10 +112,18 @@ class BandcampIE(InfoExtractor):
 
                 return {
                     'id': track_id,
-                    'title': data['title'],
+                    'album': album_title,
+                    'uploader': artist,
+                    'artist': artist,
+                    'track_id': track_id,
+                    'track_number': track_number,
+                    'release_date': release_date,
+                    'release_year': release_year,
+                    'track': track,
+                    'title': title,
                     'thumbnail': thumbnail,
                     'formats': formats,
-                    'duration': float_or_none(data.get('duration')),
+                    'duration': duration,
                 }
             else:
                 raise ExtractorError('No free songs found')
@@ -99,13 +142,9 @@ class BandcampIE(InfoExtractor):
                 'blob', group='blob'),
             video_id, transform_source=unescapeHTML)
 
-        info = blob['digital_items'][0]
+        digital_items = blob['digital_items'][0]
 
-        downloads = info['downloads']
-        track = info['title']
-
-        artist = info.get('artist')
-        title = '%s - %s' % (artist, track) if artist else track
+        downloads = digital_items['downloads']
 
         download_formats = {}
         for f in blob['download_formats']:
@@ -146,12 +185,19 @@ class BandcampIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
-            'thumbnail': info.get('thumb_url') or thumbnail,
-            'uploader': info.get('artist'),
+            'album': album_title,
+            'uploader': artist,
             'artist': artist,
+            'track_id': video_id,
+            'track_number': track_number,
+            'release_date': release_date,
+            'release_year': release_year,
+            'track': track,
+            'title': title,
+            'thumbnail': digital_items.get('thumb_url') or thumbnail,
             'track': track,
             'formats': formats,
+            'duration': duration,
         }
 
 
