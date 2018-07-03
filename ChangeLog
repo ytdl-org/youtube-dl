@@ -1,3 +1,24 @@
+version <unreleased>
+
+Core
+* [extractor/common] Properly escape % in MPD templates (#16867)
+* [extractor/common] Use source URL as Referer for HTML5 entries (16849)
+* Prefer ffmpeg over avconv by default (#8622)
+
+Extractors
+* [pluralsight] Switch to graphql (#16889, #16895, #16896, #16899)
+* [lynda] Simplify login and improve error capturing (#16891)
++ [go90] Add support for embed URLs (#16873)
+* [go90] Detect geo restriction error and pass geo verification headers
+  (#16874)
+* [vlive] Fix live streams extraction (#16871)
+* [npo] Fix typo (#16872)
++ [mediaset] Add support for new videos and extract all formats (#16568)
+* [dctptv] Restore extraction based on REST API (#16850)
+* [svt] Improve extraction and add support for pages (#16802)
+* [porncom] Fix extraction (#16808)
+
+
 version 2018.06.25
 
 Extractors
