@@ -21,6 +21,7 @@ from ..utils import (
     unified_strdate,
     unified_timestamp,
     update_url_query,
+    urljoin,
     USER_AGENTS,
 )
 
@@ -310,9 +311,11 @@ class DPlayItIE(InfoExtractor):
 
         if not info:
             info_url = self._search_regex(
-                r'url\s*[:=]\s*["\']((?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)',
-                webpage, 'info url')
+                (r'playback_json_url\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
+                 r'url\s*[:=]\s*["\'](?P<url>(?:https?:)?//[^/]+/playback/videoPlaybackInfo/\d+)'),
+                webpage, 'info url', group='url')
 
+            info_url = urljoin(url, info_url)
             video_id = info_url.rpartition('/')[-1]
 
             try:
@@ -322,6 +325,8 @@ class DPlayItIE(InfoExtractor):
                             'dplayit_token').value,
                         'Referer': url,
                     })
+                if isinstance(info, compat_str):
+                    info = self._parse_json(info, display_id)
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code in (400, 403):
                     info = self._parse_json(e.cause.read().decode('utf-8'), display_id)
