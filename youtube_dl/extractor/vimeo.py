@@ -737,7 +737,9 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         'playlist_mincount': 25,
     }]
 
-    def _page_url(self, base_url, pagenum):
+    def _page_url(self, base_url, pagenum, sort_by):
+        if sort_by:
+            return '%s/videos/page:%d/%s/' % (base_url, pagenum, sort_by)
         return '%s/videos/page:%d/' % (base_url, pagenum)
 
     def _extract_list_title(self, webpage):
@@ -770,9 +772,9 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
             password_request, list_id,
             'Verifying the password', 'Wrong password')
 
-    def _title_and_entries(self, list_id, base_url):
+    def _title_and_entries(self, list_id, base_url, sort_by):
         for pagenum in itertools.count(1):
-            page_url = self._page_url(base_url, pagenum)
+            page_url = self._page_url(base_url, pagenum, sort_by)
             webpage = self._download_webpage(
                 page_url, list_id,
                 'Downloading page %s' % pagenum)
@@ -800,10 +802,17 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
                 break
 
-    def _extract_videos(self, list_id, base_url):
-        title_and_entries = self._title_and_entries(list_id, base_url)
+    def _extract_videos(self, list_id, base_url, sort_by=None):
+        title_and_entries = self._title_and_entries(list_id, base_url, sort_by)
         list_title = next(title_and_entries)
         return self.playlist_result(title_and_entries, list_id, list_title)
+
+    def _extract_sort_by(self, url):
+        sort_by = None
+        m_sort_by = re.match(r'[^<]*(sort:(date|alphabetical|plays|likes|comments|duration))[^<]*', url)
+        if m_sort_by:
+            sort_by = m_sort_by.group(1)
+        return sort_by
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -822,12 +831,31 @@ class VimeoUserIE(VimeoChannelIE):
             'id': 'nkistudio',
         },
         'playlist_mincount': 66,
+    }, {
+        'url': 'https://vimeo.com/user118005/videos/sort:plays',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/user118005/videos/sort:date',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/user118005/videos/sort:alphabetical',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/user118005/videos/sort:likes',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/user118005/videos/sort:comments',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/user118005/videos/sort:duration',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
-        return self._extract_videos(name, 'https://vimeo.com/%s' % name)
+        sort_by = self._extract_sort_by(url)
+        return self._extract_videos(name, 'https://vimeo.com/%s' % name, sort_by)
 
 
 class VimeoAlbumIE(VimeoChannelIE):
@@ -861,9 +889,12 @@ class VimeoAlbumIE(VimeoChannelIE):
         'only_matching': True,
     }]
 
-    def _page_url(self, base_url, pagenum):
+    def _page_url(self, base_url, pagenum, sort_by=None):
+        if sort_by:
+            return '%s/page:%d/%s/' % (base_url, pagenum, sort_by)
         return '%s/page:%d/' % (base_url, pagenum)
 
+    # Album extraction currently broken - issue 15704
     def _real_extract(self, url):
         album_id = self._match_id(url)
         return self._extract_videos(album_id, 'https://vimeo.com/album/%s' % album_id)
@@ -879,6 +910,24 @@ class VimeoGroupsIE(VimeoAlbumIE):
             'title': 'Rolex Awards for Enterprise',
         },
         'playlist_mincount': 73,
+    }, {
+        'url': 'https://vimeo.com/groups/rolexawards/sort:plays',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/groups/rolexawards/sort:date',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/groups/rolexawards/sort:alphabetical',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/groups/rolexawards/sort:likes',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/groups/rolexawards/sort:comments',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/groups/rolexawards/sort:duration',
+        'only_matching': True,
     }]
 
     def _extract_list_title(self, webpage):
@@ -887,7 +936,8 @@ class VimeoGroupsIE(VimeoAlbumIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         name = mobj.group('name')
-        return self._extract_videos(name, 'https://vimeo.com/groups/%s' % name)
+        sort_by = self._extract_sort_by(url)
+        return self._extract_videos(name, 'https://vimeo.com/groups/%s' % name, sort_by)
 
 
 class VimeoReviewIE(VimeoBaseInfoExtractor):
@@ -976,7 +1026,7 @@ class VimeoWatchLaterIE(VimeoChannelIE):
     def _real_initialize(self):
         self._login()
 
-    def _page_url(self, base_url, pagenum):
+    def _page_url(self, base_url, pagenum, sort_by=None):
         url = '%s/page:%d/' % (base_url, pagenum)
         request = sanitized_Request(url)
         # Set the header to get a partial html page with the ids,
@@ -1003,6 +1053,24 @@ class VimeoLikesIE(InfoExtractor):
     }, {
         'url': 'https://vimeo.com/stormlapse/likes',
         'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes/sort:plays',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes/sort:date',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes/sort:alphabetical',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes/sort:likes',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes/sort:comments',
+        'only_matching': True,
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes/sort:duration',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -1020,8 +1088,12 @@ class VimeoLikesIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
 
         def _get_page(idx):
-            page_url = 'https://vimeo.com/%s/likes/page:%d/sort:date' % (
-                user_id, idx + 1)
+            sort_by = 'sort:date'
+            m_sort_by = re.match(r'[^<]*(sort:(date|alphabetical|plays|likes|comments|duration))[^<]*', url)
+            if m_sort_by:
+                sort_by = m_sort_by.group(1)
+            page_url = 'https://vimeo.com/%s/likes/page:%d/%s' % (
+                user_id, idx + 1, sort_by)
             webpage = self._download_webpage(
                 page_url, user_id,
                 note='Downloading page %d/%d' % (idx + 1, page_count))
