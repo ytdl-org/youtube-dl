@@ -1,20 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .turner import TurnerBaseIE
 
 
 class CartoonNetworkIE(TurnerBaseIE):
     _VALID_URL = r'https?://(?:www\.)?cartoonnetwork\.com/video/(?:[^/]+/)+(?P<id>[^/?#]+)-(?:clip|episode)\.html'
     _TEST = {
-        'url': 'http://www.cartoonnetwork.com/video/teen-titans-go/starfire-the-cat-lady-clip.html',
+        'url': 'https://www.cartoonnetwork.com/video/steven-universe/we-are-the-crystal-gems-full-theme-song-music-video-episode.html',
         'info_dict': {
-            'id': '8a250ab04ed07e6c014ef3f1e2f9016c',
+            'id': '7b1db96d17822fba0a3d1ba4b3c4071852a5078e',
             'ext': 'mp4',
-            'title': 'Starfire the Cat Lady',
-            'description': 'Robin decides to become a cat so that Starfire will finally love him.',
+            'title': 'We Are the Crystal Gems (Full Theme Song) Music Video',
+            'description': 'Music and lyrics by Rebecca Sugar. Additional music by Jeff Liu, Steven Velema and Aivi Tran. Performed by Zach Callison, Estelle, Deedee Magno Hall, Michaela Dietz and Tom Scharpling.',
         },
         'params': {
             # m3u8 download
@@ -25,18 +23,24 @@ class CartoonNetworkIE(TurnerBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        id_type, video_id = re.search(r"_cnglobal\.cvp(Video|Title)Id\s*=\s*'([^']+)';", webpage).groups()
-        query = ('id' if id_type == 'Video' else 'titleId') + '=' + video_id
-        return self._extract_cvp_info(
-            'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&' + query, video_id, {
-                'secure': {
-                    'media_src': 'http://androidhls-secure.cdn.turner.com/toon/big',
-                    'tokenizer_src': 'https://token.vgtf.net/token/token_mobile',
-                },
-            }, {
+        video_id = self._search_regex(r"_cnglobal\.(cvpVideo|cvpTitle|videoMedia)Id\s*=\s*'([^']+)';", webpage, 'video_id', group=2)
+        title = self._html_search_regex(r'og:title.*\scontent="([^"]+)"', webpage, 'title', group=1)
+        description = self._html_search_regex(r'og:description.*\scontent="([^"]+)"', webpage, 'description', default=None, group=1)
+
+        info = self._extract_ngtv_info(
+            video_id,
+            {'networkId': 'cartoonnetwork'},
+            {
                 'url': url,
                 'site_name': 'CartoonNetwork',
                 'auth_required': self._search_regex(
                     r'_cnglobal\.cvpFullOrPreviewAuth\s*=\s*(true|false);',
                     webpage, 'auth required', default='false') == 'true',
-            })
+            },
+        )
+        info.update({
+            'id': video_id,
+            'title': title,
+            'description': description,
+        })
+        return info
