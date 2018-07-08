@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class PietsmietIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pietsmiet\.de/gallery/(categories|playlists)/[\w-]+/(?P<id>\d+)-.*/?'
+    _VALID_URL = r'https?://(?:www\.)?pietsmiet\.de/gallery/(categories|playlists)/[\w-]+/(?P<id>\d+)-'
     _TESTS = [
         {
             'url': 'https://www.pietsmiet.de/gallery/categories/8-frag-pietsmiet/29844-fps-912',
@@ -49,51 +49,53 @@ class PietsmietIE(InfoExtractor):
         data_video_config = data_video_config.replace(']', '],', 1) + '}'
         data_video = self._parse_json(js_to_json(unescapeHTML(data_video_config)), page_id)
 
+        title = compat_urllib_parse_unquote(data_video['abouttext'])
+
         formats = []
 
-        m3u8_manifest_urls = filter(lambda x: x['file'].endswith('m3u8'), data_video['sources'])
-        for f in m3u8_manifest_urls:
-            m3u8_formats = self._extract_m3u8_formats(
-                f['file'], page_id, 'mp4', 'm3u8_native', m3u8_id='hls')
-
-            formats.extend(m3u8_formats)
-
-        mp4_urls = filter(lambda x: not x['file'].endswith('m3u8'), data_video['sources'])
-        for m in mp4_urls:
-            label = m.get('label')
-            format_height = 0
-
-            if label:
-                # Calculate resolution for HTTP format but should always be 1280x720
-                format_height_raw = self._search_regex(
-                    '([0-9]+)p', label, 'http video height',
-                    default=720, fatal=False)
-                format_height = int_or_none(format_height_raw)
-
-            if format_height > 0:
-                format_width = float(format_height) * (16 / 9)
-
-                formats.append({
-                    'format_id': 'http-{0}'.format(label),
-                    'url': "https:{0}".format(m['file']),
-                    'ext': m.get('type'),
-                    'width': int_or_none(format_width),
-                    'height': format_height,
-                    'fps': 30.0,
-                })
+        for src in data_video['sources']:
+            if src['file'].endswith('m3u8'):
+                # HLS format
+                m3u8_formats = self._extract_m3u8_formats(
+                    src['file'], page_id, 'mp4', 'm3u8_native', m3u8_id='hls')
+                formats.extend(m3u8_formats)
             else:
-                formats.append({
-                    'url': "https:{0}".format(m['file']),
-                    'ext': m.get('type'),
-                    'fps': 30.0,
-                })
+                # Standard mp4
+                label = src.get('label')
+                format_height = 0
+
+                if label:
+                    # Calculate resolution for HTTP format. Should always be 1280x720
+                    # for newer videos but older videos don't have HLS for all resolutions
+                    format_height_raw = self._search_regex(
+                        '([0-9]+)p', label, 'http video height',
+                        default=720)
+                    format_height = int_or_none(format_height_raw)
+
+                if format_height > 0:
+                    format_width = float(format_height) * (16 / 9)
+
+                    formats.append({
+                        'format_id': 'http-{0}'.format(label),
+                        'url': "https:{0}".format(src['file']),
+                        'ext': src.get('type'),
+                        'width': int_or_none(format_width),
+                        'height': format_height,
+                        'fps': 30.0,
+                    })
+                else:
+                    formats.append({
+                        'url': 'https:{0}'.format(src['file']),
+                        'ext': src.get('type'),
+                        'fps': 30.0,
+                    })
 
         self._sort_formats(formats)
 
         return {
             'id': page_id,
             'display_id': page_id,
-            'title': compat_urllib_parse_unquote(data_video['abouttext']),
+            'title': title,
             'formats': formats,
             'thumbnail': 'http://www.pietsmiet.de/{0}'.format(data_video.get('image')),
         }
