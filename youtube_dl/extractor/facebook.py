@@ -307,7 +307,6 @@ class FacebookIE(InfoExtractor):
         req = sanitized_Request(url)
         req.add_header('User-Agent', self._CHROME_USER_AGENT)
         webpage = self._download_webpage(req, video_id)
-
         video_data = None
 
         def extract_video_data(instances):
@@ -426,6 +425,10 @@ class FacebookIE(InfoExtractor):
             'timestamp', default=None))
         thumbnail = self._og_search_thumbnail(webpage)
 
+        view_count = re.sub("[^0-9]", "", self._search_regex(
+            r'viewCount\s*:\s*"([^"]+)"', webpage, 'view_count1',
+            fatal=False))
+
         info_dict = {
             'id': video_id,
             'title': video_title,
@@ -433,6 +436,7 @@ class FacebookIE(InfoExtractor):
             'uploader': uploader,
             'timestamp': timestamp,
             'thumbnail': thumbnail,
+            'view_count': int(view_count),
         }
 
         return webpage, info_dict
