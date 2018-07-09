@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.07.10
 
 Core
 * [utils] Share JSON-LD regular expression
