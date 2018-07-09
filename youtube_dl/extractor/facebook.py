@@ -307,7 +307,7 @@ class FacebookIE(InfoExtractor):
         req = sanitized_Request(url)
         req.add_header('User-Agent', self._CHROME_USER_AGENT)
         webpage = self._download_webpage(req, video_id)
-        
+
         video_data = None
 
         def extract_video_data(instances):
