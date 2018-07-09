@@ -768,6 +768,7 @@ from .nrk import (
     NRKSkoleIE,
     NRKTVIE,
     NRKTVDirekteIE,
+    NRKTVEpisodeIE,
     NRKTVEpisodesIE,
     NRKTVSeriesIE,
 )

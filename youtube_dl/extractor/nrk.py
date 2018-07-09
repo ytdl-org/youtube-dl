@@ -8,6 +8,7 @@ from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     int_or_none,
+    JSON_LD_RE,
     parse_age_limit,
     parse_duration,
 )
@@ -359,6 +360,40 @@ class NRKTVIE(NRKBaseIE):
     }]
 
 
+class NRKTVEpisodeIE(InfoExtractor):
+    _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+/sesong/\d+/episode/\d+)'
+    _TEST = {
+        'url': 'https://tv.nrk.no/serie/backstage/sesong/1/episode/8',
+        'info_dict': {
+            'id': 'MSUI14000816AA',
+            'ext': 'mp4',
+            'title': 'Backstage 8:30',
+            'description': 'md5:de6ca5d5a2d56849e4021f2bf2850df4',
+            'duration': 1320,
+            'series': 'Backstage',
+            'season_number': 1,
+            'episode_number': 8,
+            'episode': '8:30',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        nrk_id = self._parse_json(
+            self._search_regex(JSON_LD_RE, webpage, 'JSON-LD', group='json_ld'),
+            display_id)['@id']
+
+        assert re.match(NRKTVIE._EPISODE_RE, nrk_id)
+        return self.url_result(
+            'nrk:%s' % nrk_id, ie=NRKIE.ie_key(), video_id=nrk_id)
+
+
 class NRKTVDirekteIE(NRKTVIE):
     IE_DESC = 'NRK TV Direkte and NRK Radio Direkte'
     _VALID_URL = r'https?://(?:tv|radio)\.nrk\.no/direkte/(?P<id>[^/?#&]+)'
@@ -470,7 +505,8 @@ class NRKTVSeriesIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if NRKTVIE.suitable(url) else super(NRKTVSeriesIE, cls).suitable(url)
+        return (False if NRKTVIE.suitable(url) or NRKTVEpisodeIE.suitable(url)
+                else super(NRKTVSeriesIE, cls).suitable(url))
 
     def _real_extract(self, url):
         series_id = self._match_id(url)
