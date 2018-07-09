@@ -5,7 +5,6 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     unified_strdate,
-    ExtractorError
 )
 from ..compat import compat_urlparse
 
@@ -62,13 +61,27 @@ class DWIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+
+        def extract_formats():
+            media = self._download_json(self._SOURCES_URL % (player_type[0], media_id), media_id)
+            extracted_formats = []
+            for medium in media:
+                extracted_formats.append({
+                    'url': medium.get('file')
+                })
+                label = medium.get('label')
+                if label is not None:
+                    extracted_formats[-1]['format_id'] = label
+            return extracted_formats
+
         media_id = self._match_id(url)
         webpage = self._download_webpage(url, media_id)
         hidden_inputs = self._hidden_inputs(webpage)
-        title = hidden_inputs['media_title']
+        title = hidden_inputs.get('media_title')
         media_id = hidden_inputs.get('media_id') or media_id
+        player_type = hidden_inputs.get('player_type')
 
-        if hidden_inputs.get('player_type') == 'video':
+        if player_type == 'video':
             if hidden_inputs.get('stream_file') == '1':
                 formats = self._extract_smil_formats(
                     'http://www.dw.com/smil/v-%s' % media_id, media_id,
@@ -77,23 +90,12 @@ class DWIE(InfoExtractor):
                         'http://tv-download.dw.de/dwtv_video/flv/'))
                 self._sort_formats(formats)
             else:
-                media = self._download_json(self._SOURCES_URL % ('v', media_id), media_id)
-                formats = []
-                for medium in media:
-                    formats.append({
-                        'url': medium.get('file'),
-                        'format_id': medium.get('label')
-                    })
-                self._sort_formats(formats, 'label')
-        elif hidden_inputs.get('player_type') == 'audio':
-            media = self._download_json(self._SOURCES_URL % ('a', media_id), media_id)
-            formats = []
-            for medium in media:
-                formats.append({
-                    'url': medium.get('file'),
-                })
+                formats = extract_formats()
+                self._sort_formats(formats)
+        elif player_type == 'audio':
+            formats = extract_formats()
         else:
-            formats = [{'url': hidden_inputs['file_name']}]
+            formats = [{'url': hidden_inputs.get('file_name')}]
 
         upload_date = hidden_inputs.get('display_date')
         if not upload_date:
