@@ -66,12 +66,14 @@ class DWIE(InfoExtractor):
             media = self._download_json(self._SOURCES_URL % (player_type[0], media_id), media_id)
             extracted_formats = []
             for medium in media:
-                extracted_formats.append({
-                    'url': medium.get('file')
-                })
-                label = medium.get('label')
-                if label is not None:
-                    extracted_formats[-1]['format_id'] = label
+                file = medium.get('file')
+                if file is not None:
+                    extracted_formats.append({
+                        'url': file
+                    })
+                    label = medium.get('label')
+                    if label is not None:
+                        extracted_formats[-1]['format_id'] = label
             return extracted_formats
 
         media_id = self._match_id(url)
@@ -80,22 +82,19 @@ class DWIE(InfoExtractor):
         title = hidden_inputs.get('media_title')
         media_id = hidden_inputs.get('media_id') or media_id
         player_type = hidden_inputs.get('player_type')
+        file_name = hidden_inputs.get('file_name')
+        formats = []
 
-        if player_type == 'video':
-            if hidden_inputs.get('stream_file') == '1':
+        if player_type == 'video' and hidden_inputs.get('stream_file') == '1':
                 formats = self._extract_smil_formats(
                     'http://www.dw.com/smil/v-%s' % media_id, media_id,
                     transform_source=lambda s: s.replace(
                         'rtmp://tv-od.dw.de/flash/',
                         'http://tv-download.dw.de/dwtv_video/flv/'))
-                self._sort_formats(formats)
-            else:
-                formats = extract_formats()
-                self._sort_formats(formats)
-        elif player_type == 'audio':
-            formats = extract_formats()
-        else:
-            formats = [{'url': hidden_inputs.get('file_name')}]
+
+        if not formats:
+            formats = extract_formats() or [{'url': file_name}] if file_name else []
+        self._sort_formats(formats)
 
         upload_date = hidden_inputs.get('display_date')
         if not upload_date:
