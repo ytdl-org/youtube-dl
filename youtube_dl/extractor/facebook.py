@@ -228,7 +228,7 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'timestamp': 1530025716,
             'uploader': 'Яндекс.Здоровье',
-            'title': unicode,
+            'title': 'md5:1cdf2e730316e05a89f60fc48cb4a9bf',
             'upload_date': '20180626',
             'view_count': int,
         },
