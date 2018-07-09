@@ -307,6 +307,7 @@ class FacebookIE(InfoExtractor):
         req = sanitized_Request(url)
         req.add_header('User-Agent', self._CHROME_USER_AGENT)
         webpage = self._download_webpage(req, video_id)
+        
         video_data = None
 
         def extract_video_data(instances):
@@ -426,7 +427,7 @@ class FacebookIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
 
         view_count = re.sub("[^0-9]", "", self._search_regex(
-            r'viewCount\s*:\s*"([^"]+)"', webpage, 'view_count1',
+            r'viewCount\s*:\s*"([^"]+)"\s*,\s*viewCountReduced', webpage, 'view_count',
             fatal=False))
 
         info_dict = {
