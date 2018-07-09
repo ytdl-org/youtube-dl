@@ -38,7 +38,10 @@ class ADNIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Blue Exorcist - Kyôto Saga - Épisode 1',
             'description': 'md5:2f7b5aa76edbc1a7a92cedcda8a528d5',
-        }
+        },
+        'params': {
+            'videopassword': '9032ad7083106400',
+        },
     }
     _BASE_URL = 'http://animedigitalnetwork.fr'
     _RSA_KEY = (0xc35ae1e4356b65a73b551493da94b8cb443491c0aa092a357a5aee57ffc14dda85326f42d716e539a34542a0d3f363adf16c5ec222d713d5997194030ee2e4f0d1fb328c01a81cf6868c090d50de8e169c6b13d1675b9eeed1cbc51e1fffca9b38af07f37abd790924cd3bee59d0257cfda4fe5f3f0534877e21ce5821447d1b, 65537)
@@ -53,10 +56,15 @@ class ADNIE(InfoExtractor):
         if not enc_subtitles:
             return None
 
+        key = self._downloader.params.get('videopassword')
+        if key is None:
+            msg = 'The subtitle of this video is protected by a password, use the --video-password option'
+            raise ExtractorError(msg, expected=True)
+
         # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
-            bytes_to_intlist(binascii.unhexlify(self._K + '9032ad7083106400')),
+            bytes_to_intlist(binascii.unhexlify(self._K + key)),
             bytes_to_intlist(compat_b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
