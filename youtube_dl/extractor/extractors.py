@@ -770,6 +770,7 @@ from .nrk import (
     NRKTVDirekteIE,
     NRKTVEpisodeIE,
     NRKTVEpisodesIE,
+    NRKTVSeasonIE,
     NRKTVSeriesIE,
 )
 from .ntvde import NTVDeIE

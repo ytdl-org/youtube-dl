@@ -4,13 +4,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_unquote
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
     JSON_LD_RE,
+    NO_DEFAULT,
     parse_age_limit,
     parse_duration,
+    try_get,
 )
 
 
@@ -394,6 +399,148 @@ class NRKTVEpisodeIE(InfoExtractor):
             'nrk:%s' % nrk_id, ie=NRKIE.ie_key(), video_id=nrk_id)
 
 
+class NRKTVSerieBaseIE(InfoExtractor):
+    def _extract_series(self, webpage, display_id, fatal=True):
+        config = self._parse_json(
+            self._search_regex(
+                r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>', webpage, 'config',
+                default='{}' if not fatal else NO_DEFAULT),
+            display_id, fatal=False)
+        if not config:
+            return
+        return try_get(config, lambda x: x['series'], dict)
+
+    def _extract_episodes(self, season):
+        entries = []
+        if not isinstance(season, dict):
+            return entries
+        episodes = season.get('episodes')
+        if not isinstance(episodes, list):
+            return entries
+        for episode in episodes:
+            nrk_id = episode.get('prfId')
+            if not nrk_id or not isinstance(nrk_id, compat_str):
+                continue
+            entries.append(self.url_result(
+                'nrk:%s' % nrk_id, ie=NRKIE.ie_key(), video_id=nrk_id))
+        return entries
+
+
+class NRKTVSeasonIE(NRKTVSerieBaseIE):
+    _VALID_URL = r'https?://tv\.nrk\.no/serie/[^/]+/sesong/(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://tv.nrk.no/serie/backstage/sesong/1',
+        'info_dict': {
+            'id': '1',
+            'title': 'Sesong 1',
+        },
+        'playlist_mincount': 30,
+    }
+
+    @classmethod
+    def suitable(cls, url):
+        return (False if NRKTVIE.suitable(url) or NRKTVEpisodeIE.suitable(url)
+                else super(NRKTVSeasonIE, cls).suitable(url))
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        series = self._extract_series(webpage, display_id)
+
+        season = next(
+            s for s in series['seasons']
+            if int(display_id) == s.get('seasonNumber'))
+
+        title = try_get(season, lambda x: x['titles']['title'], compat_str)
+        return self.playlist_result(
+            self._extract_episodes(season), display_id, title)
+
+
+class NRKTVSeriesIE(NRKTVSerieBaseIE):
+    _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/serie/(?P<id>[^/]+)'
+    _ITEM_RE = r'(?:data-season=["\']|id=["\']season-)(?P<id>\d+)'
+    _TESTS = [{
+        # new layout
+        'url': 'https://tv.nrk.no/serie/backstage',
+        'info_dict': {
+            'id': 'backstage',
+            'title': 'Backstage',
+            'description': 'md5:c3ec3a35736fca0f9e1207b5511143d3',
+        },
+        'playlist_mincount': 60,
+    }, {
+        # old layout
+        'url': 'https://tv.nrk.no/serie/groenn-glede',
+        'info_dict': {
+            'id': 'groenn-glede',
+            'title': 'Grønn glede',
+            'description': 'md5:7576e92ae7f65da6993cf90ee29e4608',
+        },
+        'playlist_mincount': 9,
+    }, {
+        'url': 'http://tv.nrksuper.no/serie/labyrint',
+        'info_dict': {
+            'id': 'labyrint',
+            'title': 'Labyrint',
+            'description': 'md5:58afd450974c89e27d5a19212eee7115',
+        },
+        'playlist_mincount': 3,
+    }, {
+        'url': 'https://tv.nrk.no/serie/broedrene-dal-og-spektralsteinene',
+        'only_matching': True,
+    }, {
+        'url': 'https://tv.nrk.no/serie/saving-the-human-race',
+        'only_matching': True,
+    }, {
+        'url': 'https://tv.nrk.no/serie/postmann-pat',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (
+            False if any(ie.suitable(url)
+                         for ie in (NRKTVIE, NRKTVEpisodeIE, NRKTVSeasonIE))
+            else super(NRKTVSeriesIE, cls).suitable(url))
+
+    def _real_extract(self, url):
+        series_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, series_id)
+
+        # New layout (e.g. https://tv.nrk.no/serie/backstage)
+        series = self._extract_series(webpage, series_id, fatal=False)
+        if series:
+            title = try_get(series, lambda x: x['titles']['title'], compat_str)
+            description = try_get(
+                series, lambda x: x['titles']['subtitle'], compat_str)
+            entries = []
+            for season in series['seasons']:
+                entries.extend(self._extract_episodes(season))
+            return self.playlist_result(entries, series_id, title, description)
+
+        # Old layout (e.g. https://tv.nrk.no/serie/groenn-glede)
+        entries = [
+            self.url_result(
+                'https://tv.nrk.no/program/Episodes/{series}/{season}'.format(
+                    series=series_id, season=season_id))
+            for season_id in re.findall(self._ITEM_RE, webpage)
+        ]
+
+        title = self._html_search_meta(
+            'seriestitle', webpage,
+            'title', default=None) or self._og_search_title(
+            webpage, fatal=False)
+
+        description = self._html_search_meta(
+            'series_description', webpage,
+            'description', default=None) or self._og_search_description(webpage)
+
+        return self.playlist_result(entries, series_id, title, description)
+
+
 class NRKTVDirekteIE(NRKTVIE):
     IE_DESC = 'NRK TV Direkte and NRK Radio Direkte'
     _VALID_URL = r'https?://(?:tv|radio)\.nrk\.no/direkte/(?P<id>[^/?#&]+)'
@@ -471,65 +618,6 @@ class NRKTVEpisodesIE(NRKPlaylistBaseIE):
     def _extract_title(self, webpage):
         return self._html_search_regex(
             r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
-
-
-class NRKTVSeriesIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/serie/(?P<id>[^/]+)'
-    _ITEM_RE = r'(?:data-season=["\']|id=["\']season-)(?P<id>\d+)'
-    _TESTS = [{
-        'url': 'https://tv.nrk.no/serie/groenn-glede',
-        'info_dict': {
-            'id': 'groenn-glede',
-            'title': 'Grønn glede',
-            'description': 'md5:7576e92ae7f65da6993cf90ee29e4608',
-        },
-        'playlist_mincount': 9,
-    }, {
-        'url': 'http://tv.nrksuper.no/serie/labyrint',
-        'info_dict': {
-            'id': 'labyrint',
-            'title': 'Labyrint',
-            'description': 'md5:58afd450974c89e27d5a19212eee7115',
-        },
-        'playlist_mincount': 3,
-    }, {
-        'url': 'https://tv.nrk.no/serie/broedrene-dal-og-spektralsteinene',
-        'only_matching': True,
-    }, {
-        'url': 'https://tv.nrk.no/serie/saving-the-human-race',
-        'only_matching': True,
-    }, {
-        'url': 'https://tv.nrk.no/serie/postmann-pat',
-        'only_matching': True,
-    }]
-
-    @classmethod
-    def suitable(cls, url):
-        return (False if NRKTVIE.suitable(url) or NRKTVEpisodeIE.suitable(url)
-                else super(NRKTVSeriesIE, cls).suitable(url))
-
-    def _real_extract(self, url):
-        series_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, series_id)
-
-        entries = [
-            self.url_result(
-                'https://tv.nrk.no/program/Episodes/{series}/{season}'.format(
-                    series=series_id, season=season_id))
-            for season_id in re.findall(self._ITEM_RE, webpage)
-        ]
-
-        title = self._html_search_meta(
-            'seriestitle', webpage,
-            'title', default=None) or self._og_search_title(
-            webpage, fatal=False)
-
-        description = self._html_search_meta(
-            'series_description', webpage,
-            'description', default=None) or self._og_search_description(webpage)
-
-        return self.playlist_result(entries, series_id, title, description)
 
 
 class NRKSkoleIE(InfoExtractor):
