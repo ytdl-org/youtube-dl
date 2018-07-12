@@ -2060,6 +2060,16 @@ class GenericIE(InfoExtractor):
             'skip': 'TODO: fix nested playlists processing in tests',
         },
         # {
+        #    # Clappr.Player({})
+        #    'url': 'http://demo.teleosmedia.com/mosaic/',
+        #    'md5': "TODO",
+        #    'info_dict': {
+        #        'id': 'mosaic',
+        #        'title': 'video',
+        #        'ext': 'mp4'
+        #    },
+        # },
+        # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
         #     'url': 'https://flipagram.com/f/nyvTSJMKId',
@@ -3116,6 +3126,13 @@ class GenericIE(InfoExtractor):
         if jwplayer_data:
             info = self._parse_jwplayer_data(
                 jwplayer_data, video_id, require_title=False, base_url=url)
+            return merge_dicts(info, info_dict)
+
+        # Clappr.player()
+        clappr_dict = self._find_clappr_data(webpage, video_id)
+        if clappr_dict:
+            info = self._parse_clappr_data(clappr_dict, 
+                            video_id=video_id, base_url=url)
             return merge_dicts(info, info_dict)
 
         # Video.js embed

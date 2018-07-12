@@ -1266,6 +1266,7 @@ from .viewlift import (
     ViewLiftEmbedIE,
 )
 from .viewster import ViewsterIE
+from .vidlox import VidloxIE
 from .viidea import ViideaIE
 from .vimeo import (
     VimeoIE,

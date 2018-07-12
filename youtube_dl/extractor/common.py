@@ -2480,6 +2480,85 @@ class InfoExtractor(object):
             m3u8_id='hls', fatal=False))
         return formats
 
+    def _find_clappr_data(self, webpage, video_id = None, transform_source=js_to_json):
+        """
+        Find Clappr.Player data
+        http://clappr.github.io/classes/Player.html#method_constructor
+        """
+        mobj = re.search(
+            r'new Clappr.Player\((?P<json>{.+?})\);',
+            webpage.replace("\n","").replace("\t",""))
+        if mobj:
+            try:
+                clappr_data = self._parse_json(mobj.group('json'),
+                                                 video_id=video_id,
+                                                 transform_source=transform_source)
+            except ExtractorError:
+                pass
+            else:
+                if isinstance(clappr_data, dict):
+                    return clappr_data
+
+
+    def _parse_clappr_data(self, clappr_data, video_id=None, require_title=True,
+                             m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
+        """
+            Parse Clappr player data 
+            http://clappr.github.io/classes/Player.html#method_constructor
+        """
+
+        info_dict = {
+            'id': video_id,
+            'subtitles':{},
+        }
+        info_dict['formats'] =  self._extract_url_list_formats(
+            clappr_data.get("sources", [clappr_data.get("source")]), 
+            video_id=video_id,m3u8_id=m3u8_id, mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
+
+        thumbnail = clappr_data.get("poster")
+        if thumbnail: 
+            info_dict['thumbnail'] = thumbnail
+
+        # Title from `chromecast` plugin             https://github.com/deaathh/sdasdas
+        title = clappr_data.get('chromecast',{}).get('title')
+        if title:
+            info_dict['title'] = title
+        #Subtitles:
+        #https://github.com/clappr/clappr/blob/master/doc/BUILTIN_PLUGINS.md#playback-configuration
+        subtitles = clappr_data.get('externalTracks') or clappr_data.get('playback',{}).get('externalTracks')
+        if subtitles:
+            for sub in subtitles:
+                if sub.get('kind',"subtitles") != "subtitles":
+                    continue
+                lang = sub.get('lang') or sub.get('language') or sub.get('label','undefined')
+                src = sub.get('src')
+                if not src:
+                    continue
+                info_dict['subtitles'].setdefault(lang, []).append({
+                            'url': compat_urlparse.urljoin(base_url,src),
+                            'ext': determine_ext(src),
+                })
+        #https://github.com/JMVTechnology/Clappr-Subtitle
+        subtitle = clappr_data.get('subtitle')
+        if subtitle:
+            if isinstance(subtitle, dict):
+                src  = subtitle.get("src")
+                lang = subtitle.get("lang") or subtitle.get('label')
+            else:
+                src = subtitle
+            if src:
+                src = compat_urlparse.urljoin(base_url,src)
+                ext = determine_ext(src)
+                if not lang:
+                    lang = src.split('/')[-1]
+                    if video_id in lang:
+                        lang = lang.replace("%s_" % video_id,'').replace(video_id,'').replace(".%s" % ext, '')
+                info_dict['subtitles'].setdefault(lang, []).append({
+                            'url': src,
+                            'ext': ext,
+                })
+        return info_dict
+
     def _extract_wowza_formats(self, url, video_id, m3u8_entry_protocol='m3u8_native', skip_protocols=[]):
         query = compat_urlparse.urlparse(url).query
         url = re.sub(r'/(?:manifest|playlist|jwplayer)\.(?:m3u8|f4m|mpd|smil)', '', url)
@@ -2531,6 +2610,54 @@ class InfoExtractor(object):
                         'format_id': protocol,
                         'protocol': protocol,
                     })
+        return formats
+
+    def _extract_url_list_formats(self, sources, video_id=None,
+                                m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
+        """
+        Transform ["url1", "url2", {source: <>, mimeType: <>}] to formats.
+        Knows
+        """
+        formats = [] 
+        format_id = -1
+        for source in sources:
+            #The media source URL, or {source: <>, mimeType: <>}
+            if isinstance(source, dict):
+                source_url = source.get('source')
+                mime = source.get('mimeType')
+            else:
+                source_url = source
+                mime = None
+
+            format_id = format_id + 1
+            if base_url:
+                source_url = compat_urlparse.urljoin(base_url, source_url)
+            ext = mimetype2ext(mime) or determine_ext(source_url, 'mp4')
+            if ext == "m3u8":
+                formats.extend(self._extract_m3u8_formats(
+                    source_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id=m3u8_id, fatal=False, preference=1))
+            elif ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    source_url, video_id, mpd_id=mpd_id, fatal=False))
+            elif ext == 'smil':
+                formats.extend(self._extract_smil_formats(
+                    source_url, video_id, fatal=False))
+            elif ext == "f4m": 
+                formats.extend(self._extract_f4m_formats(
+                    source_url, video_id, m3u8_id=m3u8_id, fatal=False))
+            else:
+                urlh = self._request_webpage(source_url, video_id, note="Checking format %d information"%format_id, fatal=False)
+                size = int(urlh.headers.get('Content-Length'))
+                formats.append({
+                    'url': source_url,
+                    'ext': ext,
+                    'format_id': "%d" % format_id,
+                    'filesize': size,
+                    'preference': int(size / 1024 / 1024 / 10 ),
+                })
+        if len(formats) == 0:
+            raise ExtractorError('Source not found', expected=True, video_id=video_id)
         return formats
 
     def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
