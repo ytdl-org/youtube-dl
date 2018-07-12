@@ -73,19 +73,16 @@ class Mp4UploadIE(InfoExtractor):
             raise ExtractorError('I can\'t find file info', video_id=video_id)
 
         embedpage = self._download_webpage(embed_url, video_id, note='Downloading embed webpage')
-        # _find_jwplayer_data don't work
-        mobj = re.search(
-            r'player.setup\((?P<options>{.+?})\);',
-            decode_packed_codes(get_element_by_id("player", embedpage)).replace("\\'", '"')
-        )
-        if not mobj:
-            raise ExtractorError('I can\'t find player data', video_id=video_id)
 
         # It contains only `source url` and `thumbnail`
-        poor_info_dict = self._parse_jwplayer_data(
-            self._parse_json(
-                mobj.group('options'), video_id=video_id, transform_source=js_to_json
-            ), video_id, base_url=embed_url, require_title=False)
+        poor_info_dict = self._extract_jwplayer_data(
+            decode_packed_codes(
+                get_element_by_id("player", embedpage)
+            ).replace("\\'", '"'), 
+            video_id, base_url=embed_url, require_title=False
+            )
+        if not poor_info_dict:
+            raise ExtractorError('I can\'t find player data', video_id=video_id)
 
         info_dict['thumbnail'] = poor_info_dict.get('thumbnail')
         _f = {
