@@ -631,6 +631,7 @@ from .mixcloud import (
 )
 from .mlb import MLBIE
 from .mnet import MnetIE
+from .mp4upload import Mp4UploadIE
 from .moevideo import MoeVideoIE
 from .mofosex import MofosexIE
 from .mojvideo import MojvideoIE
