@@ -9,7 +9,6 @@ from ..utils import (
     decode_packed_codes,
     get_element_by_class,
     get_element_by_id,
-    js_to_json,
     parse_filesize,
     strip_or_none,
 )
@@ -66,7 +65,7 @@ class Mp4UploadIE(InfoExtractor):
         }
 
         file_info = re.findall(
-            r'">(?P<label>[^<:]+):</span><span>(?P<value>[^<]+)</span></li>',
+            r'>(?P<label>[^<:]+):</span><span>(?P<value>[^<]+)</span></li>',
             get_element_by_class('fileinfo', webpage)
         )
         if not file_info:
@@ -77,18 +76,18 @@ class Mp4UploadIE(InfoExtractor):
         # It contains only `source url` and `thumbnail`
         poor_info_dict = self._extract_jwplayer_data(
             decode_packed_codes(
-                get_element_by_id("player", embedpage)
-            ).replace("\\'", '"'), 
+                get_element_by_id('player', embedpage)
+            ).replace('\\\'', '"'),
             video_id, base_url=embed_url, require_title=False
-            )
+        )
         if not poor_info_dict:
             raise ExtractorError('I can\'t find player data', video_id=video_id)
 
         info_dict['thumbnail'] = poor_info_dict.get('thumbnail')
         _f = {
-            "url": poor_info_dict.get('formats')[0].get('url'),
-            "ext": poor_info_dict.get('formats')[0].get('ext'),
-            "format_id": "1",
+            'url': poor_info_dict.get('formats')[0].get('url'),
+            'ext': poor_info_dict.get('formats')[0].get('ext'),
+            'format_id': '1',
         }
 
         for info in file_info:
@@ -126,8 +125,8 @@ class Mp4UploadIE(InfoExtractor):
         # can't use _html_search_regex, there's data both inside and outside a bold tag and I need it all
         date_raw = self._search_regex(r'Uploaded on(.+?)</div>', webpage, 'timestamp', fatal=False, flags=re.DOTALL)
         if date_raw:
-            date_raw = re.sub(r"<[^>]+>", "", date_raw)
-            date_raw = re.sub(r"[\s]+", " ", date_raw)
-            info_dict['timestamp'] = time.mktime(time.strptime(date_raw, " %Y-%m-%d %H:%M:%S "))
+            date_raw = re.sub(r'<[^>]+>', '', date_raw)
+            date_raw = re.sub(r'[\s]+', ' ', date_raw)
+            info_dict['timestamp'] = time.mktime(time.strptime(date_raw, ' %Y-%m-%d %H:%M:%S '))
 
         return info_dict
