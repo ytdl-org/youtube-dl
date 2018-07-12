@@ -3131,8 +3131,7 @@ class GenericIE(InfoExtractor):
         # Clappr.player()
         clappr_dict = self._find_clappr_data(webpage, video_id)
         if clappr_dict:
-            info = self._parse_clappr_data(clappr_dict, 
-                            video_id=video_id, base_url=url)
+            info = self._parse_clappr_data(clappr_dict, video_id=video_id, base_url=url)
             return merge_dicts(info, info_dict)
 
         # Video.js embed
