@@ -768,7 +768,9 @@ from .nrk import (
     NRKSkoleIE,
     NRKTVIE,
     NRKTVDirekteIE,
+    NRKTVEpisodeIE,
     NRKTVEpisodesIE,
+    NRKTVSeasonIE,
     NRKTVSeriesIE,
 )
 from .ntvde import NTVDeIE

@@ -52,6 +52,7 @@ from ..utils import (
     GeoUtils,
     int_or_none,
     js_to_json,
+    JSON_LD_RE,
     mimetype2ext,
     orderedSet,
     parse_codecs,
@@ -1149,8 +1150,7 @@ class InfoExtractor(object):
 
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
         json_ld = self._search_regex(
-            r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>',
-            html, 'JSON-LD', group='json_ld', **kwargs)
+            JSON_LD_RE, html, 'JSON-LD', group='json_ld', **kwargs)
         default = kwargs.get('default', NO_DEFAULT)
         if not json_ld:
             return default if default is not NO_DEFAULT else {}

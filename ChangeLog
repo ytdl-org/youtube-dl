@@ -1,3 +1,20 @@
+version 2018.07.10
+
+Core
+* [utils] Share JSON-LD regular expression
+* [downloader/dash] Improve error handling (#16927)
+
+Extractors
++ [nrktv] Add support for new season and serie URL schema
++ [nrktv] Add support for new episode URL schema (#16909)
++ [frontendmasters] Add support for frontendmasters.com (#3661, #16328)
+* [funk] Fix extraction (#16918)
+* [watchbox] Fix extraction (#16904)
+* [dplayit] Sort formats
+* [dplayit] Fix extraction (#16901)
+* [youtube] Improve login error handling (#13822)
+
+
 version 2018.07.04
 
 Core
