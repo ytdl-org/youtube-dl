@@ -2487,7 +2487,7 @@ class InfoExtractor(object):
         """
         mobj = re.search(
             r'new Clappr.Player\((?P<json>{.+?})\);',
-            webpage.replace("\n", "").replace("\t", ""))
+            webpage.replace('\n', '').replace('\t', ''))
         if mobj:
             try:
                 clappr_data = self._parse_json(mobj.group('json'), video_id=video_id, transform_source=transform_source)
@@ -2508,9 +2508,9 @@ class InfoExtractor(object):
             'subtitles': {},
         }
         info_dict['formats'] = self._extract_url_list_formats(
-            clappr_data.get("sources", [clappr_data.get("source")]), video_id=video_id, m3u8_id=m3u8_id, mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
+            clappr_data.get('sources', [clappr_data.get('source')]), video_id=video_id, m3u8_id=m3u8_id, mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
 
-        thumbnail = clappr_data.get("poster")
+        thumbnail = clappr_data.get('poster')
         if thumbnail:
             info_dict['thumbnail'] = thumbnail
 
@@ -2523,7 +2523,7 @@ class InfoExtractor(object):
         subtitles = clappr_data.get('externalTracks') or clappr_data.get('playback', {}).get('externalTracks')
         if subtitles:
             for sub in subtitles:
-                if sub.get('kind', "subtitles") != "subtitles":
+                if sub.get('kind', 'subtitles') != 'subtitles':
                     continue
                 lang = sub.get('lang') or sub.get('language') or sub.get('label', 'undefined')
                 src = sub.get('src')
@@ -2537,8 +2537,8 @@ class InfoExtractor(object):
         subtitle = clappr_data.get('subtitle')
         if subtitle:
             if isinstance(subtitle, dict):
-                src = subtitle.get("src")
-                lang = subtitle.get("lang") or subtitle.get('label')
+                src = subtitle.get('src')
+                lang = subtitle.get('lang') or subtitle.get('label')
             else:
                 src = subtitle
             if src:
@@ -2547,7 +2547,7 @@ class InfoExtractor(object):
                 if not lang:
                     lang = src.split('/')[-1]
                     if video_id in lang:
-                        lang = lang.replace("%s_" % video_id, '').replace(video_id, '').replace(".%s" % ext, '')
+                        lang = lang.replace('%s_' % video_id, '').replace(video_id, '').replace('.%s' % ext, '')
                 info_dict['subtitles'].setdefault(lang, []).append({
                     'url': src,
                     'ext': ext,
@@ -2626,7 +2626,7 @@ class InfoExtractor(object):
             if base_url:
                 source_url = compat_urlparse.urljoin(base_url, source_url)
             ext = mimetype2ext(mime) or determine_ext(source_url, 'mp4')
-            if ext == "m3u8":
+            if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     source_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id=m3u8_id, fatal=False, preference=1))
@@ -2636,16 +2636,16 @@ class InfoExtractor(object):
             elif ext == 'smil':
                 formats.extend(self._extract_smil_formats(
                     source_url, video_id, fatal=False))
-            elif ext == "f4m":
+            elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     source_url, video_id, m3u8_id=m3u8_id, fatal=False))
             else:
-                urlh = self._request_webpage(source_url, video_id, note="Checking format %d information" % format_id, fatal=False)
+                urlh = self._request_webpage(source_url, video_id, note='Checking format %d information' % format_id, fatal=False)
                 size = int(urlh.headers.get('Content-Length'))
                 formats.append({
                     'url': source_url,
                     'ext': ext,
-                    'format_id': "%d" % format_id,
+                    'format_id': '%d' % format_id,
                     'filesize': size,
                     'preference': int(size / 1024 / 1024 / 10),
                 })

@@ -31,11 +31,11 @@ class VidloxIE(InfoExtractor):
     def _real_extract(self, url):
 
         video_id = self._match_id(url)
-        page_url = "https://vidlox.me/%s" % video_id
+        page_url = 'https://vidlox.me/%s' % video_id
         phantom = PhantomJSwrapper(self, required_version='2.0')
 
         # download page for couple simple test
-        webpage = self._download_webpage(page_url, video_id).replace("\n", "").replace("\t", "")
+        webpage = self._download_webpage(page_url, video_id).replace('\n', '').replace('\t', '')
         if 'File not found' in webpage:
             raise ExtractorError('File not found', expected=True, video_id=video_id)
 
@@ -44,7 +44,7 @@ class VidloxIE(InfoExtractor):
             # extract tilte and download embed
             title = self._html_search_regex(r'<title[^>]*?>(?P<title>.+?)\s*</title>', webpage, 'title').replace('Watch ', '', 1)
             webpage = None
-            page_url = "https://vidlox.me/embed-%s.html" % video_id
+            page_url = 'https://vidlox.me/embed-%s.html' % video_id
 
         # execute JS
         webpage, _ = phantom.get(page_url, webpage, video_id=video_id)
