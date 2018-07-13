@@ -107,7 +107,7 @@ class RoosterTeethIE(InfoExtractor):
         description = attributes.get('caption')
         series = attributes.get('show_title')
 
-        thumbnail = try_get(data, lambda x: x['included']['images'][0]['attributes']['thumb'], compat_str)
+        thumbnail = try_get(data, lambda x: x['included']['images'][0]['attributes']['large'], compat_str)
 
         video_response = self._call_api(
             display_id,
