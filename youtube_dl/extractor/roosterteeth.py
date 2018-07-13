@@ -108,10 +108,10 @@ class RoosterTeethIE(InfoExtractor):
         series = attributes.get('show_title')
 
         thumbnails = []
-        for size in ['thumb', 'small', 'medium', 'large']:
+        for i, size in enumerate(['thumb', 'small', 'medium', 'large']):
             thumbnail = try_get(data, lambda x: x['included']['images'][0]['attributes'][size], compat_str)
             if thumbnail:
-                thumbnails.append({'url': thumbnail})
+                thumbnails.append({'url': thumbnail, 'id': i})
 
         video_response = self._call_api(
             display_id,
