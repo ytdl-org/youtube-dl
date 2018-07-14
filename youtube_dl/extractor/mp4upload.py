@@ -12,6 +12,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     parse_filesize,
+    parse_resolution,
     strip_or_none,
 )
 from .common import InfoExtractor
@@ -35,6 +36,7 @@ class Mp4UploadIE(InfoExtractor):
             'acodec': 'ffaac',
             'asr': 44100,
             'abr': 96,
+            'vbr': 266,
             'upload_date': '20160702',
         },
     }, {
@@ -55,77 +57,86 @@ class Mp4UploadIE(InfoExtractor):
         if not title:
             raise ExtractorError('Title not found', expected=True, video_id=video_id)
 
-        info_dict = {
-            'title': title,
-            'id': video_id,
-        }
-
-        embedpage = self._download_webpage(embed_url, video_id, note='Downloading embed webpage')
-
-        # It contains only `source url` and `thumbnail`
-        poor_info_dict = self._extract_jwplayer_data(
-            decode_packed_codes(
-                get_element_by_id('player', embedpage)
-            ).replace('\\\'', '"'),
-            video_id, base_url=embed_url, require_title=False
-        )
-        if not poor_info_dict:
+        try:
+            # It contains only `source url` and `thumbnail`
+            jw_dict = self._extract_jwplayer_data(
+                decode_packed_codes(
+                    get_element_by_id(
+                        'player',
+                        self._download_webpage(embed_url, video_id, note='Downloading embed webpage')
+                    )
+                ).replace('\\\'', '"'),
+                video_id, base_url=embed_url, require_title=False
+            )
+        except TypeError:
+            jw_dict = None
+        if not jw_dict:
             raise ExtractorError('I can\'t find player data', video_id=video_id)
 
-        info_dict['thumbnail'] = poor_info_dict.get('thumbnail')
-        _f = {
-            'url': poor_info_dict.get('formats', [{}])[0].get('url'),
-            'ext': poor_info_dict.get('formats', [{}])[0].get('ext'),
-            'format_id': '1',
-        }
+        acodec = None
+        asr = None
+        abr = None
+        audio_raw = self._html_search_regex(
+            r'<li><span class="infoname">Audio info:</span><span>(.+?)</span></li>',
+            webpage, 'audioinfo', fatal=False)
+        if audio_raw:
+            audmatch = re.search(r'(.+?), (\d+) kbps, (\d+) Hz', audio_raw)
+            if audmatch:
+                (acodec, abr, asr) = audmatch.groups()
 
-        file_info = re.findall(
-            r'>(?P<label>[^<:]+):</span><span>(?P<value>[^<]+)</span></li>',
-            get_element_by_class('fileinfo', webpage)
-        )
-        if file_info:
-            for info in file_info:
-                if info[0] == 'Codec':
-                    _f['vcodec'] = info[1]
+        resolution = {}
+        resolution_raw = self._html_search_regex(
+            r'<li><span class="infoname">Resolution:</span><span>(.+?)</span></li>',
+            webpage, 'resolution', fatal=False)
+        if resolution_raw:
+            resolution = parse_resolution(resolution_raw)
 
-                elif info[0] == 'Resolution':
-                    _f['resolution'] = info[1].replace(' ', '')
-                    resmatch = re.search(r'(?P<width>\d+)\s*x\s*(?P<height>\d+)', info[1])
-                    if resmatch:
-                        _f['width'] = int(resmatch.group('width'))
-                        _f['height'] = int(resmatch.group('height'))
+        vcodec = self._html_search_regex(
+            r'<li><span class="infoname">Codec:</span><span>(.+?)</span></li>',
+            webpage, 'codec', fatal=False)
 
-                elif info[0] == 'Framerate':
-                    fps = float_or_none(re.sub(r'[^\d\.]+', '', info[1]))
-                    if fps < 100:
-                        _f['fps'] = fps
+        fps = self._html_search_regex(
+            r'<li><span class="infoname">Framerate:</span><span>(.+?) fps</span></li>',
+            webpage, 'framerate', fatal=False)
 
-                elif info[0] == 'Audio info':
-                    audmatch = re.search(r'(?P<acodec>.+?), (?P<abr>\d+) kbps, (?P<asr>\d+) Hz', info[1])
-                    if audmatch:
-                        _f['acodec'] = audmatch.group('acodec')
-                        _f['abr'] = int(audmatch.group('abr'))
-                        _f['asr'] = int(audmatch.group('asr'))
+        vbr = self._html_search_regex(
+            r'<li><span class="infoname">Bitrate:</span><span>(.+?) Kbps</span></li>',
+            webpage, 'framerate', fatal=False)
 
-                elif info[0] == 'Bitrate':
-                    _f['vbr'] = int_or_none(re.sub(r'\D+', '', info[1]))
-
-        _f['filesize_approx'] = parse_filesize(
+        filesize_approx = parse_filesize(
             self._html_search_regex(
                 r'<span class="statd">Size</span>\s+<span>(.+?)</span>',
                 webpage, 'filesize', fatal=False
             )
         )
-        info_dict['formats'] = [_f]
 
+        timestamp = None
         date_raw = self._search_regex(r'Uploaded on(.+?)</div>', webpage, 'timestamp', fatal=False, flags=re.DOTALL)
         if date_raw:
             try:
-                info_dict['timestamp'] = time.mktime(time.strptime(
+                timestamp = time.mktime(time.strptime(
                     re.sub(r'[^\d\-\:]+', '', date_raw),
                     '%Y-%m-%d%H:%M:%S'
                 ))
             except ValueError:
                 pass
 
-        return info_dict
+        return {
+            'title': title,
+            'id': video_id,
+            'thumbnail': jw_dict.get('thumbnail'),
+            'formats': [{
+                'url': jw_dict.get('formats', [{}])[0].get('url'),
+                'ext': jw_dict.get('formats', [{}])[0].get('ext'),
+                'filesize_approx': filesize_approx,
+                'vcodec': vcodec,
+                'width': resolution.get('width'),
+                'height': resolution.get('height'),
+                'fps': float_or_none(fps),
+                'acodec': acodec,
+                'abr': int_or_none(abr),
+                'asr': int_or_none(asr),
+                'vbr': int_or_none(vbr),
+            }],
+            'timestamp': timestamp,
+        }
