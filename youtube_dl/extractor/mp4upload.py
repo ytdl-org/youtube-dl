@@ -111,7 +111,10 @@ class Mp4UploadIE(InfoExtractor):
         )
 
         timestamp = None
-        date_raw = self._search_regex(r'Uploaded on(.+?)</div>', webpage, 'timestamp', fatal=False, flags=re.DOTALL)
+        date_raw = self._search_regex(
+            r'Uploaded on(.+?)</div>', webpage,
+            'timestamp', fatal=False, flags=re.DOTALL
+        )
         if date_raw:
             try:
                 timestamp = time.mktime(time.strptime(
