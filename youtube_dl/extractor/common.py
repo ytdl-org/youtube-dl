@@ -2508,7 +2508,10 @@ class InfoExtractor(object):
             'subtitles': {},
         }
         info_dict['formats'] = self._extract_url_list_formats(
-            clappr_data.get('sources', [clappr_data.get('source')]), video_id=video_id, m3u8_id=m3u8_id, mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
+            clappr_data.get('sources', [clappr_data.get('source')]),
+            video_id=video_id, m3u8_id=m3u8_id, mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url
+        )
+        self._sort_formats(info_dict['formats'])
 
         thumbnail = clappr_data.get('poster')
         if thumbnail:
