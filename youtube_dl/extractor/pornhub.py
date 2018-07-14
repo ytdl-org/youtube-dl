@@ -4,28 +4,21 @@ from __future__ import unicode_literals
 import functools
 import itertools
 import operator
-# import os
 import re
 
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    # compat_urllib_parse_unquote,
-    # compat_urllib_parse_unquote_plus,
-    # compat_urllib_parse_urlparse,
+    compat_str,
 )
 from ..utils import (
     ExtractorError,
     int_or_none,
     js_to_json,
     orderedSet,
-    # sanitized_Request,
     remove_quotes,
     str_to_int,
 )
-# from ..aes import (
-#     aes_decrypt_text
-# )
 
 
 class PornHubIE(InfoExtractor):
@@ -62,7 +55,7 @@ class PornHubIE(InfoExtractor):
             'id': '1331683002',
             'ext': 'mp4',
             'title': '重庆婷婷女王足交',
-            'uploader': 'cj397186295',
+            'uploader': 'Unknown',
             'duration': 1753,
             'view_count': int,
             'like_count': int,
@@ -121,7 +114,7 @@ class PornHubIE(InfoExtractor):
             self._set_cookie('pornhub.com', 'platform', platform)
             return self._download_webpage(
                 'http://www.pornhub.com/view_video.php?viewkey=%s' % video_id,
-                video_id)
+                video_id, 'Downloading %s webpage' % platform)
 
         webpage = dl_webpage('pc')
 
@@ -134,47 +127,18 @@ class PornHubIE(InfoExtractor):
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
-        tv_webpage = dl_webpage('tv')
-
-        assignments = self._search_regex(
-            r'(var.+?mediastring.+?)</script>', tv_webpage,
-            'encoded url').split(';')
-
-        js_vars = {}
-
-        def parse_js_value(inp):
-            inp = re.sub(r'/\*(?:(?!\*/).)*?\*/', '', inp)
-            if '+' in inp:
-                inps = inp.split('+')
-                return functools.reduce(
-                    operator.concat, map(parse_js_value, inps))
-            inp = inp.strip()
-            if inp in js_vars:
-                return js_vars[inp]
-            return remove_quotes(inp)
-
-        for assn in assignments:
-            assn = assn.strip()
-            if not assn:
-                continue
-            assn = re.sub(r'var\s+', '', assn)
-            vname, value = assn.split('=', 1)
-            js_vars[vname] = parse_js_value(value)
-
-        video_url = js_vars['mediastring']
-
-        title = self._search_regex(
-            r'<h1>([^>]+)</h1>', tv_webpage, 'title', default=None)
-
         # video_title from flashvars contains whitespace instead of non-ASCII (see
         # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
         # on that anymore.
-        title = title or self._html_search_meta(
+        title = self._html_search_meta(
             'twitter:title', webpage, default=None) or self._search_regex(
             (r'<h1[^>]+class=["\']title["\'][^>]*>(?P<title>[^<]+)',
              r'<div[^>]+data-video-title=(["\'])(?P<title>.+?)\1',
              r'shareTitle\s*=\s*(["\'])(?P<title>.+?)\1'),
             webpage, 'title', group='title')
+
+        video_urls = []
+        video_urls_set = set()
 
         flashvars = self._parse_json(
             self._search_regex(
@@ -183,8 +147,78 @@ class PornHubIE(InfoExtractor):
         if flashvars:
             thumbnail = flashvars.get('image_url')
             duration = int_or_none(flashvars.get('video_duration'))
+            media_definitions = flashvars.get('mediaDefinitions')
+            if isinstance(media_definitions, list):
+                for definition in media_definitions:
+                    if not isinstance(definition, dict):
+                        continue
+                    video_url = definition.get('videoUrl')
+                    if not video_url or not isinstance(video_url, compat_str):
+                        continue
+                    if video_url in video_urls_set:
+                        continue
+                    video_urls_set.add(video_url)
+                    video_urls.append(
+                        (video_url, int_or_none(definition.get('quality'))))
         else:
-            title, thumbnail, duration = [None] * 3
+            thumbnail, duration = [None] * 2
+
+        if not video_urls:
+            tv_webpage = dl_webpage('tv')
+
+            assignments = self._search_regex(
+                r'(var.+?mediastring.+?)</script>', tv_webpage,
+                'encoded url').split(';')
+
+            js_vars = {}
+
+            def parse_js_value(inp):
+                inp = re.sub(r'/\*(?:(?!\*/).)*?\*/', '', inp)
+                if '+' in inp:
+                    inps = inp.split('+')
+                    return functools.reduce(
+                        operator.concat, map(parse_js_value, inps))
+                inp = inp.strip()
+                if inp in js_vars:
+                    return js_vars[inp]
+                return remove_quotes(inp)
+
+            for assn in assignments:
+                assn = assn.strip()
+                if not assn:
+                    continue
+                assn = re.sub(r'var\s+', '', assn)
+                vname, value = assn.split('=', 1)
+                js_vars[vname] = parse_js_value(value)
+
+            video_url = js_vars['mediastring']
+            if video_url not in video_urls_set:
+                video_urls.append((video_url, None))
+                video_urls_set.add(video_url)
+
+        for mobj in re.finditer(
+                r'<a[^>]+\bclass=["\']downloadBtn\b[^>]+\bhref=(["\'])(?P<url>(?:(?!\1).)+)\1',
+                webpage):
+            video_url = mobj.group('url')
+            if video_url not in video_urls_set:
+                video_urls.append((video_url, None))
+                video_urls_set.add(video_url)
+
+        formats = []
+        for video_url, height in video_urls:
+            tbr = None
+            mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', video_url)
+            if mobj:
+                if not height:
+                    height = int(mobj.group('height'))
+                tbr = int(mobj.group('tbr'))
+            formats.append({
+                'url': video_url,
+                'format_id': '%dp' % height if height else None,
+                'height': height,
+                'tbr': tbr,
+            })
+        self._sort_formats(formats)
 
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:user|channel)s/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
@@ -210,7 +244,6 @@ class PornHubIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
             'uploader': video_uploader,
             'title': title,
             'thumbnail': thumbnail,
@@ -219,7 +252,7 @@ class PornHubIE(InfoExtractor):
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
-            # 'formats': formats,
+            'formats': formats,
             'age_limit': 18,
             'tags': tags,
             'categories': categories,
