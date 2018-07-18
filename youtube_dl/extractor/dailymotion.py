@@ -145,8 +145,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         age_limit = self._rta_search(webpage)
 
         description = self._og_search_description(
-            webpage, default=self._html_search_meta(
-                'description', webpage, 'description'))
+            webpage, default=None) or self._html_search_meta(
+            'description', webpage, 'description')
 
         view_count_str = self._search_regex(
             (r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:([\s\d,.]+)"',
