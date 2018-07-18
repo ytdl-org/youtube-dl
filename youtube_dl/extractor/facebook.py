@@ -220,6 +220,21 @@ class FacebookIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # view_count exists
+        'url': 'https://www.facebook.com/yandex.health/videos/2259860594030760/',
+        'info_dict': {
+            'id': '2259860594030760',
+            'ext': 'mp4',
+            'timestamp': 1530025716,
+            'uploader': 'Яндекс.Здоровье',
+            'title': 'md5:1cdf2e730316e05a89f60fc48cb4a9bf',
+            'upload_date': '20180626',
+            'view_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     @staticmethod
@@ -426,6 +441,11 @@ class FacebookIE(InfoExtractor):
             'timestamp', default=None))
         thumbnail = self._og_search_thumbnail(webpage)
 
+        view_count = int_or_none(re.sub("[^0-9]", "", self._search_regex(
+            r',viewCount\s*:\s*"([^"]+)"',
+            webpage, 'view_count',
+            default=None)))
+
         info_dict = {
             'id': video_id,
             'title': video_title,
@@ -433,6 +453,7 @@ class FacebookIE(InfoExtractor):
             'uploader': uploader,
             'timestamp': timestamp,
             'thumbnail': thumbnail,
+            'view_count': view_count,
         }
 
         return webpage, info_dict
