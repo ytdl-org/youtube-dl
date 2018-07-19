@@ -195,16 +195,29 @@ class ViuOTTIE(InfoExtractor):
         'skip': 'Geo-restricted to Hong Kong',
     }]
 
+    _AREA_ID = {
+        'HK': 1,
+        'SG': 2,
+        'TH': 4,
+        'PH': 5,
+    }
+
     def _real_extract(self, url):
         country_code, video_id = re.match(self._VALID_URL, url).groups()
 
+        query = {
+            'r': 'vod/ajax-detail',
+            'platform_flag_label': 'web',
+            'product_id': video_id,
+        }
+
+        area_id = self._AREA_ID.get(country_code.upper())
+        if area_id:
+            query['area_id'] = area_id
+
         product_data = self._download_json(
             'http://www.viu.com/ott/%s/index.php' % country_code, video_id,
-            'Downloading video info', query={
-                'r': 'vod/ajax-detail',
-                'platform_flag_label': 'web',
-                'product_id': video_id,
-            })['data']
+            'Downloading video info', query=query)['data']
 
         video_data = product_data.get('current_product')
         if not video_data:
