@@ -214,6 +214,9 @@ class ViuOTTIE(InfoExtractor):
             'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
             video_id, 'Downloading stream info', query={
                 'ccs_product_id': video_data['ccs_product_id'],
+            }, headers={
+                'Referer': url,
+                'Origin': re.search(r'https?://[^/]+', url).group(0),
             })['data']['stream']
 
         stream_sizes = stream_data.get('size', {})
