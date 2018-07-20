@@ -76,8 +76,13 @@ class IwaraIE(InfoExtractor):
             format_id = a_format.get('resolution')
             height = int_or_none(self._search_regex(
                 r'(\d+)p', format_id, 'height', default=None))
+            if a_format['uri'].startswith('//'):
+                uri = 'https:' + a_format['uri']
+            else:
+                uri = a_format['uri']
+
             formats.append({
-                'url': a_format['uri'],
+                'url': uri,
                 'format_id': format_id,
                 'ext': mimetype2ext(a_format.get('mime')) or 'mp4',
                 'height': height,
