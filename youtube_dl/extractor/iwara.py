@@ -76,7 +76,6 @@ class IwaraIE(InfoExtractor):
             format_id = a_format.get('resolution')
             height = int_or_none(self._search_regex(
                 r'(\d+)p', format_id, 'height', default=None))
-
             formats.append({
                 'url': self._proto_relative_url(a_format['uri'], 'https:'),
                 'format_id': format_id,
