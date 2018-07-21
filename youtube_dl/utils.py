@@ -1866,6 +1866,13 @@ def strip_or_none(v):
     return None if v is None else v.strip()
 
 
+def url_or_none(url):
+    if not url or not isinstance(url, compat_str):
+        return None
+    url = url.strip()
+    return url if re.match(r'^(?:[a-zA-Z][\da-zA-Z.+-]*:)?//', url) else None
+
+
 def parse_duration(s):
     if not isinstance(s, compat_basestring):
         return None
