@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    strip_jsonp,
 )
 
 
@@ -35,9 +34,10 @@ class WashingtonPostIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_data = self._download_json(
+        webpage = self._download_webpage(
             'http://www.washingtonpost.com/posttv/c/videojson/%s?resType=jsonp' % video_id,
-            video_id, transform_source=strip_jsonp)[0]['contentConfig']
+            video_id)
+        video_data = self._parse_json(webpage, video_id, transform_source=lambda s: s[1:len(s) - 2])[0]['contentConfig']
         title = video_data['title']
 
         urls = []
