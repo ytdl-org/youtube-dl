@@ -778,6 +778,17 @@ class BBCIE(BBCCoUkIE):
         'params': {
             'skip_download': True,
         }
+    }, {
+        # window.__PRELOADED_STATE__
+        'url': 'https://www.bbc.co.uk/radio/play/b0b9z4yl',
+        'info_dict': {
+            'id': 'b0b9z4vz',
+            'ext': 'mp4',
+            'title': 'Prom 6: An American in Paris and Turangalila',
+            'description': 'md5:51cf7d6f5c8553f197e58203bc78dff8',
+            'uploader': 'Radio 3',
+            'uploader_id': 'bbc_radio_three',
+        },
     }]
 
     @classmethod
@@ -996,6 +1007,36 @@ class BBCIE(BBCCoUkIE):
                     'duration': duration,
                     'uploader': uploader,
                     'uploader_id': uploader_id,
+                    'formats': formats,
+                    'subtitles': subtitles,
+                }
+
+        preload_state = self._parse_json(self._search_regex(
+            r'window\.__PRELOADED_STATE__\s*=\s*({.+?});', webpage,
+            'preload state', default='{}'), playlist_id, fatal=False)
+        if preload_state:
+            current_programme = preload_state.get('programmes', {}).get('current') or {}
+            programme_id = current_programme.get('id')
+            if current_programme and programme_id and current_programme.get('type') == 'playable_item':
+                title = current_programme.get('titles', {}).get('tertiary') or playlist_title
+                formats, subtitles = self._download_media_selector(programme_id)
+                self._sort_formats(formats)
+                synopses = current_programme.get('synopses') or {}
+                network = current_programme.get('network') or {}
+                duration = int_or_none(
+                    current_programme.get('duration', {}).get('value'))
+                thumbnail = None
+                image_url = current_programme.get('image_url')
+                if image_url:
+                    thumbnail = image_url.replace('{recipe}', '1920x1920')
+                return {
+                    'id': programme_id,
+                    'title': title,
+                    'description': dict_get(synopses, ('long', 'medium', 'short')),
+                    'thumbnail': thumbnail,
+                    'duration': duration,
+                    'uploader': network.get('short_title'),
+                    'uploader_id': network.get('id'),
                     'formats': formats,
                     'subtitles': subtitles,
                 }

@@ -7,6 +7,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     unified_timestamp,
+    url_or_none,
 )
 
 
@@ -69,7 +70,7 @@ class DctpTvIE(InfoExtractor):
             endpoint = next(
                 server['endpoint']
                 for server in servers
-                if isinstance(server.get('endpoint'), compat_str) and
+                if url_or_none(server.get('endpoint')) and
                 'cloudfront' in server['endpoint'])
         else:
             endpoint = 'rtmpe://s2pqqn4u96e4j8.cloudfront.net/cfx/st/'
@@ -92,8 +93,8 @@ class DctpTvIE(InfoExtractor):
             for image in images:
                 if not isinstance(image, dict):
                     continue
-                image_url = image.get('url')
-                if not image_url or not isinstance(image_url, compat_str):
+                image_url = url_or_none(image.get('url'))
+                if not image_url:
                     continue
                 thumbnails.append({
                     'url': image_url,

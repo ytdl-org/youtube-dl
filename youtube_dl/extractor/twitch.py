@@ -27,6 +27,7 @@ from ..utils import (
     unified_timestamp,
     update_url_query,
     urlencode_postdata,
+    url_or_none,
     urljoin,
 )
 
@@ -663,8 +664,8 @@ class TwitchClipsIE(TwitchBaseIE):
         for option in status['quality_options']:
             if not isinstance(option, dict):
                 continue
-            source = option.get('source')
-            if not source or not isinstance(source, compat_str):
+            source = url_or_none(option.get('source'))
+            if not source:
                 continue
             formats.append({
                 'url': source,

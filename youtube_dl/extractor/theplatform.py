@@ -33,6 +33,7 @@ _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 class ThePlatformBaseIE(OnceIE):
     _TP_TLD = 'com'
+
     def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
         meta = self._download_xml(
             smil_url, video_id, note=note, query={'format': 'SMIL'},

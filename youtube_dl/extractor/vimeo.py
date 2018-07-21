@@ -539,9 +539,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 # We try to find out to which variable is assigned the config dic
                 m_variable_name = re.search(r'(\w)\.video\.id', webpage)
                 if m_variable_name is not None:
-                    config_re = r'%s=({[^}].+?});' % re.escape(m_variable_name.group(1))
+                    config_re = [r'%s=({[^}].+?});' % re.escape(m_variable_name.group(1))]
                 else:
                     config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
+                config_re.append(r'\bvar\s+r\s*=\s*({.+?})\s*;')
                 config = self._search_regex(config_re, webpage, 'info section',
                                             flags=re.DOTALL)
                 config = json.loads(config)

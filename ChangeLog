@@ -1,3 +1,26 @@
+version 2018.07.21
+
+Core
++ [utils] Introduce url_or_none
+* [utils] Allow JSONP without function name (#17028)
++ [extractor/common] Extract DASH and MSS formats from SMIL manifests
+
+Extractors
++ [bbc] Add support for BBC Radio Play pages (#17022)
+* [iwara] Fix download URLs (#17026)
+* [vrtnu] Relax title extraction and extract JSON-LD (#17018)
++ [viu] Pass Referer and Origin headers and area id (#16992)
++ [vimeo] Add another config regular expression (#17013)
++ [facebook] Extract view count (#16942)
+* [dailymotion] Improve description extraction (#16984)
+* [slutload] Fix and improve extraction (#17001)
+* [mediaset] Fix extraction (#16977)
++ [theplatform] Add support for theplatform TLD customization (#16977)
+* [imgur] Relax URL regular expression (#16987)
+* [pornhub] Improve extraction and extract all formats (#12166, #15891, #16262,
+  #16959)
+
+
 version 2018.07.10
 
 Core

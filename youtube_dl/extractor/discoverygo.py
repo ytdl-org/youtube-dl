@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     extract_attributes,
@@ -12,6 +11,7 @@ from ..utils import (
     parse_age_limit,
     remove_end,
     unescapeHTML,
+    url_or_none,
 )
 
 
@@ -69,9 +69,8 @@ class DiscoveryGoBaseIE(InfoExtractor):
         captions = stream.get('captions')
         if isinstance(captions, list):
             for caption in captions:
-                subtitle_url = caption.get('fileUrl')
-                if (not subtitle_url or not isinstance(subtitle_url, compat_str) or
-                        not subtitle_url.startswith('http')):
+                subtitle_url = url_or_none(caption.get('fileUrl'))
+                if not subtitle_url or not subtitle_url.startswith('http'):
                     continue
                 lang = caption.get('fileLang', 'en')
                 ext = determine_ext(subtitle_url)

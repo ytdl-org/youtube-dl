@@ -78,6 +78,7 @@ from youtube_dl.utils import (
     uppercase_escape,
     lowercase_escape,
     url_basename,
+    url_or_none,
     base_url,
     urljoin,
     urlencode_postdata,
@@ -507,6 +508,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(urljoin('http://foo.de/', ['foobar']), None)
         self.assertEqual(urljoin('http://foo.de/a/b/c.txt', '.././../d.txt'), 'http://foo.de/d.txt')
 
+    def test_url_or_none(self):
+        self.assertEqual(url_or_none(None), None)
+        self.assertEqual(url_or_none(''), None)
+        self.assertEqual(url_or_none('foo'), None)
+        self.assertEqual(url_or_none('http://foo.de'), 'http://foo.de')
+        self.assertEqual(url_or_none('https://foo.de'), 'https://foo.de')
+        self.assertEqual(url_or_none('http$://foo.de'), None)
+        self.assertEqual(url_or_none('http://foo.de'), 'http://foo.de')
+        self.assertEqual(url_or_none('//foo.de'), '//foo.de')
+
     def test_parse_age_limit(self):
         self.assertEqual(parse_age_limit(None), None)
         self.assertEqual(parse_age_limit(False), None)
@@ -714,6 +725,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(d, {'status': 'success'})
 
         stripped = strip_jsonp('window.cb && cb({"status": "success"});')
+        d = json.loads(stripped)
+        self.assertEqual(d, {'status': 'success'})
+
+        stripped = strip_jsonp('({"status": "success"});')
         d = json.loads(stripped)
         self.assertEqual(d, {'status': 'success'})
 

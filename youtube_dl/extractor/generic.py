@@ -32,6 +32,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     UnsupportedError,
+    url_or_none,
     xpath_text,
 )
 from .commonprotocols import RtmpIE
@@ -3130,8 +3131,8 @@ class GenericIE(InfoExtractor):
                 sources = [sources]
             formats = []
             for source in sources:
-                src = source.get('src')
-                if not src or not isinstance(src, compat_str):
+                src = url_or_none(source.get('src'))
+                if not src:
                     continue
                 src = compat_urlparse.urljoin(url, src)
                 src_type = source.get('type')
