@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.07.21
 
 Core
 + [utils] Introduce url_or_none
