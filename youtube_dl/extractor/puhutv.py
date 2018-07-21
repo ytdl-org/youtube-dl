@@ -8,6 +8,7 @@ from ..utils import (
     float_or_none,
     determine_ext,
     str_or_none,
+    url_or_none,
     unified_strdate,
     unified_timestamp,
     try_get,
@@ -87,7 +88,7 @@ class PuhuTVIE(InfoExtractor):
         thumbnails = []
         thumbs_dict = try_get(info, lambda x: x['content']['images']['wide'], dict) or {}
         for id, url in thumbs_dict.items():
-            if not url or not isinstance(url, compat_str):
+            if not url_or_none(url):
                 continue
             thumbnails.append({
                 'url': 'https://%s' % url,
@@ -99,8 +100,8 @@ class PuhuTVIE(InfoExtractor):
             if not isinstance(subtitle, dict):
                 continue
             lang = subtitle.get('language')
-            sub_url = subtitle.get('url')
-            if not lang or not isinstance(lang, compat_str) or not sub_url or not isinstance(sub_url, compat_str):
+            sub_url = url_or_none(subtitle.get('url'))
+            if not lang or not isinstance(lang, compat_str) or not sub_url:
                 continue
             subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = [{
                 'url': sub_url
@@ -113,8 +114,8 @@ class PuhuTVIE(InfoExtractor):
 
         formats = []
         for format in req_formats['data']['videos']:
-            media_url = format.get('url')
-            if not media_url or not isinstance(media_url, compat_str):
+            media_url = url_or_none(format.get('url'))
+            if not media_url:
                 continue
             ext = format.get('video_format') or determine_ext(media_url)
             quality = format.get('quality')
