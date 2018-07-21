@@ -717,6 +717,10 @@ class TestUtil(unittest.TestCase):
         d = json.loads(stripped)
         self.assertEqual(d, {'status': 'success'})
 
+        stripped = strip_jsonp('({"status": "success"});')
+        d = json.loads(stripped)
+        self.assertEqual(d, {'status': 'success'})
+
     def test_uppercase_escape(self):
         self.assertEqual(uppercase_escape('aä'), 'aä')
         self.assertEqual(uppercase_escape('\\U0001d550'), '𝕐')

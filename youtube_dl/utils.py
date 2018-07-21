@@ -2282,7 +2282,7 @@ def parse_age_limit(s):
 def strip_jsonp(code):
     return re.sub(
         r'''(?sx)^
-            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]+)
+            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]*)
             (?:\s*&&\s*(?P=func_name))?
             \s*\(\s*(?P<callback_data>.*)\);?
             \s*?(?://[^\n]*)*$''',
