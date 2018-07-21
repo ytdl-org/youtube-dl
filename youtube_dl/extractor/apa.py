@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     js_to_json,
+    url_or_none,
 )
 
 
@@ -68,8 +68,8 @@ class APAIE(InfoExtractor):
         for source in sources:
             if not isinstance(source, dict):
                 continue
-            source_url = source.get('file')
-            if not source_url or not isinstance(source_url, compat_str):
+            source_url = url_or_none(source.get('file'))
+            if not source_url:
                 continue
             ext = determine_ext(source_url)
             if ext == 'm3u8':

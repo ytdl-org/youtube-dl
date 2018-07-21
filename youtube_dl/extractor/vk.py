@@ -20,6 +20,7 @@ from ..utils import (
     str_to_int,
     unescapeHTML,
     unified_timestamp,
+    url_or_none,
     urlencode_postdata,
 )
 from .dailymotion import DailymotionIE
@@ -423,7 +424,8 @@ class VKIE(VKBaseIE):
 
         formats = []
         for format_id, format_url in data.items():
-            if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//', 'rtmp')):
+            format_url = url_or_none(format_url)
+            if not format_url or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
             if (format_id.startswith(('url', 'cache')) or
                     format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):

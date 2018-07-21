@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
     qualities,
     unescapeHTML,
+    url_or_none,
 )
 
 
@@ -80,9 +80,9 @@ class YapFilesIE(InfoExtractor):
         formats = []
         for format_id in QUALITIES:
             is_hd = format_id == 'hd'
-            format_url = playlist.get(
-                'file%s' % ('_hd' if is_hd else ''))
-            if not format_url or not isinstance(format_url, compat_str):
+            format_url = url_or_none(playlist.get(
+                'file%s' % ('_hd' if is_hd else '')))
+            if not format_url:
                 continue
             formats.append({
                 'url': format_url,

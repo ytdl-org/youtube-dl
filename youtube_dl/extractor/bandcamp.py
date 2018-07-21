@@ -19,6 +19,7 @@ from ..utils import (
     unescapeHTML,
     update_url_query,
     unified_strdate,
+    url_or_none,
 )
 
 
@@ -131,8 +132,8 @@ class BandcampIE(InfoExtractor):
                 fatal=False)
             if not stat:
                 continue
-            retry_url = stat.get('retry_url')
-            if not isinstance(retry_url, compat_str):
+            retry_url = url_or_none(stat.get('retry_url'))
+            if not retry_url:
                 continue
             formats.append({
                 'url': self._proto_relative_url(retry_url, 'http:'),
@@ -306,7 +307,7 @@ class BandcampWeeklyIE(InfoExtractor):
 
         formats = []
         for format_id, format_url in show['audio_stream'].items():
-            if not isinstance(format_url, compat_str):
+            if not url_or_none(format_url):
                 continue
             for known_ext in KNOWN_EXTENSIONS:
                 if known_ext in format_id:
