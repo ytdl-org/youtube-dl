@@ -4,16 +4,14 @@ from __future__ import unicode_literals, division
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_HTTPError,
-)
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
     parse_age_limit,
     parse_duration,
+    url_or_none,
     ExtractorError
 )
 
@@ -86,8 +84,8 @@ class CrackleIE(InfoExtractor):
             for e in media['MediaURLs']:
                 if e.get('UseDRM') is True:
                     continue
-                format_url = e.get('Path')
-                if not format_url or not isinstance(format_url, compat_str):
+                format_url = url_or_none(e.get('Path'))
+                if not format_url:
                     continue
                 ext = determine_ext(format_url)
                 if ext == 'm3u8':
@@ -124,8 +122,8 @@ class CrackleIE(InfoExtractor):
                 for cc_file in cc_files:
                     if not isinstance(cc_file, dict):
                         continue
-                    cc_url = cc_file.get('Path')
-                    if not cc_url or not isinstance(cc_url, compat_str):
+                    cc_url = url_or_none(cc_file.get('Path'))
+                    if not cc_url:
                         continue
                     lang = cc_file.get('Locale') or 'en'
                     subtitles.setdefault(lang, []).append({'url': cc_url})

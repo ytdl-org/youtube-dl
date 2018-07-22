@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     int_or_none,
     unescapeHTML,
+    url_or_none,
 )
 
 
@@ -106,9 +106,8 @@ class TVNetIE(InfoExtractor):
         for stream in self._download_json(data_file, video_id):
             if not isinstance(stream, dict):
                 continue
-            stream_url = stream.get('url')
-            if (stream_url in stream_urls or not stream_url or
-                    not isinstance(stream_url, compat_str)):
+            stream_url = url_or_none(stream.get('url'))
+            if stream_url in stream_urls or not stream_url:
                 continue
             stream_urls.add(stream_url)
             formats.extend(self._extract_m3u8_formats(

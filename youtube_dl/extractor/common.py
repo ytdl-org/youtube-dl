@@ -52,6 +52,7 @@ from ..utils import (
     GeoUtils,
     int_or_none,
     js_to_json,
+    JSON_LD_RE,
     mimetype2ext,
     orderedSet,
     parse_codecs,
@@ -1149,8 +1150,7 @@ class InfoExtractor(object):
 
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
         json_ld = self._search_regex(
-            r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>',
-            html, 'JSON-LD', group='json_ld', **kwargs)
+            JSON_LD_RE, html, 'JSON-LD', group='json_ld', **kwargs)
         default = kwargs.get('default', NO_DEFAULT)
         if not json_ld:
             return default if default is not NO_DEFAULT else {}
@@ -1859,9 +1859,7 @@ class InfoExtractor(object):
                         'height': height,
                     })
                 formats.extend(m3u8_formats)
-                continue
-
-            if src_ext == 'f4m':
+            elif src_ext == 'f4m':
                 f4m_url = src_url
                 if not f4m_params:
                     f4m_params = {
@@ -1871,9 +1869,13 @@ class InfoExtractor(object):
                 f4m_url += '&' if '?' in f4m_url else '?'
                 f4m_url += compat_urllib_parse_urlencode(f4m_params)
                 formats.extend(self._extract_f4m_formats(f4m_url, video_id, f4m_id='hds', fatal=False))
-                continue
-
-            if src_url.startswith('http') and self._is_valid_url(src, video_id):
+            elif src_ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    src_url, video_id, mpd_id='dash', fatal=False))
+            elif re.search(r'\.ism/[Mm]anifest', src_url):
+                formats.extend(self._extract_ism_formats(
+                    src_url, video_id, ism_id='mss', fatal=False))
+            elif src_url.startswith('http') and self._is_valid_url(src, video_id):
                 http_count += 1
                 formats.append({
                     'url': src_url,
@@ -1884,7 +1886,6 @@ class InfoExtractor(object):
                     'width': width,
                     'height': height,
                 })
-                continue
 
         return formats
 

@@ -3,75 +3,75 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from ..compat import compat_str
+from .theplatform import ThePlatformBaseIE
 from ..utils import (
-    determine_ext,
-    parse_duration,
-    try_get,
-    unified_strdate,
+    ExtractorError,
+    int_or_none,
+    update_url_query,
 )
 
 
-class MediasetIE(InfoExtractor):
+class MediasetIE(ThePlatformBaseIE):
+    _TP_TLD = 'eu'
     _VALID_URL = r'''(?x)
                     (?:
                         mediaset:|
                         https?://
-                            (?:www\.)?video\.mediaset\.it/
+                            (?:(?:www|static3)\.)?mediasetplay\.mediaset\.it/
                             (?:
                                 (?:video|on-demand)/(?:[^/]+/)+[^/]+_|
-                                player/playerIFrame(?:Twitter)?\.shtml\?.*?\bid=
+                                player/index\.html\?.*?\bprogramGuid=
                             )
-                    )(?P<id>[0-9]+)
+                    )(?P<id>[0-9A-Z]{16})
                     '''
     _TESTS = [{
         # full episode
-        'url': 'http://www.video.mediaset.it/video/hello_goodbye/full/quarta-puntata_661824.html',
+        'url': 'https://www.mediasetplay.mediaset.it/video/hellogoodbye/quarta-puntata_FAFU000000661824',
         'md5': '9b75534d42c44ecef7bf1ffeacb7f85d',
         'info_dict': {
-            'id': '661824',
+            'id': 'FAFU000000661824',
             'ext': 'mp4',
             'title': 'Quarta puntata',
-            'description': 'md5:7183696d6df570e3412a5ef74b27c5e2',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 1414,
-            'creator': 'mediaset',
+            'duration': 1414.26,
             'upload_date': '20161107',
             'series': 'Hello Goodbye',
-            'categories': ['reality'],
+            'timestamp': 1478532900,
+            'uploader': 'Rete 4',
+            'uploader_id': 'R4',
         },
-        'expected_warnings': ['is not a supported codec'],
     }, {
-        'url': 'http://www.video.mediaset.it/video/matrix/full_chiambretti/puntata-del-25-maggio_846685.html',
-        'md5': '1276f966ac423d16ba255ce867de073e',
+        'url': 'https://www.mediasetplay.mediaset.it/video/matrix/puntata-del-25-maggio_F309013801000501',
+        'md5': '288532f0ad18307705b01e581304cd7b',
         'info_dict': {
-            'id': '846685',
+            'id': 'F309013801000501',
             'ext': 'mp4',
             'title': 'Puntata del 25 maggio',
-            'description': 'md5:ee2e456e3eb1dba5e814596655bb5296',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 6565,
-            'creator': 'mediaset',
-            'upload_date': '20180525',
+            'duration': 6565.007,
+            'upload_date': '20180526',
             'series': 'Matrix',
-            'categories': ['infotainment'],
+            'timestamp': 1527326245,
+            'uploader': 'Canale 5',
+            'uploader_id': 'C5',
         },
         'expected_warnings': ['HTTP Error 403: Forbidden'],
     }, {
         # clip
-        'url': 'http://www.video.mediaset.it/video/gogglebox/clip/un-grande-classico-della-commedia-sexy_661680.html',
+        'url': 'https://www.mediasetplay.mediaset.it/video/gogglebox/un-grande-classico-della-commedia-sexy_FAFU000000661680',
         'only_matching': True,
     }, {
         # iframe simple
-        'url': 'http://www.video.mediaset.it/player/playerIFrame.shtml?id=665924&autoplay=true',
+        'url': 'https://static3.mediasetplay.mediaset.it/player/index.html?appKey=5ad3966b1de1c4000d5cec48&programGuid=FAFU000000665924&id=665924',
         'only_matching': True,
     }, {
         # iframe twitter (from http://www.wittytv.it/se-prima-mi-fidavo-zero/)
-        'url': 'https://www.video.mediaset.it/player/playerIFrameTwitter.shtml?id=665104&playrelated=false&autoplay=false&related=true&hidesocial=true',
+        'url': 'https://static3.mediasetplay.mediaset.it/player/index.html?appKey=5ad3966b1de1c4000d5cec48&programGuid=FAFU000000665104&id=665104',
         'only_matching': True,
     }, {
-        'url': 'mediaset:661824',
+        'url': 'mediaset:FAFU000000665924',
         'only_matching': True,
     }]
 
@@ -84,61 +84,54 @@ class MediasetIE(InfoExtractor):
                 webpage)]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        video = self._download_json(
-            'https://www.video.mediaset.it/html/metainfo.sjson',
-            video_id, 'Downloading media info', query={
-                'id': video_id
-            })['video']
-
-        title = video['title']
-        media_id = video.get('guid') or video_id
-
-        video_list = self._download_json(
-            'http://cdnsel01.mediaset.net/GetCdn2018.aspx',
-            video_id, 'Downloading video CDN JSON', query={
-                'streamid': media_id,
-                'format': 'json',
-            })['videoList']
+        guid = self._match_id(url)
+        tp_path = 'PR1GhC/media/guid/2702976343/' + guid
+        info = self._extract_theplatform_metadata(tp_path, guid)
 
         formats = []
-        for format_url in video_list:
-            ext = determine_ext(format_url)
-            if ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
-            elif ext == 'mpd':
-                formats.extend(self._extract_mpd_formats(
-                    format_url, video_id, mpd_id='dash', fatal=False))
-            elif ext == 'ism' or '.ism' in format_url:
-                formats.extend(self._extract_ism_formats(
-                    format_url, video_id, ism_id='mss', fatal=False))
-            else:
-                formats.append({
-                    'url': format_url,
-                    'format_id': determine_ext(format_url),
-                })
+        subtitles = {}
+        first_e = None
+        for asset_type in ('SD', 'HD'):
+            for f in ('MPEG4', 'MPEG-DASH', 'M3U', 'ISM'):
+                try:
+                    tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                        update_url_query('http://link.theplatform.%s/s/%s' % (self._TP_TLD, tp_path), {
+                            'mbr': 'true',
+                            'formats': f,
+                            'assetTypes': asset_type,
+                        }), guid, 'Downloading %s %s SMIL data' % (f, asset_type))
+                except ExtractorError as e:
+                    if not first_e:
+                        first_e = e
+                    break
+                for tp_f in tp_formats:
+                    tp_f['quality'] = 1 if asset_type == 'HD' else 0
+                formats.extend(tp_formats)
+                subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        if first_e and not formats:
+            raise first_e
         self._sort_formats(formats)
 
-        creator = try_get(
-            video, lambda x: x['brand-info']['publisher'], compat_str)
-        category = try_get(
-            video, lambda x: x['brand-info']['category'], compat_str)
-        categories = [category] if category else None
+        fields = []
+        for templ, repls in (('tvSeason%sNumber', ('', 'Episode')), ('mediasetprogram$%s', ('brandTitle', 'numberOfViews', 'publishInfo'))):
+            fields.extend(templ % repl for repl in repls)
+        feed_data = self._download_json(
+            'https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs/guid/-/' + guid,
+            guid, fatal=False, query={'fields': ','.join(fields)})
+        if feed_data:
+            publish_info = feed_data.get('mediasetprogram$publishInfo') or {}
+            info.update({
+                'episode_number': int_or_none(feed_data.get('tvSeasonEpisodeNumber')),
+                'season_number': int_or_none(feed_data.get('tvSeasonNumber')),
+                'series': feed_data.get('mediasetprogram$brandTitle'),
+                'uploader': publish_info.get('description'),
+                'uploader_id': publish_info.get('channel'),
+                'view_count': int_or_none(feed_data.get('mediasetprogram$numberOfViews')),
+            })
 
-        return {
-            'id': video_id,
-            'title': title,
-            'description': video.get('short-description'),
-            'thumbnail': video.get('thumbnail'),
-            'duration': parse_duration(video.get('duration')),
-            'creator': creator,
-            'upload_date': unified_strdate(video.get('production-date')),
-            'webpage_url': video.get('url'),
-            'series': video.get('brand-value'),
-            'season': video.get('season'),
-            'categories': categories,
+        info.update({
+            'id': guid,
             'formats': formats,
-        }
+            'subtitles': subtitles,
+        })
+        return info

@@ -3,12 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     mimetype2ext,
     parse_duration,
     qualities,
+    url_or_none,
 )
 
 
@@ -61,8 +61,8 @@ class ImdbIE(InfoExtractor):
         for encoding in video_metadata.get('encodings', []):
             if not encoding or not isinstance(encoding, dict):
                 continue
-            video_url = encoding.get('videoUrl')
-            if not video_url or not isinstance(video_url, compat_str):
+            video_url = url_or_none(encoding.get('videoUrl'))
+            if not video_url:
                 continue
             ext = determine_ext(video_url, mimetype2ext(encoding.get('mimeType')))
             if ext == 'm3u8':

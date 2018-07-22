@@ -8,6 +8,7 @@ from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -80,8 +81,8 @@ class HiDiveIE(InfoExtractor):
             bitrates = rendition.get('bitrates')
             if not isinstance(bitrates, dict):
                 continue
-            m3u8_url = bitrates.get('hls')
-            if not isinstance(m3u8_url, compat_str):
+            m3u8_url = url_or_none(bitrates.get('hls'))
+            if not m3u8_url:
                 continue
             formats.extend(self._extract_m3u8_formats(
                 m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
@@ -93,9 +94,8 @@ class HiDiveIE(InfoExtractor):
                 if not isinstance(cc_file, list) or len(cc_file) < 3:
                     continue
                 cc_lang = cc_file[0]
-                cc_url = cc_file[2]
-                if not isinstance(cc_lang, compat_str) or not isinstance(
-                        cc_url, compat_str):
+                cc_url = url_or_none(cc_file[2])
+                if not isinstance(cc_lang, compat_str) or not cc_url:
                     continue
                 subtitles.setdefault(cc_lang, []).append({
                     'url': cc_url,
