@@ -1606,7 +1606,7 @@ class InfoExtractor(object):
             if not (media_type and group_id and name):
                 return
             groups.setdefault(group_id, []).append(media)
-            if media_type not in ('VIDEO', 'AUDIO'):
+            if media_type not in ('AUDIO', 'SUBTITLES', 'VIDEO'):
                 return
             media_url = media.get('URI')
             if media_url:
@@ -1623,7 +1623,9 @@ class InfoExtractor(object):
                     'protocol': entry_protocol,
                     'preference': preference,
                 }
-                if media_type == 'AUDIO':
+                if media_type in ['SUBTITLES']:
+                    f['acodec'] = 'none'
+                if media_type in ['AUDIO', 'SUBTITLES']:
                     f['vcodec'] = 'none'
                 formats.append(f)
 
