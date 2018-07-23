@@ -631,7 +631,9 @@ By default youtube-dl tries to download the best available quality, i.e. if you 
 
 But sometimes you may want to download in a different format, for example when you are on a slow or intermittent connection. The key mechanism for achieving this is so-called *format selection* based on which you can explicitly specify desired format, select formats based on some criterion or criteria, setup precedence and much more.
 
-The general syntax for format selection is `--format FORMAT` or shorter `-f FORMAT` where `FORMAT` is a *selector expression*, i.e. an expression that describes format or formats you would like to download.
+The general syntax for format selection is `--format FORMAT` or shorter `-f FORMAT` where `FORMAT` is a *selector expression*, i.e. an expression that describes format or formats you would like to download.  
+
+To avoid the case where the audio and video are incompatible, specify both the format of the audio and video streams explicitly.  For example specifying `-f mp4` will default to `-f mp4,best`, but the best audio youtube can provide cannot be contained in an `MP4` file, so youtube-dl will try to merge them into an `mkv` instead of the requested `mp4` format.  To avoid this, specify `-f mp4,mp4`, so the audio and video are compatible.
 
 **tl;dr:** [navigate me to examples](#format-selection-examples).
 
