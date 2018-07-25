@@ -72,4 +72,7 @@ class StreamcloudIE(InfoExtractor):
             'title': title,
             'url': video_url,
             'thumbnail': thumbnail,
+            'http_headers': {
+                'Referer': url,
+            },
         }
