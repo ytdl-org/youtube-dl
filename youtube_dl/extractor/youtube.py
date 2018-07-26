@@ -2067,7 +2067,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
 
-        self._sort_formats(formats)
+        # YouTube reports total bitrate inaccurately for some videos. Compensate by prioritizing picture size.
+        self._sort_formats(formats, field_preference=('preference', 'language_preference', 'quality', 'height', 'width',
+            'ext_preference', 'tbr', 'filesize', 'vbr', 'abr', 'audio_ext_preference', 'fps', 'filesize_approx',
+            'source_preference'))
 
         self.mark_watched(video_id, video_info)
 
