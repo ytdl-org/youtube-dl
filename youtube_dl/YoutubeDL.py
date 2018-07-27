@@ -2274,7 +2274,7 @@ class YoutubeDL(object):
             if hasattr(handler, 'proxies'):
                 proxy_map.update(handler.proxies)
         self._write_string('[debug] Proxy map: ' + re.sub(
-            r'(https?://)(?:(?:[^:/\'"@]+:)?[^@]+)(@)',
+            r'((?:http|socks5)s?://)(?:(?:[^:@]+:)?[^@]+)(@)',
             r'\1PRIVATE\2',
             compat_str(proxy_map)) + '\n')
 
