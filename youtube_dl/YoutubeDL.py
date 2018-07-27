@@ -749,6 +749,19 @@ class YoutubeDL(object):
             return '%s has already been recorded in archive' % video_title
 
         if not incomplete:
+            duration = info_dict.get('duration')
+            min_duration = self.params.get('min_duration')
+            if min_duration is not None:
+                if duration is None:
+                    return 'Skipping %s, because its duration is unknown and min_duration is specified' % (video_title)
+                if duration < min_duration:
+                    return 'Skipping %s, because its duration (%ds) is less than %ds' % (video_title, duration, min_duration)
+            max_duration = self.params.get('max_duration')
+            if max_duration is not None:
+                if duration is None:
+                    return 'Skipping %s, because its duration is unknown and max_duration is specified' % (video_title)
+                if duration > max_duration:
+                    return 'Skipping %s, because its duration (%ds) is more than %ds' % (video_title, duration, max_duration)
             match_filter = self.params.get('match_filter')
             if match_filter is not None:
                 ret = match_filter(info_dict)

@@ -135,6 +135,10 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --reject-title REGEX             Skip download for matching titles (regex or
                                      caseless sub-string)
     --max-downloads NUMBER           Abort after downloading NUMBER files
+    --min-duration SECONDS           Do not download any videos smaller than
+                                     duration, in seconds
+    --max-duration SECONDS           Do not download any videos larger than
+                                     duration, in seconds
     --min-filesize SIZE              Do not download any videos smaller than
                                      SIZE (e.g. 50k or 44.6m)
     --max-filesize SIZE              Do not download any videos larger than SIZE

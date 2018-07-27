@@ -150,6 +150,12 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error('invalid rate limit specified')
         opts.ratelimit = numeric_limit
+    if opts.min_duration is not None:
+        if opts.min_duration <= 0:
+            parser.error('invalid min_duration specified')
+    if opts.max_duration is not None:
+        if opts.max_duration <= 0:
+            parser.error('invalid max_duration specified')
     if opts.min_filesize is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
         if numeric_limit is None:
@@ -384,6 +390,8 @@ def _real_main(argv=None):
         'write_pages': opts.write_pages,
         'test': opts.test,
         'keepvideo': opts.keepvideo,
+        'min_duration': opts.min_duration,
+        'max_duration': opts.max_duration,
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
         'min_views': opts.min_views,

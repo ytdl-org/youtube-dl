@@ -280,6 +280,14 @@ def parseOpts(overrideArguments=None):
         dest='max_downloads', metavar='NUMBER', type=int, default=None,
         help='Abort after downloading NUMBER files')
     selection.add_option(
+        '--min-duration',
+        metavar='SECONDS', dest='min_duration', type=int, default=None,
+        help='Do not download any videos smaller than duration, in seconds')
+    selection.add_option(
+        '--max-duration',
+        metavar='SECONDS', dest='max_duration', type=int, default=None,
+        help='Do not download any videos larger than duration, in seconds')
+    selection.add_option(
         '--min-filesize',
         metavar='SIZE', dest='min_filesize', default=None,
         help='Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)')
