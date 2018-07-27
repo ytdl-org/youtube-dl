@@ -296,8 +296,11 @@ class FFmpegFD(ExternalFD):
 
         args += ['-i', url, '-c', 'copy']
 
+        max_filesize = self.params.get('max_filesize')
         if self.params.get('test', False):
             args += ['-fs', compat_str(self._TEST_FILE_SIZE)]
+        elif max_filesize is not None:
+            args += ['-fs', compat_str(max_filesize)]
 
         if protocol in ('m3u8', 'm3u8_native'):
             if self.params.get('hls_use_mpegts', False) or tmpfilename == '-':
