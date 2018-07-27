@@ -262,6 +262,9 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             # Just test metadata extraction
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.crunchyroll.com/media-723735',
+        'only_matching': True,
     }]
 
     _FORMAT_IDS = {
@@ -603,6 +606,13 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
         'url': 'http://www.crunchyroll.com/ladies-versus-butlers?skip_wall=1',
         'only_matching': True,
     }]
+    # Is possible make test, that try URL, and return: This URL is invalid for this extractor
+    '''
+    , {
+        'url': 'http://www.crunchyroll.com/media-723735',
+        'invalid_url': True,
+    }
+    '''
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
