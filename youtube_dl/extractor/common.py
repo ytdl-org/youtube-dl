@@ -2643,14 +2643,10 @@ class InfoExtractor(object):
                 formats.extend(self._extract_f4m_formats(
                     source_url, video_id, m3u8_id=m3u8_id, fatal=False))
             else:
-                urlh = self._request_webpage(source_url, video_id, note='Checking format %d information' % format_id, fatal=False)
-                size = int(urlh.headers.get('Content-Length'))
                 formats.append({
                     'url': source_url,
                     'ext': ext,
                     'format_id': '%d' % format_id,
-                    'filesize': size,
-                    'preference': int(size / 1024 / 1024 / 10),
                 })
         if len(formats) == 0:
             raise ExtractorError('Source not found', expected=True, video_id=video_id)
