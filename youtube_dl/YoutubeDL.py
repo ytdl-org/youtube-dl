@@ -299,7 +299,7 @@ class YoutubeDL(object):
 
     The following parameters are not used by YoutubeDL itself, they are used by
     the downloader (see youtube_dl/downloader/common.py):
-    nopart, updatetime, buffersize, ratelimit, min_filesize, max_filesize, test,
+    nopart, updatetime, buffersize, ratelimit, test,
     noresizebuffer, retries, continuedl, noprogress, consoletitle,
     xattr_set_filesize, external_downloader_args, hls_use_mpegts,
     http_chunk_size.
@@ -749,6 +749,14 @@ class YoutubeDL(object):
             return '%s has already been recorded in archive' % video_title
 
         if not incomplete:
+            filesize = info_dict.get('filesize')
+            if filesize is not None and filesize > 0:
+                min_filesize = self.params.get('min_filesize')
+                if min_filesize is not None and filesize < min_filesize:
+                    return 'Skipping %s, filesize is smaller than min-filesize (%d bytes < %d bytes)' % (video_title, filesize, min_filesize)
+                max_filesize = self.params.get('max_filesize')
+                if max_filesize is not None and filesize > max_filesize:
+                    return 'Skipping %s, filesize is larger than max-filesize (%d bytes > %d bytes)' % (video_title, filesize, max_filesize)
             match_filter = self.params.get('match_filter')
             if match_filter is not None:
                 ret = match_filter(info_dict)
