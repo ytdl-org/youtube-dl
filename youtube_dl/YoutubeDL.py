@@ -2273,7 +2273,10 @@ class YoutubeDL(object):
         for handler in self._opener.handlers:
             if hasattr(handler, 'proxies'):
                 proxy_map.update(handler.proxies)
-        self._write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
+        self._write_string('[debug] Proxy map: ' + re.sub(
+            r'(https?://)(?:(?:[^:/\'"@]+:)?[^@]+)(@)',
+            r'\1PRIVATE\2',
+            compat_str(proxy_map)) + '\n')
 
         if self.params.get('call_home', False):
             ipaddr = self.urlopen('https://yt-dl.org/ip').read().decode('utf-8')
