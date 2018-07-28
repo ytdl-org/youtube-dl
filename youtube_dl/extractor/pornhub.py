@@ -139,12 +139,19 @@ class PornHubIE(InfoExtractor):
 
         video_urls = []
         video_urls_set = set()
+        subtitles = {}
 
         flashvars = self._parse_json(
             self._search_regex(
                 r'var\s+flashvars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
             video_id)
         if flashvars:
+            subtitle_url = flashvars.get('closedCaptionsFile')
+            if subtitle_url is not None:
+                subtitles.setdefault('en', []).append({
+                    'url': subtitle_url,
+                    'ext': 'srt',
+                })
             thumbnail = flashvars.get('image_url')
             duration = int_or_none(flashvars.get('video_duration'))
             media_definitions = flashvars.get('mediaDefinitions')
@@ -256,6 +263,7 @@ class PornHubIE(InfoExtractor):
             'age_limit': 18,
             'tags': tags,
             'categories': categories,
+            'subtitles': subtitles,
         }
 
 
