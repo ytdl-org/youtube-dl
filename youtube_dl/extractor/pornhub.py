@@ -173,7 +173,7 @@ class PornHubIE(InfoExtractor):
             video_id)
         if flashvars:
             subtitle_url = url_or_none(flashvars.get('closedCaptionsFile'))
-            if subtitle_url is not None:
+            if subtitle_url:
                 subtitles.setdefault('en', []).append({
                     'url': subtitle_url,
                     'ext': 'srt',
