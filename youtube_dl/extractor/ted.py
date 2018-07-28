@@ -107,6 +107,19 @@ class TEDIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # no nativeDownloads
+        'url': 'https://www.ted.com/talks/tom_thum_the_orchestra_in_my_mouth',
+        'info_dict': {
+            'id': '1792',
+            'ext': 'mp4',
+            'title': 'The orchestra in my mouth',
+            'description': 'md5:5d1d78650e2f8dfcbb8ebee2951ac29a',
+            'uploader': 'Tom Thum',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     _NATIVE_FORMATS = {
@@ -180,8 +193,10 @@ class TEDIE(InfoExtractor):
             }
 
         native_downloads = try_get(
-            talk_info, lambda x: x['downloads']['nativeDownloads'],
-            dict) or talk_info['nativeDownloads']
+            talk_info,
+            (lambda x: x['downloads']['nativeDownloads'],
+             lambda x: x['nativeDownloads']),
+            dict) or {}
 
         formats = [{
             'url': format_url,
