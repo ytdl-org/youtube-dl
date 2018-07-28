@@ -181,7 +181,7 @@ class TEDIE(InfoExtractor):
 
         native_downloads = try_get(
             talk_info, lambda x: x['downloads']['nativeDownloads'],
-            dict) or talk_info['nativeDownloads']
+            dict) or talk_info.get('nativeDownloads') or {}
 
         formats = [{
             'url': format_url,
