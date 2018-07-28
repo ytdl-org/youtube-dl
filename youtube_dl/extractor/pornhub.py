@@ -18,6 +18,7 @@ from ..utils import (
     orderedSet,
     remove_quotes,
     str_to_int,
+    url_or_none,
 )
 
 
@@ -64,6 +65,31 @@ class PornHubIE(InfoExtractor):
             'age_limit': 18,
             'tags': list,
             'categories': list,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # subtitles
+        'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5af5fef7c2aa7',
+        'info_dict': {
+            'id': 'ph5af5fef7c2aa7',
+            'ext': 'mp4',
+            'title': 'BFFS - Cute Teen Girls Share Cock On the Floor',
+            'uploader': 'BFFs',
+            'duration': 622,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 18,
+            'tags': list,
+            'categories': list,
+            'subtitles': {
+                'en': [{
+                    "ext": 'srt'
+                }]
+            },
         },
         'params': {
             'skip_download': True,
@@ -146,7 +172,7 @@ class PornHubIE(InfoExtractor):
                 r'var\s+flashvars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
             video_id)
         if flashvars:
-            subtitle_url = flashvars.get('closedCaptionsFile')
+            subtitle_url = url_or_none(flashvars.get('closedCaptionsFile'))
             if subtitle_url is not None:
                 subtitles.setdefault('en', []).append({
                     'url': subtitle_url,
