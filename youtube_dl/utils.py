@@ -3570,6 +3570,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
                     lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
                         meth(r, proxy, type))
 
+    @property
     def proxy_handler(self, proxies=None):
         return compat_urllib_request.ProxyHandler.__init__(self, proxies)
 
