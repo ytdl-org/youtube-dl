@@ -2060,6 +2060,20 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'TODO: fix nested playlists processing in tests',
         },
+        {
+            # Test for fallback after _parse_jwplayer_data fails
+            # See https://github.com/rg3/youtube-dl/pull/16735
+            'url': 'http://www.anime1.com/watch/nichijou/episode-1',
+            'info_dict': {
+                'id': '[HorribleSubs] Nichijou - 01 [480p]_a1_BRK',
+                'title': 'Nichijou - Episode 1',
+                'ext': 'mp4',
+                'uploader': 'www.anime1.com',
+            },
+            'params': {
+                'skip_download': True,
+            }
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -3115,9 +3129,13 @@ class GenericIE(InfoExtractor):
         jwplayer_data = self._find_jwplayer_data(
             webpage, video_id, transform_source=js_to_json)
         if jwplayer_data:
-            info = self._parse_jwplayer_data(
-                jwplayer_data, video_id, require_title=False, base_url=url)
-            return merge_dicts(info, info_dict)
+            try:
+                info = self._parse_jwplayer_data(
+                    jwplayer_data, video_id, require_title=False, base_url=url)
+                return merge_dicts(info, info_dict)
+            except ExtractorError:
+                # If there is an error, try a different extractor
+                pass
 
         # Video.js embed
         mobj = re.search(
