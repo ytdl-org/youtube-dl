@@ -1,3 +1,21 @@
+version 2018.07.29
+
+Extractors
+* [crunchyroll:playlist] Restrict URL regular expression (#17069, #17076)
++ [pornhub] Add support for subtitles (#16924, #17088)
+* [ceskatelevize] Use https for API call (#16997, #16999)
+* [dailymotion:playlist] Fix extraction (#16894)
+* [ted] Improve extraction
+* [ted] Fix extraction for videos without nativeDownloads (#16756, #17085)
+* [telecinco] Fix extraction (#17080)
+* [mitele] Reduce number of requests
+* [rai] Return non HTTP relinker URL intact (#17055)
+* [vk] Fix extraction for inline only videos (#16923)
+* [streamcloud] Fix extraction (#17054)
+* [facebook] Fix tahoe player extraction with authentication (#16655)
++ [puhutv] Add support for puhutv.com (#12712, #16010, #16269)
+
+
 version 2018.07.21
 
 Core

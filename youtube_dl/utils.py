@@ -3569,7 +3569,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             setattr(self, '%s_open' % type,
                     lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
                         meth(r, proxy, type))
-        return compat_urllib_request.ProxyHandler.__init__(self, proxies)
+        compat_urllib_request.ProxyHandler.__init__(self, proxies)
 
     def proxy_open(self, req, proxy, type):
         req_proxy = req.headers.get('Ytdl-request-proxy')
