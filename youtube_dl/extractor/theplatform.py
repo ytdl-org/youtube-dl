@@ -310,7 +310,7 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
 
 class ThePlatformFeedIE(ThePlatformBaseIE):
     _URL_TEMPLATE = '%s//feed.theplatform.com/f/%s/%s?form=json&%s'
-    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*(?P<filter>by(?:Gui|I)d=(?P<id>[\w-]+))'
+    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*(?P<filter>by(?:Gui|I)d=(?P<id>[^&]+))'
     _TESTS = [{
         # From http://player.theplatform.com/p/7wvmTC/MSNBCEmbeddedOffSite?guid=n_hardball_5biden_140207
         'url': 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207',
