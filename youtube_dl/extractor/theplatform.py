@@ -327,6 +327,9 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
             'uploader': 'NBCU-NEWS',
         },
+    }, {
+        'url': 'http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews?byGuid=nn_netcast_180306.Copy.01',
+        'only_matching': True,
     }]
 
     def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}, account_id=None):
