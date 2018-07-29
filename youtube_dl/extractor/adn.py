@@ -23,6 +23,7 @@ from ..utils import (
     pkcs1pad,
     srt_subtitles_timecode,
     strip_or_none,
+    urlencode_postdata,
     urljoin,
 )
 
@@ -40,8 +41,58 @@ class ADNIE(InfoExtractor):
             'description': 'md5:2f7b5aa76edbc1a7a92cedcda8a528d5',
         }
     }
-    _BASE_URL = 'http://animedigitalnetwork.fr'
+    _BASE_URL = 'https://animedigitalnetwork.fr'
+    _LOGIN_URL = 'https://animedigitalnetwork.fr/connexion'
+    _NETRC_MACHINE = 'ADN'
     _RSA_KEY = (0xc35ae1e4356b65a73b551493da94b8cb443491c0aa092a357a5aee57ffc14dda85326f42d716e539a34542a0d3f363adf16c5ec222d713d5997194030ee2e4f0d1fb328c01a81cf6868c090d50de8e169c6b13d1675b9eeed1cbc51e1fffca9b38af07f37abd790924cd3bee59d0257cfda4fe5f3f0534877e21ce5821447d1b, 65537)
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        def is_logged(webpage):
+            return 'task=user.logout' in webpage
+
+        # Already logged in
+        if is_logged(login_page):
+            return
+
+        _token = self._search_regex(
+            r'<input[^>]+type=["\']hidden["\'][^>]+name=["\'](?P<token>[\da-f]+)["\'][^>]+value=["\']1["\']',
+            login_page,
+            'action token',
+            group='token'
+        )
+        if not _token:
+            raise ExtractorError('%s Can\'t extract login token' % self.IE_NAME)
+
+        response = self._download_webpage(
+            self._LOGIN_URL + '?task=user.login',
+            None, 'Logging in', 'Wrong login info',
+            data=urlencode_postdata({
+                'username': username,
+                'password': password,
+                'return': 'aHR0cHM6Ly9hbmltZWRpZ2l0YWxuZXR3b3JrLmZyL2Nvbm5leGlvbg==',  # base64 LOGIN URL
+                _token: '1',
+            }))
+
+        # Successful login
+        if is_logged(response):
+            return
+
+        error = self._html_search_regex(
+            r'(?s)<dd[^>]+class=["\']error message["\'][^>]*>(.+?)</ul>',
+            response, 'error message', default=None)
+        if error:
+            raise ExtractorError('Unable to login: %s' % error, expected=True)
+
+        raise ExtractorError('Unable to log in')
+
+    def _real_initialize(self):
+        self._login()
 
     def _get_subtitles(self, sub_path, video_id):
         if not sub_path:
@@ -132,6 +183,14 @@ class ADNIE(InfoExtractor):
                 urljoin(self._BASE_URL, links_url), video_id, headers={
                     'Authorization': 'Bearer ' + authorization,
                 })
+            if links_data.get('status'):
+                if links_data.get('code') == 1:
+                    self.raise_login_required(links_data.get('error'))
+                if links_data.get('code') == 0:
+                    if links_data.get('error').find('Pour des raisons l') != -1:
+                        self.raise_geo_restricted(links_data.get('error'))
+                    else:
+                        raise ExtractorError('%s said: %s' % (self.IE_NAME, links_data.get('error')), expected=True)
             links = links_data.get('links') or {}
             metas = metas or links_data.get('meta') or {}
             sub_path = (sub_path or links_data.get('subtitles')) + '&token=' + token
