@@ -672,6 +672,8 @@
  - **PrimeShareTV**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
+ - **puhutv**
+ - **puhutv:serie**
  - **Puls4**
  - **Pyvideo**
  - **qqmusic**: QQ音乐
