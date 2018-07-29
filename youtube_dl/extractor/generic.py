@@ -113,6 +113,7 @@ from .peertube import PeerTubeIE
 from .indavideo import IndavideoEmbedIE
 from .apa import APAIE
 from .foxnews import FoxNewsIE
+from .viqeo import ViqeoIE
 
 
 class GenericIE(InfoExtractor):
@@ -2060,6 +2061,15 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'TODO: fix nested playlists processing in tests',
         },
+        {
+            # Viqeo embeds
+            'url': 'https://viqeo.tv/',
+            'info_dict': {
+                'id': 'viqeo',
+                'title': 'All-new video platform',
+            },
+            'playlist_count': 6,
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -3093,6 +3103,11 @@ class GenericIE(InfoExtractor):
         if sharevideos_urls:
             return self.playlist_from_matches(
                 sharevideos_urls, video_id, video_title)
+
+        viqeo_urls = ViqeoIE._extract_urls(webpage)
+        if viqeo_urls:
+            return self.playlist_from_matches(
+                viqeo_urls, video_id, video_title, ie=ViqeoIE.ie_key())
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')

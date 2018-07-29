@@ -1291,6 +1291,7 @@ from .viki import (
     VikiIE,
     VikiChannelIE,
 )
+from .viqeo import ViqeoIE
 from .viu import (
     ViuIE,
     ViuPlaylistIE,
