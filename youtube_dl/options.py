@@ -20,21 +20,37 @@ from .utils import (
 from .version import __version__
 
 
+def hide_url_login_info(url):
+    return re.sub(
+        r'((?:http|socks5)s?://)(?:(?:[^:@]+:)?[^@]+)(@)',
+        r'\1PRIVATE\2', url)
+
+
 def _hide_login_info(opts):
-    PRIVATE_OPTS = set(['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username', '--proxy', '--geo-verification-proxy'])
+    PRIVATE_OPTS = set(['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username'])
+    URL_PRIVATE_OPTS = set(['--proxy', '--geo-verification-proxy'])
+
     eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
+    equre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in URL_PRIVATE_OPTS)) + ')=(?P<url>.+)$')
 
     def _scrub_eq(o):
         m = eqre.match(o)
         if m:
             return m.group('key') + '=PRIVATE'
         else:
-            return o
+            m = equre.match(o)
+            if m:
+                return m.group('key') + '=' + hide_url_login_info(m.group('url'))
+            else:
+                return o
 
     opts = list(map(_scrub_eq, opts))
     for idx, opt in enumerate(opts):
         if opt in PRIVATE_OPTS and idx + 1 < len(opts):
             opts[idx + 1] = 'PRIVATE'
+        else:
+            if opt in URL_PRIVATE_OPTS and idx + 1 < len(opts):
+                opts[idx + 1] = hide_url_login_info(opts[idx + 1])
     return opts
 
 
