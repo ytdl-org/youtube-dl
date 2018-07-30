@@ -54,30 +54,26 @@ class ADNIE(InfoExtractor):
             self._LOGIN_URL, None, 'Downloading login page')
 
         def is_logged(webpage):
-            return 'task=user.logout' in webpage
+            return 'task=user.logout' in webpage or 'view=logout' in webpage
 
         # Already logged in
         if is_logged(login_page):
             return
 
-        _token = self._search_regex(
-            r'<input[^>]+type=["\']hidden["\'][^>]+name=["\'](?P<token>[\da-f]+)["\'][^>]+value=["\']1["\']',
-            login_page,
-            'action token',
-            group='token'
-        )
-        if not _token:
+        form_data = self._form_hidden_inputs('login-form', login_page)
+        if not form_data.get('return'):
             raise ExtractorError('%s Can\'t extract login token' % self.IE_NAME)
+        form_data.update({
+            'username': username,
+            'password': password,
+            # base64 LOGIN URL
+            # 'return': 'aHR0cHM6Ly9hbmltZWRpZ2l0YWxuZXR3b3JrLmZyL2Nvbm5leGlvbg==',
+        })
 
         response = self._download_webpage(
             self._LOGIN_URL + '?task=user.login',
             None, 'Logging in', 'Wrong login info',
-            data=urlencode_postdata({
-                'username': username,
-                'password': password,
-                'return': 'aHR0cHM6Ly9hbmltZWRpZ2l0YWxuZXR3b3JrLmZyL2Nvbm5leGlvbg==',  # base64 LOGIN URL
-                _token: '1',
-            }))
+            data=urlencode_postdata(form_data))
 
         # Successful login
         if is_logged(response):
