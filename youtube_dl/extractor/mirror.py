@@ -6,9 +6,8 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     RegexNotFoundError,
+    unified_strdate,
 )
-
-import re
 
 
 class MirrorIE(InfoExtractor):
@@ -27,6 +26,8 @@ class MirrorIE(InfoExtractor):
         }
     }
 
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/%s_default/index.html?videoId=%s'
+
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
@@ -39,45 +40,51 @@ class MirrorIE(InfoExtractor):
         try:
             json_data = self._parse_json(self._html_search_regex(
                 r'<div[^>]+class=(["\'])json-placeholder\1[^>]+data-json=\1(?P<json>.*?)\1',
-                webpage, 'extract json', group='json', fatal=False
-            ), display_id, fatal=False)
+                webpage, 'extract json', group='json', default='{}'
+            ), display_id)
 
             if all(k in json_data for k in ('playerData', 'videoData')):
                 player_id = json_data['playerData'].get('playerId')
                 account_id = json_data['playerData'].get('account')
-                video_id = json_data['videoData'].get('videoId')
-                title = json_data['videoData'].get('videoTitle')
+                video_id = json_data['videoData']['videoId']
+                title = json_data['videoData']['videoTitle']
             else:
                 raise ExtractorError('json data not found')
-        except (RegexNotFoundError, ExtractorError):
+        except (RegexNotFoundError, ExtractorError, KeyError):
             title = self._og_search_title(
-                webpage, default=None) or self._search_regex(
-                r'<title>([^<]+)', webpage,
-                'title', default=None)
+                webpage, default=None) or self._html_search_regex(
+                r'<title>([^>]+)', webpage,
+                'title')
             account_id = self._html_search_regex(
-                r'<meta[^<]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"].+?brightcove\.com/\d+/(?P<account_id>[^/]+)/',
-                webpage, 'account id', group='account_id'
+                r'<meta[^>]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"].+?brightcove\.com/\d+/([^/]+)/',
+                webpage, 'account id', default=None
             )
             video_id = self._html_search_regex(
-                r'<meta[^<]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"].+?brightcove\.com/[a-zA-Z0-9-_/]+_(?P<video_id>\d+)\.mp4',
-                webpage, 'video id', group='video_id'
+                r'<meta[^>]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"].+?brightcove\.com/[a-zA-Z0-9-_/]+_(\d+)\.mp4',
+                webpage, 'video id'
             )
 
-        try:
+        if player_id and account_id:
             return {
                 '_type': 'url_transparent',
                 'id': video_id,
                 'display_id': display_id,
-                'url': 'http://players.brightcove.net/%s/%s_default/index.html?videoId=%s' % (account_id, player_id, video_id),
+                'title': title,
+                'url': self.BRIGHTCOVE_URL_TEMPLATE % (account_id, player_id, video_id),
                 'ie_key': 'BrightcoveNew'
             }
-        except ExtractorError:
+        else:  # fallback
             return {
                 'id': video_id,
+                'display_id': display_id,
                 'title': title,
                 'url': self._search_regex(
-                    r'<meta[^<]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"](?P<video_url>.+?brightcove\.com\/[^\'"]+)',
-                    webpage, 'video url', group='video_url'
+                    r'<meta[^>]+?property=[\'"]+videoUrl[\'"]+.+?content=[\'"](.+?brightcove\.com\/[^\'"]+)',
+                    webpage, 'video url'
                 ),
-                'uploader_id': account_id
+                'uploader_id': account_id,
+                'upload_date': unified_strdate(self._html_search_regex(
+                    r'<time[^>]+?class=[\'"]+\s*?date-published\s*[\'"]+\s*datetime=[\'"]+([^\'">]+)',
+                    webpage, 'date', default=None)
+                )
             }
