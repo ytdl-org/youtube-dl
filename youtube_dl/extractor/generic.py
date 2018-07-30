@@ -32,6 +32,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     UnsupportedError,
+    url_or_none,
     xpath_text,
 )
 from .commonprotocols import RtmpIE
@@ -111,6 +112,8 @@ from .cloudflarestream import CloudflareStreamIE
 from .peertube import PeerTubeIE
 from .indavideo import IndavideoEmbedIE
 from .apa import APAIE
+from .foxnews import FoxNewsIE
+from .viqeo import ViqeoIE
 
 
 class GenericIE(InfoExtractor):
@@ -1394,17 +1397,6 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
-        # SVT embed
-        {
-            'url': 'http://www.svt.se/sport/ishockey/jagr-tacklar-giroux-under-intervjun',
-            'info_dict': {
-                'id': '2900353',
-                'ext': 'flv',
-                'title': 'Här trycker Jagr till Giroux (under SVT-intervjun)',
-                'duration': 27,
-                'age_limit': 0,
-            },
-        },
         # Crooks and Liars embed
         {
             'url': 'http://crooksandliars.com/2015/04/fox-friends-says-protecting-atheists',
@@ -2068,6 +2060,15 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4'
             },
             'skip': 'TODO: fix nested playlists processing in tests',
+        },
+        {
+            # Viqeo embeds
+            'url': 'https://viqeo.tv/',
+            'info_dict': {
+                'id': 'viqeo',
+                'title': 'All-new video platform',
+            },
+            'playlist_count': 6,
         },
         # {
         #     # TODO: find another test
@@ -3076,7 +3077,7 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 cloudflarestream_urls, video_id, video_title, ie=CloudflareStreamIE.ie_key())
 
-        peertube_urls = PeerTubeIE._extract_urls(webpage)
+        peertube_urls = PeerTubeIE._extract_urls(webpage, url)
         if peertube_urls:
             return self.playlist_from_matches(
                 peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
@@ -3091,12 +3092,22 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 apa_urls, video_id, video_title, ie=APAIE.ie_key())
 
+        foxnews_urls = FoxNewsIE._extract_urls(webpage)
+        if foxnews_urls:
+            return self.playlist_from_matches(
+                foxnews_urls, video_id, video_title, ie=FoxNewsIE.ie_key())
+
         sharevideos_urls = [mobj.group('url') for mobj in re.finditer(
             r'<iframe[^>]+?\bsrc\s*=\s*(["\'])(?P<url>(?:https?:)?//embed\.share-videos\.se/auto/embed/\d+\?.*?\buid=\d+.*?)\1',
             webpage)]
         if sharevideos_urls:
             return self.playlist_from_matches(
                 sharevideos_urls, video_id, video_title)
+
+        viqeo_urls = ViqeoIE._extract_urls(webpage)
+        if viqeo_urls:
+            return self.playlist_from_matches(
+                viqeo_urls, video_id, video_title, ie=ViqeoIE.ie_key())
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
@@ -3135,8 +3146,8 @@ class GenericIE(InfoExtractor):
                 sources = [sources]
             formats = []
             for source in sources:
-                src = source.get('src')
-                if not src or not isinstance(src, compat_str):
+                src = url_or_none(source.get('src'))
+                if not src:
                     continue
                 src = compat_urlparse.urljoin(url, src)
                 src_type = source.get('type')

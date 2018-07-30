@@ -54,7 +54,8 @@ class VidziIE(InfoExtractor):
                 self._search_regex(
                     r'setup\(([^)]+)\)', code, 'jwplayer data',
                     default=NO_DEFAULT if num == len(codes) else '{}'),
-                video_id, transform_source=js_to_json)
+                video_id, transform_source=lambda s: js_to_json(
+                    re.sub(r'\s*\+\s*window\[.+?\]', '', s)))
             if jwplayer_data:
                 break
 

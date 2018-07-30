@@ -1,3 +1,130 @@
+version 2018.07.29
+
+Extractors
+* [crunchyroll:playlist] Restrict URL regular expression (#17069, #17076)
++ [pornhub] Add support for subtitles (#16924, #17088)
+* [ceskatelevize] Use https for API call (#16997, #16999)
+* [dailymotion:playlist] Fix extraction (#16894)
+* [ted] Improve extraction
+* [ted] Fix extraction for videos without nativeDownloads (#16756, #17085)
+* [telecinco] Fix extraction (#17080)
+* [mitele] Reduce number of requests
+* [rai] Return non HTTP relinker URL intact (#17055)
+* [vk] Fix extraction for inline only videos (#16923)
+* [streamcloud] Fix extraction (#17054)
+* [facebook] Fix tahoe player extraction with authentication (#16655)
++ [puhutv] Add support for puhutv.com (#12712, #16010, #16269)
+
+
+version 2018.07.21
+
+Core
++ [utils] Introduce url_or_none
+* [utils] Allow JSONP without function name (#17028)
++ [extractor/common] Extract DASH and MSS formats from SMIL manifests
+
+Extractors
++ [bbc] Add support for BBC Radio Play pages (#17022)
+* [iwara] Fix download URLs (#17026)
+* [vrtnu] Relax title extraction and extract JSON-LD (#17018)
++ [viu] Pass Referer and Origin headers and area id (#16992)
++ [vimeo] Add another config regular expression (#17013)
++ [facebook] Extract view count (#16942)
+* [dailymotion] Improve description extraction (#16984)
+* [slutload] Fix and improve extraction (#17001)
+* [mediaset] Fix extraction (#16977)
++ [theplatform] Add support for theplatform TLD customization (#16977)
+* [imgur] Relax URL regular expression (#16987)
+* [pornhub] Improve extraction and extract all formats (#12166, #15891, #16262,
+  #16959)
+
+
+version 2018.07.10
+
+Core
+* [utils] Share JSON-LD regular expression
+* [downloader/dash] Improve error handling (#16927)
+
+Extractors
++ [nrktv] Add support for new season and serie URL schema
++ [nrktv] Add support for new episode URL schema (#16909)
++ [frontendmasters] Add support for frontendmasters.com (#3661, #16328)
+* [funk] Fix extraction (#16918)
+* [watchbox] Fix extraction (#16904)
+* [dplayit] Sort formats
+* [dplayit] Fix extraction (#16901)
+* [youtube] Improve login error handling (#13822)
+
+
+version 2018.07.04
+
+Core
+* [extractor/common] Properly escape % in MPD templates (#16867)
+* [extractor/common] Use source URL as Referer for HTML5 entries (16849)
+* Prefer ffmpeg over avconv by default (#8622)
+
+Extractors
+* [pluralsight] Switch to graphql (#16889, #16895, #16896, #16899)
+* [lynda] Simplify login and improve error capturing (#16891)
++ [go90] Add support for embed URLs (#16873)
+* [go90] Detect geo restriction error and pass geo verification headers
+  (#16874)
+* [vlive] Fix live streams extraction (#16871)
+* [npo] Fix typo (#16872)
++ [mediaset] Add support for new videos and extract all formats (#16568)
+* [dctptv] Restore extraction based on REST API (#16850)
+* [svt] Improve extraction and add support for pages (#16802)
+* [porncom] Fix extraction (#16808)
+
+
+version 2018.06.25
+
+Extractors
+* [joj] Relax URL regular expression (#16771)
+* [brightcove] Workaround sonyliv DRM protected videos (#16807)
+* [motherless] Fix extraction (#16786)
+* [itv] Make SOAP request non fatal and extract metadata from webpage (#16780)
+- [foxnews:insider] Remove extractor (#15810)
++ [foxnews] Add support for iframe embeds (#15810, #16711)
+
+
+version 2018.06.19
+
+Core
++ [extractor/common] Introduce expected_status in _download_* methods
+  for convenient accept of HTTP requests failed with non 2xx status codes
++ [compat] Introduce compat_integer_types
+
+Extractors
+* [peertube] Improve generic support (#16733)
++ [6play] Use geo verification headers
+* [rtbf] Fix extraction for python 3.2
+* [vgtv] Improve HLS formats extraction
++ [vgtv] Add support for www.aftonbladet.se/tv URLs
+* [bbccouk] Use expected_status
+* [markiza] Expect 500 HTTP status code
+* [tvnow] Try all clear manifest URLs (#15361)
+
+
+version 2018.06.18
+
+Core
+* [downloader/rtmp] Fix downloading in verbose mode (#16736)
+
+Extractors
++ [markiza] Add support for markiza.sk (#16750)
+* [wat] Try all supported adaptive URLs
++ [6play] Add support for rtlplay.be and extract hd usp formats
++ [rtbf] Add support for audio and live streams (#9638, #11923)
++ [rtbf] Extract HLS, DASH and all HTTP formats
++ [rtbf] Extract subtitles
++ [rtbf] Fixup specific HTTP URLs (#16101)
++ [expressen] Add support for expressen.se
+* [vidzi] Fix extraction (#16678)
+* [pbs] Improve extraction (#16623, #16684)
+* [bilibili] Restrict cid regular expression (#16638, #16734)
+
+
 version 2018.06.14
 
 Core

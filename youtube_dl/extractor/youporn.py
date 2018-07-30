@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     int_or_none,
     sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
+    url_or_none,
 )
 from ..aes import aes_decrypt_text
 
@@ -88,8 +88,8 @@ class YouPornIE(InfoExtractor):
             for definition in definitions:
                 if not isinstance(definition, dict):
                     continue
-                video_url = definition.get('videoUrl')
-                if isinstance(video_url, compat_str) and video_url:
+                video_url = url_or_none(definition.get('videoUrl'))
+                if video_url:
                     links.append(video_url)
 
         # Fallback #1, this also contains extra low quality 180p format

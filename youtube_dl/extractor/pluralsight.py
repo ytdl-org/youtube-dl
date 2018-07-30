@@ -27,6 +27,60 @@ from ..utils import (
 class PluralsightBaseIE(InfoExtractor):
     _API_BASE = 'https://app.pluralsight.com'
 
+    _GRAPHQL_EP = '%s/player/api/graphql' % _API_BASE
+    _GRAPHQL_HEADERS = {
+        'Content-Type': 'application/json;charset=UTF-8',
+    }
+    _GRAPHQL_COURSE_TMPL = '''
+query BootstrapPlayer {
+  rpc {
+    bootstrapPlayer {
+      profile {
+        firstName
+        lastName
+        email
+        username
+        userHandle
+        authed
+        isAuthed
+        plan
+      }
+      course(courseId: "%s") {
+        name
+        title
+        courseHasCaptions
+        translationLanguages {
+          code
+          name
+        }
+        supportsWideScreenVideoFormats
+        timestamp
+        modules {
+          name
+          title
+          duration
+          formattedDuration
+          author
+          authorized
+          clips {
+            authorized
+            clipId
+            duration
+            formattedDuration
+            id
+            index
+            moduleIndex
+            moduleTitle
+            name
+            title
+            watched
+          }
+        }
+      }
+    }
+  }
+}'''
+
     def _download_course(self, course_id, url, display_id):
         try:
             return self._download_course_rpc(course_id, url, display_id)
@@ -39,20 +93,14 @@ class PluralsightBaseIE(InfoExtractor):
 
     def _download_course_rpc(self, course_id, url, display_id):
         response = self._download_json(
-            '%s/player/functions/rpc' % self._API_BASE, display_id,
-            'Downloading course JSON',
-            data=json.dumps({
-                'fn': 'bootstrapPlayer',
-                'payload': {
-                    'courseId': course_id,
-                },
-            }).encode('utf-8'),
-            headers={
-                'Content-Type': 'application/json;charset=utf-8',
-                'Referer': url,
-            })
+            self._GRAPHQL_EP, display_id, data=json.dumps({
+                'query': self._GRAPHQL_COURSE_TMPL % course_id,
+                'variables': {}
+            }).encode('utf-8'), headers=self._GRAPHQL_HEADERS)
 
-        course = try_get(response, lambda x: x['payload']['course'], dict)
+        course = try_get(
+            response, lambda x: x['data']['rpc']['bootstrapPlayer']['course'],
+            dict)
         if course:
             return course
 
@@ -89,6 +137,28 @@ class PluralsightIE(PluralsightBaseIE):
         'url': 'https://app.pluralsight.com/player?course=ccna-intro-networking&author=ross-bagurdes&name=ccna-intro-networking-m06&clip=0',
         'only_matching': True,
     }]
+
+    GRAPHQL_VIEWCLIP_TMPL = '''
+query viewClip {
+  viewClip(input: {
+    author: "%(author)s",
+    clipIndex: %(clipIndex)d,
+    courseName: "%(courseName)s",
+    includeCaptions: %(includeCaptions)s,
+    locale: "%(locale)s",
+    mediaType: "%(mediaType)s",
+    moduleName: "%(moduleName)s",
+    quality: "%(quality)s"
+  }) {
+    urls {
+      url
+      cdn
+      rank
+      source
+    },
+    status
+  }
+}'''
 
     def _real_initialize(self):
         self._login()
@@ -277,7 +347,7 @@ class PluralsightIE(PluralsightBaseIE):
                 f = QUALITIES[quality].copy()
                 clip_post = {
                     'author': author,
-                    'includeCaptions': False,
+                    'includeCaptions': 'false',
                     'clipIndex': int(clip_idx),
                     'courseName': course_name,
                     'locale': 'en',
@@ -286,11 +356,23 @@ class PluralsightIE(PluralsightBaseIE):
                     'quality': '%dx%d' % (f['width'], f['height']),
                 }
                 format_id = '%s-%s' % (ext, quality)
-                viewclip = self._download_json(
-                    '%s/video/clips/viewclip' % self._API_BASE, display_id,
-                    'Downloading %s viewclip JSON' % format_id, fatal=False,
-                    data=json.dumps(clip_post).encode('utf-8'),
-                    headers={'Content-Type': 'application/json;charset=utf-8'})
+
+                try:
+                    viewclip = self._download_json(
+                        self._GRAPHQL_EP, display_id,
+                        'Downloading %s viewclip graphql' % format_id,
+                        data=json.dumps({
+                            'query': self.GRAPHQL_VIEWCLIP_TMPL % clip_post,
+                            'variables': {}
+                        }).encode('utf-8'),
+                        headers=self._GRAPHQL_HEADERS)['data']['viewClip']
+                except ExtractorError:
+                    # Still works but most likely will go soon
+                    viewclip = self._download_json(
+                        '%s/video/clips/viewclip' % self._API_BASE, display_id,
+                        'Downloading %s viewclip JSON' % format_id, fatal=False,
+                        data=json.dumps(clip_post).encode('utf-8'),
+                        headers={'Content-Type': 'application/json;charset=utf-8'})
 
                 # Pluralsight tracks multiple sequential calls to ViewClip API and start
                 # to return 429 HTTP errors after some time (see

@@ -20,6 +20,7 @@ from ..utils import (
     sanitized_Request,
     try_get,
     unescapeHTML,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -265,8 +266,8 @@ class UdemyIE(InfoExtractor):
             if not isinstance(source_list, list):
                 return
             for source in source_list:
-                video_url = source.get('file') or source.get('src')
-                if not video_url or not isinstance(video_url, compat_str):
+                video_url = url_or_none(source.get('file') or source.get('src'))
+                if not video_url:
                     continue
                 if source.get('type') == 'application/x-mpegURL' or determine_ext(video_url) == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
@@ -293,8 +294,8 @@ class UdemyIE(InfoExtractor):
                     continue
                 if track.get('kind') != 'captions':
                     continue
-                src = track.get('src')
-                if not src or not isinstance(src, compat_str):
+                src = url_or_none(track.get('src'))
+                if not src:
                     continue
                 lang = track.get('language') or track.get(
                     'srclang') or track.get('label')
@@ -314,8 +315,8 @@ class UdemyIE(InfoExtractor):
             for cc in captions:
                 if not isinstance(cc, dict):
                     continue
-                cc_url = cc.get('url')
-                if not cc_url or not isinstance(cc_url, compat_str):
+                cc_url = url_or_none(cc.get('url'))
+                if not cc_url:
                     continue
                 lang = try_get(cc, lambda x: x['locale']['locale'], compat_str)
                 sub_dict = (automatic_captions if cc.get('source') == 'auto'

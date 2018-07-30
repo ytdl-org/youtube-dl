@@ -77,8 +77,11 @@ class MotherlessIE(InfoExtractor):
 
         title = self._html_search_regex(
             r'id="view-upload-title">\s+([^<]+)<', webpage, 'title')
-        video_url = self._html_search_regex(
-            r'setup\(\{\s+"file".+: "([^"]+)",', webpage, 'video URL')
+        video_url = (self._html_search_regex(
+            (r'setup\(\{\s*["\']file["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
+             r'fileurl\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1'),
+            webpage, 'video URL', default=None, group='url') or
+            'http://cdn4.videos.motherlessmedia.com/videos/%s.mp4?fs=opencloud' % video_id)
         age_limit = self._rta_search(webpage)
         view_count = str_to_int(self._html_search_regex(
             r'<strong>Views</strong>\s+([^<]+)<',
@@ -120,7 +123,7 @@ class MotherlessIE(InfoExtractor):
 
 
 class MotherlessGroupIE(InfoExtractor):
-    _VALID_URL = 'https?://(?:www\.)?motherless\.com/gv?/(?P<id>[a-z0-9_]+)'
+    _VALID_URL = r'https?://(?:www\.)?motherless\.com/gv?/(?P<id>[a-z0-9_]+)'
     _TESTS = [{
         'url': 'http://motherless.com/g/movie_scenes',
         'info_dict': {

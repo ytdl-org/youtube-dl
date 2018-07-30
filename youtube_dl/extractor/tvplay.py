@@ -19,6 +19,7 @@ from ..utils import (
     try_get,
     unsmuggle_url,
     update_url_query,
+    url_or_none,
 )
 
 
@@ -255,7 +256,8 @@ class TVPlayIE(InfoExtractor):
         quality = qualities(['hls', 'medium', 'high'])
         formats = []
         for format_id, video_url in streams.get('streams', {}).items():
-            if not video_url or not isinstance(video_url, compat_str):
+            video_url = url_or_none(video_url)
+            if not video_url:
                 continue
             ext = determine_ext(video_url)
             if ext == 'f4m':

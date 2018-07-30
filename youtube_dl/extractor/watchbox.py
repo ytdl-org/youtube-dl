@@ -67,11 +67,12 @@ class WatchBoxIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        source = self._parse_json(
+        source = (self._parse_json(
             self._search_regex(
-                r'(?s)source["\']?\s*:\s*({.+?})\s*[,}]', webpage, 'source',
+                r'playerConf\s*=\s*({.+?})\s*;', webpage, 'player config',
                 default='{}'),
-            video_id, transform_source=js_to_json, fatal=False) or {}
+            video_id, transform_source=js_to_json,
+            fatal=False) or {}).get('source') or {}
 
         video_id = compat_str(source.get('videoId') or video_id)
 
