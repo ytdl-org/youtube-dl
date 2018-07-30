@@ -14,6 +14,7 @@ from ..utils import (
     strip_jsonp,
     strip_or_none,
     unified_strdate,
+    url_or_none,
     urljoin,
     US_RATINGS,
 )
@@ -362,6 +363,49 @@ class PBSIE(InfoExtractor):
             },
         },
         {
+            'url': 'http://www.pbs.org/wgbh/roadshow/watch/episode/2105-indianapolis-hour-2/',
+            'info_dict': {
+                'id': '2365936247',
+                'ext': 'mp4',
+                'title': 'Antiques Roadshow - Indianapolis, Hour 2',
+                'description': 'md5:524b32249db55663e7231b6b8d1671a2',
+                'duration': 3180,
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
+            'url': 'https://www.pbs.org/wgbh/masterpiece/episodes/victoria-s2-e1/',
+            'info_dict': {
+                'id': '3007193718',
+                'ext': 'mp4',
+                'title': "Victoria - A Soldier's Daughter / The Green-Eyed Monster",
+                'description': 'md5:37efbac85e0c09b009586523ec143652',
+                'duration': 6292,
+                'thumbnail': r're:^https?://.*\.(?:jpg|JPG)$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
+            'url': 'https://player.pbs.org/partnerplayer/tOz9tM5ljOXQqIIWke53UA==/',
+            'info_dict': {
+                'id': '3011407934',
+                'ext': 'mp4',
+                'title': 'Stories from the Stage - Road Trip',
+                'duration': 1619,
+                'thumbnail': r're:^https?://.*\.(?:jpg|JPG)$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        {
             'url': 'http://www.pbs.org/wgbh/nova/space/death-dive-to-Saturn.html',
             'info_dict': {
                 'id': '3004606354',
@@ -431,10 +475,11 @@ class PBSIE(InfoExtractor):
             MEDIA_ID_REGEXES = [
                 r"div\s*:\s*'videoembed'\s*,\s*mediaid\s*:\s*'(\d+)'",  # frontline video embed
                 r'class="coveplayerid">([^<]+)<',                       # coveplayer
-                r'<(?:section|div)[^>]+data-coveid="(\d+)"',            # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
-                r'<input[^>]+id\s*=\s*"pbs_video_id_[0-9]+"\s*value="(\d+)"[^>]*>',  # jwplayer
-                r'<div[^>]+id\s*=\s*"video_(\d+)"[^>]*>',
-                r'<(?:button|input)[^>]+data-video-id\s*=\s*["\']?(\d+)[^>]*>',
+                r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
+                r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([0-9]+)"/>',  # jwplayer
+                r"(?s)window\.PBS\.playerConfig\s*=\s*{.*?id\s*:\s*'([0-9]+)',",
+                r'<div[^>]+\bdata-cove-id=["\'](\d+)"',  # http://www.pbs.org/wgbh/roadshow/watch/episode/2105-indianapolis-hour-2/
+                r'<iframe[^>]+\bsrc=["\'](?:https?:)?//video\.pbs\.org/widget/partnerplayer/(\d+)',  # https://www.pbs.org/wgbh/masterpiece/episodes/victoria-s2-e1/
             ]
 
             media_id = self._search_regex(
