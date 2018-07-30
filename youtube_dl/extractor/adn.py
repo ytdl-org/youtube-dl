@@ -61,13 +61,9 @@ class ADNIE(InfoExtractor):
             return
 
         form_data = self._form_hidden_inputs('login-form', login_page)
-        if not form_data.get('return'):
-            raise ExtractorError('%s Can\'t extract login token' % self.IE_NAME)
         form_data.update({
             'username': username,
             'password': password,
-            # base64 LOGIN URL
-            # 'return': 'aHR0cHM6Ly9hbmltZWRpZ2l0YWxuZXR3b3JrLmZyL2Nvbm5leGlvbg==',
         })
 
         response = self._download_webpage(
@@ -179,14 +175,15 @@ class ADNIE(InfoExtractor):
                 urljoin(self._BASE_URL, links_url), video_id, headers={
                     'Authorization': 'Bearer ' + authorization,
                 })
-            if links_data.get('status'):
+            error = links_data.get('error')
+            if error:
                 if links_data.get('code') == 1:
-                    self.raise_login_required(links_data.get('error'))
+                    self.raise_login_required(error)
                 if links_data.get('code') == 0:
-                    if links_data.get('error').find('Pour des raisons l') != -1:
-                        self.raise_geo_restricted(links_data.get('error'))
+                    if 'Pour des raisons l' in error:
+                        self.raise_geo_restricted(error)
                     else:
-                        raise ExtractorError('%s said: %s' % (self.IE_NAME, links_data.get('error')), expected=True)
+                        raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
             links = links_data.get('links') or {}
             metas = metas or links_data.get('meta') or {}
             sub_path = (sub_path or links_data.get('subtitles')) + '&token=' + token
