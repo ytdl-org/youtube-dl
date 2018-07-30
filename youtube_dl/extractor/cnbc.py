@@ -1,15 +1,17 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 
 from .common import InfoExtractor
-from ..utils import smuggle_url
+from ..utils import (
+    js_to_json,
+    smuggle_url,
+)
 
 
 class CNBCIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www|video)?\.cnbc\.com/(?:gallery|video)/(?:\?video=(?P<id>[0-9]+)|.*/(?P<display_id>[^.]+))'
-    _TESTS = [{
+    _VALID_URL = r'https?://video\.cnbc\.com/gallery/\?video=(?P<id>[0-9]+)'
+    _TEST = {
         'url': 'http://video.cnbc.com/gallery/?video=3000503714',
         'info_dict': {
             'id': '3000503714',
@@ -24,33 +26,10 @@ class CNBCIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
-    }, {
-        'url': 'https://www.cnbc.com/video/2018/07/19/trump-i-dont-necessarily-agree-with-raising-rates.html',
-        'info_dict': {
-            'id': '7000033068',
-            'ext': 'mp4',
-            'title': 'Full interview with Brian Belski and Tobias Levkovich',
-            'description': 'md5:958012776b16f68bad3008587dd0a03a',
-            'timestamp': 1532908800,
-            'upload_date': '20180730',
-            'uploader': 'NBCU-CNBC',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }]
+    }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        if not video_id:
-            display_id = mobj.group('display_id')
-            webpage = self._download_webpage(url, display_id)
-            video_id = self._html_search_regex(
-                r'<a[^>]+?data-VideoID=[\'"]\s*([0-9]+)\s*',
-                webpage, display_id
-            )
+        video_id = self._match_id(url)
         return {
             '_type': 'url_transparent',
             'ie_key': 'ThePlatform',
@@ -59,3 +38,38 @@ class CNBCIE(InfoExtractor):
                 {'force_smil_url': True}),
             'id': video_id,
         }
+
+
+class CNBCNewIE(InfoExtractor):
+    IE_NAME = 'CNBC:new'
+    _VALID_URL = r'https?://(?:www)?\.cnbc\.com/video.*/(?P<id>[^.]+)'  
+    _TEST = {
+        'url': 'https://www.cnbc.com/video/2018/07/19/trump-i-dont-necessarily-agree-with-raising-rates.html',
+        'info_dict': {
+            'id': '7000031301',
+            'ext': 'mp4',
+            'title': 'Trump: I don\'t necessarily agree with raising rates',
+            'description': 'md5:878d8f0b4ebb5bb1dda3514b91b49de3',
+            'timestamp': 1531958400,
+            'upload_date': '20180719',
+            'uploader': 'NBCU-CNBC',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    CNBC_URL_TEMPLATE = 'http://video.cnbc.com/gallery/?video=%s'
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._parse_json(
+            self._search_regex(
+                r'(?s).*<script[^>]*>.*?({.+?content_id.+?}).*?</script>',
+                webpage, display_id),
+            display_id, transform_source=js_to_json
+        )['content_id']
+
+        return self.url_result(self.CNBC_URL_TEMPLATE % video_id, 'CNBC')
