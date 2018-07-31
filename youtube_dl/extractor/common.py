@@ -2827,7 +2827,7 @@ class InfoExtractor(object):
         try:
             js = re.search(r"setTimeout\(function\(\){\s+(var s,t,o,p,b,r,e,a,k,i,n,g,f.+?\r?\n[\s\S]+?a\.value =.+?)\r?\n", body).group(1)
         except Exception:
-            raise ValueError("Unable to identify Cloudflare IUAM Javascript on website.")
+            raise ExtractorError("Unable to identify Cloudflare IUAM Javascript on website.")
 
         js = re.sub(r"a\.value = (.+ \+ t\.length).+", r"\1", js)
         js = re.sub(r"\s{3,}[a-z](?: = |\.).+", "", js).replace("t.length", str(len(domain)))
@@ -2837,7 +2837,7 @@ class InfoExtractor(object):
         js = re.sub(r"[\n\\']", "", js)
 
         if "toFixed" not in js:
-            raise ValueError("Error parsing Cloudflare IUAM Javascript challenge.")
+            raise ExtractorError("Error parsing Cloudflare IUAM Javascript challenge.")
 
         # Use vm.runInNewContext to safely evaluate code
         # The sandboxed code cannot use the Node.js standard library
@@ -2848,7 +2848,7 @@ class InfoExtractor(object):
             result = subprocess.check_output(["node", "-e", js]).strip()
         except OSError as e:
             if e.errno == 2:
-                raise EnvironmentError("Missing Node.js runtime. Node is required and must be in the PATH (check with `node -v`). Your Node binary may be called `nodejs` rather than `node`, in which case you may need to run `apt-get install nodejs-legacy` on some Debian-based systems. (Please read the cfscrape README's Dependencies section: https://github.com/Anorov/cloudflare-scrape#dependencies.")
+                raise ExtractorError("Missing Node.js runtime. Node is required and must be in the PATH (check with `node -v`). Your Node binary may be called `nodejs` rather than `node`, in which case you may need to run `apt-get install nodejs-legacy` on some Debian-based systems. (Please read the cfscrape README's Dependencies section: https://github.com/Anorov/cloudflare-scrape#dependencies.")
             raise
         except Exception:
             self.to_screen("Error executing Cloudflare IUAM Javascript.")
@@ -2857,12 +2857,15 @@ class InfoExtractor(object):
         try:
             float(result)
         except Exception:
-            raise ValueError("Cloudflare IUAM challenge returned unexpected answer.")
+            raise ExtractorError("Cloudflare IUAM challenge returned unexpected answer.")
 
         return result
 
+    def has_cf_challenge(self, html):
+        return True if '/cdn-cgi/l/chk_jschl' in html else False
+
     def cf_solve_and_download_webpage(self, html, download_url):
-        if '/cdn-cgi/l/chk_jschl' not in html:
+        if not self.has_cf_challenge(html):
             return False
         parsed_url = compat_urlparse.urlparse(download_url)
         domain = parsed_url.netloc

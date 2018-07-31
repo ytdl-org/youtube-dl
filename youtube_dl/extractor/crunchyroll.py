@@ -76,7 +76,9 @@ class CrunchyrollBaseIE(InfoExtractor):
         if cf_page:
             login_page = cf_page
             if is_logged(cf_page):
-                login_page = self._download_webpage(self._PROFILE_URL, None, 'Get new CSRF Token')
+                login_page = self._download_webpage(self._PROFILE_URL, None, 'Get new CSRF Token', expected_status=503)
+                if self.has_cf_challenge(login_page):
+                    raise ExtractorError('Cloudflare challenge still is present, try run again', expected=True)
                 if is_logged(login_page):
                     return
 
