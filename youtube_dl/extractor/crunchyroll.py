@@ -36,6 +36,7 @@ from ..aes import (
 class CrunchyrollBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.crunchyroll.com/login'
     _LOGIN_FORM = 'login_form'
+    _PROFILE_URL = 'https://www.crunchyroll.com/acct/membership'
     _NETRC_MACHINE = 'crunchyroll'
 
     def _call_rpc_api(self, method, video_id, note=None, data=None):
@@ -53,26 +54,33 @@ class CrunchyrollBaseIE(InfoExtractor):
         if username is None:
             return
 
-        self._download_webpage(
+        login_page = self._download_webpage(
             'https://www.crunchyroll.com/?a=formhandler',
             None, 'Logging in', 'Wrong login info',
             data=urlencode_postdata({
                 'formname': 'RpcApiUser_Login',
-                'next_url': 'https://www.crunchyroll.com/acct/membership',
+                'next_url': self._PROFILE_URL,
+                'fail_url': self._PROFILE_URL,  # On login fail redirect to login page
                 'name': username,
                 'password': password,
-            }))
-
-        '''
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None, 'Downloading login page')
+            }), expected_status=503)  # 503 for CloudFlare
 
         def is_logged(webpage):
-            return '<title>Redirecting' in webpage
+            return '<title>Redirecting' in webpage or '/logout' in webpage
 
         # Already logged in
         if is_logged(login_page):
             return
+
+        cf_page = self.cf_solve_and_download_webpage(login_page, self._LOGIN_URL)
+        if cf_page:
+            login_page = cf_page
+            if is_logged(cf_page):
+                login_page = self._download_webpage(self._PROFILE_URL, None, 'Get new CSRF Token', expected_status=503)
+                if self.has_cf_challenge(login_page):
+                    raise ExtractorError('Cloudflare challenge still is present, try run again', expected=True)
+                if is_logged(login_page):
+                    return
 
         login_form_str = self._search_regex(
             r'(?P<form><form[^>]+?id=(["\'])%s\2[^>]*>)' % self._LOGIN_FORM,
@@ -107,7 +115,6 @@ class CrunchyrollBaseIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         raise ExtractorError('Unable to log in')
-        '''
 
     def _real_initialize(self):
         self._login()

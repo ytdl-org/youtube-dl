@@ -2818,6 +2818,67 @@ class InfoExtractor(object):
     def _generic_title(self, url):
         return compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0])
 
+    def _cf_solve_challenge(self, body, domain):
+        '''
+        Solve CloudFlrae Callenge.
+        @param <String> domain result `ompat_urlparse.urlparse().netloc`
+        Oryginal code from :https://github.com/Anorov/cloudflare-scrape/blob/master/cfscrape/__init__.py#L112-L149
+        '''
+        try:
+            js = re.search(r"setTimeout\(function\(\){\s+(var s,t,o,p,b,r,e,a,k,i,n,g,f.+?\r?\n[\s\S]+?a\.value =.+?)\r?\n", body).group(1)
+        except Exception:
+            raise ExtractorError("Unable to identify Cloudflare IUAM Javascript on website.")
+
+        js = re.sub(r"a\.value = (.+ \+ t\.length).+", r"\1", js)
+        js = re.sub(r"\s{3,}[a-z](?: = |\.).+", "", js).replace("t.length", str(len(domain)))
+
+        # Strip characters that could be used to exit the string context
+        # These characters are not currently used in Cloudflare's arithmetic snippet
+        js = re.sub(r"[\n\\']", "", js)
+
+        if "toFixed" not in js:
+            raise ExtractorError("Error parsing Cloudflare IUAM Javascript challenge.")
+
+        # Use vm.runInNewContext to safely evaluate code
+        # The sandboxed code cannot use the Node.js standard library
+        js = "console.log(require('vm').runInNewContext('%s', Object.create(null), {timeout: 5000}));" % js
+
+        import subprocess
+        try:
+            result = subprocess.check_output(["node", "-e", js]).strip()
+        except OSError as e:
+            if e.errno == 2:
+                raise ExtractorError("Missing Node.js runtime. Node is required and must be in the PATH (check with `node -v`). Your Node binary may be called `nodejs` rather than `node`, in which case you may need to run `apt-get install nodejs-legacy` on some Debian-based systems. (Please read the cfscrape README's Dependencies section: https://github.com/Anorov/cloudflare-scrape#dependencies.")
+            raise
+        except Exception:
+            self.to_screen("Error executing Cloudflare IUAM Javascript.")
+            raise
+
+        try:
+            float(result)
+        except Exception:
+            raise ExtractorError("Cloudflare IUAM challenge returned unexpected answer.")
+
+        return result
+
+    def has_cf_challenge(self, html):
+        return True if '/cdn-cgi/l/chk_jschl' in html else False
+
+    def cf_solve_and_download_webpage(self, html, download_url):
+        if not self.has_cf_challenge(html):
+            return False
+        parsed_url = compat_urlparse.urlparse(download_url)
+        domain = parsed_url.netloc
+        submit_url = "%s://%s/cdn-cgi/l/chk_jschl" % (parsed_url.scheme, domain)
+        form_data = self._form_hidden_inputs('challenge-form', html)
+        form_data['jschl_answer'] = self._cf_solve_challenge(html, domain)
+
+        self._sleep(5, None, 'Solving Cloudflare challenge (5s)')
+        return self._download_webpage(
+            submit_url,
+            None, 'Sending Cloudflare challenge', 'Wrong Cloudflare challenge', query=form_data
+        )
+
 
 class SearchInfoExtractor(InfoExtractor):
     """
