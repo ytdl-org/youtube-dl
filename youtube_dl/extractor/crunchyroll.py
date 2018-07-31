@@ -36,6 +36,7 @@ from ..aes import (
 class CrunchyrollBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.crunchyroll.com/login'
     _LOGIN_FORM = 'login_form'
+    _PROFILE_URL = 'https://www.crunchyroll.com/acct/membership'
     _NETRC_MACHINE = 'crunchyroll'
 
     def _call_rpc_api(self, method, video_id, note=None, data=None):
@@ -52,25 +53,17 @@ class CrunchyrollBaseIE(InfoExtractor):
         username, password = self._get_login_info()
         if username is None:
             return
-        '''
-        import cfscrape
 
-        proxies = {"http": self._downloader.params.get('proxy'), "https": self._downloader.params.get('proxy')}
-        tokens, user_agent = cfscrape.get_tokens(self._LOGIN_URL, proxies=proxies, user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0")
-
-        self._set_cookie( '.crunchyroll.com', 'cf_clearance',tokens['cf_clearance'])
-        self._set_cookie( '.crunchyroll.com', '__cfduid',tokens['__cfduid'])
-        '''
         login_page = self._download_webpage(
             'https://www.crunchyroll.com/?a=formhandler',
             None, 'Logging in', 'Wrong login info',
             data=urlencode_postdata({
                 'formname': 'RpcApiUser_Login',
-                'next_url': 'https://www.crunchyroll.com/acct/membership',
-                'fail_url': self._LOGIN_URL,
+                'next_url': self._PROFILE_URL,
+                'fail_url': self._PROFILE_URL,  # On login fail redirect to login page
                 'name': username,
                 'password': password,
-            }), expected_status=503)
+            }), expected_status=503)  # 503 for CloudFlare
 
         def is_logged(webpage):
             return '<title>Redirecting' in webpage or '/logout' in webpage
@@ -79,23 +72,13 @@ class CrunchyrollBaseIE(InfoExtractor):
         if is_logged(login_page):
             return
 
-
-        '''
-        print [tokens, user_agent]
-
-
-        form_data = self._form_hidden_inputs('challenge-form', login_page)
-        form_data['jschl_answer'] = self.solve_challenge(login_page, 'www.crunchyroll.com')
-        print form_data
-        self._sleep(6, None, 'Solving CloudFlare Challenge')
-        login_page = self._download_webpage('https://www.crunchyroll.com/cdn-cgi/l/chk_jschl', None, 'Login Form', data=urlencode_postdata(form_data), headers={
-                    'Referer': self._LOGIN_URL,
-                }, expected_status= 503)
-
-        import codecs
-        with codecs.open("yop", "w", encoding="utf-8") as f:
-            f.write(login_page)
-        '''
+        cf_page = self.cf_solve_and_download_webpage(login_page, self._LOGIN_URL)
+        if cf_page:
+            login_page = cf_page
+            if is_logged(cf_page):
+                login_page = self._download_webpage(self._PROFILE_URL, None, 'Get new CSRF Token')
+                if is_logged(login_page):
+                    return
 
         login_form_str = self._search_regex(
             r'(?P<form><form[^>]+?id=(["\'])%s\2[^>]*>)' % self._LOGIN_FORM,
@@ -130,7 +113,6 @@ class CrunchyrollBaseIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         raise ExtractorError('Unable to log in')
-        
 
     def _real_initialize(self):
         self._login()
@@ -146,7 +128,6 @@ class CrunchyrollBaseIE(InfoExtractor):
         # Crunchyroll to not work in georestriction cases in some browsers that don't place
         # the locale lang first in header. However allowing any language seems to workaround the issue.
         request.add_header('Accept-Language', '*')
-        request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko/20100101 Firefox/61.0')
         return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
 
     @staticmethod
