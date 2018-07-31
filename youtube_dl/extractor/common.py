@@ -768,8 +768,8 @@ class InfoExtractor(object):
         if res is False:
             return res
         else:
-            content, _ = res
-            _.close()
+            content, urlh = res
+            urlh.close()
             return content
 
     def _download_xml_handle(
@@ -811,8 +811,8 @@ class InfoExtractor(object):
         if res is False:
             return res
         else:
-            content, _ = res
-            _.close()
+            content, urlh = res
+            urlh.close()
             return content
 
     def _parse_xml(self, xml_string, video_id, transform_source=None, fatal=True):
@@ -866,8 +866,8 @@ class InfoExtractor(object):
         if res is False:
             return res
         else:
-            content, _ = res
-            _.close()
+            content, urlh = res
+            urlh.close()
             return content
 
     def _parse_json(self, json_string, video_id, transform_source=None, fatal=True):
