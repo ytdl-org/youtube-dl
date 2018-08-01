@@ -33,7 +33,7 @@ from ..utils import (
 
 
 class TwitchBaseIE(InfoExtractor):
-    _VALID_URL_BASE = r'https?://(?:(?:www|go|m|passport)\.)?twitch\.tv'
+    _VALID_URL_BASE = r'https?://(?:(?:www|go|m)\.)?twitch\.tv'
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
@@ -90,13 +90,13 @@ class TwitchBaseIE(InfoExtractor):
             try:
                 response = self._download_json(
                     post_url, None, note,
-                    data=json.dumps(form),
+                    data=json.dumps(form).encode(),
                     headers=headers)
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
                     response = self._parse_json(
                         e.cause.read().decode('utf-8'), None)
-                    fail(response.get('message') or response['errors'][0])
+                    fail(response.get('error_description') or response.get('error_code'))
                 raise
 
             if 'Authenticated successfully' in response.get('message', ''):
