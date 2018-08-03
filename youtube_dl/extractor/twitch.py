@@ -8,7 +8,6 @@ import json
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_HTTPError,
     compat_kwargs,
     compat_parse_qs,
     compat_str,
@@ -39,7 +38,7 @@ class TwitchBaseIE(InfoExtractor):
     _USHER_BASE = 'https://usher.ttvnw.net'
     _LOGIN_FORM_URL = 'https://www.twitch.tv/login'
     _LOGIN_POST_URL = 'https://passport.twitch.tv/login'
-    _CLIENT_ID = 'jzkbprff40iqj646a697cyrvl0zt2m6'
+    _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -84,20 +83,15 @@ class TwitchBaseIE(InfoExtractor):
             headers = {
                 'Referer': page_url,
                 'Origin': page_url,
-                'Content-Type': 'text/plain;charset=UTF-8'
+                'Content-Type': 'text/plain;charset=UTF-8',
             }
 
-            try:
-                response = self._download_json(
-                    post_url, None, note,
-                    data=json.dumps(form).encode(),
-                    headers=headers)
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                    response = self._parse_json(
-                        e.cause.read().decode('utf-8'), None)
-                    fail(response.get('error_description') or response.get('error_code'))
-                raise
+            response = self._download_json(
+                post_url, None, note, data=json.dumps(form).encode(),
+                headers=headers, expected_status=400)
+            error = response.get('error_description') or response.get('error_code')
+            if error:
+                fail(error)
 
             if 'Authenticated successfully' in response.get('message', ''):
                 return None, None
