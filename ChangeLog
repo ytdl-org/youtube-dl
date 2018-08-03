@@ -1,3 +1,15 @@
+version <unreleased>
+
+Extractors
+* [funk:channel] Improve byChannelAlias extraction (#17142)
+* [twitch] Fix authentication (#17024, #17126)
+* [twitch:vod] Improve URL regular expression (#17135)
+* [watchbox] Fix extraction (#17107)
+* [pbs] Fix extraction (#17109)
+* [theplatform] Relax URL regular expression (#16181, #17097)
++ [viqeo] Add support for viqeo.tv (#17066)
+
+
 version 2018.07.29
 
 Extractors
