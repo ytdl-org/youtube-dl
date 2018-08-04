@@ -886,7 +886,10 @@ from .radiocanada import (
     RadioCanadaAudioVideoIE,
 )
 from .radiode import RadioDeIE
-from .radiojavan import RadioJavanIE
+from .radiojavan import (
+    RadioJavanVideoIE,
+    RadioJavanMp3IE,
+)
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
 from .rai import (

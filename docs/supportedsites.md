@@ -690,7 +690,8 @@
  - **radiocanada**
  - **RadioCanadaAudioVideo**
  - **radiofrance**
- - **RadioJavan**
+ - **RadioJavanMp3**
+ - **RadioJavanVideo**
  - **Rai**
  - **RaiPlay**
  - **RaiPlayLive**
