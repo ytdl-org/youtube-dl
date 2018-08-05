@@ -49,5 +49,5 @@ youtube-dl.zsh
 tmp/
 venv/
 
-# VSCode related files
+# VS Code related files
 .vscode
