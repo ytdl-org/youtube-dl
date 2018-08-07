@@ -58,6 +58,14 @@ class FoxNewsIE(AMPIE):
         },
     ]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return [
+            mobj.group('url')
+            for mobj in re.finditer(
+                r'<(?:amp-)?iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//video\.foxnews\.com/v/video-embed\.html?.*?\bvideo_id=\d+.*?)\1',
+                webpage)]
+
     def _real_extract(self, url):
         host, video_id = re.match(self._VALID_URL, url).groups()
 
@@ -68,21 +76,41 @@ class FoxNewsIE(AMPIE):
 
 
 class FoxNewsArticleIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?foxnews\.com/(?!v)([^/]+/)+(?P<id>[a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:insider\.)?foxnews\.com/(?!v)([^/]+/)+(?P<id>[a-z-]+)'
     IE_NAME = 'foxnews:article'
 
-    _TEST = {
+    _TESTS = [{
+        # data-video-id
         'url': 'http://www.foxnews.com/politics/2016/09/08/buzz-about-bud-clinton-camp-denies-claims-wore-earpiece-at-forum.html',
-        'md5': '62aa5a781b308fdee212ebb6f33ae7ef',
+        'md5': '83d44e1aff1433e7a29a7b537d1700b5',
         'info_dict': {
             'id': '5116295019001',
             'ext': 'mp4',
             'title': 'Trump and Clinton asked to defend positions on Iraq War',
             'description': 'Veterans react on \'The Kelly File\'',
-            'timestamp': 1473299755,
+            'timestamp': 1473301045,
             'upload_date': '20160908',
         },
-    }
+    }, {
+        # iframe embed
+        'url': 'http://www.foxnews.com/us/2018/03/09/parkland-survivor-kyle-kashuv-on-meeting-trump-his-app-to-prevent-another-school-shooting.amp.html?__twitter_impression=true',
+        'info_dict': {
+            'id': '5748266721001',
+            'ext': 'flv',
+            'title': 'Kyle Kashuv has a positive message for the Trump White House',
+            'description': 'Marjory Stoneman Douglas student disagrees with classmates.',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 229,
+            'timestamp': 1520594670,
+            'upload_date': '20180309',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://insider.foxnews.com/2016/08/25/univ-wisconsin-student-group-pushing-silence-certain-words',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -90,51 +118,10 @@ class FoxNewsArticleIE(InfoExtractor):
 
         video_id = self._html_search_regex(
             r'data-video-id=([\'"])(?P<id>[^\'"]+)\1',
-            webpage, 'video ID', group='id')
+            webpage, 'video ID', group='id', default=None)
+        if video_id:
+            return self.url_result(
+                'http://video.foxnews.com/v/' + video_id, FoxNewsIE.ie_key())
+
         return self.url_result(
-            'http://video.foxnews.com/v/' + video_id,
-            FoxNewsIE.ie_key())
-
-
-class FoxNewsInsiderIE(InfoExtractor):
-    _VALID_URL = r'https?://insider\.foxnews\.com/([^/]+/)+(?P<id>[a-z-]+)'
-    IE_NAME = 'foxnews:insider'
-
-    _TEST = {
-        'url': 'http://insider.foxnews.com/2016/08/25/univ-wisconsin-student-group-pushing-silence-certain-words',
-        'md5': 'a10c755e582d28120c62749b4feb4c0c',
-        'info_dict': {
-            'id': '5099377331001',
-            'display_id': 'univ-wisconsin-student-group-pushing-silence-certain-words',
-            'ext': 'mp4',
-            'title': 'Student Group: Saying \'Politically Correct,\' \'Trash\' and \'Lame\' Is Offensive',
-            'description': 'Is campus censorship getting out of control?',
-            'timestamp': 1472168725,
-            'upload_date': '20160825',
-            'thumbnail': r're:^https?://.*\.jpg$',
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-        'add_ie': [FoxNewsIE.ie_key()],
-    }
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
-        embed_url = self._html_search_meta('embedUrl', webpage, 'embed URL')
-
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
-
-        return {
-            '_type': 'url_transparent',
-            'ie_key': FoxNewsIE.ie_key(),
-            'url': embed_url,
-            'display_id': display_id,
-            'title': title,
-            'description': description,
-        }
+            FoxNewsIE._extract_urls(webpage)[0], FoxNewsIE.ie_key())

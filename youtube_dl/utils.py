@@ -184,6 +184,7 @@ DATE_FORMATS_MONTH_FIRST.extend([
 ])
 
 PACKED_CODES_RE = r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)"
+JSON_LD_RE = r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>'
 
 
 def preferredencoding():
@@ -1228,7 +1229,7 @@ def unified_timestamp(date_str, day_first=True):
 
 
 def determine_ext(url, default_ext='unknown_video'):
-    if url is None:
+    if url is None or '.' not in url:
         return default_ext
     guess = url.partition('?')[0].rpartition('.')[2]
     if re.match(r'^[A-Za-z0-9]+$', guess):
@@ -1865,6 +1866,13 @@ def strip_or_none(v):
     return None if v is None else v.strip()
 
 
+def url_or_none(url):
+    if not url or not isinstance(url, compat_str):
+        return None
+    url = url.strip()
+    return url if re.match(r'^(?:[a-zA-Z][\da-zA-Z.+-]*:)?//', url) else None
+
+
 def parse_duration(s):
     if not isinstance(s, compat_basestring):
         return None
@@ -2225,6 +2233,20 @@ def try_get(src, getter, expected_type=None):
                 return v
 
 
+def merge_dicts(*dicts):
+    merged = {}
+    for a_dict in dicts:
+        for k, v in a_dict.items():
+            if v is None:
+                continue
+            if (k not in merged or
+                    (isinstance(v, compat_str) and v and
+                        isinstance(merged[k], compat_str) and
+                        not merged[k])):
+                merged[k] = v
+    return merged
+
+
 def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
     return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
 
@@ -2258,13 +2280,16 @@ def parse_age_limit(s):
         return int(m.group('age'))
     if s in US_RATINGS:
         return US_RATINGS[s]
-    return TV_PARENTAL_GUIDELINES.get(s)
+    m = re.match(r'^TV[_-]?(%s)$' % '|'.join(k[3:] for k in TV_PARENTAL_GUIDELINES), s)
+    if m:
+        return TV_PARENTAL_GUIDELINES['TV-' + m.group(1)]
+    return None
 
 
 def strip_jsonp(code):
     return re.sub(
         r'''(?sx)^
-            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]+)
+            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]*)
             (?:\s*&&\s*(?P=func_name))?
             \s*\(\s*(?P<callback_data>.*)\);?
             \s*?(?://[^\n]*)*$''',
@@ -2574,8 +2599,8 @@ def _match_one(filter_part, dct):
         return op(actual_value, comparison_value)
 
     UNARY_OPERATORS = {
-        '': lambda v: v is not None,
-        '!': lambda v: v is None,
+        '': lambda v: (v is True) if isinstance(v, bool) else (v is not None),
+        '!': lambda v: (v is False) if isinstance(v, bool) else (v is None),
     }
     operator_rex = re.compile(r'''(?x)\s*
         (?P<op>%s)\s*(?P<key>[a-z_]+)
@@ -2650,6 +2675,7 @@ def dfxp2srt(dfxp_data):
     ]
 
     _x = functools.partial(xpath_with_ns, ns_map={
+        'xml': 'http://www.w3.org/XML/1998/namespace',
         'ttml': 'http://www.w3.org/ns/ttml',
         'tts': 'http://www.w3.org/ns/ttml#styling',
     })
@@ -2741,7 +2767,9 @@ def dfxp2srt(dfxp_data):
     repeat = False
     while True:
         for style in dfxp.findall(_x('.//ttml:style')):
-            style_id = style.get('id')
+            style_id = style.get('id') or style.get(_x('xml:id'))
+            if not style_id:
+                continue
             parent_style_id = style.get('style')
             if parent_style_id:
                 if parent_style_id not in styles:
@@ -3520,10 +3548,13 @@ class GeoUtils(object):
     }
 
     @classmethod
-    def random_ipv4(cls, code):
-        block = cls._country_ip_map.get(code.upper())
-        if not block:
-            return None
+    def random_ipv4(cls, code_or_block):
+        if len(code_or_block) == 2:
+            block = cls._country_ip_map.get(code_or_block.upper())
+            if not block:
+                return None
+        else:
+            block = code_or_block
         addr, preflen = block.split('/')
         addr_min = compat_struct_unpack('!L', socket.inet_aton(addr))[0]
         addr_max = addr_min | (0xffffffff >> int(preflen))
@@ -3538,7 +3569,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             setattr(self, '%s_open' % type,
                     lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
                         meth(r, proxy, type))
-        return compat_urllib_request.ProxyHandler.__init__(self, proxies)
+        compat_urllib_request.ProxyHandler.__init__(self, proxies)
 
     def proxy_open(self, req, proxy, type):
         req_proxy = req.headers.get('Ytdl-request-proxy')

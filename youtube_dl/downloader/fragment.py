@@ -74,9 +74,14 @@ class FragmentFD(FileDownloader):
         return not ctx['live'] and not ctx['tmpfilename'] == '-'
 
     def _read_ytdl_file(self, ctx):
+        assert 'ytdl_corrupt' not in ctx
         stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'r')
-        ctx['fragment_index'] = json.loads(stream.read())['downloader']['current_fragment']['index']
-        stream.close()
+        try:
+            ctx['fragment_index'] = json.loads(stream.read())['downloader']['current_fragment']['index']
+        except Exception:
+            ctx['ytdl_corrupt'] = True
+        finally:
+            stream.close()
 
     def _write_ytdl_file(self, ctx):
         frag_index_stream, _ = sanitize_open(self.ytdl_filename(ctx['filename']), 'w')
@@ -158,11 +163,17 @@ class FragmentFD(FileDownloader):
         if self.__do_ytdl_file(ctx):
             if os.path.isfile(encodeFilename(self.ytdl_filename(ctx['filename']))):
                 self._read_ytdl_file(ctx)
-                if ctx['fragment_index'] > 0 and resume_len == 0:
+                is_corrupt = ctx.get('ytdl_corrupt') is True
+                is_inconsistent = ctx['fragment_index'] > 0 and resume_len == 0
+                if is_corrupt or is_inconsistent:
+                    message = (
+                        '.ytdl file is corrupt' if is_corrupt else
+                        'Inconsistent state of incomplete fragment download')
                     self.report_warning(
-                        'Inconsistent state of incomplete fragment download. '
-                        'Restarting from the beginning...')
+                        '%s. Restarting from the beginning...' % message)
                     ctx['fragment_index'] = resume_len = 0
+                    if 'ytdl_corrupt' in ctx:
+                        del ctx['ytdl_corrupt']
                     self._write_ytdl_file(ctx)
             else:
                 self._write_ytdl_file(ctx)
@@ -241,12 +252,16 @@ class FragmentFD(FileDownloader):
             if os.path.isfile(ytdl_filename):
                 os.remove(ytdl_filename)
         elapsed = time.time() - ctx['started']
-        self.try_rename(ctx['tmpfilename'], ctx['filename'])
-        fsize = os.path.getsize(encodeFilename(ctx['filename']))
+
+        if ctx['tmpfilename'] == '-':
+            downloaded_bytes = ctx['complete_frags_downloaded_bytes']
+        else:
+            self.try_rename(ctx['tmpfilename'], ctx['filename'])
+            downloaded_bytes = os.path.getsize(encodeFilename(ctx['filename']))
 
         self._hook_progress({
-            'downloaded_bytes': fsize,
-            'total_bytes': fsize,
+            'downloaded_bytes': downloaded_bytes,
+            'total_bytes': downloaded_bytes,
             'filename': ctx['filename'],
             'status': 'finished',
             'elapsed': elapsed,

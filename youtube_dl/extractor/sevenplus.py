@@ -4,22 +4,30 @@ from __future__ import unicode_literals
 import re
 
 from .brightcove import BrightcoveNewIE
-from ..utils import update_url_query
+from ..compat import compat_str
+from ..utils import (
+    try_get,
+    update_url_query,
+)
 
 
 class SevenPlusIE(BrightcoveNewIE):
     IE_NAME = '7plus'
     _VALID_URL = r'https?://(?:www\.)?7plus\.com\.au/(?P<path>[^?]+\?.*?\bepisode-id=(?P<id>[^&#]+))'
     _TESTS = [{
-        'url': 'https://7plus.com.au/BEAT?episode-id=BEAT-001',
+        'url': 'https://7plus.com.au/MTYS?episode-id=MTYS7-003',
         'info_dict': {
-            'id': 'BEAT-001',
+            'id': 'MTYS7-003',
             'ext': 'mp4',
-            'title': 'S1 E1 - Help / Lucy In The Sky With Diamonds',
-            'description': 'md5:37718bea20a8eedaca7f7361af566131',
+            'title': 'S7 E3 - Wind Surf',
+            'description': 'md5:29c6a69f21accda7601278f81b46483d',
             'uploader_id': '5303576322001',
-            'upload_date': '20171031',
-            'timestamp': 1509440068,
+            'upload_date': '20171201',
+            'timestamp': 1512106377,
+            'series': 'Mighty Ships',
+            'season_number': 7,
+            'episode_number': 3,
+            'episode': 'Wind Surf',
         },
         'params': {
             'format': 'bestvideo',
@@ -63,5 +71,14 @@ class SevenPlusIE(BrightcoveNewIE):
                     value = item.get(src_key)
                     if value:
                         info[dst_key] = value
+                info['series'] = try_get(
+                    item, lambda x: x['seriesLogo']['name'], compat_str)
+                mobj = re.search(r'^S(\d+)\s+E(\d+)\s+-\s+(.+)$', info['title'])
+                if mobj:
+                    info.update({
+                        'season_number': int(mobj.group(1)),
+                        'episode_number': int(mobj.group(2)),
+                        'episode': mobj.group(3),
+                    })
 
         return info

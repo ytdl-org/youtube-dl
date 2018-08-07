@@ -31,6 +31,12 @@ class Tube8IE(KeezMoviesIE):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)+\d+)',
+            webpage)
+
     def _real_extract(self, url):
         webpage, info = self._extract_info(url)
 

@@ -47,3 +47,7 @@ youtube-dl.zsh
 *.iml
 
 tmp/
+venv/
+
+# VS Code related files
+.vscode

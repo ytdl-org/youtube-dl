@@ -19,6 +19,7 @@ from ..utils import (
     try_get,
     unsmuggle_url,
     update_url_query,
+    url_or_none,
 )
 
 
@@ -227,14 +228,16 @@ class TVPlayIE(InfoExtractor):
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
-        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+        })
 
         video_id = self._match_id(url)
         geo_country = self._search_regex(
             r'https?://[^/]+\.([a-z]{2})', url,
             'geo country', default=None)
         if geo_country:
-            self._initialize_geo_bypass([geo_country.upper()])
+            self._initialize_geo_bypass({'countries': [geo_country.upper()]})
         video = self._download_json(
             'http://playapi.mtgx.tv/v3/videos/%s' % video_id, video_id, 'Downloading video JSON')
 
@@ -253,7 +256,8 @@ class TVPlayIE(InfoExtractor):
         quality = qualities(['hls', 'medium', 'high'])
         formats = []
         for format_id, video_url in streams.get('streams', {}).items():
-            if not video_url or not isinstance(video_url, compat_str):
+            video_url = url_or_none(video_url)
+            if not video_url:
                 continue
             ext = determine_ext(video_url)
             if ext == 'f4m':
