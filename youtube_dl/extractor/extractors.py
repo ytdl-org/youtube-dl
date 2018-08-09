@@ -335,6 +335,7 @@ from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .everyonesmixtape import EveryonesMixtapeIE
 from .expotv import ExpoTVIE
+from .expressen import ExpressenIE
 from .extremetube import ExtremeTubeIE
 from .eyedotv import EyedoTVIE
 from .facebook import (
@@ -372,7 +373,6 @@ from .foxgay import FoxgayIE
 from .foxnews import (
     FoxNewsIE,
     FoxNewsArticleIE,
-    FoxNewsInsiderIE,
 )
 from .foxsports import FoxSportsIE
 from .franceculture import FranceCultureIE
@@ -390,6 +390,11 @@ from .francetv import (
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freshlive import FreshLiveIE
+from .frontendmasters import (
+    FrontendMastersIE,
+    FrontendMastersLessonIE,
+    FrontendMastersCourseIE
+)
 from .funimation import FunimationIE
 from .funk import (
     FunkMixIE,
@@ -590,6 +595,10 @@ from .mangomolo import (
     MangomoloLiveIE,
 )
 from .manyvids import ManyVidsIE
+from .markiza import (
+    MarkizaIE,
+    MarkizaPageIE,
+)
 from .massengeschmacktv import MassengeschmackTVIE
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
@@ -760,7 +769,9 @@ from .nrk import (
     NRKSkoleIE,
     NRKTVIE,
     NRKTVDirekteIE,
+    NRKTVEpisodeIE,
     NRKTVEpisodesIE,
+    NRKTVSeasonIE,
     NRKTVSeriesIE,
 )
 from .ntvde import NTVDeIE
@@ -850,6 +861,10 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
+from .puhutv import (
+    PuhuTVIE,
+    PuhuTVSerieIE,
+)
 from .presstv import PressTVIE
 from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
@@ -1037,6 +1052,7 @@ from .stretchinternet import StretchInternetIE
 from .sunporno import SunPornoIE
 from .svt import (
     SVTIE,
+    SVTPageIE,
     SVTPlayIE,
     SVTSeriesIE,
 )
@@ -1140,6 +1156,7 @@ from .tvc import (
 from .tvigle import TvigleIE
 from .tvland import TVLandIE
 from .tvn24 import TVN24IE
+from .tvnet import TVNetIE
 from .tvnoe import TVNoeIE
 from .tvnow import (
     TVNowIE,
@@ -1275,6 +1292,7 @@ from .viki import (
     VikiIE,
     VikiChannelIE,
 )
+from .viqeo import ViqeoIE
 from .viu import (
     ViuIE,
     ViuPlaylistIE,

@@ -266,6 +266,7 @@
  - **Europa**
  - **EveryonesMixtape**
  - **ExpoTV**
+ - **Expressen**
  - **ExtremeTube**
  - **EyedoTV**
  - **facebook**
@@ -289,7 +290,6 @@
  - **Foxgay**
  - **foxnews**: Fox News and Fox Business Video
  - **foxnews:article**
- - **foxnews:insider**
  - **FoxSports**
  - **france2.fr:generation-what**
  - **FranceCulture**
@@ -302,6 +302,9 @@
  - **Freesound**
  - **freespeech.org**
  - **FreshLive**
+ - **FrontendMasters**
+ - **FrontendMastersCourse**
+ - **FrontendMastersLesson**
  - **Funimation**
  - **FunkChannel**
  - **FunkMix**
@@ -455,6 +458,8 @@
  - **mangomolo:live**
  - **mangomolo:video**
  - **ManyVids**
+ - **Markiza**
+ - **MarkizaPage**
  - **massengeschmack.tv**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
@@ -587,7 +592,9 @@
  - **NRKSkole**: NRK Skole
  - **NRKTV**: NRK TV and NRK Radio
  - **NRKTVDirekte**: NRK TV Direkte and NRK Radio Direkte
+ - **NRKTVEpisode**
  - **NRKTVEpisodes**
+ - **NRKTVSeason**
  - **NRKTVSeries**
  - **ntv.ru**
  - **Nuvid**
@@ -665,6 +672,8 @@
  - **PrimeShareTV**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
+ - **puhutv**
+ - **puhutv:serie**
  - **Puls4**
  - **Pyvideo**
  - **qqmusic**: QQ音乐
@@ -811,6 +820,7 @@
  - **StretchInternet**
  - **SunPorno**
  - **SVT**
+ - **SVTPage**
  - **SVTPlay**: SVT Play and Öppet arkiv
  - **SVTSeries**
  - **SWRMediathek**
@@ -893,6 +903,7 @@
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
  - **TVN24**
+ - **TVNet**
  - **TVNoe**
  - **TVNow**
  - **TVNowList**
@@ -990,6 +1001,7 @@
  - **Vimple**: Vimple - one-click video hosting
  - **Vine**
  - **vine:user**
+ - **Viqeo**
  - **Viu**
  - **viu:ott**
  - **viu:playlist**

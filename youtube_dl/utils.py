@@ -184,6 +184,7 @@ DATE_FORMATS_MONTH_FIRST.extend([
 ])
 
 PACKED_CODES_RE = r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)"
+JSON_LD_RE = r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>'
 
 
 def preferredencoding():
@@ -1865,6 +1866,13 @@ def strip_or_none(v):
     return None if v is None else v.strip()
 
 
+def url_or_none(url):
+    if not url or not isinstance(url, compat_str):
+        return None
+    url = url.strip()
+    return url if re.match(r'^(?:[a-zA-Z][\da-zA-Z.+-]*:)?//', url) else None
+
+
 def parse_duration(s):
     if not isinstance(s, compat_basestring):
         return None
@@ -2281,7 +2289,7 @@ def parse_age_limit(s):
 def strip_jsonp(code):
     return re.sub(
         r'''(?sx)^
-            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]+)
+            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]*)
             (?:\s*&&\s*(?P=func_name))?
             \s*\(\s*(?P<callback_data>.*)\);?
             \s*?(?://[^\n]*)*$''',
@@ -3561,7 +3569,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             setattr(self, '%s_open' % type,
                     lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
                         meth(r, proxy, type))
-        return compat_urllib_request.ProxyHandler.__init__(self, proxies)
+        compat_urllib_request.ProxyHandler.__init__(self, proxies)
 
     def proxy_open(self, req, proxy, type):
         req_proxy = req.headers.get('Ytdl-request-proxy')

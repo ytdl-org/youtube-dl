@@ -178,13 +178,13 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             warn('Unable to extract result entry')
             return False
 
-        tfa = try_get(res, lambda x: x[0][0], list)
-        if tfa:
-            tfa_str = try_get(tfa, lambda x: x[2], compat_str)
-            if tfa_str == 'TWO_STEP_VERIFICATION':
+        login_challenge = try_get(res, lambda x: x[0][0], list)
+        if login_challenge:
+            challenge_str = try_get(login_challenge, lambda x: x[2], compat_str)
+            if challenge_str == 'TWO_STEP_VERIFICATION':
                 # SEND_SUCCESS - TFA code has been successfully sent to phone
                 # QUOTA_EXCEEDED - reached the limit of TFA codes
-                status = try_get(tfa, lambda x: x[5], compat_str)
+                status = try_get(login_challenge, lambda x: x[5], compat_str)
                 if status == 'QUOTA_EXCEEDED':
                     warn('Exceeded the limit of TFA codes, try later')
                     return False
@@ -228,6 +228,17 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
                 check_cookie_url = try_get(
                     tfa_results, lambda x: x[0][-1][2], compat_str)
+            else:
+                CHALLENGES = {
+                    'LOGIN_CHALLENGE': "This device isn't recognized. For your security, Google wants to make sure it's really you.",
+                    'USERNAME_RECOVERY': 'Please provide additional information to aid in the recovery process.',
+                    'REAUTH': "There is something unusual about your activity. For your security, Google wants to make sure it's really you.",
+                }
+                challenge = CHALLENGES.get(
+                    challenge_str,
+                    '%s returned error %s.' % (self.IE_NAME, challenge_str))
+                warn('%s\nGo to https://accounts.google.com/, login and solve a challenge.' % challenge)
+                return False
         else:
             check_cookie_url = try_get(res, lambda x: x[2], compat_str)
 
