@@ -368,6 +368,7 @@
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
  - **ImgurAlbum**
+ - **ImgurUnmuted**
  - **Ina**
  - **Inc**
  - **IndavideoEmbed**
