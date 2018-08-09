@@ -63,7 +63,7 @@ class QQMusicIE(InfoExtractor):
     _FORMATS = {
         'mp3-320': {'prefix': 'M800', 'ext': 'mp3', 'preference': 40, 'abr': 320},
         'mp3-128': {'prefix': 'M500', 'ext': 'mp3', 'preference': 30, 'abr': 128},
-        'm4a': {'prefix': 'C200', 'ext': 'm4a', 'preference': 10}
+        'm4a': {'prefix': 'C400', 'ext': 'm4a', 'preference': 10}
     }
 
     # Reference: m_r_GetRUin() in top_player.js
@@ -73,7 +73,12 @@ class QQMusicIE(InfoExtractor):
         curMs = int(time.time() * 1000) % 1000
         return int(round(random.random() * 2147483647) * curMs % 1E10)
 
+    def _is_valid_url(self, url, video_id, item='video', headers={}):
+        headers = {'Cookie': 'qqmusic_fromtag='}
+        return super()._is_valid_url(url, video_id, item, headers)
+
     def _real_extract(self, url):
+        self._set_cookie('.qq.com', 'qqmusic_fromtag', '')
         mid = self._match_id(url)
 
         detail_info_page = self._download_webpage(
@@ -109,19 +114,19 @@ class QQMusicIE(InfoExtractor):
 
         guid = self.m_r_get_ruin()
 
-        vkeyinfo = self._download_json(
-            'http://base.music.qq.com/fcgi-bin/fcg_musicexpress.fcg?json=3&guid=%s' % guid,
-            mid, note='Retrieve vkey', errnote='Unable to get vkey',
-            transform_source=strip_jsonp)
-
-        try:
-            vkey = vkeyinfo['key']
-            durl = vkeyinfo['sip'][0]
-        except:
-            return {}
-
+        durl = 'https://dl.stream.qqmusic.qq.com/'
         formats = []
         for format_id, details in self._FORMATS.items():
+            vkurl = 'https://c.y.qq.com/base/fcgi-bin/fcg_music_express_mobile3.fcg?cid=205361747&uin=0&guid=%s&songmid=%s&filename=%s%s.%s' % (guid, mid, details['prefix'], mid, details['ext'])
+            vkeyinfo = self._download_json(
+                        vkurl, mid, note='Retrieve vkey', errnote='Unable to get vkey',
+                        transform_source=strip_jsonp)
+            try:
+                vkey = vkeyinfo['data']['items'][0]['vkey']
+            except:
+                pass
+            if not vkey:
+                continue
             formats.append({
                 'url': '%s%s%s.%s?vkey=%s&guid=%s'
                        % (durl, details['prefix'], mid, details['ext'], vkey, guid),
@@ -130,6 +135,7 @@ class QQMusicIE(InfoExtractor):
                 'preference': details['preference'],
                 'abr': details.get('abr'),
             })
+            print(formats)
         self._check_formats(formats, mid)
         self._sort_formats(formats)
 
@@ -213,6 +219,7 @@ class QQMusicSingerIE(QQPlaylistBaseIE):
     }
 
     def _real_extract(self, url):
+        print('url=', url)
         mid = self._match_id(url)
 
         entries = self.get_entries_from_page(mid)
