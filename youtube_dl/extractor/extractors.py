@@ -118,6 +118,10 @@ from .bilibili import (
     BiliBiliBangumiIE,
 )
 from .biobiochiletv import BioBioChileTVIE
+from .bitchute import (
+    BitChuteIE,
+    BitChuteChannelIE,
+)
 from .biqle import BIQLEIE
 from .bleacherreport import (
     BleacherReportIE,
