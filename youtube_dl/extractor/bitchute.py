@@ -81,14 +81,15 @@ class BitChuteChannelIE(InfoExtractor):
 
     def _entries(self, channel_id):
         channel_url = 'https://www.bitchute.com/channel/%s/' % channel_id
-        for page_num in itertools.count(0):
+        offset = 0
+        for page_num in itertools.count(1):
             data = self._download_json(
                 '%sextend/' % channel_url, channel_id,
-                'Downloading channel page %d' % (page_num + 1),
+                'Downloading channel page %d' % page_num,
                 data=urlencode_postdata({
                     'csrfmiddlewaretoken': self._TOKEN,
                     'name': '',
-                    'offset': page_num * 25
+                    'offset': offset,
                 }), headers={
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     'Referer': channel_url,
@@ -105,6 +106,7 @@ class BitChuteChannelIE(InfoExtractor):
                 html)
             if not video_ids:
                 break
+            offset += len(video_ids)
             for video_id in video_ids:
                 yield self.url_result(
                     'https://www.bitchute.com/video/%s' % video_id,
