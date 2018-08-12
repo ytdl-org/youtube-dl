@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class RedBullTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?redbull\.tv/video/(?P<id>AP-\w+)'
+    _VALID_URL = r'https?://(?:www\.)?redbull(?:\.tv|\.com/(?:[^/]+/)?tv)/video/(?P<id>AP-\w+)'
     _TESTS = [{
         # film
         'url': 'https://www.redbull.tv/video/AP-1Q6XCDTAN1W11',
@@ -35,6 +35,9 @@ class RedBullTVIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.redbull.com/int-en/tv/video/AP-1UWHCAR9S1W11/rob-meets-sam-gaze?playlist=playlists::3f81040a-2f31-4832-8e2e-545b1d39d173',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
