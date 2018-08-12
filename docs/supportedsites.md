@@ -672,6 +672,8 @@
  - **PrimeShareTV**
  - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
+ - **puhutv**
+ - **puhutv:serie**
  - **Puls4**
  - **Pyvideo**
  - **qqmusic**: QQ音乐
@@ -999,6 +1001,7 @@
  - **Vimple**: Vimple - one-click video hosting
  - **Vine**
  - **vine:user**
+ - **Viqeo**
  - **Viu**
  - **viu:ott**
  - **viu:playlist**

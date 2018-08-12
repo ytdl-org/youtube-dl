@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 import itertools
 import re
 import random
+import json
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_HTTPError,
     compat_kwargs,
     compat_parse_qs,
     compat_str,
@@ -26,7 +26,6 @@ from ..utils import (
     try_get,
     unified_timestamp,
     update_url_query,
-    urlencode_postdata,
     url_or_none,
     urljoin,
 )
@@ -37,8 +36,9 @@ class TwitchBaseIE(InfoExtractor):
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
-    _LOGIN_URL = 'https://www.twitch.tv/login'
-    _CLIENT_ID = 'jzkbprff40iqj646a697cyrvl0zt2m6'
+    _LOGIN_FORM_URL = 'https://www.twitch.tv/login'
+    _LOGIN_POST_URL = 'https://passport.twitch.tv/login'
+    _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -77,22 +77,21 @@ class TwitchBaseIE(InfoExtractor):
             page_url = urlh.geturl()
             post_url = self._search_regex(
                 r'<form[^>]+action=(["\'])(?P<url>.+?)\1', page,
-                'post url', default=page_url, group='url')
+                'post url', default=self._LOGIN_POST_URL, group='url')
             post_url = urljoin(page_url, post_url)
 
-            headers = {'Referer': page_url}
+            headers = {
+                'Referer': page_url,
+                'Origin': page_url,
+                'Content-Type': 'text/plain;charset=UTF-8',
+            }
 
-            try:
-                response = self._download_json(
-                    post_url, None, note,
-                    data=urlencode_postdata(form),
-                    headers=headers)
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                    response = self._parse_json(
-                        e.cause.read().decode('utf-8'), None)
-                    fail(response.get('message') or response['errors'][0])
-                raise
+            response = self._download_json(
+                post_url, None, note, data=json.dumps(form).encode(),
+                headers=headers, expected_status=400)
+            error = response.get('error_description') or response.get('error_code')
+            if error:
+                fail(error)
 
             if 'Authenticated successfully' in response.get('message', ''):
                 return None, None
@@ -105,7 +104,7 @@ class TwitchBaseIE(InfoExtractor):
                 headers=headers)
 
         login_page, handle = self._download_webpage_handle(
-            self._LOGIN_URL, None, 'Downloading login page')
+            self._LOGIN_FORM_URL, None, 'Downloading login page')
 
         # Some TOR nodes and public proxies are blocked completely
         if 'blacklist_message' in login_page:
@@ -115,6 +114,7 @@ class TwitchBaseIE(InfoExtractor):
             login_page, handle, 'Logging in', {
                 'username': username,
                 'password': password,
+                'client_id': self._CLIENT_ID,
             })
 
         # Successful login
@@ -240,7 +240,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v|videos)/|
+                            (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v(?:ideo)?|videos)/|
                             player\.twitch\.tv/\?.*?\bvideo=v
                         )
                         (?P<id>\d+)
@@ -295,6 +295,9 @@ class TwitchVodIE(TwitchItemBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://m.twitch.tv/beagsandjam/v/247478721',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/northernlion/video/291940395',
         'only_matching': True,
     }]
 

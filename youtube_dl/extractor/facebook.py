@@ -355,7 +355,6 @@ class FacebookIE(InfoExtractor):
             tahoe_data = self._download_webpage(
                 self._VIDEO_PAGE_TAHOE_TEMPLATE % video_id, video_id,
                 data=urlencode_postdata({
-                    '__user': 0,
                     '__a': 1,
                     '__pc': self._search_regex(
                         r'pkg_cohort["\']\s*:\s*["\'](.+?)["\']', webpage,
@@ -363,6 +362,9 @@ class FacebookIE(InfoExtractor):
                     '__rev': self._search_regex(
                         r'client_revision["\']\s*:\s*(\d+),', webpage,
                         'client revision', default='3944515'),
+                    'fb_dtsg': self._search_regex(
+                        r'"DTSGInitialData"\s*,\s*\[\]\s*,\s*{\s*"token"\s*:\s*"([^"]+)"',
+                        webpage, 'dtsg token', default=''),
                 }),
                 headers={
                     'Content-Type': 'application/x-www-form-urlencoded',

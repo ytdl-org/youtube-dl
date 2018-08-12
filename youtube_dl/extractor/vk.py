@@ -17,6 +17,7 @@ from ..utils import (
     int_or_none,
     orderedSet,
     remove_start,
+    str_or_none,
     str_to_int,
     unescapeHTML,
     unified_timestamp,
@@ -106,10 +107,10 @@ class VKIE(VKBaseIE):
                 'ext': 'mp4',
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
+                'uploader_id': '-77521',
                 'duration': 195,
-                'timestamp': 1329060660,
+                'timestamp': 1329049880,
                 'upload_date': '20120212',
-                'view_count': int,
             },
         },
         {
@@ -118,12 +119,12 @@ class VKIE(VKBaseIE):
             'info_dict': {
                 'id': '165548505',
                 'ext': 'mp4',
-                'uploader': 'Tom Cruise',
                 'title': 'No name',
+                'uploader': 'Tom Cruise',
+                'uploader_id': '205387401',
                 'duration': 9,
-                'timestamp': 1374374880,
-                'upload_date': '20130721',
-                'view_count': int,
+                'timestamp': 1374364108,
+                'upload_date': '20130720',
             }
         },
         {
@@ -207,10 +208,10 @@ class VKIE(VKBaseIE):
                 'id': 'V3K4mi0SYkc',
                 'ext': 'webm',
                 'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
-                'description': 'md5:d9903938abdc74c738af77f527ca0596',
-                'duration': 178,
+                'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
+                'duration': 179,
                 'upload_date': '20130116',
-                'uploader': "Children's Joy Foundation",
+                'uploader': "Children's Joy Foundation Inc.",
                 'uploader_id': 'thecjf',
                 'view_count': int,
             },
@@ -222,6 +223,7 @@ class VKIE(VKBaseIE):
                 'id': 'k3lz2cmXyRuJQSjGHUv',
                 'ext': 'mp4',
                 'title': 'md5:d52606645c20b0ddbb21655adaa4f56f',
+                # TODO: fix test by fixing dailymotion description extraction
                 'description': 'md5:c651358f03c56f1150b555c26d90a0fd',
                 'uploader': 'AniLibria.Tv',
                 'upload_date': '20160914',
@@ -241,9 +243,12 @@ class VKIE(VKBaseIE):
                 'ext': 'mp4',
                 'title': 'S-Dance, репетиции к The way show',
                 'uploader': 'THE WAY SHOW | 17 апреля',
-                'timestamp': 1454870100,
+                'uploader_id': '-110305615',
+                'timestamp': 1454859345,
                 'upload_date': '20160207',
-                'view_count': int,
+            },
+            'params': {
+                'skip_download': True,
             },
         },
         {
@@ -296,7 +301,7 @@ class VKIE(VKBaseIE):
         video_id = mobj.group('videoid')
 
         if video_id:
-            info_url = 'https://vk.com/al_video.php?act=show&al=1&module=video&video=%s' % video_id
+            info_url = 'https://vk.com/al_video.php?act=show_inline&al=1&video=' + video_id
             # Some videos (removed?) can only be downloaded with list id specified
             list_id = mobj.group('list_id')
             if list_id:
@@ -346,6 +351,9 @@ class VKIE(VKBaseIE):
 
             r'<!>This video is no longer available, because its author has been blocked.':
             'Video %s is no longer available, because its author has been blocked.',
+
+            r'<!>This video is no longer available, because it has been deleted.':
+            'Video %s is no longer available, because it has been deleted.',
         }
 
         for error_re, error_msg in ERRORS.items():
@@ -394,7 +402,8 @@ class VKIE(VKBaseIE):
         if not data:
             data = self._parse_json(
                 self._search_regex(
-                    r'<!json>\s*({.+?})\s*<!>', info_page, 'json', default='{}'),
+                    [r'<!json>\s*({.+?})\s*<!>', r'<!json>\s*({.+})'],
+                    info_page, 'json', default='{}'),
                 video_id)
             if data:
                 data = data['player']['params'][0]
@@ -416,7 +425,7 @@ class VKIE(VKBaseIE):
 
         timestamp = unified_timestamp(self._html_search_regex(
             r'class=["\']mv_info_date[^>]+>([^<]+)(?:<|from)', info_page,
-            'upload date', fatal=False))
+            'upload date', default=None)) or int_or_none(data.get('date'))
 
         view_count = str_to_int(self._search_regex(
             r'class=["\']mv_views_count[^>]+>\s*([\d,.]+)',
@@ -454,9 +463,12 @@ class VKIE(VKBaseIE):
             'title': title,
             'thumbnail': data.get('jpg'),
             'uploader': data.get('md_author'),
+            'uploader_id': str_or_none(data.get('author_id')),
             'duration': data.get('duration'),
             'timestamp': timestamp,
             'view_count': view_count,
+            'like_count': int_or_none(data.get('liked')),
+            'dislike_count': int_or_none(data.get('nolikes')),
             'is_live': is_live,
         }
 

@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -125,17 +126,31 @@ class FunkChannelIE(FunkBaseIE):
         # Id-based channels are currently broken on their side: webplayer
         # tries to process them via byChannelAlias endpoint and fails
         # predictably.
-        by_channel_alias = self._download_json(
-            'https://www.funk.net/api/v3.1/webapp/videos/byChannelAlias/%s'
-            % channel_id,
-            'Downloading byChannelAlias JSON', headers=headers, query={
-                'size': 100,
-            }, fatal=False)
-        if by_channel_alias:
+        for page_num in itertools.count():
+            by_channel_alias = self._download_json(
+                'https://www.funk.net/api/v3.1/webapp/videos/byChannelAlias/%s'
+                % channel_id,
+                'Downloading byChannelAlias JSON page %d' % (page_num + 1),
+                headers=headers, query={
+                    'filterFsk': 'false',
+                    'sort': 'creationDate,desc',
+                    'size': 100,
+                    'page': page_num,
+                }, fatal=False)
+            if not by_channel_alias:
+                break
             video_list = try_get(
                 by_channel_alias, lambda x: x['_embedded']['videoList'], list)
-            if video_list:
+            if not video_list:
+                break
+            try:
                 video = next(r for r in video_list if r.get('alias') == alias)
+                break
+            except StopIteration:
+                pass
+            if not try_get(
+                    by_channel_alias, lambda x: x['_links']['next']):
+                break
 
         if not video:
             by_id_list = self._download_json(

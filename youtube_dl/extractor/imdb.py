@@ -64,7 +64,8 @@ class ImdbIE(InfoExtractor):
             video_url = url_or_none(encoding.get('videoUrl'))
             if not video_url:
                 continue
-            ext = determine_ext(video_url, mimetype2ext(encoding.get('mimeType')))
+            ext = mimetype2ext(encoding.get(
+                'mimeType')) or determine_ext(video_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     video_url, video_id, 'mp4', entry_protocol='m3u8_native',
