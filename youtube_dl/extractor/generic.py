@@ -114,6 +114,7 @@ from .indavideo import IndavideoEmbedIE
 from .apa import APAIE
 from .foxnews import FoxNewsIE
 from .viqeo import ViqeoIE
+from .expressen import ExpressenIE
 
 
 class GenericIE(InfoExtractor):
@@ -3108,6 +3109,11 @@ class GenericIE(InfoExtractor):
         if viqeo_urls:
             return self.playlist_from_matches(
                 viqeo_urls, video_id, video_title, ie=ViqeoIE.ie_key())
+
+        expressen_urls = ExpressenIE._extract_urls(webpage)
+        if expressen_urls:
+            return self.playlist_from_matches(
+                expressen_urls, video_id, video_title, ie=ExpressenIE.ie_key())
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
