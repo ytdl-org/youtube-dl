@@ -6,7 +6,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
+    js_to_json,
     unified_strdate,
+    url_or_none,
 )
 
 
@@ -111,8 +113,21 @@ class NovaIE(InfoExtractor):
             webpage, 'video id')
 
         config_url = self._search_regex(
-            r'src="(http://tn\.nova\.cz/bin/player/videojs/config\.php\?[^"]+)"',
+            r'src="(https?://(?:tn|api)\.nova\.cz/bin/player/videojs/config\.php\?[^"]+)"',
             webpage, 'config url', default=None)
+        config_params = {}
+
+        if not config_url:
+            player = self._parse_json(
+                self._search_regex(
+                    r'(?s)Player\s*\(.+?\s*,\s*({.+?\bmedia\b["\']?\s*:\s*["\']?\d+.+?})\s*\)', webpage,
+                    'player', default='{}'),
+                video_id, transform_source=js_to_json, fatal=False)
+            if player:
+                config_url = url_or_none(player.get('configUrl'))
+                params = player.get('configParams')
+                if isinstance(params, dict):
+                    config_params = params
 
         if not config_url:
             DEFAULT_SITE_ID = '23000'
@@ -127,14 +142,20 @@ class NovaIE(InfoExtractor):
             }
 
             site_id = self._search_regex(
-                r'site=(\d+)', webpage, 'site id', default=None) or SITES.get(site, DEFAULT_SITE_ID)
+                r'site=(\d+)', webpage, 'site id', default=None) or SITES.get(
+                site, DEFAULT_SITE_ID)
 
-            config_url = ('http://tn.nova.cz/bin/player/videojs/config.php?site=%s&media=%s&jsVar=vjsconfig'
-                          % (site_id, video_id))
+            config_url = 'https://api.nova.cz/bin/player/videojs/config.php'
+            config_params = {
+                'site': site_id,
+                'media': video_id,
+                'quality': 3,
+                'version': 1,
+            }
 
         config = self._download_json(
             config_url, display_id,
-            'Downloading config JSON',
+            'Downloading config JSON', query=config_params,
             transform_source=lambda s: s[s.index('{'):s.rindex('}') + 1])
 
         mediafile = config['mediafile']
