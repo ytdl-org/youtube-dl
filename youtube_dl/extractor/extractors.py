@@ -899,7 +899,10 @@ from .rai import (
     RaiPlayPlaylistIE,
     RaiIE,
 )
-from .raywenderlich import RayWenderlichIE
+from .raywenderlich import (
+    RayWenderlichIE,
+    RayWenderlichCourseIE,
+)
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redbulltv import RedBullTVIE
