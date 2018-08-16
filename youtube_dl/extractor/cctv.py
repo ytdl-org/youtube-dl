@@ -1,12 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from calendar import timegm
+from datetime import datetime
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     float_or_none,
+    int_or_none,
     try_get,
     unified_timestamp,
 )
@@ -18,7 +24,6 @@ class CCTVIE(InfoExtractor):
     _TESTS = [{
         # fo.addVariable("videoCenterId","id")
         'url': 'http://sports.cntv.cn/2016/02/12/ARTIaBRxv4rTT1yWf1frW2wi160212.shtml',
-        'md5': 'd61ec00a493e09da810bf406a078f691',
         'info_dict': {
             'id': '5ecdbeab623f4973b40ff25f18b174e8',
             'ext': 'mp4',
@@ -109,6 +114,19 @@ class CCTVIE(InfoExtractor):
         },
         'expected_warnings': ['Failed to download m3u8 information'],
     }, {
+        # older multi-part streams, non-HLS
+        'url': 'http://english.cntv.cn/program/learnchinese/20110325/103360.shtml',
+        'info_dict': {
+            'id': '20110325100557',
+            'ext': 'mp4',
+            'title': 're:^Learn to Speak Chinese Edition 24-2011',
+            'timestamp': 1301053440,
+            'upload_date': '20110325',
+            'uploader': 'Beauty',
+            'creator': 'CNTV',
+            'description': 'Mike：兰兰，你在哪儿啊？\nMike：Lan Lan，where are you?\n兰兰：噢，是麦克呀。我刚才去游泳了，正打算回家呢。麦克，你有什么事儿吗？',
+        },
+    }, {
         'url': 'http://ent.cntv.cn/2016/01/18/ARTIjprSSJH8DryTVr5Bx8Wb160118.shtml',
         'only_matching': True,
     }, {
@@ -132,6 +150,7 @@ class CCTVIE(InfoExtractor):
         video_id = self._search_regex(
             [r'var\s+guid\s*=\s*["\']([\da-fA-F]+)',
              r'videoCenterId["\']\s*,\s*["\']([\da-fA-F]+)',
+             r'video(?:Center)?Id=([\da-f]+)',
              r'changePlayer\s*\(\s*["\']([\da-fA-F]+)',
              r'load[Vv]ideo\s*\(\s*["\']([\da-fA-F]+)',
              r'var\s+initMyAray\s*=\s*["\']([\da-fA-F]+)',
@@ -146,7 +165,48 @@ class CCTVIE(InfoExtractor):
                 'idl': 32,
                 'idlr': 32,
                 'modifyed': 'false',
-            })
+            }, fatal=False)
+        if data.get('status') == 'not_exist' or not data:
+            p = compat_urlparse.urlsplit(url, scheme='http')
+            path = self._search_regex(r'filePath=(/[^\&"]+)', webpage, 'filePath')
+            beg = video_id[0:8]
+            ending = video_id[8:]
+            url = '%s://%s%s%s/%s.txt' % (p.scheme, p.netloc, path, beg, ending)
+            data = self._download_webpage(url, ending, 'Downloading JSON metadata')
+            data = re.sub(r'(?:\s+)?<\!\-+[^\-]+\-+>.*', '', data)
+            data = self._parse_json(data, video_id)
+            entries = []
+            title = data['title']
+            upload_date = self._search_regex(
+                '<em>(?:\s+)?(\d{2}\-\d{2}\-\d{4}\s+\d{2}\:\d{2})[^<]+',
+                webpage, 'upload date', fatal=False).strip()
+            upload_date = re.sub(r'\s+', ' ', upload_date)
+            udt = datetime.strptime(upload_date, '%m-%d-%Y %H:%M')
+            desc = self._html_search_meta('description', webpage, 'description')
+            desc = desc.replace('\r', '\n').replace('\n ', '\n')
+            creator = self._html_search_regex(r'<b>(?:\s+)?Source\:(?:\s+)?</b>(?:\s+)?([^<]+)',
+                                              webpage, 'source')
+            editor = self._html_search_regex(r'<b>(?:\s+)?Editor\:</b>(?:\s+)?([^<\|]+)',
+                                             webpage, 'editor').strip()
+
+            for i, chapter in enumerate(data.get('chapters', [])):
+                url = chapter.get('url')
+                if url:
+                    if not url.startswith('http'):
+                        url = re.sub(r'^[^\:]+', 'http', url)
+                    entries.append(dict(id=video_id,
+                                        thumbnail=data.get('imagePath'),
+                                        title='%s - %02d' % (title, i + 1,),
+                                        duration=int_or_none(chapter.get('duration')),
+                                        upload_date=udt.strftime('%Y%m%d'),
+                                        description=desc,
+                                        uploader=editor,
+                                        creator=creator,
+                                        timestamp=timegm(udt.timetuple()),
+                                        url=url))
+            return self.playlist_result(entries,
+                                        playlist_id=video_id,
+                                        playlist_title=title)
 
         title = data['title']
 

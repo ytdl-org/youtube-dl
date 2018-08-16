@@ -45,6 +45,7 @@ youtube-dl.zsh
 # IntelliJ related files
 .idea
 *.iml
+*.kdev4
 
 tmp/
 venv/
