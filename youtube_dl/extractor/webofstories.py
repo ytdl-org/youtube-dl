@@ -133,8 +133,8 @@ class WebOfStoriesPlaylistIE(InfoExtractor):
         webpage = self._download_webpage(url, playlist_id)
 
         entries = [
-            self.url_result('http://www.webofstories.com/play/%s' % video_number, 'WebOfStories')
-            for video_number in set(re.findall(r'href="/playAll/%s\?sId=(\d+)"' % playlist_id, webpage))
+            self.url_result('http://www.webofstories.com/play/%s/%d' % (playlist_id, video_number), 'WebOfStories')
+            for video_number in range(1, len(re.findall(r'class="playListItem\s+"', webpage)) + 2)
         ]
 
         title = self._search_regex(
