@@ -31,8 +31,7 @@ class CartoonNetworkIE(TurnerBaseIE):
                 video_id = simpleid.replace('";', '')
             if "_cnglobal.currentVideo.episodeTitle" in line:
                 simpletitle = line.split('episodeTitle = "',1)[1]
-                title = simpletitle.replace('";', '')
-        print(title)				
+                title = simpletitle.replace('";', '')		
         description = ''
         info = self._extract_ngtv_info(
             video_id,
