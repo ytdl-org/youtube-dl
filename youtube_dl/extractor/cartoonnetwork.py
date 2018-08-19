@@ -25,8 +25,6 @@ class CartoonNetworkIE(TurnerBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        #id_type, video_id = re.search(r"_cnglobal\.cvp(Video|Title)Id\s*=\s*'([^']+)';", webpage).groups()
-        #video_id = 'a182d531dab41469af2f3101e1d52ef09465e338'
         for line in webpage.splitlines():
             if "_cnglobal.currentVideo.mediaId" in line:
                 simpleid = line.split('mediaId = "',1)[1]
@@ -36,8 +34,6 @@ class CartoonNetworkIE(TurnerBaseIE):
                 title = simpletitle.replace('";', '')
         print(title)				
         description = ''
-        #query = ('id' if id_type == 'Video' else 'titleId') + '=' + video_id
-        
         info = self._extract_ngtv_info(
             video_id,
             {'networkId': 'cartoonnetwork'},
