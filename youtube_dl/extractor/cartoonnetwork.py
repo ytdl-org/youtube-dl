@@ -25,18 +25,33 @@ class CartoonNetworkIE(TurnerBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        id_type, video_id = re.search(r"_cnglobal\.cvp(Video|Title)Id\s*=\s*'([^']+)';", webpage).groups()
-        query = ('id' if id_type == 'Video' else 'titleId') + '=' + video_id
-        return self._extract_cvp_info(
-            'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&' + query, video_id, {
-                'secure': {
-                    'media_src': 'http://androidhls-secure.cdn.turner.com/toon/big',
-                    'tokenizer_src': 'https://token.vgtf.net/token/token_mobile',
-                },
-            }, {
+        #id_type, video_id = re.search(r"_cnglobal\.cvp(Video|Title)Id\s*=\s*'([^']+)';", webpage).groups()
+        #video_id = 'a182d531dab41469af2f3101e1d52ef09465e338'
+        for line in webpage.splitlines():
+            if "_cnglobal.currentVideo.mediaId" in line:
+                simpleid = line.split('mediaId = "',1)[1]
+                video_id = simpleid.replace('";', '')
+            if "_cnglobal.currentVideo.episodeTitle" in line:
+                simpletitle = line.split('episodeTitle = "',1)[1]
+                title = simpletitle.replace('";', '')
+        print(title)				
+        description = ''
+        #query = ('id' if id_type == 'Video' else 'titleId') + '=' + video_id
+        
+        info = self._extract_ngtv_info(
+            video_id,
+            {'networkId': 'cartoonnetwork'},
+            {
                 'url': url,
                 'site_name': 'CartoonNetwork',
                 'auth_required': self._search_regex(
                     r'_cnglobal\.cvpFullOrPreviewAuth\s*=\s*(true|false);',
                     webpage, 'auth required', default='false') == 'true',
-            })
+            },
+        )
+        info.update({
+            'id': video_id,
+            'title': title,
+            'description': description,
+        })
+        return info
