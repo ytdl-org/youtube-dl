@@ -29,7 +29,7 @@ from ..compat import (
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
-    _ID_REGEX = r'[pbw][\da-z]{7}'
+    _ID_REGEX = r'(?:[pbm][\da-z]{7}|w[\da-z]{7,14})'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:www\.)?bbc\.co\.uk/
@@ -235,6 +235,12 @@ class BBCCoUkIE(InfoExtractor):
             'only_matching': True,
         }, {
             'url': 'http://www.bbc.co.uk/programmes/w3csv1y9',
+            'only_matching': True,
+        }, {
+            'url': 'https://www.bbc.co.uk/programmes/m00005xn',
+            'only_matching': True,
+        }, {
+            'url': 'https://www.bbc.co.uk/programmes/w172w4dww1jqt5s',
             'only_matching': True,
         }]
 
