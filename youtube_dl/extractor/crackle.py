@@ -4,23 +4,21 @@ from __future__ import unicode_literals, division
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_HTTPError,
-)
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
     parse_age_limit,
     parse_duration,
+    url_or_none,
     ExtractorError
 )
 
 
 class CrackleIE(InfoExtractor):
-    _VALID_URL = r'(?:crackle:|https?://(?:(?:www|m)\.)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'(?:crackle:|https?://(?:(?:www|m)\.)?(?:sony)?crackle\.com/(?:playlist/\d+/|(?:[^/]+/)+))(?P<id>\d+)'
+    _TESTS = [{
         # geo restricted to CA
         'url': 'https://www.crackle.com/andromeda/2502343',
         'info_dict': {
@@ -45,7 +43,10 @@ class CrackleIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
-    }
+    }, {
+        'url': 'https://www.sonycrackle.com/andromeda/2502343',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -83,8 +84,8 @@ class CrackleIE(InfoExtractor):
             for e in media['MediaURLs']:
                 if e.get('UseDRM') is True:
                     continue
-                format_url = e.get('Path')
-                if not format_url or not isinstance(format_url, compat_str):
+                format_url = url_or_none(e.get('Path'))
+                if not format_url:
                     continue
                 ext = determine_ext(format_url)
                 if ext == 'm3u8':
@@ -121,8 +122,8 @@ class CrackleIE(InfoExtractor):
                 for cc_file in cc_files:
                     if not isinstance(cc_file, dict):
                         continue
-                    cc_url = cc_file.get('Path')
-                    if not cc_url or not isinstance(cc_url, compat_str):
+                    cc_url = url_or_none(cc_file.get('Path'))
+                    if not cc_url:
                         continue
                     lang = cc_file.get('Locale') or 'en'
                     subtitles.setdefault(lang, []).append({'url': cc_url})

@@ -17,6 +17,7 @@ from ..utils import (
     lowercase_escape,
     std_headers,
     try_get,
+    url_or_none,
 )
 
 
@@ -170,7 +171,7 @@ class InstagramIE(InfoExtractor):
                             node = try_get(edge, lambda x: x['node'], dict)
                             if not node:
                                 continue
-                            node_video_url = try_get(node, lambda x: x['video_url'], compat_str)
+                            node_video_url = url_or_none(node.get('video_url'))
                             if not node_video_url:
                                 continue
                             entries.append({

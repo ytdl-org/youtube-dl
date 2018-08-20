@@ -37,7 +37,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
     _LOGIN_URL = 'https://vimeo.com/log_in'
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             if self._LOGIN_REQUIRED:
                 raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
@@ -539,9 +539,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 # We try to find out to which variable is assigned the config dic
                 m_variable_name = re.search(r'(\w)\.video\.id', webpage)
                 if m_variable_name is not None:
-                    config_re = r'%s=({[^}].+?});' % re.escape(m_variable_name.group(1))
+                    config_re = [r'%s=({[^}].+?});' % re.escape(m_variable_name.group(1))]
                 else:
                     config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
+                config_re.append(r'\bvar\s+r\s*=\s*({.+?})\s*;')
                 config = self._search_regex(config_re, webpage, 'info section',
                                             flags=re.DOTALL)
                 config = json.loads(config)
@@ -989,10 +990,10 @@ class VimeoWatchLaterIE(VimeoChannelIE):
 
 
 class VimeoLikesIE(InfoExtractor):
-    _VALID_URL = r'https://(?:www\.)?vimeo\.com/user(?P<id>[0-9]+)/likes/?(?:$|[?#]|sort:)'
+    _VALID_URL = r'https://(?:www\.)?vimeo\.com/(?P<id>[^/]+)/likes/?(?:$|[?#]|sort:)'
     IE_NAME = 'vimeo:likes'
     IE_DESC = 'Vimeo user likes'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
         'info_dict': {
@@ -1000,7 +1001,10 @@ class VimeoLikesIE(InfoExtractor):
             'description': 'See all the videos urza likes',
             'title': 'Videos urza likes',
         },
-    }
+    }, {
+        'url': 'https://vimeo.com/stormlapse/likes',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
@@ -1009,7 +1013,7 @@ class VimeoLikesIE(InfoExtractor):
             self._search_regex(
                 r'''(?x)<li><a\s+href="[^"]+"\s+data-page="([0-9]+)">
                     .*?</a></li>\s*<li\s+class="pagination_next">
-                ''', webpage, 'page count'),
+                ''', webpage, 'page count', default=1),
             'page count', fatal=True)
         PAGE_SIZE = 12
         title = self._html_search_regex(
@@ -1017,7 +1021,7 @@ class VimeoLikesIE(InfoExtractor):
         description = self._html_search_meta('description', webpage)
 
         def _get_page(idx):
-            page_url = 'https://vimeo.com/user%s/likes/page:%d/sort:date' % (
+            page_url = 'https://vimeo.com/%s/likes/page:%d/sort:date' % (
                 user_id, idx + 1)
             webpage = self._download_webpage(
                 page_url, user_id,
@@ -1037,7 +1041,7 @@ class VimeoLikesIE(InfoExtractor):
 
         return {
             '_type': 'playlist',
-            'id': 'user%s_likes' % user_id,
+            'id': '%s_likes' % user_id,
             'title': title,
             'description': description,
             'entries': pl,

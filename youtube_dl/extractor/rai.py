@@ -32,6 +32,9 @@ class RaiBaseIE(InfoExtractor):
     _GEO_BYPASS = False
 
     def _extract_relinker_info(self, relinker_url, video_id):
+        if not re.match(r'https?://', relinker_url):
+            return {'formats': [{'url': relinker_url}]}
+
         formats = []
         geoprotection = None
         is_live = None
@@ -369,6 +372,10 @@ class RaiIE(RaiBaseIE):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # Direct MMS URL
+        'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-b63a4089-ac28-48cf-bca5-9f5b5bc46df5.html',
+        'only_matching': True,
     }]
 
     def _extract_from_content_id(self, content_id, url):

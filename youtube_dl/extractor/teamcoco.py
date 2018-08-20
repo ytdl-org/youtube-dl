@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import json
 
-from .common import InfoExtractor
+from .turner import TurnerBaseIE
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -15,8 +15,8 @@ from ..utils import (
 )
 
 
-class TeamcocoIE(InfoExtractor):
-    _VALID_URL = r'https?://teamcoco\.com/video/(?P<id>[^/?#]+)'
+class TeamcocoIE(TurnerBaseIE):
+    _VALID_URL = r'https?://teamcoco\.com/(?P<id>([^/]+/)*[^/?#]+)'
     _TESTS = [
         {
             'url': 'http://teamcoco.com/video/mary-kay-remote',
@@ -67,6 +67,18 @@ class TeamcocoIE(InfoExtractor):
                 'skip_download': True,  # m3u8 downloads
             },
             'skip': 'This video is no longer available.',
+        }, {
+            'url': 'http://teamcoco.com/video/the-conan-audiencey-awards-for-04/25/18',
+            'only_matching': True,
+        }, {
+            'url': 'http://teamcoco.com/italy/conan-jordan-schlansky-hit-the-streets-of-florence',
+            'only_matching': True,
+        }, {
+            'url': 'http://teamcoco.com/haiti/conan-s-haitian-history-lesson',
+            'only_matching': True,
+        }, {
+            'url': 'http://teamcoco.com/israel/conan-hits-the-streets-beaches-of-tel-aviv',
+            'only_matching': True,
         }
     ]
 
@@ -81,7 +93,7 @@ class TeamcocoIE(InfoExtractor):
         display_id = self._match_id(url)
 
         response = self._graphql_call('''{
-  %s(slug: "video/%s") {
+  %s(slug: "%s") {
     ... on RecordSlug {
       record {
         id
@@ -91,10 +103,15 @@ class TeamcocoIE(InfoExtractor):
         thumb {
           preview
         }
+        file {
+          url
+        }
         tags {
           name
         }
         duration
+        turnerMediaId
+        turnerMediaAuthToken
       }
     }
     ... on NotFoundSlug {
@@ -108,50 +125,65 @@ class TeamcocoIE(InfoExtractor):
         record = response['record']
         video_id = record['id']
 
-        srcs = self._graphql_call('''{
-  %s(id: "%s") {
-    src
-  }
-}''', 'RecordVideoSource', video_id)['src']
-
-        formats = []
-        get_quality = qualities(['low', 'sd', 'hd', 'uhd'])
-        for format_id, src in srcs.items():
-            if not isinstance(src, dict):
-                continue
-            src_url = src.get('src')
-            if not src_url:
-                continue
-            ext = determine_ext(src_url, mimetype2ext(src.get('type')))
-            if format_id == 'hls' or ext == 'm3u8':
-                # compat_urllib_parse.urljoin does not work here
-                if src_url.startswith('/'):
-                    src_url = 'http://ht.cdn.turner.com/tbs/big/teamcoco' + src_url
-                formats.extend(self._extract_m3u8_formats(
-                    src_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
-            else:
-                if src_url.startswith('/mp4:protected/'):
-                    # TODO Correct extraction for these files
-                    continue
-                tbr = int_or_none(self._search_regex(
-                    r'(\d+)k\.mp4', src_url, 'tbr', default=None))
-
-                formats.append({
-                    'url': src_url,
-                    'ext': ext,
-                    'tbr': tbr,
-                    'format_id': format_id,
-                    'quality': get_quality(format_id),
-                })
-        self._sort_formats(formats)
-
-        return {
+        info = {
             'id': video_id,
             'display_id': display_id,
-            'formats': formats,
             'title': record['title'],
             'thumbnail': record.get('thumb', {}).get('preview'),
             'description': record.get('teaser'),
             'duration': parse_duration(record.get('duration')),
             'timestamp': parse_iso8601(record.get('publishOn')),
         }
+
+        media_id = record.get('turnerMediaId')
+        if media_id:
+            self._initialize_geo_bypass({
+                'countries': ['US'],
+            })
+            info.update(self._extract_ngtv_info(media_id, {
+                'accessToken': record['turnerMediaAuthToken'],
+                'accessTokenType': 'jws',
+            }))
+        else:
+            video_sources = self._graphql_call('''{
+  %s(id: "%s") {
+    src
+  }
+}''', 'RecordVideoSource', video_id) or {}
+
+            formats = []
+            get_quality = qualities(['low', 'sd', 'hd', 'uhd'])
+            for format_id, src in video_sources.get('src', {}).items():
+                if not isinstance(src, dict):
+                    continue
+                src_url = src.get('src')
+                if not src_url:
+                    continue
+                ext = determine_ext(src_url, mimetype2ext(src.get('type')))
+                if format_id == 'hls' or ext == 'm3u8':
+                    # compat_urllib_parse.urljoin does not work here
+                    if src_url.startswith('/'):
+                        src_url = 'http://ht.cdn.turner.com/tbs/big/teamcoco' + src_url
+                    formats.extend(self._extract_m3u8_formats(
+                        src_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
+                else:
+                    if src_url.startswith('/mp4:protected/'):
+                        # TODO Correct extraction for these files
+                        continue
+                    tbr = int_or_none(self._search_regex(
+                        r'(\d+)k\.mp4', src_url, 'tbr', default=None))
+
+                    formats.append({
+                        'url': src_url,
+                        'ext': ext,
+                        'tbr': tbr,
+                        'format_id': format_id,
+                        'quality': get_quality(format_id),
+                    })
+            if not formats:
+                formats = self._extract_m3u8_formats(
+                    record['file']['url'], video_id, 'mp4', fatal=False)
+            self._sort_formats(formats)
+            info['formats'] = formats
+
+        return info

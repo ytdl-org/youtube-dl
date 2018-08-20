@@ -7,7 +7,6 @@ import json
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -17,6 +16,7 @@ from ..utils import (
     parse_age_limit,
     parse_duration,
     unified_timestamp,
+    url_or_none,
 )
 
 
@@ -42,7 +42,7 @@ class DramaFeverBaseIE(InfoExtractor):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -139,8 +139,8 @@ class DramaFeverIE(DramaFeverBaseIE):
         for sub in subs:
             if not isinstance(sub, dict):
                 continue
-            sub_url = sub.get('url')
-            if not sub_url or not isinstance(sub_url, compat_str):
+            sub_url = url_or_none(sub.get('url'))
+            if not sub_url:
                 continue
             subtitles.setdefault(
                 sub.get('code') or sub.get('language') or 'en', []).append({
@@ -163,8 +163,8 @@ class DramaFeverIE(DramaFeverBaseIE):
             for format_id, format_dict in download_assets.items():
                 if not isinstance(format_dict, dict):
                     continue
-                format_url = format_dict.get('url')
-                if not format_url or not isinstance(format_url, compat_str):
+                format_url = url_or_none(format_dict.get('url'))
+                if not format_url:
                     continue
                 formats.append({
                     'url': format_url,

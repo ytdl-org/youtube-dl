@@ -13,6 +13,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     try_get,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -24,7 +25,7 @@ class ZattooBaseIE(InfoExtractor):
     _power_guide_hash = None
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if not username or not password:
             self.raise_login_required(
                 'A valid %s account is needed to access this media.'
@@ -150,8 +151,8 @@ class ZattooBaseIE(InfoExtractor):
             for watch in watch_urls:
                 if not isinstance(watch, dict):
                     continue
-                watch_url = watch.get('url')
-                if not watch_url or not isinstance(watch_url, compat_str):
+                watch_url = url_or_none(watch.get('url'))
+                if not watch_url:
                     continue
                 format_id_list = [stream_type]
                 maxrate = watch.get('maxrate')

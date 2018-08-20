@@ -20,5 +20,7 @@ class LCIIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        wat_id = self._search_regex(r'data-watid=[\'"](\d+)', webpage, 'wat id')
+        wat_id = self._search_regex(
+            (r'data-watid=[\'"](\d+)', r'idwat["\']?\s*:\s*["\']?(\d+)'),
+            webpage, 'wat id')
         return self.url_result('wat:' + wat_id, 'Wat', wat_id)

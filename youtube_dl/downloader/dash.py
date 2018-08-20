@@ -2,7 +2,10 @@ from __future__ import unicode_literals
 
 from .fragment import FragmentFD
 from ..compat import compat_urllib_error
-from ..utils import urljoin
+from ..utils import (
+    DownloadError,
+    urljoin,
+)
 
 
 class DashSegmentsFD(FragmentFD):
@@ -57,6 +60,14 @@ class DashSegmentsFD(FragmentFD):
                     count += 1
                     if count <= fragment_retries:
                         self.report_retry_fragment(err, frag_index, count, fragment_retries)
+                except DownloadError:
+                    # Don't retry fragment if error occurred during HTTP downloading
+                    # itself since it has own retry settings
+                    if not fatal:
+                        self.report_skip_fragment(frag_index)
+                        break
+                    raise
+
             if count > fragment_retries:
                 if not fatal:
                     self.report_skip_fragment(frag_index)

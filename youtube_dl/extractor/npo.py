@@ -36,8 +36,8 @@ class NPOIE(NPOBaseIE):
                         https?://
                             (?:www\.)?
                             (?:
-                                npo\.nl/(?!(?:live|radio)/)(?:[^/]+/){2}|
-                                ntr\.nl/(?:[^/]+/){2,}|
+                                npo\.nl/(?:[^/]+/)*|
+                                (?:ntr|npostart)\.nl/(?:[^/]+/){2,}|
                                 omroepwnl\.nl/video/fragment/[^/]+__|
                                 (?:zapp|npo3)\.nl/(?:[^/]+/){2,}
                             )
@@ -160,7 +160,19 @@ class NPOIE(NPOBaseIE):
     }, {
         'url': 'https://www.zapp.nl/1803-skelterlab/instructie-video-s/740-instructievideo-s/POMS_AT_11736927',
         'only_matching': True,
+    }, {
+        'url': 'https://www.npostart.nl/broodje-gezond-ei/28-05-2018/KN_1698996',
+        'only_matching': True,
+    }, {
+        'url': 'https://npo.nl/KN_1698996',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False if any(ie.suitable(url)
+                for ie in (NPOLiveIE, NPORadioIE, NPORadioFragmentIE))
+                else super(NPOIE, cls).suitable(url))
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -270,7 +282,7 @@ class NPOIE(NPOBaseIE):
                 video_url = stream_info.get('url')
             if not video_url or video_url in urls:
                 continue
-            urls.add(item_url)
+            urls.add(video_url)
             if determine_ext(video_url) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     video_url, video_id, ext='mp4',
@@ -389,7 +401,7 @@ class NPOLiveIE(NPOBaseIE):
 
 class NPORadioIE(InfoExtractor):
     IE_NAME = 'npo.nl:radio'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/radio/(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/radio/(?P<id>[^/]+)'
 
     _TEST = {
         'url': 'http://www.npo.nl/radio/radio-1',
@@ -403,6 +415,10 @@ class NPORadioIE(InfoExtractor):
             'skip_download': True,
         }
     }
+
+    @classmethod
+    def suitable(cls, url):
+        return False if NPORadioFragmentIE.suitable(url) else super(NPORadioIE, cls).suitable(url)
 
     @staticmethod
     def _html_get_attribute_regex(attribute):

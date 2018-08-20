@@ -1,10 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
 from .nexx import NexxIE
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     try_get,
@@ -12,6 +14,19 @@ from ..utils import (
 
 
 class FunkBaseIE(InfoExtractor):
+    _HEADERS = {
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.9,ru;q=0.8',
+        'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnROYW1lIjoid2ViYXBwLXYzMSIsInNjb3BlIjoic3RhdGljLWNvbnRlbnQtYXBpLGN1cmF0aW9uLWFwaSxuZXh4LWNvbnRlbnQtYXBpLXYzMSx3ZWJhcHAtYXBpIn0.mbuG9wS9Yf5q6PqgR4fiaRFIagiHk9JhwoKES7ksVX4',
+    }
+    _AUTH = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnROYW1lIjoid2ViYXBwLXYzMSIsInNjb3BlIjoic3RhdGljLWNvbnRlbnQtYXBpLGN1cmF0aW9uLWFwaSxuZXh4LWNvbnRlbnQtYXBpLXYzMSx3ZWJhcHAtYXBpIn0.mbuG9wS9Yf5q6PqgR4fiaRFIagiHk9JhwoKES7ksVX4'
+
+    @staticmethod
+    def _make_headers(referer):
+        headers = FunkBaseIE._HEADERS.copy()
+        headers['Referer'] = referer
+        return headers
+
     def _make_url_result(self, video):
         return {
             '_type': 'url_transparent',
@@ -48,19 +63,19 @@ class FunkMixIE(FunkBaseIE):
 
         lists = self._download_json(
             'https://www.funk.net/api/v3.1/curation/curatedLists/',
-            mix_id, headers={
-                'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnROYW1lIjoiY3VyYXRpb24tdG9vbC12Mi4wIiwic2NvcGUiOiJzdGF0aWMtY29udGVudC1hcGksY3VyYXRpb24tc2VydmljZSxzZWFyY2gtYXBpIn0.SGCC1IXHLtZYoo8PvRKlU2gXH1su8YSu47sB3S4iXBI',
-                'Referer': url,
-            }, query={
+            mix_id, headers=self._make_headers(url), query={
                 'size': 100,
-            })['result']['lists']
+            })['_embedded']['curatedListList']
 
         metas = next(
             l for l in lists
             if mix_id in (l.get('entityId'), l.get('alias')))['videoMetas']
         video = next(
             meta['videoDataDelegate']
-            for meta in metas if meta.get('alias') == alias)
+            for meta in metas
+            if try_get(
+                meta, lambda x: x['videoDataDelegate']['alias'],
+                compat_str) == alias)
 
         return self._make_url_result(video)
 
@@ -104,25 +119,53 @@ class FunkChannelIE(FunkBaseIE):
         channel_id = mobj.group('id')
         alias = mobj.group('alias')
 
-        headers = {
-            'authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnROYW1lIjoiY3VyYXRpb24tdG9vbCIsInNjb3BlIjoic3RhdGljLWNvbnRlbnQtYXBpLGN1cmF0aW9uLWFwaSxzZWFyY2gtYXBpIn0.q4Y2xZG8PFHai24-4Pjx2gym9RmJejtmK6lMXP5wAgc',
-            'Referer': url,
-        }
+        headers = self._make_headers(url)
 
         video = None
 
-        by_id_list = self._download_json(
-            'https://www.funk.net/api/v3.0/content/videos/byIdList', channel_id,
-            headers=headers, query={
-                'ids': alias,
-            }, fatal=False)
-        if by_id_list:
-            video = try_get(by_id_list, lambda x: x['result'][0], dict)
+        # Id-based channels are currently broken on their side: webplayer
+        # tries to process them via byChannelAlias endpoint and fails
+        # predictably.
+        for page_num in itertools.count():
+            by_channel_alias = self._download_json(
+                'https://www.funk.net/api/v3.1/webapp/videos/byChannelAlias/%s'
+                % channel_id,
+                'Downloading byChannelAlias JSON page %d' % (page_num + 1),
+                headers=headers, query={
+                    'filterFsk': 'false',
+                    'sort': 'creationDate,desc',
+                    'size': 100,
+                    'page': page_num,
+                }, fatal=False)
+            if not by_channel_alias:
+                break
+            video_list = try_get(
+                by_channel_alias, lambda x: x['_embedded']['videoList'], list)
+            if not video_list:
+                break
+            try:
+                video = next(r for r in video_list if r.get('alias') == alias)
+                break
+            except StopIteration:
+                pass
+            if not try_get(
+                    by_channel_alias, lambda x: x['_links']['next']):
+                break
+
+        if not video:
+            by_id_list = self._download_json(
+                'https://www.funk.net/api/v3.0/content/videos/byIdList',
+                channel_id, 'Downloading byIdList JSON', headers=headers,
+                query={
+                    'ids': alias,
+                }, fatal=False)
+            if by_id_list:
+                video = try_get(by_id_list, lambda x: x['result'][0], dict)
 
         if not video:
             results = self._download_json(
-                'https://www.funk.net/api/v3.0/content/videos/filter', channel_id,
-                headers=headers, query={
+                'https://www.funk.net/api/v3.0/content/videos/filter',
+                channel_id, 'Downloading filter JSON', headers=headers, query={
                     'channelId': channel_id,
                     'size': 100,
                 })['result']
