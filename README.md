@@ -373,6 +373,10 @@ which means you can modify it, redistribute it or use it however you like.
     -x, --extract-audio              Convert video files to audio-only files
                                      (requires ffmpeg or avconv and ffprobe or
                                      avprobe)
+    -S, --start-second               Start second for audio clipping(Need to be
+                                     used with -x option)
+    -T, --total-seconds              Total number of seconds in audio clip(Need 
+                                     to be used with -x option)
     --audio-format FORMAT            Specify audio format: "best", "aac",
                                      "vorbis", "mp3", "m4a", "opus", or "wav";
                                      "best" by default

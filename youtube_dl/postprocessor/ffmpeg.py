@@ -59,6 +59,15 @@ class FFmpegPostProcessor(PostProcessor):
             if self._downloader:
                 self._downloader.report_warning(warning)
 
+    def get_audio_clipping_params(self):
+        clip_opts = ['-ss']
+        clip_opts.append(self._downloader.params.get("startsecond",0))
+        total_seconds = self._downloader.params.get("totalseconds",0)
+        if not total_seconds==0:
+            clip_opts.append('-t')
+            clip_opts.append(total_seconds)
+        return clip_opts
+
     @staticmethod
     def get_versions(downloader=None):
         return FFmpegPostProcessor(downloader)._versions
@@ -170,6 +179,8 @@ class FFmpegPostProcessor(PostProcessor):
             os.stat(encodeFilename(path)).st_mtime for path in input_paths)
 
         opts += self._configuration_args()
+
+        opts += self.get_audio_clipping_params()
 
         files_cmd = []
         for path in input_paths:
