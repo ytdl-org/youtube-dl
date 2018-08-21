@@ -116,7 +116,9 @@ class AnvatoIE(InfoExtractor):
         'anvato_scripps_app_ios_prod_409c41960c60b308db43c3cc1da79cab9f1c3d93': 'WPxj5GraLTkYCyj3M7RozLqIycjrXOEcDGFMIJPn',
         'EZqvRyKBJLrgpClDPDF8I7Xpdp40Vx73': '4OxGd2dEakylntVKjKF0UK9PDPYB6A9W',
         'M2v78QkpleXm9hPp9jUXI63x5vA6BogR': 'ka6K32k7ZALmpINkjJUGUo0OE42Md1BQ',
-        'nbcu_nbcd_desktop_web_prod_93d8ead38ce2024f8f544b78306fbd15895ae5e6_secure': 'NNemUkySjxLyPTKvZRiGntBIjEyK8uqicjMakIaQ'
+        'nbcu_nbcd_desktop_web_prod_93d8ead38ce2024f8f544b78306fbd15895ae5e6_secure': 'NNemUkySjxLyPTKvZRiGntBIjEyK8uqicjMakIaQ',
+        # CBS Local 2018-08-16
+        'DVzl9QRzox3ZZsP9bNu5Li3X7obQOnqP': '3hwbSuqqT690uxjNYBktSQpa5ZrpYYR0Iofx7NcJHyA',
     }
 
     _MCP_TO_ACCESS_KEY_TABLE = {
