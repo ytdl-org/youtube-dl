@@ -34,6 +34,10 @@ class GoIE(AdobePassIE):
         'watchdisneyxd': {
             'brand': '009',
             'requestor_id': 'DisneyXD',
+        },
+        'disneynow': {
+            'brand': '010',
+            'requestor_id': 'DisneyNow',
         }
     }
     _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))' % '|'.join(_SITE_INFO.keys())
@@ -92,7 +96,18 @@ class GoIE(AdobePassIE):
                         video['url'], 'Go', video.get('id'), video.get('title')))
                 entries.reverse()
                 return self.playlist_result(entries, show_id, show_title)
-        video_data = self._extract_videos(brand, video_id)[0]
+        if sub_domain == 'disneynow':
+            for sub_domain in ['watchdisneychannel', 'watchdisneyjunior', 'watchdisneyxd']:
+                site_info = self._SITE_INFO[sub_domain]
+                brand = site_info['brand']
+                try:
+                    video_data = self._extract_videos(brand, video_id)[0]
+                except IndexError:
+                    continue
+                else:
+                    break
+        else:
+            video_data = self._extract_videos(brand, video_id)[0]
         video_id = video_data['id']
         title = video_data['title']
 
