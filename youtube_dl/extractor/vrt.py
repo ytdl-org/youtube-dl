@@ -155,7 +155,7 @@ class VRTIE(InfoExtractor):
 
 
 class SporzaIE(InfoExtractor):
-    _VALID_URL = r'https?://sporza\.be/nl/(?P<year>[^/]+)/(?P<month>[^/]+)/(?P<day>[^/]+)/(?P<id>[^/]+)/*'
+    _VALID_URL = r'https?://sporza\.be/nl/(?:[^/]+/)+(?P<id>[^/]+)/*'
     _TESTS = [{
         'url': 'https://sporza.be/nl/2018/08/20/israel-is-geen-partij-voor-de-yellow-tigers/',
         'md5': 'b13b66a4b95daccf2ada6b3ca94109c6',
@@ -164,7 +164,7 @@ class SporzaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Israël is geen partij voor de Yellow Tigers',
             'description': 'Israël is geen partij voor de Yellow Tigers',
-            'thumbnail': 'https://images.vrt.be/orig/2018/08/20/152c3089-a470-11e8-abcc-02b7b76bf47f.jpg',
+            'thumbnail': r're:^https?://images.vrt.be/.*\.jpg$',
         },
     },
         {
@@ -175,7 +175,7 @@ class SporzaIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'De Tour van Thomas',
                 'description': 'De Tour van Thomas',
-                'thumbnail': 'https://images.vrt.be/orig/2018/07/29/b9ad0d38-9376-11e8-abcc-02b7b76bf47f.jpg',
+                'thumbnail': r're:^https?://images.vrt.be/.*\.jpg$',
             },
     }
     ]
@@ -203,11 +203,7 @@ class SporzaIE(InfoExtractor):
         src = api_url + "/videos/" + publication_id + "$" + video_id + "/?vrtPlayerToken=" + vrtPlayerToken + "&client=" + video_client
         meta = self._download_json(src, video_id)
 
-        formats = self._extract_m3u8_formats(meta["targetUrls"][0]["url"], video_id)
-        # Set the extention as the m3u8 extractor doesn't do this.
-        # VLC doesn't play nice with .m3u8 files from sporza.be
-        for i in formats:
-            i['ext'] = "mp4"
+        formats = self._extract_m3u8_formats(meta["targetUrls"][0]["url"], video_id, "mp4")
 
         return {
             'id': video_id,
