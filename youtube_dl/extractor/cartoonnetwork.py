@@ -31,7 +31,14 @@ class CartoonNetworkIE(TurnerBaseIE):
                 video_id = simpleid.replace('";', '')
             if "_cnglobal.currentVideo.episodeTitle" in line:
                 simpletitle = line.split('episodeTitle = "',1)[1]
-                title = simpletitle.replace('";', '')		
+                title = simpletitle.replace('";', '')
+            if "_cnglobal.currentVideo.authType" in line:
+                simpleauth = line.split('authType = "',1)[1]
+                auth = simpleauth.replace('";', '')
+        if "auth" in auth:
+                auth_required = 'true'
+        if "unauth" in auth:
+                auth_required = ''
         description = ''
         info = self._extract_ngtv_info(
             video_id,
@@ -39,9 +46,7 @@ class CartoonNetworkIE(TurnerBaseIE):
             {
                 'url': url,
                 'site_name': 'CartoonNetwork',
-                'auth_required': self._search_regex(
-                    r'_cnglobal\.cvpFullOrPreviewAuth\s*=\s*(true|false);',
-                    webpage, 'auth required', default='false') == 'true',
+                'auth_required': auth_required,
             },
         )
         info.update({
