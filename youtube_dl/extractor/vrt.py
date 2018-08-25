@@ -203,7 +203,8 @@ class SporzaIE(InfoExtractor):
         src = api_url + "/videos/" + publication_id + "$" + video_id + "/?vrtPlayerToken=" + vrtPlayerToken + "&client=" + video_client
         meta = self._download_json(src, video_id)
 
-        formats = self._extract_m3u8_formats(meta["targetUrls"][0]["url"], video_id, "mp4")
+        targetUrl = next((x for x in meta["targetUrls"] if x["type"]=="hls")).get("url")
+        formats = self._extract_m3u8_formats(targetUrl, video_id, "mp4")
 
         return {
             'id': video_id,
