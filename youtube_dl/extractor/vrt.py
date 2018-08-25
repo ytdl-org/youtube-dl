@@ -152,3 +152,68 @@ class VRTIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
         }
+
+
+class SporzaIE(InfoExtractor):
+    _VALID_URL = r'https?://sporza\.be/nl/(?P<year>[^/]+)/(?P<month>[^/]+)/(?P<day>[^/]+)/(?P<id>[^/]+)/*'
+    _TESTS = [{
+        'url': 'https://sporza.be/nl/2018/08/20/israel-is-geen-partij-voor-de-yellow-tigers/',
+        'md5': 'b13b66a4b95daccf2ada6b3ca94109c6',
+        'info_dict': {
+            'id': 'vid-f3d9b1c6-5c8b-414c-a2ba-9c895e50c890',
+            'ext': 'mp4',
+            'title': 'Israël is geen partij voor de Yellow Tigers',
+            'description': 'Israël is geen partij voor de Yellow Tigers',
+            'thumbnail': 'https://images.vrt.be/orig/2018/08/20/152c3089-a470-11e8-abcc-02b7b76bf47f.jpg',
+        },
+    },
+        {
+            'url': 'https://sporza.be/nl/2018/07/29/de-tour-van-thomas/',
+            'md5': '267213350047577b614ee9804dd5b0c8',
+            'info_dict': {
+                'id': 'vid-155c6577-addc-48d3-b86f-1d66f19d6bcc',
+                'ext': 'mp4',
+                'title': 'De Tour van Thomas',
+                'description': 'De Tour van Thomas',
+                'thumbnail': 'https://images.vrt.be/orig/2018/07/29/b9ad0d38-9376-11e8-abcc-02b7b76bf47f.jpg',
+            },
+    }
+    ]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        video_id = self._search_regex(
+            r'data-videoid=\"([^\"]+)\"', webpage, 'video id', fatal=True)
+        publication_id = self._search_regex(
+            r'data-publicationid=\"([^\"]+)\"', webpage, 'publication id', fatal=True)
+        api_url = self._search_regex(
+            r'data-mediaapiurl=\"([^\"]+)\"', webpage, 'api url',
+            default="https://media-services-public.vrt.be/vualto-video-aggregator-web/rest/external/v1")
+        video_client = self._search_regex(
+            r'data-client=\"([^\"]+)\"', webpage, 'video client', default="sporza")
+
+        # Get a player token
+        vrtPlayerToken = self._download_json(
+            "https://media-services-public.vrt.be/vualto-video-aggregator-web/rest/external/v1/tokens",
+            video_id, headers={"content-type": ""}, data={}).get(
+            "vrtPlayerToken")  # Default content type results in 415
+
+        src = api_url + "/videos/" + publication_id + "$" + video_id + "/?vrtPlayerToken=" + vrtPlayerToken + "&client=" + video_client
+        meta = self._download_json(src, video_id)
+
+        formats = self._extract_m3u8_formats(meta["targetUrls"][0]["url"], video_id)
+        # Set the extention as the m3u8 extractor doesn't do this.
+        # VLC doesn't play nice with .m3u8 files from sporza.be
+        for i in formats:
+            i['ext'] = "mp4"
+
+        return {
+            'id': video_id,
+            'title': meta.get('title') or self._og_search_title(webpage),
+            'description': meta.get('shortDescription'),
+            'thumbnail': meta.get('posterImageUrl'),
+            'duration': meta.get('duration'),
+            'formats': formats,
+        }

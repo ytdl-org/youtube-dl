@@ -1317,7 +1317,10 @@ from .voxmedia import (
     VoxMediaIE,
 )
 from .vporn import VpornIE
-from .vrt import VRTIE
+from .vrt import (
+    VRTIE,
+    SporzaIE,
+)
 from .vrak import VrakIE
 from .vrv import (
     VRVIE,
