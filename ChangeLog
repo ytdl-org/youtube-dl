@@ -1,3 +1,39 @@
+version 2018.08.22
+
+Core
+* [utils] Use pure browser header for User-Agent (#17236)
+
+Extractors
++ [kinopoisk] Add support for kinopoisk.ru (#17283)
++ [yourporn] Add support for yourporn.sexy (#17298)
++ [go] Add support for disneynow.go.com (#16299, #17264)
++ [6play] Add support for play.rtl.hr (#17249)
+* [anvato] Fallback to generic API key for access-key-to-API-key lookup
+  (#16788, #17254)
+* [lci] Fix extraction (#17274)
+* [bbccouk] Extend id URL regular expression (#17270)
+* [cwtv] Fix extraction (#17256)
+* [nova] Fix extraction (#17241)
++ [generic] Add support for expressen embeds
+* [raywenderlich] Adapt to site redesign (#17225)
++ [redbulltv] Add support redbull.com tv URLs (#17218)
++ [bitchute] Add support for bitchute.com (#14052)
++ [clyp] Add support for token protected media (#17184)
+* [imdb] Fix extension extraction (#17167)
+
+
+version 2018.08.04
+
+Extractors
+* [funk:channel] Improve byChannelAlias extraction (#17142)
+* [twitch] Fix authentication (#17024, #17126)
+* [twitch:vod] Improve URL regular expression (#17135)
+* [watchbox] Fix extraction (#17107)
+* [pbs] Fix extraction (#17109)
+* [theplatform] Relax URL regular expression (#16181, #17097)
++ [viqeo] Add support for viqeo.tv (#17066)
+
+
 version 2018.07.29
 
 Extractors

@@ -15,6 +15,7 @@ from ..utils import (
     strip_jsonp,
     strip_or_none,
     unified_strdate,
+    url_or_none,
     US_RATINGS,
 )
 
@@ -557,6 +558,13 @@ class PBSIE(InfoExtractor):
                 if redirect_url and redirect_url not in redirect_urls:
                     redirects.append(redirect)
                     redirect_urls.add(redirect_url)
+            encodings = info.get('encodings')
+            if isinstance(encodings, list):
+                for encoding in encodings:
+                    encoding_url = url_or_none(encoding)
+                    if encoding_url and encoding_url not in redirect_urls:
+                        redirects.append({'url': encoding_url})
+                        redirect_urls.add(encoding_url)
 
         chapters = []
         # Player pages may also serve different qualities
