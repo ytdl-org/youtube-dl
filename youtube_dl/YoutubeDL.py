@@ -937,6 +937,9 @@ class YoutubeDL(object):
                     '[%s] playlist %s: Downloading %d videos' %
                     (ie_result['extractor'], playlist, num_entries))
 
+            if self.params.get('playlistreverse', False):
+                ie_entries = ie_entries[::-1]
+
             if isinstance(ie_entries, list):
                 n_all_entries = len(ie_entries)
                 if playlistitems:
@@ -968,9 +971,6 @@ class YoutubeDL(object):
                         ie_entries, playliststart, playlistend))
                 n_entries = len(entries)
                 report_download(n_entries)
-
-            if self.params.get('playlistreverse', False):
-                entries = entries[::-1]
 
             if self.params.get('playlistrandom', False):
                 random.shuffle(entries)
