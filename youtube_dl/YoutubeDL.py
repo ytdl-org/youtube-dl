@@ -938,10 +938,7 @@ class YoutubeDL(object):
                     '[%s] playlist %s: Downloading %d videos' %
                     (ie_result['extractor'], playlist, num_entries))
 
-            if self.params.get('playlistreverse', False):
-                ie_entries = ie_entries[::-1]
-
-            if isinstance(ie_entries, list):
+            def build_entries_list(ie_entries):
                 n_all_entries = len(ie_entries)
                 if playlistitems:
                     entries = make_playlistitems_entries(ie_entries)
@@ -951,6 +948,12 @@ class YoutubeDL(object):
                 self.to_screen(
                     '[%s] playlist %s: Collected %d video ids (downloading %d of them)' %
                     (ie_result['extractor'], playlist, n_all_entries, n_entries))
+                return n_entries, entries
+
+            if isinstance(ie_entries, list):
+                if self.params.get('playlistreverse', False):
+                    ie_entries = ie_entries[::-1]
+                n_entries, entries = build_entries_list(ie_entries)
             elif isinstance(ie_entries, PagedList):
                 if playlistitems:
                     entries = []
@@ -959,19 +962,28 @@ class YoutubeDL(object):
                             item - 1, item
                         ))
                 else:
-                    entries = ie_entries.getslice(
-                        playliststart, playlistend)
+                    if self.params.get('playlistreverse', False):
+                        entries = ie_entries.getslice()
+                        entries = entries[::-1][playliststart:playlistend]
+
+                    else:
+                        entries = ie_entries.getslice(
+                            playliststart, playlistend)
                 n_entries = len(entries)
                 report_download(n_entries)
             else:  # iterable
-                if playlistitems:
-                    entries = make_playlistitems_entries(list(itertools.islice(
-                        ie_entries, 0, max(playlistitems))))
+                if self.params.get('playlistreverse', False):
+                    ie_entries = list(ie_entries)[::-1]
+                    n_entries, entries = build_entries_list(ie_entries)
                 else:
-                    entries = list(itertools.islice(
-                        ie_entries, playliststart, playlistend))
-                n_entries = len(entries)
-                report_download(n_entries)
+                    if playlistitems:
+                        entries = make_playlistitems_entries(list(itertools.islice(
+                            ie_entries, 0, max(playlistitems))))
+                    else:
+                        entries = list(itertools.islice(
+                            ie_entries, playliststart, playlistend))
+                    n_entries = len(entries)
+                    report_download(n_entries)
 
             if self.params.get('playlistrandom', False):
                 random.shuffle(entries)
