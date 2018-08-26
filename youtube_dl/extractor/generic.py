@@ -32,7 +32,6 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     UnsupportedError,
-    url_or_none,
     xpath_text,
 )
 from .commonprotocols import RtmpIE
