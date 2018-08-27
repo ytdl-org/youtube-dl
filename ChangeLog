@@ -1,3 +1,17 @@
+version <unreleased>
+
+Extractors
++ [youtube:playlist] Add support for music album playlists (OLAK5uy_ prefix)
+  (#17361)
+* [bitchute] Fix extraction by pass custom User-Agent (#17360)
+* [webofstories:playlist] Fix extraction (#16914)
++ [tvplayhome] Add support for new tvplay URLs (#17344)
++ [generic] Allow relative src for videojs embeds (#17324)
++ [xfileshare] Add support for vidto.se (#17317)
++ [vidzi] Add support for vidzi.nu (#17316)
++ [nova:embed] Add support for media.cms.nova.cz (#17282)
+
+
 version 2018.08.22
 
 Core
