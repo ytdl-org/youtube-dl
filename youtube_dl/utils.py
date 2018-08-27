@@ -884,9 +884,7 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     source_address = ydl_handler._params.get('source_address')
 
     if source_address is not None:
-        filter_for = socket.AF_INET
-        if '.' not in source_address:
-            filter_for = socket.AF_INET6
+        filter_for = socket.AF_INET if '.' in source_address else socket.AF_INET6
         # This is to workaround _create_connection() from socket where it will try all
         # address data from getaddrinfo() including IPv6. This filters the result from
         # getaddrinfo() based on the source_address value.
@@ -896,8 +894,8 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
             host, port = address
             err = None
             addrs = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
-            ipv4_addrs = [addr for addr in addrs if addr[0] == filter_for]
-            for res in ipv4_addrs:
+            ip_addrs = [addr for addr in addrs if addr[0] == filter_for]
+            for res in ip_addrs:
                 af, socktype, proto, canonname, sa = res
                 sock = None
                 try:
@@ -915,7 +913,7 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
             if err is not None:
                 raise err
             else:
-                raise socket.error("getaddrinfo returns an empty list")
+                raise socket.error('Unknown error occurred')
         hc._create_connection = _create_connection
 
         sa = (source_address, 0)
