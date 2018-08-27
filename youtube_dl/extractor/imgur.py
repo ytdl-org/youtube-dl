@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
 from ..utils import (
     int_or_none,
     js_to_json,
@@ -13,7 +12,7 @@ from ..utils import (
 
 
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:gallery|(?:topic|r)/[^/]+)/)?(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z]+)?$'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:gallery|(?:topic|r)/[^/]+)/)?(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z0-9]+)?$'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
@@ -21,7 +20,7 @@ class ImgurIE(InfoExtractor):
             'id': 'A61SaA1',
             'ext': 'mp4',
             'title': 're:Imgur GIF$|MRW gifv is up and running without any bugs$',
-            'description': 'Imgur: The most awesome images on the Internet.',
+            'description': 'Imgur: The magic of the Internet',
         },
     }, {
         'url': 'https://imgur.com/A61SaA1',
@@ -29,7 +28,7 @@ class ImgurIE(InfoExtractor):
             'id': 'A61SaA1',
             'ext': 'mp4',
             'title': 're:Imgur GIF$|MRW gifv is up and running without any bugs$',
-            'description': 'Imgur: The most awesome images on the Internet.',
+            'description': 'Imgur: The magic of the Internet',
         },
     }, {
         'url': 'https://imgur.com/gallery/YcAQlkx',
@@ -37,8 +36,6 @@ class ImgurIE(InfoExtractor):
             'id': 'YcAQlkx',
             'ext': 'mp4',
             'title': 'Classic Steve Carell gif...cracks me up everytime....damn the repost downvotes....',
-            'description': 'Imgur: The most awesome images on the Internet.'
-
         }
     }, {
         'url': 'http://imgur.com/topic/Funny/N8rOudd',
@@ -46,12 +43,15 @@ class ImgurIE(InfoExtractor):
     }, {
         'url': 'http://imgur.com/r/aww/VQcQPhM',
         'only_matching': True,
+    }, {
+        'url': 'https://i.imgur.com/crGpqCV.mp4',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            compat_urlparse.urljoin(url, video_id), video_id)
+        gifv_url = 'https://i.imgur.com/{id}.gifv'.format(id=video_id)
+        webpage = self._download_webpage(gifv_url, video_id)
 
         width = int_or_none(self._og_search_property(
             'video:width', webpage, default=None))
@@ -107,7 +107,7 @@ class ImgurIE(InfoExtractor):
         return {
             'id': video_id,
             'formats': formats,
-            'description': self._og_search_description(webpage),
+            'description': self._og_search_description(webpage, default=None),
             'title': self._og_search_title(webpage),
         }
 

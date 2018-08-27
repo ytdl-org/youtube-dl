@@ -12,6 +12,7 @@ from ..utils import (
     float_or_none,
     get_element_by_class,
     int_or_none,
+    js_to_json,
     parse_duration,
     parse_iso8601,
     try_get,
@@ -20,7 +21,6 @@ from ..utils import (
     urljoin,
 )
 from ..compat import (
-    compat_etree_fromstring,
     compat_HTTPError,
     compat_urlparse,
 )
@@ -29,7 +29,7 @@ from ..compat import (
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
-    _ID_REGEX = r'[pbw][\da-z]{7}'
+    _ID_REGEX = r'(?:[pbm][\da-z]{7}|w[\da-z]{7,14})'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:www\.)?bbc\.co\.uk/
@@ -236,6 +236,12 @@ class BBCCoUkIE(InfoExtractor):
         }, {
             'url': 'http://www.bbc.co.uk/programmes/w3csv1y9',
             'only_matching': True,
+        }, {
+            'url': 'https://www.bbc.co.uk/programmes/m00005xn',
+            'only_matching': True,
+        }, {
+            'url': 'https://www.bbc.co.uk/programmes/w172w4dww1jqt5s',
+            'only_matching': True,
         }]
 
     _USP_RE = r'/([^/]+?)\.ism(?:\.hlsv2\.ism)?/[^/]+\.m3u8'
@@ -333,14 +339,9 @@ class BBCCoUkIE(InfoExtractor):
         self._raise_extractor_error(last_exception)
 
     def _download_media_selector_url(self, url, programme_id=None):
-        try:
-            media_selection = self._download_xml(
-                url, programme_id, 'Downloading media selection XML')
-        except ExtractorError as ee:
-            if isinstance(ee.cause, compat_HTTPError) and ee.cause.code in (403, 404):
-                media_selection = compat_etree_fromstring(ee.cause.read().decode('utf-8'))
-            else:
-                raise
+        media_selection = self._download_xml(
+            url, programme_id, 'Downloading media selection XML',
+            expected_status=(403, 404))
         return self._process_media_selector(media_selection, programme_id)
 
     def _process_media_selector(self, media_selection, programme_id):
@@ -772,6 +773,28 @@ class BBCIE(BBCCoUkIE):
         # single video article embedded with data-media-vpid
         'url': 'http://www.bbc.co.uk/sport/rowing/35908187',
         'only_matching': True,
+    }, {
+        'url': 'https://www.bbc.co.uk/bbcthree/clip/73d0bbd0-abc3-4cea-b3c0-cdae21905eb1',
+        'info_dict': {
+            'id': 'p06556y7',
+            'ext': 'mp4',
+            'title': 'Transfers: Cristiano Ronaldo to Man Utd, Arsenal to spend?',
+            'description': 'md5:4b7dfd063d5a789a1512e99662be3ddd',
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        # window.__PRELOADED_STATE__
+        'url': 'https://www.bbc.co.uk/radio/play/b0b9z4yl',
+        'info_dict': {
+            'id': 'b0b9z4vz',
+            'ext': 'mp4',
+            'title': 'Prom 6: An American in Paris and Turangalila',
+            'description': 'md5:51cf7d6f5c8553f197e58203bc78dff8',
+            'uploader': 'Radio 3',
+            'uploader_id': 'bbc_radio_three',
+        },
     }]
 
     @classmethod
@@ -993,6 +1016,66 @@ class BBCIE(BBCCoUkIE):
                     'formats': formats,
                     'subtitles': subtitles,
                 }
+
+        preload_state = self._parse_json(self._search_regex(
+            r'window\.__PRELOADED_STATE__\s*=\s*({.+?});', webpage,
+            'preload state', default='{}'), playlist_id, fatal=False)
+        if preload_state:
+            current_programme = preload_state.get('programmes', {}).get('current') or {}
+            programme_id = current_programme.get('id')
+            if current_programme and programme_id and current_programme.get('type') == 'playable_item':
+                title = current_programme.get('titles', {}).get('tertiary') or playlist_title
+                formats, subtitles = self._download_media_selector(programme_id)
+                self._sort_formats(formats)
+                synopses = current_programme.get('synopses') or {}
+                network = current_programme.get('network') or {}
+                duration = int_or_none(
+                    current_programme.get('duration', {}).get('value'))
+                thumbnail = None
+                image_url = current_programme.get('image_url')
+                if image_url:
+                    thumbnail = image_url.replace('{recipe}', '1920x1920')
+                return {
+                    'id': programme_id,
+                    'title': title,
+                    'description': dict_get(synopses, ('long', 'medium', 'short')),
+                    'thumbnail': thumbnail,
+                    'duration': duration,
+                    'uploader': network.get('short_title'),
+                    'uploader_id': network.get('id'),
+                    'formats': formats,
+                    'subtitles': subtitles,
+                }
+
+        bbc3_config = self._parse_json(
+            self._search_regex(
+                r'(?s)bbcthreeConfig\s*=\s*({.+?})\s*;\s*<', webpage,
+                'bbcthree config', default='{}'),
+            playlist_id, transform_source=js_to_json, fatal=False)
+        if bbc3_config:
+            bbc3_playlist = try_get(
+                bbc3_config, lambda x: x['payload']['content']['bbcMedia']['playlist'],
+                dict)
+            if bbc3_playlist:
+                playlist_title = bbc3_playlist.get('title') or playlist_title
+                thumbnail = bbc3_playlist.get('holdingImageURL')
+                entries = []
+                for bbc3_item in bbc3_playlist['items']:
+                    programme_id = bbc3_item.get('versionID')
+                    if not programme_id:
+                        continue
+                    formats, subtitles = self._download_media_selector(programme_id)
+                    self._sort_formats(formats)
+                    entries.append({
+                        'id': programme_id,
+                        'title': playlist_title,
+                        'thumbnail': thumbnail,
+                        'timestamp': timestamp,
+                        'formats': formats,
+                        'subtitles': subtitles,
+                    })
+                return self.playlist_result(
+                    entries, playlist_id, playlist_title, playlist_description)
 
         def extract_all(pattern):
             return list(filter(None, map(

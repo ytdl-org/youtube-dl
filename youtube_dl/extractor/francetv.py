@@ -16,6 +16,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     try_get,
+    url_or_none,
 )
 from .dailymotion import DailymotionIE
 
@@ -115,14 +116,13 @@ class FranceTVIE(InfoExtractor):
 
         def sign(manifest_url, manifest_id):
             for host in ('hdfauthftv-a.akamaihd.net', 'hdfauth.francetv.fr'):
-                signed_url = self._download_webpage(
+                signed_url = url_or_none(self._download_webpage(
                     'https://%s/esi/TA' % host, video_id,
                     'Downloading signed %s manifest URL' % manifest_id,
                     fatal=False, query={
                         'url': manifest_url,
-                    })
-                if (signed_url and isinstance(signed_url, compat_str) and
-                        re.search(r'^(?:https?:)?//', signed_url)):
+                    }))
+                if signed_url:
                     return signed_url
             return manifest_url
 
@@ -377,6 +377,31 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
             webpage, 'video id').split('@')
 
         return self._make_url_result(video_id, catalogue)
+
+
+class FranceTVInfoSportIE(FranceTVBaseInfoExtractor):
+    IE_NAME = 'sport.francetvinfo.fr'
+    _VALID_URL = r'https?://sport\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://sport.francetvinfo.fr/les-jeux-olympiques/retour-sur-les-meilleurs-moments-de-pyeongchang-2018',
+        'info_dict': {
+            'id': '6e49080e-3f45-11e8-b459-000d3a2439ea',
+            'ext': 'mp4',
+            'title': 'Retour sur les meilleurs moments de Pyeongchang 2018',
+            'timestamp': 1523639962,
+            'upload_date': '20180413',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [FranceTVIE.ie_key()],
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(r'data-video="([^"]+)"', webpage, 'video_id')
+        return self._make_url_result(video_id, 'Sport-web')
 
 
 class GenerationWhatIE(InfoExtractor):

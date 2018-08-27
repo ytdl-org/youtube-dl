@@ -282,7 +282,9 @@ class LimelightMediaIE(LimelightBaseIE):
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         video_id = self._match_id(url)
-        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+        })
 
         pc, mobile, metadata = self._extract(
             video_id, 'getPlaylistByMediaId',

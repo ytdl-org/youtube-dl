@@ -12,6 +12,8 @@ from ..utils import (
     determine_ext,
     dict_get,
     int_or_none,
+    orderedSet,
+    strip_or_none,
     try_get,
     urljoin,
     compat_str,
@@ -137,7 +139,12 @@ class SVTPlayBaseIE(SVTBaseIE):
 
 class SVTPlayIE(SVTPlayBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
-    _VALID_URL = r'https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp|kanaler)/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)
+                    (?:
+                        svt:(?P<svt_id>[^/?#&]+)|
+                        https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp|kanaler)/(?P<id>[^/?#&]+)
+                    )
+                    '''
     _TESTS = [{
         'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
         'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
@@ -164,10 +171,40 @@ class SVTPlayIE(SVTPlayBaseIE):
     }, {
         'url': 'https://www.svtplay.se/kanaler/svt1',
         'only_matching': True,
+    }, {
+        'url': 'svt:1376446-003A',
+        'only_matching': True,
+    }, {
+        'url': 'svt:14278044',
+        'only_matching': True,
     }]
 
+    def _adjust_title(self, info):
+        if info['is_live']:
+            info['title'] = self._live_title(info['title'])
+
+    def _extract_by_video_id(self, video_id, webpage=None):
+        data = self._download_json(
+            'https://api.svt.se/videoplayer-api/video/%s' % video_id,
+            video_id, headers=self.geo_verification_headers())
+        info_dict = self._extract_video(data, video_id)
+        if not info_dict.get('title'):
+            title = dict_get(info_dict, ('episode', 'series'))
+            if not title and webpage:
+                title = re.sub(
+                    r'\s*\|\s*.+?$', '', self._og_search_title(webpage))
+            if not title:
+                title = video_id
+            info_dict['title'] = title
+        self._adjust_title(info_dict)
+        return info_dict
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id, svt_id = mobj.group('id', 'svt_id')
+
+        if svt_id:
+            return self._extract_by_video_id(svt_id)
 
         webpage = self._download_webpage(url, video_id)
 
@@ -179,10 +216,6 @@ class SVTPlayIE(SVTPlayBaseIE):
 
         thumbnail = self._og_search_thumbnail(webpage)
 
-        def adjust_title(info):
-            if info['is_live']:
-                info['title'] = self._live_title(info['title'])
-
         if data:
             video_info = try_get(
                 data, lambda x: x['context']['dispatcher']['stores']['VideoTitlePageStore']['data']['video'],
@@ -193,24 +226,14 @@ class SVTPlayIE(SVTPlayBaseIE):
                     'title': data['context']['dispatcher']['stores']['MetaStore']['title'],
                     'thumbnail': thumbnail,
                 })
-                adjust_title(info_dict)
+                self._adjust_title(info_dict)
                 return info_dict
 
-        video_id = self._search_regex(
+        svt_id = self._search_regex(
             r'<video[^>]+data-video-id=["\']([\da-zA-Z-]+)',
-            webpage, 'video id', default=None)
+            webpage, 'video id')
 
-        if video_id:
-            data = self._download_json(
-                'https://api.svt.se/videoplayer-api/video/%s' % video_id,
-                video_id, headers=self.geo_verification_headers())
-            info_dict = self._extract_video(data, video_id)
-            if not info_dict.get('title'):
-                info_dict['title'] = re.sub(
-                    r'\s*\|\s*.+?$', '',
-                    info_dict.get('episode') or self._og_search_title(webpage))
-            adjust_title(info_dict)
-            return info_dict
+        return self._extract_by_video_id(svt_id, webpage)
 
 
 class SVTSeriesIE(SVTPlayBaseIE):
@@ -292,3 +315,57 @@ class SVTSeriesIE(SVTPlayBaseIE):
 
         return self.playlist_result(
             entries, series_id, title, metadata.get('description'))
+
+
+class SVTPageIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?svt\.se/(?:[^/]+/)*(?P<id>[^/?&#]+)'
+    _TESTS = [{
+        'url': 'https://www.svt.se/sport/oseedat/guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
+        'info_dict': {
+            'id': 'guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
+            'title': 'GUIDE: Sommarträning du kan göra var och när du vill',
+        },
+        'playlist_count': 7,
+    }, {
+        'url': 'https://www.svt.se/nyheter/inrikes/ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
+        'info_dict': {
+            'id': 'ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
+            'title': 'Ebba Busch Thor har bara delvis rätt om ”no-go-zoner”',
+        },
+        'playlist_count': 1,
+    }, {
+        # only programTitle
+        'url': 'http://www.svt.se/sport/ishockey/jagr-tacklar-giroux-under-intervjun',
+        'info_dict': {
+            'id': '2900353',
+            'ext': 'mp4',
+            'title': 'Stjärnorna skojar till det - under SVT-intervjun',
+            'duration': 27,
+            'age_limit': 0,
+        },
+    }, {
+        'url': 'https://www.svt.se/nyheter/lokalt/vast/svt-testar-tar-nagon-upp-skrapet-1',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.svt.se/vader/manadskronikor/maj2018',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if SVTIE.suitable(url) else super(SVTPageIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result(
+                'svt:%s' % video_id, ie=SVTPlayIE.ie_key(), video_id=video_id)
+            for video_id in orderedSet(re.findall(
+                r'data-video-id=["\'](\d+)', webpage))]
+
+        title = strip_or_none(self._og_search_title(webpage, default=None))
+
+        return self.playlist_result(entries, playlist_id, title)

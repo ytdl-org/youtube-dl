@@ -8,6 +8,7 @@ from ..utils import (
     int_or_none,
     try_get,
     unified_timestamp,
+    url_or_none,
 )
 
 
@@ -34,8 +35,8 @@ class EggheadCourseIE(InfoExtractor):
 
         entries = []
         for lesson in lessons:
-            lesson_url = lesson.get('http_url')
-            if not lesson_url or not isinstance(lesson_url, compat_str):
+            lesson_url = url_or_none(lesson.get('http_url'))
+            if not lesson_url:
                 continue
             lesson_id = lesson.get('id')
             if lesson_id:
@@ -95,7 +96,8 @@ class EggheadLessonIE(InfoExtractor):
 
         formats = []
         for _, format_url in lesson['media_urls'].items():
-            if not format_url or not isinstance(format_url, compat_str):
+            format_url = url_or_none(format_url)
+            if not format_url:
                 continue
             ext = determine_ext(format_url)
             if ext == 'm3u8':
