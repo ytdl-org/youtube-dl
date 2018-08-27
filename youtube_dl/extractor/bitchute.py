@@ -34,9 +34,7 @@ class BitChuteIE(InfoExtractor):
 
         webpage = self._download_webpage(
             'https://www.bitchute.com/video/%s' % video_id, video_id, headers={
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0)'
-                              ' AppleWebKit/537.36 (KHTML, like Gecko) '
-                              'Chrome/69.0.3497.57 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.57 Safari/537.36',
             })
 
         title = self._search_regex(
