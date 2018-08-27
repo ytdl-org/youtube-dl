@@ -69,9 +69,20 @@ class RTBFIE(InfoExtractor):
 
     def _real_extract(self, url):
         live, media_id = re.match(self._VALID_URL, url).groups()
+        
+        webpage = self._download_webpage(url, media_id)
+
+        title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage, default=None)
+
+        # Remove date from title and description
+        title = re.sub(r'(?P<extra>\(\d{1,}\/\d{1,}\) - \d{2}\/\d{2}\/\d{4})$', '', title)
+        if description:
+            description = re.sub(r'(?P<extra>\(\d{1,}\/\d{1,} du \d{2}\/\d{2}\/\d{4}\))$', '', description)
+        
         embed_page = self._download_webpage(
             'https://www.rtbf.be/auvio/embed/' + ('direct' if live else 'media'),
-            media_id, query={'id': media_id})
+            media_id, query={'id': media_id}, note='Downloading embed webpage')
         data = self._parse_json(self._html_search_regex(
             r'data-media="([^"]+)"', embed_page, 'media data'), media_id)
 
@@ -83,7 +94,6 @@ class RTBFIE(InfoExtractor):
         if provider in self._PROVIDERS:
             return self.url_result(data['url'], self._PROVIDERS[provider])
 
-        title = data['title']
         is_live = data.get('isLive')
         if is_live:
             title = self._live_title(title)
@@ -151,7 +161,7 @@ class RTBFIE(InfoExtractor):
             'id': media_id,
             'formats': formats,
             'title': title,
-            'description': strip_or_none(data.get('description')),
+            'description': description,
             'thumbnail': data.get('thumbnail'),
             'duration': float_or_none(data.get('realDuration')),
             'timestamp': int_or_none(data.get('liveFrom')),
