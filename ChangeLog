@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.08.28
 
 Extractors
 + [youtube:playlist] Add support for music album playlists (OLAK5uy_ prefix)
