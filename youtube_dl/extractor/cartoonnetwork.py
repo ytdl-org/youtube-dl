@@ -26,7 +26,7 @@ class CartoonNetworkIE(TurnerBaseIE):
         video_id = self._html_search_regex(r'_cnglobal.currentVideo.mediaId = "(.+?)"', webpage, 'video_id')	
         title = self._html_search_regex(r'_cnglobal.currentVideo.episodeTitle = "(.+?)"', webpage, 'title')
         auth_required = self._html_search_regex(r'_cnglobal.currentVideo.authType = "(.+?)"', webpage, 'authType')
-        description = self._html_search_regex(r'<div id="cn-videopage-ep-description-copy" itemprop="description">(.+?)</div>', webpage, 'authType')
+        description = self._html_search_regex(r'<div id="cn-videopage-ep-description-copy" itemprop="description">(.+?)</div>', webpage, 'description')
         info = self._extract_ngtv_info(
             video_id,
             {'networkId': 'cartoonnetwork'},
