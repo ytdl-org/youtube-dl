@@ -71,12 +71,16 @@ class RTBFIE(InfoExtractor):
         live, media_id = re.match(self._VALID_URL, url).groups()
         
         webpage = self._download_webpage(url, media_id)
+        
+        if not webpage:
+            raise ExtractorError('%s said: failed to download the webpage' % self.IE_NAME, expected=True)
 
-        title = self._og_search_title(webpage)
+        title = self._og_search_title(webpage, default=None)
         description = self._og_search_description(webpage, default=None)
 
         # Remove date from title and description
-        title = re.sub(r'(?P<extra>\(\d{1,}\/\d{1,}\) - \d{2}\/\d{2}\/\d{4})$', '', title)
+        if title:
+            title = re.sub(r'(?P<extra>\(\d{1,}\/\d{1,}\) - \d{2}\/\d{2}\/\d{4})$', '', title)
         if description:
             description = re.sub(r'(?P<extra>\(\d{1,}\/\d{1,} du \d{2}\/\d{2}\/\d{4}\))$', '', description)
         
