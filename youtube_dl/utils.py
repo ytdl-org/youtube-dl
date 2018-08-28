@@ -49,7 +49,6 @@ from .compat import (
     compat_os_name,
     compat_parse_qs,
     compat_shlex_quote,
-    compat_socket_create_connection,
     compat_str,
     compat_struct_pack,
     compat_struct_unpack,
@@ -82,7 +81,7 @@ def register_socks_protocols():
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0 (Chrome)',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -882,13 +881,51 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
         kwargs['strict'] = True
     hc = http_class(*args, **compat_kwargs(kwargs))
     source_address = ydl_handler._params.get('source_address')
+
     if source_address is not None:
+        # This is to workaround _create_connection() from socket where it will try all
+        # address data from getaddrinfo() including IPv6. This filters the result from
+        # getaddrinfo() based on the source_address value.
+        # This is based on the cpython socket.create_connection() function.
+        # https://github.com/python/cpython/blob/master/Lib/socket.py#L691
+        def _create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
+            host, port = address
+            err = None
+            addrs = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
+            af = socket.AF_INET if '.' in source_address[0] else socket.AF_INET6
+            ip_addrs = [addr for addr in addrs if addr[0] == af]
+            if addrs and not ip_addrs:
+                ip_version = 'v4' if af == socket.AF_INET else 'v6'
+                raise socket.error(
+                    "No remote IP%s addresses available for connect, can't use '%s' as source address"
+                    % (ip_version, source_address[0]))
+            for res in ip_addrs:
+                af, socktype, proto, canonname, sa = res
+                sock = None
+                try:
+                    sock = socket.socket(af, socktype, proto)
+                    if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                        sock.settimeout(timeout)
+                    sock.bind(source_address)
+                    sock.connect(sa)
+                    err = None  # Explicitly break reference cycle
+                    return sock
+                except socket.error as _:
+                    err = _
+                    if sock is not None:
+                        sock.close()
+            if err is not None:
+                raise err
+            else:
+                raise socket.error('getaddrinfo returns an empty list')
+        if hasattr(hc, '_create_connection'):
+            hc._create_connection = _create_connection
         sa = (source_address, 0)
         if hasattr(hc, 'source_address'):  # Python 2.7+
             hc.source_address = sa
         else:  # Python 2.6
             def _hc_connect(self, *args, **kwargs):
-                sock = compat_socket_create_connection(
+                sock = _create_connection(
                     (self.host, self.port), self.timeout, sa)
                 if is_https:
                     self.sock = ssl.wrap_socket(
@@ -1866,6 +1903,13 @@ def strip_or_none(v):
     return None if v is None else v.strip()
 
 
+def url_or_none(url):
+    if not url or not isinstance(url, compat_str):
+        return None
+    url = url.strip()
+    return url if re.match(r'^(?:[a-zA-Z][\da-zA-Z.+-]*:)?//', url) else None
+
+
 def parse_duration(s):
     if not isinstance(s, compat_basestring):
         return None
@@ -2282,7 +2326,7 @@ def parse_age_limit(s):
 def strip_jsonp(code):
     return re.sub(
         r'''(?sx)^
-            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]+)
+            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]*)
             (?:\s*&&\s*(?P=func_name))?
             \s*\(\s*(?P<callback_data>.*)\);?
             \s*?(?://[^\n]*)*$''',
@@ -3562,7 +3606,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             setattr(self, '%s_open' % type,
                     lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
                         meth(r, proxy, type))
-        return compat_urllib_request.ProxyHandler.__init__(self, proxies)
+        compat_urllib_request.ProxyHandler.__init__(self, proxies)
 
     def proxy_open(self, req, proxy, type):
         req_proxy = req.headers.get('Ytdl-request-proxy')

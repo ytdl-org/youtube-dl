@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from .generic import GenericIE
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -15,6 +14,7 @@ from ..utils import (
     unified_strdate,
     xpath_text,
     update_url_query,
+    url_or_none,
 )
 from ..compat import compat_etree_fromstring
 
@@ -100,7 +100,7 @@ class ARDMediathekIE(InfoExtractor):
                 quality = stream.get('_quality')
                 server = stream.get('_server')
                 for stream_url in stream_urls:
-                    if not isinstance(stream_url, compat_str) or '//' not in stream_url:
+                    if not url_or_none(stream_url):
                         continue
                     ext = determine_ext(stream_url)
                     if quality != 'auto' and ext in ('f4m', 'm3u8'):

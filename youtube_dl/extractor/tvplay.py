@@ -19,6 +19,7 @@ from ..utils import (
     try_get,
     unsmuggle_url,
     update_url_query,
+    url_or_none,
 )
 
 
@@ -31,12 +32,12 @@ class TVPlayIE(InfoExtractor):
                         https?://
                             (?:www\.)?
                             (?:
-                                tvplay(?:\.skaties)?\.lv/parraides|
-                                (?:tv3play|play\.tv3)\.lt/programos|
+                                tvplay(?:\.skaties)?\.lv(?:/parraides)?|
+                                (?:tv3play|play\.tv3)\.lt(?:/programos)?|
                                 tv3play(?:\.tv3)?\.ee/sisu|
                                 (?:tv(?:3|6|8|10)play|viafree)\.se/program|
                                 (?:(?:tv3play|viasat4play|tv6play|viafree)\.no|(?:tv3play|viafree)\.dk)/programmer|
-                                play\.novatv\.bg/programi
+                                play\.nova(?:tv)?\.bg/programi
                             )
                             /(?:[^/]+/)+
                         )
@@ -203,7 +204,15 @@ class TVPlayIE(InfoExtractor):
             },
         },
         {
+            'url': 'https://play.nova.bg/programi/zdravei-bulgariya/764300?autostart=true',
+            'only_matching': True,
+        },
+        {
             'url': 'http://tvplay.skaties.lv/parraides/vinas-melo-labak/418113?autostart=true',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://tvplay.skaties.lv/vinas-melo-labak/418113/?autostart=true',
             'only_matching': True,
         },
         {
@@ -255,7 +264,8 @@ class TVPlayIE(InfoExtractor):
         quality = qualities(['hls', 'medium', 'high'])
         formats = []
         for format_id, video_url in streams.get('streams', {}).items():
-            if not video_url or not isinstance(video_url, compat_str):
+            video_url = url_or_none(video_url)
+            if not video_url:
                 continue
             ext = determine_ext(video_url)
             if ext == 'f4m':
@@ -286,6 +296,7 @@ class TVPlayIE(InfoExtractor):
                         'url': m.group('url'),
                         'app': m.group('app'),
                         'play_path': m.group('playpath'),
+                        'preference': -1,
                     })
                 else:
                     fmt.update({
@@ -445,3 +456,102 @@ class ViafreeIE(InfoExtractor):
                     'skip_rtmp': True,
                 }),
             ie=TVPlayIE.ie_key(), video_id=video_id)
+
+
+class TVPlayHomeIE(InfoExtractor):
+    _VALID_URL = r'https?://tvplay\.(?:tv3\.lt|skaties\.lv|tv3\.ee)/[^/]+/[^/?#&]+-(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://tvplay.tv3.lt/aferistai-n-7/aferistai-10047125/',
+        'info_dict': {
+            'id': '366367',
+            'ext': 'mp4',
+            'title': 'Aferistai',
+            'description': 'Aferistai. Kalėdinė pasaka.',
+            'series': 'Aferistai [N-7]',
+            'season': '1 sezonas',
+            'season_number': 1,
+            'duration': 464,
+            'timestamp': 1394209658,
+            'upload_date': '20140307',
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [TVPlayIE.ie_key()],
+    }, {
+        'url': 'https://tvplay.skaties.lv/vinas-melo-labak/vinas-melo-labak-10280317/',
+        'only_matching': True,
+    }, {
+        'url': 'https://tvplay.tv3.ee/cool-d-ga-mehhikosse/cool-d-ga-mehhikosse-10044354/',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+
+        video_id = self._search_regex(
+            r'data-asset-id\s*=\s*["\'](\d{5,7})\b', webpage, 'video id',
+            default=None)
+
+        if video_id:
+            return self.url_result(
+                'mtg:%s' % video_id, ie=TVPlayIE.ie_key(), video_id=video_id)
+
+        m3u8_url = self._search_regex(
+            r'data-file\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'm3u8 url', group='url')
+
+        formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls')
+        self._sort_formats(formats)
+
+        title = self._search_regex(
+            r'data-title\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1', webpage,
+            'title', default=None, group='value') or self._html_search_meta(
+            'title', webpage, default=None) or self._og_search_title(
+            webpage)
+
+        description = self._html_search_meta(
+            'description', webpage,
+            default=None) or self._og_search_description(webpage)
+
+        thumbnail = self._search_regex(
+            r'data-image\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'thumbnail', default=None, group='url') or self._html_search_meta(
+            'thumbnail', webpage, default=None) or self._og_search_thumbnail(
+            webpage)
+
+        duration = int_or_none(self._search_regex(
+            r'data-duration\s*=\s*["\'](\d+)', webpage, 'duration',
+            fatal=False))
+
+        season = self._search_regex(
+            (r'data-series-title\s*=\s*(["\'])[^/]+/(?P<value>(?:(?!\1).)+)\1',
+             r'\bseason\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1'), webpage,
+            'season', default=None, group='value')
+        season_number = int_or_none(self._search_regex(
+            r'(\d+)(?:[.\s]+sezona|\s+HOOAEG)', season or '', 'season number',
+            default=None))
+        episode = self._search_regex(
+            r'(["\'])(?P<value>(?:(?!\1).)+)\1', webpage, 'episode',
+            default=None, group='value')
+        episode_number = int_or_none(self._search_regex(
+            r'(?:S[eē]rija|Osa)\s+(\d+)', episode or '', 'episode number',
+            default=None))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'season': season,
+            'season_number': season_number,
+            'episode': episode,
+            'episode_number': episode_number,
+            'formats': formats,
+        }

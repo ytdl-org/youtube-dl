@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
@@ -11,7 +13,13 @@ from ..utils import (
 
 
 class ExpressenIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?expressen\.se/tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?expressen\.se/
+                        (?:(?:tvspelare/video|videoplayer/embed)/)?
+                        tv/(?:[^/]+/)*
+                        (?P<id>[^/?#&]+)
+                    '''
     _TESTS = [{
         'url': 'https://www.expressen.se/tv/ledare/ledarsnack/ledarsnack-om-arbetslosheten-bland-kvinnor-i-speciellt-utsatta-omraden/',
         'md5': '2fbbe3ca14392a6b1b36941858d33a45',
@@ -28,7 +36,20 @@ class ExpressenIE(InfoExtractor):
     }, {
         'url': 'https://www.expressen.se/tv/kultur/kulturdebatt-med-expressens-karin-olsson/',
         'only_matching': True,
+    }, {
+        'url': 'https://www.expressen.se/tvspelare/video/tv/ditv/ekonomistudion/experterna-har-ar-fragorna-som-avgor-valet/?embed=true&external=true&autoplay=true&startVolume=0&partnerId=di',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.expressen.se/videoplayer/embed/tv/ditv/ekonomistudion/experterna-har-ar-fragorna-som-avgor-valet/?embed=true&external=true&autoplay=true&startVolume=0&partnerId=di',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return [
+            mobj.group('url') for mobj in re.finditer(
+                r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:www\.)?expressen\.se/(?:tvspelare/video|videoplayer/embed)/tv/.+?)\1',
+                webpage)]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)

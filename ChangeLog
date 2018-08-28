@@ -1,3 +1,94 @@
+version 2018.08.28
+
+Extractors
++ [youtube:playlist] Add support for music album playlists (OLAK5uy_ prefix)
+  (#17361)
+* [bitchute] Fix extraction by pass custom User-Agent (#17360)
+* [webofstories:playlist] Fix extraction (#16914)
++ [tvplayhome] Add support for new tvplay URLs (#17344)
++ [generic] Allow relative src for videojs embeds (#17324)
++ [xfileshare] Add support for vidto.se (#17317)
++ [vidzi] Add support for vidzi.nu (#17316)
++ [nova:embed] Add support for media.cms.nova.cz (#17282)
+
+
+version 2018.08.22
+
+Core
+* [utils] Use pure browser header for User-Agent (#17236)
+
+Extractors
++ [kinopoisk] Add support for kinopoisk.ru (#17283)
++ [yourporn] Add support for yourporn.sexy (#17298)
++ [go] Add support for disneynow.go.com (#16299, #17264)
++ [6play] Add support for play.rtl.hr (#17249)
+* [anvato] Fallback to generic API key for access-key-to-API-key lookup
+  (#16788, #17254)
+* [lci] Fix extraction (#17274)
+* [bbccouk] Extend id URL regular expression (#17270)
+* [cwtv] Fix extraction (#17256)
+* [nova] Fix extraction (#17241)
++ [generic] Add support for expressen embeds
+* [raywenderlich] Adapt to site redesign (#17225)
++ [redbulltv] Add support redbull.com tv URLs (#17218)
++ [bitchute] Add support for bitchute.com (#14052)
++ [clyp] Add support for token protected media (#17184)
+* [imdb] Fix extension extraction (#17167)
+
+
+version 2018.08.04
+
+Extractors
+* [funk:channel] Improve byChannelAlias extraction (#17142)
+* [twitch] Fix authentication (#17024, #17126)
+* [twitch:vod] Improve URL regular expression (#17135)
+* [watchbox] Fix extraction (#17107)
+* [pbs] Fix extraction (#17109)
+* [theplatform] Relax URL regular expression (#16181, #17097)
++ [viqeo] Add support for viqeo.tv (#17066)
+
+
+version 2018.07.29
+
+Extractors
+* [crunchyroll:playlist] Restrict URL regular expression (#17069, #17076)
++ [pornhub] Add support for subtitles (#16924, #17088)
+* [ceskatelevize] Use https for API call (#16997, #16999)
+* [dailymotion:playlist] Fix extraction (#16894)
+* [ted] Improve extraction
+* [ted] Fix extraction for videos without nativeDownloads (#16756, #17085)
+* [telecinco] Fix extraction (#17080)
+* [mitele] Reduce number of requests
+* [rai] Return non HTTP relinker URL intact (#17055)
+* [vk] Fix extraction for inline only videos (#16923)
+* [streamcloud] Fix extraction (#17054)
+* [facebook] Fix tahoe player extraction with authentication (#16655)
++ [puhutv] Add support for puhutv.com (#12712, #16010, #16269)
+
+
+version 2018.07.21
+
+Core
++ [utils] Introduce url_or_none
+* [utils] Allow JSONP without function name (#17028)
++ [extractor/common] Extract DASH and MSS formats from SMIL manifests
+
+Extractors
++ [bbc] Add support for BBC Radio Play pages (#17022)
+* [iwara] Fix download URLs (#17026)
+* [vrtnu] Relax title extraction and extract JSON-LD (#17018)
++ [viu] Pass Referer and Origin headers and area id (#16992)
++ [vimeo] Add another config regular expression (#17013)
++ [facebook] Extract view count (#16942)
+* [dailymotion] Improve description extraction (#16984)
+* [slutload] Fix and improve extraction (#17001)
+* [mediaset] Fix extraction (#16977)
++ [theplatform] Add support for theplatform TLD customization (#16977)
+* [imgur] Relax URL regular expression (#16987)
+* [pornhub] Improve extraction and extract all formats (#12166, #15891, #16262,
+  #16959)
+
+
 version 2018.07.10
 
 Core

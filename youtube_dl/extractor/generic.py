@@ -112,6 +112,8 @@ from .peertube import PeerTubeIE
 from .indavideo import IndavideoEmbedIE
 from .apa import APAIE
 from .foxnews import FoxNewsIE
+from .viqeo import ViqeoIE
+from .expressen import ExpressenIE
 
 
 class GenericIE(InfoExtractor):
@@ -2059,6 +2061,30 @@ class GenericIE(InfoExtractor):
             },
             'skip': 'TODO: fix nested playlists processing in tests',
         },
+        {
+            # Viqeo embeds
+            'url': 'https://viqeo.tv/',
+            'info_dict': {
+                'id': 'viqeo',
+                'title': 'All-new video platform',
+            },
+            'playlist_count': 6,
+        },
+        {
+            # videojs embed
+            'url': 'https://video.sibnet.ru/shell.php?videoid=3422904',
+            'info_dict': {
+                'id': 'shell',
+                'ext': 'mp4',
+                'title': 'Доставщик пиццы спросил разрешения сыграть на фортепиано',
+                'description': 'md5:89209cdc587dab1e4a090453dbaa2cb1',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['Failed to download MPD manifest'],
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -3092,6 +3118,16 @@ class GenericIE(InfoExtractor):
         if sharevideos_urls:
             return self.playlist_from_matches(
                 sharevideos_urls, video_id, video_title)
+
+        viqeo_urls = ViqeoIE._extract_urls(webpage)
+        if viqeo_urls:
+            return self.playlist_from_matches(
+                viqeo_urls, video_id, video_title, ie=ViqeoIE.ie_key())
+
+        expressen_urls = ExpressenIE._extract_urls(webpage)
+        if expressen_urls:
+            return self.playlist_from_matches(
+                expressen_urls, video_id, video_title, ie=ExpressenIE.ie_key())
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')

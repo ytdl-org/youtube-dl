@@ -16,6 +16,7 @@ from ..utils import (
     int_or_none,
     try_get,
     unified_timestamp,
+    url_or_none,
 )
 
 
@@ -176,8 +177,8 @@ class RutubePlaylistBaseIE(RutubeBaseIE):
                 break
 
             for result in results:
-                video_url = result.get('video_url')
-                if not video_url or not isinstance(video_url, compat_str):
+                video_url = url_or_none(result.get('video_url'))
+                if not video_url:
                     continue
                 entry = self._extract_video(result, require_title=False)
                 entry.update({

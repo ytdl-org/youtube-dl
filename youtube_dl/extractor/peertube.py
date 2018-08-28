@@ -10,6 +10,7 @@ from ..utils import (
     parse_resolution,
     try_get,
     unified_timestamp,
+    url_or_none,
     urljoin,
 )
 
@@ -200,8 +201,8 @@ class PeerTubeIE(InfoExtractor):
         for file_ in video['files']:
             if not isinstance(file_, dict):
                 continue
-            file_url = file_.get('fileUrl')
-            if not file_url or not isinstance(file_url, compat_str):
+            file_url = url_or_none(file_.get('fileUrl'))
+            if not file_url:
                 continue
             file_size = int_or_none(file_.get('size'))
             format_id = try_get(

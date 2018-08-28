@@ -64,7 +64,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
-    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL)[0-9A-Za-z-_]{10,}'
+    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)[0-9A-Za-z-_]{10,}'
 
     def _set_language(self):
         self._set_cookie(
@@ -2123,7 +2123,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD|UL|TL)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
@@ -2260,6 +2260,10 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
+        'only_matching': True,
+    }, {
+        # music album playlist
+        'url': 'OLAK5uy_m4xAFdmMC5rX3Ji3g93pQe3hqLZw_9LhM',
         'only_matching': True,
     }]
 
