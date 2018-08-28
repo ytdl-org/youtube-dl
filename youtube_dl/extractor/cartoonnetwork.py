@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .turner import TurnerBaseIE
 
 
@@ -23,14 +25,14 @@ class CartoonNetworkIE(TurnerBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_id = self._html_search_regex(r'_cnglobal.currentVideo.mediaId = "(.+?)"', webpage, 'video_id')	
-        title = self._html_search_regex(r'_cnglobal.currentVideo.episodeTitle = "(.+?)"', webpage, 'title')
-        auth_required = self._html_search_regex(r'_cnglobal.currentVideo.authType = "(.+?)"', webpage, 'authType')
-        videoType = self._html_search_regex(r'_cnglobal.currentVideo.videoType = "(.+?)"', webpage, 'videoType')
+        video_id = self._html_search_regex(r'[^>]+.mediaId = "(.+?)"', webpage, 'video_id')	
+        title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
+        auth_required = self._html_search_regex(r'[^>]+.authType = "(.+?)"', webpage, 'authType')
+        videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
         if 'short' in videoType:
             description = ''
         else:
-            description = self._html_search_regex(r'<div id="cn-videopage-ep-description-copy" itemprop="description">(.+?)</div>', webpage, 'description')
+            description = self._html_search_regex(r'<div id="[^>]+description[^>]*>(.+?)</div>', webpage, 'description')
         info = self._extract_ngtv_info(
             video_id,
             {'networkId': 'cartoonnetwork'},
