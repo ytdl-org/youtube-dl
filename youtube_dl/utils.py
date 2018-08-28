@@ -49,7 +49,6 @@ from .compat import (
     compat_os_name,
     compat_parse_qs,
     compat_shlex_quote,
-    compat_socket_create_connection,
     compat_str,
     compat_struct_pack,
     compat_struct_unpack,
@@ -884,7 +883,6 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     source_address = ydl_handler._params.get('source_address')
 
     if source_address is not None:
-        filter_for = socket.AF_INET if '.' in source_address else socket.AF_INET6
         # This is to workaround _create_connection() from socket where it will try all
         # address data from getaddrinfo() including IPv6. This filters the result from
         # getaddrinfo() based on the source_address value.
@@ -894,7 +892,13 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
             host, port = address
             err = None
             addrs = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
-            ip_addrs = [addr for addr in addrs if addr[0] == filter_for]
+            af = socket.AF_INET if '.' in source_address[0] else socket.AF_INET6
+            ip_addrs = [addr for addr in addrs if addr[0] == af]
+            if addrs and not ip_addrs:
+                ip_version = 'v4' if af == socket.AF_INET else 'v6'
+                raise socket.error(
+                    "No remote IP%s addresses available for connect, can't use '%s' as source address"
+                    % (ip_version, source_address[0]))
             for res in ip_addrs:
                 af, socktype, proto, canonname, sa = res
                 sock = None
@@ -913,15 +917,15 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
             if err is not None:
                 raise err
             else:
-                raise socket.error('Unknown error occurred')
-        hc._create_connection = _create_connection
-
+                raise socket.error('getaddrinfo returns an empty list')
+        if hasattr(hc, '_create_connection'):
+            hc._create_connection = _create_connection
         sa = (source_address, 0)
         if hasattr(hc, 'source_address'):  # Python 2.7+
             hc.source_address = sa
         else:  # Python 2.6
             def _hc_connect(self, *args, **kwargs):
-                sock = compat_socket_create_connection(
+                sock = _create_connection(
                     (self.host, self.port), self.timeout, sa)
                 if is_https:
                     self.sock = ssl.wrap_socket(
