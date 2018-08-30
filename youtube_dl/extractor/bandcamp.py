@@ -46,12 +46,14 @@ class BandcampIE(InfoExtractor):
         },
     }, {
         'url': 'https://relapsealumni.bandcamp.com/track/hail-to-fire',
-        'md5': 'fec12ff55e804bb7f7ebeb77a800c8b7',
         'info_dict': {
             'id': '2584466013',
             'ext': 'mp3',
             'title': 'Hail to Fire',
             'track_number': 5,
+        },
+        'params': {
+            'skip_download': True,
         },
     }]
 
