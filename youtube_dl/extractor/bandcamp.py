@@ -44,6 +44,17 @@ class BandcampIE(InfoExtractor):
             'title': 'Ben Prunty - Lanius (Battle)',
             'uploader': 'Ben Prunty',
         },
+    }, {
+        'url': 'https://relapsealumni.bandcamp.com/track/hail-to-fire',
+        'info_dict': {
+            'id': '2584466013',
+            'ext': 'mp3',
+            'title': 'Hail to Fire',
+            'track_number': 5,
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -82,6 +93,7 @@ class BandcampIE(InfoExtractor):
                     'thumbnail': thumbnail,
                     'formats': formats,
                     'duration': float_or_none(data.get('duration')),
+                    'track_number': int_or_none(data.get('track_num')),
                 }
             else:
                 raise ExtractorError('No free songs found')
