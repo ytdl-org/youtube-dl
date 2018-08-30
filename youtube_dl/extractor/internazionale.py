@@ -56,15 +56,13 @@ class InternazionaleIE(InfoExtractor):
             DATA_RE % 'job-id', webpage, 'video id', group='value')
         video_path = self._search_regex(
             DATA_RE % 'video-path', webpage, 'video path', group='value')
-        video_available_abroad = bool(int(self._search_regex(
+        video_available_abroad = self._search_regex(
             DATA_RE % 'video-available_abroad', webpage,
-            'video available aboard', default='1', group='value')))
+            'video available aboard', default='1', group='value')
+        video_available_abroad = video_available_abroad == '1'
 
-        if video_available_abroad:
-            video_base = 'https://video.internazionale.it/'
-        else:
-            video_base = 'https://video-ita.internazionale.it/'
-        video_base = video_base + '%s/%s.' % (video_path, video_id)
+        video_base = 'https://video%s.internazionale.it/%s/%s.' % \
+            ('' if video_available_abroad else '-ita', video_path, video_id)
 
         formats = self._extract_m3u8_formats(
             video_base + 'm3u8', display_id, 'mp4',
