@@ -21,7 +21,7 @@ from ..compat import compat_etree_fromstring
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         # available till 26.07.2022
@@ -282,3 +282,4 @@ class ARDIE(InfoExtractor):
             'upload_date': upload_date,
             'thumbnail': thumbnail,
         }
+
