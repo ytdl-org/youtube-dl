@@ -54,6 +54,7 @@ from .appletrailers import (
 from .archiveorg import ArchiveOrgIE
 from .arkena import ArkenaIE
 from .ard import (
+    ARDBetaMediathekIE,
     ARDIE,
     ARDMediathekIE,
 )

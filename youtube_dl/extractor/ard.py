@@ -282,3 +282,65 @@ class ARDIE(InfoExtractor):
             'upload_date': upload_date,
             'thumbnail': thumbnail,
         }
+
+
+class ARDBetaMediathekIE(InfoExtractor):
+    _VALID_URL = r'https://beta\.ardmediathek\.de/[a-z]+/player/(?P<video_id>[a-zA-Z0-9]+)/(?P<display_id>[^/?#]+)'
+    _TESTS = [{
+        'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
+        'md5': '2d02d996156ea3c397cfc5036b5d7f8f',
+        'info_dict': {
+            'display_id': 'die-robuste-roswita',
+            'id': 'Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
+            'title': 'Tatort: Die robuste Roswita',
+            'description': r're:^Der Mord.*trüber ist als die Ilm.',
+            'duration': 5316,
+            'thumbnail': 'https://img.ardmediathek.de/standard/00/55/43/59/34/-1774185891/16x9/960?mandant=ard',
+            'upload_date': '20180826',
+            'ext': 'mp4',
+        },
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('video_id')
+        display_id = mobj.group('display_id')
+
+        webpage = self._download_webpage(url, display_id)
+        data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);', webpage, 'json')
+        data = self._parse_json(data_json, display_id)
+
+        res = {
+            'id': video_id,
+            'display_id': display_id,
+        }
+        formats = []
+        for widget in data.values():
+            if widget.get('_geoblocked'):
+                raise ExtractorError('This video is not available due to geoblocking', expected=True)
+
+            if '_duration' in widget:
+                res['duration'] = widget['_duration']
+            if 'clipTitle' in widget:
+                res['title'] = widget['clipTitle']
+            if '_previewImage' in widget:
+                res['thumbnail'] = widget['_previewImage']
+            if 'broadcastedOn' in widget:
+                res['upload_date'] = unified_strdate(widget['broadcastedOn'])
+            if 'synopsis' in widget:
+                res['description'] = widget['synopsis']
+            if '_subtitleUrl' in widget:
+                res['subtitles'] = {'de': [{
+                    'ext': 'ttml',
+                    'url': widget['_subtitleUrl'],
+                }]}
+            if '_quality' in widget:
+                formats.append({
+                    'format_id': widget['_quality'],
+                    'url': widget['_stream']['json'][0],
+                })
+
+        self._sort_formats(formats)
+        res['formats'] = formats
+
+        return res
