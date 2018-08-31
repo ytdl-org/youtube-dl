@@ -38,6 +38,20 @@ class ARDMediathekIE(InfoExtractor):
             'skip_download': True,
         }
     }, {
+        # available till 30.11.2018
+        'url': 'https://one.ard.de/tv/Mord-mit-Aussicht/Mord-mit-Aussicht-6-39-T%C3%B6dliche-Nach/ONE/Video?bcastId=46384294&documentId=55586872',
+        'info_dict': {
+            'id': '55586872',
+            'ext': 'mp4',
+            'title': 'Mord mit Aussicht (6/39) - Tödliche Nachbarschaft',
+            'description': 'md5:4eba4c90e1fc0a072ba0e941ebb8170a',
+            'duration': 2850,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }, {
         # audio
         'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
         'only_matching': True,
