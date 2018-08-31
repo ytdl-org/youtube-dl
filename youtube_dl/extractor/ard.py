@@ -335,10 +335,24 @@ class ARDBetaMediathekIE(InfoExtractor):
                     'url': widget['_subtitleUrl'],
                 }]}
             if '_quality' in widget:
-                formats.append({
-                    'format_id': widget['_quality'],
-                    'url': widget['_stream']['json'][0],
-                })
+                format_url = widget['_stream']['json'][0]
+
+                if format_url.endswith('.f4m'):
+                    # Skip f4m - these URLs just return a 403
+                    formats.append({
+                        'format_id': 'f4m-' + widget['_quality'],
+                        'url': format_url,
+                        'preference': -1001,
+                    })
+                elif format_url.endswith('m3u8'):
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                else:
+                    formats.append({
+                        'format_id': 'http-' + widget['_quality'],
+                        'url': format_url,
+                        'preference': 10,  # Plain HTTP, that's nice
+                    })
 
         self._sort_formats(formats)
         res['formats'] = formats
