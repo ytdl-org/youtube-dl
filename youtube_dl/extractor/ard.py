@@ -307,7 +307,7 @@ class ARDBetaMediathekIE(InfoExtractor):
         display_id = mobj.group('display_id')
 
         webpage = self._download_webpage(url, display_id)
-        data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);', webpage, 'json')
+        data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
         data = self._parse_json(data_json, display_id)
 
         res = {
