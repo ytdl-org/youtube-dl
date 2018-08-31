@@ -196,7 +196,7 @@ class SporzaIE(InfoExtractor):
 
         # Get a player token
         vrtPlayerToken = self._download_json(
-            "https://media-services-public.vrt.be/vualto-video-aggregator-web/rest/external/v1/tokens",
+            api_url + "/tokens",
             video_id, headers={"content-type": "application/json"}, data={}).get(
             "vrtPlayerToken")  # Default content type results in 415, correct content-type from: https://github.com/pietje666/plugin.video.vrt.nu/issues/21
 
