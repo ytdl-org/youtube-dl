@@ -72,7 +72,7 @@ class VRVBaseIE(InfoExtractor):
 class VRVIE(VRVBaseIE):
     IE_NAME = 'vrv'
     _VALID_URL = r'https?://(?:www\.)?vrv\.co/watch/(?P<id>[A-Z0-9]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vrv.co/watch/GR9PNZ396/Hidden-America-with-Jonah-Ray:BOSTON-WHERE-THE-PAST-IS-THE-PRESENT',
         'info_dict': {
             'id': 'GR9PNZ396',
@@ -85,7 +85,28 @@ class VRVIE(VRVBaseIE):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }]
+
+    def _extract_vrv_formats(self, url, video_id, stream_format, audio_lang, hardsub_lang):
+        if not url or stream_format not in ('hls', 'dash'):
+            return []
+        stream_id = hardsub_lang or audio_lang
+        format_id = '%s-%s' % (stream_format, stream_id)
+        if stream_format == 'hls':
+            adaptive_formats = self._extract_m3u8_formats(
+                url, video_id, 'mp4', m3u8_id=format_id,
+                note='Downloading %s m3u8 information' % stream_id,
+                fatal=False)
+        elif stream_format == 'dash':
+            adaptive_formats = self._extract_mpd_formats(
+                url, video_id, mpd_id=format_id,
+                note='Downloading %s MPD information' % stream_id,
+                fatal=False)
+        if audio_lang:
+            for f in adaptive_formats:
+                if f.get('acodec') != 'none':
+                    f['language'] = audio_lang
+        return adaptive_formats
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -115,26 +136,9 @@ class VRVIE(VRVBaseIE):
         for stream_type, streams in streams_json.get('streams', {}).items():
             if stream_type in ('adaptive_hls', 'adaptive_dash'):
                 for stream in streams.values():
-                    stream_url = stream.get('url')
-                    if not stream_url:
-                        continue
-                    stream_id = stream.get('hardsub_locale') or audio_locale
-                    format_id = '%s-%s' % (stream_type.split('_')[1], stream_id)
-                    if stream_type == 'adaptive_hls':
-                        adaptive_formats = self._extract_m3u8_formats(
-                            stream_url, video_id, 'mp4', m3u8_id=format_id,
-                            note='Downloading %s m3u8 information' % stream_id,
-                            fatal=False)
-                    else:
-                        adaptive_formats = self._extract_mpd_formats(
-                            stream_url, video_id, mpd_id=format_id,
-                            note='Downloading %s MPD information' % stream_id,
-                            fatal=False)
-                    if audio_locale:
-                        for f in adaptive_formats:
-                            if f.get('acodec') != 'none':
-                                f['language'] = audio_locale
-                    formats.extend(adaptive_formats)
+                    formats.extend(self._extract_vrv_formats(
+                        stream.get('url'), video_id, stream_type.split('_')[1],
+                        audio_locale, stream.get('hardsub_locale')))
         self._sort_formats(formats)
 
         subtitles = {}
