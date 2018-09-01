@@ -338,12 +338,9 @@ class ARDBetaMediathekIE(InfoExtractor):
                 format_url = widget['_stream']['json'][0]
 
                 if format_url.endswith('.f4m'):
-                    # Skip f4m - these URLs just return a 403
-                    formats.append({
-                        'format_id': 'f4m-' + widget['_quality'],
-                        'url': format_url,
-                        'preference': -1001,
-                    })
+                    formats.extend(self._extract_f4m_formats(
+                        format_url + '?hdcore=3.11.0',
+                        video_id, f4m_id='hds', fatal=False))
                 elif format_url.endswith('m3u8'):
                     formats.extend(self._extract_m3u8_formats(
                         format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
