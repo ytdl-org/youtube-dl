@@ -56,6 +56,7 @@
  - **archive.org**: archive.org videos
  - **ARD**
  - **ARD:mediathek**
+ - **ARDBetaMediathek**
  - **Arkena**
  - **arte.tv**
  - **arte.tv:+7**
@@ -191,7 +192,7 @@
  - **Crackle**
  - **Criterion**
  - **CrooksAndLiars**
- - **Crunchyroll**
+ - **crunchyroll**
  - **crunchyroll:playlist**
  - **CSNNE**
  - **CSpan**: C-SPAN
