@@ -7,6 +7,7 @@ import zlib
 
 from hashlib import sha1
 from math import pow, sqrt, floor
+from .common import InfoExtractor
 from .vrv import VRVIE
 from ..compat import (
     compat_b64decode,
@@ -34,7 +35,7 @@ from ..aes import (
 )
 
 
-class CrunchyrollBaseIE(VRVIE):
+class CrunchyrollBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://www.crunchyroll.com/login'
     _LOGIN_FORM = 'login_form'
     _NETRC_MACHINE = 'crunchyroll'
@@ -140,7 +141,8 @@ class CrunchyrollBaseIE(VRVIE):
             parsed_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
 
 
-class CrunchyrollIE(CrunchyrollBaseIE):
+class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
+    IE_NAME = 'crunchyroll'
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|[^/]*/[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
