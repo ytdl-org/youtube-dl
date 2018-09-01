@@ -7,7 +7,7 @@ import zlib
 
 from hashlib import sha1
 from math import pow, sqrt, floor
-from .common import InfoExtractor
+from .vrv import VRVIE
 from ..compat import (
     compat_b64decode,
     compat_etree_fromstring,
@@ -18,6 +18,8 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     bytes_to_intlist,
+    extract_attributes,
+    float_or_none,
     intlist_to_bytes,
     int_or_none,
     lowercase_escape,
@@ -26,14 +28,13 @@ from ..utils import (
     unified_strdate,
     urlencode_postdata,
     xpath_text,
-    extract_attributes,
 )
 from ..aes import (
     aes_cbc_decrypt,
 )
 
 
-class CrunchyrollBaseIE(InfoExtractor):
+class CrunchyrollBaseIE(VRVIE):
     _LOGIN_URL = 'https://www.crunchyroll.com/login'
     _LOGIN_FORM = 'login_form'
     _NETRC_MACHINE = 'crunchyroll'
@@ -148,7 +149,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
             'ext': 'mp4',
             'title': 'Wanna be the Strongest in the World Episode 1 – An Idol-Wrestler is Born!',
             'description': 'md5:2d17137920c64f2f49981a7797d275ef',
-            'thumbnail': 'http://img1.ak.crunchyroll.com/i/spire1-tmb/20c6b5e10f1a47b10516877d3c039cae1380951166_full.jpg',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Yomiuri Telecasting Corporation (YTV)',
             'upload_date': '20131013',
             'url': 're:(?!.*&amp)',
@@ -221,7 +222,7 @@ class CrunchyrollIE(CrunchyrollBaseIE):
         'info_dict': {
             'id': '535080',
             'ext': 'mp4',
-            'title': '11eyes Episode 1 – Piros éjszaka - Red Night',
+            'title': '11eyes Episode 1 – Red Night ~ Piros éjszaka',
             'description': 'Kakeru and Yuka are thrown into an alternate nightmarish world they call "Red Night".',
             'uploader': 'Marvelous AQL Inc.',
             'upload_date': '20091021',
@@ -437,13 +438,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if 'To view this, please log in to verify you are 18 or older.' in webpage:
             self.raise_login_required()
 
+        media = self._parse_json(self._search_regex(
+            r'vilos\.config\.media\s*=\s*({.+?});',
+            webpage, 'vilos media', default='{}'), video_id)
+        media_metadata = media.get('metadata') or {}
+
         video_title = self._html_search_regex(
             r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
             webpage, 'video_title')
         video_title = re.sub(r' {2,}', ' ', video_title)
-        video_description = self._parse_json(self._html_search_regex(
+        video_description = (self._parse_json(self._html_search_regex(
             r'<script[^>]*>\s*.+?\[media_id=%s\].+?({.+?"description"\s*:.+?})\);' % video_id,
-            webpage, 'description', default='{}'), video_id).get('description')
+            webpage, 'description', default='{}'), video_id) or media_metadata).get('description')
         if video_description:
             video_description = lowercase_escape(video_description.replace(r'\r\n', '\n'))
         video_upload_date = self._html_search_regex(
@@ -456,91 +462,99 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             [r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', r'<div>\s*Publisher:\s*<span>\s*(.+?)\s*</span>\s*</div>'],
             webpage, 'video_uploader', fatal=False)
 
-        available_fmts = []
-        for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
-            attrs = extract_attributes(a)
-            href = attrs.get('href')
-            if href and '/freetrial' in href:
-                continue
-            available_fmts.append(fmt)
-        if not available_fmts:
-            for p in (r'token=["\']showmedia\.([0-9]{3,4})p"', r'showmedia\.([0-9]{3,4})p'):
-                available_fmts = re.findall(p, webpage)
-                if available_fmts:
-                    break
-        video_encode_ids = []
         formats = []
-        for fmt in available_fmts:
-            stream_quality, stream_format = self._FORMAT_IDS[fmt]
-            video_format = fmt + 'p'
-            stream_infos = []
-            streamdata = self._call_rpc_api(
-                'VideoPlayer_GetStandardConfig', video_id,
-                'Downloading media info for %s' % video_format, data={
-                    'media_id': video_id,
-                    'video_format': stream_format,
-                    'video_quality': stream_quality,
-                    'current_page': url,
-                })
-            if streamdata is not None:
-                stream_info = streamdata.find('./{default}preload/stream_info')
+        for stream in media.get('streams', []):
+            formats.extend(self._extract_vrv_formats(
+                stream.get('url'), video_id, stream.get('format'),
+                stream.get('audio_lang'), stream.get('hardsub_lang')))
+        if not formats:
+            available_fmts = []
+            for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
+                attrs = extract_attributes(a)
+                href = attrs.get('href')
+                if href and '/freetrial' in href:
+                    continue
+                available_fmts.append(fmt)
+            if not available_fmts:
+                for p in (r'token=["\']showmedia\.([0-9]{3,4})p"', r'showmedia\.([0-9]{3,4})p'):
+                    available_fmts = re.findall(p, webpage)
+                    if available_fmts:
+                        break
+            if not available_fmts:
+                available_fmts = self._FORMAT_IDS.keys()
+            video_encode_ids = []
+
+            for fmt in available_fmts:
+                stream_quality, stream_format = self._FORMAT_IDS[fmt]
+                video_format = fmt + 'p'
+                stream_infos = []
+                streamdata = self._call_rpc_api(
+                    'VideoPlayer_GetStandardConfig', video_id,
+                    'Downloading media info for %s' % video_format, data={
+                        'media_id': video_id,
+                        'video_format': stream_format,
+                        'video_quality': stream_quality,
+                        'current_page': url,
+                    })
+                if streamdata is not None:
+                    stream_info = streamdata.find('./{default}preload/stream_info')
+                    if stream_info is not None:
+                        stream_infos.append(stream_info)
+                stream_info = self._call_rpc_api(
+                    'VideoEncode_GetStreamInfo', video_id,
+                    'Downloading stream info for %s' % video_format, data={
+                        'media_id': video_id,
+                        'video_format': stream_format,
+                        'video_encode_quality': stream_quality,
+                    })
                 if stream_info is not None:
                     stream_infos.append(stream_info)
-            stream_info = self._call_rpc_api(
-                'VideoEncode_GetStreamInfo', video_id,
-                'Downloading stream info for %s' % video_format, data={
-                    'media_id': video_id,
-                    'video_format': stream_format,
-                    'video_encode_quality': stream_quality,
-                })
-            if stream_info is not None:
-                stream_infos.append(stream_info)
-            for stream_info in stream_infos:
-                video_encode_id = xpath_text(stream_info, './video_encode_id')
-                if video_encode_id in video_encode_ids:
-                    continue
-                video_encode_ids.append(video_encode_id)
+                for stream_info in stream_infos:
+                    video_encode_id = xpath_text(stream_info, './video_encode_id')
+                    if video_encode_id in video_encode_ids:
+                        continue
+                    video_encode_ids.append(video_encode_id)
 
-                video_file = xpath_text(stream_info, './file')
-                if not video_file:
-                    continue
-                if video_file.startswith('http'):
-                    formats.extend(self._extract_m3u8_formats(
-                        video_file, video_id, 'mp4', entry_protocol='m3u8_native',
-                        m3u8_id='hls', fatal=False))
-                    continue
-
-                video_url = xpath_text(stream_info, './host')
-                if not video_url:
-                    continue
-                metadata = stream_info.find('./metadata')
-                format_info = {
-                    'format': video_format,
-                    'height': int_or_none(xpath_text(metadata, './height')),
-                    'width': int_or_none(xpath_text(metadata, './width')),
-                }
-
-                if '.fplive.net/' in video_url:
-                    video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
-                    parsed_video_url = compat_urlparse.urlparse(video_url)
-                    direct_video_url = compat_urlparse.urlunparse(parsed_video_url._replace(
-                        netloc='v.lvlt.crcdn.net',
-                        path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_file.split(':')[-1])))
-                    if self._is_valid_url(direct_video_url, video_id, video_format):
-                        format_info.update({
-                            'format_id': 'http-' + video_format,
-                            'url': direct_video_url,
-                        })
-                        formats.append(format_info)
+                    video_file = xpath_text(stream_info, './file')
+                    if not video_file:
+                        continue
+                    if video_file.startswith('http'):
+                        formats.extend(self._extract_m3u8_formats(
+                            video_file, video_id, 'mp4', entry_protocol='m3u8_native',
+                            m3u8_id='hls', fatal=False))
                         continue
 
-                format_info.update({
-                    'format_id': 'rtmp-' + video_format,
-                    'url': video_url,
-                    'play_path': video_file,
-                    'ext': 'flv',
-                })
-                formats.append(format_info)
+                    video_url = xpath_text(stream_info, './host')
+                    if not video_url:
+                        continue
+                    metadata = stream_info.find('./metadata')
+                    format_info = {
+                        'format': video_format,
+                        'height': int_or_none(xpath_text(metadata, './height')),
+                        'width': int_or_none(xpath_text(metadata, './width')),
+                    }
+
+                    if '.fplive.net/' in video_url:
+                        video_url = re.sub(r'^rtmpe?://', 'http://', video_url.strip())
+                        parsed_video_url = compat_urlparse.urlparse(video_url)
+                        direct_video_url = compat_urlparse.urlunparse(parsed_video_url._replace(
+                            netloc='v.lvlt.crcdn.net',
+                            path='%s/%s' % (remove_end(parsed_video_url.path, '/'), video_file.split(':')[-1])))
+                        if self._is_valid_url(direct_video_url, video_id, video_format):
+                            format_info.update({
+                                'format_id': 'http-' + video_format,
+                                'url': direct_video_url,
+                            })
+                            formats.append(format_info)
+                            continue
+
+                    format_info.update({
+                        'format_id': 'rtmp-' + video_format,
+                        'url': video_url,
+                        'play_path': video_file,
+                        'ext': 'flv',
+                    })
+                    formats.append(format_info)
         self._sort_formats(formats, ('height', 'width', 'tbr', 'fps'))
 
         metadata = self._call_rpc_api(
@@ -549,7 +563,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'media_id': video_id,
             })
 
-        subtitles = self.extract_subtitles(video_id, webpage)
+        subtitles = {}
+        for subtitle in media.get('subtitles', []):
+            subtitle_url = subtitle.get('url')
+            if not subtitle_url:
+                continue
+            subtitles.setdefault(subtitle.get('language', 'enUS'), []).append({
+                'url': subtitle_url,
+                'ext': subtitle.get('format', 'ass'),
+            })
+        if not subtitles:
+            subtitles = self.extract_subtitles(video_id, webpage)
 
         # webpage provide more accurate data than series_title from XML
         series = self._html_search_regex(
@@ -557,8 +581,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             webpage, 'series', fatal=False)
         season = xpath_text(metadata, 'series_title')
 
-        episode = xpath_text(metadata, 'episode_title')
-        episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
+        episode = xpath_text(metadata, 'episode_title') or media_metadata.get('title')
+        episode_number = int_or_none(xpath_text(metadata, 'episode_number') or media_metadata.get('episode_number'))
 
         season_number = int_or_none(self._search_regex(
             r'(?s)<h\d[^>]+id=["\']showmedia_about_episode_num[^>]+>.+?</h\d>\s*<h4>\s*Season (\d+)',
@@ -568,7 +592,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'id': video_id,
             'title': video_title,
             'description': video_description,
-            'thumbnail': xpath_text(metadata, 'episode_image_url'),
+            'duration': float_or_none(media_metadata.get('duration'), 1000),
+            'thumbnail': xpath_text(metadata, 'episode_image_url') or media_metadata.get('thumbnail', {}).get('url'),
             'uploader': video_uploader,
             'upload_date': video_upload_date,
             'series': series,
