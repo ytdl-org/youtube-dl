@@ -1,3 +1,19 @@
+version <unreleased>
+
+Core
+* [utils] Skip remote IP addresses non matching to source address' IP version
+  when creating a connection (#13422, #17362)
+
+Extractors
++ [ard] Add support for one.ard.de (#17397)
+* [niconico] Fix extraction on python3 (#17393, #17407)
+* [ard] Extract f4m formats
+* [crunchyroll] Parse vilos media data (#17343)
++ [ard] Add support for Beta ARD Mediathek
++ [bandcamp] Extract more metadata (#13197)
+* [internazionale] Fix extraction of non-available-abroad videos (#17386)
+
+
 version 2018.08.28
 
 Extractors
