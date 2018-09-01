@@ -21,7 +21,7 @@ from ..compat import compat_etree_fromstring
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         # available till 26.07.2022
@@ -37,6 +37,9 @@ class ARDMediathekIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        'url': 'https://one.ard.de/tv/Mord-mit-Aussicht/Mord-mit-Aussicht-6-39-T%C3%B6dliche-Nach/ONE/Video?bcastId=46384294&documentId=55586872',
+        'only_matching': True,
     }, {
         # audio
         'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
