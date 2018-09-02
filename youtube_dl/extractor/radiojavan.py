@@ -6,11 +6,13 @@ from .common import InfoExtractor
 from ..utils import (
     unified_strdate,
     str_to_int,
+    urlencode_postdata,
 )
 
 
 class RadioJavanIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?radiojavan\.com/videos/video/(?P<id>[^/]+)/?'
+    _HOST_TRACKER_URL = 'https://www.radiojavan.com/videos/video_host'
     _TEST = {
         'url': 'http://www.radiojavan.com/videos/video/chaartaar-ashoobam',
         'md5': 'e85208ffa3ca8b83534fca9fe19af95b',
@@ -31,8 +33,18 @@ class RadioJavanIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        download_host = self._download_json(
+            self._HOST_TRACKER_URL,
+            video_id,
+            data=urlencode_postdata({'id': video_id}),
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': url,
+            }
+        )['host']
+
         formats = [{
-            'url': 'https://media.rdjavan.com/media/music_video/%s' % video_path,
+            'url': '%s/%s' % (download_host, video_path),
             'format_id': '%sp' % height,
             'height': int(height),
         } for height, video_path in re.findall(r"RJ\.video(\d+)p\s*=\s*'/?([^']+)'", webpage)]
