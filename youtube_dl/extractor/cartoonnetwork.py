@@ -27,12 +27,16 @@ class CartoonNetworkIE(TurnerBaseIE):
         webpage = self._download_webpage(url, display_id)
         video_id = self._html_search_regex(r'[^>]+.mediaId = "(.+?)"', webpage, 'video_id')	
         title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
-        auth_required = self._html_search_regex(r'[^>]+.authType = "(.+?)"', webpage, 'authType')
+        auth = self._html_search_regex(r'[^>]+.authType = "(.+?)"', webpage, 'authType')
+        if "unauth" in auth:
+            auth_required = 'false'
+        if "auth" in auth:
+            auth_required = 'true'
         videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
         if 'short' in videoType:
             description = ''
         else:
-            description = self._html_search_regex(r'<div id="[^>]+description[^>]*>(.+?)</div>', webpage, 'description')
+            description = self._html_search_regex(r'id="[^>]+description[^>]*>(.+?)</div>', webpage, 'description')
         info = self._extract_ngtv_info(
             video_id,
             {'networkId': 'cartoonnetwork'},
