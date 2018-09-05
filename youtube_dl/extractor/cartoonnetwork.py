@@ -29,7 +29,7 @@ class CartoonNetworkIE(TurnerBaseIE):
         title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
         auth = self._html_search_regex(r'[^>]+.authType = "(.+?)"', webpage, 'authType')
         if "unauth" in auth:
-            auth_required = 'false'
+            auth_required = ''
         if "auth" in auth:
             auth_required = 'true'
         videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
