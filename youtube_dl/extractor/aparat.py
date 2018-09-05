@@ -34,17 +34,17 @@ class AparatIE(InfoExtractor):
             'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id,
             video_id)
 
-        title = self._search_regex(r'\s+title:\s*"([^"]+)"', webpage, 'title')
-
         file_list = self._parse_json(
             self._search_regex(
-                r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage,
+                r'var options\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage,
                 'file list'),
             video_id)
 
+        title = file_list['plugins']['sabaPlayerPlugin']['title']
+
         formats = []
-        for item in file_list[0]:
-            file_url = url_or_none(item.get('file'))
+        for item in file_list['plugins']['sabaPlayerPlugin']['multiSRC'][1]:
+            file_url = url_or_none(item.get('src'))
             if not file_url:
                 continue
             ext = mimetype2ext(item.get('type'))
@@ -58,8 +58,7 @@ class AparatIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
-        thumbnail = self._search_regex(
-            r'image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
+        thumbnail = file_list['poster']
 
         return {
             'id': video_id,
