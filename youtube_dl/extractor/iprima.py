@@ -38,6 +38,8 @@ class IPrimaIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        self._set_cookie('play.iprima.cz', 'ott_adult_confirmed', '1')
+
         webpage = self._download_webpage(url, video_id)
 
         video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
