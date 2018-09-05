@@ -254,7 +254,7 @@ class PornHubIE(InfoExtractor):
         self._sort_formats(formats)
 
         video_uploader = self._html_search_regex(
-            r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:user|channel)s/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
+            r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
 
         view_count = self._extract_count(
@@ -346,7 +346,7 @@ class PornHubPlaylistIE(PornHubPlaylistBaseIE):
 
 
 class PornHubUserVideosIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?pornhub\.com/(?:user|channel)s/(?P<id>[^/]+)/videos'
+    _VALID_URL = r'https?://(?:[^/]+\.)?pornhub\.com/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos'
     _TESTS = [{
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'info_dict': {
@@ -377,6 +377,12 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'only_matching': True,
     }, {
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/model/jayndrea/videos/upload',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
         'only_matching': True,
     }]
 
