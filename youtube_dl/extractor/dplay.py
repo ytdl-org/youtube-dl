@@ -18,7 +18,6 @@ from ..utils import (
     int_or_none,
     remove_end,
     try_get,
-    unified_strdate,
     unified_timestamp,
     update_url_query,
     urljoin,
@@ -272,7 +271,7 @@ class DPlayItIE(InfoExtractor):
     _VALID_URL = r'https?://it\.dplay\.com/[^/]+/[^/]+/(?P<id>[^/?#]+)'
     _GEO_COUNTRIES = ['IT']
     _TEST = {
-        'url': 'http://it.dplay.com/nove/biografie-imbarazzanti/luigi-di-maio-la-psicosi-di-stanislawskij/',
+        'url': 'https://it.dplay.com/dplay-original/biografie-imbarazzanti/luigi-di-maio-la-psicosi-di-stanislawskij/',
         'md5': '2b808ffb00fc47b884a172ca5d13053c',
         'info_dict': {
             'id': '6918',
@@ -282,9 +281,10 @@ class DPlayItIE(InfoExtractor):
             'description': 'md5:3c7a4303aef85868f867a26f5cc14813',
             'thumbnail': r're:^https?://.*\.jpe?g',
             'upload_date': '20160524',
+            'timestamp': 1464076800,
             'series': 'Biografie imbarazzanti',
             'season_number': 1,
-            'episode': 'Luigi Di Maio: la psicosi di Stanislawskij',
+            'episode': 'Episode 1',
             'episode_number': 1,
         },
     }
@@ -295,6 +295,17 @@ class DPlayItIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         title = remove_end(self._og_search_title(webpage), ' | Dplay')
+
+        season_number = episode_number = series = None
+        videodata = self._html_search_regex(
+            r'\sdigitalData\s*=\s*JSON\.parse\([\'"]({[^;\n]+})[\'"]\)',
+            webpage, 'videodata', default=None)
+        if videodata:
+            videodata = self._parse_json(videodata, display_id, fatal=False)
+            if videodata and videodata.get('page') and videodata['page'].get('content'):
+                season_number = int_or_none(try_get(videodata, lambda x: x['page']['content']['season']))
+                episode_number = int_or_none(try_get(videodata, lambda x: x['page']['content']['episodeNo']))
+                series = try_get(videodata, lambda x: x['page']['content']['show'])
 
         video_id = None
 
@@ -342,24 +353,15 @@ class DPlayItIE(InfoExtractor):
         formats = self._extract_m3u8_formats(
             hls_url, display_id, ext='mp4', entry_protocol='m3u8_native',
             m3u8_id='hls')
+
+        if not formats and info.get('errors'):
+            error_message = '. '.join([try_get(error, lambda x: x['detail']) for error in info['errors']])
+            if 'access.denied.geoblocked' in [try_get(error, lambda x: x['code']) for error in info['errors']]:
+                self.raise_geo_restricted(error_message, self._GEO_COUNTRIES)
+            else:
+                raise ExtractorError(error_message, expected=True)
+
         self._sort_formats(formats)
-
-        series = self._html_search_regex(
-            r'(?s)<h1[^>]+class=["\'].*?\bshow_title\b.*?["\'][^>]*>(.+?)</h1>',
-            webpage, 'series', fatal=False)
-        episode = self._search_regex(
-            r'<p[^>]+class=["\'].*?\bdesc_ep\b.*?["\'][^>]*>\s*<br/>\s*<b>([^<]+)',
-            webpage, 'episode', fatal=False)
-
-        mobj = re.search(
-            r'(?s)<span[^>]+class=["\']dates["\'][^>]*>.+?\bS\.(?P<season_number>\d+)\s+E\.(?P<episode_number>\d+)\s*-\s*(?P<upload_date>\d{2}/\d{2}/\d{4})',
-            webpage)
-        if mobj:
-            season_number = int(mobj.group('season_number'))
-            episode_number = int(mobj.group('episode_number'))
-            upload_date = unified_strdate(mobj.group('upload_date'))
-        else:
-            season_number = episode_number = upload_date = None
 
         return {
             'id': compat_str(video_id or display_id),
@@ -367,10 +369,31 @@ class DPlayItIE(InfoExtractor):
             'title': title,
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
+            'formats': formats,
+            'timestamp': unified_timestamp(self._html_search_meta('uploadDate', webpage, fatal=False)),
             'series': series,
             'season_number': season_number,
-            'episode': episode,
             'episode_number': episode_number,
-            'upload_date': upload_date,
-            'formats': formats,
         }
+
+
+class DPlayEsIE(DPlayItIE):
+    _VALID_URL = r'https?://es\.dplay\.com/[^/]+/[^/]+/(?P<id>[^/?#]+)'
+    _GEO_COUNTRIES = ['ES']
+    _TEST = {
+        'url': 'https://es.dplay.com/dmax/la-fiebre-del-oro/temporada-8-episodio-1/',
+        'md5': '2b808ffb00fc47b884a172ca5d13053c',
+        'info_dict': {
+            'id': '21652',
+            'display_id': 'temporada-8-episodio-1',
+            'ext': 'mp4',
+            'title': 'La fiebre del oro: Episodio 1',
+            'description': 'md5:b9dcff2071086e003737485210675f69',
+            'thumbnail': r're:^https?://.*\.png?g',
+            'upload_date': '20180709',
+            'timestamp': 1531173540,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }

@@ -274,6 +274,7 @@ from .douyutv import (
 from .dplay import (
     DPlayIE,
     DPlayItIE,
+    DPlayEsIE,
 )
 from .dramafever import (
     DramaFeverIE,
