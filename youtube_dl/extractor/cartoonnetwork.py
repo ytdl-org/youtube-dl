@@ -28,24 +28,30 @@ class CartoonNetworkIE(TurnerBaseIE):
         video_id = self._html_search_regex(r'[^>]+.mediaId = "(.+?)"', webpage, 'video_id')	
         title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
         auth = self._html_search_regex(r'[^>]+.authType = "(.+?)"', webpage, 'authType')
-        if "unauth" in auth:
-            auth_required = ''
-        if "auth" in auth:
-            auth_required = 'true'
         videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
         if 'short' in videoType:
             description = ''
         else:
             description = self._html_search_regex(r'id="[^>]+description[^>]*>(.+?)</div>', webpage, 'description')
-        info = self._extract_ngtv_info(
-            video_id,
-            {'networkId': 'cartoonnetwork'},
-            {
+        if "auth" in auth:
+            info = self._extract_ngtv_info(
+                video_id,
+                {'networkId': 'cartoonnetwork'},
+                {
                 'url': url,
                 'site_name': 'CartoonNetwork',
-                'auth_required': auth_required,
-            },
-        )
+                'auth_required': 'true',
+                },
+            )
+        if "unauth" in auth:
+            info = self._extract_ngtv_info(
+                video_id,
+                {'networkId': 'cartoonnetwork'},
+                {
+                'url': url,
+                'site_name': 'CartoonNetwork',
+                },
+            )
         info.update({
             'id': video_id,
             'title': title,
