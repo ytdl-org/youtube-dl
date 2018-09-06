@@ -42,7 +42,7 @@ class MediaKlikkIE(InfoExtractor):
         video_id = str(info_meta['contentId']).decode('utf-8')
         info_ret = {
             '_type': 'video',
-            'title': info_meta['title'],
+            'title': info_meta.get('title') or self._og_search_title(webpage),
             'ext': 'mp4',
             'id': video_id
         }
