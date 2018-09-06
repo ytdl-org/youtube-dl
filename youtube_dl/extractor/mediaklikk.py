@@ -39,7 +39,9 @@ class MediaKlikkIE(InfoExtractor):
         info_json = self._html_search_regex(pattern, webpage, 'info_json')
         info_meta = self._parse_json(compat_urllib_parse_unquote(info_json),
                                      None)
-        video_id = str(info_meta['contentId']).decode('utf-8')
+        video_id = str(info_meta['contentId'])
+        if type(video_id) == bytes:
+            video_id = video_id.decode('utf-8')
         info_ret = {
             '_type': 'video',
             'title': info_meta.get('title') or self._og_search_title(webpage),
