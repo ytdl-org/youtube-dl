@@ -346,7 +346,7 @@ class PornHubPlaylistIE(PornHubPlaylistBaseIE):
 
 
 class PornHubUserVideosIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?pornhub\.com/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos'
+    _VALID_URL = r'https?://(?:[^/]+\.)?pornhub\.com/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'info_dict': {
@@ -383,6 +383,29 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
+        'only_matching': True,
+    }, {
+        # default sorting as Most Recent Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious',
+        'info_dict': {
+            'id': 'liz-vicious',
+        },
+        'playlist_mincount': 118,
+    }, {
+        # Most Viewed Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious?o=mv',
+        'only_matching': True,
+    }, {
+        # Top Rated Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious?o=tr',
+        'only_matching': True,
+    }, {
+        # Longest Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious?o=lg',
+        'only_matching': True,
+    }, {
+        # Newest Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious?o=cm',
         'only_matching': True,
     }]
 
