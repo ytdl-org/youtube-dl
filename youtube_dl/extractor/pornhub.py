@@ -348,7 +348,7 @@ class PornHubPlaylistIE(PornHubPlaylistBaseIE):
 class PornHubUserVideosIE(PornHubPlaylistBaseIE):
     _VALID_URL = r'https?://(?:[^/]+\.)?pornhub\.com/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)'
     _TESTS = [{
-        'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
+        'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
         'info_dict': {
             'id': 'zoe_ph',
         },
