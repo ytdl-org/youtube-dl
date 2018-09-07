@@ -32,7 +32,7 @@ class CartoonNetworkIE(TurnerBaseIE):
             auth_required = ''
         if "unauth" in auth:
             auth_required = 'true' #Auth needs to be first due to Auth being in unauth. :/
-        //print(auth_required)
+        #print(auth_required)
         videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
         if 'short' in videoType:
             description = ''
