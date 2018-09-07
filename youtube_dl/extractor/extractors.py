@@ -1061,6 +1061,10 @@ from .streamcz import StreamCZIE
 from .streetvoice import StreetVoiceIE
 from .stretchinternet import StretchInternetIE
 from .sunporno import SunPornoIE
+from .sverigesradio import (
+    SverigesRadioArtikelIE,
+    SverigesRadioAvsnittIE,
+)
 from .svt import (
     SVTIE,
     SVTPageIE,
@@ -1366,7 +1370,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
