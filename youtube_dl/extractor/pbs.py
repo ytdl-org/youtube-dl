@@ -667,8 +667,27 @@ class PBSIE(InfoExtractor):
 
         subtitles = {}
 
-        closed_captions_urls = info.get('cc')
-        if closed_captions_urls:
+        if info.get("closed_captions_url"):
+            closed_captions_url = info.get('closed_captions_url')
+
+            subtitles['en'] = [{
+                'ext': 'ttml',
+                'url': closed_captions_url,
+            }]
+            mobj = re.search(r'/(\d+)_Encoded\.dfxp', closed_captions_url)
+            if mobj:
+                ttml_caption_suffix, ttml_caption_id = mobj.group(0, 1)
+                ttml_caption_id = int(ttml_caption_id)
+                subtitles['en'].extend([{
+                    'url': closed_captions_url.replace(
+                        ttml_caption_suffix, '/%d_Encoded.srt' % (ttml_caption_id + 1)), 'ext': 'srt',
+                }, {
+                    'url': closed_captions_url.replace(ttml_caption_suffix, '/%d_Encoded.vtt' % (ttml_caption_id + 2)),
+                    'ext': 'vtt',
+                }])
+        elif info.get('cc'):
+            closed_captions_urls = info.get('cc')
+
             for (subtitle_format_name, subtitle_url) in closed_captions_urls.items():
                 # There seems to be issues when embedding converted .sami subtitles. Not sure why.
                 if subtitle_format_name == 'Caption-SAMI':
