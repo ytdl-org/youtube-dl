@@ -21,6 +21,7 @@ class SverigesRadioIE(InfoExtractor):
             # TODO more properties (see youtube_dl/extractor/common.py)
         }
 
+
 class SverigesRadioArtikelIE(SverigesRadioIE):
     _VALID_URL = r'https?://(?:www\.)?sverigesradio\.se/sida/artikel.aspx\?(.*)artikel=(?P<id>[0-9]*)'
     _TEST = {
@@ -38,6 +39,7 @@ class SverigesRadioArtikelIE(SverigesRadioIE):
         }
     }
     SR_type = 'publication'
+
 
 class SverigesRadioAvsnittIE(SverigesRadioIE):
     _VALID_URL = r'https?://(?:www\.)?sverigesradio\.se/sida/avsnitt/(?P<id>[0-9]*)'
