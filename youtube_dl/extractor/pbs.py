@@ -680,9 +680,11 @@ class PBSIE(InfoExtractor):
                 ttml_caption_id = int(ttml_caption_id)
                 subtitles['en'].extend([{
                     'url': closed_captions_url.replace(
-                        ttml_caption_suffix, '/%d_Encoded.srt' % (ttml_caption_id + 1)), 'ext': 'srt',
+                        ttml_caption_suffix, '/%d_Encoded.srt' % (ttml_caption_id + 1)),
+                    'ext': 'srt',
                 }, {
-                    'url': closed_captions_url.replace(ttml_caption_suffix, '/%d_Encoded.vtt' % (ttml_caption_id + 2)),
+                    'url': closed_captions_url.replace(
+                        ttml_caption_suffix, '/%d_Encoded.vtt' % (ttml_caption_id + 2)),
                     'ext': 'vtt',
                 }])
         elif info.get('cc'):
