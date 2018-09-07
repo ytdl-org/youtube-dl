@@ -27,11 +27,12 @@ class CartoonNetworkIE(TurnerBaseIE):
         webpage = self._download_webpage(url, display_id)
         video_id = self._html_search_regex(r'[^>]+.mediaId = "(.+?)"', webpage, 'video_id')	
         title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
-        auth = self._html_search_regex(r'[^>]+.authType = "(.+?)"', webpage, 'authType')
+        auth = self._html_search_regex(r'[^>]+currentVideo.authType = "(.+?)"', webpage, 'authType')
         if "auth" in auth:
             auth_required = ''
         if "unauth" in auth:
             auth_required = 'true' #Auth needs to be first due to Auth being in unauth. :/
+        //print(auth_required)
         videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
         if 'short' in videoType:
             description = ''
