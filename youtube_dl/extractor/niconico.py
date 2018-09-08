@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 
 import json
 import datetime
+import re
+import datetime
 
-from .common import InfoExtractor
+from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_urlparse,
@@ -468,3 +470,51 @@ class NiconicoPlaylistIE(InfoExtractor):
             'id': list_id,
             'entries': entries,
         }
+
+    #USAGE: youtube-dl "nicosearch<NUMBER OF ENTRIES>:<SEARCH STRING>"
+class NicovideoIE(SearchInfoExtractor):
+    IE_DESC = 'Nico video search'
+    _MAX_RESULTS = 100000
+    _SEARCH_KEY = 'nicosearch'
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
+        entries = []
+        currDate = datetime.datetime.now().date()
+        
+	while True:
+            search_url = "http://www.nicovideo.jp/search/%s?sort=f&order=d" % (query)
+            print(search_url)
+            r = self._get_entries_for_date(search_url, query, currDate)
+
+            #did we gather more entries in the last few pages than were asked for? If so, only add as many as are needed to reach the desired number.
+            m = n - len(entries)
+            entries += r[0:min(m, len(r))]
+                    
+            #for a given search, nicovideo will show a maximum of 50 pages. My way around this is specifying a date for the search, down to the date, which for the most part
+            #is a guarantee that the number of pages in the search results will not exceed 50. For any given search for a day, we extract everything available, and move on, until
+            #finding as many entries as were requested.
+            currDate -= datetime.timedelta(days=1)
+            if(len(entries) >= n):
+                break
+    
+        return {
+            '_type': 'playlist',
+            'id': query,
+            'entries': entries
+            }
+
+    def _get_entries_for_date(self, url, query, date, pageNumber = 1):
+        link = url + "&page=" + str(pageNumber) + "&start=" + str(date) + "&end=" + str(date)
+        results = self._download_webpage(link, query, note='Downloading results page %s for date %s' % (pageNumber, date))
+        entries = []
+        r = re.findall(r'<a href="/watch/(..[0-9]{1,8})\?', results)
+        
+        for item in r:
+            e = self.url_result("http://www.nicovideo.jp/watch/" + str(item), 'Niconico')
+            entries.append(e)
+
+        #each page holds a maximum of 32 entries. If we've seen 32 entries on the current page,
+        #it's possible there may be another, so we can check. It's a little awkward, but it works.
+        if(len(r) >= 32):
+            entries += self._get_entries_for_date(url, query, date, pageNumber + 1)
+        return entries
