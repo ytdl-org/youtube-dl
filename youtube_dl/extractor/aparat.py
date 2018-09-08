@@ -43,19 +43,20 @@ class AparatIE(InfoExtractor):
         title = file_list['plugins']['sabaPlayerPlugin']['title']
 
         formats = []
-        for item in file_list['plugins']['sabaPlayerPlugin']['multiSRC'][1]:
-            file_url = url_or_none(item.get('src'))
-            if not file_url:
-                continue
-            ext = mimetype2ext(item.get('type'))
-            label = item.get('label')
-            formats.append({
-                'url': file_url,
-                'ext': ext,
-                'format_id': label or ext,
-                'height': int_or_none(self._search_regex(
-                    r'(\d+)[pP]', label or '', 'height', default=None)),
-            })
+        for list in file_list['plugins']['sabaPlayerPlugin']['multiSRC']:
+            for item in list:
+                file_url = url_or_none(item.get('src'))
+                if not file_url:
+                    continue
+                ext = mimetype2ext(item.get('type'))
+                label = item.get('label')
+                formats.append({
+                    'url': file_url,
+                    'ext': ext,
+                    'format_id': label or ext,
+                    'height': int_or_none(self._search_regex(
+                        r'(\d+)[pP]', label or '', 'height', default=None)),
+                })
         self._sort_formats(formats)
 
         thumbnail = file_list['poster']
