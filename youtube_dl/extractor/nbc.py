@@ -7,6 +7,7 @@ import re
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     find_xpath_attr,
     smuggle_url,
@@ -75,11 +76,16 @@ class NBCIE(AdobePassIE):
             'url': 'https://www.nbc.com/classic-tv/charles-in-charge/video/charles-in-charge-pilot/n3310',
             'only_matching': True,
         },
+        {
+            # Percent escaped url
+            'url': 'https://www.nbc.com/up-all-night/video/day-after-valentine%27s-day/n2189',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
-        permalink = 'http' + permalink
+        permalink = 'http' + compat_urllib_parse_unquote(permalink)
         response = self._download_json(
             'https://api.nbc.com/v3/videos', video_id, query={
                 'filter[permalink]': permalink,
