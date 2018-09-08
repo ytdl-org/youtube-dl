@@ -484,7 +484,6 @@ class NicovideoIE(SearchInfoExtractor):
 
         while True:
             search_url = "http://www.nicovideo.jp/search/%s?sort=f&order=d" % (query)
-            print(search_url)
             r = self._get_entries_for_date(search_url, query, currDate)
 
             # did we gather more entries in the last few pages than were asked for? If so, only add as many as are needed to reach the desired number.
@@ -495,7 +494,7 @@ class NicovideoIE(SearchInfoExtractor):
             # is a guarantee that the number of pages in the search results will not exceed 50. For any given search for a day, we extract everything available, and move on, until
             # finding as many entries as were requested.
             currDate -= datetime.timedelta(days=1)
-            if(len(entries) >= n):
+            if(len(entries) >= n or currDate < datetime.datetime(2007, 1, 1)):
                 break
 
         return {
@@ -506,7 +505,7 @@ class NicovideoIE(SearchInfoExtractor):
 
     def _get_entries_for_date(self, url, query, date, pageNumber=1):
         link = url + "&page=" + str(pageNumber) + "&start=" + str(date) + "&end=" + str(date)
-        results = self._download_webpage(link, query, note='Downloading results page %s for date %s' % (pageNumber, date))
+        results = self._download_webpage(link, query, note='Extracting results from page %s for date %s' % (pageNumber, date))
         entries = []
         r = re.findall(r'''<li.*(?!</li>) data-video-id=['|"](..[0-9]{1,8})''', results)
 
