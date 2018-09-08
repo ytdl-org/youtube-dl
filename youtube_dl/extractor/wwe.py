@@ -1,8 +1,7 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class WWEIE(InfoExtractor):
@@ -34,12 +33,17 @@ class WWEIE(InfoExtractor):
         player = drupal_settings['WWEVideoLanding']['initialVideo']
         metadata = player['playlist'][0]
 
-        title = metadata.get('title')
+        if metadata.get('file') is None:
+            raise ExtractorError('Unable to extract video url')
+
+        title = metadata.get('title') or self._og_search_title(webpage)
         video_url = 'https:' + metadata.get('file')
-        thumbnail = 'https://www.wwe.com' + metadata.get('image')
+        thumbnail = None
+        if metadata.get('image') is not None:
+            thumbnail = 'https://www.wwe.com' + metadata.get('image')
         description = metadata.get('description')
 
-        id = re.split('[/.]', video_url)[-2]
+        id = self._generic_id(video_url)
         formats = self._extract_m3u8_formats(video_url, id, 'mp4')
 
         return {
