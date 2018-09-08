@@ -117,7 +117,7 @@ class BeegIE(InfoExtractor):
         title = video['title']
         video_id = video.get('id') or video_id
         display_id = video.get('code')
-        description = video.get('desc')
+        description = video.get('plot more')
 
         timestamp = parse_iso8601(video.get('date'), ' ')
         duration = int_or_none(video.get('duration'))
