@@ -426,5 +426,7 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
             if not page_entries:
                 break
             entries.extend(page_entries)
+            if re.search(r'<button\s+id="moreDataBtn"|<link\s+rel="next"', webpage) is None:
+                break
 
         return self.playlist_result(entries, user_id)
