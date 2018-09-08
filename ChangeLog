@@ -1,3 +1,14 @@
+version 2018.09.08
+
+Extractors
+* [youtube] Fix extraction (#17457, #17464)
++ [pornhub:uservideos] Add support for new URLs (#17388)
+* [iprima] Confirm adult check (#17437)
+* [slideslive] Make check for video service name case-insensitive (#17429)
+* [radiojavan] Fix extraction (#17151)
+* [generic] Skip unsuccessful jwplayer extraction (#16735)
+
+
 version 2018.09.01
 
 Core
