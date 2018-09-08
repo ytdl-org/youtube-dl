@@ -4,49 +4,50 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     determine_ext,
     ExtractorError,
     js_to_json,
     strip_jsonp,
+    try_get,
     unified_strdate,
     update_url_query,
     urlhandle_detect_ext,
 )
 
 
-class WDRBaseIE(InfoExtractor):
-    def _extract_wdr_video(self, webpage, display_id):
-        # for wdr.de the data-extension is in a tag with the class "mediaLink"
-        # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
-        # for wdrmaus, in a tag with the class "videoButton" (previously a link
-        # to the page in a multiline "videoLink"-tag)
-        json_metadata = self._html_search_regex(
-            r'''(?sx)class=
-                    (?:
-                        (["\'])(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b.*?\1[^>]+|
-                        (["\'])videoLink\b.*?\2[\s]*>\n[^\n]*
-                    )data-extension=(["\'])(?P<data>(?:(?!\3).)+)\3
-            ''',
-            webpage, 'media link', default=None, group='data')
+class WDRIE(InfoExtractor):
+    _VALID_URL = r'https?://deviceids-medp\.wdr\.de/ondemand/\d+/(?P<id>\d+)\.js'
+    _GEO_COUNTRIES = ['DE']
+    _TEST = {
+        'url': 'http://deviceids-medp.wdr.de/ondemand/155/1557833.js',
+        'info_dict': {
+            'id': 'mdb-1557833',
+            'ext': 'mp4',
+            'title': 'Biathlon-Staffel verpasst Podest bei Olympia-Generalprobe',
+            'upload_date': '20180112',
+        },
+    }
 
-        if not json_metadata:
-            return
-
-        media_link_obj = self._parse_json(json_metadata, display_id,
-                                          transform_source=js_to_json)
-        jsonp_url = media_link_obj['mediaObj']['url']
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
 
         metadata = self._download_json(
-            jsonp_url, display_id, transform_source=strip_jsonp)
+            url, video_id, transform_source=strip_jsonp)
 
-        metadata_tracker_data = metadata['trackerData']
-        metadata_media_resource = metadata['mediaResource']
+        is_live = metadata.get('mediaType') == 'live'
+
+        tracker_data = metadata['trackerData']
+        media_resource = metadata['mediaResource']
 
         formats = []
 
         # check if the metadata contains a direct URL to a file
-        for kind, media_resource in metadata_media_resource.items():
+        for kind, media_resource in media_resource.items():
             if kind not in ('dflt', 'alt'):
                 continue
 
@@ -57,13 +58,13 @@ class WDRBaseIE(InfoExtractor):
                 ext = determine_ext(medium_url)
                 if ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        medium_url, display_id, 'mp4', 'm3u8_native',
+                        medium_url, video_id, 'mp4', 'm3u8_native',
                         m3u8_id='hls'))
                 elif ext == 'f4m':
                     manifest_url = update_url_query(
                         medium_url, {'hdcore': '3.2.0', 'plugin': 'aasp-3.2.0.77.18'})
                     formats.extend(self._extract_f4m_formats(
-                        manifest_url, display_id, f4m_id='hds', fatal=False))
+                        manifest_url, video_id, f4m_id='hds', fatal=False))
                 elif ext == 'smil':
                     formats.extend(self._extract_smil_formats(
                         medium_url, 'stream', fatal=False))
@@ -73,7 +74,7 @@ class WDRBaseIE(InfoExtractor):
                     }
                     if ext == 'unknown_video':
                         urlh = self._request_webpage(
-                            medium_url, display_id, note='Determining extension')
+                            medium_url, video_id, note='Determining extension')
                         ext = urlhandle_detect_ext(urlh)
                         a_format['ext'] = ext
                     formats.append(a_format)
@@ -81,30 +82,30 @@ class WDRBaseIE(InfoExtractor):
         self._sort_formats(formats)
 
         subtitles = {}
-        caption_url = metadata_media_resource.get('captionURL')
+        caption_url = media_resource.get('captionURL')
         if caption_url:
             subtitles['de'] = [{
                 'url': caption_url,
                 'ext': 'ttml',
             }]
 
-        title = metadata_tracker_data['trackerClipTitle']
+        title = tracker_data['trackerClipTitle']
 
         return {
-            'id': metadata_tracker_data.get('trackerClipId', display_id),
-            'display_id': display_id,
-            'title': title,
-            'alt_title': metadata_tracker_data.get('trackerClipSubcategory'),
+            'id': tracker_data.get('trackerClipId', video_id),
+            'title': self._live_title(title) if is_live else title,
+            'alt_title': tracker_data.get('trackerClipSubcategory'),
             'formats': formats,
             'subtitles': subtitles,
-            'upload_date': unified_strdate(metadata_tracker_data.get('trackerClipAirTime')),
+            'upload_date': unified_strdate(tracker_data.get('trackerClipAirTime')),
+            'is_live': is_live,
         }
 
 
-class WDRIE(WDRBaseIE):
+class WDRPageIE(InfoExtractor):
     _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
-    _PAGE_REGEX = r'/(?:mediathek/)?[^/]+/(?P<type>[^/]+)/(?P<display_id>.+)\.html'
-    _VALID_URL = r'(?P<page_url>https?://(?:www\d\.)?wdr\d?\.de)' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
+    _PAGE_REGEX = r'/(?:mediathek/)?(?:[^/]+/)*(?P<display_id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:www\d?\.)?(?:wdr\d?|sportschau)\.de' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
 
     _TESTS = [
         {
@@ -124,6 +125,7 @@ class WDRIE(WDRBaseIE):
                     'ext': 'ttml',
                 }]},
             },
+            'skip': 'HTTP Error 404: Not Found',
         },
         {
             'url': 'http://www1.wdr.de/mediathek/audio/wdr3/wdr3-gespraech-am-samstag/audio-schriftstellerin-juli-zeh-100.html',
@@ -139,19 +141,17 @@ class WDRIE(WDRBaseIE):
                 'is_live': False,
                 'subtitles': {}
             },
+            'skip': 'HTTP Error 404: Not Found',
         },
         {
             'url': 'http://www1.wdr.de/mediathek/video/live/index.html',
             'info_dict': {
-                'id': 'mdb-103364',
+                'id': 'mdb-1406149',
                 'ext': 'mp4',
-                'display_id': 'index',
-                'title': r're:^WDR Fernsehen im Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'title': r're:^WDR Fernsehen im Livestream \(nur in Deutschland erreichbar\) [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
                 'alt_title': 'WDR Fernsehen Live',
-                'upload_date': None,
-                'description': 'md5:ae2ff888510623bf8d4b115f95a9b7c9',
+                'upload_date': '20150101',
                 'is_live': True,
-                'subtitles': {}
             },
             'params': {
                 'skip_download': True,  # m3u8 download
@@ -159,19 +159,18 @@ class WDRIE(WDRBaseIE):
         },
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/aktuelle-stunde/aktuelle-stunde-120.html',
-            'playlist_mincount': 8,
+            'playlist_mincount': 7,
             'info_dict': {
-                'id': 'aktuelle-stunde/aktuelle-stunde-120',
+                'id': 'aktuelle-stunde-120',
             },
         },
         {
             'url': 'http://www.wdrmaus.de/aktuelle-sendung/index.php5',
             'info_dict': {
-                'id': 'mdb-1323501',
+                'id': 'mdb-1552552',
                 'ext': 'mp4',
                 'upload_date': 're:^[0-9]{8}$',
                 'title': 're:^Die Sendung mit der Maus vom [0-9.]{10}$',
-                'description': 'Die Seite mit der Maus -',
             },
             'skip': 'The id changes from week to week because of the new episode'
         },
@@ -183,7 +182,6 @@ class WDRIE(WDRBaseIE):
                 'ext': 'mp4',
                 'upload_date': '20130919',
                 'title': 'Sachgeschichte - Achterbahn ',
-                'description': 'Die Seite mit der Maus -',
             },
         },
         {
@@ -191,52 +189,114 @@ class WDRIE(WDRBaseIE):
             # Live stream, MD5 unstable
             'info_dict': {
                 'id': 'mdb-869971',
-                'ext': 'flv',
-                'title': 'COSMO Livestream',
-                'description': 'md5:2309992a6716c347891c045be50992e4',
+                'ext': 'mp4',
+                'title': r're:^COSMO Livestream [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
                 'upload_date': '20160101',
             },
+            'params': {
+                'skip_download': True,  # m3u8 download
+            }
+        },
+        {
+            'url': 'http://www.sportschau.de/handballem2018/handball-nationalmannschaft-em-stolperstein-vorrunde-100.html',
+            'info_dict': {
+                'id': 'mdb-1556012',
+                'ext': 'mp4',
+                'title': 'DHB-Vizepräsident Bob Hanning - "Die Weltspitze ist extrem breit"',
+                'upload_date': '20180111',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            'url': 'http://www.sportschau.de/handballem2018/audio-vorschau---die-handball-em-startet-mit-grossem-favoritenfeld-100.html',
+            'only_matching': True,
         }
     ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        url_type = mobj.group('type')
-        page_url = mobj.group('page_url')
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, display_id)
 
-        info_dict = self._extract_wdr_video(webpage, display_id)
+        entries = []
 
-        if not info_dict:
+        # Article with several videos
+
+        # for wdr.de the data-extension is in a tag with the class "mediaLink"
+        # for wdr.de radio players, in a tag with the class "wdrrPlayerPlayBtn"
+        # for wdrmaus, in a tag with the class "videoButton" (previously a link
+        # to the page in a multiline "videoLink"-tag)
+        for mobj in re.finditer(
+            r'''(?sx)class=
+                    (?:
+                        (["\'])(?:mediaLink|wdrrPlayerPlayBtn|videoButton)\b.*?\1[^>]+|
+                        (["\'])videoLink\b.*?\2[\s]*>\n[^\n]*
+                    )data-extension=(["\'])(?P<data>(?:(?!\3).)+)\3
+                    ''', webpage):
+            media_link_obj = self._parse_json(
+                mobj.group('data'), display_id, transform_source=js_to_json,
+                fatal=False)
+            if not media_link_obj:
+                continue
+            jsonp_url = try_get(
+                media_link_obj, lambda x: x['mediaObj']['url'], compat_str)
+            if jsonp_url:
+                entries.append(self.url_result(jsonp_url, ie=WDRIE.ie_key()))
+
+        # Playlist (e.g. https://www1.wdr.de/mediathek/video/sendungen/aktuelle-stunde/aktuelle-stunde-120.html)
+        if not entries:
             entries = [
-                self.url_result(page_url + href[0], 'WDR')
-                for href in re.findall(
-                    r'<a href="(%s)"[^>]+data-extension=' % self._PAGE_REGEX,
-                    webpage)
+                self.url_result(
+                    compat_urlparse.urljoin(url, mobj.group('href')),
+                    ie=WDRPageIE.ie_key())
+                for mobj in re.finditer(
+                    r'<a[^>]+\bhref=(["\'])(?P<href>(?:(?!\1).)+)\1[^>]+\bdata-extension=',
+                    webpage) if re.match(self._PAGE_REGEX, mobj.group('href'))
             ]
 
-            if entries:  # Playlist page
-                return self.playlist_result(entries, playlist_id=display_id)
+        return self.playlist_result(entries, playlist_id=display_id)
 
-            raise ExtractorError('No downloadable streams found', expected=True)
 
-        is_live = url_type == 'live'
+class WDRElefantIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)wdrmaus\.de/elefantenseite/#(?P<id>.+)'
+    _TEST = {
+        'url': 'http://www.wdrmaus.de/elefantenseite/#folge_ostern_2015',
+        'info_dict': {
+            'title': 'Folge Oster-Spezial 2015',
+            'id': 'mdb-1088195',
+            'ext': 'mp4',
+            'age_limit': None,
+            'upload_date': '20150406'
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }
 
-        if is_live:
-            info_dict.update({
-                'title': self._live_title(info_dict['title']),
-                'upload_date': None,
-            })
-        elif 'upload_date' not in info_dict:
-            info_dict['upload_date'] = unified_strdate(self._html_search_meta('DC.Date', webpage, 'upload date'))
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
 
-        info_dict.update({
-            'description': self._html_search_meta('Description', webpage),
-            'is_live': is_live,
-        })
-
-        return info_dict
+        # Table of Contents seems to always be at this address, so fetch it directly.
+        # The website fetches configurationJS.php5, which links to tableOfContentsJS.php5.
+        table_of_contents = self._download_json(
+            'https://www.wdrmaus.de/elefantenseite/data/tableOfContentsJS.php5',
+            display_id)
+        if display_id not in table_of_contents:
+            raise ExtractorError(
+                'No entry in site\'s table of contents for this URL. '
+                'Is the fragment part of the URL (after the #) correct?',
+                expected=True)
+        xml_metadata_path = table_of_contents[display_id]['xmlPath']
+        xml_metadata = self._download_xml(
+            'https://www.wdrmaus.de/elefantenseite/' + xml_metadata_path,
+            display_id)
+        zmdb_url_element = xml_metadata.find('./movie/zmdb_url')
+        if zmdb_url_element is None:
+            raise ExtractorError(
+                '%s is not a video' % display_id, expected=True)
+        return self.url_result(zmdb_url_element.text, ie=WDRIE.ie_key())
 
 
 class WDRMobileIE(InfoExtractor):

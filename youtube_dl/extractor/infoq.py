@@ -2,9 +2,8 @@
 
 from __future__ import unicode_literals
 
-import base64
-
 from ..compat import (
+    compat_b64decode,
     compat_urllib_parse_unquote,
     compat_urlparse,
 )
@@ -61,7 +60,7 @@ class InfoQIE(BokeCCBaseIE):
         encoded_id = self._search_regex(
             r"jsclassref\s*=\s*'([^']*)'", webpage, 'encoded id', default=None)
 
-        real_id = compat_urllib_parse_unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
+        real_id = compat_urllib_parse_unquote(compat_b64decode(encoded_id).decode('utf-8'))
         playpath = 'mp4:' + real_id
 
         return [{

@@ -88,7 +88,7 @@ class VikiBaseIE(InfoExtractor):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -99,7 +99,7 @@ class VikiBaseIE(InfoExtractor):
 
         login = self._call_api(
             'sessions.json', None,
-            'Logging in as %s' % username, post_data=login_form)
+            'Logging in', post_data=login_form)
 
         self._token = login.get('token')
         if not self._token:

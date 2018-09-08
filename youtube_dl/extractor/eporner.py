@@ -11,6 +11,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     str_to_int,
+    url_or_none,
 )
 
 
@@ -82,8 +83,8 @@ class EpornerIE(InfoExtractor):
             for format_id, format_dict in formats_dict.items():
                 if not isinstance(format_dict, dict):
                     continue
-                src = format_dict.get('src')
-                if not isinstance(src, compat_str) or not src.startswith('http'):
+                src = url_or_none(format_dict.get('src'))
+                if not src or not src.startswith('http'):
                     continue
                 if kind == 'hls':
                     formats.extend(self._extract_m3u8_formats(

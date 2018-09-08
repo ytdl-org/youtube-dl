@@ -4,16 +4,19 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
+    parse_age_limit,
     parse_iso8601,
 )
 
 
 class Go90IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?go90\.com/videos/(?P<id>[0-9a-zA-Z]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?go90\.com/(?:videos|embed)/(?P<id>[0-9a-zA-Z]+)'
+    _TESTS = [{
         'url': 'https://www.go90.com/videos/84BUqjLpf9D',
         'md5': 'efa7670dbbbf21a7b07b360652b24a32',
         'info_dict': {
@@ -23,16 +26,35 @@ class Go90IE(InfoExtractor):
             'description': 'VICE\'s Karley Sciortino meets with activists who discuss the state\'s strong anti-porn stance. Then, VICE Sports explains NFL contracts.',
             'timestamp': 1491868800,
             'upload_date': '20170411',
+            'age_limit': 14,
         }
-    }
+    }, {
+        'url': 'https://www.go90.com/embed/261MflWkD3N',
+        'only_matching': True,
+    }]
+    _GEO_BYPASS = False
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_data = self._download_json(
-            'https://www.go90.com/api/view/items/' + video_id,
-            video_id, headers={
+
+        try:
+            headers = self.geo_verification_headers()
+            headers.update({
                 'Content-Type': 'application/json; charset=utf-8',
-            }, data=b'{"client":"web","device_type":"pc"}')
+            })
+            video_data = self._download_json(
+                'https://www.go90.com/api/view/items/' + video_id, video_id,
+                headers=headers, data=b'{"client":"web","device_type":"pc"}')
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
+                message = self._parse_json(e.cause.read().decode(), None)['error']['message']
+                if 'region unavailable' in message:
+                    self.raise_geo_restricted(countries=['US'])
+                raise ExtractorError(message, expected=True)
+            raise
+
+        if video_data.get('requires_drm'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
         main_video_asset = video_data['main_video_asset']
 
         episode_number = int_or_none(video_data.get('episode_number'))
@@ -123,4 +145,5 @@ class Go90IE(InfoExtractor):
             'season_number': season_number,
             'episode_number': episode_number,
             'subtitles': subtitles,
+            'age_limit': parse_age_limit(video_data.get('rating')),
         }

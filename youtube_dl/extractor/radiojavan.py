@@ -4,8 +4,11 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
+    parse_resolution,
     str_to_int,
+    unified_strdate,
+    urlencode_postdata,
+    urljoin,
 )
 
 
@@ -29,13 +32,26 @@ class RadioJavanIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        download_host = self._download_json(
+            'https://www.radiojavan.com/videos/video_host', video_id,
+            data=urlencode_postdata({'id': video_id}),
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': url,
+            }).get('host', 'https://host1.rjmusicmedia.com')
+
         webpage = self._download_webpage(url, video_id)
 
-        formats = [{
-            'url': 'https://media.rdjavan.com/media/music_video/%s' % video_path,
-            'format_id': '%sp' % height,
-            'height': int(height),
-        } for height, video_path in re.findall(r"RJ\.video(\d+)p\s*=\s*'/?([^']+)'", webpage)]
+        formats = []
+        for format_id, _, video_path in re.findall(
+                r'RJ\.video(?P<format_id>\d+[pPkK])\s*=\s*(["\'])(?P<url>(?:(?!\2).)+)\2',
+                webpage):
+            f = parse_resolution(format_id)
+            f.update({
+                'url': urljoin(download_host, video_path),
+                'format_id': format_id,
+            })
+            formats.append(f)
         self._sort_formats(formats)
 
         title = self._og_search_title(webpage)

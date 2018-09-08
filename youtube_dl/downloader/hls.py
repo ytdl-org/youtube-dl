@@ -75,8 +75,9 @@ class HlsFD(FragmentFD):
                 fd.add_progress_hook(ph)
             return fd.real_download(filename, info_dict)
 
-        def anvato_ad(s):
-            return s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s
+        def is_ad_fragment(s):
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s or
+                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
 
         media_frags = 0
         ad_frags = 0
@@ -86,7 +87,7 @@ class HlsFD(FragmentFD):
             if not line:
                 continue
             if line.startswith('#'):
-                if anvato_ad(line):
+                if is_ad_fragment(line):
                     ad_frags += 1
                     ad_frag_next = True
                 continue
@@ -163,7 +164,8 @@ class HlsFD(FragmentFD):
                         return False
                     if decrypt_info['METHOD'] == 'AES-128':
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
-                        decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(decrypt_info['URI']).read()
+                        decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(
+                            self._prepare_url(info_dict, decrypt_info['URI'])).read()
                         frag_content = AES.new(
                             decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
                     self._append_fragment(ctx, frag_content)
@@ -194,7 +196,7 @@ class HlsFD(FragmentFD):
                         'start': sub_range_start,
                         'end': sub_range_start + int(splitted_byte_range[0]),
                     }
-                elif anvato_ad(line):
+                elif is_ad_fragment(line):
                     ad_frag_next = True
 
         self._finish_frag_download(ctx)

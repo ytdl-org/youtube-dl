@@ -9,17 +9,45 @@ from ..utils import (
     xpath_text,
     int_or_none,
     determine_ext,
+    float_or_none,
     parse_duration,
     xpath_attr,
     update_url_query,
     ExtractorError,
     strip_or_none,
+    url_or_none,
 )
 
 
 class TurnerBaseIE(AdobePassIE):
+    _AKAMAI_SPE_TOKEN_CACHE = {}
+
     def _extract_timestamp(self, video_data):
         return int_or_none(xpath_attr(video_data, 'dateCreated', 'uts'))
+
+    def _add_akamai_spe_token(self, tokenizer_src, video_url, content_id, ap_data, custom_tokenizer_query=None):
+        secure_path = self._search_regex(r'https?://[^/]+(.+/)', video_url, 'secure path') + '*'
+        token = self._AKAMAI_SPE_TOKEN_CACHE.get(secure_path)
+        if not token:
+            query = {
+                'path': secure_path,
+            }
+            if custom_tokenizer_query:
+                query.update(custom_tokenizer_query)
+            else:
+                query['videoId'] = content_id
+            if ap_data.get('auth_required'):
+                query['accessToken'] = self._extract_mvpd_auth(ap_data['url'], content_id, ap_data['site_name'], ap_data['site_name'])
+            auth = self._download_xml(
+                tokenizer_src, content_id, query=query)
+            error_msg = xpath_text(auth, 'error/msg')
+            if error_msg:
+                raise ExtractorError(error_msg, expected=True)
+            token = xpath_text(auth, 'token')
+            if not token:
+                return video_url
+            self._AKAMAI_SPE_TOKEN_CACHE[secure_path] = token
+        return video_url + '?hdnea=' + token
 
     def _extract_cvp_info(self, data_src, video_id, path_data={}, ap_data={}):
         video_data = self._download_xml(data_src, video_id)
@@ -33,7 +61,6 @@ class TurnerBaseIE(AdobePassIE):
         #         rtmp_src = splited_rtmp_src[1]
         # aifp = xpath_text(video_data, 'akamai/aifp', default='')
 
-        tokens = {}
         urls = []
         formats = []
         rex = re.compile(
@@ -67,26 +94,10 @@ class TurnerBaseIE(AdobePassIE):
                 secure_path_data = path_data.get('secure')
                 if not secure_path_data:
                     continue
-                video_url = secure_path_data['media_src'] + video_url
-                secure_path = self._search_regex(r'https?://[^/]+(.+/)', video_url, 'secure path') + '*'
-                token = tokens.get(secure_path)
-                if not token:
-                    query = {
-                        'path': secure_path,
-                        'videoId': content_id,
-                    }
-                    if ap_data.get('auth_required'):
-                        query['accessToken'] = self._extract_mvpd_auth(ap_data['url'], video_id, ap_data['site_name'], ap_data['site_name'])
-                    auth = self._download_xml(
-                        secure_path_data['tokenizer_src'], video_id, query=query)
-                    error_msg = xpath_text(auth, 'error/msg')
-                    if error_msg:
-                        raise ExtractorError(error_msg, expected=True)
-                    token = xpath_text(auth, 'token')
-                    if not token:
-                        continue
-                    tokens[secure_path] = token
-                video_url = video_url + '?hdnea=' + token
+                video_url = self._add_akamai_spe_token(
+                    secure_path_data['tokenizer_src'],
+                    secure_path_data['media_src'] + video_url,
+                    content_id, ap_data)
             elif not re.match('https?://', video_url):
                 base_path_data = path_data.get(ext, path_data.get('default', {}))
                 media_src = base_path_data.get('media_src')
@@ -144,8 +155,8 @@ class TurnerBaseIE(AdobePassIE):
         subtitles = {}
         for source in video_data.findall('closedCaptions/source'):
             for track in source.findall('track'):
-                track_url = track.get('url')
-                if not isinstance(track_url, compat_str) or track_url.endswith('/big'):
+                track_url = url_or_none(track.get('url'))
+                if not track_url or track_url.endswith('/big'):
                     continue
                 lang = track.get('lang') or track.get('label') or 'en'
                 subtitles.setdefault(lang, []).append({
@@ -181,4 +192,43 @@ class TurnerBaseIE(AdobePassIE):
             'season_number': int_or_none(xpath_text(video_data, 'seasonNumber')),
             'episode_number': int_or_none(xpath_text(video_data, 'episodeNumber')),
             'is_live': is_live,
+        }
+
+    def _extract_ngtv_info(self, media_id, tokenizer_query, ap_data=None):
+        streams_data = self._download_json(
+            'http://medium.ngtv.io/media/%s/tv' % media_id,
+            media_id)['media']['tv']
+        duration = None
+        chapters = []
+        formats = []
+        for supported_type in ('unprotected', 'bulkaes'):
+            stream_data = streams_data.get(supported_type, {})
+            m3u8_url = stream_data.get('secureUrl') or stream_data.get('url')
+            if not m3u8_url:
+                continue
+            if stream_data.get('playlistProtection') == 'spe':
+                m3u8_url = self._add_akamai_spe_token(
+                    'http://token.ngtv.io/token/token_spe',
+                    m3u8_url, media_id, ap_data or {}, tokenizer_query)
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, media_id, 'mp4', m3u8_id='hls', fatal=False))
+
+            duration = float_or_none(stream_data.get('totalRuntime'))
+
+            if not chapters:
+                for chapter in stream_data.get('contentSegments', []):
+                    start_time = float_or_none(chapter.get('start'))
+                    chapter_duration = float_or_none(chapter.get('duration'))
+                    if start_time is None or chapter_duration is None:
+                        continue
+                    chapters.append({
+                        'start_time': start_time,
+                        'end_time': start_time + chapter_duration,
+                    })
+        self._sort_formats(formats)
+
+        return {
+            'formats': formats,
+            'chapters': chapters,
+            'duration': duration,
         }

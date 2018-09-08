@@ -7,6 +7,7 @@ from .turner import TurnerBaseIE
 from ..utils import (
     int_or_none,
     strip_or_none,
+    url_or_none,
 )
 
 
@@ -98,7 +99,7 @@ class AdultSwimIE(TurnerBaseIE):
             if not video_id:
                 entries = []
                 for episode in video_data.get('archiveEpisodes', []):
-                    episode_url = episode.get('url')
+                    episode_url = url_or_none(episode.get('url'))
                     if not episode_url:
                         continue
                     entries.append(self.url_result(

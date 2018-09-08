@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
 import os.path
+import re
 import subprocess
 import sys
-import re
+import time
 
 from .common import FileDownloader
 from ..compat import (
@@ -30,6 +31,7 @@ class ExternalFD(FileDownloader):
         tmpfilename = self.temp_name(filename)
 
         try:
+            started = time.time()
             retval = self._call_downloader(tmpfilename, info_dict)
         except KeyboardInterrupt:
             if not info_dict.get('is_live'):
@@ -41,15 +43,20 @@ class ExternalFD(FileDownloader):
             self.to_screen('[%s] Interrupted by user' % self.get_basename())
 
         if retval == 0:
-            fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
-            self.try_rename(tmpfilename, filename)
-            self._hook_progress({
-                'downloaded_bytes': fsize,
-                'total_bytes': fsize,
+            status = {
                 'filename': filename,
                 'status': 'finished',
-            })
+                'elapsed': time.time() - started,
+            }
+            if filename != '-':
+                fsize = os.path.getsize(encodeFilename(tmpfilename))
+                self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
+                self.try_rename(tmpfilename, filename)
+                status.update({
+                    'downloaded_bytes': fsize,
+                    'total_bytes': fsize,
+                })
+            self._hook_progress(status)
             return True
         else:
             self.to_stderr('\n')

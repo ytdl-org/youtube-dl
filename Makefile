@@ -14,6 +14,9 @@ PYTHON ?= /usr/bin/env python
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 SYSCONFDIR = $(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi)
 
+# set markdown input format to "markdown-smart" for pandoc version 2 and to "markdown" for pandoc prior to version 2
+MARKDOWN = $(shell if [ `pandoc -v | head -n1 | cut -d" " -f2 | head -c1` = "2" ]; then echo markdown-smart; else echo markdown; fi)
+
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)
 	install -m 755 youtube-dl $(DESTDIR)$(BINDIR)
@@ -36,8 +39,17 @@ test:
 
 ot: offlinetest
 
+# Keep this list in sync with devscripts/run_tests.sh
 offlinetest: codetest
-	$(PYTHON) -m nose --verbose test --exclude test_download.py --exclude test_age_restriction.py --exclude test_subtitles.py --exclude test_write_annotations.py --exclude test_youtube_lists.py --exclude test_iqiyi_sdk_interpreter.py --exclude test_socks.py
+	$(PYTHON) -m nose --verbose test \
+		--exclude test_age_restriction.py \
+		--exclude test_download.py \
+		--exclude test_iqiyi_sdk_interpreter.py \
+		--exclude test_socks.py \
+		--exclude test_subtitles.py \
+		--exclude test_write_annotations.py \
+		--exclude test_youtube_lists.py \
+		--exclude test_youtube_signature.py
 
 tar: youtube-dl.tar.gz
 
@@ -73,11 +85,11 @@ supportedsites:
 	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
 
 README.txt: README.md
-	pandoc -f markdown -t plain README.md -o README.txt
+	pandoc -f $(MARKDOWN) -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
 	$(PYTHON) devscripts/prepare_manpage.py youtube-dl.1.temp.md
-	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
+	pandoc -s -f $(MARKDOWN) -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in
@@ -101,7 +113,7 @@ _EXTRACTOR_FILES = $(shell find youtube_dl/extractor -iname '*.py' -and -not -in
 youtube_dl/extractor/lazy_extractors.py: devscripts/make_lazy_extractors.py devscripts/lazy_load_template.py $(_EXTRACTOR_FILES)
 	$(PYTHON) devscripts/make_lazy_extractors.py $@
 
-youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish ChangeLog
+youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish ChangeLog AUTHORS
 	@tar -czf youtube-dl.tar.gz --transform "s|^|youtube-dl/|" --owner 0 --group 0 \
 		--exclude '*.DS_Store' \
 		--exclude '*.kate-swp' \
@@ -110,11 +122,10 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		--exclude '*~' \
 		--exclude '__pycache__' \
 		--exclude '.git' \
-		--exclude 'testdata' \
 		--exclude 'docs/_build' \
 		-- \
 		bin devscripts test youtube_dl docs \
-		ChangeLog LICENSE README.md README.txt \
+		ChangeLog AUTHORS LICENSE README.md README.txt \
 		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion \
-		youtube-dl.zsh youtube-dl.fish setup.py \
+		youtube-dl.zsh youtube-dl.fish setup.py setup.cfg \
 		youtube-dl

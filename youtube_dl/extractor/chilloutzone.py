@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 import re
-import base64
 import json
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
+from ..compat import compat_b64decode
 from ..utils import (
     clean_html,
     ExtractorError
@@ -58,7 +58,7 @@ class ChilloutzoneIE(InfoExtractor):
 
         base64_video_info = self._html_search_regex(
             r'var cozVidData = "(.+?)";', webpage, 'video data')
-        decoded_video_info = base64.b64decode(base64_video_info.encode('utf-8')).decode('utf-8')
+        decoded_video_info = compat_b64decode(base64_video_info).decode('utf-8')
         video_info_dict = json.loads(decoded_video_info)
 
         # get video information from dict

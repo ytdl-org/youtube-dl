@@ -1,9 +1,13 @@
 from __future__ import unicode_literals
+
 import re
-import base64
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_b64decode,
+    compat_str,
+    compat_urllib_parse_urlencode,
+)
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -12,7 +16,6 @@ from ..utils import (
     try_get,
     unsmuggle_url,
 )
-from ..compat import compat_urllib_parse_urlencode
 
 
 class OoyalaBaseIE(InfoExtractor):
@@ -44,7 +47,7 @@ class OoyalaBaseIE(InfoExtractor):
                 url_data = try_get(stream, lambda x: x['url']['data'], compat_str)
                 if not url_data:
                     continue
-                s_url = base64.b64decode(url_data.encode('ascii')).decode('utf-8')
+                s_url = compat_b64decode(url_data).decode('utf-8')
                 if not s_url or s_url in urls:
                     continue
                 urls.append(s_url)

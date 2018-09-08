@@ -191,6 +191,11 @@ def _real_main(argv=None):
         if numeric_buffersize is None:
             parser.error('invalid buffer size specified')
         opts.buffersize = numeric_buffersize
+    if opts.http_chunk_size is not None:
+        numeric_chunksize = FileDownloader.parse_bytes(opts.http_chunk_size)
+        if not numeric_chunksize:
+            parser.error('invalid http chunk size specified')
+        opts.http_chunk_size = numeric_chunksize
     if opts.playliststart <= 0:
         raise ValueError('Playlist start must be positive')
     if opts.playlistend not in (-1, None) and opts.playlistend < opts.playliststart:
@@ -346,6 +351,7 @@ def _real_main(argv=None):
         'keep_fragments': opts.keep_fragments,
         'buffersize': opts.buffersize,
         'noresizebuffer': opts.noresizebuffer,
+        'http_chunk_size': opts.http_chunk_size,
         'continuedl': opts.continue_dl,
         'noprogress': opts.noprogress,
         'progress_with_newline': opts.progress_with_newline,
@@ -424,6 +430,7 @@ def _real_main(argv=None):
         'config_location': opts.config_location,
         'geo_bypass': opts.geo_bypass,
         'geo_bypass_country': opts.geo_bypass_country,
+        'geo_bypass_ip_block': opts.geo_bypass_ip_block,
         # just for deprecation check
         'autonumber': opts.autonumber if opts.autonumber is True else None,
         'usetitle': opts.usetitle if opts.usetitle is True else None,

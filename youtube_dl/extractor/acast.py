@@ -7,8 +7,10 @@ import functools
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    float_or_none,
     int_or_none,
-    parse_iso8601,
+    try_get,
+    unified_timestamp,
     OnDemandPagedList,
 )
 
@@ -24,39 +26,58 @@ class ACastIE(InfoExtractor):
             'id': '57de3baa-4bb0-487e-9418-2692c1277a34',
             'ext': 'mp3',
             'title': '"Where Are You?": Taipei 101, Taiwan',
+            'description': 'md5:a0b4ef3634e63866b542e5b1199a1a0e',
             'timestamp': 1196172000,
             'upload_date': '20071127',
-            'description': 'md5:a0b4ef3634e63866b542e5b1199a1a0e',
             'duration': 211,
+            'creator': 'Concierge',
+            'series': 'Condé Nast Traveler Podcast',
+            'episode': '"Where Are You?": Taipei 101, Taiwan',
         }
     }, {
         # test with multiple blings
         'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
-        'md5': '55c0097badd7095f494c99a172f86501',
+        'md5': 'a02393c74f3bdb1801c3ec2695577ce0',
         'info_dict': {
             'id': '2a92b283-1a75-4ad8-8396-499c641de0d9',
             'ext': 'mp3',
             'title': '2. Raggarmordet - Röster ur det förflutna',
+            'description': 'md5:4f81f6d8cf2e12ee21a321d8bca32db4',
             'timestamp': 1477346700,
             'upload_date': '20161024',
-            'description': 'md5:4f81f6d8cf2e12ee21a321d8bca32db4',
-            'duration': 2797,
+            'duration': 2766.602563,
+            'creator': 'Anton Berg & Martin Johnson',
+            'series': 'Spår',
+            'episode': '2. Raggarmordet - Röster ur det förflutna',
         }
     }]
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
+        s = self._download_json(
+            'https://play-api.acast.com/stitch/%s/%s' % (channel, display_id),
+            display_id)['result']
+        media_url = s['url']
         cast_data = self._download_json(
-            'https://embed.acast.com/api/acasts/%s/%s' % (channel, display_id), display_id)
+            'https://play-api.acast.com/splash/%s/%s' % (channel, display_id),
+            display_id)['result']
+        e = cast_data['episode']
+        title = e['name']
         return {
-            'id': compat_str(cast_data['id']),
+            'id': compat_str(e['id']),
             'display_id': display_id,
-            'url': [b['audio'] for b in cast_data['blings'] if b['type'] == 'BlingAudio'][0],
-            'title': cast_data['name'],
-            'description': cast_data.get('description'),
-            'thumbnail': cast_data.get('image'),
-            'timestamp': parse_iso8601(cast_data.get('publishingDate')),
-            'duration': int_or_none(cast_data.get('duration')),
+            'url': media_url,
+            'title': title,
+            'description': e.get('description') or e.get('summary'),
+            'thumbnail': e.get('image'),
+            'timestamp': unified_timestamp(e.get('publishingDate')),
+            'duration': float_or_none(s.get('duration') or e.get('duration')),
+            'filesize': int_or_none(e.get('contentLength')),
+            'creator': try_get(cast_data, lambda x: x['show']['author'], compat_str),
+            'series': try_get(cast_data, lambda x: x['show']['name'], compat_str),
+            'season_number': int_or_none(e.get('seasonNumber')),
+            'episode': title,
+            'episode_number': int_or_none(e.get('episodeNumber')),
         }
 
 

@@ -10,36 +10,34 @@ from ..aes import (
     aes_cbc_decrypt,
     aes_cbc_encrypt,
 )
+from ..compat import compat_b64decode
 from ..utils import (
     bytes_to_intlist,
     bytes_to_long,
-    clean_html,
+    extract_attributes,
     ExtractorError,
     intlist_to_bytes,
-    get_element_by_id,
     js_to_json,
     int_or_none,
     long_to_bytes,
     pkcs1pad,
-    remove_end,
 )
 
 
-class DaisukiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?daisuki\.net/[^/]+/[^/]+/[^/]+/watch\.[^.]+\.(?P<id>\d+)\.html'
+class DaisukiMottoIE(InfoExtractor):
+    _VALID_URL = r'https?://motto\.daisuki\.net/framewatch/embed/[^/]+/(?P<id>[0-9a-zA-Z]{3})'
 
     _TEST = {
-        'url': 'http://www.daisuki.net/tw/en/anime/watch.TheIdolMasterCG.11213.html',
+        'url': 'http://motto.daisuki.net/framewatch/embed/embedDRAGONBALLSUPERUniverseSurvivalsaga/V2e/760/428',
         'info_dict': {
-            'id': '11213',
+            'id': 'V2e',
             'ext': 'mp4',
-            'title': '#01 Who is in the pumpkin carriage? - THE IDOLM@STER CINDERELLA GIRLS',
+            'title': '#117 SHOWDOWN OF LOVE! ANDROIDS VS UNIVERSE 2!!',
             'subtitles': {
                 'mul': [{
                     'ext': 'ttml',
                 }],
             },
-            'creator': 'BANDAI NAMCO Entertainment',
         },
         'params': {
             'skip_download': True,  # AES-encrypted HLS stream
@@ -73,15 +71,17 @@ class DaisukiIE(InfoExtractor):
 
             n, e = self._RSA_KEY
             encrypted_aeskey = long_to_bytes(pow(bytes_to_long(padded_aeskey), e, n))
-            init_data = self._download_json('http://www.daisuki.net/bin/bgn/init', video_id, query={
-                's': flashvars.get('s', ''),
-                'c': flashvars.get('ss3_prm', ''),
-                'e': url,
-                'd': base64.b64encode(intlist_to_bytes(aes_cbc_encrypt(
-                    bytes_to_intlist(json.dumps(data)),
-                    aes_key, iv))).decode('ascii'),
-                'a': base64.b64encode(encrypted_aeskey).decode('ascii'),
-            }, note='Downloading JSON metadata' + (' (try #%d)' % (idx + 1) if idx > 0 else ''))
+            init_data = self._download_json(
+                'http://motto.daisuki.net/fastAPI/bgn/init/',
+                video_id, query={
+                    's': flashvars.get('s', ''),
+                    'c': flashvars.get('ss3_prm', ''),
+                    'e': url,
+                    'd': base64.b64encode(intlist_to_bytes(aes_cbc_encrypt(
+                        bytes_to_intlist(json.dumps(data)),
+                        aes_key, iv))).decode('ascii'),
+                    'a': base64.b64encode(encrypted_aeskey).decode('ascii'),
+                }, note='Downloading JSON metadata' + (' (try #%d)' % (idx + 1) if idx > 0 else ''))
 
             if 'rtn' in init_data:
                 encrypted_rtn = init_data['rtn']
@@ -94,17 +94,14 @@ class DaisukiIE(InfoExtractor):
 
         rtn = self._parse_json(
             intlist_to_bytes(aes_cbc_decrypt(bytes_to_intlist(
-                base64.b64decode(encrypted_rtn)),
+                compat_b64decode(encrypted_rtn)),
                 aes_key, iv)).decode('utf-8').rstrip('\0'),
             video_id)
 
+        title = rtn['title_str']
+
         formats = self._extract_m3u8_formats(
             rtn['play_url'], video_id, ext='mp4', entry_protocol='m3u8_native')
-
-        title = remove_end(self._og_search_title(webpage), ' - DAISUKI')
-
-        creator = self._html_search_regex(
-            r'Creator\s*:\s*([^<]+)', webpage, 'creator', fatal=False)
 
         subtitles = {}
         caption_url = rtn.get('caption_url')
@@ -120,21 +117,18 @@ class DaisukiIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'subtitles': subtitles,
-            'creator': creator,
         }
 
 
-class DaisukiPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)daisuki\.net/[^/]+/[^/]+/[^/]+/detail\.(?P<id>[a-zA-Z0-9]+)\.html'
+class DaisukiMottoPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://motto\.daisuki\.net/(?P<id>information)/'
 
     _TEST = {
-        'url': 'http://www.daisuki.net/tw/en/anime/detail.TheIdolMasterCG.html',
+        'url': 'http://motto.daisuki.net/information/',
         'info_dict': {
-            'id': 'TheIdolMasterCG',
-            'title': 'THE IDOLM@STER CINDERELLA GIRLS',
-            'description': 'md5:0f2c028a9339f7a2c7fbf839edc5c5d8',
+            'title': 'DRAGON BALL SUPER',
         },
-        'playlist_count': 26,
+        'playlist_mincount': 117,
     }
 
     def _real_extract(self, url):
@@ -142,18 +136,19 @@ class DaisukiPlaylistIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        episode_pattern = r'''(?sx)
-            <img[^>]+delay="[^"]+/(\d+)/movie\.jpg".+?
-            <p[^>]+class=".*?\bepisodeNumber\b.*?">(?:<a[^>]+>)?([^<]+)'''
-        entries = [{
-            '_type': 'url_transparent',
-            'url': url.replace('detail', 'watch').replace('.html', '.' + movie_id + '.html'),
-            'episode_id': episode_id,
-            'episode_number': int_or_none(episode_id),
-        } for movie_id, episode_id in re.findall(episode_pattern, webpage)]
+        entries = []
+        for li in re.findall(r'(<li[^>]+?data-product_id="[a-zA-Z0-9]{3}"[^>]+>)', webpage):
+            attr = extract_attributes(li)
+            ad_id = attr.get('data-ad_id')
+            product_id = attr.get('data-product_id')
+            if ad_id and product_id:
+                episode_id = attr.get('data-chapter')
+                entries.append({
+                    '_type': 'url_transparent',
+                    'url': 'http://motto.daisuki.net/framewatch/embed/%s/%s/760/428' % (ad_id, product_id),
+                    'episode_id': episode_id,
+                    'episode_number': int_or_none(episode_id),
+                    'ie_key': 'DaisukiMotto',
+                })
 
-        playlist_title = remove_end(
-            self._og_search_title(webpage, fatal=False), ' - Anime - DAISUKI')
-        playlist_description = clean_html(get_element_by_id('synopsisTxt', webpage))
-
-        return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
+        return self.playlist_result(entries, playlist_title='DRAGON BALL SUPER')

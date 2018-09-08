@@ -27,6 +27,60 @@ from ..utils import (
 class PluralsightBaseIE(InfoExtractor):
     _API_BASE = 'https://app.pluralsight.com'
 
+    _GRAPHQL_EP = '%s/player/api/graphql' % _API_BASE
+    _GRAPHQL_HEADERS = {
+        'Content-Type': 'application/json;charset=UTF-8',
+    }
+    _GRAPHQL_COURSE_TMPL = '''
+query BootstrapPlayer {
+  rpc {
+    bootstrapPlayer {
+      profile {
+        firstName
+        lastName
+        email
+        username
+        userHandle
+        authed
+        isAuthed
+        plan
+      }
+      course(courseId: "%s") {
+        name
+        title
+        courseHasCaptions
+        translationLanguages {
+          code
+          name
+        }
+        supportsWideScreenVideoFormats
+        timestamp
+        modules {
+          name
+          title
+          duration
+          formattedDuration
+          author
+          authorized
+          clips {
+            authorized
+            clipId
+            duration
+            formattedDuration
+            id
+            index
+            moduleIndex
+            moduleTitle
+            name
+            title
+            watched
+          }
+        }
+      }
+    }
+  }
+}'''
+
     def _download_course(self, course_id, url, display_id):
         try:
             return self._download_course_rpc(course_id, url, display_id)
@@ -39,20 +93,14 @@ class PluralsightBaseIE(InfoExtractor):
 
     def _download_course_rpc(self, course_id, url, display_id):
         response = self._download_json(
-            '%s/player/functions/rpc' % self._API_BASE, display_id,
-            'Downloading course JSON',
-            data=json.dumps({
-                'fn': 'bootstrapPlayer',
-                'payload': {
-                    'courseId': course_id,
-                },
-            }).encode('utf-8'),
-            headers={
-                'Content-Type': 'application/json;charset=utf-8',
-                'Referer': url,
-            })
+            self._GRAPHQL_EP, display_id, data=json.dumps({
+                'query': self._GRAPHQL_COURSE_TMPL % course_id,
+                'variables': {}
+            }).encode('utf-8'), headers=self._GRAPHQL_HEADERS)
 
-        course = try_get(response, lambda x: x['payload']['course'], dict)
+        course = try_get(
+            response, lambda x: x['data']['rpc']['bootstrapPlayer']['course'],
+            dict)
         if course:
             return course
 
@@ -90,11 +138,33 @@ class PluralsightIE(PluralsightBaseIE):
         'only_matching': True,
     }]
 
+    GRAPHQL_VIEWCLIP_TMPL = '''
+query viewClip {
+  viewClip(input: {
+    author: "%(author)s",
+    clipIndex: %(clipIndex)d,
+    courseName: "%(courseName)s",
+    includeCaptions: %(includeCaptions)s,
+    locale: "%(locale)s",
+    mediaType: "%(mediaType)s",
+    moduleName: "%(moduleName)s",
+    quality: "%(quality)s"
+  }) {
+    urls {
+      url
+      cdn
+      rank
+      source
+    },
+    status
+  }
+}'''
+
     def _real_initialize(self):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -116,7 +186,7 @@ class PluralsightIE(PluralsightBaseIE):
             post_url = compat_urlparse.urljoin(self._LOGIN_URL, post_url)
 
         response = self._download_webpage(
-            post_url, None, 'Logging in as %s' % username,
+            post_url, None, 'Logging in',
             data=urlencode_postdata(login_form),
             headers={'Content-Type': 'application/x-www-form-urlencoded'})
 
@@ -131,12 +201,19 @@ class PluralsightIE(PluralsightBaseIE):
             if BLOCKED in response:
                 raise ExtractorError(
                     'Unable to login: %s' % BLOCKED, expected=True)
+            MUST_AGREE = 'To continue using Pluralsight, you must agree to'
+            if any(p in response for p in (MUST_AGREE, '>Disagree<', '>Agree<')):
+                raise ExtractorError(
+                    'Unable to login: %s some documents. Go to pluralsight.com, '
+                    'log in and agree with what Pluralsight requires.'
+                    % MUST_AGREE, expected=True)
+
             raise ExtractorError('Unable to log in')
 
-    def _get_subtitles(self, author, clip_id, lang, name, duration, video_id):
+    def _get_subtitles(self, author, clip_idx, lang, name, duration, video_id):
         captions_post = {
             'a': author,
-            'cn': clip_id,
+            'cn': clip_idx,
             'lc': lang,
             'm': name,
         }
@@ -164,12 +241,12 @@ class PluralsightIE(PluralsightBaseIE):
         for num, current in enumerate(subs):
             current = subs[num]
             start, text = (
-                float_or_none(dict_get(current, TIME_OFFSET_KEYS)),
+                float_or_none(dict_get(current, TIME_OFFSET_KEYS, skip_false_values=False)),
                 dict_get(current, TEXT_KEYS))
             if start is None or text is None:
                 continue
             end = duration if num == len(subs) - 1 else float_or_none(
-                dict_get(subs[num + 1], TIME_OFFSET_KEYS))
+                dict_get(subs[num + 1], TIME_OFFSET_KEYS, skip_false_values=False))
             if end is None:
                 continue
             srt += os.linesep.join(
@@ -188,13 +265,13 @@ class PluralsightIE(PluralsightBaseIE):
 
         author = qs.get('author', [None])[0]
         name = qs.get('name', [None])[0]
-        clip_id = qs.get('clip', [None])[0]
+        clip_idx = qs.get('clip', [None])[0]
         course_name = qs.get('course', [None])[0]
 
-        if any(not f for f in (author, name, clip_id, course_name,)):
+        if any(not f for f in (author, name, clip_idx, course_name,)):
             raise ExtractorError('Invalid URL', expected=True)
 
-        display_id = '%s-%s' % (name, clip_id)
+        display_id = '%s-%s' % (name, clip_idx)
 
         course = self._download_course(course_name, url, display_id)
 
@@ -210,7 +287,7 @@ class PluralsightIE(PluralsightBaseIE):
                         clip_index = clip_.get('index')
                     if clip_index is None:
                         continue
-                    if compat_str(clip_index) == clip_id:
+                    if compat_str(clip_index) == clip_idx:
                         clip = clip_
                         break
 
@@ -218,6 +295,7 @@ class PluralsightIE(PluralsightBaseIE):
             raise ExtractorError('Unable to resolve clip')
 
         title = clip['title']
+        clip_id = clip.get('clipName') or clip.get('name') or clip['clipId']
 
         QUALITIES = {
             'low': {'width': 640, 'height': 480},
@@ -269,8 +347,8 @@ class PluralsightIE(PluralsightBaseIE):
                 f = QUALITIES[quality].copy()
                 clip_post = {
                     'author': author,
-                    'includeCaptions': False,
-                    'clipIndex': int(clip_id),
+                    'includeCaptions': 'false',
+                    'clipIndex': int(clip_idx),
                     'courseName': course_name,
                     'locale': 'en',
                     'moduleName': name,
@@ -278,11 +356,23 @@ class PluralsightIE(PluralsightBaseIE):
                     'quality': '%dx%d' % (f['width'], f['height']),
                 }
                 format_id = '%s-%s' % (ext, quality)
-                viewclip = self._download_json(
-                    '%s/video/clips/viewclip' % self._API_BASE, display_id,
-                    'Downloading %s viewclip JSON' % format_id, fatal=False,
-                    data=json.dumps(clip_post).encode('utf-8'),
-                    headers={'Content-Type': 'application/json;charset=utf-8'})
+
+                try:
+                    viewclip = self._download_json(
+                        self._GRAPHQL_EP, display_id,
+                        'Downloading %s viewclip graphql' % format_id,
+                        data=json.dumps({
+                            'query': self.GRAPHQL_VIEWCLIP_TMPL % clip_post,
+                            'variables': {}
+                        }).encode('utf-8'),
+                        headers=self._GRAPHQL_HEADERS)['data']['viewClip']
+                except ExtractorError:
+                    # Still works but most likely will go soon
+                    viewclip = self._download_json(
+                        '%s/video/clips/viewclip' % self._API_BASE, display_id,
+                        'Downloading %s viewclip JSON' % format_id, fatal=False,
+                        data=json.dumps(clip_post).encode('utf-8'),
+                        headers={'Content-Type': 'application/json;charset=utf-8'})
 
                 # Pluralsight tracks multiple sequential calls to ViewClip API and start
                 # to return 429 HTTP errors after some time (see
@@ -323,10 +413,10 @@ class PluralsightIE(PluralsightBaseIE):
 
         # TODO: other languages?
         subtitles = self.extract_subtitles(
-            author, clip_id, 'en', name, duration, display_id)
+            author, clip_idx, 'en', name, duration, display_id)
 
         return {
-            'id': clip.get('clipName') or clip['name'],
+            'id': clip_id,
             'title': title,
             'duration': duration,
             'creator': author,

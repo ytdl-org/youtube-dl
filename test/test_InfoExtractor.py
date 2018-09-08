@@ -493,9 +493,20 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
         _TEST_CASES = [
             (
                 # https://github.com/rg3/youtube-dl/issues/13919
+                # Also tests duplicate representation ids, see
+                # https://github.com/rg3/youtube-dl/issues/15111
                 'float_duration',
                 'http://unknown/manifest.mpd',
                 [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'm4a',
+                    'format_id': '318597',
+                    'format_note': 'DASH audio',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'none',
+                    'tbr': 61.587,
+                }, {
                     'manifest_url': 'http://unknown/manifest.mpd',
                     'ext': 'mp4',
                     'format_id': '318597',
@@ -562,7 +573,89 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'width': 1920,
                     'height': 1080,
                 }]
-            ),
+            ), (
+                # https://github.com/rg3/youtube-dl/pull/14844
+                'urls_only',
+                'http://unknown/manifest.mpd',
+                [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_144p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 200,
+                    'width': 256,
+                    'height': 144,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_240p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 400,
+                    'width': 424,
+                    'height': 240,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_360p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 800,
+                    'width': 640,
+                    'height': 360,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_480p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 1200,
+                    'width': 856,
+                    'height': 480,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_576p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 1600,
+                    'width': 1024,
+                    'height': 576,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_720p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 2400,
+                    'width': 1280,
+                    'height': 720,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'h264_aac_1080p_m4s',
+                    'format_note': 'DASH video',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'avc3.42c01e',
+                    'tbr': 4400,
+                    'width': 1920,
+                    'height': 1080,
+                }]
+            )
         ]
 
         for mpd_file, mpd_url, expected_formats in _TEST_CASES:
@@ -573,6 +666,82 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     mpd_url=mpd_url)
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
+
+    def test_parse_f4m_formats(self):
+        _TEST_CASES = [
+            (
+                # https://github.com/rg3/youtube-dl/issues/14660
+                'custom_base_url',
+                'http://api.new.livestream.com/accounts/6115179/events/6764928/videos/144884262.f4m',
+                [{
+                    'manifest_url': 'http://api.new.livestream.com/accounts/6115179/events/6764928/videos/144884262.f4m',
+                    'ext': 'flv',
+                    'format_id': '2148',
+                    'protocol': 'f4m',
+                    'tbr': 2148,
+                    'width': 1280,
+                    'height': 720,
+                }]
+            ),
+        ]
+
+        for f4m_file, f4m_url, expected_formats in _TEST_CASES:
+            with io.open('./test/testdata/f4m/%s.f4m' % f4m_file,
+                         mode='r', encoding='utf-8') as f:
+                formats = self.ie._parse_f4m_formats(
+                    compat_etree_fromstring(f.read().encode('utf-8')),
+                    f4m_url, None)
+                self.ie._sort_formats(formats)
+                expect_value(self, formats, expected_formats, None)
+
+    def test_parse_xspf(self):
+        _TEST_CASES = [
+            (
+                'foo_xspf',
+                'https://example.org/src/foo_xspf.xspf',
+                [{
+                    'id': 'foo_xspf',
+                    'title': 'Pandemonium',
+                    'description': 'Visit http://bigbrother404.bandcamp.com',
+                    'duration': 202.416,
+                    'formats': [{
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.org/src/cd1/track%201.mp3',
+                    }],
+                }, {
+                    'id': 'foo_xspf',
+                    'title': 'Final Cartridge (Nichico Twelve Remix)',
+                    'description': 'Visit http://bigbrother404.bandcamp.com',
+                    'duration': 255.857,
+                    'formats': [{
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.org/%E3%83%88%E3%83%A9%E3%83%83%E3%82%AF%E3%80%80%EF%BC%92.mp3',
+                    }],
+                }, {
+                    'id': 'foo_xspf',
+                    'title': 'Rebuilding Nightingale',
+                    'description': 'Visit http://bigbrother404.bandcamp.com',
+                    'duration': 287.915,
+                    'formats': [{
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.org/src/track3.mp3',
+                    }, {
+                        'manifest_url': 'https://example.org/src/foo_xspf.xspf',
+                        'url': 'https://example.com/track3.mp3',
+                    }]
+                }]
+            ),
+        ]
+
+        for xspf_file, xspf_url, expected_entries in _TEST_CASES:
+            with io.open('./test/testdata/xspf/%s.xspf' % xspf_file,
+                         mode='r', encoding='utf-8') as f:
+                entries = self.ie._parse_xspf(
+                    compat_etree_fromstring(f.read().encode('utf-8')),
+                    xspf_file, xspf_url=xspf_url, xspf_base_url=xspf_url)
+                expect_value(self, entries, expected_entries, None)
+                for i in range(len(entries)):
+                    expect_dict(self, entries[i], expected_entries[i])
 
 
 if __name__ == '__main__':

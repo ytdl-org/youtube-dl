@@ -1,13 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import json
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
+    compat_b64decode,
     compat_str,
+    compat_urlparse,
 )
 from ..utils import (
     extract_attributes,
@@ -36,9 +36,9 @@ class EinthusanIE(InfoExtractor):
 
     # reversed from jsoncrypto.prototype.decrypt() in einthusan-PGMovieWatcher.js
     def _decrypt(self, encrypted_data, video_id):
-        return self._parse_json(base64.b64decode((
+        return self._parse_json(compat_b64decode((
             encrypted_data[:10] + encrypted_data[-1] + encrypted_data[12:-1]
-        ).encode('ascii')).decode('utf-8'), video_id)
+        )).decode('utf-8'), video_id)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

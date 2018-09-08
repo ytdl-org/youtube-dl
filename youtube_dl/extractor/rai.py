@@ -17,6 +17,7 @@ from ..utils import (
     parse_duration,
     strip_or_none,
     try_get,
+    unescapeHTML,
     unified_strdate,
     unified_timestamp,
     update_url_query,
@@ -31,6 +32,9 @@ class RaiBaseIE(InfoExtractor):
     _GEO_BYPASS = False
 
     def _extract_relinker_info(self, relinker_url, video_id):
+        if not re.match(r'https?://', relinker_url):
+            return {'formats': [{'url': relinker_url}]}
+
         formats = []
         geoprotection = None
         is_live = None
@@ -249,6 +253,41 @@ class RaiPlayLiveIE(RaiBaseIE):
         }
 
 
+class RaiPlayPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/programmi/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'http://www.raiplay.it/programmi/nondirloalmiocapo/',
+        'info_dict': {
+            'id': 'nondirloalmiocapo',
+            'title': 'Non dirlo al mio capo',
+            'description': 'md5:9f3d603b2947c1c7abb098f3b14fac86',
+        },
+        'playlist_mincount': 12,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        title = self._html_search_meta(
+            ('programma', 'nomeProgramma'), webpage, 'title')
+        description = unescapeHTML(self._html_search_meta(
+            ('description', 'og:description'), webpage, 'description'))
+        print(description)
+
+        entries = []
+        for mobj in re.finditer(
+                r'<a\b[^>]+\bhref=(["\'])(?P<path>/raiplay/video/.+?)\1',
+                webpage):
+            video_url = urljoin(url, mobj.group('path'))
+            entries.append(self.url_result(
+                video_url, ie=RaiPlayIE.ie_key(),
+                video_id=RaiPlayIE._match_id(video_url)))
+
+        return self.playlist_result(entries, playlist_id, title, description)
+
+
 class RaiIE(RaiBaseIE):
     _VALID_URL = r'https?://[^/]+\.(?:rai\.(?:it|tv)|rainews\.it)/dl/.+?-(?P<id>%s)(?:-.+?)?\.html' % RaiBaseIE._UUID_RE
     _TESTS = [{
@@ -333,6 +372,10 @@ class RaiIE(RaiBaseIE):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # Direct MMS URL
+        'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-b63a4089-ac28-48cf-bca5-9f5b5bc46df5.html',
+        'only_matching': True,
     }]
 
     def _extract_from_content_id(self, content_id, url):

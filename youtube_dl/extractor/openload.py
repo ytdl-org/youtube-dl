@@ -112,6 +112,8 @@ class PhantomJSwrapper(object):
         return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
 
     def __init__(self, extractor, required_version=None, timeout=10000):
+        self._TMP_FILES = {}
+
         self.exe = check_executable('phantomjs', ['-v'])
         if not self.exe:
             raise ExtractorError('PhantomJS executable not found in PATH, '
@@ -130,7 +132,6 @@ class PhantomJSwrapper(object):
         self.options = {
             'timeout': timeout,
         }
-        self._TMP_FILES = {}
         for name in self._TMP_FILE_NAMES:
             tmp = tempfile.NamedTemporaryFile(delete=False)
             tmp.close()
@@ -140,7 +141,7 @@ class PhantomJSwrapper(object):
         for name in self._TMP_FILE_NAMES:
             try:
                 os.remove(self._TMP_FILES[name].name)
-            except:
+            except (IOError, OSError, KeyError):
                 pass
 
     def _save_cookies(self, url):
@@ -242,7 +243,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:openload\.(?:co|io)|oload\.tv)/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -284,7 +285,31 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://openload.co/embed/Sxz5sADo82g/',
         'only_matching': True,
     }, {
+        # unavailable via https://openload.co/embed/e-Ixz9ZR5L0/ but available
+        # via https://openload.co/f/e-Ixz9ZR5L0/
+        'url': 'https://openload.co/f/e-Ixz9ZR5L0/',
+        'only_matching': True,
+    }, {
         'url': 'https://oload.tv/embed/KnG-kKZdcfY/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.openload.link/f/KnG-kKZdcfY',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.stream/f/KnG-kKZdcfY',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.xyz/f/WwRBpzW8Wtk',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.win/f/kUEfGclsU9o',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.download/f/kUEfGclsU9o',
+        'only_matching': True,
+    }, {
+        # Its title has not got its extension but url has it
+        'url': 'https://oload.download/f/N4Otkw39VCw/Tomb.Raider.2018.HDRip.XviD.AC3-EVO.avi.mp4',
         'only_matching': True,
     }]
 
@@ -298,20 +323,38 @@ class OpenloadIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'https://openload.co/embed/%s/' % video_id
+        url_pattern = 'https://openload.co/%%s/%s/' % video_id
         headers = {
             'User-Agent': self._USER_AGENT,
         }
 
-        webpage = self._download_webpage(url, video_id, headers=headers)
-
-        if 'File not found' in webpage or 'deleted by the owner' in webpage:
-            raise ExtractorError('File not found', expected=True, video_id=video_id)
+        for path in ('embed', 'f'):
+            page_url = url_pattern % path
+            last = path == 'f'
+            webpage = self._download_webpage(
+                page_url, video_id, 'Downloading %s webpage' % path,
+                headers=headers, fatal=last)
+            if not webpage:
+                continue
+            if 'File not found' in webpage or 'deleted by the owner' in webpage:
+                if not last:
+                    continue
+                raise ExtractorError('File not found', expected=True, video_id=video_id)
+            break
 
         phantom = PhantomJSwrapper(self, required_version='2.0')
-        webpage, _ = phantom.get(url, html=webpage, video_id=video_id, headers=headers)
+        webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
 
-        decoded_id = get_element_by_id('streamurl', webpage)
+        decoded_id = (get_element_by_id('streamurl', webpage) or
+                      get_element_by_id('streamuri', webpage) or
+                      get_element_by_id('streamurj', webpage) or
+                      self._search_regex(
+                          (r'>\s*([\w-]+~\d{10,}~\d+\.\d+\.0\.0~[\w-]+)\s*<',
+                           r'>\s*([\w~-]+~\d+\.\d+\.\d+\.\d+~[\w~-]+)',
+                           r'>\s*([\w-]+~\d{10,}~(?:[a-f\d]+:){2}:~[\w-]+)\s*<',
+                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)\s*<',
+                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)'), webpage,
+                          'stream URL'))
 
         video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
 
@@ -320,7 +363,7 @@ class OpenloadIE(InfoExtractor):
             'title', default=None) or self._html_search_meta(
             'description', webpage, 'title', fatal=True)
 
-        entries = self._parse_html5_media_entries(url, webpage, video_id)
+        entries = self._parse_html5_media_entries(page_url, webpage, video_id)
         entry = entries[0] if entries else {}
         subtitles = entry.get('subtitles')
 
@@ -329,8 +372,7 @@ class OpenloadIE(InfoExtractor):
             'title': title,
             'thumbnail': entry.get('thumbnail') or self._og_search_thumbnail(webpage, default=None),
             'url': video_url,
-            # Seems all videos have extensions in their titles
-            'ext': determine_ext(title, 'mp4'),
+            'ext': determine_ext(title, None) or determine_ext(url, 'mp4'),
             'subtitles': subtitles,
             'http_headers': headers,
         }

@@ -1,80 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import uuid
-
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
 from ..utils import (
     int_or_none,
-    extract_attributes,
-    determine_ext,
     smuggle_url,
     parse_duration,
 )
-
-
-class MiTeleBaseIE(InfoExtractor):
-    def _get_player_info(self, url, webpage):
-        player_data = extract_attributes(self._search_regex(
-            r'(?s)(<ms-video-player.+?</ms-video-player>)',
-            webpage, 'ms video player'))
-        video_id = player_data['data-media-id']
-        if player_data.get('data-cms-id') == 'ooyala':
-            return self.url_result(
-                'ooyala:%s' % video_id, ie=OoyalaIE.ie_key(), video_id=video_id)
-        config_url = compat_urlparse.urljoin(url, player_data['data-config'])
-        config = self._download_json(
-            config_url, video_id, 'Downloading config JSON')
-        mmc_url = config['services']['mmc']
-
-        duration = None
-        formats = []
-        for m_url in (mmc_url, mmc_url.replace('/flash.json', '/html5.json')):
-            mmc = self._download_json(
-                m_url, video_id, 'Downloading mmc JSON')
-            if not duration:
-                duration = int_or_none(mmc.get('duration'))
-            for location in mmc['locations']:
-                gat = self._proto_relative_url(location.get('gat'), 'http:')
-                bas = location.get('bas')
-                loc = location.get('loc')
-                ogn = location.get('ogn')
-                if None in (gat, bas, loc, ogn):
-                    continue
-                token_data = {
-                    'bas': bas,
-                    'icd': loc,
-                    'ogn': ogn,
-                    'sta': '0',
-                }
-                media = self._download_json(
-                    '%s/?%s' % (gat, compat_urllib_parse_urlencode(token_data)),
-                    video_id, 'Downloading %s JSON' % location['loc'])
-                file_ = media.get('file')
-                if not file_:
-                    continue
-                ext = determine_ext(file_)
-                if ext == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        file_ + '&hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
-                        video_id, f4m_id='hds', fatal=False))
-                elif ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        file_, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'formats': formats,
-            'thumbnail': player_data.get('data-poster') or config.get('poster', {}).get('imageUrl'),
-            'duration': duration,
-        }
 
 
 class MiTeleIE(InfoExtractor):
@@ -84,7 +16,7 @@ class MiTeleIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://www.mitele.es/programas-tv/diario-de/57b0dfb9c715da65618b4afa/player',
         'info_dict': {
-            'id': '57b0dfb9c715da65618b4afa',
+            'id': 'FhYW1iNTE6J6H7NkQRIEzfne6t2quqPg',
             'ext': 'mp4',
             'title': 'Tor, la web invisible',
             'description': 'md5:3b6fce7eaa41b2d97358726378d9369f',
@@ -102,7 +34,7 @@ class MiTeleIE(InfoExtractor):
         # no explicit title
         'url': 'http://www.mitele.es/programas-tv/cuarto-milenio/57b0de3dc915da14058b4876/player',
         'info_dict': {
-            'id': '57b0de3dc915da14058b4876',
+            'id': 'oyNG1iNTE6TAPP-JmCjbwfwJqqMMX3Vq',
             'ext': 'mp4',
             'title': 'Cuarto Milenio Temporada 6 Programa 226',
             'description': 'md5:5ff132013f0cd968ffbf1f5f3538a65f',
@@ -126,40 +58,21 @@ class MiTeleIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
-        gigya_url = self._search_regex(
-            r'<gigya-api>[^>]*</gigya-api>[^>]*<script\s+src="([^"]*)">[^>]*</script>',
-            webpage, 'gigya', default=None)
-        gigya_sc = self._download_webpage(
-            compat_urlparse.urljoin('http://www.mitele.es/', gigya_url),
-            video_id, 'Downloading gigya script')
-
-        # Get a appKey/uuid for getting the session key
-        appKey = self._search_regex(
-            r'constant\s*\(\s*["\']_appGridApplicationKey["\']\s*,\s*["\']([0-9a-f]+)',
-            gigya_sc, 'appKey')
-
-        session_json = self._download_json(
-            'https://appgrid-api.cloud.accedo.tv/session',
-            video_id, 'Downloading session keys', query={
-                'appKey': appKey,
-                'uuid': compat_str(uuid.uuid4()),
-            })
 
         paths = self._download_json(
-            'https://appgrid-api.cloud.accedo.tv/metadata/general_configuration,%20web_configuration',
-            video_id, 'Downloading paths JSON',
-            query={'sessionKey': compat_str(session_json['sessionKey'])})
+            'https://www.mitele.es/amd/agp/web/metadata/general_configuration',
+            video_id, 'Downloading paths JSON')
 
         ooyala_s = paths['general_configuration']['api_configuration']['ooyala_search']
+        base_url = ooyala_s.get('base_url', 'cdn-search-mediaset.carbyne.ps.ooyala.com')
+        full_path = ooyala_s.get('full_path', '/search/v1/full/providers/')
         source = self._download_json(
-            'http://%s%s%s/docs/%s' % (
-                ooyala_s['base_url'], ooyala_s['full_path'],
-                ooyala_s['provider_id'], video_id),
+            '%s://%s%s%s/docs/%s' % (
+                ooyala_s.get('protocol', 'https'), base_url, full_path,
+                ooyala_s.get('provider_id', '104951'), video_id),
             video_id, 'Downloading data JSON', query={
                 'include_titles': 'Series,Season',
-                'product_name': 'test',
+                'product_name': ooyala_s.get('product_name', 'test'),
                 'format': 'full',
             })['hits']['hits'][0]['_source']
 

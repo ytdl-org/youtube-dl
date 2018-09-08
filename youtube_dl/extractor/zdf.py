@@ -15,6 +15,7 @@ from ..utils import (
     try_get,
     unified_timestamp,
     update_url_query,
+    url_or_none,
     urljoin,
 )
 
@@ -42,16 +43,19 @@ class ZDFIE(ZDFBaseIE):
     _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
 
     _TESTS = [{
-        'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
+        'url': 'https://www.zdf.de/dokumentation/terra-x/die-magie-der-farben-von-koenigspurpur-und-jeansblau-100.html',
         'info_dict': {
-            'id': 'zdfmediathek-trailer-100',
+            'id': 'die-magie-der-farben-von-koenigspurpur-und-jeansblau-100',
             'ext': 'mp4',
-            'title': 'Die neue ZDFmediathek',
-            'description': 'md5:3003d36487fb9a5ea2d1ff60beb55e8d',
-            'duration': 30,
-            'timestamp': 1477627200,
-            'upload_date': '20161028',
-        }
+            'title': 'Die Magie der Farben (2/2)',
+            'description': 'md5:a89da10c928c6235401066b60a6d5c1a',
+            'duration': 2615,
+            'timestamp': 1465021200,
+            'upload_date': '20160604',
+        },
+    }, {
+        'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
+        'only_matching': True,
     }, {
         'url': 'https://www.zdf.de/filme/taunuskrimi/die-lebenden-und-die-toten-1---ein-taunuskrimi-100.html',
         'only_matching': True,
@@ -64,8 +68,8 @@ class ZDFIE(ZDFBaseIE):
     def _extract_subtitles(src):
         subtitles = {}
         for caption in try_get(src, lambda x: x['captions'], list) or []:
-            subtitle_url = caption.get('uri')
-            if subtitle_url and isinstance(subtitle_url, compat_str):
+            subtitle_url = url_or_none(caption.get('uri'))
+            if subtitle_url:
                 lang = caption.get('language', 'deu')
                 subtitles.setdefault(lang, []).append({
                     'url': subtitle_url,
@@ -73,8 +77,8 @@ class ZDFIE(ZDFBaseIE):
         return subtitles
 
     def _extract_format(self, video_id, formats, format_urls, meta):
-        format_url = meta.get('url')
-        if not format_url or not isinstance(format_url, compat_str):
+        format_url = url_or_none(meta.get('url'))
+        if not format_url:
             return
         if format_url in format_urls:
             return
@@ -149,7 +153,8 @@ class ZDFIE(ZDFBaseIE):
             content, lambda x: x['teaserImageRef']['layouts'], dict)
         if layouts:
             for layout_key, layout_url in layouts.items():
-                if not isinstance(layout_url, compat_str):
+                layout_url = url_or_none(layout_url)
+                if not layout_url:
                     continue
                 thumbnail = {
                     'url': layout_url,
