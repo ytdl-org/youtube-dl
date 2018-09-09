@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://(?:play|prima)\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
     _GEO_BYPASS = False
 
     _TESTS = [{
@@ -33,6 +33,14 @@ class IPrimaIE(InfoExtractor):
         # geo restricted
         'url': 'http://play.iprima.cz/closer-nove-pripady/closer-nove-pripady-iv-1',
         'only_matching': True,
+    }, {
+        # iframe api.play-backend.iprima.cz
+        'url': 'https://prima.iprima.cz/my-little-pony/mapa-znameni-2-2',
+        'only_matching': True,
+    }, {
+        # iframe prima.iprima.cz
+        'url': 'https://prima.iprima.cz/porady/jak-se-stavi-sen/rodina-rathousova-praha',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -42,7 +50,10 @@ class IPrimaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_id = self._search_regex(r'data-product="([^"]+)">', webpage, 'real id')
+        video_id = self._search_regex(
+            (r'<iframe[^>]+\bsrc=["\'](?:https?:)?//(?:api\.play-backend\.iprima\.cz/prehravac/embedded|prima\.iprima\.cz/[^/]+/[^/]+)\?.*?\bid=(p\d+)',
+             r'data-product="([^"]+)">'),
+            webpage, 'real id')
 
         playerpage = self._download_webpage(
             'http://play.iprima.cz/prehravac/init',
