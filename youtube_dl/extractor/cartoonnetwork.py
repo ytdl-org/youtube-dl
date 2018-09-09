@@ -32,12 +32,8 @@ class CartoonNetworkIE(TurnerBaseIE):
             auth_required = 'true'
         if "unauth" in auth:
             auth_required = '' #Auth needs to be first due to Auth being in unauth. :/
-        #print(auth_required)
         videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
-        if 'short' in videoType:
-            description = ''
-        else:
-            description = self._html_search_regex(r'id="[^>]+description[^>]*>(.+?)</div>', webpage, 'description')
+        description = self._html_search_regex(r'id="[^>]+description[^>]*>(.+?)</div>', webpage, 'description', default=None)
         info = self._extract_ngtv_info(
             video_id,
             {'networkId': 'cartoonnetwork'},
