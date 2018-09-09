@@ -1,3 +1,14 @@
+version 2018.09.10
+
+Core
++ [utils] Properly recognize AV1 codec (#17506)
+
+Extractors
++ [iprima] Add support for prima.iprima.cz (#17514)
++ [tele5] Add support for tele5.de (#7805, #7922, #17331, #17414)
+* [nbc] Fix extraction of percent encoded URLs (#17374)
+
+
 version 2018.09.08
 
 Extractors
