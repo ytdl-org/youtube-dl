@@ -421,6 +421,7 @@ def _real_main(argv=None):
         'match_filter': match_filter,
         'no_color': opts.no_color,
         'ffmpeg_location': opts.ffmpeg_location,
+        'phantomjs_location': opts.phantomjs_location,
         'hls_prefer_native': opts.hls_prefer_native,
         'hls_use_mpegts': opts.hls_use_mpegts,
         'external_downloader_args': external_downloader_args,
