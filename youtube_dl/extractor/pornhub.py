@@ -385,6 +385,9 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
         'only_matching': True,
     }, {
+        'url': 'https://www.pornhub.com/model/zoe_ph',
+        'only_matching': True,
+    }, {
         # default sorting as Most Recent Videos
         'url': 'https://www.pornhub.com/pornstar/liz-vicious',
         'info_dict': {
