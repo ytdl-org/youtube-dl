@@ -853,7 +853,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--phantomjs-location', metavar='PATH',
         dest='phantomjs_location',
-        help='Location of the phantomjs binary; either the path to the binary or its containing directory.')
+        help='Location of the phantomjs binary.')
     postproc.add_option(
         '--exec',
         metavar='CMD', dest='exec_cmd',
