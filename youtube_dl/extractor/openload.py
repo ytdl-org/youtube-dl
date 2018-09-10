@@ -107,14 +107,16 @@ class PhantomJSwrapper(object):
 
     _TMP_FILE_NAMES = ['script', 'html', 'cookies']
 
-    @staticmethod
-    def _version():
-        return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
+    _DEFAULT_EXE_PATH = 'phantomjs'
 
-    def __init__(self, extractor, required_version=None, timeout=10000):
+    @classmethod
+    def _version(cls, exe_path=None):
+        return get_exe_version(exe_path or cls._DEFAULT_EXE_PATH, version_re=r'([0-9.]+)')
+
+    def __init__(self, extractor, required_version=None, timeout=10000, exe_path=None):
         self._TMP_FILES = {}
 
-        self.exe = check_executable('phantomjs', ['-v'])
+        self.exe = check_executable(exe_path or self._DEFAULT_EXE_PATH, ['-v'])
         if not self.exe:
             raise ExtractorError('PhantomJS executable not found in PATH, '
                                  'download it from http://phantomjs.org',
@@ -342,7 +344,8 @@ class OpenloadIE(InfoExtractor):
                 raise ExtractorError('File not found', expected=True, video_id=video_id)
             break
 
-        phantom = PhantomJSwrapper(self, required_version='2.0')
+        phantomjs_location = self._downloader.params.get('phantomjs_location')
+        phantom = PhantomJSwrapper(self, required_version='2.0', exe_path=phantomjs_location)
         webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
 
         decoded_id = (get_element_by_id('streamurl', webpage) or

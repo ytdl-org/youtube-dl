@@ -851,6 +851,10 @@ def parseOpts(overrideArguments=None):
         dest='ffmpeg_location',
         help='Location of the ffmpeg/avconv binary; either the path to the binary or its containing directory.')
     postproc.add_option(
+        '--phantomjs-location', metavar='PATH',
+        dest='phantomjs_location',
+        help='Location of the phantomjs binary.')
+    postproc.add_option(
         '--exec',
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
