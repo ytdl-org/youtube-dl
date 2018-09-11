@@ -26,7 +26,7 @@ class CartoonNetworkIE(TurnerBaseIE):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         video_id = self._html_search_regex(r'[^>]+.mediaId = "(.+?)"', webpage, 'video_id')	
-        title = self._html_search_regex(r'[^>]+.episodeTitle[^>]*"(.+?)"', webpage, 'title')
+        title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
         description = self._html_search_regex(r'[^>]+description[^>]*>(.+?)<', webpage, 'description', default=None)
         info = self._extract_ngtv_info(
             video_id,
