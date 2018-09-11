@@ -26,21 +26,18 @@ class CartoonNetworkIE(TurnerBaseIE):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         video_id = self._html_search_regex(r'[^>]+.mediaId = "(.+?)"', webpage, 'video_id')	
-        title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
-        auth = self._html_search_regex(r'[^>]+currentVideo.authType = "(.+?)"', webpage, 'authType')
-        if "auth" in auth:
-            auth_required = 'true'
-        if "unauth" in auth:
-            auth_required = '' #Auth needs to be first due to Auth being in unauth. :/
-        videoType = self._html_search_regex(r'[^>]+.videoType = "(.+?)"', webpage, 'videoType')
-        description = self._html_search_regex(r'id="[^>]+description[^>]*>(.+?)</div>', webpage, 'description', default=None)
+        title = self._html_search_regex(r'[^>]+.episodeTitle[^>]*"(.+?)"', webpage, 'title')
+        description = self._html_search_regex(r'[^>]+description[^>]*>(.+?)<', webpage, 'description', default=None)
+        print(video_id)
         info = self._extract_ngtv_info(
             video_id,
             {'networkId': 'cartoonnetwork'},
             {
                 'url': url,
                 'site_name': 'CartoonNetwork',
-                'auth_required': auth_required,
+                'auth_required': self._search_regex(
+                    r'[^>]+currentVideo.authType = "(auth|unauth)"',
+                    webpage, 'auth required', default='false') == 'auth',
             },
         )
         info.update({
