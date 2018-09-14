@@ -13,6 +13,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
+    str_or_none,
     str_to_int,
     try_get,
     unified_timestamp,
@@ -199,6 +200,26 @@ class PornTubeIE(FourTubeBaseIE):
             'skip_download': True,
         },
     }, {
+        'url': 'https://www.porntube.com/videos/squirting-teen-ballerina-ecg_1331406',
+        'info_dict': {
+            'id': '1331406',
+            'ext': 'mp4',
+            'title': 'Squirting Teen Ballerina on ECG',
+            'uploader': 'Exploited College Girls',
+            'uploader_id': '665',
+            'channel': 'Exploited College Girls',
+            'channel_id': '665',
+            'upload_date': '20130920',
+            'timestamp': 1379685485,
+            'duration': 851,
+            'view_count': int,
+            'like_count': int,
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://www.porntube.com/embed/7089759',
         'only_matching': True,
     }, {
@@ -227,7 +248,11 @@ class PornTubeIE(FourTubeBaseIE):
 
         thumbnail = url_or_none(video.get('masterThumb'))
         uploader = try_get(video, lambda x: x['user']['username'], compat_str)
-        uploader_id = compat_str(try_get(video, lambda x: x['user']['id'], int))
+        uploader_id = str_or_none(try_get(
+            video, lambda x: x['user']['id'], int))
+        channel = try_get(video, lambda x: x['channel']['name'], compat_str)
+        channel_id = str_or_none(try_get(
+            video, lambda x: x['channel']['id'], int))
         like_count = int_or_none(video.get('likes'))
         dislike_count = int_or_none(video.get('dislikes'))
         view_count = int_or_none(video.get('playsQty'))
@@ -239,8 +264,10 @@ class PornTubeIE(FourTubeBaseIE):
             'title': title,
             'formats': formats,
             'thumbnail': thumbnail,
-            'uploader': uploader,
-            'uploader_id': uploader_id,
+            'uploader': uploader or channel,
+            'uploader_id': uploader_id or channel_id,
+            'channel': channel,
+            'channel_id': channel_id,
             'timestamp': timestamp,
             'like_count': like_count,
             'dislike_count': dislike_count,
