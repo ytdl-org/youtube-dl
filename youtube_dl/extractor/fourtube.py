@@ -3,15 +3,44 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urlparse
+from ..compat import (
+    compat_b64decode,
+    compat_str,
+    compat_urllib_parse_unquote,
+    compat_urlparse,
+)
 from ..utils import (
+    int_or_none,
     parse_duration,
     parse_iso8601,
     str_to_int,
+    try_get,
+    unified_timestamp,
+    url_or_none,
 )
 
 
 class FourTubeBaseIE(InfoExtractor):
+    _TKN_HOST = 'tkn.kodicdn.com'
+
+    def _extract_formats(self, url, video_id, media_id, sources):
+        token_url = 'https://%s/%s/desktop/%s' % (
+            self._TKN_HOST, media_id, '+'.join(sources))
+
+        parsed_url = compat_urlparse.urlparse(url)
+        tokens = self._download_json(token_url, video_id, data=b'', headers={
+            'Origin': '%s://%s' % (parsed_url.scheme, parsed_url.hostname),
+            'Referer': url,
+        })
+        formats = [{
+            'url': tokens[format]['token'],
+            'format_id': format + 'p',
+            'resolution': format + 'p',
+            'quality': int(format),
+        } for format in sources]
+        self._sort_formats(formats)
+        return formats
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         kind, video_id, display_id = mobj.group('kind', 'id', 'display_id')
@@ -68,21 +97,7 @@ class FourTubeBaseIE(InfoExtractor):
             media_id = params[0]
             sources = ['%s' % p for p in params[2]]
 
-        token_url = 'https://tkn.kodicdn.com/{0}/desktop/{1}'.format(
-            media_id, '+'.join(sources))
-
-        parsed_url = compat_urlparse.urlparse(url)
-        tokens = self._download_json(token_url, video_id, data=b'', headers={
-            'Origin': '%s://%s' % (parsed_url.scheme, parsed_url.hostname),
-            'Referer': url,
-        })
-        formats = [{
-            'url': tokens[format]['token'],
-            'format_id': format + 'p',
-            'resolution': format + 'p',
-            'quality': int(format),
-        } for format in sources]
-        self._sort_formats(formats)
+        formats = self._extract_formats(url, video_id, media_id, sources)
 
         return {
             'id': video_id,
@@ -164,6 +179,7 @@ class FuxIE(FourTubeBaseIE):
 class PornTubeIE(FourTubeBaseIE):
     _VALID_URL = r'https?://(?:(?P<kind>www|m)\.)?porntube\.com/(?:videos/(?P<display_id>[^/]+)_|embed/)(?P<id>\d+)'
     _URL_TEMPLATE = 'https://www.porntube.com/videos/video_%s'
+    _TKN_HOST = 'tkn.porntube.com'
     _TESTS = [{
         'url': 'https://www.porntube.com/videos/teen-couple-doing-anal_7089759',
         'info_dict': {
@@ -171,13 +187,12 @@ class PornTubeIE(FourTubeBaseIE):
             'ext': 'mp4',
             'title': 'Teen couple doing anal',
             'uploader': 'Alexy',
-            'uploader_id': 'Alexy',
+            'uploader_id': '91488',
             'upload_date': '20150606',
             'timestamp': 1433595647,
             'duration': 5052,
             'view_count': int,
             'like_count': int,
-            'categories': list,
             'age_limit': 18,
         },
         'params': {
@@ -190,6 +205,49 @@ class PornTubeIE(FourTubeBaseIE):
         'url': 'https://m.porntube.com/videos/teen-couple-doing-anal_7089759',
         'only_matching': True,
     }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id, display_id = mobj.group('id', 'display_id')
+
+        webpage = self._download_webpage(url, display_id)
+
+        video = self._parse_json(
+            self._search_regex(
+                r'INITIALSTATE\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+                webpage, 'data', group='value'), video_id,
+            transform_source=lambda x: compat_urllib_parse_unquote(
+                compat_b64decode(x).decode('utf-8')))['page']['video']
+
+        title = video['title']
+        media_id = video['mediaId']
+        sources = [compat_str(e['height'])
+                   for e in video['encodings'] if e.get('height')]
+        formats = self._extract_formats(url, video_id, media_id, sources)
+
+        thumbnail = url_or_none(video.get('masterThumb'))
+        uploader = try_get(video, lambda x: x['user']['username'], compat_str)
+        uploader_id = compat_str(try_get(video, lambda x: x['user']['id'], int))
+        like_count = int_or_none(video.get('likes'))
+        dislike_count = int_or_none(video.get('dislikes'))
+        view_count = int_or_none(video.get('playsQty'))
+        duration = int_or_none(video.get('durationInSeconds'))
+        timestamp = unified_timestamp(video.get('publishedAt'))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': formats,
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'timestamp': timestamp,
+            'like_count': like_count,
+            'dislike_count': dislike_count,
+            'view_count': view_count,
+            'duration': duration,
+            'age_limit': 18,
+        }
 
 
 class PornerBrosIE(FourTubeBaseIE):
