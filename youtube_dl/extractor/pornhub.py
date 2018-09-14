@@ -40,6 +40,7 @@ class PornHubIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Seductive Indian beauty strips down and fingers her pink pussy',
             'uploader': 'Babes',
+            'upload_date': '20130628',
             'duration': 361,
             'view_count': int,
             'like_count': int,
@@ -57,6 +58,7 @@ class PornHubIE(InfoExtractor):
             'ext': 'mp4',
             'title': '重庆婷婷女王足交',
             'uploader': 'Unknown',
+            'upload_date': '20150213',
             'duration': 1753,
             'view_count': int,
             'like_count': int,
@@ -237,8 +239,14 @@ class PornHubIE(InfoExtractor):
                 video_urls.append((video_url, None))
                 video_urls_set.add(video_url)
 
+        upload_date = None
         formats = []
         for video_url, height in video_urls:
+            if not upload_date:
+                upload_date = self._search_regex(
+                    r'/(\d{6}/\d{2})/', video_url, 'upload data', default=None)
+                if upload_date:
+                    upload_date = upload_date.replace('/', '')
             tbr = None
             mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', video_url)
             if mobj:
@@ -278,6 +286,7 @@ class PornHubIE(InfoExtractor):
         return {
             'id': video_id,
             'uploader': video_uploader,
+            'upload_date': upload_date,
             'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
