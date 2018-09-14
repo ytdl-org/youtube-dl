@@ -494,7 +494,7 @@ class NicovideoIE(SearchInfoExtractor):
             # is a guarantee that the number of pages in the search results will not exceed 50. For any given search for a day, we extract everything available, and move on, until
             # finding as many entries as were requested.
             currDate -= datetime.timedelta(days=1)
-            if(len(entries) >= n or currDate < datetime.datetime(2007, 1, 1)):
+            if(len(entries) >= n or currDate < datetime.date(2007, 1, 1)):
                 break
 
         return {
