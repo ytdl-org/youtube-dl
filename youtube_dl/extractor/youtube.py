@@ -490,6 +490,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
+                'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
+                'channel_url': r're:https?://(?:www\.)?youtube\.com/channel/UCLqxVugv74EIW3VWh2NOa3Q',
                 'upload_date': '20121002',
                 'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
@@ -1907,6 +1909,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
 
+        channel_id = self._html_search_meta(
+            'channelId', video_webpage, 'channel id')
+        channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
+
         # thumbnail image
         # We try first to get a high quality image:
         m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
@@ -2078,6 +2084,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
             'uploader_url': video_uploader_url,
+            'channel_id': channel_id,
+            'channel_url': channel_url,
             'upload_date': upload_date,
             'license': video_license,
             'creator': video_creator or artist,
