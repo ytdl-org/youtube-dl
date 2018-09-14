@@ -8,7 +8,6 @@ from .kaltura import KalturaIE
 from ..utils import (
     extract_attributes,
     remove_end,
-    urlencode_postdata,
 )
 
 
@@ -34,19 +33,40 @@ class AsianCrushIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        data = self._download_json(
-            'https://www.asiancrush.com/wp-admin/admin-ajax.php', video_id,
-            data=urlencode_postdata({
-                'postid': video_id,
-                'action': 'get_channel_kaltura_vars',
-            }))
+        webpage = self._download_webpage(url, video_id)
 
-        entry_id = data['entry_id']
+        entry_id, partner_id, title = [None] * 3
+
+        vars = self._parse_json(
+            self._search_regex(
+                r'iEmbedVars\s*=\s*({.+?})', webpage, 'embed vars',
+                default='{}'), video_id, fatal=False)
+        if vars:
+            entry_id = vars.get('entry_id')
+            partner_id = vars.get('partner_id')
+            title = vars.get('vid_label')
+
+        if not entry_id:
+            entry_id = self._search_regex(
+                r'\bentry_id["\']\s*:\s*["\'](\d+)', webpage, 'entry id')
+
+        player = self._download_webpage(
+            'https://api.asiancrush.com/embeddedVideoPlayer', video_id,
+            query={'id': entry_id})
+
+        kaltura_id = self._search_regex(
+            r'entry_id["\']\s*:\s*(["\'])(?P<id>(?:(?!\1).)+)\1', player,
+            'kaltura id', group='id')
+
+        if not partner_id:
+            partner_id = self._search_regex(
+                r'/p(?:artner_id)?/(\d+)', player, 'partner id',
+                default='513551')
 
         return self.url_result(
-            'kaltura:%s:%s' % (data['partner_id'], entry_id),
-            ie=KalturaIE.ie_key(), video_id=entry_id,
-            video_title=data.get('vid_label'))
+            'kaltura:%s:%s' % (partner_id, kaltura_id),
+            ie=KalturaIE.ie_key(), video_id=kaltura_id,
+            video_title=title)
 
 
 class AsianCrushPlaylistIE(InfoExtractor):
