@@ -571,19 +571,23 @@ class VimeoIE(VimeoBaseInfoExtractor):
             if config.get('view') == 4:
                 config = self._verify_player_video_password(redirect_url, video_id)
 
+        vod = config.get('video', {}).get('vod', {})
+
         def is_rented():
             if '>You rented this title.<' in webpage:
                 return True
             if config.get('user', {}).get('purchased'):
                 return True
-            label = try_get(
-                config, lambda x: x['video']['vod']['purchase_options'][0]['label_string'], compat_str)
-            if label and label.startswith('You rented this'):
-                return True
+            for purchase_option in vod.get('purchase_options', []):
+                if purchase_option.get('purchased'):
+                    return True
+                label = purchase_option.get('label_string')
+                if label and (label.startswith('You rented this') or label.endswith(' remaining')):
+                    return True
             return False
 
-        if is_rented():
-            feature_id = config.get('video', {}).get('vod', {}).get('feature_id')
+        if is_rented() and vod.get('is_trailer'):
+            feature_id = vod.get('feature_id')
             if feature_id and not data.get('force_feature_id', False):
                 return self.url_result(smuggle_url(
                     'https://player.vimeo.com/player/%s' % feature_id,
