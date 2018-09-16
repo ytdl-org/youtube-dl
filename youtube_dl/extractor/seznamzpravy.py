@@ -164,6 +164,6 @@ class SeznamZpravyArticleIE(InfoExtractor):
         description = info.get('description') or self._og_search_description(webpage)
 
         return self.playlist_result([
-            self.url_result(url, ie=SeznamZpravyIE.ie_key())
-            for url in SeznamZpravyIE._extract_urls(webpage)],
+            self.url_result(entry_url, ie=SeznamZpravyIE.ie_key())
+            for entry_url in SeznamZpravyIE._extract_urls(webpage)],
             article_id, title, description)
