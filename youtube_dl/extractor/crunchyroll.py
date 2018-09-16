@@ -445,6 +445,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             webpage, 'vilos media', default='{}'), video_id)
         media_metadata = media.get('metadata') or {}
 
+        language = self._search_regex(
+            r'(?:vilos\.config\.player\.language|LOCALE)\s*=\s*(["\'])(?P<lang>(?:(?!\1).)+)\1',
+            webpage, 'language', default=None, group='lang')
+
         video_title = self._html_search_regex(
             r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
             webpage, 'video_title')
@@ -466,9 +470,22 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         formats = []
         for stream in media.get('streams', []):
-            formats.extend(self._extract_vrv_formats(
+            audio_lang = stream.get('audio_lang')
+            hardsub_lang = stream.get('hardsub_lang')
+            vrv_formats = self._extract_vrv_formats(
                 stream.get('url'), video_id, stream.get('format'),
-                stream.get('audio_lang'), stream.get('hardsub_lang')))
+                audio_lang, hardsub_lang)
+            for f in vrv_formats:
+                if not hardsub_lang:
+                    f['preference'] = 1
+                language_preference = 0
+                if audio_lang == language:
+                    language_preference += 1
+                if hardsub_lang == language:
+                    language_preference += 1
+                if language_preference:
+                    f['language_preference'] = language_preference
+            formats.extend(vrv_formats)
         if not formats:
             available_fmts = []
             for a, fmt in re.findall(r'(<a[^>]+token=["\']showmedia\.([0-9]{3,4})p["\'][^>]+>)', webpage):
@@ -557,7 +574,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'ext': 'flv',
                     })
                     formats.append(format_info)
-        self._sort_formats(formats, ('height', 'width', 'tbr', 'fps'))
+        self._sort_formats(formats, ('preference', 'language_preference', 'height', 'width', 'tbr', 'fps'))
 
         metadata = self._call_rpc_api(
             'VideoPlayer_GetMediaMetadata', video_id,
