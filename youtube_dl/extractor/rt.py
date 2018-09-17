@@ -40,7 +40,7 @@ class RTIE(InfoExtractor):
             'info_dict': {
                 'id': 'SHxygmDAkNE',
                 'ext': 'mp4',
-                'title': u'ICYMI: Is Elon Musk Tony Stark, or just stark raving mad?',
+                'title': 'ICYMI: Is Elon Musk Tony Stark, or just stark raving mad?',
                 'description': 'md5:99e8c3456f6904383399aeeb10784c8b',
                 'upload_date': '20180914',
                 'uploader_id': 'UCdgFmrDeP9nWj_eDKW6j9kQ',
