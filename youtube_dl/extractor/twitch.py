@@ -51,7 +51,9 @@ class TwitchBaseIE(InfoExtractor):
                 expected=True)
 
     def _call_api(self, path, item_id, *args, **kwargs):
-        kwargs.setdefault('headers', {})['Client-ID'] = self._CLIENT_ID
+        headers = kwargs.get('headers', {}).copy()
+        headers['Client-ID'] = self._CLIENT_ID
+        kwargs['headers'] = headers
         response = self._download_json(
             '%s/%s' % (self._API_BASE, path), item_id,
             *args, **compat_kwargs(kwargs))
