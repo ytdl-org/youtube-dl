@@ -90,7 +90,13 @@ class VRVIE(VRVBaseIE):
     def _extract_vrv_formats(self, url, video_id, stream_format, audio_lang, hardsub_lang):
         if not url or stream_format not in ('hls', 'dash'):
             return []
-        stream_id = hardsub_lang or audio_lang
+        assert audio_lang or hardsub_lang
+        stream_id_list = []
+        if audio_lang:
+            stream_id_list.append('audio-%s' % audio_lang)
+        if hardsub_lang:
+            stream_id_list.append('hardsub-%s' % hardsub_lang)
+        stream_id = '-'.join(stream_id_list)
         format_id = '%s-%s' % (stream_format, stream_id)
         if stream_format == 'hls':
             adaptive_formats = self._extract_m3u8_formats(
