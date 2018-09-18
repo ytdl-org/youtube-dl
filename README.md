@@ -33,7 +33,11 @@ You can also use pip:
 
     sudo -H pip install --upgrade youtube-dl
     
-This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
+This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information. 
+
+You can also install this package with conda run:
+
+    conda install -c conda-forge youtube-dl
 
 macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
 
