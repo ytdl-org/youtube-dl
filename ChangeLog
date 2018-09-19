@@ -1,3 +1,28 @@
+version 2018.09.18
+
+Core
++ [extractor/common] Introduce channel meta fields
+
+Extractors
+* [adobepass] Don't pollute default headers dict
+* [udemy] Don't pollute default headers dict
+* [twitch] Don't pollute default headers dict
+* [youtube] Don't pollute default query dict (#17593)
+* [crunchyroll] Prefer hardsubless formats and formats in locale language
+* [vrv] Make format ids deterministic
+* [vimeo] Fix ondemand playlist extraction (#14591)
++ [pornhub] Extract upload date (#17574)
++ [porntube] Extract channel meta fields
++ [vimeo] Extract channel meta fields
++ [youtube] Extract channel meta fields (#9676, #12939)
+* [porntube] Fix extraction (#17541)
+* [asiancrush] Fix extraction (#15630)
++ [twitch:clips] Extend URL regular expression (closes #17559)
++ [vzaar] Add support for HLS
+* [tube8] Fix metadata extraction (#17520)
+* [eporner] Extract JSON-LD (#17519)
+
+
 version 2018.09.10
 
 Core

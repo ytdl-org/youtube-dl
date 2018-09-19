@@ -58,8 +58,6 @@ class PopcornTVIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         timestamp = unified_timestamp(self._html_search_meta(
             'uploadDate', webpage, 'timestamp'))
-        print(self._html_search_meta(
-            'duration', webpage))
         duration = int_or_none(self._html_search_meta(
             'duration', webpage), invscale=60)
         view_count = int_or_none(self._html_search_meta(
