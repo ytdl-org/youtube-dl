@@ -191,3 +191,38 @@ class ABCIViewIE(InfoExtractor):
             'subtitles': subtitles,
             'is_live': is_live,
         }
+
+
+class ABCIViewShowLatestEpisodeIE(InfoExtractor):
+    IE_NAME = 'abc.net.au:iview:show:latest-episode'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/show/(?P<id>[^/]+)$'
+    _GEO_COUNTRIES = ['AU']
+
+    _TESTS = [{
+        'url': 'https://iview.abc.net.au/show/aussie-rangers',
+        'md5': 'd0ef57fb44165e5947f04b06ad30205f',
+        'info_dict': {
+            'id': 'IP1502W001S00',
+            'ext': 'mp4',
+            'title': 'Episode 1',
+            'series': "Aussie Rangers",
+            'description': 'md5:b2b899da064bdec43c3a291314ade444',
+            'upload_date': '20171204',
+            'uploader_id': 'abc2',
+            'timestamp': 1512354840,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        show_id = self._match_id(url)
+        webpage = self._download_webpage(url, show_id)
+        webpage_data = self._search_regex(
+            r'window\.__INITIAL_STATE__\s*=\s*"(.+)"\s*;',
+            webpage, 'initial state')
+        json_data = unescapeHTML(webpage_data).encode('utf-8').decode('unicode_escape')
+        video_data = self._parse_json(json_data, show_id)
+        url = video_data['page']['pageData']['_embedded']['highlightVideo']['shareUrl']
+        return self.url_result(url)
