@@ -693,6 +693,7 @@ from .ndr import (
     NJoyEmbedIE,
 )
 from .ndtv import NDTVIE
+from .neatclip import NeatclipIE
 from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
 from .neteasemusic import (
