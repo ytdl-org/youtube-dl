@@ -1462,3 +1462,5 @@ from .zattoo import (
 )
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
+
+from .xinhuanet import XinHuaNetIE,XinHuaNet2IE
