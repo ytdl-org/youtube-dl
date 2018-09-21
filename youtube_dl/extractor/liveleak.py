@@ -120,7 +120,17 @@ class LiveLeakIE(InfoExtractor):
             }
 
         for idx, info_dict in enumerate(entries):
+            source_found = False
             for a_format in info_dict['formats']:
+                if not source_found:
+                    source_url = re.sub(r'(https?://(?:\w+\.)?liveleak\.com/.*?\.\w+)\.\w+\.mp4((?:\?.+)?)', r'\1\2', a_format['url'])
+                    if source_url != a_format['url']:
+                        source_found = True
+                        info_dict['formats'].append({
+                            'url': source_url,
+                            'format_note': 'original, without watermark',
+                            'format_id': 'source'
+                        })
                 if not a_format.get('height'):
                     a_format['height'] = int_or_none(self._search_regex(
                         r'([0-9]+)p\.mp4', a_format['url'], 'height label',
