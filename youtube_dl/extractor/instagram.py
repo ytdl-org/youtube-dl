@@ -8,6 +8,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
+    compat_urllib_parse_urlparse,
     compat_HTTPError,
 )
 from ..utils import (
@@ -228,7 +229,7 @@ class InstagramIE(InfoExtractor):
 
 
 class InstagramUserIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/?(?:$|[?#])'
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/?(?:saved/?)(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
     IE_NAME = 'instagram:user'
     _TEST = {
@@ -347,10 +348,62 @@ class InstagramUserIE(InfoExtractor):
             if not cursor or not isinstance(cursor, compat_str):
                 break
 
+    def _saved_entries(self, username):
+        cookies = self._get_cookies('https://www.instagram.com/%s/saved/' % username)
+        cursor = ''
+        has_next_page = True
+
+        while has_next_page:
+            query = {
+                'query_hash': '8c86fed24fa03a8a2eea2a70a80c7b6b',
+                'variables': json.dumps({
+                    'id': cookies.get('ds_user_id').value,
+                    'first': 12,
+                    'after': cursor,
+                })
+            }
+            resp = self._download_json('https://www.instagram.com/graphql/query/',
+                                       username,
+                                       query=query)
+            media = resp['data']['user']['edge_saved_media']
+
+            for edge in media.get('edges', []):
+                node = edge.get('node')
+                if not node or not isinstance(node, dict):
+                    continue
+                if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
+                    continue
+                video_id = node.get('shortcode')
+                if not video_id:
+                    continue
+                info = self.url_result(
+                    'https://instagram.com/p/%s/' % video_id,
+                    ie=InstagramIE.ie_key(), video_id=video_id)
+
+                yield info
+
+            page_info = media.get('page_info')
+            if not page_info or not isinstance(page_info, dict):
+                break
+
+            has_next_page = page_info.get('has_next_page')
+            if not has_next_page:
+                break
+
+            cursor = page_info.get('end_cursor')
+            if not cursor or not isinstance(cursor, compat_str):
+                break
+
     def _real_extract(self, url):
         username = self._match_id(url)
 
         webpage = self._download_webpage(url, username)
+        last = filter(lambda x: len(x) > 0,
+                      compat_urllib_parse_urlparse(url).path.split('/'))[-1]
+        if last == 'saved':
+            return self.playlist_result(
+                self._saved_entries(username),
+                username, '%s - Saved media' % username)
 
         data = self._parse_json(
             self._search_regex(
