@@ -105,7 +105,7 @@ class ABCIE(InfoExtractor):
 
 class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*video/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:(?:[^/]+/)*video/(?P<id>[^/?#]+)|show/[^/]+$)'
     _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
@@ -129,6 +129,15 @@ class ABCIViewIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        if video_id == 'None':
+            webpage = self._download_webpage(url, video_id)
+            webpage_data = self._search_regex(
+                    r'window\.__INITIAL_STATE__\s*=\s*"(.+)"\s*;',
+                    webpage, 'initial state')
+            json_data = unescapeHTML(webpage_data).encode('utf-8').decode('unicode_escape')
+            video_data = self._parse_json(json_data, video_id)
+            url = video_data['page']['pageData']['_embedded']['highlightVideo']['shareUrl']
+            video_id = self._match_id(url)
         video_params = self._download_json(
             'https://iview.abc.net.au/api/programs/' + video_id, video_id)
         title = unescapeHTML(video_params.get('title') or video_params['seriesTitle'])
