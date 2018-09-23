@@ -684,6 +684,7 @@ from .nbc import (
     NBCSportsIE,
     NBCSportsStreamIE,
     NBCSportsVPlayerIE,
+    NBCPlaylistIE,
 )
 from .ndr import (
     NDRIE,
@@ -1367,7 +1368,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE

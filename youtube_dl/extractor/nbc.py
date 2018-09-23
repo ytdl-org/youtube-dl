@@ -15,7 +15,103 @@ from ..utils import (
     unescapeHTML,
     update_url_query,
     int_or_none,
+    url_or_none,
+    js_to_json,
+    urljoin,
+    parse_duration,
 )
+import datetime
+
+
+class NBCPlaylistIE(InfoExtractor):
+    IE_DESC = 'NBC series playlists'
+    IE_NAME = 'nbc.com:playlist'
+    _VALID_URL = r'(?i)https?://(?:www\.)nbc.com/(?P<id>[\w-]+)/episodes?$'
+    _TESTS = [
+        {
+            'url': 'https://www.nbc.com/saved-by-the-bell/episodes',
+            'info_dict': {
+                'id': '11d71744-7ca0-4e79-9547-e239371533d7',
+                'title': 'Saved by the Bell',
+            },
+            'playlist_count': 99,
+        },
+        {
+            'url': 'https://www.nbc.com/heroes/episodes',
+            'info_dict': {
+                'id': '99d3a2c1-fd98-43b9-a7a4-f7872b0eb808',
+                'title': 'Heroes',
+            },
+            'playlist_count': 78,
+        },
+    ]
+
+    def extract_episode_info(self, url, json_data):
+
+        series_title = ''
+        included = json_data['included']
+        for inc in included:
+            if inc.get('type') == 'shows':
+                series_title = inc.get('attributes', {}).get('shortTitle')
+
+        entries = []
+        for ep in json_data['data']:
+            type = ep.get('type')
+            if type == 'videos':
+                atr = ep.get('attributes')
+                if atr:
+                    image_url = ''
+                    image_id = ep.get('relationships', {}).get('image', {}).get('data', {}).get('id')
+                    if image_id:
+                        for inc in included:
+                            if inc.get('type') == 'images' and inc.get('id') == image_id:
+                                inc_atr = inc.get('attributes')
+                                if inc_atr:
+                                    image_url = url_or_none(urljoin(url, inc_atr.get('path')))
+                    episode_url = url_or_none(atr.get('fullUrl'))
+                    if episode_url:
+                        entries.append({
+                            '_type': 'url',
+                            'id': ep.get('id'),
+                            'ie_key': 'NBC',
+                            'title': series_title,
+                            'url': episode_url,
+                            'duration': parse_duration(atr.get('runTime')),
+                            'thumbnail': image_url,
+                            'upload_date': datetime.datetime.strptime(atr.get('airdate')[:19], '%Y-%m-%dT%H:%M:%S').strftime('%Y%m%d'),
+                            'episode_title': atr.get('title'),
+                            'episode_number': int_or_none(atr.get('episodeNumber')),
+                            'season_number': int_or_none(atr.get('seasonNumber')),
+                            'series': series_title,
+                        })
+
+        return {'series_title': series_title, 'episodes': entries}
+
+    def _real_extract(self, url):
+        show_name = self._match_id(url)
+        webpage = self._download_webpage(url, show_name)
+
+        show_name_js = self._search_regex(
+            r'<script>PRELOAD=(.*)</script>', webpage, 'show_name')
+        show = self._parse_json(show_name_js, show_name,
+                                transform_source=js_to_json)
+        show_id = show.get('xref', {}).get('/' + show_name)
+
+        entries = []
+        if show_id:
+            episodes_url = urljoin(
+                url, 'https://api.nbc.com/v3.14/videos?include=image%%2Cshow.image%%2Cshow.aggregates&filter%%5Bshow%%5D=%s&filter%%5Btype%%5D%%5Bvalue%%5D=Full%%20Episode&filter%%5Btype%%5D%%5Boperator%%5D=%%3D&page%%5Bnumber%%5D=1&page%%5Bsize%%5D=50&sort=-airdate' % show_id)
+            while (episodes_url):
+                json_data = self._download_json(
+                    episodes_url, 'Downloading episode playlist')
+                result = self.extract_episode_info(url, json_data)
+                entries += result['episodes']
+                series_title = result['series_title']
+                episodes_url = json_data.get('links', {}).get('next')
+
+        playlist = self.playlist_result(
+            entries, show_id, playlist_title=series_title)
+        return playlist
 
 
 class NBCIE(AdobePassIE):
@@ -214,7 +310,8 @@ class NBCSportsStreamIE(AdobePassIE):
                 break
         else:
             source_url = video_source['ottStreamUrl']
-        is_live = video_source.get('type') == 'live' or video_source.get('status') == 'Live'
+        is_live = video_source.get(
+            'type') == 'live' or video_source.get('status') == 'Live'
         resource = self._get_mvpd_resource('nbcsports', title, video_id, '')
         token = self._extract_mvpd_auth(url, video_id, 'nbcsports', resource)
         tokenized_url = self._download_json(
@@ -377,7 +474,8 @@ class NBCNewsIE(ThePlatformIE):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         if video_id is not None:
-            all_info = self._download_xml('http://www.nbcnews.com/id/%s/displaymode/1219' % video_id, video_id)
+            all_info = self._download_xml(
+                'http://www.nbcnews.com/id/%s/displaymode/1219' % video_id, video_id)
             info = all_info.find('video')
 
             return {
