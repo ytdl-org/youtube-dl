@@ -1455,8 +1455,20 @@ from .youtube import (
 from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
 from .zattoo import (
+    BBVTVIE,
+    EinsUndEinsTVIE,
+    EWETVIE,
+    GlattvisionTVIE,
+    MNetTVIE,
+    MyVisionTVIE,
+    NetPlusIE,
+    OsnatelTVIE,
+    QuantumTVIE,
     QuicklineIE,
     QuicklineLiveIE,
+    SAKTVIE,
+    VTXTVIE,
+    WalyTVIE,
     ZattooIE,
     ZattooLiveIE,
 )
