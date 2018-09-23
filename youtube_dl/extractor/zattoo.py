@@ -118,6 +118,7 @@ class ZattooBaseIE(InfoExtractor):
             'categories': try_get(p, lambda x: x['c'], list),
             'tags': try_get(p, lambda x: x['g'], list)
         }
+
         return cid, info_dict
 
     def _extract_formats(self, cid, video_id, record_id=None, is_live=False):
