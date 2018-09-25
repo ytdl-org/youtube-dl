@@ -3023,7 +3023,7 @@ class GenericIE(InfoExtractor):
                 wapo_urls, video_id, video_title, ie=WashingtonPostIE.ie_key())
 
         # Look for Mediaset embeds
-        mediaset_urls = MediasetIE._extract_urls(webpage)
+        mediaset_urls = MediasetIE._extract_urls(self, webpage)
         if mediaset_urls:
             return self.playlist_from_matches(
                 mediaset_urls, video_id, video_title, ie=MediasetIE.ie_key())

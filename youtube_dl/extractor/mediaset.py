@@ -4,6 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .theplatform import ThePlatformBaseIE
+from ..compat import (
+    compat_parse_qs,
+    compat_str,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -76,12 +81,33 @@ class MediasetIE(ThePlatformBaseIE):
     }]
 
     @staticmethod
-    def _extract_urls(webpage):
-        return [
-            mobj.group('url')
-            for mobj in re.finditer(
-                r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>https?://(?:www\.)?video\.mediaset\.it/player/playerIFrame(?:Twitter)?\.shtml\?.*?\bid=\d+.*?)\1',
-                webpage)]
+    def _extract_urls(ie, webpage):
+        def _qs(url):
+            return compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+
+        def _program_guid(qs):
+            return qs.get('programGuid', [None])[0]
+
+        entries = []
+        for mobj in re.finditer(
+                r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:www\.)?video\.mediaset\.it/player/playerIFrame(?:Twitter)?\.shtml.*?)\1',
+                webpage):
+            embed_url = mobj.group('url')
+            embed_qs = _qs(embed_url)
+            program_guid = _program_guid(embed_qs)
+            if program_guid:
+                entries.append(embed_url)
+                continue
+            video_id = embed_qs.get('id', [None])[0]
+            if not video_id:
+                continue
+            urlh = ie._request_webpage(
+                embed_url, video_id, note='Following embed URL redirect')
+            embed_url = compat_str(urlh.geturl())
+            program_guid = _program_guid(_qs(embed_url))
+            if program_guid:
+                entries.append(embed_url)
+        return entries
 
     def _real_extract(self, url):
         guid = self._match_id(url)
