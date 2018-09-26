@@ -213,7 +213,7 @@ query viewClip {
     def _get_subtitles(self, author, clip_idx, lang, name, duration, video_id):
         captions_post = {
             'a': author,
-            'cn': clip_idx,
+            'cn': int(clip_idx),
             'lc': lang,
             'm': name,
         }
