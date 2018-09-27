@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_urlencode
-from ..utils import ExtractorError, int_or_none
+from ..compat import compat_str, compat_urllib_parse_urlencode
+from ..utils import ExtractorError, int_or_none, try_get
 
 
 class SnapchatStoryIE(InfoExtractor):
@@ -66,8 +66,12 @@ class SnapchatStoryIE(InfoExtractor):
                                    query=dict(request_origin='ORIGIN_WEB_PLAYER'))
 
         story = data['story']
-        title = story['metadata']['title']
-        alt_title = story['metadata'].get('subTitles')
+        title = try_get(story, lambda x: x['metadata']['title'], compat_str)
+        if not title:
+            title = 'Untitled'
+        alt_title = try_get(story,
+                            lambda x: x['metadata']['subTitles'],
+                            compat_str)
 
         return self.playlist_result(self._entries(story, title, alt_title),
                                     playlist_title=title,
