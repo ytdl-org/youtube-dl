@@ -365,11 +365,12 @@ class InstagramUserIE(InfoExtractor):
             resp = self._download_json('https://www.instagram.com/graphql/query/',
                                        username,
                                        query=query)
-            media = resp['data']['user']['edge_saved_media']
+            media = try_get(resp,
+                            lambda x: x['data']['user']['edge_saved_media'])
 
             for edge in media.get('edges', []):
-                node = edge.get('node')
-                if not node or not isinstance(node, dict):
+                node = try_get(edge, lambda x: x['node'], dict)
+                if not node:
                     continue
                 if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
                     continue
@@ -382,16 +383,16 @@ class InstagramUserIE(InfoExtractor):
 
                 yield info
 
-            page_info = media.get('page_info')
-            if not page_info or not isinstance(page_info, dict):
+            page_info = try_get(media, lambda x: x['page_info'], dict)
+            if not page_info:
                 break
 
             has_next_page = page_info.get('has_next_page')
             if not has_next_page:
                 break
 
-            cursor = page_info.get('end_cursor')
-            if not cursor or not isinstance(cursor, compat_str):
+            cursor = try_get(page_info, lambda x: x['end_cursor'], compat_str)
+            if not cursor:
                 break
 
     def _real_extract(self, url):
