@@ -171,8 +171,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
              r'__PLAYER_CONFIG__\s*=\s*({.+?});'],
             webpage, 'player v5', default=None)
         if player_v5:
-            player = self._parse_json(player_v5, video_id)
-            metadata = player['metadata']
+            metadata = self._download_json('http://www.dailymotion.com/player/metadata/video/%s?integration=inline&GK_PV5_NEON=1' % video_id, video_id)
 
             if metadata.get('error', {}).get('type') == 'password_protected':
                 password = self._downloader.params.get('videopassword')
