@@ -1011,7 +1011,7 @@ from .smotri import (
     SmotriUserIE,
     SmotriBroadcastIE,
 )
-from .snapchat import SnapchatStoryIE
+from .snapchat import SnapchatMapIE, SnapchatStoryIE
 from .snotr import SnotrIE
 from .sohu import SohuIE
 from .sonyliv import SonyLIVIE

@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_str, compat_urllib_parse_urlencode
-from ..utils import ExtractorError, int_or_none, try_get
+from ..compat import compat_str
+from ..utils import int_or_none, try_get
 
 
 class SnapchatStoryIE(InfoExtractor):
@@ -77,3 +77,22 @@ class SnapchatStoryIE(InfoExtractor):
                                     playlist_title=title,
                                     playlist_id=snap_id,
                                     playlist_description=alt_title)
+
+
+class SnapchatMapIE(InfoExtractor):
+    _VALID_URL = r'https?://map\.snapchat\.com/(?:story|ttp)/[0-9a-f]+/snap/(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'https://map.snapchat.com/story/1e8e6ce5c27f8623/snap/q4_OINadScux6p1c6OgxRwAAEs-Al6eIEtvT_AWYnxYFbAWYnxX26AAFRgA/@40.811408,-77.855252,13.00z',
+        'md5': '966330c423dcf7d49fa9077c46bbb86d',
+        'info_dict': {
+            'id': 'q4_OINadScux6p1c6OgxRwAAEs-Al6eIEtvT_AWYnxYFbAWYnxX26AAFRgA',
+            'title': 'State College, Pennsylvania',
+            'ext': 'mp4',
+            'thumbnail': 'https://s.sc-cdn.net/DScgzJV_rSLcJUubC03fcZECpi8KARIFRVtq5rEav2M=/default/preview_overlay.jpg',
+        },
+    }
+
+    def _real_extract(self, url):
+        snap_id = self._match_id(url)
+        return self.url_result('https://story.snapchat.com/s/m:%s' % snap_id,
+                               ie=SnapchatStoryIE.ie_key())
