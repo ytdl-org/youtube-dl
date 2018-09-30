@@ -1,3 +1,13 @@
+version 2018.09.26
+
+Extractors
+* [pluralsight] Fix subtitles extraction (#17671)
+* [mediaset] Improve embed support (#17668)
++ [youtube] Add support for invidio.us (#17613)
++ [zattoo] Add support for more zattoo platform sites
+* [zattoo] Fix extraction (#17175, #17542)
+
+
 version 2018.09.18
 
 Core
