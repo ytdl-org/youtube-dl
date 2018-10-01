@@ -347,6 +347,7 @@ from .facebook import (
     FacebookIE,
     FacebookPluginsVideoIE,
 )
+from .fastfiles import FastFiles
 from .faz import FazIE
 from .fc2 import (
     FC2IE,
