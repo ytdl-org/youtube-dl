@@ -26,8 +26,15 @@ class JamendoBaseIE(InfoExtractor):
 
 
 class JamendoIE(JamendoBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?jamendo\.com/track/(?P<id>[0-9]+)/(?P<display_id>[^/?#&]+)'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            licensing\.jamendo\.com/[^/]+|
+                            (?:www\.)?jamendo\.com
+                        )
+                        /track/(?P<id>[0-9]+)/(?P<display_id>[^/?#&]+)
+                    '''
+    _TESTS = [{
         'url': 'https://www.jamendo.com/track/196219/stories-from-emona-i',
         'md5': '6e9e82ed6db98678f171c25a8ed09ffd',
         'info_dict': {
@@ -40,14 +47,19 @@ class JamendoIE(JamendoBaseIE):
             'duration': 210,
             'thumbnail': r're:^https?://.*\.jpg'
         }
-    }
+    }, {
+        'url': 'https://licensing.jamendo.com/en/track/1496667/energetic-rock',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = self._VALID_URL_RE.match(url)
         track_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(url, display_id)
+        webpage = self._download_webpage(
+            'https://www.jamendo.com/track/%s/%s' % (track_id, display_id),
+            display_id)
 
         title, artist, track = self._extract_meta(webpage)
 
