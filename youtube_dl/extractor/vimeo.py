@@ -551,6 +551,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 else:
                     config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
                 config_re.append(r'\bvar\s+r\s*=\s*({.+?})\s*;')
+                config_re.append(r'\bconfig\s*=\s*({.+?})\s*;')
                 config = self._search_regex(config_re, webpage, 'info section',
                                             flags=re.DOTALL)
                 config = json.loads(config)
