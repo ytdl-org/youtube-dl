@@ -31,6 +31,12 @@ class Tube8IE(KeezMoviesIE):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)+\d+)',
+            webpage)
+
     def _real_extract(self, url):
         webpage, info = self._extract_info(url)
 
@@ -39,7 +45,7 @@ class Tube8IE(KeezMoviesIE):
                 r'videoTitle\s*=\s*"([^"]+)', webpage, 'title')
 
         description = self._html_search_regex(
-            r'>Description:</strong>\s*(.+?)\s*<', webpage, 'description', fatal=False)
+            r'(?s)Description:</dt>\s*<dd>(.+?)</dd>', webpage, 'description', fatal=False)
         uploader = self._html_search_regex(
             r'<span class="username">\s*(.+?)\s*<',
             webpage, 'uploader', fatal=False)
@@ -49,19 +55,19 @@ class Tube8IE(KeezMoviesIE):
         dislike_count = int_or_none(self._search_regex(
             r'rdownVar\s*=\s*"(\d+)"', webpage, 'dislike count', fatal=False))
         view_count = str_to_int(self._search_regex(
-            r'<strong>Views: </strong>([\d,\.]+)\s*</li>',
+            r'Views:\s*</dt>\s*<dd>([\d,\.]+)',
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._search_regex(
             r'<span id="allCommentsCount">(\d+)</span>',
             webpage, 'comment count', fatal=False))
 
         category = self._search_regex(
-            r'Category:\s*</strong>\s*<a[^>]+href=[^>]+>([^<]+)',
+            r'Category:\s*</dt>\s*<dd>\s*<a[^>]+href=[^>]+>([^<]+)',
             webpage, 'category', fatal=False)
         categories = [category] if category else None
 
         tags_str = self._search_regex(
-            r'(?s)Tags:\s*</strong>(.+?)</(?!a)',
+            r'(?s)Tags:\s*</dt>\s*<dd>(.+?)</(?!a)',
             webpage, 'tags', fatal=False)
         tags = [t for t in re.findall(
             r'<a[^>]+href=[^>]+>([^<]+)', tags_str)] if tags_str else None

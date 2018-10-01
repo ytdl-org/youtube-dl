@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -9,27 +11,34 @@ from ..utils import (
 
 
 class GameStarIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gamestar\.de/videos/.*,(?P<id>[0-9]+)\.html'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?game(?P<site>pro|star)\.de/videos/.*,(?P<id>[0-9]+)\.html'
+    _TESTS = [{
         'url': 'http://www.gamestar.de/videos/trailer,3/hobbit-3-die-schlacht-der-fuenf-heere,76110.html',
-        'md5': '96974ecbb7fd8d0d20fca5a00810cea7',
+        'md5': 'ee782f1f8050448c95c5cacd63bc851c',
         'info_dict': {
             'id': '76110',
             'ext': 'mp4',
             'title': 'Hobbit 3: Die Schlacht der Fünf Heere - Teaser-Trailer zum dritten Teil',
             'description': 'Der Teaser-Trailer zu Hobbit 3: Die Schlacht der Fünf Heere zeigt einige Szenen aus dem dritten Teil der Saga und kündigt den...',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'timestamp': 1406542020,
+            'timestamp': 1406542380,
             'upload_date': '20140728',
-            'duration': 17
+            'duration': 17,
         }
-    }
+    }, {
+        'url': 'http://www.gamepro.de/videos/top-10-indie-spiele-fuer-nintendo-switch-video-tolle-nindies-games-zum-download,95316.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.gamestar.de/videos/top-10-indie-spiele-fuer-nintendo-switch-video-tolle-nindies-games-zum-download,95316.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        mobj = re.match(self._VALID_URL, url)
+        site = mobj.group('site')
+        video_id = mobj.group('id')
 
-        url = 'http://gamestar.de/_misc/videos/portal/getVideoUrl.cfm?premium=0&videoId=' + video_id
+        webpage = self._download_webpage(url, video_id)
 
         # TODO: there are multiple ld+json objects in the webpage,
         # while _search_json_ld finds only the first one
@@ -37,16 +46,17 @@ class GameStarIE(InfoExtractor):
             r'(?s)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>[^<]+VideoObject[^<]+)</script>',
             webpage, 'JSON-LD', group='json_ld'), video_id)
         info_dict = self._json_ld(json_ld, video_id)
-        info_dict['title'] = remove_end(info_dict['title'], ' - GameStar')
+        info_dict['title'] = remove_end(
+            info_dict['title'], ' - Game%s' % site.title())
 
-        view_count = json_ld.get('interactionCount')
+        view_count = int_or_none(json_ld.get('interactionCount'))
         comment_count = int_or_none(self._html_search_regex(
-            r'([0-9]+) Kommentare</span>', webpage, 'comment_count',
-            fatal=False))
+            r'<span>Kommentare</span>\s*<span[^>]+class=["\']count[^>]+>\s*\(\s*([0-9]+)',
+            webpage, 'comment count', fatal=False))
 
         info_dict.update({
             'id': video_id,
-            'url': url,
+            'url': 'http://gamestar.de/_misc/videos/portal/getVideoUrl.cfm?premium=0&videoId=' + video_id,
             'ext': 'mp4',
             'view_count': view_count,
             'comment_count': comment_count

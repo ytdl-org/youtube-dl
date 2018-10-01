@@ -23,11 +23,14 @@ class JWPlatformIE(InfoExtractor):
 
     @staticmethod
     def _extract_url(webpage):
-        mobj = re.search(
-            r'<script[^>]+?src=["\'](?P<url>(?:https?:)?//content.jwplatform.com/players/[a-zA-Z0-9]{8})',
+        urls = JWPlatformIE._extract_urls(webpage)
+        return urls[0] if urls else None
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<(?:script|iframe)[^>]+?src=["\']((?:https?:)?//content\.jwplatform\.com/players/[a-zA-Z0-9]{8})',
             webpage)
-        if mobj:
-            return mobj.group('url')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

@@ -3,52 +3,52 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    parse_iso8601,
+    float_or_none,
     smuggle_url,
 )
 
 
 class TVAIE(InfoExtractor):
-    _VALID_URL = r'https?://videos\.tva\.ca/episode/(?P<id>\d+)'
+    _VALID_URL = r'https?://videos\.tva\.ca/details/_(?P<id>\d+)'
     _TEST = {
-        'url': 'http://videos.tva.ca/episode/85538',
+        'url': 'https://videos.tva.ca/details/_5596811470001',
         'info_dict': {
-            'id': '85538',
+            'id': '5596811470001',
             'ext': 'mp4',
-            'title': 'Épisode du 25 janvier 2017',
-            'description': 'md5:e9e7fb5532ab37984d2dc87229cadf98',
-            'upload_date': '20170126',
-            'timestamp': 1485442329,
+            'title': 'Un extrait de l\'épisode du dimanche 8 octobre 2017 !',
+            'uploader_id': '5481942443001',
+            'upload_date': '20171003',
+            'timestamp': 1507064617,
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         }
     }
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/5481942443001/default_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video_data = self._download_json(
-            "https://d18jmrhziuoi7p.cloudfront.net/isl/api/v1/dataservice/Items('%s')" % video_id,
-            video_id, query={
-                '$expand': 'Metadata,CustomId',
-                '$select': 'Metadata,Id,Title,ShortDescription,LongDescription,CreatedDate,CustomId,AverageUserRating,Categories,ShowName',
-                '$format': 'json',
+            'https://videos.tva.ca/proxy/item/_' + video_id, video_id, headers={
+                'Accept': 'application/json',
+            }, query={
+                'appId': '5955fc5f23eec60006c951f1',
             })
-        metadata = video_data.get('Metadata', {})
+
+        def get_attribute(key):
+            for attribute in video_data.get('attributes', []):
+                if attribute.get('key') == key:
+                    return attribute.get('value')
+            return None
 
         return {
             '_type': 'url_transparent',
             'id': video_id,
-            'title': video_data['Title'],
-            'url': smuggle_url('ooyala:' + video_data['CustomId'], {'supportedformats': 'm3u8,hds'}),
-            'description': video_data.get('LongDescription') or video_data.get('ShortDescription'),
-            'series': video_data.get('ShowName'),
-            'episode': metadata.get('EpisodeTitle'),
-            'episode_number': int_or_none(metadata.get('EpisodeNumber')),
-            'categories': video_data.get('Categories'),
-            'average_rating': video_data.get('AverageUserRating'),
-            'timestamp': parse_iso8601(video_data.get('CreatedDate')),
-            'ie_key': 'Ooyala',
+            'title': get_attribute('title'),
+            'url': smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % video_id, {'geo_countries': ['CA']}),
+            'description': get_attribute('description'),
+            'thumbnail': get_attribute('image-background') or get_attribute('image-landscape'),
+            'duration': float_or_none(get_attribute('video-duration'), 1000),
+            'ie_key': 'BrightcoveNew',
         }

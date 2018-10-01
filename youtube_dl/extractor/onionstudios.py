@@ -13,11 +13,11 @@ from ..utils import (
 
 
 class OnionStudiosIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?onionstudios\.com/(?:videos/[^/]+-|embed\?.*\bid=)(?P<id>\d+)(?!-)'
+    _VALID_URL = r'https?://(?:www\.)?onionstudios\.com/(?:video(?:s/[^/]+-|/)|embed\?.*\bid=)(?P<id>\d+)(?!-)'
 
     _TESTS = [{
         'url': 'http://www.onionstudios.com/videos/hannibal-charges-forward-stops-for-a-cocktail-2937',
-        'md5': 'e49f947c105b8a78a675a0ee1bddedfe',
+        'md5': '719d1f8c32094b8c33902c17bcae5e34',
         'info_dict': {
             'id': '2937',
             'ext': 'mp4',
@@ -29,12 +29,15 @@ class OnionStudiosIE(InfoExtractor):
     }, {
         'url': 'http://www.onionstudios.com/embed?id=2855&autoplay=true',
         'only_matching': True,
+    }, {
+        'url': 'http://www.onionstudios.com/video/6139.json',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?onionstudios\.com/embed.+?)\1', webpage)
+            r'(?s)<(?:iframe|bulbs-video)[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?onionstudios\.com/(?:embed.+?|video/\d+\.json))\1', webpage)
         if mobj:
             return mobj.group('url')
 

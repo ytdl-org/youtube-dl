@@ -3,14 +3,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
+    determine_ext,
     extract_attributes,
     ExtractorError,
     int_or_none,
     parse_age_limit,
     remove_end,
     unescapeHTML,
+    url_or_none,
 )
 
 
@@ -27,42 +28,9 @@ class DiscoveryGoBaseIE(InfoExtractor):
             velocitychannel
         )go\.com/%s(?P<id>[^/?#&]+)'''
 
-
-class DiscoveryGoIE(DiscoveryGoBaseIE):
-    _VALID_URL = DiscoveryGoBaseIE._VALID_URL_TEMPLATE % r'(?:[^/]+/)+'
-    _GEO_COUNTRIES = ['US']
-    _TEST = {
-        'url': 'https://www.discoverygo.com/bering-sea-gold/reaper-madness/',
-        'info_dict': {
-            'id': '58c167d86b66d12f2addeb01',
-            'ext': 'mp4',
-            'title': 'Reaper Madness',
-            'description': 'md5:09f2c625c99afb8946ed4fb7865f6e78',
-            'duration': 2519,
-            'series': 'Bering Sea Gold',
-            'season_number': 8,
-            'episode_number': 6,
-            'age_limit': 14,
-        },
-    }
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
-        container = extract_attributes(
-            self._search_regex(
-                r'(<div[^>]+class=["\']video-player-container[^>]+>)',
-                webpage, 'video container'))
-
-        video = self._parse_json(
-            container.get('data-video') or container.get('data-json'),
-            display_id)
-
+    def _extract_video_info(self, video, stream, display_id):
         title = video['name']
 
-        stream = video.get('stream')
         if not stream:
             if video.get('authenticated') is True:
                 raise ExtractorError(
@@ -101,12 +69,15 @@ class DiscoveryGoIE(DiscoveryGoBaseIE):
         captions = stream.get('captions')
         if isinstance(captions, list):
             for caption in captions:
-                subtitle_url = caption.get('fileUrl')
-                if (not subtitle_url or not isinstance(subtitle_url, compat_str) or
-                        not subtitle_url.startswith('http')):
+                subtitle_url = url_or_none(caption.get('fileUrl'))
+                if not subtitle_url or not subtitle_url.startswith('http'):
                     continue
                 lang = caption.get('fileLang', 'en')
-                subtitles.setdefault(lang, []).append({'url': subtitle_url})
+                ext = determine_ext(subtitle_url)
+                subtitles.setdefault(lang, []).append({
+                    'url': subtitle_url,
+                    'ext': 'ttml' if ext == 'xml' else ext,
+                })
 
         return {
             'id': video_id,
@@ -122,6 +93,43 @@ class DiscoveryGoIE(DiscoveryGoBaseIE):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+
+class DiscoveryGoIE(DiscoveryGoBaseIE):
+    _VALID_URL = DiscoveryGoBaseIE._VALID_URL_TEMPLATE % r'(?:[^/]+/)+'
+    _GEO_COUNTRIES = ['US']
+    _TEST = {
+        'url': 'https://www.discoverygo.com/bering-sea-gold/reaper-madness/',
+        'info_dict': {
+            'id': '58c167d86b66d12f2addeb01',
+            'ext': 'mp4',
+            'title': 'Reaper Madness',
+            'description': 'md5:09f2c625c99afb8946ed4fb7865f6e78',
+            'duration': 2519,
+            'series': 'Bering Sea Gold',
+            'season_number': 8,
+            'episode_number': 6,
+            'age_limit': 14,
+        },
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        container = extract_attributes(
+            self._search_regex(
+                r'(<div[^>]+class=["\']video-player-container[^>]+>)',
+                webpage, 'video container'))
+
+        video = self._parse_json(
+            container.get('data-video') or container.get('data-json'),
+            display_id)
+
+        stream = video.get('stream')
+
+        return self._extract_video_info(video, stream, display_id)
 
 
 class DiscoveryGoPlaylistIE(DiscoveryGoBaseIE):

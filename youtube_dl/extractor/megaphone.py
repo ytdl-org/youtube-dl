@@ -18,7 +18,7 @@ class MegaphoneIE(InfoExtractor):
             'id': 'GLT9749789991',
             'ext': 'mp3',
             'title': '#97 What Kind Of Idiot Gets Phished?',
-            'thumbnail': 're:^https://.*\.png.*$',
+            'thumbnail': r're:^https://.*\.png.*$',
             'duration': 1776.26375,
             'author': 'Reply All',
         },

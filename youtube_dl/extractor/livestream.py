@@ -114,7 +114,7 @@ class LivestreamIE(InfoExtractor):
 
         smil_url = video_data.get('smil_url')
         if smil_url:
-            formats.extend(self._extract_smil_formats(smil_url, video_id))
+            formats.extend(self._extract_smil_formats(smil_url, video_id, fatal=False))
 
         m3u8_url = video_data.get('m3u8_url')
         if m3u8_url:
@@ -338,7 +338,7 @@ class LivestreamOriginalIE(InfoExtractor):
                 info = {
                     'title': self._og_search_title(webpage),
                     'description': self._og_search_description(webpage),
-                    'thumbnail': self._search_regex(r'channelLogo.src\s*=\s*"([^"]+)"', webpage, 'thumbnail', None),
+                    'thumbnail': self._search_regex(r'channelLogo\.src\s*=\s*"([^"]+)"', webpage, 'thumbnail', None),
                 }
             video_data = self._download_json(stream_url, content_id)
             is_live = video_data.get('isLive')

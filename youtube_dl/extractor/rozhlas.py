@@ -21,7 +21,7 @@ class RozhlasIE(InfoExtractor):
         }
     }, {
         'url': 'http://prehravac.rozhlas.cz/audio/3421320/embed',
-        'skip_download': True,
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

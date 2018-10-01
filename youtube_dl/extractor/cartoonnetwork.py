@@ -31,7 +31,7 @@ class CartoonNetworkIE(TurnerBaseIE):
             'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&' + query, video_id, {
                 'secure': {
                     'media_src': 'http://androidhls-secure.cdn.turner.com/toon/big',
-                    'tokenizer_src': 'http://www.cartoonnetwork.com/cntv/mvpd/processors/services/token_ipadAdobe.do',
+                    'tokenizer_src': 'https://token.vgtf.net/token/token_mobile',
                 },
             }, {
                 'url': url,

@@ -65,12 +65,12 @@ class NocoIE(InfoExtractor):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
         login = self._download_json(
-            self._LOGIN_URL, None, 'Logging in as %s' % username,
+            self._LOGIN_URL, None, 'Logging in',
             data=urlencode_postdata({
                 'a': 'login',
                 'cookie': '1',

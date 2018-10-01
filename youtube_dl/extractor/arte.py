@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
@@ -15,6 +16,7 @@ from ..utils import (
     int_or_none,
     NO_DEFAULT,
     qualities,
+    try_get,
     unified_strdate,
 )
 
@@ -80,12 +82,15 @@ class ArteTVBaseIE(InfoExtractor):
         info = self._download_json(json_url, video_id)
         player_info = info['videoJsonPlayer']
 
-        vsr = player_info['VSR']
-
+        vsr = try_get(player_info, lambda x: x['VSR'], dict)
         if not vsr:
-            raise ExtractorError(
-                'Video %s is not available' % player_info.get('VID') or video_id,
-                expected=True)
+            error = None
+            if try_get(player_info, lambda x: x['custom_msg']['type']) == 'error':
+                error = try_get(
+                    player_info, lambda x: x['custom_msg']['msg'], compat_str)
+            if not error:
+                error = 'Video %s is not available' % player_info.get('VID') or video_id
+            raise ExtractorError(error, expected=True)
 
         upload_date_str = player_info.get('shootingDate')
         if not upload_date_str:

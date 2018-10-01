@@ -13,7 +13,7 @@ class WSJIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         (?:
                             https?://video-api\.wsj\.com/api-video/player/iframe\.html\?.*?\bguid=|
-                            https?://(?:www\.)?(?:wsj|barrons)\.com/video/[^/]+/|
+                            https?://(?:www\.)?(?:wsj|barrons)\.com/video/(?:[^/]+/)+|
                             wsj:
                         )
                         (?P<id>[a-fA-F0-9-]{36})
@@ -37,6 +37,9 @@ class WSJIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.barrons.com/video/capitalism-deserves-more-respect-from-millennials/F301217E-6F46-43AE-B8D2-B7180D642EE9.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.wsj.com/video/series/a-brief-history-of/the-modern-cell-carrier-how-we-got-here/980E2187-401D-48A1-B82B-1486CEE06CB9',
         'only_matching': True,
     }]
 

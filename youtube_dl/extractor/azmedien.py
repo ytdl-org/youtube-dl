@@ -47,7 +47,7 @@ class AZMedienIE(AZMedienBaseIE):
         'url': 'http://www.telezueri.ch/62-show-zuerinews/13772-episode-sonntag-18-dezember-2016/32419-segment-massenabweisungen-beim-hiltl-club-wegen-pelzboom',
         'info_dict': {
             'id': '1_2444peh4',
-            'ext': 'mov',
+            'ext': 'mp4',
             'title': 'Massenabweisungen beim Hiltl Club wegen Pelzboom',
             'description': 'md5:9ea9dd1b159ad65b36ddcf7f0d7c76a8',
             'uploader_id': 'TeleZ?ri',

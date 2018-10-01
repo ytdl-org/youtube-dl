@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     int_or_none,
     parse_duration,
+    url_or_none,
 )
 
 
@@ -50,8 +50,8 @@ class YouJizzIE(InfoExtractor):
         for encoding in encodings:
             if not isinstance(encoding, dict):
                 continue
-            format_url = encoding.get('filename')
-            if not isinstance(format_url, compat_str):
+            format_url = url_or_none(encoding.get('filename'))
+            if not format_url:
                 continue
             if determine_ext(format_url) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(

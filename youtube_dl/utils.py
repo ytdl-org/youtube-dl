@@ -39,6 +39,7 @@ from .compat import (
     compat_HTMLParser,
     compat_basestring,
     compat_chr,
+    compat_ctypes_WINFUNCTYPE,
     compat_etree_fromstring,
     compat_expanduser,
     compat_html_entities,
@@ -48,7 +49,6 @@ from .compat import (
     compat_os_name,
     compat_parse_qs,
     compat_shlex_quote,
-    compat_socket_create_connection,
     compat_str,
     compat_struct_pack,
     compat_struct_unpack,
@@ -81,7 +81,7 @@ def register_socks_protocols():
 compiled_regex_type = type(re.compile(''))
 
 std_headers = {
-    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:10.0) Gecko/20150101 Firefox/47.0 (Chrome)',
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0',
     'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
@@ -159,6 +159,8 @@ DATE_FORMATS = (
     '%Y-%m-%dT%H:%M',
     '%b %d %Y at %H:%M',
     '%b %d %Y at %H:%M:%S',
+    '%B %d %Y at %H:%M',
+    '%B %d %Y at %H:%M:%S',
 )
 
 DATE_FORMATS_DAY_FIRST = list(DATE_FORMATS)
@@ -181,6 +183,7 @@ DATE_FORMATS_MONTH_FIRST.extend([
 ])
 
 PACKED_CODES_RE = r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)"
+JSON_LD_RE = r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>'
 
 
 def preferredencoding():
@@ -535,10 +538,22 @@ def sanitize_path(s):
     return os.path.join(*sanitized_path)
 
 
-# Prepend protocol-less URLs with `http:` scheme in order to mitigate the number of
-# unwanted failures due to missing protocol
 def sanitize_url(url):
-    return 'http:%s' % url if url.startswith('//') else url
+    # Prepend protocol-less URLs with `http:` scheme in order to mitigate
+    # the number of unwanted failures due to missing protocol
+    if url.startswith('//'):
+        return 'http:%s' % url
+    # Fix some common typos seen so far
+    COMMON_TYPOS = (
+        # https://github.com/rg3/youtube-dl/issues/15649
+        (r'^httpss://', r'https://'),
+        # https://bx1.be/lives/direct-tv/
+        (r'^rmtp([es]?)://', r'rtmp\1://'),
+    )
+    for mistake, fixup in COMMON_TYPOS:
+        if re.match(mistake, url):
+            return re.sub(mistake, fixup, url)
+    return url
 
 
 def sanitized_Request(url, *args, **kwargs):
@@ -863,16 +878,54 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     # expected HTTP responses to meet HTTP/1.0 or later (see also
     # https://github.com/rg3/youtube-dl/issues/6727)
     if sys.version_info < (3, 0):
-        kwargs[b'strict'] = True
-    hc = http_class(*args, **kwargs)
+        kwargs['strict'] = True
+    hc = http_class(*args, **compat_kwargs(kwargs))
     source_address = ydl_handler._params.get('source_address')
+
     if source_address is not None:
+        # This is to workaround _create_connection() from socket where it will try all
+        # address data from getaddrinfo() including IPv6. This filters the result from
+        # getaddrinfo() based on the source_address value.
+        # This is based on the cpython socket.create_connection() function.
+        # https://github.com/python/cpython/blob/master/Lib/socket.py#L691
+        def _create_connection(address, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, source_address=None):
+            host, port = address
+            err = None
+            addrs = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
+            af = socket.AF_INET if '.' in source_address[0] else socket.AF_INET6
+            ip_addrs = [addr for addr in addrs if addr[0] == af]
+            if addrs and not ip_addrs:
+                ip_version = 'v4' if af == socket.AF_INET else 'v6'
+                raise socket.error(
+                    "No remote IP%s addresses available for connect, can't use '%s' as source address"
+                    % (ip_version, source_address[0]))
+            for res in ip_addrs:
+                af, socktype, proto, canonname, sa = res
+                sock = None
+                try:
+                    sock = socket.socket(af, socktype, proto)
+                    if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                        sock.settimeout(timeout)
+                    sock.bind(source_address)
+                    sock.connect(sa)
+                    err = None  # Explicitly break reference cycle
+                    return sock
+                except socket.error as _:
+                    err = _
+                    if sock is not None:
+                        sock.close()
+            if err is not None:
+                raise err
+            else:
+                raise socket.error('getaddrinfo returns an empty list')
+        if hasattr(hc, '_create_connection'):
+            hc._create_connection = _create_connection
         sa = (source_address, 0)
         if hasattr(hc, 'source_address'):  # Python 2.7+
             hc.source_address = sa
         else:  # Python 2.6
             def _hc_connect(self, *args, **kwargs):
-                sock = compat_socket_create_connection(
+                sock = _create_connection(
                     (self.host, self.port), self.timeout, sa)
                 if is_https:
                     self.sock = ssl.wrap_socket(
@@ -1196,6 +1249,11 @@ def unified_timestamp(date_str, day_first=True):
     if m:
         date_str = date_str[:-len(m.group('tz'))]
 
+    # Python only supports microseconds, so remove nanoseconds
+    m = re.search(r'^([0-9]{4,}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}\.[0-9]{6})[0-9]+$', date_str)
+    if m:
+        date_str = m.group(1)
+
     for expression in date_formats(day_first):
         try:
             dt = datetime.datetime.strptime(date_str, expression) - timezone + datetime.timedelta(hours=pm_delta)
@@ -1208,7 +1266,7 @@ def unified_timestamp(date_str, day_first=True):
 
 
 def determine_ext(url, default_ext='unknown_video'):
-    if url is None:
+    if url is None or '.' not in url:
         return default_ext
     guess = url.partition('?')[0].rpartition('.')[2]
     if re.match(r'^[A-Za-z0-9]+$', guess):
@@ -1328,24 +1386,24 @@ def _windows_write_string(s, out):
     if fileno not in WIN_OUTPUT_IDS:
         return False
 
-    GetStdHandle = ctypes.WINFUNCTYPE(
+    GetStdHandle = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.HANDLE, ctypes.wintypes.DWORD)(
-        (b'GetStdHandle', ctypes.windll.kernel32))
+        ('GetStdHandle', ctypes.windll.kernel32))
     h = GetStdHandle(WIN_OUTPUT_IDS[fileno])
 
-    WriteConsoleW = ctypes.WINFUNCTYPE(
+    WriteConsoleW = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE, ctypes.wintypes.LPWSTR,
         ctypes.wintypes.DWORD, ctypes.POINTER(ctypes.wintypes.DWORD),
-        ctypes.wintypes.LPVOID)((b'WriteConsoleW', ctypes.windll.kernel32))
+        ctypes.wintypes.LPVOID)(('WriteConsoleW', ctypes.windll.kernel32))
     written = ctypes.wintypes.DWORD(0)
 
-    GetFileType = ctypes.WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)((b'GetFileType', ctypes.windll.kernel32))
+    GetFileType = compat_ctypes_WINFUNCTYPE(ctypes.wintypes.DWORD, ctypes.wintypes.DWORD)(('GetFileType', ctypes.windll.kernel32))
     FILE_TYPE_CHAR = 0x0002
     FILE_TYPE_REMOTE = 0x8000
-    GetConsoleMode = ctypes.WINFUNCTYPE(
+    GetConsoleMode = compat_ctypes_WINFUNCTYPE(
         ctypes.wintypes.BOOL, ctypes.wintypes.HANDLE,
         ctypes.POINTER(ctypes.wintypes.DWORD))(
-        (b'GetConsoleMode', ctypes.windll.kernel32))
+        ('GetConsoleMode', ctypes.windll.kernel32))
     INVALID_HANDLE_VALUE = ctypes.wintypes.DWORD(-1).value
 
     def not_a_console(handle):
@@ -1674,6 +1732,28 @@ def parse_count(s):
     return lookup_unit_table(_UNIT_TABLE, s)
 
 
+def parse_resolution(s):
+    if s is None:
+        return {}
+
+    mobj = re.search(r'\b(?P<w>\d+)\s*[xX×]\s*(?P<h>\d+)\b', s)
+    if mobj:
+        return {
+            'width': int(mobj.group('w')),
+            'height': int(mobj.group('h')),
+        }
+
+    mobj = re.search(r'\b(\d+)[pPiI]\b', s)
+    if mobj:
+        return {'height': int(mobj.group(1))}
+
+    mobj = re.search(r'\b([48])[kK]\b', s)
+    if mobj:
+        return {'height': int(mobj.group(1)) * 540}
+
+    return {}
+
+
 def month_by_name(name, lang='en'):
     """ Return the number of a month by (locale-independently) English name """
 
@@ -1823,6 +1903,13 @@ def strip_or_none(v):
     return None if v is None else v.strip()
 
 
+def url_or_none(url):
+    if not url or not isinstance(url, compat_str):
+        return None
+    url = url.strip()
+    return url if re.match(r'^(?:[a-zA-Z][\da-zA-Z.+-]*:)?//', url) else None
+
+
 def parse_duration(s):
     if not isinstance(s, compat_basestring):
         return None
@@ -1835,10 +1922,20 @@ def parse_duration(s):
         days, hours, mins, secs, ms = m.groups()
     else:
         m = re.match(
-            r'''(?ix)(?:P?T)?
+            r'''(?ix)(?:P?
+                (?:
+                    [0-9]+\s*y(?:ears?)?\s*
+                )?
+                (?:
+                    [0-9]+\s*m(?:onths?)?\s*
+                )?
+                (?:
+                    [0-9]+\s*w(?:eeks?)?\s*
+                )?
                 (?:
                     (?P<days>[0-9]+)\s*d(?:ays?)?\s*
                 )?
+                T)?
                 (?:
                     (?P<hours>[0-9]+)\s*h(?:ours?)?\s*
                 )?
@@ -1933,7 +2030,7 @@ class PagedList(object):
 
 
 class OnDemandPagedList(PagedList):
-    def __init__(self, pagefunc, pagesize, use_cache=False):
+    def __init__(self, pagefunc, pagesize, use_cache=True):
         self._pagefunc = pagefunc
         self._pagesize = pagesize
         self._use_cache = use_cache
@@ -2173,6 +2270,20 @@ def try_get(src, getter, expected_type=None):
                 return v
 
 
+def merge_dicts(*dicts):
+    merged = {}
+    for a_dict in dicts:
+        for k, v in a_dict.items():
+            if v is None:
+                continue
+            if (k not in merged or
+                    (isinstance(v, compat_str) and v and
+                        isinstance(merged[k], compat_str) and
+                        not merged[k])):
+                merged[k] = v
+    return merged
+
+
 def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
     return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
 
@@ -2206,13 +2317,16 @@ def parse_age_limit(s):
         return int(m.group('age'))
     if s in US_RATINGS:
         return US_RATINGS[s]
-    return TV_PARENTAL_GUIDELINES.get(s)
+    m = re.match(r'^TV[_-]?(%s)$' % '|'.join(k[3:] for k in TV_PARENTAL_GUIDELINES), s)
+    if m:
+        return TV_PARENTAL_GUIDELINES['TV-' + m.group(1)]
+    return None
 
 
 def strip_jsonp(code):
     return re.sub(
         r'''(?sx)^
-            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]+)
+            (?:window\.)?(?P<func_name>[a-zA-Z0-9_.$]*)
             (?:\s*&&\s*(?P=func_name))?
             \s*\(\s*(?P<callback_data>.*)\);?
             \s*?(?://[^\n]*)*$''',
@@ -2254,7 +2368,7 @@ def js_to_json(code):
         "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
         '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
         {comment}|,(?={skip}[\]}}])|
-        [a-zA-Z_][.a-zA-Z_0-9]*|
+        (?:(?<![0-9])[eE]|[a-df-zA-DF-Z_])[.a-zA-Z_0-9]*|
         \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
         [0-9]+(?={skip}:)
         '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
@@ -2340,6 +2454,7 @@ def mimetype2ext(mt):
         'ttml+xml': 'ttml',
         'x-flv': 'flv',
         'x-mp4-fragmented': 'mp4',
+        'x-ms-sami': 'sami',
         'x-ms-wmv': 'wmv',
         'mpegurl': 'm3u8',
         'x-mpegurl': 'm3u8',
@@ -2362,7 +2477,7 @@ def parse_codecs(codecs_str):
     vcodec, acodec = None, None
     for full_codec in splited_codecs:
         codec = full_codec.split('.')[0]
-        if codec in ('avc1', 'avc2', 'avc3', 'avc4', 'vp9', 'vp8', 'hev1', 'hev2', 'h263', 'h264', 'mp4v'):
+        if codec in ('avc1', 'avc2', 'avc3', 'avc4', 'vp9', 'vp8', 'hev1', 'hev2', 'h263', 'h264', 'mp4v', 'hvc1', 'av01'):
             if not vcodec:
                 vcodec = full_codec
         elif codec in ('mp4a', 'opus', 'vorbis', 'mp3', 'aac', 'ac-3', 'ec-3', 'eac3', 'dtsc', 'dtse', 'dtsh', 'dtsl'):
@@ -2521,8 +2636,8 @@ def _match_one(filter_part, dct):
         return op(actual_value, comparison_value)
 
     UNARY_OPERATORS = {
-        '': lambda v: v is not None,
-        '!': lambda v: v is None,
+        '': lambda v: (v is True) if isinstance(v, bool) else (v is not None),
+        '!': lambda v: (v is False) if isinstance(v, bool) else (v is None),
     }
     operator_rex = re.compile(r'''(?x)\s*
         (?P<op>%s)\s*(?P<key>[a-z_]+)
@@ -2597,6 +2712,7 @@ def dfxp2srt(dfxp_data):
     ]
 
     _x = functools.partial(xpath_with_ns, ns_map={
+        'xml': 'http://www.w3.org/XML/1998/namespace',
         'ttml': 'http://www.w3.org/ns/ttml',
         'tts': 'http://www.w3.org/ns/ttml#styling',
     })
@@ -2688,7 +2804,9 @@ def dfxp2srt(dfxp_data):
     repeat = False
     while True:
         for style in dfxp.findall(_x('.//ttml:style')):
-            style_id = style.get('id')
+            style_id = style.get('id') or style.get(_x('xml:id'))
+            if not style_id:
+                continue
             parent_style_id = style.get('style')
             if parent_style_id:
                 if parent_style_id not in styles:
@@ -3467,10 +3585,13 @@ class GeoUtils(object):
     }
 
     @classmethod
-    def random_ipv4(cls, code):
-        block = cls._country_ip_map.get(code.upper())
-        if not block:
-            return None
+    def random_ipv4(cls, code_or_block):
+        if len(code_or_block) == 2:
+            block = cls._country_ip_map.get(code_or_block.upper())
+            if not block:
+                return None
+        else:
+            block = code_or_block
         addr, preflen = block.split('/')
         addr_min = compat_struct_unpack('!L', socket.inet_aton(addr))[0]
         addr_max = addr_min | (0xffffffff >> int(preflen))
@@ -3485,7 +3606,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
             setattr(self, '%s_open' % type,
                     lambda r, proxy='__noproxy__', type=type, meth=self.proxy_open:
                         meth(r, proxy, type))
-        return compat_urllib_request.ProxyHandler.__init__(self, proxies)
+        compat_urllib_request.ProxyHandler.__init__(self, proxies)
 
     def proxy_open(self, req, proxy, type):
         req_proxy = req.headers.get('Ytdl-request-proxy')
@@ -3824,220 +3945,6 @@ def write_xattr(path, key, value):
                         "Couldn't find a tool to set the xattrs. "
                         "Install either the python 'xattr' module, "
                         "or the 'xattr' binary.")
-
-
-def cookie_to_dict(cookie):
-    cookie_dict = {
-        'name': cookie.name,
-        'value': cookie.value,
-    }
-    if cookie.port_specified:
-        cookie_dict['port'] = cookie.port
-    if cookie.domain_specified:
-        cookie_dict['domain'] = cookie.domain
-    if cookie.path_specified:
-        cookie_dict['path'] = cookie.path
-    if cookie.expires is not None:
-        cookie_dict['expires'] = cookie.expires
-    if cookie.secure is not None:
-        cookie_dict['secure'] = cookie.secure
-    if cookie.discard is not None:
-        cookie_dict['discard'] = cookie.discard
-    try:
-        if (cookie.has_nonstandard_attr('httpOnly') or
-                cookie.has_nonstandard_attr('httponly') or
-                cookie.has_nonstandard_attr('HttpOnly')):
-            cookie_dict['httponly'] = True
-    except TypeError:
-        pass
-    return cookie_dict
-
-
-def cookie_jar_to_list(cookie_jar):
-    return [cookie_to_dict(cookie) for cookie in cookie_jar]
-
-
-class PhantomJSwrapper(object):
-    """PhantomJS wrapper class"""
-
-    _TEMPLATE = r'''
-        phantom.onError = function(msg, trace) {{
-          var msgStack = ['PHANTOM ERROR: ' + msg];
-          if(trace && trace.length) {{
-            msgStack.push('TRACE:');
-            trace.forEach(function(t) {{
-              msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line
-                + (t.function ? ' (in function ' + t.function +')' : ''));
-            }});
-          }}
-          console.error(msgStack.join('\n'));
-          phantom.exit(1);
-        }};
-        var page = require('webpage').create();
-        var fs = require('fs');
-        var read = {{ mode: 'r', charset: 'utf-8' }};
-        var write = {{ mode: 'w', charset: 'utf-8' }};
-        JSON.parse(fs.read("{cookies}", read)).forEach(function(x) {{
-          phantom.addCookie(x);
-        }});
-        page.settings.resourceTimeout = {timeout};
-        page.settings.userAgent = "{ua}";
-        page.onLoadStarted = function() {{
-          page.evaluate(function() {{
-            delete window._phantom;
-            delete window.callPhantom;
-          }});
-        }};
-        var saveAndExit = function() {{
-          fs.write("{html}", page.content, write);
-          fs.write("{cookies}", JSON.stringify(phantom.cookies), write);
-          phantom.exit();
-        }};
-        page.onLoadFinished = function(status) {{
-          if(page.url === "") {{
-            page.setContent(fs.read("{html}", read), "{url}");
-          }}
-          else {{
-            {jscode}
-          }}
-        }};
-        page.open("");
-    '''
-
-    _TMP_FILE_NAMES = ['script', 'html', 'cookies']
-
-    @staticmethod
-    def _version():
-        return get_exe_version('phantomjs', version_re=r'([0-9.]+)')
-
-    def __init__(self, extractor, required_version=None, timeout=10000):
-        self.exe = check_executable('phantomjs', ['-v'])
-        if not self.exe:
-            raise ExtractorError('PhantomJS executable not found in PATH, '
-                                 'download it from http://phantomjs.org',
-                                 expected=True)
-
-        self.extractor = extractor
-
-        if required_version:
-            version = self._version()
-            if is_outdated_version(version, required_version):
-                self.extractor._downloader.report_warning(
-                    'Your copy of PhantomJS is outdated, update it to version '
-                    '%s or newer if you encounter any errors.' % required_version)
-
-        self.options = {
-            'timeout': timeout,
-        }
-        self._TMP_FILES = {}
-        for name in self._TMP_FILE_NAMES:
-            tmp = tempfile.NamedTemporaryFile(delete=False)
-            tmp.close()
-            self._TMP_FILES[name] = tmp
-
-    def __del__(self):
-        for name in self._TMP_FILE_NAMES:
-            try:
-                os.remove(self._TMP_FILES[name].name)
-            except:
-                pass
-
-    def _save_cookies(self, url):
-        cookies = cookie_jar_to_list(self.extractor._downloader.cookiejar)
-        for cookie in cookies:
-            if 'path' not in cookie:
-                cookie['path'] = '/'
-            if 'domain' not in cookie:
-                cookie['domain'] = compat_urlparse.urlparse(url).netloc
-        with open(self._TMP_FILES['cookies'].name, 'wb') as f:
-            f.write(json.dumps(cookies).encode('utf-8'))
-
-    def _load_cookies(self):
-        with open(self._TMP_FILES['cookies'].name, 'rb') as f:
-            cookies = json.loads(f.read().decode('utf-8'))
-        for cookie in cookies:
-            if cookie['httponly'] is True:
-                cookie['rest'] = {'httpOnly': None}
-            if 'expiry' in cookie:
-                cookie['expire_time'] = cookie['expiry']
-            self.extractor._set_cookie(**cookie)
-
-    def get(self, url, html=None, video_id=None, note=None, note2='Executing JS on webpage', headers={}, jscode='saveAndExit();'):
-        """
-        Downloads webpage (if needed) and executes JS
-
-        Params:
-            url: website url
-            html: optional, html code of website
-            video_id: video id
-            note: optional, displayed when downloading webpage
-            note2: optional, displayed when executing JS
-            headers: custom http headers
-            jscode: code to be executed when page is loaded
-
-        Returns tuple with:
-            * downloaded website (after JS execution)
-            * anything you print with `console.log` (but not inside `page.execute`!)
-
-        In most cases you don't need to add any `jscode`.
-        It is executed in `page.onLoadFinished`.
-        `saveAndExit();` is mandatory, use it instead of `phantom.exit()`
-        It is possible to wait for some element on the webpage, for example:
-            var check = function() {
-              var elementFound = page.evaluate(function() {
-                return document.querySelector('#b.done') !== null;
-              });
-              if(elementFound)
-                saveAndExit();
-              else
-                window.setTimeout(check, 500);
-            }
-
-            page.evaluate(function(){
-              document.querySelector('#a').click();
-            });
-            check();
-        """
-        if 'saveAndExit();' not in jscode:
-            raise ExtractorError('`saveAndExit();` not found in `jscode`')
-        if not html:
-            html = self.extractor._download_webpage(url, video_id, note=note, headers=headers)
-        with open(self._TMP_FILES['html'].name, 'wb') as f:
-            f.write(html.encode('utf-8'))
-
-        self._save_cookies(url)
-
-        replaces = self.options
-        replaces['url'] = url
-        user_agent = headers.get('User-Agent') or std_headers['User-Agent']
-        replaces['ua'] = user_agent.replace('"', '\\"')
-        replaces['jscode'] = jscode
-
-        for x in self._TMP_FILE_NAMES:
-            replaces[x] = self._TMP_FILES[x].name.replace('\\', '\\\\').replace('"', '\\"')
-
-        with open(self._TMP_FILES['script'].name, 'wb') as f:
-            f.write(self._TEMPLATE.format(**replaces).encode('utf-8'))
-
-        if video_id is None:
-            self.extractor.to_screen('%s' % (note2,))
-        else:
-            self.extractor.to_screen('%s: %s' % (video_id, note2))
-
-        p = subprocess.Popen([
-            self.exe, '--ssl-protocol=any',
-            self._TMP_FILES['script'].name
-        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        if p.returncode != 0:
-            raise ExtractorError(
-                'Executing JS failed\n:' + encodeArgument(err))
-        with open(self._TMP_FILES['html'].name, 'rb') as f:
-            html = f.read().decode('utf-8')
-
-        self._load_cookies()
-
-        return (html, encodeArgument(out))
 
 
 def random_birthday(year_field, month_field, day_field):

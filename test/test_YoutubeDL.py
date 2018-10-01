@@ -466,12 +466,18 @@ class TestFormatSelection(unittest.TestCase):
         ydl = YDL({'simulate': True})
         self.assertEqual(ydl._default_format_spec({}), 'bestvideo+bestaudio/best')
 
+        ydl = YDL({})
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best/bestvideo+bestaudio')
+
+        ydl = YDL({'simulate': True})
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'bestvideo+bestaudio/best')
+
         ydl = YDL({'outtmpl': '-'})
-        self.assertEqual(ydl._default_format_spec({}), 'best')
+        self.assertEqual(ydl._default_format_spec({}), 'best/bestvideo+bestaudio')
 
         ydl = YDL({})
         self.assertEqual(ydl._default_format_spec({}, download=False), 'bestvideo+bestaudio/best')
-        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best')
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best/bestvideo+bestaudio')
 
 
 class TestYoutubeDL(unittest.TestCase):
@@ -769,6 +775,12 @@ class TestYoutubeDL(unittest.TestCase):
 
         result = get_ids({'playlist_items': '10'})
         self.assertEqual(result, [])
+
+        result = get_ids({'playlist_items': '3-10'})
+        self.assertEqual(result, [3, 4])
+
+        result = get_ids({'playlist_items': '2-4,3-4,3'})
+        self.assertEqual(result, [2, 3, 4])
 
     def test_urlopen_no_file_protocol(self):
         # see https://github.com/rg3/youtube-dl/issues/8227

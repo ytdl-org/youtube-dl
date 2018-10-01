@@ -4,58 +4,86 @@ from __future__ import unicode_literals
 import re
 
 from .turner import TurnerBaseIE
-from ..utils import extract_attributes
+from ..compat import (
+    compat_urllib_parse_urlparse,
+    compat_parse_qs,
+)
+from ..utils import (
+    float_or_none,
+    int_or_none,
+    strip_or_none,
+)
 
 
 class TBSIE(TurnerBaseIE):
-    # https://github.com/rg3/youtube-dl/issues/13658
-    _WORKING = False
-
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>tbs|tntdrama)\.com/videos/(?:[^/]+/)+(?P<id>[^/?#]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>tbs|tntdrama)\.com/(?:movies|shows/[^/]+/(?:clips|season-\d+/episode-\d+))/(?P<id>[^/?#]+)'
     _TESTS = [{
-        'url': 'http://www.tbs.com/videos/people-of-earth/season-1/extras/2007318/theatrical-trailer.html',
-        'md5': '9e61d680e2285066ade7199e6408b2ee',
+        'url': 'http://www.tntdrama.com/shows/the-alienist/clips/monster',
         'info_dict': {
-            'id': '2007318',
+            'id': '8d384cde33b89f3a43ce5329de42903ed5099887',
             'ext': 'mp4',
-            'title': 'Theatrical Trailer',
-            'description': 'Catch the latest comedy from TBS, People of Earth, premiering Halloween night--Monday, October 31, at 9/8c.',
+            'title': 'Monster',
+            'description': 'Get a first look at the theatrical trailer for TNT’s highly anticipated new psychological thriller The Alienist, which premieres January 22 on TNT.',
+            'timestamp': 1508175329,
+            'upload_date': '20171016',
         },
-        'skip': 'TBS videos are deleted after a while',
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
     }, {
-        'url': 'http://www.tntdrama.com/videos/good-behavior/season-1/extras/1538823/you-better-run.html',
-        'md5': 'ce53c6ead5e9f3280b4ad2031a6fab56',
-        'info_dict': {
-            'id': '1538823',
-            'ext': 'mp4',
-            'title': 'You Better Run',
-            'description': 'Letty Raines must figure out what she\'s running toward while running away from her past. Good Behavior premieres November 15 at 9/8c.',
-        },
-        'skip': 'TBS videos are deleted after a while',
+        'url': 'http://www.tbs.com/shows/search-party/season-1/episode-1/explicit-the-mysterious-disappearance-of-the-girl-no-one-knew',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.tntdrama.com/movies/star-wars-a-new-hope',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        domain, display_id = re.match(self._VALID_URL, url).groups()
-        site = domain[:3]
+        site, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
-        video_params = extract_attributes(self._search_regex(r'(<[^>]+id="page-video"[^>]*>)', webpage, 'video params'))
-        query = None
-        clip_id = video_params.get('clipid')
-        if clip_id:
-            query = 'id=' + clip_id
-        else:
-            query = 'titleId=' + video_params['titleid']
-        return self._extract_cvp_info(
-            'http://www.%s.com/service/cvpXml?%s' % (domain, query), display_id, {
-                'default': {
-                    'media_src': 'http://ht.cdn.turner.com/%s/big' % site,
-                },
-                'secure': {
-                    'media_src': 'http://androidhls-secure.cdn.turner.com/%s/big' % site,
-                    'tokenizer_src': 'http://www.%s.com/video/processors/services/token_ipadAdobe.do' % domain,
-                },
-            }, {
+        drupal_settings = self._parse_json(self._search_regex(
+            r'<script[^>]+?data-drupal-selector="drupal-settings-json"[^>]*?>({.+?})</script>',
+            webpage, 'drupal setting'), display_id)
+        video_data = drupal_settings['turner_playlist'][0]
+
+        media_id = video_data['mediaID']
+        title = video_data['title']
+        tokenizer_query = compat_parse_qs(compat_urllib_parse_urlparse(
+            drupal_settings['ngtv_token_url']).query)
+
+        info = self._extract_ngtv_info(
+            media_id, tokenizer_query, {
                 'url': url,
-                'site_name': site.upper(),
-                'auth_required': video_params.get('isAuthRequired') != 'false',
+                'site_name': site[:3].upper(),
+                'auth_required': video_data.get('authRequired') == '1',
             })
+
+        thumbnails = []
+        for image_id, image in video_data.get('images', {}).items():
+            image_url = image.get('url')
+            if not image_url or image.get('type') != 'video':
+                continue
+            i = {
+                'id': image_id,
+                'url': image_url,
+            }
+            mobj = re.search(r'(\d+)x(\d+)', image_url)
+            if mobj:
+                i.update({
+                    'width': int(mobj.group(1)),
+                    'height': int(mobj.group(2)),
+                })
+            thumbnails.append(i)
+
+        info.update({
+            'id': media_id,
+            'title': title,
+            'description': strip_or_none(video_data.get('descriptionNoTags') or video_data.get('shortDescriptionNoTags')),
+            'duration': float_or_none(video_data.get('duration')) or info.get('duration'),
+            'timestamp': int_or_none(video_data.get('created')),
+            'season_number': int_or_none(video_data.get('season')),
+            'episode_number': int_or_none(video_data.get('episode')),
+            'thumbnails': thumbnails,
+        })
+        return info

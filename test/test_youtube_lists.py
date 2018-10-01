@@ -61,7 +61,7 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeYDL()
         dl.params['extract_flat'] = True
         ie = YoutubePlaylistIE(dl)
-        result = ie.extract('https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
+        result = ie.extract('https://www.youtube.com/playlist?list=PL-KKIb8rvtMSrAO9YFbeM6UQrAqoFTUWv')
         self.assertIsPlaylist(result)
         for entry in result['entries']:
             self.assertTrue(entry.get('title'))

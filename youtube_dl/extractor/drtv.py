@@ -138,6 +138,7 @@ class DRTVIE(InfoExtractor):
                             'tbr': int_or_none(bitrate),
                             'ext': link.get('FileFormat'),
                             'vcodec': 'none' if kind == 'AudioResource' else None,
+                            'preference': preference,
                         })
                 subtitles_list = asset.get('SubtitlesList')
                 if isinstance(subtitles_list, list):

@@ -18,7 +18,7 @@ class XTubeIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         (?:
                             xtube:|
-                            https?://(?:www\.)?xtube\.com/(?:watch\.php\?.*\bv=|video-watch/(?P<display_id>[^/]+)-)
+                            https?://(?:www\.)?xtube\.com/(?:watch\.php\?.*\bv=|video-watch/(?:embedded/)?(?P<display_id>[^/]+)-)
                         )
                         (?P<id>[^/?&#]+)
                     '''
@@ -63,6 +63,9 @@ class XTubeIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'xtube:kVTUy_G222_',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.xtube.com/video-watch/embedded/milf-tara-and-teen-shared-and-cum-covered-extreme-bukkake-32203482?embedsize=big',
         'only_matching': True,
     }]
 

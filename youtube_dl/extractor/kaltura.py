@@ -125,17 +125,21 @@ class KalturaIE(InfoExtractor):
                         (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
                     (?P=q1).*?
                     (?:
-                        entry_?[Ii]d|
-                        (?P<q2>["'])entry_?[Ii]d(?P=q2)
-                    )\s*:\s*
+                        (?:
+                            entry_?[Ii]d|
+                            (?P<q2>["'])entry_?[Ii]d(?P=q2)
+                        )\s*:\s*|
+                        \[\s*(?P<q2_1>["'])entry_?[Ii]d(?P=q2_1)\s*\]\s*=\s*
+                    )
                     (?P<q3>["'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage) or
             re.search(
                 r'''(?xs)
-                    <iframe[^>]+src=(?P<q1>["'])
-                      (?:https?:)?//(?:www\.)?kaltura\.com/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)
+                    <(?:iframe[^>]+src|meta[^>]+\bcontent)=(?P<q1>["'])
+                      (?:https?:)?//(?:(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)
                       (?:(?!(?P=q1)).)*
-                      [?&]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
+                      [?&;]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
+                      (?:(?!(?P=q1)).)*
                     (?P=q1)
                 ''', webpage)
         )
@@ -286,6 +290,9 @@ class KalturaIE(InfoExtractor):
             # Original format that's not available (e.g. kaltura:1926081:0_c03e1b5g)
             # skip for now.
             if f.get('fileExt') == 'chun':
+                continue
+            # DRM-protected video, cannot be decrypted
+            if f.get('fileExt') == 'wvm':
                 continue
             if not f.get('fileExt'):
                 # QT indicates QuickTime; some videos have broken fileExt

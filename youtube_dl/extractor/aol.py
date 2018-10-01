@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
+    url_or_none,
 )
 
 
@@ -77,7 +78,7 @@ class AolIE(InfoExtractor):
             formats.extend(self._extract_m3u8_formats(
                 m3u8_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
         for rendition in video_data.get('renditions', []):
-            video_url = rendition.get('url')
+            video_url = url_or_none(rendition.get('url'))
             if not video_url:
                 continue
             ext = rendition.get('format')

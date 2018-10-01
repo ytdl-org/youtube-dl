@@ -1,24 +1,28 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
-from ..utils import unified_strdate
+from ..utils import (
+    parse_duration,
+    unified_strdate,
+)
 
 
 class LibsynIE(InfoExtractor):
     _VALID_URL = r'(?P<mainurl>https?://html5-player\.libsyn\.com/embed/episode/id/(?P<id>[0-9]+))'
 
     _TESTS = [{
-        'url': 'http://html5-player.libsyn.com/embed/episode/id/3377616/',
-        'md5': '443360ee1b58007bc3dcf09b41d093bb',
+        'url': 'http://html5-player.libsyn.com/embed/episode/id/6385796/',
+        'md5': '2a55e75496c790cdeb058e7e6c087746',
         'info_dict': {
-            'id': '3377616',
+            'id': '6385796',
             'ext': 'mp3',
-            'title': "The Daily Show Podcast without Jon Stewart - Episode 12: Bassem Youssef: Egypt's Jon Stewart",
-            'description': 'md5:601cb790edd05908957dae8aaa866465',
-            'upload_date': '20150220',
+            'title': "Champion Minded - Developing a Growth Mindset",
+            'description': 'In this episode, Allistair talks about the importance of developing a growth mindset, not only in sports, but in life too.',
+            'upload_date': '20180320',
             'thumbnail': 're:^https?://.*',
         },
     }, {
@@ -39,25 +43,38 @@ class LibsynIE(InfoExtractor):
         url = m.group('mainurl')
         webpage = self._download_webpage(url, video_id)
 
-        formats = [{
-            'url': media_url,
-        } for media_url in set(re.findall(r'var\s+mediaURL(?:Libsyn)?\s*=\s*"([^"]+)"', webpage))]
-
         podcast_title = self._search_regex(
-            r'<h2>([^<]+)</h2>', webpage, 'podcast title', default=None)
+            r'<h3>([^<]+)</h3>', webpage, 'podcast title', default=None)
+        if podcast_title:
+            podcast_title = podcast_title.strip()
         episode_title = self._search_regex(
-            r'(?:<div class="episode-title">|<h3>)([^<]+)</', webpage, 'episode title')
+            r'(?:<div class="episode-title">|<h4>)([^<]+)</', webpage, 'episode title')
+        if episode_title:
+            episode_title = episode_title.strip()
 
         title = '%s - %s' % (podcast_title, episode_title) if podcast_title else episode_title
 
         description = self._html_search_regex(
-            r'<div id="info_text_body">(.+?)</div>', webpage,
+            r'<p\s+id="info_text_body">(.+?)</p>', webpage,
             'description', default=None)
-        thumbnail = self._search_regex(
-            r'<img[^>]+class="info-show-icon"[^>]+src="([^"]+)"',
-            webpage, 'thumbnail', fatal=False)
+        if description:
+            # Strip non-breaking and normal spaces
+            description = description.replace('\u00A0', ' ').strip()
         release_date = unified_strdate(self._search_regex(
             r'<div class="release_date">Released: ([^<]+)<', webpage, 'release date', fatal=False))
+
+        data_json = self._search_regex(r'var\s+playlistItem\s*=\s*(\{.*?\});\n', webpage, 'JSON data block')
+        data = json.loads(data_json)
+
+        formats = [{
+            'url': data['media_url'],
+            'format_id': 'main',
+        }, {
+            'url': data['media_url_libsyn'],
+            'format_id': 'libsyn',
+        }]
+        thumbnail = data.get('thumbnail_url')
+        duration = parse_duration(data.get('duration'))
 
         return {
             'id': video_id,
@@ -65,5 +82,6 @@ class LibsynIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': release_date,
+            'duration': duration,
             'formats': formats,
         }

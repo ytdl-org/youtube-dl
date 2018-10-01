@@ -45,10 +45,12 @@ class FileDownloader(object):
     min_filesize:       Skip files smaller than this size
     max_filesize:       Skip files larger than this size
     xattr_set_filesize: Set ytdl.filesize user xattribute with expected size.
-                        (experimental)
     external_downloader_args:  A list of additional command-line arguments for the
                         external downloader.
     hls_use_mpegts:     Use the mpegts container for HLS videos.
+    http_chunk_size:    Size of a chunk for chunk-based HTTP downloading. May be
+                        useful for bypassing bandwidth throttling imposed by
+                        a webserver (experimental)
 
     Subclasses of this one must re-define the real_download method.
     """
@@ -246,12 +248,13 @@ class FileDownloader(object):
             if self.params.get('noprogress', False):
                 self.to_screen('[download] Download completed')
             else:
-                s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+                msg_template = '100%%'
+                if s.get('total_bytes') is not None:
+                    s['_total_bytes_str'] = format_bytes(s['total_bytes'])
+                    msg_template += ' of %(_total_bytes_str)s'
                 if s.get('elapsed') is not None:
                     s['_elapsed_str'] = self.format_seconds(s['elapsed'])
-                    msg_template = '100%% of %(_total_bytes_str)s in %(_elapsed_str)s'
-                else:
-                    msg_template = '100%% of %(_total_bytes_str)s'
+                    msg_template += ' in %(_elapsed_str)s'
                 self._report_progress_status(
                     msg_template % s, is_last_line=True)
 

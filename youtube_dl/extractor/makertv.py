@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class MakerTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www\.)?maker\.tv/(?:[^/]+/)*video|makerplayer.com/embed/maker)/(?P<id>[a-zA-Z0-9]{12})'
+    _VALID_URL = r'https?://(?:(?:www\.)?maker\.tv/(?:[^/]+/)*video|makerplayer\.com/embed/maker)/(?P<id>[a-zA-Z0-9]{12})'
     _TEST = {
         'url': 'http://www.maker.tv/video/Fh3QgymL9gsc',
         'md5': 'ca237a53a8eb20b6dc5bd60564d4ab3e',

@@ -4,15 +4,17 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    ExtractorError,
     int_or_none,
     float_or_none,
-    ExtractorError,
+    smuggle_url,
 )
 
 
 class NineNowIE(InfoExtractor):
     IE_NAME = '9now.com.au'
     _VALID_URL = r'https?://(?:www\.)?9now\.com\.au/(?:[^/]+/){2}(?P<id>[^/?#]+)'
+    _GEO_COUNTRIES = ['AU']
     _TESTS = [{
         # clip
         'url': 'https://www.9now.com.au/afl-footy-show/2016/clip-ciql02091000g0hp5oktrnytc',
@@ -75,7 +77,9 @@ class NineNowIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
-            'url': self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id,
+            'url': smuggle_url(
+                self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id,
+                {'geo_countries': self._GEO_COUNTRIES}),
             'id': video_id,
             'title': title,
             'description': common_data.get('description'),
