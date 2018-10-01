@@ -222,6 +222,12 @@ query viewClip {
             'Downloading captions JSON', 'Unable to download captions JSON',
             fatal=False, data=json.dumps(captions_post).encode('utf-8'),
             headers={'Content-Type': 'application/json;charset=utf-8'})
+        if not captions:
+            captions = self._download_json(
+                '%s/training/Player/captions' % self._API_BASE, video_id,
+                'Downloading captions JSON', 'Unable to download captions JSON',
+                fatal=False, data=json.dumps(captions_post).encode('utf-8'),
+                headers={'Content-Type': 'application/json;charset=utf-8'})
         if captions:
             return {
                 lang: [{
