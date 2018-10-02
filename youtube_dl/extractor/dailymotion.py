@@ -24,6 +24,7 @@ from ..utils import (
     str_to_int,
     unescapeHTML,
     urlencode_postdata,
+    try_get,
 )
 
 
@@ -172,7 +173,12 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             webpage, 'player v5', default=None)
         if player_v5:
             player = self._parse_json(player_v5, video_id)
-            metadata = player['metadata']
+            metadata = try_get(
+                player, lambda x: x['metadata'], dict) or self._download_json(
+                'http://www.dailymotion.com/player/metadata/video/%s' % video_id, video_id, query={
+                    'integration': 'inline',
+                    'GK_PV5_NEON': '1',
+                })
 
             if metadata.get('error', {}).get('type') == 'password_protected':
                 password = self._downloader.params.get('videopassword')
