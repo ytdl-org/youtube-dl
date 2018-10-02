@@ -6,11 +6,8 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     parse_iso8601,
-    unescapeHTML,
-    sanitize_url,
     clean_html,
     get_element_by_attribute,
-    js_to_json,
 )
 
 
@@ -33,7 +30,7 @@ class VideofyMeIE(InfoExtractor):
             'view_count': int,
         },
     }, {
-    	'url': 'https://www.videofy.me/v/2975905',
+        'url': 'https://www.videofy.me/v/2975905',
         'md5': '79ad4498ab14dec72e815a8f85c7641c',
         'info_dict': {
             'id': '2975905',
@@ -46,7 +43,7 @@ class VideofyMeIE(InfoExtractor):
             'uploader_id': 1798214,
             'view_count': int,
         },
-    },]
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -57,7 +54,7 @@ class VideofyMeIE(InfoExtractor):
 
         meta = self._download_json('https://www.videofy.me/wp-json/wp/v2/posts/%s' % video_id, video_id)
         uploader_id = meta.get('author')
-        uploader_name = self._download_json('https://www.videofy.me/wp-json/wp/v2/users/%s' % uploader_id, uploader_id, fatal=False).get('name')   
+        uploader_name = self._download_json('https://www.videofy.me/wp-json/wp/v2/users/%s' % uploader_id, uploader_id, fatal=False).get('name')
 
         return {
             'id': video_id,
