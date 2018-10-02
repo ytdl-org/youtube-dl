@@ -45,7 +45,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         data['req'] = 'RpcApi' + method
         data = compat_urllib_parse_urlencode(data).encode('utf-8')
         return self._download_xml(
-            'http://www.crunchyroll.com/xml/',
+            'https://www.crunchyroll.com/xml/',
             video_id, note, fatal=False, data=data, headers={
                 'Content-Type': 'application/x-www-form-urlencoded',
             })
