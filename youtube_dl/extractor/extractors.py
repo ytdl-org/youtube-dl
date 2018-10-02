@@ -558,6 +558,7 @@ from .lego import LEGOIE
 from .lemonde import LemondeIE
 from .lenta import LentaIE
 from .libraryofcongress import LibraryOfCongressIE
+from .ligonier import LigonierIE
 from .libsyn import LibsynIE
 from .lifenews import (
     LifeNewsIE,
