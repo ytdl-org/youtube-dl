@@ -2833,6 +2833,7 @@ def dfxp2srt(dfxp_data):
 
     last_begin_time = None
     last_end_time = None
+    index_offset = 0
 
     for para, index in zip(paras, itertools.count(1)):
         begin_time = parse_dfxp_time_expr(para.attrib.get('begin'))
@@ -2846,10 +2847,10 @@ def dfxp2srt(dfxp_data):
             end_time = begin_time + dur
 
         if begin_time == last_begin_time and end_time == last_end_time:
+            index_offset += 1
             out.append('%s\n' % (parse_node(para)))
         else:
-            out.append('\n%d\n%s --> %s\n%s\n' % (
-                index,
+                index - index_offset,
                 srt_subtitles_timecode(begin_time),
                 srt_subtitles_timecode(end_time),
                 parse_node(para)))
