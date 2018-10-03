@@ -211,6 +211,11 @@ class InfoExtractor(object):
                     If not explicitly set, calculated from timestamp.
     uploader_id:    Nickname or id of the video uploader.
     uploader_url:   Full URL to a personal webpage of the video uploader.
+    channel:        Full name of the channel the video is uploaded on.
+                    Note that channel fields may or may not repeat uploader
+                    fields. This depends on a particular extractor.
+    channel_id:     Id of the channel.
+    channel_url:    Full URL to a channel webpage.
     location:       Physical location where the video was filmed.
     subtitles:      The available subtitles as a dictionary in the format
                     {tag: subformats}. "tag" is usually a language code, and
@@ -1701,9 +1706,9 @@ class InfoExtractor(object):
                 # However, this is not always respected, for example, [2]
                 # contains EXT-X-STREAM-INF tag which references AUDIO
                 # rendition group but does not have CODECS and despite
-                # referencing audio group an audio group, it represents
-                # a complete (with audio and video) format. So, for such cases
-                # we will ignore references to rendition groups and treat them
+                # referencing an audio group it represents a complete
+                # (with audio and video) format. So, for such cases we will
+                # ignore references to rendition groups and treat them
                 # as complete formats.
                 if audio_group_id and codecs and f.get('vcodec') != 'none':
                     audio_group = groups.get(audio_group_id)
