@@ -13,6 +13,7 @@ from ..utils import (
     parse_duration,
     unified_strdate,
     xpath_text,
+    xpath_attr,
     update_url_query,
     url_or_none,
 )
@@ -257,6 +258,12 @@ class ARDIE(InfoExtractor):
             video_node, './broadcastDate'))
         thumbnail = xpath_text(video_node, './/teaserImage//variant/url')
 
+        subtitles = []
+        for variant, ext in (('dataTimedTextNoOffset', 'ttml'), ('dataTimedTextVtt', 'vtt')):
+            url = xpath_attr(video_node, './%s' % variant, 'url')
+            if url:
+                subtitles.append({'ext': ext, 'url': url})
+
         formats = []
         for a in video_node.findall('.//asset'):
             f = {
@@ -279,6 +286,7 @@ class ARDIE(InfoExtractor):
         return {
             'id': mobj.group('id'),
             'formats': formats,
+            'subtitles': {'de': subtitles},
             'display_id': display_id,
             'title': video_node.find('./title').text,
             'duration': parse_duration(video_node.find('./duration').text),
