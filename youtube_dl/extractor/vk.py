@@ -354,6 +354,9 @@ class VKIE(VKBaseIE):
 
             r'<!>This video is no longer available, because it has been deleted.':
             'Video %s is no longer available, because it has been deleted.',
+
+            r'is not available in your region.':
+                'Video %s is not available in your region.',
         }
 
         for error_re, error_msg in ERRORS.items():
