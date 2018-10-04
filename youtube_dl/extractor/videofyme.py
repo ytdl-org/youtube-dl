@@ -1,13 +1,9 @@
 from __future__ import unicode_literals
 
-import json
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    parse_iso8601,
     clean_html,
-    get_element_by_attribute,
 )
 
 
@@ -50,20 +46,19 @@ class VideofyMeIE(InfoExtractor):
 
         page = self._download_webpage(url, video_id)
 
-        video_info = json.loads(get_element_by_attribute('type', 'application/ld+json', page))
+        video_info = self._search_json_ld(page, video_id)
 
-        meta = self._download_json('https://www.videofy.me/wp-json/wp/v2/posts/%s' % video_id, video_id)
-        uploader_id = meta.get('author')
+        uploader_id = self._download_json('https://www.videofy.me/wp-json/wp/v2/posts/%s' % video_id, video_id, fatal=False).get('author')
         uploader_name = self._download_json('https://www.videofy.me/wp-json/wp/v2/users/%s' % uploader_id, uploader_id, fatal=False).get('name')
 
         return {
             'id': video_id,
-            'title': video_info['name'],
-            'url': video_info['contentUrl'],
-            'thumbnail': video_info.get('thumbnailUrl'),
+            'title': video_info['title'],
+            'url': video_info['url'],
+            'thumbnail': video_info.get('thumbnail'),
             'description': clean_html(video_info.get('description')),
-            'timestamp': parse_iso8601(video_info.get('uploadDate')),
+            'timestamp': video_info.get('timestamp'),
             'uploader_id': uploader_id,
             'uploader': uploader_name,
-            'view_count': int_or_none(video_info.get('interactionCount')),
+            'view_count': int_or_none(video_info.get('view_count')),
         }
