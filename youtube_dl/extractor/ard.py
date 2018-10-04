@@ -286,7 +286,7 @@ class ARDIE(InfoExtractor):
         return {
             'id': mobj.group('id'),
             'formats': formats,
-            'subtitles': {'de': subtitles},
+            'subtitles': {'de': subtitles} if subtitles else None,
             'display_id': display_id,
             'title': video_node.find('./title').text,
             'duration': parse_duration(video_node.find('./duration').text),
