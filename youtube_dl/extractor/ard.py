@@ -12,8 +12,8 @@ from ..utils import (
     int_or_none,
     parse_duration,
     unified_strdate,
-    xpath_text,
     xpath_attr,
+    xpath_text,
     update_url_query,
     url_or_none,
 )
