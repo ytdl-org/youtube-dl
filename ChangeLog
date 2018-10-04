@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.10.05
 
 Extractors
 * [pluralsight] Improve authentication (#17762)
