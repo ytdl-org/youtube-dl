@@ -42,7 +42,7 @@ class RaisudtirolIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<span class="med_title">(.+?)</span>', webpage, 'title')
+        title = self._html_search_regex(r'<span class="med_title">(.+?)</span>', webpage, 'title', default=video_id, fatal=False)
         info_dict = {
                 'id': video_id,
                 'title': title,
@@ -52,7 +52,8 @@ class RaisudtirolIE(InfoExtractor):
             try:
                 info = self._parse_jwplayer_data(
                     jwplayer_data, video_id, require_title=False, base_url=url)
-                info['thumbnail'] = ('http://www.raisudtirol.rai.it'+info['thumbnail'])
+                if info['thumbnail']:
+                    info['thumbnail'] = ('http://www.raisudtirol.rai.it'+info['thumbnail'])
                 return merge_dicts(info, info_dict)
             except ExtractorError:
                 # See https://github.com/rg3/youtube-dl/pull/16735
