@@ -904,6 +904,10 @@ from .rai import (
     RaiPlayPlaylistIE,
     RaiIE,
 )
+
+from .raisudtirol import (
+    RaisudtirolIE,
+)
 from .raywenderlich import (
     RayWenderlichIE,
     RayWenderlichCourseIE,
