@@ -104,16 +104,18 @@ class PatreonIE(InfoExtractor):
             'comment_count': int_or_none(attributes.get('comment_count')),
         }
 
+        def add_file(file_data):
+            file_url = file_data.get('url')
+            if file_url:
+                info.update({
+                    'url': file_url,
+                    'ext': determine_ext(file_data.get('name'), 'mp3'),
+                })
+
         for i in post.get('included', []):
             i_type = i.get('type')
             if i_type == 'attachment':
-                attachment_attributes = i.get('attributes') or {}
-                attachment_url = attachment_attributes.get('url')
-                if attachment_url:
-                    info.update({
-                        'url': attachment_url,
-                        'ext': determine_ext(attachment_attributes.get('name'), 'mp3'),
-                    })
+                add_file(i.get('attributes') or {})
             elif i_type == 'user':
                 user_attributes = i.get('attributes')
                 if user_attributes:
@@ -121,6 +123,9 @@ class PatreonIE(InfoExtractor):
                         'uploader': user_attributes.get('full_name'),
                         'uploader_url': user_attributes.get('url'),
                     })
+
+        if not info.get('url'):
+            add_file(attributes.get('post_file') or {})
 
         if not info.get('url'):
             info.update({
