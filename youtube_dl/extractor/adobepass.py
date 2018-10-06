@@ -27,8 +27,8 @@ MSO_INFO = {
     },
     'ATTOTT': {
         'name': 'DIRECTV NOW',
-        'username_field': 'email',
-        'password_field': 'loginpassword',
+        'username_field': 'userid',
+        'password_field': 'password',
     },
     'Rogers': {
         'name': 'Rogers',
@@ -1503,12 +1503,46 @@ class AdobePassIE(InfoExtractor):
                             'Downloading Provider Redirect Page (meta refresh)')
                     provider_login_page_res = post_form(
                         provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
-                    mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
-                        mso_info.get('username_field', 'username'): username,
-                        mso_info.get('password_field', 'password'): password,
-                    })
+
+                    # The DIRECTV NOW login is usually JavaScript-based, but the
+                    # needed form data can be extracted from a script block.
+                    if mso_id == 'ATTOTT':
+                        provider_login_page, urlh = provider_login_page_res
+                        login_widget_data_json = self._html_search_regex(
+                            r'var LoginWidgetAdditionalAttr = (.*)//-->',
+                            provider_login_page,
+                            'login form data json',
+                            flags=re.DOTALL)
+                        login_widget_data = self._parse_json(login_widget_data_json, 'login form data')
+                        login_widget_data = login_widget_data['LoginWidgetSetting']
+
+                        post_url = login_widget_data['TGuardAuthPostUrl']
+                        if not re.match(r'https?://', post_url):
+                            post_url = compat_urlparse.urljoin(urlh.geturl(), post_url)
+
+                        form_data = login_widget_data['formSubmitParams']
+                        form_data.update({
+                            mso_info.get('username_field', 'username'): username,
+                            mso_info.get('password_field', 'password'): password,
+                            'remember_me': 'Y',
+                        })
+
+                        mvpd_confirm_page_res = self._download_webpage_handle(
+                            post_url, video_id, 'Logging in', data=urlencode_postdata(form_data), headers={
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            })
+                    else:
+                        mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
+                            mso_info.get('username_field', 'username'): username,
+                            mso_info.get('password_field', 'password'): password,
+                        })
+
                     if mso_id != 'Rogers':
-                        post_form(mvpd_confirm_page_res, 'Confirming Login')
+                        mvpd_continue_page_res = post_form(mvpd_confirm_page_res, 'Confirming Login')
+
+                        # DIRECTV NOW requires another form based redirect to be followed.
+                        if mso_id == 'ATTOTT':
+                            post_form(mvpd_continue_page_res, 'Continuing login')
 
                 session = self._download_webpage(
                     self._SERVICE_PROVIDER_TEMPLATE % 'session', video_id,
