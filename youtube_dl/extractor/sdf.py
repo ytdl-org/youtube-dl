@@ -32,7 +32,6 @@ class SdfIE(InfoExtractor):
         url = self._html_search_regex(r'(?s)file:\s\"(http.*?\.mp4)', webpage, 'url', fatal=True)
         thumbnail = self._html_search_regex(r'(?s)image:\s\"(http.*?\.jpg)', webpage, 'thumbnail', fatal=True)
         title = self._html_search_regex(r'(?s)\"og:title\"\scontent\=\"(.+?)\"\/>', webpage, 'title', default=video_id, fatal=False)
-        return (info_dict)
         info_dict = {
                 'id': video_id,
                 'title': title,
@@ -40,3 +39,5 @@ class SdfIE(InfoExtractor):
                 'format': 'mp4',
                 'thumbnail': thumbnail,
             }
+        return (info_dict)
+
