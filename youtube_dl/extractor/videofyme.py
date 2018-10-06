@@ -48,17 +48,13 @@ class VideofyMeIE(InfoExtractor):
 
         video_info = self._search_json_ld(page, video_id)
 
-        uploader_id = self._download_json('https://www.videofy.me/wp-json/wp/v2/posts/%s' % video_id, video_id, fatal=False).get('author')
-        uploader_name = self._download_json('https://www.videofy.me/wp-json/wp/v2/users/%s' % uploader_id, uploader_id, fatal=False).get('name')
+        uploader_id = self._download_json('https://www.videofy.me/wp-json/wp/v2/posts/%s' % video_id, video_id, fatal=False)
+        uploader_id = uploader_id.get('author') if uploader_id != False else None
+        uploader_name = self._download_json('https://www.videofy.me/wp-json/wp/v2/users/%s' % uploader_id, uploader_id, fatal=False)
+        uploader_name = uploader_name.get('name') if uploader_name != False else None
 
-        return {
-            'id': video_id,
-            'title': video_info['title'],
-            'url': video_info['url'],
-            'thumbnail': video_info.get('thumbnail'),
-            'description': clean_html(video_info.get('description')),
-            'timestamp': video_info.get('timestamp'),
-            'uploader_id': uploader_id,
-            'uploader': uploader_name,
-            'view_count': int_or_none(video_info.get('view_count')),
-        }
+        video_info['id'] = video_id
+        video_info['uploader_id'] = uploader_id
+        video_info['uploader'] = uploader_name
+
+        return video_info
