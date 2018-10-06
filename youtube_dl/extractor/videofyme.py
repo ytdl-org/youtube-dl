@@ -1,10 +1,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    clean_html,
-)
 
 
 class VideofyMeIE(InfoExtractor):
@@ -48,13 +44,15 @@ class VideofyMeIE(InfoExtractor):
 
         video_info = self._search_json_ld(page, video_id)
 
-        uploader_id = self._download_json('https://www.videofy.me/wp-json/wp/v2/posts/%s' % video_id, video_id, fatal=False)
-        uploader_id = uploader_id.get('author') if uploader_id != False else None
+        uploader_id = self._download_json('https://www.videofy.me/wp-json/wp/v2/poss/%s' % video_id, video_id, fatal=False)
+        uploader_id = uploader_id.get('author') if uploader_id is not False else None
         uploader_name = self._download_json('https://www.videofy.me/wp-json/wp/v2/users/%s' % uploader_id, uploader_id, fatal=False)
-        uploader_name = uploader_name.get('name') if uploader_name != False else None
+        uploader_name = uploader_name.get('name') if uploader_name is not False else None
 
         video_info['id'] = video_id
         video_info['uploader_id'] = uploader_id
         video_info['uploader'] = uploader_name
+
+        print(video_info)
 
         return video_info
