@@ -53,6 +53,4 @@ class VideofyMeIE(InfoExtractor):
         video_info['uploader_id'] = uploader_id
         video_info['uploader'] = uploader_name
 
-        print(video_info)
-
         return video_info
