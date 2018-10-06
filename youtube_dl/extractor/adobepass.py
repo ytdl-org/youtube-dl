@@ -27,8 +27,8 @@ MSO_INFO = {
     },
     'ATTOTT': {
         'name': 'DIRECTV NOW',
-        'username_field': 'userid',
-        'password_field': 'password',
+        'username_field': 'email',
+        'password_field': 'loginpassword',
     },
     'Rogers': {
         'name': 'Rogers',
@@ -1355,15 +1355,17 @@ class AdobePassIE(InfoExtractor):
             token_expires = unified_timestamp(re.sub(r'[_ ]GMT', '', xml_text(token, date_ele)))
             return token_expires and token_expires <= int(time.time())
 
-        def post_form(form_page_res, note, data={}):
+        def post_form(form_page_res, note, data={}, fatal=True):
             form_page, urlh = form_page_res
-            post_url = self._html_search_regex(r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_page, 'post url', group='url')
+            post_url = self._html_search_regex(r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_page, 'post url', group='url', fatal=fatal)
+            if not post_url:
+                return None
             if not re.match(r'https?://', post_url):
                 post_url = compat_urlparse.urljoin(urlh.geturl(), post_url)
             form_data = self._hidden_inputs(form_page)
             form_data.update(data)
             return self._download_webpage_handle(
-                post_url, video_id, note, data=urlencode_postdata(form_data), headers={
+                post_url, video_id, note, data=urlencode_postdata(form_data), fatal=fatal, headers={
                     'Content-Type': 'application/x-www-form-urlencoded',
                 })
 
@@ -1504,9 +1506,13 @@ class AdobePassIE(InfoExtractor):
                     provider_login_page_res = post_form(
                         provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
 
-                    # The DIRECTV NOW login is usually JavaScript-based, but the
-                    # needed form data can be extracted from a script block.
-                    if mso_id == 'ATTOTT':
+                    mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
+                        mso_info.get('username_field', 'username'): username,
+                        mso_info.get('password_field', 'password'): password,
+                    }, fatal=mso_id != 'ATTOTT')
+
+                    # Sometimes, DIRECTV NOW uses a JavaScript-based login.
+                    if mso_id == 'ATTOTT' and not mvpd_confirm_page_res:
                         provider_login_page, urlh = provider_login_page_res
                         login_widget_data_json = self._html_search_regex(
                             r'var LoginWidgetAdditionalAttr = (.*)//-->',
@@ -1522,8 +1528,8 @@ class AdobePassIE(InfoExtractor):
 
                         form_data = login_widget_data['formSubmitParams']
                         form_data.update({
-                            mso_info.get('username_field', 'username'): username,
-                            mso_info.get('password_field', 'password'): password,
+                            'userid': username,
+                            'password': password,
                             'remember_me': 'Y',
                         })
 
@@ -1531,17 +1537,13 @@ class AdobePassIE(InfoExtractor):
                             post_url, video_id, 'Logging in', data=urlencode_postdata(form_data), headers={
                                 'Content-Type': 'application/x-www-form-urlencoded',
                             })
-                    else:
-                        mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
-                            mso_info.get('username_field', 'username'): username,
-                            mso_info.get('password_field', 'password'): password,
-                        })
 
                     if mso_id != 'Rogers':
                         mvpd_continue_page_res = post_form(mvpd_confirm_page_res, 'Confirming Login')
 
-                        # DIRECTV NOW requires another form based redirect to be followed.
-                        if mso_id == 'ATTOTT':
+                        # DIRECTV NOW requires another form-based redirect to be
+                        # followed if the JavaScript-based login was required.
+                        if mso_id == 'ATTOTT' and not mvpd_confirm_page_res:
                             post_form(mvpd_continue_page_res, 'Continuing login')
 
                 session = self._download_webpage(
