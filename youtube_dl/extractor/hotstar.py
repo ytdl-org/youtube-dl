@@ -11,6 +11,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    try_get,
 )
 
 
@@ -72,7 +73,11 @@ class HotStarIE(HotStarBaseIE):
         app_state = self._parse_json(self._search_regex(
             r'<script>window\.APP_STATE\s*=\s*({.+?})</script>',
             webpage, 'app state'), video_id)
-        video_data = list(app_state.values())[0]['initialState']['contentData']['content']
+        video_data = {}
+        for v in app_state.values():
+            content = try_get(v, lambda x: x['initialState']['contentData']['content'], dict)
+            if content and content.get('contentId') == video_id:
+                video_data = content
 
         title = video_data['title']
 
