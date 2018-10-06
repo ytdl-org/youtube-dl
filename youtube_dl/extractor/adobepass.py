@@ -1463,7 +1463,7 @@ class AdobePassIE(InfoExtractor):
                 elif mso_id == 'Philo':
                     # Comcast page flow varies by video site and whether you
                     # are on Comcast's network.
-                    mvpd_auth_code_res = self._download_json(
+                    self._download_webpage(
                         'https://idp.philo.com/auth/init/login_code', video_id, 'Requesting auth code', data=urlencode_postdata({
                             'ident': username,
                             'device': 'web',
@@ -1471,7 +1471,7 @@ class AdobePassIE(InfoExtractor):
                             'send_token': True
                         }))
                     philo_code = compat_getpass('Type auth code you have received [Return]: ')
-                    confirm_token = self._download_json(
+                    self._download_webpage(
                         'https://idp.philo.com/auth/update/login_code', video_id, 'Submitting token', data=urlencode_postdata({
                             'token': philo_code
                         }))
