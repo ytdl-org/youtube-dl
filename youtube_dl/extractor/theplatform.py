@@ -32,13 +32,15 @@ _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 
 class ThePlatformBaseIE(OnceIE):
+    _TP_TLD = 'com'
+
     def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
         meta = self._download_xml(
             smil_url, video_id, note=note, query={'format': 'SMIL'},
             headers=self.geo_verification_headers())
         error_element = find_xpath_attr(meta, _x('.//smil:ref'), 'src')
         if error_element is not None and error_element.attrib['src'].startswith(
-                'http://link.theplatform.com/s/errorFiles/Unavailable.'):
+                'http://link.theplatform.%s/s/errorFiles/Unavailable.' % self._TP_TLD):
             raise ExtractorError(error_element.attrib['abstract'], expected=True)
 
         smil_formats = self._parse_smil_formats(
@@ -66,7 +68,7 @@ class ThePlatformBaseIE(OnceIE):
         return formats, subtitles
 
     def _download_theplatform_metadata(self, path, video_id):
-        info_url = 'http://link.theplatform.com/s/%s?format=preview' % path
+        info_url = 'http://link.theplatform.%s/s/%s?format=preview' % (self._TP_TLD, path)
         return self._download_json(info_url, video_id)
 
     def _parse_theplatform_metadata(self, info):
@@ -308,7 +310,7 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
 
 class ThePlatformFeedIE(ThePlatformBaseIE):
     _URL_TEMPLATE = '%s//feed.theplatform.com/f/%s/%s?form=json&%s'
-    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*(?P<filter>by(?:Gui|I)d=(?P<id>[\w-]+))'
+    _VALID_URL = r'https?://feed\.theplatform\.com/f/(?P<provider_id>[^/]+)/(?P<feed_id>[^?/]+)\?(?:[^&]+&)*(?P<filter>by(?:Gui|I)d=(?P<id>[^&]+))'
     _TESTS = [{
         # From http://player.theplatform.com/p/7wvmTC/MSNBCEmbeddedOffSite?guid=n_hardball_5biden_140207
         'url': 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207',
@@ -325,6 +327,9 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
             'uploader': 'NBCU-NEWS',
         },
+    }, {
+        'url': 'http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews?byGuid=nn_netcast_180306.Copy.01',
+        'only_matching': True,
     }]
 
     def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}, account_id=None):

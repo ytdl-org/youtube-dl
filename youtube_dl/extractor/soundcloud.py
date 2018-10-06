@@ -181,7 +181,6 @@ class SoundcloudIE(InfoExtractor):
         thumbnail = info.get('artwork_url') or info.get('user', {}).get('avatar_url')
         if isinstance(thumbnail, compat_str):
             thumbnail = thumbnail.replace('-large', '-t500x500')
-        ext = 'mp3'
         result = {
             'id': track_id,
             'uploader': info.get('user', {}).get('username'),
@@ -215,8 +214,11 @@ class SoundcloudIE(InfoExtractor):
             track_id, 'Downloading track url', query=query)
 
         for key, stream_url in format_dict.items():
-            abr = int_or_none(self._search_regex(
-                r'_(\d+)_url', key, 'audio bitrate', default=None))
+            ext, abr = 'mp3', None
+            mobj = re.search(r'_([^_]+)_(\d+)_url', key)
+            if mobj:
+                ext, abr = mobj.groups()
+                abr = int(abr)
             if key.startswith('http'):
                 stream_formats = [{
                     'format_id': key,
@@ -234,13 +236,14 @@ class SoundcloudIE(InfoExtractor):
                 }]
             elif key.startswith('hls'):
                 stream_formats = self._extract_m3u8_formats(
-                    stream_url, track_id, 'mp3', entry_protocol='m3u8_native',
+                    stream_url, track_id, ext, entry_protocol='m3u8_native',
                     m3u8_id=key, fatal=False)
             else:
                 continue
 
-            for f in stream_formats:
-                f['abr'] = abr
+            if abr:
+                for f in stream_formats:
+                    f['abr'] = abr
 
             formats.extend(stream_formats)
 
@@ -250,7 +253,7 @@ class SoundcloudIE(InfoExtractor):
             formats.append({
                 'format_id': 'fallback',
                 'url': update_url_query(info['stream_url'], query),
-                'ext': ext,
+                'ext': 'mp3',
             })
 
         for f in formats:

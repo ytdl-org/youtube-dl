@@ -13,6 +13,7 @@ from ..utils import (
     parse_duration,
     try_get,
     unified_strdate,
+    url_or_none,
 )
 
 
@@ -137,7 +138,8 @@ class XHamsterIE(InfoExtractor):
                     else:
                         format_url = format_item
                         filesize = None
-                    if not isinstance(format_url, compat_str):
+                    format_url = url_or_none(format_url)
+                    if not format_url:
                         continue
                     formats.append({
                         'format_id': '%s-%s' % (format_id, quality),
@@ -198,7 +200,8 @@ class XHamsterIE(InfoExtractor):
                 default='{}'),
             video_id, fatal=False)
         for format_id, format_url in sources.items():
-            if not isinstance(format_url, compat_str):
+            format_url = url_or_none(format_url)
+            if not format_url:
                 continue
             if format_url in format_urls:
                 continue

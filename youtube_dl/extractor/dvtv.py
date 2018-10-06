@@ -91,17 +91,6 @@ class DVTVIE(InfoExtractor):
     }, {
         'url': 'http://video.aktualne.cz/v-cechach-poprve-zazni-zelenkova-zrestaurovana-mse/r~45b4b00483ec11e4883b002590604f2e/',
         'only_matching': True,
-    }, {
-        'url': 'https://video.aktualne.cz/dvtv/babis-a-zeman-nesou-vinu-za-to-ze-nemame-jasno-v-tom-kdo-bud/r~026afb54fad711e79704ac1f6b220ee8/',
-        'md5': '87defe16681b1429c91f7a74809823c6',
-        'info_dict': {
-            'id': 'f5ae72f6fad611e794dbac1f6b220ee8',
-            'ext': 'mp4',
-            'title': 'Babiš a Zeman nesou vinu za to, že nemáme jasno v tom, kdo bude vládnout, říká Pekarová Adamová',
-        },
-        'params': {
-            'skip_download': True,
-        },
     }]
 
     def _parse_video_metadata(self, js, video_id, live_js=None):

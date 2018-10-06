@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import json
 import random
 import re
 import time
@@ -16,14 +15,18 @@ from ..utils import (
     int_or_none,
     KNOWN_EXTENSIONS,
     parse_filesize,
+    str_or_none,
+    try_get,
     unescapeHTML,
     update_url_query,
     unified_strdate,
+    unified_timestamp,
+    url_or_none,
 )
 
 
 class BandcampIE(InfoExtractor):
-    _VALID_URL = r'https?://.*?\.bandcamp\.com/track/(?P<title>[^/?#&]+)'
+    _VALID_URL = r'https?://[^/]+\.bandcamp\.com/track/(?P<title>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://youtube-dl.bandcamp.com/track/youtube-dl-test-song',
         'md5': 'c557841d5e50261777a6585648adf439',
@@ -35,13 +38,44 @@ class BandcampIE(InfoExtractor):
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
+        # free download
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '0369ace6b939f0927e62c67a1a8d9fa7',
+        'md5': '853e35bf34aa1d6fe2615ae612564b36',
         'info_dict': {
             'id': '2650410135',
             'ext': 'aiff',
             'title': 'Ben Prunty - Lanius (Battle)',
+            'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Ben Prunty',
+            'timestamp': 1396508491,
+            'upload_date': '20140403',
+            'release_date': '20140403',
+            'duration': 260.877,
+            'track': 'Lanius (Battle)',
+            'track_number': 1,
+            'track_id': '2650410135',
+            'artist': 'Ben Prunty',
+            'album': 'FTL: Advanced Edition Soundtrack',
+        },
+    }, {
+        # no free download, mp3 128
+        'url': 'https://relapsealumni.bandcamp.com/track/hail-to-fire',
+        'md5': 'fec12ff55e804bb7f7ebeb77a800c8b7',
+        'info_dict': {
+            'id': '2584466013',
+            'ext': 'mp3',
+            'title': 'Mastodon - Hail to Fire',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'Mastodon',
+            'timestamp': 1322005399,
+            'upload_date': '20111122',
+            'release_date': '20040207',
+            'duration': 120.79,
+            'track': 'Hail to Fire',
+            'track_number': 5,
+            'track_id': '2584466013',
+            'artist': 'Mastodon',
+            'album': 'Call of the Mastodon',
         },
     }]
 
@@ -50,19 +84,23 @@ class BandcampIE(InfoExtractor):
         title = mobj.group('title')
         webpage = self._download_webpage(url, title)
         thumbnail = self._html_search_meta('og:image', webpage, default=None)
-        m_download = re.search(r'freeDownloadPage: "(.*?)"', webpage)
-        if not m_download:
-            m_trackinfo = re.search(r'trackinfo: (.+),\s*?\n', webpage)
-            if m_trackinfo:
-                json_code = m_trackinfo.group(1)
-                data = json.loads(json_code)[0]
-                track_id = compat_str(data['id'])
 
-                if not data.get('file'):
-                    raise ExtractorError('Not streamable', video_id=track_id, expected=True)
+        track_id = None
+        track = None
+        track_number = None
+        duration = None
 
-                formats = []
-                for format_id, format_url in data['file'].items():
+        formats = []
+        track_info = self._parse_json(
+            self._search_regex(
+                r'trackinfo\s*:\s*\[\s*({.+?})\s*\]\s*,\s*?\n',
+                webpage, 'track info', default='{}'), title)
+        if track_info:
+            file_ = track_info.get('file')
+            if isinstance(file_, dict):
+                for format_id, format_url in file_.items():
+                    if not url_or_none(format_url):
+                        continue
                     ext, abr_str = format_id.split('-', 1)
                     formats.append({
                         'format_id': format_id,
@@ -72,85 +110,110 @@ class BandcampIE(InfoExtractor):
                         'acodec': ext,
                         'abr': int_or_none(abr_str),
                     })
+            track = track_info.get('title')
+            track_id = str_or_none(track_info.get('track_id') or track_info.get('id'))
+            track_number = int_or_none(track_info.get('track_num'))
+            duration = float_or_none(track_info.get('duration'))
 
-                self._sort_formats(formats)
+        def extract(key):
+            return self._search_regex(
+                r'\b%s\s*["\']?\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1' % key,
+                webpage, key, default=None, group='value')
 
-                return {
-                    'id': track_id,
-                    'title': data['title'],
-                    'thumbnail': thumbnail,
-                    'formats': formats,
-                    'duration': float_or_none(data.get('duration')),
-                }
-            else:
-                raise ExtractorError('No free songs found')
+        artist = extract('artist')
+        album = extract('album_title')
+        timestamp = unified_timestamp(
+            extract('publish_date') or extract('album_publish_date'))
+        release_date = unified_strdate(extract('album_release_date'))
 
-        download_link = m_download.group(1)
-        video_id = self._search_regex(
-            r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
-            webpage, 'video id')
+        download_link = self._search_regex(
+            r'freeDownloadPage\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'download link', default=None, group='url')
+        if download_link:
+            track_id = self._search_regex(
+                r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
+                webpage, 'track id')
 
-        download_webpage = self._download_webpage(
-            download_link, video_id, 'Downloading free downloads page')
+            download_webpage = self._download_webpage(
+                download_link, track_id, 'Downloading free downloads page')
 
-        blob = self._parse_json(
-            self._search_regex(
-                r'data-blob=(["\'])(?P<blob>{.+?})\1', download_webpage,
-                'blob', group='blob'),
-            video_id, transform_source=unescapeHTML)
+            blob = self._parse_json(
+                self._search_regex(
+                    r'data-blob=(["\'])(?P<blob>{.+?})\1', download_webpage,
+                    'blob', group='blob'),
+                track_id, transform_source=unescapeHTML)
 
-        info = blob['digital_items'][0]
+            info = try_get(
+                blob, (lambda x: x['digital_items'][0],
+                       lambda x: x['download_items'][0]), dict)
+            if info:
+                downloads = info.get('downloads')
+                if isinstance(downloads, dict):
+                    if not track:
+                        track = info.get('title')
+                    if not artist:
+                        artist = info.get('artist')
+                    if not thumbnail:
+                        thumbnail = info.get('thumb_url')
 
-        downloads = info['downloads']
-        track = info['title']
+                    download_formats = {}
+                    download_formats_list = blob.get('download_formats')
+                    if isinstance(download_formats_list, list):
+                        for f in blob['download_formats']:
+                            name, ext = f.get('name'), f.get('file_extension')
+                            if all(isinstance(x, compat_str) for x in (name, ext)):
+                                download_formats[name] = ext.strip('.')
 
-        artist = info.get('artist')
-        title = '%s - %s' % (artist, track) if artist else track
+                    for format_id, f in downloads.items():
+                        format_url = f.get('url')
+                        if not format_url:
+                            continue
+                        # Stat URL generation algorithm is reverse engineered from
+                        # download_*_bundle_*.js
+                        stat_url = update_url_query(
+                            format_url.replace('/download/', '/statdownload/'), {
+                                '.rand': int(time.time() * 1000 * random.random()),
+                            })
+                        format_id = f.get('encoding_name') or format_id
+                        stat = self._download_json(
+                            stat_url, track_id, 'Downloading %s JSON' % format_id,
+                            transform_source=lambda s: s[s.index('{'):s.rindex('}') + 1],
+                            fatal=False)
+                        if not stat:
+                            continue
+                        retry_url = url_or_none(stat.get('retry_url'))
+                        if not retry_url:
+                            continue
+                        formats.append({
+                            'url': self._proto_relative_url(retry_url, 'http:'),
+                            'ext': download_formats.get(format_id),
+                            'format_id': format_id,
+                            'format_note': f.get('description'),
+                            'filesize': parse_filesize(f.get('size_mb')),
+                            'vcodec': 'none',
+                        })
 
-        download_formats = {}
-        for f in blob['download_formats']:
-            name, ext = f.get('name'), f.get('file_extension')
-            if all(isinstance(x, compat_str) for x in (name, ext)):
-                download_formats[name] = ext.strip('.')
-
-        formats = []
-        for format_id, f in downloads.items():
-            format_url = f.get('url')
-            if not format_url:
-                continue
-            # Stat URL generation algorithm is reverse engineered from
-            # download_*_bundle_*.js
-            stat_url = update_url_query(
-                format_url.replace('/download/', '/statdownload/'), {
-                    '.rand': int(time.time() * 1000 * random.random()),
-                })
-            format_id = f.get('encoding_name') or format_id
-            stat = self._download_json(
-                stat_url, video_id, 'Downloading %s JSON' % format_id,
-                transform_source=lambda s: s[s.index('{'):s.rindex('}') + 1],
-                fatal=False)
-            if not stat:
-                continue
-            retry_url = stat.get('retry_url')
-            if not isinstance(retry_url, compat_str):
-                continue
-            formats.append({
-                'url': self._proto_relative_url(retry_url, 'http:'),
-                'ext': download_formats.get(format_id),
-                'format_id': format_id,
-                'format_note': f.get('description'),
-                'filesize': parse_filesize(f.get('size_mb')),
-                'vcodec': 'none',
-            })
         self._sort_formats(formats)
 
+        title = '%s - %s' % (artist, track) if artist else track
+
+        if not duration:
+            duration = float_or_none(self._html_search_meta(
+                'duration', webpage, default=None))
+
         return {
-            'id': video_id,
+            'id': track_id,
             'title': title,
-            'thumbnail': info.get('thumb_url') or thumbnail,
-            'uploader': info.get('artist'),
-            'artist': artist,
+            'thumbnail': thumbnail,
+            'uploader': artist,
+            'timestamp': timestamp,
+            'release_date': release_date,
+            'duration': duration,
             'track': track,
+            'track_number': track_number,
+            'track_id': track_id,
+            'artist': artist,
+            'album': album,
             'formats': formats,
         }
 
@@ -306,7 +369,7 @@ class BandcampWeeklyIE(InfoExtractor):
 
         formats = []
         for format_id, format_url in show['audio_stream'].items():
-            if not isinstance(format_url, compat_str):
+            if not url_or_none(format_url):
                 continue
             for known_ext in KNOWN_EXTENSIONS:
                 if known_ext in format_id:

@@ -179,6 +179,10 @@ class MixcloudIE(InfoExtractor):
                     formats.append({
                         'format_id': 'http',
                         'url': decrypted,
+                        'downloader_options': {
+                            # Mixcloud starts throttling at >~5M
+                            'http_chunk_size': 5242880,
+                        },
                     })
             self._sort_formats(formats)
 

@@ -9,8 +9,8 @@ from ..utils import int_or_none
 class XiamiBaseIE(InfoExtractor):
     _API_BASE_URL = 'http://www.xiami.com/song/playlist/cat/json/id'
 
-    def _download_webpage(self, *args, **kwargs):
-        webpage = super(XiamiBaseIE, self)._download_webpage(*args, **kwargs)
+    def _download_webpage_handle(self, *args, **kwargs):
+        webpage = super(XiamiBaseIE, self)._download_webpage_handle(*args, **kwargs)
         if '>Xiami is currently not available in your country.<' in webpage:
             self.raise_geo_restricted('Xiami is currently not available in your country')
         return webpage

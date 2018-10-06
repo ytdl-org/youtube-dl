@@ -130,7 +130,7 @@ class LeIE(InfoExtractor):
             media_id, 'Downloading flash playJson data', query={
                 'id': media_id,
                 'platid': 1,
-                'splatid': 101,
+                'splatid': 105,
                 'format': 1,
                 'source': 1000,
                 'tkey': self.calc_time_key(int(time.time())),

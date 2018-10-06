@@ -114,12 +114,12 @@ class BiliBiliIE(InfoExtractor):
 
         if 'anime/' not in url:
             cid = self._search_regex(
-                r'cid(?:["\']:|=)(\d+)', webpage, 'cid',
+                r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
                 default=None
             ) or compat_parse_qs(self._search_regex(
-                [r'1EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-                 r'1EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
-                 r'1<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
+                 r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
+                 r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
                 webpage, 'player parameters'))['cid'][0]
         else:
             if 'no_bangumi_tip' not in smuggled_data:

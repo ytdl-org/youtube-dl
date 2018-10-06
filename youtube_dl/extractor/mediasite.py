@@ -15,6 +15,7 @@ from ..utils import (
     mimetype2ext,
     unescapeHTML,
     unsmuggle_url,
+    url_or_none,
     urljoin,
 )
 
@@ -156,8 +157,8 @@ class MediasiteIE(InfoExtractor):
 
             stream_formats = []
             for unum, VideoUrl in enumerate(video_urls):
-                video_url = VideoUrl.get('Location')
-                if not video_url or not isinstance(video_url, compat_str):
+                video_url = url_or_none(VideoUrl.get('Location'))
+                if not video_url:
                     continue
                 # XXX: if Stream.get('CanChangeScheme', False), switch scheme to HTTP/HTTPS
 

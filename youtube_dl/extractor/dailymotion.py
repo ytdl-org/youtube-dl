@@ -1,22 +1,32 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import json
+import base64
+import functools
+import hashlib
 import itertools
+import json
+import random
+import re
+import string
 
 from .common import InfoExtractor
-
+from ..compat import compat_struct_pack
 from ..utils import (
     determine_ext,
     error_to_compat_str,
     ExtractorError,
     int_or_none,
+    mimetype2ext,
+    OnDemandPagedList,
     parse_iso8601,
     sanitized_Request,
     str_to_int,
+    try_get,
     unescapeHTML,
-    mimetype2ext,
+    update_url_query,
+    url_or_none,
+    urlencode_postdata,
 )
 
 
@@ -64,7 +74,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             'uploader': 'Deadline',
             'uploader_id': 'x1xm8ri',
             'age_limit': 0,
-            'view_count': int,
         },
     }, {
         'url': 'https://www.dailymotion.com/video/x2iuewm_steam-machine-models-pricing-listed-on-steam-store-ign-news_videogames',
@@ -141,7 +150,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
         age_limit = self._rta_search(webpage)
 
-        description = self._og_search_description(webpage) or self._html_search_meta(
+        description = self._og_search_description(
+            webpage, default=None) or self._html_search_meta(
             'description', webpage, 'description')
 
         view_count_str = self._search_regex(
@@ -164,8 +174,34 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
              r'__PLAYER_CONFIG__\s*=\s*({.+?});'],
             webpage, 'player v5', default=None)
         if player_v5:
-            player = self._parse_json(player_v5, video_id)
-            metadata = player['metadata']
+            player = self._parse_json(player_v5, video_id, fatal=False) or {}
+            metadata = try_get(player, lambda x: x['metadata'], dict)
+            if not metadata:
+                metadata_url = url_or_none(try_get(
+                    player, lambda x: x['context']['metadata_template_url1']))
+                if metadata_url:
+                    metadata_url = metadata_url.replace(':videoId', video_id)
+                else:
+                    metadata_url = update_url_query(
+                        'https://www.dailymotion.com/player/metadata/video/%s'
+                        % video_id, {
+                            'embedder': url,
+                            'integration': 'inline',
+                            'GK_PV5_NEON': '1',
+                        })
+                metadata = self._download_json(
+                    metadata_url, video_id, 'Downloading metadata JSON')
+
+            if try_get(metadata, lambda x: x['error']['type']) == 'password_protected':
+                password = self._downloader.params.get('videopassword')
+                if password:
+                    r = int(metadata['id'][1:], 36)
+                    us64e = lambda x: base64.urlsafe_b64encode(x).decode().strip('=')
+                    t = ''.join(random.choice(string.ascii_letters) for i in range(10))
+                    n = us64e(compat_struct_pack('I', r))
+                    i = us64e(hashlib.md5(('%s%d%s' % (password, r, t)).encode()).digest())
+                    metadata = self._download_json(
+                        'http://www.dailymotion.com/player/metadata/video/p' + i + t + n, video_id)
 
             self._check_error(metadata)
 
@@ -180,9 +216,12 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                         continue
                     ext = mimetype2ext(type_) or determine_ext(media_url)
                     if ext == 'm3u8':
-                        formats.extend(self._extract_m3u8_formats(
+                        m3u8_formats = self._extract_m3u8_formats(
                             media_url, video_id, 'mp4', preference=-1,
-                            m3u8_id='hls', fatal=False))
+                            m3u8_id='hls', fatal=False)
+                        for f in m3u8_formats:
+                            f['url'] = f['url'].split('#')[0]
+                            formats.append(f)
                     elif ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             media_url, video_id, preference=-1, f4m_id='hds', fatal=False))
@@ -299,8 +338,8 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
     def _check_error(self, info):
         error = info.get('error')
-        if info.get('error') is not None:
-            title = error['title']
+        if error:
+            title = error.get('title') or error['message']
             # See https://developer.dailymotion.com/api#access-error
             if error.get('code') == 'DM007':
                 self.raise_geo_restricted(msg=title)
@@ -325,16 +364,92 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
 
 class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
     IE_NAME = 'dailymotion:playlist'
-    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>[^/?#&]+)'
-    _MORE_PAGES_INDICATOR = r'(?s)<div class="pages[^"]*">.*?<a\s+class="[^"]*?icon-arrow_right[^"]*?"'
-    _PAGE_TEMPLATE = 'https://www.dailymotion.com/playlist/%s/%s'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>x[0-9a-z]+)'
     _TESTS = [{
         'url': 'http://www.dailymotion.com/playlist/xv4bw_nqtv_sport/1#video=xl8v3q',
         'info_dict': {
             'title': 'SPORT',
-            'id': 'xv4bw_nqtv_sport',
+            'id': 'xv4bw',
         },
         'playlist_mincount': 20,
+    }]
+    _PAGE_SIZE = 100
+
+    def _fetch_page(self, playlist_id, authorizaion, page):
+        page += 1
+        videos = self._download_json(
+            'https://graphql.api.dailymotion.com',
+            playlist_id, 'Downloading page %d' % page,
+            data=json.dumps({
+                'query': '''{
+  collection(xid: "%s") {
+    videos(first: %d, page: %d) {
+      pageInfo {
+        hasNextPage
+        nextPage
+      }
+      edges {
+        node {
+          xid
+          url
+        }
+      }
+    }
+  }
+}''' % (playlist_id, self._PAGE_SIZE, page)
+            }).encode(), headers={
+                'Authorization': authorizaion,
+                'Origin': 'https://www.dailymotion.com',
+            })['data']['collection']['videos']
+        for edge in videos['edges']:
+            node = edge['node']
+            yield self.url_result(
+                node['url'], DailymotionIE.ie_key(), node['xid'])
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+        api = self._parse_json(self._search_regex(
+            r'__PLAYER_CONFIG__\s*=\s*({.+?});',
+            webpage, 'player config'), playlist_id)['context']['api']
+        auth = self._download_json(
+            api.get('auth_url', 'https://graphql.api.dailymotion.com/oauth/token'),
+            playlist_id, data=urlencode_postdata({
+                'client_id': api.get('client_id', 'f1a362d288c1b98099c7'),
+                'client_secret': api.get('client_secret', 'eea605b96e01c796ff369935357eca920c5da4c5'),
+                'grant_type': 'client_credentials',
+            }))
+        authorizaion = '%s %s' % (auth.get('token_type', 'Bearer'), auth['access_token'])
+        entries = OnDemandPagedList(functools.partial(
+            self._fetch_page, playlist_id, authorizaion), self._PAGE_SIZE)
+        return self.playlist_result(
+            entries, playlist_id,
+            self._og_search_title(webpage))
+
+
+class DailymotionUserIE(DailymotionBaseInfoExtractor):
+    IE_NAME = 'dailymotion:user'
+    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?!(?:embed|swf|#|video|playlist)/)(?:(?:old/)?user/)?(?P<user>[^/]+)'
+    _MORE_PAGES_INDICATOR = r'(?s)<div class="pages[^"]*">.*?<a\s+class="[^"]*?icon-arrow_right[^"]*?"'
+    _PAGE_TEMPLATE = 'http://www.dailymotion.com/user/%s/%s'
+    _TESTS = [{
+        'url': 'https://www.dailymotion.com/user/nqtv',
+        'info_dict': {
+            'id': 'nqtv',
+            'title': 'Rémi Gaillard',
+        },
+        'playlist_mincount': 100,
+    }, {
+        'url': 'http://www.dailymotion.com/user/UnderProject',
+        'info_dict': {
+            'id': 'UnderProject',
+            'title': 'UnderProject',
+        },
+        'playlist_mincount': 1800,
+        'expected_warnings': [
+            'Stopped at duplicated page',
+        ],
+        'skip': 'Takes too long time',
     }]
 
     def _extract_entries(self, id):
@@ -360,43 +475,6 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
                 break
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
-        webpage = self._download_webpage(url, playlist_id)
-
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'title': self._og_search_title(webpage),
-            'entries': self._extract_entries(playlist_id),
-        }
-
-
-class DailymotionUserIE(DailymotionPlaylistIE):
-    IE_NAME = 'dailymotion:user'
-    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?!(?:embed|swf|#|video|playlist)/)(?:(?:old/)?user/)?(?P<user>[^/]+)'
-    _PAGE_TEMPLATE = 'http://www.dailymotion.com/user/%s/%s'
-    _TESTS = [{
-        'url': 'https://www.dailymotion.com/user/nqtv',
-        'info_dict': {
-            'id': 'nqtv',
-            'title': 'Rémi Gaillard',
-        },
-        'playlist_mincount': 100,
-    }, {
-        'url': 'http://www.dailymotion.com/user/UnderProject',
-        'info_dict': {
-            'id': 'UnderProject',
-            'title': 'UnderProject',
-        },
-        'playlist_mincount': 1800,
-        'expected_warnings': [
-            'Stopped at duplicated page',
-        ],
-        'skip': 'Takes too long time',
-    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

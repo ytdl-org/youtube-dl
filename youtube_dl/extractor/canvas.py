@@ -11,6 +11,7 @@ from ..utils import (
     strip_or_none,
     float_or_none,
     int_or_none,
+    merge_dicts,
     parse_iso8601,
 )
 
@@ -248,9 +249,13 @@ class VrtNUIE(GigyaBaseIE):
 
         webpage, urlh = self._download_webpage_handle(url, display_id)
 
-        title = self._html_search_regex(
+        info = self._search_json_ld(webpage, display_id, default={})
+
+        # title is optional here since it may be extracted by extractor
+        # that is delegated from here
+        title = strip_or_none(self._html_search_regex(
             r'(?ms)<h1 class="content__heading">(.+?)</h1>',
-            webpage, 'title').strip()
+            webpage, 'title', default=None))
 
         description = self._html_search_regex(
             r'(?ms)<div class="content__description">(.+?)</div>',
@@ -295,7 +300,7 @@ class VrtNUIE(GigyaBaseIE):
         # the first one
         video_id = list(video.values())[0].get('videoid')
 
-        return {
+        return merge_dicts(info, {
             '_type': 'url_transparent',
             'url': 'https://mediazone.vrt.be/api/v1/vrtvideo/assets/%s' % video_id,
             'ie_key': CanvasIE.ie_key(),
@@ -307,4 +312,4 @@ class VrtNUIE(GigyaBaseIE):
             'season_number': season_number,
             'episode_number': episode_number,
             'release_date': release_date,
-        }
+        })

@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from .generic import GenericIE
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -15,13 +14,14 @@ from ..utils import (
     unified_strdate,
     xpath_text,
     update_url_query,
+    url_or_none,
 )
 from ..compat import compat_etree_fromstring
 
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         # available till 26.07.2022
@@ -37,6 +37,9 @@ class ARDMediathekIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        'url': 'https://one.ard.de/tv/Mord-mit-Aussicht/Mord-mit-Aussicht-6-39-T%C3%B6dliche-Nach/ONE/Video?bcastId=46384294&documentId=55586872',
+        'only_matching': True,
     }, {
         # audio
         'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
@@ -100,7 +103,7 @@ class ARDMediathekIE(InfoExtractor):
                 quality = stream.get('_quality')
                 server = stream.get('_server')
                 for stream_url in stream_urls:
-                    if not isinstance(stream_url, compat_str) or '//' not in stream_url:
+                    if not url_or_none(stream_url):
                         continue
                     ext = determine_ext(stream_url)
                     if quality != 'auto' and ext in ('f4m', 'm3u8'):
@@ -282,3 +285,76 @@ class ARDIE(InfoExtractor):
             'upload_date': upload_date,
             'thumbnail': thumbnail,
         }
+
+
+class ARDBetaMediathekIE(InfoExtractor):
+    _VALID_URL = r'https://beta\.ardmediathek\.de/[a-z]+/player/(?P<video_id>[a-zA-Z0-9]+)/(?P<display_id>[^/?#]+)'
+    _TESTS = [{
+        'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
+        'md5': '2d02d996156ea3c397cfc5036b5d7f8f',
+        'info_dict': {
+            'display_id': 'die-robuste-roswita',
+            'id': 'Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
+            'title': 'Tatort: Die robuste Roswita',
+            'description': r're:^Der Mord.*trüber ist als die Ilm.',
+            'duration': 5316,
+            'thumbnail': 'https://img.ardmediathek.de/standard/00/55/43/59/34/-1774185891/16x9/960?mandant=ard',
+            'upload_date': '20180826',
+            'ext': 'mp4',
+        },
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('video_id')
+        display_id = mobj.group('display_id')
+
+        webpage = self._download_webpage(url, display_id)
+        data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
+        data = self._parse_json(data_json, display_id)
+
+        res = {
+            'id': video_id,
+            'display_id': display_id,
+        }
+        formats = []
+        for widget in data.values():
+            if widget.get('_geoblocked'):
+                raise ExtractorError('This video is not available due to geoblocking', expected=True)
+
+            if '_duration' in widget:
+                res['duration'] = widget['_duration']
+            if 'clipTitle' in widget:
+                res['title'] = widget['clipTitle']
+            if '_previewImage' in widget:
+                res['thumbnail'] = widget['_previewImage']
+            if 'broadcastedOn' in widget:
+                res['upload_date'] = unified_strdate(widget['broadcastedOn'])
+            if 'synopsis' in widget:
+                res['description'] = widget['synopsis']
+            if '_subtitleUrl' in widget:
+                res['subtitles'] = {'de': [{
+                    'ext': 'ttml',
+                    'url': widget['_subtitleUrl'],
+                }]}
+            if '_quality' in widget:
+                format_url = widget['_stream']['json'][0]
+
+                if format_url.endswith('.f4m'):
+                    formats.extend(self._extract_f4m_formats(
+                        format_url + '?hdcore=3.11.0',
+                        video_id, f4m_id='hds', fatal=False))
+                elif format_url.endswith('m3u8'):
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                else:
+                    formats.append({
+                        'format_id': 'http-' + widget['_quality'],
+                        'url': format_url,
+                        'preference': 10,  # Plain HTTP, that's nice
+                    })
+
+        self._sort_formats(formats)
+        res['formats'] = formats
+
+        return res

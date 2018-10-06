@@ -57,7 +57,7 @@ class VLiveIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'http://www.vlive.tv/video/%s' % video_id, video_id)
+            'https://www.vlive.tv/video/%s' % video_id, video_id)
 
         VIDEO_PARAMS_RE = r'\bvlive\.video\.init\(([^)]+)'
         VIDEO_PARAMS_FIELD = 'video params'
@@ -108,11 +108,11 @@ class VLiveIE(InfoExtractor):
 
     def _live(self, video_id, webpage):
         init_page = self._download_webpage(
-            'http://www.vlive.tv/video/init/view',
+            'https://www.vlive.tv/video/init/view',
             video_id, note='Downloading live webpage',
             data=urlencode_postdata({'videoSeq': video_id}),
             headers={
-                'Referer': 'http://www.vlive.tv/video/%s' % video_id,
+                'Referer': 'https://www.vlive.tv/video/%s' % video_id,
                 'Content-Type': 'application/x-www-form-urlencoded'
             })
 

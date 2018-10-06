@@ -18,7 +18,7 @@ class JojIE(InfoExtractor):
                         joj:|
                         https?://media\.joj\.sk/embed/
                     )
-                    (?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})
+                    (?P<id>[^/?#^]+)
                 '''
     _TESTS = [{
         'url': 'https://media.joj.sk/embed/a388ec4c-6019-4a4a-9312-b1bee194e932',
@@ -30,15 +30,23 @@ class JojIE(InfoExtractor):
             'duration': 3118,
         }
     }, {
+        'url': 'https://media.joj.sk/embed/9i1cxv',
+        'only_matching': True,
+    }, {
         'url': 'joj:a388ec4c-6019-4a4a-9312-b1bee194e932',
+        'only_matching': True,
+    }, {
+        'url': 'joj:9i1cxv',
         'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
-        return re.findall(
-            r'<iframe\b[^>]+\bsrc=["\'](?P<url>(?:https?:)?//media\.joj\.sk/embed/[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
-            webpage)
+        return [
+            mobj.group('url')
+            for mobj in re.finditer(
+                r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//media\.joj\.sk/embed/(?:(?!\1).)+)\1',
+                webpage)]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

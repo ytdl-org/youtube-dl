@@ -16,7 +16,7 @@ from ..utils import (
 class VideaIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                        videa\.hu/
+                        videa(?:kid)?\.hu/
                         (?:
                             videok/(?:[^/]+/)*[^?#&]+-|
                             player\?.*?\bv=|
@@ -31,7 +31,7 @@ class VideaIE(InfoExtractor):
             'id': '8YfIAjxwWGwT8HVQ',
             'ext': 'mp4',
             'title': 'Az őrült kígyász 285 kígyót enged szabadon',
-            'thumbnail': 'http://videa.hu/static/still/1.4.1.1007274.1204470.3',
+            'thumbnail': r're:^https?://.*',
             'duration': 21,
         },
     }, {
@@ -42,6 +42,15 @@ class VideaIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://videa.hu/player/v/8YfIAjxwWGwT8HVQ?autoplay=1',
+        'only_matching': True,
+    }, {
+        'url': 'https://videakid.hu/videok/origo/jarmuvek/supercars-elozes-jAHDWfWSJH5XuFhH',
+        'only_matching': True,
+    }, {
+        'url': 'https://videakid.hu/player?v=8YfIAjxwWGwT8HVQ',
+        'only_matching': True,
+    }, {
+        'url': 'https://videakid.hu/player/v/8YfIAjxwWGwT8HVQ?autoplay=1',
         'only_matching': True,
     }]
 
