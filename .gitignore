@@ -23,6 +23,7 @@ updates_key.pem
 *.egg-info
 *.srt
 *.ttml
+*.tt
 *.sbv
 *.vtt
 *.flv
