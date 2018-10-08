@@ -595,6 +595,7 @@ from .mailru import (
     MailRuMusicSearchIE,
 )
 from .makertv import MakerTVIE
+from .malltv import MallTvIE
 from .mangomolo import (
     MangomoloVideoIE,
     MangomoloLiveIE,
