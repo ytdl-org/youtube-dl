@@ -29,13 +29,11 @@ class MallTvIE(InfoExtractor):
         },
     }
 
-    # MAll.tv has malformed type atribute (i.e. missing quotes)
-    #
-    JSON_LD_RE_MALLTV_MALFORMED = r'(?is)<script[^>]+type=application/ld\+json[^>]*>(?P<json_ld>.+?)</script>'
+    JSON_LD_RE_UNQUOTED_ATTRIB = r'(?is)<script[^>]+type=application/ld\+json[^>]*>(?P<json_ld>.+?)</script>'
 
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
         json_ld = self._search_regex(
-            self.JSON_LD_RE_MALLTV_MALFORMED, html, 'JSON-LD', group='json_ld', **kwargs)
+            self.JSON_LD_RE_UNQUOTED_ATTRIB, html, 'JSON-LD', group='json_ld', **kwargs)
         default = kwargs.get('default', NO_DEFAULT)
         if not json_ld:
             return default if default is not NO_DEFAULT else {}
@@ -47,7 +45,6 @@ class MallTvIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
 
         title = self._og_search_title(webpage, default=None)
@@ -55,8 +52,6 @@ class MallTvIE(InfoExtractor):
 
         ldjson = self._search_json_ld(webpage, video_id, default=None)
 
-        # Again, the malform attribute
-        #
         source = self._search_regex(re.compile(r'<source\s+src=([^ \t]+)'), webpage, None, default=None)
 
         format_url = source + '.m3u8'
