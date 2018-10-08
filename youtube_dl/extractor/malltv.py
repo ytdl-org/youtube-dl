@@ -10,9 +10,9 @@ from ..utils import (
 
 
 class MallTvIE(InfoExtractor):
-    _VALID_URL = r'https://mall.tv/(?P<id>[^/#?]+)'
+    _VALID_URL = r'https://(?:www\.)?mall.tv/(?P<id>[^/#?]+)'
     _TEST = {
-        'url': 'https://mall.tv/tajemstvi-nejkrupavejsich-kurecich-kridylek',
+        'url': 'https://www.mall.tv/tajemstvi-nejkrupavejsich-kurecich-kridylek',
         'info_dict': {
             'id': 'tajemstvi-nejkrupavejsich-kurecich-kridylek',
             'ext': 'mp4',
