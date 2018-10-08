@@ -49,7 +49,7 @@ class DiscoveryIE(DiscoveryGoBaseIE):
 
     def _real_extract(self, url):
         site, path, display_id = re.match(self._VALID_URL, url).groups()
-        webpage = self._download_webpage(url, display_id)
+        webpage = self._download_webpage(url, display_id, headers=self.geo_verification_headers())
 
         react_data = self._parse_json(self._search_regex(
             r'window\.__reactTransmitPacket\s*=\s*({.+?});',
@@ -78,14 +78,17 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                         compat_str) or '3020a40c2356a645b4b4',
                     'nonce': ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
                     'redirectUri': 'https://fusion.ddmcdn.com/app/mercury-sdk/180/redirectHandler.html?https://www.%s.com' % site,
-                })['access_token']
+                }, headers=self.geo_verification_headers())['access_token']
 
         try:
+            headers = self.geo_verification_headers()
+            headers.update({
+                'Authorization': 'Bearer ' + access_token,
+            })
+
             stream = self._download_json(
                 'https://api.discovery.com/v1/streaming/video/' + video_id,
-                display_id, headers={
-                    'Authorization': 'Bearer ' + access_token,
-                })
+                display_id, headers=headers)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code in (401, 403):
                 e_description = self._parse_json(
