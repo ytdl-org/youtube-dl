@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 import re
+import requests
+import time
 
 from .common import InfoExtractor
 from ..utils import (
@@ -12,7 +14,6 @@ from ..utils import (
     urlencode_postdata,
 )
 from datetime import datetime
-import requests
 
 
 class RoosterTeethIE(InfoExtractor):
@@ -25,14 +26,14 @@ class RoosterTeethIE(InfoExtractor):
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
         'md5': 'e2bd7764732d785ef797700a2489f212',
         'info_dict': {
-            'id': '26576',
+            'id': '9156',
             'display_id': 'million-dollars-but-season-2-million-dollars-but-the-game-announcement',
             'ext': 'mp4',
-            'title': 'Million Dollars, But...: Million Dollars, But... The Game Announcement',
+            'title': 'Million Dollars, But... The Game Announcement',
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
             'thumbnail': r're:^https?://.*\.png$',
             'series': 'Million Dollars, But...',
-            'episode': 'Million Dollars, But... The Game Announcement',
+            'episode': '10',
             'comment_count': int,
         },
     }, {
@@ -77,7 +78,7 @@ class RoosterTeethIE(InfoExtractor):
         try:
             self._OAUTH_TOKEN = response.json()['access_token']
         except KeyError:
-            raise ExtractorError('Unable to log in.  Make sure you typed your username and password correctly.')
+            raise self.raise_login_required("Login required.")
         return
 
     def _real_initialize(self):
@@ -89,7 +90,7 @@ class RoosterTeethIE(InfoExtractor):
 
         if self._OAUTH_TOKEN:
             headers['authorization'] = 'Bearer %s' % self._OAUTH_TOKEN
-
+        print('https://svod-be.roosterteeth.com/api/v1/episodes/%s' % display_id)
         video_info = self._download_json('https://svod-be.roosterteeth.com/api/v1/episodes/%s' % display_id,
                                          display_id, note='m3u8', headers=headers)
         sponsor_only = video_info['data'][0]['attributes']['is_sponsors_only']
@@ -98,13 +99,12 @@ class RoosterTeethIE(InfoExtractor):
             self.raise_login_required("Video is for sponsors only.  Log in with an account")
 
         public_dt = datetime.strptime(video_info['data'][0]['attributes']['public_golive_at'], '%Y-%m-%dT%H:%M:%S.000Z')
-        sponsor_dt = datetime.strptime(video_info['data'][0]['attributes']['sponsor_golive_at'], '%Y-%m-%dT%H:%M:%S.000Z')
-        if (public_dt.timestamp() > sponsor_dt.timestamp()) and not self._OAUTH_TOKEN:
+
+        if (public_dt.timestamp() >= time.time()) and not self._OAUTH_TOKEN:
             self.raise_login_required("Video not yet available for free members.  Log in with an account")
 
         stream_info = self._download_json('https://svod-be.roosterteeth.com/api/v1/episodes/%s/videos' % display_id,
                                           display_id, note='m3u8', headers=headers)
-
         m3u8_url = stream_info['data'][0]['attributes']['url']
         title = video_info['data'][0]['attributes']['title']
         season = video_info['data'][0]['attributes']['season_number']
@@ -112,15 +112,14 @@ class RoosterTeethIE(InfoExtractor):
         description = video_info['data'][0]['attributes']['description']
         series = video_info['data'][0]['attributes']['show_title']
         thumbnail = video_info['data'][0]['included']['images'][0]['attributes']['thumb']
-        video_id = display_id
+        video_id = str(video_info['data'][0]['id'])
         comment_count = 0
 
         if not m3u8_url:
             raise ExtractorError('Unable to extract m3u8 URL')
 
-        formats = self._extract_m3u8_formats(
-            m3u8_url, display_id, ext='mp4',
-            entry_protocol='m3u8_native', m3u8_id='hls')
+        formats = self._extract_m3u8_formats(m3u8_url, display_id, ext='mp4',
+                                             entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
         return {
@@ -130,7 +129,7 @@ class RoosterTeethIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'series': series,
-            'episode': episode,
+            'episode': str(episode),
             'comment_count': comment_count,
             'formats': formats,
         }
