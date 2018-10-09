@@ -11,11 +11,15 @@ from ..utils import (
     unescapeHTML,
     urlencode_postdata,
 )
+from datetime import datetime
+import requests
 
 
 class RoosterTeethIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/episode/(?P<id>[^/?#&]+)'
-    _LOGIN_URL = 'https://roosterteeth.com/login'
+    _LOGIN_URL = 'https://auth.roosterteeth.com/oauth/token'
+    _OAUTH_TOKEN = None
+
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
@@ -54,86 +58,70 @@ class RoosterTeethIE(InfoExtractor):
         if username is None:
             return
 
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
+        pattern = "REACT_APP_AUTH_CLIENT_ID: rtConfigSetup\('(4338d2b4bdc8db1239360f28e72f0d9ddb1fd01e7a38fbb07b4b1f4ba4564cc5)'"
+        client_page = self._download_webpage(
+            'https://roosterteeth.com', None,
+            note='Getting client id',
+            errnote='Unable to download client info.')
+        client_id = re.findall(pattern, client_page)[0]
 
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
+        login_data = {
             'username': username,
             'password': password,
-        })
+            'client_id': client_id,
+            'scope': 'user public',
+            'grant_type': 'password',
+        }
+        response = requests.post(self._LOGIN_URL, data=login_data)
 
-        login_request = self._download_webpage(
-            self._LOGIN_URL, None,
-            note='Logging in',
-            data=urlencode_postdata(login_form),
-            headers={
-                'Referer': self._LOGIN_URL,
-            })
-
-        if not any(re.search(p, login_request) for p in (
-                r'href=["\']https?://(?:www\.)?roosterteeth\.com/logout"',
-                r'>Sign Out<')):
-            error = self._html_search_regex(
-                r'(?s)<div[^>]+class=(["\']).*?\balert-danger\b.*?\1[^>]*>(?:\s*<button[^>]*>.*?</button>)?(?P<error>.+?)</div>',
-                login_request, 'alert', default=None, group='error')
-            if error:
-                raise ExtractorError('Unable to login: %s' % error, expected=True)
-            raise ExtractorError('Unable to log in')
+        try:
+            self._OAUTH_TOKEN = response.json()['access_token']
+        except KeyError:
+            raise ExtractorError('Unable to log in.  Make sure you typed your username and password correctly.')
+        return
 
     def _real_initialize(self):
         self._login()
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
+        headers = self.geo_verification_headers()
 
-        webpage = self._download_webpage(url, display_id)
+        if self._OAUTH_TOKEN:
+            headers['authorization'] = 'Bearer %s' % self._OAUTH_TOKEN
 
-        episode = strip_or_none(unescapeHTML(self._search_regex(
-            (r'videoTitle\s*=\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
-             r'<title>(?P<title>[^<]+)</title>'), webpage, 'title',
-            default=None, group='title')))
+        video_info = self._download_json('https://svod-be.roosterteeth.com/api/v1/episodes/%s' % display_id,
+                                         display_id, note='m3u8', headers=headers)
+        sponsor_only = video_info['data'][0]['attributes']['is_sponsors_only']
 
-        title = strip_or_none(self._og_search_title(
-            webpage, default=None)) or episode
+        if sponsor_only and not self._OAUTH_TOKEN:
+            self.raise_login_required("Video is for sponsors only.  Log in with an account")
 
-        m3u8_url = self._search_regex(
-            r'file\s*:\s*(["\'])(?P<url>http.+?\.m3u8.*?)\1',
-            webpage, 'm3u8 url', default=None, group='url')
+        public_dt = datetime.strptime(video_info['data'][0]['attributes']['public_golive_at'], '%Y-%m-%dT%H:%M:%S.000Z')
+        sponsor_dt = datetime.strptime(video_info['data'][0]['attributes']['sponsor_golive_at'], '%Y-%m-%dT%H:%M:%S.000Z')
+        if (public_dt.timestamp() > sponsor_dt.timestamp()) and not self._OAUTH_TOKEN:
+            self.raise_login_required("Video not yet available for free members.  Log in with an account")
+
+        stream_info = self._download_json('https://svod-be.roosterteeth.com/api/v1/episodes/%s/videos' % display_id,
+                                          display_id, note='m3u8', headers=headers)
+
+        m3u8_url = stream_info['data'][0]['attributes']['url']
+        title = video_info['data'][0]['attributes']['title']
+        season = video_info['data'][0]['attributes']['season_number']
+        episode = video_info['data'][0]['attributes']['number']
+        description = video_info['data'][0]['attributes']['description']
+        series = video_info['data'][0]['attributes']['show_title']
+        thumbnail = video_info['data'][0]['included']['images'][0]['attributes']['thumb']
+        video_id = display_id
+        comment_count = 0
 
         if not m3u8_url:
-            if re.search(r'<div[^>]+class=["\']non-sponsor', webpage):
-                self.raise_login_required(
-                    '%s is only available for FIRST members' % display_id)
-
-            if re.search(r'<div[^>]+class=["\']golive-gate', webpage):
-                self.raise_login_required('%s is not available yet' % display_id)
-
             raise ExtractorError('Unable to extract m3u8 URL')
 
         formats = self._extract_m3u8_formats(
             m3u8_url, display_id, ext='mp4',
             entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
-
-        description = strip_or_none(self._og_search_description(webpage))
-        thumbnail = self._proto_relative_url(self._og_search_thumbnail(webpage))
-
-        series = self._search_regex(
-            (r'<h2>More ([^<]+)</h2>', r'<a[^>]+>See All ([^<]+) Videos<'),
-            webpage, 'series', fatal=False)
-
-        comment_count = int_or_none(self._search_regex(
-            r'>Comments \((\d+)\)<', webpage,
-            'comment count', fatal=False))
-
-        video_id = self._search_regex(
-            (r'containerId\s*=\s*["\']episode-(\d+)\1',
-             r'<div[^<]+id=["\']episode-(\d+)'), webpage,
-            'video id', default=display_id)
 
         return {
             'id': video_id,
@@ -146,3 +134,4 @@ class RoosterTeethIE(InfoExtractor):
             'comment_count': comment_count,
             'formats': formats,
         }
+
