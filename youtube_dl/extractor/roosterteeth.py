@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 import re
-import requests
+import json
 import time
 
 from .common import InfoExtractor
@@ -73,10 +73,12 @@ class RoosterTeethIE(InfoExtractor):
             'scope': 'user public',
             'grant_type': 'password',
         }
-        response = requests.post(self._LOGIN_URL, data=login_data)
+        if login_data:
+            login_data = json.dumps(login_data).encode()
+        login = self._download_json(self._LOGIN_URL, '1', note="Downloading token JSON data", data=login_data)
 
         try:
-            self._OAUTH_TOKEN = response.json()['access_token']
+            self._OAUTH_TOKEN = login['access_token']
         except KeyError:
             raise self.raise_login_required("Login required.")
         return
@@ -133,4 +135,3 @@ class RoosterTeethIE(InfoExtractor):
             'comment_count': comment_count,
             'formats': formats,
         }
-
