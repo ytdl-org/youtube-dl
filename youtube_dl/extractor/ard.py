@@ -322,9 +322,6 @@ class ARDBetaMediathekIE(InfoExtractor):
         }
         formats = []
         for widget in data.values():
-            if widget.get('_geoblocked'):
-                raise ExtractorError('This video is not available due to geoblocking', expected=True)
-
             if '_duration' in widget:
                 res['duration'] = widget['_duration']
             if 'clipTitle' in widget:
